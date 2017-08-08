@@ -10,6 +10,7 @@
 
 #include "FileStream.hpp"
 #include "arch/mpi/mpi.h"
+#include "components/Patch.hpp"
 #include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
 #include "io.hpp"
@@ -138,7 +139,7 @@ void calcMinMaxNonsharedWeights(
       int nyp,
       int nfp,
       PatchListDescription const &patchIndices,
-      PVPatch const *const *const *patchGeometry);
+      Patch const *const *const *patchGeometry);
 
 void calcMinMaxSharedWeights(
       float &minWeight,
@@ -190,7 +191,7 @@ bool isCompressedHeader(BufferUtils::WeightHeader const &header, std::string con
 
 int pv_text_write_patch(
       PrintStream *pvstream,
-      PVPatch *patch,
+      Patch *patch,
       float *data,
       int nf,
       int sx,
@@ -227,7 +228,7 @@ void writeNonsharedWeights(
       bool compress,
       bool extended,
       const PVLayerLoc *postLoc,
-      PVPatch const *const *const *patchGeometry);
+      Patch const *const *const *patchGeometry);
 
 // Unused function pvp_check_file_header was removed Mar 15, 2017.
 } // namespace PV

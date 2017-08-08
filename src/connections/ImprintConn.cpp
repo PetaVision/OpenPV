@@ -82,7 +82,7 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt) {
 
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
-   PVPatch *weights = getWeights(kExt, arbor_ID);
+   Patch *weights = getWeights(kExt, arbor_ID);
 
    int sya =
          (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt

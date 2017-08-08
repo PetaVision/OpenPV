@@ -62,8 +62,8 @@ int HyPerConnDebugInitWeights::communicateInitInfo(
    return PV_SUCCESS;
 }
 
-PVPatch ***HyPerConnDebugInitWeights::initializeWeights(
-      PVPatch ***arbors,
+Patch ***HyPerConnDebugInitWeights::initializeWeights(
+      Patch ***arbors,
       float **dataStart,
       int numPatches,
       const char *filename) {
@@ -73,7 +73,7 @@ PVPatch ***HyPerConnDebugInitWeights::initializeWeights(
    //       classes
    //       of InitWeightsMethod.
    PVParams *inputParams = parent->parameters();
-   PVPatch **patches     = arbors[0];
+   Patch **patches       = arbors[0];
    float *arborStart     = dataStart[0];
    numPatches            = getNumDataPatches();
 
@@ -109,8 +109,8 @@ PVPatch ***HyPerConnDebugInitWeights::initializeWeights(
    return arbors;
 }
 
-PVPatch **HyPerConnDebugInitWeights::initializeSmartWeights(
-      PVPatch **patches,
+Patch **HyPerConnDebugInitWeights::initializeSmartWeights(
+      Patch **patches,
       float *dataStart,
       int numPatches) {
 
@@ -119,7 +119,7 @@ PVPatch **HyPerConnDebugInitWeights::initializeSmartWeights(
    }
    return patches;
 }
-int HyPerConnDebugInitWeights::smartWeights(PVPatch *wp, float *dataStart, int k) {
+int HyPerConnDebugInitWeights::smartWeights(Patch *wp, float *dataStart, int k) {
    float *w = dataStart; // wp->data;
 
    const int nxp = (int)wp->nx;
@@ -142,8 +142,8 @@ int HyPerConnDebugInitWeights::smartWeights(PVPatch *wp, float *dataStart, int k
    return 0;
 }
 
-PVPatch **HyPerConnDebugInitWeights::initializeCocircWeights(
-      PVPatch **patches,
+Patch **HyPerConnDebugInitWeights::initializeCocircWeights(
+      Patch **patches,
       float *dataStart,
       int numDataPatches) {
    PVParams *params = parent->parameters();
@@ -224,7 +224,7 @@ PVPatch **HyPerConnDebugInitWeights::initializeCocircWeights(
    return patches;
 }
 int HyPerConnDebugInitWeights::cocircCalcWeights(
-      PVPatch *wp,
+      Patch *wp,
       float *dataStart,
       int dataPatchIndex,
       int noPre,
@@ -263,7 +263,7 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(
    FatalIf(!(sf == 1), "Test failed.\n");
 
    // make full sized temporary patch, positioned around center of unit cell
-   // PVPatch * wp_tmp;
+   // Patch * wp_tmp;
    // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
    // float * w_tmp = wp_tmp->data;
    float *w_tmp = dataStart;
@@ -583,8 +583,8 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(
    return 0;
 }
 
-PVPatch **HyPerConnDebugInitWeights::initializeGaussian2DWeights(
-      PVPatch **patches,
+Patch **HyPerConnDebugInitWeights::initializeGaussian2DWeights(
+      Patch **patches,
       float *dataStart,
       int numPatches) {
    PVParams *params = parent->parameters();
@@ -648,7 +648,7 @@ PVPatch **HyPerConnDebugInitWeights::initializeGaussian2DWeights(
    return patches;
 }
 int HyPerConnDebugInitWeights::gauss2DCalcWeights(
-      PVPatch *wp,
+      Patch *wp,
       float *dataStart,
       int dataPatchIndex,
       int no,
@@ -687,7 +687,7 @@ int HyPerConnDebugInitWeights::gauss2DCalcWeights(
    FatalIf(!(sf == 1), "Test failed.\n");
 
    // make full sized temporary patch, positioned around center of unit cell
-   // PVPatch * wp_tmp;
+   // Patch * wp_tmp;
    // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
    float *w_tmp = dataStart; // wp_tmp->data;
 
@@ -819,8 +819,8 @@ int HyPerConnDebugInitWeights::gauss2DCalcWeights(
    return 0;
 }
 
-PVPatch **HyPerConnDebugInitWeights::initializeGaborWeights(
-      PVPatch **patches,
+Patch **HyPerConnDebugInitWeights::initializeGaborWeights(
+      Patch **patches,
       float *dataStart,
       int numPatches) {
 
@@ -863,7 +863,7 @@ PVPatch **HyPerConnDebugInitWeights::initializeGaborWeights(
 }
 
 int HyPerConnDebugInitWeights::gaborWeights(
-      PVPatch *wp,
+      Patch *wp,
       float *dataStart,
       int xScale,
       int yScale,

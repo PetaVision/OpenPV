@@ -174,7 +174,7 @@ int privateTransposeConn::setInitialValues() {
    return status;
 }
 
-PVPatch ***privateTransposeConn::initializeWeights(PVPatch ***patches, float **dataStart) {
+Patch ***privateTransposeConn::initializeWeights(Patch ***patches, float **dataStart) {
    // privateTransposeConn must wait until after postConn has been normalized, so weight
    // initialization doesn't take place until HyPerCol::run calls finalizeUpdate
    return patches;
@@ -355,7 +355,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
                   preLocOrig->nf);
             memcpy(b, &idxGlobalRes, sizeof(idxGlobalRes));
             b += sizeof(idxGlobalRes);
-            PVPatch *patchOrig = postConn->getWeights(idxExt, arborId);
+            Patch *patchOrig = postConn->getWeights(idxExt, arborId);
             memcpy(b, patchOrig, sizeof(*patchOrig));
             b += sizeof(*patchOrig);
             int postIdxRes = (int)postConn->getGSynPatchStart(idxExt, arborId);
@@ -403,7 +403,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
             preLocOrig->halo.rt,
             preLocOrig->halo.dn,
             preLocOrig->halo.up);
-      PVPatch *patchOrig           = postConn->getWeights(kPreExtendedOrig, arborId);
+      Patch *patchOrig             = postConn->getWeights(kPreExtendedOrig, arborId);
       int nk                       = patchOrig->nx * postConn->fPatchSize();
       int ny                       = patchOrig->ny;
       float *weightvaluesorig      = postConn->get_wData(arborId, kPreExtendedOrig);
@@ -423,7 +423,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
                   preLocTranspose->halo.rt,
                   preLocTranspose->halo.dn,
                   preLocTranspose->halo.up);
-            PVPatch *patchTranspose        = getWeights(kPreExtendedTranspose, arborId);
+            Patch *patchTranspose          = getWeights(kPreExtendedTranspose, arborId);
             size_t gSynPatchStartTranspose = getGSynPatchStart(kPreExtendedTranspose, arborId);
             // Need to find which pixel in the patch is tied to kPostRestrictedTranspose
             int moveFromOffset     = kPostRestrictedTranspose - (int)gSynPatchStartTranspose;
@@ -458,7 +458,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
          int origPreIndex;
          memcpy(&origPreIndex, b, sizeof(origPreIndex));
          b += sizeof(origPreIndex);
-         PVPatch patch;
+         Patch patch;
          memcpy(&patch, b, sizeof(patch));
          b += sizeof(patch);
          int postIdxGlobalRes;
@@ -529,7 +529,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
                         postLocTranspose->ny,
                         postLocTranspose->nf);
 
-                  PVPatch *transposePatch = getWeights(transposePreLocalExt, arborId);
+                  Patch *transposePatch = getWeights(transposePreLocalExt, arborId);
                   int transposeGSynPatchStart =
                         (int)getGSynPatchStart(transposePreLocalExt, arborId);
                   int transposeGSynOffset = transposePostLocalRes - transposeGSynPatchStart;
@@ -648,11 +648,11 @@ int privateTransposeConn::mpiexchangesize(
    *blocksize =
          preLocOrig->nf * postConn->xPatchSize() * postConn->yPatchSize() * postConn->fPatchSize();
    // Each block is a contiguous set of preLocOrig->nf weight patches.  We also need to send the
-   // presynaptic index, the PVPatch geometry and the aPostOffset.
+   // presynaptic index, the Patch geometry and the aPostOffset.
    // for each block.  This assumes that each of the preLocOrig->nf patches for a given (x,y) site
-   // has the same aPostOffset and PVPatch values.
-   *buffersize = (size_t)*size * (sizeof(int) + sizeof(PVPatch) + sizeof(int)
-                                  + (size_t)*blocksize * sizeof(float));
+   // has the same aPostOffset and Patch values.
+   *buffersize = (size_t)*size
+                 * (sizeof(int) + sizeof(Patch) + sizeof(int) + (size_t)*blocksize * sizeof(float));
    return PV_SUCCESS;
 }
 

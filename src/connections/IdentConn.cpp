@@ -281,8 +281,8 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const *activity, int ar
          for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
             int kPre = activeIndicesBatch[loopIndex].index;
 
-            float a          = activeIndicesBatch[loopIndex].value; // activityBatch[kPre];
-            PVPatch *weights = getWeights(kPre, arborID);
+            float a        = activeIndicesBatch[loopIndex].value; // activityBatch[kPre];
+            Patch *weights = getWeights(kPre, arborID);
             if (weights->nx > 0 && weights->ny > 0) {
                int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo
                // into account, but

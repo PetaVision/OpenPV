@@ -427,8 +427,8 @@ int PoolingConn::constructWeights() {
    setPatchStrides();
 
    for (int arborId = 0; arborId < numAxonalArborLists; arborId++) {
-      PVPatch ***wPatches = get_wPatches();
-      status              = createWeights(wPatches, arborId);
+      Patch ***wPatches = get_wPatches();
+      status            = createWeights(wPatches, arborId);
       assert(wPatches[arborId] != NULL);
       if (arborId == 0) {
          status |= adjustAxonalArbors(arborId);
@@ -608,7 +608,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
          }
 #endif // PV_USE_OPENMP_THREADS
 
-         PVPatch *weights          = getWeights(kPreExt, arborID);
+         Patch *weights            = getWeights(kPreExt, arborID);
          const int nk              = weights->nx * fPatchSize();
          const int ny              = weights->ny;
          const int sy              = getPostNonextStrides()->sy; // stride in layer

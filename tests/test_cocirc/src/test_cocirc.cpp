@@ -90,11 +90,11 @@ int main(int argc, char *argv[]) {
 int check_cocirc_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int axonID) {
    FatalIf(!(cKernel->usingSharedWeights() == true), "Test failed.\n");
    FatalIf(!(cHyPer->usingSharedWeights() == false), "Test failed.\n");
-   int status           = 0;
-   PVPatch *hyperPatch  = cHyPer->getWeights(kPre, axonID);
-   PVPatch *cocircPatch = cKernel->getWeights(kPre, axonID);
-   int hyPerDataIndex   = cHyPer->patchIndexToDataIndex(kPre);
-   int kernelDataIndex  = cKernel->patchIndexToDataIndex(kPre);
+   int status          = 0;
+   Patch *hyperPatch   = cHyPer->getWeights(kPre, axonID);
+   Patch *cocircPatch  = cKernel->getWeights(kPre, axonID);
+   int hyPerDataIndex  = cHyPer->patchIndexToDataIndex(kPre);
+   int kernelDataIndex = cKernel->patchIndexToDataIndex(kPre);
 
    int nk = cHyPer->fPatchSize() * (int)hyperPatch->nx;
    FatalIf(!(nk == (cKernel->fPatchSize() * (int)cocircPatch->nx)), "Test failed.\n");

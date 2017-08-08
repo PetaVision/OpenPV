@@ -33,8 +33,8 @@ int testTransposeOfTransposeWeights(
       const char *message);
 int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2);
 int testPatchesEqual(
-      PVPatch *patch1,
-      PVPatch *patch2,
+      Patch *patch1,
+      Patch *patch2,
       int index,
       const char *conn1name,
       const char *conn2name);
@@ -245,8 +245,8 @@ int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2) {
 }
 
 int testPatchesEqual(
-      PVPatch *patch1,
-      PVPatch *patch2,
+      Patch *patch1,
+      Patch *patch2,
       int index,
       const char *conn1name,
       const char *conn2name) {
@@ -323,10 +323,10 @@ int dumpWeights(HyPerConn *conn) {
    int numPatches = conn->getNumWeightPatches();
    for (int arbor = 0; arbor < numArbors; arbor++) {
       for (int kn = 0; kn < numPatches; kn++) {
-         PVPatch *kp = conn->getWeights(kn, 0);
-         int nx      = kp->nx;
-         int ny      = kp->ny;
-         int offset  = kp->offset;
+         Patch *kp  = conn->getWeights(kn, 0);
+         int nx     = kp->nx;
+         int ny     = kp->ny;
+         int offset = kp->offset;
          ErrorLog().printf("    Weight Patch %d: nx=%d, ny=%d, offset=%d\n", kn, nx, ny, offset);
       }
    }

@@ -22,7 +22,7 @@ float calcWeight(int patchIndex, int itemIndex, int numItemsInPatch);
 bool isActiveWeight(
       int itemIndex,
       int localPatchIndex,
-      PVPatch const *const *arborPatches,
+      PV::Patch const *const *arborPatches,
       int nxp,
       int nyp,
       int nfp);
@@ -66,12 +66,12 @@ int main(int argc, char *argv[]) {
    PV::MPIBlock const mpiBlock        = *tempCheckpointer->getMPIBlock();
    delete tempCheckpointer;
 
-   // Copy over the PVPatch information, and delete the column.
-   std::vector<PVPatch **> patches{(std::size_t)numArbors};
+   // Copy over the Patch information, and delete the column.
+   std::vector<PV::Patch **> patches{(std::size_t)numArbors};
    for (int arbor = 0; arbor < numArbors; arbor++) {
       patches[arbor] = PV::HyPerConn::createPatches(patchDataSize, nxp, nyp);
       for (int patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
-         memcpy(patches[arbor][patchIndex], conn->getWeights(patchIndex, arbor), sizeof(PVPatch));
+         memcpy(patches[arbor][patchIndex], conn->getWeights(patchIndex, arbor), sizeof(PV::Patch));
       }
    }
    delete hc;
@@ -114,8 +114,8 @@ int main(int argc, char *argv[]) {
    // values inside a shrunken patch on another.
    if (!shared) {
       for (int a = 0; a < numArbors; a++) {
-         PVPatch const *const *arborPatches = patches.at(a);
-         std::vector<float> &arborWeights   = weights.at(a);
+         PV::Patch const *const *arborPatches = patches.at(a);
+         std::vector<float> &arborWeights     = weights.at(a);
          for (int p = 0; p < numDataPatches; p++) {
             float *w = &arborWeights.at(p * numItemsInPatch);
             for (int k = 0; k < numItemsInPatch; k++) {
@@ -189,8 +189,8 @@ int main(int argc, char *argv[]) {
 
    // Compare the weight data
    for (int a = 0; a < numArbors; a++) {
-      PVPatch const *const *arborPatches = patches.at(a);
-      std::vector<float> &arborWeights   = weights.at(a);
+      PV::Patch const *const *arborPatches = patches.at(a);
+      std::vector<float> &arborWeights     = weights.at(a);
       for (int p = 0; p < numDataPatches; p++) {
          int globalPatchIndex;
          if (shared) {
@@ -255,16 +255,16 @@ float calcWeight(int patchIndex, int itemIndex, int numItemsInPatch) {
 bool isActiveWeight(
       int itemIndex,
       int localPatchIndex,
-      PVPatch const *const *arborPatches,
+      PV::Patch const *const *arborPatches,
       int nxp,
       int nyp,
       int nfp) {
    int const x = kxPos(itemIndex, nxp, nyp, nfp);
    int const y = kyPos(itemIndex, nxp, nyp, nfp);
 
-   PVPatch const *patch = arborPatches[localPatchIndex];
-   int const startx     = kxPos(patch->offset, nxp, nyp, nfp);
-   int const starty     = kyPos(patch->offset, nxp, nyp, nfp);
+   PV::Patch const *patch = arborPatches[localPatchIndex];
+   int const startx       = kxPos(patch->offset, nxp, nyp, nfp);
+   int const starty       = kyPos(patch->offset, nxp, nyp, nfp);
 
    return (x >= startx and x < startx + patch->nx and y >= starty and y < starty + patch->ny);
 }

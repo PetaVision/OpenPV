@@ -17,7 +17,7 @@ namespace PV {
 void CheckpointEntryWeightPvp::initialize(
       int numArbors,
       bool sharedWeights,
-      PVPatch const *const *const *patchGeometry,
+      Patch const *const *const *patchGeometry,
       float **weightData,
       int numPatchesX,
       int numPatchesY,

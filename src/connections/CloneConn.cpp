@@ -80,7 +80,7 @@ void CloneConn::constructWeightsOutOfMemory() {
 
 int CloneConn::createAxonalArbors(int arborId) { return PV_SUCCESS; }
 
-PVPatch ***CloneConn::initializeWeights(PVPatch ***patches, float **dataStart) {
+Patch ***CloneConn::initializeWeights(Patch ***patches, float **dataStart) {
    return patches;
    // nothing to be done as the weight patches point to originalConn's space.
 }

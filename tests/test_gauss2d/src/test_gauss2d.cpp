@@ -98,11 +98,11 @@ int main(int argc, char *argv[]) {
 int check_kernel_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int axonID) {
    FatalIf(cKernel->usingSharedWeights() == false, "Test failed.\n");
    FatalIf(cHyPer->usingSharedWeights() == true, "Test failed.\n");
-   int status           = 0;
-   PVPatch *hyperPatch  = cHyPer->getWeights(kPre, axonID);
-   PVPatch *kernelPatch = cKernel->getWeights(kPre, axonID);
-   int hyPerDataIndex   = cHyPer->patchIndexToDataIndex(kPre);
-   int kernelDataIndex  = cKernel->patchIndexToDataIndex(kPre);
+   int status          = 0;
+   Patch *hyperPatch   = cHyPer->getWeights(kPre, axonID);
+   Patch *kernelPatch  = cKernel->getWeights(kPre, axonID);
+   int hyPerDataIndex  = cHyPer->patchIndexToDataIndex(kPre);
+   int kernelDataIndex = cKernel->patchIndexToDataIndex(kPre);
 
    int nk = cHyPer->fPatchSize() * (int)hyperPatch->nx;
    FatalIf(nk != (cKernel->fPatchSize() * (int)kernelPatch->nx), "Test failed.\n");

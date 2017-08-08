@@ -79,8 +79,8 @@ int KernelConnDebugInitWeights::communicateInitInfo(
    return PV_SUCCESS;
 }
 
-PVPatch ***KernelConnDebugInitWeights::initializeWeights(
-      PVPatch ***arbors,
+Patch ***KernelConnDebugInitWeights::initializeWeights(
+      Patch ***arbors,
       float **dataStart,
       int numPatches,
       const char *filename) {
@@ -91,7 +91,7 @@ PVPatch ***KernelConnDebugInitWeights::initializeWeights(
    //       of InitWeightsMethod.
    PVParams *inputParams = parent->parameters();
 
-   // PVPatch ** kpatches = arbors[0]; // getKernelPatches(0);
+   // Patch ** kpatches = arbors[0]; // getKernelPatches(0);
    float *arborStart    = dataStart[0];
    int numKernelPatches = getNumDataPatches();
 
@@ -127,8 +127,8 @@ PVPatch ***KernelConnDebugInitWeights::initializeWeights(
    return arbors;
 }
 
-PVPatch **KernelConnDebugInitWeights::initializeSmartWeights(
-      PVPatch **patches,
+Patch **KernelConnDebugInitWeights::initializeSmartWeights(
+      Patch **patches,
       float *dataStart,
       int numPatches) {
 
@@ -160,8 +160,8 @@ int KernelConnDebugInitWeights::smartWeights(float *dataStart, int k) {
    return 0;
 }
 
-PVPatch **KernelConnDebugInitWeights::initializeCocircWeights(
-      PVPatch **patches,
+Patch **KernelConnDebugInitWeights::initializeCocircWeights(
+      Patch **patches,
       float *dataStart,
       int numPatches) {
    PVParams *params = parent->parameters();
@@ -278,7 +278,7 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
    FatalIf(!(sf == 1), "Test failed.\n");
 
    // make full sized temporary patch, positioned around center of unit cell
-   // PVPatch * wp_tmp;
+   // Patch * wp_tmp;
    // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
    // float * w_tmp = wp_tmp->data;
    float *w_tmp = dataStart;
@@ -597,8 +597,8 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
    return 0;
 }
 
-PVPatch **KernelConnDebugInitWeights::initializeGaussian2DWeights(
-      PVPatch **patches,
+Patch **KernelConnDebugInitWeights::initializeGaussian2DWeights(
+      Patch **patches,
       float *dataStart,
       int numPatches) {
    PVParams *params = parent->parameters();
@@ -699,7 +699,7 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(
    FatalIf(!(sf == 1), "Test failed.\n");
 
    // make full sized temporary patch, positioned around center of unit cell
-   // PVPatch * wp_tmp;
+   // Patch * wp_tmp;
    // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
    // float * w_tmp = wp_tmp->data;
    float *w_tmp = dataStart; // wp_tmp->data;
@@ -833,8 +833,8 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(
    return 0;
 }
 
-PVPatch **KernelConnDebugInitWeights::initializeGaborWeights(
-      PVPatch **patches,
+Patch **KernelConnDebugInitWeights::initializeGaborWeights(
+      Patch **patches,
       float *dataStart,
       int numPatches) {
 

@@ -30,7 +30,7 @@ class InitOneToOneWeights : public InitWeights {
    InitOneToOneWeights();
    int initialize(char const *name, HyPerCol *hc);
    int createOneToOneConnection(
-         /* PVPatch * patch */ float *dataStart,
+         /* Patch * patch */ float *dataStart,
          int patchIndex,
          float iWeight);
 

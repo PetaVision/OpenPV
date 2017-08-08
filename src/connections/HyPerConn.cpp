@@ -171,8 +171,8 @@ int HyPerConn::initialize_base() {
 
    clones.clear();
 
-   postToPreActivity    = NULL;
-   needFinalize         = true;
+   postToPreActivity = NULL;
+   needFinalize      = true;
 
    lastUpdateTime        = 0.0;
    lastTimeUpdateCalled  = 0.0;
@@ -211,7 +211,7 @@ int HyPerConn::initialize_base() {
 int HyPerConn::createArbors() {
    const int shrinkNum = preSynapticLayer()->getNumExtended();
 
-   wPatches = (PVPatch ***)pvCalloc(numAxonalArborLists, sizeof(PVPatch **));
+   wPatches = (Patch ***)pvCalloc(numAxonalArborLists, sizeof(Patch **));
    // GTK:  gSynPatchStart is offset from beginning of gSyn buffer for the corresponding channel
    gSynPatchStart = (size_t **)pvCalloc(numAxonalArborLists, sizeof(size_t *));
 
@@ -1334,9 +1334,9 @@ int HyPerConn::setPatchSize() {
 }
 
 // returns handle to initialized weight patches
-PVPatch ***HyPerConn::initializeWeights(PVPatch ***patches, float **dataStart) {
+Patch ***HyPerConn::initializeWeights(Patch ***patches, float **dataStart) {
    if (weightInitializer) {
-      PVPatch ***patches_arg = sharedWeights ? nullptr : patches;
+      Patch ***patches_arg = sharedWeights ? nullptr : patches;
       weightInitializer->initializeWeights(patches_arg, dataStart);
    }
    return patches;
@@ -1610,7 +1610,7 @@ int HyPerConn::allocateDeviceBuffers() {
          pvAssert(postNf == nfp);
 
          int numWeightPatches = pre->getNumExtended();
-         int patchSize        = numWeightPatches * sizeof(PVPatch);
+         int patchSize        = numWeightPatches * sizeof(Patch);
          d_Patches            = device->createBuffer(patchSize, &description);
 
          // Need a buffer for gsynpatch start for one arbor
@@ -1618,7 +1618,7 @@ int HyPerConn::allocateDeviceBuffers() {
          d_GSynPatchStart            = device->createBuffer(gsynPatchStartIndexSize, &description);
 
          if (numberOfAxonalArborLists() == 1) {
-            PVPatch *h_patches            = weights(0)[0]; // 0 beacuse it's one block of memory
+            Patch *h_patches              = weights(0)[0]; // 0 beacuse it's one block of memory
             PVCuda::CudaBuffer *d_patches = getDevicePatches();
             pvAssert(d_patches);
             d_patches->copyToDevice(h_patches);
@@ -1834,7 +1834,7 @@ int HyPerConn::initializeReceivePostKernelArgs() {
 #endif
 
 int HyPerConn::writeWeights(double timed) {
-   PVPatch ***patches_arg = sharedWeights ? NULL : wPatches;
+   Patch ***patches_arg = sharedWeights ? NULL : wPatches;
    return writeWeights(
          patches_arg,
          get_wDataStart(),
@@ -1846,7 +1846,7 @@ int HyPerConn::writeWeights(double timed) {
 }
 
 int HyPerConn::writeWeights(const char *filename, bool verifyWrites) {
-   PVPatch ***patches_arg = sharedWeights ? NULL : wPatches;
+   Patch ***patches_arg   = sharedWeights ? NULL : wPatches;
    FileStream *fileStream = nullptr;
    if (getMPIBlock()->getRank() == 0) {
       fileStream = new FileStream(filename, std::ios_base::out, verifyWrites);
@@ -1865,7 +1865,7 @@ int HyPerConn::writeWeights(const char *filename, bool verifyWrites) {
 }
 
 int HyPerConn::writeWeights(
-      PVPatch ***patches,
+      Patch ***patches,
       float **dataStart,
       int numPatches,
       FileStream *fileStream,
@@ -2107,9 +2107,9 @@ float HyPerConn::minWeight(int arborId) {
    }
    else {
       for (int i_patch = 0; i_patch < num_data_patches; i_patch++) {
-         float *w_data    = get_wData(arborId, i_patch);
-         PVPatch *w_patch = getWeights(i_patch, arborId);
-         int num_weights  = fPatchSize() * w_patch->nx * w_patch->ny;
+         float *w_data   = get_wData(arborId, i_patch);
+         Patch *w_patch  = getWeights(i_patch, arborId);
+         int num_weights = fPatchSize() * w_patch->nx * w_patch->ny;
          for (int iWeight = 0; iWeight < num_weights; iWeight++) {
             min_weight = (min_weight < w_data[iWeight]) ? min_weight : w_data[iWeight];
          }
@@ -2133,9 +2133,9 @@ float HyPerConn::maxWeight(int arborId) {
    }
    else {
       for (int i_weight = 0; i_weight < num_data_patches; i_weight++) {
-         float *w_data    = get_wData(arborId, i_weight);
-         PVPatch *w_patch = getWeights(i_weight, arborId);
-         int num_weights  = fPatchSize() * w_patch->nx * w_patch->ny;
+         float *w_data   = get_wData(arborId, i_weight);
+         Patch *w_patch  = getWeights(i_weight, arborId);
+         int num_weights = fPatchSize() * w_patch->nx * w_patch->ny;
          for (int iWeight = 0; iWeight < num_weights; iWeight++) {
             max_weight = (max_weight > w_data[iWeight]) ? max_weight : w_data[iWeight];
          }
@@ -2622,9 +2622,9 @@ int HyPerConn::updateInd_dW(
    if (skipPre(preact))
       return PV_CONTINUE;
 
-   PVPatch *weights = getWeights(kExt, arborID);
-   int ny           = weights->ny;
-   int nk           = weights->nx * nfp;
+   Patch *weights = getWeights(kExt, arborID);
+   int ny         = weights->ny;
+   int nk         = weights->nx * nfp;
    if (ny == 0 || nk == 0) {
       return PV_SUCCESS;
    }
@@ -2796,7 +2796,7 @@ double HyPerConn::computeNewWeightUpdateTime(double simTime, double currentUpdat
    return weightUpdateTime;
 }
 
-PVPatch *HyPerConn::getWeights(int k, int arbor) {
+Patch *HyPerConn::getWeights(int k, int arbor) {
    // a separate arbor/patch of weights for every neuron
    return wPatches[arbor][k];
 }
@@ -2916,7 +2916,7 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
                int kPreExt = idx;
 
                // Weight
-               PVPatch *weights = getWeights(kPreExt, arbor);
+               Patch *weights = getWeights(kPreExt, arbor);
 
                if (y >= weights->ny) {
                   continue;
@@ -2959,7 +2959,7 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
                int kPreExt = activeIndicesBatch[idx].index;
 
                // Weight
-               PVPatch *weights = getWeights(kPreExt, arbor);
+               Patch *weights = getWeights(kPreExt, arbor);
 
                if (y >= weights->ny) {
                   continue;
@@ -3092,7 +3092,7 @@ int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const *activi
          float *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arbor);
 
          // Weight
-         PVPatch *weights       = getWeights(kPreExt, arbor);
+         Patch *weights         = getWeights(kPreExt, arbor);
          const int nk           = weights->nx * fPatchSize();
          const int ny           = weights->ny;
          float *weightDataStart = get_wData(arbor, kPreExt); // make this a float const *?
@@ -3485,7 +3485,7 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int
    // If more than 1 arbor, need to update patches and GSynPatchStart.
    // If one arbor, done in allocatePreKernel in HyPerConn
    if (numberOfAxonalArborLists() > 1) {
-      PVPatch *h_patches            = weights(arborID)[0]; // 0 because it's one block of memory
+      Patch *h_patches              = weights(arborID)[0]; // 0 because it's one block of memory
       PVCuda::CudaBuffer *d_patches = getDevicePatches();
       pvAssert(d_patches);
 
@@ -3670,7 +3670,7 @@ void HyPerConn::deliverOnePreNeuronActivity(
       float a,
       float *postBufferStart,
       void *auxPtr) {
-   PVPatch *weights       = getWeights(kPreExt, arbor);
+   Patch *weights         = getWeights(kPreExt, arbor);
    const int nk           = weights->nx * fPatchSize();
    const int ny           = weights->ny;
    const int sy           = getPostNonextStrides()->sy; // stride in layer
@@ -3693,7 +3693,7 @@ void HyPerConn::deliverOnePreNeuronActivity(
 }
 
 int HyPerConn::createWeights(
-      PVPatch ***patches,
+      Patch ***patches,
       int nWeightPatches,
       int nDataPatches,
       int nxPatch,
@@ -3737,7 +3737,7 @@ double HyPerConn::getConvertToRateDeltaTimeFactor() {
 /**
  * Create a separate patch of weights for every neuron
  */
-int HyPerConn::createWeights(PVPatch ***patches, int arborId) {
+int HyPerConn::createWeights(Patch ***patches, int arborId) {
    int nWeightPatches = getNumWeightPatches();
    int nDataPatches   = getNumDataPatches();
    int nxPatch        = nxp;
@@ -3835,7 +3835,7 @@ int HyPerConn::adjustAllPatches(
       int nyPost,
       int nfPost,
       const PVHalo *haloPost,
-      PVPatch ***inWPatches,
+      Patch ***inWPatches,
       size_t **inGSynPatchStart,
       size_t **inAPostOffset,
       int arborId) {
@@ -3897,7 +3897,7 @@ int HyPerConn::adjustAllPatches(
       inGSynPatchStart[arborId][kex] =
             (size_t)kIndex(xPostStart, yPostStart, 0, nxPost, nyPost, nfPost);
 
-      PVPatch *w = inWPatches[arborId][kex];
+      Patch *w = inWPatches[arborId][kex];
       pvAssert(w->offset == 0);
       pvpatch_adjust(w, sxp, syp, nxPatch, nyPatch, xPatchStart, yPatchStart);
    } // loop over patches
@@ -3952,7 +3952,7 @@ int HyPerConn::adjustAxonalArbors(int arborId) {
 }
 
 // convertPreSynapticWeights was marked obsolete Jul 27, 2017.
-PVPatch ***HyPerConn::convertPreSynapticWeights(double simTime) {
+Patch ***HyPerConn::convertPreSynapticWeights(double simTime) {
    Fatal() << "convertPreSynapticWeights is obsolete.\n";
    return nullptr;
 }
@@ -4398,7 +4398,7 @@ void HyPerConn::allocateSparseWeightsPre(PVLayerCube const *activity, int arbor)
    std::map<const WeightType *const, int> sizes;
 
    for (int kPreExt = 0; kPreExt < activity->numItems; kPreExt++) {
-      PVPatch *patch                          = getWeights(kPreExt, arbor);
+      Patch *patch                            = getWeights(kPreExt, arbor);
       const int nk                            = patch->nx * fPatchSize();
       const int nyp                           = patch->ny;
       const WeightType *const weightDataStart = get_wData(arbor, kPreExt);
@@ -4538,7 +4538,7 @@ void HyPerConn::deliverOnePreNeuronActivitySparseWeights(
    pvAssert(mSparseWeightsAllocated[arbor] == true);
    pvAssert(mKPreExtWeightSparsified.find(kPreExt) != mKPreExtWeightSparsified.end());
 
-   PVPatch *patch        = getWeights(kPreExt, arbor);
+   Patch *patch          = getWeights(kPreExt, arbor);
    const int nk          = patch->nx * fPatchSize();
    const int nyp         = patch->ny;
    const int sy          = getPostNonextStrides()->sy; // stride in layer

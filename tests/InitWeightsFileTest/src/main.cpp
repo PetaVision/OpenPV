@@ -50,9 +50,9 @@ int main(int argc, char *argv[]) {
       float const *weights = conn->get_wDataHead(0 /*arbor*/, index);
 
       // only need to check in shrunken patch region.
-      PVPatch const *patch = conn->getWeights(index, 0 /*arbor*/);
-      int xStart           = kxPos(patch->offset, nxp, nyp, nfp);
-      int yStart           = kyPos(patch->offset, nxp, nyp, nfp);
+      PV::Patch const *patch = conn->getWeights(index, 0 /*arbor*/);
+      int xStart             = kxPos(patch->offset, nxp, nyp, nfp);
+      int yStart             = kyPos(patch->offset, nxp, nyp, nfp);
       for (int y = yStart; y < yStart + patch->ny; y++) {
          for (int x = xStart; x < xStart + patch->nx; x++) {
             for (int f = 0; f < nf; f++) {

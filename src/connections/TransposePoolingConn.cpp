@@ -719,7 +719,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
             }
          }
          else {
-            PVPatch *weights      = getWeights(kPreExt, arborID);
+            Patch *weights        = getWeights(kPreExt, arborID);
             const int nk          = weights->nx * fPatchSize();
             const int ny          = weights->ny;
             float *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arborID);

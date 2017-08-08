@@ -75,7 +75,7 @@ class TransposeConn : public HyPerConn {
    virtual int setNeededRNGSeeds() { return 0; }
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int setInitialValues() override;
-   virtual PVPatch ***initializeWeights(PVPatch ***arbors, float **dataStart) override;
+   virtual Patch ***initializeWeights(Patch ***arbors, float **dataStart) override;
    virtual int constructWeights() override;
    virtual int allocatePostConn() override;
 

@@ -189,7 +189,7 @@ int CopyConn::setInitialValues() {
    return status;
 }
 
-PVPatch ***CopyConn::initializeWeights(PVPatch ***patches, float **dataStart) {
+Patch ***CopyConn::initializeWeights(Patch ***patches, float **dataStart) {
    assert(originalConn->getInitialValuesSetFlag()); // setInitialValues shouldn't
    // call this function
    // unless original conn has set its own initial

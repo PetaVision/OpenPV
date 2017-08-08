@@ -22,7 +22,7 @@ typedef struct PVPatch_ {
    // float * __attribute__ ((aligned)) data;
    unsigned int offset;
    unsigned short nx, ny;
-} PVPatch;
+} Patch;
 
 // Parameter structure
 struct recv_pre_params {
@@ -39,7 +39,7 @@ struct recv_pre_params {
    float dt_factor;
    int sharedWeights;
 
-   PVPatch *patches;
+   Patch *patches;
    size_t *gSynPatchStart;
 
    float *preData;
@@ -71,7 +71,7 @@ class CudaRecvPre : public CudaKernel {
          float dt_factor,
          int sharedWeights,
 
-         /* PVPatch* */ CudaBuffer *patches,
+         /* Patch* */ CudaBuffer *patches,
          /* size_t* */ CudaBuffer *gSynPatchStart,
 
          /* float* */ CudaBuffer *preData,

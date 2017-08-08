@@ -594,7 +594,7 @@ int ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
  */
 int pvp_copy_patches(
       unsigned char *buf,
-      PVPatch const *const *patchGeometry,
+      Patch const *const *patchGeometry,
       float const *dataStart,
       int numDataPatches,
       int nxp,
@@ -657,7 +657,7 @@ int pvp_copy_patches(
 
 int pvp_copy_arbor(
       std::vector<unsigned char> &dataInPvpFormat,
-      PVPatch const *const *patchGeometry,
+      Patch const *const *patchGeometry,
       float const *dataStart,
       PatchListDescription const &patchListDesc,
       int nxp,
@@ -843,7 +843,7 @@ void calcMinMaxNonsharedWeights(
       int nyp,
       int nfp,
       PatchListDescription const &patchIndices,
-      PVPatch const *const *const *patchGeometry) {
+      Patch const *const *const *patchGeometry) {
    int const patchStrideY           = nxp * nfp;
    int const numItemsInPatch        = patchStrideY * nyp;
    int const patchIndicesLineLength = patchIndices.mNumPatchesX * patchIndices.mNumPatchesF;
@@ -851,11 +851,11 @@ void calcMinMaxNonsharedWeights(
       for (int y = 0; y < patchIndices.mNumPatchesY; y++) {
          for (int k = 0; k < patchIndicesLineLength; k++) {
             int patchIndex = patchIndices.mStartIndex + patchIndices.mStrideY * y + k;
-            PVPatch const *currentPatchGeometry = patchGeometry[arbor][patchIndex];
-            unsigned int const nx               = (unsigned int)currentPatchGeometry->nx;
-            unsigned int const ny               = (unsigned int)currentPatchGeometry->ny;
-            unsigned int const offset           = currentPatchGeometry->offset;
-            float const *currentPatchData       = &patchData[arbor][patchIndex * numItemsInPatch];
+            Patch const *currentPatchGeometry = patchGeometry[arbor][patchIndex];
+            unsigned int const nx             = (unsigned int)currentPatchGeometry->nx;
+            unsigned int const ny             = (unsigned int)currentPatchGeometry->ny;
+            unsigned int const offset         = currentPatchGeometry->offset;
+            float const *currentPatchData     = &patchData[arbor][patchIndex * numItemsInPatch];
             calcMinMaxPatch(
                   minWeight, maxWeight, currentPatchData, nfp, nx, ny, offset, patchStrideY);
          }
@@ -1143,7 +1143,7 @@ bool isCompressedHeader(BufferUtils::WeightHeader const &header, std::string con
 
 int pv_text_write_patch(
       PrintStream *outStream,
-      PVPatch *patch,
+      Patch *patch,
       float *data,
       int nf,
       int sx,
@@ -1236,7 +1236,7 @@ void writeNonsharedWeights(
       bool compress,
       bool extended,
       const PVLayerLoc *postLoc,
-      PVPatch const *const *const *patchGeometry) {
+      Patch const *const *const *patchGeometry) {
    // Assume weights are the same for each batch element; only write for first element.
    if (mpiBlock->getBatchIndex() != 0) {
       return;

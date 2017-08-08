@@ -165,7 +165,7 @@ int KernelProbe::patchIndices(HyPerConn *conn) {
    int nxPreExt          = nxPre + loc->halo.lt + loc->halo.rt;
    int nyPreExt          = nyPre + loc->halo.dn + loc->halo.up;
    for (int kPre = 0; kPre < nPreExt; kPre++) {
-      PVPatch *w  = conn->getWeights(kPre, arborID);
+      Patch *w    = conn->getWeights(kPre, arborID);
       int xOffset = kxPos(w->offset, nxp, nyp, nfp);
       int yOffset = kyPos(w->offset, nxp, nyp, nfp);
       int kxPre   = kxPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.lt;

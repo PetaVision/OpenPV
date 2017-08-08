@@ -10,4 +10,5 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/KneeTimeScaleController.cpp
    ${SUBDIR}/AdaptiveTimeScaleController.hpp
    ${SUBDIR}/BatchIndexer.hpp
+   ${SUBDIR}/Patch.hpp
 )

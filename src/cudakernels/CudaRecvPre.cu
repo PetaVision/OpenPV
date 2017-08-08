@@ -7,7 +7,7 @@ namespace PVCuda {
 __global__ void HyPerLayer_recv_pre(recv_pre_params params, int batchIdx) {
    unsigned int kPreExt;
    float a;
-   PVPatch patch;
+   Patch patch;
    int wIdx;
    int numberShrunkenWeights;
 

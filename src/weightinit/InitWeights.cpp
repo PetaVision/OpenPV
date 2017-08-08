@@ -137,7 +137,7 @@ int InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
  *
  */
 int InitWeights::initializeWeights(
-      PVPatch ***patches,
+      Patch ***patches,
       float **dataStart,
       double *timef /*default nullptr*/) {
    int numPatchesX    = mCallingConn->getNumDataPatchesX();
@@ -168,7 +168,7 @@ int InitWeights::initializeWeights(
    return PV_SUCCESS;
 }
 
-int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch ***patches) {
+int InitWeights::zeroWeightsOutsideShrunkenPatch(Patch ***patches) {
    // hack to bypass HyPerConn's for now, because HyPerConn normalization currently needs "outside"
    // weights
    // correct solution is to implement normalization of HyPerConns from post POV
@@ -188,12 +188,12 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch ***patches) {
       for (int kPre = 0; kPre < mCallingConn->getNumDataPatches(); kPre++) {
          wData_head = mCallingConn->get_wDataHead(arborID, kPre);
          if (patches != nullptr) { // mCallingConn does not use shared weights
-            PVPatch *weightPatch = mCallingConn->getWeights(kPre, arborID);
-            nxPatch              = weightPatch->nx;
-            nyPatch              = weightPatch->ny;
-            offsetPatch          = weightPatch->offset;
-            float *wData         = mCallingConn->get_wData(arborID, kPre);
-            delta_offset         = wData - wData_head;
+            Patch *weightPatch = mCallingConn->getWeights(kPre, arborID);
+            nxPatch            = weightPatch->nx;
+            nyPatch            = weightPatch->ny;
+            offsetPatch        = weightPatch->offset;
+            float *wData       = mCallingConn->get_wData(arborID, kPre);
+            delta_offset       = wData - wData_head;
          }
          else { // mCallingConn uses shared weights
             delta_offset = 0;

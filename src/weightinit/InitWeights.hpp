@@ -77,7 +77,7 @@ class InitWeights : public BaseObject {
     * so it is more convenient and efficient to handle all the weights
     * together than to call one patch at a time.
     */
-   int initializeWeights(PVPatch ***patches, float **dataStart, double *timef = NULL);
+   int initializeWeights(Patch ***patches, float **dataStart, double *timef = NULL);
 
   protected:
    InitWeights();
@@ -101,7 +101,7 @@ class InitWeights : public BaseObject {
          double *timestampPtr = nullptr);
 
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
-   virtual int zeroWeightsOutsideShrunkenPatch(PVPatch ***patches);
+   virtual int zeroWeightsOutsideShrunkenPatch(Patch ***patches);
 
    int kernelIndexCalculations(int patchIndex);
    float calcYDelta(int jPost);

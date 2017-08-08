@@ -403,7 +403,7 @@ int TransposeConn::setInitialValues() {
    return status;
 }
 
-PVPatch ***TransposeConn::initializeWeights(PVPatch ***patches, float **dataStart) {
+Patch ***TransposeConn::initializeWeights(Patch ***patches, float **dataStart) {
    // TransposeConn must wait until after originalConn has been normalized, so weight initialization
    // doesn't take place until HyPerCol::run calls finalizeUpdate
    return patches;

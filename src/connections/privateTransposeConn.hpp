@@ -39,7 +39,7 @@ class privateTransposeConn : public HyPerConn {
    virtual int setPatchSize() override;
    virtual int setNeededRNGSeeds() { return 0; }
    virtual int setInitialValues() override;
-   virtual PVPatch ***initializeWeights(PVPatch ***arbors, float **dataStart) override;
+   virtual Patch ***initializeWeights(Patch ***arbors, float **dataStart) override;
    int transpose(int arborId);
    virtual int reduceKernels(int arborID) override;
    virtual int initializeDelays(const float *fDelayArray, int size) override;

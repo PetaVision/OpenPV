@@ -95,7 +95,7 @@ class HyPerConn : public BaseConnection {
    virtual int writeWeights(double timed);
    virtual int writeWeights(const char *filename, bool verifyWrites);
    virtual int writeWeights(
-         PVPatch ***patches,
+         Patch ***patches,
          float **dataStart,
          int numPatches,
          FileStream *fileStream,
@@ -205,9 +205,9 @@ class HyPerConn : public BaseConnection {
    inline int fPostPatchSize() { return nfpPost; }
 
    // arbor and weight patch related get/set methods:
-   inline PVPatch **weights(int arborId = 0) { return wPatches[arborId]; }
+   inline Patch **weights(int arborId = 0) { return wPatches[arborId]; }
 
-   virtual PVPatch *getWeights(int kPre, int arborId);
+   virtual Patch *getWeights(int kPre, int arborId);
 
    inline float *getPlasticIncr(int kPre, int arborId) {
       return plasticityFlag
@@ -271,7 +271,7 @@ class HyPerConn : public BaseConnection {
    bool getNormalizeDwFlag() { return normalizeDwFlag; }
 
    // convertPreSynapticWeights was marked obsolete Jul 27, 2017.
-   PVPatch ***convertPreSynapticWeights(double time);
+   Patch ***convertPreSynapticWeights(double time);
    int preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int *kxPre, int *kyPre);
    int postSynapticPatchHead(
          int kPre,
@@ -314,7 +314,7 @@ class HyPerConn : public BaseConnection {
 
   protected:
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
-   int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
+   int numWeightPatches; // Number of Patch structures in buffer pointed to by wPatches[arbor]
    int numDataPatches; // Number of blocks of float's in buffer pointed to by wDataStart[arbor]
    int mNumDataPatchesX; // Number of data patches in the x-dimension
    int mNumDataPatchesY; // Number of data patches in the y-dimension
@@ -324,7 +324,7 @@ class HyPerConn : public BaseConnection {
          clones; // A vector of plastic clones that are cloning from this connection
 
   private:
-   PVPatch ***wPatches; // list of weight patches, one set per arbor
+   Patch ***wPatches; // list of weight patches, one set per arbor
    // GTK:: gSynPatchStart redefined as offset from start of associated gSynBuffer
    size_t **gSynPatchStart; // gSynPatchStart[arborId][kExt] is the offset to the start of the patch
    // from the beginning of the post-synaptic GSyn buffer for corresponding
@@ -508,12 +508,12 @@ class HyPerConn : public BaseConnection {
    virtual int initNumWeightPatches();
    virtual int initNumDataPatches();
 
-   inline PVPatch ***get_wPatches() {
+   inline Patch ***get_wPatches() {
       return wPatches;
    } // protected so derived classes can use; public methods are weights(arbor) and
    // getWeights(patchindex,arbor)
 
-   inline void set_wPatches(PVPatch ***patches) { wPatches = patches; }
+   inline void set_wPatches(Patch ***patches) { wPatches = patches; }
 
   public:
    inline size_t **getGSynPatchStart() { return gSynPatchStart; }
@@ -837,16 +837,16 @@ class HyPerConn : public BaseConnection {
    // communicateInitInfo().
    virtual void
    handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
-   virtual PVPatch ***initializeWeights(PVPatch ***arbors, float **dataStart);
+   virtual Patch ***initializeWeights(Patch ***arbors, float **dataStart);
    virtual int createWeights(
-         PVPatch ***patches,
+         Patch ***patches,
          int nWeightPatches,
          int nDataPatches,
          int nxPatch,
          int nyPatch,
          int nfPatch,
          int arborId);
-   int createWeights(PVPatch ***patches, int arborId);
+   int createWeights(Patch ***patches, int arborId);
    virtual float *allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    virtual int allocatePostToPreBuffer();
    virtual int allocatePostConn();
@@ -861,7 +861,7 @@ class HyPerConn : public BaseConnection {
          int nyPost,
          int nfPost,
          const PVHalo *haloPost,
-         PVPatch ***inWPatches,
+         Patch ***inWPatches,
          size_t **inGSynPatchStart,
          size_t **inAPostOffset,
          int arborId);
@@ -1067,11 +1067,11 @@ class HyPerConn : public BaseConnection {
    // static member functions
    //
   public:
-   static PVPatch **createPatches(int nPatches, int nx, int ny) {
-      PVPatch **patchpointers = (PVPatch **)(calloc(nPatches, sizeof(PVPatch *)));
-      PVPatch *patcharray     = (PVPatch *)(calloc(nPatches, sizeof(PVPatch)));
+   static Patch **createPatches(int nPatches, int nx, int ny) {
+      Patch **patchpointers = (Patch **)(calloc(nPatches, sizeof(Patch *)));
+      Patch *patcharray     = (Patch *)(calloc(nPatches, sizeof(Patch)));
 
-      PVPatch *curpatch = patcharray;
+      Patch *curpatch = patcharray;
       for (int i = 0; i < nPatches; i++) {
          pvpatch_init(curpatch, nx, ny);
          patchpointers[i] = curpatch;
@@ -1081,7 +1081,7 @@ class HyPerConn : public BaseConnection {
       return patchpointers;
    }
 
-   static int deletePatches(PVPatch **patchpointers) {
+   static int deletePatches(Patch **patchpointers) {
       if (patchpointers != NULL && *patchpointers != NULL) {
          free(*patchpointers);
          *patchpointers = NULL;
@@ -1092,14 +1092,14 @@ class HyPerConn : public BaseConnection {
       return 0;
    }
 
-   static inline void pvpatch_init(PVPatch *p, int nx, int ny) {
+   static inline void pvpatch_init(Patch *p, int nx, int ny) {
       p->nx     = nx;
       p->ny     = ny;
       p->offset = 0;
    }
 
    static inline void
-   pvpatch_adjust(PVPatch *p, int sx, int sy, int nxNew, int nyNew, int dx, int dy) {
+   pvpatch_adjust(Patch *p, int sx, int sy, int nxNew, int nyNew, int dx, int dy) {
       p->nx = nxNew;
       p->ny = nyNew;
       p->offset += dx * sx + dy * sy;
