@@ -429,23 +429,22 @@ void PVParams::handleUnnecessaryParameter(
       T correct_value) {
    int status = PV_SUCCESS;
    if (present(group_name, param_name)) {
-      const char *class_name = groupKeywordFromName(group_name);
-
-      // marks param as read so that presentAndNotBeenRead doesn't trip up
-      T params_value = (T)value(group_name, param_name);
-      if (params_value == correct_value) {
+      if (worldRank == 0) {
+         const char *class_name = groupKeywordFromName(group_name);
          WarnLog().printf(
                "%s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
                class_name,
                group_name,
                param_name);
       }
-      else {
+      T params_value = (T)value(
+            group_name,
+            param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
+      if (params_value != correct_value) {
          status = PV_FAILURE;
          if (worldRank == 0) {
-            ErrorLog() << class_name << " \"" << group_name << "\" must use a value of "
-                       << correct_value << " for " << param_name << ", but " << params_value
-                       << " was specified." << std::endl;
+            ErrorLog() << "   Value " << params_value << " is inconsistent with correct value "
+                       << correct_value << std::endl;
          }
       }
    }

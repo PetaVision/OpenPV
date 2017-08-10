@@ -130,17 +130,6 @@ int AbstractNormProbe::setNormDescriptionToString(char const *s) {
    return normDescription ? PV_SUCCESS : PV_FAILURE;
 }
 
-void AbstractNormProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
-   LayerProbe::initOutputStreams(filename, checkpointer);
-   int const nBatch = getNumValues();
-   for (auto &s : mOutputStreams) {
-      if (getMessage() != nullptr and getMessage()[0] != '\0') {
-         s->printf("%s\n", getMessage());
-      }
-      s->printf("time, batch, numNeurons, \"%s\"\n", getNormDescription());
-   }
-}
-
 int AbstractNormProbe::calcValues(double timeValue) {
    double *valuesBuffer = this->getValuesBuffer();
    for (int b = 0; b < this->getNumValues(); b++) {
