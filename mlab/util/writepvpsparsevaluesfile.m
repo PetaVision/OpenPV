@@ -102,10 +102,12 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf, show_progress = fa
        fwrite(fid,data{frameno}.time,'double');
        count = size(data{frameno}.values,1);
        fwrite(fid,count,'uint32');
-       fwrite(fid, data{frameno}.values(:, 2), 'float32', 4);
-       fseek(fid, -count * 8 - 4, SEEK_CUR);
-       fwrite(fid, data{frameno}.values(:, 1), 'uint32', 4);
-       fseek(fid, 4, SEEK_CUR);
+       if count > 0
+          fwrite(fid, data{frameno}.values(:, 2), 'float32', 4);
+          fseek(fid, -count * 8 - 4, SEEK_CUR);
+          fwrite(fid, data{frameno}.values(:, 1), 'uint32', 4);
+          fseek(fid, 4, SEEK_CUR);
+       end%if
 
        if show_progress
            progress_timer -= 1;

@@ -153,12 +153,10 @@ int AbstractNormProbe::outputState(double timevalue) {
       int nk     = getTargetLayer()->getNumGlobalNeurons();
       for (int b = 0; b < nBatch; b++) {
          output(b).printf(
-               "%st = %6.3f b = %d numNeurons = %8d %s = %f",
-               getMessage(),
+               "%6.3f, %d, %8d, %f",
                timevalue,
                b,
                nk,
-               getNormDescription(),
                valuesBuffer[b]);
          output(b) << std::endl;
       }
