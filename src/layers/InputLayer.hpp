@@ -26,6 +26,11 @@ class InputLayer : public HyPerLayer {
    // Defines an offset in image space where the column is viewing the image
    virtual int ioParam_offsets(enum ParamsIOFlag ioFlag);
 
+   // maxShiftX: max random shift in X direction
+   // maxShiftY: max random shift in Y direction
+   // Defines the maximal random shift in image space
+   virtual int ioParam_maxShifts(enum ParamsIOFlag ioFlag);
+
    // offsetAnchor: Defines where the anchor point is for the offsets.
    // Specified as a 2 character string, "xy"
    // x can be 'l', 'c', or 'r' for left, center, right respectively <br />
@@ -235,6 +240,10 @@ class InputLayer : public HyPerLayer {
    // Amount to translate input buffer before scattering but after rescaling
    int mOffsetX = 0;
    int mOffsetY = 0;
+
+   // If nonzero, create a sample by shifting image randomly in [-maxRandomShiftX, maxRandomShiftX] x [-maxRandomShiftY, maxRandomShiftY]
+   int mMaxShiftX = 0;
+   int mMaxShiftY = 0;
 
    // Random seed used when batchMethod == random
    int mRandomSeed = 123456789;
