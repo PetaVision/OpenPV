@@ -39,6 +39,7 @@ add_subdirectory(DataStoreTest)
 add_subdirectory(DeleteOlderCheckpointsTest)
 add_subdirectory(ImageTest)
 add_subdirectory(MPIBlockTest)
+add_subdirectory(PatchGeometryTest)
 
 # System tests that involve starting up a full instance of PetaVision happen next.
 add_subdirectory(BasicSystemTest)
