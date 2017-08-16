@@ -4,6 +4,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/AdaptiveTimeScaleController.cpp
    ${SUBDIR}/BatchIndexer.cpp
    ${SUBDIR}/PatchGeometry.cpp
+   ${SUBDIR}/Weights.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -13,4 +14,5 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BatchIndexer.hpp
    ${SUBDIR}/Patch.hpp
    ${SUBDIR}/PatchGeometry.hpp
+   ${SUBDIR}/Weights.hpp
 )
