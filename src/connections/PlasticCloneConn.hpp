@@ -91,7 +91,7 @@ class PlasticCloneConn : public CloneConn {
    int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual int cloneParameters() override;
-   virtual int constructWeights() override;
+   virtual void allocateWeights() override;
    int deleteWeights();
 
   private:

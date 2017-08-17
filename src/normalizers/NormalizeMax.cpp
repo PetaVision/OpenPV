@@ -69,7 +69,7 @@ int NormalizeMax::normalizeWeights() {
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               float *dataStartPatch = conn->getWeightsDataHead(arborID, patchindex);
                accumulateMax(dataStartPatch, weights_per_patch, &max);
             }
             if (max <= minMaxTolerated) {
@@ -87,7 +87,7 @@ int NormalizeMax::normalizeWeights() {
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               float *dataStartPatch = conn->getWeightsDataHead(arborID, patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor / max);
             }
          }
@@ -102,7 +102,7 @@ int NormalizeMax::normalizeWeights() {
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               float *dataStartPatch = conn->getWeightsDataHead(arborID, patchindex);
                accumulateMax(dataStartPatch, weights_per_patch, &max);
             }
          }
@@ -121,7 +121,7 @@ int NormalizeMax::normalizeWeights() {
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               float *dataStartPatch = conn->getWeightsDataHead(arborID, patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor / max);
             }
          }

@@ -9,7 +9,7 @@
 #define INITWEIGHTS_HPP_
 
 #include "columns/BaseObject.hpp"
-#include "connections/HyPerConn.hpp"
+#include "components/Weights.hpp"
 #include "layers/HyPerLayer.hpp"
 
 namespace PV {
@@ -69,15 +69,10 @@ class InitWeights : public BaseObject {
    /*
     * initializeWeights is not virtual.  It checks initFromLastFlag and then
     * filename, loading weights from a file if appropriate.  Otherwise
-    * it calls calcWeights with no arguments.
-    * For most InitWeights objects, calcWeights(void) does not have to be
-    * overridden but calcWeights(dataStart, patchIndex, arborId) should be.
-    * For a few InitWeights classes (e.g. InitDistributedWeights),
-    * calcWeights(void) is overridden: a fixed number of weights is active,
-    * so it is more convenient and efficient to handle all the weights
-    * together than to call one patch at a time.
+    * it calls calcWeights(weights).
+    * Derived classes should override calcWeights(weights, patchIndex, arbor).
     */
-   int initializeWeights(Patch ***patches, float **dataStart, double *timef = NULL);
+   int initializeWeights(Weights *weights);
 
   protected:
    InitWeights();
@@ -85,24 +80,26 @@ class InitWeights : public BaseObject {
    void handleObsoleteFlag(std::string const &flagName);
 
    virtual int setDescription() override;
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual void calcWeights();
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId);
 
-   virtual int readWeights(
-         bool sharedWeights,
-         float **dataStart,
-         int numPatchesX,
-         int numPatchesY,
-         int numPatchesF,
-         const char *filename,
-         int frameNumber,
-         double *timestampPtr = nullptr);
+   /**
+    * Called by initializeWeights, to calculate the weights in all arbors and all patches.
+    * The base implementation callse calcWeights(int, int) in a loop over arbors and
+    * patches
+    */
+   virtual void calcWeights();
+
+   /**
+    * Called by calcWeights(void), to calculate the weights in the given arbor and patch.
+    * Derived classes generally override this method.
+    */
+   virtual void calcWeights(int dataPatchIndex, int arborId);
+
+   virtual int readWeights(const char *filename, int frameNumber, double *timestampPtr = nullptr);
 
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
-   virtual int zeroWeightsOutsideShrunkenPatch(Patch ***patches);
 
+   int
+   dataIndexToUnitCellIndex(int dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
    int kernelIndexCalculations(int patchIndex);
    float calcYDelta(int jPost);
    float calcXDelta(int iPost);
@@ -112,11 +109,13 @@ class InitWeights : public BaseObject {
    int initialize_base();
 
   protected:
-   char *mFilename         = nullptr;
-   int mFrameNumber        = 0;
-   HyPerConn *mCallingConn = nullptr;
-   HyPerLayer *mPreLayer   = nullptr;
-   HyPerLayer *mPostLayer  = nullptr;
+   Weights *mWeights = nullptr; // Set temporarily by initializeWeights
+   // initializeWeights sets mWeights to its argument at the beginning and returns it to nullptr
+   // before returning; so that the weights do not have to be passed to calcWeights(int, int)
+   // for every data patch
+
+   char *mFilename  = nullptr;
+   int mFrameNumber = 0;
    float mDxPost;
    float mDyPost;
    float mXDistHeadPreUnits;

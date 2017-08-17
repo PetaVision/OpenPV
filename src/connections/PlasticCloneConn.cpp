@@ -130,23 +130,10 @@ int PlasticCloneConn::communicateInitInfo(
    return status;
 }
 
-int PlasticCloneConn::constructWeights() {
-   int status = CloneConn::constructWeights();
-   if (status == PV_SUCCESS) {
-      // Additionally point activations to orig conn
-      numKernelActivations = this->originalConn->get_activations();
-   }
-   return status;
-}
-
-int PlasticCloneConn::deleteWeights() {
-   wPatches       = nullptr;
-   wDataStart     = nullptr;
-   gSynPatchStart = nullptr;
-   pvAssert(aPostOffset == nullptr);
-   pvAssert(dwDataStart == nullptr);
-   numKernelActivations = nullptr;
-   return 0;
+void PlasticCloneConn::allocateWeights() {
+   CloneConn::allocateWeights();
+   // Additionally point activations to orig conn
+   numKernelActivations = this->originalConn->get_activations();
 }
 
 int PlasticCloneConn::cloneParameters() {
@@ -158,6 +145,11 @@ int PlasticCloneConn::cloneParameters() {
    normalizeDwFlag = originalConn->getNormalizeDwFlag();
 
    return PV_SUCCESS;
+}
+
+int PlasticCloneConn::deleteWeights() {
+   numKernelActivations = nullptr;
+   return 0;
 }
 
 PlasticCloneConn::~PlasticCloneConn() { deleteWeights(); }

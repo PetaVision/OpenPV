@@ -125,59 +125,15 @@ int privateTransposeConn::allocateDataStructures() {
    return status;
 }
 
-int privateTransposeConn::constructWeights() {
-   int sx       = nfp;
-   int sy       = sx * nxp;
-   int sp       = sy * nyp;
-   int nPatches = getNumDataPatches();
-   int status   = PV_SUCCESS;
-
-   createArbors();
-
-   setPatchStrides();
-
-   ////allocate weight patches and axonal arbors for each arbor
-   ////Allocate all the weights
-   if (needAllocWeights) {
-      wDataStart[0] = allocWeights(nPatches, nxp, nyp, nfp);
-      assert(this->get_wDataStart(0) != NULL);
-   }
-   for (int arborId = 0; arborId < numAxonalArborLists; arborId++) {
-      status = createWeights(wPatches, arborId);
-      assert(wPatches[arborId] != NULL);
-
-      if (needAllocWeights) {
-         if (arborId > 0) { // wDataStart already allocated
-            wDataStart[arborId] = (this->get_wDataStart(0) + sp * nPatches * arborId);
-            assert(this->wDataStart[arborId] != NULL);
-         }
-      }
-      if (arborId == 0) {
-         status |= adjustAxonalArbors(arborId);
-      }
-   } // arborId
-
-   // call to initializeWeights moved to BaseConnection::initializeState()
-   status |= initPlasticityPatches();
-   assert(status == 0);
-
-   return status;
-}
-
 // Called in allocateDataStructures, not needed for privateTransposeConn
 int privateTransposeConn::initializeDelays(const float *fDelayArray, int size) {
    return PV_SUCCESS;
 }
 
 int privateTransposeConn::setInitialValues() {
-   int status = HyPerConn::setInitialValues(); // calls initializeWeights
-   return status;
-}
-
-Patch ***privateTransposeConn::initializeWeights(Patch ***patches, float **dataStart) {
    // privateTransposeConn must wait until after postConn has been normalized, so weight
    // initialization doesn't take place until HyPerCol::run calls finalizeUpdate
-   return patches;
+   return PV_SUCCESS;
 }
 
 bool privateTransposeConn::needUpdate(double timed, double dt) {
@@ -355,10 +311,10 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
                   preLocOrig->nf);
             memcpy(b, &idxGlobalRes, sizeof(idxGlobalRes));
             b += sizeof(idxGlobalRes);
-            Patch *patchOrig = postConn->getWeights(idxExt, arborId);
+            Patch const *patchOrig = postConn->getPatch(idxExt);
             memcpy(b, patchOrig, sizeof(*patchOrig));
             b += sizeof(*patchOrig);
-            int postIdxRes = (int)postConn->getGSynPatchStart(idxExt, arborId);
+            int postIdxRes = (int)postConn->getGSynPatchStart(idxExt);
             int postIdxExt = kIndexExtended(
                   postIdxRes,
                   postLocOrig->nx,
@@ -373,7 +329,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
             b += sizeof(postIdxGlobalRes);
             memcpy(
                   b,
-                  postConn->get_wDataHead(arborId, idxExt),
+                  postConn->getWeightsDataHead(arborId, idxExt),
                   (size_t)blocksize[neighbor] * sizeof(float));
             b += blocksize[neighbor] * sizeof(float);
          }
@@ -403,11 +359,11 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
             preLocOrig->halo.rt,
             preLocOrig->halo.dn,
             preLocOrig->halo.up);
-      Patch *patchOrig             = postConn->getWeights(kPreExtendedOrig, arborId);
+      Patch const *patchOrig       = postConn->getPatch(kPreExtendedOrig);
       int nk                       = patchOrig->nx * postConn->fPatchSize();
       int ny                       = patchOrig->ny;
-      float *weightvaluesorig      = postConn->get_wData(arborId, kPreExtendedOrig);
-      int kPostRestrictedOrigBase  = (int)postConn->getGSynPatchStart(kPreExtendedOrig, arborId);
+      float *weightvaluesorig      = postConn->getWeightsData(arborId, kPreExtendedOrig);
+      int kPostRestrictedOrigBase  = (int)postConn->getGSynPatchStart(kPreExtendedOrig);
       int kPostRestrictedTranspose = kPreRestrictedOrig;
       for (int y = 0; y < ny; y++) {
          for (int k = 0; k < nk; k++) {
@@ -423,14 +379,14 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
                   preLocTranspose->halo.rt,
                   preLocTranspose->halo.dn,
                   preLocTranspose->halo.up);
-            Patch *patchTranspose          = getWeights(kPreExtendedTranspose, arborId);
-            size_t gSynPatchStartTranspose = getGSynPatchStart(kPreExtendedTranspose, arborId);
+            Patch const *patchTranspose    = getPatch(kPreExtendedTranspose);
+            size_t gSynPatchStartTranspose = getGSynPatchStart(kPreExtendedTranspose);
             // Need to find which pixel in the patch is tied to kPostRestrictedTranspose
             int moveFromOffset     = kPostRestrictedTranspose - (int)gSynPatchStartTranspose;
             div_t coordsFromOffset = div(moveFromOffset, getPostNonextStrides()->sy);
             int yt                 = coordsFromOffset.quot;
             int kt                 = coordsFromOffset.rem;
-            get_wData(arborId, kPreExtendedTranspose)[yt * syp + kt] = w;
+            getWeightsData(arborId, kPreExtendedTranspose)[yt * syp + kt] = w;
          }
       }
    }
@@ -529,14 +485,13 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
                         postLocTranspose->ny,
                         postLocTranspose->nf);
 
-                  Patch *transposePatch = getWeights(transposePreLocalExt, arborId);
-                  int transposeGSynPatchStart =
-                        (int)getGSynPatchStart(transposePreLocalExt, arborId);
-                  int transposeGSynOffset = transposePostLocalRes - transposeGSynPatchStart;
-                  div_t coordsFromOffset  = div(transposeGSynOffset, getPostNonextStrides()->sy);
-                  int yt                  = coordsFromOffset.quot;
-                  int kt                  = coordsFromOffset.rem;
-                  get_wData(arborId, transposePreLocalExt)[yt * syp + kt] = w;
+                  Patch const *transposePatch = getPatch(transposePreLocalExt);
+                  int transposeGSynPatchStart = (int)getGSynPatchStart(transposePreLocalExt);
+                  int transposeGSynOffset     = transposePostLocalRes - transposeGSynPatchStart;
+                  div_t coordsFromOffset = div(transposeGSynOffset, getPostNonextStrides()->sy);
+                  int yt                 = coordsFromOffset.quot;
+                  int kt                 = coordsFromOffset.rem;
+                  getWeightsData(arborId, transposePreLocalExt)[yt * syp + kt] = w;
                }
             }
             b += sizeof(float) * postConn->xPatchSize() * postConn->yPatchSize()
@@ -683,7 +638,7 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
       }
 
       for (int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++) {
-         float *dataStartFB = get_wDataHead(arborId, kernelnumberFB);
+         float *dataStartFB = getWeightsDataHead(arborId, kernelnumberFB);
          int nfFB           = nfp;
          assert(numFFKernelPatches == nfFB);
          int nxFB = nxp;
@@ -696,7 +651,7 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
                for (int kfFB = 0; kfFB < nfFB; kfFB++) {
                   int kIndexFB       = kIndex(kxFB, kyFB, kfFB, nxFB, nyFB, nfFB);
                   int kernelnumberFF = kfFB;
-                  float *dataStartFF = postConn->get_wDataHead(arborId, kernelnumberFF);
+                  float *dataStartFF = postConn->getWeightsDataHead(arborId, kernelnumberFF);
                   int nxpFF          = postConn->xPatchSize();
                   int nypFF          = postConn->yPatchSize();
                   assert(numFBKernelPatches == postConn->fPatchSize() * xscaleq * yscaleq);
@@ -738,7 +693,7 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
       }
 
       for (int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++) {
-         float *dataStartFB = get_wDataHead(arborId, kernelnumberFB);
+         float *dataStartFB = getWeightsDataHead(arborId, kernelnumberFB);
          int nxFB           = nxp;
          int nyFB           = nyp;
          int nfFB           = nfp;
@@ -748,7 +703,7 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
                int precelloffsetx = (kxFB + kerneloffsetx) % xscaleq;
                for (int kfFB = 0; kfFB < nfFB; kfFB++) {
                   int kernelnumberFF = (precelloffsety * xscaleq + precelloffsetx) * nfFB + kfFB;
-                  float *dataStartFF = postConn->get_wDataHead(arborId, kernelnumberFF);
+                  float *dataStartFF = postConn->getWeightsDataHead(arborId, kernelnumberFF);
                   int nxpFF          = postConn->xPatchSize();
                   int nypFF          = postConn->yPatchSize();
                   int kxFF           = (nxp - kxFB - 1) / xscaleq;

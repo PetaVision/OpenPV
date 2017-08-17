@@ -43,7 +43,8 @@ int L2ConnProbe::outputState(double timed) {
 #pragma omp parallel for schedule(guided)
 #endif
    for (int kernelIndex = 0; kernelIndex < numKern; ++kernelIndex) {
-      const float *wdata = getTargetHyPerConn()->get_wDataStart(arborID) + patchSize * kernelIndex;
+      const float *wdata =
+            getTargetHyPerConn()->getWeightsDataStart(arborID) + patchSize * kernelIndex;
 
       float sumsq = 0;
 

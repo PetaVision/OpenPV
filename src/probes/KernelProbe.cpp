@@ -124,10 +124,11 @@ int KernelProbe::outputState(double timed) {
    int nfp       = getTargetHyPerConn()->fPatchSize();
    int patchSize = nxp * nyp * nfp;
 
-   const float *wdata = getTargetHyPerConn()->get_wDataStart(arborID) + patchSize * kernelIndex;
+   const float *wdata =
+         getTargetHyPerConn()->getWeightsDataStart(arborID) + patchSize * kernelIndex;
    const float *dwdata =
          outputPlasticIncr
-               ? getTargetHyPerConn()->get_dwDataStart(arborID) + patchSize * kernelIndex
+               ? getTargetHyPerConn()->getDeltaWeightsDataStart(arborID) + patchSize * kernelIndex
                : NULL;
    output(0) << "Time " << timed << ", Conn \"" << getTargetConn()->getName() << ", nxp=" << nxp
              << ", nyp=" << nyp << ", nfp=" << nfp << "\n";
@@ -155,7 +156,7 @@ int KernelProbe::patchIndices(HyPerConn *conn) {
    int nxp     = conn->xPatchSize();
    int nyp     = conn->yPatchSize();
    int nfp     = conn->fPatchSize();
-   int nPreExt = conn->getNumWeightPatches();
+   int nPreExt = conn->getNumGeometryPatches();
    assert(nPreExt == conn->preSynapticLayer()->getNumExtended());
    const PVLayerLoc *loc = conn->preSynapticLayer()->getLayerLoc();
    const PVHalo *halo    = &loc->halo;
@@ -165,12 +166,12 @@ int KernelProbe::patchIndices(HyPerConn *conn) {
    int nxPreExt          = nxPre + loc->halo.lt + loc->halo.rt;
    int nyPreExt          = nyPre + loc->halo.dn + loc->halo.up;
    for (int kPre = 0; kPre < nPreExt; kPre++) {
-      Patch *w    = conn->getWeights(kPre, arborID);
-      int xOffset = kxPos(w->offset, nxp, nyp, nfp);
-      int yOffset = kyPos(w->offset, nxp, nyp, nfp);
-      int kxPre   = kxPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.lt;
-      int kyPre   = kyPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.up;
-      int kfPre   = featureIndex(kPre, nxPreExt, nyPreExt, nfPre);
+      Patch const *patch = conn->getPatch(kPre);
+      int xOffset        = kxPos(patch->offset, nxp, nyp, nfp);
+      int yOffset        = kyPos(patch->offset, nxp, nyp, nfp);
+      int kxPre          = kxPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.lt;
+      int kyPre          = kyPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.up;
+      int kfPre          = featureIndex(kPre, nxPreExt, nyPreExt, nfPre);
       output(0) << "    presynaptic neuron " << kPre;
       output(0) << " (x=" << kxPre << ", y=" << kyPre << ", f=" << kfPre;
       output(0) << ") uses kernel index " << conn->patchIndexToDataIndex(kPre);

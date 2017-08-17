@@ -35,7 +35,8 @@ void InitOneToOneWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
 }
 
-void InitOneToOneWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
+void InitOneToOneWeights::calcWeights(int patchIndex, int arborId) {
+   float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    createOneToOneConnection(dataStart, patchIndex, mWeightInit);
 }
 
@@ -44,15 +45,15 @@ int InitOneToOneWeights::createOneToOneConnection(
       int dataPatchIndex,
       float iWeight) {
 
-   int k = mCallingConn->dataIndexToUnitCellIndex(dataPatchIndex);
+   int k = dataIndexToUnitCellIndex(dataPatchIndex);
 
-   const int nfp = mCallingConn->fPatchSize();
-   const int nxp = mCallingConn->xPatchSize();
-   const int nyp = mCallingConn->yPatchSize();
+   int nfp = mWeights->getPatchSizeF();
+   int nxp = mWeights->getPatchSizeX();
+   int nyp = mWeights->getPatchSizeY();
 
-   const int sxp = mCallingConn->xPatchStride();
-   const int syp = mCallingConn->yPatchStride();
-   const int sfp = mCallingConn->fPatchStride();
+   int sxp = mWeights->getGeometry()->getPatchStrideX();
+   int syp = mWeights->getGeometry()->getPatchStrideY();
+   int sfp = mWeights->getGeometry()->getPatchStrideF();
 
    // clear all weights in patch
    memset(dataStart, 0, nxp * nyp * nfp);

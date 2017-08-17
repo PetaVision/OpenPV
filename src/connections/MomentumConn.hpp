@@ -34,23 +34,33 @@ class MomentumConn : public HyPerConn {
    MomentumConn();
    MomentumConn(const char *name, HyPerCol *hc);
    virtual ~MomentumConn();
-   virtual int allocateDataStructures() override;
 
-   inline float const *get_prev_dwDataStart(int arborId) { return prev_dwDataStart[arborId]; }
-   inline char const *getMomentumMethod() { return momentumMethod; }
+   char const *getMomentumMethod() { return momentumMethod; }
+
+   inline float *getPreviousDeltaWeightsDataStart(int arborId) {
+      return mPreviousDeltaWeights->getData(arborId);
+   }
+
+   inline float *getPreviousDeltaWeightsDataHead(int arborId, int dataIndex) {
+      return mPreviousDeltaWeights->getDataFromDataIndex(arborId, dataIndex);
+   }
+
+   inline float *getPreviousDeltaWeightsData(int arborId, int patchIndex) {
+      return mPreviousDeltaWeights->getDataFromPatchIndex(arborId, patchIndex)
+             + mPreviousDeltaWeights->getPatch(patchIndex).offset;
+   }
 
   protected:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
+   virtual void allocateWeights() override;
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    void applyMomentum(int arbor_ID);
    void applyMomentum(int arbor_ID, float dwFactor, float wFactor);
 
-   inline float *get_prev_dwDataHead(int arborId, int dataIndex) {
-      return &prev_dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
-   }
+   Weights *getPreviousDeltaWeights() { return mPreviousDeltaWeights; }
 
    virtual int updateWeights(int arborId) override;
 
@@ -59,7 +69,7 @@ class MomentumConn : public HyPerConn {
 
    int initialize_base();
 
-   float **prev_dwDataStart;
+   Weights *mPreviousDeltaWeights = nullptr;
    char *momentumMethod;
    float momentumTau;
    float momentumDecay;

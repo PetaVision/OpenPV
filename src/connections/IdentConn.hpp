@@ -23,7 +23,7 @@ class IdentConn : public HyPerConn {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int updateWeights(int axonID) override { return PV_SUCCESS; }
-   // virtual int deliver();
+   virtual int deliver() override;
 
   protected:
    IdentConn();
@@ -58,9 +58,10 @@ class IdentConn : public HyPerConn {
 
    virtual void handleDefaultSelfFlag() override;
 
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual void allocateWeights() { pvAssert(getWeights() == nullptr); }
+   virtual void initPatchToDataLUT() {}
 
-   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
+   virtual int registerData(Checkpointer *checkpointer) override;
 }; // class IdentConn
 
 } // end of block for namespace PV

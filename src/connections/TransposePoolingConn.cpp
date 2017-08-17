@@ -453,26 +453,16 @@ int TransposePoolingConn::allocateDataStructures() {
 
    return PV_SUCCESS;
 }
-
-int TransposePoolingConn::constructWeights() {
+void TransposePoolingConn::allocateWeights() {
    setPatchStrides();
-   wPatches       = this->mOriginalConn->postConn->get_wPatches();
-   wDataStart     = this->mOriginalConn->postConn->get_wDataStart();
-   gSynPatchStart = this->mOriginalConn->postConn->getGSynPatchStart();
-   aPostOffset    = this->mOriginalConn->postConn->getAPostOffset();
-   dwDataStart    = this->mOriginalConn->postConn->get_dwDataStart();
-   return PV_SUCCESS;
+   setWeights(this->mOriginalConn->postConn->getWeights());
 }
 
 int TransposePoolingConn::deleteWeights() {
    // Have to make sure not to free memory belonging to mOriginalConn.
    // Set pointers that point into mOriginalConn to NULL so that free() has no effect
    // when HyPerConn::deleteWeights or HyPerConn::deleteWeights is called
-   wPatches       = NULL;
-   wDataStart     = NULL;
-   gSynPatchStart = NULL;
-   aPostOffset    = NULL;
-   dwDataStart    = NULL;
+   mWeights = nullptr;
    return 0;
 }
 
@@ -719,10 +709,10 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const *activ
             }
          }
          else {
-            Patch *weights        = getWeights(kPreExt, arborID);
-            const int nk          = weights->nx * fPatchSize();
-            const int ny          = weights->ny;
-            float *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arborID);
+            Patch const *patch    = getPatch(kPreExt);
+            const int nk          = patch->nx * fPatchSize();
+            const int ny          = patch->ny;
+            float *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt);
             const int sy          = getPostNonextStrides()->sy; // stride in layer
 
             int offset = kfPre;

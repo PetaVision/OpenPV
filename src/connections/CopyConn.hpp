@@ -118,7 +118,6 @@ class CopyConn : public HyPerConn {
    virtual int setPatchSize() override;
 
    virtual int setInitialValues() override;
-   virtual Patch ***initializeWeights(Patch ***arbors, float **dataStart) override;
 
    virtual int updateWeights(int arborId = 0) override;
    int copy(int arborId = 0);

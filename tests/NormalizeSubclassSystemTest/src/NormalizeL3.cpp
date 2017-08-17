@@ -77,7 +77,7 @@ int NormalizeL3::normalizeWeights() {
                int yPatchStride      = conn->yPatchStride();
                int weights_per_patch = nxp * nyp * nfp;
                float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+                     conn->getWeightsDataStart(arborID) + patchindex * weights_per_patch;
                for (int k = 0; k < weights_per_patch; k++) {
                   float w = fabs(dataStartPatch[k]);
                   sumcubed += w * w * w;
@@ -100,7 +100,7 @@ int NormalizeL3::normalizeWeights() {
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
                float *dataStartPatch =
-                     conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+                     conn0->getWeightsDataStart(arborID) + patchindex * weights_per_patch;
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor / l3norm);
             }
          }
@@ -118,7 +118,7 @@ int NormalizeL3::normalizeWeights() {
                int yPatchStride      = conn->yPatchStride();
                int weights_per_patch = nxp * nyp * nfp;
                float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+                     conn->getWeightsDataStart(arborID) + patchindex * weights_per_patch;
                for (int k = 0; k < weights_per_patch; k++) {
                   float w = fabs(dataStartPatch[k]);
                   sumcubed += w * w * w;
@@ -142,7 +142,7 @@ int NormalizeL3::normalizeWeights() {
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
                float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+                     conn->getWeightsDataStart(arborID) + patchindex * weights_per_patch;
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor / l3norm);
             }
          }

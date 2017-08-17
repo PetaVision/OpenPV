@@ -84,7 +84,7 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
    int patchSize = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
    FatalIf(!(conn->numberOfAxonalArborLists() == 1), "Test failed.\n");
    FatalIf(!(conn->getNumDataPatches() == 1), "Test failed.\n");
-   float *w = conn->get_wDataHead(0, 0);
+   float *w = conn->getWeightsDataHead(0, 0);
    for (int r = 0; r < hc->getCommunicator()->commSize(); r++) {
       if (r == hc->columnId()) {
          InfoLog().printf("Rank %d, Weight values\n", r);

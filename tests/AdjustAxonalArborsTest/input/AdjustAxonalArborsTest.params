@@ -4,7 +4,7 @@
 // created by peteschultz: Oct 11, 2013
 //
 
-// A params file testing whether HyPerConn::adjustAxonalArbors()
+// A params file testing whether PatchGeometry::initPatchGeometry()
 // shrinks patches correctly in the case where the patch size exceeds
 // the post-synaptic restricted layer size, so that the patch must be
 // shrunken in both directions.

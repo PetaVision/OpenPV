@@ -44,7 +44,7 @@ int AverageRateConn::updateState(double timed, double dt) {
    FatalIf(!(nfp == getNumDataPatches()), "Test failed.\n");
    FatalIf(!(nxp == 1 && nyp == 1), "Test failed.\n");
    for (int k = 0; k < getNumDataPatches(); k++) {
-      float *p = get_wDataHead(arbor, k);
+      float *p = getWeightsDataHead(arbor, k);
       // TODO-CER-2014.4.4 - weight conversion
       p[k] = w;
    }

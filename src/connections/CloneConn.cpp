@@ -55,34 +55,16 @@ void CloneConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }
 
+void CloneConn::allocateWeights() { setWeights(this->originalConn->getWeights()); }
+
 int CloneConn::registerData(Checkpointer *checkpointer) {
    registerTimers(checkpointer);
    return PV_SUCCESS;
 }
 
-int CloneConn::constructWeights() {
-   int status = setPatchStrides();
-
-   wPatches       = this->originalConn->get_wPatches();
-   wDataStart     = this->originalConn->get_wDataStart();
-   gSynPatchStart = this->originalConn->getGSynPatchStart();
-   aPostOffset    = nullptr; // Not used by CloneConn
-   dwDataStart    = nullptr; // Not used by CloneConn
-
-   // Don't call initPlasticityPatches since plasticityFlag is always false.
-   return status;
-}
-
-void CloneConn::constructWeightsOutOfMemory() {
-   Fatal().printf(
-         "Out of memory error in CloneConn::constructWeightsOutOfMemory() for \"%s\"\n", name);
-}
-
-int CloneConn::createAxonalArbors(int arborId) { return PV_SUCCESS; }
-
-Patch ***CloneConn::initializeWeights(Patch ***patches, float **dataStart) {
-   return patches;
+int CloneConn::setInitialValues() {
    // nothing to be done as the weight patches point to originalConn's space.
+   return PV_SUCCESS;
 }
 
 // We override many read-methods because CloneConn will use
@@ -321,11 +303,7 @@ int CloneConn::deleteWeights() {
    // Have to make sure not to free memory belonging to originalConn.
    // Set pointers that point into originalConn to NULL so that free() has no effect
    // when HyPerConn::deleteWeights or HyPerConn::deleteWeights is called
-   wPatches       = nullptr;
-   wDataStart     = nullptr;
-   gSynPatchStart = nullptr;
-   pvAssert(aPostOffset == nullptr);
-   pvAssert(dwDataStart == nullptr);
+   mWeights = nullptr;
    return 0;
 }
 

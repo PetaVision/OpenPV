@@ -158,7 +158,7 @@ void ColumnArchive::addConn(PV::HyPerConn *conn, float connTolerance) {
    int const datasize = latestConnection.nxp * latestConnection.nyp * latestConnection.nfp
                         * latestConnection.numDataPatches;
    for (int arbor = 0; arbor < numArbors; arbor++) {
-      float const *cdatastart         = conn->get_wDataStart(arbor);
+      float const *cdatastart         = conn->getWeightsDataStart(arbor);
       float const *cdataend           = &cdatastart[datasize];
       latestConnection.data.at(arbor) = std::vector<float>(cdatastart, cdataend);
    }

@@ -70,7 +70,7 @@ int NormalizeSum::normalizeWeights() {
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               float *dataStartPatch = conn->getWeightsDataHead(arborID, patchindex);
                accumulateSum(dataStartPatch, weights_per_patch, &sum);
             }
             if (fabsf(sum) <= minSumTolerated) {
@@ -88,7 +88,7 @@ int NormalizeSum::normalizeWeights() {
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               float *dataStartPatch = conn->getWeightsDataHead(arborID, patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor / sum);
             }
          }
@@ -103,7 +103,7 @@ int NormalizeSum::normalizeWeights() {
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               float *dataStartPatch = conn->getWeightsDataHead(arborID, patchindex);
                accumulateSum(dataStartPatch, weights_per_patch, &sum);
             }
          }
@@ -122,7 +122,7 @@ int NormalizeSum::normalizeWeights() {
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
+               float *dataStartPatch = conn->getWeightsDataHead(arborID, patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor / sum);
             }
          }

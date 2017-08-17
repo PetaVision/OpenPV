@@ -152,7 +152,8 @@ void StochasticReleaseTestProbe::computePValues() {
    for (int f = 0; f < nf; f++) {
       int nf = getTargetLayer()->getLayerLoc()->nf;
       FatalIf(!(f >= 0 && f < nf), "Test failed.\n");
-      float wgt = conn->get_wDataStart(0)[f * (nf + 1)]; // weights should be one-to-one weights
+      float wgt =
+            conn->getWeightsDataStart(0)[f * (nf + 1)]; // weights should be one-to-one weights
 
       HyPerLayer *pre          = conn->preSynapticLayer();
       const float *preactPtr   = pre->getLayerData();

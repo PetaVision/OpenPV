@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 
    const int axonID     = 0;
    int num_pre_extended = pre->clayer->numExtended;
-   FatalIf(!(num_pre_extended == cHyPer->getNumWeightPatches()), "Test failed.\n");
+   FatalIf(!(num_pre_extended == cHyPer->getNumGeometryPatches()), "Test failed.\n");
 
    int status = 0;
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {
@@ -90,11 +90,11 @@ int main(int argc, char *argv[]) {
 int check_cocirc_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int axonID) {
    FatalIf(!(cKernel->usingSharedWeights() == true), "Test failed.\n");
    FatalIf(!(cHyPer->usingSharedWeights() == false), "Test failed.\n");
-   int status          = 0;
-   Patch *hyperPatch   = cHyPer->getWeights(kPre, axonID);
-   Patch *cocircPatch  = cKernel->getWeights(kPre, axonID);
-   int hyPerDataIndex  = cHyPer->patchIndexToDataIndex(kPre);
-   int kernelDataIndex = cKernel->patchIndexToDataIndex(kPre);
+   int status               = 0;
+   Patch const *hyperPatch  = cHyPer->getPatch(kPre);
+   Patch const *cocircPatch = cKernel->getPatch(kPre);
+   int hyPerDataIndex       = cHyPer->patchIndexToDataIndex(kPre);
+   int kernelDataIndex      = cKernel->patchIndexToDataIndex(kPre);
 
    int nk = cHyPer->fPatchSize() * (int)hyperPatch->nx;
    FatalIf(!(nk == (cKernel->fPatchSize() * (int)cocircPatch->nx)), "Test failed.\n");
@@ -102,8 +102,8 @@ int check_cocirc_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int a
    FatalIf(!(ny == cocircPatch->ny), "Test failed.\n");
    int sy = cHyPer->yPatchStride();
    FatalIf(!(sy == cKernel->yPatchStride()), "Test failed.\n");
-   float *hyperWeights  = cHyPer->get_wData(axonID, hyPerDataIndex);
-   float *cocircWeights = cKernel->get_wDataHead(axonID, kernelDataIndex) + hyperPatch->offset;
+   float *hyperWeights  = cHyPer->getWeightsData(axonID, hyPerDataIndex);
+   float *cocircWeights = cKernel->getWeightsDataHead(axonID, kernelDataIndex) + hyperPatch->offset;
    float test_cond      = 0.0f;
    for (int y = 0; y < ny; y++) {
       for (int k = 0; k < nk; k++) {

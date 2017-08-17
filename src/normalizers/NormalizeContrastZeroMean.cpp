@@ -109,7 +109,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
                int nfp = conn0->fPatchSize();
                weights_per_patch += nxp * nyp * nfp;
                float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+                     conn->getWeightsDataStart(arborID) + patchindex * weights_per_patch;
                accumulateSumAndSumSquared(dataStartPatch, weights_per_patch, &sum, &sumsq);
             }
             if (fabsf(sum) <= minSumTolerated) {
@@ -126,7 +126,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
             float var  = sumsq / weights_per_patch - mean * mean;
             for (auto &conn : connectionList) {
                float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+                     conn->getWeightsDataStart(arborID) + patchindex * weights_per_patch;
                subtractOffsetAndNormalize(
                      dataStartPatch,
                      weights_per_patch,
@@ -148,7 +148,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
                int nfp = conn0->fPatchSize();
                weights_per_patch += nxp * nyp * nfp;
                float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+                     conn->getWeightsDataStart(arborID) + patchindex * weights_per_patch;
                accumulateSumAndSumSquared(dataStartPatch, weights_per_patch, &sum, &sumsq);
             }
          }
@@ -167,7 +167,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &conn : connectionList) {
                float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+                     conn->getWeightsDataStart(arborID) + patchindex * weights_per_patch;
                subtractOffsetAndNormalize(
                      dataStartPatch, weights_per_patch, mean, sqrtf(var) / scale_factor);
             }

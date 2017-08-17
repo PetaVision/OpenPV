@@ -48,6 +48,8 @@ class TransposeConn : public HyPerConn {
 #endif
 
   protected:
+   virtual void allocateWeights() override;
+   virtual void initPatchToDataLUT() override;
 #ifdef PV_USE_CUDA
    virtual int allocatePostDeviceWeights() override;
    virtual int allocateDeviceWeights() override;
@@ -75,8 +77,6 @@ class TransposeConn : public HyPerConn {
    virtual int setNeededRNGSeeds() { return 0; }
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int setInitialValues() override;
-   virtual Patch ***initializeWeights(Patch ***arbors, float **dataStart) override;
-   virtual int constructWeights() override;
    virtual int allocatePostConn() override;
 
   private:

@@ -144,7 +144,7 @@ int NormalizeMultiply::normalizeWeights() {
          int num_patches          = conn->getNumDataPatches();
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
          for (int arbor = 0; arbor < num_arbors; arbor++) {
-            float *dataPatchStart = conn->get_wDataStart(arbor);
+            float *dataPatchStart = conn->getWeightsDataStart(arbor);
             for (int patchindex = 0; patchindex < num_patches; patchindex++) {
                applyRMin(
                      dataPatchStart + patchindex * num_weights_in_patch,
@@ -167,7 +167,7 @@ int NormalizeMultiply::normalizeWeights() {
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
          int num_weights_in_arbor = num_patches * num_weights_in_patch;
          for (int arbor = 0; arbor < num_arbors; arbor++) {
-            float *dataPatchStart = conn->get_wDataStart(arbor);
+            float *dataPatchStart = conn->getWeightsDataStart(arbor);
             for (int weightindex = 0; weightindex < num_weights_in_arbor; weightindex++) {
                float *w = &dataPatchStart[weightindex];
                if (*w < 0) {
@@ -186,7 +186,7 @@ int NormalizeMultiply::normalizeWeights() {
          int num_patches          = conn->getNumDataPatches();
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
          for (int arbor = 0; arbor < num_arbors; arbor++) {
-            float *dataStart = conn->get_wDataStart(arbor);
+            float *dataStart = conn->getWeightsDataStart(arbor);
             for (int patchindex = 0; patchindex < num_patches; patchindex++) {
                accumulateMaxAbs(
                      dataStart + patchindex * num_weights_in_patch, num_weights_in_patch, &max);
@@ -198,7 +198,7 @@ int NormalizeMultiply::normalizeWeights() {
          int num_patches          = conn->getNumDataPatches();
          int num_weights_in_patch = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
          for (int arbor = 0; arbor < num_arbors; arbor++) {
-            float *dataStart = conn->get_wDataStart(arbor);
+            float *dataStart = conn->getWeightsDataStart(arbor);
             for (int patchindex = 0; patchindex < num_patches; patchindex++) {
                applyThreshold(
                      dataStart + patchindex * num_weights_in_patch, num_weights_in_patch, max);

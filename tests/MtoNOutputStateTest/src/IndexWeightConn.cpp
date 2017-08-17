@@ -29,7 +29,7 @@ int IndexWeightConn::setInitialValues() {
 int IndexWeightConn::updateWeights(int axonId) {
    int nPatch = fPatchSize() * xPatchSize() * yPatchSize();
    for (int patchIndex = 0; patchIndex < getNumDataPatches(); patchIndex++) {
-      float *Wdata = get_wDataHead(axonId, patchIndex);
+      float *Wdata = getWeightsDataHead(axonId, patchIndex);
       for (int kPatch = 0; kPatch < nPatch; kPatch++) {
          Wdata[kPatch] = patchIndex * nPatch + kPatch + parent->simulationTime();
       }

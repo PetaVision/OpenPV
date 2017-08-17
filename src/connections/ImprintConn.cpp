@@ -82,13 +82,11 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt) {
 
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
-   Patch *weights = getWeights(kExt, arbor_ID);
-
    int sya =
          (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt
                                      + post->getLayerLoc()->halo.rt));
 
-   size_t offset           = getAPostOffset(kExt, arbor_ID);
+   size_t offset           = getAPostOffset(kExt);
    const float *postactRef = &postactbuf[offset];
 
    int sym                 = 0;
@@ -102,14 +100,15 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt) {
                                         + mask->getLayerLoc()->halo.rt));
    }
 
-   int ny          = weights->ny;
-   int nk          = weights->nx * nfp;
-   int kernelIndex = patchIndexToDataIndex(kExt);
+   Patch const *weights = getPatch(kExt);
+   int ny               = weights->ny;
+   int nk               = weights->nx * nfp;
+   int kernelIndex      = patchIndexToDataIndex(kExt);
 
-   float *dwdata     = get_dwData(arbor_ID, kExt);
+   float *dwdata     = getDeltaWeightsData(arbor_ID, kExt);
    long *activations = NULL;
    if (normalizeDwFlag) {
-      activations = get_activations(arbor_ID, kExt);
+      activations = getActivations(arbor_ID, kExt);
    }
 
    int lineoffsetw = 0;
@@ -133,7 +132,7 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt) {
          if (maskVal != 0) {
             assert(sharedWeights);
             // Offset in the case of a shrunken patch, where dwdata is applying when calling
-            // get_dwData
+            // getDeltaWeightsData
             if (normalizeDwFlag) {
                activations[lineoffsetw + k]++;
             }
@@ -251,18 +250,18 @@ int ImprintConn::updateWeights(int arbor_ID) {
    int numKernelIndices = getNumDataPatches();
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
       int arborStart      = kArbor * numKernelIndices;
-      float *w_data_start = get_wDataStart(kArbor);
+      float *w_data_start = getWeightsDataStart(kArbor);
       for (int kKernel = 0; kKernel < numKernelIndices; kKernel++) {
          // Regular weight update
          for (int kPatch = 0; kPatch < nxp * nyp * nfp; kPatch++) {
             int k = kKernel * nxp * nyp * nfp + kPatch;
             // If imprinte, dw buffer is set to post
             if (imprinted[arborStart + kKernel]) {
-               w_data_start[k] = get_dwDataStart(kArbor)[k];
+               w_data_start[k] = getDeltaWeightsDataStart(kArbor)[k];
             }
             // Otherwise, accumulate
             else {
-               w_data_start[k] += get_dwDataStart(kArbor)[k];
+               w_data_start[k] += getDeltaWeightsDataStart(kArbor)[k];
             }
          }
       }

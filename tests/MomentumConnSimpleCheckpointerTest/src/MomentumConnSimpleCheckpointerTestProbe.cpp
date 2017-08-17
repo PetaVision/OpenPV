@@ -209,11 +209,11 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyConnection(
    bool failed = false;
 
    if (parent->getCommunicator()->commRank() == 0) {
-      float observedWeightValue = connection->get_wDataStart(0)[0];
+      float observedWeightValue = connection->getWeightsDataStart(0)[0];
       float correctWeightValue  = correctState->getCorrectWeight();
       failed |= verifyConnValue(timevalue, observedWeightValue, correctWeightValue, "weight");
 
-      float observed_dwValue = connection->get_dwDataStart(0)[0];
+      float observed_dwValue = connection->getDeltaWeightsDataStart(0)[0];
       float correct_dwValue  = correctState->getCorrect_dw();
       failed |= verifyConnValue(timevalue, observed_dwValue, correct_dwValue, "dw");
    }

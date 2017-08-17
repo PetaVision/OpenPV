@@ -23,15 +23,12 @@ class CloneConn : public HyPerConn {
 
    virtual int updateState(double time, double dt) override;
 
-   virtual int writeWeights(double time) override { return PV_SUCCESS; }
-   virtual int writeWeights(const char *filename, bool verifyWrites) override { return PV_SUCCESS; }
    virtual int outputState(double time) override { return PV_SUCCESS; }
 
    HyPerConn *getOriginalConn() { return originalConn; }
 
    virtual int allocateDataStructures() override;
    virtual int finalizeUpdate(double timed, double dt) override;
-   // virtual void initPatchToDataLUT();
 
    virtual long *getPostToPreActivity() override { return originalConn->getPostToPreActivity(); }
 
@@ -49,6 +46,7 @@ class CloneConn : public HyPerConn {
 #endif // PV_USE_CUDA
 
   protected:
+   virtual void allocateWeights() override;
 #ifdef PV_USE_CUDA
    virtual int allocatePostDeviceWeights() override;
    virtual int allocateDeviceWeights() override;
@@ -75,16 +73,15 @@ class CloneConn : public HyPerConn {
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) override;
-   virtual Patch ***initializeWeights(Patch ***patches, float **dataStart) override;
+   virtual int setInitialValues() override;
    virtual int cloneParameters();
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override { return PV_SUCCESS; }
-   virtual int constructWeights() override;
-   void constructWeightsOutOfMemory();
-   virtual int createAxonalArbors(int arborId);
 
    virtual int setPatchSize() override;
 
    virtual int registerData(Checkpointer *checkpointer) override;
+
+   virtual void writeWeights(double timestamp) override {}
 
    char *originalConnName;
    HyPerConn *originalConn;

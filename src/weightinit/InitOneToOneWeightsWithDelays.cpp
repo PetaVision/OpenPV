@@ -35,7 +35,8 @@ void InitOneToOneWeightsWithDelays::ioParam_weightInit(enum ParamsIOFlag ioFlag)
    parent->parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
 }
 
-void InitOneToOneWeightsWithDelays::calcWeights(float *dataStart, int patchIndex, int arborId) {
+void InitOneToOneWeightsWithDelays::calcWeights(int patchIndex, int arborId) {
+   float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    createOneToOneConnectionWithDelays(dataStart, patchIndex, mWeightInit, arborId);
 }
 
@@ -45,16 +46,16 @@ void InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(
       float iWeight,
       int arborId) {
 
-   const int nArbors = mCallingConn->numberOfAxonalArborLists();
-   int k             = mCallingConn->dataIndexToUnitCellIndex(dataPatchIndex);
+   const int nArbors = mWeights->getNumArbors();
+   int k             = dataIndexToUnitCellIndex(dataPatchIndex);
 
-   const int nfp = mCallingConn->fPatchSize();
-   const int nxp = mCallingConn->xPatchSize();
-   const int nyp = mCallingConn->yPatchSize();
+   int const nfp = mWeights->getPatchSizeF();
+   int const nyp = mWeights->getPatchSizeY();
+   int const nxp = mWeights->getPatchSizeX();
 
-   const int sxp = mCallingConn->xPatchStride();
-   const int syp = mCallingConn->yPatchStride();
-   const int sfp = mCallingConn->fPatchStride();
+   int const sxp = mWeights->getGeometry()->getPatchStrideX();
+   int const syp = mWeights->getGeometry()->getPatchStrideY();
+   int const sfp = mWeights->getGeometry()->getPatchStrideF();
 
    // clear all weights in patch
    memset(dataStart, 0, nxp * nyp * nfp);

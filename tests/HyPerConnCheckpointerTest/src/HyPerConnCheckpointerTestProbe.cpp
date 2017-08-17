@@ -240,7 +240,7 @@ bool HyPerConnCheckpointerTestProbe::verifyConnection(
             mOutputStreams.empty(),
             "%s has empty mOutputStreams in root process.\n",
             getDescription_c());
-      float observedWeightValue = connection->get_wDataStart(0)[0];
+      float observedWeightValue = connection->getWeightsDataStart(0)[0];
       if (observedWeightValue != correctValue) {
          output(0).printf(
                "Time %f, weight is %f, instead of the expected %f.\n",

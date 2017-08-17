@@ -56,6 +56,7 @@ class TransposePoolingConn : public HyPerConn {
    int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual int setPatchSize() override;
+   virtual void allocateWeights() override;
 #ifdef PV_USE_CUDA
    virtual int allocatePostDeviceWeights() override { return PV_SUCCESS; }
    virtual int allocateDeviceWeights() override { return PV_SUCCESS; }
@@ -66,7 +67,6 @@ class TransposePoolingConn : public HyPerConn {
 #endif // PV_USE_CUDA
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int setInitialValues() override;
-   virtual int constructWeights() override;
    virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
    virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) override;
 #ifdef PV_USE_CUDA

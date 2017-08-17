@@ -292,23 +292,23 @@ int HyPerConnDebugInitWeights::cocircCalcWeights(
    float xDistNNPreUnits;
    float xDistNNPostUnits;
    dist2NearestCell(
-         kxPre_tmp, pre->getXScale(), post->getXScale(), &xDistNNPreUnits, &xDistNNPostUnits);
+         kxPre_tmp, post->getXScale() - pre->getXScale(), &xDistNNPreUnits, &xDistNNPostUnits);
    float yDistNNPreUnits;
    float yDistNNPostUnits;
    dist2NearestCell(
-         kyPre_tmp, pre->getYScale(), post->getYScale(), &yDistNNPreUnits, &yDistNNPostUnits);
+         kyPre_tmp, post->getYScale() - pre->getYScale(), &yDistNNPreUnits, &yDistNNPostUnits);
 
    // get indices of nearest neighbor
    int kxNN;
    int kyNN;
-   kxNN = nearby_neighbor(kxPre_tmp, pre->getXScale(), post->getXScale());
-   kyNN = nearby_neighbor(kyPre_tmp, pre->getYScale(), post->getYScale());
+   kxNN = nearby_neighbor(kxPre_tmp, post->getXScale() - pre->getXScale());
+   kyNN = nearby_neighbor(kyPre_tmp, post->getYScale() - pre->getYScale());
 
    // get indices of patch head
    int kxHead;
    int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, pre->getXScale(), post->getXScale());
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, pre->getYScale(), post->getYScale());
+   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, post->getXScale() - pre->getXScale());
+   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, post->getYScale() - pre->getYScale());
 
    // get distance to patch head
    float xDistHeadPostUnits;
@@ -715,23 +715,23 @@ int HyPerConnDebugInitWeights::gauss2DCalcWeights(
    float xDistNNPreUnits;
    float xDistNNPostUnits;
    dist2NearestCell(
-         kxPre_tmp, pre->getXScale(), post->getXScale(), &xDistNNPreUnits, &xDistNNPostUnits);
+         kxPre_tmp, post->getXScale() - pre->getXScale(), &xDistNNPreUnits, &xDistNNPostUnits);
    float yDistNNPreUnits;
    float yDistNNPostUnits;
    dist2NearestCell(
-         kyPre_tmp, pre->getYScale(), post->getYScale(), &yDistNNPreUnits, &yDistNNPostUnits);
+         kyPre_tmp, post->getYScale() - pre->getYScale(), &yDistNNPreUnits, &yDistNNPostUnits);
 
    // get indices of nearest neighbor
    int kxNN;
    int kyNN;
-   kxNN = nearby_neighbor(kxPre_tmp, pre->getXScale(), post->getXScale());
-   kyNN = nearby_neighbor(kyPre_tmp, pre->getYScale(), post->getYScale());
+   kxNN = nearby_neighbor(kxPre_tmp, post->getXScale() - pre->getXScale());
+   kyNN = nearby_neighbor(kyPre_tmp, post->getYScale() - pre->getYScale());
 
    // get indices of patch head
    int kxHead;
    int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, pre->getXScale(), post->getXScale());
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, pre->getYScale(), post->getYScale());
+   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, post->getXScale() - pre->getXScale());
+   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, post->getYScale() - pre->getYScale());
 
    // get distance to patch head (measured relative to pre-synaptic cell)
    float xDistHeadPostUnits;

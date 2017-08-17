@@ -61,6 +61,9 @@ class PoolingConn : public HyPerConn {
     * normalizeMethod
     */
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) override;
+
+   virtual void allocateWeights() override;
+
 #ifdef PV_USE_CUDA
    virtual int allocatePostDeviceWeights() override { return PV_SUCCESS; }
    virtual int allocateDeviceWeights() override { return PV_SUCCESS; }
@@ -73,7 +76,6 @@ class PoolingConn : public HyPerConn {
    virtual int registerData(Checkpointer *checkpointer) override;
 
    virtual int setInitialValues() override;
-   virtual int constructWeights() override;
 
    virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
    virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) override;

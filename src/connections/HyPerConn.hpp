@@ -11,6 +11,7 @@
 #include "BaseConnection.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/Random.hpp"
+#include "components/Weights.hpp"
 #include "connections/accumulate_functions.hpp"
 #include "include/pv_common.h"
 #include "include/pv_types.h"
@@ -92,16 +93,15 @@ class HyPerConn : public BaseConnection {
          int kExt);
 
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
-   virtual int writeWeights(double timed);
-   virtual int writeWeights(const char *filename, bool verifyWrites);
-   virtual int writeWeights(
-         Patch ***patches,
-         float **dataStart,
-         int numPatches,
-         FileStream *fileStream,
-         double timef,
+   void
+   writeWeights(double timestamp, Weights *weights, bool compressWeights, FileStream *fileStream);
+   void writeWeights(
+         double timestamp,
+         Weights *weights,
          bool compressWeights,
-         bool last);
+         std::string const &path,
+         bool appendFlag,
+         bool verifyWrites);
    virtual int writeTextWeights(const char *filename, bool verifyWrites, int k);
 
    virtual int writeTextWeightsExtra(PrintStream *pvstream, int k, int arborID) {
@@ -163,9 +163,6 @@ class HyPerConn : public BaseConnection {
     */
    double getLastTimeUpdateCalled() { return lastTimeUpdateCalled; }
 
-   // TODO make a get-method to return this.
-   virtual PVLayerCube *getPlasticityDecrement() { return NULL; }
-
    inline InitWeights *getWeightInitializer() { return weightInitializer; }
 
    inline bool getSelfFlag() { return selfFlag; }
@@ -204,67 +201,64 @@ class HyPerConn : public BaseConnection {
 
    inline int fPostPatchSize() { return nfpPost; }
 
-   // arbor and weight patch related get/set methods:
-   inline Patch **weights(int arborId = 0) { return wPatches[arborId]; }
-
-   virtual Patch *getWeights(int kPre, int arborId);
-
-   inline float *getPlasticIncr(int kPre, int arborId) {
-      return plasticityFlag
-                   ? &dwDataStart[arborId][patchStartIndex(kPre) + wPatches[arborId][kPre]->offset]
-                   : NULL;
-   }
+   Patch const *getPatch(int kPre) { return &mWeights->getPatch(kPre); }
 
    inline const PVPatchStrides *getPostExtStrides() { return &postExtStrides; }
 
    inline const PVPatchStrides *getPostNonextStrides() { return &postNonextStrides; }
 
-   inline float *get_wDataStart(int arborId) { return wDataStart[arborId]; }
+   inline float *getWeightsDataStart(int arborId) { return mWeights->getData(arborId); }
 
-   inline float *get_wDataHead(int arborId, int dataIndex) {
-      return &wDataStart[arborId][patchStartIndex(dataIndex)];
+   inline float *getWeightsDataHead(int arborId, int dataIndex) {
+      return mWeights->getDataFromDataIndex(arborId, dataIndex);
    }
 
-   inline float *get_wData(int arborId, int patchIndex) {
-      return &wDataStart[arborId][patchStartIndex(patchToDataLUT(patchIndex))
-                                  + wPatches[arborId][patchIndex]->offset];
+   inline float *getWeightsData(int arborId, int patchIndex) {
+      return mWeights->getDataFromPatchIndex(arborId, patchIndex)
+             + mWeights->getPatch(patchIndex).offset;
    }
 
-   inline float *get_dwDataStart(int arborId) { return dwDataStart[arborId]; }
+   inline float *getDeltaWeightsDataStart(int arborId) { return mDeltaWeights->getData(arborId); }
 
-   inline long *get_activations(int arborId) { return numKernelActivations[arborId]; }
-
-   inline float *get_dwDataHead(int arborId, int dataIndex) {
-      return &dwDataStart[arborId][patchStartIndex(dataIndex)];
+   inline float *getDeltaWeightsDataHead(int arborId, int dataIndex) {
+      return mDeltaWeights->getDataFromDataIndex(arborId, dataIndex);
    }
 
-   inline long *get_activationsHead(int arborId, int dataIndex) {
+   inline float *getDeltaWeightsData(int arborId, int patchIndex) {
+      return mDeltaWeights->getDataFromPatchIndex(arborId, patchIndex)
+             + mDeltaWeights->getPatch(patchIndex).offset;
+   }
+
+   inline long *getActivations(int arborId) { return numKernelActivations[arborId]; }
+
+   inline long *getActivations(int arborId, int patchIndex) {
+      return &numKernelActivations[arborId][patchStartIndex(patchToDataLUT(patchIndex))
+                                            + mWeights->getPatch(patchIndex).offset];
+   }
+
+   inline long *getActivationsHead(int arborId, int dataIndex) {
       return &numKernelActivations[arborId][patchStartIndex(dataIndex)];
    }
 
-   inline float *get_dwData(int arborId, int patchIndex) {
-      return &dwDataStart[arborId][patchStartIndex(patchToDataLUT(patchIndex))
-                                   + wPatches[arborId][patchIndex]->offset];
+   int getNumGeometryPatches() { return mWeights->getGeometry()->getNumPatches(); }
+
+   int getNumDataPatchesX() { return mWeights->getNumDataPatchesX(); }
+
+   int getNumDataPatchesY() { return mWeights->getNumDataPatchesY(); }
+
+   int getNumDataPatchesF() { return mWeights->getNumDataPatchesF(); }
+
+   int getNumDataPatches() { return mWeights->getNumDataPatches(); }
+
+   size_t const *getGSynPatchStart() const {
+      return mWeights->getGeometry()->getGSynPatchStart().data();
    }
 
-   inline long *get_activations(int arborId, int patchIndex) {
-      return &numKernelActivations[arborId][patchStartIndex(patchToDataLUT(patchIndex))
-                                            + wPatches[arborId][patchIndex]->offset];
-   }
+   size_t getGSynPatchStart(int kPre) { return mWeights->getGeometry()->getGSynPatchStart(kPre); }
 
-   int getNumWeightPatches() { return numWeightPatches; }
+   size_t const *getAPostOffset() const { return mWeights->getGeometry()->getAPostOffset().data(); }
 
-   int getNumDataPatchesX() { return mNumDataPatchesX; }
-
-   int getNumDataPatchesY() { return mNumDataPatchesY; }
-
-   int getNumDataPatchesF() { return mNumDataPatchesF; }
-
-   int getNumDataPatches() { return numDataPatches; }
-
-   inline size_t getGSynPatchStart(int kPre, int arborId) { return gSynPatchStart[arborId][kPre]; }
-
-   inline size_t getAPostOffset(int kPre, int arborId) { return aPostOffset[arborId][kPre]; }
+   size_t getAPostOffset(int kPre) { return mWeights->getGeometry()->getAPostOffset(kPre); }
 
    NormalizeBase *getNormalizer() { return normalizer; }
 
@@ -272,16 +266,6 @@ class HyPerConn : public BaseConnection {
 
    // convertPreSynapticWeights was marked obsolete Jul 27, 2017.
    Patch ***convertPreSynapticWeights(double time);
-   int preSynapticPatchHead(int kxPost, int kyPost, int kfPost, int *kxPre, int *kyPre);
-   int postSynapticPatchHead(
-         int kPre,
-         int *kxPostOut,
-         int *kyPostOut,
-         int *kfPostOut,
-         int *dxOut,
-         int *dyOut,
-         int *nxpOut,
-         int *nypOut);
 
    bool getUpdateGSynFromPostPerspective() { return updateGSynFromPostPerspective; }
 
@@ -299,7 +283,6 @@ class HyPerConn : public BaseConnection {
    virtual void addClone(PlasticCloneConn *conn);
    virtual long *getPostToPreActivity() { return postToPreActivity; }
 
-   virtual void initPatchToDataLUT();
    virtual int patchToDataLUT(int patchIndex);
    virtual int *getPatchToDataLUT() { return patch2datalookuptable; }
    virtual int
@@ -312,33 +295,14 @@ class HyPerConn : public BaseConnection {
     */
    void setNeedPost() { needPost = true; }
 
-  protected:
-   int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
-   int numWeightPatches; // Number of Patch structures in buffer pointed to by wPatches[arbor]
-   int numDataPatches; // Number of blocks of float's in buffer pointed to by wDataStart[arbor]
-   int mNumDataPatchesX; // Number of data patches in the x-dimension
-   int mNumDataPatchesY; // Number of data patches in the y-dimension
-   int mNumDataPatchesF; // Number of data patches in the feature dimension
-
-   std::vector<PlasticCloneConn *>
-         clones; // A vector of plastic clones that are cloning from this connection
-
   private:
-   Patch ***wPatches; // list of weight patches, one set per arbor
-   // GTK:: gSynPatchStart redefined as offset from start of associated gSynBuffer
-   size_t **gSynPatchStart; // gSynPatchStart[arborId][kExt] is the offset to the start of the patch
-   // from the beginning of the post-synaptic GSyn buffer for corresponding
-   // channel
-   size_t **aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an
-   // extended post-synaptic layer
+   Weights *mWeights      = nullptr; // Contains the connectivity graph and the weight values
+   Weights *mDeltaWeights = nullptr; // Used by plastic weights to hold the weight updates
+
    PVPatchStrides
          postExtStrides; // sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides
          postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
-   float **wDataStart; // now that data for all patches are allocated to one continuous block of
-   // memory, this pointer saves the starting address of that array
-   float **dwDataStart; // now that data for all patches are allocated to one continuous block
-   // of memory, this pointer saves the starting address of that array
    bool strengthParamHasBeenWritten;
    int *patch2datalookuptable;
 
@@ -392,12 +356,7 @@ class HyPerConn : public BaseConnection {
    void allocateSparseWeightsPost(PVLayerCube const *activity, int arbor);
    // Calculates the sparse weight threshold
    SparseWeightInfo calculateSparseWeightInfo() const;
-   SparseWeightInfo findPercentileThreshold(
-         float percentile,
-         float **wDataStart,
-         size_t numAxonalArborLists,
-         size_t numPatches,
-         size_t patchSize) const;
+   SparseWeightInfo findPercentileThreshold(float percentile, Weights *weights) const;
    void deliverOnePreNeuronActivitySparseWeights(
          int kPreExt,
          int arbor,
@@ -486,7 +445,6 @@ class HyPerConn : public BaseConnection {
    double lastTimeUpdateCalled;
    bool mImmediateWeightUpdate = true;
 
-   bool symmetrizeWeightsFlag;
    long **numKernelActivations;
    std::vector<MPI_Request> m_dWReduceRequests;
    bool mReductionPending = false;
@@ -503,43 +461,23 @@ class HyPerConn : public BaseConnection {
 
    CheckpointableFileStream *mOutputStateStream = nullptr; // weights file written by outputState
 
+   // A vector of plastic clones that are cloning from this connection
+   std::vector<PlasticCloneConn *> clones;
+
   protected:
    HyPerConn();
-   virtual int initNumWeightPatches();
-   virtual int initNumDataPatches();
 
-   inline Patch ***get_wPatches() {
-      return wPatches;
-   } // protected so derived classes can use; public methods are weights(arbor) and
-   // getWeights(patchindex,arbor)
+   // Protected method to return the entire weights object.
+   // There are public methods to retrieve pointers to individual patches and weight values.
+   Weights *getWeights() { return mWeights; }
 
-   inline void set_wPatches(Patch ***patches) { wPatches = patches; }
+   // Protected method to set the entire weights object.
+   void setWeights(Weights *weights) { mWeights = weights; }
+   void setDeltaWeights(Weights *deltaWeights) { mDeltaWeights = deltaWeights; }
 
-  public:
-   inline size_t **getGSynPatchStart() { return gSynPatchStart; }
-
-  protected:
-   inline void setGSynPatchStart(size_t **patchstart) { gSynPatchStart = patchstart; }
-
-   inline size_t **getAPostOffset() { return aPostOffset; }
-
-   inline void setAPostOffset(size_t **postoffset) { aPostOffset = postoffset; }
-
-   inline float **get_wDataStart() { return wDataStart; }
-
-   inline void set_wDataStart(float **datastart) { wDataStart = datastart; }
-
-   inline void set_wDataStart(int arborId, float *pDataStart) { wDataStart[arborId] = pDataStart; }
-
-   inline float **get_dwDataStart() { return dwDataStart; }
+   Weights *getDeltaWeights() { return mDeltaWeights; }
 
    inline long **get_activations() { return numKernelActivations; }
-
-   inline void set_dwDataStart(float **datastart) { dwDataStart = datastart; }
-
-   inline void set_dwDataStart(int arborId, float *pIncrStart) {
-      dwDataStart[arborId] = pIncrStart;
-   }
 
    inline size_t patchStartIndex(int patchIndex) {
       return (size_t)patchIndex * (size_t)(nxp * nyp * nfp);
@@ -557,10 +495,9 @@ class HyPerConn : public BaseConnection {
    virtual int setPatchStrides();
    int checkPatchDimensions();
    virtual int checkPatchSize(int patchSize, int scalePre, int scalePost, char dim);
-   int initialize_base();
-   virtual int createArbors();
-   void createArborsOutOfMemory();
-   virtual int constructWeights();
+
+   virtual void allocateWeights();
+   virtual void initPatchToDataLUT();
 
    /**
     * Initializes the connection.  This routine should be called by the initialize method of classes
@@ -814,18 +751,14 @@ class HyPerConn : public BaseConnection {
    virtual void ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag);
    /** @} */
 
-   int setPreLayerName(const char *pre_name);
-   int setPostLayerName(const char *post_name);
-   virtual int initPlasticityPatches();
    virtual int registerData(Checkpointer *checkpointer) override;
-   void openOutputStateFile(Checkpointer *checkpointer);
-   void registerTimers(Checkpointer *checkpointer);
 
    /**
     * Called by registerData. If writeStep is nonnegative, opens the weights pvp file to be
     * used by outputState, and registers its file position with the checkpointer.
     */
-   void openOutpuStateFile(Checkpointer *checkpointer);
+   void openOutputStateFile(Checkpointer *checkpointer);
+   void registerTimers(Checkpointer *checkpointer);
 
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses
    // override if they have specialized ways of setting patch size that
@@ -837,40 +770,13 @@ class HyPerConn : public BaseConnection {
    // communicateInitInfo().
    virtual void
    handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
-   virtual Patch ***initializeWeights(Patch ***arbors, float **dataStart);
-   virtual int createWeights(
-         Patch ***patches,
-         int nWeightPatches,
-         int nDataPatches,
-         int nxPatch,
-         int nyPatch,
-         int nfPatch,
-         int arborId);
-   int createWeights(Patch ***patches, int arborId);
    virtual float *allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    virtual int allocatePostToPreBuffer();
    virtual int allocatePostConn();
 
    int clearWeights(float **dataStart, int numPatches, int nx, int ny, int nf);
-   virtual int adjustAllPatches(
-         int nxPre,
-         int nyPre,
-         int nfPre,
-         const PVHalo *haloPre,
-         int nxPost,
-         int nyPost,
-         int nfPost,
-         const PVHalo *haloPost,
-         Patch ***inWPatches,
-         size_t **inGSynPatchStart,
-         size_t **inAPostOffset,
-         int arborId);
-   virtual int adjustAxonalArbors(int arborId);
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
-   void checkpointWeightPvp(
-         Checkpointer *checkpointer,
-         char const *bufferName,
-         float **weightDataBuffer);
+   void checkpointWeightPvp(Checkpointer *checkpointer, char const *bufferName, Weights *weights);
    virtual int setInitialValues() override; // returns PV_SUCCESS if successful,
    // or PV_POSTPONE if it needs to wait on other objects
    // (e.g. TransposeConn has to wait for original conn)
@@ -879,6 +785,8 @@ class HyPerConn : public BaseConnection {
     * Calls blockingNormalize_dW.
     */
    virtual int prepareCheckpointWrite() override;
+
+   virtual void writeWeights(double timestamp);
 
    void updateWeightsImmediate(double simTime, double dt);
    void updateWeightsDelayed(double simTime, double dt);
@@ -1060,115 +968,10 @@ class HyPerConn : public BaseConnection {
 #endif // PV_USE_CUDA
 
   private:
+   int initialize_base();
    int clearWeights(float *arborDataStart, int numPatches, int nx, int ny, int nf);
    int deleteWeights();
    void unsetAccumulateType();
-
-   // static member functions
-   //
-  public:
-   static Patch **createPatches(int nPatches, int nx, int ny) {
-      Patch **patchpointers = (Patch **)(calloc(nPatches, sizeof(Patch *)));
-      Patch *patcharray     = (Patch *)(calloc(nPatches, sizeof(Patch)));
-
-      Patch *curpatch = patcharray;
-      for (int i = 0; i < nPatches; i++) {
-         pvpatch_init(curpatch, nx, ny);
-         patchpointers[i] = curpatch;
-         curpatch++;
-      }
-
-      return patchpointers;
-   }
-
-   static int deletePatches(Patch **patchpointers) {
-      if (patchpointers != NULL && *patchpointers != NULL) {
-         free(*patchpointers);
-         *patchpointers = NULL;
-      }
-      free(patchpointers);
-      patchpointers = NULL;
-
-      return 0;
-   }
-
-   static inline void pvpatch_init(Patch *p, int nx, int ny) {
-      p->nx     = nx;
-      p->ny     = ny;
-      p->offset = 0;
-   }
-
-   static inline void
-   pvpatch_adjust(Patch *p, int sx, int sy, int nxNew, int nyNew, int dx, int dy) {
-      p->nx = nxNew;
-      p->ny = nyNew;
-      p->offset += dx * sx + dy * sy;
-   }
-
-  protected:
-   static inline int adjustedPatchDimension(
-         int zPre,
-         int preNeuronsPerPostNeuron,
-         int postNeuronsPerPreNeuron,
-         int nPost,
-         int patchDim,
-         int *postStartPtr,
-         int *patchStartPtr,
-         int *adjustedDim) {
-      float preInPostCoords; // The location, in postsynaptic restricted coordinates, of the
-      // presynaptic cell of this patch
-      if (postNeuronsPerPreNeuron > 1) {
-         preInPostCoords = zPre * postNeuronsPerPreNeuron + 0.5f * (postNeuronsPerPreNeuron - 1);
-      }
-      else if (preNeuronsPerPostNeuron > 1) {
-         preInPostCoords = ((float)(2 * zPre - (preNeuronsPerPostNeuron - 1)))
-                           / ((float)2 * preNeuronsPerPostNeuron);
-      }
-      else {
-         preInPostCoords = (float)zPre;
-      }
-      float postStartf = preInPostCoords - 0.5f * patchDim; // The location, in postsynaptic
-      // restricted coordinates of the start
-      // of an interval of length nxp and
-      // center xPreInPostCoords
-      float postStopf =
-            preInPostCoords
-            + 0.5f * patchDim; // The location of the end of the interval starting at xPostStartf.
-      // Everything between xPostStartf and xPostStopf, inclusive, is in the patch.
-      int postStart = (int)ceil(postStartf);
-      int postStop  = (int)floor(postStopf) + 1;
-      assert(postStop - postStart == patchDim);
-      int patchStart = 0;
-      int patchStop  = patchDim;
-      if (postStop < 0) {
-         postStop   = 0;
-         postStart  = 0;
-         patchStart = 0;
-         patchStop  = 0;
-      }
-      if (postStart < 0) {
-         patchStart += -postStart;
-         postStart = 0;
-      }
-      if (postStart > nPost) {
-         postStart  = nPost;
-         postStop   = nPost;
-         patchStart = 0;
-         patchStop  = 0;
-      }
-      if (postStop > nPost) {
-         patchStop -= (postStop - nPost);
-         postStop = nPost;
-      }
-      assert(postStop - postStart == patchStop - patchStart);
-      // calculate width of the edge-adjusted patch and perform sanity checks.
-      int width = patchStop - patchStart;
-      assert(width >= 0 && width <= patchDim && patchStart >= 0 && patchStart + width <= patchDim);
-      *postStartPtr  = postStart;
-      *patchStartPtr = patchStart;
-      *adjustedDim   = width;
-      return PV_SUCCESS;
-   }
 
 }; // class HyPerConn
 

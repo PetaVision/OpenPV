@@ -49,7 +49,7 @@ class InitUniformWeights : public PV::InitWeights {
   protected:
    InitUniformWeights();
    int initialize(const char *name, HyPerCol *hc);
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
+   virtual void calcWeights(int patchIndex, int arborId) override;
 
   private:
    virtual int initialize_base();

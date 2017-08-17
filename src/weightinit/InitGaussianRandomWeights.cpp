@@ -51,11 +51,11 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
    pvAssert(mRandState == nullptr && mGaussianRandState == nullptr);
    int status = PV_SUCCESS;
    if (isKernel) {
-      mGaussianRandState = new GaussianRandom(mCallingConn->getNumDataPatches());
+      mGaussianRandState = new GaussianRandom(mWeights->getNumDataPatches());
    }
    else {
-      mGaussianRandState = new GaussianRandom(
-            mCallingConn->preSynapticLayer()->getLayerLoc(), true /*isExtended*/);
+      mGaussianRandState =
+            new GaussianRandom(&mWeights->getGeometry()->getPreLoc(), true /*isExtended*/);
    }
 
    if (mGaussianRandState == nullptr) {
@@ -73,9 +73,9 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
  * shrunken.
  */
 void InitGaussianRandomWeights::randomWeights(float *patchDataStart, int patchIndex) {
-   const int nxp = mCallingConn->xPatchSize();
-   const int nyp = mCallingConn->yPatchSize();
-   const int nfp = mCallingConn->fPatchSize();
+   int const nfp = mWeights->getPatchSizeF();
+   int const nyp = mWeights->getPatchSizeY();
+   int const nxp = mWeights->getPatchSizeX();
 
    const int patchSize = nxp * nyp * nfp;
    for (int n = 0; n < patchSize; n++) {

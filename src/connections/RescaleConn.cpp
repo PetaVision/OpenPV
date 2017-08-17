@@ -89,15 +89,15 @@ int RescaleConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
 #pragma omp parallel for
 #endif
          for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
-            int kPre       = activeIndicesBatch[loopIndex].index;
-            float a        = scale * activeIndicesBatch[loopIndex].value;
-            Patch *weights = getWeights(kPre, arborID);
-            if (weights->nx > 0 && weights->ny > 0) {
+            int kPre           = activeIndicesBatch[loopIndex].index;
+            float a            = scale * activeIndicesBatch[loopIndex].value;
+            Patch const *patch = getPatch(kPre);
+            if (patch->nx > 0 && patch->ny > 0) {
                int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo
                // into account, but
                // for feature index,
                // shouldn't matter.
-               float *postPatchStart = gSynPatchHeadBatch + getGSynPatchStart(kPre, arborID) + f;
+               float *postPatchStart = gSynPatchHeadBatch + getGSynPatchStart(kPre) + f;
                *postPatchStart += a;
             }
          }

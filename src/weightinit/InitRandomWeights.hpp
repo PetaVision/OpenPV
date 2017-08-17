@@ -22,7 +22,7 @@ class InitRandomWeights : public InitWeights {
    InitRandomWeights();
    int initialize(char const *name, HyPerCol *hc);
    virtual int initRNGs(bool isKernel) override;
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
+   virtual void calcWeights(int patchIndex, int arborId) override;
    virtual void randomWeights(float *patchDataStart, int patchIndex) = 0;
    // Subclasses must implement randomWeights.
    // patchDataStart is a pointer to the beginning of a data patch.

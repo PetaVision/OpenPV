@@ -34,8 +34,8 @@ int PlasticConnTestProbe::outputState(double timed) {
       return PV_SUCCESS;
    }
    output(0).printf("    Time %f, %s:\n", timed, c->getDescription_c());
-   const float *w  = c->get_wDataHead(getArbor(), getKernelIndex());
-   const float *dw = c->get_dwDataHead(getArbor(), getKernelIndex());
+   const float *w  = c->getWeightsDataHead(getArbor(), getKernelIndex());
+   const float *dw = c->getDeltaWeightsDataHead(getArbor(), getKernelIndex());
    if (getOutputPlasticIncr() && dw == NULL) {
       Fatal().printf(
             "%s: %s has dKernelData(%d,%d) set to null.\n",

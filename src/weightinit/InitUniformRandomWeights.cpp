@@ -74,9 +74,9 @@ void InitUniformRandomWeights::randomWeights(float *patchDataStart, int patchInd
 
    // loop over all post-synaptic cells in patch
 
-   const int nxp       = mCallingConn->xPatchSize();
-   const int nyp       = mCallingConn->yPatchSize();
-   const int nfp       = mCallingConn->fPatchSize();
+   const int nxp       = mWeights->getPatchSizeX();
+   const int nyp       = mWeights->getPatchSizeY();
+   const int nfp       = mWeights->getPatchSizeF();
    const int patchSize = nxp * nyp * nfp;
 
    // Force a minimum number of nonzero weights

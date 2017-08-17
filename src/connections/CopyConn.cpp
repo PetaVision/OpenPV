@@ -181,25 +181,14 @@ int CopyConn::setPatchSize() {
 int CopyConn::setInitialValues() {
    int status = PV_SUCCESS;
    if (originalConn->getInitialValuesSetFlag()) {
-      status = HyPerConn::setInitialValues(); // calls initializeWeights
+      for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
+         copy(arbor);
+      }
    }
    else {
       status = PV_POSTPONE;
    }
    return status;
-}
-
-Patch ***CopyConn::initializeWeights(Patch ***patches, float **dataStart) {
-   assert(originalConn->getInitialValuesSetFlag()); // setInitialValues shouldn't
-   // call this function
-   // unless original conn has set its own initial
-   // values
-   assert(dataStart == get_wDataStart());
-   assert(patches == NULL || patches == get_wPatches());
-   for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
-      copy(arbor);
-   }
-   return patches;
 }
 
 bool CopyConn::needUpdate(double time, double dt) {
@@ -225,7 +214,7 @@ int CopyConn::updateWeights(int axonID) {
 int CopyConn::copy(int arborId) {
    size_t arborsize =
          (size_t)(xPatchSize() * yPatchSize() * fPatchSize() * getNumDataPatches()) * sizeof(float);
-   memcpy(get_wDataStart(arborId), originalConn->get_wDataStart(arborId), arborsize);
+   memcpy(getWeightsDataStart(arborId), originalConn->getWeightsDataStart(arborId), arborsize);
    return PV_SUCCESS;
 }
 

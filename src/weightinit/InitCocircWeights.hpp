@@ -25,7 +25,7 @@ class InitCocircWeights : public PV::InitGauss2DWeights {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
+   virtual void calcWeights(int patchIndex, int arborId) override;
 
   protected:
    InitCocircWeights();
@@ -54,7 +54,7 @@ class InitCocircWeights : public PV::InitGauss2DWeights {
    bool checkFlags(float dyP_shift, float dxP);
    void updategKurvePreNgKurvePost(float cocircKurve_shift);
    float calculateWeight();
-   void cocircCalcWeights(float *w_tmp);
+   void cocircCalcWeights(float *dataStart);
 
   private:
    float mSigmaCocirc          = 0.5f * PI;

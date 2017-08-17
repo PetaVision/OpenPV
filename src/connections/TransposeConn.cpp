@@ -355,6 +355,19 @@ int TransposeConn::allocateDataStructures() {
    return status;
 }
 
+void TransposeConn::allocateWeights() {
+   if (originalConn->postConn) {
+      setWeights(originalConn->postConn->getWeights());
+      setDeltaWeights(originalConn->postConn->getDeltaWeights());
+   }
+}
+
+void TransposeConn::initPatchToDataLUT() {
+   if (originalConn->postConn) {
+      HyPerConn::initPatchToDataLUT();
+   }
+}
+
 int TransposeConn::registerData(Checkpointer *checkpointer) {
    // Skip over HyPerConn, because TransposeConn doesn't need to write any checkpoint files.
    int status = BaseConnection::registerData(checkpointer);
@@ -368,45 +381,19 @@ int TransposeConn::registerData(Checkpointer *checkpointer) {
    return status;
 }
 
-int TransposeConn::constructWeights() {
-   if (originalConn->postConn) {
-      setPatchStrides();
-      wPatches       = originalConn->postConn->get_wPatches();
-      wDataStart     = originalConn->postConn->get_wDataStart();
-      gSynPatchStart = originalConn->postConn->getGSynPatchStart();
-      aPostOffset    = originalConn->postConn->getAPostOffset();
-      dwDataStart    = originalConn->postConn->get_dwDataStart();
-   }
-   return PV_SUCCESS;
-}
-
 int TransposeConn::deleteWeights() {
    // Have to make sure not to free memory belonging to originalConn.
    // Set pointers that point into originalConn to NULL so that free() has no effect
    // when HyPerConn::deleteWeights or HyPerConn::deleteWeights is called
-   wPatches       = NULL;
-   wDataStart     = NULL;
-   gSynPatchStart = NULL;
-   aPostOffset    = NULL;
-   dwDataStart    = NULL;
+   mWeights      = nullptr;
+   mDeltaWeights = nullptr;
    return 0;
 }
 
 int TransposeConn::setInitialValues() {
-   int status = PV_SUCCESS;
-   if (originalConn->getInitialValuesSetFlag()) {
-      status = HyPerConn::setInitialValues(); // calls initializeWeights
-   }
-   else {
-      status = PV_POSTPONE;
-   }
-   return status;
-}
-
-Patch ***TransposeConn::initializeWeights(Patch ***patches, float **dataStart) {
    // TransposeConn must wait until after originalConn has been normalized, so weight initialization
    // doesn't take place until HyPerCol::run calls finalizeUpdate
-   return patches;
+   return PV_SUCCESS;
 }
 
 bool TransposeConn::needUpdate(double timed, double dt) { return false; }

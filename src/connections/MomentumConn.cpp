@@ -21,43 +21,13 @@ MomentumConn::~MomentumConn() {
    if (momentumMethod) {
       free(momentumMethod);
    }
-   if (prev_dwDataStart) {
-      free(prev_dwDataStart[0]);
-      free(prev_dwDataStart);
-   }
+   delete mPreviousDeltaWeights;
 }
 
 int MomentumConn::initialize_base() {
-   prev_dwDataStart = NULL;
-   momentumTau      = .25;
-   momentumMethod   = NULL;
-   momentumDecay    = 0;
-   return PV_SUCCESS;
-}
-
-int MomentumConn::allocateDataStructures() {
-   int status = HyPerConn::allocateDataStructures();
-   if (status == PV_POSTPONE) {
-      return status;
-   }
-   if (!plasticityFlag)
-      return status;
-   int sx       = nfp;
-   int sy       = sx * nxp;
-   int sp       = sy * nyp;
-   int nPatches = getNumDataPatches();
-
-   const int numAxons = numberOfAxonalArborLists();
-
-   // Allocate dw buffer for previous dw
-   prev_dwDataStart       = (float **)pvCalloc(numAxons, sizeof(float *));
-   std::size_t numWeights = (std::size_t)(numAxons * nxp * nyp * nfp) * (std::size_t)nPatches;
-   prev_dwDataStart[0]    = (float *)pvCalloc(numWeights, sizeof(float));
-   for (int arborId = 0; arborId < numAxons; arborId++) {
-      prev_dwDataStart[arborId] = (prev_dwDataStart[0] + sp * nPatches * arborId);
-      pvAssert(prev_dwDataStart[arborId] != NULL);
-   } // loop over arbors
-
+   momentumTau    = .25;
+   momentumMethod = NULL;
+   momentumDecay  = 0;
    return PV_SUCCESS;
 }
 
@@ -134,18 +104,24 @@ void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void MomentumConn::allocateWeights() {
+   HyPerConn::allocateWeights();
+   if (plasticityFlag) {
+      mPreviousDeltaWeights = new Weights(name, getWeights());
+      mPreviousDeltaWeights->allocateDataStructures();
+   }
+}
+
 int MomentumConn::updateWeights(int arborId) {
    // Add momentum right before updateWeights
-   for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
-      applyMomentum(arborId);
-   }
+   applyMomentum(arborId);
 
    // Saved to prevweights
-   pvAssert(prev_dwDataStart);
+   pvAssert(mPreviousDeltaWeights->getData(arborId));
    std::memcpy(
-         *prev_dwDataStart,
-         *get_dwDataStart(),
-         sizeof(float) * numberOfAxonalArborLists() * nxp * nyp * nfp * getNumDataPatches());
+         mPreviousDeltaWeights->getData(arborId),
+         getDeltaWeightsDataStart(arborId),
+         sizeof(float) * (std::size_t)(nxp * nyp * nfp * getNumDataPatches()));
 
    // add dw to w
    return HyPerConn::updateWeights(arborId);
@@ -167,11 +143,11 @@ void MomentumConn::applyMomentum(int arbor_ID, float dwFactor, float wFactor) {
 #pragma omp parallel for
 #endif
    for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
-      float *dwdata_start        = get_dwDataHead(arbor_ID, kernelIdx);
-      float const *prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
-      float const *wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
+      float *deltaWeights           = getDeltaWeightsDataHead(arbor_ID, kernelIdx);
+      float const *prevDeltaWeights = getPreviousDeltaWeightsDataHead(arbor_ID, kernelIdx);
+      float const *weights          = getWeightsDataHead(arbor_ID, kernelIdx);
       for (int k = 0; k < nxp * nyp * nfp; k++) {
-         dwdata_start[k] += dwFactor * prev_dw_start[k] - wFactor * wdata_start[k];
+         deltaWeights[k] += dwFactor * prevDeltaWeights[k] - wFactor * weights[k];
       }
    }
 }
@@ -180,7 +156,7 @@ void MomentumConn::applyMomentum(int arbor_ID, float dwFactor, float wFactor) {
 int MomentumConn::registerData(Checkpointer *checkpointer) {
    int status = HyPerConn::registerData(checkpointer);
    if (plasticityFlag) {
-      checkpointWeightPvp(checkpointer, "prev_dW", prev_dwDataStart);
+      checkpointWeightPvp(checkpointer, "prev_dW", mPreviousDeltaWeights);
    }
    return status;
 }

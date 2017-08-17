@@ -54,22 +54,21 @@ void InitCocircWeights::ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "deltaRadiusCurvature", &mDeltaRadiusCurvature, mDeltaRadiusCurvature);
 }
 
-void InitCocircWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
+void InitCocircWeights::calcWeights(int patchIndex, int arborId) {
    calcOtherParams(patchIndex);
-   nKurvePre  = mPreLayer->getLayerLoc()->nf / mNumOrientationsPre;
-   nKurvePost = mPostLayer->getLayerLoc()->nf / mNumOrientationsPost;
+   nKurvePre        = mWeights->getGeometry()->getPreLoc().nf / mNumOrientationsPre;
+   nKurvePost       = mWeights->getGeometry()->getPostLoc().nf / mNumOrientationsPost;
+   float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    cocircCalcWeights(dataStart);
 }
 
 void InitCocircWeights::cocircCalcWeights(float *dataStart) {
-
-   // load stored params:
-   int nfPatch = mCallingConn->fPatchSize();
-   int nyPatch = mCallingConn->yPatchSize();
-   int nxPatch = mCallingConn->xPatchSize();
-   int sx      = mCallingConn->xPatchStride();
-   int sy      = mCallingConn->yPatchStride();
-   int sf      = mCallingConn->fPatchStride();
+   int nfPatch = mWeights->getPatchSizeF();
+   int nyPatch = mWeights->getPatchSizeY();
+   int nxPatch = mWeights->getPatchSizeX();
+   int sx      = mWeights->getGeometry()->getPatchStrideX();
+   int sy      = mWeights->getGeometry()->getPatchStrideY();
+   int sf      = mWeights->getGeometry()->getPatchStrideF();
 
    // loop over all post synaptic neurons in patch
    for (int kfPost = 0; kfPost < nfPatch; kfPost++) {

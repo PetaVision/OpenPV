@@ -98,137 +98,20 @@ int ensureDirExists(MPIBlock const *mpiBlock, char const *dirname);
 // gatherActivity and scatterActivity were also removed.
 // Use BufferUtils::gather and BufferUtils::scatter instead.
 
-// readWeights was removed Mar 15, 2017. Use readSharedWeights or readNonsharedWeights instead.
+// readWeights, writeWeights, and functions used only by them were removed Mar 15, 2017.
+// Use the WeightsFileIO class instead
 
-PatchListDescription createPatchListDescription(
-      PVLayerLoc const *preLoc,
-      PVLayerLoc const *postLoc,
-      int nxp,
-      int nyp,
-      bool shared);
-
-/**
- * Calculates the minimum of the value of minWeight and all the weights in the
- * patch pointed to by patchData, and defined by nf, nx, ny, offset and syp.
- * nf, nx, ny define the size of the patch, and offset defines the patch's
- * start in patchData. syp is the stride between adjacent y-values.
- * The stride in f is assumed to be 1, and the stride in x is assumed to be nf.
- *
- * It also calculates the maximum of the value of maxWeight and all the
- * weights in the same patch.
- *
- * Note that calcMinMaxPatch does not initialize minWeight or maxWeight.
- * This way the min/maximum of several patches in sequence is readily computed.
- */
-void calcMinMaxPatch(
-      float &minWeight,
-      float &maxWeight,
-      float const *patchData,
-      unsigned int nf,
-      unsigned int nx,
-      unsigned int ny,
-      unsigned int offset,
-      unsigned int syp);
-
-void calcMinMaxNonsharedWeights(
-      float &minWeight,
-      float &maxWeight,
-      float const *const *patchData,
-      int numArbors,
-      int nxp,
-      int nyp,
-      int nfp,
-      PatchListDescription const &patchIndices,
-      Patch const *const *const *patchGeometry);
-
-void calcMinMaxSharedWeights(
-      float &minWeight,
-      float &maxWeight,
-      float const *const *patchData,
-      int numArbors,
-      int nxp,
-      int nyp,
-      int nfp,
-      PatchListDescription const &patchIndices);
-
-double readSharedWeights(
-      FileStream *fileStream,
-      int frameNumber,
-      MPIBlock const *mpiBlock,
-      PVLayerLoc const *preLoc,
-      int nxp,
-      int nyp,
-      int nfp,
-      int numArbors,
-      float **dataStart,
-      int numPatchesX,
-      int numPatchesY,
-      int numPatchesF);
-
-double readNonsharedWeights(
-      FileStream *fileStream,
-      int frameNumber,
-      MPIBlock const *mpiBlock,
-      const PVLayerLoc *preLoc,
-      int nxp,
-      int nyp,
-      int nfp,
-      int numArbors,
-      float **dataStart,
-      bool extended,
-      const PVLayerLoc *postLoc,
-      int offsetX,
-      int offsetY);
-
-/**
- * Positions a weight pvp file to the start of the data (i.e. just past the end of the header)
- * of the indicated frame. The header for that frame is read into the buffer pointed by
- * the first argument.
- */
-void setInPosByFrame(BufferUtils::WeightHeader &header, FileStream *fileStream, int frameNumber);
-
-bool isCompressedHeader(BufferUtils::WeightHeader const &header, std::string const &filename);
+// calcMinMaxPatch, calcMinMaxNonsharedWeights, calcMinMaxSharedWeights were removed Aug 16, 2017.
+// Use Weights::calcMinWeights and Weights::calcMaxWeights instead.
 
 int pv_text_write_patch(
       PrintStream *pvstream,
-      Patch *patch,
+      Patch const *patch,
       float *data,
       int nf,
       int sx,
       int sy,
       int sf);
-
-void writeSharedWeights(
-      double timed,
-      FileStream *fileStream,
-      MPIBlock const *mpiBlock,
-      PVLayerLoc const *preLoc,
-      int nxp,
-      int nyp,
-      int nfp,
-      int numArbors,
-      float **dataStart,
-      bool compress,
-      float minVal,
-      float maxVal,
-      int numPatchesX,
-      int numPatchesY,
-      int numPatchesF);
-
-void writeNonsharedWeights(
-      double timed,
-      FileStream *fileStream,
-      MPIBlock const *mpiBlock,
-      const PVLayerLoc *preLoc,
-      int nxp,
-      int nyp,
-      int nfp,
-      int numArbors,
-      float **dataStart,
-      bool compress,
-      bool extended,
-      const PVLayerLoc *postLoc,
-      Patch const *const *const *patchGeometry);
 
 // Unused function pvp_check_file_header was removed Mar 15, 2017.
 } // namespace PV

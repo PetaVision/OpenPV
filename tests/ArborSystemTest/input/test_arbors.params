@@ -22,10 +22,10 @@ HyPerCol "column" = {
    outputPath = "output/";
    printParamsFilename = "pv.params";
    initializeFromCheckpointDir = "";
-   checkpointWrite = false;
-   // checkpointWriteDir = "Checkpoints";
-   // checkpointWriteStepInterval = 1;
-   lastCheckpointDir = "output/Last";
+   checkpointWrite = true;
+   checkpointWriteDir = "output/Checkpoints";
+   checkpointWriteStepInterval = 1;
+   // lastCheckpointDir = "output/Last";
    errorOnNotANumber = false;
    nbatch = 2;
 };

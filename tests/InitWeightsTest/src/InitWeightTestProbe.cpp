@@ -34,9 +34,9 @@ int InitWeightTestProbe::outputState(double timed) {
    }
    for (int b = 0; b < parent->getNBatch(); b++) {
       if (timed > 2.0) {
-         FatalIf(!((fMin[b] > -0.001f) && (fMin[b] < 0.001f)), "Test failed.\n");
-         FatalIf(!((fMax[b] > -0.001f) && (fMax[b] < 0.001f)), "Test failed.\n");
-         FatalIf(!((avg[b] > -0.001f) && (avg[b] < 0.001f)), "Test failed.\n");
+         FatalIf(std::abs(fMin[b]) >= 0.001f, "Test failed.\n");
+         FatalIf(std::abs(fMax[b]) >= 0.001f, "Test failed.\n");
+         FatalIf(std::abs(avg[b]) >= 0.001f, "Test failed.\n");
       }
    }
 

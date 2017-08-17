@@ -18,7 +18,7 @@ class InitSmartWeights : public PV::InitWeights {
    InitSmartWeights();
    virtual ~InitSmartWeights();
 
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
+   virtual void calcWeights(int patchIndex, int arborId) override;
 
   protected:
    int initialize(char const *name, HyPerCol *hc);

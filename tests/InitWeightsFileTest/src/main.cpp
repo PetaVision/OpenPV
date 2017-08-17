@@ -47,10 +47,10 @@ int main(int argc, char *argv[]) {
       int nyExtGlobal = preLoc.nyGlobal + preLoc.halo.dn + preLoc.halo.up;
       int globalIndex = kIndex(x, y, f, nxExtGlobal, nyExtGlobal, nf);
 
-      float const *weights = conn->get_wDataHead(0 /*arbor*/, index);
+      float const *weights = conn->getWeightsDataHead(0 /*arbor*/, index);
 
       // only need to check in shrunken patch region.
-      PV::Patch const *patch = conn->getWeights(index, 0 /*arbor*/);
+      PV::Patch const *patch = conn->getPatch(index);
       int xStart             = kxPos(patch->offset, nxp, nyp, nfp);
       int yStart             = kyPos(patch->offset, nxp, nyp, nfp);
       for (int y = yStart; y < yStart + patch->ny; y++) {

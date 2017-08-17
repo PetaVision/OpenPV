@@ -23,11 +23,11 @@ int MomentumTestConnProbe::outputState(double timed) {
    int syw         = conn->yPatchStride(); // stride in patch
 
    for (int kPre = 0; kPre < numPreExt; kPre++) {
-      Patch *weights = conn->getWeights(kPre, 0);
-      int nk         = conn->fPatchSize() * weights->nx;
+      Patch const *patch = conn->getPatch(kPre);
+      int nk             = conn->fPatchSize() * patch->nx;
 
-      float *data = conn->get_wData(0, kPre);
-      int ny      = weights->ny;
+      float *data = conn->getWeightsData(0, kPre);
+      int ny      = patch->ny;
       float wCorrect;
       for (int y = 0; y < ny; y++) {
          float *dataYStart = data + y * syw;

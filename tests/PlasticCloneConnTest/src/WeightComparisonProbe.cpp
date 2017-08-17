@@ -82,8 +82,8 @@ int WeightComparisonProbe::allocateDataStructures() {
 int WeightComparisonProbe::outputState(double timestamp) {
    for (auto &c : mConnectionList) {
       for (int a = 0; a < mNumArbors; a++) {
-         float *firstConn = mConnectionList[0]->get_wDataStart(a);
-         float *thisConn  = c->get_wDataStart(a);
+         float *firstConn = mConnectionList[0]->getWeightsDataStart(a);
+         float *thisConn  = c->getWeightsDataStart(a);
          FatalIf(
                memcmp(firstConn, thisConn, sizeof(float) * mNumWeightsInArbor) != 0,
                "%s and %s do not have the same weights.\n",

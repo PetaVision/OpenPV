@@ -6,6 +6,7 @@
  */
 
 #include "PoolingConn.hpp"
+#include "components/ImpliedWeights.hpp"
 #include <cmath>
 #include <cstring>
 #include <locale>
@@ -300,6 +301,21 @@ int PoolingConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    return status;
 }
 
+void PoolingConn::allocateWeights() {
+   setWeights(
+         new ImpliedWeights(
+               name,
+               nxp,
+               nyp,
+               nfp,
+               pre->getLayerLoc(),
+               post->getLayerLoc(),
+               numAxonalArborLists,
+               sharedWeights,
+               0.0));
+   getWeights()->allocateDataStructures();
+}
+
 void PoolingConn::clearGateIdxBuffer() {
    if (needPostIndexLayer) {
       // Reset postIndexLayer's gsyn
@@ -414,33 +430,6 @@ int PoolingConn::initializeDeliverKernelArgs() {
    return PV_SUCCESS;
 }
 #endif // PV_USE_CUDA
-
-int PoolingConn::constructWeights() {
-   int sx       = nfp;
-   int sy       = sx * nxp;
-   int sp       = sy * nyp;
-   int nPatches = getNumDataPatches();
-   int status   = PV_SUCCESS;
-
-   createArbors();
-
-   setPatchStrides();
-
-   for (int arborId = 0; arborId < numAxonalArborLists; arborId++) {
-      Patch ***wPatches = get_wPatches();
-      status            = createWeights(wPatches, arborId);
-      assert(wPatches[arborId] != NULL);
-      if (arborId == 0) {
-         status |= adjustAxonalArbors(arborId);
-      }
-   } // arborId
-
-   // call to initializeWeights moved to BaseConnection::initializeState()
-   status |= initPlasticityPatches();
-   assert(status == 0);
-
-   return status;
-}
 
 float PoolingConn::minWeight(int arborId) {
    if (getPoolingType() == MAX) {
@@ -608,13 +597,13 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int 
          }
 #endif // PV_USE_OPENMP_THREADS
 
-         Patch *weights            = getWeights(kPreExt, arborID);
-         const int nk              = weights->nx * fPatchSize();
-         const int ny              = weights->ny;
+         Patch const *patch        = getPatch(kPreExt);
+         const int nk              = patch->nx * fPatchSize();
+         const int ny              = patch->ny;
          const int sy              = getPostNonextStrides()->sy; // stride in layer
          float *weightDataStart    = NULL;
-         float *postPatchStart     = gSynPatchHead + getGSynPatchStart(kPreExt, arborID);
-         float *postGatePatchStart = gatePatchHead + getGSynPatchStart(kPreExt, arborID);
+         float *postPatchStart     = gSynPatchHead + getGSynPatchStart(kPreExt);
+         float *postGatePatchStart = gatePatchHead + getGSynPatchStart(kPreExt);
 
          const int kxPreExt =
                kxPos(kPreExt,
