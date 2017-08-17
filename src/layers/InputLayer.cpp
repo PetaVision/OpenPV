@@ -197,14 +197,18 @@ void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
          buffer.getFeatures(),
          loc->nf);
 
+   int randomShiftX = -mMaxShiftX + (rand() % (2*mMaxShiftX+1));
+   int randomShiftY = -mMaxShiftY + (rand() % (2*mMaxShiftY+1));
+
    if (mAutoResizeFlag) {
       BufferUtils::rescale(
             buffer, targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor);
-      buffer.translate(-mOffsetX, -mOffsetY);
+      buffer.translate(-mOffsetX+randomShiftX, -mOffsetY+randomShiftY);
+
    }
    else {
       buffer.grow(targetWidth, targetHeight, mAnchor);
-      buffer.translate(-mOffsetX, -mOffsetY);
+      buffer.translate(-mOffsetX+randomShiftX, -mOffsetY+randomShiftY);
       buffer.crop(targetWidth, targetHeight, mAnchor);
    }
    // Now buffer has the entire input.
@@ -337,6 +341,7 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_inputPath(ioFlag);
    ioParam_offsetAnchor(ioFlag);
    ioParam_offsets(ioFlag);
+   ioParam_maxShifts(ioFlag);
    ioParam_autoResizeFlag(ioFlag);
    ioParam_aspectRatioAdjustment(ioFlag);
    ioParam_interpolationMethod(ioFlag);
@@ -425,6 +430,12 @@ void InputLayer::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) {
 int InputLayer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "offsetX", &mOffsetX, mOffsetX);
    parent->parameters()->ioParamValue(ioFlag, name, "offsetY", &mOffsetY, mOffsetY);
+   return PV_SUCCESS;
+}
+
+int InputLayer::ioParam_maxShifts(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "maxShiftX", &mMaxShiftX, mMaxShiftX);
+   parent->parameters()->ioParamValue(ioFlag, name, "maxShiftY", &mMaxShiftY, mMaxShiftY);
    return PV_SUCCESS;
 }
 
