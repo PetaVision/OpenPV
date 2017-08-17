@@ -180,6 +180,8 @@ static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex);
 template <typename T>
 std::size_t weightPatchSize(int numWeightsInPatch);
 
+std::size_t weightPatchSize(int numWeightsInPatch, bool compressed);
+
 /**
  * Builds a header for weight files, either shared or nonshared, with
  * minimal processing of arguments.

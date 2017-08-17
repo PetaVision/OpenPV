@@ -918,9 +918,7 @@ double readSharedWeights(
          numArbors);
 
    int numPatchItems           = nxp * nyp * nfp;
-   std::size_t const patchSize = compressed
-                                       ? BufferUtils::weightPatchSize<unsigned char>(numPatchItems)
-                                       : BufferUtils::weightPatchSize<float>(numPatchItems);
+   std::size_t const patchSize = BufferUtils::weightPatchSize(numPatchItems, compressed);
 
    int const numPatches = (std::size_t)(numPatchesX * numPatchesY * numPatchesF);
    int const arborSize  = numPatches * (int)patchSize;
@@ -978,14 +976,8 @@ double readNonsharedWeights(
    MPI_Bcast(&header, (int)sizeof(header), MPI_BYTE, 0 /*root*/, mpiBlock->getComm());
    bool compressed = isCompressedHeader(header, fileStream->getFileName());
 
-   int numItemsPerPatch = nxp * nyp * nfp;
-   std::size_t patchSize;
-   if (compressed) {
-      patchSize = BufferUtils::weightPatchSize<unsigned char>(numItemsPerPatch);
-   }
-   else {
-      patchSize = BufferUtils::weightPatchSize<float>(numItemsPerPatch);
-   }
+   int numItemsPerPatch  = nxp * nyp * nfp;
+   std::size_t patchSize = BufferUtils::weightPatchSize(numItemsPerPatch, compressed);
 
    PatchListDescription patchListDesc =
          createPatchListDescription(preLoc, postLoc, nxp, nyp, false /*non-shared*/);
@@ -1257,13 +1249,7 @@ void writeNonsharedWeights(
    MPI_Allreduce(MPI_IN_PLACE, extrema.data(), 2, MPI_FLOAT, MPI_MAX, mpiBlock->getComm());
    extrema[0] = -extrema[0];
 
-   std::size_t patchSize;
-   if (compress) {
-      patchSize = BufferUtils::weightPatchSize<unsigned char>(nxp * nyp * nfp);
-   }
-   else {
-      patchSize = BufferUtils::weightPatchSize<float>(nxp * nyp * nfp);
-   }
+   std::size_t patchSize = BufferUtils::weightPatchSize(nxp * nyp * nfp, compress);
 
    int const numPatchesInLine = patchListDesc.mNumPatchesX * patchListDesc.mNumPatchesF;
    int const numPatchesLocal  = numPatchesInLine * patchListDesc.mNumPatchesY;

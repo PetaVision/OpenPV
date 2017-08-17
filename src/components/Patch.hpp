@@ -8,11 +8,13 @@
 #ifndef PVPATCH_HPP_
 #define PVPATCH_HPP_
 
+#include <cstdint>
+
 namespace PV {
 
 struct Patch {
-   unsigned int offset;
-   unsigned short nx, ny;
+   std::uint32_t offset;
+   std::uint16_t nx, ny;
 };
 
 } // end namespace PV

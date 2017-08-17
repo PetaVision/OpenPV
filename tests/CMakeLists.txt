@@ -41,6 +41,7 @@ add_subdirectory(ImageTest)
 add_subdirectory(MPIBlockTest)
 add_subdirectory(PatchGeometryTest)
 add_subdirectory(WeightsClassTest)
+add_subdirectory(WeightsFileIOTest)
 
 # System tests that involve starting up a full instance of PetaVision happen next.
 add_subdirectory(BasicSystemTest)

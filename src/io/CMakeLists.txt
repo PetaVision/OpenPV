@@ -6,6 +6,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/io.cpp
    ${SUBDIR}/PVParams.cpp
    ${SUBDIR}/randomstateio.cpp
+   ${SUBDIR}/WeightsFileIO.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -17,4 +18,5 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/io.hpp
    ${SUBDIR}/PVParams.hpp
    ${SUBDIR}/randomstateio.hpp
+   ${SUBDIR}/WeightsFileIO.hpp
 )

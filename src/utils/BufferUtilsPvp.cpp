@@ -32,19 +32,16 @@ WeightHeader buildWeightHeader(
    baseHeader.nf         = preLayerNf;
    baseHeader.numRecords = numArbors;
 
-   int numPatchItems = nxp * nyp * nfp;
-   int numPatches    = preLayerNxExt * preLayerNyExt * preLayerNf;
+   int numPatches        = preLayerNxExt * preLayerNyExt * preLayerNf;
+   int numPatchItems     = nxp * nyp * nfp;
+   baseHeader.recordSize = numPatches * weightPatchSize(numPatchItems, compress);
    if (compress) {
-      std::size_t const patchSize = weightPatchSize<unsigned char>(numPatchItems);
-      baseHeader.recordSize       = numPatches * patchSize;
-      baseHeader.dataSize         = (int)sizeof(unsigned char);
-      baseHeader.dataType         = returnDataType<unsigned char>();
+      baseHeader.dataSize = (int)sizeof(unsigned char);
+      baseHeader.dataType = returnDataType<unsigned char>();
    }
    else {
-      std::size_t const patchSize = weightPatchSize<float>(numPatchItems);
-      baseHeader.recordSize       = numPatches * patchSize;
-      baseHeader.dataSize         = (int)sizeof(float);
-      baseHeader.dataType         = returnDataType<float>();
+      baseHeader.dataSize = (int)sizeof(float);
+      baseHeader.dataType = returnDataType<float>();
    }
    baseHeader.nxProcs    = 1;
    baseHeader.nyProcs    = 1;
@@ -143,6 +140,15 @@ WeightHeader buildNonsharedWeightHeader(
          maxVal);
 
    return weightHeader;
+}
+
+std::size_t weightPatchSize(int numWeightsInPatch, bool compressed) {
+   if (compressed) {
+      return weightPatchSize<unsigned char>(numWeightsInPatch);
+   }
+   else {
+      return weightPatchSize<float>(numWeightsInPatch);
+   }
 }
 
 void calcNumberOfPatches(
