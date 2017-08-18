@@ -37,7 +37,7 @@ class RescaleConn : public IdentConn {
    /** @} */
    // End of parameters needed from the RescaleConn class.
 
-   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
+   virtual int deliver() override;
 
   private:
    int initialize_base();

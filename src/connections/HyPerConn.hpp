@@ -78,10 +78,7 @@ class HyPerConn : public BaseConnection {
 
    virtual int insertProbe(BaseConnectionProbe *p) override;
    int outputProbeParams() override;
-   virtual int outputState(double time) override;
-   virtual int updateState(double time, double dt) override;
    virtual int finalizeUpdate(double timed, double dt) override;
-   virtual bool needUpdate(double time, double dt) override;
 
    // preLayerData and postLayerData point to the data for pre and post over all batch elements
    // (batchID argument is used to navigate to the correct part of the buffers)
@@ -797,6 +794,10 @@ class HyPerConn : public BaseConnection {
     * for each arbor, and then updateWeights for each arbor.
     */
    void updateLocal_dW();
+
+   virtual int outputState(double time) override;
+   virtual int updateState(double time, double dt) override;
+   virtual bool needUpdate(double time, double dt) override;
 
    /**
     * Initializes dW. Default behaviour is to clear dW.

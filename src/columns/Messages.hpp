@@ -169,10 +169,8 @@ class LayerUpdateStateMessage : public BaseMessage {
          int phase,
 #ifdef PV_USE_CUDA
          bool recvOnGpuFlag,
-         bool updateOnGpuFlag, // updateState needs
-// recvOnGpuFlag because correct
-// order of updating
-// depends on it.
+         bool updateOnGpuFlag,
+// updateState needs recvOnGpuFlag because correct order of updating depends on it.
 #endif // PV_USE_CUDA
          double simTime,
          double deltaTime,

@@ -112,7 +112,7 @@ int HyPerConn::initialize_base() {
    nyp            = 1;
    nfp            = -1; // A negative value for nfp will be converted to postsynaptic layer's nf.
    warnDefaultNfp = true; // Issue a warning if default value of nfp (post's nf) is used.  Derived
-   // layers can set to false if only one nfp is allowed (e.g. IdentConn)
+   // connections can set to false if no warning is necessary.
    sxp    = 1;
    syp    = 1;
    sfp    = 1;
@@ -258,7 +258,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    if (weightInitializer != nullptr) {
       weightInitializer->ioParams(ioFlag, false, false);
    }
-   ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerOffset(ioFlag);
    ioParam_weightUpdatePeriod(ioFlag);

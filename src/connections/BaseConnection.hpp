@@ -67,20 +67,6 @@ class BaseConnection : public BaseObject {
    // Not overridable. BaseConnection::initializeState() calls setInitialValues(), which is virtual.
 
    /**
-    * A pure virtual function for writing the state of the connection to file(s) in the output
-    * directory.
-    * For example, HyPerConn writes the weights to a .pvp file with a schedule defined by
-    * writeStep and initialWriteTime.
-    */
-   virtual int outputState(double timed) = 0;
-
-   /**
-    * A pure virtual function for updating the state of the connection.
-    * timed is simulation time, and dt is the time increment between steps.
-    */
-   virtual int updateState(double timed, double dt) = 0;
-
-   /**
     * A virtual function for performing any necessary updates after the normalizers are called.
     */
    virtual int finalizeUpdate(double timed, double dt) { return PV_SUCCESS; }
@@ -364,6 +350,20 @@ class BaseConnection : public BaseObject {
    int respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
       return outputState(message->mTime);
    }
+
+   /**
+    * A pure virtual function for writing the state of the connection to file(s) in the output
+    * directory.
+    * For example, HyPerConn writes the weights to a .pvp file with a schedule defined by
+    * writeStep and initialWriteTime.
+    */
+   virtual int outputState(double timed) = 0;
+
+   /**
+    * A pure virtual function for updating the state of the connection.
+    * timed is simulation time, and dt is the time increment between steps.
+    */
+   virtual int updateState(double timed, double dt) = 0;
 
    /**
     * A pure virtual method whose implementation returns true

@@ -253,7 +253,7 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // warnIfAbsent set to false,
    // to prevent unnecessary warnings from unread or missing parameters.
    ioParam_receiveGpu(ioFlag);
-
+   ioParam_initializeFromCheckpointFlag(ioFlag);
    return status;
 }
 

@@ -14,7 +14,6 @@
 
 #include "columns/HyPerCol.hpp"
 #include "connections/HyPerConn.hpp"
-#include "connections/IdentConn.hpp"
 #include "io/io.hpp"
 #include "layers/Retina.hpp"
 

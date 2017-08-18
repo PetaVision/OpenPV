@@ -41,7 +41,7 @@ class NormalizeBase;
 class PV_Init;
 class PVParams;
 
-class HyPerCol : public Subject, Observer {
+class HyPerCol : public Subject, public Observer {
 
   private:
    /**
