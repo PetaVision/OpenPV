@@ -153,7 +153,7 @@ int Weights::calcDataIndexFromPatchIndex(int patchIndex) const {
 float Weights::calcMinWeight() {
    float minWeight = FLT_MAX;
    for (int a = 0; a < mNumArbors; a++) {
-      int arborMin = calcMinWeight(a);
+      float arborMin = calcMinWeight(a);
       if (arborMin < minWeight) {
          minWeight = arborMin;
       }
@@ -192,7 +192,7 @@ float Weights::calcMinWeight(int arbor) {
 float Weights::calcMaxWeight() {
    float maxWeight = -FLT_MAX;
    for (int a = 0; a < mNumArbors; a++) {
-      int arborMax = calcMaxWeight(a);
+      float arborMax = calcMaxWeight(a);
       if (arborMax > maxWeight) {
          maxWeight = arborMax;
       }
