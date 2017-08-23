@@ -156,7 +156,6 @@ double WeightsFileIO::readSharedWeights(int frameNumber, BufferUtils::WeightHead
       MPI_Bcast(
             readBuffer.data(), arborSizeInPvpFile, MPI_BYTE, mRootProcess, mMPIBlock->getComm());
       loadWeightsFromBuffer(readBuffer, arbor, header.minVal, header.maxVal, compressed);
-      mWeights->setTimestamp(timestamp);
    }
    return timestamp;
 }
