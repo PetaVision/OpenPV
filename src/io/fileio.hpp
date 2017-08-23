@@ -24,44 +24,10 @@
 
 namespace PV {
 
-struct PatchHeader {
-   unsigned short int nx;
-   unsigned short int ny;
-   unsigned int offset;
-};
-
-/**
- * PatchListDescription is a struct that packages the description of a list of
- * patch indices of interest. The standard use case is to generate the list of
- * data patches of a HyPerConn that need to be considered in I/O. This list
- * may differ from the list 0,1,...(numDataPatches-1) in the case of nonshared
- * weights where the pre-synaptic layer has a larger border than the connection
- * requires. In this case we want to look at only those patches the connection
- * does require.
- *
- * The assumptions is that the patch indices of interest form a regular block
- * within the complete list of patches, and that for any x-y location,
- * either all features are to be considered or none are.
- *
- * mStartIndex is the first patch index of interest.
- *
- * mLineStride is the number of patches needed to step from a patch at (x,y,f)
- *     to a patch at (x,y+1,f). It should also be a multiple of the number of
- *     features.
- *
- * mNumPatchesX is the width of the block of patch indices of interest in the
- *     x-direction.
- * mNumPatchesY is the height of the block of patch indices of interest in the
- *     y-direction.
- * mNumPatchesF is the number of (pre-synaptic) features.
- */
-struct PatchListDescription {
-   int mStartIndex;
-   int mStrideY;
-   int mNumPatchesX;
-   int mNumPatchesY;
-   int mNumPatchesF;
-};
+// The no-longer-used PatchHeader and PatchListDescription structs were removed Aug 23, 2017.
+// PatchHeader has the same information as the Patch struct defined in components/Patch.hpp
+// PatchListDescription was only used internally by readNonsharedWeights and writeNonsharedWeights,
+// which is now handled by the WeightsFileIO class.
 
 // Unused function timeToParams was removed Mar 10, 2017.
 // Unused function timeFromParams was removed Mar 15, 2017.
@@ -90,16 +56,9 @@ int ensureDirExists(MPIBlock const *mpiBlock, char const *dirname);
 // Instead, use the WeightHeader-returning functions in BufferUtils
 // together with FileStream::read and FileStream::write.
 
-// Unused function pvp_set_activity_params was removed Jan 26, 2017.
-// Unused function alloc_params was removed Feb 21, 2017.
-
-// writeActivity and writeActivitySparse removed Feb 17, 2017.
-// Corresponding HyPerLayer methods now use BufferUtils routines
-// gatherActivity and scatterActivity were also removed.
-// Use BufferUtils::gather and BufferUtils::scatter instead.
-
-// readWeights, writeWeights, and functions used only by them were removed Mar 15, 2017.
-// Use the WeightsFileIO class instead
+// readWeights and writeWeights were separated into Shared and Nonshared versions Mar 15, 2017.
+// These functions, and functions used only by them were removed Aug 17, 2017.
+// Use the WeightsFileIO class instead.
 
 // calcMinMaxPatch, calcMinMaxNonsharedWeights, calcMinMaxSharedWeights were removed Aug 16, 2017.
 // Use Weights::calcMinWeights and Weights::calcMaxWeights instead.
