@@ -60,6 +60,35 @@ void InputLayer::initializeBatchIndexer() {
    mBatchIndexer->setRandomSeed(RandomSeed::instance()->getInitialSeed() + mRandomSeed);
 }
 
+int InputLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   int status = HyPerLayer::communicateInitInfo(message);
+   if (!mSynchronizeJitterWithLayer.empty()) {
+      InputLayer* layer = message->lookup<InputLayer>(mSynchronizeJitterWithLayer);
+      mRandomShiftX = layer->getRandomShiftX();
+      mRandomShiftY = layer->getRandomShiftY();
+   }
+
+   return status;
+}
+
+int InputLayer::recvAllSynapticInput() {
+   int status = HyPerLayer::recvAllSynapticInput();
+
+   if (getMPIBlock()->getRank() == 0 && mMaxShiftX+mMaxShiftY != 0) {
+      int displayPeriodIndex = std::floor(parent->simulationTime() / (mDisplayPeriod * parent->getDeltaTime()));
+      bool changeJitter = displayPeriodIndex % mJitterChangeInterval == 0;
+
+      if (changeJitter && mSynchronizeJitterWithLayer.empty()) {
+         for (int b = 0; b < mRandomShiftX->size(); b++) {
+            (*mRandomShiftX)[b] = -mMaxShiftX + (rand() % (2*mMaxShiftX+1));
+            (*mRandomShiftY)[b] = -mMaxShiftY + (rand() % (2*mMaxShiftY+1));
+         }
+      }
+   }
+
+   return status;
+}
+
 // Virtual method used to spend multiple display periods on one file.
 // Can be used to implement lists of collections or modifications to
 // the loaded file, such as streaming audio or video.
@@ -102,7 +131,7 @@ void InputLayer::retrieveInput(double timef, double dt) {
             int blockBatchElement = b + localNBatch * m;
             int inputIndex        = mBatchIndexer->getIndex(blockBatchElement);
             mInputData.at(b)      = retrieveData(inputIndex);
-            fitBufferToLayer(mInputData.at(b));
+            fitBufferToLayer(mInputData.at(b), blockBatchElement);
          }
          scatterInput(b, m);
       }
@@ -182,7 +211,7 @@ int InputLayer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
    return PV_SUCCESS;
 }
 
-void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
+void InputLayer::fitBufferToLayer(Buffer<float> &buffer, int blockBatchElement) {
    pvAssert(getMPIBlock()->getRank() == 0);
    const PVLayerLoc *loc  = getLayerLoc();
    int const xMargins     = mUseInputBCflag ? loc->halo.lt + loc->halo.rt : 0;
@@ -197,18 +226,14 @@ void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
          buffer.getFeatures(),
          loc->nf);
 
-   int randomShiftX = -mMaxShiftX + (rand() % (2*mMaxShiftX+1));
-   int randomShiftY = -mMaxShiftY + (rand() % (2*mMaxShiftY+1));
-
    if (mAutoResizeFlag) {
       BufferUtils::rescale(
             buffer, targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor);
-      buffer.translate(-mOffsetX+randomShiftX, -mOffsetY+randomShiftY);
-
+      buffer.translate(-mOffsetX+(*mRandomShiftX)[blockBatchElement], -mOffsetY+(*mRandomShiftY)[blockBatchElement]);
    }
    else {
       buffer.grow(targetWidth, targetHeight, mAnchor);
-      buffer.translate(-mOffsetX+randomShiftX, -mOffsetY+randomShiftY);
+      buffer.translate(-mOffsetX+(*mRandomShiftX)[blockBatchElement], -mOffsetY+(*mRandomShiftY)[blockBatchElement]);
       buffer.crop(targetWidth, targetHeight, mAnchor);
    }
    // Now buffer has the entire input.
@@ -331,7 +356,7 @@ int InputLayer::initializeV() {
 }
 
 int InputLayer::initializeActivity() {
-   retrieveInput(parent->simulationTime(), 0);
+   retrieveInput(parent->simulationTime(), parent->getDeltaTime());
    return PV_SUCCESS;
 }
 
@@ -341,7 +366,9 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_inputPath(ioFlag);
    ioParam_offsetAnchor(ioFlag);
    ioParam_offsets(ioFlag);
+   ioParam_synchronizeJitterWithLayer(ioFlag);
    ioParam_maxShifts(ioFlag);
+   ioParam_jitterChangeInterval(ioFlag);
    ioParam_autoResizeFlag(ioFlag);
    ioParam_aspectRatioAdjustment(ioFlag);
    ioParam_interpolationMethod(ioFlag);
@@ -362,6 +389,14 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 int InputLayer::registerData(Checkpointer *checkpointer) {
    int status = HyPerLayer::registerData(checkpointer);
    if (checkpointer->getMPIBlock()->getRank() == 0) {
+
+      if  (mSynchronizeJitterWithLayer.empty()) {
+         int nBatch = getMPIBlock()->getBatchDimension() * getLayerLoc()->nbatch;
+
+         mRandomShiftX->resize(nBatch);
+         mRandomShiftY->resize(nBatch);
+      }
+
       int numBatch = getLayerLoc()->nbatch;
       mInputData.resize(numBatch);
       initializeBatchIndexer();
@@ -433,9 +468,33 @@ int InputLayer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
+void InputLayer::ioParam_synchronizeJitterWithLayer(enum ParamsIOFlag ioFlag) {
+   char *tempString = nullptr;
+   if (ioFlag == PARAMS_IO_WRITE) {
+      tempString = strdup(mSynchronizeJitterWithLayer.c_str());
+   }
+   parent->parameters()->ioParamString(ioFlag, name, "synchronizeJitterWithLayer", &tempString, "");
+   if (ioFlag == PARAMS_IO_READ) {
+      mSynchronizeJitterWithLayer = std::string(tempString);
+   }
+   free(tempString);
+}
+
 int InputLayer::ioParam_maxShifts(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "maxShiftX", &mMaxShiftX, mMaxShiftX);
    parent->parameters()->ioParamValue(ioFlag, name, "maxShiftY", &mMaxShiftY, mMaxShiftY);
+
+   if (ioFlag == PARAMS_IO_READ && mSynchronizeJitterWithLayer.empty()) {
+      mRandomShiftX = std::make_shared<std::vector<int> >();
+      mRandomShiftY = std::make_shared<std::vector<int> >();
+   }
+
+   return PV_SUCCESS;
+}
+
+int InputLayer::ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "jitterChangeInterval", &mJitterChangeInterval, mJitterChangeInterval);
+
    return PV_SUCCESS;
 }
 

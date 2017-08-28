@@ -26,10 +26,16 @@ class InputLayer : public HyPerLayer {
    // Defines an offset in image space where the column is viewing the image
    virtual int ioParam_offsets(enum ParamsIOFlag ioFlag);
 
+   // synchronizeJitterWithLayer: name of the layer
+   // Specifies the name of the layer to synchronize jitter with
+   virtual void ioParam_synchronizeJitterWithLayer(enum ParamsIOFlag ioFlag);
    // maxShiftX: max random shift in X direction
    // maxShiftY: max random shift in Y direction
    // Defines the maximal random shift in image space
    virtual int ioParam_maxShifts(enum ParamsIOFlag ioFlag);
+   // jitterChangeInterval: interval measured in displayPeriods
+   // Defines the frequency of the random shifts updates
+   virtual int ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag);
 
    // offsetAnchor: Defines where the anchor point is for the offsets.
    // Specified as a 2 character string, "xy"
@@ -112,6 +118,10 @@ class InputLayer : public HyPerLayer {
   protected:
    InputLayer() {}
 
+   virtual int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   virtual int recvAllSynapticInput() override;
+
    /**
     * This method scatters the mInputData buffer to the activity buffers of the several MPI
     * processes.
@@ -189,6 +199,8 @@ class InputLayer : public HyPerLayer {
    int getDisplayPeriod() { return mDisplayPeriod; }
    int getStartIndex(int batchIndex) { return mStartFrameIndex.at(batchIndex); }
    int getSkipIndex(int batchIndex) { return mSkipFrameIndex.at(batchIndex); }
+   std::shared_ptr<std::vector<int>> getRandomShiftX() { return mRandomShiftX; }
+   std::shared_ptr<std::vector<int>> getRandomShiftY() { return mRandomShiftY; }
    const std::string &getInputPath() const { return mInputPath; }
 
    /**
@@ -209,7 +221,7 @@ class InputLayer : public HyPerLayer {
     * calls BufferUtils::rescale. If autoResizeFlag is false, it calls Buffer methods grow,
     * translate, and crop. This method is called only by the root process.
     */
-   void fitBufferToLayer(Buffer<float> &buffer);
+   void fitBufferToLayer(Buffer<float> &buffer, int blockBatchElement);
 
   protected:
    // If mAutoResizeFlag is enabled, do we crop the edges or pad the edges with mPadValue?
@@ -241,9 +253,13 @@ class InputLayer : public HyPerLayer {
    int mOffsetX = 0;
    int mOffsetY = 0;
 
+   // Name of the layer to synchronize random shifts with
+   std::string mSynchronizeJitterWithLayer;
    // If nonzero, create a sample by shifting image randomly in [-maxRandomShiftX, maxRandomShiftX] x [-maxRandomShiftY, maxRandomShiftY]
    int mMaxShiftX = 0;
    int mMaxShiftY = 0;
+   // How often to change random shifts (measured in displayPeriods)
+   int mJitterChangeInterval = 1;
 
    // Random seed used when batchMethod == random
    int mRandomSeed = 123456789;
@@ -284,6 +300,11 @@ class InputLayer : public HyPerLayer {
 
    // An array indicating how far to advance each index, one per batch
    std::vector<int> mSkipFrameIndex;
+
+   // An array of random shifts in x direction, one per batch
+   std::shared_ptr<std::vector<int>> mRandomShiftX;
+   // An array of random shifts in y direction, one per batch
+   std::shared_ptr<std::vector<int>> mRandomShiftY;
 };
 
 } // end namespace PV
