@@ -39,6 +39,7 @@ PvpLayer "Input" = {
     offsetY                             = 0;
     maxShiftX                           = 0;
     maxShiftY                           = 0;
+    jitterChangeInterval                = 1;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
@@ -46,6 +47,7 @@ PvpLayer "Input" = {
     padValue                            = 0;
     batchMethod                         = "byFile";
     start_frame_index                   = [0.000000];
+    randomSeed                          = 123456789;
 };
 
 ANNLayer "OutputBase" = {

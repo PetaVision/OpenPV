@@ -95,6 +95,16 @@ int InputLayer::updateState(double time, double dt) {
 }
 
 void InputLayer::retrieveInput(double timef, double dt) {
+   if (getMPIBlock()->getRank() == 0) {
+      int displayPeriodIndex = std::floor(timef / (mDisplayPeriod * dt));
+      if (displayPeriodIndex % mJitterChangeInterval == 0) {
+         for (int b = 0; b < mRandomShiftX.size(); b++) {
+            mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2*mMaxShiftX+1));
+            mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2*mMaxShiftY+1));
+         }
+      }
+   }
+
    int localNBatch = getLayerLoc()->nbatch;
    for (int m = 0; m < getMPIBlock()->getBatchDimension(); m++) {
       for (int b = 0; b < localNBatch; b++) {
@@ -102,7 +112,7 @@ void InputLayer::retrieveInput(double timef, double dt) {
             int blockBatchElement = b + localNBatch * m;
             int inputIndex        = mBatchIndexer->getIndex(blockBatchElement);
             mInputData.at(b)      = retrieveData(inputIndex);
-            fitBufferToLayer(mInputData.at(b));
+            fitBufferToLayer(mInputData.at(b), blockBatchElement);
          }
          scatterInput(b, m);
       }
@@ -182,7 +192,7 @@ int InputLayer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
    return PV_SUCCESS;
 }
 
-void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
+void InputLayer::fitBufferToLayer(Buffer<float> &buffer, int blockBatchElement) {
    pvAssert(getMPIBlock()->getRank() == 0);
    const PVLayerLoc *loc  = getLayerLoc();
    int const xMargins     = mUseInputBCflag ? loc->halo.lt + loc->halo.rt : 0;
@@ -197,18 +207,14 @@ void InputLayer::fitBufferToLayer(Buffer<float> &buffer) {
          buffer.getFeatures(),
          loc->nf);
 
-   int randomShiftX = -mMaxShiftX + (rand() % (2*mMaxShiftX+1));
-   int randomShiftY = -mMaxShiftY + (rand() % (2*mMaxShiftY+1));
-
    if (mAutoResizeFlag) {
       BufferUtils::rescale(
             buffer, targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor);
-      buffer.translate(-mOffsetX+randomShiftX, -mOffsetY+randomShiftY);
-
+      buffer.translate(-mOffsetX+mRandomShiftX[blockBatchElement], -mOffsetY+mRandomShiftY[blockBatchElement]);
    }
    else {
       buffer.grow(targetWidth, targetHeight, mAnchor);
-      buffer.translate(-mOffsetX+randomShiftX, -mOffsetY+randomShiftY);
+      buffer.translate(-mOffsetX+mRandomShiftX[blockBatchElement], -mOffsetY+mRandomShiftY[blockBatchElement]);
       buffer.crop(targetWidth, targetHeight, mAnchor);
    }
    // Now buffer has the entire input.
@@ -331,7 +337,7 @@ int InputLayer::initializeV() {
 }
 
 int InputLayer::initializeActivity() {
-   retrieveInput(parent->simulationTime(), 0);
+   retrieveInput(parent->simulationTime(), parent->getDeltaTime());
    return PV_SUCCESS;
 }
 
@@ -342,6 +348,7 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_offsetAnchor(ioFlag);
    ioParam_offsets(ioFlag);
    ioParam_maxShifts(ioFlag);
+   ioParam_jitterChangeInterval(ioFlag);
    ioParam_autoResizeFlag(ioFlag);
    ioParam_aspectRatioAdjustment(ioFlag);
    ioParam_interpolationMethod(ioFlag);
@@ -362,7 +369,11 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 int InputLayer::registerData(Checkpointer *checkpointer) {
    int status = HyPerLayer::registerData(checkpointer);
    if (checkpointer->getMPIBlock()->getRank() == 0) {
+      mRNG.seed(mRandomSeed);
       int numBatch = getLayerLoc()->nbatch;
+      int nBatch = getMPIBlock()->getBatchDimension() * numBatch;
+      mRandomShiftX.resize(nBatch);
+      mRandomShiftY.resize(nBatch);
       mInputData.resize(numBatch);
       initializeBatchIndexer();
       mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
@@ -436,6 +447,11 @@ int InputLayer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
 int InputLayer::ioParam_maxShifts(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "maxShiftX", &mMaxShiftX, mMaxShiftX);
    parent->parameters()->ioParamValue(ioFlag, name, "maxShiftY", &mMaxShiftY, mMaxShiftY);
+   return PV_SUCCESS;
+}
+
+int InputLayer::ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "jitterChangeInterval", &mJitterChangeInterval, mJitterChangeInterval);
    return PV_SUCCESS;
 }
 
@@ -681,9 +697,7 @@ void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void InputLayer::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
-   if (mBatchMethod == BatchIndexer::RANDOM) {
-      parent->parameters()->ioParamValue(ioFlag, name, "randomSeed", &mRandomSeed, mRandomSeed);
-   }
+   parent->parameters()->ioParamValue(ioFlag, name, "randomSeed", &mRandomSeed, mRandomSeed);
 }
 
 void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {

@@ -13,6 +13,7 @@
 #include "utils/BufferUtilsRescale.hpp"
 
 #include <memory>
+#include <random>
 
 namespace PV {
 
@@ -30,6 +31,9 @@ class InputLayer : public HyPerLayer {
    // maxShiftY: max random shift in Y direction
    // Defines the maximal random shift in image space
    virtual int ioParam_maxShifts(enum ParamsIOFlag ioFlag);
+   // jitterChangeInterval: interval measured in displayPeriods
+   // Defines the frequency of the random shifts updates
+   virtual int ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag);
 
    // offsetAnchor: Defines where the anchor point is for the offsets.
    // Specified as a 2 character string, "xy"
@@ -209,7 +213,7 @@ class InputLayer : public HyPerLayer {
     * calls BufferUtils::rescale. If autoResizeFlag is false, it calls Buffer methods grow,
     * translate, and crop. This method is called only by the root process.
     */
-   void fitBufferToLayer(Buffer<float> &buffer);
+   void fitBufferToLayer(Buffer<float> &buffer, int blockBatchElement);
 
   protected:
    // If mAutoResizeFlag is enabled, do we crop the edges or pad the edges with mPadValue?
@@ -244,6 +248,8 @@ class InputLayer : public HyPerLayer {
    // If nonzero, create a sample by shifting image randomly in [-maxRandomShiftX, maxRandomShiftX] x [-maxRandomShiftY, maxRandomShiftY]
    int mMaxShiftX = 0;
    int mMaxShiftY = 0;
+   // How often to change random shifts (measured in displayPeriods)
+   int mJitterChangeInterval = 1;
 
    // Random seed used when batchMethod == random
    int mRandomSeed = 123456789;
@@ -284,6 +290,13 @@ class InputLayer : public HyPerLayer {
 
    // An array indicating how far to advance each index, one per batch
    std::vector<int> mSkipFrameIndex;
+
+   // Random number generator for jitter
+   std::mt19937 mRNG;
+   // An array of random shifts in x direction, one per batch
+   std::vector<int> mRandomShiftX;
+   // An array of random shifts in y direction, one per batch
+   std::vector<int> mRandomShiftY;
 };
 
 } // end namespace PV
