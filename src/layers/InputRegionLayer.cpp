@@ -57,6 +57,13 @@ void InputRegionLayer::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void InputRegionLayer::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      // mirrorBCflag will be copied from original layer in CommunicateInitInfo stage.
+      parent->parameters()->handleUnnecessaryParameter(name, "valueBC");
+   }
+}
+
 void InputRegionLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       initVTypeString = nullptr;
@@ -96,6 +103,7 @@ int InputRegionLayer::communicateInitInfo(
    }
    phase        = originalLayer->getPhase();
    mirrorBCflag = originalLayer->useMirrorBCs();
+   valueBC      = originalLayer->getValueBC();
    checkLayerDimensions();
    synchronizeMarginWidth(originalLayer);
    originalLayer->synchronizeMarginWidth(this);

@@ -4,6 +4,26 @@
 // created by peteschultz: Aug 30, 2017
 //
 
+// A params file to test InputRegionLayer.
+// There are two PvpLayers, "Input", and "CorrectInputRegion".
+// "Input" reads an 8-by-8-by-1 activity pvp file of the values 1 to 64.
+// "CorrectInputRegion" reads an 8-by-8-by-1 activity pvp file of all ones.
+// There are dummy connections to a dummy output layer, which causes
+// the input layers to have a border region.
+//
+// "CorrectInputRegion" copies most params from "Input"; in particular, it is
+// resized and translated in the same way.
+//
+// An InputRegionLayer attaches to "Input". Since the InputRegionLayer is
+// one in the part of the input layer that contains data from the pvp file,
+// and zero outside that region, it should agree with the CorrectInputRegion
+// file.
+//
+// The InputRegionLayerTest.cpp code allocates the HyPerCol and then compares
+// the contents of the data store for the InputRegion and CorrectInputRegion
+// layers. The test passes only if the two layers' activity buffers agree,
+// and have at least one nonzero value.
+
 debugParsing = false;
 
 HyPerCol "column" = {
@@ -31,7 +51,7 @@ PvpLayer "Input" = {
     nf                                  = 1;
     phase                               = 0;
     mirrorBCflag                        = false;
-    valueBC                             = 122;
+    valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     writeStep                           = 1;
     initialWriteTime                    = 0;
@@ -40,14 +60,16 @@ PvpLayer "Input" = {
     displayPeriod                       = 0;
     inputPath                           = "input/inputimage.pvp";
     offsetAnchor                        = "tl";
-    offsetX                             = 6;
-    offsetY                             = 2;
+    offsetX                             = 2;
+    offsetY                             = 4;
     maxShiftX                           = 0;
     maxShiftY                           = 0;
     jitterChangeInterval                = 1;
-    autoResizeFlag                      = false;
+    autoResizeFlag                      = true;
+    aspectRatioAdjustment               = "pad";
+    interpolationMethod                 = "nearestneighbor";
     inverseFlag                         = false;
-    normalizeLuminanceFlag              = false;
+    normalizeLuminanceFlag              = true;
     useInputBCflag                      = true;
     padValue                            = -8;
     batchMethod                         = "byFile";
@@ -59,11 +81,18 @@ InputRegionLayer "InputRegion" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
-    mirrorBCflag                        = false;
     initializeFromCheckpointFlag        = false;
     writeStep                           = 1;
     initialWriteTime                    = 0;
     originalLayerName                   = "Input";
+};
+
+PvpLayer "CorrectInputRegion" = {
+    #include "Input";
+    @inputPath                          = "input/ones.pvp";
+    @inverseFlag                        = false;
+    @normalizeLuminanceFlag             = false;
+    @padValue                           = 0;
 };
 
 HyPerLayer "Output" = {
@@ -77,6 +106,22 @@ HyPerLayer "Output" = {
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
     writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+};
+
+HyPerLayer "Comparison" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
 };
@@ -108,4 +153,27 @@ HyPerConn "InputToOutput" = {
     nfp                                 = 1;
     normalizeMethod                     = "none";
     weightSparsity                      = 0;
+};
+
+HyPerConn "CorrectInputRegionToOutput" = {
+    #include "InputToOutput";
+    @preLayerName                       = "CorrectInputRegion";
+};
+
+IdentConn "InputRegionToComparison" = {
+   channelCode = 0;
+   delay = [0.000000];
+};
+
+IdentConn "CorrectInputRegionToComparison" = {
+   channelCode = 0;
+   delay = [0.000000];
+};
+
+RequireAllZeroActivityProbe "ComparisonTest" = {
+    targetLayer = "Comparison";
+    probeOutputFile = "ComparisonTest.txt";
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = true;
 };

@@ -17,7 +17,12 @@ template <typename T>
 char const *objectType();
 
 void verifyLayerLocs(PV::HyPerLayer *layer1, PV::HyPerLayer *layer2);
-void dumpLayerActivity(PV::HyPerLayer *layer, PV::Communicator *communicator);
+void compareLayers(PV::HyPerLayer *layer1, PV::HyPerLayer *layer2, PV::Communicator *communicator);
+PV::Buffer<float> gatherLayer(PV::HyPerLayer *layer, PV::Communicator *communicator);
+void dumpLayerActivity(
+      PV::Buffer<float> &layerBuffer,
+      PVLayerLoc const *loc,
+      std::string const &description);
 
 int main(int argc, char *argv[]) {
    PV::PV_Init *pv_init =
@@ -27,17 +32,17 @@ int main(int argc, char *argv[]) {
    int status                    = PV_SUCCESS;
    hc->allocateColumn();
 
-   auto *inputLayer  = getObjectFromName<PV::InputLayer>(std::string("Input"), hc);
-   auto *regionLayer = getObjectFromName<PV::InputRegionLayer>(std::string("InputRegion"), hc);
+   auto *inputLayer    = getObjectFromName<PV::InputLayer>(std::string("Input"), hc);
+   auto *regionLayer   = getObjectFromName<PV::InputRegionLayer>(std::string("InputRegion"), hc);
+   auto *correctRegion = getObjectFromName<PV::HyPerLayer>(std::string("CorrectInputRegion"), hc);
 
    verifyLayerLocs(inputLayer, regionLayer);
+   verifyLayerLocs(regionLayer, correctRegion);
 
-   dumpLayerActivity(inputLayer, pv_init->getCommunicator());
-   dumpLayerActivity(regionLayer, pv_init->getCommunicator());
-
-   MPI_Barrier(pv_init->getCommunicator()->globalCommunicator());
+   compareLayers(regionLayer, correctRegion, hc->getCommunicator());
    delete hc;
    delete pv_init;
+   InfoLog() << "Test passed." << std::endl;
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -68,6 +73,10 @@ char const *objectType<PV::InputLayer>() {
 template <>
 char const *objectType<PV::InputRegionLayer>() {
    return "InputRegionLayer";
+}
+template <>
+char const *objectType<PV::HyPerLayer>() {
+   return "HyPerLayer";
 }
 
 void verifyLayerLocs(PV::HyPerLayer *layer1, PV::HyPerLayer *layer2) {
@@ -131,18 +140,75 @@ void verifyLayerLocs(PV::HyPerLayer *layer1, PV::HyPerLayer *layer2) {
          loc2->halo.up);
 }
 
-void dumpLayerActivity(PV::HyPerLayer *layer, PV::Communicator *communicator) {
+void compareLayers(PV::HyPerLayer *layer1, PV::HyPerLayer *layer2, PV::Communicator *communicator) {
+   verifyLayerLocs(layer1, layer2);
+   PV::Buffer<float> layer1buffer = gatherLayer(layer1, communicator);
+   PV::Buffer<float> layer2buffer = gatherLayer(layer2, communicator);
+   if (communicator->commRank() == 0) {
+      FatalIf(
+            layer1buffer.getTotalElements() != layer2buffer.getTotalElements(),
+            "Buffers from %s and %s do not have the same total number of elements.\n",
+            layer1->getDescription_c(),
+            layer2->getDescription_c());
+      int const N = layer1buffer.getTotalElements();
+
+      int status = PV_FAILURE;
+      for (int n = 0; n < N; n++) {
+         if (layer1buffer.at(n) != 0.0f) {
+            status = PV_SUCCESS;
+            break;
+         }
+      }
+      if (status != PV_SUCCESS) {
+         Fatal().printf(
+               "Layer %s does not have any nonzero activity.\n", layer1->getDescription_c());
+      }
+
+      pvAssert(status == PV_SUCCESS);
+      for (int n = 0; n < N; n++) {
+         if (layer1buffer.at(n) != layer2buffer.at(n)) {
+            status = PV_FAILURE;
+            break;
+         }
+      }
+      if (status != PV_SUCCESS) {
+         InfoLog().printf(
+               "%s and %s do not agree.\n", layer1->getDescription_c(), layer2->getDescription_c());
+         dumpLayerActivity(layer1buffer, layer1->getLayerLoc(), layer1->getDescription());
+         dumpLayerActivity(layer2buffer, layer2->getLayerLoc(), layer2->getDescription());
+         Fatal().printf(
+               "Layers %s and %s do not agree.\n",
+               layer1->getDescription_c(),
+               layer2->getDescription_c());
+      }
+   }
+}
+
+PV::Buffer<float> gatherLayer(PV::HyPerLayer *layer, PV::Communicator *communicator) {
    PVLayerLoc const *loc = layer->getLayerLoc();
    int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
    int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;
+   int const rootProc    = 0;
    PV::Buffer<float> buffer(layer->getLayerData(0), nxExt, nyExt, loc->nf);
-   int const rootProc = 0;
-   buffer             = PV::BufferUtils::gather(
+   buffer = PV::BufferUtils::gather(
          communicator->getLocalMPIBlock(), buffer, loc->nx, loc->ny, 0 /*batch index*/, rootProc);
-   if (communicator->commRank() == rootProc) {
+   return buffer;
+}
+
+void dumpLayerActivity(
+      PV::Buffer<float> &layerBuffer,
+      PVLayerLoc const *loc,
+      std::string const &description) {
+   int const rootProc = 0;
+   {
       int nxExtGlobal = loc->nxGlobal + loc->halo.lt + loc->halo.rt;
       int nyExtGlobal = loc->nyGlobal + loc->halo.dn + loc->halo.up;
-      InfoLog() << layer->getDescription() << "\n";
+      int nf          = loc->nf;
+      FatalIf(
+            layerBuffer.getTotalElements() != nxExtGlobal * nyExtGlobal * nf,
+            "%s has the wrong number of elements.\n",
+            description.c_str());
+      InfoLog() << description << ":\n";
       for (int f = 0; f < loc->nf; f++) {
          InfoLog() << "    Feature index " << f << ":\n";
          for (int y = 0; y < nyExtGlobal; y++) {
@@ -156,7 +222,7 @@ void dumpLayerActivity(PV::HyPerLayer *layer, PV::Communicator *communicator) {
                if (x == loc->halo.lt or x == loc->nxGlobal + loc->halo.lt) {
                   printf("|");
                }
-               InfoLog().printf(" %3d ", (int)buffer.at(x, y, f));
+               InfoLog().printf(" %3.1f ", (double)layerBuffer.at(x, y, f));
             }
             InfoLog() << "\n";
          }
