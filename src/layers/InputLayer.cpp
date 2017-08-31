@@ -25,11 +25,10 @@ int InputLayer::initialize(const char *name, HyPerCol *hc) {
 
 int InputLayer::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
-   if (status != PV_SUCCESS) {
-      return status;
+   if (mNeedInputRegionsPointer) {
+      mInputRegionsAllBatchElements.resize(getNumExtendedAllBatches());
    }
-
-   return PV_SUCCESS;
+   return status;
 }
 
 void InputLayer::initializeBatchIndexer() {
@@ -99,8 +98,8 @@ void InputLayer::retrieveInput(double timef, double dt) {
       int displayPeriodIndex = std::floor(timef / (mDisplayPeriod * dt));
       if (displayPeriodIndex % mJitterChangeInterval == 0) {
          for (int b = 0; b < mRandomShiftX.size(); b++) {
-            mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2*mMaxShiftX+1));
-            mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2*mMaxShiftY+1));
+            mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2 * mMaxShiftX + 1));
+            mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2 * mMaxShiftY + 1));
          }
       }
    }
@@ -112,8 +111,23 @@ void InputLayer::retrieveInput(double timef, double dt) {
             int blockBatchElement = b + localNBatch * m;
             int inputIndex        = mBatchIndexer->getIndex(blockBatchElement);
             mInputData.at(b)      = retrieveData(inputIndex);
-            fitBufferToLayer(mInputData.at(b), blockBatchElement);
+            int width             = mInputData.at(b).getWidth();
+            int height            = mInputData.at(b).getHeight();
+            int features          = mInputData.at(b).getFeatures();
+            mInputRegion.at(b)    = Buffer<float>(width, height, features);
+            int const N           = mInputRegion.at(b).getTotalElements();
+            for (int k = 0; k < N; k++) {
+               mInputRegion.at(b).set(k, 1.0f);
+            }
+            fitBufferToGlobalLayer(mInputData.at(b), blockBatchElement);
+            fitBufferToGlobalLayer(mInputRegion.at(b), blockBatchElement);
+            // Now dataBuffer has input over the global layer. Apply normalizeLuminanceFlag, etc.
+            normalizePixels(b);
+            // Finally, crop to the part of the image covered by the MPIBlock.
+            cropToMPIBlock(mInputData.at(b));
+            cropToMPIBlock(mInputData.at(b));
          }
+         // Each MPIBlock sends the local portions.
          scatterInput(b, m);
       }
    }
@@ -153,23 +167,27 @@ int InputLayer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
       activityLeft   = halo->lt;
       activityTop    = halo->up;
    }
-   Buffer<float> buffer;
+   Buffer<float> dataBuffer;
+   Buffer<float> regionBuffer;
 
    if (getMPIBlock()->getRank() == 0) {
-      buffer = mInputData.at(localBatchIndex);
+      dataBuffer   = mInputData.at(localBatchIndex);
+      regionBuffer = mInputRegion.at(localBatchIndex);
    }
    else {
-      buffer.resize(activityWidth, activityHeight, loc->nf);
+      dataBuffer.resize(activityWidth, activityHeight, loc->nf);
+      regionBuffer.resize(activityWidth, activityHeight, loc->nf);
    }
-   BufferUtils::scatter<float>(getMPIBlock(), buffer, loc->nx, loc->ny, mpiBatchIndex, 0);
+   BufferUtils::scatter<float>(getMPIBlock(), dataBuffer, loc->nx, loc->ny, mpiBatchIndex, 0);
+   BufferUtils::scatter<float>(getMPIBlock(), regionBuffer, loc->nx, loc->ny, mpiBatchIndex, 0);
    if (procBatchIndex != mpiBatchIndex) {
       return PV_SUCCESS;
    }
 
    // All processes that make it to this point have the indicated MPI batch index,
-   // and buffer has the correct data for the indicated batch index.
+   // and dataBuffer has the correct data for the indicated batch index.
    // Clear the current activity for this batch element; then copy the input data over row by row.
-   float *activityBuffer = getActivity() + localBatchIndex * getNumExtended();
+   float *activityBuffer = &getActivity()[localBatchIndex * getNumExtended()];
    for (int n = 0; n < getNumExtended(); ++n) {
       activityBuffer[n] = mPadValue;
    }
@@ -184,7 +202,29 @@ int InputLayer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
                   loc->nx + halo->lt + halo->rt,
                   loc->ny + halo->up + halo->dn,
                   numFeatures);
-            activityBuffer[activityIndex] = buffer.at(x, y, f);
+            if (regionBuffer.at(x, y, f) > 0.0f) {
+               activityBuffer[activityIndex] = dataBuffer.at(x, y, f);
+            }
+         }
+      }
+   }
+   if (mNeedInputRegionsPointer) {
+      float *inputRegionBuffer =
+            &getInputRegionsAllBatchElements()[localBatchIndex * getNumExtended()];
+      for (int y = 0; y < activityHeight; ++y) {
+         for (int x = 0; x < activityWidth; ++x) {
+            for (int f = 0; f < numFeatures; ++f) {
+               int activityIndex = kIndex(
+                     activityLeft + x,
+                     activityTop + y,
+                     f,
+                     loc->nx + halo->lt + halo->rt,
+                     loc->ny + halo->up + halo->dn,
+                     numFeatures);
+               if (regionBuffer.at(x, y, f) > 0.0f) {
+                  inputRegionBuffer[activityIndex] = regionBuffer.at(x, y, f);
+               }
+            }
          }
       }
    }
@@ -192,7 +232,7 @@ int InputLayer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
    return PV_SUCCESS;
 }
 
-void InputLayer::fitBufferToLayer(Buffer<float> &buffer, int blockBatchElement) {
+void InputLayer::fitBufferToGlobalLayer(Buffer<float> &buffer, int blockBatchElement) {
    pvAssert(getMPIBlock()->getRank() == 0);
    const PVLayerLoc *loc  = getLayerLoc();
    int const xMargins     = mUseInputBCflag ? loc->halo.lt + loc->halo.rt : 0;
@@ -210,46 +250,43 @@ void InputLayer::fitBufferToLayer(Buffer<float> &buffer, int blockBatchElement) 
    if (mAutoResizeFlag) {
       BufferUtils::rescale(
             buffer, targetWidth, targetHeight, mRescaleMethod, mInterpolationMethod, mAnchor);
-      buffer.translate(-mOffsetX+mRandomShiftX[blockBatchElement], -mOffsetY+mRandomShiftY[blockBatchElement]);
+      buffer.translate(
+            -mOffsetX + mRandomShiftX[blockBatchElement],
+            -mOffsetY + mRandomShiftY[blockBatchElement]);
    }
    else {
       buffer.grow(targetWidth, targetHeight, mAnchor);
-      buffer.translate(-mOffsetX+mRandomShiftX[blockBatchElement], -mOffsetY+mRandomShiftY[blockBatchElement]);
+      buffer.translate(
+            -mOffsetX + mRandomShiftX[blockBatchElement],
+            -mOffsetY + mRandomShiftY[blockBatchElement]);
       buffer.crop(targetWidth, targetHeight, mAnchor);
    }
-   // Now buffer has the entire input.
-   // At this point, apply normalizeLuminanceFlag, etc.
-   normalizePixels(buffer);
-   // Finally, crop it to the part of the image covered by the MPIBlock.
-   // The calling routine then calls scatterInput to send the local portions.
-   int const startX = getMPIBlock()->getStartColumn() * loc->nx;
-   int const startY = getMPIBlock()->getStartRow() * loc->ny;
-   buffer.translate(-startX, -startY);
-   int const blockWidth  = getMPIBlock()->getNumColumns() * loc->nx + xMargins;
-   int const blockHeight = getMPIBlock()->getNumRows() * loc->ny + yMargins;
-   buffer.crop(blockWidth, blockHeight, Buffer<float>::NORTHWEST);
 }
 
-void InputLayer::normalizePixels(Buffer<float> &buffer) {
-   int const totalElements = buffer.getTotalElements();
-   int const width         = buffer.getWidth();
-   int const height        = buffer.getHeight();
-   int const numFeatures   = buffer.getFeatures();
+void InputLayer::normalizePixels(int batchElement) {
+   Buffer<float> &dataBuffer         = mInputData.at(batchElement);
+   Buffer<float> const &regionBuffer = mInputRegion.at(batchElement);
+   int const totalElements           = dataBuffer.getTotalElements();
+   pvAssert(totalElements == regionBuffer.getTotalElements());
    if (mNormalizeLuminanceFlag) {
       if (mNormalizeStdDev) {
          float imageSum   = 0.0f;
          float imageSumSq = 0.0f;
          for (int k = 0; k < totalElements; k++) {
-            float const v = buffer.at(k);
-            imageSum += v;
-            imageSumSq += v * v;
+            if (regionBuffer.at(k) > 0.0f) {
+               float const v = dataBuffer.at(k);
+               imageSum += v;
+               imageSumSq += v * v;
+            }
          }
 
          // set mean to zero
          float imageAverage = imageSum / totalElements;
          for (int k = 0; k < totalElements; k++) {
-            float const v = buffer.at(k);
-            buffer.set(k, v - imageAverage);
+            if (regionBuffer.at(k) > 0.0f) {
+               float const v = dataBuffer.at(k);
+               dataBuffer.set(k, v - imageAverage);
+            }
          }
 
          // set std dev to 1
@@ -258,8 +295,10 @@ void InputLayer::normalizePixels(Buffer<float> &buffer) {
          if (imageVariance > 0) {
             float imageStdDev = std::sqrt(imageVariance);
             for (int k = 0; k < totalElements; k++) {
-               float const v = buffer.at(k) / imageStdDev;
-               buffer.set(k, v);
+               if (regionBuffer.at(k) > 0.0f) {
+                  float const v = dataBuffer.at(k) / imageStdDev;
+                  dataBuffer.set(k, v);
+               }
             }
          }
          else {
@@ -267,7 +306,9 @@ void InputLayer::normalizePixels(Buffer<float> &buffer) {
             // This may not be necessary since we subtracted the mean,
             // but maybe there could be roundoff issues?
             for (int k = 0; k < totalElements; k++) {
-               buffer.set(k, 0.0f);
+               if (regionBuffer.at(k) > 0.0f) {
+                  dataBuffer.set(k, 0.0f);
+               }
             }
          }
       }
@@ -275,20 +316,26 @@ void InputLayer::normalizePixels(Buffer<float> &buffer) {
          float imageMax = -std::numeric_limits<float>::max();
          float imageMin = std::numeric_limits<float>::max();
          for (int k = 0; k < totalElements; k++) {
-            float const v = buffer.at(k);
-            imageMax      = v > imageMax ? v : imageMax;
-            imageMin      = v < imageMin ? v : imageMin;
+            if (regionBuffer.at(k) > 0.0f) {
+               float const v = dataBuffer.at(k);
+               imageMax      = v > imageMax ? v : imageMax;
+               imageMin      = v < imageMin ? v : imageMin;
+            }
          }
          if (imageMax > imageMin) {
             float imageStretch = 1.0f / (imageMax - imageMin);
             for (int k = 0; k < totalElements; k++) {
-               float const v = (buffer.at(k) - imageMin) * imageStretch;
-               buffer.set(k, v);
+               if (regionBuffer.at(k) > 0.0f) {
+                  float const v = (dataBuffer.at(k) - imageMin) * imageStretch;
+                  dataBuffer.set(k, v);
+               }
             }
          }
          else {
             for (int k = 0; k < totalElements; k++) {
-               buffer.set(k, 0.0f);
+               if (regionBuffer.at(k) > 0.0f) {
+                  dataBuffer.set(k, 0.0f);
+               }
             }
          }
       }
@@ -296,24 +343,42 @@ void InputLayer::normalizePixels(Buffer<float> &buffer) {
    if (mInverseFlag) {
       if (mNormalizeLuminanceFlag) {
          for (int k = 0; k < totalElements; k++) {
-            float const v = -buffer.at(k);
-            buffer.set(k, v);
+            if (regionBuffer.at(k) > 0.0f) {
+               float const v = -dataBuffer.at(k);
+               dataBuffer.set(k, v);
+            }
          }
       }
       else {
          float imageMax = -std::numeric_limits<float>::max();
          float imageMin = std::numeric_limits<float>::max();
          for (int k = 0; k < totalElements; k++) {
-            float const v = buffer.at(k);
-            imageMax      = v > imageMax ? v : imageMax;
-            imageMin      = v < imageMin ? v : imageMin;
+            if (regionBuffer.at(k) > 0.0f) {
+               float const v = dataBuffer.at(k);
+               imageMax      = v > imageMax ? v : imageMax;
+               imageMin      = v < imageMin ? v : imageMin;
+            }
          }
          for (int k = 0; k < totalElements; k++) {
-            float const v = imageMax + imageMin - buffer.at(k);
-            buffer.set(k, v);
+            if (regionBuffer.at(k) > 0.0f) {
+               float const v = imageMax + imageMin - dataBuffer.at(k);
+               dataBuffer.set(k, v);
+            }
          }
       }
    }
+}
+
+void InputLayer::cropToMPIBlock(Buffer<float> &buffer) {
+   const PVLayerLoc *loc = getLayerLoc();
+   int const startX      = getMPIBlock()->getStartColumn() * loc->nx;
+   int const startY      = getMPIBlock()->getStartRow() * loc->ny;
+   buffer.translate(-startX, -startY);
+   int const xMargins    = mUseInputBCflag ? loc->halo.lt + loc->halo.rt : 0;
+   int const yMargins    = mUseInputBCflag ? loc->halo.dn + loc->halo.up : 0;
+   int const blockWidth  = getMPIBlock()->getNumColumns() * loc->nx + xMargins;
+   int const blockHeight = getMPIBlock()->getNumRows() * loc->ny + yMargins;
+   buffer.crop(blockWidth, blockHeight, Buffer<float>::NORTHWEST);
 }
 
 double InputLayer::getDeltaUpdateTime() { return mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX; }
@@ -371,10 +436,11 @@ int InputLayer::registerData(Checkpointer *checkpointer) {
    if (checkpointer->getMPIBlock()->getRank() == 0) {
       mRNG.seed(mRandomSeed);
       int numBatch = getLayerLoc()->nbatch;
-      int nBatch = getMPIBlock()->getBatchDimension() * numBatch;
+      int nBatch   = getMPIBlock()->getBatchDimension() * numBatch;
       mRandomShiftX.resize(nBatch);
       mRandomShiftY.resize(nBatch);
       mInputData.resize(numBatch);
+      mInputRegion.resize(numBatch);
       initializeBatchIndexer();
       mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
       mBatchIndexer->registerData(checkpointer);
@@ -451,7 +517,8 @@ int InputLayer::ioParam_maxShifts(enum ParamsIOFlag ioFlag) {
 }
 
 int InputLayer::ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "jitterChangeInterval", &mJitterChangeInterval, mJitterChangeInterval);
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "jitterChangeInterval", &mJitterChangeInterval, mJitterChangeInterval);
    return PV_SUCCESS;
 }
 
