@@ -268,6 +268,15 @@ void InputLayer::normalizePixels(int batchElement) {
    Buffer<float> const &regionBuffer = mInputRegion.at(batchElement);
    int const totalElements           = dataBuffer.getTotalElements();
    pvAssert(totalElements == regionBuffer.getTotalElements());
+   int validRegionCount = 0;
+   for (int k = 0; k < totalElements; k++) {
+      if (regionBuffer.at(k) > 0.0f) {
+         validRegionCount++;
+      }
+   }
+   if (validRegionCount == 0) {
+      return;
+   }
    if (mNormalizeLuminanceFlag) {
       if (mNormalizeStdDev) {
          float imageSum   = 0.0f;
@@ -281,7 +290,7 @@ void InputLayer::normalizePixels(int batchElement) {
          }
 
          // set mean to zero
-         float imageAverage = imageSum / totalElements;
+         float imageAverage = imageSum / validRegionCount;
          for (int k = 0; k < totalElements; k++) {
             if (regionBuffer.at(k) > 0.0f) {
                float const v = dataBuffer.at(k);
@@ -290,7 +299,7 @@ void InputLayer::normalizePixels(int batchElement) {
          }
 
          // set std dev to 1
-         float imageVariance = imageSumSq / totalElements - imageAverage * imageAverage;
+         float imageVariance = imageSumSq / validRegionCount - imageAverage * imageAverage;
          pvAssert(imageVariance >= 0);
          if (imageVariance > 0) {
             float imageStdDev = std::sqrt(imageVariance);

@@ -38,6 +38,7 @@ add_subdirectory(ConfigParserTest)
 add_subdirectory(DataStoreTest)
 add_subdirectory(DeleteOlderCheckpointsTest)
 add_subdirectory(ImageTest)
+add_subdirectory(InputLayerNormalizeOffsetTest)
 add_subdirectory(InputRegionLayerTest)
 add_subdirectory(MPIBlockTest)
 
