@@ -28,13 +28,6 @@ void verifyActivity(
 int main(int argc, char *argv[]) {
    PV::PV_Init *pv_init =
          new PV::PV_Init(&argc, &argv, false /* do not allow unrecognized arguments */);
-   std::string const correctParams = std::string("input/InputLayerNormalizeOffsetTest.params");
-   std::string const &paramsFile   = pv_init->getStringArgument(std::string("ParamsFile"));
-   if (!paramsFile.empty() and paramsFile != correctParams) {
-      WarnLog() << "This test requires params file InputLayerNormalizeOffsetTest.params\n";
-      WarnLog() << "The ParamsFile configuration setting will be ignored.\n";
-   }
-   pv_init->setParams(correctParams.c_str());
 
    PV::HyPerCol *hc = new PV::HyPerCol(pv_init);
    hc->allocateColumn();
