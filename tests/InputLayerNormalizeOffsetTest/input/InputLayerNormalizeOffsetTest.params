@@ -1,0 +1,85 @@
+//
+// InputLayerNormalizeOffsetTest.params
+//
+// created by peteschultz: Aug 31, 2017
+//
+
+// A params file to test normalizeLuminanceFlag with offsets
+// There are two PvpLayers, "Input", and "ValidRegion".
+// "Input" reads an 8-by-8-by-1 activity pvp file of the values 1 to 64.
+// "ValidRegion" reads an 8-by-8-by-1 activity pvp file of all ones.
+//
+// The Input layer has normalizeLuminance on, and ValidRegion has normalizeLuminance off.
+// They both have the same offsets, and neither resizes.
+// The pad value for Input is -1, and the pad value for ValidRegion is zero.
+//
+// In the part of the layer where ValidRegion is zero, normalizeLuminance should not change
+// the pad value of -1.
+//
+// In the part of the layer where ValidRegion is zero, the values should be normalized
+// to have mean value zero and standard deviation one.
+//
+// The InputRegionLayerTest.cpp code allocates the HyPerCol and then checks 
+// the contents of the InputLayer, using the contents of the ValidRegion layer.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 1;
+    errorOnNotANumber                   = true;
+};
+
+PvpLayer "Input" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    displayPeriod                       = 0;
+    inputPath                           = "input/inputimage.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 2;
+    offsetY                             = 4;
+    maxShiftX                           = 0;
+    maxShiftY                           = 0;
+    jitterChangeInterval                = 1;
+    autoResizeFlag                      = true;
+    aspectRatioAdjustment               = "pad";
+    interpolationMethod                 = "nearestneighbor";
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = true;
+    normalizeStdDev                     = true;
+    useInputBCflag                      = false;
+    padValue                            = -1;
+    batchMethod                         = "byFile";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0.000000];
+};
+
+PvpLayer "ValidRegion" = {
+    #include "Input";
+    @inputPath                          = "input/ones.pvp";
+    @inverseFlag                        = false;
+    @normalizeLuminanceFlag             = false;
+    @padValue                           = 0;
+};

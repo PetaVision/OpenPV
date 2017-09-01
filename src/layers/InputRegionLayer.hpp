@@ -34,6 +34,7 @@ class InputRegionLayer : public HyPerLayer {
    virtual void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_phase(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag) override;
