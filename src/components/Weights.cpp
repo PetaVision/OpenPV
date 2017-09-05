@@ -110,11 +110,11 @@ void Weights::setNumDataPatches(int numDataPatchesX, int numDataPatchesY, int nu
 
 Patch const &Weights::getPatch(int patchIndex) const { return mGeometry->getPatch(patchIndex); }
 
-float *Weights::getData(int arbor) { return &mData.at(arbor)[0]; }
+float *Weights::getData(int arbor) { return &mData[arbor][0]; }
 
 float *Weights::getDataFromDataIndex(int arbor, int dataIndex) {
    int numItemsPerPatch = getPatchSizeX() * getPatchSizeY() * getPatchSizeF();
-   return &mData.at(arbor).at(dataIndex * numItemsPerPatch);
+   return &mData[arbor][dataIndex * numItemsPerPatch];
 }
 
 float *Weights::getDataFromPatchIndex(int arbor, int patchIndex) {
@@ -164,7 +164,7 @@ float Weights::calcMinWeight() {
 float Weights::calcMinWeight(int arbor) {
    float arborMin = FLT_MAX;
    if (getSharedFlag()) {
-      for (auto &w : mData.at(arbor)) {
+      for (auto &w : mData[arbor]) {
          if (w < arborMin) {
             arborMin = w;
          }
@@ -203,7 +203,7 @@ float Weights::calcMaxWeight() {
 float Weights::calcMaxWeight(int arbor) {
    float arborMax = -FLT_MAX;
    if (getSharedFlag()) {
-      for (auto &w : mData.at(arbor)) {
+      for (auto &w : mData[arbor]) {
          if (w > arborMax) {
             arborMax = w;
          }

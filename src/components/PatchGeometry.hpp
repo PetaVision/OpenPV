@@ -121,16 +121,16 @@ class PatchGeometry {
    int getNumPatches() const { return getNumPatchesX() * getNumPatchesY() * getNumPatchesF(); }
 
    /** Returns a nonmutable reference to the patch info for the given patch index. */
-   Patch const &getPatch(int patchIndex) const { return mPatchVector.at(patchIndex); }
+   Patch const &getPatch(int patchIndex) const { return mPatchVector[patchIndex]; }
 
    /** Returns the GSynPatchStart value for the indicated patch index */
-   std::size_t getGSynPatchStart(int patchIndex) const { return mGSynPatchStart.at(patchIndex); }
+   std::size_t getGSynPatchStart(int patchIndex) const { return mGSynPatchStart[patchIndex]; }
 
    /** Returns a nonmutable reference to the vector of GSynPatchStart values. */
    std::vector<std::size_t> const &getGSynPatchStart() const { return mGSynPatchStart; }
 
    /** Returns the APostOffset value for the indicated patch index */
-   std::size_t getAPostOffset(int patchIndex) const { return mAPostOffset.at(patchIndex); }
+   std::size_t getAPostOffset(int patchIndex) const { return mAPostOffset[patchIndex]; }
 
    /** Returns a nonmutable reference to the vector of APostOffset values. */
    std::vector<std::size_t> const &getAPostOffset() const { return mAPostOffset; }

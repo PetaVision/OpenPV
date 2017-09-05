@@ -181,11 +181,11 @@ inline bool DebugLogType::output() {
 
 template <>
 inline bool InfoLogType::flushOutputStream() {
-   return false;
+   return true;
 }
 template <>
 inline bool WarnLogType::flushOutputStream() {
-   return false;
+   return true;
 }
 template <>
 inline bool FatalType::flushOutputStream() {
