@@ -26,6 +26,7 @@
 #include "layers/ISTALayer.hpp"
 #include "layers/ImageFromMemoryBuffer.hpp"
 #include "layers/ImageLayer.hpp"
+#include "layers/InputRegionLayer.hpp"
 #include "layers/KmeansLayer.hpp"
 #include "layers/LCALIFLayer.hpp"
 #include "layers/LIF.hpp"
@@ -125,6 +126,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("ISTALayer", Factory::create<ISTALayer>);
 
    registerKeyword("ImageLayer", Factory::create<ImageLayer>);
+   registerKeyword("InputRegionLayer", Factory::create<InputRegionLayer>);
    registerKeyword("PvpLayer", Factory::create<PvpLayer>);
    registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
    registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
