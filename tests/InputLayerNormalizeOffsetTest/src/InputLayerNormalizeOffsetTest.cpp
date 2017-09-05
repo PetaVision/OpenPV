@@ -163,7 +163,7 @@ void verifyActivity(
    // Each neuron of ValidRegion should have either activity = 1 or activity = 0.
    FatalIf(
          inputBuffer->getTotalElements() != validRegionBuffer->getTotalElements(),
-         "%s and %s have different total numbers of elements (%d versus %d\n",
+         "%s and %s have different total numbers of elements (%d versus %d)\n",
          inputName.c_str(),
          validRegionName.c_str(),
          inputBuffer->getTotalElements(),
@@ -178,7 +178,7 @@ void verifyActivity(
       FatalIf(
             value != 0.0f and value != 1.0f,
             "%s has activity that is not all ones or zeroes.\n",
-            validRegionName);
+            validRegionName.c_str());
       if (value == 0.0f) {
          zeroPresent = true;
       }
@@ -200,8 +200,10 @@ void verifyActivity(
          ErrorLog().printf(
                "Neuron %d: %s has value zero but %s has value %f instead of the pad value %f.\n",
                k,
-               validRegionName,
-               inputName);
+               validRegionName.c_str(),
+               inputName.c_str(),
+               inputBuffer->at(k),
+               padValue);
       }
    }
    FatalIf(status != PV_SUCCESS, "Test failed.\n");
