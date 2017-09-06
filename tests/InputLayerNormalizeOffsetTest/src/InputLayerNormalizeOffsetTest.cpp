@@ -202,8 +202,8 @@ void verifyActivity(
                k,
                validRegionName.c_str(),
                inputName.c_str(),
-               inputBuffer->at(k),
-               padValue);
+               (double)inputBuffer->at(k),
+               (double)padValue);
       }
    }
    FatalIf(status != PV_SUCCESS, "Test failed.\n");
