@@ -728,7 +728,11 @@ bool Checkpointer::scheduledSimTime() {
 
 bool Checkpointer::scheduledWallclock() {
    bool isScheduled = false;
-   std::time_t currentTime = std::time(nullptr);
+   std::time_t currentTime;
+   if (mMPIBlock->getGlobalRank() == 0) {
+      currentTime = std::time(nullptr);
+   }
+   MPI_Bcast(&currentTime, sizeof(currentTime), MPI_CHAR, 0, mMPIBlock->getComm());
    if (currentTime == (std::time_t)(-1)) {
       throw;
    }
