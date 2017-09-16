@@ -47,8 +47,10 @@ HyPerCol::~HyPerCol() {
 #ifdef PV_USE_CUDA
    finalizeCUDA();
 #endif // PV_USE_CUDA
-   PrintStream pStream(getOutputStream());
-   mCheckpointer->writeTimers(pStream);
+   if (getCommunicator()->globalCommRank() == 0) {
+      PrintStream pStream(getOutputStream());
+      mCheckpointer->writeTimers(pStream);
+   }
    delete mCheckpointer;
    mObjectHierarchy.clear(true /*delete the objects in the hierarchy*/);
    for (auto iterator = mNormalizers.begin(); iterator != mNormalizers.end();) {
@@ -180,6 +182,9 @@ int HyPerCol::initialize(PV_Init *initObj) {
    mNextProgressTime = mStartTime;
 
    RandomSeed::instance()->initialize(mRandomSeed);
+   if (getCommunicator()->globalCommRank() == 0) {
+      InfoLog() << "RandomSeed initialized to " << mRandomSeed << ".\n";
+   }
 
    mRunTimer = new Timer(mName, "column", "run    ");
    mCheckpointer->registerTimer(mRunTimer);
@@ -505,7 +510,9 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
 
 #ifdef TIMER_ON
    runClock.stop_clock();
-   runClock.print_elapsed(getOutputStream());
+   if (getCommunicator()->globalCommRank() == 0) {
+      runClock.print_elapsed(getOutputStream());
+   }
 #endif
 
    return PV_SUCCESS;
@@ -816,8 +823,8 @@ void HyPerCol::nonblockingLayerUpdate(
    if (idleCounter > 1L) {
       InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
 #ifdef PV_USE_CUDA
-                << ", recvGpu" << updateMessage->mRecvOnGpuFlag
-                << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+                << ", recvGpu" << updateMessage->mRecvOnGpuFlag << ", updateGpu"
+                << updateMessage->mUpdateOnGpuFlag
 #endif // PV_USE_CUDA
                 << ", idle count " << idleCounter << "\n";
    }
@@ -848,8 +855,8 @@ void HyPerCol::nonblockingLayerUpdate(
    if (idleCounter > 1L) {
       InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
 #ifdef PV_USE_CUDA
-                << ", recvGpu" << updateMessage->mRecvOnGpuFlag
-                << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+                << ", recvGpu" << updateMessage->mRecvOnGpuFlag << ", updateGpu"
+                << updateMessage->mUpdateOnGpuFlag
 #endif // PV_USE_CUDA
                 << ", idle count " << idleCounter << "\n";
    }
@@ -1160,7 +1167,9 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
 
    // default value
    if (in_device.empty()) {
-      InfoLog() << "Auto assigning GPUs\n";
+      if (getCommunicator()->globalCommRank() == 0) {
+         InfoLog() << "Auto-assigning GPUs\n";
+      }
       device = getAutoGPUDevice();
    }
    else {

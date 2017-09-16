@@ -2252,12 +2252,14 @@ int PVParams::checkDuplicates(const char *paramName, double val) {
       if (!strcmp(paramName, parm->name())) {
          double oldval = parm->value();
          if (val == oldval) {
-            WarnLog().printf(
-                  "parameter name \"%s\" duplicates a previous parameter name and value (%s = "
-                  "%f)\n",
-                  paramName,
-                  parm->name(),
-                  val);
+            if (worldRank == 0) {
+               WarnLog().printf(
+                     "parameter name \"%s\" duplicates a previous parameter name and value "
+                     "(%s = %f)\n",
+                     paramName,
+                     parm->name(),
+                     val);
+            }
          }
          else {
             ErrorLog().printf(
