@@ -144,11 +144,12 @@ void Checkpointer::ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params
             }
             else {
                mOutputPath = std::string(DEFAULT_OUTPUT_PATH);
-               WarnLog().printf(
-                     "Output path specified neither in command line nor in "
-                     "params file.\n"
-                     "Output path set to default \"%s\"\n",
-                     DEFAULT_OUTPUT_PATH);
+               if (getMPIBlock()->getGlobalRank() == 0) {
+                  WarnLog().printf(
+                        "Output path specified neither in command line nor in params file.\n"
+                        "Output path set to default \"%s\"\n",
+                        DEFAULT_OUTPUT_PATH);
+               }
             }
          }
          break;
@@ -623,10 +624,12 @@ void Checkpointer::extractCheckpointReadDirectory() {
    mCheckpointReadDirectory  = dirString.c_str();
    pvAssert(!mCheckpointReadDirectory.empty());
 
-   InfoLog().printf(
-         "Global Rank %d process setting CheckpointReadDirectory to %s.\n",
-         mMPIBlock->getGlobalRank(),
-         mCheckpointReadDirectory.c_str());
+   if (getMPIBlock()->getGlobalRank() == 0) {
+      InfoLog().printf(
+            "Setting CheckpointReadDirectory to %s.\n",
+            mMPIBlock->getGlobalRank(),
+            mCheckpointReadDirectory.c_str());
+   }
 }
 
 void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepPointer) {
@@ -699,8 +702,8 @@ bool Checkpointer::scheduledCheckpoint() {
          // Only NONE if checkpointWrite is off, in which case this method should not get called
          pvAssert(0);
          break;
-      case STEP: isScheduled = scheduledStep(); break;
-      case SIMTIME: isScheduled = scheduledSimTime(); break;
+      case STEP: isScheduled      = scheduledStep(); break;
+      case SIMTIME: isScheduled   = scheduledSimTime(); break;
       case WALLCLOCK: isScheduled = scheduledWallclock(); break;
       default: pvAssert(0); break;
    }
@@ -712,7 +715,7 @@ bool Checkpointer::scheduledStep() {
    pvAssert(mCheckpointWriteStepInterval > 0);
    if (mTimeInfo.mCurrentCheckpointStep % mCheckpointWriteStepInterval == 0) {
       mNextCheckpointStep = mTimeInfo.mCurrentCheckpointStep + mCheckpointWriteStepInterval;
-      isScheduled = true;
+      isScheduled         = true;
    }
    return isScheduled;
 }
@@ -738,7 +741,7 @@ bool Checkpointer::scheduledWallclock() {
    }
    double elapsed = std::difftime(currentTime, mLastCheckpointWallclock);
    if (elapsed >= mCheckpointWriteWallclockInterval) {
-      isScheduled = true;
+      isScheduled              = true;
       mLastCheckpointWallclock = currentTime;
    }
    return isScheduled;

@@ -222,12 +222,15 @@ int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
 }
 
 void PV_Init::printInitMessage() {
-   time_t currentTime = time(nullptr);
-   InfoLog() << "PetaVision initialized at "
-             << ctime(&currentTime); // string returned by ctime contains a trailing \n.
-   InfoLog() << "Configuration is:\n";
-   printState();
-   InfoLog().printf("----------------\n");
+   Communicator *communicator = getCommunicator();
+   if (communicator == nullptr or communicator->globalCommRank() == 0) {
+      time_t currentTime = time(nullptr);
+      InfoLog() << "PetaVision initialized at "
+                << ctime(&currentTime); // string returned by ctime contains a trailing \n.
+      InfoLog() << "Configuration is:\n";
+      printState();
+      InfoLog().printf("----------------\n");
+   }
 }
 
 int PV_Init::resetState() {

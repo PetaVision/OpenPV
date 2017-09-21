@@ -601,7 +601,9 @@ void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "sharedWeights", &sharedWeights, true /*default*/, true /*warn if absent*/);
    if (sharedWeights == false and receiveGpu == true) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog().printf("%s: sharedWeights must be true in order to receive on the GPU.\n", getDescription_c());
+         ErrorLog().printf(
+               "%s: sharedWeights must be true in order to receive on the GPU.\n",
+               getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->globalCommunicator());
       MPI_Finalize();
@@ -856,7 +858,7 @@ void HyPerConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "nfp", &nfp, -1, false);
    if (ioFlag == PARAMS_IO_READ && nfp == -1 && !parent->parameters()->present(name, "nfp")
-       && parent->columnId() == 0) {
+       && parent->getCommunicator()->globalCommRank() == 0) {
       InfoLog().printf(
             "%s: nfp will be set in the communicateInitInfo() stage.\n", getDescription_c());
    }
