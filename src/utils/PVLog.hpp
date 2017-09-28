@@ -185,7 +185,7 @@ inline bool InfoLogType::flushOutputStream() {
 }
 template <>
 inline bool WarnLogType::flushOutputStream() {
-   return false;
+   return true;
 }
 template <>
 inline bool FatalType::flushOutputStream() {
@@ -338,12 +338,16 @@ struct Log {
       outputPrefix(file, line);
    }
 
-   Log(basic_ostream &s, const char *file = __FILE__, int line = __LINE__)
-         : _stream(LogStreamType::stream()) {
+   Log(basic_ostream &s, const char *file = __FILE__, int line = __LINE__) : _stream(s) {
       outputPrefix(file, line);
    }
 
-   ~Log() { LogType::exit(); }
+   ~Log() {
+      if (logType::flushOutputStream()) {
+         _stream.flush();
+      }
+      LogType::exit();
+   }
 
    void outputPrefix(const char *file, int line) {
       // In release this is optimised away if log type is debug
@@ -388,7 +392,7 @@ struct Log {
     * to versions that use the PVLog facilities.
     * To have output recorded in the logfile, replace printf(format,...) with
     * InfoLog().printf(format,...)
-    * and fprintf(stderr,format,...) with pvXXXX().printf(format,...), with pvXXXX replaced by
+    * and fprintf(stderr,format,...) with XXXX().printf(format,...), with XXXX replaced by
     * WarnLog, Fatal, or ErrorLog depending on the desired behavior.
     */
    int printf(char const *fmt, ...) {
