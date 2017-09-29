@@ -343,7 +343,7 @@ struct Log {
    }
 
    ~Log() {
-      if (logType::flushOutputStream()) {
+      if (LogType::flushOutputStream()) {
          _stream.flush();
       }
       LogType::exit();
