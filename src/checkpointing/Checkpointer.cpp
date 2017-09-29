@@ -789,6 +789,7 @@ void Checkpointer::checkpointNow() {
    checkpointToDirectory(checkpointDirectory);
    if (mMPIBlock->getRank() == 0) {
       InfoLog().printf("checkpointWrite complete. simTime = %f\n", mTimeInfo.mSimTime);
+      InfoLog().flush();
    }
 
    if (mDeleteOlderCheckpoints) {
