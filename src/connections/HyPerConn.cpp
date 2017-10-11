@@ -1301,7 +1301,7 @@ int HyPerConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
             }
          }
          if (mGpuGroupHead == nullptr) {
-            mGpuGroupHead == this;
+            mGpuGroupHead = this;
          }
       }
 
