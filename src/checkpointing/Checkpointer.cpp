@@ -787,10 +787,6 @@ void Checkpointer::checkpointNow() {
       return;
    }
    checkpointToDirectory(checkpointDirectory);
-   if (mMPIBlock->getRank() == 0) {
-      InfoLog().printf("checkpointWrite complete. simTime = %f\n", mTimeInfo.mSimTime);
-      InfoLog().flush();
-   }
 
    if (mDeleteOlderCheckpoints) {
       rotateOldCheckpoints(checkpointDirectory);
@@ -826,6 +822,10 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
    mCheckpointTimer->start();
    writeTimers(checkpointDirectory);
    mCheckpointTimer->stop();
+   if (mMPIBlock->getRank() == 0) {
+      InfoLog().printf("checkpointWrite complete. simTime = %f\n", mTimeInfo.mSimTime);
+      InfoLog().flush();
+   }
 }
 
 void Checkpointer::finalCheckpoint(double simTime) {

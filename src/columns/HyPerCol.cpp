@@ -486,6 +486,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    mDeltaTime = dt;
 
    allocateColumn();
+   getOutputStream().flush();
 
    bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
    if (dryRunFlag) {
@@ -671,6 +672,7 @@ int HyPerCol::advanceTime(double sim_time) {
          time(&current_time);
          progressStream << "   time==" << sim_time << "  "
                         << ctime(&current_time); // ctime outputs an newline
+         progressStream.flush();
       }
    }
 
