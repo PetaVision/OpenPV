@@ -965,8 +965,22 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
    fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
 #ifdef PV_USE_MPI
    MPIBlock const *mpiBlock = mCheckpointer->getMPIBlock();
+#define OMPI_MAJOR_VERSION 1
+#define OMPI_MINOR_VERSION 10
+#define OMPI_RELEASE_VERSION 2
+#define MPI_VERSION 3
+#define MPI_SUBVERSION 0
+
    fileStream->printf(
-         "%s Compiled with MPI and run using %d rows, %d columns, and MPI batch dimension %d.\n",
+         "%s Compiled with Open MPI %d.%d.%d (MPI Standard %d.%d).\n",
+         commentToken,
+         OMPI_MAJOR_VERSION,
+         OMPI_MINOR_VERSION,
+         OMPI_RELEASE_VERSION,
+         MPI_VERSION,
+         MPI_SUBVERSION);
+   fileStream->printf(
+         "%s MPI configuration has %d rows, %d columns, and batch dimension %d.\n",
          commentToken,
          mpiBlock->getGlobalNumRows(),
          mpiBlock->getGlobalNumColumns(),
@@ -975,7 +989,7 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
        or mpiBlock->getNumColumns() < mpiBlock->getGlobalNumColumns()
        or mpiBlock->getBatchDimension() < mpiBlock->getGlobalBatchDimension()) {
       fileStream->printf(
-            "%s CheckpointCells have %d rows, %d columns, and MPI batch dimension %d.\n",
+            "%s CheckpointCells have %d rows, %d columns, and batch dimension %d.\n",
             commentToken,
             mpiBlock->getNumRows(),
             mpiBlock->getNumColumns(),
