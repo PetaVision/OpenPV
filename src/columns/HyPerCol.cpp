@@ -1002,27 +1002,39 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
    fileStream->printf("%s Compiled without CUDA.\n", commentToken);
 #endif
 #ifdef PV_USE_OPENMP_THREADS
-   fileStream->printf("%s Compiled with OpenMP parallel code", commentToken);
+   std::string openmpVersion;
+   switch (_OPENMP) {
+      case 201511: openmpVersion = "4.5"; break;
+      case 201307: openmpVersion = "4.0"; break;
+      case 201107: openmpVersion = "3.1"; break;
+      case 200805: openmpVersion = "3.0"; break;
+      default: openmpVersion     = "is unrecognized"; break;
+   }
+   fileStream->printf(
+         "%s Compiled with OpenMP parallel code, API version %s (%06d) ",
+         commentToken,
+         openmpVersion.c_str(),
+         _OPENMP);
    if (mNumThreads > 0) {
-      fileStream->printf(" and run using %d threads.\n", mNumThreads);
+      fileStream->printf("and run using %d threads.\n", mNumThreads);
    }
    else if (mNumThreads == 0) {
-      fileStream->printf(" but number of threads was set to zero (error).\n");
+      fileStream->printf("but number of threads was set to zero (error).\n");
    }
    else {
-      fileStream->printf(" but the -t option was not specified.\n");
+      fileStream->printf("but the -t option was not specified.\n");
    }
 #else
-   fileStream->printf("%s Compiled without OpenMP parallel code", commentToken);
+   fileStream->printf("%s Compiled without OpenMP parallel code ", commentToken);
    if (mNumThreads == 1) {
       fileStream->printf(".\n");
    }
    else if (mNumThreads == 0) {
-      fileStream->printf(" but number of threads was set to zero (error).\n");
+      fileStream->printf("but number of threads was set to zero (error).\n");
    }
    else {
       fileStream->printf(
-            " but number of threads specified was %d instead of 1. (error).\n", mNumThreads);
+            "but number of threads specified was %d instead of 1. (error).\n", mNumThreads);
    }
 #endif // PV_USE_OPENMP_THREADS
    if (mCheckpointReadFlag) {
