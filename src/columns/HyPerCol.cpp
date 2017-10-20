@@ -33,6 +33,8 @@
 #include <time.h>
 #include <unistd.h>
 #ifdef PV_USE_CUDA
+#include <cuda.h>
+#include <cudnn.h>
 #include <map>
 #endif // PV_USE_CUDA
 
@@ -983,7 +985,19 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
    fileStream->printf("%s Compiled without MPI.\n", commentToken);
 #endif // PV_USE_MPI
 #ifdef PV_USE_CUDA
-   fileStream->printf("%s Compiled with CUDA.\n", commentToken);
+   int const cudaMajor  = CUDA_VERSION / 1000;
+   int const cudaMinor  = (CUDA_VERSION % 1000) / 10;
+   int const cudnnMajor = CUDNN_MAJOR;
+   int const cudnnMinor = CUDNN_MINOR;
+   int const cudnnPatch = CUDNN_PATCHLEVEL;
+   fileStream->printf(
+         "%s Compiled with CUDA version %d.%d; cuDNN version %d.%d.%d\n",
+         commentToken,
+         cudaMajor,
+         cudaMinor,
+         cudnnMajor,
+         cudnnMinor,
+         cudnnPatch);
 #else
    fileStream->printf("%s Compiled without CUDA.\n", commentToken);
 #endif
