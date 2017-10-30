@@ -966,11 +966,6 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
    fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
 #ifdef PV_USE_MPI
    MPIBlock const *mpiBlock = mCheckpointer->getMPIBlock();
-#define OMPI_MAJOR_VERSION 1
-#define OMPI_MINOR_VERSION 10
-#define OMPI_RELEASE_VERSION 2
-#define MPI_VERSION 3
-#define MPI_SUBVERSION 0
 
    fileStream->printf(
          "%s Compiled with Open MPI %d.%d.%d (MPI Standard %d.%d).\n",
