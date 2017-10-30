@@ -227,12 +227,71 @@ class Checkpointer : public Subject {
     */
    void extractCheckpointReadDirectory();
    void findWarmStartDirectory();
-   bool checkpointWriteSignal();
-   void checkpointWriteStep();
-   void checkpointWriteSimtime();
-   void checkpointWriteWallclock();
+   std::string makeCheckpointDirectoryFromCurrentStep();
+
+   /**
+     * If a SIGUSR signal has been received by the global root process, clears the signal
+     * and returns true. Otherwise returns false.
+     */
+   bool receivedSignal();
+
+   /**
+     * Returns true if the params file settings indicate a checkpoint should occur at this
+     * timestep. It also advances the appropriate data member for the trigger mode
+     * to the next scheduled checkpoint. Returns false otherwise.
+     */
+   bool scheduledCheckpoint();
+
+   /**
+     * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "step". If the
+     * step number is an integral multiple of checkpointWriteStepInterval, it advances
+     * mNextCheckpointStep by the step interval and returns true. Otherwise it returns false.
+     */
+   bool scheduledStep();
+
+   /**
+     * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "time". If the
+     * simTime is >= the current value of mNextCheckpointSimtime, it advances
+     * mNextCheckpointSimtime by the time interval and returns true. Otherwise it returns false.
+     */
+   bool scheduledSimTime();
+
+   /**
+     * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "clock". If the
+     * elapsed time between the wall clock time and mLastCheckpointWallclock exceeds 
+     * mCheckpointWriteWallclockInterval, it sets mLastCheckpointWallclock to the current
+     * wall clock time and returns true. Otherwise it returns false.
+     */
+   bool scheduledWallclock();
+
+   /**
+    * Called by checkpointWrite if a SIGUSR1 signal was sent (as reported by receivedSignal).
+    * It writes a checkpoint, indexed by the current timestep. If the deleteOlderCheckpoints param
+    * was set, it does not cause a checkpoint to be deleted, and does not rotate the checkpoint
+    * into the list of directories that will be deleted.
+    */
+   void checkpointWriteSignal();
+
+   /**
+    * Called by checkpointWrite() (if there was not a SIGUSR1 signal pending) and finalCheckpoint().
+    * Writes a checkpoint, indexed by the current timestep. If the deleteOlderCheckpoints param
+    * was set, and the number of checkpoints exceeds numCheckpointsKept, the oldest checkpoint is
+    * deleted, and the just-written checkpoint is rotated onto the list of checkpoints that will
+    * be deleted.
+    */
    void checkpointNow();
+
+   /**
+    * Creates a checkpoint based at the given directory. If the checkpoint directory already exists,
+    * it issues a warning, and deletes the timeinfo.bin file in the checkpooint. This way, the
+    * presence of the timeinfo.bin file indicates that the checkpoint is complete.
+    */
    void checkpointToDirectory(std::string const &checkpointDirectory);
+
+   /**
+    * Called if deleteOlderCheckpoints is true. It deletes the oldest checkpoint in the list of
+    * old checkpoint directories, and adds the new checkpoint directory to the list.
+    */
    void rotateOldCheckpoints(std::string const &newCheckpointDirectory);
    void writeTimers(std::string const &directory);
    std::string generateBlockPath(std::string const &baseDirectory);
@@ -268,7 +327,6 @@ class Checkpointer : public Subject {
    char *mLastCheckpointDir                                                = nullptr;
    char *mInitializeFromCheckpointDir                                      = nullptr;
    std::string mCheckpointReadDirectory;
-   int mCheckpointSignal                = 0;
    long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol
    double mNextCheckpointSimtime        = 0.0;
    std::time_t mLastCheckpointWallclock = (std::time_t)0;

@@ -17,6 +17,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/MomentumLCALayer.cpp
    ${SUBDIR}/ImageLayer.cpp
    ${SUBDIR}/ImageFromMemoryBuffer.cpp
+   ${SUBDIR}/InputRegionLayer.cpp
    ${SUBDIR}/ISTALayer.cpp
    ${SUBDIR}/KmeansLayer.cpp
    ${SUBDIR}/LabelErrorLayer.cpp
@@ -58,6 +59,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/HyPerLCALayer.hpp
    ${SUBDIR}/ImageLayer.hpp
    ${SUBDIR}/ImageFromMemoryBuffer.hpp
+   ${SUBDIR}/InputRegionLayer.cpp
    ${SUBDIR}/ISTALayer.hpp
    ${SUBDIR}/KmeansLayer.hpp
    ${SUBDIR}/LabelErrorLayer.hpp

@@ -343,7 +343,10 @@ int TransposeConn::allocatePostDeviceWeights() { return PV_SUCCESS; }
 
 // Set this post to orig
 int TransposeConn::allocatePostConn() {
-   InfoLog() << "Connection " << name << " setting " << originalConn->getName() << " as postConn\n";
+   if (parent->getCommunicator()->globalCommRank() == 0) {
+      InfoLog() << "Connection " << name << " setting " << originalConn->getName()
+                << " as postConn\n";
+   }
    postConn = originalConn;
 
    // Can't do this with shrink patches flag

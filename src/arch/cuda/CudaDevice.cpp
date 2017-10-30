@@ -92,9 +92,7 @@ int CudaDevice::initialize(int device) {
 }
 
 void CudaDevice::syncDevice() {
-   if (this != nullptr) {
-      handleError(cudaDeviceSynchronize(), "Synchronizing device");
-   }
+   handleError(cudaDeviceSynchronize(), "Synchronizing device");
 }
 
 int CudaDevice::query_device_info() {

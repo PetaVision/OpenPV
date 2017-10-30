@@ -64,8 +64,6 @@ endforeach()
 
 set(PVLibSrc ${PVLibSrcCpp} ${PVLibSrcHpp} ${PVLibSrcTpp} ${PVLibSrcC} ${PVLibSrcH})
 
-include(PVGitRevision)
-
 # Header file to pass CMake settings to source code
 if(PV_USE_OPENMP)
   # C++ code needs PV_USE_OPENMP_THREADS defined
@@ -73,7 +71,6 @@ if(PV_USE_OPENMP)
 endif()
 
 file(MAKE_DIRECTORY ${PV_CONFIG_FILE_DIR})
-execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PV_CONFIG_FILE_DIR})
 configure_file (
    "cMakeHeader.template"
    "${PV_CONFIG_FILE_DIR}/cMakeHeader.h"
@@ -127,6 +124,10 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PV_CPP_11X_FLAGS}")
   add_library(${PV_LIBRARY_NAME} ${SHARED_FLAG} ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS})
 endif()
+
+add_custom_target(pvgitrevision ALL)
+add_custom_command(TARGET pvgitrevision COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_SOURCE_DIR} -DPV_CONFIG_FILE_DIR=${PV_CONFIG_FILE_DIR} -P ${CMAKE_SOURCE_DIR}/cmake/PVGitRevision.cmake)
+add_dependencies(${PV_LIBRARY_NAME} pvgitrevision)
 
 # The following is needed to make the Xcode generator put libpv.a into the correct place.
 # Without this, Xcode appends a Debug to the end of the output path, regardless of 

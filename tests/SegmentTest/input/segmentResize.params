@@ -26,7 +26,6 @@ PvpLayer "Input" = {
     writeFrameToTimestamp = true;
     writeStep = -1;
     sparseLayer = false;
-    writeSparseValues = true;
     displayPeriod = 0;
     mirrorBCflag = true;
     useInputBCflag = false;

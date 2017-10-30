@@ -15,6 +15,7 @@
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
 #include "normalizers/NormalizeBase.hpp"
+#include "pvGitRevision.h"
 
 #include <assert.h>
 #include <cmath>
@@ -33,6 +34,8 @@
 #include <time.h>
 #include <unistd.h>
 #ifdef PV_USE_CUDA
+#include <cuda.h>
+#include <cudnn.h>
 #include <map>
 #endif // PV_USE_CUDA
 
@@ -47,8 +50,10 @@ HyPerCol::~HyPerCol() {
 #ifdef PV_USE_CUDA
    finalizeCUDA();
 #endif // PV_USE_CUDA
-   PrintStream pStream(getOutputStream());
-   mCheckpointer->writeTimers(pStream);
+   if (getCommunicator()->globalCommRank() == 0) {
+      PrintStream pStream(getOutputStream());
+      mCheckpointer->writeTimers(pStream);
+   }
    delete mCheckpointer;
    mObjectHierarchy.clear(true /*delete the objects in the hierarchy*/);
    for (auto iterator = mNormalizers.begin(); iterator != mNormalizers.end();) {
@@ -180,6 +185,9 @@ int HyPerCol::initialize(PV_Init *initObj) {
    mNextProgressTime = mStartTime;
 
    RandomSeed::instance()->initialize(mRandomSeed);
+   if (getCommunicator()->globalCommRank() == 0) {
+      InfoLog() << "RandomSeed initialized to " << mRandomSeed << ".\n";
+   }
 
    mRunTimer = new Timer(mName, "column", "run    ");
    mCheckpointer->registerTimer(mRunTimer);
@@ -481,6 +489,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
    mDeltaTime = dt;
 
    allocateColumn();
+   getOutputStream().flush();
 
    bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
    if (dryRunFlag) {
@@ -505,7 +514,9 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
 
 #ifdef TIMER_ON
    runClock.stop_clock();
-   runClock.print_elapsed(getOutputStream());
+   if (getCommunicator()->globalCommRank() == 0) {
+      runClock.print_elapsed(getOutputStream());
+   }
 #endif
 
    return PV_SUCCESS;
@@ -664,6 +675,7 @@ int HyPerCol::advanceTime(double sim_time) {
          time(&current_time);
          progressStream << "   time==" << sim_time << "  "
                         << ctime(&current_time); // ctime outputs an newline
+         progressStream.flush();
       }
    }
 
@@ -816,8 +828,8 @@ void HyPerCol::nonblockingLayerUpdate(
    if (idleCounter > 1L) {
       InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
 #ifdef PV_USE_CUDA
-                << ", recvGpu" << updateMessage->mRecvOnGpuFlag
-                << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+                << ", recvGpu" << updateMessage->mRecvOnGpuFlag << ", updateGpu"
+                << updateMessage->mUpdateOnGpuFlag
 #endif // PV_USE_CUDA
                 << ", idle count " << idleCounter << "\n";
    }
@@ -848,8 +860,8 @@ void HyPerCol::nonblockingLayerUpdate(
    if (idleCounter > 1L) {
       InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
 #ifdef PV_USE_CUDA
-                << ", recvGpu" << updateMessage->mRecvOnGpuFlag
-                << ", updateGpu" << updateMessage->mUpdateOnGpuFlag
+                << ", recvGpu" << updateMessage->mRecvOnGpuFlag << ", updateGpu"
+                << updateMessage->mUpdateOnGpuFlag
 #endif // PV_USE_CUDA
                 << ", idle count " << idleCounter << "\n";
    }
@@ -950,12 +962,21 @@ int HyPerCol::outputParams(char const *path) {
 
 int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *commentToken) {
    time_t t = time(nullptr);
-   fileStream->printf("%s PetaVision, " PV_REVISION "\n", commentToken);
+   fileStream->printf("%s PetaVision, " PV_GIT_REVISION "\n", commentToken);
    fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
 #ifdef PV_USE_MPI
    MPIBlock const *mpiBlock = mCheckpointer->getMPIBlock();
+
    fileStream->printf(
-         "%s Compiled with MPI and run using %d rows, %d columns, and MPI batch dimension %d.\n",
+         "%s Compiled with Open MPI %d.%d.%d (MPI Standard %d.%d).\n",
+         commentToken,
+         OMPI_MAJOR_VERSION,
+         OMPI_MINOR_VERSION,
+         OMPI_RELEASE_VERSION,
+         MPI_VERSION,
+         MPI_SUBVERSION);
+   fileStream->printf(
+         "%s MPI configuration has %d rows, %d columns, and batch dimension %d.\n",
          commentToken,
          mpiBlock->getGlobalNumRows(),
          mpiBlock->getGlobalNumColumns(),
@@ -964,7 +985,7 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
        or mpiBlock->getNumColumns() < mpiBlock->getGlobalNumColumns()
        or mpiBlock->getBatchDimension() < mpiBlock->getGlobalBatchDimension()) {
       fileStream->printf(
-            "%s CheckpointCells have %d rows, %d columns, and MPI batch dimension %d.\n",
+            "%s CheckpointCells have %d rows, %d columns, and batch dimension %d.\n",
             commentToken,
             mpiBlock->getNumRows(),
             mpiBlock->getNumColumns(),
@@ -974,32 +995,56 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
    fileStream->printf("%s Compiled without MPI.\n", commentToken);
 #endif // PV_USE_MPI
 #ifdef PV_USE_CUDA
-   fileStream->printf("%s Compiled with CUDA.\n", commentToken);
+   int const cudaMajor  = CUDA_VERSION / 1000;
+   int const cudaMinor  = (CUDA_VERSION % 1000) / 10;
+   int const cudnnMajor = CUDNN_MAJOR;
+   int const cudnnMinor = CUDNN_MINOR;
+   int const cudnnPatch = CUDNN_PATCHLEVEL;
+   fileStream->printf(
+         "%s Compiled with CUDA version %d.%d; cuDNN version %d.%d.%d\n",
+         commentToken,
+         cudaMajor,
+         cudaMinor,
+         cudnnMajor,
+         cudnnMinor,
+         cudnnPatch);
 #else
    fileStream->printf("%s Compiled without CUDA.\n", commentToken);
 #endif
 #ifdef PV_USE_OPENMP_THREADS
-   fileStream->printf("%s Compiled with OpenMP parallel code", commentToken);
+   std::string openmpVersion;
+   switch (_OPENMP) {
+      case 201511: openmpVersion = "4.5"; break;
+      case 201307: openmpVersion = "4.0"; break;
+      case 201107: openmpVersion = "3.1"; break;
+      case 200805: openmpVersion = "3.0"; break;
+      default: openmpVersion     = "is unrecognized"; break;
+   }
+   fileStream->printf(
+         "%s Compiled with OpenMP parallel code, API version %s (%06d) ",
+         commentToken,
+         openmpVersion.c_str(),
+         _OPENMP);
    if (mNumThreads > 0) {
-      fileStream->printf(" and run using %d threads.\n", mNumThreads);
+      fileStream->printf("and run using %d threads.\n", mNumThreads);
    }
    else if (mNumThreads == 0) {
-      fileStream->printf(" but number of threads was set to zero (error).\n");
+      fileStream->printf("but number of threads was set to zero (error).\n");
    }
    else {
-      fileStream->printf(" but the -t option was not specified.\n");
+      fileStream->printf("but the -t option was not specified.\n");
    }
 #else
-   fileStream->printf("%s Compiled without OpenMP parallel code", commentToken);
+   fileStream->printf("%s Compiled without OpenMP parallel code ", commentToken);
    if (mNumThreads == 1) {
       fileStream->printf(".\n");
    }
    else if (mNumThreads == 0) {
-      fileStream->printf(" but number of threads was set to zero (error).\n");
+      fileStream->printf("but number of threads was set to zero (error).\n");
    }
    else {
       fileStream->printf(
-            " but number of threads specified was %d instead of 1. (error).\n", mNumThreads);
+            "but number of threads specified was %d instead of 1. (error).\n", mNumThreads);
    }
 #endif // PV_USE_OPENMP_THREADS
    if (mCheckpointReadFlag) {
@@ -1160,7 +1205,9 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
 
    // default value
    if (in_device.empty()) {
-      InfoLog() << "Auto assigning GPUs\n";
+      if (getCommunicator()->globalCommRank() == 0) {
+         InfoLog() << "Auto-assigning GPUs\n";
+      }
       device = getAutoGPUDevice();
    }
    else {

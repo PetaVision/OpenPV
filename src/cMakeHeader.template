@@ -7,5 +7,4 @@
 #cmakedefine PV_USE_CUDA
 #cmakedefine PV_USE_CUDNN
 #cmakedefine PV_USE_LUA
-#cmakedefine PV_REVISION "@PV_REVISION@"
 #cmakedefine PV_DEBUG_OUTPUT

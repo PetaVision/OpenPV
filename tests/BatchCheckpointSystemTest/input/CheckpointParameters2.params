@@ -52,7 +52,6 @@ HyPerLayer "OutputNoDelay" = {
     writeStep                           = 1;
     initialWriteTime                    = 0;
     sparseLayer                         = true;
-    writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
     VThresh                             = -3.40282e+38;
@@ -74,7 +73,6 @@ HyPerLayer "OutputWithDelay" = {
     writeStep                           = 1;
     initialWriteTime                    = 0;
     sparseLayer                         = true;
-    writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
 };
@@ -91,7 +89,6 @@ HyPerLayer "OutputArbor" = {
     writeStep                           = 1;
     initialWriteTime                    = 0;
     sparseLayer                         = true;
-    writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
 };
@@ -108,7 +105,6 @@ HyPerLayer "OutputFromFullHyPerConn" = {
     writeStep                           = 1;
     initialWriteTime                    = 0;
     sparseLayer                         = true;
-    writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
 };
