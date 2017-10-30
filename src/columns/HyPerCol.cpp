@@ -33,6 +33,8 @@
 #include <time.h>
 #include <unistd.h>
 #ifdef PV_USE_CUDA
+#include <cuda.h>
+#include <cudnn.h>
 #include <map>
 #endif // PV_USE_CUDA
 
@@ -963,8 +965,22 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
    fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
 #ifdef PV_USE_MPI
    MPIBlock const *mpiBlock = mCheckpointer->getMPIBlock();
+#define OMPI_MAJOR_VERSION 1
+#define OMPI_MINOR_VERSION 10
+#define OMPI_RELEASE_VERSION 2
+#define MPI_VERSION 3
+#define MPI_SUBVERSION 0
+
    fileStream->printf(
-         "%s Compiled with MPI and run using %d rows, %d columns, and MPI batch dimension %d.\n",
+         "%s Compiled with Open MPI %d.%d.%d (MPI Standard %d.%d).\n",
+         commentToken,
+         OMPI_MAJOR_VERSION,
+         OMPI_MINOR_VERSION,
+         OMPI_RELEASE_VERSION,
+         MPI_VERSION,
+         MPI_SUBVERSION);
+   fileStream->printf(
+         "%s MPI configuration has %d rows, %d columns, and batch dimension %d.\n",
          commentToken,
          mpiBlock->getGlobalNumRows(),
          mpiBlock->getGlobalNumColumns(),
@@ -973,7 +989,7 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
        or mpiBlock->getNumColumns() < mpiBlock->getGlobalNumColumns()
        or mpiBlock->getBatchDimension() < mpiBlock->getGlobalBatchDimension()) {
       fileStream->printf(
-            "%s CheckpointCells have %d rows, %d columns, and MPI batch dimension %d.\n",
+            "%s CheckpointCells have %d rows, %d columns, and batch dimension %d.\n",
             commentToken,
             mpiBlock->getNumRows(),
             mpiBlock->getNumColumns(),
@@ -983,32 +999,56 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
    fileStream->printf("%s Compiled without MPI.\n", commentToken);
 #endif // PV_USE_MPI
 #ifdef PV_USE_CUDA
-   fileStream->printf("%s Compiled with CUDA.\n", commentToken);
+   int const cudaMajor  = CUDA_VERSION / 1000;
+   int const cudaMinor  = (CUDA_VERSION % 1000) / 10;
+   int const cudnnMajor = CUDNN_MAJOR;
+   int const cudnnMinor = CUDNN_MINOR;
+   int const cudnnPatch = CUDNN_PATCHLEVEL;
+   fileStream->printf(
+         "%s Compiled with CUDA version %d.%d; cuDNN version %d.%d.%d\n",
+         commentToken,
+         cudaMajor,
+         cudaMinor,
+         cudnnMajor,
+         cudnnMinor,
+         cudnnPatch);
 #else
    fileStream->printf("%s Compiled without CUDA.\n", commentToken);
 #endif
 #ifdef PV_USE_OPENMP_THREADS
-   fileStream->printf("%s Compiled with OpenMP parallel code", commentToken);
+   std::string openmpVersion;
+   switch (_OPENMP) {
+      case 201511: openmpVersion = "4.5"; break;
+      case 201307: openmpVersion = "4.0"; break;
+      case 201107: openmpVersion = "3.1"; break;
+      case 200805: openmpVersion = "3.0"; break;
+      default: openmpVersion     = "is unrecognized"; break;
+   }
+   fileStream->printf(
+         "%s Compiled with OpenMP parallel code, API version %s (%06d) ",
+         commentToken,
+         openmpVersion.c_str(),
+         _OPENMP);
    if (mNumThreads > 0) {
-      fileStream->printf(" and run using %d threads.\n", mNumThreads);
+      fileStream->printf("and run using %d threads.\n", mNumThreads);
    }
    else if (mNumThreads == 0) {
-      fileStream->printf(" but number of threads was set to zero (error).\n");
+      fileStream->printf("but number of threads was set to zero (error).\n");
    }
    else {
-      fileStream->printf(" but the -t option was not specified.\n");
+      fileStream->printf("but the -t option was not specified.\n");
    }
 #else
-   fileStream->printf("%s Compiled without OpenMP parallel code", commentToken);
+   fileStream->printf("%s Compiled without OpenMP parallel code ", commentToken);
    if (mNumThreads == 1) {
       fileStream->printf(".\n");
    }
    else if (mNumThreads == 0) {
-      fileStream->printf(" but number of threads was set to zero (error).\n");
+      fileStream->printf("but number of threads was set to zero (error).\n");
    }
    else {
       fileStream->printf(
-            " but number of threads specified was %d instead of 1. (error).\n", mNumThreads);
+            "but number of threads specified was %d instead of 1. (error).\n", mNumThreads);
    }
 #endif // PV_USE_OPENMP_THREADS
    if (mCheckpointReadFlag) {
