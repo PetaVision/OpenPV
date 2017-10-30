@@ -1,12 +1,11 @@
 # Sets PV_GIT_REVISION
-
 find_package(Git)
 
 if (GIT_FOUND)
    unset(PV_GIT_REVISION)
    # Get current commit
    execute_process(COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
-                   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                   WORKING_DIRECTORY "${SOURCE_DIR}"
                    RESULT_VARIABLE PV_CURRENT_COMMIT_RESULT
                    OUTPUT_VARIABLE PV_CURRENT_COMMIT
                    ERROR_VARIABLE PV_CURRENT_COMMIT_ERROR
@@ -14,7 +13,7 @@ if (GIT_FOUND)
    if (${PV_CURRENT_COMMIT_RESULT} EQUAL 0)
       # Get commit hash and date commit was authored
       execute_process(COMMAND "${GIT_EXECUTABLE}" log -n 1 "--format=%H (%ad)" "${PV_CURRENT_COMMIT}"
-                      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                      WORKING_DIRECTORY "${SOURCE_DIR}"
                       RESULT_VARIABLE PV_GIT_REVISION_RESULT
                       OUTPUT_VARIABLE PV_GIT_REVISION
                       ERROR_VARIABLE PV_GIT_REVISION_ERROR
@@ -22,7 +21,7 @@ if (GIT_FOUND)
       set(PV_GIT_REVISION "git repository version ${PV_GIT_REVISION}")
       # See if there are any local changes
       execute_process(COMMAND "${GIT_EXECUTABLE}" status -s
-                      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                      WORKING_DIRECTORY "${SOURCE_DIR}"
                       RESULT_VARIABLE PV_GIT_STATUS_RESULT
                       OUTPUT_VARIABLE PV_GIT_STATUS_OUTPUT
                       ERROR_VARIABLE VP_GIT_STATUS_ERROR
@@ -36,8 +35,13 @@ if (GIT_FOUND)
    endif (${PV_CURRENT_COMMIT_RESULT} EQUAL 0)
 endif (GIT_FOUND)
 
-if (DEFINED PV_GIT_REVISION)
-   set(PV_REVISION "${PV_GIT_REVISION}")
-else ()
-   set(PV_REVISION "unknown version")
+if (NOT DEFINED PV_GIT_REVISION)
+   set(PV_GIT_REVISION "unknown version")
 endif ()
+
+file(MAKE_DIRECTORY ${PV_CONFIG_FILE_DIR})
+configure_file (
+   "${SOURCE_DIR}/src/pvGitRevision.template"
+   "${PV_CONFIG_FILE_DIR}/pvGitRevision.h"
+)
+

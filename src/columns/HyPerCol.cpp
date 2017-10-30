@@ -15,6 +15,7 @@
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
 #include "normalizers/NormalizeBase.hpp"
+#include "pvGitRevision.h"
 
 #include <assert.h>
 #include <cmath>
@@ -961,7 +962,7 @@ int HyPerCol::outputParams(char const *path) {
 
 int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *commentToken) {
    time_t t = time(nullptr);
-   fileStream->printf("%s PetaVision, " PV_REVISION "\n", commentToken);
+   fileStream->printf("%s PetaVision, " PV_GIT_REVISION "\n", commentToken);
    fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
 #ifdef PV_USE_MPI
    MPIBlock const *mpiBlock = mCheckpointer->getMPIBlock();
