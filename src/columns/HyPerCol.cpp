@@ -749,7 +749,9 @@ int HyPerCol::advanceTime(double sim_time) {
             &someLayerHasActed);
       nonblockingLayerUpdate(recvMessage, updateMessage);
 
-      getDevice()->syncDevice();
+      if (getDevice() != nullptr) {
+         getDevice()->syncDevice();
+      }
 
       // Update for receiving on cpu and updating on gpu
       nonblockingLayerUpdate(
@@ -762,8 +764,10 @@ int HyPerCol::advanceTime(double sim_time) {
                   &someLayerIsPending,
                   &someLayerHasActed));
 
-      getDevice()->syncDevice();
-      notify(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
+      if (getDevice() != nullptr) {
+         getDevice()->syncDevice();
+         notify(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
+      }
 
       // Update for gpu recv and non gpu update
       nonblockingLayerUpdate(
