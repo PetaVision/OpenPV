@@ -1546,7 +1546,7 @@ void PVParams::writeParamString(const char *paramName, const char *svalue) {
       }
       else {
          mPrintParamsStream->printf("    %-35s = NULL;\n", paramName);
-         mPrintLuaStream->printf("    %-35s = nil;\n", paramName);
+         mPrintLuaStream->printf("    %-35s = NULL;\n", paramName);
       }
    }
 }

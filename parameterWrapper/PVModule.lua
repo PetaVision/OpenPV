@@ -13,7 +13,7 @@ end
 --Prints a single parameter value to string for parameters in a group
 local function valToString(paramStringTable, val)
    --NULL value
-   if(val == nil) then
+   if(type(val) == "function") then
       appendString(paramStringTable, "NULL")
    --Param sweep option
    elseif(type(val) == "table") then
