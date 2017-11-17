@@ -42,6 +42,7 @@ add_subdirectory(InputLayerNormalizeOffsetTest)
 add_subdirectory(InputRegionLayerTest)
 add_subdirectory(MPIBlockTest)
 add_subdirectory(PatchGeometryTest)
+add_subdirectory(PostWeightsTest)
 add_subdirectory(WeightsClassTest)
 add_subdirectory(WeightsFileIOTest)
 
