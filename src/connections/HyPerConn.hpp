@@ -288,6 +288,10 @@ class HyPerConn : public BaseConnection {
    Weights *mWeights      = nullptr; // Contains the connectivity graph and the weight values
    Weights *mDeltaWeights = nullptr; // Used by plastic weights to hold the weight updates
 
+   // Used if UpdateGSynFromPostPerspective is true, or if setNeedPost() has been called
+   // (for example, if a TransposeConn of this conn has UpdateGSynFromPostPerspective=false).
+   Weights *mPostWeights = nullptr;
+
    PVPatchStrides
          postExtStrides; // sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides
@@ -470,6 +474,9 @@ class HyPerConn : public BaseConnection {
    void setDeltaWeights(Weights *deltaWeights) { mDeltaWeights = deltaWeights; }
 
    Weights *getDeltaWeights() { return mDeltaWeights; }
+
+   Weights *getPostWeights() { return mPostWeights; }
+   void setPostWeights(Weights *postWeights) { mPostWeights = postWeights; }
 
    inline long **get_activations() { return numKernelActivations; }
 

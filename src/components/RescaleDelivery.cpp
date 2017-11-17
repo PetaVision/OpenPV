@@ -32,7 +32,7 @@ void RescaleDelivery::ioParam_scale(enum ParamsIOFlag ioFlag) {
 // for two lines inside for-loops with large numbers of iterations.
 // We're discussing ways to eliminate code duplication like this without
 // incurring added computational costs.
-void RescaleDelivery::deliver(Weights *weights, Weights *postWeights) {
+void RescaleDelivery::deliver(Weights *weights) {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }

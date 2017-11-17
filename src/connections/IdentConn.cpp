@@ -92,7 +92,7 @@ void IdentConn::createDeliveryObject() {
 }
 
 int IdentConn::deliver() {
-   getDeliveryObject()->deliver(nullptr, nullptr);
+   getDeliveryObject()->deliver(nullptr);
    return PV_SUCCESS;
 }
 

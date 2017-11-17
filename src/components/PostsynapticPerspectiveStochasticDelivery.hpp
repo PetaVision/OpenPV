@@ -1,40 +1,40 @@
 /*
- * PresynapticPerspectiveConvolveDelivery.hpp
+ * PostsynapticPerspectiveStochasticDelivery.hpp
  *
  *  Created on: Aug 24, 2017
  *      Author: Pete Schultz
  */
 
-#ifndef PRESYNAPTICPERSPECTIVECONVOLVEDELIVERY_HPP_
-#define PRESYNAPTICPERSPECTIVECONVOLVEDELIVERY_HPP_
+#ifndef POSTSYNAPTICPERSPECTIVESTOCHASTICDELIVERY_HPP_
+#define POSTSYNAPTICPERSPECTIVESTOCHASTICDELIVERY_HPP_
 
 #include "components/HyPerDelivery.hpp"
 
 namespace PV {
 
 /**
- * The delivery class for HyPerConns using the presynaptic perspective on the CPU,
+ * The delivery class for HyPerConns using the postsynaptic perspective on the CPU,
  * with accumulate type "convolve".
  */
-class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
+class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
   protected:
    /**
-    * List of parameters needed from the PresynapticPerspectiveConvolveDelivery class
-    * @name PresynapticPerspectiveConvolveDelivery Parameters
+    * List of parameters needed from the PostsynapticPerspectiveStochasticDelivery class
+    * @name PostsynapticPerspectiveStochasticDelivery Parameters
     * @{
     */
 
    /**
-    * @brief receiveGpu: PresynapticPerspectiveConvolveDelivery always sets receiveGpu to false.
-    * The receiveGpu=true cases is handled by the PresynapticPerspectiveGPU class.
+    * @brief receiveGpu: PostsynapticPerspectiveStochasticDelivery always sets receiveGpu to false.
+    * The receiveGpu=true cases is handled by the PostsynapticPerspectiveGPU class.
     */
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
    /** @} */ // End of list of BaseDelivery parameters.
 
   public:
-   PresynapticPerspectiveConvolveDelivery(char const *name, HyPerCol *hc);
+   PostsynapticPerspectiveStochasticDelivery(char const *name, HyPerCol *hc);
 
-   virtual ~PresynapticPerspectiveConvolveDelivery();
+   virtual ~PostsynapticPerspectiveStochasticDelivery();
 
    /**
     * The method that delivers presynaptic activity to the given postsynaptic channel.
@@ -57,7 +57,7 @@ class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
    bool getReceiveGpu() const { return mReceiveGpu; }
 
   protected:
-   PresynapticPerspectiveConvolveDelivery();
+   PostsynapticPerspectiveStochasticDelivery();
 
    int initialize(char const *name, HyPerCol *hc);
 
@@ -70,8 +70,10 @@ class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
    // Data members
   protected:
    std::vector<std::vector<float>> mThreadGSyn;
-}; // end class PresynapticPerspectiveConvolveDelivery
+   Random *mRandState = nullptr;
+
+}; // end class PostsynapticPerspectiveStochasticDelivery
 
 } // end namespace PV
 
-#endif // PRESYNAPTICPERSPECTIVECONVOLVEDELIVERY_HPP_
+#endif // POSTSYNAPTICPERSPECTIVESTOCHASTICDELIVERY_HPP_

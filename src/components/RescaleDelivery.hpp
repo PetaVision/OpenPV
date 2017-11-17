@@ -38,7 +38,7 @@ class RescaleDelivery : public IdentDelivery {
 
    virtual ~RescaleDelivery() {}
 
-   virtual void deliver(Weights *weights, Weights *postWeights) override;
+   virtual void deliver(Weights *weights) override;
 
   protected:
    RescaleDelivery() {}

@@ -103,8 +103,8 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
       switch (mAccumulateType) {
          case HyPerDelivery::CONVOLVE:
             if (getUpdateGSynFromPostPerspective()) {
-               // baseObject = Factory::instance()->createByKeyword(
-               //       "PostsynapticPerspectiveColvolveDelivery", name, parent);
+               baseObject = Factory::instance()->createByKeyword(
+                     "PostsynapticPerspectiveConvolveDelivery", name, parent);
             }
             else {
                baseObject = Factory::instance()->createByKeyword(
@@ -113,8 +113,8 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
             break;
          case HyPerDelivery::STOCHASTIC:
             if (getUpdateGSynFromPostPerspective()) {
-               // baseObject = Factory::instance()->createByKeyword(
-               //       "PostsynapticPerspectiveStochasticDelivery", name, parent);
+               baseObject = Factory::instance()->createByKeyword(
+                     "PostsynapticPerspectiveStochasticDelivery", name, parent);
             }
             else {
                baseObject = Factory::instance()->createByKeyword(
@@ -159,7 +159,7 @@ double HyPerDeliveryFacade::convertToRateDeltaTimeFactor(double timeConstantTau)
    return dtFactor;
 }
 
-void HyPerDeliveryFacade::deliver(Weights *weights, Weights *postWeights) {
+void HyPerDeliveryFacade::deliver(Weights *weights) {
    if (mDeliveryIntern) {
       int numArbors = weights->getNumArbors();
       FatalIf(
@@ -169,7 +169,7 @@ void HyPerDeliveryFacade::deliver(Weights *weights, Weights *postWeights) {
             numArbors,
             numArbors == 1 ? "arbor" : "arbors",
             (int)mDelay.size());
-      mDeliveryIntern->deliver(weights, postWeights);
+      mDeliveryIntern->deliver(weights);
    }
 }
 

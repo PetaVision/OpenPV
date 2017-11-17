@@ -73,12 +73,19 @@ class BaseDelivery : public BaseObject {
    void setPreAndPostLayers(HyPerLayer *preLayer, HyPerLayer *postLayer);
 
    /**
-    * The method that delivers activity on the presynaptic layer to the postsynaptic channel.
-    * weights is the object containing the synaptic strengths.
-    * postWeights is the object containing the weights, organized from a postsynaptic perspective.
-    * A derived class may ignore either or both of these arguments.
+    * @brief The method that delivers the activity on the presynaptic layer to the postsynaptic
+    * channel. weights is the object containing the synaptic strengths.
+    * @details BaseDeliver is agnostic about whether the weights are organized from the
+    * presynaptic or postsynaptic perspective. It is up to the calling function to make sure
+    * that the particular derived class being called is consistent with the organization of the
+    * weights argument.
+    *
+    * (HyPerConn accomplishes this with the updateGSynFromPostsynapticPerspective flag; if
+    * the flag is true, the DeliveryObject is a class that uses the PostsynapticPerspective,
+    * and it passes mPostWeights to the delivery object; if the flag is false, it creates a
+    * subclass that uses the PresynapticPerspective, and passes mWeights to the delivery object.
     */
-   virtual void deliver(Weights *weights, Weights *postWeights);
+   virtual void deliver(Weights *weights);
 
    /**
     * Returns the channel ID that the deliver method acts on

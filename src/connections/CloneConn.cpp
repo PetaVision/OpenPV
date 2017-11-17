@@ -55,7 +55,10 @@ void CloneConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }
 
-void CloneConn::allocateWeights() { setWeights(this->originalConn->getWeights()); }
+void CloneConn::allocateWeights() {
+   setWeights(this->originalConn->getWeights());
+   setPostWeights(this->originalConn->getPostWeights());
+}
 
 int CloneConn::registerData(Checkpointer *checkpointer) {
    registerTimers(checkpointer);
@@ -303,7 +306,8 @@ int CloneConn::deleteWeights() {
    // Have to make sure not to free memory belonging to originalConn.
    // Set pointers that point into originalConn to NULL so that free() has no effect
    // when HyPerConn::deleteWeights or HyPerConn::deleteWeights is called
-   mWeights = nullptr;
+   mWeights     = nullptr;
+   mPostWeights = nullptr;
    return 0;
 }
 

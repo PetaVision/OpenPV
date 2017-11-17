@@ -35,7 +35,7 @@ class IdentDelivery : public BaseDelivery {
 
    virtual ~IdentDelivery() {}
 
-   virtual void deliver(Weights *weights, Weights *postWeights) override;
+   virtual void deliver(Weights *weights) override;
 
   protected:
    IdentDelivery() {}

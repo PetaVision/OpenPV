@@ -180,6 +180,6 @@ int BaseDelivery::convertToNumberOfTimesteps(double delay, double deltaTime) {
    return intDelay;
 }
 
-void BaseDelivery::deliver(Weights *weights, Weights *postWeights) {}
+void BaseDelivery::deliver(Weights *weights) {}
 
 } // end namespace PV

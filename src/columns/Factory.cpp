@@ -104,9 +104,9 @@
 
 #include "components/HyPerDeliveryFacade.hpp"
 #include "components/IdentDelivery.hpp"
-// #include "components/PostsynapticPerspectiveColvolveDelivery.hpp"
+#include "components/PostsynapticPerspectiveConvolveDelivery.hpp"
 // #include "components/PostsynapticPerspectiveGPUDelivery.hpp"
-// #include "components/PostsynapticPerspectiveStochasticDelivery.hpp"
+#include "components/PostsynapticPerspectiveStochasticDelivery.hpp"
 #include "components/PresynapticPerspectiveConvolveDelivery.hpp"
 // #include "components/PresynapticPerspectiveGPUDelivery.hpp"
 #include "components/PresynapticPerspectiveStochasticDelivery.hpp"
@@ -214,15 +214,15 @@ int Factory::registerCoreKeywords() {
 
    registerKeyword("HyPerDeliveryFacade", Factory::create<HyPerDeliveryFacade>);
    registerKeyword("IdentDelivery", Factory::create<IdentDelivery>);
-   // registerKeyword(
-   //       "PostsynapticPerspectiveColvolveDelivery",
-   //       Factory::create<PostsynapticPerspectiveConvolveDelivery>);
+   registerKeyword(
+         "PostsynapticPerspectiveConvolveDelivery",
+         Factory::create<PostsynapticPerspectiveConvolveDelivery>);
    // registerKeyword(
    //       "PostsynapticPerspectiveGPUDelivery",
    //       Factory::create<PostsynapticPerspectiveGPUDelivery>);
-   // registerKeyword(
-   //       "PostsynapticPerspectiveStochasticDelivery",
-   //       Factory::create<PostsynapticPerspectiveStochasticDelivery>);
+   registerKeyword(
+         "PostsynapticPerspectiveStochasticDelivery",
+         Factory::create<PostsynapticPerspectiveStochasticDelivery>);
    registerKeyword(
          "PresynapticPerspectiveConvolveDelivery",
          Factory::create<PresynapticPerspectiveConvolveDelivery>);

@@ -141,6 +141,7 @@ int StochasticReleaseTestProbe::outputState(double timed) {
    FatalIf(
          status != PV_SUCCESS,
          ": %s failed in StochasticReleaseTestProbe::outputState at time %f.\n",
+         getTargetLayer()->getName(),
          timed);
    return status;
 }

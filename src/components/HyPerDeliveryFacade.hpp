@@ -56,7 +56,7 @@ class HyPerDeliveryFacade : public BaseDelivery {
 
    virtual ~HyPerDeliveryFacade();
 
-   virtual void deliver(Weights *weights, Weights *postWeights) override;
+   virtual void deliver(Weights *weights) override;
 
    HyPerDelivery::AccumulateType getAccumulateType() const { return mAccumulateType; }
 

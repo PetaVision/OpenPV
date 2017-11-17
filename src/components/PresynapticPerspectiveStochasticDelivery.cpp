@@ -62,7 +62,7 @@ void PresynapticPerspectiveStochasticDelivery::allocateRandState() {
    mRandState = new Random(mPreLayer->getLayerLoc(), true /*need RNGs in the extended buffer*/);
 }
 
-void PresynapticPerspectiveStochasticDelivery::deliver(Weights *weights, Weights *postWeights) {
+void PresynapticPerspectiveStochasticDelivery::deliver(Weights *weights) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
@@ -155,11 +155,11 @@ void PresynapticPerspectiveStochasticDelivery::deliver(Weights *weights, Weights
                   taus_uint4 *rng              = mRandState->getRNG(kPreExt);
                   long along                   = (long)((double)a * cl_random_max());
 
-                  float *v       = postPatchStart + y * sy;
-                  float const *w = weightDataStart + y * syw;
+                  float *v                  = postPatchStart + y * sy;
+                  float const *weightValues = weightDataStart + y * syw;
                   for (int k = 0; k < nk; k++) {
                      *rng = cl_random_get(*rng);
-                     v[k] += (rng->s0 < along) * w[k];
+                     v[k] += (rng->s0 < along) * weightValues[k];
                   }
                }
             }
@@ -204,11 +204,11 @@ void PresynapticPerspectiveStochasticDelivery::deliver(Weights *weights, Weights
                   taus_uint4 *rng              = mRandState->getRNG(kPreExt);
                   long along                   = (long)((double)a * cl_random_max());
 
-                  float *v       = postPatchStart + y * sy;
-                  float const *w = weightDataStart + y * syw;
+                  float *v                  = postPatchStart + y * sy;
+                  float const *weightValues = weightDataStart + y * syw;
                   for (int k = 0; k < nk; k++) {
                      *rng = cl_random_get(*rng);
-                     v[k] += (rng->s0 < along) * w[k];
+                     v[k] += (rng->s0 < along) * weightValues[k];
                   }
                }
             }

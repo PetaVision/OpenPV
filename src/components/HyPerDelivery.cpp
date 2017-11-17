@@ -44,30 +44,29 @@ void HyPerDelivery::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
 
 int HyPerDelivery::allocateDataStructures() {
    int status = BaseDelivery::allocateDataStructures();
-   float dtFactor;
-   if (mAccumulateType == STOCHASTIC or mPreLayer->activityIsSpiking()) {
+   if (mAccumulateType == STOCHASTIC) {
       mDeltaTimeFactor = (float)parent->getDeltaTime();
    }
-   else if (mAccumulateType == CONVOLVE) {
+   else if (mConvertRateToSpikeCount and !mPreLayer->activityIsSpiking()) {
       mDeltaTimeFactor =
             (float)convertToRateDeltaTimeFactor(mPostLayer->getChannelTimeConst(mChannelCode));
+   }
+   else {
+      mDeltaTimeFactor = 1.0f;
    }
    return status;
 }
 
 double HyPerDelivery::convertToRateDeltaTimeFactor(double timeConstantTau) const {
-   double dtFactor = 1.0;
-   if (mConvertRateToSpikeCount) {
-      double dt = parent->getDeltaTime();
-      if (timeConstantTau > 0) {
-         double exp_dt_tau = exp(-dt / timeConstantTau);
-         dtFactor          = (1.0 - exp_dt_tau) / exp_dt_tau;
-         // the above factor was chosen so that for a constant input of G_SYN to an excitatory
-         // conductance G_EXC, then G_EXC -> G_SYN as t -> inf
-      }
-      else {
-         dtFactor = dt;
-      }
+   double dt = parent->getDeltaTime();
+   double dtFactor;
+   if (timeConstantTau > 0) {
+      dtFactor = std::exp(dt / timeConstantTau) - 1.0;
+      // the above factor was chosen so that for a constant input of G_SYN to an excitatory
+      // conductance G_EXC, then G_EXC -> G_SYN as t -> inf
+   }
+   else {
+      dtFactor = dt;
    }
    return dtFactor;
 }

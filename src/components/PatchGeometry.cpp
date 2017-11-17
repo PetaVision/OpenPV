@@ -164,11 +164,13 @@ void PatchGeometry::setPatchGeometry() {
    mPatchVector.resize(numPatches);
    mGSynPatchStart.resize(numPatches);
    mAPostOffset.resize(numPatches);
+   mUnshrunkenStart.resize(numPatches);
 
    std::vector<int> patchStartX(mNumPatchesX);
    std::vector<int> patchDimX(mNumPatchesX);
    std::vector<int> postStartRestrictedX(mNumPatchesX);
    std::vector<int> postStartExtendedX(mNumPatchesX);
+   std::vector<int> postUnshrunkenStartX(mNumPatchesX);
 
    for (int xIndex = 0; xIndex < mNumPatchesX; xIndex++) {
       calcPatchData(
@@ -183,13 +185,15 @@ void PatchGeometry::setPatchGeometry() {
             &patchDimX[xIndex],
             &patchStartX[xIndex],
             &postStartRestrictedX[xIndex],
-            &postStartExtendedX[xIndex]);
+            &postStartExtendedX[xIndex],
+            &postUnshrunkenStartX[xIndex]);
    }
 
    std::vector<int> patchStartY(mNumPatchesY);
    std::vector<int> patchDimY(mNumPatchesY);
    std::vector<int> postStartRestrictedY(mNumPatchesY);
    std::vector<int> postStartExtendedY(mNumPatchesY);
+   std::vector<int> postUnshrunkenStartY(mNumPatchesY);
 
    for (int yIndex = 0; yIndex < mNumPatchesY; yIndex++) {
       calcPatchData(
@@ -204,7 +208,8 @@ void PatchGeometry::setPatchGeometry() {
             &patchDimY[yIndex],
             &patchStartY[yIndex],
             &postStartRestrictedY[yIndex],
-            &postStartExtendedY[yIndex]);
+            &postStartExtendedY[yIndex],
+            &postUnshrunkenStartY[yIndex]);
    }
 
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
@@ -231,6 +236,11 @@ void PatchGeometry::setPatchGeometry() {
       int nxExtPost            = mPostLoc.nx + mPostLoc.halo.lt + mPostLoc.halo.rt;
       int nyExtPost            = mPostLoc.ny + mPostLoc.halo.dn + mPostLoc.halo.up;
       mAPostOffset[patchIndex] = kIndex(startXExt, startYExt, 0, nxExtPost, nyExtPost, nfPost);
+
+      int startUnshrunkenX = postUnshrunkenStartX[xIndex];
+      int startUnshrunkenY = postUnshrunkenStartY[yIndex];
+      mUnshrunkenStart[patchIndex] =
+            kIndex(startUnshrunkenX, startUnshrunkenY, 0, nxExtPost, nyExtPost, nfPost);
    }
 }
 
@@ -375,13 +385,15 @@ void PatchGeometry::calcPatchData(
       int *patchDim,
       int *patchStart,
       int *postPatchStartRestricted,
-      int *postPatchStartExtended) {
+      int *postPatchStartExtended,
+      int *postPatchUnshrunkenStart) {
    int lPatchDim       = patchSize;
    int lPatchStart     = 0;
    int restrictedIndex = index - preStartBorder;
    int lPostPatchStartRes =
          calcPatchStartInPost(restrictedIndex, patchSize, numPreRestricted, numPostRestricted);
-   int lPostPatchEndRes = lPostPatchStartRes + patchSize;
+   *postPatchUnshrunkenStart = lPostPatchStartRes + postStartBorder;
+   int lPostPatchEndRes      = lPostPatchStartRes + patchSize;
 
    if (lPostPatchEndRes < 0) {
       int excess = -lPostPatchEndRes;

@@ -9,9 +9,9 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/IdentDelivery.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/PatchGeometry.cpp
-#   ${SUBDIR}/PostsynapticPerspectiveColvolveDelivery.cpp
+   ${SUBDIR}/PostsynapticPerspectiveConvolveDelivery.cpp
 #   ${SUBDIR}/PostsynapticPerspectiveGPUDelivery.cpp
-#   ${SUBDIR}/PostsynapticPerspectiveStochasticDelivery.cpp
+   ${SUBDIR}/PostsynapticPerspectiveStochasticDelivery.cpp
    ${SUBDIR}/PostWeights.cpp
    ${SUBDIR}/PresynapticPerspectiveConvolveDelivery.cpp
 #   ${SUBDIR}/PresynapticPerspectiveGPUDelivery.cpp
@@ -32,9 +32,9 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/Patch.hpp
    ${SUBDIR}/PatchGeometry.hpp
-#   ${SUBDIR}/PostsynapticPerspectiveColvolveDelivery.hpp
+   ${SUBDIR}/PostsynapticPerspectiveConvolveDelivery.hpp
 #   ${SUBDIR}/PostsynapticPerspectiveGPUDelivery.hpp
-#   ${SUBDIR}/PostsynapticPerspectiveStochasticDelivery.hpp
+   ${SUBDIR}/PostsynapticPerspectiveStochasticDelivery.hpp
    ${SUBDIR}/PostWeights.hpp
    ${SUBDIR}/PresynapticPerspectiveConvolveDelivery.hpp
 #   ${SUBDIR}/PresynapticPerspectiveGPUDelivery.hpp

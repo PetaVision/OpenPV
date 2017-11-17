@@ -49,7 +49,7 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
     *
     * The postWeights argument is not used.
     */
-   virtual void deliver(Weights *weights, Weights *postWeights) override;
+   virtual void deliver(Weights *weights) override;
 
    /**
     * Returns the value of the receiveGpu parameter

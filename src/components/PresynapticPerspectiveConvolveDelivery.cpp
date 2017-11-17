@@ -52,7 +52,7 @@ void PresynapticPerspectiveConvolveDelivery::allocateThreadGSyn() {
    }
 }
 
-void PresynapticPerspectiveConvolveDelivery::deliver(Weights *weights, Weights *postWeights) {
+void PresynapticPerspectiveConvolveDelivery::deliver(Weights *weights) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
@@ -143,10 +143,10 @@ void PresynapticPerspectiveConvolveDelivery::deliver(Weights *weights, Weights *
                   float const *weightDataHead  = weights->getDataFromPatchIndex(arbor, kPreExt);
                   float const *weightDataStart = &weightDataHead[patch->offset];
 
-                  float *v       = postPatchStart + y * sy;
-                  float const *w = weightDataStart + y * syw;
+                  float *v                  = postPatchStart + y * sy;
+                  float const *weightValues = weightDataStart + y * syw;
                   for (int k = 0; k < nk; k++) {
-                     v[k] += a * w[k];
+                     v[k] += a * weightValues[k];
                   }
                }
             }
@@ -189,10 +189,10 @@ void PresynapticPerspectiveConvolveDelivery::deliver(Weights *weights, Weights *
                   float const *weightDataHead  = weights->getDataFromPatchIndex(arbor, kPreExt);
                   float const *weightDataStart = &weightDataHead[patch->offset];
 
-                  float *v       = postPatchStart + y * sy;
-                  float const *w = weightDataStart + y * syw;
+                  float *v                  = postPatchStart + y * sy;
+                  float const *weightValues = weightDataStart + y * syw;
                   for (int k = 0; k < nk; k++) {
-                     v[k] += a * w[k];
+                     v[k] += a * weightValues[k];
                   }
                }
             }

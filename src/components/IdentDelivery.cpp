@@ -25,7 +25,7 @@ void IdentDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void IdentDelivery::deliver(Weights *weights, Weights *postWeights) {
+void IdentDelivery::deliver(Weights *weights) {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }

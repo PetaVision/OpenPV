@@ -10,7 +10,7 @@
 
 namespace PV {
 
-TransposeConn::TransposeConn() { initialize_base(); } // TransposeConn::~TransposeConn()
+TransposeConn::TransposeConn() { initialize_base(); }
 
 TransposeConn::TransposeConn(const char *name, HyPerCol *hc) {
    initialize_base();
@@ -359,9 +359,11 @@ int TransposeConn::allocateDataStructures() {
 }
 
 void TransposeConn::allocateWeights() {
-   if (originalConn->postConn) {
-      setWeights(originalConn->postConn->getWeights());
-      setDeltaWeights(originalConn->postConn->getDeltaWeights());
+   if (originalConn->getPostWeights() != nullptr) {
+      setWeights(originalConn->getPostWeights());
+   }
+   if (needPost) {
+      setPostWeights(originalConn->getWeights());
    }
 }
 
@@ -386,10 +388,11 @@ int TransposeConn::registerData(Checkpointer *checkpointer) {
 
 int TransposeConn::deleteWeights() {
    // Have to make sure not to free memory belonging to originalConn.
-   // Set pointers that point into originalConn to NULL so that free() has no effect
+   // Set pointers that point into originalConn to null so that free() has no effect
    // when HyPerConn::deleteWeights or HyPerConn::deleteWeights is called
    mWeights      = nullptr;
    mDeltaWeights = nullptr;
+   mPostWeights  = nullptr;
    return 0;
 }
 

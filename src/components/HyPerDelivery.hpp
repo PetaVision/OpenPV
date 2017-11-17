@@ -44,7 +44,7 @@ class HyPerDelivery : public BaseDelivery {
 
    virtual ~HyPerDelivery();
 
-   virtual void deliver(Weights *weights, Weights *postWeights) override = 0;
+   virtual void deliver(Weights *weights) override = 0;
 
   protected:
    HyPerDelivery();

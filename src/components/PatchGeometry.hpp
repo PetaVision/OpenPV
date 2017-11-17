@@ -159,6 +159,9 @@ class PatchGeometry {
    /** Returns the APostOffset value for the indicated patch index */
    std::size_t getAPostOffset(int patchIndex) const { return mAPostOffset[patchIndex]; }
 
+   /** Returns the UnshrunkenStart value for the indicated patch index */
+   long getUnshrunkenStart(int patchIndex) const { return mUnshrunkenStart[patchIndex]; }
+
    /** Returns the item index of the postsynaptic-perspective patch corresponding to the
      * the given item index of the presynaptic-perspective patch with the given kernel index.
      */
@@ -252,7 +255,8 @@ class PatchGeometry {
          int *patchDim,
          int *patchStart,
          int *postPatchStartRestricted,
-         int *postPatchStartExtended);
+         int *postPatchStartExtended,
+         int *postPatchUnshrunkenStart);
 
   private:
    int mPatchSizeX;
@@ -270,6 +274,7 @@ class PatchGeometry {
    std::vector<Patch> mPatchVector;
    std::vector<std::size_t> mGSynPatchStart;
    std::vector<std::size_t> mAPostOffset;
+   std::vector<long> mUnshrunkenStart;
    std::vector<std::vector<int>> mTransposeItemIndex;
 
    int mPatchStrideX;
