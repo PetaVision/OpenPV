@@ -193,7 +193,6 @@ int HyPerConn::initialize_base() {
    d_Patch2DataLookupTable = NULL;
    krRecvPost              = NULL;
    krRecvPre               = NULL;
-   mGpuGroupIdx            = -1;
 #ifdef PV_USE_CUDNN
    cudnn_WData = NULL;
 #endif
@@ -293,28 +292,10 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_dWMaxDecayInterval(ioFlag);
    ioParam_dWMaxDecayFactor(ioFlag);
 
-#ifdef PV_USE_CUDA
-   ioParam_gpuGroupIdx(ioFlag);
-#endif // PV_USE_CUDA
    // Weight sparsity
    ioParam_weightSparsity(ioFlag);
    return PV_SUCCESS;
 }
-
-#ifdef PV_USE_CUDA
-void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-   if (receiveGpu) {
-      parent->parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "gpuGroupIdx",
-            &mGpuGroupIdx,
-            mGpuGroupIdx /*default*/,
-            false /*warn if absent*/);
-   }
-}
-#endif // PV_USE_CUDA
 
 void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
@@ -993,31 +974,6 @@ int HyPerConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    // Here, the connection tells all participating recev layers to allocate memory on gpu
    // if receive from gpu is set. These buffers should be set in allocate
    if (receiveGpu) {
-      if (mGpuGroupIdx >= 0) {
-         // Scan all the connections to see if any with this group index have set
-         // mGpuGroupHead. If so, set mGpuGroupHead to the same thing; otherwise,
-         // set mGpuGroupHead to itself (this depends on communicateInitInfo running serially).
-         for (auto &obj : message->mHierarchy) {
-            auto c = dynamic_cast<HyPerConn *>(obj.second);
-            if (c == nullptr) {
-               continue;
-            }
-            if (c == this) {
-               continue;
-            }
-            if (c->getGpuGroupIdx() == mGpuGroupIdx) {
-               HyPerConn *groupHead = c->getGpuGroupHead();
-               if (groupHead != nullptr) {
-                  mGpuGroupHead = groupHead;
-                  break;
-               }
-            }
-         }
-         if (mGpuGroupHead == nullptr) {
-            mGpuGroupHead = this;
-         }
-      }
-
       // we need pre datastore, this conn's weights, and post gsyn on the channel of this connection
       pre->setAllocDeviceDatastore();
       if (updateGSynFromPostPerspective) {
@@ -1377,39 +1333,6 @@ int HyPerConn::allocateDeviceBuffers() {
 
    bool needAlloc = true;
    if (allocDeviceWeights || allocPostDeviceWeights) {
-      // Check group here
-      if (mGpuGroupIdx >= 0) {
-         pvAssert(mGpuGroupHead);
-         // If this connection is NOT the "base" group conn that allocates
-         // check dims and don't allocate
-         if (mGpuGroupHead != this) {
-            // Different num arbors is okay, since GPU mem holds only one arbor at a time
-            // nxp, nyp, nfp, numKernels all have to be the same
-            if (mGpuGroupHead->xPatchSize() != xPatchSize()
-                || mGpuGroupHead->yPatchSize() != yPatchSize()
-                || mGpuGroupHead->fPatchSize() != fPatchSize()
-                || mGpuGroupHead->getNumDataPatches() != getNumDataPatches()
-                || mGpuGroupHead->numberOfAxonalArborLists() != numberOfAxonalArborLists()) {
-               Fatal() << "Connection " << getName() << " of size (" << numberOfAxonalArborLists()
-                       << ", " << getNumDataPatches() << ", " << xPatchSize() << ", "
-                       << yPatchSize() << ", " << fPatchSize()
-                       << ") does not match the gpuGroupConnection " << mGpuGroupHead->getName()
-                       << " of size (" << mGpuGroupHead->numberOfAxonalArborLists() << ", "
-                       << mGpuGroupHead->getNumDataPatches() << ", " << mGpuGroupHead->xPatchSize()
-                       << ", " << mGpuGroupHead->yPatchSize() << ", " << mGpuGroupHead->fPatchSize()
-                       << ").\n";
-            }
-            // set d_WData to the group's d_WData
-            d_WData = mGpuGroupHead->getDeviceWData();
-            pvAssert(d_WData);
-#ifdef PV_USE_CUDNN
-            cudnn_WData = mGpuGroupHead->getCudnnWData();
-            pvAssert(cudnn_WData);
-#endif
-            needAlloc = false;
-         }
-      }
-
       if (needAlloc) {
          if (allocPostDeviceWeights) {
             allocatePostDeviceWeights();

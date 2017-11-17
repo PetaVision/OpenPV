@@ -711,15 +711,6 @@ class HyPerConn : public BaseConnection {
 
    virtual void ioParam_maskFeatureIdx(enum ParamsIOFlag ioFlag);
 
-#ifdef PV_USE_CUDA
-   /**
-    * @brief gpuGroupIdx: All connections in the same group uses the same GPU memory for weights
-    * @details Specify a group index. An index of -1 means no group (default).
-    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
-    */
-   virtual void ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag);
-#endif // PV_USE_CUDA
-
    /**
     * @brief weightSparsity: Specifies what percentage of weights will be ignored. Default is 0.0
     */
@@ -869,7 +860,6 @@ class HyPerConn : public BaseConnection {
   public:
    bool getAllocDeviceWeights() { return allocDeviceWeights; }
    bool getAllocPostDeviceWeights() { return allocPostDeviceWeights; }
-   int getGpuGroupIdx() const { return mGpuGroupIdx; }
    HyPerConn *getGpuGroupHead() const { return mGpuGroupHead; }
 
    virtual void setAllocDeviceWeights() { allocDeviceWeights = true; }
@@ -908,7 +898,6 @@ class HyPerConn : public BaseConnection {
    PVCuda::CudaBuffer *d_Patch2DataLookupTable;
    PVCuda::CudaRecvPost *krRecvPost; // Cuda kernel for update state call
    PVCuda::CudaRecvPre *krRecvPre; // Cuda kernel for update state call
-   int mGpuGroupIdx         = -1;
    HyPerConn *mGpuGroupHead = nullptr;
 
 #endif // PV_USE_CUDA

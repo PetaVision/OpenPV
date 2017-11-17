@@ -1,3 +1,8 @@
+// GPUSystemTest postTestGpuGroup.params for testing gpuGroupIdx.
+// This test was removed from ctest Nov 7, 2017 during the
+// weights/connection refactoring. It might be restored if there is
+// enough demand for it.
+
 debugParsing = false;
 
 HyPerCol "column" = {
