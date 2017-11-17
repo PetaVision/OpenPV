@@ -42,9 +42,9 @@ void PatchGeometry::initialize(
    mNumPatchesY        = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
    mNumPatchesF        = preLoc->nf;
 
-   mPatchStrideX       = patchSizeF;
-   mPatchStrideY       = patchSizeX * mPatchSizeF;
-   mPatchStrideF       = 1;
+   mPatchStrideX = patchSizeF;
+   mPatchStrideY = patchSizeX * mPatchSizeF;
+   mPatchStrideF = 1;
 
    try {
       verifyPatchSize();
@@ -52,20 +52,22 @@ void PatchGeometry::initialize(
       throw std::runtime_error(name + std::string(": ") + e.what());
    }
 
+   mNumKernelsX = preLoc->nx > postLoc->nx ? preLoc->nx / postLoc->nx : 1;
+   mNumKernelsY = preLoc->ny > postLoc->ny ? preLoc->ny / postLoc->ny : 1;
+   mNumKernelsF = preLoc->nf;
+
    mPatchVector.clear();
    mGSynPatchStart.clear();
    mAPostOffset.clear();
+   mTransposeItemIndex.clear();
 }
 
 void PatchGeometry::allocateDataStructures() {
    if (!mPatchVector.empty()) {
       return;
    }
-   int numPatches = mNumPatchesX * mNumPatchesY * mNumPatchesF;
-   mPatchVector.resize(numPatches);
-   mGSynPatchStart.resize(numPatches);
-   mAPostOffset.resize(numPatches);
    setPatchGeometry();
+   setTransposeItemIndices();
 }
 
 int PatchGeometry::verifyPatchSize(int numPreRestricted, int numPostRestricted, int patchSize) {
@@ -158,8 +160,10 @@ void PatchGeometry::verifyPatchSize() {
 }
 
 void PatchGeometry::setPatchGeometry() {
-   int numPatches = (int)mPatchVector.size();
-   pvAssert(numPatches == mNumPatchesX * mNumPatchesY * mNumPatchesF);
+   int numPatches = mNumPatchesX * mNumPatchesY * mNumPatchesF;
+   mPatchVector.resize(numPatches);
+   mGSynPatchStart.resize(numPatches);
+   mAPostOffset.resize(numPatches);
 
    std::vector<int> patchStartX(mNumPatchesX);
    std::vector<int> patchDimX(mNumPatchesX);
@@ -230,6 +234,135 @@ void PatchGeometry::setPatchGeometry() {
    }
 }
 
+void PatchGeometry::setTransposeItemIndices() {
+   int const patchSizeOverall = getPatchSizeOverall();
+   int const numKernels       = getNumKernels();
+   mTransposeItemIndex.resize(numKernels);
+   for (auto &t : mTransposeItemIndex) {
+      t.resize(patchSizeOverall);
+   }
+   int const xStride  = mPreLoc.nx > mPostLoc.nx ? mPreLoc.nx / mPostLoc.nx : 1;
+   int const yStride  = mPreLoc.ny > mPostLoc.ny ? mPreLoc.ny / mPostLoc.ny : 1;
+   int const xTStride = mPostLoc.nx > mPreLoc.nx ? mPostLoc.nx / mPreLoc.nx : 1;
+   int const yTStride = mPostLoc.ny > mPreLoc.ny ? mPostLoc.ny / mPreLoc.ny : 1;
+   pvAssert(!(mPreLoc.nx > mPostLoc.nx) or xStride * mPostLoc.nx == mPreLoc.nx);
+   pvAssert(!(mPreLoc.ny > mPostLoc.ny) or yStride * mPostLoc.ny == mPreLoc.ny);
+   pvAssert(!(mPostLoc.nx > mPreLoc.nx) or xTStride * mPreLoc.nx == mPostLoc.nx);
+   pvAssert(!(mPostLoc.ny > mPreLoc.ny) or yTStride * mPreLoc.ny == mPostLoc.ny);
+   int const patchSizeXPre = getPatchSizeX();
+   int const patchSizeYPre = getPatchSizeY();
+   // Either xStride or xTStride is one, and if xTStride>1, xTStride must divide patchSizeXPre.
+   // We compute both xStride and xTStride to avoid if/else if/else branching between
+   // one-to-one, one-to-many, and many-to-one cases.
+   int const patchSizeXPost = patchSizeXPre * xStride / xTStride;
+   int const patchSizeYPost = patchSizeYPre * yStride / yTStride;
+   for (int kernelIndexPre = 0; kernelIndexPre < numKernels; kernelIndexPre++) {
+      for (int itemInPatchPre = 0; itemInPatchPre < patchSizeOverall; itemInPatchPre++) {
+         int const kernelIndexXPre =
+               kxPos(kernelIndexPre, mNumKernelsX, mNumKernelsY, mNumKernelsF);
+
+         int const itemInPatchXPre  = kxPos(itemInPatchPre, mPatchSizeX, mPatchSizeY, mPatchSizeF);
+         int const itemInPatchXConj = patchSizeXPre - 1 - itemInPatchXPre;
+
+         // kernelStartX is nonzero only in many-to-one connections where patchSizeXPre is even.
+         // In this case, the start of the patch does not line up with the start of a cell in
+         // post-synapic space.
+         int const extentOneSideX = (patchSizeXPre - 1) * xStride / 2;
+         int kernelStartX         = (kernelIndexXPre - extentOneSideX) % xStride;
+         if (kernelStartX < 0) {
+            kernelStartX += xStride;
+         }
+         int const itemInPatchXPost = (xStride * itemInPatchXConj + kernelStartX) / xTStride;
+
+         int const kernelIndexYPre =
+               kyPos(kernelIndexPre, mNumKernelsX, mNumKernelsY, mNumKernelsF);
+
+         int const itemInPatchYPre  = kyPos(itemInPatchPre, mPatchSizeX, mPatchSizeY, mPatchSizeF);
+         int const itemInPatchYConj = patchSizeYPre - 1 - itemInPatchYPre;
+
+         int const extentOneSideY = (patchSizeYPre - 1) * yStride / 2;
+         int kernelStartY         = (kernelIndexYPre - extentOneSideY) % yStride;
+         if (kernelStartY < 0) {
+            kernelStartY += yStride;
+         }
+         int const itemInPatchYPost = (yStride * itemInPatchYConj + kernelStartY) / yTStride;
+
+         int const kernelIndexFPre =
+               featureIndex(kernelIndexPre, mNumKernelsX, mNumKernelsY, mNumKernelsF);
+         int const itemInPatchFPre =
+               featureIndex(itemInPatchPre, mPatchSizeX, mPatchSizeY, mPatchSizeF);
+
+         int itemInPatchFPost = kernelIndexFPre;
+         int patchSizeFPost   = mNumKernelsF;
+         int itemInPatchPost  = kIndex(
+               itemInPatchXPost,
+               itemInPatchYPost,
+               itemInPatchFPost,
+               patchSizeXPost,
+               patchSizeYPost,
+               patchSizeFPost);
+         mTransposeItemIndex[kernelIndexPre][itemInPatchPre] = itemInPatchPost;
+      }
+   }
+}
+
+int PatchGeometry::calcPatchStartInPost(
+      int indexRestrictedPre,
+      int patchSize,
+      int numNeuronsPre,
+      int numNeuronsPost) {
+   int patchStartInPost;
+   if (numNeuronsPre == numNeuronsPost) {
+      int extentOneSide = (patchSize - 1) / 2;
+      FatalIf(
+            extentOneSide * 2 + 1 != patchSize,
+            "One-to-one connection with patch size %d. One-to-one connections require an odd "
+            "patch size.\n",
+            patchSize);
+      patchStartInPost = indexRestrictedPre - extentOneSide;
+   }
+   else if (numNeuronsPre < numNeuronsPost) {
+      int tstride = numNeuronsPost / numNeuronsPre;
+      FatalIf(
+            tstride * numNeuronsPre != numNeuronsPost or tstride % 2 != 0,
+            "One-to-many connection with numNeuronsPost = %d and numNeuronsPre = %d, "
+            "but %d/%d is not an even integer.\n",
+            numNeuronsPost,
+            numNeuronsPre,
+            numNeuronsPost,
+            numNeuronsPre);
+      FatalIf(
+            patchSize % tstride != 0,
+            "One-to-many connection with numPost/numPre=%d and patch size %d. One-to-many "
+            "connections require the patch size be a multiple of numPost/numPre=%d/%d.\n",
+            tstride,
+            patchSize,
+            numNeuronsPost,
+            numNeuronsPre);
+      int extentOneSide = (patchSize - tstride) / 2;
+      patchStartInPost  = indexRestrictedPre * tstride - extentOneSide;
+   }
+   else {
+      pvAssert(numNeuronsPre > numNeuronsPost);
+      int stride = numNeuronsPre / numNeuronsPost;
+      FatalIf(
+            stride * numNeuronsPost != numNeuronsPre or stride % 2 != 0,
+            "Many-to-one connection with numNeuronsPre = %d and numNeuronsPost = %d, "
+            "but %d/%d is not an even integer.\n",
+            numNeuronsPre,
+            numNeuronsPost,
+            numNeuronsPre,
+            numNeuronsPost);
+      int extentOneSide = (stride / 2) * (patchSize - 1);
+      // Use floating-point division with floor because integer division of a negative number
+      // is defined inconveniently in C++.
+      float fStride        = (float)stride;
+      float fPatchStartPre = (float)(indexRestrictedPre - extentOneSide);
+      patchStartInPost     = (int)std::floor(fPatchStartPre / fStride);
+   }
+   return patchStartInPost;
+}
+
 void PatchGeometry::calcPatchData(
       int index,
       int numPreRestricted,
@@ -243,35 +376,11 @@ void PatchGeometry::calcPatchData(
       int *patchStart,
       int *postPatchStartRestricted,
       int *postPatchStartExtended) {
-   int lPatchDim   = patchSize;
-   int lPatchStart = 0;
-   int lPostPatchStartRes;
+   int lPatchDim       = patchSize;
+   int lPatchStart     = 0;
    int restrictedIndex = index - preStartBorder;
-
-   if (numPreRestricted > numPostRestricted) {
-      int stride = numPreRestricted / numPostRestricted;
-      pvAssert(stride * numPostRestricted == numPreRestricted);
-      pvAssert(stride % 2 == 0);
-      int halfstride = stride / 2;
-
-      // Use floating-point division with floor because integer division of a negative number
-      // is defined inconveniently in C++.
-      float fStride        = (float)stride;
-      float fPatchStartPre = (float)(restrictedIndex - halfstride * (patchSize - 1));
-      lPostPatchStartRes   = (int)std::floor(fPatchStartPre / fStride);
-   }
-   else if (numPreRestricted < numPostRestricted) {
-      int tstride = numPostRestricted / numPreRestricted;
-      pvAssert(tstride * numPreRestricted == numPostRestricted);
-      pvAssert(tstride % 2 == 0);
-      pvAssert(patchSize % tstride == 0);
-      lPostPatchStartRes = restrictedIndex * tstride - (patchSize - tstride) / 2;
-   }
-   else {
-      pvAssert(numPreRestricted == numPostRestricted);
-      pvAssert(patchSize % 2 == 1);
-      lPostPatchStartRes = restrictedIndex - (patchSize - 1) / 2;
-   }
+   int lPostPatchStartRes =
+         calcPatchStartInPost(restrictedIndex, patchSize, numPreRestricted, numPostRestricted);
    int lPostPatchEndRes = lPostPatchStartRes + patchSize;
 
    if (lPostPatchEndRes < 0) {

@@ -80,26 +80,15 @@ void Weights::allocateDataStructures() {
 
 void Weights::initNumDataPatches() {
    if (mSharedFlag) {
-      if (mGeometry->getPreLoc().nx <= mGeometry->getPostLoc().nx) {
-         mNumDataPatchesX = 1;
-      }
-      else {
-         mNumDataPatchesX = mGeometry->getPreLoc().nx / mGeometry->getPostLoc().nx;
-         pvAssert(mNumDataPatchesX * mGeometry->getPostLoc().nx == mGeometry->getPreLoc().nx);
-      }
-      if (mGeometry->getPreLoc().ny <= mGeometry->getPostLoc().ny) {
-         mNumDataPatchesY = 1;
-      }
-      else {
-         mNumDataPatchesY = mGeometry->getPreLoc().ny / mGeometry->getPostLoc().ny;
-         pvAssert(mNumDataPatchesY * mGeometry->getPostLoc().ny == mGeometry->getPreLoc().ny);
-      }
+      mNumDataPatchesX = mGeometry->getNumKernelsX();
+      mNumDataPatchesY = mGeometry->getNumKernelsY();
+      mNumDataPatchesF = mGeometry->getNumKernelsF();
    }
    else {
       mNumDataPatchesX = mGeometry->getNumPatchesX();
       mNumDataPatchesY = mGeometry->getNumPatchesY();
+      mNumDataPatchesF = mGeometry->getNumPatchesF();
    }
-   mNumDataPatchesF = mGeometry->getPreLoc().nf;
 }
 
 void Weights::setNumDataPatches(int numDataPatchesX, int numDataPatchesY, int numDataPatchesF) {

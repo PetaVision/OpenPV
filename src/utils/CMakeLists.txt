@@ -7,6 +7,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
    ${SUBDIR}/Timer.cpp
+   ${SUBDIR}/TransposeWeights.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -19,6 +20,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp
    ${SUBDIR}/Timer.hpp
+   ${SUBDIR}/TransposeWeights.hpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}

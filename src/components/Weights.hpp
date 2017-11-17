@@ -105,13 +105,24 @@ class Weights {
    /** The get-method for the number of arbors */
    int getNumArbors() const { return mNumArbors; }
 
-   /** The get-method for the number of data patches in the x-direction */
+   /**
+    * The get-method for the number of data patches in the x-direction.
+    * For shared weights, this is the number of kernels in the x-direction.
+    * For nonshared weights, it is the number of neurons in the extended region in the x-direction.
+    */
    int getNumDataPatchesX() const { return mNumDataPatchesX; }
 
-   /** The get-method for the number of data patches in the y-direction */
+   /**
+    * The get-method for the number of data patches in the y-direction.
+    * For shared weights, this is the number of kernels in the y-direction.
+    * For nonshared weights, it is the number of neurons in the extended region in the y-direction.
+    */
    int getNumDataPatchesY() const { return mNumDataPatchesY; }
 
-   /** The get-method for the number of data patches in the feature direction */
+   /**
+    * The get-method for the number of data patches in the feature direction. For both shared and
+    * nonshared weights, this is the number of features in the presynaptic layer.
+    */
    int getNumDataPatchesF() const { return mNumDataPatchesF; }
 
    /** Returns the overall number of data patches */
@@ -164,6 +175,12 @@ class Weights {
 
    /** The get-method for the patch size in the feature dimension */
    int getPatchSizeF() const { return mGeometry->getPatchSizeF(); }
+
+   /**
+    * Returns getPatchSizeX() * getPatchSizeY() * getPatchSizeF(),
+    * the overall number of items in a patch.
+    */
+   int getPatchSizeOverall() const { return mGeometry->getPatchSizeOverall(); }
 
    /**
     * Returns the memory stride between adjacent feature indices with the same x- and y- coordinates

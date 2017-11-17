@@ -81,17 +81,23 @@ class PatchGeometry {
    int getPatchSizeX() const { return mPatchSizeX; }
 
    /**
-    * get-method for PatchSizeX, the size in the y-direction of the patch from one pre-synaptic
+    * get-method for PatchSizeY, the size in the y-direction of the patch from one pre-synaptic
     * neuron into post-synaptic space.
     */
    int getPatchSizeY() const { return mPatchSizeY; }
 
    /**
-    * get-method for PatchSizeX, the number of features in post-synaptic space that are affected
+    * get-method for PatchSizeF, the number of features in post-synaptic space that are affected
     * by one pre-synaptic neuron. Currently, PatchSizeF is always equal to PostLoc.nf.
     * That is, in the feature dimension the connection is all-to-all.
     */
    int getPatchSizeF() const { return mPatchSizeF; }
+
+   /**
+    * Returns getPatchSizeX() * getPatchSizeY() * getPatchSizeF(),
+    * the overall number of items in a patch.
+    */
+   int getPatchSizeOverall() const { return mPatchSizeX * mPatchSizeY * mPatchSizeF; }
 
    /** get-method to retrieve a constant reference to the pre-synaptic PVLayerLoc. */
    PVLayerLoc const &getPreLoc() const { return mPreLoc; }
@@ -107,7 +113,7 @@ class PatchGeometry {
 
    /**
     * Returns the number of patches in the y-direction. This quantity is equal to
-    * getPreLoc().nx + getPreLoc().halo.lt + getPreLoc().halo.rt
+    * getPreLoc().ny + getPreLoc().halo.dn + getPreLoc().halo.up
     */
    int getNumPatchesY() const { return mNumPatchesY; }
 
@@ -119,6 +125,27 @@ class PatchGeometry {
 
    /** Returns the overall number of patches in the patch geometry */
    int getNumPatches() const { return getNumPatchesX() * getNumPatchesY() * getNumPatchesF(); }
+
+   /**
+    * Returns the number of kernels in the x-direction. This quantity is equal to
+    * getPreLoc().nx / getPostLoc().nx if that quotient is greater than 1; 1 otherwise.
+    */
+   int getNumKernelsX() const { return mNumKernelsX; }
+
+   /**
+    * Returns the number of patches in the y-direction. This quantity is equal to
+    * getPreLoc().ny / getPostLoc().ny if that quotient is greater than 1; 1 otherwise.
+    */
+   int getNumKernelsY() const { return mNumKernelsY; }
+
+   /**
+    * Returns the number of kernels in the feature direction. This quantity is equal to
+    * getPreLoc().nf
+    */
+   int getNumKernelsF() const { return mNumKernelsF; }
+
+   /** Returns the overall number of patches in the patch geometry */
+   int getNumKernels() const { return getNumKernelsX() * getNumKernelsY() * getNumKernelsF(); }
 
    /** Returns a nonmutable reference to the patch info for the given patch index. */
    Patch const &getPatch(int patchIndex) const { return mPatchVector[patchIndex]; }
@@ -132,6 +159,13 @@ class PatchGeometry {
    /** Returns the APostOffset value for the indicated patch index */
    std::size_t getAPostOffset(int patchIndex) const { return mAPostOffset[patchIndex]; }
 
+   /** Returns the item index of the postsynaptic-perspective patch corresponding to the
+     * the given item index of the presynaptic-perspective patch with the given kernel index.
+     */
+   std::size_t getTransposeItemIndex(int kernelIndex, int itemInPatch) const {
+      return mTransposeItemIndex[kernelIndex][itemInPatch];
+   }
+
    /** Returns a nonmutable reference to the vector of APostOffset values. */
    std::vector<std::size_t> const &getAPostOffset() const { return mAPostOffset; }
 
@@ -140,14 +174,14 @@ class PatchGeometry {
    int getPatchStrideF() const { return mPatchStrideF; }
 
    /**
-    * Returns log_2(preLoc->nx / postLoc->nx). The PatchGeometry class requires
-    * that this quantity be an integer.
+    * Returns log_2(preLoc.nx / postLoc.nx), using floating-point division.
+    * The PatchGeometry class requires that this quantity be an integer.
     */
    int getLog2ScaleDiffX() const { return mLog2ScaleDiffX; }
 
    /**
-    * Returns log_2(preLoc->ny / postLoc->ny). The PatchGeometry class requires
-    * that this quantity be an integer.
+    * Returns log_2(preLoc.ny / postLoc.ny), using floating-point division.
+    * The PatchGeometry class requires that this quantity be an integer.
     */
    int getLog2ScaleDiffY() const { return mLog2ScaleDiffY; }
 
@@ -165,6 +199,12 @@ class PatchGeometry {
     * and have no effect.
     */
    void allocateDataStructures();
+
+   static int calcPatchStartInPost(
+         int indexRestrictedPre,
+         int patchSize,
+         int numNeuronsPre,
+         int numNeuronsPost);
 
   private:
    /** Called internally by the constructor */
@@ -195,6 +235,11 @@ class PatchGeometry {
     */
    void setPatchGeometry();
 
+   /**
+    * Called internally by allocateDataStructures, to compute the TransposeItemIndex vectors.
+    */
+   void setTransposeItemIndices();
+
    static void calcPatchData(
          int index,
          int numPreRestricted,
@@ -218,10 +263,14 @@ class PatchGeometry {
    int mNumPatchesX;
    int mNumPatchesY;
    int mNumPatchesF;
+   int mNumKernelsX;
+   int mNumKernelsY;
+   int mNumKernelsF;
 
    std::vector<Patch> mPatchVector;
    std::vector<std::size_t> mGSynPatchStart;
    std::vector<std::size_t> mAPostOffset;
+   std::vector<std::vector<int>> mTransposeItemIndex;
 
    int mPatchStrideX;
    int mPatchStrideY;
