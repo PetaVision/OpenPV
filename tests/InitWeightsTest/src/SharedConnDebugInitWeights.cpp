@@ -1,49 +1,49 @@
 /*
- * KernelConnDebugInitWeights.cpp
+ * SharedConnDebugInitWeights.cpp
  *
  *  Created on: Aug 22, 2011
  *      Author: kpeterson
  */
 
-#include "KernelConnDebugInitWeights.hpp"
+#include "SharedConnDebugInitWeights.hpp"
 #include <normalizers/NormalizeBase.hpp>
 
 namespace PV {
 
-KernelConnDebugInitWeights::KernelConnDebugInitWeights() { initialize_base(); }
+SharedConnDebugInitWeights::SharedConnDebugInitWeights() { initialize_base(); }
 
-KernelConnDebugInitWeights::KernelConnDebugInitWeights(const char *name, HyPerCol *hc)
+SharedConnDebugInitWeights::SharedConnDebugInitWeights(const char *name, HyPerCol *hc)
       : HyPerConn() {
    initialize_base();
-   KernelConnDebugInitWeights::initialize(name, hc);
+   SharedConnDebugInitWeights::initialize(name, hc);
 }
 
-KernelConnDebugInitWeights::~KernelConnDebugInitWeights() { free(otherConnName); }
+SharedConnDebugInitWeights::~SharedConnDebugInitWeights() { free(otherConnName); }
 
-int KernelConnDebugInitWeights::initialize_base() {
+int SharedConnDebugInitWeights::initialize_base() {
    otherConn = NULL;
    return PV_SUCCESS;
 }
 
-int KernelConnDebugInitWeights::initialize(const char *name, HyPerCol *hc) {
+int SharedConnDebugInitWeights::initialize(const char *name, HyPerCol *hc) {
    HyPerConn::initialize(name, hc);
    return PV_SUCCESS;
 }
 
-int KernelConnDebugInitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int SharedConnDebugInitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_copiedConn(ioFlag);
    return status;
 }
 
-void KernelConnDebugInitWeights::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
+void SharedConnDebugInitWeights::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       channel = CHANNEL_INH;
       parent->parameters()->handleUnnecessaryParameter(name, "channelCode", (int)channel);
    }
 }
 
-void KernelConnDebugInitWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+void SharedConnDebugInitWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    sharedWeights = true;
    if (ioFlag == PARAMS_IO_READ) {
       fileType = PVP_KERNEL_FILE_TYPE;
@@ -52,17 +52,29 @@ void KernelConnDebugInitWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag)
    }
 }
 
-void KernelConnDebugInitWeights::ioParam_copiedConn(enum ParamsIOFlag ioFlag) {
+void SharedConnDebugInitWeights::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamString(
+         ioFlag, name, "weightInitType", &weightInitTypeString, NULL, true /*warnIfAbsent*/);
+   FatalIf(
+         weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
+         "%s must set weightInitType.\n",
+         getDescription_c());
+   weightInitializer == nullptr;
+   // This class computes weights without using InitWeights class,
+   // in order to compare to connections that do use the weightInitializer.
+}
+
+void SharedConnDebugInitWeights::ioParam_copiedConn(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "copiedConn", &otherConnName);
 }
 
-int KernelConnDebugInitWeights::communicateInitInfo(
+int SharedConnDebugInitWeights::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    HyPerConn::communicateInitInfo(message);
    otherConn = message->lookup<HyPerConn>(std::string(otherConnName));
    if (otherConn == NULL) {
       Fatal().printf(
-            "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not "
+            "SharedConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not "
             "a connection in the column.\n",
             name,
             parent->columnId(),
@@ -70,7 +82,7 @@ int KernelConnDebugInitWeights::communicateInitInfo(
    }
    if (otherConn->usingSharedWeights() == false) {
       Fatal().printf(
-            "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" does "
+            "SharedConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" does "
             "not use shared weights.\n",
             name,
             parent->columnId(),
@@ -79,65 +91,44 @@ int KernelConnDebugInitWeights::communicateInitInfo(
    return PV_SUCCESS;
 }
 
-Patch ***KernelConnDebugInitWeights::initializeWeights(
-      Patch ***arbors,
-      float **dataStart,
-      int numPatches,
-      const char *filename) {
-   // TODO  Implement InitWeightsMethod class.  The constructor for HyPerConn would take an
-   // InitWeightsMethod
-   //       instantiation as an argument.  The routines called below would be put into derived
-   //       classes
-   //       of InitWeightsMethod.
-   PVParams *inputParams = parent->parameters();
-
-   // Patch ** kpatches = arbors[0]; // getKernelPatches(0);
-   float *arborStart    = dataStart[0];
+int SharedConnDebugInitWeights::setInitialValues() {
+   FatalIf(
+         getWeights() == nullptr,
+         "SharedConnDebugInitWeights::setInitialValues called without having set mWeights.\n");
+   FatalIf(
+         weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
+         "SharedConnDebugInitWeights should have set weightInitTypeString but somehow did not.\n");
    int numKernelPatches = getNumDataPatches();
-
-   int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
-
-   if (initFromLastFlag) {
-      Fatal().printf(
-            "This method is for testing weight initialization!  It does not support "
-            "load from file!\n");
-   }
-   else {
-      const char *weightInitTypeStr = inputParams->stringValue(name, "weightInitType");
-      if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "CoCircWeight"))) {
-         initializeCocircWeights(NULL, arborStart, numKernelPatches);
+   for (int arbor = 0; arbor < getWeights()->getNumArbors(); arbor++) {
+      float *arborStart = getWeightsDataStart(arbor);
+      if (!strcmp(weightInitTypeString, "CoCircWeight")) {
+         initializeCocircWeights(arborStart, numKernelPatches);
       }
-      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "SmartWeight"))) {
-         initializeSmartWeights(NULL, arborStart, numKernelPatches);
+      else if (!strcmp(weightInitTypeString, "SmartWeight")) {
+         initializeSmartWeights(arborStart, numKernelPatches);
       }
-      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "GaborWeight"))) {
-         initializeGaborWeights(NULL, arborStart, numKernelPatches);
+      else if (!strcmp(weightInitTypeString, "GaborWeight")) {
+         initializeGaborWeights(arborStart, numKernelPatches);
       }
-      else if ((weightInitTypeStr != 0) && (!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
-         initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
-      }
-      else { // default is also Gauss2D
-         initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
+      else if (!strcmp(weightInitTypeString, "Gauss2DWeight")) {
+         initializeGaussian2DWeights(arborStart, numKernelPatches);
       }
    }
 
    if (normalizer) {
       normalizer->normalizeWeightsWrapper();
    }
-   return arbors;
+   return PV_SUCCESS;
 }
 
-Patch **KernelConnDebugInitWeights::initializeSmartWeights(
-      Patch **patches,
-      float *dataStart,
-      int numPatches) {
+void SharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, int numPatches) {
 
    for (int k = 0; k < numPatches; k++) {
       smartWeights(&dataStart[k * nxp * nyp * nfp], dataIndexToUnitCellIndex(k)); // MA
    }
-   return patches;
 }
-int KernelConnDebugInitWeights::smartWeights(float *dataStart, int k) {
+
+void SharedConnDebugInitWeights::smartWeights(float *dataStart, int k) {
    float *w = dataStart; // wp->data;
 
    // const int nxp = (int) wp->nx;
@@ -156,14 +147,9 @@ int KernelConnDebugInitWeights::smartWeights(float *dataStart, int k) {
          }
       }
    }
-
-   return 0;
 }
 
-Patch **KernelConnDebugInitWeights::initializeCocircWeights(
-      Patch **patches,
-      float *dataStart,
-      int numPatches) {
+void SharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, int numPatches) {
    PVParams *params = parent->parameters();
    float aspect     = 1.0f; // circular (not line oriented)
    float sigma      = 0.8f;
@@ -236,10 +222,9 @@ Patch **KernelConnDebugInitWeights::initializeCocircWeights(
             r2Max,
             strength);
    }
-
-   return patches;
 }
-int KernelConnDebugInitWeights::cocircCalcWeights(
+
+void SharedConnDebugInitWeights::cocircCalcWeights(
       float *dataStart,
       int dataPatchIndex,
       int noPre,
@@ -257,7 +242,6 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
       float sigma,
       float r2Max,
       float strength) {
-   // float * w = wp->data;
 
    const float min_weight    = 0.0f; // read in as param
    const float sigma2        = 2 * sigma * sigma;
@@ -267,25 +251,20 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
    const int nyPatch = nyp; // (int) wp->ny;
    const int nfPatch = fPatchSize();
    if (nxPatch * nyPatch * nfPatch == 0) {
-      return 0; // reduced patch size is zero
+      return; // reduced patch size is zero
    }
 
    // get strides of (potentially shrunken) patch
    const int sx = xPatchStride();
    FatalIf(!(sx == nfPatch), "Test failed.\n");
-   // const int sy = yPatchStride(); // no assert here because patch may be shrunken
    const int sf = fPatchStride();
    FatalIf(!(sf == 1), "Test failed.\n");
 
-   // make full sized temporary patch, positioned around center of unit cell
-   // Patch * wp_tmp;
-   // wp_tmp = pvpatch_inplace_new(nxp, nyp, nfp);
-   // float * w_tmp = wp_tmp->data;
    float *w_tmp = dataStart;
 
    // get/check dimensions and strides of full sized temporary patch
-   const int nxPatch_tmp = nxp; // wp_tmp->nx;
-   const int nyPatch_tmp = nyp; // wp_tmp->ny;
+   const int nxPatch_tmp = nxp;
+   const int nyPatch_tmp = nyp;
    const int nfPatch_tmp = fPatchSize();
    int kxKernelIndex;
    int kyKerneIndex;
@@ -294,8 +273,7 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
 
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKerneIndex;
-   //   const int kfPre_tmp = kfKernelIndex;
-   const int sx_tmp = xPatchStride();
+   const int sx_tmp    = xPatchStride();
    FatalIf(!(sx_tmp == fPatchSize()), "Test failed.\n");
    const int sy_tmp = yPatchStride();
    FatalIf(!(sy_tmp == fPatchSize() * nxPatch_tmp), "Test failed.\n");
@@ -593,14 +571,9 @@ int KernelConnDebugInitWeights::cocircCalcWeights(
          }
       }
    }
-
-   return 0;
 }
 
-Patch **KernelConnDebugInitWeights::initializeGaussian2DWeights(
-      Patch **patches,
-      float *dataStart,
-      int numPatches) {
+void SharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, int numPatches) {
    PVParams *params = parent->parameters();
 
    // default values (chosen for center on cell of one pixel)
@@ -657,10 +630,8 @@ Patch **KernelConnDebugInitWeights::initializeGaussian2DWeights(
             bowtieFlag,
             bowtieAngle);
    }
-
-   return patches;
 }
-int KernelConnDebugInitWeights::gauss2DCalcWeights(
+void SharedConnDebugInitWeights::gauss2DCalcWeights(
       float *dataStart,
       int dataPatchIndex,
       int no,
@@ -676,8 +647,6 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(
       float thetaMax,
       float bowtieFlag,
       float bowtieAngle) {
-   //   const PVLayer * lPre = pre->clayer;
-   //   const PVLayer * lPost = post->clayer;
 
    bool self = (pre != post);
 
@@ -686,7 +655,7 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(
    const int nyPatch = nyp; // (int) wp->ny;
    const int nfPatch = fPatchSize();
    if (nxPatch * nyPatch * nfPatch == 0) {
-      return 0; // reduced patch size is zero
+      return; // reduced patch size is zero
    }
 
    // float * w = wp->data;
@@ -829,14 +798,9 @@ int KernelConnDebugInitWeights::gauss2DCalcWeights(
          }
       }
    }
-
-   return 0;
 }
 
-Patch **KernelConnDebugInitWeights::initializeGaborWeights(
-      Patch **patches,
-      float *dataStart,
-      int numPatches) {
+void SharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, int numPatches) {
 
    const int xScale = post->getXScale() - pre->getXScale();
    const int yScale = post->getYScale() - pre->getYScale();
@@ -872,10 +836,9 @@ Patch **KernelConnDebugInitWeights::initializeGaborWeights(
             strength,
             phi);
    }
-   return patches;
 }
 
-int KernelConnDebugInitWeights::gaborWeights(
+void SharedConnDebugInitWeights::gaborWeights(
       float *dataStart,
       int xScale,
       int yScale,
@@ -955,8 +918,6 @@ int KernelConnDebugInitWeights::gaborWeights(
          }
       }
    }
-
-   return 0;
 }
 
 } /* namespace PV */

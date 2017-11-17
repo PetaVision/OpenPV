@@ -1,39 +1,41 @@
 /*
- * HyPerConnDebugInitWeights.hpp
+ * SharedConnDebugInitWeights.hpp
  *
- *  Created on: Aug 16, 2011
+ *  Created on: Aug 22, 2011
  *      Author: kpeterson
  */
 
-#ifndef HYPERCONNDEBUGINITWEIGHTS_HPP_
-#define HYPERCONNDEBUGINITWEIGHTS_HPP_
+#ifndef SHAREDCONNDEBUGINITWEIGHTS_HPP_
+#define SHAREDCONNDEBUGINITWEIGHTS_HPP_
 
 #include <connections/HyPerConn.hpp>
 
 namespace PV {
 
-class HyPerConnDebugInitWeights : public PV::HyPerConn {
+class SharedConnDebugInitWeights : public PV::HyPerConn {
   public:
-   HyPerConnDebugInitWeights();
-   HyPerConnDebugInitWeights(const char *name, HyPerCol *hc);
-   virtual ~HyPerConnDebugInitWeights();
-
-   virtual Patch ***
-   initializeWeights(Patch ***arbors, float **dataStart, int numPatches, const char *filename);
+   SharedConnDebugInitWeights();
+   SharedConnDebugInitWeights(const char *name, HyPerCol *hc);
+   virtual ~SharedConnDebugInitWeights();
 
   protected:
    int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
+
+   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag) override;
+
    virtual void ioParam_copiedConn(enum ParamsIOFlag ioFlag);
    virtual void readChannelCode(PVParams *params) { channel = CHANNEL_INH; }
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   Patch **initializeGaussian2DWeights(Patch **patches, float *dataStart, int numPatches);
-   virtual int gauss2DCalcWeights(
-         Patch *wp,
+   virtual int setInitialValues() override;
+
+   void initializeGaussian2DWeights(float *dataStart, int numPatches);
+   void gauss2DCalcWeights(
          float *dataStart,
          int kPre,
          int noPost,
@@ -49,9 +51,8 @@ class HyPerConnDebugInitWeights : public PV::HyPerConn {
          float thetaMax,
          float bowtieFlag,
          float bowtieAngle);
-   Patch **initializeCocircWeights(Patch **patches, float *dataStart, int numPatches);
-   virtual int cocircCalcWeights(
-         Patch *wp,
+   void initializeCocircWeights(float *dataStart, int numPatches);
+   void cocircCalcWeights(
          float *dataStart,
          int kPre,
          int noPre,
@@ -69,10 +70,9 @@ class HyPerConnDebugInitWeights : public PV::HyPerConn {
          float sigma,
          float r2Max,
          float strength);
-   Patch **initializeSmartWeights(Patch **patches, float *dataStart, int numPatches);
-   int smartWeights(Patch *wp, float *dataStart, int k);
-   int gaborWeights(
-         Patch *wp,
+   void initializeSmartWeights(float *dataStart, int numPatches);
+   void smartWeights(float *dataStart, int k);
+   void gaborWeights(
          float *dataStart,
          int xScale,
          int yScale,
@@ -82,14 +82,13 @@ class HyPerConnDebugInitWeights : public PV::HyPerConn {
          float lambda,
          float strength,
          float phi);
-   Patch **initializeGaborWeights(Patch **patches, float *dataStart, int numPatches);
-   int copyToWeightPatch(Patch *sourcepatch, int arbor, int patchindex);
+   void initializeGaborWeights(float *dataStart, int numPatches);
 
   private:
-   int initialize_base();
+   virtual int initialize_base();
    char *otherConnName;
    HyPerConn *otherConn;
 };
 
 } /* namespace PV */
-#endif /* HYPERCONNDEBUGINITWEIGHTS_HPP_ */
+#endif /* SHAREDCONNDEBUGINITWEIGHTS_HPP_ */

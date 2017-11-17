@@ -67,10 +67,9 @@ class InitWeights : public BaseObject {
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /*
-    * initializeWeights is not virtual.  It checks initFromLastFlag and then
-    * filename, loading weights from a file if appropriate.  Otherwise
-    * it calls calcWeights(weights).
-    * Derived classes should override calcWeights(weights, patchIndex, arbor).
+    * initializeWeights is not virtual.  It checks initWeightsFile, loading weights from the file
+    * if it is set, and calling calcWeights, with no arguments, if the file was not set.
+    * Derived classes should override one or both of the calcWeights methods.
     */
    int initializeWeights(Weights *weights);
 

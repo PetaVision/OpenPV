@@ -217,7 +217,7 @@ float InitGauss2DWeights::calcThPost(int fPost) {
 }
 
 bool InitGauss2DWeights::checkThetaDiff(float thPost) {
-   if ((mDeltaTheta = std::abs(mThetaPre - mTheta0Post)) > mDeltaThetaMax) {
+   if ((mDeltaTheta = std::abs(mThetaPre - thPost)) > mDeltaThetaMax) {
       // the following is obviously not ideal. But cocirc needs this mDeltaTheta:
       mDeltaTheta = (mDeltaTheta <= PI / 2.0f) ? mDeltaTheta : PI - mDeltaTheta;
       return true;

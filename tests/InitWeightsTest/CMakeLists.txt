@@ -1,16 +1,16 @@
 set(SRC_CPP
-  src/HyPerConnDebugInitWeights.cpp
   src/InitGaborWeights.cpp
   src/InitWeightTestProbe.cpp
-  src/KernelConnDebugInitWeights.cpp
+  src/NonsharedConnDebugInitWeights.cpp
+  src/SharedConnDebugInitWeights.cpp
   src/pv.cpp
 )
 
 set(SRC_HPP
-  src/HyPerConnDebugInitWeights.hpp
   src/InitGaborWeights.hpp
   src/InitWeightTestProbe.hpp
-  src/KernelConnDebugInitWeights.hpp
+  src/NonsharedConnDebugInitWeights.hpp
+  src/SharedConnDebugInitWeights.hpp
 )
 
 pv_add_test(PARAMS test_initweights SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})
