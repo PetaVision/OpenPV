@@ -30,7 +30,6 @@ void RandomSeed::initialize(unsigned int initialSeed) {
    mInitialized = true;
    mInitialSeed = initialSeed;
    mNextSeed    = initialSeed;
-   InfoLog() << "RandomSeed initialized to " << mNextSeed << ".\n";
 }
 
 unsigned int RandomSeed::allocate(unsigned int numRequested) {

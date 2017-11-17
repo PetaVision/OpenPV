@@ -597,7 +597,7 @@ void HyPerConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "nfp", &nfp, -1, false);
    if (ioFlag == PARAMS_IO_READ && nfp == -1 && !parent->parameters()->present(name, "nfp")
-       && parent->columnId() == 0) {
+       && parent->getCommunicator()->globalCommRank() == 0) {
       InfoLog().printf(
             "%s: nfp will be set in the communicateInitInfo() stage.\n", getDescription_c());
    }
@@ -1023,7 +1023,7 @@ int HyPerConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
             }
          }
          if (mGpuGroupHead == nullptr) {
-            mGpuGroupHead == this;
+            mGpuGroupHead = this;
          }
       }
 

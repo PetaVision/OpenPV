@@ -96,7 +96,6 @@ HyPerLCALayer "V1" = {
     writeStep                           = 1;
     initialWriteTime                    = 0;
     sparseLayer                         = true;
-    writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
     VThresh                             = 0.025;

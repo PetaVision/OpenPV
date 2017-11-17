@@ -85,7 +85,6 @@ Retina "Retina" = {
     valueBC                         = 0.0;
     writeStep                       = -1;
     sparseLayer                     = true;
-    writeSparseValues               = false;
     phase                           = 0;
     triggerLayerName                = NULL;
     spikingFlag                     = true;
@@ -130,7 +129,6 @@ LIFGap "LIFTest" = {
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
     sparseLayer                     = true;
-    writeSparseValues               = false;
     phase                           = 0;
     triggerLayerName                = NULL;
     
@@ -204,7 +202,6 @@ LIFGap "LIFGapTest" = {
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
     sparseLayer                     = true;
-    writeSparseValues               = false;
     phase                           = 0;
     triggerLayerName                = NULL;
     

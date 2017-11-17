@@ -109,7 +109,6 @@ Retina "RetinaOff" = {
     spikingFlag                 = true;  // false (no quotes) is translated to 0
     
     sparseLayer                 = true;
-    writeSparseValues           = false; // spiking retinas have binary activities
     writeStep                   = -1;
 
     foregroundRate              = 200;   // Hz // Max poisson spiking rate when input is 255

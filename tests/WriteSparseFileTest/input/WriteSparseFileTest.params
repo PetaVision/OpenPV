@@ -74,7 +74,6 @@ ANNLayer "output" = {
     writeStep = 1.0;
     initialWriteTime = 1.0;
     sparseLayer = true;
-    writeSparseValues = true;
 
     InitVType = "ZeroV";
 
@@ -117,7 +116,6 @@ ANNLayer "comparison" = {
     writeStep = 1.0;
     initialWriteTime = 1.0;
     sparseLayer = true;
-    writeSparseValues = true;
 
     InitVType = "ZeroV";
 
