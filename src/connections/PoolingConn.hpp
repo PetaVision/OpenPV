@@ -30,6 +30,8 @@ class PoolingConn : public HyPerConn {
 
   protected:
    int initialize(const char *name, HyPerCol *hc);
+   virtual void createWeightInitializer() override;
+   virtual void createWeightNormalizer() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;

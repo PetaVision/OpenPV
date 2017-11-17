@@ -57,6 +57,8 @@ class TransposeConn : public HyPerConn {
 
    int initialize_base();
    int initialize(const char *name, HyPerCol *hc);
+   virtual void createWeightInitializer() override;
+   virtual void createWeightNormalizer() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag) override;

@@ -50,6 +50,16 @@ int TransposeConn::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+void TransposeConn::createWeightInitializer() {
+   parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
+}
+
+void TransposeConn::createWeightNormalizer() {
+   normalizer      = NULL;
+   normalizeMethod = strdup("none");
+   parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", "none");
+}
+
 int TransposeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_originalConnName(ioFlag);
@@ -78,9 +88,6 @@ void TransposeConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
 
 void TransposeConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    // TransposeConn doesn't use a weight initializer
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
-   }
 }
 
 void TransposeConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
@@ -155,11 +162,7 @@ void TransposeConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
 }
 
 void TransposeConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      normalizer      = NULL;
-      normalizeMethod = strdup("none");
-      parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", "none");
-   }
+   // TransposeConn doesn't use a weight normalizer
 }
 
 void TransposeConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {

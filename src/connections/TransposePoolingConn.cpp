@@ -72,6 +72,16 @@ int TransposePoolingConn::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+void TransposePoolingConn::createWeightInitializer() {
+   parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
+}
+
+void TransposePoolingConn::createWeightNormalizer() {
+   normalizer      = NULL;
+   normalizeMethod = strdup("none");
+   parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", "none");
+}
+
 int TransposePoolingConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_originalConnName(ioFlag);
@@ -107,9 +117,6 @@ void TransposePoolingConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
 
 void TransposePoolingConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    // TransposePoolingConn doesn't use a weight initializer
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
-   }
 }
 
 void TransposePoolingConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
@@ -203,11 +210,7 @@ void TransposePoolingConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioF
 }
 
 void TransposePoolingConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      normalizer      = NULL;
-      normalizeMethod = strdup("none");
-      parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", "none");
-   }
+   // TransposePoolingConn doesn't use a weight normalizer
 }
 
 void TransposePoolingConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {

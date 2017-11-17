@@ -227,27 +227,79 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-void HyPerConn::defineComponents() { BaseConnection::defineComponents(); }
+void HyPerConn::defineComponents() {
+   BaseConnection::defineComponents();
+   createWeightInitializer();
+   if (weightInitializer) {
+      addObserver(weightInitializer);
+   }
+   createWeightNormalizer();
+   if (normalizer) {
+      addObserver(normalizer);
+   }
+}
 
-void HyPerConn::setWeightInitializer() {
+void HyPerConn::createWeightInitializer() {
+   parent->parameters()->ioParamString(
+         PARAMS_IO_READ,
+         name,
+         "weightInitType",
+         &weightInitTypeString,
+         NULL,
+         true /*warnIfAbsent*/);
    FatalIf(
          weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
          "%s must set weightInitType.\n",
          getDescription_c());
    pvAssert(weightInitializer == nullptr);
-   {
-      BaseObject *baseObject = nullptr;
-      try {
-         baseObject = Factory::instance()->createByKeyword(weightInitTypeString, name, parent);
-      } catch (const std::exception &e) {
-         Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
+   BaseObject *baseObject = nullptr;
+   try {
+      baseObject = Factory::instance()->createByKeyword(weightInitTypeString, name, parent);
+   } catch (const std::exception &e) {
+      Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
+   }
+   weightInitializer = dynamic_cast<InitWeights *>(baseObject);
+   FatalIf(
+         weightInitializer == nullptr,
+         "%s unable to create weightInitializer: %s is not an InitWeights keyword.\n",
+         getDescription_c(),
+         weightInitTypeString);
+}
+
+void HyPerConn::createWeightNormalizer() {
+   pvAssert(normalizer == nullptr);
+   parent->parameters()->ioParamString(
+         PARAMS_IO_READ, name, "normalizeMethod", &normalizeMethod, NULL, true /*warnIfAbsent*/);
+   if (normalizeMethod == NULL) {
+      if (parent->columnId() == 0) {
+         Fatal().printf(
+               "%s: specifying a normalizeMethod string is required.\n", getDescription_c());
       }
-      weightInitializer = dynamic_cast<InitWeights *>(baseObject);
-      FatalIf(
-            weightInitializer == nullptr,
-            "%s unable to create weightInitializer: %s is not an InitWeights keyword.\n",
-            getDescription_c(),
-            weightInitTypeString);
+   }
+   if (!strcmp(normalizeMethod, "")) {
+      free(normalizeMethod);
+      normalizeMethod = strdup("none");
+   }
+   if (strcmp(normalizeMethod, "none")) {
+      BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, name, parent);
+      if (baseObj == nullptr) {
+         if (parent->columnId() == 0) {
+            Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
+                    << "\" is not recognized." << std::endl;
+         }
+         MPI_Barrier(parent->getCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      normalizer = dynamic_cast<NormalizeBase *>(baseObj);
+      if (normalizer == nullptr) {
+         pvAssert(baseObj);
+         if (parent->columnId() == 0) {
+            Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
+                    << "\" is not a recognized normalization method." << std::endl;
+         }
+         MPI_Barrier(parent->getCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
    }
 }
 
@@ -255,10 +307,6 @@ void HyPerConn::setWeightInitializer() {
 int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    BaseConnection::ioParamsFillGroup(ioFlag);
    ioParam_sharedWeights(ioFlag);
-   ioParam_weightInitType(ioFlag);
-   if (weightInitializer != nullptr) {
-      weightInitializer->ioParams(ioFlag, false, false);
-   }
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerOffset(ioFlag);
    ioParam_weightUpdatePeriod(ioFlag);
@@ -281,10 +329,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_nyp(ioFlag);
    ioParam_nfp(ioFlag);
    ioParam_shrinkPatches(ioFlag);
-   ioParam_normalizeMethod(ioFlag);
-   if (normalizer != nullptr && !strcmp(normalizer->getName(), getName())) {
-      normalizer->ioParams(ioFlag, false, false);
-   }
    ioParam_dWMax(ioFlag);
 
    ioParam_normalizeDw(ioFlag);
@@ -296,6 +340,20 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
    // Weight sparsity
    ioParam_weightSparsity(ioFlag);
+
+   if (ioFlag == PARAMS_IO_WRITE) { // Reading the param takes place in defineComponents()
+      ioParam_weightInitType(ioFlag);
+   }
+   if (weightInitializer != nullptr) {
+      weightInitializer->ioParams(ioFlag, false, false);
+   }
+
+   if (ioFlag == PARAMS_IO_WRITE) { // Reading the param takes place in defineComponents()
+      ioParam_normalizeMethod(ioFlag);
+   }
+   if (normalizer != nullptr && !strcmp(normalizer->getName(), getName())) {
+      normalizer->ioParams(ioFlag, false, false);
+   }
    return PV_SUCCESS;
 }
 
@@ -316,16 +374,9 @@ void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
+   pvAssert(ioFlag == PARAMS_IO_WRITE);
    parent->parameters()->ioParamString(
          ioFlag, name, "weightInitType", &weightInitTypeString, NULL, true /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
-      setWeightInitializer();
-      pvAssertMessage(
-            weightInitializer != nullptr,
-            "%s: Rank %d process unable to construct weightInitializer",
-            getDescription_c(),
-            parent->columnId());
-   }
 }
 
 void HyPerConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
@@ -592,62 +643,14 @@ void HyPerConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
+   pvAssert(ioFlag == PARAMS_IO_WRITE);
    parent->parameters()->ioParamString(
          ioFlag, name, "normalizeMethod", &normalizeMethod, NULL, true /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
-      if (normalizeMethod == NULL) {
-         if (parent->columnId() == 0) {
-            Fatal().printf(
-                  "%s: specifying a normalizeMethod string is required.\n", getDescription_c());
-         }
-      }
-      if (!strcmp(normalizeMethod, "")) {
-         free(normalizeMethod);
-         normalizeMethod = strdup("none");
-      }
-      if (strcmp(normalizeMethod, "none")) {
-         int status = setWeightNormalizer();
-         if (status != PV_SUCCESS) {
-            Fatal().printf(
-                  "%s: Rank %d process unable to construct weight normalizer\n",
-                  getDescription_c(),
-                  parent->columnId());
-         }
-      }
-   }
 }
 
 void HyPerConn::ioParam_weightSparsity(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(
          ioFlag, name, "weightSparsity", &mWeightSparsity, 0.0f, false);
-}
-
-int HyPerConn::setWeightNormalizer() {
-   pvAssert(normalizer == nullptr);
-   pvAssert(normalizeMethod != nullptr);
-   pvAssertMessage(
-         strcmp(normalizeMethod, "none"),
-         "setWeightNormalizer() should not be called if normalizeMethod was \"none\"");
-   BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, name, parent);
-   if (baseObj == nullptr) {
-      if (parent->columnId() == 0) {
-         Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
-                 << "\" is not recognized." << std::endl;
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   normalizer = dynamic_cast<NormalizeBase *>(baseObj);
-   if (normalizer == nullptr) {
-      pvAssert(baseObj);
-      if (parent->columnId() == 0) {
-         Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
-                 << "\" is not a normalization method." << std::endl;
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   return PV_SUCCESS;
 }
 
 void HyPerConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {

@@ -38,6 +38,9 @@ class CloneConn : public HyPerConn {
   protected:
    CloneConn();
 
+   virtual void createWeightInitializer() override;
+   virtual void createWeightNormalizer() override;
+
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 

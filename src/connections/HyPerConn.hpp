@@ -442,7 +442,9 @@ class HyPerConn : public BaseConnection {
   protected:
    HyPerConn();
 
-   void defineComponents() override;
+   virtual void defineComponents() override;
+   virtual void createWeightInitializer();
+   virtual void createWeightNormalizer();
 
    // Protected method to return the entire weights object.
    // There are public methods to retrieve pointers to individual patches and weight values.
@@ -486,8 +488,6 @@ class HyPerConn : public BaseConnection {
     * It is not called by the default HyPerConn constructor.
     */
    int initialize(char const *name, HyPerCol *hc);
-   void setWeightInitializer();
-   int setWeightNormalizer();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**

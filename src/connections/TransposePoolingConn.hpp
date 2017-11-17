@@ -50,6 +50,8 @@ class TransposePoolingConn : public HyPerConn {
   protected:
    int initialize_base();
    int initialize(const char *name, HyPerCol *hc);
+   virtual void createWeightInitializer();
+   virtual void createWeightNormalizer();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void createDeliveryObject() override {}
    virtual int setPatchSize() override;

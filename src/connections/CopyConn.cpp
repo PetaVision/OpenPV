@@ -24,6 +24,10 @@ int CopyConn::initialize_base() {
 
 int CopyConn::initialize(char const *name, HyPerCol *hc) { return HyPerConn::initialize(name, hc); }
 
+void CopyConn::createWeightInitializer() {
+   parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
+}
+
 int CopyConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_originalConnName(ioFlag);
@@ -37,9 +41,6 @@ void CopyConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
 
 void CopyConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    // CopyConn doesn't use a weight initializer
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
-   }
 }
 
 void CopyConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {

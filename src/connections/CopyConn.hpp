@@ -23,7 +23,11 @@ class CopyConn : public HyPerConn {
   protected:
    CopyConn();
    int initialize(char const *name, HyPerCol *hc);
+
+   virtual void createWeightInitializer() override;
+
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
    /**
     * List of parameters needed from the CopyConn class
     * @name CopyConn Parameters

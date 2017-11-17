@@ -46,6 +46,15 @@ int PoolingConn::initialize_base() {
    return PV_SUCCESS;
 }
 
+void PoolingConn::createWeightInitializer() {
+   parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
+}
+
+void PoolingConn::createWeightNormalizer() {
+   parent->parameters()->handleUnnecessaryStringParameter(
+         name, "normalizeMethod", "none", false /*case_insensitive*/);
+}
+
 int PoolingConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_needPostIndexLayer(ioFlag);
@@ -76,9 +85,7 @@ void PoolingConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
 }
 
 void PoolingConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
-   }
+   // PoolingConn doesn't use weightInitType
 }
 
 void PoolingConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
@@ -173,10 +180,7 @@ void PoolingConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
 }
 
 void PoolingConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryStringParameter(
-            name, "normalizeMethod", "none", false /*case_insensitive*/);
-   }
+   // PoolingConn doesn't use normalizeMethod
 }
 
 int PoolingConn::initialize(const char *name, HyPerCol *hc) {

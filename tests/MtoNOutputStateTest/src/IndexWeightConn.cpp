@@ -19,6 +19,11 @@ int IndexWeightConn::initialize(const char *name, HyPerCol *hc) {
    return HyPerConn::initialize(name, hc);
 }
 
+void IndexWeightConn::createWeightInitializer() {
+   parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
+   weightInitializer = nullptr;
+}
+
 int IndexWeightConn::setInitialValues() {
    for (int arbor = 0; arbor < numberOfAxonalArborLists(); arbor++) {
       updateWeights(arbor);

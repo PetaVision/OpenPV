@@ -25,6 +25,16 @@ int CloneConn::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+void CloneConn::createWeightInitializer() {
+   parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
+   weightInitializer = nullptr;
+}
+
+void CloneConn::createWeightNormalizer() {
+   parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", NULL);
+   normalizer = nullptr;
+}
+
 int CloneConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_originalConnName(ioFlag);
@@ -39,16 +49,11 @@ void CloneConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 }
 
 void CloneConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
-      weightInitializer = nullptr;
-   }
+   // CloneConn doesn't use weightInitType
 }
 
 void CloneConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", NULL);
-   }
+   // CloneConn doesn't use normalizeMethod
 }
 
 void CloneConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
