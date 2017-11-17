@@ -51,6 +51,8 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
     */
    virtual void deliver(Weights *weights) override;
 
+   virtual void deliverUnitInput(Weights *weights, float *recvBuffer) override;
+
    /**
     * Returns the value of the receiveGpu parameter
     */

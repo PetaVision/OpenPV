@@ -173,4 +173,10 @@ void HyPerDeliveryFacade::deliver(Weights *weights) {
    }
 }
 
+void HyPerDeliveryFacade::deliverUnitInput(Weights *weights, float *recvBuffer) {
+   if (mDeliveryIntern) {
+      mDeliveryIntern->deliverUnitInput(weights, recvBuffer);
+   }
+}
+
 } // end namespace PV

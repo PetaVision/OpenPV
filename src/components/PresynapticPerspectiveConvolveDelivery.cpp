@@ -217,4 +217,90 @@ void PresynapticPerspectiveConvolveDelivery::deliver(Weights *weights) {
    }
 }
 
+void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(Weights *weights, float *recvBuffer) {
+   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+
+   int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
+
+   int nbatch = postLoc->nbatch;
+
+   const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
+   const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
+
+   for (int arbor = 0; arbor < mNumArbors; arbor++) {
+      for (int b = 0; b < nbatch; b++) {
+         float *recvBatch                                   = recvBuffer + b * numPostRestricted;
+         SparseList<float>::Entry const *activeIndicesBatch = NULL;
+
+         int numNeurons = mPreLayer->getNumExtended();
+
+#ifdef PV_USE_OPENMP_THREADS
+         // Clear all thread gsyn buffer
+         if (!mThreadGSyn.empty()) {
+#pragma omp parallel for schedule(static)
+            for (int ti = 0; ti < parent->getNumThreads(); ++ti) {
+               for (int ni = 0; ni < numPostRestricted; ++ni) {
+                  mThreadGSyn[ti][ni] = 0.0;
+               }
+            }
+         }
+#endif
+
+         std::size_t const *gSynPatchStart = weights->getGeometry()->getGSynPatchStart().data();
+         for (int y = 0; y < weights->getPatchSizeY(); y++) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(guided)
+#endif
+            for (int idx = 0; idx < numNeurons; idx++) {
+               int kPreExt = idx;
+
+               // Weight
+               Patch const *patch = &weights->getPatch(kPreExt);
+
+               if (y >= patch->ny) {
+                  continue;
+               }
+
+               // gSyn
+               float *recvPatchHead = recvBatch;
+
+#ifdef PV_USE_OPENMP_THREADS
+               if (!mThreadGSyn.empty()) {
+                  recvPatchHead = mThreadGSyn[omp_get_thread_num()].data();
+               }
+#endif // PV_USE_OPENMP_THREADS
+
+               float *postPatchStart = &recvPatchHead[gSynPatchStart[kPreExt]];
+
+               const int nk                 = patch->nx * weights->getPatchSizeF();
+               float const *weightDataHead  = weights->getDataFromPatchIndex(arbor, kPreExt);
+               float const *weightDataStart = &weightDataHead[patch->offset];
+
+               float *v                  = postPatchStart + y * sy;
+               float const *weightValues = weightDataStart + y * syw;
+               for (int k = 0; k < nk; k++) {
+                  v[k] += mDeltaTimeFactor * weightValues[k];
+               }
+            }
+         }
+#ifdef PV_USE_OPENMP_THREADS
+         // Accumulate back into gSyn. Should this be done in HyPerLayer where it can be done once,
+         // as opposed to once per connection?
+         if (!mThreadGSyn.empty()) {
+            float *recvPatchHead = recvBatch;
+            int numNeurons       = mPostLayer->getNumNeurons();
+            for (int ti = 0; ti < parent->getNumThreads(); ti++) {
+               float *onethread = mThreadGSyn[ti].data();
+// Looping over neurons is thread safe
+#pragma omp parallel for
+               for (int ni = 0; ni < numNeurons; ni++) {
+                  recvPatchHead[ni] += onethread[ni];
+               }
+            }
+         }
+#endif // PV_USE_OPENMP_THREADS
+      }
+   }
+}
+
 } // end namespace PV

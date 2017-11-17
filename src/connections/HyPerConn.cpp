@@ -2531,6 +2531,12 @@ int HyPerConn::deliver() {
    return PV_SUCCESS;
 }
 
+void HyPerConn::deliverUnitInput(float *recvBuffer) {
+   auto weightsFacade = dynamic_cast<HyPerDeliveryFacade *>(getDeliveryObject());
+   bool fromPost      = weightsFacade->getUpdateGSynFromPostPerspective();
+   getDeliveryObject()->deliverUnitInput(fromPost ? mPostWeights : mWeights, recvBuffer);
+}
+
 #ifdef PV_USE_CUDA
 void HyPerConn::updateDeviceWeights() {
    // wDataStart is one big buffer, so this should grab everything
@@ -2739,61 +2745,6 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const *activity, in
    return PV_SUCCESS;
 }
 #endif // PV_USE_CUDA
-
-void HyPerConn::deliverOnePostNeuronActivity(
-      int arborID,
-      int kTargetExt,
-      int inSy,
-      float *activityStartBuf,
-      float *gSynPatchPos,
-      float dtFactor,
-      taus_uint4 *rngPtr) {
-   // get source layer's patch y stride
-   int syp        = postConn->yPatchStride();
-   int yPatchSize = postConn->yPatchSize();
-   // Iterate through y patch
-   int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
-   int kernelIndex  = postConn->patchToDataLUT(kTargetExt);
-
-   float *weightStartBuf = postConn->getWeightsDataHead(arborID, kernelIndex);
-   int sf                = 1;
-   int offset            = 0;
-   for (int ky = 0; ky < yPatchSize; ky++) {
-      float *activityY = &(activityStartBuf[ky * inSy + offset]);
-      float *weightY   = weightStartBuf + ky * syp;
-      // TODO add sf here
-      (accumulateFunctionFromPostPointer)(
-            0, numPerStride, gSynPatchPos, activityY, weightY, dtFactor, rngPtr, sf);
-   }
-}
-
-void HyPerConn::deliverOnePreNeuronActivity(
-      int kPreExt,
-      int arbor,
-      float a,
-      float *postBufferStart,
-      void *auxPtr) {
-   Patch const *weights   = getPatch(kPreExt);
-   const int nk           = weights->nx * fPatchSize();
-   const int ny           = weights->ny;
-   const int sy           = getPostNonextStrides()->sy; // stride in layer
-   const int syw          = yPatchStride(); // stride in patch
-   float *weightDataStart = NULL;
-   float *postPatchStart  = postBufferStart + getGSynPatchStart(kPreExt);
-   int offset             = 0;
-   int sf                 = 1;
-   weightDataStart        = getWeightsData(arbor, kPreExt); // make this a float const *?
-   for (int y = 0; y < ny; y++) {
-      (accumulateFunctionPointer)(
-            0,
-            nk,
-            postPatchStart + y * sy + offset,
-            a,
-            weightDataStart + y * syw + offset,
-            auxPtr,
-            sf);
-   }
-}
 
 double HyPerConn::getConvertToRateDeltaTimeFactor() {
    double dtFactor = 1.0;
@@ -3261,82 +3212,6 @@ void HyPerConn::allocateSparseWeightsPost(PVLayerCube const *activity, int arbor
    }
 
    mSparseWeightsAllocated[arbor] = true;
-}
-
-void HyPerConn::deliverOnePreNeuronActivitySparseWeights(
-      int kPreExt,
-      int arbor,
-      float a,
-      float *postBufferStart,
-      void *auxPtr) {
-   pvAssert(mSparseWeightsAllocated[arbor] == true);
-   pvAssert(mKPreExtWeightSparsified.find(kPreExt) != mKPreExtWeightSparsified.end());
-
-   Patch const *patch    = getPatch(kPreExt);
-   const int nk          = patch->nx * fPatchSize();
-   const int nyp         = patch->ny;
-   const int sy          = getPostNonextStrides()->sy; // stride in layer
-   auto weightDataStart  = getWeightsData(arbor, kPreExt);
-   float *postPatchStart = postBufferStart + getGSynPatchStart(kPreExt);
-   int offset            = 0;
-
-   for (int y = 0; y < nyp; y++) {
-      WeightType *weightPtr = weightDataStart + y * yPatchStride();
-      float *post           = postPatchStart + y * sy + offset;
-
-      pvAssert(mSparseWeightValues.find(nk) != mSparseWeightValues.end());
-      pvAssert(
-            mSparseWeightValues.find(nk)->second.find(weightPtr)
-            != mSparseWeightValues.find(nk)->second.end());
-
-      const WeightListType &sparseWeights =
-            mSparseWeightValues.find(nk)->second.find(weightPtr)->second;
-      const IndexListType &idx = mSparseWeightIndices.find(nk)->second.find(weightPtr)->second;
-
-      for (int k = 0; k < sparseWeights.size(); k++) {
-         int outIdx = idx[k];
-         post[outIdx] += a * sparseWeights[k];
-      }
-   }
-}
-
-void HyPerConn::deliverOnePostNeuronActivitySparseWeights(
-      int arborID,
-      int kTargetExt,
-      int inSy,
-      float *activityStartBuf,
-      float *gSynPatchPos,
-      float dtFactor,
-      taus_uint4 *rngPtr) {
-   // get source layer's patch y stride
-   int syp        = postConn->yPatchStride();
-   int yPatchSize = postConn->yPatchSize();
-   // Iterate through y patch
-   int nk          = postConn->xPatchSize() * postConn->fPatchSize();
-   int kernelIndex = postConn->patchToDataLUT(kTargetExt);
-
-   float *weightStartBuf = postConn->getWeightsDataHead(arborID, kernelIndex);
-   int offset            = 0;
-   for (int ky = 0; ky < yPatchSize; ky++) {
-      float *activityY = &(activityStartBuf[ky * inSy + offset]);
-
-      float *weightPtr = weightStartBuf + ky * syp;
-
-      pvAssert(mSparseWeightValues.find(nk) != mSparseWeightValues.end());
-      pvAssert(
-            mSparseWeightValues.find(nk)->second.find(weightPtr)
-            != mSparseWeightValues.find(nk)->second.end());
-
-      const WeightListType &sparseWeight =
-            mSparseWeightValues.find(nk)->second.find(weightPtr)->second;
-      const IndexListType &idx = mSparseWeightIndices.find(nk)->second.find(weightPtr)->second;
-
-      float dv = 0.0;
-      for (int k = 0; k < sparseWeight.size(); k++) {
-         dv += activityY[idx[k]] * sparseWeight[k];
-      }
-      *gSynPatchPos += dtFactor * dv;
-   }
 }
 
 int HyPerConn::prepareCheckpointWrite() {

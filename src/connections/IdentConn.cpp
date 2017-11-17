@@ -96,4 +96,8 @@ int IdentConn::deliver() {
    return PV_SUCCESS;
 }
 
+void IdentConn::deliverUnitInput(float *recvBuffer) {
+   getDeliveryObject()->deliverUnitInput(nullptr, recvBuffer);
+}
+
 } // end of namespace PV block

@@ -88,6 +88,14 @@ class BaseDelivery : public BaseObject {
    virtual void deliver(Weights *weights);
 
    /**
+    * @brief Similar to deliver(), except it does not use the presynaptic layer; instead
+    * takes the presynaptic input to be a constant value of one. recvBuffer is a buffer
+    * of size of the post layer's getNumNeuronsAllBatches().
+    * If there is more than one arbor, each arbor is applied.
+    */
+   virtual void deliverUnitInput(Weights *weights, float *recvBuffer);
+
+   /**
     * Returns the channel ID that the deliver method acts on
     */
    inline ChannelType getChannelCode() const { return mChannelCode; }

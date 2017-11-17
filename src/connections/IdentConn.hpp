@@ -18,6 +18,7 @@ class IdentConn : public BaseConnection {
   public:
    IdentConn(const char *name, HyPerCol *hc);
    virtual int deliver() override;
+   virtual void deliverUnitInput(float *recvBuffer) override;
 
   protected:
    IdentConn();

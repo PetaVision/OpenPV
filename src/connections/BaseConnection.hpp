@@ -96,10 +96,15 @@ class BaseConnection : public BaseObject {
 
    /**
     * A pure virtual function for modifying the post-synaptic layer's GSyn buffer based on the
-    * connection
-    * and the presynaptic activity
+    * connection and the presynaptic activity
     */
    virtual int deliver() = 0;
+
+   /**
+    * A pure virtual function for modifying the post-synaptic layer's GSyn buffer based on
+    * the connection and a a presynaptic activity where each input has strength 1.0.
+    */
+   virtual void deliverUnitInput(float *recvBuffer) = 0;
 
    /**
     * Adds the given probe to the list of probes.

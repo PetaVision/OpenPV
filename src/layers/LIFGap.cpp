@@ -177,11 +177,7 @@ int LIFGap::calcGapStrength() {
       HyPerLayer *pre = conn->preSynapticLayer();
       const int sy    = conn->getPostNonextStrides()->sy;
       const int syw   = conn->yPatchStride();
-      for (int arbor = 0; arbor < conn->numberOfAxonalArborLists(); arbor++) {
-         for (int k = 0; k < pre->getNumExtendedAllBatches(); k++) {
-            conn->deliverOnePreNeuronActivity(k, arbor, (float)1.0, gapStrength, NULL);
-         }
-      }
+      conn->deliverUnitInput(gapStrength);
    }
    gapStrengthInitialized = true;
    return PV_SUCCESS;

@@ -96,6 +96,16 @@ void IdentDelivery::deliver(Weights *weights) {
    }
 }
 
+void IdentDelivery::deliverUnitInput(Weights *weights, float *recvBuffer) {
+   const int numNeuronsPost = mPostLayer->getNumNeuronsAllBatches();
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+   for (int k = 0; k < numNeuronsPost; k++) {
+      recvBuffer[k] += 1.0f;
+   }
+}
+
 void IdentDelivery::checkDimensions(PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) const {
    FatalIf(
          preLoc.nx != postLoc.nx,

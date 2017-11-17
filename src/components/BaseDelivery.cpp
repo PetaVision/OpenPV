@@ -182,4 +182,6 @@ int BaseDelivery::convertToNumberOfTimesteps(double delay, double deltaTime) {
 
 void BaseDelivery::deliver(Weights *weights) {}
 
+void BaseDelivery::deliverUnitInput(Weights *weights, float *recvBuffer) {}
+
 } // end namespace PV

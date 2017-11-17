@@ -107,20 +107,7 @@ class HyPerConn : public BaseConnection {
     * Uses presynaptic layer's activity to modify the postsynaptic GSyn or thread_gSyn
     */
    virtual int deliver() override;
-   virtual void deliverOnePreNeuronActivity(
-         int patchIndex,
-         int arbor,
-         float a,
-         float *postBufferStart,
-         void *auxPtr);
-   virtual void deliverOnePostNeuronActivity(
-         int arborID,
-         int kTargetExt,
-         int inSy,
-         float *activityStartBuf,
-         float *gSynPatchPos,
-         float dt_factor,
-         taus_uint4 *rngPtr);
+   virtual void deliverUnitInput(float *recvBuffer) override;
 
    AccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
    int (*accumulateFunctionPointer)(
@@ -350,20 +337,6 @@ class HyPerConn : public BaseConnection {
    // Calculates the sparse weight threshold
    SparseWeightInfo calculateSparseWeightInfo() const;
    SparseWeightInfo findPercentileThreshold(float percentile, Weights *weights) const;
-   void deliverOnePreNeuronActivitySparseWeights(
-         int kPreExt,
-         int arbor,
-         float a,
-         float *postBufferStart,
-         void *auxPtr);
-   void deliverOnePostNeuronActivitySparseWeights(
-         int arborID,
-         int kTargetExt,
-         int inSy,
-         float *activityStartBuf,
-         float *gSynPatchPos,
-         float dt_factor,
-         taus_uint4 *rngPtr);
 
   protected:
    HyPerConn *postConn;

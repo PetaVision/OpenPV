@@ -37,6 +37,8 @@ class IdentDelivery : public BaseDelivery {
 
    virtual void deliver(Weights *weights) override;
 
+   virtual void deliverUnitInput(Weights *weights, float *recvBuffer) override;
+
   protected:
    IdentDelivery() {}
 

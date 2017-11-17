@@ -153,4 +153,67 @@ void PostsynapticPerspectiveStochasticDelivery::deliver(Weights *weights) {
    }
 }
 
+void PostsynapticPerspectiveStochasticDelivery::deliverUnitInput(
+      Weights *weights,
+      float *recvBuffer) {
+   // Get number of neurons restricted target
+   const int numPostRestricted = mPostLayer->getNumNeurons();
+
+   const PVLayerLoc *targetLoc = mPostLayer->getLayerLoc();
+
+   const int targetNx = targetLoc->nx;
+   const int targetNy = targetLoc->ny;
+   const int targetNf = targetLoc->nf;
+   const int nbatch   = targetLoc->nbatch;
+
+   const PVHalo *targetHalo = &targetLoc->halo;
+
+   // Get source layer's patch y stride
+   int syp               = weights->getPatchStrideY();
+   int yPatchSize        = weights->getPatchSizeY();
+   int numPerStride      = weights->getPatchSizeX() * weights->getPatchSizeF();
+   int neuronIndexStride = targetNf < 4 ? 1 : targetNf / 4;
+
+   for (int arbor = 0; arbor < mNumArbors; arbor++) {
+      for (int b = 0; b < nbatch; b++) {
+         float *recvBatch = recvBuffer + b * numPostRestricted;
+
+         // Iterate over each line in the y axis, the goal is to keep weights in the cache
+         for (int ky = 0; ky < yPatchSize; ky++) {
+// Threading over feature was the important change that improved cache performance by
+// 5-10x. dynamic scheduling also gave another performance increase over static.
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(static)
+#endif
+            for (int feature = 0; feature < neuronIndexStride; feature++) {
+               for (int idx = feature; idx < numPostRestricted; idx += neuronIndexStride) {
+                  float *recvLocation = recvBatch + idx;
+                  taus_uint4 *rng     = mRandState->getRNG(idx);
+
+                  int kTargetExt = kIndexExtended(
+                        idx,
+                        targetNx,
+                        targetNy,
+                        targetNf,
+                        targetHalo->lt,
+                        targetHalo->rt,
+                        targetHalo->dn,
+                        targetHalo->up);
+                  float *weightBuf    = weights->getDataFromPatchIndex(arbor, kTargetExt);
+                  float *weightValues = weightBuf + ky * syp;
+
+                  float dv = 0.0f;
+                  for (int k = 0; k < numPerStride; ++k) {
+                     *rng     = cl_random_get(*rng);
+                     double p = (double)rng->s0 / cl_random_max(); // 0.0 < p < 1.0
+                     dv += (p < (double)mDeltaTimeFactor) * weightValues[k];
+                  }
+                  *recvLocation += mDeltaTimeFactor * dv;
+               }
+            }
+         }
+      }
+   }
+}
+
 } // end namespace PV
