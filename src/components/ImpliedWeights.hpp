@@ -18,7 +18,7 @@ namespace PV {
  * but the number of data patches is zero in all dimensions, and
  * the Data vector is empty.
  *
- * ImpliedWeights wass motivated by PoolinConn, which uses
+ * ImpliedWeights was motivated by PoolingConn, which uses
  * HyPerConn-style patch geometry, but the weights are all equal.
  *
  * Since the Data vector is always empty, the

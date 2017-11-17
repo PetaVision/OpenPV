@@ -117,8 +117,8 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
                //       "PostsynapticPerspectiveStochasticDelivery", name, parent);
             }
             else {
-               // baseObject = Factory::instance()->createByKeyword(
-               //       "PresynapticPerspectiveStochasticDelivery", name, parent);
+               baseObject = Factory::instance()->createByKeyword(
+                     "PresynapticPerspectiveStochasticDelivery", name, parent);
             }
             break;
          default:

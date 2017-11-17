@@ -162,12 +162,6 @@ class HyPerConn : public BaseConnection {
 
    inline bool usingSharedWeights() { return sharedWeights; }
 
-   /** Actual mininum weight value */
-   virtual float minWeight(int arborId = 0);
-
-   /** Actual maximum weight value */
-   virtual float maxWeight(int arborId = 0);
-
    /** Minimum allowed weight value */
    inline float getWMin() { return wMin; };
 

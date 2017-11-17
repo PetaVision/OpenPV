@@ -109,7 +109,7 @@
 // #include "components/PostsynapticPerspectiveStochasticDelivery.hpp"
 #include "components/PresynapticPerspectiveConvolveDelivery.hpp"
 // #include "components/PresynapticPerspectiveGPUDelivery.hpp"
-// #include "components/PresynapticPerspectiveStochasticDelivery.hpp"
+#include "components/PresynapticPerspectiveStochasticDelivery.hpp"
 #include "components/RescaleDelivery.hpp"
 
 namespace PV {
@@ -229,9 +229,9 @@ int Factory::registerCoreKeywords() {
    // registerKeyword(
    //       "PresynapticPerspectiveGPUDelivery",
    //       Factory::create<PresynapticPerspectiveGPUDelivery>);
-   // registerKeyword(
-   //       "PresynapticPerspectiveStochasticDelivery",
-   //       Factory::create<PresynapticPerspectiveStochasticDelivery>);
+   registerKeyword(
+         "PresynapticPerspectiveStochasticDelivery",
+         Factory::create<PresynapticPerspectiveStochasticDelivery>);
    registerKeyword("RescaleDelivery", Factory::create<RescaleDelivery>);
 
    return PV_SUCCESS;

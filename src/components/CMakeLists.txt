@@ -14,7 +14,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 #   ${SUBDIR}/PostsynapticPerspectiveStochasticDelivery.cpp
    ${SUBDIR}/PresynapticPerspectiveConvolveDelivery.cpp
 #   ${SUBDIR}/PresynapticPerspectiveGPUDelivery.cpp
-#   ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.cpp
+   ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.cpp
    ${SUBDIR}/RescaleDelivery.cpp
    ${SUBDIR}/Weights.cpp
 )
@@ -36,7 +36,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 #   ${SUBDIR}/PostsynapticPerspectiveStochasticDelivery.hpp
    ${SUBDIR}/PresynapticPerspectiveConvolveDelivery.hpp
 #   ${SUBDIR}/PresynapticPerspectiveGPUDelivery.hpp
-#   ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.hpp
+   ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.hpp
    ${SUBDIR}/RescaleDelivery.hpp
    ${SUBDIR}/Weights.hpp
 )

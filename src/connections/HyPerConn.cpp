@@ -1847,58 +1847,6 @@ void HyPerConn::registerTimers(Checkpointer *checkpointer) {
    checkpointer->registerTimer(update_timer);
 }
 
-float HyPerConn::minWeight(int arborId) {
-   const int num_data_patches = getNumDataPatches();
-   float min_weight           = FLT_MAX;
-   if (sharedWeights) {
-      const int numWeights = nxp * nyp * nfp;
-      for (int iKernel = 0; iKernel < num_data_patches; iKernel++) {
-         float *kernelWeights = getWeightsDataHead(arborId, iKernel);
-         for (int iWeight = 0; iWeight < numWeights; iWeight++) {
-            min_weight =
-                  (min_weight < kernelWeights[iWeight]) ? min_weight : kernelWeights[iWeight];
-         }
-      }
-   }
-   else {
-      for (int i_patch = 0; i_patch < num_data_patches; i_patch++) {
-         float *w_data        = getWeightsData(arborId, i_patch);
-         Patch const *w_patch = getPatch(i_patch);
-         int num_weights      = fPatchSize() * w_patch->nx * w_patch->ny;
-         for (int iWeight = 0; iWeight < num_weights; iWeight++) {
-            min_weight = (min_weight < w_data[iWeight]) ? min_weight : w_data[iWeight];
-         }
-      }
-   }
-   return min_weight;
-}
-
-float HyPerConn::maxWeight(int arborId) {
-   const int num_data_patches = getNumDataPatches();
-   float max_weight           = -FLT_MAX;
-   if (sharedWeights) {
-      const int numWeights = nxp * nyp * nfp;
-      for (int iKernel = 0; iKernel < num_data_patches; iKernel++) {
-         float *kernelWeights = getWeightsDataHead(arborId, iKernel);
-         for (int iWeight = 0; iWeight < numWeights; iWeight++) {
-            max_weight =
-                  (max_weight > kernelWeights[iWeight]) ? max_weight : kernelWeights[iWeight];
-         }
-      }
-   }
-   else {
-      for (int i_weight = 0; i_weight < num_data_patches; i_weight++) {
-         float *w_data        = getWeightsData(arborId, i_weight);
-         Patch const *w_patch = getPatch(i_weight);
-         int num_weights      = fPatchSize() * w_patch->nx * w_patch->ny;
-         for (int iWeight = 0; iWeight < num_weights; iWeight++) {
-            max_weight = (max_weight > w_data[iWeight]) ? max_weight : w_data[iWeight];
-         }
-      }
-   }
-   return max_weight;
-}
-
 int HyPerConn::insertProbe(BaseConnectionProbe *p) {
    if (p->getTargetConn() != this) {
       WarnLog().printf(
@@ -2541,8 +2489,7 @@ double HyPerConn::computeNewWeightUpdateTime(double simTime, double currentUpdat
 }
 
 int HyPerConn::deliver() {
-   if (!getReceiveGpu() and !getUpdateGSynFromPostPerspective()
-       and getPvpatchAccumulateType() == CONVOLVE) {
+   if (!getReceiveGpu() and !getUpdateGSynFromPostPerspective()) {
       getDeliveryObject()->deliver(getWeights(), nullptr);
       return PV_SUCCESS;
    }
@@ -2604,119 +2551,9 @@ int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity
    return PV_FAILURE;
 }
 
-// TODO: Use templating to replace deliverPresynapticPerspectiveStochastic and
-// delivePresynapticPerspective.  These two functions differ only in the innermost
-// loop and some variable initializations the innermost loop uses.  We want to avoid
-// the inefficiency of an if-statement or dereferencing a function pointer in the
-// innermost loop.
 int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const *activity, int arbor) {
-   // Check if we need to update based on connection's channel
-   if (getChannel() == CHANNEL_NOUPDATE) {
-      return PV_SUCCESS;
-   }
-   pvAssert(post->getChannel(getChannel()));
-
-   float dtFactor = getConvertToRateDeltaTimeFactor();
-   if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dtFactor = parent->getDeltaTime();
-   }
-
-   if (mWeightSparsity > 0.0f && !mSparseWeightsAllocated[arbor]) {
-      allocateSparseWeightsPre(activity, arbor);
-   }
-
-   const PVLayerLoc *preLoc  = preSynapticLayer()->getLayerLoc();
-   const PVLayerLoc *postLoc = postSynapticLayer()->getLayerLoc();
-
-   pvAssert(arbor >= 0);
-   const int numExtended = activity->numItems;
-
-   int nbatch    = parent->getNBatch();
-   const int sy  = getPostNonextStrides()->sy; // stride in layer
-   const int syw = yPatchStride(); // stride in patch
-
-   for (int b = 0; b < nbatch; b++) {
-      size_t batchOffset = b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                           * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
-      float *activityBatch = activity->data + batchOffset;
-      float *gSynPatchHeadBatch =
-            post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      SparseList<taus_uint4>::Entry const *activeIndicesBatch = NULL;
-      if (activity->isSparse) {
-         activeIndicesBatch =
-               (SparseList<taus_uint4>::Entry *)activity->activeIndices + batchOffset;
-      }
-
-      int numNeurons = activity->isSparse ? activity->numActive[b] : numExtended;
-
-#ifdef PV_USE_OPENMP_THREADS
-      // Clear all thread gsyn buffer
-      if (thread_gSyn) {
-         int numNeurons = post->getNumNeurons();
-#pragma omp parallel for
-         for (int i = 0; i < parent->getNumThreads() * numNeurons; i++) {
-            int ti              = i / numNeurons;
-            int ni              = i % numNeurons;
-            thread_gSyn[ti][ni] = 0;
-         }
-      }
-
-#pragma omp parallel for schedule(guided)
-#endif
-      for (int idx = 0; idx < numNeurons; idx++) {
-         int kPreExt = activity->isSparse ? activeIndicesBatch[idx].index : idx;
-
-         // Activity
-         float a = activityBatch[kPreExt] * dtFactor;
-         if (a == 0.0f)
-            continue;
-
-         // gSyn
-         float *gSynPatchHead = gSynPatchHeadBatch;
-
-#ifdef PV_USE_OPENMP_THREADS
-         if (thread_gSyn) {
-            gSynPatchHead = thread_gSyn[omp_get_thread_num()];
-         }
-#endif // PV_USE_OPENMP_THREADS
-
-         float *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt);
-
-         // Weight
-         Patch const *weights   = getPatch(kPreExt);
-         const int nk           = weights->nx * fPatchSize();
-         const int ny           = weights->ny;
-         float *weightDataStart = getWeightsData(arbor, kPreExt); // make this a float const *?
-         taus_uint4 *rng        = randState->getRNG(kPreExt);
-         long along             = (long)((double)a * cl_random_max());
-
-         for (int y = 0; y < ny; y++) {
-            float *v = postPatchStart + y * sy;
-            float *w = weightDataStart + y * syw;
-            for (int k = 0; k < nk; k++) {
-               *rng = cl_random_get(*rng);
-               v[k] += (rng->s0 < along) * w[k];
-            }
-         }
-      }
-
-#ifdef PV_USE_OPENMP_THREADS
-      // Accumulate back into gSyn // Should this be done in HyPerLayer where it can be done once,
-      // as opposed to once per connection?
-      if (thread_gSyn) {
-         float *gSynPatchHead = gSynPatchHeadBatch;
-         int numNeurons       = post->getNumNeurons();
-// Looping over neurons first to be thread safe
-#pragma omp parallel for
-         for (int ni = 0; ni < numNeurons; ni++) {
-            for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-               gSynPatchHead[ni] += thread_gSyn[ti][ni];
-            }
-         }
-      }
-#endif // PV_USE_OPENMP_THREADS
-   }
-   return PV_SUCCESS;
+   FatalIf(true, "HyPerConn::deliverPresynapticPerspectiveStochastic called\n");
+   return PV_FAILURE;
 }
 
 int HyPerConn::deliverPostsynapticPerspectiveConvolve(
