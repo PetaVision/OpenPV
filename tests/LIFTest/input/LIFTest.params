@@ -4,7 +4,7 @@
 // created by peteschultz: Aug 3, 2012
 //
 
-//  A params file for testing LIF, GapLayer, LIFGapLayer, GapConn
+//  A params file for testing LIF, GapLayer, LIFGapLayer
 //
 
 debugParsing = false;
@@ -332,10 +332,10 @@ IdentConn "LIFTestToLIFTestSpikeCounter" = {
     writeStep                       = -1;
 };
 
-GapConn "GapTestToLIFGapTest" = {
+HyPerConn "GapTestToLIFGapTest" = {
     preLayerName                    = "GapTest";
     postLayerName                   = "LIFGapTest";
-    // channelCode                  = 3;
+    channelCode                  = 3;
     sharedWeights                   = true;
     nxp                             = 3;
     nyp                             = 3;
