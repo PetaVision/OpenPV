@@ -18,17 +18,7 @@ class CloneConn : public HyPerConn {
    CloneConn(const char *name, HyPerCol *hc);
    virtual ~CloneConn();
 
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
-   virtual int updateState(double time, double dt) override;
-
-   virtual int outputState(double time) override { return PV_SUCCESS; }
-
    HyPerConn *getOriginalConn() { return originalConn; }
-
-   virtual int allocateDataStructures() override;
-   virtual int finalizeUpdate(double timed, double dt) override;
 
    virtual long *getPostToPreActivity() override { return originalConn->getPostToPreActivity(); }
 
@@ -46,13 +36,23 @@ class CloneConn : public HyPerConn {
 #endif // PV_USE_CUDA
 
   protected:
+   CloneConn();
+
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   virtual int updateState(double time, double dt) override;
+
+   virtual int outputState(double time) override { return PV_SUCCESS; }
+
+   virtual int allocateDataStructures() override;
+   virtual int finalizeUpdate(double timed, double dt) override;
    virtual void allocateWeights() override;
 #ifdef PV_USE_CUDA
    virtual int allocatePostDeviceWeights() override;
    virtual int allocateDeviceWeights() override;
 #endif
 
-   CloneConn();
    virtual int allocatePostConn() override;
    int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;

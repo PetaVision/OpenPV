@@ -12,6 +12,8 @@ namespace PV {
 class TriggerTestConn : public PV::HyPerConn {
   public:
    TriggerTestConn(const char *name, HyPerCol *hc);
+
+  protected:
    int virtual updateState(double time, double dt) override;
 }; // end class TriggerTestConn
 

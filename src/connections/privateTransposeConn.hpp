@@ -20,15 +20,10 @@ class privateTransposeConn : public HyPerConn {
          HyPerConn *parentConn,
          bool needWeights = true);
    virtual ~privateTransposeConn();
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
    inline HyPerConn *getOriginalConn() { return postConn; }
 
    virtual bool needUpdate(double timed, double dt) override;
-   virtual int updateState(double time, double dt) override;
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime) override;
-   virtual int finalizeUpdate(double time, double dt) override;
 
    virtual int deliver() override;
 
@@ -36,6 +31,11 @@ class privateTransposeConn : public HyPerConn {
    int initialize(const char *name, HyPerCol *hc, HyPerConn *parentConn, bool needWeights);
    virtual int setDescription() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual int allocateDataStructures() override;
+   virtual int updateState(double time, double dt) override;
+   virtual int finalizeUpdate(double time, double dt) override;
    virtual int setPatchSize() override;
    virtual int setNeededRNGSeeds() { return 0; }
    virtual int setInitialValues() override;

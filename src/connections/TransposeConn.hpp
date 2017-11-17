@@ -17,15 +17,10 @@ class TransposeConn : public HyPerConn {
    TransposeConn();
    TransposeConn(const char *name, HyPerCol *hc);
    virtual ~TransposeConn();
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
    inline HyPerConn *getOriginalConn() { return originalConn; }
 
    virtual bool needUpdate(double timed, double dt) override;
-   virtual int updateState(double time, double dt) override;
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime) override;
-   virtual int finalizeUpdate(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
    // If this layer needs to allocate device weights, set orig conn's alloc post
@@ -48,8 +43,13 @@ class TransposeConn : public HyPerConn {
 #endif
 
   protected:
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual int allocateDataStructures() override;
    virtual void allocateWeights() override;
    virtual void initPatchToDataLUT() override;
+   virtual int updateState(double time, double dt) override;
+   virtual int finalizeUpdate(double time, double dt) override;
 #ifdef PV_USE_CUDA
    virtual int allocatePostDeviceWeights() override;
    virtual int allocateDeviceWeights() override;

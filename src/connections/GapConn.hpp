@@ -16,7 +16,6 @@ class GapConn : public PV::HyPerConn {
   public:
    GapConn(const char *name, HyPerCol *hc);
    virtual ~GapConn();
-   virtual int allocateDataStructures() override;
 
   protected:
    GapConn();
@@ -27,6 +26,8 @@ class GapConn : public PV::HyPerConn {
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) override;
 
    int initialize(const char *name, HyPerCol *hc);
+
+   virtual int allocateDataStructures() override;
 
   private:
    int initialize_base();

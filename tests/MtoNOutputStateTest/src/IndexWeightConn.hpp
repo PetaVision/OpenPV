@@ -26,11 +26,11 @@ class IndexWeightConn : public HyPerConn {
   public:
    IndexWeightConn(const char *name, HyPerCol *hc);
    virtual ~IndexWeightConn();
-   virtual int updateWeights(int axonId = 0) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);
    virtual int setInitialValues() override;
+   virtual int updateWeights(int axonId = 0) override;
 
 }; // end class IndexWeightConn
 

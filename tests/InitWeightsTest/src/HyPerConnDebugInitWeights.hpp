@@ -18,8 +18,6 @@ class HyPerConnDebugInitWeights : public PV::HyPerConn {
    HyPerConnDebugInitWeights(const char *name, HyPerCol *hc);
    virtual ~HyPerConnDebugInitWeights();
 
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Patch ***
    initializeWeights(Patch ***arbors, float **dataStart, int numPatches, const char *filename);
 
@@ -29,6 +27,9 @@ class HyPerConnDebugInitWeights : public PV::HyPerConn {
    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_copiedConn(enum ParamsIOFlag ioFlag);
    virtual void readChannelCode(PVParams *params) { channel = CHANNEL_INH; }
+
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    Patch **initializeGaussian2DWeights(Patch **patches, float *dataStart, int numPatches);
    virtual int gauss2DCalcWeights(

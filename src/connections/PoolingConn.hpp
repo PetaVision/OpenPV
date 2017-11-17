@@ -23,12 +23,8 @@ class PoolingConn : public HyPerConn {
    PoolingConn();
    PoolingConn(const char *name, HyPerCol *hc);
    virtual ~PoolingConn();
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
    virtual float minWeight(int arborId = 0) override;
    virtual float maxWeight(int arborId = 0) override;
-   virtual int finalizeUpdate(double time, double dt) override { return PV_SUCCESS; }
    PoolingIndexLayer *getPostIndexLayer() { return postIndexLayer; }
    bool needPostIndex() { return needPostIndexLayer; }
    inline AccumulateType getPoolingType() const { return poolingType; }
@@ -64,6 +60,9 @@ class PoolingConn : public HyPerConn {
 
    virtual void allocateWeights() override;
 
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual int allocateDataStructures() override;
 #ifdef PV_USE_CUDA
    virtual int allocatePostDeviceWeights() override { return PV_SUCCESS; }
    virtual int allocateDeviceWeights() override { return PV_SUCCESS; }
@@ -76,6 +75,7 @@ class PoolingConn : public HyPerConn {
    virtual int registerData(Checkpointer *checkpointer) override;
 
    virtual int setInitialValues() override;
+   virtual int finalizeUpdate(double time, double dt) override { return PV_SUCCESS; }
 
    virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
    virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) override;

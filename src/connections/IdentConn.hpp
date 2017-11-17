@@ -17,9 +17,6 @@ namespace PV {
 class IdentConn : public BaseConnection {
   public:
    IdentConn(const char *name, HyPerCol *hc);
-
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int deliver() override;
 
   protected:
@@ -34,6 +31,9 @@ class IdentConn : public BaseConnection {
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) override;
+
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual int setInitialValues() { return PV_SUCCESS; }
 

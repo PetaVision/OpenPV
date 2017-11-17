@@ -34,43 +34,6 @@ class BaseConnection : public BaseObject {
 
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 
-   // manage the communicateInitInfo, allocateDataStructures, and initializeState stages.
-   /**
-    * communicateInitInfo is used to allow connections and layers to set params and related member
-    * variables based on what other
-    * layers or connections are doing.  (For example, CloneConn sets many parameters the same as its
-    * originalConn.)
-    * After a connection is constructed, it is not properly initialized until communicateInitInfo(),
-    * allocateDataStructures(), and
-    * initializeState() have been called.
-    *
-    * Return values:
-    *    PV_POSTPONE means that communicateInitInfo() cannot be run until other layers'/connections'
-    * own communicateInitInfo()
-    *    have been run successfully.
-    *
-    *    PV_SUCCESS and PV_FAILURE have their usual meanings.
-    *
-    * communicateInitInfo() is called by passing a CommunicateInitInfoMessage to respond(), which is
-    * usually done in HyPerCol::run.
-    */
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
-   /**
-    * initializeState is used to set the initial values of the connection.
-    *
-    * initializeState() is typically called by passing an InitializeStateMessage to respond(), which
-    * is usually done in HyPerCol::run.
-    */
-   virtual int initializeState() override final;
-   // Not overridable. BaseConnection::initializeState() calls setInitialValues(), which is virtual.
-
-   /**
-    * A virtual function for performing any necessary updates after the normalizers are called.
-    */
-   virtual int finalizeUpdate(double timed, double dt) { return PV_SUCCESS; }
-
    /**
     * A pure virtual function for modifying the post-synaptic layer's GSyn buffer based on the
     * connection
@@ -321,6 +284,43 @@ class BaseConnection : public BaseObject {
     * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
     */
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
+
+   // manage the communicateInitInfo, allocateDataStructures, and initializeState stages.
+   /**
+    * communicateInitInfo is used to allow connections and layers to set params and related member
+    * variables based on what other
+    * layers or connections are doing.  (For example, CloneConn sets many parameters the same as its
+    * originalConn.)
+    * After a connection is constructed, it is not properly initialized until communicateInitInfo(),
+    * allocateDataStructures(), and
+    * initializeState() have been called.
+    *
+    * Return values:
+    *    PV_POSTPONE means that communicateInitInfo() cannot be run until other layers'/connections'
+    * own communicateInitInfo()
+    *    have been run successfully.
+    *
+    *    PV_SUCCESS and PV_FAILURE have their usual meanings.
+    *
+    * communicateInitInfo() is called by passing a CommunicateInitInfoMessage to respond(), which is
+    * usually done in HyPerCol::run.
+    */
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   /**
+    * initializeState is used to set the initial values of the connection.
+    *
+    * initializeState() is typically called by passing an InitializeStateMessage to respond(), which
+    * is usually done in HyPerCol::run.
+    */
+   virtual int initializeState() override final;
+   // Not overridable. BaseConnection::initializeState() calls setInitialValues(), which is virtual.
+
+   /**
+    * A virtual function for performing any necessary updates after the normalizers are called.
+    */
+   virtual int finalizeUpdate(double timed, double dt) { return PV_SUCCESS; }
 
    /**
     * A pure virtual method for initializing the connection if we are neither

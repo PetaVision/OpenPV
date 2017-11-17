@@ -83,14 +83,14 @@ class PlasticCloneConn : public CloneConn {
    PlasticCloneConn(const char *name, HyPerCol *hc);
    virtual ~PlasticCloneConn();
 
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
   protected:
    PlasticCloneConn();
    int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual int cloneParameters() override;
+
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual void allocateWeights() override;
    int deleteWeights();
 

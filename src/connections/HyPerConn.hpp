@@ -72,13 +72,9 @@ class HyPerConn : public BaseConnection {
    HyPerConn(const char *name, HyPerCol *hc);
 
    virtual ~HyPerConn();
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
 
    virtual int insertProbe(BaseConnectionProbe *p) override;
    int outputProbeParams() override;
-   virtual int finalizeUpdate(double timed, double dt) override;
 
    // preLayerData and postLayerData point to the data for pre and post over all batch elements
    // (batchID argument is used to navigate to the correct part of the buffers)
@@ -748,6 +744,9 @@ class HyPerConn : public BaseConnection {
    virtual void ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag);
    /** @} */
 
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual int allocateDataStructures() override;
    virtual int registerData(Checkpointer *checkpointer) override;
 
    /**
@@ -756,6 +755,7 @@ class HyPerConn : public BaseConnection {
     */
    void openOutputStateFile(Checkpointer *checkpointer);
    void registerTimers(Checkpointer *checkpointer);
+   virtual int finalizeUpdate(double timed, double dt) override;
 
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses
    // override if they have specialized ways of setting patch size that

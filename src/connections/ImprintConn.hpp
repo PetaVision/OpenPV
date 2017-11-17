@@ -18,9 +18,8 @@ class ImprintConn : public HyPerConn {
    ImprintConn(const char *name, HyPerCol *hc);
    virtual ~ImprintConn();
 
-   virtual int allocateDataStructures() override;
-
   protected:
+   virtual int allocateDataStructures() override;
    virtual int initialize_dW(int arborId) override;
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int update_dW(int arborID) override;

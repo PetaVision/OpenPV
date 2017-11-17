@@ -16,10 +16,7 @@ class CopyConn : public HyPerConn {
   public:
    CopyConn(char const *name, HyPerCol *hc);
    virtual ~CopyConn();
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual bool needUpdate(double time, double dt) override;
-   virtual int updateState(double time, double dt) override;
    char const *getOriginalConnName() { return originalConnName; }
    HyPerConn *getOriginalConn() { return originalConn; }
 
@@ -118,6 +115,11 @@ class CopyConn : public HyPerConn {
    virtual int setPatchSize() override;
 
    virtual int setInitialValues() override;
+
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   virtual int updateState(double time, double dt) override;
 
    virtual int updateWeights(int arborId = 0) override;
    int copy(int arborId = 0);
