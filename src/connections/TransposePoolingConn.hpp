@@ -73,8 +73,8 @@ class TransposePoolingConn : public HyPerConn {
    // without breaking subclasses. -pschultz, 2017-09-08
    virtual int deliver() override;
 
-   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
-   virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) override;
+   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID);
+   virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID);
 #ifdef PV_USE_CUDA
    virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int arborID) override;
    virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const *activity, int arborID) override;

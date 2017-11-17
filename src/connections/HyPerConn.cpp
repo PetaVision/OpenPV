@@ -2531,34 +2531,6 @@ int HyPerConn::deliver() {
    return PV_SUCCESS;
 }
 
-int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity, int arbor) {
-   FatalIf(true, "HyPerConn::deliverPresynapticPerspectiveConvolve called\n");
-   return PV_FAILURE;
-}
-
-int HyPerConn::deliverPresynapticPerspectiveStochastic(PVLayerCube const *activity, int arbor) {
-   FatalIf(true, "HyPerConn::deliverPresynapticPerspectiveStochastic called\n");
-   return PV_FAILURE;
-}
-
-int HyPerConn::deliverPostsynapticPerspectiveConvolve(
-      PVLayerCube const *activity,
-      int arbor,
-      int *numActive,
-      int **activeList) {
-   FatalIf(true, "HyPerConn::deliverPresynapticPerspectiveStochastic called\n");
-   return PV_FAILURE;
-}
-
-int HyPerConn::deliverPostsynapticPerspectiveStochastic(
-      PVLayerCube const *activity,
-      int arbor,
-      int *numActive,
-      int **activeList) {
-   FatalIf(true, "HyPerConn::deliverPostsynapticPerspectiveStochastic called\n");
-   return PV_FAILURE;
-}
-
 #ifdef PV_USE_CUDA
 void HyPerConn::updateDeviceWeights() {
    // wDataStart is one big buffer, so this should grab everything
