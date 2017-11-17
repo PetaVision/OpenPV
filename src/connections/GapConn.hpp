@@ -27,6 +27,8 @@ class GapConn : public PV::HyPerConn {
 
    int initialize(const char *name, HyPerCol *hc);
 
+   virtual void createDeliveryObject() override {}
+
    virtual int allocateDataStructures() override;
 
    // Temporarily duplicating HyPerConn::deliver, so that HyPerConn::deliver can be overhauled

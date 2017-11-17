@@ -177,7 +177,7 @@ PV::HyPerLayer *findLayer(PV::HyPerCol &hc, std::string const &layerName) {
    FatalIf(
          layer == nullptr,
          "%s object \"%s\" is not a layer.\n",
-         hc.getDescription(),
+         hc.getDescription_c(),
          layerName.c_str());
 
    return layer;
@@ -188,7 +188,7 @@ PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName) {
    FatalIf(
          object == nullptr,
          "%s does not have a layer named \"%s\" in %s\n",
-         hc.getDescription(),
+         hc.getDescription_c(),
          connName.c_str(),
          hc.getPV_InitObj()->getStringArgument(std::string("ParamsFile")).c_str());
 
@@ -196,7 +196,7 @@ PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName) {
    FatalIf(
          conn == nullptr,
          "%s object \"%s\" is not an IdentConn.\n",
-         hc.getDescription(),
+         hc.getDescription_c(),
          connName.c_str());
 
    return conn;

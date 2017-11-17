@@ -148,7 +148,6 @@ int HyPerConn::initialize_base() {
    thread_gSyn                   = NULL;
 
    pvpatchAccumulateTypeString = NULL;
-   pvpatchAccumulateType       = CONVOLVE;
 
    initInfoCommunicatedFlag    = false;
    dataStructuresAllocatedFlag = false;
@@ -263,8 +262,13 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_weightUpdatePeriod(ioFlag);
    ioParam_initialWeightUpdateTime(ioFlag);
    ioParam_immediateWeightUpdate(ioFlag);
-   ioParam_updateGSynFromPostPerspective(ioFlag);
-   ioParam_pvpatchAccumulateType(ioFlag);
+   if (ioFlag == PARAMS_IO_READ) {
+      // Will be written by the HyPerDeliver component, but not all
+      // delivery methods are componentized yet, so we still need to read here.
+      ioParam_updateGSynFromPostPerspective(ioFlag);
+      ioParam_pvpatchAccumulateType(ioFlag);
+      ioParam_convertRateToSpikeCount(ioFlag);
+   }
    ioParam_writeStep(ioFlag);
    ioParam_initialWriteTime(ioFlag);
    ioParam_writeCompressedWeights(ioFlag);
@@ -310,29 +314,6 @@ void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
    }
 }
 #endif // PV_USE_CUDA
-
-void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      int ch = 0;
-      parent->parameters()->ioParamValueRequired(ioFlag, name, "channelCode", &ch);
-      int status = decodeChannel(ch, &channel);
-      if (status != PV_SUCCESS) {
-         if (parent->columnId() == 0) {
-            ErrorLog().printf(
-                  "%s: channelCode %d is not a valid channel.\n", getDescription_c(), ch);
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         pvAssert(0);
-      }
-   }
-   else if (ioFlag == PARAMS_IO_WRITE) {
-      int ch = (int)channel;
-      parent->parameters()->ioParamValueRequired(ioFlag, name, "channelCode", &ch);
-   }
-   else {
-      Fatal().printf("All possibilities of ioFlag are covered above.");
-   }
-}
 
 void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
@@ -691,6 +672,15 @@ void HyPerConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
       parent->parameters()->ioParamValue(
             ioFlag, getName(), "normalizeDw", &normalizeDwFlag, true, false /*warnIfAbsent*/);
    }
+}
+
+void HyPerConn::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(
+         ioFlag,
+         this->getName(),
+         "convertRateToSpikeCount",
+         &convertRateToSpikeCount,
+         false /*default value*/);
 }
 
 void HyPerConn::ioParam_useMask(enum ParamsIOFlag ioFlag) {
@@ -1337,6 +1327,14 @@ void HyPerConn::initPatchToDataLUT() {
    else {
       // lookuptable just returns the patchindex
    }
+}
+
+void HyPerConn::createDeliveryObject() {
+   BaseObject *baseObject =
+         Factory::instance()->createByKeyword("HyPerDeliveryFacade", name, parent);
+   HyPerDeliveryFacade *deliveryObject = dynamic_cast<HyPerDeliveryFacade *>(baseObject);
+   pvAssert(deliveryObject);
+   setDeliveryObject(deliveryObject);
 }
 
 taus_uint4 *HyPerConn::getRandState(int index) {
@@ -2543,6 +2541,11 @@ double HyPerConn::computeNewWeightUpdateTime(double simTime, double currentUpdat
 }
 
 int HyPerConn::deliver() {
+   if (!getReceiveGpu() and !getUpdateGSynFromPostPerspective()
+       and getPvpatchAccumulateType() == CONVOLVE) {
+      getDeliveryObject()->deliver(getWeights(), nullptr);
+      return PV_SUCCESS;
+   }
    int status = PV_SUCCESS;
 
    // Check if updating from post perspective
@@ -2597,163 +2600,8 @@ int HyPerConn::deliver() {
 }
 
 int HyPerConn::deliverPresynapticPerspectiveConvolve(PVLayerCube const *activity, int arbor) {
-   // Check if we need to update based on connection's channel
-   if (getChannel() == CHANNEL_NOUPDATE) {
-      return PV_SUCCESS;
-   }
-   pvAssert(post->getChannel(getChannel()));
-
-   float dtFactor = getConvertToRateDeltaTimeFactor();
-   if (getPvpatchAccumulateType() == STOCHASTIC) {
-      dtFactor = parent->getDeltaTime();
-   }
-
-   if (mWeightSparsity > 0.0f && !mSparseWeightsAllocated[arbor]) {
-      allocateSparseWeightsPre(activity, arbor);
-   }
-
-   const PVLayerLoc *preLoc  = preSynapticLayer()->getLayerLoc();
-   const PVLayerLoc *postLoc = postSynapticLayer()->getLayerLoc();
-
-   pvAssert(arbor >= 0);
-   const int numExtended = activity->numItems;
-
-   int nbatch    = parent->getNBatch();
-   const int sy  = getPostNonextStrides()->sy; // stride in layer
-   const int syw = yPatchStride(); // stride in patch
-
-   for (int b = 0; b < nbatch; b++) {
-      size_t batchOffset = b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                           * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
-      float *activityBatch = activity->data + batchOffset;
-      float *gSynPatchHeadBatch =
-            post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      SparseList<float>::Entry const *activeIndicesBatch = NULL;
-      if (activity->isSparse) {
-         activeIndicesBatch = (SparseList<float>::Entry *)activity->activeIndices + batchOffset;
-      }
-
-      int numNeurons = activity->isSparse ? activity->numActive[b] : numExtended;
-
-#ifdef PV_USE_OPENMP_THREADS
-      // Clear all thread gsyn buffer
-      if (thread_gSyn) {
-         int numNeurons = post->getNumNeurons();
-#pragma omp parallel for schedule(static)
-         for (int ti = 0; ti < parent->getNumThreads(); ++ti) {
-            for (int ni = 0; ni < numNeurons; ++ni) {
-               thread_gSyn[ti][ni] = 0.0;
-            }
-         }
-      }
-#endif
-
-      if (!activity->isSparse) {
-         for (int y = 0; y < nyp; y++) {
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided)
-#endif
-            for (int idx = 0; idx < numNeurons; idx++) {
-               int kPreExt = idx;
-
-               // Weight
-               Patch const *weights = getPatch(kPreExt);
-
-               if (y >= weights->ny) {
-                  continue;
-               }
-
-               // Activity
-               float a = activityBatch[kPreExt] * dtFactor;
-               if (a == 0.0f) {
-                  continue;
-               }
-
-               // gSyn
-               float *gSynPatchHead = gSynPatchHeadBatch;
-
-#ifdef PV_USE_OPENMP_THREADS
-               if (thread_gSyn) {
-                  gSynPatchHead = thread_gSyn[omp_get_thread_num()];
-               }
-#endif // PV_USE_OPENMP_THREADS
-
-               float *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt);
-
-               const int nk = weights->nx * fPatchSize();
-               float *weightDataStart =
-                     getWeightsData(arbor, kPreExt); // make this a float const *?
-
-               float *v = postPatchStart + y * sy;
-               float *w = weightDataStart + y * syw;
-               for (int k = 0; k < nk; k++) {
-                  v[k] += a * w[k];
-               }
-            }
-         }
-      }
-      else { // Sparse, use the stored activity / index pairs
-         for (int y = 0; y < nyp; y++) {
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided)
-#endif
-            for (int idx = 0; idx < numNeurons; idx++) {
-               int kPreExt = activeIndicesBatch[idx].index;
-
-               // Weight
-               Patch const *weights = getPatch(kPreExt);
-
-               if (y >= weights->ny) {
-                  continue;
-               }
-
-               // Activity
-               float a = activeIndicesBatch[idx].value;
-               if (a == 0.0f) {
-                  continue;
-               }
-
-               // gSyn
-               float *gSynPatchHead = gSynPatchHeadBatch;
-
-#ifdef PV_USE_OPENMP_THREADS
-               if (thread_gSyn) {
-                  gSynPatchHead = thread_gSyn[omp_get_thread_num()];
-               }
-#endif // PV_USE_OPENMP_THREADS
-
-               float *postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt);
-
-               const int nk = weights->nx * fPatchSize();
-               float *weightDataStart =
-                     getWeightsData(arbor, kPreExt); // make this a float const *?
-               a *= dtFactor;
-               float *v = postPatchStart + y * sy;
-               float *w = weightDataStart + y * syw;
-               for (int k = 0; k < nk; k++) {
-                  v[k] += a * w[k];
-               }
-            }
-         }
-      }
-#ifdef PV_USE_OPENMP_THREADS
-      // Accumulate back into gSyn // Should this be done in HyPerLayer where it can be done once,
-      // as opposed to once per connection?
-      if (thread_gSyn) {
-         float *gSynPatchHead = gSynPatchHeadBatch;
-         int numNeurons       = post->getNumNeurons();
-         for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-            float *onethread = thread_gSyn[ti];
-// Looping over neurons is thread safe
-#pragma omp parallel for
-            for (int ni = 0; ni < numNeurons; ni++) {
-               gSynPatchHead[ni] += onethread[ni];
-            }
-         }
-      }
-#endif // PV_USE_OPENMP_THREADS
-   }
-   return PV_SUCCESS;
+   FatalIf(true, "HyPerConn::deliverPresynapticPerspectiveConvolve called\n");
+   return PV_FAILURE;
 }
 
 // TODO: Use templating to replace deliverPresynapticPerspectiveStochastic and

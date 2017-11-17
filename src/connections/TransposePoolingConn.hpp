@@ -51,6 +51,7 @@ class TransposePoolingConn : public HyPerConn {
    int initialize_base();
    int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void createDeliveryObject() override {}
    virtual int setPatchSize() override;
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

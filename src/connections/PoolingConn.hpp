@@ -56,6 +56,8 @@ class PoolingConn : public HyPerConn {
     */
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) override;
 
+   virtual void createDeliveryObject() override {}
+
    virtual void allocateWeights() override;
 
    virtual int

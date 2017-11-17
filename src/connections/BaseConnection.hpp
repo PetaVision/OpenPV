@@ -15,6 +15,7 @@
 
 #include "columns/BaseObject.hpp"
 #include "columns/HyPerCol.hpp"
+#include "components/BaseDelivery.hpp"
 #include "io/PVParams.hpp"
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
@@ -69,17 +70,6 @@ class BaseConnection : public BaseObject {
     * @brief plasticityFlag: Specifies if the weights will update
     */
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate
-    * to a count.
-    * @details If this flag is true and the presynaptic layer is not spiking, the activity will be
-    * interpreted
-    * as a spike rate, and will be converted to a spike count when delivering activity to the
-    * postsynaptic GSyn buffer.
-    * If this flag is false, activity will not be converted.
-    */
-   virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief receiveGpu: If PetaVision was compiled with GPU acceleration and this flag is set to
@@ -164,7 +154,6 @@ class BaseConnection : public BaseObject {
 
    inline int getDelayArraySize() const { return delayArraySize; }
 
-   inline bool getConvertRateToSpikeCount() const { return convertRateToSpikeCount; }
    inline bool getReceiveGpu() const { return receiveGpu; }
 
    /**
@@ -177,6 +166,8 @@ class BaseConnection : public BaseObject {
     * It does not do sanity checking on the value of i.
     */
    BaseConnectionProbe *getProbe(int i) { return probes[i]; }
+
+   BaseDelivery *getDeliveryObject() { return mDeliveryObject; }
 
    /**
     * Type-safe method of translating an integer channel_code into
@@ -199,7 +190,6 @@ class BaseConnection : public BaseObject {
       return status;
    }
 
-
   protected:
    /**
     * The constructor implicitly called by derived classes' constructors.
@@ -219,6 +209,15 @@ class BaseConnection : public BaseObject {
     * which reads params from the parent HyPerCol's params.
     */
    int initialize(const char *name, HyPerCol *hc);
+
+   /**
+    * Derived classes should override this method to instantiate an object in the
+    * BaseDelivery class hierarchy, and then call the setDeliveryObject() method.
+    */
+   virtual void createDeliveryObject() = 0;
+
+   /** set-method for the delivery object. */
+   void setDeliveryObject(BaseDelivery *deliveryObject) { mDeliveryObject = deliveryObject; }
 
    /**
     * Sets the pre- and post-synaptic layer names according to the parent HyPerCol's params.
@@ -261,7 +260,6 @@ class BaseConnection : public BaseObject {
     */
    void setNumberOfAxonalArborLists(int numArbors);
 
-   void setConvertRateToSpikeCount(bool convertRateToSpikeCountFlag);
 #ifdef PV_USE_CUDA
    void setReceiveGpu();
 #endif // PV_USE_CUDA
@@ -299,7 +297,7 @@ class BaseConnection : public BaseObject {
 
    /**
     * BaseConnection::ioParamsFillGroup reads/writes the parameters
-    * preLayerName, postLayerName, channelCode, delay, numAxonalArbors, and convertRateToSpikeCount.
+    * preLayerName, postLayerName, channelCode, delay, and numAxonalArbors.
     *
     */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -326,6 +324,8 @@ class BaseConnection : public BaseObject {
     */
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   virtual int allocateDataStructures() override;
 
    /**
     * initializeState is used to set the initial values of the connection.
@@ -432,8 +432,6 @@ class BaseConnection : public BaseObject {
    ChannelType channel;
    int numAxonalArborLists; // number of axonal arbors from presynaptic layer
    bool plasticityFlag;
-   bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not,
-   // scale activity by dt to convert it to a spike count
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn
 
    // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initial state
@@ -452,6 +450,8 @@ class BaseConnection : public BaseObject {
    int *delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th
    // arbor
    float *fDelayArray; // delays[arborId] is the delay in units of dt of the arborId'th arbor
+
+   BaseDelivery *mDeliveryObject = nullptr;
 }; // end class BaseConnection
 
 } // end namespace PV

@@ -29,7 +29,6 @@ int BaseConnection::initialize_base() {
    this->fDelayArray                  = NULL;
    this->delays                       = NULL;
    numAxonalArborLists                = 1;
-   convertRateToSpikeCount            = false;
    receiveGpu                         = false;
    this->initializeFromCheckpointFlag = false;
    this->probes                       = NULL;
@@ -42,6 +41,7 @@ int BaseConnection::initialize_base() {
 
 int BaseConnection::initialize(const char *name, HyPerCol *hc) {
    int status = BaseObject::initialize(name, hc);
+   createDeliveryObject();
 
    if (status == PV_SUCCESS)
       status = readParams();
@@ -95,11 +95,6 @@ void BaseConnection::setChannelType(ChannelType ch) {
 void BaseConnection::setNumberOfAxonalArborLists(int numArbors) {
    assert(!initInfoCommunicatedFlag);
    this->numAxonalArborLists = numArbors;
-}
-
-void BaseConnection::setConvertRateToSpikeCount(bool convertRateToSpikeCountFlag) {
-   assert(!initInfoCommunicatedFlag);
-   this->convertRateToSpikeCount = convertRateToSpikeCountFlag;
 }
 
 int BaseConnection::handleMissingPreAndPostLayerNames() {
@@ -243,17 +238,20 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    if (preLayerName == NULL || postLayerName == NULL) {
       status = setPreAndPostLayerNames();
    }
-   ioParam_channelCode(ioFlag);
-   ioParam_delay(ioFlag);
+   if (ioFlag == PARAMS_IO_READ) {
+      // These will be written by the delivery component, but during the transition,
+      // some delivery modes are not yet componentized so we still need to read them.
+      ioParam_channelCode(ioFlag);
+      ioParam_delay(ioFlag);
+
+      ioParam_receiveGpu(ioFlag);
+   }
    ioParam_numAxonalArbors(ioFlag);
    ioParam_plasticityFlag(ioFlag);
-   ioParam_convertRateToSpikeCount(ioFlag);
-
-   // GPU-specific parameter.  If not using GPUs, we read it anyway, with
-   // warnIfAbsent set to false,
-   // to prevent unnecessary warnings from unread or missing parameters.
-   ioParam_receiveGpu(ioFlag);
    ioParam_initializeFromCheckpointFlag(ioFlag);
+   if (getDeliveryObject()) {
+      getDeliveryObject()->ioParams(ioFlag, false, false);
+   }
    return status;
 }
 
@@ -330,20 +328,6 @@ void BaseConnection::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
 void BaseConnection::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(
          ioFlag, name, "plasticityFlag", &plasticityFlag, true /*default value*/);
-}
-
-// preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31,
-// 2014.
-// The warning issued if the params file contained preActivityIsNotRate was
-// removed on Aug 5, 2014.
-
-void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag,
-         this->getName(),
-         "convertRateToSpikeCount",
-         &convertRateToSpikeCount,
-         false /*default value*/);
 }
 
 void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
@@ -593,6 +577,16 @@ void BaseConnection::setDelay(int arborId, double delay) {
    delays[arborId] = (int)(intDelay);
 }
 
+int BaseConnection::allocateDataStructures() {
+   int status = PV_SUCCESS;
+   if (mDeliveryObject) {
+      mDeliveryObject->setPreAndPostLayers(pre, post);
+      mDeliveryObject->setNumArbors(numAxonalArborLists);
+      status = mDeliveryObject->respond(std::make_shared<AllocateDataMessage>());
+   }
+   return status;
+}
+
 int BaseConnection::initializeState() { return setInitialValues(); }
 
 BaseConnection::~BaseConnection() {
@@ -603,6 +597,7 @@ BaseConnection::~BaseConnection() {
    free(this->probes); // All probes are deleted by the HyPerCol, so probes[i]
    // doesn't need to be
    // deleted, only the array itself.
+   delete mDeliveryObject;
 }
 
 } // end namespace PV

@@ -469,7 +469,7 @@ class HyPerLayer : public BaseLayer {
    float *getChannel(ChannelType ch) { // name query
       return (ch < this->numChannels && ch >= 0) ? GSyn[ch] : NULL;
    }
-   virtual float getChannelTimeConst(enum ChannelType channel_type) { return 0.0f; };
+   virtual float getChannelTimeConst(enum ChannelType channel_type) { return 0.0f; }
    int getXScale() { return clayer->xScale; }
    int getYScale() { return clayer->yScale; }
 

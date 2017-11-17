@@ -20,31 +20,11 @@ class RescaleConn : public IdentConn {
   protected:
    RescaleConn();
    int initialize(char const *name, HyPerCol *hc);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   /**
-    * List of parameters needed from the HyPerConn class
-    * @name HyPerConn Parameters
-    * @{
-    */
-
-   /**
-    * scale: presynaptic activity is multiplied by this scale factor before being added to the
-    * postsynaptic input.
-    */
-   void ioParam_scale(enum ParamsIOFlag ioFlag);
-
-   /** @} */
-   // End of parameters needed from the RescaleConn class.
-
-   virtual int deliver() override;
+   virtual void createDeliveryObject() override;
 
   private:
    int initialize_base();
-
-   // Member variables
-  protected:
-   float scale;
 };
 
 } /* namespace PV */

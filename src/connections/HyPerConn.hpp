@@ -11,6 +11,7 @@
 #include "BaseConnection.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/Random.hpp"
+#include "components/HyPerDeliveryFacade.hpp"
 #include "components/Weights.hpp"
 #include "connections/accumulate_functions.hpp"
 #include "include/pv_common.h"
@@ -256,6 +257,8 @@ class HyPerConn : public BaseConnection {
 
    bool getNormalizeDwFlag() { return normalizeDwFlag; }
 
+   inline bool getConvertRateToSpikeCount() const { return convertRateToSpikeCount; }
+
    // convertPreSynapticWeights was marked obsolete Jul 27, 2017.
    Patch ***convertPreSynapticWeights(double time);
 
@@ -367,6 +370,11 @@ class HyPerConn : public BaseConnection {
   protected:
    HyPerConn *postConn;
    bool needFinalize;
+
+   // Whether to check if pre-layer is spiking and, if it is not,
+   // scale activity by dt to convert it to a spike count
+   bool convertRateToSpikeCount;
+
    bool useMask;
    char *maskLayerName;
    int maskFeatureIdx;
@@ -506,13 +514,6 @@ class HyPerConn : public BaseConnection {
     * @name HyPerConn Parameters
     * @{
     */
-
-   /**
-    * @brief channelCode: Specifies which channel in the post layer this connection is attached to
-    * @details Channels can be -1 for no update, or >= 0 for channel number. <br />
-    * 0 is excitatory, 1 is inhibitory
-    */
-   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief sharedWeights: Defines if the HyPerConn uses shared weights (kernelConn)
@@ -709,6 +710,17 @@ class HyPerConn : public BaseConnection {
    virtual void ioParam_normalizeDw(enum ParamsIOFlag ioFlag);
 
    /**
+    * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate
+    * to a count.
+    * @details If this flag is true and the presynaptic layer is not spiking, the activity will be
+    * interpreted
+    * as a spike rate, and will be converted to a spike count when delivering activity to the
+    * postsynaptic GSyn buffer.
+    * If this flag is false, activity will not be converted.
+    */
+   virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief useMask: Specifies if this connection is using a post mask for learning
     */
    virtual void ioParam_useMask(enum ParamsIOFlag ioFlag);
@@ -742,6 +754,8 @@ class HyPerConn : public BaseConnection {
    virtual void ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag);
    virtual void ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag);
    /** @} */
+
+   virtual void createDeliveryObject() override;
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

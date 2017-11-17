@@ -18,12 +18,9 @@ SharedConnDebugInitWeights::SharedConnDebugInitWeights(const char *name, HyPerCo
    SharedConnDebugInitWeights::initialize(name, hc);
 }
 
-SharedConnDebugInitWeights::~SharedConnDebugInitWeights() { free(otherConnName); }
+SharedConnDebugInitWeights::~SharedConnDebugInitWeights() {}
 
-int SharedConnDebugInitWeights::initialize_base() {
-   otherConn = NULL;
-   return PV_SUCCESS;
-}
+int SharedConnDebugInitWeights::initialize_base() { return PV_SUCCESS; }
 
 int SharedConnDebugInitWeights::initialize(const char *name, HyPerCol *hc) {
    HyPerConn::initialize(name, hc);
@@ -32,23 +29,14 @@ int SharedConnDebugInitWeights::initialize(const char *name, HyPerCol *hc) {
 
 int SharedConnDebugInitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
-   ioParam_copiedConn(ioFlag);
    return status;
-}
-
-void SharedConnDebugInitWeights::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      channel = CHANNEL_INH;
-      parent->parameters()->handleUnnecessaryParameter(name, "channelCode", (int)channel);
-   }
 }
 
 void SharedConnDebugInitWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    sharedWeights = true;
    if (ioFlag == PARAMS_IO_READ) {
       fileType = PVP_KERNEL_FILE_TYPE;
-      parent->parameters()->handleUnnecessaryParameter(
-            name, "sharedWeights", true /*correctValue*/);
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", sharedWeights);
    }
 }
 
@@ -64,30 +52,9 @@ void SharedConnDebugInitWeights::ioParam_weightInitType(enum ParamsIOFlag ioFlag
    // in order to compare to connections that do use the weightInitializer.
 }
 
-void SharedConnDebugInitWeights::ioParam_copiedConn(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "copiedConn", &otherConnName);
-}
-
 int SharedConnDebugInitWeights::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    HyPerConn::communicateInitInfo(message);
-   otherConn = message->lookup<HyPerConn>(std::string(otherConnName));
-   if (otherConn == NULL) {
-      Fatal().printf(
-            "SharedConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not "
-            "a connection in the column.\n",
-            name,
-            parent->columnId(),
-            otherConnName);
-   }
-   if (otherConn->usingSharedWeights() == false) {
-      Fatal().printf(
-            "SharedConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" does "
-            "not use shared weights.\n",
-            name,
-            parent->columnId(),
-            otherConnName);
-   }
    return PV_SUCCESS;
 }
 

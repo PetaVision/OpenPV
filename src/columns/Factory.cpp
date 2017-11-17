@@ -102,6 +102,16 @@
 #include "normalizers/NormalizeMax.hpp"
 #include "normalizers/NormalizeSum.hpp"
 
+#include "components/HyPerDeliveryFacade.hpp"
+#include "components/IdentDelivery.hpp"
+// #include "components/PostsynapticPerspectiveColvolveDelivery.hpp"
+// #include "components/PostsynapticPerspectiveGPUDelivery.hpp"
+// #include "components/PostsynapticPerspectiveStochasticDelivery.hpp"
+#include "components/PresynapticPerspectiveConvolveDelivery.hpp"
+// #include "components/PresynapticPerspectiveGPUDelivery.hpp"
+// #include "components/PresynapticPerspectiveStochasticDelivery.hpp"
+#include "components/RescaleDelivery.hpp"
+
 namespace PV {
 
 Factory::Factory() { registerCoreKeywords(); }
@@ -201,6 +211,28 @@ int Factory::registerCoreKeywords() {
    registerKeyword("normalizeMax", Factory::create<NormalizeMax>);
    registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
    registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
+
+   registerKeyword("HyPerDeliveryFacade", Factory::create<HyPerDeliveryFacade>);
+   registerKeyword("IdentDelivery", Factory::create<IdentDelivery>);
+   // registerKeyword(
+   //       "PostsynapticPerspectiveColvolveDelivery",
+   //       Factory::create<PostsynapticPerspectiveConvolveDelivery>);
+   // registerKeyword(
+   //       "PostsynapticPerspectiveGPUDelivery",
+   //       Factory::create<PostsynapticPerspectiveGPUDelivery>);
+   // registerKeyword(
+   //       "PostsynapticPerspectiveStochasticDelivery",
+   //       Factory::create<PostsynapticPerspectiveStochasticDelivery>);
+   registerKeyword(
+         "PresynapticPerspectiveConvolveDelivery",
+         Factory::create<PresynapticPerspectiveConvolveDelivery>);
+   // registerKeyword(
+   //       "PresynapticPerspectiveGPUDelivery",
+   //       Factory::create<PresynapticPerspectiveGPUDelivery>);
+   // registerKeyword(
+   //       "PresynapticPerspectiveStochasticDelivery",
+   //       Factory::create<PresynapticPerspectiveStochasticDelivery>);
+   registerKeyword("RescaleDelivery", Factory::create<RescaleDelivery>);
 
    return PV_SUCCESS;
 }

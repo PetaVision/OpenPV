@@ -30,12 +30,13 @@ class IdentConn : public BaseConnection {
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) override;
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual int setInitialValues() { return PV_SUCCESS; }
+   virtual void createDeliveryObject() override;
+
+   virtual int setInitialValues() override { return PV_SUCCESS; }
 
    virtual int outputState(double timestamp) override { return PV_SUCCESS; }
    virtual int updateState(double time, double dt) override { return PV_SUCCESS; }

@@ -175,7 +175,7 @@ void testWeights(PV::Weights &weights, PV::PV_Init &pv_init, bool sharedFlag, bo
    FatalIf(
          readTimestamp != timestamp,
          "%s: timestamp read was %f instead of the expected %f\n",
-         weights.getName(),
+         weights.getName().c_str(),
          (double)readTimestamp,
          (double)timestamp);
 

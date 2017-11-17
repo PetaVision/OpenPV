@@ -30,17 +30,10 @@ int NonsharedConnDebugInitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-void NonsharedConnDebugInitWeights::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      channel = CHANNEL_INH;
-      parent->parameters()->handleUnnecessaryParameter(name, "channelCode", (int)channel);
-   }
-}
-
 void NonsharedConnDebugInitWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    sharedWeights = false;
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "channelCode", sharedWeights);
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", sharedWeights);
    }
 }
 

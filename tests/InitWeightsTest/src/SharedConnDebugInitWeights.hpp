@@ -21,13 +21,9 @@ class SharedConnDebugInitWeights : public PV::HyPerConn {
   protected:
    int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
 
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag) override;
-
-   virtual void ioParam_copiedConn(enum ParamsIOFlag ioFlag);
-   virtual void readChannelCode(PVParams *params) { channel = CHANNEL_INH; }
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -86,8 +82,6 @@ class SharedConnDebugInitWeights : public PV::HyPerConn {
 
   private:
    virtual int initialize_base();
-   char *otherConnName;
-   HyPerConn *otherConn;
 };
 
 } /* namespace PV */
