@@ -25,6 +25,76 @@ namespace PV {
 class BaseConnectionProbe;
 
 class BaseConnection : public BaseObject {
+  protected:
+   /**
+    * List of parameters needed from the BaseConnection class
+    * @name BaseConnection Parameters
+    * @{
+    */
+
+   /**
+    * @brief preLayerName: Specifies the connection's pre layer
+    * @details Required parameter
+    */
+   virtual void ioParam_preLayerName(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief postLayerName: Specifies the connection's post layer
+    * @details Required parameter
+    */
+   virtual void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief channelCode: Specifies which channel in the post layer this connection is attached to
+    * @details Channels can be -1 for no update, or >= 0 for channel number. <br />
+    * 0 is excitatory, 1 is inhibitory
+    */
+   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief delay: Specifies delay(s) which the post layer will receive data
+    * @details: Delays are specified in units of dt, but are rounded to be integer multiples of dt.
+    * If delay is a scalar, all arbors of the connection have that value of delay.
+    * If delay is an array, the length must match the number of arbors and the arbors are assigned
+    * the delays sequentially.
+    */
+   virtual void ioParam_delay(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief numAxonalArbors: Specifies the number of arbors to use in this connection
+    */
+   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief plasticityFlag: Specifies if the weights will update
+    */
+   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate
+    * to a count.
+    * @details If this flag is true and the presynaptic layer is not spiking, the activity will be
+    * interpreted
+    * as a spike rate, and will be converted to a spike count when delivering activity to the
+    * postsynaptic GSyn buffer.
+    * If this flag is false, activity will not be converted.
+    */
+   virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief receiveGpu: If PetaVision was compiled with GPU acceleration and this flag is set to
+    * true, the connection uses the GPU to update the postsynaptic layer's GSyn.
+    * If compiled without GPU acceleration, it is an error to set this flag to true.
+    */
+   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
+    * set in HyPerCol.
+    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
+    */
+   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
+   /** @} */
 
   public:
    /**
@@ -42,12 +112,6 @@ class BaseConnection : public BaseObject {
    virtual int deliver() = 0;
 
    /**
-    * Called by HyPerCol::outputParams to output the params groups for probes whose ownership has
-    * been transferred to this connection. (Does this need to be virtual?)
-    */
-   virtual int outputProbeParams();
-
-   /**
     * Adds the given probe to the list of probes.
     */
    virtual int insertProbe(BaseConnectionProbe *p);
@@ -55,12 +119,12 @@ class BaseConnection : public BaseObject {
    /*
     * Returns the name of the connection's presynaptic layer.
     */
-   inline const char *getPreLayerName() { return preLayerName; }
+   inline const char *getPreLayerName() const { return preLayerName; }
 
    /*
     * Returns the name of the connection's postsynaptic layer.
     */
-   inline const char *getPostLayerName() { return postLayerName; }
+   inline const char *getPostLayerName() const { return postLayerName; }
 
    /*
     * Returns a pointer to the connection's presynaptic layer.
@@ -85,32 +149,56 @@ class BaseConnection : public BaseObject {
    /*
     * Returns a pointer to the channel of the postsynaptic layer that the channel acts on.
     */
-   inline ChannelType getChannel() { return channel; }
+   inline ChannelType getChannel() const { return channel; }
 
-   inline int numberOfAxonalArborLists() { return numAxonalArborLists; }
+   inline int numberOfAxonalArborLists() const { return numAxonalArborLists; }
 
-   inline bool getPlasticityFlag() { return plasticityFlag; };
+   inline bool getPlasticityFlag() const { return plasticityFlag; };
 
    /**
     * Returns the delay (in timesteps) belonging the given arbor.
     */
-   inline int getDelay(int arbor) {
+   inline int getDelay(int arbor) const {
       return (arbor >= 0 && arbor < this->numberOfAxonalArborLists()) ? delays[arbor] : -1;
    }
 
-   inline bool getConvertRateToSpikeCount() { return convertRateToSpikeCount; }
-   inline bool getReceiveGpu() { return receiveGpu; }
+   inline int getDelayArraySize() const { return delayArraySize; }
+
+   inline bool getConvertRateToSpikeCount() const { return convertRateToSpikeCount; }
+   inline bool getReceiveGpu() const { return receiveGpu; }
 
    /**
     * Returns the number of probes that have been attached to this connection
     */
-   int getNumProbes() { return numProbes; }
+   int getNumProbes() const { return numProbes; }
 
    /**
     * Returns the probe with the indicated position in the list of probes.
     * It does not do sanity checking on the value of i.
     */
    BaseConnectionProbe *getProbe(int i) { return probes[i]; }
+
+   /**
+    * Type-safe method of translating an integer channel_code into
+    * an allowed channel type.  If channel_code corresponds to a
+    * recognized channel type, *channel_type is set accordingly and the
+    * function returns successfully.  Otherwise, *channel_type is undefined
+    * and the function returns PV_FAILURE.
+    */
+   static int decodeChannel(int channel_code, ChannelType *channel_type) {
+      int status = PV_SUCCESS;
+      switch (channel_code) {
+         case CHANNEL_EXC: *channel_type      = CHANNEL_EXC; break;
+         case CHANNEL_INH: *channel_type      = CHANNEL_INH; break;
+         case CHANNEL_INHB: *channel_type     = CHANNEL_INHB; break;
+         case CHANNEL_GAP: *channel_type      = CHANNEL_GAP; break;
+         case CHANNEL_NORM: *channel_type     = CHANNEL_NORM; break;
+         case CHANNEL_NOUPDATE: *channel_type = CHANNEL_NOUPDATE; break;
+         default: status                      = PV_FAILURE; break;
+      }
+      return status;
+   }
+
 
   protected:
    /**
@@ -216,75 +304,6 @@ class BaseConnection : public BaseObject {
     */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   /**
-    * List of parameters needed from the BaseConnection class
-    * @name BaseConnection Parameters
-    * @{
-    */
-
-   /**
-    * @brief preLayerName: Specifies the connection's pre layer
-    * @details Required parameter
-    */
-   virtual void ioParam_preLayerName(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief postLayerName: Specifies the connection's post layer
-    * @details Required parameter
-    */
-   virtual void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief channelCode: Specifies which channel in the post layer this connection is attached to
-    * @details Channels can be -1 for no update, or >= 0 for channel number. <br />
-    * 0 is excitatory, 1 is inhibitory
-    */
-   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief delay: Specifies delay(s) which the post layer will receive data
-    * @details: Delays are specified in units of dt, but are rounded to be integer multiples of dt.
-    * If delay is a scalar, all arbors of the connection have that value of delay.
-    * If delay is an array, the length must match the number of arbors and the arbors are assigned
-    * the delays sequentially.
-    */
-   virtual void ioParam_delay(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief numAxonalArbors: Specifies the number of arbors to use in this connection
-    */
-   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief plasticityFlag: Specifies if the weights will update
-    */
-   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate
-    * to a count.
-    * @details If this flag is true and the presynaptic layer is not spiking, the activity will be
-    * interpreted
-    * as a spike rate, and will be converted to a spike count when delivering activity to the
-    * postsynaptic GSyn buffer.
-    * If this flag is false, activity will not be converted.
-    */
-   virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief receiveGpu: If PetaVision was compiled with GPU acceleration and this flag is set to
-    * true, the connection uses the GPU to update the postsynaptic layer's GSyn.
-    * If compiled without GPU acceleration, it is an error to set this flag to true.
-    */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
-    * set in HyPerCol.
-    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
-    */
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-
    // manage the communicateInitInfo, allocateDataStructures, and initializeState stages.
    /**
     * communicateInitInfo is used to allow connections and layers to set params and related member
@@ -331,12 +350,14 @@ class BaseConnection : public BaseObject {
     */
    virtual int setInitialValues() = 0;
 
-   int respondConnectionWriteParams(std::shared_ptr<ConnectionWriteParamsMessage const> message);
+   int respondConnectionWriteParams(std::shared_ptr<ConnectionWriteParamsMessage const> message) {
+      return writeParams();
+   }
 
    int respondConnectionProbeWriteParams(
-         std::shared_ptr<ConnectionProbeWriteParamsMessage const> message);
-
-   int respondLayerProbeWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
+         std::shared_ptr<ConnectionProbeWriteParamsMessage const> message) {
+      return outputProbeParams();
+   }
 
    int respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message) {
       return updateState(message->mTime, message->mDeltaT);
@@ -350,6 +371,12 @@ class BaseConnection : public BaseObject {
    int respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
       return outputState(message->mTime);
    }
+
+   /**
+    * Called by HyPerCol::outputParams to output the params groups for probes whose ownership has
+    * been transferred to this connection.
+    */
+   int outputProbeParams();
 
    /**
     * A pure virtual function for writing the state of the connection to file(s) in the output
@@ -396,31 +423,6 @@ class BaseConnection : public BaseObject {
     */
    int initialize_base();
 
-   // static methods
-  public:
-   /**
-    * Type-safe method of translating an integer channel_code into
-    * an allowed channel type.  If channel_code corresponds to a
-    * recognized channel type, *channel_type is set accordingly and the
-    * function returns successfully.  Otherwise, *channel_type is undefined
-    * and the function returns PV_FAILURE.
-    */
-   static int decodeChannel(int channel_code, ChannelType *channel_type) {
-      int status = PV_SUCCESS;
-      switch (channel_code) {
-         case CHANNEL_EXC: *channel_type      = CHANNEL_EXC; break;
-         case CHANNEL_INH: *channel_type      = CHANNEL_INH; break;
-         case CHANNEL_INHB: *channel_type     = CHANNEL_INHB; break;
-         case CHANNEL_GAP: *channel_type      = CHANNEL_GAP; break;
-         case CHANNEL_NORM: *channel_type     = CHANNEL_NORM; break;
-         case CHANNEL_NOUPDATE: *channel_type = CHANNEL_NOUPDATE; break;
-         default: status                      = PV_FAILURE; break;
-      }
-      return status;
-   }
-
-   int getDelayArraySize() { return delayArraySize; }
-
    // member variables
   protected:
    char *preLayerName;
@@ -434,7 +436,7 @@ class BaseConnection : public BaseObject {
    // scale activity by dt to convert it to a spike count
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn
 
-   // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initiali state
+   // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initial state
    // from the initializeFromCheckpointDir directory.
    bool initializeFromCheckpointFlag = true;
 

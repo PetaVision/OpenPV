@@ -74,7 +74,6 @@ class HyPerConn : public BaseConnection {
    virtual ~HyPerConn();
 
    virtual int insertProbe(BaseConnectionProbe *p) override;
-   int outputProbeParams() override;
 
    // preLayerData and postLayerData point to the data for pre and post over all batch elements
    // (batchID argument is used to navigate to the correct part of the buffers)

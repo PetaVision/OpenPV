@@ -1945,17 +1945,6 @@ int HyPerConn::setInitialValues() {
    return PV_SUCCESS;
 }
 
-int HyPerConn::outputProbeParams() {
-   int status = PV_SUCCESS;
-   for (int p = 0; p < numProbes; p++) {
-      int status1 = probes[p]->writeParams();
-      if (status1 != PV_SUCCESS) {
-         status = PV_FAILURE;
-      }
-   }
-   return status;
-}
-
 int HyPerConn::outputState(double timef) {
    int status = 0;
    io_timer->start();

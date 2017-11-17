@@ -443,16 +443,6 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int BaseConnection::respondConnectionWriteParams(
-      std::shared_ptr<ConnectionWriteParamsMessage const> message) {
-   return writeParams();
-}
-
-int BaseConnection::respondConnectionProbeWriteParams(
-      std::shared_ptr<ConnectionProbeWriteParamsMessage const> message) {
-   return outputProbeParams();
-}
-
 int BaseConnection::outputProbeParams() {
    int status = PV_SUCCESS;
    for (int p = 0; p < numProbes; p++) {
