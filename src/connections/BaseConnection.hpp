@@ -93,7 +93,7 @@ class BaseConnection : public BaseObject, Subject {
     */
    virtual ~BaseConnection();
 
-   virtual void addObserver(Observer *observer, BaseMessage const &message) override;
+   virtual void addObserver(Observer *observer) override;
 
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 
@@ -217,6 +217,8 @@ class BaseConnection : public BaseObject, Subject {
     * which reads params from the parent HyPerCol's params.
     */
    int initialize(const char *name, HyPerCol *hc);
+
+   virtual void defineComponents();
 
    /**
     * Derived classes should override this method to instantiate an object in the

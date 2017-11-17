@@ -175,7 +175,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
 
    mCheckpointer = new Checkpointer(
          std::string(mName), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
-   mCheckpointer->addObserver(this, BaseMessage{});
+   mCheckpointer->addObserver(this);
    ioParams(PARAMS_IO_READ);
    mSimTime     = mStartTime;
    mInitialStep = (long int)nearbyint(mStartTime / mDeltaTime);

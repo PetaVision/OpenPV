@@ -181,7 +181,7 @@ class Checkpointer : public Subject {
          bool constantEntireRun);
 
    void registerTimer(Timer const *timer);
-   virtual void addObserver(Observer *observer, BaseMessage const &message) override;
+   virtual void addObserver(Observer *observer) override;
 
    void readNamedCheckpointEntry(
          std::string const &objName,
@@ -258,7 +258,7 @@ class Checkpointer : public Subject {
 
    /**
      * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "clock". If the
-     * elapsed time between the wall clock time and mLastCheckpointWallclock exceeds 
+     * elapsed time between the wall clock time and mLastCheckpointWallclock exceeds
      * mCheckpointWriteWallclockInterval, it sets mLastCheckpointWallclock to the current
      * wall clock time and returns true. Otherwise it returns false.
      */

@@ -17,7 +17,7 @@ class Subject {
   public:
    Subject() {}
    virtual ~Subject() {}
-   virtual void addObserver(Observer *observer, BaseMessage const &message) { return; }
+   virtual void addObserver(Observer *observer) { return; }
 
   protected:
    void notify(

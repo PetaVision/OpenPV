@@ -41,14 +41,18 @@ int BaseConnection::initialize_base() {
 
 int BaseConnection::initialize(const char *name, HyPerCol *hc) {
    int status = BaseObject::initialize(name, hc);
-   createDeliveryObject();
-   if (mDeliveryObject) {
-      addObserver(mDeliveryObject, BaseMessage{});
-   }
+   defineComponents();
 
    if (status == PV_SUCCESS)
       status = readParams();
    return status;
+}
+
+void BaseConnection::defineComponents() {
+   createDeliveryObject();
+   if (mDeliveryObject) {
+      addObserver(mDeliveryObject);
+   }
 }
 
 int BaseConnection::setPreAndPostLayerNames() {
@@ -100,7 +104,7 @@ void BaseConnection::setNumberOfAxonalArborLists(int numArbors) {
    this->numAxonalArborLists = numArbors;
 }
 
-void BaseConnection::addObserver(Observer *observer, BaseMessage const &message) {
+void BaseConnection::addObserver(Observer *observer) {
    mComponentTable.addObject(observer->getDescription(), observer);
 }
 

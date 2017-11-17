@@ -442,6 +442,8 @@ class HyPerConn : public BaseConnection {
   protected:
    HyPerConn();
 
+   void defineComponents() override;
+
    // Protected method to return the entire weights object.
    // There are public methods to retrieve pointers to individual patches and weight values.
    Weights *getPreWeights() { return mWeightsPair.mPreWeights; }

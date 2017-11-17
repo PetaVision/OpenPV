@@ -451,7 +451,7 @@ void Checkpointer::provideFinalStep(long int finalStep) {
    }
 }
 
-void Checkpointer::addObserver(Observer *observer, BaseMessage const &message) {
+void Checkpointer::addObserver(Observer *observer) {
    mObserverTable.addObject(observer->getDescription(), observer);
 }
 
@@ -999,7 +999,7 @@ int CheckpointerDataInterface::respondPrepareCheckpointWrite(
 
 int CheckpointerDataInterface::registerData(Checkpointer *checkpointer) {
    mMPIBlock = checkpointer->getMPIBlock();
-   checkpointer->addObserver(this, BaseMessage());
+   checkpointer->addObserver(this);
    return PV_SUCCESS;
 }
 

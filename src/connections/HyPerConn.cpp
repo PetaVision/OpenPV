@@ -227,6 +227,8 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
+void HyPerConn::defineComponents() { BaseConnection::defineComponents(); }
+
 void HyPerConn::setWeightInitializer() {
    FatalIf(
          weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
@@ -1245,7 +1247,7 @@ void HyPerConn::allocateWeights() {
                numAxonalArborLists,
                sharedWeights,
                0.0));
-   addObserver(&mWeightsPair, BaseMessage{});
+   addObserver(&mWeightsPair);
    mWeightsPair.mPreWeights->allocateDataStructures();
    if (plasticityFlag) {
       if (combine_dW_with_W_flag) {
