@@ -29,6 +29,10 @@ class GapConn : public PV::HyPerConn {
 
    virtual int allocateDataStructures() override;
 
+   // Temporarily duplicating HyPerConn::deliver, so that HyPerConn::deliver can be overhauled
+   // without breaking subclasses. -pschultz, 2017-09-08
+   virtual int deliver() override;
+
   private:
    int initialize_base();
    bool initNormalizeFlag;

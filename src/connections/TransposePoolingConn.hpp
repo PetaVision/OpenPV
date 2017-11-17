@@ -67,6 +67,11 @@ class TransposePoolingConn : public HyPerConn {
    virtual int registerData(Checkpointer *checkpointer) override;
    virtual int setInitialValues() override;
    virtual int updateState(double time, double dt) override;
+
+   // Temporarily duplicating HyPerConn::deliver, so that HyPerConn::deliver can be overhauled
+   // without breaking subclasses. -pschultz, 2017-09-08
+   virtual int deliver() override;
+
    virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
    virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) override;
 #ifdef PV_USE_CUDA

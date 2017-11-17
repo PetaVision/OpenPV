@@ -23,8 +23,6 @@ class PoolingConn : public HyPerConn {
    PoolingConn();
    PoolingConn(const char *name, HyPerCol *hc);
    virtual ~PoolingConn();
-   virtual float minWeight(int arborId = 0) override;
-   virtual float maxWeight(int arborId = 0) override;
    PoolingIndexLayer *getPostIndexLayer() { return postIndexLayer; }
    bool needPostIndex() { return needPostIndexLayer; }
    inline AccumulateType getPoolingType() const { return poolingType; }
@@ -71,11 +69,14 @@ class PoolingConn : public HyPerConn {
    virtual void updateDeviceWeights() override {}
    int initializeDeliverKernelArgs();
 #endif // PV_USE_CUDA
-
    virtual int registerData(Checkpointer *checkpointer) override;
 
    virtual int setInitialValues() override;
    virtual int finalizeUpdate(double time, double dt) override { return PV_SUCCESS; }
+
+   // Temporarily duplicating HyPerConn::deliver, so that HyPerConn::deliver can be overhauled
+   // without breaking subclasses. -pschultz, 2017-09-08
+   virtual int deliver() override;
 
    virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
    virtual int deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) override;

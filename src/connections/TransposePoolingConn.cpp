@@ -532,6 +532,60 @@ double TransposePoolingConn::computeNewWeightUpdateTime(double time, double curr
    // to update
 }
 
+int TransposePoolingConn::deliver() {
+   int status = PV_SUCCESS;
+
+   // Check if updating from post perspective
+   HyPerLayer *pre = preSynapticLayer();
+   int numArbors   = numberOfAxonalArborLists();
+
+   for (int arbor = 0; arbor < numArbors; arbor++) {
+      int delay        = getDelay(arbor);
+      PVLayerCube cube = pre->getPublisher()->createCube(delay);
+      cube.numItems /= cube.loc.nbatch;
+      // hack; should make sure deliver*Perspective* methods expect numItems to include batching.
+      if (!getUpdateGSynFromPostPerspective()) {
+#ifdef PV_USE_CUDA
+         if (getReceiveGpu()) {
+            status = deliverPresynapticPerspectiveGPU(&cube, arbor);
+            // No need to update GSyn since it's already living on gpu
+            post->setUpdatedDeviceGSynFlag(false);
+         }
+         else
+#endif
+         {
+            status = deliverPresynapticPerspective(&cube, arbor);
+#ifdef PV_USE_CUDA
+            // CPU updated gsyn, need to update gsyn
+            post->setUpdatedDeviceGSynFlag(true);
+#endif
+         }
+      }
+      else {
+#ifdef PV_USE_CUDA
+         if (getReceiveGpu()) {
+            status = deliverPostsynapticPerspectiveGPU(&cube, arbor);
+            // GSyn already living on GPU
+            post->setUpdatedDeviceGSynFlag(false);
+         }
+         else
+#endif
+         {
+            status = deliverPostsynapticPerspective(&cube, arbor);
+#ifdef PV_USE_CUDA
+            // CPU updated gsyn, need to update on GPU
+            post->setUpdatedDeviceGSynFlag(true);
+#endif
+         }
+      }
+      pvAssert(status == PV_SUCCESS || status == PV_BREAK);
+      if (status == PV_BREAK) {
+         break; // Breaks out of arbor loop
+      }
+   }
+   return PV_SUCCESS;
+}
+
 int TransposePoolingConn::deliverPostsynapticPerspective(PVLayerCube const *activity, int arborID) {
    Fatal()
          << "Delivering from PostSynapticPerspective for TransposePoolingConn not implented yet\n";

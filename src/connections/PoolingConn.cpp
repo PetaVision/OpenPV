@@ -431,42 +431,58 @@ int PoolingConn::initializeDeliverKernelArgs() {
 }
 #endif // PV_USE_CUDA
 
-float PoolingConn::minWeight(int arborId) {
-   if (getPoolingType() == MAX) {
-      return 1.0;
-   }
-   else if (getPoolingType() == SUM) {
-      return 1;
-   }
-   else if (getPoolingType() == AVG) {
-      int relative_XScale = (int)pow(2, pre->getXScale() - post->getXScale());
-      int relative_YScale = (int)pow(2, pre->getYScale() - post->getYScale());
-      return (1.0 / (nxp * nyp * relative_XScale * relative_YScale));
-   }
-   else {
-      assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM,
-      // PoolingConn::AVG
-      return 0.0f; // gets rid of a compile warning
-   }
-}
+int PoolingConn::deliver() {
+   int status = PV_SUCCESS;
 
-float PoolingConn::maxWeight(int arborId) {
-   if (getPoolingType() == MAX) {
-      return 1.0;
+   // Check if updating from post perspective
+   HyPerLayer *pre = preSynapticLayer();
+   int numArbors   = numberOfAxonalArborLists();
+
+   for (int arbor = 0; arbor < numArbors; arbor++) {
+      int delay        = getDelay(arbor);
+      PVLayerCube cube = pre->getPublisher()->createCube(delay);
+      cube.numItems /= cube.loc.nbatch;
+      // hack; should make sure deliver*Perspective* methods expect numItems to include batching.
+      if (!getUpdateGSynFromPostPerspective()) {
+#ifdef PV_USE_CUDA
+         if (getReceiveGpu()) {
+            status = deliverPresynapticPerspectiveGPU(&cube, arbor);
+            // No need to update GSyn since it's already living on gpu
+            post->setUpdatedDeviceGSynFlag(false);
+         }
+         else
+#endif
+         {
+            status = deliverPresynapticPerspective(&cube, arbor);
+#ifdef PV_USE_CUDA
+            // CPU updated gsyn, need to update gsyn
+            post->setUpdatedDeviceGSynFlag(true);
+#endif
+         }
+      }
+      else {
+#ifdef PV_USE_CUDA
+         if (getReceiveGpu()) {
+            status = deliverPostsynapticPerspectiveGPU(&cube, arbor);
+            // GSyn already living on GPU
+            post->setUpdatedDeviceGSynFlag(false);
+         }
+         else
+#endif
+         {
+            status = deliverPostsynapticPerspective(&cube, arbor);
+#ifdef PV_USE_CUDA
+            // CPU updated gsyn, need to update on GPU
+            post->setUpdatedDeviceGSynFlag(true);
+#endif
+         }
+      }
+      pvAssert(status == PV_SUCCESS || status == PV_BREAK);
+      if (status == PV_BREAK) {
+         break; // Breaks out of arbor loop
+      }
    }
-   else if (getPoolingType() == SUM) {
-      return 1;
-   }
-   else if (getPoolingType() == AVG) {
-      int relative_XScale = (int)pow(2, pre->getXScale() - post->getXScale());
-      int relative_YScale = (int)pow(2, pre->getYScale() - post->getYScale());
-      return (1.0 / (nxp * nyp * relative_XScale * relative_YScale));
-   }
-   else {
-      assert(0); // only possibilities are PoolingConn::MAX, PoolingConn::SUM,
-      // PoolingConn::AVG
-      return 0.0f; // gets rid of a compile warning
-   }
+   return PV_SUCCESS;
 }
 
 int PoolingConn::deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) {
