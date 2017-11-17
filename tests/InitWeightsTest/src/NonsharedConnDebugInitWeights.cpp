@@ -59,14 +59,14 @@ int NonsharedConnDebugInitWeights::communicateInitInfo(
 
 int NonsharedConnDebugInitWeights::setInitialValues() {
    FatalIf(
-         getWeights() == nullptr,
+         getPreWeights() == nullptr,
          "NonsharedConnDebugInitWeights::setInitialValues called without having set mWeights.\n");
    FatalIf(
          weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
          "NonsharedConnDebugInitWeights should have set weightInitTypeString but somehow did "
          "not.\n");
    int numPatches = getNumDataPatches();
-   for (int arbor = 0; arbor < getWeights()->getNumArbors(); arbor++) {
+   for (int arbor = 0; arbor < getPreWeights()->getNumArbors(); arbor++) {
       float *arborStart = getWeightsDataStart(arbor);
       if (!strcmp(weightInitTypeString, "CoCircWeight")) {
          initializeCocircWeights(arborStart, numPatches);

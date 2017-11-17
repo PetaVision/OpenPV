@@ -363,7 +363,7 @@ void TransposeConn::allocateWeights() {
       setWeights(originalConn->getPostWeights());
    }
    if (needPost) {
-      setPostWeights(originalConn->getWeights());
+      setPostWeights(originalConn->getPreWeights());
    }
 }
 
@@ -390,9 +390,10 @@ int TransposeConn::deleteWeights() {
    // Have to make sure not to free memory belonging to originalConn.
    // Set pointers that point into originalConn to null so that free() has no effect
    // when HyPerConn::deleteWeights or HyPerConn::deleteWeights is called
-   mWeights      = nullptr;
+   mWeightsPair.mPreWeights  = nullptr;
+   mWeightsPair.mPostWeights = nullptr;
+
    mDeltaWeights = nullptr;
-   mPostWeights  = nullptr;
    return 0;
 }
 

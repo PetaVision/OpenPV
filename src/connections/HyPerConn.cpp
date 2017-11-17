@@ -1245,20 +1245,21 @@ void HyPerConn::allocateWeights() {
                numAxonalArborLists,
                sharedWeights,
                0.0));
-   mWeights->allocateDataStructures();
+   addObserver(&mWeightsPair, BaseMessage{});
+   mWeightsPair.mPreWeights->allocateDataStructures();
    if (plasticityFlag) {
       if (combine_dW_with_W_flag) {
-         mDeltaWeights = mWeights;
+         mDeltaWeights = mWeightsPair.mPreWeights;
       }
       else {
-         setDeltaWeights(new Weights(name, mWeights));
+         setDeltaWeights(new Weights(name, mWeightsPair.mPreWeights));
       }
       if (!combine_dW_with_W_flag) {
          mDeltaWeights->allocateDataStructures();
       }
    }
    if (sharedWeights && normalizeDwFlag) {
-      int const nPatches      = mWeights->getNumDataPatches();
+      int const nPatches      = mWeightsPair.mPreWeights->getNumDataPatches();
       numKernelActivations    = (long **)pvCalloc(numAxonalArborLists, sizeof(long *));
       int const sp            = nxp * nyp * nfp;
       std::size_t numWeights  = (std::size_t)(sp) * (std::size_t)nPatches;
@@ -1268,8 +1269,8 @@ void HyPerConn::allocateWeights() {
       } // loop over arbors
    }
    if (needPost) {
-      mPostWeights = new PostWeights(getName(), getWeights());
-      mPostWeights->allocateDataStructures();
+      mWeightsPair.mPostWeights = new PostWeights(getName(), getPreWeights());
+      mWeightsPair.mPostWeights->allocateDataStructures();
    }
 }
 
@@ -1379,8 +1380,8 @@ int HyPerConn::allocateDeviceBuffers() {
          d_GSynPatchStart            = device->createBuffer(gsynPatchStartIndexSize, &description);
 
          if (numberOfAxonalArborLists() == 1) {
-            // Patches in mWeights were allocated as a single block of memory
-            Patch const *h_patches        = &mWeights->getPatch(0);
+            // Patches in mPreWeights were allocated as a single block of memory
+            Patch const *h_patches        = &mWeightsPair.mPreWeights->getPatch(0);
             PVCuda::CudaBuffer *d_patches = getDevicePatches();
             pvAssert(d_patches);
             d_patches->copyToDevice(h_patches);
@@ -1596,7 +1597,7 @@ int HyPerConn::initializeReceivePostKernelArgs() {
 #endif
 
 void HyPerConn::writeWeights(double timestamp) {
-   writeWeights(timestamp, mWeights, writeCompressedWeights, mOutputStateStream);
+   writeWeights(timestamp, mWeightsPair.mPreWeights, writeCompressedWeights, mOutputStateStream);
 }
 
 void HyPerConn::writeWeights(
@@ -1711,7 +1712,7 @@ void HyPerConn::checkpointWeightPvp(
 
 int HyPerConn::registerData(Checkpointer *checkpointer) {
    int status = BaseConnection::registerData(checkpointer);
-   checkpointWeightPvp(checkpointer, "W", getWeights());
+   checkpointWeightPvp(checkpointer, "W", getPreWeights());
    if (plasticityFlag and !mImmediateWeightUpdate) {
       checkpointWeightPvp(checkpointer, "dW", getDeltaWeights());
       // If we checkpoint dW, we have to get PrepareCheckpointRead messages,
@@ -1814,7 +1815,7 @@ int HyPerConn::insertProbe(BaseConnectionProbe *p) {
 
 int HyPerConn::setInitialValues() {
    if (weightInitializer) {
-      weightInitializer->initializeWeights(mWeights);
+      weightInitializer->initializeWeights(mWeightsPair.mPreWeights);
    }
    return PV_SUCCESS;
 }
@@ -2035,8 +2036,8 @@ int HyPerConn::finalizeUpdate(double timed, double dt) {
 
    // Update postConn if needed
    if (needPost) {
-      pvAssert(mPostWeights != nullptr);
-      TransposeWeights::transpose(getWeights(), getPostWeights(), parent->getCommunicator());
+      pvAssert(getPostWeights() != nullptr);
+      TransposeWeights::transpose(getPreWeights(), getPostWeights(), parent->getCommunicator());
       int status = postConn->finalizeUpdate(timed, dt);
       pvAssert(status == PV_SUCCESS);
    }
@@ -2419,7 +2420,7 @@ double HyPerConn::computeNewWeightUpdateTime(double simTime, double currentUpdat
 }
 
 int HyPerConn::deliver() {
-   Weights *deliveryWeights = updateGSynFromPostPerspective ? getPostWeights() : getWeights();
+   Weights *deliveryWeights = updateGSynFromPostPerspective ? getPostWeights() : getPreWeights();
    pvAssert(deliveryWeights != nullptr);
    if (!getReceiveGpu()) {
       getDeliveryObject()->deliver(deliveryWeights);
@@ -2457,7 +2458,8 @@ int HyPerConn::deliver() {
 void HyPerConn::deliverUnitInput(float *recvBuffer) {
    auto weightsFacade = dynamic_cast<HyPerDeliveryFacade *>(getDeliveryObject());
    bool fromPost      = weightsFacade->getUpdateGSynFromPostPerspective();
-   getDeliveryObject()->deliverUnitInput(fromPost ? mPostWeights : mWeights, recvBuffer);
+   Weights *weights   = fromPost ? mWeightsPair.mPreWeights : mWeightsPair.mPostWeights;
+   getDeliveryObject()->deliverUnitInput(weights, recvBuffer);
 }
 
 #ifdef PV_USE_CUDA
@@ -2516,8 +2518,8 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const *activity, int
    // If more than 1 arbor, need to update patches and GSynPatchStart.
    // If one arbor, done in allocatePreKernel in HyPerConn
    if (numberOfAxonalArborLists() > 1) {
-      // mWeights patches were allocated as a single block of memory
-      Patch const *h_patches        = &mWeights->getPatch(0);
+      // mPreWeights patches were allocated as a single block of memory
+      Patch const *h_patches        = &mWeightsPair.mPreWeights->getPatch(0);
       PVCuda::CudaBuffer *d_patches = getDevicePatches();
       pvAssert(d_patches);
 
@@ -2699,7 +2701,7 @@ int HyPerConn::clearWeights(float *arborDataStart, int numPatches, int nxp, int 
 }
 
 int HyPerConn::deleteWeights() {
-   delete mWeights;
+   delete mWeightsPair.mPreWeights;
    if (!combine_dW_with_W_flag) {
       delete mDeltaWeights;
    }
@@ -2709,7 +2711,7 @@ int HyPerConn::deleteWeights() {
       free(numKernelActivations);
    }
 
-   delete mPostWeights;
+   delete mWeightsPair.mPostWeights;
 
    free(patch2datalookuptable);
    patch2datalookuptable = NULL;
@@ -2997,7 +2999,7 @@ SparseWeightInfo HyPerConn::findPercentileThreshold(float percentile, Weights *w
 
 SparseWeightInfo HyPerConn::calculateSparseWeightInfo() const {
    size_t patchSize = nfp * nxp * nyp;
-   return findPercentileThreshold(mWeightSparsity, mWeights);
+   return findPercentileThreshold(mWeightSparsity, mWeightsPair.mPreWeights);
 }
 
 void HyPerConn::allocateSparseWeightsPre(PVLayerCube const *activity, int arbor) {

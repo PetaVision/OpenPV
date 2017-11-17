@@ -313,7 +313,7 @@ void PoolingConn::allocateWeights() {
                numAxonalArborLists,
                sharedWeights,
                0.0));
-   getWeights()->allocateDataStructures();
+   getPreWeights()->allocateDataStructures();
 }
 
 void PoolingConn::clearGateIdxBuffer() {

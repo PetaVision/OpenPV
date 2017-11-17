@@ -20,12 +20,13 @@
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "observerpattern/Subject.hpp"
 
 namespace PV {
 
 class BaseConnectionProbe;
 
-class BaseConnection : public BaseObject {
+class BaseConnection : public BaseObject, Subject {
   protected:
    /**
     * List of parameters needed from the BaseConnection class
@@ -91,6 +92,8 @@ class BaseConnection : public BaseObject {
     * Destructor for BaseConnection
     */
    virtual ~BaseConnection();
+
+   virtual void addObserver(Observer *observer, BaseMessage const &message) override;
 
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 
@@ -449,6 +452,8 @@ class BaseConnection : public BaseObject {
    bool initInfoCommunicatedFlag;
    bool dataStructuresAllocatedFlag;
    bool initialValuesSetFlag;
+
+   ObserverTable mComponentTable;
 
   private:
    int delayArraySize;

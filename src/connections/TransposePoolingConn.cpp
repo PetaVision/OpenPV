@@ -455,14 +455,14 @@ int TransposePoolingConn::allocateDataStructures() {
 }
 void TransposePoolingConn::allocateWeights() {
    setPatchStrides();
-   setWeights(this->mOriginalConn->postConn->getWeights());
+   setWeights(this->mOriginalConn->postConn->getPreWeights());
 }
 
 int TransposePoolingConn::deleteWeights() {
    // Have to make sure not to free memory belonging to mOriginalConn.
    // Set pointers that point into mOriginalConn to NULL so that free() has no effect
    // when HyPerConn::deleteWeights or HyPerConn::deleteWeights is called
-   mWeights = nullptr;
+   mWeightsPair.mPreWeights = nullptr;
    return 0;
 }
 

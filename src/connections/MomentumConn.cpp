@@ -107,7 +107,7 @@ void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
 void MomentumConn::allocateWeights() {
    HyPerConn::allocateWeights();
    if (plasticityFlag) {
-      mPreviousDeltaWeights = new Weights(name, getWeights());
+      mPreviousDeltaWeights = new Weights(name, getPreWeights());
       mPreviousDeltaWeights->allocateDataStructures();
    }
 }

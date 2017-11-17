@@ -33,9 +33,6 @@
 #include "cudakernels/CudaRecvPre.hpp"
 #endif
 
-#define PROTECTED_NUMBER 13
-#define MAX_ARBOR_LIST (1 + MAX_NEIGHBORS)
-
 namespace PV {
 
 struct SparseWeightInfo {
@@ -69,6 +66,11 @@ class HyPerConn : public BaseConnection {
 
    enum AccumulateType { UNDEFINED, CONVOLVE, STOCHASTIC };
    // Subclasses that need different accumulate types should define their own enums
+
+   struct WeightsPair : public Observer {
+      Weights *mPreWeights  = nullptr;
+      Weights *mPostWeights = nullptr;
+   };
 
    HyPerConn(const char *name, HyPerCol *hc);
 
@@ -175,21 +177,21 @@ class HyPerConn : public BaseConnection {
 
    inline int fPostPatchSize() { return nfpPost; }
 
-   Patch const *getPatch(int kPre) { return &mWeights->getPatch(kPre); }
+   Patch const *getPatch(int kPre) { return &getPreWeights()->getPatch(kPre); }
 
    inline const PVPatchStrides *getPostExtStrides() { return &postExtStrides; }
 
    inline const PVPatchStrides *getPostNonextStrides() { return &postNonextStrides; }
 
-   inline float *getWeightsDataStart(int arborId) { return mWeights->getData(arborId); }
+   inline float *getWeightsDataStart(int arborId) { return getPreWeights()->getData(arborId); }
 
    inline float *getWeightsDataHead(int arborId, int dataIndex) {
-      return mWeights->getDataFromDataIndex(arborId, dataIndex);
+      return getPreWeights()->getDataFromDataIndex(arborId, dataIndex);
    }
 
    inline float *getWeightsData(int arborId, int patchIndex) {
-      return mWeights->getDataFromPatchIndex(arborId, patchIndex)
-             + mWeights->getPatch(patchIndex).offset;
+      return getPreWeights()->getDataFromPatchIndex(arborId, patchIndex)
+             + getPreWeights()->getPatch(patchIndex).offset;
    }
 
    inline float *getDeltaWeightsDataStart(int arborId) { return mDeltaWeights->getData(arborId); }
@@ -207,32 +209,36 @@ class HyPerConn : public BaseConnection {
 
    inline long *getActivations(int arborId, int patchIndex) {
       return &numKernelActivations[arborId][patchStartIndex(patchToDataLUT(patchIndex))
-                                            + mWeights->getPatch(patchIndex).offset];
+                                            + getPreWeights()->getPatch(patchIndex).offset];
    }
 
    inline long *getActivationsHead(int arborId, int dataIndex) {
       return &numKernelActivations[arborId][patchStartIndex(dataIndex)];
    }
 
-   int getNumGeometryPatches() { return mWeights->getGeometry()->getNumPatches(); }
+   int getNumGeometryPatches() { return getPreWeights()->getGeometry()->getNumPatches(); }
 
-   int getNumDataPatchesX() { return mWeights->getNumDataPatchesX(); }
+   int getNumDataPatchesX() { return getPreWeights()->getNumDataPatchesX(); }
 
-   int getNumDataPatchesY() { return mWeights->getNumDataPatchesY(); }
+   int getNumDataPatchesY() { return getPreWeights()->getNumDataPatchesY(); }
 
-   int getNumDataPatchesF() { return mWeights->getNumDataPatchesF(); }
+   int getNumDataPatchesF() { return getPreWeights()->getNumDataPatchesF(); }
 
-   int getNumDataPatches() { return mWeights->getNumDataPatches(); }
+   int getNumDataPatches() { return getPreWeights()->getNumDataPatches(); }
 
    size_t const *getGSynPatchStart() const {
-      return mWeights->getGeometry()->getGSynPatchStart().data();
+      return getPreWeights()->getGeometry()->getGSynPatchStart().data();
    }
 
-   size_t getGSynPatchStart(int kPre) { return mWeights->getGeometry()->getGSynPatchStart(kPre); }
+   size_t getGSynPatchStart(int kPre) {
+      return getPreWeights()->getGeometry()->getGSynPatchStart(kPre);
+   }
 
-   size_t const *getAPostOffset() const { return mWeights->getGeometry()->getAPostOffset().data(); }
+   size_t const *getAPostOffset() const {
+      return getPreWeights()->getGeometry()->getAPostOffset().data();
+   }
 
-   size_t getAPostOffset(int kPre) { return mWeights->getGeometry()->getAPostOffset(kPre); }
+   size_t getAPostOffset(int kPre) { return getPreWeights()->getGeometry()->getAPostOffset(kPre); }
 
    NormalizeBase *getNormalizer() { return normalizer; }
 
@@ -272,12 +278,10 @@ class HyPerConn : public BaseConnection {
    void setNeedPost() { needPost = true; }
 
   private:
-   Weights *mWeights      = nullptr; // Contains the connectivity graph and the weight values
-   Weights *mDeltaWeights = nullptr; // Used by plastic weights to hold the weight updates
+   WeightsPair mWeightsPair; // Contains connectivity graph and weight values, from both
+   // pre- and post-synaptic perspectives
 
-   // Used if UpdateGSynFromPostPerspective is true, or if setNeedPost() has been called
-   // (for example, if a TransposeConn of this conn has UpdateGSynFromPostPerspective=false).
-   Weights *mPostWeights = nullptr;
+   Weights *mDeltaWeights = nullptr; // Used by plastic weights to hold the weight updates
 
    PVPatchStrides
          postExtStrides; // sx,sy,sf for a patch mapping into an extended post-synaptic layer
@@ -440,16 +444,17 @@ class HyPerConn : public BaseConnection {
 
    // Protected method to return the entire weights object.
    // There are public methods to retrieve pointers to individual patches and weight values.
-   Weights *getWeights() { return mWeights; }
+   Weights *getPreWeights() { return mWeightsPair.mPreWeights; }
+   Weights const *getPreWeights() const { return mWeightsPair.mPreWeights; }
+   Weights *getPostWeights() { return mWeightsPair.mPostWeights; }
 
    // Protected method to set the entire weights object.
-   void setWeights(Weights *weights) { mWeights = weights; }
+   void setWeights(Weights *weights) { mWeightsPair.mPreWeights = weights; }
    void setDeltaWeights(Weights *deltaWeights) { mDeltaWeights = deltaWeights; }
 
    Weights *getDeltaWeights() { return mDeltaWeights; }
 
-   Weights *getPostWeights() { return mPostWeights; }
-   void setPostWeights(Weights *postWeights) { mPostWeights = postWeights; }
+   void setPostWeights(Weights *postWeights) { mWeightsPair.mPostWeights = postWeights; }
 
    inline long **get_activations() { return numKernelActivations; }
 

@@ -60,13 +60,13 @@ int SharedConnDebugInitWeights::communicateInitInfo(
 
 int SharedConnDebugInitWeights::setInitialValues() {
    FatalIf(
-         getWeights() == nullptr,
+         getPreWeights() == nullptr,
          "SharedConnDebugInitWeights::setInitialValues called without having set mWeights.\n");
    FatalIf(
          weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
          "SharedConnDebugInitWeights should have set weightInitTypeString but somehow did not.\n");
    int numKernelPatches = getNumDataPatches();
-   for (int arbor = 0; arbor < getWeights()->getNumArbors(); arbor++) {
+   for (int arbor = 0; arbor < getPreWeights()->getNumArbors(); arbor++) {
       float *arborStart = getWeightsDataStart(arbor);
       if (!strcmp(weightInitTypeString, "CoCircWeight")) {
          initializeCocircWeights(arborStart, numKernelPatches);

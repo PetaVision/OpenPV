@@ -42,6 +42,9 @@ int BaseConnection::initialize_base() {
 int BaseConnection::initialize(const char *name, HyPerCol *hc) {
    int status = BaseObject::initialize(name, hc);
    createDeliveryObject();
+   if (mDeliveryObject) {
+      addObserver(mDeliveryObject, BaseMessage{});
+   }
 
    if (status == PV_SUCCESS)
       status = readParams();
@@ -95,6 +98,10 @@ void BaseConnection::setChannelType(ChannelType ch) {
 void BaseConnection::setNumberOfAxonalArborLists(int numArbors) {
    assert(!initInfoCommunicatedFlag);
    this->numAxonalArborLists = numArbors;
+}
+
+void BaseConnection::addObserver(Observer *observer, BaseMessage const &message) {
+   mComponentTable.addObject(observer->getDescription(), observer);
 }
 
 int BaseConnection::handleMissingPreAndPostLayerNames() {
