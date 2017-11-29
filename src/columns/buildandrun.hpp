@@ -17,8 +17,6 @@
 #include <columns/HyPerCol.hpp>
 
 #include <columns/PV_Init.hpp>
-#include <normalizers/NormalizeBase.hpp>
-#include <weightinit/InitWeights.hpp>
 
 using namespace PV;
 

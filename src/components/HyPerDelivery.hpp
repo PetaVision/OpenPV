@@ -9,6 +9,7 @@
 #define HYPERDELIVERY_HPP_
 
 #include "components/BaseDelivery.hpp"
+#include "components/WeightsPair.hpp"
 
 namespace PV {
 
@@ -44,7 +45,9 @@ class HyPerDelivery : public BaseDelivery {
 
    virtual ~HyPerDelivery();
 
-   virtual void deliver(Weights *weights) override = 0;
+   void setConnectionData(ConnectionData *connectionData);
+
+   virtual void deliver() override = 0;
 
   protected:
    HyPerDelivery();
@@ -52,6 +55,9 @@ class HyPerDelivery : public BaseDelivery {
    int initialize(char const *name, HyPerCol *hc);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual int allocateDataStructures() override;
 
@@ -63,7 +69,8 @@ class HyPerDelivery : public BaseDelivery {
    bool mUpdateGSynFromPostPerspective = false;
    bool mConvertRateToSpikeCount       = false;
 
-   float mDeltaTimeFactor = 1.0f;
+   float mDeltaTimeFactor    = 1.0f;
+   WeightsPair *mWeightsPair = nullptr;
 
 }; // end class HyPerDelivery
 

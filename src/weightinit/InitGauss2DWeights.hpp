@@ -71,7 +71,6 @@ class InitGauss2DWeights : public PV::InitWeights {
    bool checkBowtieAngle(float xp, float yp);
 
   private:
-   int initialize_base();
    void gauss2DCalcWeights(float *dataStart);
 
   protected:

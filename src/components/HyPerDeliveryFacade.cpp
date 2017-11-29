@@ -7,6 +7,7 @@
 
 #include "HyPerDeliveryFacade.hpp"
 #include "columns/HyPerCol.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -132,13 +133,25 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
    }
 }
 
-int HyPerDeliveryFacade::allocateDataStructures() {
-   int status = BaseDelivery::allocateDataStructures();
-   if (mDeliveryIntern) {
-      mDeliveryIntern->setNumArbors(mNumArbors);
-      mDeliveryIntern->setPreAndPostLayers(mPreLayer, mPostLayer);
-      mDeliveryIntern->respond(std::make_shared<AllocateDataMessage>());
+int HyPerDeliveryFacade::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   int status = BaseDelivery::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
    }
+   pvAssert(mConnectionData != nullptr);
+   WeightsPair *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
+   pvAssert(weightsPair != nullptr);
+   pvAssert(mDeliveryIntern != nullptr);
+
+   // DeliveryIntern needs to know the ConnectionData and the WeightsPair.
+   ObserverTable observerTable;
+   observerTable.addObject(mConnectionData->getDescription(), mConnectionData);
+   observerTable.addObject(weightsPair->getDescription(), weightsPair);
+   observerTable.addObject(mDeliveryIntern->getDescription(), mDeliveryIntern);
+   auto internMessage = std::make_shared<CommunicateInitInfoMessage>(observerTable.getObjectMap());
+
+   status = mDeliveryIntern->respond(internMessage);
    return status;
 }
 
@@ -159,9 +172,9 @@ double HyPerDeliveryFacade::convertToRateDeltaTimeFactor(double timeConstantTau)
    return dtFactor;
 }
 
-void HyPerDeliveryFacade::deliver(Weights *weights) {
+void HyPerDeliveryFacade::deliver() {
    if (mDeliveryIntern) {
-      int numArbors = weights->getNumArbors();
+      int numArbors = mConnectionData->getNumAxonalArbors();
       FatalIf(
             numArbors != (int)mDelay.size(),
             "%s has %d %s, but the number of delays is %d.\n",
@@ -169,13 +182,13 @@ void HyPerDeliveryFacade::deliver(Weights *weights) {
             numArbors,
             numArbors == 1 ? "arbor" : "arbors",
             (int)mDelay.size());
-      mDeliveryIntern->deliver(weights);
+      mDeliveryIntern->deliver();
    }
 }
 
-void HyPerDeliveryFacade::deliverUnitInput(Weights *weights, float *recvBuffer) {
+void HyPerDeliveryFacade::deliverUnitInput(float *recvBuffer) {
    if (mDeliveryIntern) {
-      mDeliveryIntern->deliverUnitInput(weights, recvBuffer);
+      mDeliveryIntern->deliverUnitInput(recvBuffer);
    }
 }
 

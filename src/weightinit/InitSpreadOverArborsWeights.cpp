@@ -10,15 +10,12 @@
 namespace PV {
 
 InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
    initialize(name, hc);
 }
 
-InitSpreadOverArborsWeights::InitSpreadOverArborsWeights() { initialize_base(); }
+InitSpreadOverArborsWeights::InitSpreadOverArborsWeights() {}
 
 InitSpreadOverArborsWeights::~InitSpreadOverArborsWeights() {}
-
-int InitSpreadOverArborsWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitSpreadOverArborsWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitGauss2DWeights::initialize(name, hc);

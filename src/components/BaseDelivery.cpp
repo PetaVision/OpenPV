@@ -1,32 +1,34 @@
 /*
  * BaseDelivery.cpp
  *
- *  Created on: Aug 24, 2017
+ *  Created on: Nov 17, 2017
  *      Author: Pete Schultz
  */
 
 #include "BaseDelivery.hpp"
 #include "columns/HyPerCol.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-BaseDelivery::BaseDelivery() {}
-
-BaseDelivery::~BaseDelivery() {}
+BaseDelivery::BaseDelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 int BaseDelivery::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
 }
 
+int BaseDelivery::setDescription() {
+   description.clear();
+   description.append("BaseDelivery").append(" \"").append(getName()).append("\"");
+   return PV_SUCCESS;
+}
+
 int BaseDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_channelCode(ioFlag);
    ioParam_delay(ioFlag);
-
-   // GPU-specific parameter.  If not using GPUs, we read it anyway, with
-   // warnIfAbsent set to false,
-   // to prevent unnecessary warnings from unread or missing parameters.
+   ioParam_convertRateToSpikeCount(ioFlag);
    ioParam_receiveGpu(ioFlag);
-
    return PV_SUCCESS;
 }
 
@@ -34,60 +36,70 @@ void BaseDelivery::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       int ch = 0;
       this->parent->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
-      int status = decodeChannel(ch, &mChannelCode);
-      if (status != PV_SUCCESS) {
-         if (this->parent->columnId() == 0) {
-            ErrorLog().printf(
-                  "%s: channelCode %d is not a valid channel.\n", this->getDescription_c(), ch);
-         }
-         MPI_Barrier(this->parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
+      switch (ch) {
+         case CHANNEL_EXC: mChannelCode      = CHANNEL_EXC; break;
+         case CHANNEL_INH: mChannelCode      = CHANNEL_INH; break;
+         case CHANNEL_INHB: mChannelCode     = CHANNEL_INHB; break;
+         case CHANNEL_GAP: mChannelCode      = CHANNEL_GAP; break;
+         case CHANNEL_NORM: mChannelCode     = CHANNEL_NORM; break;
+         case CHANNEL_NOUPDATE: mChannelCode = CHANNEL_NOUPDATE; break;
+         default:
+            if (parent->getCommunicator()->globalCommRank() == 0) {
+               ErrorLog().printf(
+                     "%s: channelCode %d is not a valid channel.\n", this->getDescription_c(), ch);
+            }
+            MPI_Barrier(this->parent->getCommunicator()->globalCommunicator());
+            exit(EXIT_FAILURE);
+            break;
       }
    }
    else if (ioFlag == PARAMS_IO_WRITE) {
       int ch = (int)mChannelCode;
-      this->parent->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
+      parent->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
    }
    else {
-      pvAssert(0); // All possibilities of ioFlag are covered above.
+      assert(0); // All possibilities of ioFlag are covered above.
    }
 }
 
 void BaseDelivery::ioParam_delay(enum ParamsIOFlag ioFlag) {
-   // Grab delays in ms and load into mDelayFromParams.
+   // Grab delays in ms and load into mDelaysParams.
    // initializeDelays() will convert the delays to timesteps store into delays.
-   double *delayArray;
-   int delayArraySize;
-   if (ioFlag == PARAMS_IO_WRITE) {
-      delayArray     = mDelayFromParams.data();
-      delayArraySize = (int)mDelayFromParams.size();
-   }
-   this->parent->parameters()->ioParamArray(
-         ioFlag, this->getName(), "delay", &delayArray, &delayArraySize);
-   if (ioFlag == PARAMS_IO_READ) {
-      if (delayArraySize == 0) {
-         mDelayFromParams.resize(1);
-         mDelayFromParams[0] = 0.0f;
-         if (this->parent->columnId() == 0) {
-            InfoLog() << getDescription() << ": Using default value of zero for delay.\n";
-         }
-      }
-      else {
-         mDelayFromParams.resize(delayArraySize);
-         for (int d = 0; d < delayArraySize; d++) {
-            mDelayFromParams[d] = delayArray[d];
-         }
+   parent->parameters()->ioParamArray(ioFlag, getName(), "delay", &mDelaysParams, &mNumDelays);
+   if (ioFlag == PARAMS_IO_READ && mNumDelays == 0) {
+      assert(mDelaysParams == nullptr);
+      mDelaysParams = (double *)pvMallocError(
+            sizeof(double),
+            "%s: unable to set default delay: %s\n",
+            this->getDescription_c(),
+            strerror(errno));
+      *mDelaysParams = 0.0f; // Default delay
+      mNumDelays     = 1;
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         InfoLog().printf("%s: Using default value of zero for delay.\n", this->getDescription_c());
       }
    }
+}
+
+void BaseDelivery::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(
+         ioFlag,
+         getName(),
+         "convertRateToSpikeCount",
+         &mConvertRateToSpikeCount,
+         false /*default value*/);
 }
 
 void BaseDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
    parent->parameters()->ioParamValue(
-         ioFlag, name, "receiveGpu", &mReceiveGpu, false /*default*/, true /*warn if absent*/);
-   mUsingGPUFlag = mReceiveGpu;
+         ioFlag,
+         name,
+         "receiveGpu",
+         &mReceiveGpu,
+         mReceiveGpu /*default*/,
+         true /*warn if absent*/);
 #else
-   mReceiveGpu = false;
    parent->parameters()->ioParamValue(
          ioFlag,
          name,
@@ -105,83 +117,62 @@ void BaseDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #endif // PV_USE_CUDA
 }
 
-void BaseDelivery::setNumArbors(int numArbors) {
-   FatalIf(
-         mNumArbors > 0,
-         "Setting number of arbors in %s, but it was already set (to %d).\n",
-         getDescription_c(),
-         mNumArbors);
-   FatalIf(
-         numArbors <= 0,
-         "%s setNumArbors called with value %d. The number of arbors must be positive.\n",
-         getDescription_c(),
-         numArbors);
-   mNumArbors = numArbors;
-}
+int BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   pvAssert(mConnectionData == nullptr);
+   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   pvAssert(mConnectionData != nullptr);
 
-int BaseDelivery::allocateDataStructures() {
-   int status = BaseObject::allocateDataStructures();
-   FatalIf(
-         mNumArbors <= 0,
-         "%s delivery component's allocateDataStructures was called before setNumArbors.\n");
+   if (!mConnectionData->getInitInfoCommunicatedFlag()) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s must wait until the ConnectionData component has finished its "
+               "communicateInitInfo stage.\n",
+               getDescription_c());
+      }
+      return PV_POSTPONE;
+   }
+
+   mPreLayer  = mConnectionData->getPre();
+   mPostLayer = mConnectionData->getPost();
+
    initializeDelays();
-   return status;
-}
-
-void BaseDelivery::setPreAndPostLayers(HyPerLayer *preLayer, HyPerLayer *postLayer) {
-   FatalIf(
-         preLayer == nullptr,
-         "%s delivery component set the presynaptic layer to the null pointer.\n",
-         getDescription_c());
-   FatalIf(
-         postLayer == nullptr,
-         "%s delivery component set the postsynaptic layer to the null pointer.\n",
-         getDescription_c());
-   FatalIf(
-         preLayer->getLayerLoc()->nbatch != postLayer->getLayerLoc()->nbatch,
-         "%s called with pre and post layers with different batch size (%d versus %d)\n",
-         getDescription_c(),
-         preLayer->getLayerLoc()->nbatch,
-         postLayer->getLayerLoc()->nbatch);
-   mPreLayer  = preLayer;
-   mPostLayer = postLayer;
+   return PV_SUCCESS;
 }
 
 void BaseDelivery::initializeDelays() {
-   pvAssert(mNumArbors > 0);
-   mDelay.resize(mNumArbors);
-   double deltaTime                     = parent->getDeltaTime();
-   std::size_t const numDelayFromParams = mDelayFromParams.size();
-   if (numDelayFromParams == (std::size_t)1) {
-      int const delayFromParams = convertToNumberOfTimesteps(mDelayFromParams[0], deltaTime);
-      for (auto &d : mDelay) {
-         d = delayFromParams;
+   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "numAxonalArbors"));
+   mDelay.resize(mConnectionData->getNumAxonalArbors());
+
+   // Initialize delays for each arbor
+   // Using setDelay to convert ms to timesteps
+   for (int arborId = 0; arborId < (int)mDelay.size(); arborId++) {
+      if (mNumDelays == 0) {
+         // No delay
+         setDelay(arborId, 0.0);
       }
-   }
-   else if (numDelayFromParams == mDelay.size()) {
-      for (std::size_t k = 0; k < numDelayFromParams; k++) {
-         mDelay[k] = convertToNumberOfTimesteps(mDelayFromParams[k], deltaTime);
+      else if (mNumDelays == 1) {
+         setDelay(arborId, mDelaysParams[0]);
       }
-   }
-   else {
-      Fatal().printf(
-            "%s: delay must be either a single value or the same length as the number of arbors\n",
-            getDescription_c());
+      else if (mNumDelays == mConnectionData->getNumAxonalArbors()) {
+         setDelay(arborId, mDelaysParams[arborId]);
+      }
+      else {
+         Fatal().printf(
+               "Delay must be either a single value or the same length "
+               "as the number of arbors\n");
+      }
    }
 }
 
-int BaseDelivery::convertToNumberOfTimesteps(double delay, double deltaTime) {
-   int intDelay = (int)std::round(delay / deltaTime);
-   if (fmod(delay, deltaTime) != 0) {
-      double roundedDelay = intDelay * parent->getDeltaTime();
-      WarnLog() << getName() << ": A delay of " << delay << " will be rounded to " << roundedDelay
+void BaseDelivery::setDelay(int arborId, double delay) {
+   assert(arborId >= 0 && arborId < mConnectionData->getNumAxonalArbors());
+   int intDelay = (int)std::nearbyint(delay / parent->getDeltaTime());
+   if (std::fmod(delay, parent->getDeltaTime()) != 0) {
+      double actualDelay = intDelay * parent->getDeltaTime();
+      WarnLog() << getName() << ": A delay of " << delay << " will be rounded to " << actualDelay
                 << "\n";
    }
-   return intDelay;
+   mDelay[arborId] = intDelay;
 }
 
-void BaseDelivery::deliver(Weights *weights) {}
-
-void BaseDelivery::deliverUnitInput(Weights *weights, float *recvBuffer) {}
-
-} // end namespace PV
+} // namespace PV

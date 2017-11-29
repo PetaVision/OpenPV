@@ -49,9 +49,9 @@ class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
     *
     * The postWeights argument is not used.
     */
-   virtual void deliver(Weights *weights) override;
+   virtual void deliver() override;
 
-   virtual void deliverUnitInput(Weights *weights, float *recvBuffer) override;
+   virtual void deliverUnitInput(float *recvBuffer) override;
 
    /**
     * Returns the value of the receiveGpu parameter

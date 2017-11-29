@@ -17,7 +17,6 @@
 #include "checkpointing/CheckpointEntryRandState.hpp"
 #include "columns/HyPerCol.hpp"
 #include "connections/BaseConnection.hpp"
-#include "connections/TransposeConn.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
 #include "io/FileStream.hpp"
@@ -1257,7 +1256,7 @@ int HyPerLayer::setMaxPhase(int *maxPhase) {
 
 void HyPerLayer::addRecvConn(BaseConnection *conn) {
    FatalIf(
-         conn->postSynapticLayer() != this,
+         conn->getPost() != this,
          "%s called addRecvConn for %s, but \"%s\" is not the post-synaptic layer for \"%s\"\n.",
          conn->getDescription_c(),
          getDescription_c(),
@@ -1945,7 +1944,7 @@ bool HyPerLayer::isExchangeFinished(int delay) { return publisher->isExchangeFin
 bool HyPerLayer::isAllInputReady() {
    bool isReady = true;
    for (auto &c : recvConns) {
-      for (int a = 0; a < c->numberOfAxonalArborLists(); a++) {
+      for (int a = 0; a < c->getNumAxonalArbors(); a++) {
          isReady &= c->getPre()->isExchangeFinished(c->getDelay(a));
       }
    }

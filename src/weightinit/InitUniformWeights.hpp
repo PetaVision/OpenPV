@@ -52,7 +52,6 @@ class InitUniformWeights : public PV::InitWeights {
    virtual void calcWeights(int patchIndex, int arborId) override;
 
   private:
-   virtual int initialize_base();
    void uniformWeights(float *dataStart, float weightInit, int kf, bool connectOnlySameFeatures);
 
   private:

@@ -21,10 +21,10 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ISTALayer.cpp
    ${SUBDIR}/KmeansLayer.cpp
    ${SUBDIR}/LabelErrorLayer.cpp
-   ${SUBDIR}/LCALIFLayer.cpp
+#   ${SUBDIR}/LCALIFLayer.cpp
    ${SUBDIR}/LeakyIntegrator.cpp
    ${SUBDIR}/LIF.cpp
-   ${SUBDIR}/LIFGap.cpp
+#   ${SUBDIR}/LIFGap.cpp
    ${SUBDIR}/MaskLayer.cpp
    ${SUBDIR}/PoolingIndexLayer.cpp
    ${SUBDIR}/PtwiseProductLayer.cpp
@@ -63,10 +63,10 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ISTALayer.hpp
    ${SUBDIR}/KmeansLayer.hpp
    ${SUBDIR}/LabelErrorLayer.hpp
-   ${SUBDIR}/LCALIFLayer.hpp
+#   ${SUBDIR}/LCALIFLayer.hpp
    ${SUBDIR}/LeakyIntegrator.hpp
    ${SUBDIR}/LIF.hpp
-   ${SUBDIR}/LIFGap.hpp
+#   ${SUBDIR}/LIFGap.hpp
    ${SUBDIR}/MaskLayer.hpp
    ${SUBDIR}/PoolingIndexLayer.hpp
    ${SUBDIR}/PtwiseProductLayer.hpp

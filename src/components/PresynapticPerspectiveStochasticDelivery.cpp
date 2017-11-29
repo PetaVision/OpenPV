@@ -62,7 +62,7 @@ void PresynapticPerspectiveStochasticDelivery::allocateRandState() {
    mRandState = new Random(mPreLayer->getLayerLoc(), true /*need RNGs in the extended buffer*/);
 }
 
-void PresynapticPerspectiveStochasticDelivery::deliver(Weights *weights) {
+void PresynapticPerspectiveStochasticDelivery::deliver() {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
@@ -72,6 +72,7 @@ void PresynapticPerspectiveStochasticDelivery::deliver(Weights *weights) {
 
    PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
    PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   Weights *weights          = mWeightsPair->getPreWeights();
 
    int const nxPreExtended  = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
    int const nyPreExtended  = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
@@ -87,7 +88,8 @@ void PresynapticPerspectiveStochasticDelivery::deliver(Weights *weights) {
 
    bool const preLayerIsSparse = mPreLayer->getSparseFlag();
 
-   for (int arbor = 0; arbor < mNumArbors; arbor++) {
+   int numAxonalArbors = mConnectionData->getNumAxonalArbors();
+   for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(mDelay[arbor]);
 
       for (int b = 0; b < nbatch; b++) {
@@ -233,11 +235,10 @@ void PresynapticPerspectiveStochasticDelivery::deliver(Weights *weights) {
    }
 }
 
-void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(
-      Weights *weights,
-      float *recvBuffer) {
+void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffer) {
    PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
    PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   Weights *weights          = mWeightsPair->getPreWeights();
 
    int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
 
@@ -246,7 +247,8 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(
    const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
    const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
 
-   for (int arbor = 0; arbor < mNumArbors; arbor++) {
+   int const numAxonalArbors = mConnectionData->getNumAxonalArbors();
+   for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(mDelay[arbor]);
 
       for (int b = 0; b < nbatch; b++) {

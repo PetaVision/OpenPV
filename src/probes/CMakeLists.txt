@@ -3,19 +3,19 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LogTimeScaleProbe.cpp
    ${SUBDIR}/KneeTimeScaleProbe.cpp
    ${SUBDIR}/AdaptiveTimeScaleProbe.cpp
-   ${SUBDIR}/BaseConnectionProbe.cpp
-   ${SUBDIR}/BaseHyPerConnProbe.cpp
+#   ${SUBDIR}/BaseConnectionProbe.cpp
+#   ${SUBDIR}/BaseHyPerConnProbe.cpp
    ${SUBDIR}/BaseProbe.cpp
    ${SUBDIR}/ColProbe.cpp
    ${SUBDIR}/ColumnEnergyProbe.cpp
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.cpp
    ${SUBDIR}/FirmThresholdCostFnProbe.cpp
-   ${SUBDIR}/KernelProbe.cpp
+#   ${SUBDIR}/KernelProbe.cpp
    ${SUBDIR}/L0NormLCAProbe.cpp
    ${SUBDIR}/L0NormProbe.cpp
    ${SUBDIR}/L1NormLCAProbe.cpp
    ${SUBDIR}/L1NormProbe.cpp
-   ${SUBDIR}/L2ConnProbe.cpp
+#   ${SUBDIR}/L2ConnProbe.cpp
    ${SUBDIR}/L2NormProbe.cpp
    ${SUBDIR}/LayerProbe.cpp
    ${SUBDIR}/PointLIFProbe.cpp
@@ -30,19 +30,19 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/AdaptiveTimeScaleProbe.hpp
    ${SUBDIR}/LogTimeScaleProbe.hpp
    ${SUBDIR}/KneeTimeScaleProbe.hpp
-   ${SUBDIR}/BaseConnectionProbe.hpp
-   ${SUBDIR}/BaseHyPerConnProbe.hpp
+#   ${SUBDIR}/BaseConnectionProbe.hpp
+#   ${SUBDIR}/BaseHyPerConnProbe.hpp
    ${SUBDIR}/BaseProbe.hpp
    ${SUBDIR}/ColProbe.hpp
    ${SUBDIR}/ColumnEnergyProbe.hpp
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.hpp
    ${SUBDIR}/FirmThresholdCostFnProbe.hpp
-   ${SUBDIR}/KernelProbe.hpp
+#   ${SUBDIR}/KernelProbe.hpp
    ${SUBDIR}/L0NormLCAProbe.hpp
    ${SUBDIR}/L0NormProbe.hpp
    ${SUBDIR}/L1NormLCAProbe.hpp
    ${SUBDIR}/L1NormProbe.hpp
-   ${SUBDIR}/L2ConnProbe.hpp
+#   ${SUBDIR}/L2ConnProbe.hpp
    ${SUBDIR}/L2NormProbe.hpp
    ${SUBDIR}/LayerProbe.hpp
    ${SUBDIR}/PointLIFProbe.hpp

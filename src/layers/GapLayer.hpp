@@ -10,7 +10,6 @@
 #define GAPLAYER_HPP_
 
 #include "CloneVLayer.hpp"
-#include "LIFGap.hpp"
 
 namespace PV {
 
@@ -29,7 +28,6 @@ class GapLayer : public CloneVLayer {
   protected:
    GapLayer();
    int initialize(const char *name, HyPerCol *hc);
-   // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_ampSpikelet(enum ParamsIOFlag ioFlag);
 

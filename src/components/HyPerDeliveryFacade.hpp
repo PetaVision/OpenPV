@@ -56,9 +56,9 @@ class HyPerDeliveryFacade : public BaseDelivery {
 
    virtual ~HyPerDeliveryFacade();
 
-   virtual void deliver(Weights *weights) override;
+   virtual void deliver() override;
 
-   virtual void deliverUnitInput(Weights *weights, float *recvBuffer) override;
+   virtual void deliverUnitInput(float *recvBuffer) override;
 
    HyPerDelivery::AccumulateType getAccumulateType() const { return mAccumulateType; }
 
@@ -75,7 +75,8 @@ class HyPerDeliveryFacade : public BaseDelivery {
 
    void createDeliveryIntern();
 
-   virtual int allocateDataStructures() override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    double convertToRateDeltaTimeFactor(double timeConstantTau) const;
 

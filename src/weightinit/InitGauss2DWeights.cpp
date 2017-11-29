@@ -9,16 +9,11 @@
 
 namespace PV {
 
-InitGauss2DWeights::InitGauss2DWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+InitGauss2DWeights::InitGauss2DWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-InitGauss2DWeights::InitGauss2DWeights() { initialize_base(); }
+InitGauss2DWeights::InitGauss2DWeights() {}
 
 InitGauss2DWeights::~InitGauss2DWeights() {}
-
-int InitGauss2DWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitGauss2DWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitWeights::initialize(name, hc);

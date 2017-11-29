@@ -1,5 +1,0 @@
-# Configuration file for ConfigFileSystemTest with 2 MPI process.
-# If modifying, also consider modifying the files with 1 or 4 processes.
-ParamsFile:input/ConfigFileSystemTest.params
-NumThreads:-
-LogFile:ConfigFileSystemTest_2.log

@@ -9,16 +9,11 @@
 
 namespace PV {
 
-InitUniformWeights::InitUniformWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+InitUniformWeights::InitUniformWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-InitUniformWeights::InitUniformWeights() { initialize_base(); }
+InitUniformWeights::InitUniformWeights() {}
 
 InitUniformWeights::~InitUniformWeights() {}
-
-int InitUniformWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitUniformWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitWeights::initialize(name, hc);

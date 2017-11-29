@@ -16,6 +16,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BufferUtilsPvp.hpp
    ${SUBDIR}/BufferUtilsRescale.hpp
    ${SUBDIR}/Clock.hpp
+   ${SUBDIR}/MapLookupByType.hpp
    ${SUBDIR}/PVAssert.hpp
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp

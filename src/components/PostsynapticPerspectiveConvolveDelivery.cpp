@@ -52,7 +52,7 @@ void PostsynapticPerspectiveConvolveDelivery::allocateThreadGSyn() {
    }
 }
 
-void PostsynapticPerspectiveConvolveDelivery::deliver(Weights *weights) {
+void PostsynapticPerspectiveConvolveDelivery::deliver() {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
@@ -60,7 +60,8 @@ void PostsynapticPerspectiveConvolveDelivery::deliver(Weights *weights) {
    float *postChannel = mPostLayer->getChannel(getChannelCode());
    pvAssert(postChannel);
 
-   for (int arbor = 0; arbor < mNumArbors; arbor++) {
+   int numAxonalArbors = mConnectionData->getNumAxonalArbors();
+   for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(mDelay[arbor]);
 
       // Get number of neurons restricted target
@@ -87,9 +88,10 @@ void PostsynapticPerspectiveConvolveDelivery::deliver(Weights *weights) {
       float *gSynPatchHead = mPostLayer->getChannel(getChannelCode());
 
       // Get source layer's patch y stride
-      int syp               = weights->getPatchStrideY();
-      int yPatchSize        = weights->getPatchSizeY();
-      int numPerStride      = weights->getPatchSizeX() * weights->getPatchSizeF();
+      Weights *postWeights  = mWeightsPair->getPostWeights();
+      int syp               = postWeights->getPatchStrideY();
+      int yPatchSize        = postWeights->getPatchSizeY();
+      int numPerStride      = postWeights->getPatchSizeX() * postWeights->getPatchSizeF();
       int neuronIndexStride = targetNf < 4 ? 1 : targetNf / 4;
 
       for (int b = 0; b < nbatch; b++) {
@@ -120,7 +122,7 @@ void PostsynapticPerspectiveConvolveDelivery::deliver(Weights *weights) {
                         targetHalo->rt,
                         targetHalo->dn,
                         targetHalo->up);
-                  int startSourceExt = weights->getGeometry()->getUnshrunkenStart(idxExtended);
+                  int startSourceExt = postWeights->getGeometry()->getUnshrunkenStart(idxExtended);
                   float *a           = activityBatch + startSourceExt + ky * sy;
 
                   int kTargetExt = kIndexExtended(
@@ -132,7 +134,7 @@ void PostsynapticPerspectiveConvolveDelivery::deliver(Weights *weights) {
                         targetHalo->rt,
                         targetHalo->dn,
                         targetHalo->up);
-                  float *weightBuf    = weights->getDataFromPatchIndex(arbor, kTargetExt);
+                  float *weightBuf    = postWeights->getDataFromPatchIndex(arbor, kTargetExt);
                   float *weightValues = weightBuf + ky * syp;
 
                   float dv = 0.0f;
@@ -148,7 +150,7 @@ void PostsynapticPerspectiveConvolveDelivery::deliver(Weights *weights) {
 }
 
 void PostsynapticPerspectiveConvolveDelivery::deliverUnitInput(
-      Weights *weights,
+
       float *recvBuffer) {
    // Get number of neurons restricted target
    const int numPostRestricted = mPostLayer->getNumNeurons();
@@ -163,12 +165,14 @@ void PostsynapticPerspectiveConvolveDelivery::deliverUnitInput(
    const PVHalo *targetHalo = &targetLoc->halo;
 
    // Get source layer's patch y stride
-   int syp               = weights->getPatchStrideY();
-   int yPatchSize        = weights->getPatchSizeY();
-   int numPerStride      = weights->getPatchSizeX() * weights->getPatchSizeF();
+   Weights *postWeights  = mWeightsPair->getPostWeights();
+   int syp               = postWeights->getPatchStrideY();
+   int yPatchSize        = postWeights->getPatchSizeY();
+   int numPerStride      = postWeights->getPatchSizeX() * postWeights->getPatchSizeF();
    int neuronIndexStride = targetNf < 4 ? 1 : targetNf / 4;
 
-   for (int arbor = 0; arbor < mNumArbors; arbor++) {
+   int numAxonalArbors = mConnectionData->getNumAxonalArbors();
+   for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       for (int b = 0; b < nbatch; b++) {
          float *recvBatch = recvBuffer + b * numPostRestricted;
 
@@ -192,7 +196,7 @@ void PostsynapticPerspectiveConvolveDelivery::deliverUnitInput(
                         targetHalo->rt,
                         targetHalo->dn,
                         targetHalo->up);
-                  float *weightBuf    = weights->getDataFromPatchIndex(arbor, kTargetExt);
+                  float *weightBuf    = postWeights->getDataFromPatchIndex(arbor, kTargetExt);
                   float *weightValues = weightBuf + ky * syp;
 
                   float dv = 0.0f;

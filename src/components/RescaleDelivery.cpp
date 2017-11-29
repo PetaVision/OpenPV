@@ -32,7 +32,7 @@ void RescaleDelivery::ioParam_scale(enum ParamsIOFlag ioFlag) {
 // for two lines inside for-loops with large numbers of iterations.
 // We're discussing ways to eliminate code duplication like this without
 // incurring added computational costs.
-void RescaleDelivery::deliver(Weights *weights) {
+void RescaleDelivery::deliver() {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }
@@ -103,7 +103,7 @@ void RescaleDelivery::deliver(Weights *weights) {
    }
 }
 
-void RescaleDelivery::deliverUnitInput(Weights *weights, float *recvBuffer) {
+void RescaleDelivery::deliverUnitInput(float *recvBuffer) {
    const int numNeuronsPost = mPostLayer->getNumNeuronsAllBatches();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for

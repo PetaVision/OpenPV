@@ -7,6 +7,7 @@
 
 #include "HyPerDelivery.hpp"
 #include "columns/HyPerCol.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -33,13 +34,18 @@ int HyPerDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerDelivery::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    parent->parameters()->ioParamValue(
          ioFlag,
          this->getName(),
          "convertRateToSpikeCount",
          &mConvertRateToSpikeCount,
          mConvertRateToSpikeCount /*default value*/);
+}
+
+int HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   int status   = BaseDelivery::communicateInitInfo(message);
+   mWeightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
+   return status;
 }
 
 int HyPerDelivery::allocateDataStructures() {

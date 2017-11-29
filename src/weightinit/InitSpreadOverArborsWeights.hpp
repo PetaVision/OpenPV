@@ -29,7 +29,6 @@ class InitSpreadOverArborsWeights : public InitGauss2DWeights {
    int initialize(char const *name, HyPerCol *hc);
 
   private:
-   int initialize_base();
    int spreadOverArborsWeights(float *dataStart, int arborId);
 
   private:

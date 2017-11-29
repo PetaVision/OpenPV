@@ -17,6 +17,14 @@ int IdentDelivery::initialize(char const *name, HyPerCol *hc) {
    return BaseDelivery::initialize(name, hc);
 }
 
+void IdentDelivery::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      mConvertRateToSpikeCount = false;
+      parent->parameters()->handleUnnecessaryParameter(
+            name, "convertRateToSpikeCount", mConvertRateToSpikeCount /*correctValue*/);
+   }
+}
+
 void IdentDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // Never receive from gpu
    mReceiveGpu = false;
@@ -25,7 +33,7 @@ void IdentDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void IdentDelivery::deliver(Weights *weights) {
+void IdentDelivery::deliver() {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }
@@ -96,7 +104,7 @@ void IdentDelivery::deliver(Weights *weights) {
    }
 }
 
-void IdentDelivery::deliverUnitInput(Weights *weights, float *recvBuffer) {
+void IdentDelivery::deliverUnitInput(float *recvBuffer) {
    const int numNeuronsPost = mPostLayer->getNumNeuronsAllBatches();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for

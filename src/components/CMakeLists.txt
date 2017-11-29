@@ -4,6 +4,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/KneeTimeScaleController.cpp
    ${SUBDIR}/AdaptiveTimeScaleController.cpp
    ${SUBDIR}/BatchIndexer.cpp
+   ${SUBDIR}/ConnectionData.cpp
    ${SUBDIR}/HyPerDelivery.cpp
    ${SUBDIR}/HyPerDeliveryFacade.cpp
    ${SUBDIR}/IdentDelivery.cpp
@@ -18,6 +19,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.cpp
    ${SUBDIR}/RescaleDelivery.cpp
    ${SUBDIR}/Weights.cpp
+   ${SUBDIR}/WeightsPair.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -26,6 +28,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/KneeTimeScaleController.cpp
    ${SUBDIR}/AdaptiveTimeScaleController.hpp
    ${SUBDIR}/BatchIndexer.hpp
+   ${SUBDIR}/ConnectionData.hpp
    ${SUBDIR}/HyPerDelivery.hpp
    ${SUBDIR}/HyPerDeliveryFacade.hpp
    ${SUBDIR}/IdentDelivery.hpp
@@ -41,4 +44,5 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.hpp
    ${SUBDIR}/RescaleDelivery.hpp
    ${SUBDIR}/Weights.hpp
+   ${SUBDIR}/WeightsPair.hpp
 )

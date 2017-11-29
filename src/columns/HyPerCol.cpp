@@ -639,10 +639,7 @@ int HyPerCol::normalizeWeights() {
    for (int n = 0; n < mNormalizers.size(); n++) {
       NormalizeBase *normalizer = mNormalizers.at(n);
       if (normalizer) {
-         status = normalizer->normalizeWeightsWrapper();
-      }
-      if (status != PV_SUCCESS) {
-         ErrorLog().printf("Normalizer \"%s\" failed.\n", mNormalizers[n]->getName());
+         normalizer->normalizeWeightsIfNeeded();
       }
    }
    return status;

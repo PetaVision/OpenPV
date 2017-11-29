@@ -71,12 +71,9 @@ class BaseObject : public CheckpointerDataInterface {
     */
    int ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter);
 
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override; // TODO: should return
-   // enum with values
-   // corresponding to
-   // PV_SUCCESS,
-   // PV_FAILURE,
-   // PV_POSTPONE
+   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
+
    virtual ~BaseObject();
 
    /**

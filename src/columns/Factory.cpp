@@ -28,9 +28,9 @@
 #include "layers/ImageLayer.hpp"
 #include "layers/InputRegionLayer.hpp"
 #include "layers/KmeansLayer.hpp"
-#include "layers/LCALIFLayer.hpp"
+// #include "layers/LCALIFLayer.hpp"
 #include "layers/LIF.hpp"
-#include "layers/LIFGap.hpp"
+// #include "layers/LIFGap.hpp"
 #include "layers/LabelErrorLayer.hpp"
 #include "layers/LeakyIntegrator.hpp"
 #include "layers/MaskLayer.hpp"
@@ -46,25 +46,25 @@
 #include "layers/SigmoidLayer.hpp"
 #include "layers/WTALayer.hpp"
 
-#include "connections/CloneConn.hpp"
-#include "connections/CopyConn.hpp"
-#include "connections/FeedbackConn.hpp"
-#include "connections/GapConn.hpp"
+// #include "connections/CloneConn.hpp"
+// #include "connections/CopyConn.hpp"
+// #include "connections/FeedbackConn.hpp"
+// #include "connections/GapConn.hpp"
 #include "connections/HyPerConn.hpp"
 #include "connections/IdentConn.hpp"
-#include "connections/ImprintConn.hpp"
-#include "connections/MomentumConn.hpp"
-#include "connections/PlasticCloneConn.hpp"
-#include "connections/PoolingConn.hpp"
-#include "connections/RescaleConn.hpp"
-#include "connections/TransposeConn.hpp"
-#include "connections/TransposePoolingConn.hpp"
+// #include "connections/ImprintConn.hpp"
+// #include "connections/MomentumConn.hpp"
+// #include "connections/PlasticCloneConn.hpp"
+// #include "connections/PoolingConn.hpp"
+// #include "connections/RescaleConn.hpp"
+// #include "connections/TransposeConn.hpp"
+// #include "connections/TransposePoolingConn.hpp"
 
 #include "probes/AdaptiveTimeScaleProbe.hpp"
 #include "probes/ColumnEnergyProbe.hpp"
 #include "probes/FirmThresholdCostFnLCAProbe.hpp"
 #include "probes/FirmThresholdCostFnProbe.hpp"
-#include "probes/KernelProbe.hpp"
+// #include "probes/KernelProbe.hpp"
 #include "probes/KneeTimeScaleProbe.hpp"
 #include "probes/L0NormLCAProbe.hpp"
 #include "probes/L0NormProbe.hpp"
@@ -84,33 +84,30 @@
 #include "initv/UniformRandomV.hpp"
 #include "initv/ZeroV.hpp"
 
-#include "weightinit/InitCocircWeights.hpp"
+#include "components/IdentDelivery.hpp"
+#include "components/PostsynapticPerspectiveConvolveDelivery.hpp"
+#include "components/PostsynapticPerspectiveStochasticDelivery.hpp"
+#include "components/PresynapticPerspectiveConvolveDelivery.hpp"
+#include "components/PresynapticPerspectiveStochasticDelivery.hpp"
+#include "components/RescaleDelivery.hpp"
+
+// #include "weightinit/InitCocircWeights.hpp"
 #include "weightinit/InitGauss2DWeights.hpp"
-#include "weightinit/InitGaussianRandomWeights.hpp"
-#include "weightinit/InitIdentWeights.hpp"
-#include "weightinit/InitOneToOneWeights.hpp"
-#include "weightinit/InitOneToOneWeightsWithDelays.hpp"
-#include "weightinit/InitSmartWeights.hpp"
+// #include "weightinit/InitGaussianRandomWeights.hpp"
+// #include "weightinit/InitIdentWeights.hpp"
+// #include "weightinit/InitOneToOneWeights.hpp"
+// #include "weightinit/InitOneToOneWeightsWithDelays.hpp"
+// #include "weightinit/InitSmartWeights.hpp"
 #include "weightinit/InitSpreadOverArborsWeights.hpp"
-#include "weightinit/InitUniformRandomWeights.hpp"
+// #include "weightinit/InitUniformRandomWeights.hpp"
 #include "weightinit/InitUniformWeights.hpp"
 #include "weightinit/InitWeights.hpp"
 
-#include "normalizers/NormalizeContrastZeroMean.hpp"
-#include "normalizers/NormalizeGroup.hpp"
-#include "normalizers/NormalizeL2.hpp"
-#include "normalizers/NormalizeMax.hpp"
-#include "normalizers/NormalizeSum.hpp"
-
-#include "components/HyPerDeliveryFacade.hpp"
-#include "components/IdentDelivery.hpp"
-#include "components/PostsynapticPerspectiveConvolveDelivery.hpp"
-// #include "components/PostsynapticPerspectiveGPUDelivery.hpp"
-#include "components/PostsynapticPerspectiveStochasticDelivery.hpp"
-#include "components/PresynapticPerspectiveConvolveDelivery.hpp"
-// #include "components/PresynapticPerspectiveGPUDelivery.hpp"
-#include "components/PresynapticPerspectiveStochasticDelivery.hpp"
-#include "components/RescaleDelivery.hpp"
+// #include "normalizers/NormalizeContrastZeroMean.hpp"
+// #include "normalizers/NormalizeGroup.hpp"
+// #include "normalizers/NormalizeL2.hpp"
+// #include "normalizers/NormalizeMax.hpp"
+// #include "normalizers/NormalizeSum.hpp"
 
 namespace PV {
 
@@ -140,9 +137,9 @@ int Factory::registerCoreKeywords() {
    registerKeyword("PvpLayer", Factory::create<PvpLayer>);
    registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
    registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
-   registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
+   // registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
    registerKeyword("LIF", Factory::create<LIF>);
-   registerKeyword("LIFGap", Factory::create<LIFGap>);
+   // registerKeyword("LIFGap", Factory::create<LIFGap>);
    registerKeyword("LabelErrorLayer", Factory::create<LabelErrorLayer>);
    registerKeyword("LeakyIntegrator", Factory::create<LeakyIntegrator>);
    registerKeyword("MaskLayer", Factory::create<MaskLayer>);
@@ -158,25 +155,26 @@ int Factory::registerCoreKeywords() {
    registerKeyword("WTALayer", Factory::create<WTALayer>);
 
    registerKeyword("HyPerConn", Factory::create<HyPerConn>);
-   registerKeyword("CloneConn", Factory::create<CloneConn>);
-   registerKeyword("CopyConn", Factory::create<CopyConn>);
-   registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
-   registerKeyword("GapConn", Factory::create<GapConn>);
+   // registerKeyword("CloneConn", Factory::create<CloneConn>);
+   // registerKeyword("ComponentsConn", Factory::create<ComponentsConn>);
+   // registerKeyword("CopyConn", Factory::create<CopyConn>);
+   // registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
+   // registerKeyword("GapConn", Factory::create<GapConn>);
    registerKeyword("IdentConn", Factory::create<IdentConn>);
-   registerKeyword("ImprintConn", Factory::create<ImprintConn>);
-   registerKeyword("MomentumConn", Factory::create<MomentumConn>);
-   registerKeyword("PlasticCloneConn", Factory::create<PlasticCloneConn>);
-   registerKeyword("PoolingConn", Factory::create<PoolingConn>);
-   registerKeyword("RescaleConn", Factory::create<RescaleConn>);
-   registerKeyword("TransposeConn", Factory::create<TransposeConn>);
-   registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
+   // registerKeyword("ImprintConn", Factory::create<ImprintConn>);
+   // registerKeyword("MomentumConn", Factory::create<MomentumConn>);
+   // registerKeyword("PlasticCloneConn", Factory::create<PlasticCloneConn>);
+   // registerKeyword("PoolingConn", Factory::create<PoolingConn>);
+   // registerKeyword("RescaleConn", Factory::create<RescaleConn>);
+   // registerKeyword("TransposeConn", Factory::create<TransposeConn>);
+   // registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
    registerKeyword("AdaptiveTimeScaleProbe", Factory::create<AdaptiveTimeScaleProbe>);
    registerKeyword("KneeTimeScaleProbe", Factory::create<KneeTimeScaleProbe>);
    registerKeyword("LogTimeScaleProbe", Factory::create<LogTimeScaleProbe>);
    registerKeyword("ColumnEnergyProbe", Factory::create<ColumnEnergyProbe>);
    registerKeyword("FirmThresholdCostFnLCAProbe", Factory::create<FirmThresholdCostFnLCAProbe>);
    registerKeyword("FirmThresholdCostFnProbe", Factory::create<FirmThresholdCostFnProbe>);
-   registerKeyword("KernelProbe", Factory::create<KernelProbe>);
+   // registerKeyword("KernelProbe", Factory::create<KernelProbe>);
    registerKeyword("L0NormLCAProbe", Factory::create<L0NormLCAProbe>);
    registerKeyword("L0NormProbe", Factory::create<L0NormProbe>);
    registerKeyword("L1NormLCAProbe", Factory::create<L1NormLCAProbe>);
@@ -194,45 +192,39 @@ int Factory::registerCoreKeywords() {
    registerKeyword("UniformRandomV", Factory::create<UniformRandomV>);
    registerKeyword("ZeroV", Factory::create<ZeroV>);
 
-   registerKeyword("Gauss2DWeight", Factory::create<InitGauss2DWeights>);
-   registerKeyword("CoCircWeight", Factory::create<InitCocircWeights>);
-   registerKeyword("UniformWeight", Factory::create<InitUniformWeights>);
-   registerKeyword("SmartWeight", Factory::create<InitSmartWeights>);
-   registerKeyword("UniformRandomWeight", Factory::create<InitUniformRandomWeights>);
-   registerKeyword("GaussianRandomWeight", Factory::create<InitGaussianRandomWeights>);
-   registerKeyword("IdentWeight", Factory::create<InitIdentWeights>);
-   registerKeyword("OneToOneWeights", Factory::create<InitOneToOneWeights>);
-   registerKeyword("OneToOneWeightsWithDelays", Factory::create<InitOneToOneWeightsWithDelays>);
-   registerKeyword("SpreadOverArborsWeight", Factory::create<InitSpreadOverArborsWeights>);
-   registerKeyword("FileWeight", Factory::create<InitWeights>);
-
-   registerKeyword("normalizeContrastZeroMean", Factory::create<NormalizeContrastZeroMean>);
-   registerKeyword("normalizeL2", Factory::create<NormalizeL2>);
-   registerKeyword("normalizeMax", Factory::create<NormalizeMax>);
-   registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
-   registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
-
-   registerKeyword("HyPerDeliveryFacade", Factory::create<HyPerDeliveryFacade>);
    registerKeyword("IdentDelivery", Factory::create<IdentDelivery>);
    registerKeyword(
          "PostsynapticPerspectiveConvolveDelivery",
          Factory::create<PostsynapticPerspectiveConvolveDelivery>);
-   // registerKeyword(
-   //       "PostsynapticPerspectiveGPUDelivery",
-   //       Factory::create<PostsynapticPerspectiveGPUDelivery>);
    registerKeyword(
          "PostsynapticPerspectiveStochasticDelivery",
          Factory::create<PostsynapticPerspectiveStochasticDelivery>);
    registerKeyword(
          "PresynapticPerspectiveConvolveDelivery",
          Factory::create<PresynapticPerspectiveConvolveDelivery>);
-   // registerKeyword(
-   //       "PresynapticPerspectiveGPUDelivery",
-   //       Factory::create<PresynapticPerspectiveGPUDelivery>);
    registerKeyword(
          "PresynapticPerspectiveStochasticDelivery",
          Factory::create<PresynapticPerspectiveStochasticDelivery>);
    registerKeyword("RescaleDelivery", Factory::create<RescaleDelivery>);
+
+   registerKeyword("Gauss2DWeight", Factory::create<InitGauss2DWeights>);
+   // registerKeyword("CoCircWeight", Factory::create<InitCocircWeights>);
+   registerKeyword("UniformWeight", Factory::create<InitUniformWeights>);
+   // registerKeyword("SmartWeight", Factory::create<InitSmartWeights>);
+   // registerKeyword("UniformRandomWeight", Factory::create<InitUniformRandomWeights>);
+   // registerKeyword("GaussianRandomWeight", Factory::create<InitGaussianRandomWeights>);
+   // registerKeyword("IdentWeight", Factory::create<InitIdentWeights>);
+   // registerKeyword("OneToOneWeights", Factory::create<InitOneToOneWeights>);
+   // registerKeyword("OneToOneWeightsWithDelays",
+   //   Factory::create<InitOneToOneWeightsWithDelays>);
+   registerKeyword("SpreadOverArborsWeight", Factory::create<InitSpreadOverArborsWeights>);
+   registerKeyword("FileWeight", Factory::create<InitWeights>);
+
+   // registerKeyword("normalizeContrastZeroMean", Factory::create<NormalizeContrastZeroMean>);
+   // registerKeyword("normalizeL2", Factory::create<NormalizeL2>);
+   // registerKeyword("normalizeMax", Factory::create<NormalizeMax>);
+   // registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
+   // registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
 
    return PV_SUCCESS;
 }

@@ -71,7 +71,7 @@ class InitWeights : public BaseObject {
     * if it is set, and calling calcWeights, with no arguments, if the file was not set.
     * Derived classes should override one or both of the calcWeights methods.
     */
-   int initializeWeights(Weights *weights);
+   int initializeWeights();
 
   protected:
    InitWeights();
@@ -79,6 +79,9 @@ class InitWeights : public BaseObject {
    void handleObsoleteFlag(std::string const &flagName);
 
    virtual int setDescription() override;
+
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
     * Called by initializeWeights, to calculate the weights in all arbors and all patches.
@@ -104,14 +107,8 @@ class InitWeights : public BaseObject {
    float calcXDelta(int iPost);
    float calcDelta(int post, float dPost, float distHeadPreUnits);
 
-  private:
-   int initialize_base();
-
   protected:
    Weights *mWeights = nullptr; // Set temporarily by initializeWeights
-   // initializeWeights sets mWeights to its argument at the beginning and returns it to nullptr
-   // before returning; so that the weights do not have to be passed to calcWeights(int, int)
-   // for every data patch
 
    char *mFilename  = nullptr;
    int mFrameNumber = 0;

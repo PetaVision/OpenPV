@@ -6,16 +6,15 @@
  */
 
 #include "InitWeights.hpp"
+#include "components/WeightsPair.hpp"
 #include "io/WeightsFileIO.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-InitWeights::InitWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+InitWeights::InitWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-InitWeights::InitWeights() { initialize_base(); }
+InitWeights::InitWeights() {}
 
 InitWeights::~InitWeights() {}
 
@@ -107,13 +106,18 @@ void InitWeights::handleObsoleteFlag(std::string const &flagName) {
    }
 }
 
-int InitWeights::initializeWeights(Weights *weights) {
-   pvAssert(mWeights == nullptr);
+int InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   int status               = BaseObject::communicateInitInfo(message);
+   WeightsPair *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
+   mWeights                 = weightsPair->getPreWeights();
+   return status;
+}
+
+int InitWeights::initializeWeights() {
    FatalIf(
-         weights == nullptr,
+         mWeights == nullptr,
          "%s called initializeWeights with a null Weights object.\n",
          getDescription_c());
-   mWeights = weights;
    if (mFilename && mFilename[0]) {
       readWeights(mFilename, mFrameNumber);
    }
@@ -138,8 +142,6 @@ void InitWeights::calcWeights() {
 // Override this function to calculate the weights in a single patch, given the arbor index, patch
 // index and the pointer to the data
 void InitWeights::calcWeights(int dataPatchIndex, int arborId) {}
-
-int InitWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitWeights::readWeights(
       const char *filename,
