@@ -56,8 +56,13 @@ void WeightsPair::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
 }
 
 int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   pvAssert(mConnectionData == nullptr);
-   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   int status = BaseObject::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   if (mConnectionData == nullptr) {
+      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   }
    pvAssert(mConnectionData != nullptr);
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {
@@ -76,7 +81,6 @@ int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    PVLayerLoc const *postLoc = post->getLayerLoc();
 
    // Margins
-   int status          = PV_SUCCESS;
    int xmargin         = requiredConvolveMargin(preLoc->nx, postLoc->nx, getPatchSizeX());
    int receivedxmargin = 0;
    int statusx         = pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');

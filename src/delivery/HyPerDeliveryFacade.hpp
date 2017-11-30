@@ -8,8 +8,8 @@
 #ifndef HYPERDELIVERYFACADE_HPP_
 #define HYPERDELIVERYFACADE_HPP_
 
-#include "components/BaseDelivery.hpp"
-#include "components/HyPerDelivery.hpp"
+#include "delivery/BaseDelivery.hpp"
+#include "delivery/HyPerDelivery.hpp"
 
 namespace PV {
 

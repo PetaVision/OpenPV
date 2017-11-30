@@ -9,7 +9,7 @@
 #define INITWEIGHTS_HPP_
 
 #include "columns/BaseObject.hpp"
-#include "components/Weights.hpp"
+#include "components/WeightsPair.hpp"
 #include "layers/HyPerLayer.hpp"
 
 namespace PV {
@@ -108,7 +108,8 @@ class InitWeights : public BaseObject {
    float calcDelta(int post, float dPost, float distHeadPreUnits);
 
   protected:
-   Weights *mWeights = nullptr; // Set temporarily by initializeWeights
+   WeightsPair *mWeightsPair = nullptr; // set during CommunicateInitInfo
+   Weights *mWeights = nullptr; // initializeWeights sets this to the WeightsPair's PreWeights.
 
    char *mFilename  = nullptr;
    int mFrameNumber = 0;

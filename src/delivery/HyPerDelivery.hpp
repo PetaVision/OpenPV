@@ -8,8 +8,8 @@
 #ifndef HYPERDELIVERY_HPP_
 #define HYPERDELIVERY_HPP_
 
-#include "components/BaseDelivery.hpp"
 #include "components/WeightsPair.hpp"
+#include "delivery/BaseDelivery.hpp"
 
 namespace PV {
 

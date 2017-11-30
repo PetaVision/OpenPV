@@ -69,6 +69,8 @@ class BaseDelivery : public BaseObject {
    int getDelay(int arbor) const { return mDelay.at(arbor); }
    bool getConvertRateToSpikeCount() const { return mConvertRateToSpikeCount; }
    bool getReceiveGpu() const { return mReceiveGpu; }
+   HyPerLayer *getPreLayer() const { return mPreLayer; }
+   HyPerLayer *getPostLayer() const { return mPostLayer; }
 
   protected:
    BaseDelivery() {}

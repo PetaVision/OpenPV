@@ -8,6 +8,7 @@
 #include "BaseConnection.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -39,10 +40,10 @@ void BaseConnection::defineComponents() {
    if (mDeliveryObject) {
       addObserver(mDeliveryObject);
    }
-   // mWeightUpdater = createWeightUpdater();
-   // if (mWeightUpdater) {
-   //    addObserver(mWeightUpdater);
-   // }
+   mWeightUpdater = createWeightUpdater();
+   if (mWeightUpdater) {
+      addObserver(mWeightUpdater);
+   }
 }
 
 ConnectionData *BaseConnection::createConnectionData() { return new ConnectionData(name, parent); }
@@ -87,10 +88,10 @@ ConnectionData *BaseConnection::createConnectionData() { return new ConnectionDa
 // }
 
 BaseDelivery *BaseConnection::createDeliveryObject() { return new BaseDelivery(name, parent); }
-//
-// WeightUpdater *BaseConnection::createWeightUpdater() {
-//    return new WeightUpdater(name, parent);
-// }
+
+BaseWeightUpdater *BaseConnection::createWeightUpdater() {
+   return new BaseWeightUpdater(name, parent);
+}
 
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_initializeFromCheckpointFlag(ioFlag);
@@ -139,12 +140,13 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
 
 int BaseConnection::respondConnectionWriteParams(
       std::shared_ptr<ConnectionWriteParamsMessage const> message) {
-   return PV_SUCCESS; // return writeParams();
+   return writeParams();
 }
 
 int BaseConnection::respondConnectionUpdate(
       std::shared_ptr<ConnectionUpdateMessage const> message) {
-   return PV_SUCCESS; // return updateState(message->mTime, message->mDeltaT);
+   mWeightUpdater->updateState(message->mTime, message->mDeltaT);
+   return PV_SUCCESS;
 }
 
 int BaseConnection::respondConnectionFinalizeUpdate(
@@ -172,6 +174,14 @@ int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
          componentTable,
          communicateMessage,
          parent->getCommunicator()->commRank() == 0 /*printFlag*/);
+
+   auto *deliveryObject =
+         mapLookupByType<BaseDelivery>(mComponentTable.getObjectMap(), getDescription());
+   HyPerLayer *postLayer = deliveryObject->getPostLayer();
+   if (postLayer != nullptr) {
+      postLayer->addRecvConn(this);
+   }
+
    return PV_SUCCESS;
 }
 

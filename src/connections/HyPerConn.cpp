@@ -7,7 +7,8 @@
 
 #include "HyPerConn.hpp"
 #include "columns/HyPerCol.hpp"
-#include "components/HyPerDeliveryFacade.hpp"
+#include "delivery/HyPerDeliveryFacade.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -19,18 +20,10 @@ HyPerConn::~HyPerConn() {}
 
 int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    int status = BaseConnection::initialize(name, hc);
-   defineComponents();
-
-   if (status == PV_SUCCESS)
-      status = readParams();
    return status;
 }
 
 void HyPerConn::defineComponents() {
-   auto connectionData = createConnectionData();
-   if (connectionData) {
-      addObserver(connectionData);
-   }
    auto weightsPair = createWeightsPair();
    if (weightsPair) {
       addObserver(weightsPair);
@@ -45,8 +38,6 @@ void HyPerConn::defineComponents() {
    // }
    BaseConnection::defineComponents();
 }
-
-ConnectionData *HyPerConn::createConnectionData() { return new ConnectionData(name, parent); }
 
 WeightsPair *HyPerConn::createWeightsPair() { return new WeightsPair(name, parent); }
 
@@ -125,5 +116,11 @@ BaseDelivery *HyPerConn::createDeliveryObject() { return new HyPerDeliveryFacade
 // WeightUpdater *HyPerConn::createWeightUpdater() {
 //    return new WeightUpdater(name, parent);
 // }
+
+int HyPerConn::initializeState() {
+   auto *weightUpdater =
+         mapLookupByType<InitWeights>(mComponentTable.getObjectMap(), getDescription());
+   return weightUpdater->initializeWeights();
+}
 
 } // namespace PV

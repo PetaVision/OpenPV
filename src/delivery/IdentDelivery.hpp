@@ -8,7 +8,7 @@
 #ifndef IDENTDELIVERY_HPP_
 #define IDENTDELIVERY_HPP_
 
-#include "components/BaseDelivery.hpp"
+#include "delivery/BaseDelivery.hpp"
 
 namespace PV {
 

@@ -6,7 +6,7 @@
  */
 
 #include "IdentConn.hpp"
-#include "components/IdentDelivery.hpp"
+#include "delivery/IdentDelivery.hpp"
 
 namespace PV {
 

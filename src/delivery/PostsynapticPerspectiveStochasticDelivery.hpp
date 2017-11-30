@@ -8,7 +8,7 @@
 #ifndef POSTSYNAPTICPERSPECTIVESTOCHASTICDELIVERY_HPP_
 #define POSTSYNAPTICPERSPECTIVESTOCHASTICDELIVERY_HPP_
 
-#include "components/HyPerDelivery.hpp"
+#include "delivery/HyPerDelivery.hpp"
 
 namespace PV {
 

@@ -10,9 +10,9 @@
 #define BASECONNECTION_HPP_
 
 #include "columns/BaseObject.hpp"
-#include "components/BaseDelivery.hpp"
 #include "components/ConnectionData.hpp"
-//#include "components/WeightUpdater.hpp"
+#include "delivery/BaseDelivery.hpp"
+#include "weightupdaters/BaseWeightUpdater.hpp"
 //#include "normalizers/NormalizeBase.hpp"
 #include "observerpattern/Subject.hpp"
 
@@ -65,8 +65,6 @@ class BaseConnection : public BaseObject, Subject {
    bool getConvertRateToSpikeCount() const { return mDeliveryObject->getConvertRateToSpikeCount(); }
    bool getReceiveGpu() const { return mDeliveryObject->getReceiveGpu(); }
 
-   // bool getPlasticityFlag() const { return mWeightUpdater->getPlasticityFlag(); }
-
   protected:
    BaseConnection();
 
@@ -77,7 +75,7 @@ class BaseConnection : public BaseObject, Subject {
    virtual ConnectionData *createConnectionData();
    // virtual NormalizeBase *createWeightNormalizer();
    virtual BaseDelivery *createDeliveryObject();
-   // virtual WeightUpdater *createWeightUpdater();
+   virtual BaseWeightUpdater *createWeightUpdater();
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
@@ -109,8 +107,8 @@ class BaseConnection : public BaseObject, Subject {
   private:
    ConnectionData *mConnectionData = nullptr;
    // NormalizeBase *mWeightNormalizer = nullptr;
-   BaseDelivery *mDeliveryObject = nullptr;
-   // WeightUpdater *mWeightUpdater = nullptr;
+   BaseDelivery *mDeliveryObject     = nullptr;
+   BaseWeightUpdater *mWeightUpdater = nullptr;
 
 }; // class BaseConnection
 

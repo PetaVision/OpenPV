@@ -84,12 +84,12 @@
 #include "initv/UniformRandomV.hpp"
 #include "initv/ZeroV.hpp"
 
-#include "components/IdentDelivery.hpp"
-#include "components/PostsynapticPerspectiveConvolveDelivery.hpp"
-#include "components/PostsynapticPerspectiveStochasticDelivery.hpp"
-#include "components/PresynapticPerspectiveConvolveDelivery.hpp"
-#include "components/PresynapticPerspectiveStochasticDelivery.hpp"
-#include "components/RescaleDelivery.hpp"
+#include "delivery/IdentDelivery.hpp"
+#include "delivery/PostsynapticPerspectiveConvolveDelivery.hpp"
+#include "delivery/PostsynapticPerspectiveStochasticDelivery.hpp"
+#include "delivery/PresynapticPerspectiveConvolveDelivery.hpp"
+#include "delivery/PresynapticPerspectiveStochasticDelivery.hpp"
+#include "delivery/RescaleDelivery.hpp"
 
 // #include "weightinit/InitCocircWeights.hpp"
 #include "weightinit/InitGauss2DWeights.hpp"

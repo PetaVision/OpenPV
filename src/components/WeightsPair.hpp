@@ -92,7 +92,7 @@ class WeightsPair : public BaseObject {
 
    Weights *mPreWeights  = nullptr;
    Weights *mPostWeights = nullptr;
-   bool mNeedPre         = false;
+   bool mNeedPre         = true;
    bool mNeedPost        = false;
 };
 

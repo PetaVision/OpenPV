@@ -33,17 +33,16 @@ class HyPerConn : public BaseConnection {
 
    virtual void defineComponents() override;
 
-   virtual ConnectionData *createConnectionData();
    virtual WeightsPair *createWeightsPair();
    virtual InitWeights *createWeightInitializer();
    // virtual NormalizeBase *createWeightNormalizer();
-   virtual BaseDelivery *createDeliveryObject();
-   // virtual WeightUpdater *createWeightUpdater();
+   virtual BaseDelivery *createDeliveryObject() override;
+   // virtual WeightUpdater *createWeightUpdater() override;
+
+   virtual int initializeState() override;
 
   protected:
    char *mNormalizeMethod = nullptr;
-
-   ObserverTable mComponentTable;
 
 }; // class HyPerConn
 

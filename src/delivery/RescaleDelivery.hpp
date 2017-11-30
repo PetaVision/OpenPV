@@ -8,7 +8,7 @@
 #ifndef RESCALEDELIVERY_HPP_
 #define RESCALEDELIVERY_HPP_
 
-#include "components/IdentDelivery.hpp"
+#include "delivery/IdentDelivery.hpp"
 
 namespace PV {
 

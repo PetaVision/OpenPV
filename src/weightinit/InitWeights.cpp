@@ -107,13 +107,17 @@ void InitWeights::handleObsoleteFlag(std::string const &flagName) {
 }
 
 int InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status               = BaseObject::communicateInitInfo(message);
-   WeightsPair *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
-   mWeights                 = weightsPair->getPreWeights();
+   int status   = BaseObject::communicateInitInfo(message);
+   mWeightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
    return status;
 }
 
 int InitWeights::initializeWeights() {
+   FatalIf(
+         mWeightsPair == nullptr,
+         "%s called initializeWeights with a null WeightsPair object.\n",
+         getDescription_c());
+   mWeights = mWeightsPair->getPreWeights();
    FatalIf(
          mWeights == nullptr,
          "%s called initializeWeights with a null Weights object.\n",
@@ -125,7 +129,6 @@ int InitWeights::initializeWeights() {
       initRNGs(mWeights->getSharedFlag());
       calcWeights();
    } // mFilename != null
-   mWeights = nullptr;
    return PV_SUCCESS;
 }
 
