@@ -107,7 +107,7 @@
 // #include "normalizers/NormalizeGroup.hpp"
 // #include "normalizers/NormalizeL2.hpp"
 // #include "normalizers/NormalizeMax.hpp"
-// #include "normalizers/NormalizeSum.hpp"
+#include "normalizers/NormalizeSum.hpp"
 
 namespace PV {
 
@@ -223,7 +223,7 @@ int Factory::registerCoreKeywords() {
    // registerKeyword("normalizeContrastZeroMean", Factory::create<NormalizeContrastZeroMean>);
    // registerKeyword("normalizeL2", Factory::create<NormalizeL2>);
    // registerKeyword("normalizeMax", Factory::create<NormalizeMax>);
-   // registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
+   registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
    // registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
 
    return PV_SUCCESS;

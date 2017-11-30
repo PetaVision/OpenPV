@@ -56,10 +56,6 @@ HyPerCol::~HyPerCol() {
    }
    delete mCheckpointer;
    mObjectHierarchy.clear(true /*delete the objects in the hierarchy*/);
-   for (auto iterator = mNormalizers.begin(); iterator != mNormalizers.end();) {
-      delete *iterator;
-      iterator = mNormalizers.erase(iterator);
-   }
    for (auto iterator = mPhaseRecvTimers.begin(); iterator != mPhaseRecvTimers.end();) {
       delete *iterator;
       iterator = mPhaseRecvTimers.erase(iterator);

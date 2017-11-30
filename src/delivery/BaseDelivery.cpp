@@ -136,6 +136,20 @@ int BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    mPostLayer = mConnectionData->getPost();
 
    initializeDelays();
+   int maxDelay     = maxDelaySteps();
+   int allowedDelay = getPreLayer()->increaseDelayLevels(maxDelay);
+   if (allowedDelay < maxDelay) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         ErrorLog().printf(
+               "%s: attempt to set delay to %d, but the maximum "
+               "allowed delay is %d.  Exiting\n",
+               getDescription_c(),
+               maxDelay,
+               allowedDelay);
+      }
+      exit(EXIT_FAILURE);
+   }
+
    return PV_SUCCESS;
 }
 
@@ -173,6 +187,17 @@ void BaseDelivery::setDelay(int arborId, double delay) {
                 << "\n";
    }
    mDelay[arborId] = intDelay;
+}
+
+int BaseDelivery::maxDelaySteps() {
+   int maxDelay        = 0;
+   int const numArbors = mConnectionData->getNumAxonalArbors();
+   for (auto &d : mDelay) {
+      if (d > maxDelay) {
+         maxDelay = d;
+      }
+   }
+   return maxDelay;
 }
 
 } // namespace PV

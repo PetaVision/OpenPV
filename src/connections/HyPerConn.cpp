@@ -24,6 +24,7 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
 }
 
 void HyPerConn::defineComponents() {
+   BaseConnection::defineComponents();
    auto weightsPair = createWeightsPair();
    if (weightsPair) {
       addObserver(weightsPair);
@@ -32,11 +33,10 @@ void HyPerConn::defineComponents() {
    if (weightInitializer) {
       addObserver(weightInitializer);
    }
-   // auto normalizer = createWeightNormalizer();
-   // if (normalizer) {
-   //    addObserver(normalizer);
-   // }
-   BaseConnection::defineComponents();
+   auto normalizer = createWeightNormalizer();
+   if (normalizer) {
+      addObserver(normalizer);
+   }
 }
 
 WeightsPair *HyPerConn::createWeightsPair() { return new WeightsPair(name, parent); }
@@ -72,44 +72,44 @@ InitWeights *HyPerConn::createWeightInitializer() {
    return weightInitializer;
 }
 
-// NormalizeBase *HyPerConn::createWeightNormalizer() {
-//    NormalizeBase *normalizer = nullptr;
-//    parent->parameters()->ioParamString(
-//          PARAMS_IO_READ, name, "normalizeMethod", &mNormalizeMethod, NULL, true
-//          /*warnIfAbsent*/);
-//    if (mNormalizeMethod == nullptr) {
-//       if (parent->columnId() == 0) {
-//          Fatal().printf(
-//                "%s: specifying a normalizeMethod string is required.\n", getDescription_c());
-//       }
-//    }
-//    if (!strcmp(mNormalizeMethod, "")) {
-//       free(mNormalizeMethod);
-//       mNormalizeMethod = strdup("none");
-//    }
-//    if (strcmp(mNormalizeMethod, "none")) {
-//       BaseObject *baseObj = Factory::instance()->createByKeyword(mNormalizeMethod, name, parent);
-//       if (baseObj == nullptr) {
-//          if (parent->columnId() == 0) {
-//             Fatal() << getDescription_c() << ": normalizeMethod \"" << mNormalizeMethod
-//                     << "\" is not recognized." << std::endl;
-//          }
-//          MPI_Barrier(parent->getCommunicator()->communicator());
-//          exit(EXIT_FAILURE);
-//       }
-//       normalizer = dynamic_cast<NormalizeBase *>(baseObj);
-//       if (normalizer == nullptr) {
-//          pvAssert(baseObj);
-//          if (parent->columnId() == 0) {
-//             Fatal() << getDescription_c() << ": normalizeMethod \"" << mNormalizeMethod
-//                     << "\" is not a recognized normalization method." << std::endl;
-//          }
-//          MPI_Barrier(parent->getCommunicator()->communicator());
-//          exit(EXIT_FAILURE);
-//       }
-//    }
-//    return normalizer;
-// }
+NormalizeBase *HyPerConn::createWeightNormalizer() {
+   NormalizeBase *normalizer = nullptr;
+   parent->parameters()->ioParamString(
+         PARAMS_IO_READ, name, "normalizeMethod", &mNormalizeMethod, NULL, true
+         /*warnIfAbsent*/);
+   if (mNormalizeMethod == nullptr) {
+      if (parent->columnId() == 0) {
+         Fatal().printf(
+               "%s: specifying a normalizeMethod string is required.\n", getDescription_c());
+      }
+   }
+   if (!strcmp(mNormalizeMethod, "")) {
+      free(mNormalizeMethod);
+      mNormalizeMethod = strdup("none");
+   }
+   if (strcmp(mNormalizeMethod, "none")) {
+      BaseObject *baseObj = Factory::instance()->createByKeyword(mNormalizeMethod, name, parent);
+      if (baseObj == nullptr) {
+         if (parent->columnId() == 0) {
+            Fatal() << getDescription_c() << ": normalizeMethod \"" << mNormalizeMethod
+                    << "\" is not recognized." << std::endl;
+         }
+         MPI_Barrier(parent->getCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      normalizer = dynamic_cast<NormalizeBase *>(baseObj);
+      if (normalizer == nullptr) {
+         pvAssert(baseObj);
+         if (parent->columnId() == 0) {
+            Fatal() << getDescription_c() << ": normalizeMethod \"" << mNormalizeMethod
+                    << "\" is not a recognized normalization method." << std::endl;
+         }
+         MPI_Barrier(parent->getCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+   return normalizer;
+}
 
 BaseDelivery *HyPerConn::createDeliveryObject() { return new HyPerDeliveryFacade(name, parent); }
 
@@ -118,9 +118,9 @@ BaseDelivery *HyPerConn::createDeliveryObject() { return new HyPerDeliveryFacade
 // }
 
 int HyPerConn::initializeState() {
-   auto *weightUpdater =
+   auto *initWeights =
          mapLookupByType<InitWeights>(mComponentTable.getObjectMap(), getDescription());
-   return weightUpdater->initializeWeights();
+   return initWeights->initializeWeights();
 }
 
 } // namespace PV

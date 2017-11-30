@@ -87,6 +87,8 @@ class BaseDelivery : public BaseObject {
 
    void setDelay(int arborId, double delay);
 
+   int maxDelaySteps();
+
   protected:
    ChannelType mChannelCode = CHANNEL_EXC;
    std::vector<int> mDelay; // The delays expressed in # of timesteps (delays ~= fDelayArray / t)

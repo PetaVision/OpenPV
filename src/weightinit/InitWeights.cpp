@@ -107,10 +107,13 @@ void InitWeights::handleObsoleteFlag(std::string const &flagName) {
 }
 
 int InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status        = BaseObject::communicateInitInfo(message);
    auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return PV_POSTPONE;
+   }
+   int status = BaseObject::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
    }
    weightsPair->needPre();
    mWeights = weightsPair->getPreWeights();

@@ -11,9 +11,9 @@
 
 #include "components/ConnectionData.hpp"
 #include "components/WeightsPair.hpp"
+//#include "weightupdaters/WeightUpdater.hpp"
 #include "connections/BaseConnection.hpp"
-//#include "components/WeightUpdater.hpp"
-//#include "normalizers/NormalizeBase.hpp"
+#include "normalizers/NormalizeBase.hpp"
 #include "weightinit/InitWeights.hpp"
 
 namespace PV {
@@ -35,7 +35,7 @@ class HyPerConn : public BaseConnection {
 
    virtual WeightsPair *createWeightsPair();
    virtual InitWeights *createWeightInitializer();
-   // virtual NormalizeBase *createWeightNormalizer();
+   virtual NormalizeBase *createWeightNormalizer();
    virtual BaseDelivery *createDeliveryObject() override;
    // virtual WeightUpdater *createWeightUpdater() override;
 

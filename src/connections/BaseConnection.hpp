@@ -73,7 +73,6 @@ class BaseConnection : public BaseObject, Subject {
    virtual void defineComponents();
 
    virtual ConnectionData *createConnectionData();
-   // virtual NormalizeBase *createWeightNormalizer();
    virtual BaseDelivery *createDeliveryObject();
    virtual BaseWeightUpdater *createWeightUpdater();
 

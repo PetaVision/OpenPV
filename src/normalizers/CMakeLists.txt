@@ -5,8 +5,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 #   ${SUBDIR}/NormalizeGroup.cpp
 #   ${SUBDIR}/NormalizeL2.cpp
 #   ${SUBDIR}/NormalizeMax.cpp
-#   ${SUBDIR}/NormalizeMultiply.cpp
-#   ${SUBDIR}/NormalizeSum.cpp
+   ${SUBDIR}/NormalizeMultiply.cpp
+   ${SUBDIR}/NormalizeSum.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -16,7 +16,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 #   ${SUBDIR}/NormalizeGroup.hpp
 #   ${SUBDIR}/NormalizeL2.hpp
 #   ${SUBDIR}/NormalizeMax.hpp
-#   ${SUBDIR}/NormalizeMultiply.hpp
-#   ${SUBDIR}/NormalizeSum.hpp
+   ${SUBDIR}/NormalizeMultiply.hpp
+   ${SUBDIR}/NormalizeSum.hpp
 )
 

@@ -54,9 +54,35 @@ class NormalizeBase : public BaseObject {
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
+   int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
+
+   void addWeightsToList(Weights *weights);
+
    virtual int normalizeWeights() { return PV_SUCCESS; }
 
    virtual bool weightsHaveUpdated() { return false; }
+
+   static int accumulateSum(float *dataPatchStart, int weights_in_patch, float *sum);
+   static int accumulateSumShrunken(
+         float *dataPatchStart,
+         float *sum,
+         int nxpShrunken,
+         int nypShrunken,
+         int offsetShrunken,
+         int xPatchStride,
+         int yPatchStride);
+   static int accumulateSumSquared(float *dataPatchStart, int weights_in_patch, float *sumsq);
+   static int accumulateSumSquaredShrunken(
+         float *dataPatchStart,
+         float *sumsq,
+         int nxpShrunken,
+         int nypShrunken,
+         int offsetShrunken,
+         int xPatchStride,
+         int yPatchStride);
+   static int accumulateMaxAbs(float *dataPatchStart, int weights_in_patch, float *max);
+   static int accumulateMax(float *dataPatchStart, int weights_in_patch, float *max);
+   static int accumulateMin(float *dataPatchStart, int weights_in_patch, float *max);
 
   protected:
    float mStrength = 1.0f;
@@ -66,6 +92,8 @@ class NormalizeBase : public BaseObject {
    bool mNormalizeOnWeightUpdate     = true;
 
    double mLastUpdateTime = 0.0;
+
+   std::vector<Weights *> mWeightsList;
 };
 
 } // namespace PV
