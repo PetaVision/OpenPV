@@ -14,6 +14,11 @@ namespace PV {
 
 WeightsPair::WeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
+WeightsPair::~WeightsPair() {
+   delete mPreWeights;
+   delete mPostWeights;
+}
+
 int WeightsPair::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
 }
@@ -107,28 +112,39 @@ int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
             ymargin);
       status = PV_MARGINWIDTH_FAILURE;
    }
+   needPre();
 
    return status;
 }
 
-int WeightsPair::allocateDataStructures() {
-   setPreWeights(
-         new Weights(
-               std::string(name),
-               mPatchSizeX,
-               mPatchSizeY,
-               mPatchSizeF,
-               mConnectionData->getPre()->getLayerLoc(),
-               mConnectionData->getPost()->getLayerLoc(),
-               mConnectionData->getNumAxonalArbors(),
-               mSharedWeights,
-               0.0));
-   mNeedPre = true;
-   if (mNeedPre) {
-      getPreWeights()->allocateDataStructures();
+void WeightsPair::needPre() {
+   if (mPreWeights == nullptr) {
+      mPreWeights = new Weights(
+            std::string(name),
+            mPatchSizeX,
+            mPatchSizeY,
+            mPatchSizeF,
+            mConnectionData->getPre()->getLayerLoc(),
+            mConnectionData->getPost()->getLayerLoc(),
+            mConnectionData->getNumAxonalArbors(),
+            mSharedWeights,
+            0.0 /* timestamp */);
    }
-   if (mNeedPost) {
-      setPostWeights(new PostWeights(std::string(name), mPreWeights));
+}
+
+void WeightsPair::needPost() {
+   if (mPostWeights == nullptr) {
+      needPre();
+      new PostWeights(std::string(name), mPreWeights);
+   }
+}
+
+int WeightsPair::allocateDataStructures() {
+   if (mPreWeights) {
+      mPreWeights->allocateDataStructures();
+   }
+   if (mPostWeights) {
+      mPostWeights->allocateDataStructures();
    }
    return PV_SUCCESS;
 }

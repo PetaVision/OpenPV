@@ -51,7 +51,7 @@ class WeightsPair : public BaseObject {
   public:
    WeightsPair(char const *name, HyPerCol *hc);
 
-   virtual ~WeightsPair() {}
+   virtual ~WeightsPair();
 
    int getPatchSizeX() const { return mPatchSizeX; }
    int getPatchSizeY() const { return mPatchSizeY; }
@@ -60,13 +60,9 @@ class WeightsPair : public BaseObject {
 
    Weights *getPreWeights() { return mPreWeights; }
    Weights *getPostWeights() { return mPostWeights; }
-   bool getNeedPre() const { return mNeedPre; }
-   bool getNeedPost() const { return mNeedPost; }
 
-   void setPreWeights(Weights *preWeights) { mPreWeights = preWeights; }
-   void setPostWeights(Weights *postWeights) { mPostWeights = postWeights; }
-   void setNeedPre() { mNeedPost = true; }
-   void setNeedPost() { mNeedPost = true; }
+   virtual void needPre();
+   virtual void needPost();
 
    virtual int allocateDataStructures() override; // TODO: move to protected;
    // this should be handled by observer pattern
@@ -92,8 +88,6 @@ class WeightsPair : public BaseObject {
 
    Weights *mPreWeights  = nullptr;
    Weights *mPostWeights = nullptr;
-   bool mNeedPre         = true;
-   bool mNeedPost        = false;
 };
 
 } // namespace PV

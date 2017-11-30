@@ -107,20 +107,25 @@ void InitWeights::handleObsoleteFlag(std::string const &flagName) {
 }
 
 int InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status   = BaseObject::communicateInitInfo(message);
-   mWeightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
+   int status        = BaseObject::communicateInitInfo(message);
+   auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
+   if (!weightsPair->getInitInfoCommunicatedFlag()) {
+      return PV_POSTPONE;
+   }
+   weightsPair->needPre();
+   mWeights = weightsPair->getPreWeights();
+   FatalIf(
+         mWeights == nullptr,
+         "%s cannot get Weights object from %s.\n",
+         getDescription_c(),
+         weightsPair->getDescription_c());
    return status;
 }
 
 int InitWeights::initializeWeights() {
    FatalIf(
-         mWeightsPair == nullptr,
-         "%s called initializeWeights with a null WeightsPair object.\n",
-         getDescription_c());
-   mWeights = mWeightsPair->getPreWeights();
-   FatalIf(
          mWeights == nullptr,
-         "%s called initializeWeights with a null Weights object.\n",
+         "initializeWeights was called for %s with a null Weights object.\n",
          getDescription_c());
    if (mFilename && mFilename[0]) {
       readWeights(mFilename, mFrameNumber);

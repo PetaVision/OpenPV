@@ -108,7 +108,6 @@ class InitWeights : public BaseObject {
    float calcDelta(int post, float dPost, float distHeadPreUnits);
 
   protected:
-   WeightsPair *mWeightsPair = nullptr; // set during CommunicateInitInfo
    Weights *mWeights = nullptr; // initializeWeights sets this to the WeightsPair's PreWeights.
 
    char *mFilename  = nullptr;
