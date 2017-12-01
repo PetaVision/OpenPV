@@ -6,6 +6,7 @@
  */
 
 #include "Weights.hpp"
+#include "checkpointing/CheckpointEntryWeightPvp.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/conversions.h"
 #include <cstring>
@@ -76,6 +77,21 @@ void Weights::allocateDataStructures() {
          mData[arbor].resize(numDataPatches * numItemsPerPatch);
       }
    }
+}
+
+void Weights::checkpointWeightPvp(
+      Checkpointer *checkpointer,
+      char const *bufferName,
+      bool compressFlag) {
+   auto checkpointEntry = std::make_shared<CheckpointEntryWeightPvp>(
+         getName(), bufferName, checkpointer->getMPIBlock(), this, compressFlag);
+   bool registerSucceeded =
+         checkpointer->registerCheckpointEntry(checkpointEntry, false /*constantEntireRun flag*/);
+   FatalIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         getName().c_str(),
+         bufferName);
 }
 
 void Weights::initNumDataPatches() {

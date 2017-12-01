@@ -92,6 +92,8 @@ class BaseConnection : public BaseObject, Subject {
 
    virtual int allocateDataStructures() override;
 
+   virtual int registerData(Checkpointer *checkpointer) override;
+
    virtual void deleteComponents();
 
   protected:
@@ -104,8 +106,7 @@ class BaseConnection : public BaseObject, Subject {
    ObserverTable mComponentTable;
 
   private:
-   ConnectionData *mConnectionData = nullptr;
-   // NormalizeBase *mWeightNormalizer = nullptr;
+   ConnectionData *mConnectionData   = nullptr;
    BaseDelivery *mDeliveryObject     = nullptr;
    BaseWeightUpdater *mWeightUpdater = nullptr;
 

@@ -46,12 +46,19 @@ class WeightsPair : public BaseObject {
     * @brief sharedWeights: Defines if the weights use shared weights
     */
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
+
    /** @} */ // end of WeightsPair parameters
 
   public:
    WeightsPair(char const *name, HyPerCol *hc);
 
    virtual ~WeightsPair();
+
+   int respond(std::shared_ptr<BaseMessage const> message);
 
    int getPatchSizeX() const { return mPatchSizeX; }
    int getPatchSizeY() const { return mPatchSizeY; }
@@ -64,9 +71,6 @@ class WeightsPair : public BaseObject {
    virtual void needPre();
    virtual void needPost();
 
-   virtual int allocateDataStructures() override; // TODO: move to protected;
-   // this should be handled by observer pattern
-
   protected:
    WeightsPair() {}
 
@@ -76,18 +80,37 @@ class WeightsPair : public BaseObject {
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   int respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
+
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   virtual int allocateDataStructures() override;
+
+   virtual int registerData(Checkpointer *checkpointer) override;
+
+   void openOutputStateFile(Checkpointer *checkpointer);
+
+   virtual void outputState(double timestamp);
 
   protected:
-   int mPatchSizeX     = 0;
-   int mPatchSizeY     = 0;
-   int mPatchSizeF     = -1;
-   bool mSharedWeights = false;
+   int mPatchSizeX          = 0;
+   int mPatchSizeY          = 0;
+   int mPatchSizeF          = -1;
+   bool mSharedWeights      = false;
+   double mWriteStep        = 0.0;
+   double mInitialWriteTime = 0.0;
+
+   bool mWriteCompressedWeights     = false;
+   bool mWriteCompressedCheckpoints = false;
 
    ConnectionData *mConnectionData = nullptr;
 
    Weights *mPreWeights  = nullptr;
    Weights *mPostWeights = nullptr;
+   double mWriteTime     = 0.0;
+
+   CheckpointableFileStream *mOutputStateStream = nullptr; // weights file written by outputState
 };
 
 } // namespace PV

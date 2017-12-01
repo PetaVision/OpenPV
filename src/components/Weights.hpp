@@ -8,6 +8,7 @@
 #ifndef WEIGHTS_HPP_
 #define WEIGHTS_HPP_
 
+#include "checkpointing/Checkpointer.hpp"
 #include "components/PatchGeometry.hpp"
 #include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
@@ -76,6 +77,8 @@ class Weights {
     * and have no effect.
     */
    void allocateDataStructures();
+
+   void checkpointWeightPvp(Checkpointer *checkpointer, char const *bufferName, bool compressFlag);
 
    /** Calculates the minimum value of the patch data over all arbors. For nonshared weights, only
     * the active regions of the patches are considered when taking the minimum. */

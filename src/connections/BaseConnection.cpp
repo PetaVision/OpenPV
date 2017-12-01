@@ -117,7 +117,8 @@ int BaseConnection::respondConnectionFinalizeUpdate(
 
 int BaseConnection::respondConnectionOutput(
       std::shared_ptr<ConnectionOutputMessage const> message) {
-   return PV_SUCCESS; // return outputState(message->mTime);
+   notify(mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return PV_SUCCESS;
 }
 
 int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
@@ -151,6 +152,14 @@ int BaseConnection::allocateDataStructures() {
          mComponentTable,
          std::make_shared<AllocateDataMessage>(),
          parent->getCommunicator()->commRank() == 0 /*printFlag*/);
+   return PV_SUCCESS;
+}
+
+int BaseConnection::registerData(Checkpointer *checkpointer) {
+   notify(
+         mComponentTable,
+         std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer),
+         parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
    return PV_SUCCESS;
 }
 
