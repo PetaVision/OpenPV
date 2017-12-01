@@ -56,7 +56,7 @@
 // #include "connections/MomentumConn.hpp"
 // #include "connections/PlasticCloneConn.hpp"
 // #include "connections/PoolingConn.hpp"
-// #include "connections/RescaleConn.hpp"
+#include "connections/RescaleConn.hpp"
 // #include "connections/TransposeConn.hpp"
 // #include "connections/TransposePoolingConn.hpp"
 
@@ -165,7 +165,7 @@ int Factory::registerCoreKeywords() {
    // registerKeyword("MomentumConn", Factory::create<MomentumConn>);
    // registerKeyword("PlasticCloneConn", Factory::create<PlasticCloneConn>);
    // registerKeyword("PoolingConn", Factory::create<PoolingConn>);
-   // registerKeyword("RescaleConn", Factory::create<RescaleConn>);
+   registerKeyword("RescaleConn", Factory::create<RescaleConn>);
    // registerKeyword("TransposeConn", Factory::create<TransposeConn>);
    // registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
    registerKeyword("AdaptiveTimeScaleProbe", Factory::create<AdaptiveTimeScaleProbe>);
