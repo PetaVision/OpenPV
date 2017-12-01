@@ -1,0 +1,546 @@
+//
+// NormalizeSystemTest.params
+//
+// created by peteschultz April 15, 2013
+//
+
+// A params file for testing the NormalizeBase class hierarchy.
+// An 1-pixel input goes through a 16x16x4 connection that has been
+// normalized using normalizeSum.  Then a non-normalized all-to-one connection
+// with weights all one goes from the 16x16x4 layer to a one-pixel layer.
+// If normalizeSum is working correctly, the output layer has value one.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 16;
+   ny = 16;
+   dt = 1.0;
+   randomSeed = 1337540566;
+   startTime = 0.0;
+   stopTime = 5.0;
+   progressInterval = 10.0;
+   writeProgressToErr = false;
+   outputPath = "output";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+//
+// layers
+//
+
+Retina "Input" = {
+   restart = 0;
+   nxScale = 0.0625;
+   nyScale = 0.0625;
+   nf = 1;
+   phase = 0;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1;
+   initialWriteTime = 0;
+   sparseLayer = false;
+   
+   spikingFlag = true;
+   foregroundRate = 1000;
+   backgroundRate = 1000;
+   beginStim = 0;
+   endStim = infinity;
+   burstFreq = 1;
+   burstDuration = 1000;
+   refractoryPeriod = 0;
+   absRefractoryPeriod = 0;
+};
+
+ANNLayer "NormalizeSumOutput" = {
+   restart = 0;
+   nxScale = 1;
+   nyScale = 1;
+   nf = 4;
+   phase = 1;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1;
+   initialWriteTime = 0;
+   sparseLayer = false;
+   InitVType = "ZeroV";
+   
+   AMax = infinity;
+   AMin = -infinity;
+   VThresh = -infinity;
+   AShift = 0.0;
+};
+
+ANNLayer "NormalizeSumCheck" = {
+   restart = 0;
+   nxScale = 0.0625;
+   nyScale = 0.0625;
+   nf = 1;
+   phase = 2;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1;
+   initialWriteTime = 0;
+   sparseLayer = false;
+   InitVType = "ZeroV";
+   
+   AMax = infinity;
+   AMin = -infinity;
+   VThresh = -infinity;
+   AShift = 0.0;
+};
+
+ANNSquaredLayer "NormalizeL2Output" = {
+   restart = 0;
+   nxScale = 1;
+   nyScale = 1;
+   nf = 4;
+   phase = 1;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1;
+   initialWriteTime = 0;
+   sparseLayer = false;
+   InitVType = "ZeroV";
+   
+   AMax = infinity;
+   AMin = -infinity;
+   VThresh = -infinity;
+   AShift = 0.0;
+};
+
+ANNLayer "NormalizeL2Check" = {
+   restart = 0;
+   nxScale = 0.0625;
+   nyScale = 0.0625;
+   nf = 1;
+   phase = 2;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1;
+   initialWriteTime = 0;
+   sparseLayer = false;
+   InitVType = "ZeroV";
+   
+   AMax = infinity;
+   AMin = -infinity;
+   VThresh = -infinity;
+   AShift = 0.0;
+};
+
+ANNLayer "NormalizeMaxOutput" = {
+   restart = 0;
+   nxScale = 1;
+   nyScale = 1;
+   nf = 4;
+   phase = 1;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1;
+   initialWriteTime = 0;
+   sparseLayer = false;
+   InitVType = "ZeroV";
+   
+   AMax = infinity;
+   AMin = -infinity;
+   VThresh = -infinity;
+   AShift = 0.0;
+};
+
+ANNLayer "NormalizeMaxCheck" = {
+   restart = 0;
+   nxScale = 0.0625;
+   nyScale = 0.0625;
+   nf = 4; // Needed since we're using max pooling to check the max
+   phase = 2;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1;
+   initialWriteTime = 0;
+   sparseLayer = false;
+   InitVType = "ZeroV";
+
+   AMax = infinity;
+   AMin = -infinity;
+   VThresh = -infinity;
+   AShift = 0.0;
+};
+
+ANNLayer "NormalizeContrastZeroMeanOutput" = {
+   restart = 0;
+   nxScale = 1;
+   nyScale = 1;
+   nf = 4;
+   phase = 1;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1;
+   initialWriteTime = 0;
+   sparseLayer = false;
+   InitVType = "ZeroV";
+   
+   AMax = infinity;
+   AMin = -infinity;
+   VThresh = -infinity;
+   AShift = 0.0;
+};
+
+ANNSquaredLayer "NormalizeContrastZeroMeanOutputSquared" = {
+   restart = 0;
+   nxScale = 1;
+   nyScale = 1;
+   nf = 4;
+   phase = 2;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1;
+   initialWriteTime = 0;
+   sparseLayer = false;
+   InitVType = "ZeroV";
+   
+   AMax = infinity;
+   AMin = -infinity;
+   VThresh = -infinity;
+   AShift = 0.0;
+};
+
+ANNLayer "NormalizeContrastZeroMeanCheckMean" = {
+   restart = 0;
+   nxScale = 0.0625;
+   nyScale = 0.0625;
+   nf = 1;
+   phase = 3;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1;
+   initialWriteTime = 0;
+   sparseLayer = false;
+   InitVType = "ZeroV";
+   
+   AMax = infinity;
+   AMin = -infinity;
+   VThresh = -infinity;
+   AShift = 0.0;
+};
+
+ANNLayer "NormalizeContrastZeroMeanCheckVariance" = {
+   restart = 0;
+   nxScale = 0.0625;
+   nyScale = 0.0625;
+   nf = 1;
+   phase = 3;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   writeStep = 1;
+   initialWriteTime = 0;
+   sparseLayer = false;
+   InitVType = "ZeroV";
+   
+   AMax = infinity;
+   AMin = -infinity;
+   VThresh = -infinity;
+   AShift = 0.0;
+};
+
+//
+// Connections
+//
+
+HyPerConn "NormalizeSumConnection" = {
+   preLayerName = "Input";
+   postLayerName = "NormalizeSumOutput";
+   channelCode = 0;
+   numAxonalArbors = 1;
+   delay = 0;
+   plasticityFlag = false;
+   sharedWeights = true;
+   pvpatchAccumulateType = "convolve";
+   convertRateToSpikeCount = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   nxp = 16;
+   nyp = 16;
+   nfp = 4;
+   updateGSynFromPostPerspective = false;
+
+   weightInitType = "Gauss2DWeight";
+   strength = 2.5;
+   aspect = 2.0;
+   sigma = 0.8;
+   rMax = 8;
+   rMin = 0;
+   deltaThetaMax = 6.28318530717959;
+   thetaMax = 1.0;
+   numFlanks = 1.0;
+   flankShift = 0.0;
+   rotate = false;
+   bowtieFlag = false;
+   numOrientationsPost = 4;
+
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   symmetrizeWeights = false;
+   normalizeFromPostPerspective = false;
+   normalizeArborsIndividually = false;
+   minSumTolerated = 0;
+};
+
+HyPerConn "NormalizeSumCheckConnection" = {
+   preLayerName = "NormalizeSumOutput";
+   postLayerName = "NormalizeSumCheck";
+   channelCode = 0;
+   numAxonalArbors = 1;
+   delay = 0;
+   plasticityFlag = false;
+   sharedWeights = true;
+   pvpatchAccumulateType = "convolve";
+   convertRateToSpikeCount = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   nxp = 1;
+   nyp = 1;
+   nfp = 1;
+   updateGSynFromPostPerspective = false;
+   
+   weightInitType = "UniformWeight";
+   weightInit = 1;
+   
+   normalizeMethod = "none";
+};
+
+HyPerConn "NormalizeL2Connection" = {
+   preLayerName = "Input";
+   postLayerName = "NormalizeL2Output";
+   channelCode = 0;
+   numAxonalArbors = 1;
+   delay = 0;
+   plasticityFlag = false;
+   sharedWeights = true;
+   pvpatchAccumulateType = "convolve";
+   convertRateToSpikeCount = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   nxp = 16;
+   nyp = 16;
+   nfp = 4;
+   updateGSynFromPostPerspective = false;
+
+   weightInitType = "Gauss2DWeight";
+   strength = 2.5;
+   aspect = 2.0;
+   sigma = 0.8;
+   rMax = 8;
+   rMin = 0;
+   deltaThetaMax = 6.28318530717959;
+   thetaMax = 1.0;
+   numFlanks = 1.0;
+   flankShift = 0.0;
+   rotate = false;
+   bowtieFlag = false;
+   numOrientationsPost = 4;
+
+   normalizeMethod = "normalizeL2";
+   normalize_cutoff = false;
+   symmetrizeWeights = false;
+   normalizeFromPostPerspective = false;
+   normalizeArborsIndividually = false;
+   minL2NormTolerated = 0;
+};
+
+HyPerConn "NormalizeL2CheckConnection" = {
+   preLayerName = "NormalizeL2Output";
+   postLayerName = "NormalizeL2Check";
+   channelCode = 0;
+   numAxonalArbors = 1;
+   delay = 0;
+   plasticityFlag = false;
+   sharedWeights = true;
+   pvpatchAccumulateType = "convolve";
+   convertRateToSpikeCount = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   nxp = 1;
+   nyp = 1;
+   nfp = 1;
+   updateGSynFromPostPerspective = false;
+   
+   weightInitType = "UniformWeight";
+   weightInit = 1;
+   
+   normalizeMethod = "none";
+};
+
+HyPerConn "NormalizeMaxConnection" = {
+   preLayerName = "Input";
+   postLayerName = "NormalizeMaxOutput";
+   channelCode = 0;
+   numAxonalArbors = 1;
+   delay = 0;
+   plasticityFlag = false;
+   sharedWeights = true;
+   pvpatchAccumulateType = "convolve";
+   convertRateToSpikeCount = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   nxp = 16;
+   nyp = 16;
+   nfp = 4;
+   updateGSynFromPostPerspective = false;
+
+   weightInitType = "Gauss2DWeight";
+   strength = 2.5;
+   aspect = 2.0;
+   sigma = 0.8;
+   rMax = 8;
+   rMin = 0;
+   deltaThetaMax = 6.28318530717959;
+   thetaMax = 1.0;
+   numFlanks = 1.0;
+   flankShift = 0.0;
+   rotate = false;
+   bowtieFlag = false;
+   numOrientationsPost = 4;
+
+   normalizeMethod = "normalizeMax";
+   normalize_cutoff = false;
+   symmetrizeWeights = false;
+   normalizeFromPostPerspective = false;
+   normalizeArborsIndividually = false;
+   minMaxTolerated = 0;
+};
+
+PoolingConn "NormalizeMaxCheckConnection" = {
+   preLayerName = "NormalizeMaxOutput";
+   postLayerName = "NormalizeMaxCheck";
+   channelCode = 0;
+   numAxonalArbors = 1;
+   delay = 0;
+   plasticityFlag = false;
+   pvpatchAccumulateType = "maxpooling";
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   nxp = 1;
+   nyp = 1;
+   nfp = 4;
+   updateGSynFromPostPerspective = false;
+   
+   //weightInitType = "MaxPoolingWeight"; //"UniformWeight";
+   //weightInit = 1;
+   
+   normalizeMethod = "none";
+};
+
+HyPerConn "NormalizeContrastZeroMeanConnection" = {
+   preLayerName = "Input";
+   postLayerName = "NormalizeContrastZeroMeanOutput";
+   channelCode = 0;
+   numAxonalArbors = 1;
+   delay = 0;
+   plasticityFlag = false;
+   sharedWeights = true;
+   pvpatchAccumulateType = "convolve";
+   convertRateToSpikeCount = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   nxp = 16;
+   nyp = 16;
+   nfp = 4;
+   updateGSynFromPostPerspective = false;
+
+   weightInitType = "Gauss2DWeight";
+   strength = 2.5;
+   aspect = 2.0;
+   sigma = 0.8;
+   rMax = 8;
+   rMin = 0;
+   deltaThetaMax = 6.28318530717959;
+   thetaMax = 1.0;
+   numFlanks = 1.0;
+   flankShift = 0.0;
+   rotate = false;
+   bowtieFlag = false;
+   numOrientationsPost = 4;
+
+   normalizeMethod = "normalizeContrastZeroMean";
+   normalize_cutoff = false;
+   symmetrizeWeights = false;
+   normalizeArborsIndividually = false;
+   minSumTolerated = 0;
+};
+
+IdentConn "NormalizeContrastZeroMeanOutputToNormalizeContrastZeroMeanOutputSquared" = {
+   channelCode = 0;
+   delay = 0;
+   writeStep = -1;
+};
+
+HyPerConn "NormalizeContrastZeroMeanCheckMeanConnection" = {
+   preLayerName = "NormalizeContrastZeroMeanOutput";
+   postLayerName = "NormalizeContrastZeroMeanCheckMean";
+   channelCode = 0;
+   numAxonalArbors = 1;
+   delay = 0;
+   plasticityFlag = false;
+   sharedWeights = true;
+   pvpatchAccumulateType = "convolve";
+   convertRateToSpikeCount = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   nxp = 1;
+   nyp = 1;
+   nfp = 1;
+   updateGSynFromPostPerspective = false;
+   
+   weightInitType = "UniformWeight";
+   weightInit = 1;
+   
+   normalizeMethod = "none";
+};
+
+HyPerConn "NormalizeContrastZeroMeanCheckVarianceConnection" = {
+   preLayerName = "NormalizeContrastZeroMeanOutputSquared";
+   postLayerName = "NormalizeContrastZeroMeanCheckVariance";
+   channelCode = 0;
+   numAxonalArbors = 1;
+   delay = 0;
+   plasticityFlag = false;
+   sharedWeights = true;
+   pvpatchAccumulateType = "convolve";
+   convertRateToSpikeCount = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
+   selfFlag = false;
+   nxp = 1;
+   nyp = 1;
+   nfp = 1;
+   updateGSynFromPostPerspective = false;
+   
+   weightInitType = "UniformWeight";
+   weightInit = 1;
+   
+   normalizeMethod = "none";
+};

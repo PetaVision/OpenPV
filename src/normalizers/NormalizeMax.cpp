@@ -1,50 +1,42 @@
 /*
- * NormalizeSum.cpp
+ * NormalizeMax.cpp
  *
  *  Created on: Apr 8, 2013
  *      Author: pschultz
  */
 
-#include "NormalizeSum.hpp"
-#include <iostream>
+#include "NormalizeMax.hpp"
 
 namespace PV {
 
-NormalizeSum::NormalizeSum() { initialize_base(); }
+NormalizeMax::NormalizeMax() { initialize_base(); }
 
-NormalizeSum::NormalizeSum(const char *name, HyPerCol *hc) {
+NormalizeMax::NormalizeMax(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-NormalizeSum::~NormalizeSum() {}
+int NormalizeMax::initialize_base() { return PV_SUCCESS; }
 
-int NormalizeSum::initialize_base() { return PV_SUCCESS; }
-
-int NormalizeSum::initialize(const char *name, HyPerCol *hc) {
+int NormalizeMax::initialize(const char *name, HyPerCol *hc) {
    return NormalizeMultiply::initialize(name, hc);
 }
 
-int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int NormalizeMax::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = NormalizeMultiply::ioParamsFillGroup(ioFlag);
-   ioParam_minSumTolerated(ioFlag);
+   ioParam_minMaxTolerated(ioFlag);
    return status;
 }
 
-void NormalizeSum::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
+void NormalizeMax::ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(
-         ioFlag,
-         name,
-         "minSumTolerated",
-         &mMinSumTolerated,
-         mMinSumTolerated,
-         true /*warnIfAbsent*/);
+         ioFlag, name, "minMaxTolerated", &minMaxTolerated, 0.0f, true /*warnIfAbsent*/);
 }
 
-int NormalizeSum::normalizeWeights() {
+int NormalizeMax::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   pvAssert(!mWeightsList.empty());
+   assert(!mWeightsList.empty());
 
    // All connections in the group must have the same values of sharedWeights, numArbors, and
    // numDataPatches
@@ -54,7 +46,7 @@ int NormalizeSum::normalizeWeights() {
    if (mNormalizeFromPostPerspective) {
       if (weights0->getSharedFlag() == false) {
          Fatal().printf(
-               "NormalizeSum error for %s: normalizeFromPostPerspective is true but connection "
+               "NormalizeMax error for %s: normalizeFromPostPerspective is true but connection "
                "does not use shared weights.\n",
                getDescription_c());
       }
@@ -66,7 +58,7 @@ int NormalizeSum::normalizeWeights() {
    }
    scaleFactor *= mStrength;
 
-   status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and
+   status = NormalizeMultiply::normalizeWeights(); // applies normalize_cutoff threshold and
    // symmetrizeWeights
 
    int nArbors        = weights0->getNumArbors();
@@ -74,23 +66,23 @@ int NormalizeSum::normalizeWeights() {
    if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
          for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
-            float sum = 0.0;
+            float max = 0.0f;
             for (auto &weights : mWeightsList) {
                int nxp               = weights->getPatchSizeX();
                int nyp               = weights->getPatchSizeY();
                int nfp               = weights->getPatchSizeF();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
-               accumulateSum(dataStartPatch, weightsPerPatch, &sum);
+               accumulateMax(dataStartPatch, weightsPerPatch, &max);
             }
-            if (fabsf(sum) <= mMinSumTolerated) {
+            if (max <= minMaxTolerated) {
                WarnLog().printf(
-                     "NormalizeSum for %s: sum of weights in patch %d of arbor %d is within "
-                     "minSumTolerated=%f of zero. Weights in this patch unchanged.\n",
-                     getDescription_c(),
+                     "for NormalizeMax \"%s\": max of weights in patch %d of arbor %d is within "
+                     "minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n",
+                     getName(),
                      patchindex,
                      arborID,
-                     (double)mMinSumTolerated);
+                     (double)minMaxTolerated);
                continue;
             }
             for (auto &weights : mWeightsList) {
@@ -99,14 +91,14 @@ int NormalizeSum::normalizeWeights() {
                int nfp               = weights->getPatchSizeF();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
-               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / sum);
+               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / max);
             }
          }
       }
    }
    else {
       for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
-         float sum = 0.0;
+         float max = 0.0;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
                int nxp               = weights->getPatchSizeX();
@@ -114,16 +106,16 @@ int NormalizeSum::normalizeWeights() {
                int nfp               = weights->getPatchSizeF();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
-               accumulateSum(dataStartPatch, weightsPerPatch, &sum);
+               accumulateMax(dataStartPatch, weightsPerPatch, &max);
             }
          }
-         if (fabsf(sum) <= mMinSumTolerated) {
+         if (max <= minMaxTolerated) {
             WarnLog().printf(
-                  "NormalizeSum for %s: sum of weights in patch %d is within minSumTolerated=%f of "
-                  "zero.  Weights in this patch unchanged.\n",
-                  getDescription_c(),
+                  "for NormalizeMax \"%s\": max of weights in patch %d is within "
+                  "minMaxTolerated=%f of zero. Weights in this patch unchanged.\n",
+                  getName(),
                   patchindex,
-                  (double)mMinSumTolerated);
+                  (double)minMaxTolerated);
             continue;
          }
          for (int arborID = 0; arborID < nArbors; arborID++) {
@@ -133,12 +125,14 @@ int NormalizeSum::normalizeWeights() {
                int nfp               = weights->getPatchSizeF();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
-               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / sum);
+               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / max);
             }
          }
-      } // patchindex
-   } // mNormalizeArborsIndividually
+      }
+   }
    return status;
 }
+
+NormalizeMax::~NormalizeMax() {}
 
 } /* namespace PV */

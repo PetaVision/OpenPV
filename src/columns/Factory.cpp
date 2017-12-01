@@ -103,10 +103,10 @@
 #include "weightinit/InitUniformWeights.hpp"
 #include "weightinit/InitWeights.hpp"
 
-// #include "normalizers/NormalizeContrastZeroMean.hpp"
+#include "normalizers/NormalizeContrastZeroMean.hpp"
 // #include "normalizers/NormalizeGroup.hpp"
-// #include "normalizers/NormalizeL2.hpp"
-// #include "normalizers/NormalizeMax.hpp"
+#include "normalizers/NormalizeL2.hpp"
+#include "normalizers/NormalizeMax.hpp"
 #include "normalizers/NormalizeSum.hpp"
 
 namespace PV {
@@ -220,9 +220,9 @@ int Factory::registerCoreKeywords() {
    registerKeyword("SpreadOverArborsWeight", Factory::create<InitSpreadOverArborsWeights>);
    registerKeyword("FileWeight", Factory::create<InitWeights>);
 
-   // registerKeyword("normalizeContrastZeroMean", Factory::create<NormalizeContrastZeroMean>);
-   // registerKeyword("normalizeL2", Factory::create<NormalizeL2>);
-   // registerKeyword("normalizeMax", Factory::create<NormalizeMax>);
+   registerKeyword("normalizeContrastZeroMean", Factory::create<NormalizeContrastZeroMean>);
+   registerKeyword("normalizeL2", Factory::create<NormalizeL2>);
+   registerKeyword("normalizeMax", Factory::create<NormalizeMax>);
    registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
    // registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
 

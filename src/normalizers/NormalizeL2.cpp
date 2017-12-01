@@ -1,50 +1,42 @@
 /*
- * NormalizeSum.cpp
+ * NormalizeL2.cpp
  *
  *  Created on: Apr 8, 2013
  *      Author: pschultz
  */
 
-#include "NormalizeSum.hpp"
-#include <iostream>
+#include "NormalizeL2.hpp"
 
 namespace PV {
 
-NormalizeSum::NormalizeSum() { initialize_base(); }
+NormalizeL2::NormalizeL2() { initialize_base(); }
 
-NormalizeSum::NormalizeSum(const char *name, HyPerCol *hc) {
+NormalizeL2::NormalizeL2(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-NormalizeSum::~NormalizeSum() {}
+int NormalizeL2::initialize_base() { return PV_SUCCESS; }
 
-int NormalizeSum::initialize_base() { return PV_SUCCESS; }
-
-int NormalizeSum::initialize(const char *name, HyPerCol *hc) {
+int NormalizeL2::initialize(const char *name, HyPerCol *hc) {
    return NormalizeMultiply::initialize(name, hc);
 }
 
-int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = NormalizeMultiply::ioParamsFillGroup(ioFlag);
-   ioParam_minSumTolerated(ioFlag);
+   ioParam_minL2NormTolerated(ioFlag);
    return status;
 }
 
-void NormalizeSum::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
+void NormalizeL2::ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(
-         ioFlag,
-         name,
-         "minSumTolerated",
-         &mMinSumTolerated,
-         mMinSumTolerated,
-         true /*warnIfAbsent*/);
+         ioFlag, name, "minL2NormTolerated", &minL2NormTolerated, 0.0f, true /*warnIfAbsent*/);
 }
 
-int NormalizeSum::normalizeWeights() {
+int NormalizeL2::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   pvAssert(!mWeightsList.empty());
+   assert(!mWeightsList.empty());
 
    // All connections in the group must have the same values of sharedWeights, numArbors, and
    // numDataPatches
@@ -54,9 +46,9 @@ int NormalizeSum::normalizeWeights() {
    if (mNormalizeFromPostPerspective) {
       if (weights0->getSharedFlag() == false) {
          Fatal().printf(
-               "NormalizeSum error for %s: normalizeFromPostPerspective is true but connection "
-               "does not use shared weights.\n",
-               getDescription_c());
+               "NormalizeL2 error for %s: normalizeFromPostPerspective is true but connection does "
+               "not use shared weights.\n",
+               weights0->getName().c_str());
       }
       PVLayerLoc const &preLoc  = weights0->getGeometry()->getPreLoc();
       PVLayerLoc const &postLoc = weights0->getGeometry()->getPostLoc();
@@ -66,31 +58,32 @@ int NormalizeSum::normalizeWeights() {
    }
    scaleFactor *= mStrength;
 
-   status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and
-   // symmetrizeWeights
+   status = NormalizeMultiply::normalizeWeights(); // applies normalize_cutoff threshold and
+   // rMinX,rMinY
 
    int nArbors        = weights0->getNumArbors();
    int numDataPatches = weights0->getNumDataPatches();
    if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
          for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
-            float sum = 0.0;
+            float sumsq = 0.0f;
             for (auto &weights : mWeightsList) {
                int nxp               = weights->getPatchSizeX();
                int nyp               = weights->getPatchSizeY();
                int nfp               = weights->getPatchSizeF();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
-               accumulateSum(dataStartPatch, weightsPerPatch, &sum);
+               accumulateSumSquared(dataStartPatch, weightsPerPatch, &sumsq);
             }
-            if (fabsf(sum) <= mMinSumTolerated) {
+            float l2norm = sqrtf(sumsq);
+            if (fabsf(l2norm) <= minL2NormTolerated) {
                WarnLog().printf(
-                     "NormalizeSum for %s: sum of weights in patch %d of arbor %d is within "
-                     "minSumTolerated=%f of zero. Weights in this patch unchanged.\n",
-                     getDescription_c(),
+                     "for NormalizeL2 \"%s\": sum of squares of weights in patch %d of arbor %d is "
+                     "within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
+                     getName(),
                      patchindex,
                      arborID,
-                     (double)mMinSumTolerated);
+                     (double)minL2NormTolerated);
                continue;
             }
             for (auto &weights : mWeightsList) {
@@ -99,32 +92,35 @@ int NormalizeSum::normalizeWeights() {
                int nfp               = weights->getPatchSizeF();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
-               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / sum);
+               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / l2norm);
             }
          }
       }
    }
    else {
       for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
-         float sum = 0.0;
+         float sumsq = 0.0f;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
                int nxp               = weights->getPatchSizeX();
                int nyp               = weights->getPatchSizeY();
                int nfp               = weights->getPatchSizeF();
+               int xPatchStride      = weights->getPatchStrideX();
+               int yPatchStride      = weights->getPatchStrideY();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
-               accumulateSum(dataStartPatch, weightsPerPatch, &sum);
+               accumulateSumSquared(dataStartPatch, weightsPerPatch, &sumsq);
             }
          }
-         if (fabsf(sum) <= mMinSumTolerated) {
+         float l2norm = sqrtf(sumsq);
+         if (fabsf(sumsq) <= minL2NormTolerated) {
             WarnLog().printf(
-                  "NormalizeSum for %s: sum of weights in patch %d is within minSumTolerated=%f of "
-                  "zero.  Weights in this patch unchanged.\n",
-                  getDescription_c(),
+                  "for NormalizeL2 \"%s\": sum of squares of weights in patch %d is within "
+                  "minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
+                  getName(),
                   patchindex,
-                  (double)mMinSumTolerated);
-            continue;
+                  (double)minL2NormTolerated);
+            break;
          }
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
@@ -133,12 +129,14 @@ int NormalizeSum::normalizeWeights() {
                int nfp               = weights->getPatchSizeF();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
-               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / sum);
+               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / l2norm);
             }
          }
-      } // patchindex
-   } // mNormalizeArborsIndividually
+      }
+   }
    return status;
 }
+
+NormalizeL2::~NormalizeL2() {}
 
 } /* namespace PV */
