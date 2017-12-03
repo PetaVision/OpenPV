@@ -74,8 +74,6 @@ class HyPerConn : public BaseConnection {
    virtual int initializeState() override;
 
   protected:
-   char *mNormalizeMethod = nullptr;
-
    WeightsPair *mWeightsPair        = nullptr;
    InitWeights *mWeightInitializer  = nullptr;
    NormalizeBase *mWeightNormalizer = nullptr;

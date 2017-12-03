@@ -21,6 +21,16 @@ class NormalizeBase : public BaseObject {
     * @name NormalizeBase Parameters
     * @{
     */
+
+   /**
+    * @brief normalizeMethod: Specifies the type of weight normalization.
+    * @details This parameter is not used directly inside the NormalizeBase class,
+    * except to include the parameter in generated params files.
+    * Generally, instantiation should proceed by separately reading the
+    * NormalizeMethod and using the Factory::createByKeyword template to
+    * instantiate the function.
+    */
+   virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag);
@@ -85,8 +95,8 @@ class NormalizeBase : public BaseObject {
    static int accumulateMin(float *dataPatchStart, int weights_in_patch, float *max);
 
   protected:
-   float mStrength = 1.0f;
-
+   char *mNormalizeMethod            = nullptr;
+   float mStrength                   = 1.0f;
    bool mNormalizeArborsIndividually = false;
    bool mNormalizeOnInitialize       = true;
    bool mNormalizeOnWeightUpdate     = true;

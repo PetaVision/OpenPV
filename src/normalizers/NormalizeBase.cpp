@@ -30,11 +30,16 @@ int NormalizeBase::setDescription() {
 }
 
 int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_normalizeMethod(ioFlag);
    ioParam_strength(ioFlag);
    ioParam_normalizeArborsIndividually(ioFlag);
    ioParam_normalizeOnInitialize(ioFlag);
    ioParam_normalizeOnWeightUpdate(ioFlag);
    return PV_SUCCESS;
+}
+
+void NormalizeBase::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "normalizeMethod", &mNormalizeMethod);
 }
 
 void NormalizeBase::ioParam_strength(enum ParamsIOFlag ioFlag) {

@@ -45,6 +45,7 @@ int InitWeights::setDescription() {
 }
 
 int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_weightInitType(ioFlag);
    ioParam_initWeightsFile(ioFlag);
    ioParam_frameNumber(ioFlag);
 
@@ -52,6 +53,11 @@ int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_useListOfArborFiles(ioFlag);
    ioParam_combineWeightFiles(ioFlag);
    return PV_SUCCESS;
+}
+
+void InitWeights::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamStringRequired(
+         ioFlag, name, "weightInitType", &mWeightInitTypeString);
 }
 
 void InitWeights::ioParam_initWeightsFile(enum ParamsIOFlag ioFlag) {

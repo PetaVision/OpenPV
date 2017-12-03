@@ -23,6 +23,16 @@ class InitWeights : public BaseObject {
     */
 
    /**
+    * @brief weightInitType: Specifies the type of weight initialization.
+    * @details This parameter is not used directly inside the InitWeights class,
+    * except to include the parameter in generated params files.
+    * Generally, instantiation should proceed by separately reading the
+    * WeightInitType and using the Factory::createByKeyword template to
+    * instantiate the function.
+    */
+   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief initWeightsFile: A path to a weight pvp file to use for
     * initializing the weights, which overrides the usual method of
     * initializing weights defined by the class being instantiated. If the
@@ -109,6 +119,8 @@ class InitWeights : public BaseObject {
 
   protected:
    Weights *mWeights = nullptr; // initializeWeights sets this to the WeightsPair's PreWeights.
+
+   char *mWeightInitTypeString = nullptr;
 
    char *mFilename  = nullptr;
    int mFrameNumber = 0;
