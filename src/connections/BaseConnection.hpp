@@ -12,9 +12,9 @@
 #include "columns/BaseObject.hpp"
 #include "components/ConnectionData.hpp"
 #include "delivery/BaseDelivery.hpp"
-#include "weightupdaters/BaseWeightUpdater.hpp"
-//#include "normalizers/NormalizeBase.hpp"
 #include "observerpattern/Subject.hpp"
+#include "utils/MapLookupByType.hpp"
+#include "weightupdaters/BaseWeightUpdater.hpp"
 
 namespace PV {
 
@@ -42,6 +42,9 @@ class BaseConnection : public BaseObject, Subject {
    virtual ~BaseConnection();
 
    virtual void addObserver(Observer *observer) override;
+
+   template <typename S>
+   S *getComponentByType();
 
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 
@@ -101,8 +104,6 @@ class BaseConnection : public BaseObject, Subject {
    // the initializeFromCheckpointDir directory.
    bool initializeFromCheckpointFlag = true;
 
-   char *mNormalizeMethod = nullptr;
-
    ObserverTable mComponentTable;
 
   private:
@@ -111,6 +112,11 @@ class BaseConnection : public BaseObject, Subject {
    BaseWeightUpdater *mWeightUpdater = nullptr;
 
 }; // class BaseConnection
+
+template <typename S>
+S *BaseConnection::getComponentByType() {
+   return mapLookupByType<S>(mComponentTable.getObjectMap(), getDescription());
+}
 
 } // namespace PV
 

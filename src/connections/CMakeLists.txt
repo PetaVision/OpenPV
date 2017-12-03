@@ -1,7 +1,7 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
 #   ${SUBDIR}/accumulate_functions.cpp
    ${SUBDIR}/BaseConnection.cpp
-#   ${SUBDIR}/CloneConn.cpp
+   ${SUBDIR}/CloneConn.cpp
 #   ${SUBDIR}/ComponentsConn.cpp
 #   ${SUBDIR}/CopyConn.cpp
 #   ${SUBDIR}/FeedbackConn.cpp
@@ -21,7 +21,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 set (PVLibSrcHpp ${PVLibSrcHpp}
 #   ${SUBDIR}/accumulate_functions.hpp
    ${SUBDIR}/BaseConnection.hpp
-#   ${SUBDIR}/CloneConn.hpp
+   ${SUBDIR}/CloneConn.hpp
 #   ${SUBDIR}/ComponentsConn.hpp
 #   ${SUBDIR}/CopyConn.hpp
 #   ${SUBDIR}/FeedbackConn.hpp

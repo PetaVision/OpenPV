@@ -11,7 +11,6 @@
 
 #include "components/ConnectionData.hpp"
 #include "components/WeightsPair.hpp"
-//#include "weightupdaters/WeightUpdater.hpp"
 #include "connections/BaseConnection.hpp"
 #include "normalizers/NormalizeBase.hpp"
 #include "weightinit/InitWeights.hpp"

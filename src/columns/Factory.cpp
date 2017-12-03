@@ -46,7 +46,7 @@
 #include "layers/SigmoidLayer.hpp"
 #include "layers/WTALayer.hpp"
 
-// #include "connections/CloneConn.hpp"
+#include "connections/CloneConn.hpp"
 // #include "connections/CopyConn.hpp"
 // #include "connections/FeedbackConn.hpp"
 // #include "connections/GapConn.hpp"
@@ -155,7 +155,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("WTALayer", Factory::create<WTALayer>);
 
    registerKeyword("HyPerConn", Factory::create<HyPerConn>);
-   // registerKeyword("CloneConn", Factory::create<CloneConn>);
+   registerKeyword("CloneConn", Factory::create<CloneConn>);
    // registerKeyword("ComponentsConn", Factory::create<ComponentsConn>);
    // registerKeyword("CopyConn", Factory::create<CopyConn>);
    // registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);

@@ -106,7 +106,9 @@ int BaseConnection::respondConnectionWriteParams(
 
 int BaseConnection::respondConnectionUpdate(
       std::shared_ptr<ConnectionUpdateMessage const> message) {
-   mWeightUpdater->updateState(message->mTime, message->mDeltaT);
+   if (mWeightUpdater) {
+      mWeightUpdater->updateState(message->mTime, message->mDeltaT);
+   }
    return PV_SUCCESS;
 }
 

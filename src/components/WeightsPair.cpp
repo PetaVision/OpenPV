@@ -300,7 +300,6 @@ int WeightsPair::registerData(Checkpointer *checkpointer) {
 
 void WeightsPair::openOutputStateFile(Checkpointer *checkpointer) {
    if (mWriteStep >= 0) {
-
       if (checkpointer->getMPIBlock()->getRank() == 0) {
          std::string outputStatePath(getName());
          outputStatePath.append(".pvp");

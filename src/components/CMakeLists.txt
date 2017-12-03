@@ -3,6 +3,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/KneeTimeScaleController.cpp
    ${SUBDIR}/AdaptiveTimeScaleController.cpp
    ${SUBDIR}/BatchIndexer.cpp
+   ${SUBDIR}/CloneWeightsPair.cpp
    ${SUBDIR}/ConnectionData.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/PatchGeometry.cpp
@@ -16,6 +17,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/KneeTimeScaleController.cpp
    ${SUBDIR}/AdaptiveTimeScaleController.hpp
    ${SUBDIR}/BatchIndexer.hpp
+   ${SUBDIR}/CloneWeightsPair.hpp
    ${SUBDIR}/ConnectionData.hpp
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/Patch.hpp
