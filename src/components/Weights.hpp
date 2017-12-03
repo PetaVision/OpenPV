@@ -24,11 +24,11 @@ namespace PV {
  * object). It handles both shared and nonshared versions of the connection data used by HyPerConn,
  * and handles multiple arbors.
  *
- * Instantiate using one of the constructors, and then call the allocateDataStructures() method.
- * The constructors differ in how the PatchGeometry object is specified.
- *
- * If the Weights is constructed with sharedWeights off, NumDataPatchesX and NumDataPatchesY
- * are the same as the PatchGeometry object's numPatchesX and numPatchesY.
+ * If instantiating with the constructor that only takes the name argument, one of the initialize()
+ * methods must be called. The initialize() methods differ in how the PatchGeometry object is
+ * specified. Afterward, the allocateDataStructures() method must be called before the weights
+ * object is ready. If the Weights is constructed with sharedWeights off, NumDataPatchesX and
+ * NumDataPatchesY are the same as the PatchGeometry object's numPatchesX and numPatchesY.
  *
  * If sharedWeights is on, NumDataPatchesX is PreLoc.nx / PostLoc.nx if this quantity is
  * greater than one, and 1 otherwise. Note that the PatchGeometry object requires that
@@ -42,8 +42,15 @@ class Weights {
 
   public:
    /**
-    * A constructor that takes the patch size and pre- and post-synaptic PVLayerLoc arguments
-    * to define the PatchGeometry object.
+    * Instantiates the Weights object and sets the name, but does not set any of the other
+    * data members. One of the initialize() methods and then the allocateDataStructures()
+    * method has to be called before the Weights object is ready to use.
+    */
+   Weights(std::string const &name);
+
+   /**
+    * Instantiates the Weights object and then calls the initialize() method with the arguments
+    * after the name argument.
     */
    Weights(
          std::string const &name,
@@ -56,19 +63,37 @@ class Weights {
          bool sharedWeights,
          double timestamp);
 
-   /** A constructor that uses the specified PatchGeometry object as its patch geometry. */
-   Weights(
-         std::string const &name,
+   /** The destructor for Weights. */
+   virtual ~Weights() {}
+
+   /**
+    * An initializer that uses the specified PatchGeometry object as its patch geometry.
+    * This method allows two Weights objects to share the same PatchGeometry object.
+    */
+   void initialize(
          std::shared_ptr<PatchGeometry> geometry,
          int numArbors,
          bool sharedWeights,
          double timestamp);
 
-   /** A constructor that uses the geometry of an existing Weights object. */
-   Weights(std::string const &name, Weights const *baseWeights);
+   /** A constructor that uses the geometry of an existing Weights object.
+    * The PatchGeometry object is shared, and the other data members are copied.
+    */
+   void initialize(Weights const *baseWeights);
 
-   /** The destructor for Weights. */
-   virtual ~Weights() {}
+   /**
+    * An initializer that takes the patch size and pre- and post-synaptic PVLayerLoc arguments
+    * to define the PatchGeometry object.
+    */
+   void initialize(
+         int patchSizeX,
+         int patchSizeY,
+         int patchSizeF,
+         PVLayerLoc const *preLoc,
+         PVLayerLoc const *postLoc,
+         int numArbors,
+         bool sharedWeights,
+         double timestamp);
 
    /**
     * Allocates the patch geometry and the the patch data vector.
@@ -202,6 +227,8 @@ class Weights {
     */
    int getPatchStrideY() const { return mGeometry->getPatchSizeF() * mGeometry->getPatchSizeX(); }
 
+   int calcDataIndexFromPatchIndex(int patchIndex) const;
+
   protected:
    /**
     * The default constructor, called by derived classes (e.g. PoolingWeights).
@@ -209,24 +236,16 @@ class Weights {
     */
    Weights() {}
 
-   /** Called internally by the constructor */
-   void initialize(
-         std::string const &name,
-         std::shared_ptr<PatchGeometry> geometry,
-         int numArbors,
-         bool sharedWeights,
-         double timestamp);
+   void setName(std::string const &name) { mName = name; }
 
    void setNumDataPatches(int numDataPatchesX, int numDataPatchesY, int numDataPatchesF);
 
   private:
    virtual void initNumDataPatches();
 
-   int calcDataIndexFromPatchIndex(int patchIndex) const;
-
   private:
    std::string mName;
-   std::shared_ptr<PatchGeometry> mGeometry;
+   std::shared_ptr<PatchGeometry> mGeometry = nullptr;
    int mNumArbors;
    bool mSharedFlag;
    double mTimestamp;

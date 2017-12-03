@@ -30,6 +30,8 @@ namespace PV {
 class ImpliedWeights : public Weights {
 
   public:
+   ImpliedWeights(std::string const &name);
+
    ImpliedWeights(
          std::string const &name,
          int patchSizeX,
@@ -40,15 +42,6 @@ class ImpliedWeights : public Weights {
          int numArbors,
          bool sharedWeights,
          double timestamp);
-
-   ImpliedWeights(
-         std::string const &name,
-         std::shared_ptr<PatchGeometry> geometry,
-         int numArbors,
-         bool sharedWeights,
-         double timestamp);
-
-   ImpliedWeights(std::string const &name, Weights const *baseWeights);
 
    virtual ~ImpliedWeights() {}
 

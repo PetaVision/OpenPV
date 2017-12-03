@@ -148,12 +148,12 @@ void ColumnArchive::addConn(PV::HyPerConn *conn, float connTolerance) {
    m_conndata.resize(sz + 1);
    ConnArchive &latestConnection = m_conndata.at(sz);
    latestConnection.name         = conn->getName();
-   int const numArbors           = conn->numberOfAxonalArborLists();
+   int const numArbors           = conn->getNumAxonalArbors();
 
    latestConnection.numArbors = numArbors;
-   latestConnection.nxp       = conn->xPatchSize();
-   latestConnection.nyp       = conn->yPatchSize();
-   latestConnection.nfp       = conn->fPatchSize();
+   latestConnection.nxp       = conn->getPatchSizeX();
+   latestConnection.nyp       = conn->getPatchSizeY();
+   latestConnection.nfp       = conn->getPatchSizeF();
    latestConnection.data.resize(numArbors);
    int const datasize = latestConnection.nxp * latestConnection.nyp * latestConnection.nfp
                         * latestConnection.numDataPatches;

@@ -53,7 +53,7 @@ void WeightsPair::ioParam_nyp(enum ParamsIOFlag ioFlag) {
 
 void WeightsPair::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "nfp", &mPatchSizeF, -1, false);
-   if (ioFlag == PARAMS_IO_READ && mPatchSizeX < 0 && !parent->parameters()->present(name, "nfp")
+   if (ioFlag == PARAMS_IO_READ && mPatchSizeF < 0 && !parent->parameters()->present(name, "nfp")
        && parent->getCommunicator()->globalCommRank() == 0) {
       InfoLog().printf(
             "%s: nfp will be set in the communicateInitInfo() stage.\n", getDescription_c());
@@ -197,6 +197,32 @@ int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
             ymargin);
       status = PV_MARGINWIDTH_FAILURE;
    }
+
+   if (mPatchSizeF < 0) {
+      mPatchSizeF = postLoc->nf;
+      if (mWarnDefaultNfp && parent->getCommunicator()->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s setting nfp to number of postsynaptic features = %d.\n",
+               getDescription_c(),
+               mPatchSizeF);
+      }
+   }
+   if (mPatchSizeF != postLoc->nf) {
+      if (parent->columnId() == 0) {
+         ErrorLog(errorMessage);
+         errorMessage.printf(
+               "Params file specifies %d features for %s,\n", mPatchSizeF, getDescription_c());
+         errorMessage.printf(
+               "but %d features for post-synaptic layer %s\n", postLoc->nf, post->getName());
+      }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(PV_FAILURE);
+   }
+   // Currently, the only acceptable number for mPatchSizeF is the number of post-synaptic features.
+   // However, we may add flexibility on this score in the future, e.g. MPI in feature space
+   // with each feature connecting to only a few nearby features.
+   // Accordingly, we still keep ioParam_nfp.
+
    needPre();
 
    return status;
@@ -204,34 +230,51 @@ int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
 void WeightsPair::needPre() {
    if (mPreWeights == nullptr) {
-      mPreWeights = new Weights(
-            std::string(name),
-            mPatchSizeX,
-            mPatchSizeY,
-            mPatchSizeF,
-            mConnectionData->getPre()->getLayerLoc(),
-            mConnectionData->getPost()->getLayerLoc(),
-            mConnectionData->getNumAxonalArbors(),
-            mSharedWeights,
-            0.0 /* timestamp */);
+      mPreWeights = new Weights(std::string(name));
    }
 }
 
 void WeightsPair::needPost() {
    if (mPostWeights == nullptr) {
       needPre();
-      new PostWeights(std::string(name), mPreWeights);
+      mPostWeights = new PostWeights(std::string(name), mPreWeights);
    }
 }
 
 int WeightsPair::allocateDataStructures() {
    if (mPreWeights) {
-      mPreWeights->allocateDataStructures();
+      allocatePreWeights();
    }
    if (mPostWeights) {
-      mPostWeights->allocateDataStructures();
+      allocatePostWeights();
    }
    return PV_SUCCESS;
+}
+
+void WeightsPair::allocatePreWeights() {
+   mPreWeights->initialize(
+         mPatchSizeX,
+         mPatchSizeY,
+         mPatchSizeF,
+         mConnectionData->getPre()->getLayerLoc(),
+         mConnectionData->getPost()->getLayerLoc(),
+         mConnectionData->getNumAxonalArbors(),
+         mSharedWeights,
+         0.0 /* timestamp */);
+   mPreWeights->allocateDataStructures();
+}
+
+void WeightsPair::allocatePostWeights() {
+   auto *postWeights = dynamic_cast<PostWeights *>(mPostWeights);
+   FatalIf(
+         postWeights == nullptr,
+         "WeightsPair::allocateDataStructures called with mPostWeights set, "
+         "but not a PostWeights object.\n",
+         name);
+   // If a derived sets mPostWeights to a non-PostWeights object (e.g. TransposeConn),
+   // it needs to override allocateDataStructures.
+   postWeights->initializePostWeights(mPreWeights);
+   mPostWeights->allocateDataStructures();
 }
 
 int WeightsPair::registerData(Checkpointer *checkpointer) {

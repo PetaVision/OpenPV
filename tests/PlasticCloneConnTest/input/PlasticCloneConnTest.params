@@ -1,0 +1,279 @@
+// PlasticCloneConnTest
+// This test has four input layers: InputA, InputB, InputC, InputD;
+// an output layer of all ones; and four connections: ConnA, ..., ConnD.
+// Conn<x> connects Input<x> to the output layer on channel -1
+// (so that the output layer remains constant.)
+//
+// InputA and Input D are the same, and Input B and Input C are the same.
+// ConnA and ConnC are plastic HyPerConns, whose initial weights are
+// all one. ConnB is a PlasticCloneConn of ConnA, and ConnD is a
+// PlasticCloneConn of ConnC.
+//
+// Therefore, connections A and C should evolve in sync, even though
+// they have different direct inputs, because their total inputs are
+// the same once the clones are taken into account.
+//
+// The probe is a custom sublass of ColProbe, that checks that all
+// weights are the same.
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 100;
+    progressInterval                    = 100;
+    writeProgressToErr                  = true;
+    outputPath                          = "output/";
+    verifyWrites                        = true;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 1;
+    errorOnNotANumber                   = false;
+};
+
+// Common output layer.
+ConstantLayer "Output" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    InitVType                           = "ConstantV";
+    valueV                              = 1;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+// Inputs A and B, with their connections.
+// ConnA is the original and ConnB is a clone.
+PvpLayer "InputA" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "input/InputA.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    writeFrameToTimestamp               = true;
+};
+
+PvpLayer "InputB" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "input/InputB.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    writeFrameToTimestamp               = true;
+};
+
+HyPerConn "ConnA" = {
+    preLayerName                        = "InputA";
+    postLayerName                       = "Output";
+    channelCode                         = -1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 1;
+    connectOnlySameFeatures             = false;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 5;
+    initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 5;
+    nyp                                 = 5;
+    nfp                                 = 1;
+    normalizeMethod                     = "none";
+    dWMax                               = 1;
+    normalizeDw                         = false;
+    useMask                             = false;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    weightSparsity                      = 0;
+};
+
+PlasticCloneConn "ConnB" = {
+    preLayerName                        = "InputB";
+    postLayerName                       = "Output";
+    channelCode                         = -1;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    useMask                             = false;
+    weightSparsity                      = 0;
+    originalConnName                    = "ConnA";
+};
+
+// Inputs C and D, with their connections.
+// Input C is the same as B; input D is the same as A.
+// ConnC is the original and ConnD is a clone.
+PvpLayer "InputC" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "input/InputB.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    writeFrameToTimestamp               = true;
+};
+
+PvpLayer "InputD" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "input/InputA.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    writeFrameToTimestamp               = true;
+};
+
+HyPerConn "ConnC" = {
+    preLayerName                        = "InputC";
+    postLayerName                       = "Output";
+    channelCode                         = -1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 1;
+    connectOnlySameFeatures             = false;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 5;
+    initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 5;
+    nyp                                 = 5;
+    nfp                                 = 1;
+    normalizeMethod                     = "none";
+    dWMax                               = 1;
+    normalizeDw                         = false;
+    useMask                             = false;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    weightSparsity                      = 0;
+};
+
+PlasticCloneConn "ConnD" = {
+    preLayerName                        = "InputD";
+    postLayerName                       = "Output";
+    channelCode                         = -1;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    useMask                             = false;
+    weightSparsity                      = 0;
+    originalConnName                    = "ConnC";
+};
+
+// Probe
+WeightComparisonProbe "Probe" = {
+};

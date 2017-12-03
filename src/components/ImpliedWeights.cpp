@@ -9,6 +9,8 @@
 
 namespace PV {
 
+ImpliedWeights::ImpliedWeights(std::string const &name) { setName(name); }
+
 ImpliedWeights::ImpliedWeights(
       std::string const &name,
       int patchSizeX,
@@ -19,27 +21,9 @@ ImpliedWeights::ImpliedWeights(
       int numArbors,
       bool sharedWeights,
       double timestamp) {
-   auto geometry =
-         std::make_shared<PatchGeometry>(name, patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc);
-   initialize(name, geometry, numArbors, sharedWeights, timestamp);
-}
-
-ImpliedWeights::ImpliedWeights(
-      std::string const &name,
-      std::shared_ptr<PatchGeometry> geometry,
-      int numArbors,
-      bool sharedWeights,
-      double timestamp) {
-   initialize(name, geometry, numArbors, sharedWeights, timestamp);
-}
-
-ImpliedWeights::ImpliedWeights(std::string const &name, Weights const *baseWeights) {
-   initialize(
-         name,
-         baseWeights->getGeometry(),
-         baseWeights->getNumArbors(),
-         baseWeights->getSharedFlag(),
-         baseWeights->getTimestamp());
+   setName(name);
+   Weights::initialize(
+         patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc, numArbors, sharedWeights, timestamp);
 }
 
 void ImpliedWeights::initNumDataPatches() { setNumDataPatches(0, 0, 0); }

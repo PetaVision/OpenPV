@@ -25,17 +25,17 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
 
 void HyPerConn::defineComponents() {
    BaseConnection::defineComponents();
-   auto weightsPair = createWeightsPair();
-   if (weightsPair) {
-      addObserver(weightsPair);
+   mWeightsPair = createWeightsPair();
+   if (mWeightsPair) {
+      addObserver(mWeightsPair);
    }
-   auto weightInitializer = createWeightInitializer();
-   if (weightInitializer) {
-      addObserver(weightInitializer);
+   mWeightInitializer = createWeightInitializer();
+   if (mWeightInitializer) {
+      addObserver(mWeightInitializer);
    }
-   auto normalizer = createWeightNormalizer();
-   if (normalizer) {
-      addObserver(normalizer);
+   mWeightNormalizer = createWeightNormalizer();
+   if (mWeightNormalizer) {
+      addObserver(mWeightNormalizer);
    }
 }
 

@@ -25,7 +25,7 @@ int VaryingHyPerConn::allocateDataStructures() {
 }
 
 int VaryingHyPerConn::updateWeights(int axonId) {
-   int nPatch = fPatchSize() * xPatchSize() * yPatchSize();
+   int nPatch = getPatchSizeF() * getPatchSizeX() * getPatchSizeY();
    for (int patchIndex = 0; patchIndex < getNumDataPatches(); patchIndex++) {
       float *Wdata  = getWeightsDataHead(axonId, patchIndex);
       float *dWdata = getDeltaWeightsDataHead(axonId, patchIndex);

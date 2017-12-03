@@ -14,6 +14,8 @@
 
 namespace PV {
 
+Weights::Weights(std::string const &name) { setName(name); }
+
 Weights::Weights(
       std::string const &name,
       int patchSizeX,
@@ -24,37 +26,20 @@ Weights::Weights(
       int numArbors,
       bool sharedWeights,
       double timestamp) {
-   auto geometry =
-         std::make_shared<PatchGeometry>(name, patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc);
-   initialize(name, geometry, numArbors, sharedWeights, timestamp);
-}
-
-Weights::Weights(
-      std::string const &name,
-      std::shared_ptr<PatchGeometry> geometry,
-      int numArbors,
-      bool sharedWeights,
-      double timestamp) {
-   initialize(name, geometry, numArbors, sharedWeights, timestamp);
-}
-
-Weights::Weights(std::string const &name, Weights const *baseWeights) {
-   auto geometry = baseWeights->getGeometry();
+   setName(name);
    initialize(
-         name,
-         geometry,
-         baseWeights->getNumArbors(),
-         baseWeights->getSharedFlag(),
-         baseWeights->getTimestamp());
+         patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc, numArbors, sharedWeights, timestamp);
 }
 
 void Weights::initialize(
-      std::string const &name,
       std::shared_ptr<PatchGeometry> geometry,
       int numArbors,
       bool sharedWeights,
       double timestamp) {
-   mName       = name;
+   FatalIf(
+         mGeometry != nullptr,
+         "Weights object \"%s\" has already been initialized.\n",
+         getName().c_str());
    mGeometry   = geometry;
    mNumArbors  = numArbors;
    mSharedFlag = sharedWeights;
@@ -63,10 +48,34 @@ void Weights::initialize(
    initNumDataPatches();
 }
 
+void Weights::initialize(Weights const *baseWeights) {
+   auto geometry = baseWeights->getGeometry();
+   initialize(
+         geometry,
+         baseWeights->getNumArbors(),
+         baseWeights->getSharedFlag(),
+         baseWeights->getTimestamp());
+}
+
+void Weights::initialize(
+      int patchSizeX,
+      int patchSizeY,
+      int patchSizeF,
+      PVLayerLoc const *preLoc,
+      PVLayerLoc const *postLoc,
+      int numArbors,
+      bool sharedWeights,
+      double timestamp) {
+   auto geometry = std::make_shared<PatchGeometry>(
+         mName.c_str(), patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc);
+   initialize(geometry, numArbors, sharedWeights, timestamp);
+}
+
 void Weights::allocateDataStructures() {
    if (!mData.empty()) {
       return;
    }
+   FatalIf(mGeometry == nullptr, "%s has not been initialized.\n", mName.c_str());
    mGeometry->allocateDataStructures();
 
    int numDataPatches = mNumDataPatchesX * mNumDataPatchesY * mNumDataPatchesF;

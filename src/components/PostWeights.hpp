@@ -16,10 +16,13 @@ namespace PV {
  * Now that you've read this doxygen comment, you understand the PostWeights class completely.
  * Don't try to tell me you don't.
  */
-
 class PostWeights : public Weights {
   public:
+   PostWeights(std::string const &name);
+
    PostWeights(std::string const &name, Weights *preWeights);
+
+   void initializePostWeights(Weights *preWeights);
 
    /**
     * Calculates the patch size from the postsynaptic perspective, given the patch size from the

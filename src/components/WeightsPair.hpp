@@ -87,6 +87,10 @@ class WeightsPair : public BaseObject {
 
    virtual int allocateDataStructures() override;
 
+   virtual void allocatePreWeights();
+
+   virtual void allocatePostWeights();
+
    virtual int registerData(Checkpointer *checkpointer) override;
 
    void openOutputStateFile(Checkpointer *checkpointer);
@@ -111,6 +115,10 @@ class WeightsPair : public BaseObject {
    double mWriteTime     = 0.0;
 
    CheckpointableFileStream *mOutputStateStream = nullptr; // weights file written by outputState
+
+   bool mWarnDefaultNfp = true;
+   // Whether to print a warning if the default nfp is used.
+   // Derived classes can set to false if no warning is necessary.
 };
 
 } // namespace PV

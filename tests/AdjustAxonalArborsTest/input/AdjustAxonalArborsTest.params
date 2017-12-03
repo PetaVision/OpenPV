@@ -1,0 +1,130 @@
+//
+// BasicSystemTest.params
+//
+// created by peteschultz: Oct 11, 2013
+//
+
+// A params file testing whether PatchGeometry::initPatchGeometry()
+// shrinks patches correctly in the case where the patch size exceeds
+// the post-synaptic restricted layer size, so that the patch must be
+// shrunken in both directions.
+//
+// The input and output layers are 2x2x1.
+// The connection is 3x3x1.
+// So, the input layer has extended size 4x4x1.
+// Mirroring boundary conditions is off.  The input extended layer is
+//    0 0 0 0
+//    0 1 2 0
+//    0 3 4 0
+//    0 0 0 0
+//
+// The connection weights are
+//     0 1 2
+//     3 4 5
+//     6 7 8
+//
+// Hence the output should be
+//  [ 1*4+2*3+3*1+4*0   1*5+2*4+3*2+4*1 ]     [ 13  23 ]
+//  [ 1*7+2*6+3*4+4*3   1*8+2*7+3*5+4*4 ], or [ 43  53 ]
+
+debugParsing = false;    // Debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx = 2;   //size of the whole networks
+   ny = 2;
+   dt = 1.0;  //time step in ms.	     
+   randomSeed = 1290140979;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
+   stopTime = 10.0;  
+   progressInterval = 10.0; //Program will output its progress at each progressInterval
+   writeProgressToErr = false;  
+   verifyWrites = true;
+   outputPath = "Output";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last"; //Save the last output as checkpoint.
+   errorOnNotANumber = false;
+};
+
+//
+// layers
+//
+
+//All layers are subclasses of hyperlayer
+
+
+// this is a input layer
+PvpLayer "Input" = {
+    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
+    nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
+    	      	  // cannot be larger than the input image size.
+    inputPath = "input/input.pvp";
+    displayPeriod = 0;
+    nf = 1; //number of features. For a grey image, it's 1. For a color image, it could be either 1 or 3.
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = -1;  //-1 means doesn't write for log
+    sparseLayer = false; //only write weights which are not 0
+    mirrorBCflag = false;    //border condition flag
+    valueBC = 0.0;
+    useInputBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    padValue = 0;
+};
+
+//an output layer
+ANNLayer "Output" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    phase = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    triggerLayerName = NULL;
+
+    InitVType = "ZeroV";
+
+    //define a linear relation between its input and output, with some hard cut-off.
+    VThresh = -infinity;   
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+};
+
+//connection
+
+HyPerConn "InputToOutput" = {
+    preLayerName = "Input";
+    postLayerName = "Output";
+    channelCode = 0;
+
+    sharedWeights = true;
+    nxp = 3;
+    nyp = 3;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/weights.pvp";
+
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    convertRateToSpikeCount = false;
+    selfFlag = false;  // conntect to itself
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+};

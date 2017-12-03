@@ -10,7 +10,14 @@
 
 namespace PV {
 
+PostWeights::PostWeights(std::string const &name) { setName(name); }
+
 PostWeights::PostWeights(std::string const &name, Weights *preWeights) {
+   setName(name);
+   initializePostWeights(preWeights);
+}
+
+void PostWeights::initializePostWeights(Weights *preWeights) {
    auto preGeometry          = preWeights->getGeometry();
    PVLayerLoc const &preLoc  = preGeometry->getPreLoc();
    PVLayerLoc const &postLoc = preGeometry->getPostLoc();
@@ -19,12 +26,15 @@ PostWeights::PostWeights(std::string const &name, Weights *preWeights) {
    int const postPatchSizeY = calcPostPatchSize(preWeights->getPatchSizeX(), preLoc.ny, postLoc.ny);
    int const postPatchSizeF = preLoc.nf;
 
-   auto geometry = std::make_shared<PatchGeometry>(
-         name, postPatchSizeX, postPatchSizeY, postPatchSizeF, &postLoc, &preLoc);
-   int const numArbors    = preWeights->getNumArbors();
-   bool const sharedFlag  = preWeights->getSharedFlag();
-   double const timestamp = preWeights->getTimestamp();
-   Weights::initialize(name, geometry, numArbors, sharedFlag, timestamp);
+   Weights::initialize(
+         postPatchSizeX,
+         postPatchSizeY,
+         postPatchSizeF,
+         &postLoc,
+         &preLoc,
+         preWeights->getNumArbors(),
+         preWeights->getSharedFlag(),
+         preWeights->getTimestamp());
 }
 
 int PostWeights::calcPostPatchSize(int prePatchSize, int numNeuronsPre, int numNeuronsPost) {
