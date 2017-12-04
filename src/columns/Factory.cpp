@@ -91,15 +91,15 @@
 #include "delivery/PresynapticPerspectiveStochasticDelivery.hpp"
 #include "delivery/RescaleDelivery.hpp"
 
-// #include "weightinit/InitCocircWeights.hpp"
+#include "weightinit/InitCocircWeights.hpp"
 #include "weightinit/InitGauss2DWeights.hpp"
-// #include "weightinit/InitGaussianRandomWeights.hpp"
-// #include "weightinit/InitIdentWeights.hpp"
-// #include "weightinit/InitOneToOneWeights.hpp"
-// #include "weightinit/InitOneToOneWeightsWithDelays.hpp"
-// #include "weightinit/InitSmartWeights.hpp"
+#include "weightinit/InitGaussianRandomWeights.hpp"
+#include "weightinit/InitIdentWeights.hpp"
+#include "weightinit/InitOneToOneWeights.hpp"
+#include "weightinit/InitOneToOneWeightsWithDelays.hpp"
+#include "weightinit/InitSmartWeights.hpp"
 #include "weightinit/InitSpreadOverArborsWeights.hpp"
-// #include "weightinit/InitUniformRandomWeights.hpp"
+#include "weightinit/InitUniformRandomWeights.hpp"
 #include "weightinit/InitUniformWeights.hpp"
 #include "weightinit/InitWeights.hpp"
 
@@ -208,15 +208,14 @@ int Factory::registerCoreKeywords() {
    registerKeyword("RescaleDelivery", Factory::create<RescaleDelivery>);
 
    registerKeyword("Gauss2DWeight", Factory::create<InitGauss2DWeights>);
-   // registerKeyword("CoCircWeight", Factory::create<InitCocircWeights>);
+   registerKeyword("CoCircWeight", Factory::create<InitCocircWeights>);
    registerKeyword("UniformWeight", Factory::create<InitUniformWeights>);
-   // registerKeyword("SmartWeight", Factory::create<InitSmartWeights>);
-   // registerKeyword("UniformRandomWeight", Factory::create<InitUniformRandomWeights>);
-   // registerKeyword("GaussianRandomWeight", Factory::create<InitGaussianRandomWeights>);
-   // registerKeyword("IdentWeight", Factory::create<InitIdentWeights>);
-   // registerKeyword("OneToOneWeights", Factory::create<InitOneToOneWeights>);
-   // registerKeyword("OneToOneWeightsWithDelays",
-   //   Factory::create<InitOneToOneWeightsWithDelays>);
+   registerKeyword("SmartWeight", Factory::create<InitSmartWeights>);
+   registerKeyword("UniformRandomWeight", Factory::create<InitUniformRandomWeights>);
+   registerKeyword("GaussianRandomWeight", Factory::create<InitGaussianRandomWeights>);
+   registerKeyword("IdentWeight", Factory::create<InitIdentWeights>);
+   registerKeyword("OneToOneWeights", Factory::create<InitOneToOneWeights>);
+   registerKeyword("OneToOneWeightsWithDelays", Factory::create<InitOneToOneWeightsWithDelays>);
    registerKeyword("SpreadOverArborsWeight", Factory::create<InitSpreadOverArborsWeights>);
    registerKeyword("FileWeight", Factory::create<InitWeights>);
 
