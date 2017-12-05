@@ -61,12 +61,15 @@ class BaseConnection : public BaseObject, Subject {
 
    HyPerLayer *getPre() const { return mConnectionData->getPre(); }
    HyPerLayer *getPost() const { return mConnectionData->getPost(); }
+   char const *getPreLayerName() const { return mConnectionData->getPreLayerName(); }
+   char const *getPostLayerName() const { return mConnectionData->getPostLayerName(); }
    int getNumAxonalArbors() const { return mConnectionData->getNumAxonalArbors(); }
 
    ChannelType getChannelCode() const { return mDeliveryObject->getChannelCode(); }
    int getDelay(int arbor) const { return mDeliveryObject->getDelay(arbor); }
    bool getConvertRateToSpikeCount() const { return mDeliveryObject->getConvertRateToSpikeCount(); }
    bool getReceiveGpu() const { return mDeliveryObject->getReceiveGpu(); }
+   bool getPlasticityFlag() const { return mWeightUpdater->getPlasticityFlag(); }
 
   protected:
    BaseConnection();

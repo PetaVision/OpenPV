@@ -142,16 +142,27 @@ int HyPerDeliveryFacade::communicateInitInfo(
    pvAssert(mConnectionData != nullptr);
    WeightsPair *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
    pvAssert(weightsPair != nullptr);
-   pvAssert(mDeliveryIntern != nullptr);
 
    // DeliveryIntern needs to know the ConnectionData and the WeightsPair.
-   ObserverTable observerTable;
-   observerTable.addObject(mConnectionData->getDescription(), mConnectionData);
-   observerTable.addObject(weightsPair->getDescription(), weightsPair);
-   observerTable.addObject(mDeliveryIntern->getDescription(), mDeliveryIntern);
-   auto internMessage = std::make_shared<CommunicateInitInfoMessage>(observerTable.getObjectMap());
+   if (mDeliveryIntern) {
+      ObserverTable observerTable;
+      observerTable.addObject(mConnectionData->getDescription(), mConnectionData);
+      observerTable.addObject(weightsPair->getDescription(), weightsPair);
+      observerTable.addObject(mDeliveryIntern->getDescription(), mDeliveryIntern);
+      auto internMessage =
+            std::make_shared<CommunicateInitInfoMessage>(observerTable.getObjectMap());
+      status = mDeliveryIntern->respond(internMessage);
+   }
 
-   status = mDeliveryIntern->respond(internMessage);
+   return status;
+}
+
+int HyPerDeliveryFacade::allocateDataStructures() {
+   int status = BaseDelivery::allocateDataStructures();
+   if (status == PV_SUCCESS and mDeliveryIntern != nullptr) {
+      auto internMessage = std::make_shared<AllocateDataMessage>();
+      status             = mDeliveryIntern->respond(internMessage);
+   }
    return status;
 }
 

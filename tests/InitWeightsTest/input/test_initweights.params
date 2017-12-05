@@ -1,0 +1,1252 @@
+//
+// test_kernel.params
+//
+// created by kpeterson: August 16, 2011
+//
+
+//  - input parameters for test_kernel.cpp for system level testing of kernels
+//
+
+debugParsing = false; // Set this to true to see details of how PVParams is parsing the params file
+
+HyPerCol "column" = {
+   nx = 32;   
+   ny = 32;
+   dt = 1.0;
+   randomSeed = 977074598;  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
+   stopTime = 4.0;
+   progressInterval = 5.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+   nbatch = 2;
+};
+
+//
+// layers
+//
+
+ConstantLayer "Retina" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    sparseLayer = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    phase = 0;
+};
+
+//Retina "Retina" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 1;
+//    phase = 0;
+//    writeStep = 1.0;
+//    initialWriteTime = 0.0;
+//    mirrorBCflag = 1;
+//    sparseLayer = false;
+//
+//    spikingFlag = false;
+//    foregroundRate = 1000;
+//    backgroundRate = 1000;
+//    burstFreq = 1;
+//    burstDuration = 1000;
+//
+//    beginStim = 1;
+//    endStim = 1000;
+//};
+
+
+
+
+ANNLayer "L0" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+};
+
+ANNLayer "L1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+};
+
+ANNLayer "L2" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+};
+
+// ANNLayer "L3" = {
+//     restart = 0;
+//     nxScale = 1;
+//     nyScale = 1;
+//     nf = 8;
+//     phase = 0;
+//     writeStep = 1.0;
+//     initialWriteTime = 0.0;
+//     mirrorBCflag = 1;
+//     sparseLayer = false;
+// 
+//     InitVType = "ConstantV";
+//     valueV = 1.0;
+// 
+//     VThresh = -infinity;
+//     AMax = infinity;
+//     AMin = -infinity;
+//     AShift = 0.0;
+// };
+// 
+// ANNLayer "L4" = {
+//     restart = 0;
+//     nxScale = 1;
+//     nyScale = 1;
+//     nf = 8;
+//     phase = 0;
+//     writeStep = 1.0;
+//     initialWriteTime = 0.0;
+//     mirrorBCflag = 1;
+//     sparseLayer = false;
+// 
+//     InitVType = "ConstantV";
+//     valueV = 1.0;
+// 
+//     VThresh = -infinity;
+//     AMax = infinity;
+//     AMin = -infinity;
+//     AShift = 0.0;
+// };
+
+//layers connected using shared weights:
+ANNLayer "L5" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+};
+
+ANNLayer "L6" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+};
+
+ANNLayer "L7" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+};
+
+ANNLayer "L8" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+};
+
+ANNLayer "L9" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+};
+
+// HyPerConn connections: 
+HyPerConn "RetinaToL0" = {
+   preLayerName = "Retina";
+   postLayerName = "L0";
+   numAxonalArbors=1;
+   channelCode = 0;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+   
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "Gauss2DWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   rMin = 0;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   rotate = 5;
+   numOrientationsPost = 8;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   normalize_cutoff = 0;
+   plasticityFlag = 0;   
+   
+   flankShift = 1.5;
+   delay = 0;
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+HyPerConn "RetinaToL1" = {
+   preLayerName = "Retina";
+   postLayerName = "L1";
+   numAxonalArbors=1;
+   channelCode = 0;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+   
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "CoCircWeight";
+   numOrientationsPre=1;
+   numOrientationsPost=8;
+   sigmaCocirc=1.570796326794897;
+   sigmaKurve=2;
+   sigmaChord=0.5;
+   cocircSelf=2;
+   deltaRadiusCurvature=1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   numFlanks = 2;
+   flankShift = 1.5;   
+   rotate = 4;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   plasticityFlag = false;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+HyPerConn "RetinaToL2" = {
+   preLayerName = "Retina";
+   postLayerName = "L2";
+   numAxonalArbors=1;
+   channelCode = 0;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 4;
+   
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "SmartWeight";
+   
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   plasticityFlag = 0;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+// HyPerConn "RetinaToL3" = {
+//    preLayerName = "Retina";
+//    postLayerName = "L3";
+//    numAxonalArbors=1;
+//    channelCode = 0;
+//    nxp = 9; 
+//    nyp = 9; 
+//    nfp = 8;
+//    
+//    pvpatchAccumulateType = "convolve";
+// 
+//    writeStep = -1;
+// 
+//    weightInitType = "GaborWeight";
+//    aspect = 7;
+//    sigma = 7;
+//    rMax  = 7;
+//    deltaThetaMax = 6.2832;
+//    thetaMax = 1;
+//    bowtieFlag = 0;
+//    numFlanks = 2;
+//    
+//    rotate = 4;
+//    
+//    //gabor specific params:
+//    lambda = 2;
+//    phi = 1;
+//    invert = 1;
+//        
+//    strength = 25;  
+//    normalizeMethod = "normalizeSum";
+//    normalizeArborsIndividually = false;
+//    symmetrizeWeights = false;
+//    minSumTolerated = 0.0;
+//    normalizeFromPostPerspective = false;
+// 
+//    wMax = 25;
+//    wMin = 0;
+//    writeCompressedWeights = false;
+//    writeCompressedCheckpoints = false;
+//    numOrientationsPost =8;
+//    normalize_cutoff = 0;
+//    plasticityFlag = 0;
+//    weightUpdatePeriod = 1.0;
+//    
+//    
+//    flankShift = 0;
+//    delay = 0;   
+// 
+//    convertRateToSpikeCount = false;
+//    selfFlag = false;
+//   updateGSynFromPostPerspective = false;
+
+// };
+// 
+// HyPerConn "RetinaToL4" = {
+//    preLayerName = "Retina";
+//    postLayerName = "L4";
+//    numAxonalArbors=1;
+//    channelCode = 0;
+//    nxp = 9; 
+//    nyp = 9; 
+//    nfp = 8;
+//    
+//    pvpatchAccumulateType = "convolve";
+//    
+//    writeStep = -1;
+// 
+//    weightInitType = "GaborWeight";
+//    aspect = 7;
+//    sigma = 7;
+//    rMax  = 7;
+//    deltaThetaMax = 6.2832;
+//    thetaMax = 1;
+//    bowtieFlag = 0;
+//    numFlanks = 2;
+//    
+//    rotate = 4;
+//    
+//    //gabor specific params:
+//    lambda = 2;
+//    phi = 1;
+//    invert = 0;
+//        
+//    strength = 25;  
+//    normalizeMethod = "normalizeSum";
+//    normalizeArborsIndividually = false;
+//    symmetrizeWeights = false;
+//    minSumTolerated = 0.0;
+//    normalizeFromPostPerspective = false;
+// 
+//    wMax = 25;
+//    wMin = 0;
+//    writeCompressedWeights = false;
+//    writeCompressedCheckpoints = false;
+//    numOrientationsPost =8;
+//    normalize_cutoff = 0;
+//    plasticityFlag = 0;
+//    weightUpdatePeriod = 1.0;
+//    
+//    
+//    flankShift = 0;
+//    delay = 0;   
+//    convertRateToSpikeCount = false;
+//    selfFlag = false;
+//   updateGSynFromPostPerspective = false;
+// };
+
+// shared-weights connections: 
+HyPerConn "RetinaToL5" = {
+   preLayerName = "Retina";
+   postLayerName = "L5";
+   numAxonalArbors=1;
+   channelCode = 0;
+   sharedWeights = true;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+   
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "Gauss2DWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   rMin = 0.0;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   flankShift = 1.5;   
+   rotate = 5;
+   numOrientationsPost = 8;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   plasticityFlag = false;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+HyPerConn "RetinaToL6" = {
+   preLayerName = "Retina";
+   postLayerName = "L6";
+   numAxonalArbors=1;
+   channelCode = 0;
+   sharedWeights = true;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+  
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "CoCircWeight";
+   numOrientationsPre=1;
+   numOrientationsPost=8;
+   sigmaCocirc=1.570796326794897;
+   sigmaKurve=2;
+   sigmaChord=0.5;
+   cocircSelf=2;
+   deltaRadiusCurvature=1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   numFlanks = 2;
+   flankShift = 1.5;
+   rotate = 4;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   plasticityFlag = false;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+HyPerConn "RetinaToL7" = {
+   preLayerName = "Retina";
+   postLayerName = "L7";
+   numAxonalArbors=1;
+   sharedWeights = true;
+   channelCode = 0;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 4;
+
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "SmartWeight";
+   normalizeMethod = "none";
+
+   plasticityFlag = 0;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+HyPerConn "RetinaToL8" = {
+   preLayerName = "Retina";
+   postLayerName = "L8";
+   numAxonalArbors=1;
+   channelCode = 0;
+   sharedWeights = true;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "GaborWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   rMin = 0.0;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   
+   rotate = 4;
+   numOrientationsPost =8;
+   
+   //gabor specific params:
+   lambda = 2;
+   phi = 1;
+   invert = 1;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   plasticityFlag = 0;
+   
+   
+   flankShift = 0;
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+HyPerConn "RetinaToL9" = {
+   preLayerName = "Retina";
+   postLayerName = "L9";
+   numAxonalArbors=1;
+   channelCode = 0;
+   sharedWeights = true;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "GaborWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   rMin = 0.0;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   flankShift = 0;
+   
+   rotate = 4;
+   
+   //gabor specific params:
+   lambda = 2;
+   phi = 1;
+   invert = 0;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   numOrientationsPost =8;
+   plasticityFlag = false;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+// NonsharedConnDebugInitWeights connections: 
+NonsharedConnDebugInitWeights "RetinaToL0Check" = {
+   preLayerName = "Retina";
+   postLayerName = "L0";
+   numAxonalArbors = 1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+   
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   writeCompressedWeights = false;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "Gauss2DWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   rMin = 0;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   rotate = 5;
+   numOrientationsPost = 8;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   normalize_cutoff = 0;
+   plasticityFlag = 0;   
+   
+   flankShift = 1.5;
+   delay = 0;
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+NonsharedConnDebugInitWeights "RetinaToL1Check" = {
+   preLayerName = "Retina";
+   postLayerName = "L1";
+   numAxonalArbors = 1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+   
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "CoCircWeight";
+   numOrientationsPre=1;
+   numOrientationsPost=8;
+   sigmaCocirc=1.570796326794897;
+   sigmaKurve=2;
+   sigmaChord=0.5;
+   cocircSelf=2;
+   deltaRadiusCurvature=1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   numFlanks = 2;
+   flankShift = 1.5;   
+   rotate = 4;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   plasticityFlag = false;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+NonsharedConnDebugInitWeights "RetinaToL2Check" = {
+   preLayerName = "Retina";
+   postLayerName = "L2";
+   numAxonalArbors = 1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 4;
+   
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "SmartWeight";
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   plasticityFlag = false;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+// NonsharedConnDebugInitWeights "RetinaToL3Check" = {
+//    preLayerName = "Retina";
+//    postLayerName = "L3";
+//    numAxonalArbors = 1;
+//    channelCode = 1;
+//    nxp = 9; 
+//    nyp = 9; 
+//    nfp = 8;
+//    
+//    pvpatchAccumulateType = "convolve";
+// 
+//    writeStep = -1;
+// 
+//    weightInitType = "GaborWeight";
+//    aspect = 7;
+//    sigma = 7;
+//    rMax  = 7;
+//    deltaThetaMax = 6.2832;
+//    thetaMax = 1;
+//    bowtieFlag = 0;
+//    numFlanks = 2;
+//    
+//    rotate = 4;
+//    
+//    //gabor specific params:
+//    lambda = 2;
+//    phi = 1;
+//    invert = 1;
+//        
+//    strength = 25;  
+//    normalizeMethod = "normalizeSum";
+//    normalizeArborsIndividually = false;
+//    symmetrizeWeights = false;
+//    minSumTolerated = 0.0;
+//    normalizeFromPostPerspective = false;
+// 
+//    writeCompressedWeights = false;
+//    writeCompressedCheckpoints = false;
+//    numOrientationsPost =8;
+//    normalize_cutoff = 0;
+//    plasticityFlag = 0;
+//    weightUpdatePeriod = 1.0;
+//    
+//    
+//    flankShift = 0;
+//    delay = 0;   
+//    convertRateToSpikeCount = false;
+//    selfFlag = false;
+//    updateGSynFromPostPerspective = false;
+// };
+// 
+// NonsharedConnDebugInitWeights "RetinaToL4Check" = {
+//    preLayerName = "Retina";
+//    postLayerName = "L4";
+//    numAxonalArbors = 1;
+//    channelCode = 1;
+//    nxp = 9; 
+//    nyp = 9; 
+//    nfp = 8;
+//    
+//    pvpatchAccumulateType = "convolve";
+//    
+//    writeStep = -1;
+// 
+//    weightInitType = "GaborWeight";
+//    aspect = 7;
+//    sigma = 7;
+//    rMax  = 7;
+//    deltaThetaMax = 6.2832;
+//    thetaMax = 1;
+//    bowtieFlag = 0;
+//    numFlanks = 2;
+//    
+//    rotate = 4;
+//    
+//    //gabor specific params:
+//    lambda = 2;
+//    phi = 1;
+//    invert = 0;
+//        
+//    strength = 25;  
+//    normalizeMethod = "normalizeSum";
+//    normalizeArborsIndividually = false;
+//    symmetrizeWeights = false;
+//    minSumTolerated = 0.0;
+//    normalizeFromPostPerspective = false;
+// 
+//    writeCompressedWeights = false;
+//    writeCompressedCheckpoints = false;
+//    numOrientationsPost =8;
+//    normalize_cutoff = 0;
+//    plasticityFlag = 0;
+//    weightUpdatePeriod = 1.0;
+//    
+//    
+//    flankShift = 0;
+//    delay = 0;   
+//    convertRateToSpikeCount = false;
+//    selfFlag = false;
+//    updateGSynFromPostPerspective = false;
+// };
+
+// SharedConnDebugInitWeights connections: 
+SharedConnDebugInitWeights "RetinaToL5Check" = {
+   preLayerName = "Retina";
+   postLayerName = "L5";
+   numAxonalArbors = 1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+   
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "Gauss2DWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   rMin = 0.0;
+   deltaThetaMax = 6.2832;
+   thetaMax = 1;
+   bowtieFlag = 0;
+   numFlanks = 2;
+   flankShift = 1.5;   
+   rotate = 5;
+   numOrientationsPost = 8;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   plasticityFlag = false;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+SharedConnDebugInitWeights "RetinaToL6Check" = {
+   preLayerName = "Retina";
+   postLayerName = "L6";
+   numAxonalArbors = 1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+  
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "CoCircWeight";
+   numOrientationsPre=1;
+   numOrientationsPost=8;
+   sigmaCocirc=1.570796326794897;
+   sigmaKurve=2;
+   sigmaChord=0.5;
+   cocircSelf=2;
+   deltaRadiusCurvature=1;
+
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   deltaThetaMax = 6.2832;
+   numFlanks = 2;
+   flankShift = 1.5;
+   rotate = 4;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   plasticityFlag = false;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+SharedConnDebugInitWeights "RetinaToL7Check" = {
+   preLayerName = "Retina";
+   postLayerName = "L7";
+   numAxonalArbors = 1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 4;
+
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "SmartWeight";
+   normalizeMethod = "none"; // 1.0;
+
+   plasticityFlag = false;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+SharedConnDebugInitWeights "RetinaToL8Check" = {
+   preLayerName = "Retina";
+   postLayerName = "L8";
+   numAxonalArbors = 1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "GaborWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   
+   rotate = 4;
+   
+   //gabor specific params:
+   lambda = 2;
+   phi = 1;
+   invert = 1;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   plasticityFlag = false;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+SharedConnDebugInitWeights "RetinaToL9Check" = {
+   preLayerName = "Retina";
+   postLayerName = "L9";
+   numAxonalArbors = 1;
+   channelCode = 1;
+   nxp = 9; 
+   nyp = 9; 
+   nfp = 8;
+
+   pvpatchAccumulateType = "convolve";
+   
+   writeStep = -1;
+   writeCompressedCheckpoints = false;
+
+   weightInitType = "GaborWeight";
+   aspect = 7;
+   sigma = 7;
+   rMax  = 7;
+   
+   rotate = 4;
+   
+   //gabor specific params:
+   lambda = 2;
+   phi = 1;
+   invert = 0;
+       
+   strength = 25;  
+   normalizeMethod = "normalizeSum";
+   normalize_cutoff = false;
+   normalizeArborsIndividually = false;
+   symmetrizeWeights = false;
+   minSumTolerated = 0.0;
+   normalizeFromPostPerspective = false;
+
+   plasticityFlag = false;
+   
+   delay = 0;   
+   convertRateToSpikeCount = false;
+   selfFlag = false;
+   updateGSynFromPostPerspective = false;
+};
+
+StatsProbe "Retina_Stats_File" = {
+    targetLayer = "Retina";
+    probeOutputFile = "Retina_Stats.txt";
+    message = "Retina Stats File      ";
+};
+InitWeightTestProbe "L0StatsFile" = {
+    targetLayer = "L0";
+    probeOutputFile = "L0_Stats.txt";
+    message = "L0 Stats File          ";
+};
+InitWeightTestProbe "L1StatsFile" = {
+    targetLayer = "L1";
+    probeOutputFile = "L1_Stats.txt";
+    message = "L1 Stats File          ";
+};
+InitWeightTestProbe "L2StatsFile" = {
+    targetLayer = "L2";
+    probeOutputFile = "L2_Stats.txt";
+    message = "L2 Stats File          ";
+};
+// InitWeightTestProbe "L3 Stats File" = {
+//     targetLayer = "L3";
+//     probeOutputFile = "L3_Stats.txt";
+//     message = "L3 Stats File          ";
+// };
+// InitWeightTestProbe "L4 Stats File" = {
+//     targetLayer = "L4";
+//     probeOutputFile = "L4_Stats.txt";
+//     message = "L4 Stats File          ";
+// };
+InitWeightTestProbe "L5StatsFile" = {
+    targetLayer = "L5";
+    probeOutputFile = "L5_Stats.txt";
+    message = "L5 Stats File          ";
+};
+InitWeightTestProbe "L6StatsFile" = {
+    targetLayer = "L6";
+    probeOutputFile = "L6_Stats.txt";
+    message = "L6 Stats File          ";
+};
+StatsProbe "L7StatsFile" = {
+    targetLayer = "L7";
+    probeOutputFile = "L7_Stats.txt";
+    message = "L7 Stats File          ";
+};
+InitWeightTestProbe "L8StatsFile" = {
+    targetLayer = "L8";
+    probeOutputFile = "L8_Stats.txt";
+    message = "L8 Stats File          ";
+};
+InitWeightTestProbe "L9StatsFile" = {
+    targetLayer = "L9";
+    probeOutputFile = "L9_Stats.txt";
+    message = "L9 Stats File          ";
+};
+
+StatsProbe "Retina_Stats_Screen" = {
+    targetLayer = "Retina";
+    message = "Retina Stats Screen    ";
+};
+InitWeightTestProbe "L0StatsScreen" = {
+    targetLayer = "L0";
+    message = "L0 Stats Screen        ";
+};
+InitWeightTestProbe "L1StatsScreen" = {
+    targetLayer = "L1";
+    message = "L1 Stats Screen        ";
+};
+InitWeightTestProbe "L2StatsScreen" = {
+    targetLayer = "L2";
+    message = "L2 Stats Screen        ";
+};
+// InitWeightTestProbe "L3 Stats Screen" = {
+//     targetLayer = "L3";
+//     message = "L3 Stats Screen        ";
+// };
+// InitWeightTestProbe "L4 Stats Screen" = {
+//     targetLayer = "L4";
+//     message = "L4 Stats Screen        ";
+// };
+InitWeightTestProbe "L5StatsScreen" = {
+    targetLayer = "L5";
+    message = "L5 Stats Screen        ";
+};
+InitWeightTestProbe "L6StatsScreen" = {
+    targetLayer = "L6";
+    message = "L6 Stats Screen        ";
+};
+StatsProbe "L7StatsScreen" = {
+    targetLayer = "L7";
+    message = "L7 Stats Screen        ";
+};
+InitWeightTestProbe "L8StatsScreen" = {
+    targetLayer = "L8";
+    message = "L8 Stats Screen        ";
+};
+InitWeightTestProbe "L9StatsScreen" = {
+    targetLayer = "L9";
+    message = "L9 Stats Screen        ";
+};

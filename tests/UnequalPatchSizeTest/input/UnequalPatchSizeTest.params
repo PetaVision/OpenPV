@@ -1,0 +1,220 @@
+//
+// UnequalPatchSizeTest.params
+//
+// created by peteschultz: Sept 3, 2014
+//
+
+//
+//  A params file to test whether connections and layers behave correctly when nxp =/= nyp
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 16;
+   ny = 16;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   startTime = 0.0;
+   stopTime = 2.0;  
+   errorOnNotANumber = true;
+   progressInterval = 10.0;
+   writeProgressToErr = false;  
+   // outputPath set in parameter sweep
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   // lastCheckpointDir set in parameter sweep
+};
+
+//
+// layers
+//
+
+PvpLayer "input" = {
+    nxScale = 1;
+    nyScale = 1;
+    inputPath = "input/ones.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetX = 0;
+    offsetY = 0;
+	displayPeriod = 0;
+};
+
+ANNLayer "output" = {
+    // nxScale set in parameter sweep
+    // nyScale set in parameter sweep
+    nf = 1;
+    phase = 1;
+    triggerLayerName = NULL;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+
+    InitVType = "ZeroV";
+
+
+    VThresh = -infinity;   
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+};
+
+PvpLayer "correct" = {
+    // nxScale set in parameter sweep
+    // nyScale set in parameter sweep
+    	      	
+    // imagePath set in parameter sweep
+	displayPeriod = 0;
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+ANNLayer "compare" = {
+    // nxScale set in parameter sweep
+    // nyScale set in parameter sweep
+    nf = 1;
+    phase = 2;
+    triggerLayerName = NULL;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+
+    InitVType = "ZeroV";
+
+
+    VThresh = -infinity;   
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+};
+
+HyPerConn "input_to_output" = {
+    preLayerName = "input";
+    postLayerName = "output";
+    channelCode = 0;
+
+    // nxp set in parameter sweep
+    // nyp set in parameter sweep
+    numAxonalArbors = 1;
+    sharedWeights = true;
+    writeStep = -1;
+    writeCompressedWeights = false;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 1.0;
+    connectOnlySameFeatures = true;
+
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    selfFlag = false;
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve";
+    convertRateToSpikeCount = false;
+    updateGSynFromPostPerspective = false;
+};
+
+IdentConn "output_to_compare" = {
+    preLayerName = "output";
+    postLayerName = "compare";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "correct_to_compare" = {
+    preLayerName = "correct";
+    postLayerName = "compare";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "check_output" = {
+    targetName = "compare";
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = false; // exit-hook function will test for failures in source code
+};
+
+ParameterSweep "output":nxScale = {
+    1; 1; 0.5; 0.5; 2.0; 2.0;
+};
+
+ParameterSweep "output":nyScale = {
+    1; 1; 0.5; 0.5; 2.0; 2.0;
+};
+
+ParameterSweep "correct":nxScale = {
+    1; 1; 0.5; 0.5; 2.0; 2.0;
+};
+
+ParameterSweep "correct":nyScale = {
+    1; 1; 0.5; 0.5; 2.0; 2.0;
+};
+
+ParameterSweep "correct":inputPath = {
+    "input/correct_nxp_larger_one_to_one.pvp";
+    "input/correct_nyp_larger_one_to_one.pvp";
+    "input/correct_nxp_larger_two_to_one.pvp";
+    "input/correct_nyp_larger_two_to_one.pvp";
+    "input/correct_nxp_larger_one_to_two.pvp";
+    "input/correct_nyp_larger_one_to_two.pvp";
+};
+
+ParameterSweep "compare":nxScale = {
+    1; 1; 0.5; 0.5; 2.0; 2.0;
+};
+
+ParameterSweep "compare":nyScale = {
+    1; 1; 0.5; 0.5; 2.0; 2.0;
+};
+
+ParameterSweep "input_to_output":nxp = {
+    5; 3; 5; 3; 10; 6;
+};
+
+ParameterSweep "input_to_output":nyp = {
+    3; 5; 3; 5; 6; 10;
+};
+
+ParameterSweep "column":outputPath = {
+    "output/nxp_larger_one_to_one";
+    "output/nyp_larger_one_to_one";
+    "output/nxp_larger_two_to_one";
+    "output/nyp_larger_two_to_one";
+    "output/nxp_larger_one_to_two";
+    "output/nyp_larger_one_to_two";
+};
+
+ParameterSweep "column":lastCheckpointDir = {
+    "output/nxp_larger_one_to_one/Last";
+    "output/nyp_larger_one_to_one/Last";
+    "output/nxp_larger_two_to_one/Last";
+    "output/nyp_larger_two_to_one/Last";
+    "output/nxp_larger_one_to_two/Last";
+    "output/nyp_larger_one_to_two/Last";
+};
