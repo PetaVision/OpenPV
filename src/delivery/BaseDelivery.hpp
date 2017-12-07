@@ -30,15 +30,6 @@ class BaseDelivery : public BaseObject {
    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief delay: Specifies delay(s) which the post layer will receive data
-    * @details: Delays are specified in units of dt, but are rounded to be integer multiples of dt.
-    * If delay is a scalar, all arbors of the connection have that value of delay.
-    * If delay is an array, the length must match the number of arbors and the arbors are assigned
-    * the delays sequentially.
-    */
-   virtual void ioParam_delay(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate
     * to a count.
     * @details If this flag is true and the presynaptic layer is not spiking, the activity will be
@@ -66,7 +57,6 @@ class BaseDelivery : public BaseObject {
    virtual void deliverUnitInput(float *recvBuffer) {}
 
    ChannelType getChannelCode() const { return mChannelCode; }
-   int getDelay(int arbor) const { return mDelay.at(arbor); }
    bool getConvertRateToSpikeCount() const { return mConvertRateToSpikeCount; }
    bool getReceiveGpu() const { return mReceiveGpu; }
    HyPerLayer *getPreLayer() const { return mPreLayer; }
@@ -83,17 +73,8 @@ class BaseDelivery : public BaseObject {
 
    int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   void initializeDelays();
-
-   void setDelay(int arborId, double delay);
-
-   int maxDelaySteps();
-
   protected:
-   ChannelType mChannelCode = CHANNEL_EXC;
-   std::vector<int> mDelay; // The delays expressed in # of timesteps (delays ~= fDelayArray / t)
-   double *mDelaysParams = nullptr; // The raw delays in params, in the same units that dt is in.
-   int mNumDelays        = 0; // The size of the mDelayParams array
+   ChannelType mChannelCode      = CHANNEL_EXC;
    bool mConvertRateToSpikeCount = false;
    bool mReceiveGpu              = false;
 

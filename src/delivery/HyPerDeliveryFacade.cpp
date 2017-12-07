@@ -185,14 +185,6 @@ double HyPerDeliveryFacade::convertToRateDeltaTimeFactor(double timeConstantTau)
 
 void HyPerDeliveryFacade::deliver() {
    if (mDeliveryIntern) {
-      int numArbors = mConnectionData->getNumAxonalArbors();
-      FatalIf(
-            numArbors != (int)mDelay.size(),
-            "%s has %d %s, but the number of delays is %d.\n",
-            getDescription_c(),
-            numArbors,
-            numArbors == 1 ? "arbor" : "arbors",
-            (int)mDelay.size());
       mDeliveryIntern->deliver();
    }
 }

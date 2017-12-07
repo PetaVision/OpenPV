@@ -10,7 +10,6 @@
 
 #include "columns/BaseObject.hpp"
 #include "components/ConnectionData.hpp"
-#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 

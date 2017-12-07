@@ -9,6 +9,7 @@
 #include "columns/HyPerCol.hpp"
 #include "delivery/HyPerDeliveryFacade.hpp"
 #include "utils/MapLookupByType.hpp"
+#include "weightupdaters/HebbianUpdater.hpp"
 
 namespace PV {
 
@@ -132,9 +133,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
 
 BaseDelivery *HyPerConn::createDeliveryObject() { return new HyPerDeliveryFacade(name, parent); }
 
-// WeightUpdater *HyPerConn::createWeightUpdater() {
-//    return new WeightUpdater(name, parent);
-// }
+BaseWeightUpdater *HyPerConn::createWeightUpdater() { return new HebbianUpdater(name, parent); }
 
 int HyPerConn::initializeState() {
    auto *initWeights =

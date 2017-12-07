@@ -62,7 +62,8 @@ void PostsynapticPerspectiveConvolveDelivery::deliver() {
 
    int numAxonalArbors = mConnectionData->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
-      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(mDelay[arbor]);
+      int delay                = mConnectionData->getDelay(arbor);
+      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       // Get number of neurons restricted target
       const int numPostRestricted = mPostLayer->getNumNeurons();

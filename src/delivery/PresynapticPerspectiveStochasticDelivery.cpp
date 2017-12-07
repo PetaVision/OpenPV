@@ -90,7 +90,8 @@ void PresynapticPerspectiveStochasticDelivery::deliver() {
 
    int numAxonalArbors = mConnectionData->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
-      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(mDelay[arbor]);
+      int delay                = mConnectionData->getDelay(arbor);
+      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       for (int b = 0; b < nbatch; b++) {
          size_t batchOffset                                 = b * numPreExtended;
@@ -249,7 +250,8 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
 
    int const numAxonalArbors = mConnectionData->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
-      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(mDelay[arbor]);
+      int delay                = mConnectionData->getDelay(arbor);
+      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       for (int b = 0; b < nbatch; b++) {
          float *recvBatch = recvBuffer + b * numPostRestricted;

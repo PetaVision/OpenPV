@@ -37,14 +37,14 @@ void RescaleDelivery::deliver() {
       return;
    }
 
-   std::size_t numArbors = mDelay.size();
+   std::size_t numArbors = mConnectionData->getNumAxonalArbors();
    FatalIf(
          numArbors != (std::size_t)1,
          "%s can have only one arbor (there are %d).\n",
          getDescription_c(),
          (int)numArbors);
-
-   PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(mDelay[0]);
+   int delay                         = mConnectionData->getDelay(0);
+   PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(delay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
    PVLayerLoc const &postLoc         = *mPostLayer->getLayerLoc();
    checkDimensions(preLoc, postLoc);

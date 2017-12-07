@@ -16,6 +16,12 @@ namespace PV {
 class ConnectionData : public BaseObject {
   protected:
    /**
+    * List of parameters needed from the ConnectionData class
+    * @name ConnectionData Parameters
+    * @{
+    */
+
+   /**
     * @brief preLayerName: Specifies the connection's pre layer
     * @details Required parameter
     */
@@ -31,6 +37,16 @@ class ConnectionData : public BaseObject {
     * @brief numAxonalArbors: Specifies the number of arbors to use in the connection
     */
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief delay: Specifies delay(s) which the post layer will receive data
+    * @details: Delays are specified in units of dt, but are rounded to be integer multiples of dt.
+    * If delay is a scalar, all arbors of the connection have that value of delay.
+    * If delay is an array, the length must match the number of arbors and the arbors are assigned
+    * the delays sequentially.
+    */
+   virtual void ioParam_delay(enum ParamsIOFlag ioFlag);
+   /** @} */ // end of BaseDelivery parameters
 
   public:
    ConnectionData(char const *name, HyPerCol *hc);
@@ -63,6 +79,8 @@ class ConnectionData : public BaseObject {
     */
    int getNumAxonalArbors() const { return mNumAxonalArbors; }
 
+   int getDelay(int arbor) const { return mDelay[arbor]; }
+
   protected:
    ConnectionData();
 
@@ -72,6 +90,10 @@ class ConnectionData : public BaseObject {
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   void initializeDelays();
+
+   void setDelay(int arborId, double delay);
 
    /**
     * Called by ComponentsConn::communicateInitInfo if the params did not set pre- and post- layers.
@@ -91,12 +113,17 @@ class ConnectionData : public BaseObject {
          std::string &preLayerNameString,
          std::string &postLayerNameString);
 
+   int maxDelaySteps();
+
   protected:
    char *mPreLayerName  = nullptr;
    char *mPostLayerName = nullptr;
    HyPerLayer *mPre     = nullptr;
    HyPerLayer *mPost    = nullptr;
    int mNumAxonalArbors = 1;
+   std::vector<int> mDelay; // The delays expressed in # of timesteps (delays ~= fDelayArray / t)
+   double *mDelaysParams = nullptr; // The raw delays in params, in the same units that dt is in.
+   int mNumDelays        = 0; // The size of the mDelayParams array
 
 }; // class ConnectionData
 

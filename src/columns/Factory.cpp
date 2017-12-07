@@ -103,6 +103,8 @@
 #include "weightinit/InitUniformWeights.hpp"
 #include "weightinit/InitWeights.hpp"
 
+#include "weightupdaters/HebbianUpdater.hpp"
+
 #include "normalizers/NormalizeContrastZeroMean.hpp"
 // #include "normalizers/NormalizeGroup.hpp"
 #include "normalizers/NormalizeL2.hpp"
@@ -218,6 +220,8 @@ int Factory::registerCoreKeywords() {
    registerKeyword("OneToOneWeightsWithDelays", Factory::create<InitOneToOneWeightsWithDelays>);
    registerKeyword("SpreadOverArborsWeight", Factory::create<InitSpreadOverArborsWeights>);
    registerKeyword("FileWeight", Factory::create<InitWeights>);
+
+   registerKeyword("HebbianUpdater", Factory::create<HebbianUpdater>);
 
    registerKeyword("normalizeContrastZeroMean", Factory::create<NormalizeContrastZeroMean>);
    registerKeyword("normalizeL2", Factory::create<NormalizeL2>);

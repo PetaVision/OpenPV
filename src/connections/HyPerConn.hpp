@@ -68,7 +68,7 @@ class HyPerConn : public BaseConnection {
    virtual InitWeights *createWeightInitializer();
    virtual NormalizeBase *createWeightNormalizer();
    virtual BaseDelivery *createDeliveryObject() override;
-   // virtual WeightUpdater *createWeightUpdater() override;
+   virtual BaseWeightUpdater *createWeightUpdater() override;
 
    virtual int initializeState() override;
 

@@ -66,7 +66,7 @@ class BaseConnection : public BaseObject, Subject {
    int getNumAxonalArbors() const { return mConnectionData->getNumAxonalArbors(); }
 
    ChannelType getChannelCode() const { return mDeliveryObject->getChannelCode(); }
-   int getDelay(int arbor) const { return mDeliveryObject->getDelay(arbor); }
+   int getDelay(int arbor) const { return mConnectionData->getDelay(arbor); }
    bool getConvertRateToSpikeCount() const { return mDeliveryObject->getConvertRateToSpikeCount(); }
    bool getReceiveGpu() const { return mDeliveryObject->getReceiveGpu(); }
    bool getPlasticityFlag() const { return mWeightUpdater->getPlasticityFlag(); }
