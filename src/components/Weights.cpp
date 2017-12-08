@@ -95,7 +95,7 @@ void Weights::checkpointWeightPvp(
    auto checkpointEntry = std::make_shared<CheckpointEntryWeightPvp>(
          getName(), bufferName, checkpointer->getMPIBlock(), this, compressFlag);
    bool registerSucceeded =
-         checkpointer->registerCheckpointEntry(checkpointEntry, false /*constantEntireRun flag*/);
+         checkpointer->registerCheckpointEntry(checkpointEntry, !mWeightsArePlastic);
    FatalIf(
          !registerSucceeded,
          "%s failed to register %s for checkpointing.\n",

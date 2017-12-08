@@ -6,6 +6,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/CloneWeightsPair.cpp
    ${SUBDIR}/ConnectionData.cpp
    ${SUBDIR}/ImpliedWeights.cpp
+   ${SUBDIR}/NoCheckpointConnectionData.cpp
    ${SUBDIR}/PatchGeometry.cpp
    ${SUBDIR}/PostWeights.cpp
    ${SUBDIR}/Weights.cpp
@@ -20,6 +21,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CloneWeightsPair.hpp
    ${SUBDIR}/ConnectionData.hpp
    ${SUBDIR}/ImpliedWeights.hpp
+   ${SUBDIR}/NoCheckpointConnectionData.hpp
    ${SUBDIR}/Patch.hpp
    ${SUBDIR}/PatchGeometry.hpp
    ${SUBDIR}/PostWeights.hpp

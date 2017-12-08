@@ -1,0 +1,10 @@
+# Configuration file for MtoNOutputStateTest.
+ParamsFile:input/MtoNOutputStateTest.params
+NumThreads:-
+LogFile:MtoNOutputStateTest.log
+NumRows:2
+NumColumns:2
+BatchWidth:4
+CheckpointCellNumRows:2
+CheckpointCellNumColumns:2
+CheckpointCellBatchDimension:1

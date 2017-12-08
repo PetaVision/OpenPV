@@ -16,7 +16,7 @@ namespace PV {
 HebbianUpdater::HebbianUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 int HebbianUpdater::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+   return BaseWeightUpdater::initialize(name, hc);
 }
 
 int HebbianUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -210,6 +210,10 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    pvAssert(weightsPair);
    weightsPair->needPre();
    mWeights = weightsPair->getPreWeights();
+   if (mPlasticityFlag) {
+      mWeights->setWeightsArePlastic();
+   }
+   mWriteCompressedCheckpoints = weightsPair->getWriteCompressedCheckpoints();
 
    if (mTriggerFlag) {
       auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(componentMap, desc);
@@ -312,6 +316,10 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
 }
 
 int HebbianUpdater::allocateDataStructures() {
+   int status = BaseWeightUpdater::allocateDataStructures();
+   if (status != PV_SUCCESS) {
+      return status;
+   }
    if (mPlasticityFlag) {
       if (mCombine_dWWithWFlag) {
          mDeltaWeights = mWeights;
@@ -337,6 +345,62 @@ int HebbianUpdater::allocateDataStructures() {
       }
    }
 
+   if (mPlasticityFlag && !mTriggerLayer) {
+      if (mWeightUpdateTime < parent->simulationTime()) {
+         while (mWeightUpdateTime <= parent->simulationTime()) {
+            mWeightUpdateTime += mWeightUpdatePeriod;
+         }
+         if (parent->getCommunicator()->globalCommRank() == 0) {
+            WarnLog().printf(
+                  "initialWeightUpdateTime of %s less than simulation start time.  Adjusting "
+                  "weightUpdateTime to %f\n",
+                  getDescription_c(),
+                  mWeightUpdateTime);
+         }
+      }
+      mLastUpdateTime = mWeightUpdateTime - parent->getDeltaTime();
+   }
+   mLastTimeUpdateCalled = parent->simulationTime();
+
+   return status;
+}
+
+int HebbianUpdater::registerData(Checkpointer *checkpointer) {
+   int status = BaseWeightUpdater::registerData(checkpointer);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   if (mPlasticityFlag and !mImmediateWeightUpdate) {
+      mDeltaWeights->checkpointWeightPvp(checkpointer, "dW", false /*compressCheckpointsFlag*/);
+      // Do we need to get PrepareCheckpointWrite messages, to call blockingNormalize_dW()?
+   }
+   std::string nameString = std::string(name);
+   checkpointer->registerCheckpointData(
+         nameString,
+         "lastUpdateTime",
+         &mLastUpdateTime,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   if (mPlasticityFlag && !mTriggerLayer) {
+      checkpointer->registerCheckpointData(
+            nameString,
+            "weightUpdateTime",
+            &mWeightUpdateTime,
+            (std::size_t)1,
+            true /*broadcast*/,
+            false /*not constant*/);
+   }
+   return status;
+}
+
+int HebbianUpdater::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   if (mConnectionData->getInitializeFromCheckpointFlag()) {
+      if (mPlasticityFlag and !mImmediateWeightUpdate) {
+         checkpointer->readNamedCheckpointEntry(
+               std::string(name), std::string("dW"), false /*not constant*/);
+      }
+   }
    return PV_SUCCESS;
 }
 
@@ -873,8 +937,7 @@ void HebbianUpdater::updateArbors() {
 int HebbianUpdater::updateWeights(int arborId) {
    // add dw to w
    int const numArbors       = mConnectionData->getNumAxonalArbors();
-   int const weightsPerArbor = mWeights->getNumDataPatches();
-   mWeights->getPatchSizeOverall();
+   int const weightsPerArbor = mWeights->getNumDataPatches() * mWeights->getPatchSizeOverall();
    for (int kArbor = 0; kArbor < numArbors; kArbor++) {
       float *w_data_start = mWeights->getData(kArbor);
       for (long int k = 0; k < weightsPerArbor; k++) {

@@ -65,11 +65,13 @@ class WeightsPair : public BaseObject {
    int getPatchSizeF() const { return mPatchSizeF; }
    int getSharedWeights() const { return mSharedWeights; }
 
+   virtual void needPre();
+   virtual void needPost();
+
    Weights *getPreWeights() { return mPreWeights; }
    Weights *getPostWeights() { return mPostWeights; }
 
-   virtual void needPre();
-   virtual void needPost();
+   bool getWriteCompressedCheckpoints() const { return mWriteCompressedCheckpoints; }
 
   protected:
    WeightsPair() {}
@@ -92,6 +94,8 @@ class WeightsPair : public BaseObject {
    virtual void allocatePostWeights();
 
    virtual int registerData(Checkpointer *checkpointer) override;
+
+   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    void openOutputStateFile(Checkpointer *checkpointer);
 

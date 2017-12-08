@@ -46,6 +46,13 @@ class ConnectionData : public BaseObject {
     * the delays sequentially.
     */
    virtual void ioParam_delay(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
+    * set in HyPerCol.
+    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
+    */
+   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
    /** @} */ // end of BaseDelivery parameters
 
   public:
@@ -80,6 +87,8 @@ class ConnectionData : public BaseObject {
    int getNumAxonalArbors() const { return mNumAxonalArbors; }
 
    int getDelay(int arbor) const { return mDelay[arbor]; }
+
+   bool getInitializeFromCheckpointFlag() const { return mInitializeFromCheckpointFlag; }
 
   protected:
    ConnectionData();
@@ -124,6 +133,10 @@ class ConnectionData : public BaseObject {
    std::vector<int> mDelay; // The delays expressed in # of timesteps (delays ~= fDelayArray / t)
    double *mDelaysParams = nullptr; // The raw delays in params, in the same units that dt is in.
    int mNumDelays        = 0; // The size of the mDelayParams array
+
+   // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initial state from
+   // the initializeFromCheckpointDir directory.
+   bool mInitializeFromCheckpointFlag = true;
 
 }; // class ConnectionData
 

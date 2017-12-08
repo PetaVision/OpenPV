@@ -55,22 +55,11 @@ BaseWeightUpdater *BaseConnection::createWeightUpdater() {
 }
 
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_initializeFromCheckpointFlag(ioFlag);
    for (auto &c : mComponentTable.getObjectVector()) {
       auto obj = dynamic_cast<BaseObject *>(c);
       obj->ioParams(ioFlag, false, false);
    }
    return PV_SUCCESS;
-}
-
-void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag,
-         name,
-         "initializeFromCheckpointFlag",
-         &initializeFromCheckpointFlag,
-         initializeFromCheckpointFlag,
-         true /*warnIfAbsent*/);
 }
 
 int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {

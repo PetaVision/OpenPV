@@ -121,6 +121,8 @@ class Weights {
     * only the active regions of the patches are considered when taking the minimum. */
    float calcMaxWeight(int arbor);
 
+   int calcDataIndexFromPatchIndex(int patchIndex) const;
+
    /** The get-method for the sharedWeights flag */
    bool getSharedFlag() const { return mSharedFlag; }
 
@@ -227,7 +229,9 @@ class Weights {
     */
    int getPatchStrideY() const { return mGeometry->getPatchSizeF() * mGeometry->getPatchSizeX(); }
 
-   int calcDataIndexFromPatchIndex(int patchIndex) const;
+   bool getWeightsArePlastic() const { return mWeightsArePlastic; }
+
+   void setWeightsArePlastic() { mWeightsArePlastic = true; }
 
   protected:
    /**
@@ -254,6 +258,8 @@ class Weights {
    int mNumDataPatchesF;
 
    std::vector<std::vector<float>> mData;
+
+   bool mWeightsArePlastic = false;
 }; // end class Weights
 
 } // end namespace PV

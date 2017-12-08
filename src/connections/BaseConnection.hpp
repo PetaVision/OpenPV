@@ -21,21 +21,6 @@ namespace PV {
 class HyPerCol;
 
 class BaseConnection : public BaseObject, Subject {
-  protected:
-   /**
-    * List of parameters needed from the BaseConnection class
-    * @name BaseConnection Parameters
-    * @{
-    */
-
-   /**
-    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
-    * set in HyPerCol.
-    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
-    */
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-   /** @} */ // End of BaseConnection Parameters
-
   public:
    BaseConnection(char const *name, HyPerCol *hc);
 
@@ -103,10 +88,6 @@ class BaseConnection : public BaseObject, Subject {
    virtual void deleteComponents();
 
   protected:
-   // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initial state from
-   // the initializeFromCheckpointDir directory.
-   bool initializeFromCheckpointFlag = true;
-
    ObserverTable mComponentTable;
 
   private:

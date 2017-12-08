@@ -6,6 +6,7 @@
  */
 
 #include "IdentConn.hpp"
+#include "components/NoCheckpointConnectionData.hpp"
 #include "delivery/IdentDelivery.hpp"
 
 namespace PV {
@@ -19,11 +20,15 @@ int IdentConn::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-void IdentConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      initializeFromCheckpointFlag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "initializeFromCheckpointFlag");
-   }
+BaseDelivery *IdentConn::createDeliveryObject() {
+   BaseObject *baseObject = Factory::instance()->createByKeyword("IdentDelivery", name, parent);
+   IdentDelivery *deliveryObject = dynamic_cast<IdentDelivery *>(baseObject);
+   pvAssert(deliveryObject);
+   return deliveryObject;
+}
+
+ConnectionData *IdentConn::createConnectionData() {
+   return new NoCheckpointConnectionData(name, parent);
 }
 
 int IdentConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
@@ -48,13 +53,6 @@ int IdentConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
       exit(EXIT_FAILURE);
    }
    return status;
-}
-
-BaseDelivery *IdentConn::createDeliveryObject() {
-   BaseObject *baseObject = Factory::instance()->createByKeyword("IdentDelivery", name, parent);
-   IdentDelivery *deliveryObject = dynamic_cast<IdentDelivery *>(baseObject);
-   pvAssert(deliveryObject);
-   return deliveryObject;
 }
 
 } // end of namespace PV block

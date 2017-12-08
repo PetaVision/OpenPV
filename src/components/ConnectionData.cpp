@@ -33,6 +33,7 @@ int ConnectionData::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_postLayerName(ioFlag);
    ioParam_numAxonalArbors(ioFlag);
    ioParam_delay(ioFlag);
+   ioParam_initializeFromCheckpointFlag(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -76,6 +77,16 @@ void ConnectionData::ioParam_delay(enum ParamsIOFlag ioFlag) {
          InfoLog().printf("%s: Using default value of zero for delay.\n", this->getDescription_c());
       }
    }
+}
+
+void ConnectionData::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(
+         ioFlag,
+         name,
+         "initializeFromCheckpointFlag",
+         &mInitializeFromCheckpointFlag,
+         mInitializeFromCheckpointFlag,
+         true /*warnIfAbsent*/);
 }
 
 int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
