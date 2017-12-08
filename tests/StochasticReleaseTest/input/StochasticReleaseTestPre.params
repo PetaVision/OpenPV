@@ -55,7 +55,7 @@ PvpLayer "Input" = {
     padValue = 0;
 };
 
-ANNLayer "Output" = {
+HyPerLayer "Output" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
@@ -69,12 +69,6 @@ ANNLayer "Output" = {
     InitVType = "ZeroV";
     
     triggerLayerName = NULL;
-
-    VThresh = -infinity;   
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
 };
 
 //

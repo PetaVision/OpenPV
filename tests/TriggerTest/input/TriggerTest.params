@@ -1,0 +1,374 @@
+//
+// TriggerTest.params
+//
+// created by peteschultz: Dec 9, 2013
+//
+
+debugParsing = true;    // If true, debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx                               = 8;
+   ny                               = 8;
+   dt                               = 1.0;
+   randomSeed                       = 1234567890;
+   startTime                        = 0.0;
+   stopTime                         = 500.0;
+   progressInterval                 = 1;
+   writeProgressToErr               = false;
+   outputPath                       = "output/";
+   checkpointWrite                  = false;
+   // checkpointWriteDir               = "output/checkpoints";
+   // checkpointWriteStepInterval      = 10000;
+   // deleteOlderCheckpoints           = true;
+   lastCheckpointDir                = "output/Last";
+};
+
+//
+// layers
+//
+
+//Test for trigger layers
+PvpLayer "input" = {
+    nxScale                          = 1;
+    nyScale                          = 1;
+    inputPath = "input/dotmovie.pvp";
+    nf                               = 1;
+    phase                            = 0;
+    writeStep                        = -1;
+    // initialWriteTime
+    sparseLayer                      = false;
+    mirrorBCflag                     = true;
+    useInputBCflag                   = false;
+    inverseFlag                      = false;
+    normalizeLuminanceFlag           = false;
+    autoResizeFlag                   = false;
+    offsetX                          = 0;
+    offsetY                          = 0;
+    displayPeriod                    = 5;
+};
+
+TriggerTestLayer "notrigger" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 1;
+    writeStep                        = -1;
+    // initialWriteTime
+    mirrorBCflag                     = true;
+    sparseLayer                      = false;
+
+    InitVType                        = "ZeroV";
+
+    triggerLayerName                 = NULL;
+};
+
+TriggerTestLayer "trigger0" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 1;
+    writeStep                        = -1;
+    // initialWriteTime
+    mirrorBCflag                     = true;
+    sparseLayer                      = false;
+
+    InitVType                        = "ZeroV";
+
+    triggerLayerName                 = "input";
+    triggerOffset                    = 0;
+};
+
+TriggerTestLayer "trigger1" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 1;
+    writeStep                        = -1;
+    // initialWriteTime
+    mirrorBCflag                     = true;
+    sparseLayer                      = false;
+
+    InitVType                        = "ZeroV";
+
+    triggerLayerName                 = "input";
+    triggerOffset                    = 1;
+};
+
+TriggerTestLayer "trigger2" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 1;
+    writeStep                        = -1;
+    // initialWriteTime
+    mirrorBCflag                     = true;
+    sparseLayer                      = false;
+
+    InitVType                        = "ZeroV";
+
+    triggerLayerName                 = "input";
+    triggerOffset                    = 2;
+};
+
+
+//Test for trigger connections
+TriggerTestConn "inputToNoTrigger" = {
+    preLayerName                     = "input";
+    postLayerName                    = "notrigger";
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    
+    weightInitType = "IdentWeight";
+      
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    dWMax = 1.0;
+    selfFlag = false;  // conntect to itself
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerLayerName = NULL;
+    weightUpdatePeriod = 1.0;
+};
+
+
+TriggerTestConn "inputToTrigger0" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger0";
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    
+    weightInitType = "IdentWeight";
+      
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    dWMax = 1.0;
+    selfFlag = false;  // conntect to itself
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    updateGSynFromPostPerspective = true; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerLayerName                 = "input";
+    triggerOffset                    = 0;
+};
+
+TriggerTestConn "inputToTrigger1" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger1";
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    
+    weightInitType = "IdentWeight";
+      
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    dWMax = 1.0;
+    selfFlag = false;  // conntect to itself
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerLayerName                 = "input";
+    triggerOffset                    = 1;
+};
+
+TriggerTestConn "inputToTrigger2" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger2";
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    
+    weightInitType = "IdentWeight";
+      
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    dWMax = 1.0;
+    selfFlag = false;  // conntect to itself
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerLayerName                 = "input";
+    triggerOffset                    = 2;
+};
+
+
+TriggerTestConn "inputToPeriod0" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger0";
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    
+    weightInitType = "IdentWeight";
+      
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    dWMax = 1.0;
+    selfFlag = false;  // conntect to itself
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerLayerName                 = NULL;
+
+    weightUpdatePeriod               = 5;
+    initialWeightUpdateTime          = 1;
+};
+
+TriggerTestConn "inputToPeriod1" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger1";
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    
+    weightInitType = "IdentWeight";
+      
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    dWMax = 1.0;
+    selfFlag = false;  // conntect to itself
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerLayerName                 = NULL;
+
+    weightUpdatePeriod               = 5;
+    initialWeightUpdateTime          = 5;
+};
+
+TriggerTestConn "inputToPeriod2" = {
+    preLayerName                     = "input";
+    postLayerName                    = "trigger2";
+    channelCode = 0;
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 1;
+    nyp = 1;
+    nfp = 1; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    
+    weightInitType = "IdentWeight";
+      
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    dWMax = 1.0;
+    selfFlag = false;  // conntect to itself
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+
+    //Triggering
+    triggerLayerName                 = NULL;
+
+    weightUpdatePeriod               = 5;
+    initialWeightUpdateTime          = 4;
+};
+
+
+//Test for layer probes
+TriggerTestLayerProbe "notriggerlayerprobe" = {
+    targetLayer = "input";
+    triggerLayerName = NULL;
+};
+
+TriggerTestLayerProbe "trigger0layerprobe" = {
+    targetLayer = "input";
+    triggerLayerName                 = "input";
+    triggerOffset                    = 0;
+};
+
+TriggerTestLayerProbe "trigger1layerprobe" = {
+    targetLayer = "input";
+    triggerLayerName                 = "input";
+    triggerOffset                    = 1;
+};
+
+TriggerTestLayerProbe "trigger2layerprobe" = {
+    targetLayer = "input";
+    triggerLayerName                 = "input";
+    triggerOffset                    = 2;
+};

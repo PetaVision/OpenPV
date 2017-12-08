@@ -20,8 +20,6 @@ class PostWeights : public Weights {
   public:
    PostWeights(std::string const &name);
 
-   PostWeights(std::string const &name, Weights *preWeights);
-
    void initializePostWeights(Weights *preWeights);
 
    /**

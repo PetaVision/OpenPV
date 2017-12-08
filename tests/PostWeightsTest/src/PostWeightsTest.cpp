@@ -91,7 +91,8 @@ void testOneToOneShared() {
    int nfp = 10;
 
    PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, true, 0.0);
-   PV::PostWeights postWeights(name, &weightsObject);
+   PV::PostWeights postWeights(name);
+   postWeights.initializePostWeights(&weightsObject);
 
    testPostWeights(postWeights, 1, 1, postLoc.nf, nxp, nyp, preLoc.nf);
 }
@@ -121,7 +122,8 @@ void testOneToOneNonshared() {
    int nfp = 10;
 
    PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, false, 0.0);
-   PV::PostWeights postWeights(name, &weightsObject);
+   PV::PostWeights postWeights(name);
+   postWeights.initializePostWeights(&weightsObject);
 
    int nxExt = postLoc.nx + postLoc.halo.lt + postLoc.halo.rt;
    int nyExt = postLoc.ny + postLoc.halo.dn + postLoc.halo.up;
@@ -153,7 +155,8 @@ void testOneToManyShared() {
    int nfp = 10;
 
    PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, true, 0.0);
-   PV::PostWeights postWeights(name, &weightsObject);
+   PV::PostWeights postWeights(name);
+   postWeights.initializePostWeights(&weightsObject);
 
    int numKernelsX = postLoc.nx / preLoc.nx;
    int numKernelsY = postLoc.ny / preLoc.ny;
@@ -187,7 +190,8 @@ void testOneToManyNonshared() {
    int nfp = 10;
 
    PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, false, 0.0);
-   PV::PostWeights postWeights(name, &weightsObject);
+   PV::PostWeights postWeights(name);
+   postWeights.initializePostWeights(&weightsObject);
 
    int nxExt   = postLoc.nx + postLoc.halo.lt + postLoc.halo.rt;
    int nyExt   = postLoc.ny + postLoc.halo.dn + postLoc.halo.up;
@@ -224,7 +228,8 @@ void testManyToOneShared() {
    int nypPost = nyp * preLoc.ny / postLoc.ny;
 
    PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, true, 0.0);
-   PV::PostWeights postWeights(name, &weightsObject);
+   PV::PostWeights postWeights(name);
+   postWeights.initializePostWeights(&weightsObject);
 
    testPostWeights(postWeights, 1, 1, postLoc.nf, nxpPost, nypPost, preLoc.nf);
 }
@@ -257,7 +262,8 @@ void testManyToOneNonshared() {
    int nypPost = nyp * preLoc.ny / postLoc.ny;
 
    PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, false, 0.0);
-   PV::PostWeights postWeights(name, &weightsObject);
+   PV::PostWeights postWeights(name);
+   postWeights.initializePostWeights(&weightsObject);
 
    int nxExt = postLoc.nx + postLoc.halo.lt + postLoc.halo.rt;
    int nyExt = postLoc.ny + postLoc.halo.dn + postLoc.halo.up;

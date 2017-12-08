@@ -12,11 +12,6 @@ namespace PV {
 
 PostWeights::PostWeights(std::string const &name) { setName(name); }
 
-PostWeights::PostWeights(std::string const &name, Weights *preWeights) {
-   setName(name);
-   initializePostWeights(preWeights);
-}
-
 void PostWeights::initializePostWeights(Weights *preWeights) {
    auto preGeometry          = preWeights->getGeometry();
    PVLayerLoc const &preLoc  = preGeometry->getPreLoc();

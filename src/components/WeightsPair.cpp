@@ -237,7 +237,7 @@ void WeightsPair::needPre() {
 void WeightsPair::needPost() {
    if (mPostWeights == nullptr) {
       needPre();
-      mPostWeights = new PostWeights(std::string(name), mPreWeights);
+      mPostWeights = new PostWeights(std::string(name));
    }
 }
 

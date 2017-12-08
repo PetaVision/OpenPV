@@ -65,6 +65,9 @@ class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
    virtual int allocateDataStructures() override;
 
    void allocateThreadGSyn();

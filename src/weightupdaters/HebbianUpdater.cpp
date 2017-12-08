@@ -10,6 +10,7 @@
 #include "columns/ObjectMapComponent.hpp"
 #include "components/WeightsPair.hpp"
 #include "utils/MapLookupByType.hpp"
+#include "utils/TransposeWeights.hpp"
 
 namespace PV {
 
@@ -210,6 +211,7 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    pvAssert(weightsPair);
    weightsPair->needPre();
    mWeights = weightsPair->getPreWeights();
+   mPostWeights = weightsPair->getPostWeights();
    if (mPlasticityFlag) {
       mWeights->setWeightsArePlastic();
    }
@@ -932,6 +934,9 @@ void HebbianUpdater::updateArbors() {
       }
    }
    pvAssert(status == PV_SUCCESS or status == PV_BREAK);
+   if (mPostWeights) {
+      TransposeWeights::transpose(mWeights, mPostWeights, parent->getCommunicator());
+   }
 }
 
 int HebbianUpdater::updateWeights(int arborId) {

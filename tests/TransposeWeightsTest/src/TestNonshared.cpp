@@ -94,7 +94,8 @@ int TestNonshared(
    int const numKernelsPre    = originalWeights.getGeometry()->getNumKernels();
 
    std::string transposeWeightsName("Transpose");
-   PV::PostWeights transposeWeights(transposeWeightsName, &originalWeights);
+   PV::PostWeights transposeWeights(transposeWeightsName);
+   transposeWeights.initializePostWeights(&originalWeights);
 
    int const numPatchesPost = transposeWeights.getGeometry()->getNumPatches();
 

@@ -33,6 +33,17 @@ void PostsynapticPerspectiveConvolveDelivery::ioParam_receiveGpu(enum ParamsIOFl
    mReceiveGpu = false; // If it's true, we should be using a different class.
 }
 
+int PostsynapticPerspectiveConvolveDelivery::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   int status = HyPerDelivery::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   pvAssert(mWeightsPair); // to make sure that HyPerDelivery::communicateInitInfo set mWeightsPair
+   mWeightsPair->needPost();
+   return PV_SUCCESS;
+}
+
 int PostsynapticPerspectiveConvolveDelivery::allocateDataStructures() {
    int status = HyPerDelivery::allocateDataStructures();
    allocateThreadGSyn();

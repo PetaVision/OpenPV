@@ -62,7 +62,7 @@ int NormalizeSum::normalizeWeights() {
       PVLayerLoc const &postLoc = weights0->getGeometry()->getPostLoc();
       int numNeuronsPre         = preLoc.nx * preLoc.ny * preLoc.nf;
       int numNeuronsPost        = postLoc.nx * postLoc.ny * postLoc.nf;
-      scaleFactor               = ((float)numNeuronsPre) / ((float)numNeuronsPost);
+      scaleFactor               = ((float)numNeuronsPost) / ((float)numNeuronsPre);
    }
    scaleFactor *= mStrength;
 

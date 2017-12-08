@@ -223,7 +223,8 @@ int checkTransposeOfTranspose(
       PV::Communicator *comm) {
    int status = PV_SUCCESS;
 
-   PV::PostWeights transposeOfTranspose(std::string("transpose of transpose"), &transposeWeights);
+   PV::PostWeights transposeOfTranspose(std::string("transpose of transpose"));
+   transposeOfTranspose.initializePostWeights(&transposeWeights);
    transposeOfTranspose.allocateDataStructures();
    PV::TransposeWeights::transpose(&transposeWeights, &transposeOfTranspose, comm);
 

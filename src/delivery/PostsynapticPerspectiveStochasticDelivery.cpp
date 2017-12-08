@@ -35,6 +35,17 @@ void PostsynapticPerspectiveStochasticDelivery::ioParam_receiveGpu(enum ParamsIO
    mReceiveGpu = false; // If it's true, we should be using a different class.
 }
 
+int PostsynapticPerspectiveStochasticDelivery::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   int status = HyPerDelivery::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   pvAssert(mWeightsPair); // to make sure that HyPerDelivery::communicateInitInfo set mWeightsPair
+   mWeightsPair->needPost();
+   return PV_SUCCESS;
+}
+
 int PostsynapticPerspectiveStochasticDelivery::allocateDataStructures() {
    int status = HyPerDelivery::allocateDataStructures();
    allocateThreadGSyn();
