@@ -92,16 +92,6 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt) {
    const float *postactRef = &postactbuf[offset];
 
    int sym                 = 0;
-   const float *maskactRef = NULL;
-   if (useMask) {
-      const float *maskactbufAll = mask->getLayerData();
-      const float *maskactbuf    = maskactbufAll + batch_ID * mask->getNumExtended();
-      maskactRef                 = &maskactbuf[offset];
-      sym =
-            (mask->getLayerLoc()->nf * (mask->getLayerLoc()->nx + mask->getLayerLoc()->halo.lt
-                                        + mask->getLayerLoc()->halo.rt));
-   }
-
    int ny          = weights->ny;
    int nk          = weights->nx * nfp;
    int kernelIndex = patchIndexToDataIndex(kExt);
@@ -120,27 +110,15 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt) {
       for (int k = 0; k < nk; k++) {
          float aPost = postactRef[lineoffseta + k];
          // calculate contribution to dw unless masked out
-         assert(!useMask || maskactRef != NULL); // if useMask is true, maskactRef must not be null
-         float maskVal = 1;
-         if (useMask) {
-            if (mask->getLayerLoc()->nf == 1) {
-               maskVal = maskactRef[lineoffsetm + ((int)k / postLoc->nf)];
-            }
-            else {
-               maskVal = maskactRef[lineoffsetm + k];
-            }
+         assert(sharedWeights);
+         // Offset in the case of a shrunken patch, where dwdata is applying when calling
+         // get_dwData
+         if (normalizeDwFlag) {
+            activations[lineoffsetw + k]++;
          }
-         if (maskVal != 0) {
-            assert(sharedWeights);
-            // Offset in the case of a shrunken patch, where dwdata is applying when calling
-            // get_dwData
-            if (normalizeDwFlag) {
-               activations[lineoffsetw + k]++;
-            }
-            // Set actual values to dwData. The imprinted buffer will tell updateWeights to update
-            // this kernel by setting to dwWeight
-            dwdata[lineoffsetw + k] += aPost;
-         }
+         // Set actual values to dwData. The imprinted buffer will tell updateWeights to update
+         // this kernel by setting to dwWeight
+         dwdata[lineoffsetw + k] += aPost;
       }
       lineoffsetw += syp;
       lineoffseta += sya;

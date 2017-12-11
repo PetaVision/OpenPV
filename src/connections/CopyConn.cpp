@@ -107,22 +107,6 @@ void CopyConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void CopyConn::ioParam_useMask(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      useMask = false; // since CopyConn doesn't do its own learning, it doesn't
-      // need to have a mask
-      parent->parameters()->handleUnnecessaryParameter(name, "useMask", useMask);
-   }
-}
-
-void CopyConn::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      maskLayerName = NULL; // since CopyConn doesn't do its own learning, it
-      // doesn't need to have a mask
-      parent->parameters()->handleUnnecessaryStringParameter(name, "maskLayerName", maskLayerName);
-   }
-}
-
 void CopyConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }

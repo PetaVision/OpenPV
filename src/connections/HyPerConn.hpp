@@ -433,10 +433,6 @@ class HyPerConn : public BaseConnection {
   protected:
    HyPerConn *postConn;
    bool needFinalize;
-   bool useMask;
-   char *maskLayerName;
-   int maskFeatureIdx;
-   HyPerLayer *mask;
    bool *batchSkip;
 
    bool normalizeDwFlag;
@@ -809,23 +805,6 @@ class HyPerConn : public BaseConnection {
     * (false)
     */
    virtual void ioParam_normalizeDw(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief useMask: Specifies if this connection is using a post mask for learning
-    */
-   virtual void ioParam_useMask(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief maskLayerName: If using mask, specifies the layer to use as a binary mask layer
-    */
-   virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief maskLayerName: If using mask, specifies which feature dim to use for the mask
-    * @details Defaults to -1, which means point wise mask
-    */
-
-   virtual void ioParam_maskFeatureIdx(enum ParamsIOFlag ioFlag);
 
 #ifdef PV_USE_CUDA
    /**

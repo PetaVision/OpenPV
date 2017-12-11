@@ -100,16 +100,6 @@ class CopyConn : public HyPerConn {
    virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag) override;
 
    /**
-    * @brief useMask is not used by CopyConn.
-    */
-   virtual void ioParam_useMask(enum ParamsIOFlag ioFlag) override;
-
-   /**
-    * @brief maskLayerName is not used by CopyConn.
-    */
-   virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag) override;
-
-   /**
     * @brief originalConnName (required): The name of the connection the weights will be copied from
     */
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);

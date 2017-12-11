@@ -76,11 +76,6 @@ HyPerConn::~HyPerConn() {
       postToPreActivity = NULL;
    }
 
-   if (maskLayerName) {
-      free(maskLayerName);
-      maskLayerName = NULL;
-   }
-
    if (triggerLayerName) {
       free(triggerLayerName);
       triggerLayerName = NULL;
@@ -190,11 +185,6 @@ int HyPerConn::initialize_base() {
    numKernelActivations  = NULL;
 
    normalizeDwFlag = true;
-   useMask         = false;
-   maskLayerName   = NULL;
-   maskFeatureIdx  = -1;
-   mask            = NULL;
-
    batchSkip = NULL;
 
 #ifdef PV_USE_CUDA
@@ -543,9 +533,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_dWMax(ioFlag);
 
    ioParam_normalizeDw(ioFlag);
-   ioParam_useMask(ioFlag);
-   ioParam_maskLayerName(ioFlag);
-   ioParam_maskFeatureIdx(ioFlag);
    ioParam_dWMaxDecayInterval(ioFlag);
    ioParam_dWMaxDecayFactor(ioFlag);
 
@@ -960,35 +947,6 @@ void HyPerConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void HyPerConn::ioParam_useMask(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (plasticityFlag) {
-      parent->parameters()->ioParamValue(
-            ioFlag, getName(), "useMask", &useMask, false, false /*warnIfAbsent*/);
-   }
-}
-
-void HyPerConn::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (plasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "useMask"));
-      if (useMask) {
-         parent->parameters()->ioParamStringRequired(ioFlag, name, "maskLayerName", &maskLayerName);
-      }
-   }
-}
-
-void HyPerConn::ioParam_maskFeatureIdx(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (plasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "useMask"));
-      if (useMask) {
-         parent->parameters()->ioParamValue(
-               ioFlag, name, "maskFeatureIdx", &maskFeatureIdx, maskFeatureIdx);
-      }
-   }
-}
-
 int HyPerConn::setPostPatchSize() {
    // If postConn is many-to-one, the transpose connection is one-to-many; then xscaleDiff > 0.
    // Similarly, if postConn is one-to-many, xscaleDiff < 0.
@@ -1062,76 +1020,6 @@ int HyPerConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    }
    pvAssert(preSynapticLayer() != NULL && postSynapticLayer() != NULL);
    handleDefaultSelfFlag();
-
-   if (useMask) {
-      mask = message->lookup<HyPerLayer>(std::string(maskLayerName));
-      if (mask == NULL) {
-         if (parent->columnId() == 0) {
-            ErrorLog().printf(
-                  "%s: maskLayerName \"%s\" does not correspond to a layer in the column.\n",
-                  getDescription_c(),
-                  maskLayerName);
-         }
-         status = PV_FAILURE;
-         exit(EXIT_FAILURE);
-      }
-      // Check mask with restricted post layer
-      const PVLayerLoc *maskLoc = mask->getLayerLoc();
-      const PVLayerLoc *postLoc = post->getLayerLoc();
-      if (postLoc->nx != maskLoc->nx || postLoc->ny != maskLoc->ny) {
-         if (parent->columnId() == 0) {
-            ErrorLog().printf(
-                  "%s: Mask \"%s\" (%d, %d, %d) must have the same x and y size as post layer "
-                  "\"%s\" (%d, %d, %d).\n",
-                  getDescription_c(),
-                  maskLayerName,
-                  maskLoc->nx,
-                  maskLoc->ny,
-                  maskLoc->nf,
-                  post->getName(),
-                  postLoc->nx,
-                  postLoc->ny,
-                  postLoc->nf);
-         }
-         status = PV_FAILURE;
-         exit(EXIT_FAILURE);
-      }
-      // Make sure maskFeatureIdx is within bounds
-      if (maskFeatureIdx >= maskLoc->nf || maskFeatureIdx < -1) {
-         ErrorLog().printf(
-               "%s: maskFeatureIdx must be between -1 (inclusive) and mask layer \"%s\" (%d, %d, "
-               "%d) nf dimension (exclusive)\n",
-               getDescription_c(),
-               maskLayerName,
-               maskLoc->nx,
-               maskLoc->ny,
-               maskLoc->nf);
-         status = PV_FAILURE;
-         exit(EXIT_FAILURE);
-      }
-
-      // This check is only required if a maskFeatureIdx is not specified, aka, pointwise masking
-      if (maskFeatureIdx == -1) {
-         if (postLoc->nf != maskLoc->nf && maskLoc->nf != 1) {
-            if (parent->columnId() == 0) {
-               ErrorLog().printf(
-                     "%s: Mask \"%s\" (%d, %d, %d) nf dimension must be either the same as post "
-                     "layer \"%s\" (%d, %d, %d) or 1\n",
-                     getDescription_c(),
-                     maskLayerName,
-                     maskLoc->nx,
-                     maskLoc->ny,
-                     maskLoc->nf,
-                     post->getName(),
-                     postLoc->nx,
-                     postLoc->ny,
-                     postLoc->nf);
-            }
-            status = PV_FAILURE;
-            exit(EXIT_FAILURE);
-         }
-      }
-   }
 
    if (getPvpatchAccumulateType() == STOCHASTIC
        && (getConvertRateToSpikeCount() || pre->activityIsSpiking())) {
@@ -2679,7 +2567,7 @@ int HyPerConn::update_dW(int arborID) {
       float const *clonePost = clones[clonei]->postSynapticLayer()->getLayerData();
       for (int b = 0; b < parent->getNBatch(); b++) {
          for (int kExt = 0; kExt < nExt; kExt++) {
-            this->updateInd_dW(arborID, b, clonePre, clonePost, kExt);
+            updateInd_dW(arborID, b, clonePre, clonePost, kExt);
          }
       }
    }
@@ -2695,21 +2583,14 @@ int HyPerConn::updateInd_dW(
       int kExt) {
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
-   const float *maskactbuf = NULL;
-   if (useMask) {
-      const float *maskactbufHead = mask->getLayerData();
-      maskactbuf                  = maskactbufHead + batchID * mask->getNumExtended();
-   }
    const float *preactbuf  = preLayerData + batchID * preSynapticLayer()->getNumExtended();
    const float *postactbuf = postLayerData + batchID * postSynapticLayer()->getNumExtended();
 
-   int sya =
-         (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt
-                                     + post->getLayerLoc()->halo.rt));
 
-   float preact = preactbuf[kExt];
-   if (skipPre(preact))
+   float preact = preactbuf[kExt] * dWMax;
+   if (preact == 0.0f) {
       return PV_CONTINUE;
+   }
 
    PVPatch *weights = getWeights(kExt, arborID);
    int ny           = weights->ny;
@@ -2718,96 +2599,35 @@ int HyPerConn::updateInd_dW(
       return PV_SUCCESS;
    }
 
-   size_t offset           = getAPostOffset(kExt, arborID);
-   const float *postactRef = &postactbuf[offset];
-
-   int sym                 = 0;
-   const float *maskactRef = NULL;
-   if (useMask) {
-      const PVLayerLoc *maskLoc = mask->getLayerLoc();
-      // Calculate mask offset, must account for different size margins and the num features
-      // offsetX and Y are restricted indices into post
-      size_t offsetX, offsetY;
-      offsetX = kxPos(offset,
-                      postLoc->nx + postLoc->halo.lt + postLoc->halo.rt,
-                      postLoc->ny + postLoc->halo.up + postLoc->halo.dn,
-                      postLoc->nf)
-                - postLoc->halo.lt;
-      offsetY = kyPos(offset,
-                      postLoc->nx + postLoc->halo.lt + postLoc->halo.rt,
-                      postLoc->ny + postLoc->halo.up + postLoc->halo.dn,
-                      postLoc->nf)
-                - postLoc->halo.up;
-      // Sanity check, offset should be in restricted
-      pvAssert(offsetX < postLoc->nx + postLoc->halo.lt);
-      pvAssert(offsetY < postLoc->ny + postLoc->halo.up);
-      // Convert to maskOffsetX and Y, extended (in mask)
-      size_t maskOffsetX, maskOffsetY;
-      maskOffsetX = offsetX + maskLoc->halo.lt;
-      maskOffsetY = offsetY + maskLoc->halo.up;
-      // Convert to extIndex into mask
-
-      size_t maskOffset = kIndex(
-            maskOffsetX,
-            maskOffsetY,
-            0,
-            maskLoc->nx + maskLoc->halo.lt + maskLoc->halo.rt,
-            maskLoc->ny + maskLoc->halo.up + maskLoc->halo.dn,
-            maskLoc->nf); // This should take into account if maskLoc's nf is either 1 or the size
-      // of post
-
-      maskactRef = &maskactbuf[maskOffset];
-      sym        = (maskLoc->nf * (maskLoc->nx + maskLoc->halo.lt + maskLoc->halo.rt));
-   }
-
+   const float *postactRef = &postactbuf[getAPostOffset(kExt, arborID)];
    float *dwdata     = get_dwData(arborID, kExt);
+   int lineoffsetw   = 0;
+   int lineoffseta   = 0;
    long *activations = NULL;
+   int sya = postLoc->nf * (postLoc->nx + postLoc->halo.lt + postLoc->halo.rt);
    if (sharedWeights && normalizeDwFlag) {
       activations = get_activations(arborID, kExt);
    }
-
-   int lineoffsetw = 0;
-   int lineoffseta = 0;
-   int lineoffsetm = 0;
-   for (int y = 0; y < ny; y++) {
-      for (int k = 0; k < nk; k++) {
-         float aPost = postactRef[lineoffseta + k];
-         // calculate contribution to dw unless masked out
-         pvAssert(
-               !useMask || maskactRef != NULL); // if useMask is true, maskactRef must not be null
-         float maskVal = 1;
-         if (useMask) {
-            if (mask->getLayerLoc()->nf == 1) {
-               maskVal = maskactRef[lineoffsetm + ((int)k / postLoc->nf)];
-            }
-            else {
-               // If a maskFeatureIdx was specified
-               if (maskFeatureIdx >= 0) {
-                  // k is an index into x/f space. Convert back to x space, and find the 0 feature
-                  // index
-                  int startingMaskK = ((int)k / postLoc->nf) * postLoc->nf;
-                  // Offset into maskFeatureIdx
-                  maskVal = maskactRef[lineoffsetm + startingMaskK + maskFeatureIdx];
-               }
-               else {
-                  maskVal = maskactRef[lineoffsetm + k];
-               }
-            }
+   // This was left outside the previous conditional just in case get_activations can return NULL.
+   // TODO: Verify this behavior
+   if (activations) {
+      for (int y = 0; y < ny; ++y) {
+         for (int k = 0; k < nk; ++k) {
+            activations[lineoffsetw + k]++;
+            dwdata[lineoffsetw + k] += preact * postactRef[lineoffseta + k];
          }
-         if (maskVal != 0) {
-            // Note: this is a hack, as batching calls this function, but overwrites to allocate
-            // numKernelActivations with non-shared weights
-            if (activations) {
-               // Offset in the case of a shrunken patch, where dwdata is applying when calling
-               // get_dwData
-               activations[lineoffsetw + k]++;
-            }
-            dwdata[lineoffsetw + k] += updateRule_dW(preact, aPost);
+         lineoffsetw += syp;
+         lineoffseta += sya;
+      } 
+   }
+   else {
+      for (int y = 0; y < ny; ++y) {
+         for (int k = 0; k < nk; ++k) {
+            dwdata[lineoffsetw + k] += preact * postactRef[lineoffseta + k];
          }
+         lineoffsetw += syp;
+         lineoffseta += sya;
       }
-      lineoffsetw += syp;
-      lineoffseta += sya;
-      lineoffsetm += sym;
    }
    return PV_SUCCESS;
 }
