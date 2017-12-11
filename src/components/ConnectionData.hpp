@@ -53,7 +53,7 @@ class ConnectionData : public BaseObject {
     * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
     */
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-   /** @} */ // end of BaseDelivery parameters
+   /** @} */ // end of ConnectionData parameters
 
   public:
    ConnectionData(char const *name, HyPerCol *hc);
@@ -103,11 +103,6 @@ class ConnectionData : public BaseObject {
    void initializeDelays();
 
    void setDelay(int arborId, double delay);
-
-   /**
-    * Called by ComponentsConn::communicateInitInfo if the params did not set pre- and post- layers.
-    */
-   virtual void handleMissingPreAndPostLayerNames();
 
    /**
     * If the character string given by name has the form "AbcToXyz", then

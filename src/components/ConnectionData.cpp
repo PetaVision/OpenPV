@@ -15,7 +15,11 @@ ConnectionData::ConnectionData(char const *name, HyPerCol *hc) { initialize(name
 
 ConnectionData::ConnectionData() {}
 
-ConnectionData::~ConnectionData() {}
+ConnectionData::~ConnectionData() {
+   free(mPreLayerName);
+   free(mPostLayerName);
+   free(mDelaysParams);
+}
 
 int ConnectionData::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
@@ -93,7 +97,14 @@ int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    int status = PV_SUCCESS;
 
    if (getPreLayerName() == nullptr and getPostLayerName() == nullptr) {
-      handleMissingPreAndPostLayerNames();
+      std::string preLayerNameString, postLayerNameString;
+      inferPreAndPostFromConnName(
+            getName(),
+            parent->getCommunicator()->globalCommRank(),
+            preLayerNameString,
+            postLayerNameString);
+      mPreLayerName  = strdup(preLayerNameString.c_str());
+      mPostLayerName = strdup(postLayerNameString.c_str());
    }
    MPI_Barrier(this->parent->getCommunicator()->communicator());
    if (getPreLayerName() == nullptr or getPostLayerName() == nullptr) {
@@ -165,17 +176,6 @@ int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    }
 
    return status;
-}
-
-void ConnectionData::handleMissingPreAndPostLayerNames() {
-   std::string preLayerNameString, postLayerNameString;
-   inferPreAndPostFromConnName(
-         getName(),
-         parent->getCommunicator()->globalCommRank(),
-         preLayerNameString,
-         postLayerNameString);
-   mPreLayerName  = strdup(preLayerNameString.c_str());
-   mPostLayerName = strdup(postLayerNameString.c_str());
 }
 
 void ConnectionData::inferPreAndPostFromConnName(
