@@ -138,6 +138,24 @@ void Buffer<T>::crop(int newWidth, int newHeight, enum Anchor anchor) {
    set(cropped.asVector(), newWidth, newHeight, getFeatures());
 }
 
+template <class T>
+void Buffer<T>::flip(bool xFlip, bool yFlip) {
+   if (!xFlip && !yFlip) {
+      return;
+   }
+   Buffer result(getWidth(), getHeight(), getFeatures());
+   for (int y = 0; y < getHeight(); ++y) {
+      for (int x = 0; x < getWidth(); ++x) {
+         for (int f = 0; f < getFeatures(); ++f) {
+            int destX = xFlip ? getWidth()  - 1 - x : x;
+            int destY = yFlip ? getHeight() - 1 - y : y;
+            result.set(destX, destY, f, at(x, y, f));
+         }
+      }
+   }
+   set(result.asVector(), getWidth(), getHeight(), getFeatures());
+}
+
 // Shift a buffer, clipping any values that land out of bounds
 template <class T>
 void Buffer<T>::translate(int xShift, int yShift) {
