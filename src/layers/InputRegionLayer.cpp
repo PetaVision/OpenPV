@@ -87,10 +87,12 @@ void InputRegionLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
 }
 
 void InputRegionLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
+#ifdef PV_USE_CUDA
    if (ioFlag == PARAMS_IO_READ) {
       mUpdateGpu = false;
       parent->parameters()->handleUnnecessaryParameter(name, "updateGpu");
    }
+#endif // PV_USE_CUDA
 }
 
 int InputRegionLayer::communicateInitInfo(

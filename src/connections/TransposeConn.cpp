@@ -243,8 +243,8 @@ int TransposeConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   const PVLayerLoc *postLoc    = pre->getLayerLoc();
-   const PVLayerLoc *origPreLoc = originalConn->postSynapticLayer()->getLayerLoc();
+   const PVLayerLoc *postLoc    = post->getLayerLoc();
+   const PVLayerLoc *origPreLoc = originalConn->preSynapticLayer()->getLayerLoc();
    if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny
        || postLoc->nf != origPreLoc->nf) {
       if (parent->columnId() == 0) {

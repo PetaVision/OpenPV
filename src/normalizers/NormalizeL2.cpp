@@ -88,7 +88,7 @@ int NormalizeL2::normalizeWeights() {
                int nyp               = conn->yPatchSize();
                int nfp               = conn->fPatchSize();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn0->get_wDataHead(arborID, patchindex);
+               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor / l2norm);
             }
          }
