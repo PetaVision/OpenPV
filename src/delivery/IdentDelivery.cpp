@@ -25,6 +25,18 @@ void IdentDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    }
 }
 
+int IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   int status = BaseDelivery::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   pvAssert(mPreLayer and mPostLayer);
+   PVLayerLoc const &preLoc  = *mPreLayer->getLayerLoc();
+   PVLayerLoc const &postLoc = *mPostLayer->getLayerLoc();
+   checkDimensions(preLoc, postLoc);
+   return status;
+}
+
 void IdentDelivery::deliver() {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
@@ -40,7 +52,6 @@ void IdentDelivery::deliver() {
    PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(delay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
    PVLayerLoc const &postLoc         = *mPostLayer->getLayerLoc();
-   checkDimensions(preLoc, postLoc);
 
    int const nx       = preLoc.nx;
    int const ny       = preLoc.ny;

@@ -47,7 +47,6 @@ void RescaleDelivery::deliver() {
    PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(delay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
    PVLayerLoc const &postLoc         = *mPostLayer->getLayerLoc();
-   checkDimensions(preLoc, postLoc);
 
    int const nx       = preLoc.nx;
    int const ny       = preLoc.ny;

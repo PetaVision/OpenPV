@@ -60,7 +60,8 @@ class BaseDelivery : public BaseObject {
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   protected:
    ChannelType mChannelCode = CHANNEL_EXC;
