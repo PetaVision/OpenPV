@@ -1,7 +1,7 @@
 #include "TestShared.hpp"
 #include "UtilityFunctions.hpp"
-#include <components/PostWeights.hpp>
 #include <components/Weights.hpp>
+#include <components/WeightsPair.hpp>
 #include <utils/PVAssert.hpp>
 #include <utils/PVLog.hpp>
 #include <utils/TransposeWeights.hpp>
@@ -83,8 +83,16 @@ int TestShared(
    int const numKernelsPre    = originalWeights.getGeometry()->getNumKernels();
 
    std::string transposeWeightsName("Transpose");
-   PV::PostWeights transposeWeights(transposeWeightsName);
-   transposeWeights.initializePostWeights(&originalWeights);
+   PV::Weights transposeWeights(
+         transposeWeightsName,
+         PV::WeightsPair::calcPostPatchSize(patchSizeXPre, nxPre, nxPost),
+         PV::WeightsPair::calcPostPatchSize(patchSizeYPre, nyPre, nyPost),
+         nfPre,
+         &originalWeights.getGeometry()->getPostLoc(),
+         &originalWeights.getGeometry()->getPreLoc(),
+         1 /*numArbors*/,
+         shared,
+         0.0 /*timestamp*/);
 
    int const numKernelsPost = transposeWeights.getGeometry()->getNumKernels();
    FatalIf(

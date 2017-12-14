@@ -87,7 +87,7 @@ void BaseDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
          &mReceiveGpu,
          mReceiveGpu /*default*/,
          false /*warn if absent*/);
-   if (parent->columnId() == 0) {
+   if (parent->getCommunicator()->globalCommRank() == 0) {
       FatalIf(
             mReceiveGpu,
             "%s: receiveGpu is set to true in params, but PetaVision was compiled without GPU "
@@ -98,8 +98,9 @@ void BaseDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 }
 
 int BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   pvAssert(mConnectionData == nullptr);
-   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   if (mConnectionData == nullptr) {
+      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   }
    pvAssert(mConnectionData != nullptr);
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {

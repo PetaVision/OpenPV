@@ -35,8 +35,9 @@ void BaseWeightUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
 
 int BaseWeightUpdater::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   pvAssert(mConnectionData == nullptr);
-   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   if (mConnectionData == nullptr) {
+      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   }
    pvAssert(mConnectionData != nullptr);
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {

@@ -60,7 +60,7 @@ void HebbianUpdater::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
             Fatal().printf(
                   "%s error in rank %d process: TriggerOffset (%f) must be positive",
                   getDescription_c(),
-                  parent->columnId(),
+                  parent->getCommunicator()->globalCommRank(),
                   mTriggerOffset);
          }
       }
@@ -209,8 +209,11 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    std::string const &desc = getDescription();
    auto *weightsPair       = mapLookupByType<WeightsPair>(componentMap, desc);
    pvAssert(weightsPair);
+   if (!weightsPair->getInitInfoCommunicatedFlag()) {
+      return PV_POSTPONE;
+   }
    weightsPair->needPre();
-   mWeights = weightsPair->getPreWeights();
+   mWeights     = weightsPair->getPreWeights();
    mPostWeights = weightsPair->getPostWeights();
    if (mPlasticityFlag) {
       mWeights->setWeightsArePlastic();
@@ -236,7 +239,7 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
                "%s, rank %d process: TriggerOffset (%f) must be lower than the change in update "
                "time (%f) of the attached trigger layer\n",
                getDescription_c(),
-               parent->columnId(),
+               parent->getCommunicator()->globalCommRank(),
                mTriggerOffset,
                mWeightUpdatePeriod);
       }
@@ -247,13 +250,14 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(componentMap, desc);
       mMaskLayer = objectMapComponent->lookup<HyPerLayer>(std::string(mMaskLayerName));
       if (mMaskLayer == nullptr) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: maskLayerName \"%s\" does not correspond to a layer in the column.\n",
                   getDescription_c(),
                   mMaskLayerName);
          }
          status = PV_FAILURE;
+         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
       }
       // Check mask with restricted post layer
@@ -261,7 +265,7 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       const PVLayerLoc *postLoc = post->getLayerLoc();
       const PVLayerLoc *maskLoc = mMaskLayer->getLayerLoc();
       if (postLoc->nx != maskLoc->nx || postLoc->ny != maskLoc->ny) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: Mask \"%s\" (%d, %d, %d) must have the same x and y size as post layer "
                   "\"%s\" (%d, %d, %d).\n",
@@ -276,6 +280,7 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
                   postLoc->nf);
          }
          status = PV_FAILURE;
+         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
       }
       // Make sure maskFeatureIdx is within bounds
@@ -295,7 +300,7 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       // This check is only required if a maskFeatureIdx is not specified, aka, pointwise masking
       if (mMaskFeatureIdx == -1) {
          if (postLoc->nf != maskLoc->nf && maskLoc->nf != 1) {
-            if (parent->columnId() == 0) {
+            if (parent->getCommunicator()->globalCommRank() == 0) {
                ErrorLog().printf(
                      "%s: Mask \"%s\" (%d, %d, %d) nf dimension must be either the same as post "
                      "layer \"%s\" (%d, %d, %d) or 1\n",
@@ -310,6 +315,7 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
                      postLoc->nf);
             }
             status = PV_FAILURE;
+            MPI_Barrier(parent->getCommunicator()->globalCommunicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -332,6 +338,9 @@ int HebbianUpdater::allocateDataStructures() {
          }
          mDeltaWeights = new Weights(name);
          mDeltaWeights->initialize(mWeights);
+         mDeltaWeights->setMargins(
+               mConnectionData->getPre()->getLayerLoc()->halo,
+               mConnectionData->getPost()->getLayerLoc()->halo);
          mDeltaWeights->allocateDataStructures();
       }
       if (mWeights->getSharedFlag() && mNormalizeDw) {

@@ -140,9 +140,6 @@ int HyPerConn::initializeState() {
    auto *initWeights =
          mapLookupByType<InitWeights>(mComponentTable.getObjectMap(), getDescription());
    int status = initWeights->initializeWeights();
-   if (mWeightsPair->getPostWeights()) {
-      TransposeWeights::transpose(mWeightsPair->getPreWeights(), mWeightsPair->getPostWeights(), parent->getCommunicator());
-   }
    return status;
 }
 

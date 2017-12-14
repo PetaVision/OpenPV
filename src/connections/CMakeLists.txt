@@ -14,7 +14,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 #   ${SUBDIR}/PoolingConn.cpp
    ${SUBDIR}/RescaleConn.cpp
 #   ${SUBDIR}/privateTransposeConn.cpp
-#   ${SUBDIR}/TransposeConn.cpp
+   ${SUBDIR}/TransposeConn.cpp
 #   ${SUBDIR}/TransposePoolingConn.cpp
 )
 
@@ -34,7 +34,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 #   ${SUBDIR}/PoolingConn.hpp
    ${SUBDIR}/RescaleConn.hpp
 #   ${SUBDIR}/privateTransposeConn.hpp
-#   ${SUBDIR}/TransposeConn.hpp
+   ${SUBDIR}/TransposeConn.hpp
 #   ${SUBDIR}/TransposePoolingConn.hpp
    ${SUBDIR}/weight_conversions.hpp
 )

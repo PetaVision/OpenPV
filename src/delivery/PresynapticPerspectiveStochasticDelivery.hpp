@@ -36,6 +36,9 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
 
    virtual ~PresynapticPerspectiveStochasticDelivery();
 
+   virtual int
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
    /**
     * The method that delivers presynaptic activity to the given postsynaptic channel.
     * It loops over presynaptic neurons, skipping over any whose activity is zero

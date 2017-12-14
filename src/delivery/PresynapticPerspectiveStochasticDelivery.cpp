@@ -38,6 +38,20 @@ void PresynapticPerspectiveStochasticDelivery::ioParam_receiveGpu(enum ParamsIOF
    mReceiveGpu = false; // If it's true, we should be using a different class.
 }
 
+int PresynapticPerspectiveStochasticDelivery::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   int status = HyPerDelivery::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return PV_SUCCESS;
+   }
+   pvAssert(mWeightsPair);
+   if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
+      return PV_POSTPONE;
+   }
+   mWeightsPair->needPre();
+   return status;
+}
+
 int PresynapticPerspectiveStochasticDelivery::allocateDataStructures() {
    int status = HyPerDelivery::allocateDataStructures();
    allocateThreadGSyn();

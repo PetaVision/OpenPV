@@ -56,7 +56,7 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
       Fatal().printf(
             "InitRandomWeights error in rank %d process: unable to create object of class "
             "Random.\n",
-            parent->columnId());
+            parent->getCommunicator()->globalCommRank());
    }
    mRandState = (Random *)mGaussianRandState;
    return status;

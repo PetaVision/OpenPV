@@ -95,6 +95,7 @@ int NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
       return status;
    }
 
+   weightsPair->needPre();
    Weights *weights = weightsPair->getPreWeights();
    pvAssert(weights != nullptr);
    addWeightsToList(weights);

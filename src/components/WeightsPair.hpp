@@ -10,7 +10,6 @@
 
 #include "columns/BaseObject.hpp"
 #include "components/ConnectionData.hpp"
-#include "components/PostWeights.hpp"
 #include "components/Weights.hpp"
 
 namespace PV {
@@ -71,7 +70,24 @@ class WeightsPair : public BaseObject {
    Weights *getPreWeights() { return mPreWeights; }
    Weights *getPostWeights() { return mPostWeights; }
 
+   ConnectionData const *getConnectionData() { return mConnectionData; }
+
    bool getWriteCompressedCheckpoints() const { return mWriteCompressedCheckpoints; }
+
+   /**
+    * Calculates the patch size from the postsynaptic perspective, given the patch size from the
+    * presynaptic perspective and the PVLayerLoc structs for the pre- and post-synaptic layers.
+    *
+    * If numNeuronsPre == numNeuronsPost, the return value is prePatchSize.
+    *
+    * If numNeuronsPre > numNeuronsPost, numNeuronsPre must be an integer multiple of
+    * numNeuronsPost. The return value is prePatchSize * (numNeuronsPre / numNeuronsPost);
+    *
+    * If numNeuronsPre < numNeuronsPost, numNeuronsPost must be an integer multiple of
+    * numNeuronsPre, and prePatchSize must be in integer multiple of their quotient.
+    * The return value is the prePatchSize / (numNeuronsPost / numNeuronsPre).
+    */
+   static int calcPostPatchSize(int prePatchSize, int numNeuronsPre, int numNeuronsPost);
 
   protected:
    WeightsPair() {}
@@ -81,6 +97,9 @@ class WeightsPair : public BaseObject {
    virtual int setDescription() override;
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
+   int
+   respondConnectionFinalizeUpdate(std::shared_ptr<ConnectionFinalizeUpdateMessage const> message);
 
    int respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
 
@@ -96,6 +115,8 @@ class WeightsPair : public BaseObject {
    virtual int registerData(Checkpointer *checkpointer) override;
 
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
+
+   virtual void finalizeUpdate(double timestamp, double deltaTime);
 
    void openOutputStateFile(Checkpointer *checkpointer);
 

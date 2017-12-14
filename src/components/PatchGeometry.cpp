@@ -62,6 +62,23 @@ void PatchGeometry::initialize(
    mTransposeItemIndex.clear();
 }
 
+void PatchGeometry::setMargins(PVHalo const &preHalo, PVHalo const &postHalo) {
+   if (!mPatchVector.empty()) {
+      // Can't change halo after allocation.
+      FatalIf(
+            std::memcmp(&preHalo, &mPreLoc.halo, sizeof(PVHalo))
+                  or std::memcmp(&preHalo, &mPreLoc.halo, sizeof(PVHalo)),
+            "Attempt to change margins of a PatchGeometry object after allocateDataStructures "
+            "had been called for the same object.\n");
+   }
+   else {
+      std::memcpy(&mPreLoc.halo, &preHalo, sizeof(PVHalo));
+      std::memcpy(&mPostLoc.halo, &postHalo, sizeof(PVHalo));
+      mNumPatchesX = mPreLoc.nx + mPreLoc.halo.lt + mPreLoc.halo.rt;
+      mNumPatchesY = mPreLoc.ny + mPreLoc.halo.dn + mPreLoc.halo.up;
+   }
+}
+
 void PatchGeometry::allocateDataStructures() {
    if (!mPatchVector.empty()) {
       return;

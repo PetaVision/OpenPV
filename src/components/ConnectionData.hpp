@@ -104,6 +104,8 @@ class ConnectionData : public BaseObject {
 
    void setDelay(int arborId, double delay);
 
+   int maxDelaySteps();
+
    /**
     * If the character string given by name has the form "AbcToXyz", then
     * preLayerNameString is set to Abc and postLayerNameString is set to Xyz.
@@ -116,8 +118,6 @@ class ConnectionData : public BaseObject {
          int rank,
          std::string &preLayerNameString,
          std::string &postLayerNameString);
-
-   int maxDelaySteps();
 
   protected:
    char *mPreLayerName  = nullptr;

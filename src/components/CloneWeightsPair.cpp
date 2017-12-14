@@ -140,9 +140,15 @@ void CloneWeightsPair::copyParameters() {
    parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
 }
 
-void CloneWeightsPair::needPre() { mOriginalWeightsPair->needPre(); }
+void CloneWeightsPair::needPre() {
+   mOriginalWeightsPair->needPre();
+   mPreWeights = mOriginalWeightsPair->getPreWeights();
+}
 
-void CloneWeightsPair::needPost() { mOriginalWeightsPair->needPost(); }
+void CloneWeightsPair::needPost() {
+   mOriginalWeightsPair->needPost();
+   mPostWeights = mOriginalWeightsPair->getPostWeights();
+}
 
 int CloneWeightsPair::allocateDataStructures() { return PV_SUCCESS; }
 

@@ -71,6 +71,11 @@ void Weights::initialize(
    initialize(geometry, numArbors, sharedWeights, timestamp);
 }
 
+void Weights::setMargins(PVHalo const &preHalo, PVHalo const &postHalo) {
+   mGeometry->setMargins(preHalo, postHalo);
+   initNumDataPatches();
+}
+
 void Weights::allocateDataStructures() {
    if (!mData.empty()) {
       return;
@@ -105,14 +110,12 @@ void Weights::checkpointWeightPvp(
 
 void Weights::initNumDataPatches() {
    if (mSharedFlag) {
-      mNumDataPatchesX = mGeometry->getNumKernelsX();
-      mNumDataPatchesY = mGeometry->getNumKernelsY();
-      mNumDataPatchesF = mGeometry->getNumKernelsF();
+      setNumDataPatches(
+            mGeometry->getNumKernelsX(), mGeometry->getNumKernelsY(), mGeometry->getNumKernelsF());
    }
    else {
-      mNumDataPatchesX = mGeometry->getNumPatchesX();
-      mNumDataPatchesY = mGeometry->getNumPatchesY();
-      mNumDataPatchesF = mGeometry->getNumPatchesF();
+      setNumDataPatches(
+            mGeometry->getNumPatchesX(), mGeometry->getNumPatchesY(), mGeometry->getNumPatchesF());
    }
 }
 

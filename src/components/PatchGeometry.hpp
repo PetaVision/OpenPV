@@ -75,6 +75,20 @@ class PatchGeometry {
    ~PatchGeometry() {}
 
    /**
+    * Copies the given halos into the halos of the presynaptic and postsynaptic PVLayerLoc objects
+    * It is an error to call this method after allocateDataStructures method.
+    */
+   void setMargins(PVHalo const &preHalo, PVHalo const &postHalo);
+
+   /**
+    * Allocates the vectors for the patch data, GSynPatchStart, and APostOffset structures.
+    * The PatchGeometry object is not completely initialized until this method is called.
+    * Once allocateDataStructures() is called once, subsequent calls return immediately
+    * and have no effect.
+    */
+   void allocateDataStructures();
+
+   /**
     * get-method for PatchSizeX, the size in the x-direction of the patch from one pre-synaptic
     * neuron into post-synaptic space.
     */
@@ -194,14 +208,6 @@ class PatchGeometry {
     * the values of the PVLayerLoc fields are all equal.
     */
    bool getSelfConnectionFlag() const { return mSelfConnectionFlag; }
-
-   /**
-    * Allocates the vectors for the patch data, GSynPatchStart, and APostOffset structures.
-    * The PatchGeometry object is not completely initialized until this method is called.
-    * Once allocateDataStructures() is called once, subsequent calls return immediately
-    * and have no effect.
-    */
-   void allocateDataStructures();
 
    static int calcPatchStartInPost(
          int indexRestrictedPre,

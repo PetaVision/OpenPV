@@ -10,6 +10,7 @@
 #include "io/WeightsFileIO.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "utils/MapLookupByType.hpp"
+#include "utils/TransposeWeights.hpp"
 
 namespace PV {
 
@@ -79,7 +80,7 @@ void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
             ioFlag, name, "initialWriteTime", &mInitialWriteTime, startTime, true /*warnifabsent*/);
       if (ioFlag == PARAMS_IO_READ) {
          if (mWriteStep > 0 && mInitialWriteTime < startTime) {
-            if (parent->columnId() == 0) {
+            if (parent->getCommunicator()->globalCommRank() == 0) {
                WarnLog(adjustInitialWriteTime);
                adjustInitialWriteTime.printf(
                      "%s: initialWriteTime %f earlier than starting time %f.  Adjusting "
@@ -132,12 +133,23 @@ int WeightsPair::respond(std::shared_ptr<BaseMessage const> message) {
    if (status != PV_SUCCESS) {
       return status;
    }
+   else if (
+         auto castMessage =
+               std::dynamic_pointer_cast<ConnectionFinalizeUpdateMessage const>(message)) {
+      return respondConnectionFinalizeUpdate(castMessage);
+   }
    else if (auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(message)) {
       return respondConnectionOutput(castMessage);
    }
    else {
       return status;
    }
+}
+
+int WeightsPair::respondConnectionFinalizeUpdate(
+      std::shared_ptr<ConnectionFinalizeUpdateMessage const> message) {
+   finalizeUpdate(message->mTime, message->mDeltaT);
+   return PV_SUCCESS;
 }
 
 int WeightsPair::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
@@ -208,14 +220,14 @@ int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       }
    }
    if (mPatchSizeF != postLoc->nf) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "Params file specifies %d features for %s,\n", mPatchSizeF, getDescription_c());
          errorMessage.printf(
                "but %d features for post-synaptic layer %s\n", postLoc->nf, post->getName());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
       exit(PV_FAILURE);
    }
    // Currently, the only acceptable number for mPatchSizeF is the number of post-synaptic features.
@@ -223,21 +235,46 @@ int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    // with each feature connecting to only a few nearby features.
    // Accordingly, we still keep ioParam_nfp.
 
-   needPre();
-
    return status;
 }
 
 void WeightsPair::needPre() {
+   FatalIf(
+         !mInitInfoCommunicatedFlag,
+         "%s must finish CommunicateInitInfo before needPre can be called.\n",
+         getDescription_c());
    if (mPreWeights == nullptr) {
-      mPreWeights = new Weights(std::string(name));
+      mPreWeights = new Weights(
+            std::string(name),
+            mPatchSizeX,
+            mPatchSizeY,
+            mPatchSizeF,
+            mConnectionData->getPre()->getLayerLoc(),
+            mConnectionData->getPost()->getLayerLoc(),
+            mConnectionData->getNumAxonalArbors(),
+            mSharedWeights,
+            0.0 /*timestamp*/);
    }
 }
 
 void WeightsPair::needPost() {
+   FatalIf(
+         !mInitInfoCommunicatedFlag,
+         "%s must finish CommunicateInitInfo before needPost can be called.\n",
+         getDescription_c());
    if (mPostWeights == nullptr) {
-      needPre();
-      mPostWeights = new PostWeights(std::string(name));
+      PVLayerLoc const *preLoc  = mConnectionData->getPre()->getLayerLoc();
+      PVLayerLoc const *postLoc = mConnectionData->getPost()->getLayerLoc();
+      mPostWeights              = new Weights(
+            std::string(name),
+            calcPostPatchSize(mPatchSizeX, preLoc->nx, postLoc->nx),
+            calcPostPatchSize(mPatchSizeY, preLoc->ny, postLoc->ny),
+            preLoc->nf /* number of features in post patch */,
+            postLoc,
+            preLoc,
+            mConnectionData->getNumAxonalArbors(),
+            mSharedWeights,
+            0.0 /*timestamp*/);
    }
 }
 
@@ -252,33 +289,22 @@ int WeightsPair::allocateDataStructures() {
 }
 
 void WeightsPair::allocatePreWeights() {
-   mPreWeights->initialize(
-         mPatchSizeX,
-         mPatchSizeY,
-         mPatchSizeF,
-         mConnectionData->getPre()->getLayerLoc(),
-         mConnectionData->getPost()->getLayerLoc(),
-         mConnectionData->getNumAxonalArbors(),
-         mSharedWeights,
-         0.0 /* timestamp */);
+   mPreWeights->setMargins(
+         mConnectionData->getPre()->getLayerLoc()->halo,
+         mConnectionData->getPost()->getLayerLoc()->halo);
    mPreWeights->allocateDataStructures();
 }
 
 void WeightsPair::allocatePostWeights() {
-   auto *postWeights = dynamic_cast<PostWeights *>(mPostWeights);
-   FatalIf(
-         postWeights == nullptr,
-         "WeightsPair::allocateDataStructures called with mPostWeights set, "
-         "but not a PostWeights object.\n",
-         name);
-   // If a derived sets mPostWeights to a non-PostWeights object (e.g. TransposeConn),
-   // it needs to override allocateDataStructures.
-   postWeights->initializePostWeights(mPreWeights);
+   mPostWeights->setMargins(
+         mConnectionData->getPost()->getLayerLoc()->halo,
+         mConnectionData->getPre()->getLayerLoc()->halo);
    mPostWeights->allocateDataStructures();
 }
 
 int WeightsPair::registerData(Checkpointer *checkpointer) {
    int status = BaseObject::registerData(checkpointer);
+   needPre();
    mPreWeights->checkpointWeightPvp(checkpointer, "W", mWriteCompressedCheckpoints);
    if (status != PV_SUCCESS) {
       return PV_SUCCESS;
@@ -296,6 +322,12 @@ int WeightsPair::registerData(Checkpointer *checkpointer) {
    }
 
    return status;
+}
+
+void WeightsPair::finalizeUpdate(double timestamp, double deltaTime) {
+   if (mPostWeights) {
+      TransposeWeights::transpose(mPreWeights, mPostWeights, parent->getCommunicator());
+   }
 }
 
 void WeightsPair::openOutputStateFile(Checkpointer *checkpointer) {
@@ -333,6 +365,40 @@ void WeightsPair::outputState(double timestamp) {
       // If writeStep is negative, we never call writeWeights, but someone might restart from a
       // checkpoint with a different writeStep, so we maintain writeTime.
       mWriteTime = timestamp;
+   }
+}
+
+int WeightsPair::calcPostPatchSize(int prePatchSize, int numNeuronsPre, int numNeuronsPost) {
+   if (numNeuronsPre == numNeuronsPost) {
+      return prePatchSize;
+   }
+   else if (numNeuronsPre > numNeuronsPost) {
+      std::div_t scaleDivision = div(numNeuronsPre, numNeuronsPost);
+      FatalIf(
+            scaleDivision.rem != 0,
+            "calcPostPatchSize called with numNeuronsPre (%d) greater than numNeuronsPost (%d), "
+            "but not an integer multiple.\n",
+            numNeuronsPre,
+            numNeuronsPost);
+      return prePatchSize * scaleDivision.quot;
+   }
+   else {
+      std::div_t const scaleDivision = div(numNeuronsPost, numNeuronsPre);
+      FatalIf(
+            scaleDivision.rem != 0,
+            "calcPostPatchSize called with numNeuronsPost (%d) greater than numNeuronsPre (%d), "
+            "but not an integer multiple.\n",
+            numNeuronsPost,
+            numNeuronsPre);
+      int const scaleFactor         = scaleDivision.quot;
+      std::div_t const newPatchSize = div(prePatchSize, scaleFactor);
+      FatalIf(
+            newPatchSize.rem != 0,
+            "calcPostPatchSize called with scale factor of numNeuronsPost/numNeuronsPre = %d, "
+            "but prePatchSize (%d) is not an integer multiple of the scale factor.\n",
+            scaleFactor,
+            prePatchSize);
+      return prePatchSize / scaleFactor;
    }
 }
 

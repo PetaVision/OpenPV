@@ -51,14 +51,14 @@ void HyPerDeliveryFacade::ioParam_accumulateType(enum ParamsIOFlag ioFlag) {
          mAccumulateType = HyPerDelivery::STOCHASTIC;
       }
       else {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s error: pvpatchAccumulateType \"%s\" is unrecognized.\n",
                   getDescription_c(),
                   mAccumulateTypeString);
             ErrorLog().printf("  Allowed values are \"convolve\" or \"stochastic\".\n");
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
       }
    }

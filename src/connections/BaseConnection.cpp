@@ -103,7 +103,8 @@ int BaseConnection::respondConnectionUpdate(
 
 int BaseConnection::respondConnectionFinalizeUpdate(
       std::shared_ptr<ConnectionFinalizeUpdateMessage const> message) {
-   return PV_SUCCESS; // return finalizeUpdate(message->mTime, message->mDeltaT);
+   notify(mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return PV_SUCCESS;
 }
 
 int BaseConnection::respondConnectionOutput(

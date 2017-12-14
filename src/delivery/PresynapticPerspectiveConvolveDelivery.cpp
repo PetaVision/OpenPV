@@ -33,6 +33,20 @@ void PresynapticPerspectiveConvolveDelivery::ioParam_receiveGpu(enum ParamsIOFla
    mReceiveGpu = false; // If it's true, we should be using a different class.
 }
 
+int PresynapticPerspectiveConvolveDelivery::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   int status = HyPerDelivery::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return PV_SUCCESS;
+   }
+   pvAssert(mWeightsPair);
+   if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
+      return PV_POSTPONE;
+   }
+   mWeightsPair->needPre();
+   return status;
+}
+
 int PresynapticPerspectiveConvolveDelivery::allocateDataStructures() {
    int status = HyPerDelivery::allocateDataStructures();
    allocateThreadGSyn();

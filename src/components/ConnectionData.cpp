@@ -55,7 +55,7 @@ void ConnectionData::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(
          ioFlag, this->getName(), "numAxonalArbors", &mNumAxonalArbors, mNumAxonalArbors);
    if (ioFlag == PARAMS_IO_READ) {
-      if (getNumAxonalArbors() <= 0 && parent->columnId() == 0) {
+      if (getNumAxonalArbors() <= 0 && parent->getCommunicator()->globalCommRank() == 0) {
          WarnLog().printf(
                "Connection %s: Variable numAxonalArbors is set to 0. "
                "No connections will be made.\n",
@@ -106,7 +106,7 @@ int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       mPreLayerName  = strdup(preLayerNameString.c_str());
       mPostLayerName = strdup(postLayerNameString.c_str());
    }
-   MPI_Barrier(this->parent->getCommunicator()->communicator());
+   MPI_Barrier(this->parent->getCommunicator()->globalCommunicator());
    if (getPreLayerName() == nullptr or getPostLayerName() == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -155,7 +155,7 @@ int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       }
       status = PV_FAILURE;
    }
-   MPI_Barrier(parent->getCommunicator()->communicator());
+   MPI_Barrier(parent->getCommunicator()->globalCommunicator());
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }

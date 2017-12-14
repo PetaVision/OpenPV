@@ -1,5 +1,4 @@
 #include "UtilityFunctions.hpp"
-#include <components/PostWeights.cpp>
 #include <components/Weights.cpp>
 #include <utils/PVAssert.hpp>
 #include <utils/PVLog.hpp>
@@ -223,8 +222,16 @@ int checkTransposeOfTranspose(
       PV::Communicator *comm) {
    int status = PV_SUCCESS;
 
-   PV::PostWeights transposeOfTranspose(std::string("transpose of transpose"));
-   transposeOfTranspose.initializePostWeights(&transposeWeights);
+   PV::Weights transposeOfTranspose(std::string("transpose of transpose"));
+   transposeOfTranspose.initialize(
+         originalWeights.getPatchSizeX(),
+         originalWeights.getPatchSizeY(),
+         originalWeights.getPatchSizeF(),
+         &originalWeights.getGeometry()->getPreLoc(),
+         &originalWeights.getGeometry()->getPostLoc(),
+         originalWeights.getNumArbors(),
+         originalWeights.getSharedFlag(),
+         originalWeights.getTimestamp());
    transposeOfTranspose.allocateDataStructures();
    PV::TransposeWeights::transpose(&transposeWeights, &transposeOfTranspose, comm);
 

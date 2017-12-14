@@ -233,6 +233,14 @@ class Weights {
 
    void setWeightsArePlastic() { mWeightsArePlastic = true; }
 
+   /**
+    * Copies the given halos into the halos of the PatchGeometry object.
+    * in the PatchIt is an error to call this method after the PatchGeometry object's
+    * allocateDataStructures method has been called.
+    * (Recall that multiple Weights objects can share a PatchGeometry object).
+    */
+   void setMargins(PVHalo const &preHalo, PVHalo const &postHalo);
+
   protected:
    /**
     * The default constructor, called by derived classes (e.g. PoolingWeights).

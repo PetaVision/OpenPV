@@ -42,6 +42,9 @@ int PostsynapticPerspectiveStochasticDelivery::communicateInitInfo(
       return status;
    }
    pvAssert(mWeightsPair); // to make sure that HyPerDelivery::communicateInitInfo set mWeightsPair
+   if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
+      return PV_POSTPONE;
+   }
    mWeightsPair->needPost();
    return PV_SUCCESS;
 }

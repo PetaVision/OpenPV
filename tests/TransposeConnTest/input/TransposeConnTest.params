@@ -1,0 +1,327 @@
+// TransposeConnTest.params
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx                                  = 32;
+    ny                                  = 32;
+    startTime                           = 0.0;
+    stopTime                            = 1.0;
+    dt                                  = 1.0;
+    randomSeed                          = 570934122;
+    progressInterval                    = 1.0;
+    writeProgressToErr                  = false;
+    verifyWrites                        = true;
+    outputPath                          = "output/";
+    printParamsFilename                 = "pv.params";
+    initializeFromCheckpointDir         = "";
+    checkpointWrite                     = false;
+    // checkpointWriteDir;
+    // checkpointWriteStepInterval;
+    // checkpointWriteTimeInterval;
+    // deleteOlderCheckpoints;
+    // suppressNonplasticCheckpoints;
+    lastCheckpointDir                   = "output/Last";
+    errorOnNotANumber                   = false;
+};
+
+ANNLayer "LayerA" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 4;
+    phase                               = 1;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // sparseLayer;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+    
+    triggerLayerName                    = NULL;
+    sparseLayer                         = false;
+
+    VThresh                             = -infinity;
+    AMin                                = -infinity;
+    AShift                              = 0.0;
+    AMax                                = infinity;
+    VWidth                              = 0.0;
+};
+
+ANNLayer "LayerB_OneToOne" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 4;
+    phase                               = 1;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // sparseLayer;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+
+    triggerLayerName                    = NULL;
+    sparseLayer                         = false;
+
+    VThresh                             = -infinity;
+    AMin                                = -infinity;
+    AShift                              = 0.0;
+    AMax                                = infinity;
+    VWidth                              = 0.0;
+};
+
+ANNLayer "LayerB_ManyToOne" = {
+    nxScale                             = 0.25;
+    nyScale                             = 0.25;
+    nf                                  = 8;
+    phase                               = 1;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // sparseLayer;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+
+    triggerLayerName                    = NULL;
+    sparseLayer                         = false;
+
+    VThresh                             = -infinity;
+    AMin                                = -infinity;
+    AShift                              = 0.0;
+    AMax                                = infinity;
+    VWidth                              = 0.0;
+};
+
+ANNLayer "LayerB_OneToMany" = {
+    nxScale                             = 4;
+    nyScale                             = 4;
+    nf                                  = 2;
+    phase                               = 1;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // sparseLayer;
+    mirrorBCflag                        = false;
+    valueBC                             = 0.0;
+    // GPUAccelerate;
+    
+    InitVType                           = "ZeroV";
+
+    triggerLayerName                    = NULL;
+    sparseLayer                         = false;
+
+    VThresh                             = -infinity;
+    AMin                                = -infinity;
+    AShift                              = 0.0;
+    AMax                                = infinity;
+    VWidth                              = 0.0;
+};
+
+HyPerConn "OriginalMapForOneToOneTest" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_OneToOne";
+    channelCode                         = 0;
+    sharedWeights                       = true;
+    nxp                                 = 7;
+    nyp                                 = 7;
+    nfp                                 = 4;
+    numAxonalArbors                     = 2;
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    plasticityFlag                      = false;
+    pvpatchAccumulateType               = "convolve";
+    convertRateToSpikeCount             = false;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeCompressedWeights;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+
+    weightInitType                      = "UniformRandomWeight";
+    wMinInit                            = 0.0;
+    wMaxInit                            = 1.0;
+    sparseFraction                      = 0.0;
+    
+    normalizeMethod                     = "normalizeSum";
+    strength                            = 1.0;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = false;
+    normalizeFromPostPerspective        = false;
+    minSumTolerated                     = 0.0;
+    
+};
+
+TransposeConn "TransposeForOneToOneTestOfTransposeConn" = {
+    preLayerName                        = "LayerB_OneToOne";
+    postLayerName                       = "LayerA";
+    channelCode                         = 0;
+    originalConnName                    = "OriginalMapForOneToOneTest";
+    delay                               = 0;
+    numAxonalArbors                     = 2;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    convertRateToSpikeCount             = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+TransposeConn "TransposeOfTransposeForOneToOneTestOfTransposeConn" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_OneToOne";
+    channelCode                         = 1;
+    originalConnName                    = "TransposeForOneToOneTestOfTransposeConn";
+    delay                               = 0;
+    numAxonalArbors                     = 2;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    convertRateToSpikeCount             = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+HyPerConn "OriginalMapForManyToOneTest" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_ManyToOne";
+    channelCode                         = 0;
+    sharedWeights                       = true;
+    nxp                                 = 7;
+    nyp                                 = 7;
+    nfp                                 = 8;
+    numAxonalArbors                     = 2;
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    plasticityFlag                      = false;
+    pvpatchAccumulateType               = "convolve";
+    convertRateToSpikeCount             = false;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeCompressedWeights;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+
+    weightInitType                      = "UniformRandomWeight";
+    wMinInit                            = 0.0;
+    wMaxInit                            = 1.0;
+    sparseFraction                      = 0.0;
+    
+    normalizeMethod                     = "normalizeSum";
+    strength                            = 1.0;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = false;
+    normalizeFromPostPerspective        = false;
+    minSumTolerated                     = 0.0;    
+};
+
+TransposeConn "TransposeForManyToOneTestOfTransposeConn" = {
+    preLayerName                        = "LayerB_ManyToOne";
+    postLayerName                       = "LayerA";
+    channelCode                         = 0;
+    originalConnName                    = "OriginalMapForManyToOneTest";
+    delay                               = 0;
+    numAxonalArbors                     = 2;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    convertRateToSpikeCount             = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+TransposeConn "TransposeOfTransposeForManyToOneTestOfTransposeConn" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_ManyToOne";
+    channelCode                         = 1;
+    originalConnName                    = "TransposeForManyToOneTestOfTransposeConn";
+    delay                               = 0;
+    numAxonalArbors                     = 2;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    convertRateToSpikeCount             = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+HyPerConn "OriginalMapForOneToManyTest" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_OneToMany";
+    channelCode                         = 0;
+    sharedWeights                       = true;
+    nxp                                 = 28;
+    nyp                                 = 28;
+    nfp                                 = 2;
+    numAxonalArbors                     = 2;
+    delay                               = 0;
+    updateGSynFromPostPerspective       = false;
+    plasticityFlag                      = false;
+    pvpatchAccumulateType               = "convolve";
+    convertRateToSpikeCount             = false;
+    writeStep                           = -1;
+    // initialWriteTime;
+    // writeCompressedWeights;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+
+    weightInitType                      = "UniformRandomWeight";
+    wMinInit                            = 0.0;
+    wMaxInit                            = 1.0;
+    sparseFraction                      = 0.0;
+    
+    normalizeMethod                     = "normalizeSum";
+    strength                            = 1.0;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = false;
+    normalizeFromPostPerspective        = false;
+    minSumTolerated                     = 0.0;    
+};
+
+TransposeConn "TransposeForOneToManyTestOfTransposeConn" = {
+    preLayerName                        = "LayerB_OneToMany";
+    postLayerName                       = "LayerA";
+    channelCode                         = 0;
+    originalConnName                    = "OriginalMapForOneToManyTest";
+    delay                               = 0;
+    numAxonalArbors                     = 2;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    convertRateToSpikeCount             = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
+
+TransposeConn "TransposeOfTransposeForOneToManyTestOfTransposeConn" = {
+    preLayerName                        = "LayerA";
+    postLayerName                       = "LayerB_OneToMany";
+    channelCode                         = 1;
+    originalConnName                    = "TransposeForOneToManyTestOfTransposeConn";
+    delay                               = 0;
+    numAxonalArbors                     = 2;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    convertRateToSpikeCount             = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+};
