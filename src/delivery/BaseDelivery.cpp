@@ -26,7 +26,6 @@ int BaseDelivery::setDescription() {
 
 int BaseDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_channelCode(ioFlag);
-   ioParam_convertRateToSpikeCount(ioFlag);
    ioParam_receiveGpu(ioFlag);
    return PV_SUCCESS;
 }
@@ -59,15 +58,6 @@ void BaseDelivery::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    else {
       assert(0); // All possibilities of ioFlag are covered above.
    }
-}
-
-void BaseDelivery::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag,
-         getName(),
-         "convertRateToSpikeCount",
-         &mConvertRateToSpikeCount,
-         false /*default value*/);
 }
 
 void BaseDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {

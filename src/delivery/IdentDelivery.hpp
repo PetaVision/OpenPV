@@ -25,11 +25,6 @@ class IdentDelivery : public BaseDelivery {
     */
 
    /**
-    * @brief IdentDeliver never converts a rate input to a spike count
-    */
-   virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) override;
-
-   /**
     * @brief IdentDeliver does not use the GPU. It is an error to set receiveGpu to true.
     */
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;

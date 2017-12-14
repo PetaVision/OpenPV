@@ -52,7 +52,6 @@ class BaseConnection : public BaseObject, Subject {
 
    ChannelType getChannelCode() const { return mDeliveryObject->getChannelCode(); }
    int getDelay(int arbor) const { return mConnectionData->getDelay(arbor); }
-   bool getConvertRateToSpikeCount() const { return mDeliveryObject->getConvertRateToSpikeCount(); }
    bool getReceiveGpu() const { return mDeliveryObject->getReceiveGpu(); }
    bool getPlasticityFlag() const { return mWeightUpdater->getPlasticityFlag(); }
 

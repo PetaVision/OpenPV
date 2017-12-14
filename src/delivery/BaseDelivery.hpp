@@ -30,16 +30,6 @@ class BaseDelivery : public BaseObject {
    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate
-    * to a count.
-    * @details If this flag is true and the presynaptic layer is not spiking, the activity will be
-    * interpreted as a spike rate, and will be converted to a spike count when delivering activity
-    * to the postsynaptic GSyn buffer.
-    * If this flag is false, activity will not be converted.
-    */
-   virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief receiveGpu: If PetaVision was compiled with GPU acceleration and this flag is set to
     * true, the connection uses the GPU to update the postsynaptic layer's GSyn.
     * If compiled without GPU acceleration, it is an error to set this flag to true.
@@ -57,7 +47,6 @@ class BaseDelivery : public BaseObject {
    virtual void deliverUnitInput(float *recvBuffer) {}
 
    ChannelType getChannelCode() const { return mChannelCode; }
-   bool getConvertRateToSpikeCount() const { return mConvertRateToSpikeCount; }
    bool getReceiveGpu() const { return mReceiveGpu; }
    HyPerLayer *getPreLayer() const { return mPreLayer; }
    HyPerLayer *getPostLayer() const { return mPostLayer; }
@@ -74,9 +63,8 @@ class BaseDelivery : public BaseObject {
    int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   protected:
-   ChannelType mChannelCode      = CHANNEL_EXC;
-   bool mConvertRateToSpikeCount = false;
-   bool mReceiveGpu              = false;
+   ChannelType mChannelCode = CHANNEL_EXC;
+   bool mReceiveGpu         = false;
 
    ConnectionData *mConnectionData = nullptr;
    HyPerLayer *mPreLayer           = nullptr;

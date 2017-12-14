@@ -80,8 +80,6 @@ class HyPerDeliveryFacade : public BaseDelivery {
 
    virtual int allocateDataStructures() override;
 
-   double convertToRateDeltaTimeFactor(double timeConstantTau) const;
-
    // Data members
   protected:
    HyPerDelivery::AccumulateType mAccumulateType = HyPerDelivery::CONVOLVE;

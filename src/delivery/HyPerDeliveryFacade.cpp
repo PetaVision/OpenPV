@@ -166,23 +166,6 @@ int HyPerDeliveryFacade::allocateDataStructures() {
    return status;
 }
 
-double HyPerDeliveryFacade::convertToRateDeltaTimeFactor(double timeConstantTau) const {
-   double dtFactor = 1.0;
-   if (mConvertRateToSpikeCount) {
-      double dt = parent->getDeltaTime();
-      if (timeConstantTau > 0) {
-         double exp_dt_tau = exp(-dt / timeConstantTau);
-         dtFactor          = (1.0 - exp_dt_tau) / exp_dt_tau;
-         // the above factor was chosen so that for a constant input of G_SYN to an excitatory
-         // conductance G_EXC, then G_EXC -> G_SYN as t -> inf
-      }
-      else {
-         dtFactor = dt;
-      }
-   }
-   return dtFactor;
-}
-
 void HyPerDeliveryFacade::deliver() {
    if (mDeliveryIntern) {
       mDeliveryIntern->deliver();
