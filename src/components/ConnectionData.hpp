@@ -131,7 +131,7 @@ class ConnectionData : public BaseObject {
 
    // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initial state from
    // the initializeFromCheckpointDir directory.
-   bool mInitializeFromCheckpointFlag = true;
+   bool mInitializeFromCheckpointFlag = false;
 
 }; // class ConnectionData
 
