@@ -224,8 +224,6 @@ local pvParams = {
        useWindowPost = false;
        updateGSynFromPostPerspective = false;
        pvpatchAccumulateType = "convolve";
-       useMask = true;
-       maskLayerName = "DepthDownsample";
        sharedWeights = true;
    };
 }

@@ -136,7 +136,6 @@ VaryingHyPerConn "ConnNoDelay" = {
     nfp                                 = 1;
     normalizeMethod                     = "none";
     dWMax                               = 1;
-    useMask                             = false;
 };
 
 VaryingHyPerConn "ConnWithDelay" = {
@@ -177,7 +176,6 @@ VaryingHyPerConn "ConnWithDelay" = {
     nfp                                 = 1;
     normalizeMethod                     = "none";
     dWMax                               = 1;
-    useMask                             = false;
 };
 
 HyPerConn "InputToOutputArbor" = {
@@ -246,7 +244,6 @@ VaryingHyPerConn "FullHyPerConn" = {
     nfp                                 = 1;
     normalizeMethod                     = "none";
     dWMax                               = 1;
-    useMask                             = false;
 };
 
 IdentConn "SelfConnectionForOutputWithDelay" = {

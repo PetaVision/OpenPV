@@ -31,8 +31,6 @@ class HebbianUpdater : public BaseWeightUpdater {
    virtual void ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeDw(enum ParamsIOFlag ioFlag);
    virtual void ioParam_useMask(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_maskFeatureIdx(enum ParamsIOFlag ioFlag);
    virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
 
    /** @} */ // end of HebbianUpdater parameters
@@ -130,9 +128,6 @@ class HebbianUpdater : public BaseWeightUpdater {
    int mDWMaxDecayFactor            = 0;
    float mDWMaxDecayInterval        = 0.0f;
    bool mNormalizeDw                = true;
-   bool mUseMask                    = false;
-   char *mMaskLayerName             = nullptr;
-   int mMaskFeatureIdx              = -1;
    bool mCombine_dWWithWFlag        = false;
    bool mWriteCompressedCheckpoints = false;
 
@@ -153,7 +148,6 @@ class HebbianUpdater : public BaseWeightUpdater {
    // blockingNormalize_dW(). We don't use the nonemptiness of
    // m_dWReduceRequests as the signal to blockingNormalize_dW because the
    // requests are not created if there is only a single MPI processes.
-   HyPerLayer *mMaskLayer = nullptr;
    std::vector<ConnectionData *> mClones;
 };
 

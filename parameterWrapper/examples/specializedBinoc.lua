@@ -398,10 +398,6 @@ for i=0,numDepthBins do
       normalize_cutoff = 0.0;
       normalizeFromPostPerspective = false;
 
-      useMask = true;
-      maskLayerName = "DepthGT";
-      maskFeatureIdx = i; --Masking out based on what dict is part of
-      
    }
    )
 

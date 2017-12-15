@@ -352,9 +352,6 @@ HyPerConn "32x32ImagesToPost32x32Multiband" = {
 
 //Feed post to mask as well
 HyPerConn "Pre16x16SinglebandToPost16x16Singleband" = {
-    useMask = true;
-    maskLayerName = "Post16x16Singleband";
-
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -383,9 +380,6 @@ HyPerConn "Pre16x16SinglebandToPost16x16Singleband" = {
 };
 
 HyPerConn "Pre16x16SinglebandToPost16x16Multiband" = {
-    useMask = true;
-    maskLayerName = "Post16x16Multiband";
-
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -419,8 +413,6 @@ HyPerConn "Pre16x16SinglebandToPost16x16Multiband" = {
 };
 
 HyPerConn "Pre16x16MultibandToPost16x16Singleband" = {
-    useMask = true;
-    maskLayerName = "Post16x16Singleband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -449,8 +441,6 @@ HyPerConn "Pre16x16MultibandToPost16x16Singleband" = {
 };
 
 HyPerConn "Pre16x16MultibandToPost16x16Multiband" = {
-    useMask = true;
-    maskLayerName = "Post16x16Multiband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -479,8 +469,6 @@ HyPerConn "Pre16x16MultibandToPost16x16Multiband" = {
 };
 
 HyPerConn "Pre16x16SinglebandToPost8x8Singleband" = {
-    useMask = true;
-    maskLayerName = "Post8x8Singleband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -512,8 +500,6 @@ HyPerConn "Pre16x16SinglebandToPost8x8Singleband" = {
 };
 
 HyPerConn "Pre16x16SinglebandToPost8x8Multiband" = {
-    useMask = true;
-    maskLayerName = "Post8x8Multiband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -541,8 +527,6 @@ HyPerConn "Pre16x16SinglebandToPost8x8Multiband" = {
 };
 
 HyPerConn "Pre16x16MultibandToPost8x8Singleband" = {
-    useMask = true;
-    maskLayerName = "Post8x8Singleband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -569,8 +553,6 @@ HyPerConn "Pre16x16MultibandToPost8x8Singleband" = {
 };
 
 HyPerConn "Pre16x16MultibandToPost8x8Multiband" = {
-    useMask = true;
-    maskLayerName = "Post8x8Multiband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -596,8 +578,6 @@ HyPerConn "Pre16x16MultibandToPost8x8Multiband" = {
 };
 
 HyPerConn "Pre16x16SinglebandToPost32x32Singleband" = {
-    useMask = true;
-    maskLayerName = "Post32x32Singleband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 10;
@@ -623,8 +603,6 @@ HyPerConn "Pre16x16SinglebandToPost32x32Singleband" = {
 };
 
 HyPerConn "Pre16x16SinglebandToPost32x32Multiband" = {
-    useMask = true;
-    maskLayerName = "Post32x32Multiband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 10;
@@ -656,8 +634,6 @@ HyPerConn "Pre16x16SinglebandToPost32x32Multiband" = {
 };
 
 HyPerConn "Pre16x16MultibandToPost32x32Singleband" = {
-    useMask = true;
-    maskLayerName = "Post32x32Singleband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 10;
@@ -683,8 +659,6 @@ HyPerConn "Pre16x16MultibandToPost32x32Singleband" = {
 };
 
 HyPerConn "Pre16x16MultibandToPost32x32Multiband" = {
-    useMask = true;
-    maskLayerName = "Post32x32Multiband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 10;

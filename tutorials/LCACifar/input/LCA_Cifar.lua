@@ -236,7 +236,6 @@ local pvParameters = {
       normalizeFromPostPerspective        = false;
       minL2NormTolerated                  = 0;
       dWMax                               = dWMax; 
-      useMask                             = false;
       momentumTau                         = momentumTau;   --The momentum parameter. A single weight update will last for momentumTau timesteps.
       momentumMethod                      = "viscosity";
       momentumDecay                       = 0;

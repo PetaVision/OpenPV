@@ -32,8 +32,6 @@ int HebbianUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_dWMaxDecayFactor(ioFlag);
    ioParam_normalizeDw(ioFlag);
    ioParam_useMask(ioFlag);
-   ioParam_maskLayerName(ioFlag);
-   ioParam_maskFeatureIdx(ioFlag);
    ioParam_combine_dW_with_W_flag(ioFlag);
    return PV_SUCCESS;
 }
@@ -161,31 +159,19 @@ void HebbianUpdater::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_useMask(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (mPlasticityFlag) {
-      parent->parameters()->ioParamValue(
-            ioFlag, getName(), "useMask", &mUseMask, false, false /*warnIfAbsent*/);
-   }
-}
-
-void HebbianUpdater::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "useMask"));
-      if (mUseMask) {
-         parent->parameters()->ioParamStringRequired(
-               ioFlag, name, "maskLayerName", &mMaskLayerName);
-      }
-   }
-}
-
-void HebbianUpdater::ioParam_maskFeatureIdx(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "useMask"));
-      if (mUseMask) {
+   if (ioFlag == PARAMS_IO_READ) {
+      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+      if (mPlasticityFlag) {
+         bool useMask = false;
          parent->parameters()->ioParamValue(
-               ioFlag, name, "maskFeatureIdx", &mMaskFeatureIdx, mMaskFeatureIdx);
+               ioFlag, getName(), "useMask", &useMask, useMask, false /*warnIfAbsent*/);
+         if (useMask) {
+            if (parent->getCommunicator()->globalCommRank() == 0) {
+               ErrorLog().printf("%s has useMask set to true. This parameter is obsolete.\n");
+            }
+            MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+            exit(EXIT_FAILURE);
+         }
       }
    }
 }
@@ -246,80 +232,6 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       mWeightUpdateTime = parent->getDeltaTime();
    }
 
-   if (mUseMask) {
-      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(componentMap, desc);
-      mMaskLayer = objectMapComponent->lookup<HyPerLayer>(std::string(mMaskLayerName));
-      if (mMaskLayer == nullptr) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
-            ErrorLog().printf(
-                  "%s: maskLayerName \"%s\" does not correspond to a layer in the column.\n",
-                  getDescription_c(),
-                  mMaskLayerName);
-         }
-         status = PV_FAILURE;
-         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-         exit(EXIT_FAILURE);
-      }
-      // Check mask with restricted post layer
-      HyPerLayer *post          = mConnectionData->getPost();
-      const PVLayerLoc *postLoc = post->getLayerLoc();
-      const PVLayerLoc *maskLoc = mMaskLayer->getLayerLoc();
-      if (postLoc->nx != maskLoc->nx || postLoc->ny != maskLoc->ny) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
-            ErrorLog().printf(
-                  "%s: Mask \"%s\" (%d, %d, %d) must have the same x and y size as post layer "
-                  "\"%s\" (%d, %d, %d).\n",
-                  getDescription_c(),
-                  mMaskLayerName,
-                  maskLoc->nx,
-                  maskLoc->ny,
-                  maskLoc->nf,
-                  post->getName(),
-                  postLoc->nx,
-                  postLoc->ny,
-                  postLoc->nf);
-         }
-         status = PV_FAILURE;
-         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-         exit(EXIT_FAILURE);
-      }
-      // Make sure maskFeatureIdx is within bounds
-      if (mMaskFeatureIdx >= maskLoc->nf || mMaskFeatureIdx < -1) {
-         ErrorLog().printf(
-               "%s: maskFeatureIdx must be between -1 (inclusive) and mask layer \"%s\" (%d, %d, "
-               "%d) nf dimension (exclusive)\n",
-               getDescription_c(),
-               mMaskLayerName,
-               maskLoc->nx,
-               maskLoc->ny,
-               maskLoc->nf);
-         status = PV_FAILURE;
-         exit(EXIT_FAILURE);
-      }
-
-      // This check is only required if a maskFeatureIdx is not specified, aka, pointwise masking
-      if (mMaskFeatureIdx == -1) {
-         if (postLoc->nf != maskLoc->nf && maskLoc->nf != 1) {
-            if (parent->getCommunicator()->globalCommRank() == 0) {
-               ErrorLog().printf(
-                     "%s: Mask \"%s\" (%d, %d, %d) nf dimension must be either the same as post "
-                     "layer \"%s\" (%d, %d, %d) or 1\n",
-                     getDescription_c(),
-                     mMaskLayerName,
-                     maskLoc->nx,
-                     maskLoc->ny,
-                     maskLoc->nf,
-                     post->getName(),
-                     postLoc->nx,
-                     postLoc->ny,
-                     postLoc->nf);
-            }
-            status = PV_FAILURE;
-            MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-            exit(EXIT_FAILURE);
-         }
-      }
-   }
    return status;
 }
 
@@ -636,10 +548,6 @@ int HebbianUpdater::updateInd_dW(
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
    const float *maskactbuf = NULL;
-   if (mUseMask) {
-      float const *maskactbufHead = mMaskLayer->getLayerData();
-      maskactbuf                  = maskactbufHead + batchID * mMaskLayer->getNumExtended();
-   }
    const float *preactbuf  = preLayerData + batchID * pre->getNumExtended();
    const float *postactbuf = postLayerData + batchID * post->getNumExtended();
 
@@ -662,42 +570,6 @@ int HebbianUpdater::updateInd_dW(
 
    int sym                 = 0;
    const float *maskactRef = NULL;
-   if (mUseMask) {
-      const PVLayerLoc *maskLoc = mMaskLayer->getLayerLoc();
-      // Calculate mask offset, must account for different size margins and the num features
-      // offsetX and Y are restricted indices into post
-      size_t offsetX, offsetY;
-      offsetX = kxPos(offset,
-                      postLoc->nx + postLoc->halo.lt + postLoc->halo.rt,
-                      postLoc->ny + postLoc->halo.up + postLoc->halo.dn,
-                      postLoc->nf)
-                - postLoc->halo.lt;
-      offsetY = kyPos(offset,
-                      postLoc->nx + postLoc->halo.lt + postLoc->halo.rt,
-                      postLoc->ny + postLoc->halo.up + postLoc->halo.dn,
-                      postLoc->nf)
-                - postLoc->halo.up;
-      // Sanity check, offset should be in restricted
-      pvAssert(offsetX < postLoc->nx + postLoc->halo.lt);
-      pvAssert(offsetY < postLoc->ny + postLoc->halo.up);
-      // Convert to maskOffsetX and Y, extended (in mask)
-      size_t maskOffsetX, maskOffsetY;
-      maskOffsetX = offsetX + maskLoc->halo.lt;
-      maskOffsetY = offsetY + maskLoc->halo.up;
-      // Convert to extIndex into mask
-
-      size_t maskOffset = kIndex(
-            maskOffsetX,
-            maskOffsetY,
-            0,
-            maskLoc->nx + maskLoc->halo.lt + maskLoc->halo.rt,
-            maskLoc->ny + maskLoc->halo.up + maskLoc->halo.dn,
-            maskLoc->nf); // This should take into account if maskLoc's nf is either 1 or the size
-      // of post
-
-      maskactRef = &maskactbuf[maskOffset];
-      sym        = (maskLoc->nf * (maskLoc->nx + maskLoc->halo.lt + maskLoc->halo.rt));
-   }
 
    float *dwdata =
          mDeltaWeights->getDataFromPatchIndex(arborID, kExt) + mDeltaWeights->getPatch(kExt).offset;
@@ -716,38 +588,15 @@ int HebbianUpdater::updateInd_dW(
    for (int y = 0; y < ny; y++) {
       for (int k = 0; k < nk; k++) {
          float aPost = postactRef[lineoffseta + k];
-         // calculate contribution to dw unless masked out
-         pvAssert(
-               !mUseMask || maskactRef != NULL); // if useMask is true, maskactRef must not be null
-         float maskVal = 1;
-         if (mUseMask) {
-            if (mMaskLayer->getLayerLoc()->nf == 1) {
-               maskVal = maskactRef[lineoffsetm + ((int)k / postLoc->nf)];
-            }
-            else {
-               // If a maskFeatureIdx was specified
-               if (mMaskFeatureIdx >= 0) {
-                  // k is an index into x/f space. Convert back to x space, and find the 0 feature
-                  // index
-                  int startingMaskK = ((int)k / postLoc->nf) * postLoc->nf;
-                  // Offset into maskFeatureIdx
-                  maskVal = maskactRef[lineoffsetm + startingMaskK + mMaskFeatureIdx];
-               }
-               else {
-                  maskVal = maskactRef[lineoffsetm + k];
-               }
-            }
+         // calculate contribution to dw
+         // Note: this is a hack, as batching calls this function, but overwrites to allocate
+         // numKernelActivations with non-shared weights
+         if (activations) {
+            // Offset in the case of a shrunken patch, where dwdata is applying when calling
+            // getDeltaWeightsData
+            activations[lineoffsetw + k]++;
          }
-         if (maskVal != 0) {
-            // Note: this is a hack, as batching calls this function, but overwrites to allocate
-            // numKernelActivations with non-shared weights
-            if (activations) {
-               // Offset in the case of a shrunken patch, where dwdata is applying when calling
-               // getDeltaWeightsData
-               activations[lineoffsetw + k]++;
-            }
-            dwdata[lineoffsetw + k] += updateRule_dW(preact, aPost);
-         }
+         dwdata[lineoffsetw + k] += updateRule_dW(preact, aPost);
       }
       lineoffsetw += syp;
       lineoffseta += sya;

@@ -101,5 +101,4 @@ HyPerConn "InputToOutput" = {
     normalizeMethod                     = "none";
     dWMax                               = 1;
     normalizeDw                         = true;
-    useMask                             = false;
 };
