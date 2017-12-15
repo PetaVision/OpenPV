@@ -152,7 +152,6 @@ HyPerConn "InputByFileToOutputByFile" = {
     nyp                                 = 3;
     nfp                                 = 1;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };
 
 IdentConn "InputByFileToComparisonByFile" = {
@@ -161,7 +160,6 @@ IdentConn "InputByFileToComparisonByFile" = {
     channelCode                         = 0;
     delay                               = [0.0];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "CheckInputByFileToComparisonByFile" = {
@@ -170,7 +168,6 @@ IdentConn "CheckInputByFileToComparisonByFile" = {
     channelCode                         = 1;
     delay                               = [0.0];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 RequireAllZeroActivityProbe "ProbeByFile" = {
@@ -284,7 +281,6 @@ HyPerConn "InputByListToOutputByList" = {
     nyp                                 = 3;
     nfp                                 = 1;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };
 
 IdentConn "InputByListToComparisonByList" = {
@@ -293,7 +289,6 @@ IdentConn "InputByListToComparisonByList" = {
     channelCode                         = 0;
     delay                               = [0.0];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "CheckInputByListToComparisonByList" = {
@@ -302,7 +297,6 @@ IdentConn "CheckInputByListToComparisonByList" = {
     channelCode                         = 1;
     delay                               = [0.0];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 RequireAllZeroActivityProbe "ProbeByList" = {

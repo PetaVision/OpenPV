@@ -154,7 +154,6 @@ HyPerConn "InputToOutputBase" = {
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     minSumTolerated                     = 0;
-    weightSparsity                      = 0;
 };
 
 HyPerConn "InputToOutputImported" = {
@@ -201,5 +200,4 @@ HyPerConn "InputToOutputImported" = {
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     minSumTolerated                     = 0;
-    weightSparsity                      = 0;
 };

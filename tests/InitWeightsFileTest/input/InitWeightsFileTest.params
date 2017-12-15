@@ -79,5 +79,4 @@ HyPerConn "InputToOutput" = {
     nyp                                 = 5;
     nfp                                 = 1;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };

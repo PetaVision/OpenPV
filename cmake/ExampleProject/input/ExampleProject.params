@@ -102,5 +102,4 @@ HyPerConn "InputToOutput" = {
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     minSumTolerated                     = 0;
-    weightSparsity                      = 0;
 };

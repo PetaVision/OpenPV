@@ -181,7 +181,6 @@ IdentConn "InputToResidual" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 HyPerConn "V1ToResidual" = {
@@ -217,7 +216,6 @@ HyPerConn "V1ToResidual" = {
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     minL2NormTolerated                  = 0;
-    weightSparsity                      = 0;
 };
 
 TransposeConn "ResidualToV1" = {
@@ -231,7 +229,6 @@ TransposeConn "ResidualToV1" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    weightSparsity                      = 0;
     originalConnName                    = "V1ToResidual";
 };
 
@@ -244,7 +241,6 @@ CloneConn "V1ToReconstruction" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    weightSparsity                      = 0;
     originalConnName                    = "V1ToResidual";
 };
 
@@ -255,7 +251,6 @@ IdentConn "ReconstructionToResidual" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "ReconstructionToComparison" = {
@@ -264,7 +259,6 @@ IdentConn "ReconstructionToComparison" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "CorrectToComparison" = {
@@ -273,7 +267,6 @@ IdentConn "CorrectToComparison" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {

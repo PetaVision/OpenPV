@@ -102,5 +102,4 @@ HyPerConn "InputToOutput" = {
     dWMax                               = 1;
     normalizeDw                         = true;
     useMask                             = false;
-    weightSparsity                      = 0;
 };

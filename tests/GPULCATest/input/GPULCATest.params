@@ -134,7 +134,6 @@ IdentConn "InputToResidualCPU" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 HyPerConn "V1CPUToResidualCPU" = {
@@ -167,7 +166,6 @@ HyPerConn "V1CPUToResidualCPU" = {
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     minL2NormTolerated                  = 0;
-    weightSparsity                      = 0;
 };
 
 TransposeConn "ResidualCPUToV1CPU" = {
@@ -181,7 +179,6 @@ TransposeConn "ResidualCPUToV1CPU" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    weightSparsity                      = 0;
     originalConnName                    = "V1CPUToResidualCPU";
 };
 
@@ -194,7 +191,6 @@ CloneConn "V1CPUToReconstructionCPU" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    weightSparsity                      = 0;
     originalConnName                    = "V1CPUToResidualCPU";
 };
 
@@ -204,7 +200,6 @@ IdentConn "ReconstructionCPUToResidualCPU" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 AdaptiveTimeScaleProbe "AdaptiveTimeScalesCPU" = {
@@ -354,7 +349,6 @@ IdentConn "ReconstructionGPUToComparison" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "ReconstructionCPUToComparison" = {
@@ -363,7 +357,6 @@ IdentConn "ReconstructionCPUToComparison" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 RequireAllZeroActivityProbe "ComparisonTest" = {

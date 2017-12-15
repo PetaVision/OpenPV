@@ -143,7 +143,6 @@ HyPerConn "ConnA" = {
     useMask                             = false;
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
-    weightSparsity                      = 0;
 };
 
 PlasticCloneConn "ConnB" = {
@@ -157,7 +156,6 @@ PlasticCloneConn "ConnB" = {
     pvpatchAccumulateType               = "convolve";
     combine_dW_with_W_flag              = false;
     useMask                             = false;
-    weightSparsity                      = 0;
     originalConnName                    = "ConnA";
 };
 
@@ -252,7 +250,6 @@ HyPerConn "ConnC" = {
     useMask                             = false;
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
-    weightSparsity                      = 0;
 };
 
 PlasticCloneConn "ConnD" = {
@@ -266,7 +263,6 @@ PlasticCloneConn "ConnD" = {
     pvpatchAccumulateType               = "convolve";
     combine_dW_with_W_flag              = false;
     useMask                             = false;
-    weightSparsity                      = 0;
     originalConnName                    = "ConnC";
 };
 

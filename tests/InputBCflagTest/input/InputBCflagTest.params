@@ -259,7 +259,6 @@ HyPerConn "InputToOutput" = {
     nyp                                 = 3;
     nfp                                 = 1;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };
 
 IdentConn "OutputToComparison" = {
@@ -268,7 +267,6 @@ IdentConn "OutputToComparison" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "ExpectedOutputToComparison" = {
@@ -277,7 +275,6 @@ IdentConn "ExpectedOutputToComparison" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 HyPerConn "NormalizedInputToNormalizedOutput" = {
@@ -302,7 +299,6 @@ HyPerConn "NormalizedInputToNormalizedOutput" = {
     nyp                                 = 3;
     nfp                                 = 1;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };
 
 IdentConn "NormalizedOutputToComparisonNormalized" = {
@@ -311,7 +307,6 @@ IdentConn "NormalizedOutputToComparisonNormalized" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "ExpectedNormalizedOutputToComparisonNormalized" = {
@@ -320,7 +315,6 @@ IdentConn "ExpectedNormalizedOutputToComparisonNormalized" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 RequireAllZeroActivityProbe "Probe" = {

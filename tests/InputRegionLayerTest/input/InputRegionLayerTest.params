@@ -151,7 +151,6 @@ HyPerConn "InputToOutput" = {
     nyp                                 = 3;
     nfp                                 = 1;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };
 
 HyPerConn "CorrectInputRegionToOutput" = {

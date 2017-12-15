@@ -80,7 +80,6 @@ PoolingConn "InputToOutputCPU" = {
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 4;
-    weightSparsity                      = 0;
     needPostIndexLayer                  = false;
 };
 

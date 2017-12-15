@@ -84,7 +84,6 @@ IdentConn "IdentConn" = {
     delay                               = [0.000000];
     receiveGpu                          = false;
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IndexWeightConn "SharedWeights" = {
@@ -117,7 +116,6 @@ IndexWeightConn "SharedWeights" = {
     useMask                             = false;
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
-    weightSparsity                      = 0;
 };
 
 // TODO: NonsharedWeight

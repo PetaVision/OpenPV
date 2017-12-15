@@ -114,7 +114,6 @@ HyPerConn "InputToOutput" = {
     useMask                             = false;
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
-    weightSparsity                      = 0;
 };
 
 HyPerConnCheckpointerTestProbe "probe" = {

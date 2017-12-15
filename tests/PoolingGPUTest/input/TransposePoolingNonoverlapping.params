@@ -113,7 +113,6 @@ PoolingConn "ForwardCPU" = {
     nxp                                 = 1;
     nyp                                 = 1;
     nfp                                 = 4;
-    weightSparsity                      = 0;
     needPostIndexLayer                  = true;
     postIndexLayerName                  = "PostIndexLayerCPU";
 };
@@ -126,7 +125,6 @@ TransposePoolingConn "BackwardCPU" = {
     convertRateToSpikeCount             = false;
     updateGSynFromPostPerspective       = false;
     writeCompressedCheckpoints          = false;
-    weightSparsity                      = 0;
     originalConnName                    = "ForwardCPU";
 };
 
@@ -167,7 +165,6 @@ PoolingConn "ForwardGPU" = {
     nxp                                 = 1;
     nyp                                 = 1;
     nfp                                 = 4;
-    weightSparsity                      = 0;
     needPostIndexLayer                  = false;
 };
 
@@ -179,7 +176,6 @@ TransposePoolingConn "BackwardGPU" = {
     convertRateToSpikeCount             = false;
     updateGSynFromPostPerspective       = false;
     writeCompressedCheckpoints          = false;
-    weightSparsity                      = 0;
     originalConnName                    = "ForwardGPU";
 };
 
