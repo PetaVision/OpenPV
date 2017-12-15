@@ -153,7 +153,6 @@ HyPerConn "V1CPUToResidualCPU" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 18;
     nyp                                 = 18;
     nfp                                 = 1;
@@ -182,7 +181,6 @@ TransposeConn "ResidualCPUToV1CPU" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     weightSparsity                      = 0;
     originalConnName                    = "V1CPUToResidualCPU";
 };
@@ -196,7 +194,6 @@ CloneConn "V1CPUToReconstructionCPU" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    selfFlag                            = false;
     weightSparsity                      = 0;
     originalConnName                    = "V1CPUToResidualCPU";
 };

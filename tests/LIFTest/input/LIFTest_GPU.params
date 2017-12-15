@@ -273,7 +273,6 @@ HyPerConn "InputToScaledInput" = {
     pvpatchAccumulateType           = "convolve";
     // writeCompressedWeights       = true;
     writeCompressedCheckpoints      = true;
-    selfFlag                        = false;
     convertRateToSpikeCount         = false;
     updateGSynFromPostPerspective   = true;
     receiveGpu = true;
@@ -310,7 +309,6 @@ HyPerConn "RetinaToLIFTest" = {
     pvpatchAccumulateType           = "convolve";
     // writeCompressedWeights       = true;
     writeCompressedCheckpoints      = true;
-    selfFlag                        = false;
     convertRateToSpikeCount         = false;
     updateGSynFromPostPerspective   = true;
     receiveGpu = true;
@@ -353,7 +351,6 @@ HyPerConn "GapTestToLIFGapTest" = {
     
     plasticityFlag                  = false;
     pvpatchAccumulateType           = "convolve";
-    selfFlag                        = false;
     convertRateToSpikeCount         = false;
     
     // writeCompressedWeights       = false;

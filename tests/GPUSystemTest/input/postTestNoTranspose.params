@@ -131,7 +131,6 @@ HyPerConn "cpuConn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = true;
     receiveGpu = false;
@@ -176,7 +175,6 @@ HyPerConn "gpuConn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = true;
     receiveGpu = false;

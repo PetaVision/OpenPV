@@ -203,7 +203,6 @@ HyPerConn "V1ToResidual" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 18;
     nyp                                 = 18;
     nfp                                 = 1;
@@ -232,7 +231,6 @@ TransposeConn "ResidualToV1" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     weightSparsity                      = 0;
     originalConnName                    = "V1ToResidual";
 };
@@ -246,7 +244,6 @@ CloneConn "V1ToReconstruction" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    selfFlag                            = false;
     weightSparsity                      = 0;
     originalConnName                    = "V1ToResidual";
 };

@@ -125,7 +125,6 @@ HyPerConn "input to output" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  // conntect to itself
 
     delay = 0;
 

@@ -218,7 +218,6 @@ HyPerConn "origConn1" = {
      
     convertRateToSpikeCount = false;
     receiveGpu = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -229,7 +228,6 @@ TransposeConn "TransposeConn1" = {
     postLayerName = "outputRecv1";
     channelCode = 0; 
     originalConnName = "origConn1";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
@@ -243,7 +241,6 @@ TransposeConn "gpuTransposeConn1" = {
     postLayerName = "outputRecvGpu1";
     channelCode = 0;
     originalConnName = "origConn1";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
@@ -297,7 +294,6 @@ HyPerConn "origConn2" = {
      
     convertRateToSpikeCount = false;
     receiveGpu = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -308,7 +304,6 @@ TransposeConn "TransposeConn2" = {
     postLayerName = "outputRecv2";
     channelCode = 0; 
     originalConnName = "origConn2";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
@@ -322,7 +317,6 @@ TransposeConn "gpuTransposeConn2" = {
     postLayerName = "outputRecvGpu2";
     channelCode = 0;
     originalConnName = "origConn2";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;

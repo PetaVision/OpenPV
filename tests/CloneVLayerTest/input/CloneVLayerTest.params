@@ -228,7 +228,6 @@ HyPerConn "InputToOutput" = {
     plasticityFlag = false;
     convertRateToSpikeCount = false;
     receiveGpu = false;
-    selfFlag = false;  // conntect to itself
 
     delay = 0;
 
@@ -260,7 +259,6 @@ HyPerConn "OutputToDuplicateSigmoid" = {
     plasticityFlag = false;
     convertRateToSpikeCount = false;
     receiveGpu = false;
-    selfFlag = false;  // conntect to itself
     convertRateToSpikeCount = false;
 
     delay = 0;

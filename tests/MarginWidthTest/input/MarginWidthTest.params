@@ -216,7 +216,6 @@ HyPerConn "MarginsEqual" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;
 
     delay = 0;
 
@@ -256,7 +255,6 @@ HyPerConn "XMarginLarger" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;
 
     delay = 0;
 
@@ -296,7 +294,6 @@ HyPerConn "YMarginLarger" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  // Whether the connection should be treated as connecting a layer to itself
 
     delay = 0;
 
@@ -336,7 +333,6 @@ HyPerConn "YLargerConnInMultiple" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;
 
     delay = 0;
 
@@ -376,7 +372,6 @@ HyPerConn "XLargerConnInMultiple" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;
 
     delay = 0;
 

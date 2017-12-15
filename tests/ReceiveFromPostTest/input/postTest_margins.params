@@ -287,7 +287,6 @@ HyPerConn "origConnPrePost" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -298,7 +297,6 @@ TransposeConn "preTransposeConn" = {
     postLayerName = "outputRecvPre";
     channelCode = 0; //Does nothing to the input layer
     originalConnName = "origConnPrePost";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
@@ -311,7 +309,6 @@ TransposeConn "postTransposeConn" = {
     postLayerName = "outputRecvPost";
     channelCode = 0;
     originalConnName = "origConnPrePost";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
@@ -357,7 +354,6 @@ HyPerConn "origConnKnown" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -368,7 +364,6 @@ TransposeConn "knownTransposeConn" = {
     postLayerName = "outputRecvKnown";
     channelCode = 0;
     originalConnName = "origConnKnown";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
@@ -412,7 +407,6 @@ HyPerConn "fakeConn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 

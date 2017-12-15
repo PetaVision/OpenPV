@@ -151,7 +151,6 @@ ImprintConn "imprintConnection" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -166,7 +165,6 @@ CloneConn "reconConnection" = {
    writeStep = -1;
    writeCompressedCheckpoints = false;
    originalConnName = "imprintConnection";
-   selfFlag = false;
    delay = 0;
    convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;

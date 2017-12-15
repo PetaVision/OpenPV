@@ -131,7 +131,6 @@ HyPerConn "preConn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -175,7 +174,6 @@ HyPerConn "preConn" = {
 //    delay = 0;
 //     
 //    convertRateToSpikeCount = false;
-//    selfFlag = false;
 //
 //    updateGSynFromPostPerspective = true;
 //
@@ -186,7 +184,6 @@ CloneConn "postConn" = {
     postLayerName = "outputRecvPost";
     channelCode = 0;
     originalConnName = "preConn";
-    selfFlag = false;
     delay = 0;
     convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = true;
@@ -198,7 +195,6 @@ CloneConn "postConn" = {
 //    postLayerName = "outputRecvPre";
 //    channelCode = 0; //Does nothing to the input layer
 //    originalConnName = "origConn";
-//    selfFlag = false;
 //    convertRateToSpikeCount = false;
 //    writeStep = -1;
 //    delay = 0;
@@ -211,7 +207,6 @@ CloneConn "postConn" = {
 //    postLayerName = "outputRecvPost";
 //    channelCode = 0;
 //    originalConnName = "origConn";
-//    selfFlag = false;
 //    convertRateToSpikeCount = false;
 //    writeStep = -1.0;
 //    delay = 0;

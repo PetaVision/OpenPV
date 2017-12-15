@@ -151,7 +151,6 @@ HyPerConn "input_to_output_noconversion" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  // connect to itself
 
     delay = 0;
 
@@ -188,7 +187,6 @@ HyPerConn "input_to_output_withconversion" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  // connect to itself
 
     delay = 0;
 

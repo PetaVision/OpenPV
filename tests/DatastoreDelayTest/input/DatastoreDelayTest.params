@@ -151,7 +151,6 @@ HyPerConn "delayArbor" = {
     plasticityFlag         = false;
     pvpatchAccumulateType  = "convolve";
     writeCompressedCheckpoints = true;
-    selfFlag               = false;
     updateGSynFromPostPerspective = false;
     convertRateToSpikeCount   = false;
 };

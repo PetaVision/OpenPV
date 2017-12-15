@@ -136,7 +136,6 @@ TriggerTestConn "inputToNoTrigger" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     dWMax = 1.0;
-    selfFlag = false;  // conntect to itself
 
     delay = 0;
 
@@ -169,7 +168,6 @@ TriggerTestConn "inputToTrigger0" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     dWMax = 1.0;
-    selfFlag = false;  // conntect to itself
 
     delay = 0;
 
@@ -201,7 +199,6 @@ TriggerTestConn "inputToTrigger1" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     dWMax = 1.0;
-    selfFlag = false;  // conntect to itself
 
     delay = 0;
 
@@ -233,7 +230,6 @@ TriggerTestConn "inputToTrigger2" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     dWMax = 1.0;
-    selfFlag = false;  // conntect to itself
 
     delay = 0;
 
@@ -266,7 +262,6 @@ TriggerTestConn "inputToPeriod0" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     dWMax = 1.0;
-    selfFlag = false;  // conntect to itself
 
     delay = 0;
 
@@ -300,7 +295,6 @@ TriggerTestConn "inputToPeriod1" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     dWMax = 1.0;
-    selfFlag = false;  // conntect to itself
 
     delay = 0;
 
@@ -334,7 +328,6 @@ TriggerTestConn "inputToPeriod2" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     dWMax = 1.0;
-    selfFlag = false;  // conntect to itself
 
     delay = 0;
 

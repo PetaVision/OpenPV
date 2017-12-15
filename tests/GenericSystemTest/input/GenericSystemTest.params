@@ -185,7 +185,6 @@ HyPerConn "input_to_output" = {
     plasticityFlag = false;
     convertRateToSpikeCount = false;
     receiveGpu = false;
-    selfFlag = false;  // connect to itself
 
     delay = 0;
 

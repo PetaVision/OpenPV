@@ -75,7 +75,6 @@ HyPerConn "test_gauss2d_hyperconn" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
    delay = 0;
 };
@@ -105,7 +104,6 @@ HyPerConn "test_gauss2d_kernelconn" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
    delay = 0;
 };
@@ -165,7 +163,6 @@ HyPerConn "test_gauss2d_hyperconn1to2" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
 
    delay = 0;
@@ -196,7 +193,6 @@ HyPerConn "test_gauss2d_kernelconn1to2" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
 
    delay = 0;
@@ -227,7 +223,6 @@ HyPerConn "test_gauss2d_hyperconn2to1" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
 
    delay = 0;
@@ -258,7 +253,6 @@ HyPerConn "test_gauss2d_kernelconn2to1" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
 
    delay = 0;

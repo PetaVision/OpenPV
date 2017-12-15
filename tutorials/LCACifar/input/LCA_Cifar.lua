@@ -190,7 +190,6 @@ local pvParameters = {
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       gpuGroupIdx                         = -1;
       originalConnName                    = "V1ToInputError";
    };
@@ -222,7 +221,6 @@ local pvParameters = {
       initialWriteTime                    = initialWriteTime;
       writeCompressedWeights              = false;
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       combine_dW_with_W_flag              = false;
       nxp                                 = patchSize;
       nyp                                 = patchSize;
@@ -255,7 +253,6 @@ local pvParameters = {
       updateGSynFromPostPerspective       = false;
       pvpatchAccumulateType               = "convolve";
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       originalConnName                    = "V1ToInputError";
    };
 

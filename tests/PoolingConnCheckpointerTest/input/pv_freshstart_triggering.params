@@ -81,7 +81,6 @@ PoolingConn "InputToOutput" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "maxpooling";
-    selfFlag                            = false;
     nxp                                 = 1;
     nyp                                 = 1;
     nfp                                 = 1;

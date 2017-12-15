@@ -88,7 +88,6 @@ HyPerConn "InputToOutput" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 7;
     nyp                                 = 7;
     nfp                                 = 8;

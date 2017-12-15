@@ -118,7 +118,6 @@ ImportParamsConn "origConn" = {
     normalizeFromPostPerspective = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  // conntect to itself
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 

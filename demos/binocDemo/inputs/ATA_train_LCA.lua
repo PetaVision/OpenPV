@@ -176,7 +176,6 @@ local pvParams = {
        pvpatchAccumulateType = "maxpooling";
        delay = 0;
        convertRateToSpikeCount = false;
-       selfFlag = false;
        updateGSynFromPostPerspective = false;
        useWindowPost = false;
    };
@@ -209,7 +208,6 @@ local pvParams = {
        initialWeightUpdateTime = 1.0;
        initialWriteTime = 0.0;
        dWMax = 1;
-       selfFlag = false;
        shmget_flag = false;
        delay = 0;
        useWindowPost = false;

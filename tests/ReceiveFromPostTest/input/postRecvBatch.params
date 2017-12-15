@@ -150,7 +150,6 @@ HyPerConn "conn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
 
     updateGSynFromPostPerspective = true;
@@ -170,7 +169,6 @@ CloneConn "postconn" = {
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    selfFlag = false;
     convertRateToSpikeCount = false;
 
     delay = 0;

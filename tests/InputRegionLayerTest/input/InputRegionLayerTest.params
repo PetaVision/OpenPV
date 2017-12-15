@@ -147,7 +147,6 @@ HyPerConn "InputToOutput" = {
     initialWriteTime                    = 0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;

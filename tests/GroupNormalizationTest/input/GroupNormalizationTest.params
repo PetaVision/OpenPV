@@ -148,7 +148,6 @@ HyPerConn "input_to_output1" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;
 
     delay = 0;
 
@@ -177,7 +176,6 @@ HyPerConn "input_to_output2" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;
 
     delay = 0;
 

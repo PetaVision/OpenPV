@@ -77,7 +77,6 @@ PoolingConn "InputToOutputCPU" = {
     sharedWeights                       = true;
     updateGSynFromPostPerspective       = true;
     pvpatchAccumulateType               = "sumpooling";
-    selfFlag                            = false;
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 4;

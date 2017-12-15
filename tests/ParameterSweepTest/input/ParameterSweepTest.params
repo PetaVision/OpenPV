@@ -238,7 +238,6 @@ HyPerConn "InputToOutput" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 
     delay = 0;
@@ -265,7 +264,6 @@ HyPerConn "InputToOutput1x1" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 
     delay = 0;
@@ -292,7 +290,6 @@ HyPerConn "InputToOutput3x3" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 
     delay = 0;
@@ -319,7 +316,6 @@ HyPerConn "InputToOutput5x5" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 
     delay = 0;
@@ -346,7 +342,6 @@ HyPerConn "InputToOutput7x7" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 
     delay = 0;

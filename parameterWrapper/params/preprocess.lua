@@ -139,7 +139,6 @@ function preprocess.ds2_white_rescale(prefix, inputLayerName, inputLayer, output
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       nxp                                 = 3;
       nyp                                 = 3;
       nfp                                 = 1;
@@ -176,7 +175,6 @@ function preprocess.ds2_white_rescale(prefix, inputLayerName, inputLayer, output
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       nxp                                 = rcenter;
       nyp                                 = rcenter;
       normalizeMethod                     = "normalizeSum";
@@ -212,7 +210,6 @@ function preprocess.ds2_white_rescale(prefix, inputLayerName, inputLayer, output
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       nxp                                 = rsurround;
       nyp                                 = rsurround;
       nfp                                 = 1;
