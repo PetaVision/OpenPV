@@ -105,6 +105,22 @@ int BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
 
    mPreLayer  = mConnectionData->getPre();
    mPostLayer = mConnectionData->getPost();
+   pvAssert(mPreLayer != nullptr and mPostLayer != nullptr);
+
+   int numChannelsCheck = 0;
+   int channelAsInt     = (int)getChannelCode();
+   if (channelAsInt >= 0) {
+      int status = getPostLayer()->requireChannel(channelAsInt, &numChannelsCheck);
+      if (status != PV_SUCCESS) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
+            ErrorLog().printf(
+                  "%s: postsynaptic layer \"%s\" failed to add channel %d\n",
+                  getDescription_c(),
+                  getPostLayer()->getName(),
+                  channelAsInt);
+         }
+      }
+   }
 
    return PV_SUCCESS;
 }
