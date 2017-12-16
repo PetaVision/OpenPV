@@ -40,6 +40,10 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    virtual ~HebbianUpdater() {}
 
+   float const *getDeltaWeightsDataStart(int arborId) const {
+      return mDeltaWeights->getData(arborId);
+   }
+
   protected:
    HebbianUpdater() {}
 

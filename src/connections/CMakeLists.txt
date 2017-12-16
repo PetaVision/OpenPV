@@ -6,7 +6,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/HyPerConn.cpp
    ${SUBDIR}/IdentConn.cpp
 #   ${SUBDIR}/ImprintConn.cpp
-#   ${SUBDIR}/MomentumConn.cpp
+   ${SUBDIR}/MomentumConn.cpp
 #   ${SUBDIR}/PlasticCloneConn.cpp
 #   ${SUBDIR}/PoolingConn.cpp
    ${SUBDIR}/RescaleConn.cpp
@@ -22,7 +22,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/HyPerConn.hpp
    ${SUBDIR}/IdentConn.hpp
 #   ${SUBDIR}/ImprintConn.hpp
-#   ${SUBDIR}/MomentumConn.hpp
+   ${SUBDIR}/MomentumConn.hpp
 #   ${SUBDIR}/PlasticCloneConn.hpp
 #   ${SUBDIR}/PoolingConn.hpp
    ${SUBDIR}/RescaleConn.hpp

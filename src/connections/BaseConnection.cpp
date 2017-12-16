@@ -129,8 +129,7 @@ int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
          communicateMessage,
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 
-   auto *deliveryObject =
-         mapLookupByType<BaseDelivery>(mComponentTable.getObjectMap(), getDescription());
+   auto *deliveryObject  = getComponentByType<BaseDelivery>();
    HyPerLayer *postLayer = deliveryObject->getPostLayer();
    if (postLayer != nullptr) {
       postLayer->addRecvConn(this);

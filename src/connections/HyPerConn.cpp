@@ -143,4 +143,15 @@ int HyPerConn::initializeState() {
    return PV_SUCCESS;
 }
 
+float const *HyPerConn::getDeltaWeightsDataStart(int arborId) const {
+   auto *hebbianUpdater =
+         mapLookupByType<HebbianUpdater>(mComponentTable.getObjectMap(), getDescription());
+   if (hebbianUpdater) {
+      return hebbianUpdater->getDeltaWeightsDataStart(arborId);
+   }
+   else {
+      return nullptr;
+   }
+}
+
 } // namespace PV

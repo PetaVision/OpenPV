@@ -50,7 +50,7 @@ class HyPerConn : public BaseConnection {
       return preWeights->getDataFromPatchIndex(arbor, patchIndex)
              + preWeights->getPatch(patchIndex).offset;
    }
-
+   float const *getDeltaWeightsDataStart(int arbor) const;
    int getPatchStrideX() const { return mWeightsPair->getPreWeights()->getPatchStrideX(); }
    int getPatchStrideY() const { return mWeightsPair->getPreWeights()->getPatchStrideY(); }
    int getPatchStrideF() const { return mWeightsPair->getPreWeights()->getPatchStrideF(); }
