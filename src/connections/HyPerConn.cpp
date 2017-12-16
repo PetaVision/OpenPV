@@ -9,7 +9,6 @@
 #include "columns/HyPerCol.hpp"
 #include "delivery/HyPerDeliveryFacade.hpp"
 #include "utils/MapLookupByType.hpp"
-#include "utils/TransposeWeights.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
 
 namespace PV {
@@ -137,10 +136,11 @@ BaseDelivery *HyPerConn::createDeliveryObject() { return new HyPerDeliveryFacade
 BaseWeightUpdater *HyPerConn::createWeightUpdater() { return new HebbianUpdater(name, parent); }
 
 int HyPerConn::initializeState() {
-   auto *initWeights =
-         mapLookupByType<InitWeights>(mComponentTable.getObjectMap(), getDescription());
-   int status = initWeights->initializeWeights();
-   return status;
+   notify(
+         mComponentTable,
+         std::make_shared<InitializeStateMessage>(),
+         parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return PV_SUCCESS;
 }
 
 } // namespace PV

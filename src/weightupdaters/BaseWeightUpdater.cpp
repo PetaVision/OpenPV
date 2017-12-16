@@ -33,23 +33,4 @@ void BaseWeightUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "plasticityFlag", &mPlasticityFlag, mPlasticityFlag /*default value*/);
 }
 
-int BaseWeightUpdater::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   if (mConnectionData == nullptr) {
-      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
-   }
-   pvAssert(mConnectionData != nullptr);
-
-   if (!mConnectionData->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         InfoLog().printf(
-               "%s must wait until the ConnectionData component has finished its "
-               "communicateInitInfo stage.\n",
-               getDescription_c());
-      }
-      return PV_POSTPONE;
-   }
-   return PV_SUCCESS;
-}
-
 } // namespace PV

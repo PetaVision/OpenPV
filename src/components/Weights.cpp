@@ -129,6 +129,8 @@ Patch const &Weights::getPatch(int patchIndex) const { return mGeometry->getPatc
 
 float *Weights::getData(int arbor) { return &mData[arbor][0]; }
 
+float const *Weights::getDataReadOnly(int arbor) const { return &mData[arbor][0]; }
+
 float *Weights::getDataFromDataIndex(int arbor, int dataIndex) {
    int numItemsPerPatch = getPatchSizeX() * getPatchSizeY() * getPatchSizeF();
    return &mData[arbor][dataIndex * numItemsPerPatch];

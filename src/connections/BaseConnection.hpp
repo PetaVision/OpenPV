@@ -20,7 +20,7 @@ namespace PV {
 
 class HyPerCol;
 
-class BaseConnection : public BaseObject, Subject {
+class BaseConnection : public BaseObject, public Subject {
   public:
    BaseConnection(char const *name, HyPerCol *hc);
 

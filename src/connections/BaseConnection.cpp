@@ -127,7 +127,7 @@ int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    notify(
          componentTable,
          communicateMessage,
-         parent->getCommunicator()->commRank() == 0 /*printFlag*/);
+         parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 
    auto *deliveryObject =
          mapLookupByType<BaseDelivery>(mComponentTable.getObjectMap(), getDescription());
@@ -143,7 +143,7 @@ int BaseConnection::allocateDataStructures() {
    notify(
          mComponentTable,
          std::make_shared<AllocateDataMessage>(),
-         parent->getCommunicator()->commRank() == 0 /*printFlag*/);
+         parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
    return PV_SUCCESS;
 }
 

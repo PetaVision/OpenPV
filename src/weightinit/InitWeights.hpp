@@ -76,13 +76,6 @@ class InitWeights : public BaseObject {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   /*
-    * initializeWeights is not virtual.  It checks initWeightsFile, loading weights from the file
-    * if it is set, and calling calcWeights, with no arguments, if the file was not set.
-    * Derived classes should override one or both of the calcWeights methods.
-    */
-   int initializeWeights();
-
   protected:
    InitWeights();
    int initialize(const char *name, HyPerCol *hc);
@@ -92,6 +85,14 @@ class InitWeights : public BaseObject {
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   /*
+    * initializeState checks initWeightsFile. If initWeightsFile is set, the weights are
+    * loaded from the file. If it is not set, it calls calcWeights with no arguments.
+    * Generally, derived classes should override one or both of the calcWeights methods,
+    * in order to preserve the initWeightsFile behavior.
+    */
+   virtual int initializeState() override;
 
    /**
     * Called by initializeWeights, to calculate the weights in all arbors and all patches.

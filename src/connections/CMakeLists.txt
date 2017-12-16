@@ -1,10 +1,7 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
-#   ${SUBDIR}/accumulate_functions.cpp
    ${SUBDIR}/BaseConnection.cpp
    ${SUBDIR}/CloneConn.cpp
-#   ${SUBDIR}/ComponentsConn.cpp
-#   ${SUBDIR}/CopyConn.cpp
-#   ${SUBDIR}/FeedbackConn.cpp
+   ${SUBDIR}/CopyConn.cpp
 #   ${SUBDIR}/GapConn.cpp
    ${SUBDIR}/HyPerConn.cpp
    ${SUBDIR}/IdentConn.cpp
@@ -13,18 +10,14 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 #   ${SUBDIR}/PlasticCloneConn.cpp
 #   ${SUBDIR}/PoolingConn.cpp
    ${SUBDIR}/RescaleConn.cpp
-#   ${SUBDIR}/privateTransposeConn.cpp
    ${SUBDIR}/TransposeConn.cpp
 #   ${SUBDIR}/TransposePoolingConn.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
-#   ${SUBDIR}/accumulate_functions.hpp
    ${SUBDIR}/BaseConnection.hpp
    ${SUBDIR}/CloneConn.hpp
-#   ${SUBDIR}/ComponentsConn.hpp
-#   ${SUBDIR}/CopyConn.hpp
-#   ${SUBDIR}/FeedbackConn.hpp
+   ${SUBDIR}/CopyConn.hpp
 #   ${SUBDIR}/GapConn.hpp
    ${SUBDIR}/HyPerConn.hpp
    ${SUBDIR}/IdentConn.hpp
@@ -33,7 +26,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 #   ${SUBDIR}/PlasticCloneConn.hpp
 #   ${SUBDIR}/PoolingConn.hpp
    ${SUBDIR}/RescaleConn.hpp
-#   ${SUBDIR}/privateTransposeConn.hpp
    ${SUBDIR}/TransposeConn.hpp
 #   ${SUBDIR}/TransposePoolingConn.hpp
    ${SUBDIR}/weight_conversions.hpp

@@ -31,6 +31,8 @@ class HyPerConn : public BaseConnection {
    int getPatchSizeF() const { return mWeightsPair->getPatchSizeF(); }
    int getSharedWeights() const { return mWeightsPair->getSharedWeights(); }
 
+   int getStrength() const { return mWeightNormalizer->getStrength(); }
+
    // other get-methods
    int getNumDataPatches() const { return mWeightsPair->getPreWeights()->getNumDataPatches(); }
    int getNumGeometryPatches() const {

@@ -85,6 +85,8 @@ class CloneWeightsPair : public WeightsPair {
 
    virtual int registerData(Checkpointer *checkpointer) override;
 
+   virtual void finalizeUpdate(double timestamp, double deltaTime);
+
    virtual void outputState(double timestamp) override;
 
   protected:

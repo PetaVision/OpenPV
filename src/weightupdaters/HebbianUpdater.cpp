@@ -190,7 +190,7 @@ void HebbianUpdater::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
 }
 
 int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status              = BaseWeightUpdater::communicateInitInfo(message);
+   int status              = PV_SUCCESS;
    auto componentMap       = message->mHierarchy;
    std::string const &desc = getDescription();
    auto *weightsPair       = mapLookupByType<WeightsPair>(componentMap, desc);
@@ -198,13 +198,21 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return PV_POSTPONE;
    }
+
+   status = BaseWeightUpdater::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+
    weightsPair->needPre();
-   mWeights     = weightsPair->getPreWeights();
-   mPostWeights = weightsPair->getPostWeights();
+   mWeights = weightsPair->getPreWeights();
    if (mPlasticityFlag) {
       mWeights->setWeightsArePlastic();
    }
    mWriteCompressedCheckpoints = weightsPair->getWriteCompressedCheckpoints();
+
+   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   pvAssert(mConnectionData != nullptr);
 
    if (mTriggerFlag) {
       auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(componentMap, desc);
@@ -294,7 +302,7 @@ int HebbianUpdater::registerData(Checkpointer *checkpointer) {
       return status;
    }
    if (mPlasticityFlag and !mImmediateWeightUpdate) {
-      mDeltaWeights->checkpointWeightPvp(checkpointer, "dW", false /*compressCheckpointsFlag*/);
+      mDeltaWeights->checkpointWeightPvp(checkpointer, "dW", mWriteCompressedCheckpoints);
       // Do we need to get PrepareCheckpointWrite messages, to call blockingNormalize_dW()?
    }
    std::string nameString = std::string(name);
@@ -340,6 +348,7 @@ void HebbianUpdater::updateState(double simTime, double dt) {
       decay_dWMax();
 
       mLastUpdateTime = simTime;
+      mWeights->setTimestamp(simTime);
       computeNewWeightUpdateTime(simTime, mWeightUpdateTime);
       mNeedFinalize = true;
    }
@@ -792,9 +801,6 @@ void HebbianUpdater::updateArbors() {
       }
    }
    pvAssert(status == PV_SUCCESS or status == PV_BREAK);
-   if (mPostWeights) {
-      TransposeWeights::transpose(mWeights, mPostWeights, parent->getCommunicator());
-   }
 }
 
 int HebbianUpdater::updateWeights(int arborId) {

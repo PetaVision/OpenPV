@@ -82,6 +82,11 @@ void NormalizeBase::normalizeWeightsIfNeeded() {
    }
    if (needUpdate) {
       normalizeWeights();
+      mLastTimeNormalized = simTime;
+      for (auto &w : mWeightsList) {
+         pvAssert(w);
+         w->setTimestamp(simTime);
+      }
    }
 }
 
@@ -108,6 +113,18 @@ void NormalizeBase::addWeightsToList(Weights *weights) {
       InfoLog().printf(
             "Adding %s to normalizer group \"%s\".\n", weights->getName().c_str(), this->getName());
    }
+}
+
+bool NormalizeBase::weightsHaveUpdated() const {
+   bool haveUpdated = false;
+   for (auto &w : mWeightsList) {
+      pvAssert(w);
+      if (w->getTimestamp() > mLastTimeNormalized) {
+         haveUpdated = true;
+         break;
+      }
+   }
+   return haveUpdated;
 }
 
 int NormalizeBase::accumulateSum(float *dataPatchStart, int weights_in_patch, float *sum) {

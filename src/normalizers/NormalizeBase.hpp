@@ -68,9 +68,9 @@ class NormalizeBase : public BaseObject {
 
    void addWeightsToList(Weights *weights);
 
-   virtual int normalizeWeights() { return PV_SUCCESS; }
+   bool weightsHaveUpdated() const;
 
-   virtual bool weightsHaveUpdated() { return false; }
+   virtual int normalizeWeights() { return PV_SUCCESS; }
 
    static int accumulateSum(float *dataPatchStart, int weights_in_patch, float *sum);
    static int accumulateSumShrunken(
@@ -101,9 +101,8 @@ class NormalizeBase : public BaseObject {
    bool mNormalizeOnInitialize       = true;
    bool mNormalizeOnWeightUpdate     = true;
 
-   double mLastUpdateTime = 0.0;
-
    std::vector<Weights *> mWeightsList;
+   double mLastTimeNormalized = 0.0;
 };
 
 } // namespace PV

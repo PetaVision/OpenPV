@@ -1,11 +1,11 @@
 /*
- * CloneWeightsPair.cpp
+ * CopyWeightsPair.cpp
  *
- *  Created on: Dec 3, 2017
+ *  Created on: Dec 15, 2017
  *      Author: Pete Schultz
  */
 
-#include "CloneWeightsPair.hpp"
+#include "CopyWeightsPair.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
 #include "connections/HyPerConn.hpp"
@@ -13,84 +13,64 @@
 
 namespace PV {
 
-CloneWeightsPair::CloneWeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
+CopyWeightsPair::CopyWeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-CloneWeightsPair::~CloneWeightsPair() {
-   mPreWeights  = nullptr;
-   mPostWeights = nullptr;
-}
+CopyWeightsPair::~CopyWeightsPair() {}
 
-int CloneWeightsPair::initialize(char const *name, HyPerCol *hc) {
+int CopyWeightsPair::initialize(char const *name, HyPerCol *hc) {
    return WeightsPair::initialize(name, hc);
 }
 
-int CloneWeightsPair::setDescription() {
+int CopyWeightsPair::setDescription() {
    description.clear();
-   description.append("CloneWeightsPair").append(" \"").append(getName()).append("\"");
+   description.append("CopyWeightsPair").append(" \"").append(getName()).append("\"");
    return PV_SUCCESS;
 }
 
-int CloneWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int CopyWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = WeightsPair::ioParamsFillGroup(ioFlag);
    ioParam_originalConnName(ioFlag);
    return status;
 }
 
-void CloneWeightsPair::ioParam_nxp(enum ParamsIOFlag ioFlag) {
+void CopyWeightsPair::ioParam_nxp(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "nxp");
    }
    // During the communication phase, nxp will be copied from originalConn
 }
 
-void CloneWeightsPair::ioParam_nyp(enum ParamsIOFlag ioFlag) {
+void CopyWeightsPair::ioParam_nyp(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "nyp");
    }
    // During the communication phase, nyp will be copied from originalConn
 }
 
-void CloneWeightsPair::ioParam_nfp(enum ParamsIOFlag ioFlag) {
+void CopyWeightsPair::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "nfp");
    }
    // During the communication phase, nfp will be copied from originalConn
 }
 
-void CloneWeightsPair::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+void CopyWeightsPair::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights");
    }
    // During the communication phase, sharedWeights will be copied from originalConn
 }
 
-void CloneWeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "writeStep");
-      mWriteStep = -1;
-   }
-   // CloneWeightsPair never writes output: set writeStep to -1.
-}
-
-void CloneWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      mWriteCompressedCheckpoints = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedCheckpoints");
-   }
-   // CloneConn never writes checkpoints: set writeCompressedCheckpoints to false.
-}
-
-void CloneWeightsPair::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
+void CopyWeightsPair::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(
          ioFlag, name, "originalConnName", &mOriginalConnName);
 }
 
-int CloneWeightsPair::communicateInitInfo(
+int CopyWeightsPair::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto hierarchy = message->mHierarchy;
-   ObjectMapComponent *objectMapComponent =
-         mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-   HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(mOriginalConnName));
+   auto hierarchy           = message->mHierarchy;
+   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+   HyPerConn *originalConn  = objectMapComponent->lookup<HyPerConn>(std::string(mOriginalConnName));
    if (originalConn == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -124,7 +104,7 @@ int CloneWeightsPair::communicateInitInfo(
    return status;
 }
 
-void CloneWeightsPair::copyParameters() {
+void CopyWeightsPair::copyParameters() {
    mPatchSizeX = mOriginalWeightsPair->getPatchSizeX();
    parent->parameters()->handleUnnecessaryParameter(name, "nxp", mPatchSizeX);
 
@@ -138,22 +118,36 @@ void CloneWeightsPair::copyParameters() {
    parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
 }
 
-void CloneWeightsPair::needPre() {
+void CopyWeightsPair::needPre() {
+   WeightsPair::needPre();
+   pvAssert(mOriginalWeightsPair);
    mOriginalWeightsPair->needPre();
-   mPreWeights = mOriginalWeightsPair->getPreWeights();
 }
 
-void CloneWeightsPair::needPost() {
+void CopyWeightsPair::needPost() {
+   WeightsPair::needPost();
+   pvAssert(mOriginalWeightsPair);
    mOriginalWeightsPair->needPost();
-   mPostWeights = mOriginalWeightsPair->getPostWeights();
 }
 
-int CloneWeightsPair::allocateDataStructures() { return PV_SUCCESS; }
+void CopyWeightsPair::copy() {
+   if (mPreWeights) {
+      auto *originalPreWeights = mOriginalWeightsPair->getPreWeights();
+      pvAssert(originalPreWeights);
 
-int CloneWeightsPair::registerData(Checkpointer *checkpointer) { return PV_SUCCESS; }
+      int const numArbors        = mPreWeights->getNumArbors();
+      int const patchSizeOverall = mPreWeights->getPatchSizeOverall();
+      int const numDataPatches   = mPreWeights->getNumDataPatches();
+      pvAssert(numArbors == originalPreWeights->getNumArbors());
+      pvAssert(patchSizeOverall == originalPreWeights->getPatchSizeOverall());
+      pvAssert(numDataPatches == originalPreWeights->getNumDataPatches());
 
-void CloneWeightsPair::finalizeUpdate(double timestamp, double deltaTime) {}
-
-void CloneWeightsPair::outputState(double timestamp) { return; }
+      auto arborSize = (std::size_t)(patchSizeOverall * numDataPatches) * sizeof(float);
+      for (int arbor = 0; arbor < numArbors; arbor++) {
+         float const *sourceArbor = originalPreWeights->getDataReadOnly(arbor);
+         std::memcpy(mPreWeights->getData(arbor), sourceArbor, arborSize);
+      }
+   }
+}
 
 } // namespace PV

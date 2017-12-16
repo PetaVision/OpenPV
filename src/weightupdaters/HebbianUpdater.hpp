@@ -132,7 +132,6 @@ class HebbianUpdater : public BaseWeightUpdater {
    bool mWriteCompressedCheckpoints = false;
 
    Weights *mWeights            = nullptr;
-   Weights *mPostWeights        = nullptr;
    Weights *mDeltaWeights       = nullptr;
    HyPerLayer *mTriggerLayer    = nullptr;
    bool mTriggerFlag            = false;

@@ -1,0 +1,40 @@
+/*
+ * CopyConn.hpp
+ *
+ *
+ *  Created on: Nov 19, 2014
+ *      Author: pschultz
+ */
+
+#ifndef COPYCONN_HPP_
+#define COPYCONN_HPP_
+
+#include "connections/HyPerConn.hpp"
+
+namespace PV {
+
+class HyPerCol;
+
+class CopyConn : public HyPerConn {
+  public:
+   CopyConn(char const *name, HyPerCol *hc);
+
+   virtual ~CopyConn();
+
+  protected:
+   CopyConn();
+
+   int initialize(char const *name, HyPerCol *hc);
+
+   virtual WeightsPair *createWeightsPair() override;
+   virtual InitWeights *createWeightInitializer() override;
+   virtual BaseWeightUpdater *createWeightUpdater() override;
+
+   virtual int initializeState() override;
+
+  protected:
+}; // class CopyConn
+
+} // namespace PV
+
+#endif // COPYCONN_HPP_

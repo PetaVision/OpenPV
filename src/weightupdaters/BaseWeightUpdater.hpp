@@ -45,8 +45,6 @@ class BaseWeightUpdater : public BaseObject {
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
-   int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
   protected:
    bool mPlasticityFlag = true;
 

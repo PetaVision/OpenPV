@@ -166,6 +166,9 @@ class Weights {
    /** Returns a pointer to the patch data for the given arbor */
    float *getData(int arbor);
 
+   /** Returns a read-only pointer to the patch data for the given arbor */
+   float const *getDataReadOnly(int arbor) const;
+
    /** Returns a pointer to the patch data for the given data index */
    float *getDataFromDataIndex(int arbor, int dataIndex);
 

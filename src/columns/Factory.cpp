@@ -47,7 +47,7 @@
 #include "layers/WTALayer.hpp"
 
 #include "connections/CloneConn.hpp"
-// #include "connections/CopyConn.hpp"
+#include "connections/CopyConn.hpp"
 // #include "connections/FeedbackConn.hpp"
 // #include "connections/GapConn.hpp"
 #include "connections/HyPerConn.hpp"
@@ -159,7 +159,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("HyPerConn", Factory::create<HyPerConn>);
    registerKeyword("CloneConn", Factory::create<CloneConn>);
    // registerKeyword("ComponentsConn", Factory::create<ComponentsConn>);
-   // registerKeyword("CopyConn", Factory::create<CopyConn>);
+   registerKeyword("CopyConn", Factory::create<CopyConn>);
    // registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
    // registerKeyword("GapConn", Factory::create<GapConn>);
    registerKeyword("IdentConn", Factory::create<IdentConn>);

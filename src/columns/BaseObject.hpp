@@ -81,20 +81,20 @@ class BaseObject : public CheckpointerDataInterface {
     * and
     * then becomes true once setInitInfoCommunicatedFlag() is called.
     */
-   bool getInitInfoCommunicatedFlag() { return mInitInfoCommunicatedFlag; }
+   bool getInitInfoCommunicatedFlag() const { return mInitInfoCommunicatedFlag; }
 
    /**
     * Get-method for mDataStructuresAllocatedFlag, which is false on
     * initialization and
     * then becomes true once setDataStructuresAllocatedFlag() is called.
     */
-   bool getDataStructuresAllocatedFlag() { return mDataStructuresAllocatedFlag; }
+   bool getDataStructuresAllocatedFlag() const { return mDataStructuresAllocatedFlag; }
 
    /**
     * Get-method for mInitialValuesSetFlag, which is false on initialization and
     * then becomes true once setInitialValuesSetFlag() is called.
     */
-   bool getInitialValuesSetFlag() { return mInitialValuesSetFlag; }
+   bool getInitialValuesSetFlag() const { return mInitialValuesSetFlag; }
 
 #ifdef PV_USE_CUDA
    /**

@@ -253,7 +253,7 @@ void WeightsPair::needPre() {
             mConnectionData->getPost()->getLayerLoc(),
             mConnectionData->getNumAxonalArbors(),
             mSharedWeights,
-            0.0 /*timestamp*/);
+            -std::numeric_limits<double>::infinity() /*timestamp*/);
    }
 }
 
@@ -274,7 +274,7 @@ void WeightsPair::needPost() {
             preLoc,
             mConnectionData->getNumAxonalArbors(),
             mSharedWeights,
-            0.0 /*timestamp*/);
+            -std::numeric_limits<double>::infinity() /*timestamp*/);
    }
 }
 
@@ -326,7 +326,12 @@ int WeightsPair::registerData(Checkpointer *checkpointer) {
 
 void WeightsPair::finalizeUpdate(double timestamp, double deltaTime) {
    if (mPostWeights) {
-      TransposeWeights::transpose(mPreWeights, mPostWeights, parent->getCommunicator());
+      double const timestampPre  = mPreWeights->getTimestamp();
+      double const timestampPost = mPostWeights->getTimestamp();
+      if (timestampPre > timestampPost) {
+         TransposeWeights::transpose(mPreWeights, mPostWeights, parent->getCommunicator());
+         mPostWeights->setTimestamp(timestampPre);
+      }
    }
 }
 

@@ -131,10 +131,10 @@ int InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    return status;
 }
 
-int InitWeights::initializeWeights() {
+int InitWeights::initializeState() {
    FatalIf(
          mWeights == nullptr,
-         "initializeWeights was called for %s with a null Weights object.\n",
+         "initializeState was called for %s with a null Weights object.\n",
          getDescription_c());
    if (mFilename && mFilename[0]) {
       readWeights(mFilename, mFrameNumber);
@@ -143,6 +143,7 @@ int InitWeights::initializeWeights() {
       initRNGs(mWeights->getSharedFlag());
       calcWeights();
    } // mFilename != null
+   mWeights->setTimestamp(parent->getStartTime());
    return PV_SUCCESS;
 }
 
