@@ -51,9 +51,12 @@ class HyPerConn : public BaseConnection {
              + preWeights->getPatch(patchIndex).offset;
    }
    float const *getDeltaWeightsDataStart(int arbor) const;
+   float const *getDeltaWeightsDataHead(int arbor, int dataIndex) const;
    int getPatchStrideX() const { return mWeightsPair->getPreWeights()->getPatchStrideX(); }
    int getPatchStrideY() const { return mWeightsPair->getPreWeights()->getPatchStrideY(); }
    int getPatchStrideF() const { return mWeightsPair->getPreWeights()->getPatchStrideF(); }
+
+   double getLastUpdateTime() const { return mWeightsPair->getPreWeights()->getTimestamp(); }
 
    int calcDataIndexFromPatchIndex(int patchIndex) {
       return mWeightsPair->getPreWeights()->calcDataIndexFromPatchIndex(patchIndex);

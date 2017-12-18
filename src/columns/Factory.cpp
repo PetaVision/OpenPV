@@ -64,12 +64,13 @@
 #include "probes/ColumnEnergyProbe.hpp"
 #include "probes/FirmThresholdCostFnLCAProbe.hpp"
 #include "probes/FirmThresholdCostFnProbe.hpp"
-// #include "probes/KernelProbe.hpp"
+#include "probes/KernelProbe.hpp"
 #include "probes/KneeTimeScaleProbe.hpp"
 #include "probes/L0NormLCAProbe.hpp"
 #include "probes/L0NormProbe.hpp"
 #include "probes/L1NormLCAProbe.hpp"
 #include "probes/L1NormProbe.hpp"
+#include "probes/L2ConnProbe.hpp"
 #include "probes/L2NormProbe.hpp"
 #include "probes/LogTimeScaleProbe.hpp"
 #include "probes/PointLIFProbe.hpp"
@@ -176,11 +177,12 @@ int Factory::registerCoreKeywords() {
    registerKeyword("ColumnEnergyProbe", Factory::create<ColumnEnergyProbe>);
    registerKeyword("FirmThresholdCostFnLCAProbe", Factory::create<FirmThresholdCostFnLCAProbe>);
    registerKeyword("FirmThresholdCostFnProbe", Factory::create<FirmThresholdCostFnProbe>);
-   // registerKeyword("KernelProbe", Factory::create<KernelProbe>);
+   registerKeyword("KernelProbe", Factory::create<KernelProbe>);
    registerKeyword("L0NormLCAProbe", Factory::create<L0NormLCAProbe>);
    registerKeyword("L0NormProbe", Factory::create<L0NormProbe>);
    registerKeyword("L1NormLCAProbe", Factory::create<L1NormLCAProbe>);
    registerKeyword("L1NormProbe", Factory::create<L1NormProbe>);
+   registerKeyword("L2ConnProbe", Factory::create<L2ConnProbe>);
    registerKeyword("L2NormProbe", Factory::create<L2NormProbe>);
    registerKeyword("PointLIFProbe", Factory::create<PointLIFProbe>);
    registerKeyword("PointProbe", Factory::create<PointProbe>);

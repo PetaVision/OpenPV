@@ -143,11 +143,22 @@ int HyPerConn::initializeState() {
    return PV_SUCCESS;
 }
 
-float const *HyPerConn::getDeltaWeightsDataStart(int arborId) const {
+float const *HyPerConn::getDeltaWeightsDataStart(int arbor) const {
    auto *hebbianUpdater =
          mapLookupByType<HebbianUpdater>(mComponentTable.getObjectMap(), getDescription());
    if (hebbianUpdater) {
-      return hebbianUpdater->getDeltaWeightsDataStart(arborId);
+      return hebbianUpdater->getDeltaWeightsDataStart(arbor);
+   }
+   else {
+      return nullptr;
+   }
+}
+
+float const *HyPerConn::getDeltaWeightsDataHead(int arbor, int dataIndex) const {
+   auto *hebbianUpdater =
+         mapLookupByType<HebbianUpdater>(mComponentTable.getObjectMap(), getDescription());
+   if (hebbianUpdater) {
+      return hebbianUpdater->getDeltaWeightsDataHead(arbor, dataIndex);
    }
    else {
       return nullptr;
