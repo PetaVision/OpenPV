@@ -135,6 +135,26 @@ BaseDelivery *HyPerConn::createDeliveryObject() { return new HyPerDeliveryFacade
 
 BaseWeightUpdater *HyPerConn::createWeightUpdater() { return new HebbianUpdater(name, parent); }
 
+int HyPerConn::respond(std::shared_ptr<BaseMessage const> message) {
+   int status = BaseConnection::respond(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   else if (
+         auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(message)) {
+      return respondConnectionNormalize(castMessage);
+   }
+   else {
+      return status;
+   }
+}
+
+int HyPerConn::respondConnectionNormalize(
+      std::shared_ptr<ConnectionNormalizeMessage const> message) {
+   notify(mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return PV_SUCCESS;
+}
+
 int HyPerConn::initializeState() {
    notify(
          mComponentTable,

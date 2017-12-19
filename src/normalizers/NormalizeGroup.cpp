@@ -6,7 +6,9 @@
  */
 
 #include "normalizers/NormalizeGroup.hpp"
+#include "columns/ObjectMapComponent.hpp"
 #include "components/WeightsPair.hpp"
+#include "connections/HyPerConn.hpp"
 #include "utils/MapLookupByType.hpp"
 
 namespace PV {
@@ -44,7 +46,13 @@ int NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    if (status != PV_SUCCESS) {
       return status;
    }
-   mGroupHead = parent->getNormalizerFromName(mNormalizeGroupName);
+
+   ObjectMapComponent *objectMapComponent =
+         mapLookupByType<ObjectMapComponent>(message->mHierarchy, getDescription());
+   HyPerConn *groupHeadConn =
+         objectMapComponent->lookup<HyPerConn>(std::string(mNormalizeGroupName));
+   mGroupHead = groupHeadConn->getComponentByType<NormalizeBase>();
+
    if (mGroupHead == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(

@@ -102,6 +102,11 @@ class ConnectionUpdateMessage : public BaseMessage {
    // timesteps
 };
 
+class ConnectionNormalizeMessage : public BaseMessage {
+  public:
+   ConnectionNormalizeMessage() { setMessageType("ConnectionNormalizeMessage"); }
+};
+
 class ConnectionFinalizeUpdateMessage : public BaseMessage {
   public:
    ConnectionFinalizeUpdateMessage(double simTime, double deltaTime) {

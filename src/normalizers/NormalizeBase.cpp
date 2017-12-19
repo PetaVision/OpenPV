@@ -17,9 +17,6 @@ NormalizeBase::NormalizeBase(char const *name, HyPerCol *hc) { initialize(name, 
 
 int NormalizeBase::initialize(char const *name, HyPerCol *hc) {
    int status = BaseObject::initialize(name, hc);
-   if (status == PV_SUCCESS) {
-      status = parent->addNormalizer(this);
-   }
    return status;
 }
 
@@ -71,7 +68,22 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
          mNormalizeOnWeightUpdate);
 }
 
-void NormalizeBase::normalizeWeightsIfNeeded() {
+int NormalizeBase::respond(std::shared_ptr<BaseMessage const> message) {
+   int status = BaseObject::respond(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   else if (
+         auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(message)) {
+      return respondConnectionNormalize(castMessage);
+   }
+   else {
+      return status;
+   }
+}
+
+int NormalizeBase::respondConnectionNormalize(
+      std::shared_ptr<ConnectionNormalizeMessage const> message) {
    bool needUpdate = false;
    double simTime  = parent->simulationTime();
    if (mNormalizeOnInitialize and simTime == parent->getStartTime()) {
@@ -88,6 +100,7 @@ void NormalizeBase::normalizeWeightsIfNeeded() {
          w->setTimestamp(simTime);
       }
    }
+   return PV_SUCCESS;
 }
 
 int NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {

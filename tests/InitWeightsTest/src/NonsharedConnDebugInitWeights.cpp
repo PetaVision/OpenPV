@@ -75,10 +75,6 @@ int NonsharedConnDebugInitWeights::initializeState() {
          initializeGaussian2DWeights(arborStart, numPatches);
       }
    }
-
-   if (mWeightNormalizer) {
-      mWeightNormalizer->normalizeWeightsIfNeeded();
-   }
    return PV_SUCCESS;
 }
 

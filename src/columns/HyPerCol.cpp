@@ -14,7 +14,6 @@
 #include "columns/RandomSeed.hpp"
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
-#include "normalizers/NormalizeBase.hpp"
 #include "pvGitRevision.h"
 
 #include <assert.h>
@@ -33,6 +32,11 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+
+#ifdef PV_USE_OPENMP_THREADS
+#include <omp.h>
+#endif
+
 #ifdef PV_USE_CUDA
 #include <cuda.h>
 #include <cudnn.h>
@@ -83,20 +87,19 @@ int HyPerCol::initialize_base() {
    mWriteProgressToErr       = false;
    mOrigStdOut               = -1;
    mOrigStdErr               = -1;
-   mNormalizers.clear(); // Pretty sure these aren't necessary
-   mLayerStatus          = nullptr;
-   mConnectionStatus     = nullptr;
-   mPrintParamsFilename  = nullptr;
-   mPrintParamsStream    = nullptr;
-   mLuaPrintParamsStream = nullptr;
-   mNumXGlobal           = 0;
-   mNumYGlobal           = 0;
-   mNumBatch             = 1;
-   mNumBatchGlobal       = 1;
-   mOwnsCommunicator     = true;
-   mParams               = nullptr;
-   mCommunicator         = nullptr;
-   mRunTimer             = nullptr;
+   mLayerStatus              = nullptr;
+   mConnectionStatus         = nullptr;
+   mPrintParamsFilename      = nullptr;
+   mPrintParamsStream        = nullptr;
+   mLuaPrintParamsStream     = nullptr;
+   mNumXGlobal               = 0;
+   mNumYGlobal               = 0;
+   mNumBatch                 = 1;
+   mNumBatchGlobal           = 1;
+   mOwnsCommunicator         = true;
+   mParams                   = nullptr;
+   mCommunicator             = nullptr;
+   mRunTimer                 = nullptr;
    mPhaseRecvTimers.clear();
    mRandomSeed        = 0U;
    mErrorOnNotANumber = false;
@@ -360,12 +363,6 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
          ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
-int HyPerCol::addNormalizer(NormalizeBase *normalizer) {
-   mNormalizers.push_back(normalizer);
-   return PV_SUCCESS; // Why does this return success when the other add
-   // functions return an index?
-}
-
 void HyPerCol::allocateColumn() {
    if (mReadyFlag) {
       return;
@@ -457,7 +454,7 @@ void HyPerCol::allocateColumn() {
 
    // Initial normalization moved here to facilitate normalizations of groups
    // of HyPerConns
-   normalizeWeights();
+   notify(std::make_shared<ConnectionNormalizeMessage>());
    notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
 
    // publish initial conditions
@@ -630,17 +627,6 @@ int HyPerCol::processParams(char const *path) {
    return PV_SUCCESS;
 }
 
-int HyPerCol::normalizeWeights() {
-   int status = PV_SUCCESS;
-   for (int n = 0; n < mNormalizers.size(); n++) {
-      NormalizeBase *normalizer = mNormalizers.at(n);
-      if (normalizer) {
-         normalizer->normalizeWeightsIfNeeded();
-      }
-   }
-   return status;
-}
-
 void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) {
    // time loop
    //
@@ -692,7 +678,7 @@ int HyPerCol::advanceTime(double sim_time) {
    // update the connections (weights)
    //
    notify(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
-   normalizeWeights();
+   notify(std::make_shared<ConnectionNormalizeMessage>());
    notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
    notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
 
@@ -1275,21 +1261,6 @@ int HyPerCol::finalizeCUDA() {
 void HyPerCol::addObject(BaseObject *obj) {
    bool succeeded = mObjectHierarchy.addObject(obj->getName(), obj);
    FatalIf(!succeeded, "Adding %s failed.\n", getDescription_c());
-}
-
-NormalizeBase *HyPerCol::getNormalizerFromName(const char *normalizerName) {
-   if (normalizerName == nullptr)
-      return nullptr;
-   int n = numberOfNormalizers();
-   for (int i = 0; i < n; i++) {
-      NormalizeBase *curNormalizer = getNormalizer(i);
-      assert(curNormalizer);
-      const char *curNormalizerName = curNormalizer->getName();
-      assert(curNormalizerName);
-      if (!strcmp(curNormalizer->getName(), normalizerName))
-         return curNormalizer;
-   }
-   return nullptr;
 }
 
 Observer *HyPerCol::getObjectFromName(std::string const &objectName) const {

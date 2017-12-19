@@ -33,11 +33,8 @@
 #include <arch/cuda/CudaDevice.hpp>
 #endif
 
-#include <vector>
-
 namespace PV {
 
-class NormalizeBase;
 class PV_Init;
 class PVParams;
 
@@ -138,13 +135,6 @@ class HyPerCol : public Subject, public Observer {
     */
    Observer *getNextObject(Observer const *currentObject) const;
 
-   /**
-    * Adds an object (layer, connection, etc.) to the hierarchy.
-    * Exits with an error if adding the object failed.
-    * The usual reason for failing to add the object is that the name is the same
-    * as that of an earlier added object.
-    */
-   int addNormalizer(NormalizeBase *normalizer);
    void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
    void nonblockingLayerUpdate(std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
@@ -167,7 +157,6 @@ class HyPerCol : public Subject, public Observer {
    void allocateColumn();
    int run() { return run(mStartTime, mStopTime, mDeltaTime); }
    int run(double mStartTime, double mStopTime, double dt);
-   NormalizeBase *getNormalizerFromName(const char *normalizerName);
 
    // Getters and setters
 
@@ -189,7 +178,6 @@ class HyPerCol : public Subject, public Observer {
    int getNBatch() { return mNumBatch; }
    int getNBatchGlobal() { return mNumBatchGlobal; }
    int getNumThreads() const { return mNumThreads; }
-   int numberOfNormalizers() const { return mNormalizers.size(); }
    int numberOfBorderRegions() const { return MAX_NEIGHBORS; }
    int numberOfColumns() { return mCommunicator->commSize(); }
    int numberOfGlobalColumns() { return mCommunicator->globalCommSize(); }
@@ -200,7 +188,6 @@ class HyPerCol : public Subject, public Observer {
    int numCommRows() { return mCommunicator->numCommRows(); }
    int numCommBatches() { return mCommunicator->numCommBatches(); }
    Communicator *getCommunicator() const { return mCommunicator; }
-   NormalizeBase *getNormalizer(int which) { return mNormalizers.at(which); }
    PV_Init *getPV_InitObj() const { return mPVInitObj; }
    FileStream *getPrintParamsStream() const { return mPrintParamsStream; }
    PVParams *parameters() const { return mParams; }
@@ -247,7 +234,6 @@ class HyPerCol : public Subject, public Observer {
    void initializeCUDA(std::string const &in_device);
    int finalizeCUDA();
 #endif // PV_USE_CUDA
-   int normalizeWeights();
    int outputParams(char const *path);
    int outputParamsHeadComments(FileStream *fileStream, char const *commentToken);
    int calcTimeScaleTrue();
@@ -308,15 +294,12 @@ class HyPerCol : public Subject, public Observer {
    long int mInitialStep;
    long int mCurrentStep;
    long int mFinalStep;
-   std::vector<NormalizeBase *> mNormalizers; // NormalizeBase ** mNormalizers; // Objects for
-   // normalizing connections or groups of connections
    PV_Init *mPVInitObj;
    FileStream *mPrintParamsStream; // file pointer associated with mPrintParamsFilename
    FileStream *mLuaPrintParamsStream; // file pointer associated with the output lua file
    PVParams *mParams; // manages input parameters
    size_t mLayerArraySize;
    size_t mConnectionArraySize;
-   size_t mNormalizerArraySize;
    std::ofstream mTimeScaleStream;
    Timer *mRunTimer;
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;

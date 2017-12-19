@@ -75,10 +75,6 @@ int SharedConnDebugInitWeights::initializeState() {
          initializeGaussian2DWeights(arborStart, numKernelPatches);
       }
    }
-
-   if (mWeightNormalizer) {
-      mWeightNormalizer->normalizeWeightsIfNeeded();
-   }
    return PV_SUCCESS;
 }
 

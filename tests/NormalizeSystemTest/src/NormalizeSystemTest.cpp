@@ -19,9 +19,11 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    // check normalizeSum
    Observer *baseObject;
+   HyPerConn *hyperconn;
    baseObject                            = hc->getObjectFromName("NormalizeSumConnection");
-   NormalizeBase *normalizeSumNormalizer = hc->getNormalizerFromName("NormalizeSumConnection");
-   FatalIf(!(normalizeSumNormalizer), "Test failed.\n");
+   hyperconn                             = dynamic_cast<HyPerConn *>(baseObject);
+   NormalizeBase *normalizeSumNormalizer = hyperconn->getComponentByType<NormalizeBase>();
+   FatalIf(!normalizeSumNormalizer, "Test failed.\n");
    float normalizeSumStrength    = normalizeSumNormalizer->getStrength();
    baseObject                    = hc->getObjectFromName("NormalizeSumCheck");
    HyPerLayer *normalizeSumCheck = dynamic_cast<HyPerLayer *>(baseObject);
@@ -30,8 +32,9 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    // check normalizeL2
    baseObject                           = hc->getObjectFromName("NormalizeL2Connection");
-   NormalizeBase *normalizeL2Normalizer = hc->getNormalizerFromName("NormalizeL2Connection");
-   FatalIf(!(normalizeL2Normalizer), "Test failed.\n");
+   hyperconn                            = dynamic_cast<HyPerConn *>(baseObject);
+   NormalizeBase *normalizeL2Normalizer = hyperconn->getComponentByType<NormalizeBase>();
+   FatalIf(!normalizeL2Normalizer, "Test failed.\n");
    float normalizeL2Strength    = normalizeL2Normalizer->getStrength();
    baseObject                   = hc->getObjectFromName("NormalizeL2Check");
    HyPerLayer *normalizeL2Check = dynamic_cast<HyPerLayer *>(baseObject);
@@ -41,8 +44,9 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    // check normalizeMax
    baseObject                            = hc->getObjectFromName("NormalizeMaxConnection");
-   NormalizeBase *normalizeMaxNormalizer = hc->getNormalizerFromName("NormalizeMaxConnection");
-   FatalIf(!(normalizeMaxNormalizer), "Test failed.\n");
+   hyperconn                             = dynamic_cast<HyPerConn *>(baseObject);
+   NormalizeBase *normalizeMaxNormalizer = hyperconn->getComponentByType<NormalizeBase>();
+   FatalIf(!normalizeMaxNormalizer, "Test failed.\n");
    float normalizeMaxStrength    = normalizeMaxNormalizer->getStrength();
    baseObject                    = hc->getObjectFromName("NormalizeMaxCheck");
    HyPerLayer *normalizeMaxCheck = dynamic_cast<HyPerLayer *>(baseObject);
@@ -58,14 +62,14 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    // check normalizeContrastZeroMean.
    baseObject = hc->getObjectFromName("NormalizeContrastZeroMeanConnection");
-   HyPerConn *normalizeContrastZeroMeanConn = dynamic_cast<HyPerConn *>(baseObject);
-   FatalIf(!normalizeContrastZeroMeanConn, "Test failed.\n");
+   hyperconn  = dynamic_cast<HyPerConn *>(baseObject);
+   FatalIf(!hyperconn, "Test failed.\n");
    NormalizeBase *normalizeContrastZeroMeanNormalizer =
-         hc->getNormalizerFromName("NormalizeContrastZeroMeanConnection");
-   FatalIf(!(normalizeContrastZeroMeanNormalizer), "Test failed.\n");
+         hyperconn->getComponentByType<NormalizeBase>();
+   FatalIf(!normalizeContrastZeroMeanNormalizer, "Test failed.\n");
    float normalizeContrastZeroMeanStrength = normalizeContrastZeroMeanNormalizer->getStrength();
-   int numNeurons = normalizeContrastZeroMeanConn->getPost()->getNumGlobalNeurons();
-   baseObject     = hc->getObjectFromName("NormalizeContrastZeroMeanCheckMean");
+   int numNeurons                          = hyperconn->getPost()->getNumGlobalNeurons();
+   baseObject = hc->getObjectFromName("NormalizeContrastZeroMeanCheckMean");
    HyPerLayer *normalizeContrastZeroMeanCheckMean = dynamic_cast<HyPerLayer *>(baseObject);
    FatalIf(!normalizeContrastZeroMeanCheckMean, "Test failed.\n");
    float normalizeContrastZeroMeanValue =

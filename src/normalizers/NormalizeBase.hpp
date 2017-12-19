@@ -43,14 +43,7 @@ class NormalizeBase : public BaseObject {
    virtual ~NormalizeBase() {}
 
    void addWeightsToList(Weights *weights);
-
-   /**
-    * If the normalizeOnInitialize flag is set and the simulation time is startTime(),
-    * or if the normalizeOnWeightUpdate flag is set and the weight updater's LastUpdateTime
-    * is greater than the normalizer's LastUpdateTime, this method calls the (virtual protected)
-    * method normalizeWeights(). Otherwise, this method does nothing.
-    */
-   void normalizeWeightsIfNeeded();
+   int respond(std::shared_ptr<BaseMessage const> message);
 
    float getStrength() const { return mStrength; }
    bool getNormalizeArborsIndividuallyFlag() const { return mNormalizeArborsIndividually; }
@@ -65,6 +58,14 @@ class NormalizeBase : public BaseObject {
    virtual int setDescription() override;
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
+   /**
+    * If the normalizeOnInitialize flag is set and the simulation time is startTime(),
+    * or if the normalizeOnWeightUpdate flag is set and the weight updater's LastUpdateTime
+    * is greater than the normalizer's LastUpdateTime, this method calls the (virtual protected)
+    * method normalizeWeights(). Otherwise, this method does nothing.
+    */
+   int respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message);
 
    int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
 
