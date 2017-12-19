@@ -47,7 +47,6 @@ class IdentDelivery : public BaseDelivery {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   void checkDimensions(PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) const;
 }; // end class IdentDelivery
 
 } // end namespace PV

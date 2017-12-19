@@ -33,7 +33,6 @@ int IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    pvAssert(mPreLayer and mPostLayer);
    PVLayerLoc const &preLoc  = *mPreLayer->getLayerLoc();
    PVLayerLoc const &postLoc = *mPostLayer->getLayerLoc();
-   checkDimensions(preLoc, postLoc);
    return status;
 }
 
@@ -115,33 +114,6 @@ void IdentDelivery::deliverUnitInput(float *recvBuffer) {
    for (int k = 0; k < numNeuronsPost; k++) {
       recvBuffer[k] += 1.0f;
    }
-}
-
-void IdentDelivery::checkDimensions(PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) const {
-   FatalIf(
-         preLoc.nx != postLoc.nx,
-         "%s requires pre and post nx be equal (%d versus %d).\n",
-         getDescription_c(),
-         preLoc.nx,
-         postLoc.nx);
-   FatalIf(
-         preLoc.ny != postLoc.ny,
-         "%s requires pre and post ny be equal (%d versus %d).\n",
-         getDescription_c(),
-         preLoc.ny,
-         postLoc.ny);
-   FatalIf(
-         preLoc.nf != postLoc.nf,
-         "%s requires pre and post nf be equal (%d versus %d).\n",
-         getDescription_c(),
-         preLoc.nf,
-         postLoc.nf);
-   FatalIf(
-         preLoc.nbatch != postLoc.nbatch,
-         "%s requires pre and post nbatch be equal (%d versus %d).\n",
-         getDescription_c(),
-         preLoc.nbatch,
-         postLoc.nbatch);
 }
 
 } // end namespace PV

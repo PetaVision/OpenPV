@@ -32,26 +32,57 @@ ConnectionData *IdentConn::createConnectionData() {
 }
 
 int IdentConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status                = BaseConnection::communicateInitInfo(message);
+   int status = BaseConnection::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
    const PVLayerLoc *preLoc  = getPre()->getLayerLoc();
    const PVLayerLoc *postLoc = getPost()->getLayerLoc();
-   if (preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny || preLoc->nf != postLoc->nf) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "IdentConn \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: "
-               "%dx%dx%d vs. %dx%dx%d\n",
-               name,
-               getPre()->getName(),
-               getPost()->getName(),
-               preLoc->nx,
-               preLoc->ny,
-               preLoc->nf,
-               postLoc->nx,
-               postLoc->ny,
-               postLoc->nf);
-      }
-      exit(EXIT_FAILURE);
+   if (preLoc->nx != postLoc->nx) {
+      ErrorLog().printf(
+            "%s requires pre and post nx be equal (%d versus %d).\n",
+            getDescription_c(),
+            preLoc->nx,
+            postLoc->nx);
+      status = PV_FAILURE;
    }
+   if (preLoc->ny != postLoc->ny) {
+      ErrorLog().printf(
+            "%s requires pre and post ny be equal (%d versus %d).\n",
+            getDescription_c(),
+            preLoc->ny,
+            postLoc->ny);
+      status = PV_FAILURE;
+   }
+   if (preLoc->nf != postLoc->nf) {
+      ErrorLog().printf(
+            "%s requires pre and post nf be equal (%d versus %d).\n",
+            getDescription_c(),
+            preLoc->nf,
+            postLoc->nf);
+      status = PV_FAILURE;
+   }
+   if (preLoc->nbatch != postLoc->nbatch) {
+      ErrorLog().printf(
+            "%s requires pre and post nbatch be equal (%d versus %d).\n",
+            getDescription_c(),
+            preLoc->nbatch,
+            postLoc->nbatch);
+      status = PV_FAILURE;
+   }
+   FatalIf(
+         status != PV_SUCCESS,
+         "IdentConn \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: "
+         "%dx%dx%d vs. %dx%dx%d\n",
+         name,
+         getPre()->getName(),
+         getPost()->getName(),
+         preLoc->nx,
+         preLoc->ny,
+         preLoc->nf,
+         postLoc->nx,
+         postLoc->ny,
+         postLoc->nf);
    return status;
 }
 
