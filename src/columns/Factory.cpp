@@ -107,7 +107,7 @@
 #include "weightupdaters/HebbianUpdater.hpp"
 
 #include "normalizers/NormalizeContrastZeroMean.hpp"
-// #include "normalizers/NormalizeGroup.hpp"
+#include "normalizers/NormalizeGroup.hpp"
 #include "normalizers/NormalizeL2.hpp"
 #include "normalizers/NormalizeMax.hpp"
 #include "normalizers/NormalizeSum.hpp"
@@ -229,7 +229,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("normalizeL2", Factory::create<NormalizeL2>);
    registerKeyword("normalizeMax", Factory::create<NormalizeMax>);
    registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
-   // registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
+   registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
 
    return PV_SUCCESS;
 }

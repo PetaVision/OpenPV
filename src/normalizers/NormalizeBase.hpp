@@ -42,6 +42,8 @@ class NormalizeBase : public BaseObject {
 
    virtual ~NormalizeBase() {}
 
+   void addWeightsToList(Weights *weights);
+
    /**
     * If the normalizeOnInitialize flag is set and the simulation time is startTime(),
     * or if the normalizeOnWeightUpdate flag is set and the weight updater's LastUpdateTime
@@ -65,8 +67,6 @@ class NormalizeBase : public BaseObject {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
-
-   void addWeightsToList(Weights *weights);
 
    bool weightsHaveUpdated() const;
 
