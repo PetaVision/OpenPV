@@ -1,0 +1,161 @@
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 32; //1242;  // KITTI synced value
+    ny = 32;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0.0;
+    stopTime = 1.0;       // Depends on number of VINE video frames
+    progressInterval = 1.0;
+    //Change this
+    outputPath = "output/";
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    lastCheckpointDir = "output/Last";
+    writeProgressToErr = true;
+};
+
+//This layer must have .5 activity for one timestep
+PvpLayer "origPre" = {
+    nxScale                          = 1;
+    nyScale                          = 1;
+    inputPath                        = "input/origImg.pvp";
+    nf                               = 1;
+    phase                            = 0;
+    writeStep                        = -1;
+    sparseLayer                      = false;
+    updateGpu                        = false;
+    mirrorBCflag                     = true;
+    useInputBCflag                   = false;
+    inverseFlag                      = false;
+    normalizeLuminanceFlag           = false;
+    autoResizeFlag                   = false;
+    offsetAnchor                     = "tl";
+    offsetX                          = 0;
+    offsetY                          = 0;
+    padValue                         = 0;
+    displayPeriod                    = 1;
+    writeFrameToTimestamp            = true;
+};
+
+//This layer must have .25 activity for one timestep
+PvpLayer "clonePre" = {
+    nxScale                          = 1;
+    nyScale                          = 1;
+    inputPath                        = "input/cloneImg.pvp";
+    nf                               = 1;
+    phase                            = 0;
+    writeStep                        = -1;
+    sparseLayer                      = false;
+    updateGpu                        = false;
+    mirrorBCflag                     = true;
+    useInputBCflag                   = false;
+    inverseFlag                      = false;
+    normalizeLuminanceFlag           = false;
+    autoResizeFlag                   = false;
+    offsetAnchor                     = "tl";
+    offsetX                          = 0;
+    offsetY                          = 0;
+    padValue                         = 0;
+    displayPeriod                    = 1;
+    writeFrameToTimestamp            = true;
+};
+
+
+ANNLayer "origPost" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = true;
+    sparseLayer = 0;
+    //
+    InitVType = "ConstantV";
+    valueV = 1;
+    // 
+    phase = 1; 
+    VThresh = -infinity;
+    AMin = -infinity;
+    AMax = infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+};
+
+ANNLayer "clonePost" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = true;
+    sparseLayer = 0;
+    //
+    InitVType = "ConstantV";
+    valueV = 1;
+    // 
+    phase = 1; 
+    VThresh = -infinity;
+    AMin = -infinity;
+    AMax = infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+};
+
+HyPerConn "origConn" = {
+    preLayerName = "origPre";
+    postLayerName = "origPost";
+    channelCode = 0; //Inhib b, doing nothing to input
+    sharedWeights = true;
+    
+    nxp = 5; 
+    nyp = 5; 
+    nfp = 1;
+
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    writeCompressedWeights = false;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 1.0;
+    sparseFraction = 0;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    symmetrizeWeights = false;
+    
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 1;
+    dWMax = 1;
+    updateFromClone = true;
+    weightUpdatePeriod = 1;
+
+    pvpatchAccumulateType = "convolve";
+     
+    delay = 0;
+     
+    convertRateToSpikeCount = false;
+
+    updateGSynFromPostPerspective = false;
+};
+
+PlasticCloneConn "cloneConn" = {
+    preLayerName = "clonePre";
+    postLayerName = "clonePost";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "origConn";
+    delay = 0;
+    convertRateToSpikeCount = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+TestConnProbe "testConnProbe" = {
+   targetConnection = "origConn";
+};
