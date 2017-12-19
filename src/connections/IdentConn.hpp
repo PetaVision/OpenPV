@@ -25,9 +25,6 @@ class IdentConn : public BaseConnection {
    virtual ConnectionData *createConnectionData();
 
    virtual BaseDelivery *createDeliveryObject() override;
-
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 }; // class IdentConn
 
 } // end of block for namespace PV

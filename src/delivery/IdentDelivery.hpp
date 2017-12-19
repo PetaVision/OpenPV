@@ -47,6 +47,8 @@ class IdentDelivery : public BaseDelivery {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   void checkPreAndPostDimensions();
+
 }; // end class IdentDelivery
 
 } // end namespace PV

@@ -30,10 +30,60 @@ int IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    if (status != PV_SUCCESS) {
       return status;
    }
-   pvAssert(mPreLayer and mPostLayer);
-   PVLayerLoc const &preLoc  = *mPreLayer->getLayerLoc();
-   PVLayerLoc const &postLoc = *mPostLayer->getLayerLoc();
+   checkPreAndPostDimensions();
    return status;
+}
+
+void IdentDelivery::checkPreAndPostDimensions() {
+   int status = PV_SUCCESS;
+   pvAssert(mPreLayer and mPostLayer); // Only call this after BaseDelivery::communicateInitInfo().
+   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   if (preLoc->nx != postLoc->nx) {
+      ErrorLog().printf(
+            "%s requires pre and post nx be equal (%d versus %d).\n",
+            getDescription_c(),
+            preLoc->nx,
+            postLoc->nx);
+      status = PV_FAILURE;
+   }
+   if (preLoc->ny != postLoc->ny) {
+      ErrorLog().printf(
+            "%s requires pre and post ny be equal (%d versus %d).\n",
+            getDescription_c(),
+            preLoc->ny,
+            postLoc->ny);
+      status = PV_FAILURE;
+   }
+   if (preLoc->nf != postLoc->nf) {
+      ErrorLog().printf(
+            "%s requires pre and post nf be equal (%d versus %d).\n",
+            getDescription_c(),
+            preLoc->nf,
+            postLoc->nf);
+      status = PV_FAILURE;
+   }
+   if (preLoc->nbatch != postLoc->nbatch) {
+      ErrorLog().printf(
+            "%s requires pre and post nbatch be equal (%d versus %d).\n",
+            getDescription_c(),
+            preLoc->nbatch,
+            postLoc->nbatch);
+      status = PV_FAILURE;
+   }
+   FatalIf(
+         status != PV_SUCCESS,
+         "IdentDelivery \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: "
+         "%dx%dx%d vs. %dx%dx%d\n",
+         name,
+         mPreLayer->getName(),
+         mPostLayer->getName(),
+         preLoc->nx,
+         preLoc->ny,
+         preLoc->nf,
+         postLoc->nx,
+         postLoc->ny,
+         postLoc->nf);
 }
 
 void IdentDelivery::deliver() {
