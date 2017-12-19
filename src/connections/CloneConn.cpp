@@ -7,6 +7,7 @@
 #include "CloneConn.hpp"
 #include "columns/HyPerCol.hpp"
 #include "components/CloneWeightsPair.hpp"
+#include "delivery/CloneDeliveryFacade.hpp"
 
 namespace PV {
 
@@ -26,6 +27,8 @@ WeightsPair *CloneConn::createWeightsPair() { return new CloneWeightsPair(name, 
 InitWeights *CloneConn::createWeightInitializer() { return nullptr; }
 
 NormalizeBase *CloneConn::createWeightNormalizer() { return nullptr; }
+
+BaseDelivery *CloneConn::createDeliveryObject() { return new CloneDeliveryFacade(name, parent); }
 
 BaseWeightUpdater *CloneConn::createWeightUpdater() { return nullptr; }
 

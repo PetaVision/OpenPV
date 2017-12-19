@@ -8,7 +8,6 @@
 #include "CloneWeightsPair.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
-#include "connections/HyPerConn.hpp"
 #include "utils/MapLookupByType.hpp"
 
 namespace PV {
@@ -90,8 +89,8 @@ int CloneWeightsPair::communicateInitInfo(
    auto hierarchy = message->mHierarchy;
    ObjectMapComponent *objectMapComponent =
          mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-   HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(mOriginalConnName));
-   if (originalConn == nullptr) {
+   mOriginalConn = objectMapComponent->lookup<HyPerConn>(std::string(mOriginalConnName));
+   if (mOriginalConn == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: originalConnName \"%s\" does not correspond to a HyPerConn in the column.\n",
@@ -101,7 +100,7 @@ int CloneWeightsPair::communicateInitInfo(
       MPI_Barrier(parent->getCommunicator()->globalCommunicator());
       exit(PV_FAILURE);
    }
-   mOriginalWeightsPair = originalConn->getComponentByType<WeightsPair>();
+   mOriginalWeightsPair = mOriginalConn->getComponentByType<WeightsPair>();
    pvAssert(mOriginalWeightsPair);
 
    if (!mOriginalWeightsPair->getInitInfoCommunicatedFlag()) {
@@ -110,7 +109,7 @@ int CloneWeightsPair::communicateInitInfo(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConn->getName());
+               mOriginalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -121,7 +120,91 @@ int CloneWeightsPair::communicateInitInfo(
    copyParameters();
 
    int status = WeightsPair::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+
+   // Presynaptic layers of the Clone and its original conn must have the same size, or the
+   // patches won't line up with each other.
+   synchronizeMarginsPre();
+
    return status;
+}
+
+void CloneWeightsPair::synchronizeMarginsPre() {
+   int status = PV_SUCCESS;
+
+   pvAssert(mConnectionData);
+   auto *thisPre = mConnectionData->getPre();
+   if (thisPre == nullptr) {
+      ErrorLog().printf(
+            "synchronzedMarginsPre called for %s, but this connection has not set its "
+            "presynaptic layer yet.\n",
+            getDescription_c());
+      status = PV_FAILURE;
+   }
+
+   HyPerLayer *origPre = nullptr;
+   if (mOriginalConn == nullptr) {
+      ErrorLog().printf(
+            "synchronzedMarginsPre called for %s, but this connection has not set its "
+            "original connection yet.\n",
+            getDescription_c());
+      status = PV_FAILURE;
+   }
+   else {
+      origPre = mOriginalConn->getPre();
+      if (origPre == nullptr) {
+         ErrorLog().printf(
+               "synchronzedMarginsPre called for %s, but the original connection has not set its "
+               "presynaptic layer yet.\n",
+               getDescription_c());
+         status = PV_FAILURE;
+      }
+   }
+   if (status != PV_SUCCESS) {
+      exit(PV_FAILURE);
+   }
+   thisPre->synchronizeMarginWidth(origPre);
+   origPre->synchronizeMarginWidth(thisPre);
+}
+
+void CloneWeightsPair::synchronizeMarginsPost() {
+   int status = PV_SUCCESS;
+
+   pvAssert(mConnectionData);
+   auto *thisPost = mConnectionData->getPost();
+   if (thisPost == nullptr) {
+      ErrorLog().printf(
+            "synchronzedMarginsPost called for %s, but this connection has not set its "
+            "postsynaptic layer yet.\n",
+            getDescription_c());
+      status = PV_FAILURE;
+   }
+
+   HyPerLayer *origPost = nullptr;
+   if (mOriginalConn == nullptr) {
+      ErrorLog().printf(
+            "synchronzedMarginsPre called for %s, but this connection has not set its "
+            "original connection yet.\n",
+            getDescription_c());
+      status = PV_FAILURE;
+   }
+   else {
+      origPost = mOriginalConn->getPost();
+      if (origPost == nullptr) {
+         ErrorLog().printf(
+               "synchronzedMarginsPost called for %s, but the original connection has not set its "
+               "postsynaptic layer yet.\n",
+               getDescription_c());
+         status = PV_FAILURE;
+      }
+   }
+   if (status != PV_SUCCESS) {
+      exit(PV_FAILURE);
+   }
+   thisPost->synchronizeMarginWidth(origPost);
+   origPost->synchronizeMarginWidth(thisPost);
 }
 
 void CloneWeightsPair::copyParameters() {

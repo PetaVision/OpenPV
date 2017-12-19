@@ -1,5 +1,6 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BaseDelivery.cpp
+   ${SUBDIR}/CloneDeliveryFacade.cpp
    ${SUBDIR}/HyPerDelivery.cpp
    ${SUBDIR}/HyPerDeliveryFacade.cpp
    ${SUBDIR}/IdentDelivery.cpp
@@ -14,6 +15,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BaseDelivery.hpp
+   ${SUBDIR}/CloneDeliveryFacade.hpp
    ${SUBDIR}/HyPerDeliveryFacade.hpp
    ${SUBDIR}/HyPerDelivery.hpp
    ${SUBDIR}/IdentDelivery.hpp

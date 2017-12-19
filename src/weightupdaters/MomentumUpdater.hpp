@@ -53,7 +53,7 @@ class MomentumUpdater : public HebbianUpdater {
 
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
-   virtual int updateWeights(int arborId);
+   virtual int updateWeights(int arborId) override;
 
    void applyMomentum(int arborId);
 

@@ -9,6 +9,7 @@
 #define CLONEWEIGHTSPAIR_HPP_
 
 #include "components/WeightsPair.hpp"
+#include "connections/HyPerConn.hpp"
 
 namespace PV {
 
@@ -67,6 +68,22 @@ class CloneWeightsPair : public WeightsPair {
    virtual void needPre();
    virtual void needPost();
 
+   /**
+    * Synchronizes the margins of this connection's and the original connection's presynaptic
+    * layers. This must be called after the two ConnectionData objects have set their pre-layer,
+    * and should be called before the layers and weights enter AllocateDataStructures stage.
+    */
+   void synchronizeMarginsPre();
+
+   /**
+    * Synchronizes the margins of this connection's and the original connection's postsynaptic
+    * layers. This must be called after the two ConnectionData objects have set their post-layer,
+    * and should be called before the layers and weights enter AllocateDataStructures stage.
+    */
+   void synchronizeMarginsPost();
+
+   char const *getOriginalConnName() const { return mOriginalConnName; }
+
   protected:
    CloneWeightsPair() {}
 
@@ -90,8 +107,8 @@ class CloneWeightsPair : public WeightsPair {
    virtual void outputState(double timestamp) override;
 
   protected:
-   char *mOriginalConnName = nullptr;
-
+   char *mOriginalConnName           = nullptr;
+   HyPerConn *mOriginalConn          = nullptr;
    WeightsPair *mOriginalWeightsPair = nullptr;
 };
 

@@ -243,6 +243,21 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    return status;
 }
 
+void HebbianUpdater::addClone(ConnectionData *connectionData) {
+
+   // CloneConn's communicateInitInfo makes sure the pre layers' borders are in sync,
+   // but for PlasticCloneConns to apply the update rules correctly, we need the
+   // post layers' borders to be equal as well.
+
+   pvAssert(connectionData->getInitInfoCommunicatedFlag());
+   pvAssert(mConnectionData->getInitInfoCommunicatedFlag());
+   connectionData->getPost()->synchronizeMarginWidth(mConnectionData->getPost());
+   mConnectionData->getPost()->synchronizeMarginWidth(connectionData->getPost());
+
+   // Add the new connection data to the list of clones.
+   mClones.push_back(connectionData);
+}
+
 int HebbianUpdater::allocateDataStructures() {
    int status = BaseWeightUpdater::allocateDataStructures();
    if (status != PV_SUCCESS) {

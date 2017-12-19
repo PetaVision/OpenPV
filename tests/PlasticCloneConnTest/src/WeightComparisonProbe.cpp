@@ -6,8 +6,8 @@
  */
 
 #include "WeightComparisonProbe.hpp"
-
 #include <cstring>
+#include <delivery/HyPerDeliveryFacade.hpp>
 
 namespace PV {
 
@@ -30,6 +30,23 @@ int WeightComparisonProbe::communicateInitInfo(
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnB")));
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnC")));
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnD")));
+
+   for (auto &c : mConnectionList) {
+      if (!c->getInitInfoCommunicatedFlag()) {
+         return PV_POSTPONE;
+      }
+      auto *deliveryComponent = c->getComponentByType<HyPerDeliveryFacade>();
+      pvAssert(deliveryComponent);
+      auto *weightsPair = c->getComponentByType<WeightsPair>();
+      pvAssert(weightsPair);
+      bool deliverPostPerspective = deliveryComponent->getUpdateGSynFromPostPerspective();
+      if (deliverPostPerspective) {
+         weightsPair->needPost();
+      }
+      else {
+         weightsPair->needPre();
+      }
+   }
    return PV_SUCCESS;
 }
 
