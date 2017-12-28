@@ -25,6 +25,7 @@ class Buffer {
    void crop(int newWidth, int newHeight, enum Anchor anchor);
    void grow(int newWidth, int newHeight, enum Anchor anchor);
    void translate(int offsetX, int offsetY);
+   void flip(bool xFlip, bool yFlip);
    std::vector<T> asVector() const { return mData; }
    int getHeight() const { return mHeight; }
    int getWidth() const { return mWidth; }
