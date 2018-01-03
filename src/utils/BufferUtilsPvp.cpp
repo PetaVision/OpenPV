@@ -31,20 +31,17 @@ WeightHeader buildWeightHeader(
    baseHeader.ny         = preLayerNy;
    baseHeader.nf         = preLayerNf;
    baseHeader.numRecords = numArbors;
+   baseHeader.recordSize = 0;
 
    int numPatchItems = nxp * nyp * nfp;
    int numPatches    = preLayerNxExt * preLayerNyExt * preLayerNf;
    if (compress) {
-      std::size_t const patchSize = weightPatchSize<unsigned char>(numPatchItems);
-      baseHeader.recordSize       = numPatches * patchSize;
-      baseHeader.dataSize         = (int)sizeof(unsigned char);
-      baseHeader.dataType         = returnDataType<unsigned char>();
+      baseHeader.dataSize = (int)sizeof(unsigned char);
+      baseHeader.dataType = returnDataType<unsigned char>();
    }
    else {
-      std::size_t const patchSize = weightPatchSize<float>(numPatchItems);
-      baseHeader.recordSize       = numPatches * patchSize;
-      baseHeader.dataSize         = (int)sizeof(float);
-      baseHeader.dataType         = returnDataType<float>();
+      baseHeader.dataSize = (int)sizeof(float);
+      baseHeader.dataType = returnDataType<float>();
    }
    baseHeader.nxProcs    = 1;
    baseHeader.nyProcs    = 1;

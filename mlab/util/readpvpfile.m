@@ -48,15 +48,21 @@ switch hdr.filetype
         numframes = hdr.nbands;
         % framesize is variable
     case 3 % PVP_WGT_FILE_TYPE % HyPerConns that aren't KernelConns
-        framesize = hdr.recordsize*hdr.numrecords+hdr.headersize;
+        patchsize = hdr.additional(1) * hdr.additional(2) * hdr.additional(3);
+        recordsize = (hdr.datasize * patchsize + 8) * hdr.additional(6);
+        numarbors = hdr.numrecords;
+        framesize = recordsize*numarbors+hdr.headersize;
         numframes = filedata(1).bytes/framesize;
     case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
-        nxprocs = hdr.nxGlobal/hdr.nx;
-        nyprocs = hdr.nyGlobal/hdr.ny;
+        nxprocs = hdr.nxExtended/hdr.nx;
+        nyprocs = hdr.nyExtended/hdr.ny;
         framesize = hdr.recordsize*hdr.datasize*nxprocs*nyprocs+8;
         numframes = hdr.nbands;
     case 5 % PVP_KERNEL_FILE_TYPE
-        framesize = hdr.recordsize*hdr.nbands+hdr.headersize;
+        patchsize = hdr.additional(1) * hdr.additional(2) * hdr.additional(3);
+        recordsize = (hdr.datasize * patchsize + 8) * hdr.additional(6);
+        numarbors = hdr.numrecords;
+        framesize = recordsize*numarbors+hdr.headersize;
         numframes = filedata(1).bytes/framesize;
     case 6 % PVP_ACT_SPARSEVALUES_FILE_TYPE
         numframes = hdr.nbands;
@@ -123,8 +129,7 @@ if isempty(errorstring)
                 data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
             end%for %% last_frame
         case 3 % PVP_WGT_FILE_TYPE
-            %fseek(fid,0,'bof');
-            fseek(fid, (start_frame-1)*(data_size*hdr.recordsize + hdr.headersize + 8), 'bof');
+            fseek(fid, (start_frame-1)*framesize, 'bof');
             for f=start_frame:lastframe
                 hdr = readpvpheader(fid,ftell(fid));
                 hdr = rmfield(hdr,'additional');
@@ -195,7 +200,7 @@ if isempty(errorstring)
         case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
             fseek(fid,(start_frame-1)*(hdr.recordsize*4 + 8), 'cof');
             for f=start_frame:lastframe
-                data_tmp = struct('time',0,'values',zeros(hdr.nxGlobal,hdr.nyGlobal,hdr.nf));
+                data_tmp = struct('time',0,'values',zeros(hdr.nxExtended,hdr.nyExtended,hdr.nf));
                 data_tmp.time = fread(fid,1,'float64');
                 for y=1:nyprocs
                     yidx = (1:hdr.ny)+(y-1)*hdr.ny;

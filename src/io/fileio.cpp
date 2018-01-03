@@ -617,12 +617,12 @@ int pvp_copy_patches(
    // &buf[k*(numweights*datasize+2*sizeof(short)+sizeof(int))].
    unsigned char *cptr = buf;
    const int patchsize = nxp * nyp * nfp;
-   for (int k = 0; k < numDataPatches; k++) {
-      const float *data    = dataStart + k * patchsize;
+   for (int n = 0; n < numDataPatches; n++) {
+      const float *data    = dataStart + n * patchsize;
       unsigned short *nxny = (unsigned short *)cptr;
       if (patchGeometry) {
-         nxny[0] = patchGeometry[k]->nx;
-         nxny[1] = patchGeometry[k]->ny;
+         nxny[0] = patchGeometry[n]->nx;
+         nxny[1] = patchGeometry[n]->ny;
       }
       else {
          nxny[0] = (unsigned short)nxp;
@@ -631,7 +631,7 @@ int pvp_copy_patches(
       cptr += 2 * sizeof(unsigned short);
       unsigned int *offsetptr = (unsigned int *)cptr;
       if (patchGeometry) {
-         *offsetptr = patchGeometry[k]->offset;
+         *offsetptr = patchGeometry[n]->offset;
       }
       else {
          *offsetptr = 0;
@@ -1103,7 +1103,21 @@ void setInPosByFrame(BufferUtils::WeightHeader &header, FileStream *fileStream, 
    fileStream->setInPos(0L, true /*from beginning*/);
    for (int f = 0; f < frameNumber; f++) {
       fileStream->read(&header, sizeof(header));
-      long recordSize = (long)(header.baseHeader.recordSize * header.baseHeader.numRecords);
+      int patchSizeOverall = header.nxp * header.nyp * header.nfp;
+      std::size_t patchSizeInPvp;
+      if (header.baseHeader.dataType == BufferUtils::returnDataType<unsigned char>()) {
+         patchSizeInPvp = BufferUtils::weightPatchSize<unsigned char>(patchSizeOverall);
+      }
+      else if (header.baseHeader.dataType == BufferUtils::returnDataType<float>()) {
+         patchSizeInPvp = BufferUtils::weightPatchSize<float>(patchSizeOverall);
+      }
+      else {
+         Fatal() << "setInPosByFrame called for \"" << fileStream->getFileName()
+                 << "\" with invalid dataType in header.\n";
+      }
+      long numPatches = (long)header.numPatches;
+      long numArbors  = (long)header.baseHeader.numRecords;
+      long recordSize = (long)patchSizeInPvp * numPatches * numArbors;
       fileStream->setInPos(recordSize, false /*relative to current point*/);
    }
    fileStream->read(&header, sizeof(header));
@@ -1203,16 +1217,25 @@ void writeSharedWeights(
          maxVal);
    fileStream->write(&header, sizeof(header));
 
-   std::size_t const localSize = header.baseHeader.recordSize;
+   int const numWeightsInPatch = nxp * nyp * nfp;
+   std::size_t patchSizeInPvp;
+   if (compress) {
+      patchSizeInPvp = BufferUtils::weightPatchSize<unsigned char>(numWeightsInPatch);
+   }
+   else {
+      patchSizeInPvp = BufferUtils::weightPatchSize<float>(numWeightsInPatch);
+   }
+   std::size_t const numPatches =
+         (std::size_t)numPatchesX * (std::size_t)numPatchesY * (std::size_t)numPatchesF;
+   std::size_t const localSize = numPatches * patchSizeInPvp;
    std::vector<unsigned char> arborDataInPvpFormat(localSize);
-   int const numPatches = numPatchesX * numPatchesY * numPatchesF;
    for (int arbor = 0; arbor < numArbors; arbor++) {
       float const *arborStart = dataStart[arbor];
       pvp_copy_patches(
             arborDataInPvpFormat.data(),
             nullptr,
             arborStart,
-            numPatches,
+            (int)numPatches,
             nxp,
             nyp,
             nfp,
