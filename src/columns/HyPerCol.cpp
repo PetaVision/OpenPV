@@ -213,11 +213,14 @@ int HyPerCol::initialize(PV_Init *initObj) {
          }
       }
       else {
-         BaseObject *addedObject = Factory::instance()->createByKeyword(kw, name, this);
+         BaseObject *addedObject = nullptr;
+         try {
+            addedObject = Factory::instance()->createByKeyword(kw, name, this);
+         } catch (std::exception const &e) {
+            Fatal() << e.what() << std::endl;
+         }
          if (addedObject == nullptr) {
-            if (globalRank() == 0) {
-               ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
-            }
+            ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
             return PV_FAILURE;
          }
          addObject(addedObject);
