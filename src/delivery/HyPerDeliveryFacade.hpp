@@ -44,7 +44,7 @@ class HyPerDeliveryFacade : public BaseDelivery {
     * post-neuron pulls from its receptive field. This avoids issues of collisions when
     * parallelizing, but is not able to take advantage of a sparse pre-layer.
     *
-    * If true, the connection loops over presynaptic neurons, and each pre-neuron pushes to its
+    * If false, the connection loops over presynaptic neurons, and each pre-neuron pushes to its
     * region of influence. This allows efficiency for sparse pre-layers, but requires extra memory
     * to manage potential collisions as multiple pre-neurons write to the same post-neuron.
     */

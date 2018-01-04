@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <climits>
 #include <cmath>
+#include <connections/PoolingConn.hpp>
 #include <utils/BufferUtilsMPI.hpp>
 
 PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe() { initialize_base(); }
@@ -90,7 +91,7 @@ int PoolingConnCheckpointerTestProbe::initOutputLayer(
 
 int PoolingConnCheckpointerTestProbe::initConnection(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   mConnection = message->lookup<PV::HyPerConn>(std::string("InputToOutput"));
+   mConnection = message->lookup<PV::PoolingConn>(std::string("InputToOutput"));
    FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {
       return PV_POSTPONE;

@@ -11,7 +11,7 @@
 #include "probes/ColProbe.hpp"
 
 #include "CorrectState.hpp"
-#include "connections/HyPerConn.hpp"
+#include "connections/PoolingConn.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/InputLayer.hpp"
 
@@ -87,7 +87,7 @@ class PoolingConnCheckpointerTestProbe : public PV::ColProbe {
    bool mValuesSet              = false;
    PV::InputLayer *mInputLayer  = nullptr;
    PV::HyPerLayer *mOutputLayer = nullptr;
-   PV::HyPerConn *mConnection   = nullptr;
+   PV::PoolingConn *mConnection = nullptr;
    CorrectState *mCorrectState  = nullptr;
    bool mTestFailed             = false;
 };

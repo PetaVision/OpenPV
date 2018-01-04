@@ -55,7 +55,7 @@
 // #include "connections/ImprintConn.hpp"
 #include "connections/MomentumConn.hpp"
 #include "connections/PlasticCloneConn.hpp"
-// #include "connections/PoolingConn.hpp"
+#include "connections/PoolingConn.hpp"
 #include "connections/RescaleConn.hpp"
 #include "connections/TransposeConn.hpp"
 // #include "connections/TransposePoolingConn.hpp"
@@ -167,7 +167,7 @@ int Factory::registerCoreKeywords() {
    // registerKeyword("ImprintConn", Factory::create<ImprintConn>);
    registerKeyword("MomentumConn", Factory::create<MomentumConn>);
    registerKeyword("PlasticCloneConn", Factory::create<PlasticCloneConn>);
-   // registerKeyword("PoolingConn", Factory::create<PoolingConn>);
+   registerKeyword("PoolingConn", Factory::create<PoolingConn>);
    registerKeyword("RescaleConn", Factory::create<RescaleConn>);
    registerKeyword("TransposeConn", Factory::create<TransposeConn>);
    // registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
