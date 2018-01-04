@@ -162,14 +162,165 @@ void PoolingDelivery::deliver() {
    }
 }
 
-void PoolingDelivery::deliverPostsynapticPerspective() {}
+void PoolingDelivery::deliverPostsynapticPerspective() {
+   PVLayerLoc const *sourceLoc = mPreLayer->getLayerLoc();
+   PVLayerLoc const *targetLoc = mPostLayer->getLayerLoc();
+   Weights *postWeights        = mWeightsPair->getPostWeights();
+
+   // Slightly inefficient to define the function pointer each time deliver() is called;
+   // but the real inefficiency is calling the function pointer in a tight for-loop.
+   // TODO: Use templating instead of function pointer.
+   void (*accumulateFunctionPointer)(
+         int kPreRes, int nk, float *v, float *a, float *w, void *auxPtr, int sf) = nullptr;
+   switch (mAccumulateType) {
+      case MAXPOOLING: accumulateFunctionPointer = pvpatch_max_pooling_from_post; break;
+      case SUMPOOLING: accumulateFunctionPointer = pvpatch_sum_pooling_from_post; break;
+      case AVGPOOLING:
+         accumulateFunctionPointer = pvpatch_sum_pooling_from_post;
+         // Division by the number of weights happens outside the call to the accumulate function.
+         break;
+      default:
+         pvAssert(0);
+         // Only MAXPOOLING, SUMPOOLING, AVGPOOLING are allowed.
+         // UNDEFINED is the only possible value of mAccumulateType, but the type should be
+         // defined before this function is ever called.
+         break;
+   }
+
+   float w = 1.0f;
+   if (mAccumulateType == AVGPOOLING) {
+      float relative_XScale = pow(2, (getPostLayer()->getXScale() - getPreLayer()->getXScale()));
+      float relative_YScale = pow(2, (getPostLayer()->getYScale() - getPreLayer()->getYScale()));
+      float nxp             = (float)mWeightsPair->getPatchSizeX();
+      float nyp             = (float)mWeightsPair->getPatchSizeY();
+      w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
+   }
+
+   int const numAxonalArbors = mConnectionData->getNumAxonalArbors();
+   for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
+      int delay                = mConnectionData->getDelay(arbor);
+      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
+
+      float *gSyn = getPostLayer()->getChannel(getChannelCode());
+      pvAssert(gSyn);
+
+      // Get number of neurons restricted target
+      int const numPostRestricted = mPostLayer->getNumNeurons();
+
+      int const sourceNx = sourceLoc->nx;
+      int const sourceNy = sourceLoc->ny;
+      int const sourceNf = sourceLoc->nf;
+      int const targetNx = targetLoc->nx;
+      int const targetNy = targetLoc->ny;
+      int const targetNf = targetLoc->nf;
+
+      const PVHalo *sourceHalo = &sourceLoc->halo;
+      const PVHalo *targetHalo = &targetLoc->halo;
+
+      // get source layer's extended y stride
+      int sy = (sourceNx + sourceHalo->lt + sourceHalo->rt) * sourceNf;
+
+      clearGateIdxBuffer();
+      float *gatePatchHead = nullptr;
+      if (mNeedPostIndexLayer) {
+         gatePatchHead = mPostIndexLayer->getChannel(CHANNEL_EXC);
+      }
+
+      float resetVal = 0.0f;
+      if (mAccumulateType == MAXPOOLING) {
+         resetVal = -INFINITY;
+      }
+
+      for (int b = 0; b < parent->getNBatch(); b++) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+         for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++) {
+            float *activityBatch = activityCube.data
+                                   + b * (sourceNx + sourceHalo->rt + sourceHalo->lt)
+                                           * (sourceNy + sourceHalo->up + sourceHalo->dn)
+                                           * sourceNf;
+            float *gSynBatchHead = gSyn + b * targetNx * targetNy * targetNf;
+
+            // Change restricted to extended post neuron
+            int kTargetExt = kIndexExtended(
+                  kTargetRes,
+                  targetNx,
+                  targetNy,
+                  targetNf,
+                  targetHalo->lt,
+                  targetHalo->rt,
+                  targetHalo->dn,
+                  targetHalo->up);
+            long startSourceExt = postWeights->getGeometry()->getUnshrunkenStart(kTargetExt);
+
+            // Calculate target's start of gsyn
+            float *gSynPatchPos = gSynBatchHead + kTargetRes;
+            // Initialize patch as a huge negative number
+            *gSynPatchPos = resetVal;
+
+            float *gatePatchPos = nullptr;
+            if (mNeedPostIndexLayer) {
+               gatePatchPos = gatePatchHead + b * mPostIndexLayer->getNumNeurons() + kTargetRes;
+               // Initialize gatePatchPos as a negative number
+               *gatePatchPos = (float)-1;
+            }
+
+            float *activityStartBuf = &(activityBatch[startSourceExt]);
+
+            int sf           = postWeights->getPatchSizeF();
+            int yPatchSize   = postWeights->getPatchSizeY();
+            int numPerStride = postWeights->getPatchSizeX() * postWeights->getPatchSizeF();
+
+            const PVLayerLoc *postLoc = mPostLayer->getLayerLoc();
+            int const kfPost          = featureIndex(
+                  kTargetExt,
+                  postLoc->nx + postLoc->halo.lt + postLoc->halo.rt,
+                  postLoc->ny + postLoc->halo.dn + postLoc->halo.up,
+                  postLoc->nf);
+            int offset = kfPost;
+
+            for (int ky = 0; ky < yPatchSize; ky++) {
+               int kPreExt = startSourceExt + ky * sy + offset;
+               int const kxPreExt =
+                     kxPos(kPreExt,
+                           sourceLoc->nx + sourceLoc->halo.lt + sourceLoc->halo.rt,
+                           sourceLoc->ny + sourceLoc->halo.dn + sourceLoc->halo.up,
+                           sourceLoc->nf);
+               int const kyPreExt =
+                     kyPos(kPreExt,
+                           sourceLoc->nx + sourceLoc->halo.lt + sourceLoc->halo.rt,
+                           sourceLoc->ny + sourceLoc->halo.dn + sourceLoc->halo.up,
+                           sourceLoc->nf);
+               int const kfPre = featureIndex(
+                     kPreExt,
+                     sourceLoc->nx + sourceLoc->halo.lt + sourceLoc->halo.rt,
+                     sourceLoc->ny + sourceLoc->halo.dn + sourceLoc->halo.up,
+                     sourceLoc->nf);
+               int const kxPreGlobalExt = kxPreExt + sourceLoc->kx0;
+               int const kyPreGlobalExt = kyPreExt + sourceLoc->ky0;
+               int const kPreGlobalExt  = kIndex(
+                     kxPreGlobalExt,
+                     kyPreGlobalExt,
+                     kfPre,
+                     sourceLoc->nxGlobal + sourceLoc->halo.lt + sourceLoc->halo.rt,
+                     sourceLoc->nyGlobal + sourceLoc->halo.up + sourceLoc->halo.dn,
+                     sourceLoc->nf);
+
+               float *activityY = &(activityStartBuf[ky * sy + offset]);
+
+               (accumulateFunctionPointer)(
+                     kPreGlobalExt, numPerStride, gSynPatchPos, activityY, &w, gatePatchPos, sf);
+            }
+         }
+      }
+   }
+}
 
 void PoolingDelivery::deliverPresynapticPerspective() {
    PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
    PVLayerLoc const *postLoc = getPostLayer()->getLayerLoc();
    Weights *preWeights       = mWeightsPair->getPreWeights();
-
-   int const numAxonalArbors = mConnectionData->getNumAxonalArbors();
 
    // Slightly inefficient to define the function pointer each time deliver() is called;
    // but the real inefficiency is calling the function pointer in a tight for-loop.
@@ -200,6 +351,7 @@ void PoolingDelivery::deliverPresynapticPerspective() {
       w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
    }
 
+   int const numAxonalArbors = mConnectionData->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       int delay                = mConnectionData->getDelay(arbor);
       PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
@@ -318,33 +470,33 @@ void PoolingDelivery::deliverPresynapticPerspective() {
 #endif // PV_USE_OPENMP_THREADS
 
             Patch const *patch        = &preWeights->getPatch(kPreExt);
-            const int nk              = patch->nx * preWeights->getPatchSizeF();
-            const int ny              = patch->ny;
-            const int sy              = postLoc->nx * postLoc->nf; // stride in restricted layer
+            int const nk              = patch->nx * preWeights->getPatchSizeF();
+            int const ny              = patch->ny;
+            int const sy              = postLoc->nx * postLoc->nf; // stride in restricted layer
             float *weightDataStart    = nullptr;
             float *postPatchStart     = &gSynPatchHead[gSynPatchStart[kPreExt]];
             float *postGatePatchStart = &gatePatchHead[gSynPatchStart[kPreExt]];
 
-            const int kxPreExt =
+            int const kxPreExt =
                   kxPos(kPreExt,
                         preLoc->nx + preLoc->halo.lt + preLoc->halo.rt,
                         preLoc->ny + preLoc->halo.dn + preLoc->halo.up,
                         preLoc->nf);
-            const int kyPreExt =
+            int const kyPreExt =
                   kyPos(kPreExt,
                         preLoc->nx + preLoc->halo.lt + preLoc->halo.rt,
                         preLoc->ny + preLoc->halo.dn + preLoc->halo.up,
                         preLoc->nf);
-            const int kfPre = featureIndex(
+            int const kfPre = featureIndex(
                   kPreExt,
                   preLoc->nx + preLoc->halo.lt + preLoc->halo.rt,
                   preLoc->ny + preLoc->halo.dn + preLoc->halo.up,
                   preLoc->nf);
 
-            const int kxPreGlobalExt = kxPreExt + preLoc->kx0;
-            const int kyPreGlobalExt = kyPreExt + preLoc->ky0;
+            int const kxPreGlobalExt = kxPreExt + preLoc->kx0;
+            int const kyPreGlobalExt = kyPreExt + preLoc->ky0;
 
-            const int kPreGlobalExt = kIndex(
+            int const kPreGlobalExt = kIndex(
                   kxPreGlobalExt,
                   kyPreGlobalExt,
                   kfPre,

@@ -28,16 +28,14 @@ void pvpatch_max_pooling_from_post(
       float *v,
       float *a,
       float *w,
-      float dt_factor,
       void *auxPtr,
       int sf);
-void pvpatch_sumpooling_from_post(
+void pvpatch_sum_pooling_from_post(
       int kPreRes,
       int nk,
       float *RESTRICT v,
       float *RESTRICT a,
       float *RESTRICT w,
-      float dt_factor,
       void *auxPtr,
       int sf);
 } // namespace PV

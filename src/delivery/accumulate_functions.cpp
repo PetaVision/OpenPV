@@ -28,7 +28,6 @@ void pvpatch_max_pooling_from_post(
       float *RESTRICT v,
       float *RESTRICT a,
       float *RESTRICT w,
-      float dt_factor,
       void *auxPtr,
       int sf) {
    float vmax  = *v;
@@ -63,20 +62,19 @@ void pvpatch_sum_pooling(
    }
 }
 
-void pvpatch_sumpooling_from_post(
+void pvpatch_sum_pooling_from_post(
       int kPreExt,
       int nk,
       float *RESTRICT v,
       float *RESTRICT a,
       float *RESTRICT w,
-      float dt_factor,
       void *auxPtr,
       int sf) {
    float dv = 0.0f;
    for (int k = 0; k < nk; k += sf) {
       dv += a[k];
    }
-   *v += dt_factor * dv * w[0];
+   *v += dv * w[0];
 }
 
 } // namespace PV
