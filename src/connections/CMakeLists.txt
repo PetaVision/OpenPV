@@ -5,7 +5,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 #   ${SUBDIR}/GapConn.cpp
    ${SUBDIR}/HyPerConn.cpp
    ${SUBDIR}/IdentConn.cpp
-#   ${SUBDIR}/ImprintConn.cpp
    ${SUBDIR}/MomentumConn.cpp
    ${SUBDIR}/PlasticCloneConn.cpp
    ${SUBDIR}/PoolingConn.cpp
@@ -21,7 +20,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 #   ${SUBDIR}/GapConn.hpp
    ${SUBDIR}/HyPerConn.hpp
    ${SUBDIR}/IdentConn.hpp
-#   ${SUBDIR}/ImprintConn.hpp
    ${SUBDIR}/MomentumConn.hpp
    ${SUBDIR}/PlasticCloneConn.hpp
    ${SUBDIR}/PoolingConn.hpp

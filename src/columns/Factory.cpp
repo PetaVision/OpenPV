@@ -52,7 +52,6 @@
 // #include "connections/GapConn.hpp"
 #include "connections/HyPerConn.hpp"
 #include "connections/IdentConn.hpp"
-// #include "connections/ImprintConn.hpp"
 #include "connections/MomentumConn.hpp"
 #include "connections/PlasticCloneConn.hpp"
 #include "connections/PoolingConn.hpp"
@@ -164,7 +163,6 @@ int Factory::registerCoreKeywords() {
    // registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
    // registerKeyword("GapConn", Factory::create<GapConn>);
    registerKeyword("IdentConn", Factory::create<IdentConn>);
-   // registerKeyword("ImprintConn", Factory::create<ImprintConn>);
    registerKeyword("MomentumConn", Factory::create<MomentumConn>);
    registerKeyword("PlasticCloneConn", Factory::create<PlasticCloneConn>);
    registerKeyword("PoolingConn", Factory::create<PoolingConn>);
