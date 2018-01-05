@@ -66,7 +66,7 @@ class BaseConnection : public BaseObject, public Subject {
    virtual BaseDelivery *createDeliveryObject();
    virtual BaseWeightUpdater *createWeightUpdater();
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    int respondConnectionWriteParams(std::shared_ptr<ConnectionWriteParamsMessage const> message);
 

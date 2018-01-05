@@ -22,7 +22,7 @@ class IdentConn : public BaseConnection {
    IdentConn();
    int initialize(const char *name, HyPerCol *hc);
 
-   virtual ConnectionData *createConnectionData();
+   virtual ConnectionData *createConnectionData() override;
 
    virtual BaseDelivery *createDeliveryObject() override;
 }; // class IdentConn

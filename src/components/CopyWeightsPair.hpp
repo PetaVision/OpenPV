@@ -61,8 +61,8 @@ class CopyWeightsPair : public WeightsPair {
 
    virtual ~CopyWeightsPair();
 
-   virtual void needPre();
-   virtual void needPost();
+   virtual void needPre() override;
+   virtual void needPost() override;
 
    void copy();
 
@@ -77,7 +77,7 @@ class CopyWeightsPair : public WeightsPair {
 
    virtual int setDescription() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

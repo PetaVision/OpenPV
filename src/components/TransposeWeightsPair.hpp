@@ -48,7 +48,7 @@ class TransposeWeightsPair : public WeightsPair {
     * @brief writeStep: TransposeWeightsPair does not checkpoint, so writeCompressedCheckpoints is
     * always set to false.
     */
-   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) override;
 
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
 
@@ -71,7 +71,7 @@ class TransposeWeightsPair : public WeightsPair {
 
    virtual int setDescription() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

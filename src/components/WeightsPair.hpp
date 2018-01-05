@@ -57,7 +57,7 @@ class WeightsPair : public BaseObject {
 
    virtual ~WeightsPair();
 
-   int respond(std::shared_ptr<BaseMessage const> message);
+   int respond(std::shared_ptr<BaseMessage const> message) override;
 
    int getPatchSizeX() const { return mPatchSizeX; }
    int getPatchSizeY() const { return mPatchSizeY; }
@@ -96,7 +96,7 @@ class WeightsPair : public BaseObject {
 
    virtual int setDescription() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    int
    respondConnectionFinalizeUpdate(std::shared_ptr<ConnectionFinalizeUpdateMessage const> message);

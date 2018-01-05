@@ -23,7 +23,7 @@ class SharedWeightsPair : public WeightsPair {
    /**
     * @brief sharedWeights: SharedWeightsPair always sets sharedWeights to true
     */
-   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
    /** @} */ // end of SharedWeightsPair parameters
 
   public:

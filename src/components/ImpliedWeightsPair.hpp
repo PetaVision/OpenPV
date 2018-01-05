@@ -27,27 +27,27 @@ class ImpliedWeightsPair : public WeightsPair {
    /**
     * @brief sharedWeights: ImpliedWeightsPair does not use sharedWeights
     */
-   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief writeStep: ImpliedWeightsPair does not write output
     */
-   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief sharedWeights: ImpliedWeightsPair does not write output
     */
-   virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief sharedWeights: ImpliedWeightsPair does not write output
     */
-   virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief sharedWeights: ImpliedWeightsPair does not write checkpoints
     */
-   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) override;
 
    /** @} */ // end of ImpliedWeightsPair parameters
 
@@ -70,9 +70,9 @@ class ImpliedWeightsPair : public WeightsPair {
 
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
-   virtual void finalizeUpdate(double timestamp, double deltaTime);
+   virtual void finalizeUpdate(double timestamp, double deltaTime) override;
 
-   virtual void outputState(double timestamp);
+   virtual void outputState(double timestamp) override;
 };
 
 } // namespace PV

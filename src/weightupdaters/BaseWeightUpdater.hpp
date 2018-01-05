@@ -43,7 +43,7 @@ class BaseWeightUpdater : public BaseObject {
 
    virtual int setDescription() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
    bool mPlasticityFlag = true;

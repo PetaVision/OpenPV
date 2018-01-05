@@ -54,7 +54,7 @@ class CloneWeightsPair : public WeightsPair {
     * @brief writeStep: CloneWeightsPair does not checkpoint, so writeCompressedCheckpoints is
     * always set to false.
     */
-   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) override;
 
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
 
@@ -65,8 +65,8 @@ class CloneWeightsPair : public WeightsPair {
 
    virtual ~CloneWeightsPair();
 
-   virtual void needPre();
-   virtual void needPost();
+   virtual void needPre() override;
+   virtual void needPost() override;
 
    /**
     * Synchronizes the margins of this connection's and the original connection's presynaptic
@@ -91,7 +91,7 @@ class CloneWeightsPair : public WeightsPair {
 
    virtual int setDescription() override;
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -102,7 +102,7 @@ class CloneWeightsPair : public WeightsPair {
 
    virtual int registerData(Checkpointer *checkpointer) override;
 
-   virtual void finalizeUpdate(double timestamp, double deltaTime);
+   virtual void finalizeUpdate(double timestamp, double deltaTime) override;
 
    virtual void outputState(double timestamp) override;
 
