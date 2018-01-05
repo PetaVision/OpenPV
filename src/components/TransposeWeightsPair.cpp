@@ -82,6 +82,7 @@ int TransposeWeightsPair::communicateInitInfo(
    auto hierarchy = message->mHierarchy;
    ObjectMapComponent *objectMapComponent =
          mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+   pvAssert(objectMapComponent);
    HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(mOriginalConnName));
    if (originalConn == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {

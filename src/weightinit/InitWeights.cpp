@@ -114,7 +114,8 @@ void InitWeights::handleObsoleteFlag(std::string const &flagName) {
 
 int InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
-   int status        = BaseObject::communicateInitInfo(message);
+   pvAssert(weightsPair);
+   int status = BaseObject::communicateInitInfo(message);
    if (status != PV_SUCCESS) {
       return status;
    }

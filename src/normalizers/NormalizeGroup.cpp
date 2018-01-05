@@ -49,6 +49,7 @@ int NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
 
    ObjectMapComponent *objectMapComponent =
          mapLookupByType<ObjectMapComponent>(message->mHierarchy, getDescription());
+   pvAssert(objectMapComponent);
    HyPerConn *groupHeadConn =
          objectMapComponent->lookup<HyPerConn>(std::string(mNormalizeGroupName));
    mGroupHead = groupHeadConn->getComponentByType<NormalizeBase>();

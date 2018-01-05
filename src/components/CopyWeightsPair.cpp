@@ -70,7 +70,8 @@ int CopyWeightsPair::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto hierarchy           = message->mHierarchy;
    auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-   HyPerConn *originalConn  = objectMapComponent->lookup<HyPerConn>(std::string(mOriginalConnName));
+   pvAssert(objectMapComponent);
+   HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(mOriginalConnName));
    if (originalConn == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(

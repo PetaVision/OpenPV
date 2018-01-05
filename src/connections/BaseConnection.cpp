@@ -40,19 +40,11 @@ void BaseConnection::defineComponents() {
    if (mDeliveryObject) {
       addObserver(mDeliveryObject);
    }
-   mWeightUpdater = createWeightUpdater();
-   if (mWeightUpdater) {
-      addObserver(mWeightUpdater);
-   }
 }
 
 ConnectionData *BaseConnection::createConnectionData() { return new ConnectionData(name, parent); }
 
 BaseDelivery *BaseConnection::createDeliveryObject() { return new BaseDelivery(name, parent); }
-
-BaseWeightUpdater *BaseConnection::createWeightUpdater() {
-   return new BaseWeightUpdater(name, parent);
-}
 
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    for (auto &c : mComponentTable.getObjectVector()) {
@@ -72,9 +64,6 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
                std::dynamic_pointer_cast<ConnectionWriteParamsMessage const>(message)) {
       return respondConnectionWriteParams(castMessage);
    }
-   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionUpdateMessage const>(message)) {
-      return respondConnectionUpdate(castMessage);
-   }
    else if (
          auto castMessage =
                std::dynamic_pointer_cast<ConnectionFinalizeUpdateMessage const>(message)) {
@@ -91,14 +80,6 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
 int BaseConnection::respondConnectionWriteParams(
       std::shared_ptr<ConnectionWriteParamsMessage const> message) {
    return writeParams();
-}
-
-int BaseConnection::respondConnectionUpdate(
-      std::shared_ptr<ConnectionUpdateMessage const> message) {
-   if (mWeightUpdater) {
-      mWeightUpdater->updateState(message->mTime, message->mDeltaT);
-   }
-   return PV_SUCCESS;
 }
 
 int BaseConnection::respondConnectionFinalizeUpdate(
@@ -129,7 +110,8 @@ int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
          communicateMessage,
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 
-   auto *deliveryObject  = getComponentByType<BaseDelivery>();
+   auto *deliveryObject = getComponentByType<BaseDelivery>();
+   pvAssert(deliveryObject);
    HyPerLayer *postLayer = deliveryObject->getPostLayer();
    if (postLayer != nullptr) {
       postLayer->addRecvConn(this);

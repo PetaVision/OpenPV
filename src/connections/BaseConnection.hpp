@@ -14,7 +14,6 @@
 #include "delivery/BaseDelivery.hpp"
 #include "observerpattern/Subject.hpp"
 #include "utils/MapLookupByType.hpp"
-#include "weightupdaters/BaseWeightUpdater.hpp"
 
 namespace PV {
 
@@ -53,7 +52,6 @@ class BaseConnection : public BaseObject, public Subject {
    ChannelType getChannelCode() const { return mDeliveryObject->getChannelCode(); }
    int getDelay(int arbor) const { return mConnectionData->getDelay(arbor); }
    bool getReceiveGpu() const { return mDeliveryObject->getReceiveGpu(); }
-   bool getPlasticityFlag() const { return mWeightUpdater->getPlasticityFlag(); }
 
   protected:
    BaseConnection();
@@ -64,13 +62,10 @@ class BaseConnection : public BaseObject, public Subject {
 
    virtual ConnectionData *createConnectionData();
    virtual BaseDelivery *createDeliveryObject();
-   virtual BaseWeightUpdater *createWeightUpdater();
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    int respondConnectionWriteParams(std::shared_ptr<ConnectionWriteParamsMessage const> message);
-
-   int respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message);
 
    int
    respondConnectionFinalizeUpdate(std::shared_ptr<ConnectionFinalizeUpdateMessage const> message);
@@ -90,9 +85,8 @@ class BaseConnection : public BaseObject, public Subject {
    ObserverTable mComponentTable;
 
   private:
-   ConnectionData *mConnectionData   = nullptr;
-   BaseDelivery *mDeliveryObject     = nullptr;
-   BaseWeightUpdater *mWeightUpdater = nullptr;
+   ConnectionData *mConnectionData = nullptr;
+   BaseDelivery *mDeliveryObject   = nullptr;
 
 }; // class BaseConnection
 

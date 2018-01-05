@@ -216,6 +216,7 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
 
    if (mTriggerFlag) {
       auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(componentMap, desc);
+      pvAssert(objectMapComponent);
       mTriggerLayer = objectMapComponent->lookup<HyPerLayer>(std::string(mTriggerLayerName));
 
       // Although weightUpdatePeriod and weightUpdateTime are being set here, if triggerLayerName

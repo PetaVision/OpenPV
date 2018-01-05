@@ -110,6 +110,7 @@ int PoolingDelivery::communicateInitInfo(
       return status;
    }
    mWeightsPair = mapLookupByType<ImpliedWeightsPair>(message->mHierarchy, getDescription());
+   pvAssert(mWeightsPair);
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
       return PV_POSTPONE;
    }

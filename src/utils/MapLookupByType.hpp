@@ -14,7 +14,9 @@ namespace PV {
 
 /**
  * Given a map with strings for keys and pointers to Observers for values,
- * this function template looks for
+ * this function template looks for a pointer to an observer that casts
+ * to the template parameter. If there is none, it returns the null pointer.
+ * If there is more than one, it exits with an error.
  */
 template <typename S>
 S *mapLookupByType(std::map<std::string, Observer *> const &objectMap, std::string const &ident) {
@@ -31,10 +33,6 @@ S *mapLookupByType(std::map<std::string, Observer *> const &objectMap, std::stri
          foundObject = castObject;
       }
    }
-   FatalIf(
-         foundObject == nullptr,
-         "mapLookupByType called with no objects of the specified type in %s.\n",
-         ident.c_str());
 
    return foundObject;
 } // mapLookupByType

@@ -38,6 +38,10 @@ void HyPerConn::defineComponents() {
    if (mWeightNormalizer) {
       addObserver(mWeightNormalizer);
    }
+   mWeightUpdater = createWeightUpdater();
+   if (mWeightUpdater) {
+      addObserver(mWeightUpdater);
+   }
 }
 
 WeightsPair *HyPerConn::createWeightsPair() { return new WeightsPair(name, parent); }
@@ -140,6 +144,9 @@ int HyPerConn::respond(std::shared_ptr<BaseMessage const> message) {
    if (status != PV_SUCCESS) {
       return status;
    }
+   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionUpdateMessage const>(message)) {
+      return respondConnectionUpdate(castMessage);
+   }
    else if (
          auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(message)) {
       return respondConnectionNormalize(castMessage);
@@ -147,6 +154,14 @@ int HyPerConn::respond(std::shared_ptr<BaseMessage const> message) {
    else {
       return status;
    }
+}
+
+int HyPerConn::respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message) {
+   auto *weightUpdater = getComponentByType<BaseWeightUpdater>();
+   if (weightUpdater) {
+      weightUpdater->updateState(message->mTime, message->mDeltaT);
+   }
+   return PV_SUCCESS;
 }
 
 int HyPerConn::respondConnectionNormalize(

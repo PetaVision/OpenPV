@@ -46,8 +46,12 @@ int dumpweights(HyPerCol *hc, int argc, char *argv[]) {
    bool existsgenconn = false;
    for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
       HyPerConn *conn = dynamic_cast<HyPerConn *>(obj);
+      if (conn == nullptr) {
+         continue;
+      }
       // Only test plastic conns
-      if (conn != nullptr and conn->getPlasticityFlag()) {
+      auto *weightUpdater = conn->getComponentByType<BaseWeightUpdater>();
+      if (weightUpdater->getPlasticityFlag()) {
          existsgenconn = true;
          int status1   = dumponeweight(conn);
          if (status == PV_SUCCESS)

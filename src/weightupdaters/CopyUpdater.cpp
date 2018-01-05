@@ -40,7 +40,8 @@ int CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
    auto hierarchy           = message->mHierarchy;
    auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-   HyPerConn *originalConn  = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
+   pvAssert(objectMapComponent);
+   HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
    pvAssert(originalConn);
    auto *originalWeightUpdater = originalConn->getComponentByType<BaseWeightUpdater>();
    if (originalWeightUpdater and !originalWeightUpdater->getInitInfoCommunicatedFlag()) {

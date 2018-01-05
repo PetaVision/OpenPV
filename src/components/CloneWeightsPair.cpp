@@ -89,6 +89,7 @@ int CloneWeightsPair::communicateInitInfo(
    auto hierarchy = message->mHierarchy;
    ObjectMapComponent *objectMapComponent =
          mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+   pvAssert(objectMapComponent);
    mOriginalConn = objectMapComponent->lookup<HyPerConn>(std::string(mOriginalConnName));
    if (mOriginalConn == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {

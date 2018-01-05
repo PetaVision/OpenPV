@@ -105,6 +105,7 @@ int NormalizeBase::respondConnectionNormalize(
 
 int NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
+   pvAssert(weightsPair);
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return PV_POSTPONE;
    }

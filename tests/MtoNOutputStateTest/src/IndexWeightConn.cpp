@@ -32,6 +32,7 @@ BaseWeightUpdater *IndexWeightConn::createWeightUpdater() {
 int IndexWeightConn::initializeState() {
    auto *weightUpdater =
          mapLookupByType<IndexWeightUpdater>(mComponentTable.getObjectMap(), getDescription());
+   pvAssert(weightUpdater);
    weightUpdater->initializeWeights();
    return PV_SUCCESS;
 }
