@@ -178,4 +178,8 @@ void HyPerDeliveryFacade::deliverUnitInput(float *recvBuffer) {
    }
 }
 
+bool HyPerDeliveryFacade::isAllInputReady() {
+   return getChannelCode() == CHANNEL_NOUPDATE ? true : mDeliveryIntern->isAllInputReady();
+}
+
 } // end namespace PV

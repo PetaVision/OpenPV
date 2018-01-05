@@ -46,6 +46,11 @@ class BaseDelivery : public BaseObject {
 
    virtual void deliverUnitInput(float *recvBuffer) {}
 
+   /**
+    * A virtual method to indicate whether the presynaptic layer's input is ready to be delivered.
+    */
+   virtual bool isAllInputReady() { return true; }
+
    ChannelType getChannelCode() const { return mChannelCode; }
    bool getReceiveGpu() const { return mReceiveGpu; }
    HyPerLayer *getPreLayer() const { return mPreLayer; }

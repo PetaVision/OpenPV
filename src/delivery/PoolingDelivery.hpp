@@ -76,6 +76,8 @@ class PoolingDelivery : public BaseDelivery {
 
    virtual void deliver() override;
 
+   virtual bool isAllInputReady() override;
+
    /**
     * Translates the input string into an accumulated type.
     * The parsing is case-insensitive, and the strings

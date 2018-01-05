@@ -1944,9 +1944,7 @@ bool HyPerLayer::isExchangeFinished(int delay) { return publisher->isExchangeFin
 bool HyPerLayer::isAllInputReady() {
    bool isReady = true;
    for (auto &c : recvConns) {
-      for (int a = 0; a < c->getNumAxonalArbors(); a++) {
-         isReady &= c->getPre()->isExchangeFinished(c->getDelay(a));
-      }
+      isReady &= c->isAllInputReady();
    }
    return isReady;
 }

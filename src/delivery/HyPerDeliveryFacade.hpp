@@ -60,6 +60,8 @@ class HyPerDeliveryFacade : public BaseDelivery {
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
+   virtual bool isAllInputReady() override;
+
    HyPerDelivery::AccumulateType getAccumulateType() const { return mAccumulateType; }
 
    bool getUpdateGSynFromPostPerspective() const { return mUpdateGSynFromPostPerspective; }

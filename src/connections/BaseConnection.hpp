@@ -33,8 +33,7 @@ class BaseConnection : public BaseObject, public Subject {
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 
    /**
-    * A pure virtual function for modifying the post-synaptic layer's GSyn buffer based on the
-    * connection and the presynaptic activity
+    * The function that calls the DeliveryObject's deliver method
     */
    int deliver() {
       mDeliveryObject->deliver();
@@ -42,6 +41,8 @@ class BaseConnection : public BaseObject, public Subject {
    }
 
    void deliverUnitInput(float *recvBuffer) { mDeliveryObject->deliverUnitInput(recvBuffer); }
+
+   bool isAllInputReady() { return mDeliveryObject->isAllInputReady(); }
 
    HyPerLayer *getPre() const { return mConnectionData->getPre(); }
    HyPerLayer *getPost() const { return mConnectionData->getPost(); }

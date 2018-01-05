@@ -84,6 +84,11 @@ void IdentDelivery::checkPreAndPostDimensions() {
          postLoc->nx,
          postLoc->ny,
          postLoc->nf);
+   FatalIf(
+         mConnectionData->getNumAxonalArbors() != 1,
+         "%s requires numAxonalArbors equal to 1 (value is %d).\n",
+         getDescription_c(),
+         mConnectionData->getNumAxonalArbors());
 }
 
 void IdentDelivery::deliver() {
@@ -164,6 +169,17 @@ void IdentDelivery::deliverUnitInput(float *recvBuffer) {
    for (int k = 0; k < numNeuronsPost; k++) {
       recvBuffer[k] += 1.0f;
    }
+}
+
+bool IdentDelivery::isAllInputReady() {
+   bool isReady;
+   if (getChannelCode() == CHANNEL_NOUPDATE) {
+      isReady = true;
+   }
+   else {
+      isReady = getPreLayer()->isExchangeFinished(mConnectionData->getDelay(0));
+   }
+   return isReady;
 }
 
 } // end namespace PV

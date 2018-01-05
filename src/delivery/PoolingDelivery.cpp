@@ -565,6 +565,17 @@ void PoolingDelivery::clearGateIdxBuffer() {
    }
 }
 
+bool PoolingDelivery::isAllInputReady() {
+   bool isReady = true;
+   if (getChannelCode() != CHANNEL_NOUPDATE) {
+      int const numAxonalArbors = mConnectionData->getNumAxonalArbors();
+      for (int a = 0; a < numAxonalArbors; a++) {
+         isReady &= getPreLayer()->isExchangeFinished(mConnectionData->getDelay(a));
+      }
+   }
+   return isReady;
+}
+
 #ifdef PV_USE_CUDA
 void PoolingDelivery::deliverGPU() {}
 #endif // PV_USE_CUDA

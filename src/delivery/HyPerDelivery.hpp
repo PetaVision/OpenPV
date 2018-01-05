@@ -49,6 +49,8 @@ class HyPerDelivery : public BaseDelivery {
 
    virtual void deliver() override = 0;
 
+   virtual bool isAllInputReady() override;
+
   protected:
    HyPerDelivery();
 

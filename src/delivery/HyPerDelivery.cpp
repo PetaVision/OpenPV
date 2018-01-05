@@ -78,4 +78,15 @@ double HyPerDelivery::convertToRateDeltaTimeFactor(double timeConstantTau) const
    return dtFactor;
 }
 
+bool HyPerDelivery::isAllInputReady() {
+   bool isReady = true;
+   if (getChannelCode() != CHANNEL_NOUPDATE) {
+      int const numArbors = mConnectionData->getNumAxonalArbors();
+      for (int a = 0; a < numArbors; a++) {
+         isReady &= getPreLayer()->isExchangeFinished(mConnectionData->getDelay(a));
+      }
+   }
+   return isReady;
+}
+
 } // end namespace PV

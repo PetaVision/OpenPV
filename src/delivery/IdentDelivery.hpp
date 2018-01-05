@@ -39,6 +39,8 @@ class IdentDelivery : public BaseDelivery {
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
+   virtual bool isAllInputReady() override;
+
   protected:
    IdentDelivery() {}
 
