@@ -7,6 +7,7 @@
 
 #include "PoolingConn.hpp"
 #include "columns/HyPerCol.hpp"
+#include "components/NoCheckpointConnectionData.hpp"
 #include "delivery/PoolingDelivery.hpp"
 
 namespace PV {
@@ -32,6 +33,10 @@ void PoolingConn::defineComponents() {
 
 ImpliedWeightsPair *PoolingConn::createWeightsPair() {
    return new ImpliedWeightsPair(name, parent);
+}
+
+ConnectionData *PoolingConn::createConnectionData() {
+   return new NoCheckpointConnectionData(name, parent);
 }
 
 BaseDelivery *PoolingConn::createDeliveryObject() { return new PoolingDelivery(name, parent); }

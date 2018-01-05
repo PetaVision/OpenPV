@@ -44,9 +44,11 @@ class PoolingConn : public BaseConnection {
 
    virtual void defineComponents() override;
 
-   virtual ImpliedWeightsPair *createWeightsPair();
+   virtual ConnectionData *createConnectionData() override;
 
    virtual BaseDelivery *createDeliveryObject() override;
+
+   virtual ImpliedWeightsPair *createWeightsPair();
 
   protected:
    ImpliedWeightsPair *mWeightsPair = nullptr;
