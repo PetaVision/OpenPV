@@ -3,7 +3,7 @@
 namespace PV {
 
 AvgPoolTestInputLayer::AvgPoolTestInputLayer(const char *name, HyPerCol *hc) {
-   ANNLayer::initialize(name, hc);
+   HyPerLayer::initialize(name, hc);
 }
 
 // Makes a layer such that the restricted space is the index, but with spinning order be [x, y, f]

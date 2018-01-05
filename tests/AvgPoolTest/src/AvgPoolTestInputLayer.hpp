@@ -1,11 +1,11 @@
 #ifndef AVGPOOLTESTINPUTLAYER_HPP_
 #define AVGPOOLTESTINPUTLAYER_HPP_
 
-#include <layers/ANNLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
-class AvgPoolTestInputLayer : public PV::ANNLayer {
+class AvgPoolTestInputLayer : public PV::HyPerLayer {
   public:
    AvgPoolTestInputLayer(const char *name, HyPerCol *hc);
 

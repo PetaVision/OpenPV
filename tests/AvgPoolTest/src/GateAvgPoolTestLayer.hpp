@@ -1,11 +1,11 @@
 #ifndef GATEAVGPOOLTESTLAYER_HPP_
 #define GATEAVGPOOLTESTLAYER_HPP_
 
-#include <layers/ANNLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
-class GateAvgPoolTestLayer : public PV::ANNLayer {
+class GateAvgPoolTestLayer : public PV::HyPerLayer {
   public:
    GateAvgPoolTestLayer(const char *name, HyPerCol *hc);
 
