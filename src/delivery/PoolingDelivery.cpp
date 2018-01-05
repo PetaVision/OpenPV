@@ -80,7 +80,7 @@ PoolingDelivery::parseAccumulateTypeString(char const *poolingTypeString) {
 
 void PoolingDelivery::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-   if (mReceiveGpu) {
+   if (!mReceiveGpu) {
       parent->parameters()->ioParamValue(
             ioFlag,
             name,
@@ -372,7 +372,7 @@ void PoolingDelivery::deliverPresynapticPerspective() {
 
       clearGateIdxBuffer();
 
-      for (int b = 0; b < parent->getNBatch(); b++) {
+      for (int b = 0; b < mPreLayer->getLayerLoc()->nbatch; b++) {
          float *activityBatch = activityCube.data
                                 + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
                                         * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
@@ -391,13 +391,8 @@ void PoolingDelivery::deliverPresynapticPerspective() {
                                          * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
                                          * preLoc->nf;
          }
-         int numLoop;
-         if (activityCube.isSparse) {
-            numLoop = activityCube.numActive[b];
-         }
-         else {
-            numLoop = activityCube.numItems;
-         }
+         int numLoop =
+               activityCube.isSparse ? activityCube.numActive[b] : mPreLayer->getNumExtended();
 
          if (!mThreadGateIdxBuffer.empty()) {
 #ifdef PV_USE_OPENMP_THREADS
@@ -468,7 +463,6 @@ void PoolingDelivery::deliverPresynapticPerspective() {
                gatePatchHead = gatePatchHeadBatch;
             }
 #endif // PV_USE_OPENMP_THREADS
-
             Patch const *patch        = &preWeights->getPatch(kPreExt);
             int const nk              = patch->nx * preWeights->getPatchSizeF();
             int const ny              = patch->ny;
