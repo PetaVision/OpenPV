@@ -121,8 +121,8 @@ int TransposeWeightsPair::communicateInitInfo(
       return status;
    }
 
-   int numArbors     = getConnectionData()->getNumAxonalArbors();
-   int origNumArbors = mOriginalWeightsPair->getConnectionData()->getNumAxonalArbors();
+   int numArbors     = getArborList()->getNumAxonalArbors();
+   int origNumArbors = mOriginalWeightsPair->getArborList()->getNumAxonalArbors();
    if (numArbors != origNumArbors) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          Fatal().printf(

@@ -9,6 +9,7 @@
 #define BASEWEIGHTUPDATER_HPP_
 
 #include "columns/BaseObject.hpp"
+#include "components/ArborList.hpp"
 #include "components/ConnectionData.hpp"
 
 namespace PV {
@@ -49,6 +50,7 @@ class BaseWeightUpdater : public BaseObject {
    bool mPlasticityFlag = true;
 
    ConnectionData *mConnectionData = nullptr;
+   ArborList *mArborList           = nullptr;
 };
 
 } // namespace PV

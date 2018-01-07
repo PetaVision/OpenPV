@@ -9,6 +9,7 @@
 #ifndef HYPERCONN_HPP_
 #define HYPERCONN_HPP_
 
+#include "components/ArborList.hpp"
 #include "components/ConnectionData.hpp"
 #include "components/WeightsPair.hpp"
 #include "connections/BaseConnection.hpp"
@@ -33,6 +34,9 @@ class HyPerConn : public BaseConnection {
    int getPatchSizeY() const { return mWeightsPair->getPatchSizeY(); }
    int getPatchSizeF() const { return mWeightsPair->getPatchSizeF(); }
    int getSharedWeights() const { return mWeightsPair->getSharedWeights(); }
+
+   int getNumAxonalArbors() const { return mArborList->getNumAxonalArbors(); }
+   int getDelay(int arbor) const { return mArborList->getDelay(arbor); }
 
    int getStrength() const { return mWeightNormalizer->getStrength(); }
 
@@ -74,6 +78,7 @@ class HyPerConn : public BaseConnection {
 
    virtual BaseDelivery *createDeliveryObject() override;
    virtual WeightsPair *createWeightsPair();
+   virtual ArborList *createArborList();
    virtual InitWeights *createWeightInitializer();
    virtual NormalizeBase *createWeightNormalizer();
    virtual BaseWeightUpdater *createWeightUpdater();
@@ -86,6 +91,7 @@ class HyPerConn : public BaseConnection {
 
   protected:
    WeightsPair *mWeightsPair         = nullptr;
+   ArborList *mArborList             = nullptr;
    InitWeights *mWeightInitializer   = nullptr;
    NormalizeBase *mWeightNormalizer  = nullptr;
    BaseWeightUpdater *mWeightUpdater = nullptr;

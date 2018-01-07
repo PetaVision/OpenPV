@@ -9,6 +9,7 @@
 #define WEIGHTSPAIR_HPP_
 
 #include "columns/BaseObject.hpp"
+#include "components/ArborList.hpp"
 #include "components/ConnectionData.hpp"
 #include "components/Weights.hpp"
 
@@ -71,6 +72,7 @@ class WeightsPair : public BaseObject {
    Weights *getPostWeights() { return mPostWeights; }
 
    ConnectionData const *getConnectionData() { return mConnectionData; }
+   ArborList const *getArborList() { return mArborList; }
 
    bool getWriteCompressedCheckpoints() const { return mWriteCompressedCheckpoints; }
 
@@ -134,6 +136,7 @@ class WeightsPair : public BaseObject {
    bool mWriteCompressedCheckpoints = false;
 
    ConnectionData *mConnectionData = nullptr;
+   ArborList *mArborList           = nullptr;
 
    Weights *mPreWeights  = nullptr;
    Weights *mPostWeights = nullptr;

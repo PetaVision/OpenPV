@@ -25,11 +25,17 @@ int PoolingConn::initialize(char const *name, HyPerCol *hc) {
 
 void PoolingConn::defineComponents() {
    BaseConnection::defineComponents();
+   mArborList = createArborList();
+   if (mArborList) {
+      addObserver(mArborList);
+   }
    mWeightsPair = createWeightsPair();
    if (mWeightsPair) {
       addObserver(mWeightsPair);
    }
 }
+
+ArborList *PoolingConn::createArborList() { return new ArborList(name, parent); }
 
 ImpliedWeightsPair *PoolingConn::createWeightsPair() {
    return new ImpliedWeightsPair(name, parent);

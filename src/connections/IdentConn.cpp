@@ -7,6 +7,7 @@
 
 #include "IdentConn.hpp"
 #include "components/NoCheckpointConnectionData.hpp"
+#include "components/SingleArbor.hpp"
 #include "delivery/IdentDelivery.hpp"
 
 namespace PV {
@@ -27,8 +28,18 @@ BaseDelivery *IdentConn::createDeliveryObject() {
    return deliveryObject;
 }
 
+void IdentConn::defineComponents() {
+   BaseConnection::defineComponents();
+   mArborList = createArborList();
+   if (mArborList) {
+      addObserver(mArborList);
+   }
+}
+
 ConnectionData *IdentConn::createConnectionData() {
    return new NoCheckpointConnectionData(name, parent);
 }
+
+ArborList *IdentConn::createArborList() { return new SingleArbor(name, parent); }
 
 } // end of namespace PV block

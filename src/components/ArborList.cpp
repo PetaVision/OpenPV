@@ -17,7 +17,7 @@ ArborList::ArborList(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 ArborList::ArborList() {}
 
-ArborList::~ArborList() {}
+ArborList::~ArborList() { free(mDelaysParams); }
 
 int ArborList::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);

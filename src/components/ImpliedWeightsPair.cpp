@@ -73,7 +73,7 @@ void ImpliedWeightsPair::needPre() {
             mPatchSizeF,
             mConnectionData->getPre()->getLayerLoc(),
             mConnectionData->getPost()->getLayerLoc(),
-            mConnectionData->getNumAxonalArbors(),
+            mArborList->getNumAxonalArbors(),
             mSharedWeights,
             -std::numeric_limits<double>::infinity() /*timestamp*/);
    }
@@ -94,7 +94,7 @@ void ImpliedWeightsPair::needPost() {
             preLoc->nf /* number of features in post patch */,
             postLoc,
             preLoc,
-            mConnectionData->getNumAxonalArbors(),
+            mArborList->getNumAxonalArbors(),
             mSharedWeights,
             -std::numeric_limits<double>::infinity() /*timestamp*/);
    }

@@ -165,7 +165,10 @@ int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    if (mConnectionData == nullptr) {
       mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
    }
-   pvAssert(mConnectionData != nullptr);
+   FatalIf(
+         mConnectionData == nullptr,
+         "%s requires a ConnectionData component.\n",
+         getDescription_c());
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -235,6 +238,11 @@ int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    // with each feature connecting to only a few nearby features.
    // Accordingly, we still keep ioParam_nfp.
 
+   if (mArborList == nullptr) {
+      mArborList = mapLookupByType<ArborList>(message->mHierarchy, getDescription());
+   }
+   FatalIf(mArborList == nullptr, "%s requires an ArborList component.\n", getDescription_c());
+
    return status;
 }
 
@@ -251,7 +259,7 @@ void WeightsPair::needPre() {
             mPatchSizeF,
             mConnectionData->getPre()->getLayerLoc(),
             mConnectionData->getPost()->getLayerLoc(),
-            mConnectionData->getNumAxonalArbors(),
+            mArborList->getNumAxonalArbors(),
             mSharedWeights,
             -std::numeric_limits<double>::infinity() /*timestamp*/);
    }
@@ -272,7 +280,7 @@ void WeightsPair::needPost() {
             preLoc->nf /* number of features in post patch */,
             postLoc,
             preLoc,
-            mConnectionData->getNumAxonalArbors(),
+            mArborList->getNumAxonalArbors(),
             mSharedWeights,
             -std::numeric_limits<double>::infinity() /*timestamp*/);
    }

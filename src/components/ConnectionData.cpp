@@ -8,6 +8,7 @@
 #include "ConnectionData.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -18,7 +19,6 @@ ConnectionData::ConnectionData() {}
 ConnectionData::~ConnectionData() {
    free(mPreLayerName);
    free(mPostLayerName);
-   free(mDelaysParams);
 }
 
 int ConnectionData::initialize(char const *name, HyPerCol *hc) {
@@ -35,8 +35,6 @@ int ConnectionData::setDescription() {
 int ConnectionData::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_preLayerName(ioFlag);
    ioParam_postLayerName(ioFlag);
-   ioParam_numAxonalArbors(ioFlag);
-   ioParam_delay(ioFlag);
    ioParam_initializeFromCheckpointFlag(ioFlag);
    return PV_SUCCESS;
 }
@@ -49,38 +47,6 @@ void ConnectionData::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {
 void ConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {
    this->parent->parameters()->ioParamString(
          ioFlag, this->getName(), "postLayerName", &mPostLayerName, NULL, false /*warnIfAbsent*/);
-}
-
-void ConnectionData::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, this->getName(), "numAxonalArbors", &mNumAxonalArbors, mNumAxonalArbors);
-   if (ioFlag == PARAMS_IO_READ) {
-      if (getNumAxonalArbors() <= 0 && parent->getCommunicator()->globalCommRank() == 0) {
-         WarnLog().printf(
-               "Connection %s: Variable numAxonalArbors is set to 0. "
-               "No connections will be made.\n",
-               this->getName());
-      }
-   }
-}
-
-void ConnectionData::ioParam_delay(enum ParamsIOFlag ioFlag) {
-   // Grab delays in ms and load into mDelaysParams.
-   // initializeDelays() will convert the delays to timesteps store into delays.
-   parent->parameters()->ioParamArray(ioFlag, getName(), "delay", &mDelaysParams, &mNumDelays);
-   if (ioFlag == PARAMS_IO_READ && mNumDelays == 0) {
-      assert(mDelaysParams == nullptr);
-      mDelaysParams = (double *)pvMallocError(
-            sizeof(double),
-            "%s: unable to set default delay: %s\n",
-            this->getDescription_c(),
-            strerror(errno));
-      *mDelaysParams = 0.0f; // Default delay
-      mNumDelays     = 1;
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         InfoLog().printf("%s: Using default value of zero for delay.\n", this->getDescription_c());
-      }
-   }
 }
 
 void ConnectionData::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
@@ -116,19 +82,9 @@ int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    }
 
    // TODO: Use MapLookupByType
-   ObjectMapComponent *objectMapComponent = nullptr;
-   auto hierarchy                         = message->mHierarchy;
-   for (auto &objpair : hierarchy) {
-      auto *obj           = objpair.second;
-      auto connectionData = dynamic_cast<ObjectMapComponent *>(obj);
-      if (connectionData != nullptr) {
-         FatalIf(
-               objectMapComponent != nullptr,
-               "CommunicateInitInfo called for %s with more than one ObjectMapComponent object.\n",
-               getDescription_c());
-         objectMapComponent = connectionData;
-      }
-   }
+   auto hierarchy = message->mHierarchy;
+   ObjectMapComponent *objectMapComponent =
+         mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
    FatalIf(
          objectMapComponent == nullptr,
          "CommunicateInitInfo called for %s with no ObjectMapComponent object.\n",
@@ -157,21 +113,6 @@ int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    }
    MPI_Barrier(parent->getCommunicator()->globalCommunicator());
    if (status != PV_SUCCESS) {
-      exit(EXIT_FAILURE);
-   }
-
-   initializeDelays();
-   int maxDelay     = maxDelaySteps();
-   int allowedDelay = getPre()->increaseDelayLevels(maxDelay);
-   if (allowedDelay < maxDelay) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: attempt to set delay to %d, but the maximum "
-               "allowed delay is %d.  Exiting\n",
-               getDescription_c(),
-               maxDelay,
-               allowedDelay);
-      }
       exit(EXIT_FAILURE);
    }
 
@@ -208,53 +149,6 @@ void ConnectionData::inferPreAndPostFromConnName(
    }
    preLayerNameString.append(nameString.substr(0, locto));
    postLayerNameString.append(nameString.substr(locto + 2, std::string::npos));
-}
-
-void ConnectionData::initializeDelays() {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "numAxonalArbors"));
-   mDelay.resize(getNumAxonalArbors());
-
-   // Initialize delays for each arbor
-   // Using setDelay to convert ms to timesteps
-   for (int arborId = 0; arborId < (int)mDelay.size(); arborId++) {
-      if (mNumDelays == 0) {
-         // No delay
-         setDelay(arborId, 0.0);
-      }
-      else if (mNumDelays == 1) {
-         setDelay(arborId, mDelaysParams[0]);
-      }
-      else if (mNumDelays == getNumAxonalArbors()) {
-         setDelay(arborId, mDelaysParams[arborId]);
-      }
-      else {
-         Fatal().printf(
-               "Delay must be either a single value or the same length "
-               "as the number of arbors\n");
-      }
-   }
-}
-
-void ConnectionData::setDelay(int arborId, double delay) {
-   assert(arborId >= 0 && arborId < getNumAxonalArbors());
-   int intDelay = (int)std::nearbyint(delay / parent->getDeltaTime());
-   if (std::fmod(delay, parent->getDeltaTime()) != 0) {
-      double actualDelay = intDelay * parent->getDeltaTime();
-      WarnLog() << getName() << ": A delay of " << delay << " will be rounded to " << actualDelay
-                << "\n";
-   }
-   mDelay[arborId] = intDelay;
-}
-
-int ConnectionData::maxDelaySteps() {
-   int maxDelay        = 0;
-   int const numArbors = getNumAxonalArbors();
-   for (auto &d : mDelay) {
-      if (d > maxDelay) {
-         maxDelay = d;
-      }
-   }
-   return maxDelay;
 }
 
 } // namespace PV

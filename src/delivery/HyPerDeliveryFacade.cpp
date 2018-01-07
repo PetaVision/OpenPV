@@ -147,6 +147,7 @@ int HyPerDeliveryFacade::communicateInitInfo(
    if (mDeliveryIntern) {
       ObserverTable observerTable;
       observerTable.addObject(mConnectionData->getDescription(), mConnectionData);
+      observerTable.addObject(mArborList->getDescription(), mArborList);
       observerTable.addObject(weightsPair->getDescription(), weightsPair);
       observerTable.addObject(mDeliveryIntern->getDescription(), mDeliveryIntern);
       auto internMessage =

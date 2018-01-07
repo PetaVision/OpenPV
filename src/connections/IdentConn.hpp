@@ -22,9 +22,16 @@ class IdentConn : public BaseConnection {
    IdentConn();
    int initialize(const char *name, HyPerCol *hc);
 
+   virtual void defineComponents() override;
+
    virtual ConnectionData *createConnectionData() override;
 
    virtual BaseDelivery *createDeliveryObject() override;
+
+   virtual ArborList *createArborList();
+
+  protected:
+   ArborList *mArborList = nullptr;
 }; // class IdentConn
 
 } // end of block for namespace PV

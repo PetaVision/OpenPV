@@ -85,10 +85,10 @@ void IdentDelivery::checkPreAndPostDimensions() {
          postLoc->ny,
          postLoc->nf);
    FatalIf(
-         mConnectionData->getNumAxonalArbors() != 1,
+         mArborList->getNumAxonalArbors() != 1,
          "%s requires numAxonalArbors equal to 1 (value is %d).\n",
          getDescription_c(),
-         mConnectionData->getNumAxonalArbors());
+         mArborList->getNumAxonalArbors());
 }
 
 void IdentDelivery::deliver() {
@@ -96,13 +96,13 @@ void IdentDelivery::deliver() {
       return;
    }
 
-   std::size_t numArbors = mConnectionData->getNumAxonalArbors();
+   std::size_t numArbors = mArborList->getNumAxonalArbors();
    FatalIf(
          numArbors != (std::size_t)1,
          "%s can have only one arbor (there are %d).\n",
          getDescription_c(),
          (int)numArbors);
-   int delay                         = mConnectionData->getDelay(0);
+   int delay                         = mArborList->getDelay(0);
    PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(delay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
    PVLayerLoc const &postLoc         = *mPostLayer->getLayerLoc();
@@ -177,7 +177,7 @@ bool IdentDelivery::isAllInputReady() {
       isReady = true;
    }
    else {
-      isReady = getPreLayer()->isExchangeFinished(mConnectionData->getDelay(0));
+      isReady = getPreLayer()->isExchangeFinished(mArborList->getDelay(0));
    }
    return isReady;
 }

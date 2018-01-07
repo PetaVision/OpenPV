@@ -81,9 +81,9 @@ double HyPerDelivery::convertToRateDeltaTimeFactor(double timeConstantTau) const
 bool HyPerDelivery::isAllInputReady() {
    bool isReady = true;
    if (getChannelCode() != CHANNEL_NOUPDATE) {
-      int const numArbors = mConnectionData->getNumAxonalArbors();
+      int const numArbors = mArborList->getNumAxonalArbors();
       for (int a = 0; a < numArbors; a++) {
-         isReady &= getPreLayer()->isExchangeFinished(mConnectionData->getDelay(a));
+         isReady &= getPreLayer()->isExchangeFinished(mArborList->getDelay(a));
       }
    }
    return isReady;

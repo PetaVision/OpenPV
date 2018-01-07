@@ -197,9 +197,9 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
       w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
    }
 
-   int const numAxonalArbors = mConnectionData->getNumAxonalArbors();
+   int const numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
-      int delay                = mConnectionData->getDelay(arbor);
+      int delay                = mArborList->getDelay(arbor);
       PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       float *gSyn = getPostLayer()->getChannel(getChannelCode());
@@ -352,9 +352,9 @@ void PoolingDelivery::deliverPresynapticPerspective() {
       w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
    }
 
-   int const numAxonalArbors = mConnectionData->getNumAxonalArbors();
+   int const numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
-      int delay                = mConnectionData->getDelay(arbor);
+      int delay                = mArborList->getDelay(arbor);
       PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       float *gSyn = getPostLayer()->getChannel(getChannelCode());
@@ -568,9 +568,9 @@ void PoolingDelivery::clearGateIdxBuffer() {
 bool PoolingDelivery::isAllInputReady() {
    bool isReady = true;
    if (getChannelCode() != CHANNEL_NOUPDATE) {
-      int const numAxonalArbors = mConnectionData->getNumAxonalArbors();
+      int const numAxonalArbors = mArborList->getNumAxonalArbors();
       for (int a = 0; a < numAxonalArbors; a++) {
-         isReady &= getPreLayer()->isExchangeFinished(mConnectionData->getDelay(a));
+         isReady &= getPreLayer()->isExchangeFinished(mArborList->getDelay(a));
       }
    }
    return isReady;

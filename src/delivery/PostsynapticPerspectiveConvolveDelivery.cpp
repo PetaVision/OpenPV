@@ -74,9 +74,9 @@ void PostsynapticPerspectiveConvolveDelivery::deliver() {
    float *postChannel = mPostLayer->getChannel(getChannelCode());
    pvAssert(postChannel);
 
-   int numAxonalArbors = mConnectionData->getNumAxonalArbors();
+   int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
-      int delay                = mConnectionData->getDelay(arbor);
+      int delay                = mArborList->getDelay(arbor);
       PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       // Get number of neurons restricted target
@@ -186,7 +186,7 @@ void PostsynapticPerspectiveConvolveDelivery::deliverUnitInput(
    int numPerStride      = postWeights->getPatchSizeX() * postWeights->getPatchSizeF();
    int neuronIndexStride = targetNf < 4 ? 1 : targetNf / 4;
 
-   int numAxonalArbors = mConnectionData->getNumAxonalArbors();
+   int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       for (int b = 0; b < nbatch; b++) {
          float *recvBatch = recvBuffer + b * numPostRestricted;

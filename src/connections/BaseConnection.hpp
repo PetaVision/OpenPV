@@ -48,10 +48,8 @@ class BaseConnection : public BaseObject, public Subject {
    HyPerLayer *getPost() const { return mConnectionData->getPost(); }
    char const *getPreLayerName() const { return mConnectionData->getPreLayerName(); }
    char const *getPostLayerName() const { return mConnectionData->getPostLayerName(); }
-   int getNumAxonalArbors() const { return mConnectionData->getNumAxonalArbors(); }
 
    ChannelType getChannelCode() const { return mDeliveryObject->getChannelCode(); }
-   int getDelay(int arbor) const { return mConnectionData->getDelay(arbor); }
    bool getReceiveGpu() const { return mDeliveryObject->getReceiveGpu(); }
 
   protected:

@@ -95,12 +95,12 @@ int KernelProbe::allocateDataStructures() {
             getKernelIndex(),
             targetHyPerConn->getNumDataPatches() - 1);
    }
-   if (getArbor() < 0 || getArbor() >= getTargetConn()->getNumAxonalArbors()) {
+   if (getArbor() < 0 || getArbor() >= getTargetHyPerConn()->getNumAxonalArbors()) {
       Fatal().printf(
             "KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n",
             name,
             getArbor(),
-            getTargetConn()->getNumAxonalArbors() - 1);
+            getTargetHyPerConn()->getNumAxonalArbors() - 1);
    }
 
    if (!mOutputStreams.empty()) {

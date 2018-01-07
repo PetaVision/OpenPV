@@ -92,9 +92,9 @@ void PresynapticPerspectiveConvolveDelivery::deliver() {
 
    bool const preLayerIsSparse = mPreLayer->getSparseFlag();
 
-   int numAxonalArbors = mConnectionData->getNumAxonalArbors();
+   int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
-      int delay                = mConnectionData->getDelay(arbor);
+      int delay                = mArborList->getDelay(arbor);
       PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       for (int b = 0; b < nbatch; b++) {
@@ -245,7 +245,7 @@ void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer)
    const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
    const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
 
-   int numAxonalArbors = mConnectionData->getNumAxonalArbors();
+   int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       for (int b = 0; b < nbatch; b++) {
          float *recvBatch                                   = recvBuffer + b * numPostRestricted;

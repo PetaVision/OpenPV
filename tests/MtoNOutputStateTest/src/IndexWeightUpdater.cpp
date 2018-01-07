@@ -17,7 +17,7 @@ int IndexWeightUpdater::initialize(char const *name, HyPerCol *hc) {
 }
 
 void IndexWeightUpdater::initializeWeights() {
-   int const numArbors = mConnectionData->getNumAxonalArbors();
+   int const numArbors = mArborList->getNumAxonalArbors();
    int status          = PV_SUCCESS;
    for (int arbor = 0; arbor < numArbors; arbor++) {
       updateWeights(arbor);

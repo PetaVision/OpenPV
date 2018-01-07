@@ -30,6 +30,10 @@ void HyPerConn::defineComponents() {
    if (mWeightsPair) {
       addObserver(mWeightsPair);
    }
+   mArborList = createArborList();
+   if (mArborList) {
+      addObserver(mArborList);
+   }
    mWeightInitializer = createWeightInitializer();
    if (mWeightInitializer) {
       addObserver(mWeightInitializer);
@@ -45,6 +49,8 @@ void HyPerConn::defineComponents() {
 }
 
 WeightsPair *HyPerConn::createWeightsPair() { return new WeightsPair(name, parent); }
+
+ArborList *HyPerConn::createArborList() { return new ArborList(name, parent); }
 
 InitWeights *HyPerConn::createWeightInitializer() {
    char *weightInitTypeString = nullptr;

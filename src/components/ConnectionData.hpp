@@ -34,20 +34,6 @@ class ConnectionData : public BaseObject {
    virtual void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief numAxonalArbors: Specifies the number of arbors to use in the connection
-    */
-   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief delay: Specifies delay(s) which the post layer will receive data
-    * @details: Delays are specified in units of dt, but are rounded to be integer multiples of dt.
-    * If delay is a scalar, all arbors of the connection have that value of delay.
-    * If delay is an array, the length must match the number of arbors and the arbors are assigned
-    * the delays sequentially.
-    */
-   virtual void ioParam_delay(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
     * set in HyPerCol.
     * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
@@ -81,13 +67,6 @@ class ConnectionData : public BaseObject {
     */
    HyPerLayer *getPost() { return mPost; }
 
-   /**
-    * Returns the number of arbors in the connection
-    */
-   int getNumAxonalArbors() const { return mNumAxonalArbors; }
-
-   int getDelay(int arbor) const { return mDelay[arbor]; }
-
    bool getInitializeFromCheckpointFlag() const { return mInitializeFromCheckpointFlag; }
 
   protected:
@@ -99,12 +78,6 @@ class ConnectionData : public BaseObject {
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
-   void initializeDelays();
-
-   void setDelay(int arborId, double delay);
-
-   int maxDelaySteps();
 
    /**
     * If the character string given by name has the form "AbcToXyz", then
@@ -124,10 +97,6 @@ class ConnectionData : public BaseObject {
    char *mPostLayerName = nullptr;
    HyPerLayer *mPre     = nullptr;
    HyPerLayer *mPost    = nullptr;
-   int mNumAxonalArbors = 1;
-   std::vector<int> mDelay; // The delays expressed in # of timesteps (delays ~= fDelayArray / t)
-   double *mDelaysParams = nullptr; // The raw delays in params, in the same units that dt is in.
-   int mNumDelays        = 0; // The size of the mDelayParams array
 
    // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initial state from
    // the initializeFromCheckpointDir directory.

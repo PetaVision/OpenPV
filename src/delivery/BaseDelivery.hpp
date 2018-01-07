@@ -9,6 +9,7 @@
 #define BASEDELIVERY_HPP_
 
 #include "columns/BaseObject.hpp"
+#include "components/ArborList.hpp"
 #include "components/ConnectionData.hpp"
 #include "layers/HyPerLayer.hpp"
 
@@ -73,6 +74,7 @@ class BaseDelivery : public BaseObject {
    bool mReceiveGpu         = false;
 
    ConnectionData *mConnectionData = nullptr;
+   ArborList *mArborList           = nullptr;
    HyPerLayer *mPreLayer           = nullptr;
    HyPerLayer *mPostLayer          = nullptr;
    // Rather than the layers, should we store the buffers ant the PVLayerLoc data?
