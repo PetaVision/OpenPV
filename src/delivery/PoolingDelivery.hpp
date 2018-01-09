@@ -9,6 +9,7 @@
 #define POOLINGDELIVERY_HPP_
 
 #include "components/ImpliedWeightsPair.hpp"
+#include "components/PatchSize.hpp"
 #include "delivery/BaseDelivery.hpp"
 #include "layers/PoolingIndexLayer.hpp"
 
@@ -119,6 +120,7 @@ class PoolingDelivery : public BaseDelivery {
    bool mUpdateGSynFromPostPerspective = false;
 
    float mDeltaTimeFactor           = 1.0f;
+   PatchSize *mPatchSize            = nullptr;
    ImpliedWeightsPair *mWeightsPair = nullptr;
 
    bool mNeedPostIndexLayer           = false;

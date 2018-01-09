@@ -9,19 +9,20 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/CopyWeightsPair.cpp
    ${SUBDIR}/DependentArborList.cpp
    ${SUBDIR}/DependentPatchSize.cpp
-   ${SUBDIR}/DependentSharedWeightsParam.cpp
+   ${SUBDIR}/DependentSharedWeights.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/ImpliedWeightsPair.cpp
    ${SUBDIR}/NoCheckpointConnectionData.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
    ${SUBDIR}/PatchGeometry.cpp
    ${SUBDIR}/PatchSize.cpp
-   ${SUBDIR}/SharedWeightsParam.cpp
+   ${SUBDIR}/SharedWeights.cpp
    ${SUBDIR}/SingleArbor.cpp
    ${SUBDIR}/TransposePatchSize.cpp
    ${SUBDIR}/TransposeWeightsPair.cpp
    ${SUBDIR}/Weights.cpp
    ${SUBDIR}/WeightsPair.cpp
+   ${SUBDIR}/WeightsPairInterface.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -35,7 +36,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CopyWeightsPair.hpp
    ${SUBDIR}/DependentArborList.hpp
    ${SUBDIR}/DependentPatchSize.hpp
-   ${SUBDIR}/DependentSharedWeightsParam.hpp
+   ${SUBDIR}/DependentSharedWeights.hpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/ImpliedWeightsPair.hpp
@@ -44,10 +45,11 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Patch.hpp
    ${SUBDIR}/PatchGeometry.hpp
    ${SUBDIR}/PatchSize.hpp
-   ${SUBDIR}/SharedWeightsParam.hpp
+   ${SUBDIR}/SharedWeights.hpp
    ${SUBDIR}/SingleArbor.hpp
    ${SUBDIR}/TransposePatchSize.hpp
    ${SUBDIR}/TransposeWeightsPair.hpp
    ${SUBDIR}/Weights.hpp
    ${SUBDIR}/WeightsPair.hpp
+   ${SUBDIR}/WeightsPairInterface.hpp
 )

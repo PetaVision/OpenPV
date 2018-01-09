@@ -26,13 +26,21 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
 
 void HyPerConn::defineComponents() {
    BaseConnection::defineComponents();
-   mWeightsPair = createWeightsPair();
-   if (mWeightsPair) {
-      addObserver(mWeightsPair);
-   }
    mArborList = createArborList();
    if (mArborList) {
       addObserver(mArborList);
+   }
+   mPatchSize = createPatchSize();
+   if (mPatchSize) {
+      addObserver(mPatchSize);
+   }
+   mSharedWeights = createSharedWeights();
+   if (mSharedWeights) {
+      addObserver(mSharedWeights);
+   }
+   mWeightsPair = createWeightsPair();
+   if (mWeightsPair) {
+      addObserver(mWeightsPair);
    }
    mWeightInitializer = createWeightInitializer();
    if (mWeightInitializer) {
@@ -48,9 +56,15 @@ void HyPerConn::defineComponents() {
    }
 }
 
-WeightsPair *HyPerConn::createWeightsPair() { return new WeightsPair(name, parent); }
+BaseDelivery *HyPerConn::createDeliveryObject() { return new HyPerDeliveryFacade(name, parent); }
 
 ArborList *HyPerConn::createArborList() { return new ArborList(name, parent); }
+
+PatchSize *HyPerConn::createPatchSize() { return new PatchSize(name, parent); }
+
+SharedWeights *HyPerConn::createSharedWeights() { return new SharedWeights(name, parent); }
+
+WeightsPair *HyPerConn::createWeightsPair() { return new WeightsPair(name, parent); }
 
 InitWeights *HyPerConn::createWeightInitializer() {
    char *weightInitTypeString = nullptr;
@@ -140,8 +154,6 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    free(normalizeMethod);
    return normalizer;
 }
-
-BaseDelivery *HyPerConn::createDeliveryObject() { return new HyPerDeliveryFacade(name, parent); }
 
 BaseWeightUpdater *HyPerConn::createWeightUpdater() { return new HebbianUpdater(name, parent); }
 

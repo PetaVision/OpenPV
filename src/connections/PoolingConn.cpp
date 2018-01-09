@@ -8,6 +8,7 @@
 #include "PoolingConn.hpp"
 #include "columns/HyPerCol.hpp"
 #include "components/NoCheckpointConnectionData.hpp"
+#include "components/PatchSize.hpp"
 #include "delivery/PoolingDelivery.hpp"
 
 namespace PV {
@@ -29,16 +30,14 @@ void PoolingConn::defineComponents() {
    if (mArborList) {
       addObserver(mArborList);
    }
+   mPatchSize = createPatchSize();
+   if (mPatchSize) {
+      addObserver(mPatchSize);
+   }
    mWeightsPair = createWeightsPair();
    if (mWeightsPair) {
       addObserver(mWeightsPair);
    }
-}
-
-ArborList *PoolingConn::createArborList() { return new ArborList(name, parent); }
-
-ImpliedWeightsPair *PoolingConn::createWeightsPair() {
-   return new ImpliedWeightsPair(name, parent);
 }
 
 ConnectionData *PoolingConn::createConnectionData() {
@@ -46,5 +45,13 @@ ConnectionData *PoolingConn::createConnectionData() {
 }
 
 BaseDelivery *PoolingConn::createDeliveryObject() { return new PoolingDelivery(name, parent); }
+
+ArborList *PoolingConn::createArborList() { return new ArborList(name, parent); }
+
+PatchSize *PoolingConn::createPatchSize() { return new PatchSize(name, parent); }
+
+ImpliedWeightsPair *PoolingConn::createWeightsPair() {
+   return new ImpliedWeightsPair(name, parent);
+}
 
 } // namespace PV

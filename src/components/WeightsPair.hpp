@@ -8,14 +8,12 @@
 #ifndef WEIGHTSPAIR_HPP_
 #define WEIGHTSPAIR_HPP_
 
-#include "columns/BaseObject.hpp"
-#include "components/ArborList.hpp"
-#include "components/ConnectionData.hpp"
-#include "components/Weights.hpp"
+#include "components/SharedWeights.hpp"
+#include "components/WeightsPairInterface.hpp"
 
 namespace PV {
 
-class WeightsPair : public BaseObject {
+class WeightsPair : public WeightsPairInterface {
   protected:
    /**
     * List of parameters needed from the WeightsPair class
@@ -23,29 +21,6 @@ class WeightsPair : public BaseObject {
     * @{
     */
 
-   /**
-    * @brief nxp: Specifies the x patch size
-    * @details If one pre to many post, nxp restricted to many * an odd number
-    * If many pre to one post or one pre to one post, nxp restricted to an odd number
-    */
-   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief nyp: Specifies the y patch size
-    * @details If one pre to many post, nyp restricted to many * an odd number
-    * If many pre to one post or one pre to one post, nyp restricted to an odd number
-    */
-   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief nfp: Specifies the post feature patch size
-    */
-   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief sharedWeights: Defines if the weights use shared weights
-    */
-   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
    virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
@@ -60,36 +35,10 @@ class WeightsPair : public BaseObject {
 
    int respond(std::shared_ptr<BaseMessage const> message) override;
 
-   int getPatchSizeX() const { return mPatchSizeX; }
-   int getPatchSizeY() const { return mPatchSizeY; }
-   int getPatchSizeF() const { return mPatchSizeF; }
-   int getSharedWeights() const { return mSharedWeights; }
-
-   virtual void needPre();
-   virtual void needPost();
-
    Weights *getPreWeights() { return mPreWeights; }
    Weights *getPostWeights() { return mPostWeights; }
 
-   ConnectionData const *getConnectionData() { return mConnectionData; }
-   ArborList const *getArborList() { return mArborList; }
-
    bool getWriteCompressedCheckpoints() const { return mWriteCompressedCheckpoints; }
-
-   /**
-    * Calculates the patch size from the postsynaptic perspective, given the patch size from the
-    * presynaptic perspective and the PVLayerLoc structs for the pre- and post-synaptic layers.
-    *
-    * If numNeuronsPre == numNeuronsPost, the return value is prePatchSize.
-    *
-    * If numNeuronsPre > numNeuronsPost, numNeuronsPre must be an integer multiple of
-    * numNeuronsPost. The return value is prePatchSize * (numNeuronsPre / numNeuronsPost);
-    *
-    * If numNeuronsPre < numNeuronsPost, numNeuronsPost must be an integer multiple of
-    * numNeuronsPre, and prePatchSize must be in integer multiple of their quotient.
-    * The return value is the prePatchSize / (numNeuronsPost / numNeuronsPre).
-    */
-   static int calcPostPatchSize(int prePatchSize, int numNeuronsPre, int numNeuronsPost);
 
   protected:
    WeightsPair() {}
@@ -108,6 +57,9 @@ class WeightsPair : public BaseObject {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   virtual void createPreWeights();
+   virtual void createPostWeights();
+
    virtual int allocateDataStructures() override;
 
    virtual void allocatePreWeights();
@@ -125,28 +77,15 @@ class WeightsPair : public BaseObject {
    virtual void outputState(double timestamp);
 
   protected:
-   int mPatchSizeX          = 0;
-   int mPatchSizeY          = 0;
-   int mPatchSizeF          = -1;
-   bool mSharedWeights      = false;
-   double mWriteStep        = 0.0;
-   double mInitialWriteTime = 0.0;
-
+   double mWriteStep                = 0.0;
+   double mInitialWriteTime         = 0.0;
    bool mWriteCompressedWeights     = false;
    bool mWriteCompressedCheckpoints = false;
 
-   ConnectionData *mConnectionData = nullptr;
-   ArborList *mArborList           = nullptr;
-
-   Weights *mPreWeights  = nullptr;
-   Weights *mPostWeights = nullptr;
-   double mWriteTime     = 0.0;
+   SharedWeights *mSharedWeights = nullptr;
+   double mWriteTime             = 0.0;
 
    CheckpointableFileStream *mOutputStateStream = nullptr; // weights file written by outputState
-
-   bool mWarnDefaultNfp = true;
-   // Whether to print a warning if the default nfp is used.
-   // Derived classes can set to false if no warning is necessary.
 };
 
 } // namespace PV

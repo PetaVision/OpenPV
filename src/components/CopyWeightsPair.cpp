@@ -8,6 +8,7 @@
 #include "CopyWeightsPair.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
+#include "components/OriginalConnNameParam.hpp"
 #include "connections/HyPerConn.hpp"
 #include "utils/MapLookupByType.hpp"
 
@@ -29,60 +30,47 @@ int CopyWeightsPair::setDescription() {
 
 int CopyWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = WeightsPair::ioParamsFillGroup(ioFlag);
-   ioParam_originalConnName(ioFlag);
    return status;
-}
-
-void CopyWeightsPair::ioParam_nxp(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "nxp");
-   }
-   // During the communication phase, nxp will be copied from originalConn
-}
-
-void CopyWeightsPair::ioParam_nyp(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "nyp");
-   }
-   // During the communication phase, nyp will be copied from originalConn
-}
-
-void CopyWeightsPair::ioParam_nfp(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "nfp");
-   }
-   // During the communication phase, nfp will be copied from originalConn
-}
-
-void CopyWeightsPair::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights");
-   }
-   // During the communication phase, sharedWeights will be copied from originalConn
-}
-
-void CopyWeightsPair::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, "originalConnName", &mOriginalConnName);
 }
 
 int CopyWeightsPair::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto hierarchy           = message->mHierarchy;
-   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-   pvAssert(objectMapComponent);
-   HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(mOriginalConnName));
-   if (originalConn == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not correspond to a HyPerConn in the column.\n",
-               getDescription_c(),
-               mOriginalConnName);
+   if (mOriginalConn == nullptr) {
+      OriginalConnNameParam *originalConnNameParam =
+            mapLookupByType<OriginalConnNameParam>(message->mHierarchy, getDescription());
+      FatalIf(
+            originalConnNameParam == nullptr,
+            "%s requires an OriginalConnNameParam component.\n",
+            getDescription_c());
+
+      if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
+            InfoLog().printf(
+                  "%s must wait until the OriginalConnNameParam component has finished its "
+                  "communicateInitInfo stage.\n",
+                  getDescription_c());
+         }
+         return PV_POSTPONE;
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-      exit(PV_FAILURE);
+      char const *originalConnName = originalConnNameParam->getOriginalConnName();
+
+      auto hierarchy = message->mHierarchy;
+      ObjectMapComponent *objectMapComponent =
+            mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+      pvAssert(objectMapComponent);
+      mOriginalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
+      if (mOriginalConn == nullptr) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
+            ErrorLog().printf(
+                  "%s: originalConnName \"%s\" does not correspond to a HyPerConn in the column.\n",
+                  getDescription_c(),
+                  originalConnName);
+         }
+         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+         exit(PV_FAILURE);
+      }
    }
-   mOriginalWeightsPair = originalConn->getComponentByType<WeightsPair>();
+   mOriginalWeightsPair = mOriginalConn->getComponentByType<WeightsPair>();
    pvAssert(mOriginalWeightsPair);
 
    if (!mOriginalWeightsPair->getInitInfoCommunicatedFlag()) {
@@ -91,47 +79,114 @@ int CopyWeightsPair::communicateInitInfo(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConn->getName());
+               mOriginalWeightsPair->getName());
       }
       return PV_POSTPONE;
    }
 
-   // Copy some parameters from originalConn.  Check if parameters exist is
-   // the clone's param group, and issue a warning (if the param has the right
-   // value) or an error (if it has the wrong value).
-   copyParameters();
-
    int status = WeightsPair::communicateInitInfo(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+
+   // Presynaptic layers of the copy and its original conn must have the same size, or the
+   // patches won't line up with each other.
+   synchronizeMarginsPre();
+
    return status;
 }
 
-void CopyWeightsPair::copyParameters() {
-   mPatchSizeX = mOriginalWeightsPair->getPatchSizeX();
-   parent->parameters()->handleUnnecessaryParameter(name, "nxp", mPatchSizeX);
+void CopyWeightsPair::synchronizeMarginsPre() {
+   int status = PV_SUCCESS;
 
-   mPatchSizeY = mOriginalWeightsPair->getPatchSizeY();
-   parent->parameters()->handleUnnecessaryParameter(name, "nyp", mPatchSizeY);
+   pvAssert(mConnectionData);
+   auto *thisPre = mConnectionData->getPre();
+   if (thisPre == nullptr) {
+      ErrorLog().printf(
+            "synchronzedMarginsPre called for %s, but this connection has not set its "
+            "presynaptic layer yet.\n",
+            getDescription_c());
+      status = PV_FAILURE;
+   }
 
-   mPatchSizeF = mOriginalWeightsPair->getPatchSizeF();
-   parent->parameters()->handleUnnecessaryParameter(name, "nfp", mPatchSizeF);
-
-   mSharedWeights = mOriginalWeightsPair->getSharedWeights();
-   parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
+   HyPerLayer *origPre = nullptr;
+   if (mOriginalConn == nullptr) {
+      ErrorLog().printf(
+            "synchronzedMarginsPre called for %s, but this connection has not set its "
+            "original connection yet.\n",
+            getDescription_c());
+      status = PV_FAILURE;
+   }
+   else {
+      origPre = mOriginalConn->getPre();
+      if (origPre == nullptr) {
+         ErrorLog().printf(
+               "synchronzedMarginsPre called for %s, but the original connection has not set its "
+               "presynaptic layer yet.\n",
+               getDescription_c());
+         status = PV_FAILURE;
+      }
+   }
+   if (status != PV_SUCCESS) {
+      exit(PV_FAILURE);
+   }
+   thisPre->synchronizeMarginWidth(origPre);
+   origPre->synchronizeMarginWidth(thisPre);
 }
 
-void CopyWeightsPair::needPre() {
-   WeightsPair::needPre();
+void CopyWeightsPair::synchronizeMarginsPost() {
+   int status = PV_SUCCESS;
+
+   pvAssert(mConnectionData);
+   auto *thisPost = mConnectionData->getPost();
+   if (thisPost == nullptr) {
+      ErrorLog().printf(
+            "synchronzedMarginsPost called for %s, but this connection has not set its "
+            "postsynaptic layer yet.\n",
+            getDescription_c());
+      status = PV_FAILURE;
+   }
+
+   HyPerLayer *origPost = nullptr;
+   if (mOriginalConn == nullptr) {
+      ErrorLog().printf(
+            "synchronzedMarginsPre called for %s, but this connection has not set its "
+            "original connection yet.\n",
+            getDescription_c());
+      status = PV_FAILURE;
+   }
+   else {
+      origPost = mOriginalConn->getPost();
+      if (origPost == nullptr) {
+         ErrorLog().printf(
+               "synchronzedMarginsPost called for %s, but the original connection has not set its "
+               "postsynaptic layer yet.\n",
+               getDescription_c());
+         status = PV_FAILURE;
+      }
+   }
+   if (status != PV_SUCCESS) {
+      exit(PV_FAILURE);
+   }
+   thisPost->synchronizeMarginWidth(origPost);
+   origPost->synchronizeMarginWidth(thisPost);
+}
+
+void CopyWeightsPair::createPreWeights() {
+   WeightsPair::createPreWeights();
    pvAssert(mOriginalWeightsPair);
    mOriginalWeightsPair->needPre();
 }
 
-void CopyWeightsPair::needPost() {
-   WeightsPair::needPost();
+void CopyWeightsPair::createPostWeights() {
+   WeightsPair::createPostWeights();
    pvAssert(mOriginalWeightsPair);
    mOriginalWeightsPair->needPost();
 }
 
 void CopyWeightsPair::copy() {
+   // Called by CopyUpdater to update the weights when the original weights change,
+   // and by CopyConn::initializeState to initialize from the original weights.
    if (mPreWeights) {
       auto *originalPreWeights = mOriginalWeightsPair->getPreWeights();
       pvAssert(originalPreWeights);
@@ -147,6 +202,23 @@ void CopyWeightsPair::copy() {
       for (int arbor = 0; arbor < numArbors; arbor++) {
          float const *sourceArbor = originalPreWeights->getDataReadOnly(arbor);
          std::memcpy(mPreWeights->getData(arbor), sourceArbor, arborSize);
+      }
+   }
+   if (mPostWeights) {
+      auto *originalPostWeights = mOriginalWeightsPair->getPostWeights();
+      pvAssert(originalPostWeights);
+
+      int const numArbors        = mPostWeights->getNumArbors();
+      int const patchSizeOverall = mPostWeights->getPatchSizeOverall();
+      int const numDataPatches   = mPostWeights->getNumDataPatches();
+      pvAssert(numArbors == originalPostWeights->getNumArbors());
+      pvAssert(patchSizeOverall == originalPostWeights->getPatchSizeOverall());
+      pvAssert(numDataPatches == originalPostWeights->getNumDataPatches());
+
+      auto arborSize = (std::size_t)(patchSizeOverall * numDataPatches) * sizeof(float);
+      for (int arbor = 0; arbor < numArbors; arbor++) {
+         float const *sourceArbor = originalPostWeights->getDataReadOnly(arbor);
+         std::memcpy(mPostWeights->getData(arbor), sourceArbor, arborSize);
       }
    }
 }

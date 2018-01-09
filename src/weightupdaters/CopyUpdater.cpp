@@ -8,6 +8,7 @@
 #include "CopyUpdater.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
+#include "components/OriginalConnNameParam.hpp"
 #include "connections/HyPerConn.hpp"
 #include "utils/MapLookupByType.hpp"
 #include "utils/TransposeWeights.hpp"
@@ -28,14 +29,28 @@ void CopyUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
 int CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status        = PV_SUCCESS;
    auto componentMap = message->mHierarchy;
-   mCopyWeightsPair  = mapLookupByType<CopyWeightsPair>(componentMap, getDescription());
-   pvAssert(mCopyWeightsPair);
+
+   mCopyWeightsPair = mapLookupByType<CopyWeightsPair>(componentMap, getDescription());
+   FatalIf(
+         mCopyWeightsPair == nullptr,
+         "%s requires a CopyWeightsPair component.\n",
+         getDescription_c());
    if (!mCopyWeightsPair->getInitInfoCommunicatedFlag()) {
       return PV_POSTPONE;
    }
    mCopyWeightsPair->needPre();
 
-   char const *originalConnName = mCopyWeightsPair->getOriginalConnName();
+   auto *originalConnNameParam =
+         mapLookupByType<OriginalConnNameParam>(componentMap, getDescription());
+   FatalIf(
+         originalConnNameParam == nullptr,
+         "%s requires a OriginalConnNameParam component.\n",
+         getDescription_c());
+   if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
+      return PV_POSTPONE;
+   }
+
+   char const *originalConnName = originalConnNameParam->getOriginalConnName();
    pvAssert(originalConnName != nullptr and originalConnName[0] != '\0');
 
    auto hierarchy           = message->mHierarchy;

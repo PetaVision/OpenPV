@@ -85,8 +85,8 @@ int TestShared(
    std::string transposeWeightsName("Transpose");
    PV::Weights transposeWeights(
          transposeWeightsName,
-         PV::WeightsPair::calcPostPatchSize(patchSizeXPre, nxPre, nxPost),
-         PV::WeightsPair::calcPostPatchSize(patchSizeYPre, nyPre, nyPost),
+         PV::PatchSize::calcPostPatchSize(patchSizeXPre, nxPre, nxPost),
+         PV::PatchSize::calcPostPatchSize(patchSizeYPre, nyPre, nyPost),
          nfPre,
          &originalWeights.getGeometry()->getPostLoc(),
          &originalWeights.getGeometry()->getPreLoc(),

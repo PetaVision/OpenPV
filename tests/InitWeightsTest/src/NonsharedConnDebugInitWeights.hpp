@@ -24,7 +24,7 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
   protected:
    int initialize(const char *name, HyPerCol *hc);
 
-   virtual WeightsPair *createWeightsPair() override;
+   virtual SharedWeights *createSharedWeights() override;
 
    virtual InitWeights *createWeightInitializer() override { return nullptr; }
    // This class computes weights without using InitWeights class,

@@ -1,12 +1,12 @@
 /*
- * SharedWeightsParam.hpp
+ * SharedWeights.hpp
  *
  *  Created on: Jan 5, 2018
  *      Author: Pete Schultz
  */
 
-#ifndef SHAREDWEIGHTSPARAM_HPP_
-#define SHAREDWEIGHTSPARAM_HPP_
+#ifndef SHAREDWEIGHTS_HPP_
+#define SHAREDWEIGHTS_HPP_
 
 #include "columns/BaseObject.hpp"
 
@@ -17,11 +17,11 @@ namespace PV {
  * patch size. The dimensions are read from the sharedWeights parameter, and
  * retrieved using the getSharedWeights() method.
  */
-class SharedWeightsParam : public BaseObject {
+class SharedWeights : public BaseObject {
   protected:
    /**
-    * List of parameters needed from the SharedWeightsParam class
-    * @name SharedWeightsParam Parameters
+    * List of parameters needed from the SharedWeights class
+    * @name SharedWeights Parameters
     * @{
     */
 
@@ -31,17 +31,17 @@ class SharedWeightsParam : public BaseObject {
     */
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
 
-   /** @} */ // end of SharedWeightsParam parameters
+   /** @} */ // end of SharedWeights parameters
 
   public:
-   SharedWeightsParam(char const *name, HyPerCol *hc);
+   SharedWeights(char const *name, HyPerCol *hc);
 
-   virtual ~SharedWeightsParam();
+   virtual ~SharedWeights();
 
    bool getSharedWeights() const { return mSharedWeights; }
 
   protected:
-   SharedWeightsParam() {}
+   SharedWeights() {}
 
    int initialize(char const *name, HyPerCol *hc);
 
@@ -55,4 +55,4 @@ class SharedWeightsParam : public BaseObject {
 
 } // namespace PV
 
-#endif // SHAREDWEIGHTSPARAM_HPP_
+#endif // SHAREDWEIGHTS_HPP_

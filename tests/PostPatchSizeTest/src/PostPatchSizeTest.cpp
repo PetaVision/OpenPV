@@ -7,7 +7,7 @@
 
 #include <string.h>
 
-// This test checks whether the WeightsPair::calcPostPatchSize method works correctly.
+// This test checks whether the PatchSize::calcPostPatchSize method works correctly.
 void testOneToOne() {
    std::string name("One-to-one");
 
@@ -17,7 +17,7 @@ void testOneToOne() {
 
    int nxpPostCorrect = nxp;
 
-   int nxpPost = PV::WeightsPair::calcPostPatchSize(nxp, preNx, postNx);
+   int nxpPost = PV::PatchSize::calcPostPatchSize(nxp, preNx, postNx);
    FatalIf(
          nxpPost != nxpPostCorrect,
          "%s failed. nxpPost = %d, should be %d.\n",
@@ -36,7 +36,7 @@ void testOneToMany() {
    int numKernelsX    = postNx / preNx;
    int nxpPostCorrect = nxp / numKernelsX;
 
-   int nxpPost = PV::WeightsPair::calcPostPatchSize(nxp, preNx, postNx);
+   int nxpPost = PV::PatchSize::calcPostPatchSize(nxp, preNx, postNx);
    FatalIf(
          nxpPost != nxpPostCorrect,
          "%s failed. nxpPost = %d, should be %d.\n",
@@ -53,7 +53,7 @@ void testManyToOne() {
    int nxp            = 3;
    int nxpPostCorrect = nxp * preNx / postNx;
 
-   int nxpPost = PV::WeightsPair::calcPostPatchSize(nxp, preNx, postNx);
+   int nxpPost = PV::PatchSize::calcPostPatchSize(nxp, preNx, postNx);
    FatalIf(
          nxpPost != nxpPostCorrect,
          "%s failed. nxpPost = %d, should be %d.\n",

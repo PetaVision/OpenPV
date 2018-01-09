@@ -8,7 +8,7 @@
 #include "TransposeWeightsPair.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
-#include "connections/HyPerConn.hpp"
+#include "components/OriginalConnNameParam.hpp"
 #include "utils/MapLookupByType.hpp"
 
 namespace PV {
@@ -32,36 +32,7 @@ int TransposeWeightsPair::setDescription() {
 
 int TransposeWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = WeightsPair::ioParamsFillGroup(ioFlag);
-   ioParam_originalConnName(ioFlag);
    return status;
-}
-
-void TransposeWeightsPair::ioParam_nxp(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "nxp");
-   }
-   // During the communication phase, nxp will be computed from originalConn
-}
-
-void TransposeWeightsPair::ioParam_nyp(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "nyp");
-   }
-   // During the communication phase, nyp will be computed from originalConn
-}
-
-void TransposeWeightsPair::ioParam_nfp(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "nfp");
-   }
-   // During the communication phase, nfp will be computed from originalConn
-}
-
-void TransposeWeightsPair::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights");
-   }
-   // During the communication phase, sharedWeights will be copied from originalConn
 }
 
 void TransposeWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
@@ -69,52 +40,59 @@ void TransposeWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag 
       mWriteCompressedCheckpoints = false;
       parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedCheckpoints");
    }
-   // CloneConn never writes checkpoints: set writeCompressedCheckpoints to false.
-}
-
-void TransposeWeightsPair::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, "originalConnName", &mOriginalConnName);
+   // TransposeWeightsPair never checkpoints, so we always set writeCompressedCheckpoints to false.
 }
 
 int TransposeWeightsPair::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto hierarchy = message->mHierarchy;
-   ObjectMapComponent *objectMapComponent =
-         mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-   pvAssert(objectMapComponent);
-   HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(mOriginalConnName));
-   if (originalConn == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not correspond to a HyPerConn in the column.\n",
-               getDescription_c(),
-               mOriginalConnName);
-      }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-      exit(PV_FAILURE);
-   }
+   if (mOriginalConn == nullptr) {
+      OriginalConnNameParam *originalConnNameParam =
+            mapLookupByType<OriginalConnNameParam>(hierarchy, getDescription());
+      FatalIf(
+            originalConnNameParam == nullptr,
+            "%s requires an OriginalConnNameParam component.\n",
+            getDescription_c());
 
-   mOriginalWeightsPair = originalConn->getComponentByType<WeightsPair>();
+      if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
+            InfoLog().printf(
+                  "%s must wait until the OriginalConnNameParam component has finished its "
+                  "communicateInitInfo stage.\n",
+                  getDescription_c());
+         }
+         return PV_POSTPONE;
+      }
+      char const *originalConnName = originalConnNameParam->getOriginalConnName();
+
+      ObjectMapComponent *objectMapComponent =
+            mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+      pvAssert(objectMapComponent);
+      mOriginalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
+      if (mOriginalConn == nullptr) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
+            ErrorLog().printf(
+                  "%s: originalConnName \"%s\" does not correspond to a HyPerConn in the column.\n",
+                  getDescription_c(),
+                  originalConnName);
+         }
+         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+         exit(PV_FAILURE);
+      }
+   }
+   mOriginalWeightsPair = mOriginalConn->getComponentByType<WeightsPair>();
    pvAssert(mOriginalWeightsPair);
+
    if (!mOriginalWeightsPair->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConn->getName());
+               mOriginalWeightsPair->getName());
       }
       return PV_POSTPONE;
    }
-
-   // Get some parameters from originalConn.  Check if parameters exist in
-   // the transpose's param group, and issue a warning (if the param has the right
-   // value) or an error (if it has the wrong value). Note that
-   // nxp, nyp, and nfp are not necessarily the same as the original conn,
-   // but are determined by the original conn's nxp,nyp,nfp, and the
-   // relative sizes of the original conn's pre and post layers.
-   inferParameters();
 
    int status = WeightsPair::communicateInitInfo(message);
    if (status != PV_SUCCESS) {
@@ -137,7 +115,7 @@ int TransposeWeightsPair::communicateInitInfo(
    }
 
    const PVLayerLoc *preLoc      = mConnectionData->getPre()->getLayerLoc();
-   const PVLayerLoc *origPostLoc = originalConn->getPost()->getLayerLoc();
+   const PVLayerLoc *origPostLoc = mOriginalConn->getPost()->getLayerLoc();
    if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny
        || preLoc->nf != origPostLoc->nf) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -158,11 +136,11 @@ int TransposeWeightsPair::communicateInitInfo(
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   originalConn->getPre()->synchronizeMarginWidth(mConnectionData->getPost());
-   mConnectionData->getPost()->synchronizeMarginWidth(originalConn->getPre());
+   mOriginalConn->getPre()->synchronizeMarginWidth(mConnectionData->getPost());
+   mConnectionData->getPost()->synchronizeMarginWidth(mOriginalConn->getPre());
 
    const PVLayerLoc *postLoc    = mConnectionData->getPost()->getLayerLoc();
-   const PVLayerLoc *origPreLoc = originalConn->getPre()->getLayerLoc();
+   const PVLayerLoc *origPreLoc = mOriginalConn->getPre()->getLayerLoc();
    if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny
        || postLoc->nf != origPreLoc->nf) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -183,40 +161,20 @@ int TransposeWeightsPair::communicateInitInfo(
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   originalConn->getPost()->synchronizeMarginWidth(mConnectionData->getPre());
-   mConnectionData->getPre()->synchronizeMarginWidth(originalConn->getPost());
+   mOriginalConn->getPost()->synchronizeMarginWidth(mConnectionData->getPre());
+   mConnectionData->getPre()->synchronizeMarginWidth(mOriginalConn->getPost());
 
    return status;
 }
 
-void TransposeWeightsPair::inferParameters() {
+void TransposeWeightsPair::createPreWeights() {
    mOriginalWeightsPair->needPost();
    mPreWeights = mOriginalWeightsPair->getPostWeights();
-   mPatchSizeX = mPreWeights->getPatchSizeX();
-   parent->parameters()->handleUnnecessaryParameter(name, "nxp", mPatchSizeX);
-
-   mPatchSizeY = mPreWeights->getPatchSizeY();
-   parent->parameters()->handleUnnecessaryParameter(name, "nyp", mPatchSizeY);
-
-   mPatchSizeF = mPreWeights->getPatchSizeF();
-   parent->parameters()->handleUnnecessaryParameter(name, "nfp", mPatchSizeF);
-
-   mSharedWeights = mPreWeights->getSharedFlag();
-   parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
 }
 
-void TransposeWeightsPair::needPre() {
-   if (mPreWeights == nullptr) {
-      mOriginalWeightsPair->needPost();
-      mPreWeights = mOriginalWeightsPair->getPostWeights();
-   }
-}
-
-void TransposeWeightsPair::needPost() {
-   if (mPostWeights == nullptr) {
-      mOriginalWeightsPair->needPre();
-      mPostWeights = mOriginalWeightsPair->getPreWeights();
-   }
+void TransposeWeightsPair::createPostWeights() {
+   mOriginalWeightsPair->needPre();
+   mPostWeights = mOriginalWeightsPair->getPreWeights();
 }
 
 int TransposeWeightsPair::allocateDataStructures() { return PV_SUCCESS; }

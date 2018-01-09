@@ -9,6 +9,7 @@
 #define COPYWEIGHTSPAIR_HPP_
 
 #include "components/WeightsPair.hpp"
+#include "connections/HyPerConn.hpp"
 
 namespace PV {
 
@@ -21,52 +22,29 @@ namespace PV {
  *
  */
 class CopyWeightsPair : public WeightsPair {
-  protected:
-   /**
-    * List of parameters needed from the CopyWeightsPair class
-    * @name CopyWeightsPair Parameters
-    * @{
-    */
-
-   /**
-    * @brief nxp: CopyWeightsPair does not read the nxp parameter, but inherits it from the
-    * originalConn's WeightsPair.
-    */
-   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag) override;
-
-   /**
-    * @brief nyp: CopyWeightsPair does not read the nyp parameter, but inherits it from the
-    * originalConn's WeightsPair.
-    */
-   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag) override;
-
-   /**
-    * @brief nfp: CopyWeightsPair does not read the nfp parameter, but inherits it from the
-    * originalConn's WeightsPair.
-    */
-   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag) override;
-
-   /**
-    * @brief sharedWeights: CopyWeightsPair does not read the sharedWeights parameter,
-    * but inherits it from the originalConn's WeightsPair.
-    */
-   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
-
-   virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
-
-   /** @} */ // end of CopyWeightsPair parameters
-
   public:
    CopyWeightsPair(char const *name, HyPerCol *hc);
 
    virtual ~CopyWeightsPair();
 
-   virtual void needPre() override;
-   virtual void needPost() override;
+   /**
+    * Synchronizes the margins of this connection's and the original connection's presynaptic
+    * layers. This must be called after the two ConnectionData objects have set their pre-layer,
+    * and should be called before the layers and weights enter AllocateDataStructures stage.
+    */
+   void synchronizeMarginsPre();
 
+   /**
+    * Synchronizes the margins of this connection's and the original connection's postsynaptic
+    * layers. This must be called after the two ConnectionData objects have set their post-layer,
+    * and should be called before the layers and weights enter AllocateDataStructures stage.
+    */
+   void synchronizeMarginsPost();
+
+   /**
+    * Copies the weights from the original weights pair.
+    */
    void copy();
-
-   char const *getOriginalConnName() const { return mOriginalConnName; }
 
    WeightsPair const *getOriginalWeightsPair() const { return mOriginalWeightsPair; }
 
@@ -82,11 +60,11 @@ class CopyWeightsPair : public WeightsPair {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual void copyParameters();
+   virtual void createPreWeights() override;
+   virtual void createPostWeights() override;
 
   protected:
-   char *mOriginalConnName = nullptr;
-
+   HyPerConn *mOriginalConn          = nullptr;
    WeightsPair *mOriginalWeightsPair = nullptr;
 };
 

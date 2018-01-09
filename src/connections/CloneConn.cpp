@@ -7,6 +7,9 @@
 #include "CloneConn.hpp"
 #include "columns/HyPerCol.hpp"
 #include "components/CloneWeightsPair.hpp"
+#include "components/DependentArborList.hpp"
+#include "components/DependentPatchSize.hpp"
+#include "components/DependentSharedWeights.hpp"
 #include "delivery/CloneDeliveryFacade.hpp"
 
 namespace PV {
@@ -22,15 +25,33 @@ int CloneConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
+void CloneConn::defineComponents() {
+   HyPerConn::defineComponents();
+   mOriginalConnNameParam = createOriginalConnNameParam();
+   if (mOriginalConnNameParam) {
+      addObserver(mOriginalConnNameParam);
+   }
+}
+
+BaseDelivery *CloneConn::createDeliveryObject() { return new CloneDeliveryFacade(name, parent); }
+
+ArborList *CloneConn::createArborList() { return new DependentArborList(name, parent); }
+
+PatchSize *CloneConn::createPatchSize() { return new DependentPatchSize(name, parent); }
+
+SharedWeights *CloneConn::createSharedWeights() { return new DependentSharedWeights(name, parent); }
+
 WeightsPair *CloneConn::createWeightsPair() { return new CloneWeightsPair(name, parent); }
 
 InitWeights *CloneConn::createWeightInitializer() { return nullptr; }
 
 NormalizeBase *CloneConn::createWeightNormalizer() { return nullptr; }
 
-BaseDelivery *CloneConn::createDeliveryObject() { return new CloneDeliveryFacade(name, parent); }
-
 BaseWeightUpdater *CloneConn::createWeightUpdater() { return nullptr; }
+
+OriginalConnNameParam *CloneConn::createOriginalConnNameParam() {
+   return new OriginalConnNameParam(name, parent);
+}
 
 int CloneConn::initializeState() { return PV_SUCCESS; }
 

@@ -16,7 +16,7 @@ ImpliedWeightsPair::ImpliedWeightsPair(char const *name, HyPerCol *hc) { initial
 ImpliedWeightsPair::~ImpliedWeightsPair() {}
 
 int ImpliedWeightsPair::initialize(char const *name, HyPerCol *hc) {
-   return WeightsPair::initialize(name, hc);
+   return WeightsPairInterface::initialize(name, hc);
 }
 
 int ImpliedWeightsPair::setDescription() {
@@ -25,93 +25,38 @@ int ImpliedWeightsPair::setDescription() {
    return PV_SUCCESS;
 }
 
-void ImpliedWeightsPair::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   if (ioFlag = PARAMS_IO_READ) {
-      mSharedWeights = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights");
-   }
+void ImpliedWeightsPair::createPreWeights() {
+   pvAssert(mPreWeights == nullptr and mInitInfoCommunicatedFlag);
+   mPreWeights = new ImpliedWeights(
+         std::string(name),
+         mPatchSize->getPatchSizeX(),
+         mPatchSize->getPatchSizeY(),
+         mPatchSize->getPatchSizeF(),
+         mConnectionData->getPre()->getLayerLoc(),
+         mConnectionData->getPost()->getLayerLoc(),
+         mArborList->getNumAxonalArbors(),
+         true /*sharedWeights*/,
+         -std::numeric_limits<double>::infinity() /*timestamp*/);
 }
 
-void ImpliedWeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   if (ioFlag = PARAMS_IO_READ) {
-      mWriteStep = -1;
-      parent->parameters()->handleUnnecessaryParameter(name, "writeStep");
-   }
+void ImpliedWeightsPair::createPostWeights() {
+   pvAssert(mPostWeights == nullptr and mInitInfoCommunicatedFlag);
+   PVLayerLoc const *preLoc  = mConnectionData->getPre()->getLayerLoc();
+   PVLayerLoc const *postLoc = mConnectionData->getPost()->getLayerLoc();
+   int nxpPre                = mPatchSize->getPatchSizeX();
+   int nxpPost               = PatchSize::calcPostPatchSize(nxpPre, preLoc->nx, postLoc->nx);
+   int nypPre                = mPatchSize->getPatchSizeY();
+   int nypPost               = PatchSize::calcPostPatchSize(nypPre, preLoc->ny, postLoc->ny);
+   mPostWeights              = new ImpliedWeights(
+         std::string(name),
+         nxpPost,
+         nypPost,
+         preLoc->nf /* number of features in post patch */,
+         postLoc,
+         preLoc,
+         mArborList->getNumAxonalArbors(),
+         true /*sharedWeights*/,
+         -std::numeric_limits<double>::infinity() /*timestamp*/);
 }
-
-void ImpliedWeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
-   if (ioFlag = PARAMS_IO_READ) {
-      mInitialWriteTime = 0.0;
-      parent->parameters()->handleUnnecessaryParameter(name, "initialWriteTime");
-   }
-}
-
-void ImpliedWeightsPair::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
-   if (ioFlag = PARAMS_IO_READ) {
-      mWriteCompressedWeights = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedWeights");
-   }
-}
-
-void ImpliedWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
-   if (ioFlag = PARAMS_IO_READ) {
-      mWriteCompressedCheckpoints = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedCheckpoints");
-   }
-}
-
-void ImpliedWeightsPair::needPre() {
-   FatalIf(
-         !mInitInfoCommunicatedFlag,
-         "%s must finish CommunicateInitInfo before needPre can be called.\n",
-         getDescription_c());
-   if (mPreWeights == nullptr) {
-      mPreWeights = new ImpliedWeights(
-            std::string(name),
-            mPatchSizeX,
-            mPatchSizeY,
-            mPatchSizeF,
-            mConnectionData->getPre()->getLayerLoc(),
-            mConnectionData->getPost()->getLayerLoc(),
-            mArborList->getNumAxonalArbors(),
-            mSharedWeights,
-            -std::numeric_limits<double>::infinity() /*timestamp*/);
-   }
-}
-
-void ImpliedWeightsPair::needPost() {
-   FatalIf(
-         !mInitInfoCommunicatedFlag,
-         "%s must finish CommunicateInitInfo before needPost can be called.\n",
-         getDescription_c());
-   if (mPostWeights == nullptr) {
-      PVLayerLoc const *preLoc  = mConnectionData->getPre()->getLayerLoc();
-      PVLayerLoc const *postLoc = mConnectionData->getPost()->getLayerLoc();
-      mPostWeights              = new ImpliedWeights(
-            std::string(name),
-            calcPostPatchSize(mPatchSizeX, preLoc->nx, postLoc->nx),
-            calcPostPatchSize(mPatchSizeY, preLoc->ny, postLoc->ny),
-            preLoc->nf /* number of features in post patch */,
-            postLoc,
-            preLoc,
-            mArborList->getNumAxonalArbors(),
-            mSharedWeights,
-            -std::numeric_limits<double>::infinity() /*timestamp*/);
-   }
-}
-
-int ImpliedWeightsPair::registerData(Checkpointer *checkpointer) {
-   // Bypass WeightsPair
-   return PV_SUCCESS;
-}
-
-void ImpliedWeightsPair::finalizeUpdate(double timestamp, double deltaTime) {}
-
-int ImpliedWeightsPair::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   // Bypass WeightsPair
-   return PV_SUCCESS;
-}
-
-void ImpliedWeightsPair::outputState(double timestamp) {}
 
 } // namespace PV

@@ -7,6 +7,7 @@
 #include "PlasticCloneConn.hpp"
 #include "columns/HyPerCol.hpp"
 #include "components/CloneWeightsPair.hpp"
+#include "components/OriginalConnNameParam.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
 
 namespace PV {
@@ -28,12 +29,12 @@ int PlasticCloneConn::communicateInitInfo(
    if (status != PV_SUCCESS) {
       return status;
    }
-   auto *cloneWeightsPair = getComponentByType<CloneWeightsPair>();
-   pvAssert(cloneWeightsPair); // CloneConn creates this component
-   pvAssert(cloneWeightsPair->getInitInfoCommunicatedFlag()); // Set while CloneConn communicates
-   // CloneConn creates this component, and
-   // CloneConn::CommunicateInitInfo shouldn't return until its components have communicated.
-   auto *originalConnName = cloneWeightsPair->getOriginalConnName();
+   auto *originalConnNameParam = getComponentByType<OriginalConnNameParam>();
+   FatalIf(
+         originalConnNameParam == nullptr,
+         "%s requires an OriginalConnNameParam component.\n",
+         getDescription_c());
+   auto *originalConnName = originalConnNameParam->getOriginalConnName();
    auto *originalConn     = message->lookup<HyPerConn>(std::string(originalConnName));
    pvAssert(originalConn); // CloneConn::communicateInitInfo should have failed if this fails.
    auto *originalUpdater = originalConn->getComponentByType<HebbianUpdater>();

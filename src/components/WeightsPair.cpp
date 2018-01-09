@@ -16,14 +16,10 @@ namespace PV {
 
 WeightsPair::WeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-WeightsPair::~WeightsPair() {
-   delete mPreWeights;
-   delete mPostWeights;
-   delete mOutputStateStream;
-}
+WeightsPair::~WeightsPair() { delete mOutputStateStream; }
 
 int WeightsPair::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+   return WeightsPairInterface::initialize(name, hc);
 }
 
 int WeightsPair::setDescription() {
@@ -33,38 +29,11 @@ int WeightsPair::setDescription() {
 }
 
 int WeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_nxp(ioFlag);
-   ioParam_nyp(ioFlag);
-   ioParam_nfp(ioFlag);
-   ioParam_sharedWeights(ioFlag);
    ioParam_writeStep(ioFlag);
    ioParam_initialWriteTime(ioFlag);
    ioParam_writeCompressedWeights(ioFlag);
    ioParam_writeCompressedCheckpoints(ioFlag);
    return PV_SUCCESS;
-}
-
-void WeightsPair::ioParam_nxp(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "nxp", &mPatchSizeX, 1);
-}
-
-void WeightsPair::ioParam_nyp(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "nyp", &mPatchSizeY, 1);
-}
-
-void WeightsPair::ioParam_nfp(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "nfp", &mPatchSizeF, -1, false);
-   if (ioFlag == PARAMS_IO_READ && mPatchSizeF < 0 && !parent->parameters()->present(name, "nfp")
-       && parent->getCommunicator()->globalCommRank() == 0) {
-      InfoLog().printf(
-            "%s: nfp will be set in the communicateInitInfo() stage.\n", getDescription_c());
-   }
-}
-
-void WeightsPair::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   // TODO: deliver methods with GPU must balk if shared flag is off.
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "sharedWeights", &mSharedWeights, true /*default*/, true /*warn if absent*/);
 }
 
 void WeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
@@ -129,7 +98,7 @@ void WeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
 }
 
 int WeightsPair::respond(std::shared_ptr<BaseMessage const> message) {
-   int status = BaseObject::respond(message);
+   int status = WeightsPairInterface::respond(message);
    if (status != PV_SUCCESS) {
       return status;
    }
@@ -158,132 +127,66 @@ int WeightsPair::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage
 }
 
 int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseObject::communicateInitInfo(message);
+   int status = WeightsPairInterface::communicateInitInfo(message);
    if (status != PV_SUCCESS) {
       return status;
    }
-   if (mConnectionData == nullptr) {
-      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   pvAssert(mConnectionData); // set during WeightsPairInterface::communicateInitInfo()
+   pvAssert(mArborList); // set during WeightsPairInterface::communicateInitInfo()
+
+   if (mSharedWeights == nullptr) {
+      mSharedWeights = mapLookupByType<SharedWeights>(message->mHierarchy, getDescription());
    }
    FatalIf(
-         mConnectionData == nullptr,
-         "%s requires a ConnectionData component.\n",
+         mSharedWeights == nullptr,
+         "%s requires an SharedWeights component.\n",
          getDescription_c());
 
-   if (!mConnectionData->getInitInfoCommunicatedFlag()) {
+   if (!mSharedWeights->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf(
-               "%s must wait until the ConnectionData component has finished its "
+               "%s must wait until the SharedWeights component has finished its "
                "communicateInitInfo stage.\n",
                getDescription_c());
       }
       return PV_POSTPONE;
    }
 
-   HyPerLayer *pre           = mConnectionData->getPre();
-   HyPerLayer *post          = mConnectionData->getPost();
-   PVLayerLoc const *preLoc  = pre->getLayerLoc();
-   PVLayerLoc const *postLoc = post->getLayerLoc();
-
-   // Margins
-   int xmargin         = requiredConvolveMargin(preLoc->nx, postLoc->nx, getPatchSizeX());
-   int receivedxmargin = 0;
-   int statusx         = pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');
-   if (statusx != PV_SUCCESS) {
-      ErrorLog().printf(
-            "Margin Failure for layer %s.  Received x-margin is %d, but %s requires margin of at "
-            "least %d\n",
-            pre->getDescription_c(),
-            receivedxmargin,
-            name,
-            xmargin);
-      status = PV_MARGINWIDTH_FAILURE;
-   }
-   int ymargin         = requiredConvolveMargin(preLoc->ny, postLoc->ny, getPatchSizeY());
-   int receivedymargin = 0;
-   int statusy         = pre->requireMarginWidth(ymargin, &receivedymargin, 'y');
-   if (statusy != PV_SUCCESS) {
-      ErrorLog().printf(
-            "Margin Failure for layer %s.  Received y-margin is %d, but %s requires margin of at "
-            "least %d\n",
-            pre->getDescription_c(),
-            receivedymargin,
-            name,
-            ymargin);
-      status = PV_MARGINWIDTH_FAILURE;
-   }
-
-   if (mPatchSizeF < 0) {
-      mPatchSizeF = postLoc->nf;
-      if (mWarnDefaultNfp && parent->getCommunicator()->globalCommRank() == 0) {
-         InfoLog().printf(
-               "%s setting nfp to number of postsynaptic features = %d.\n",
-               getDescription_c(),
-               mPatchSizeF);
-      }
-   }
-   if (mPatchSizeF != postLoc->nf) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog(errorMessage);
-         errorMessage.printf(
-               "Params file specifies %d features for %s,\n", mPatchSizeF, getDescription_c());
-         errorMessage.printf(
-               "but %d features for post-synaptic layer %s\n", postLoc->nf, post->getName());
-      }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-      exit(PV_FAILURE);
-   }
-   // Currently, the only acceptable number for mPatchSizeF is the number of post-synaptic features.
-   // However, we may add flexibility on this score in the future, e.g. MPI in feature space
-   // with each feature connecting to only a few nearby features.
-   // Accordingly, we still keep ioParam_nfp.
-
-   if (mArborList == nullptr) {
-      mArborList = mapLookupByType<ArborList>(message->mHierarchy, getDescription());
-   }
-   FatalIf(mArborList == nullptr, "%s requires an ArborList component.\n", getDescription_c());
-
    return status;
 }
 
-void WeightsPair::needPre() {
-   FatalIf(
-         !mInitInfoCommunicatedFlag,
-         "%s must finish CommunicateInitInfo before needPre can be called.\n",
-         getDescription_c());
-   if (mPreWeights == nullptr) {
-      mPreWeights = new Weights(
-            std::string(name),
-            mPatchSizeX,
-            mPatchSizeY,
-            mPatchSizeF,
-            mConnectionData->getPre()->getLayerLoc(),
-            mConnectionData->getPost()->getLayerLoc(),
-            mArborList->getNumAxonalArbors(),
-            mSharedWeights,
-            -std::numeric_limits<double>::infinity() /*timestamp*/);
-   }
+void WeightsPair::createPreWeights() {
+   pvAssert(mPreWeights == nullptr and mInitInfoCommunicatedFlag);
+   mPreWeights = new Weights(
+         std::string(name),
+         mPatchSize->getPatchSizeX(),
+         mPatchSize->getPatchSizeY(),
+         mPatchSize->getPatchSizeF(),
+         mConnectionData->getPre()->getLayerLoc(),
+         mConnectionData->getPost()->getLayerLoc(),
+         mArborList->getNumAxonalArbors(),
+         mSharedWeights->getSharedWeights(),
+         -std::numeric_limits<double>::infinity() /*timestamp*/);
 }
 
-void WeightsPair::needPost() {
-   FatalIf(
-         !mInitInfoCommunicatedFlag,
-         "%s must finish CommunicateInitInfo before needPost can be called.\n",
-         getDescription_c());
-   if (mPostWeights == nullptr) {
-      PVLayerLoc const *preLoc  = mConnectionData->getPre()->getLayerLoc();
-      PVLayerLoc const *postLoc = mConnectionData->getPost()->getLayerLoc();
-      mPostWeights              = new Weights(
-            std::string(name),
-            calcPostPatchSize(mPatchSizeX, preLoc->nx, postLoc->nx),
-            calcPostPatchSize(mPatchSizeY, preLoc->ny, postLoc->ny),
-            preLoc->nf /* number of features in post patch */,
-            postLoc,
-            preLoc,
-            mArborList->getNumAxonalArbors(),
-            mSharedWeights,
-            -std::numeric_limits<double>::infinity() /*timestamp*/);
-   }
+void WeightsPair::createPostWeights() {
+   pvAssert(mPostWeights == nullptr and mInitInfoCommunicatedFlag);
+   PVLayerLoc const *preLoc  = mConnectionData->getPre()->getLayerLoc();
+   PVLayerLoc const *postLoc = mConnectionData->getPost()->getLayerLoc();
+   int nxpPre                = mPatchSize->getPatchSizeX();
+   int nxpPost               = PatchSize::calcPostPatchSize(nxpPre, preLoc->nx, postLoc->nx);
+   int nypPre                = mPatchSize->getPatchSizeY();
+   int nypPost               = PatchSize::calcPostPatchSize(nypPre, preLoc->ny, postLoc->ny);
+   mPostWeights              = new Weights(
+         std::string(name),
+         nxpPost,
+         nypPost,
+         preLoc->nf /* number of features in post patch */,
+         postLoc,
+         preLoc,
+         mArborList->getNumAxonalArbors(),
+         mSharedWeights->getSharedWeights(),
+         -std::numeric_limits<double>::infinity() /*timestamp*/);
 }
 
 int WeightsPair::allocateDataStructures() {
@@ -311,7 +214,7 @@ void WeightsPair::allocatePostWeights() {
 }
 
 int WeightsPair::registerData(Checkpointer *checkpointer) {
-   int status = BaseObject::registerData(checkpointer);
+   int status = WeightsPairInterface::registerData(checkpointer);
    needPre();
    mPreWeights->checkpointWeightPvp(checkpointer, "W", mWriteCompressedCheckpoints);
    if (status != PV_SUCCESS) {
@@ -378,40 +281,6 @@ void WeightsPair::outputState(double timestamp) {
       // If writeStep is negative, we never call writeWeights, but someone might restart from a
       // checkpoint with a different writeStep, so we maintain writeTime.
       mWriteTime = timestamp;
-   }
-}
-
-int WeightsPair::calcPostPatchSize(int prePatchSize, int numNeuronsPre, int numNeuronsPost) {
-   if (numNeuronsPre == numNeuronsPost) {
-      return prePatchSize;
-   }
-   else if (numNeuronsPre > numNeuronsPost) {
-      std::div_t scaleDivision = div(numNeuronsPre, numNeuronsPost);
-      FatalIf(
-            scaleDivision.rem != 0,
-            "calcPostPatchSize called with numNeuronsPre (%d) greater than numNeuronsPost (%d), "
-            "but not an integer multiple.\n",
-            numNeuronsPre,
-            numNeuronsPost);
-      return prePatchSize * scaleDivision.quot;
-   }
-   else {
-      std::div_t const scaleDivision = div(numNeuronsPost, numNeuronsPre);
-      FatalIf(
-            scaleDivision.rem != 0,
-            "calcPostPatchSize called with numNeuronsPost (%d) greater than numNeuronsPre (%d), "
-            "but not an integer multiple.\n",
-            numNeuronsPost,
-            numNeuronsPre);
-      int const scaleFactor         = scaleDivision.quot;
-      std::div_t const newPatchSize = div(prePatchSize, scaleFactor);
-      FatalIf(
-            newPatchSize.rem != 0,
-            "calcPostPatchSize called with scale factor of numNeuronsPost/numNeuronsPre = %d, "
-            "but prePatchSize (%d) is not an integer multiple of the scale factor.\n",
-            scaleFactor,
-            prePatchSize);
-      return prePatchSize / scaleFactor;
    }
 }
 

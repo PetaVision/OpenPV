@@ -8,6 +8,9 @@
 #include "CopyConn.hpp"
 #include "columns/HyPerCol.hpp"
 #include "components/CopyWeightsPair.hpp"
+#include "components/DependentArborList.hpp"
+#include "components/DependentPatchSize.hpp"
+#include "components/DependentSharedWeights.hpp"
 #include "utils/MapLookupByType.hpp"
 #include "weightupdaters/CopyUpdater.hpp"
 
@@ -24,11 +27,29 @@ int CopyConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
+void CopyConn::defineComponents() {
+   HyPerConn::defineComponents();
+   mOriginalConnNameParam = createOriginalConnNameParam();
+   if (mOriginalConnNameParam) {
+      addObserver(mOriginalConnNameParam);
+   }
+}
+
+ArborList *CopyConn::createArborList() { return new DependentArborList(name, parent); }
+
+PatchSize *CopyConn::createPatchSize() { return new DependentPatchSize(name, parent); }
+
+SharedWeights *CopyConn::createSharedWeights() { return new DependentSharedWeights(name, parent); }
+
 WeightsPair *CopyConn::createWeightsPair() { return new CopyWeightsPair(name, parent); }
 
 InitWeights *CopyConn::createWeightInitializer() { return nullptr; }
 
 BaseWeightUpdater *CopyConn::createWeightUpdater() { return new CopyUpdater(name, parent); }
+
+OriginalConnNameParam *CopyConn::createOriginalConnNameParam() {
+   return new OriginalConnNameParam(name, parent);
+}
 
 int CopyConn::initializeState() {
    auto *copyWeightsPair = dynamic_cast<CopyWeightsPair *>(mWeightsPair);

@@ -8,15 +8,15 @@
 #ifndef DEPENDENTSHAREDWEIGHTS_HPP_
 #define DEPENDENTSHAREDWEIGHTS_HPP_
 
-#include "components/SharedWeightsParam.hpp"
+#include "components/SharedWeights.hpp"
 
 namespace PV {
 
 /**
- * A subclass of SharedWeightsParam, which retrieves the sharedWeights flag from the connection
+ * A subclass of SharedWeights, which retrieves the sharedWeights flag from the connection
  * named in an OriginalConnNameParam component, instead of reading it from params.
  */
-class DependentSharedWeights : public SharedWeightsParam {
+class DependentSharedWeights : public SharedWeights {
   protected:
    /**
     * List of parameters needed from the DependentSharedWeights class
@@ -49,7 +49,7 @@ class DependentSharedWeights : public SharedWeightsParam {
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    char const *getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const;
-   SharedWeightsParam *getOriginalSharedWeightsParam(
+   SharedWeights *getOriginalSharedWeights(
          std::map<std::string, Observer *> const hierarchy,
          char const *originalConnName) const;
 

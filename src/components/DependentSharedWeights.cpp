@@ -5,7 +5,7 @@
  *      Author: pschultz
  */
 
-#include "DependentSharedWeightsParam.hpp"
+#include "DependentSharedWeights.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
@@ -23,7 +23,7 @@ DependentSharedWeights::DependentSharedWeights() {}
 DependentSharedWeights::~DependentSharedWeights() {}
 
 int DependentSharedWeights::initialize(char const *name, HyPerCol *hc) {
-   return SharedWeightsParam::initialize(name, hc);
+   return SharedWeights::initialize(name, hc);
 }
 
 int DependentSharedWeights::setDescription() {
@@ -34,7 +34,7 @@ int DependentSharedWeights::setDescription() {
 }
 
 int DependentSharedWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   return SharedWeightsParam::ioParamsFillGroup(ioFlag);
+   return SharedWeights::ioParamsFillGroup(ioFlag);
 }
 
 void DependentSharedWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
@@ -51,10 +51,10 @@ int DependentSharedWeights::communicateInitInfo(
    char const *originalConnName = getOriginalConnName(hierarchy);
    pvAssert(originalConnName);
 
-   auto *originalSharedWeightsParam = getOriginalSharedWeightsParam(hierarchy, originalConnName);
-   pvAssert(originalSharedWeightsParam);
+   auto *originalSharedWeights = getOriginalSharedWeights(hierarchy, originalConnName);
+   pvAssert(originalSharedWeights);
 
-   if (!originalSharedWeightsParam->getInitInfoCommunicatedFlag()) {
+   if (!originalSharedWeights->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
@@ -64,10 +64,10 @@ int DependentSharedWeights::communicateInitInfo(
       }
       return PV_POSTPONE;
    }
-   mSharedWeights = originalSharedWeightsParam->getSharedWeights();
+   mSharedWeights = originalSharedWeights->getSharedWeights();
    parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
 
-   int status = SharedWeightsParam::communicateInitInfo(message);
+   int status = SharedWeights::communicateInitInfo(message);
    return status;
 }
 
@@ -83,7 +83,7 @@ char const *DependentSharedWeights::getOriginalConnName(
    return originalConnName;
 }
 
-SharedWeightsParam *DependentSharedWeights::getOriginalSharedWeightsParam(
+SharedWeights *DependentSharedWeights::getOriginalSharedWeights(
       std::map<std::string, Observer *> const hierarchy,
       char const *originalConnName) const {
    ObjectMapComponent *objectMapComponent =
@@ -101,13 +101,13 @@ SharedWeightsParam *DependentSharedWeights::getOriginalSharedWeightsParam(
       exit(PV_FAILURE);
    }
 
-   auto *originalSharedWeightsParam = originalConn->getComponentByType<SharedWeightsParam>();
+   auto *originalSharedWeights = originalConn->getComponentByType<SharedWeights>();
    FatalIf(
-         originalSharedWeightsParam == nullptr,
-         "%s original connection \"%s\" does not have an SharedWeightsParam.\n",
+         originalSharedWeights == nullptr,
+         "%s original connection \"%s\" does not have an SharedWeights.\n",
          getDescription_c(),
          originalConnName);
-   return originalSharedWeightsParam;
+   return originalSharedWeights;
 }
 
 } // namespace PV

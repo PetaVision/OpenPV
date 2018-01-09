@@ -6,7 +6,7 @@
  */
 
 #include "NonsharedConnDebugInitWeights.hpp"
-#include "NonsharedWeightsPair.hpp"
+#include "SharedWeightsFalse.hpp"
 #include <columns/HyPerCol.hpp>
 
 namespace PV {
@@ -25,8 +25,8 @@ int NonsharedConnDebugInitWeights::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-WeightsPair *NonsharedConnDebugInitWeights::createWeightsPair() {
-   return new NonsharedWeightsPair(name, parent);
+SharedWeights *NonsharedConnDebugInitWeights::createSharedWeights() {
+   return new SharedWeightsFalse(name, parent);
 }
 
 int NonsharedConnDebugInitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

@@ -109,11 +109,19 @@ int PoolingDelivery::communicateInitInfo(
    if (status != PV_SUCCESS) {
       return status;
    }
+
+   mPatchSize = mapLookupByType<PatchSize>(message->mHierarchy, getDescription());
+   pvAssert(mPatchSize);
+   if (!mPatchSize->getInitInfoCommunicatedFlag()) {
+      return PV_POSTPONE;
+   }
+
    mWeightsPair = mapLookupByType<ImpliedWeightsPair>(message->mHierarchy, getDescription());
    pvAssert(mWeightsPair);
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
       return PV_POSTPONE;
    }
+
    if (mUpdateGSynFromPostPerspective) {
       mWeightsPair->needPost();
    }
@@ -192,8 +200,8 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
    if (mAccumulateType == AVGPOOLING) {
       float relative_XScale = pow(2, (getPostLayer()->getXScale() - getPreLayer()->getXScale()));
       float relative_YScale = pow(2, (getPostLayer()->getYScale() - getPreLayer()->getYScale()));
-      float nxp             = (float)mWeightsPair->getPatchSizeX();
-      float nyp             = (float)mWeightsPair->getPatchSizeY();
+      float nxp             = (float)mPatchSize->getPatchSizeX();
+      float nyp             = (float)mPatchSize->getPatchSizeY();
       w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
    }
 
@@ -347,8 +355,8 @@ void PoolingDelivery::deliverPresynapticPerspective() {
    if (mAccumulateType == AVGPOOLING) {
       float relative_XScale = pow(2, (getPostLayer()->getXScale() - getPreLayer()->getXScale()));
       float relative_YScale = pow(2, (getPostLayer()->getYScale() - getPreLayer()->getYScale()));
-      float nxp             = (float)mWeightsPair->getPatchSizeX();
-      float nyp             = (float)mWeightsPair->getPatchSizeY();
+      float nxp             = (float)mPatchSize->getPatchSizeX();
+      float nyp             = (float)mPatchSize->getPatchSizeY();
       w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
    }
 

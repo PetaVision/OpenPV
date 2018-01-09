@@ -30,10 +30,10 @@ class HyPerConn : public BaseConnection {
    virtual int respond(std::shared_ptr<BaseMessage const> message) override;
 
    // get-methods for params
-   int getPatchSizeX() const { return mWeightsPair->getPatchSizeX(); }
-   int getPatchSizeY() const { return mWeightsPair->getPatchSizeY(); }
-   int getPatchSizeF() const { return mWeightsPair->getPatchSizeF(); }
-   int getSharedWeights() const { return mWeightsPair->getSharedWeights(); }
+   int getPatchSizeX() const { return mPatchSize->getPatchSizeX(); }
+   int getPatchSizeY() const { return mPatchSize->getPatchSizeY(); }
+   int getPatchSizeF() const { return mPatchSize->getPatchSizeF(); }
+   int getSharedWeights() const { return mSharedWeights->getSharedWeights(); }
 
    int getNumAxonalArbors() const { return mArborList->getNumAxonalArbors(); }
    int getDelay(int arbor) const { return mArborList->getDelay(arbor); }
@@ -77,8 +77,10 @@ class HyPerConn : public BaseConnection {
    virtual void defineComponents() override;
 
    virtual BaseDelivery *createDeliveryObject() override;
-   virtual WeightsPair *createWeightsPair();
    virtual ArborList *createArborList();
+   virtual PatchSize *createPatchSize();
+   virtual SharedWeights *createSharedWeights();
+   virtual WeightsPair *createWeightsPair();
    virtual InitWeights *createWeightInitializer();
    virtual NormalizeBase *createWeightNormalizer();
    virtual BaseWeightUpdater *createWeightUpdater();
@@ -90,8 +92,10 @@ class HyPerConn : public BaseConnection {
    virtual int initializeState() override;
 
   protected:
-   WeightsPair *mWeightsPair         = nullptr;
    ArborList *mArborList             = nullptr;
+   PatchSize *mPatchSize             = nullptr;
+   SharedWeights *mSharedWeights     = nullptr;
+   WeightsPair *mWeightsPair         = nullptr;
    InitWeights *mWeightInitializer   = nullptr;
    NormalizeBase *mWeightNormalizer  = nullptr;
    BaseWeightUpdater *mWeightUpdater = nullptr;

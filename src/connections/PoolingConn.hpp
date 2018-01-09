@@ -11,6 +11,7 @@
 #include "components/ArborList.hpp"
 #include "components/ImpliedWeightsPair.hpp"
 #include "components/NoCheckpointConnectionData.hpp"
+#include "components/PatchSize.hpp"
 #include "connections/BaseConnection.hpp"
 
 namespace PV {
@@ -24,9 +25,9 @@ class PoolingConn : public BaseConnection {
    virtual ~PoolingConn();
 
    // get-methods for params
-   int getPatchSizeX() const { return mWeightsPair->getPatchSizeX(); }
-   int getPatchSizeY() const { return mWeightsPair->getPatchSizeY(); }
-   int getPatchSizeF() const { return mWeightsPair->getPatchSizeF(); }
+   int getPatchSizeX() const { return mPatchSize->getPatchSizeX(); }
+   int getPatchSizeY() const { return mPatchSize->getPatchSizeY(); }
+   int getPatchSizeF() const { return mPatchSize->getPatchSizeF(); }
 
    int getNumAxonalArbors() const { return mArborList->getNumAxonalArbors(); }
    int getDelay(int arbor) const { return mArborList->getDelay(arbor); }
@@ -50,15 +51,18 @@ class PoolingConn : public BaseConnection {
 
    virtual ConnectionData *createConnectionData() override;
 
+   virtual BaseDelivery *createDeliveryObject() override;
+
    virtual ArborList *createArborList();
 
-   virtual BaseDelivery *createDeliveryObject() override;
+   virtual PatchSize *createPatchSize();
 
    virtual ImpliedWeightsPair *createWeightsPair();
 
   protected:
-   ArborList *mArborList            = nullptr;
+   PatchSize *mPatchSize            = nullptr;
    ImpliedWeightsPair *mWeightsPair = nullptr;
+   ArborList *mArborList            = nullptr;
 
 }; // class PoolingConn
 
