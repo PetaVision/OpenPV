@@ -346,14 +346,14 @@ static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex) 
 
    for (int f = 0; f < upToIndex + 1; ++f) {
       double timeStamp      = 0;
-      int frameLength       = 0;
+      long frameLength      = 0;
       long frameStartOffset = fStream.getInPos();
       fStream.read(&timeStamp, sizeof(double));
       fStream.read(&frameLength, sizeof(int));
       result.frameLengths.at(f)      = frameLength;
       result.frameStartOffsets.at(f) = frameStartOffset;
       if (f < upToIndex) {
-         fStream.setInPos(frameLength * dataSize, false);
+         fStream.setInPos(frameLength * (long)dataSize, false);
       }
    }
    return result;

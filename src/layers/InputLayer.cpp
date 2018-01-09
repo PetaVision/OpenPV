@@ -100,6 +100,12 @@ void InputLayer::retrieveInput(double timef, double dt) {
          for (int b = 0; b < mRandomShiftX.size(); b++) {
             mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2 * mMaxShiftX + 1));
             mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2 * mMaxShiftY + 1));
+            if (mXFlipEnabled) {
+               mMirrorFlipX[b] = mXFlipToggle ? !mMirrorFlipX[b] : (mRNG() % 100) > 50;
+            }
+            if (mYFlipEnabled) {
+               mMirrorFlipY[b] = mYFlipToggle ? !mMirrorFlipY[b] : (mRNG() % 100) > 50;
+            }
          }
       }
    }
@@ -260,6 +266,10 @@ void InputLayer::fitBufferToGlobalLayer(Buffer<float> &buffer, int blockBatchEle
             -mOffsetX + mRandomShiftX[blockBatchElement],
             -mOffsetY + mRandomShiftY[blockBatchElement]);
       buffer.crop(targetWidth, targetHeight, mAnchor);
+   }
+
+   if (mMirrorFlipX[blockBatchElement] || mMirrorFlipY[blockBatchElement]) {
+      buffer.flip(mMirrorFlipX[blockBatchElement], mMirrorFlipY[blockBatchElement]);
    }
 }
 
@@ -422,6 +432,8 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_offsetAnchor(ioFlag);
    ioParam_offsets(ioFlag);
    ioParam_maxShifts(ioFlag);
+   ioParam_flipsEnabled(ioFlag);
+   ioParam_flipsToggle(ioFlag);
    ioParam_jitterChangeInterval(ioFlag);
    ioParam_autoResizeFlag(ioFlag);
    ioParam_aspectRatioAdjustment(ioFlag);
@@ -448,6 +460,8 @@ int InputLayer::registerData(Checkpointer *checkpointer) {
       int nBatch   = getMPIBlock()->getBatchDimension() * numBatch;
       mRandomShiftX.resize(nBatch);
       mRandomShiftY.resize(nBatch);
+      mMirrorFlipX.resize(nBatch);
+      mMirrorFlipY.resize(nBatch);
       mInputData.resize(numBatch);
       mInputRegion.resize(numBatch);
       initializeBatchIndexer();
@@ -522,6 +536,18 @@ int InputLayer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
 int InputLayer::ioParam_maxShifts(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "maxShiftX", &mMaxShiftX, mMaxShiftX);
    parent->parameters()->ioParamValue(ioFlag, name, "maxShiftY", &mMaxShiftY, mMaxShiftY);
+   return PV_SUCCESS;
+}
+
+int InputLayer::ioParam_flipsEnabled(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "xFlipEnabled", &mXFlipEnabled, mXFlipEnabled);
+   parent->parameters()->ioParamValue(ioFlag, name, "yFlipEnabled", &mYFlipEnabled, mYFlipEnabled);
+   return PV_SUCCESS;
+}
+
+int InputLayer::ioParam_flipsToggle(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(ioFlag, name, "xFlipToggle", &mXFlipToggle, mXFlipToggle);
+   parent->parameters()->ioParamValue(ioFlag, name, "yFlipToggle", &mYFlipToggle, mYFlipToggle);
    return PV_SUCCESS;
 }
 

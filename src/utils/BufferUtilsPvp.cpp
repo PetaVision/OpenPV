@@ -31,6 +31,7 @@ WeightHeader buildWeightHeader(
    baseHeader.ny         = preLayerNy;
    baseHeader.nf         = preLayerNf;
    baseHeader.numRecords = numArbors;
+   baseHeader.recordSize = 0;
 
    int numPatches        = preLayerNxExt * preLayerNyExt * preLayerNf;
    int numPatchItems     = nxp * nyp * nfp;
