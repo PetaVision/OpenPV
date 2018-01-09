@@ -23,8 +23,8 @@ function hdr = readpvpheader(fid,pos)
 %     datatype
 %     nxprocs
 %     nyprocs
-%     nxGlobal
-%     nyGlobal
+%     nxExtended
+%     nyExtended
 %     kx0
 %     ky0
 %     nb
@@ -61,8 +61,8 @@ hdr.datasize = headerwords(9);
 hdr.datatype = headerwords(10);
 hdr.nxprocs = headerwords(11);
 hdr.nyprocs = headerwords(12);
-hdr.nxGlobal = headerwords(13);
-hdr.nyGlobal = headerwords(14);
+hdr.nxExtended = headerwords(13);
+hdr.nyExtended = headerwords(14);
 hdr.kx0 = headerwords(15);
 hdr.ky0 = headerwords(16);
 hdr.nbatch = headerwords(17);
