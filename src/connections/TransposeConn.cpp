@@ -40,7 +40,9 @@ SharedWeights *TransposeConn::createSharedWeights() {
    return new DependentSharedWeights(name, parent);
 }
 
-WeightsPair *TransposeConn::createWeightsPair() { return new TransposeWeightsPair(name, parent); }
+WeightsPairInterface *TransposeConn::createWeightsPair() {
+   return new TransposeWeightsPair(name, parent);
+}
 
 InitWeights *TransposeConn::createWeightInitializer() { return nullptr; }
 

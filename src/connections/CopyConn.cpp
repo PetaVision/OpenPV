@@ -41,7 +41,7 @@ PatchSize *CopyConn::createPatchSize() { return new DependentPatchSize(name, par
 
 SharedWeights *CopyConn::createSharedWeights() { return new DependentSharedWeights(name, parent); }
 
-WeightsPair *CopyConn::createWeightsPair() { return new CopyWeightsPair(name, parent); }
+WeightsPairInterface *CopyConn::createWeightsPair() { return new CopyWeightsPair(name, parent); }
 
 InitWeights *CopyConn::createWeightInitializer() { return nullptr; }
 

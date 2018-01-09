@@ -64,7 +64,7 @@ PatchSize *HyPerConn::createPatchSize() { return new PatchSize(name, parent); }
 
 SharedWeights *HyPerConn::createSharedWeights() { return new SharedWeights(name, parent); }
 
-WeightsPair *HyPerConn::createWeightsPair() { return new WeightsPair(name, parent); }
+WeightsPairInterface *HyPerConn::createWeightsPair() { return new WeightsPair(name, parent); }
 
 InitWeights *HyPerConn::createWeightInitializer() {
    char *weightInitTypeString = nullptr;

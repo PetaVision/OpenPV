@@ -54,12 +54,12 @@ class PoolingConn : public BaseConnection {
 
    virtual PatchSize *createPatchSize();
 
-   virtual ImpliedWeightsPair *createWeightsPair();
+   virtual WeightsPairInterface *createWeightsPair();
 
   protected:
-   PatchSize *mPatchSize            = nullptr;
-   ImpliedWeightsPair *mWeightsPair = nullptr;
-   ArborList *mArborList            = nullptr;
+   PatchSize *mPatchSize              = nullptr;
+   WeightsPairInterface *mWeightsPair = nullptr;
+   ArborList *mArborList              = nullptr;
 
 }; // class PoolingConn
 

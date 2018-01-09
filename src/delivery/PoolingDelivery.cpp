@@ -111,13 +111,16 @@ int PoolingDelivery::communicateInitInfo(
    }
 
    mPatchSize = mapLookupByType<PatchSize>(message->mHierarchy, getDescription());
-   pvAssert(mPatchSize);
+   FatalIf(mPatchSize == nullptr, "%s requires a PatchSize component.\n", getDescription_c());
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
       return PV_POSTPONE;
    }
 
    mWeightsPair = mapLookupByType<ImpliedWeightsPair>(message->mHierarchy, getDescription());
-   pvAssert(mWeightsPair);
+   FatalIf(
+         mWeightsPair == nullptr,
+         "%s requires an ImpliedWeightsPair component.\n",
+         getDescription_c());
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
       return PV_POSTPONE;
    }

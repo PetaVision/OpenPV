@@ -32,7 +32,7 @@ class CopyConn : public HyPerConn {
    virtual ArborList *createArborList() override;
    virtual PatchSize *createPatchSize() override;
    virtual SharedWeights *createSharedWeights() override;
-   virtual WeightsPair *createWeightsPair() override;
+   virtual WeightsPairInterface *createWeightsPair() override;
    virtual InitWeights *createWeightInitializer() override;
    virtual BaseWeightUpdater *createWeightUpdater() override;
    virtual OriginalConnNameParam *createOriginalConnNameParam();

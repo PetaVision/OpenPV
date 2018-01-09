@@ -45,7 +45,7 @@ ArborList *PoolingConn::createArborList() { return new ArborList(name, parent); 
 
 PatchSize *PoolingConn::createPatchSize() { return new PatchSize(name, parent); }
 
-ImpliedWeightsPair *PoolingConn::createWeightsPair() {
+WeightsPairInterface *PoolingConn::createWeightsPair() {
    return new ImpliedWeightsPair(name, parent);
 }
 

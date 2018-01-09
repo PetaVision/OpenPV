@@ -31,7 +31,7 @@ class CloneConn : public HyPerConn {
    virtual ArborList *createArborList() override;
    virtual PatchSize *createPatchSize() override;
    virtual SharedWeights *createSharedWeights() override;
-   virtual WeightsPair *createWeightsPair() override;
+   virtual WeightsPairInterface *createWeightsPair() override;
    virtual InitWeights *createWeightInitializer() override;
    virtual NormalizeBase *createWeightNormalizer() override;
    virtual BaseWeightUpdater *createWeightUpdater() override;

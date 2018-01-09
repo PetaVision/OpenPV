@@ -41,7 +41,7 @@ PatchSize *CloneConn::createPatchSize() { return new DependentPatchSize(name, pa
 
 SharedWeights *CloneConn::createSharedWeights() { return new DependentSharedWeights(name, parent); }
 
-WeightsPair *CloneConn::createWeightsPair() { return new CloneWeightsPair(name, parent); }
+WeightsPairInterface *CloneConn::createWeightsPair() { return new CloneWeightsPair(name, parent); }
 
 InitWeights *CloneConn::createWeightInitializer() { return nullptr; }
 

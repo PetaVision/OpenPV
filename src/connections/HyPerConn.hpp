@@ -80,7 +80,7 @@ class HyPerConn : public BaseConnection {
    virtual ArborList *createArborList();
    virtual PatchSize *createPatchSize();
    virtual SharedWeights *createSharedWeights();
-   virtual WeightsPair *createWeightsPair();
+   virtual WeightsPairInterface *createWeightsPair();
    virtual InitWeights *createWeightInitializer();
    virtual NormalizeBase *createWeightNormalizer();
    virtual BaseWeightUpdater *createWeightUpdater();
@@ -92,13 +92,13 @@ class HyPerConn : public BaseConnection {
    virtual int initializeState() override;
 
   protected:
-   ArborList *mArborList             = nullptr;
-   PatchSize *mPatchSize             = nullptr;
-   SharedWeights *mSharedWeights     = nullptr;
-   WeightsPair *mWeightsPair         = nullptr;
-   InitWeights *mWeightInitializer   = nullptr;
-   NormalizeBase *mWeightNormalizer  = nullptr;
-   BaseWeightUpdater *mWeightUpdater = nullptr;
+   ArborList *mArborList              = nullptr;
+   PatchSize *mPatchSize              = nullptr;
+   SharedWeights *mSharedWeights      = nullptr;
+   WeightsPairInterface *mWeightsPair = nullptr;
+   InitWeights *mWeightInitializer    = nullptr;
+   NormalizeBase *mWeightNormalizer   = nullptr;
+   BaseWeightUpdater *mWeightUpdater  = nullptr;
 
 }; // class HyPerConn
 
