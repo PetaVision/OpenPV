@@ -7,10 +7,6 @@
 
 #include "TransposePatchSize.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
-#include "components/OriginalConnNameParam.hpp"
-#include "connections/HyPerConn.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
