@@ -24,8 +24,6 @@ class IdentConn : public BaseConnection {
 
    virtual void defineComponents() override;
 
-   virtual ConnectionData *createConnectionData() override;
-
    virtual BaseDelivery *createDeliveryObject() override;
 
    virtual ArborList *createArborList();

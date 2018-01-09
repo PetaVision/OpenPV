@@ -7,7 +7,6 @@
 
 #include "PoolingConn.hpp"
 #include "columns/HyPerCol.hpp"
-#include "components/NoCheckpointConnectionData.hpp"
 #include "components/PatchSize.hpp"
 #include "delivery/PoolingDelivery.hpp"
 
@@ -38,10 +37,6 @@ void PoolingConn::defineComponents() {
    if (mWeightsPair) {
       addObserver(mWeightsPair);
    }
-}
-
-ConnectionData *PoolingConn::createConnectionData() {
-   return new NoCheckpointConnectionData(name, parent);
 }
 
 BaseDelivery *PoolingConn::createDeliveryObject() { return new PoolingDelivery(name, parent); }

@@ -33,6 +33,7 @@ int WeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_initialWriteTime(ioFlag);
    ioParam_writeCompressedWeights(ioFlag);
    ioParam_writeCompressedCheckpoints(ioFlag);
+   ioParam_initializeFromCheckpointFlag(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -95,6 +96,16 @@ void WeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
          &mWriteCompressedCheckpoints,
          mWriteCompressedCheckpoints,
          true /*warnifabsent*/);
+}
+
+void WeightsPair::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(
+         ioFlag,
+         name,
+         "initializeFromCheckpointFlag",
+         &mInitializeFromCheckpointFlag,
+         mInitializeFromCheckpointFlag,
+         true /*warnIfAbsent*/);
 }
 
 int WeightsPair::respond(std::shared_ptr<BaseMessage const> message) {
@@ -263,7 +274,7 @@ void WeightsPair::openOutputStateFile(Checkpointer *checkpointer) {
 }
 
 int WeightsPair::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mConnectionData->getInitializeFromCheckpointFlag()) {
+   if (getInitializeFromCheckpointFlag()) {
       checkpointer->readNamedCheckpointEntry(
             std::string(name), std::string("W"), !mPreWeights->getWeightsArePlastic());
    }

@@ -35,7 +35,6 @@ int ConnectionData::setDescription() {
 int ConnectionData::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_preLayerName(ioFlag);
    ioParam_postLayerName(ioFlag);
-   ioParam_initializeFromCheckpointFlag(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -47,16 +46,6 @@ void ConnectionData::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {
 void ConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {
    this->parent->parameters()->ioParamString(
          ioFlag, this->getName(), "postLayerName", &mPostLayerName, NULL, false /*warnIfAbsent*/);
-}
-
-void ConnectionData::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag,
-         name,
-         "initializeFromCheckpointFlag",
-         &mInitializeFromCheckpointFlag,
-         mInitializeFromCheckpointFlag,
-         true /*warnIfAbsent*/);
 }
 
 int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {

@@ -10,7 +10,6 @@
 
 #include "components/ArborList.hpp"
 #include "components/ImpliedWeightsPair.hpp"
-#include "components/NoCheckpointConnectionData.hpp"
 #include "components/PatchSize.hpp"
 #include "connections/BaseConnection.hpp"
 
@@ -48,8 +47,6 @@ class PoolingConn : public BaseConnection {
    int initialize(char const *name, HyPerCol *hc);
 
    virtual void defineComponents() override;
-
-   virtual ConnectionData *createConnectionData() override;
 
    virtual BaseDelivery *createDeliveryObject() override;
 

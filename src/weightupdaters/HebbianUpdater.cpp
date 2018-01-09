@@ -209,7 +209,8 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    if (mPlasticityFlag) {
       mWeights->setWeightsArePlastic();
    }
-   mWriteCompressedCheckpoints = weightsPair->getWriteCompressedCheckpoints();
+   mWriteCompressedCheckpoints   = weightsPair->getWriteCompressedCheckpoints();
+   mInitializeFromCheckpointFlag = weightsPair->getInitializeFromCheckpointFlag();
 
    mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
    FatalIf(
@@ -348,7 +349,7 @@ int HebbianUpdater::registerData(Checkpointer *checkpointer) {
 }
 
 int HebbianUpdater::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mConnectionData->getInitializeFromCheckpointFlag()) {
+   if (mInitializeFromCheckpointFlag) {
       if (mPlasticityFlag and !mImmediateWeightUpdate) {
          checkpointer->readNamedCheckpointEntry(
                std::string(name), std::string("dW"), false /*not constant*/);

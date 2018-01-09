@@ -12,7 +12,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/DependentSharedWeights.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/ImpliedWeightsPair.cpp
-   ${SUBDIR}/NoCheckpointConnectionData.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
    ${SUBDIR}/PatchGeometry.cpp
    ${SUBDIR}/PatchSize.cpp
@@ -40,7 +39,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/ImpliedWeightsPair.hpp
-   ${SUBDIR}/NoCheckpointConnectionData.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
    ${SUBDIR}/Patch.hpp
    ${SUBDIR}/PatchGeometry.hpp

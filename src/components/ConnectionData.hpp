@@ -32,13 +32,6 @@ class ConnectionData : public BaseObject {
     * @details Required parameter
     */
    virtual void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
-    * set in HyPerCol.
-    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
-    */
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
    /** @} */ // end of ConnectionData parameters
 
   public:
@@ -66,8 +59,6 @@ class ConnectionData : public BaseObject {
     * Returns a pointer to the connection's postsynaptic layer.
     */
    HyPerLayer *getPost() { return mPost; }
-
-   bool getInitializeFromCheckpointFlag() const { return mInitializeFromCheckpointFlag; }
 
   protected:
    ConnectionData();
@@ -97,10 +88,6 @@ class ConnectionData : public BaseObject {
    char *mPostLayerName = nullptr;
    HyPerLayer *mPre     = nullptr;
    HyPerLayer *mPost    = nullptr;
-
-   // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initial state from
-   // the initializeFromCheckpointDir directory.
-   bool mInitializeFromCheckpointFlag = false;
 
 }; // class ConnectionData
 

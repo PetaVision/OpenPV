@@ -100,7 +100,7 @@ int MomentumUpdater::registerData(Checkpointer *checkpointer) {
 }
 
 int MomentumUpdater::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mConnectionData->getInitializeFromCheckpointFlag()) {
+   if (mInitializeFromCheckpointFlag) {
       // Note: HebbianUpdater does not checkpoint dW if the mImmediateWeightUpdate flag is true.
       // Do we need to handle it here and in registerData? --pschultz, 2017-12-16
       if (mPlasticityFlag) {
