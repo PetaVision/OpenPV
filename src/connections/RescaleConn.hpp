@@ -1,7 +1,7 @@
 /*
  * RescaleConn.hpp
  *
- *  Created on: Nov 17, 2010
+ *  Created on: Apr 15, 2016
  *      Author: pschultz
  */
 
