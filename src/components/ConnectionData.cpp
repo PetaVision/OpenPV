@@ -70,7 +70,6 @@ int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       exit(EXIT_FAILURE);
    }
 
-   // TODO: Use MapLookupByType
    auto hierarchy = message->mHierarchy;
    ObjectMapComponent *objectMapComponent =
          mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());

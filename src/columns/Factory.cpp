@@ -48,7 +48,7 @@
 
 #include "connections/CloneConn.hpp"
 #include "connections/CopyConn.hpp"
-// #include "connections/FeedbackConn.hpp"
+#include "connections/FeedbackConn.hpp"
 // #include "connections/GapConn.hpp"
 #include "connections/HyPerConn.hpp"
 #include "connections/IdentConn.hpp"
@@ -160,7 +160,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("CloneConn", Factory::create<CloneConn>);
    // registerKeyword("ComponentsConn", Factory::create<ComponentsConn>);
    registerKeyword("CopyConn", Factory::create<CopyConn>);
-   // registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
+   registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
    // registerKeyword("GapConn", Factory::create<GapConn>);
    registerKeyword("IdentConn", Factory::create<IdentConn>);
    registerKeyword("MomentumConn", Factory::create<MomentumConn>);

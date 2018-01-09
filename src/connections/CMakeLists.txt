@@ -2,6 +2,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BaseConnection.cpp
    ${SUBDIR}/CloneConn.cpp
    ${SUBDIR}/CopyConn.cpp
+   ${SUBDIR}/FeedbackConn.cpp
 #   ${SUBDIR}/GapConn.cpp
    ${SUBDIR}/HyPerConn.cpp
    ${SUBDIR}/IdentConn.cpp
@@ -17,6 +18,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BaseConnection.hpp
    ${SUBDIR}/CloneConn.hpp
    ${SUBDIR}/CopyConn.hpp
+   ${SUBDIR}/FeedbackConn.hpp
 #   ${SUBDIR}/GapConn.hpp
    ${SUBDIR}/HyPerConn.hpp
    ${SUBDIR}/IdentConn.hpp

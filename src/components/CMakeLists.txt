@@ -10,6 +10,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/DependentArborList.cpp
    ${SUBDIR}/DependentPatchSize.cpp
    ${SUBDIR}/DependentSharedWeights.cpp
+   ${SUBDIR}/FeedbackConnectionData.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/ImpliedWeightsPair.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
@@ -25,8 +26,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
-   ${SUBDIR}/LogTimeScaleController.cpp
-   ${SUBDIR}/KneeTimeScaleController.cpp
+   ${SUBDIR}/LogTimeScaleController.hpp
+   ${SUBDIR}/KneeTimeScaleController.hpp
    ${SUBDIR}/AdaptiveTimeScaleController.hpp
    ${SUBDIR}/ArborList.hpp
    ${SUBDIR}/BatchIndexer.hpp
@@ -36,7 +37,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/DependentArborList.hpp
    ${SUBDIR}/DependentPatchSize.hpp
    ${SUBDIR}/DependentSharedWeights.hpp
-   ${SUBDIR}/ImpliedWeights.cpp
+   ${SUBDIR}/FeedbackConnectionData.hpp
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/ImpliedWeightsPair.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
