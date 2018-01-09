@@ -3,7 +3,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/CloneConn.cpp
    ${SUBDIR}/CopyConn.cpp
    ${SUBDIR}/FeedbackConn.cpp
-#   ${SUBDIR}/GapConn.cpp
+   ${SUBDIR}/GapConn.cpp
    ${SUBDIR}/HyPerConn.cpp
    ${SUBDIR}/IdentConn.cpp
    ${SUBDIR}/MomentumConn.cpp
@@ -19,7 +19,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CloneConn.hpp
    ${SUBDIR}/CopyConn.hpp
    ${SUBDIR}/FeedbackConn.hpp
-#   ${SUBDIR}/GapConn.hpp
+   ${SUBDIR}/GapConn.hpp
    ${SUBDIR}/HyPerConn.hpp
    ${SUBDIR}/IdentConn.hpp
    ${SUBDIR}/MomentumConn.hpp
