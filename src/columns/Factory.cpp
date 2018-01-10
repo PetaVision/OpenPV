@@ -28,7 +28,7 @@
 #include "layers/ImageLayer.hpp"
 #include "layers/InputRegionLayer.hpp"
 #include "layers/KmeansLayer.hpp"
-// #include "layers/LCALIFLayer.hpp"
+#include "layers/LCALIFLayer.hpp"
 #include "layers/LIF.hpp"
 #include "layers/LIFGap.hpp"
 #include "layers/LabelErrorLayer.hpp"
@@ -139,7 +139,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("PvpLayer", Factory::create<PvpLayer>);
    registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
    registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
-   // registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
+   registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
    registerKeyword("LIF", Factory::create<LIF>);
    registerKeyword("LIFGap", Factory::create<LIFGap>);
    registerKeyword("LabelErrorLayer", Factory::create<LabelErrorLayer>);
