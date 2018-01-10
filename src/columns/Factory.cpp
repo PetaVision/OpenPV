@@ -57,7 +57,7 @@
 #include "connections/PoolingConn.hpp"
 #include "connections/RescaleConn.hpp"
 #include "connections/TransposeConn.hpp"
-// #include "connections/TransposePoolingConn.hpp"
+#include "connections/TransposePoolingConn.hpp"
 
 #include "probes/AdaptiveTimeScaleProbe.hpp"
 #include "probes/ColumnEnergyProbe.hpp"
@@ -168,7 +168,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("PoolingConn", Factory::create<PoolingConn>);
    registerKeyword("RescaleConn", Factory::create<RescaleConn>);
    registerKeyword("TransposeConn", Factory::create<TransposeConn>);
-   // registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
+   registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
    registerKeyword("AdaptiveTimeScaleProbe", Factory::create<AdaptiveTimeScaleProbe>);
    registerKeyword("KneeTimeScaleProbe", Factory::create<KneeTimeScaleProbe>);
    registerKeyword("LogTimeScaleProbe", Factory::create<LogTimeScaleProbe>);

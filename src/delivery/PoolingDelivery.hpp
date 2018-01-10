@@ -79,6 +79,10 @@ class PoolingDelivery : public BaseDelivery {
 
    virtual bool isAllInputReady() override;
 
+   AccumulateType getAccumulateType() const { return mAccumulateType; }
+
+   PoolingIndexLayer *getPostIndexLayer() const { return mPostIndexLayer; }
+
    /**
     * Translates the input string into an accumulated type.
     * The parsing is case-insensitive, and the strings
@@ -119,7 +123,6 @@ class PoolingDelivery : public BaseDelivery {
    char *mPvpatchAccumulateTypeString  = nullptr;
    bool mUpdateGSynFromPostPerspective = false;
 
-   float mDeltaTimeFactor           = 1.0f;
    PatchSize *mPatchSize            = nullptr;
    ImpliedWeightsPair *mWeightsPair = nullptr;
 

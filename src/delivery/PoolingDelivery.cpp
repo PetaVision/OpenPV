@@ -7,6 +7,7 @@
 
 #include "PoolingDelivery.hpp"
 #include "columns/HyPerCol.hpp"
+#include "columns/ObjectMapComponent.hpp"
 #include "delivery/accumulate_functions.hpp"
 #include "utils/MapLookupByType.hpp"
 
@@ -110,19 +111,32 @@ int PoolingDelivery::communicateInitInfo(
       return status;
    }
 
-   mPatchSize = mapLookupByType<PatchSize>(message->mHierarchy, getDescription());
+   auto &hierarchy = message->mHierarchy;
+
+   mPatchSize = mapLookupByType<PatchSize>(hierarchy, getDescription());
    FatalIf(mPatchSize == nullptr, "%s requires a PatchSize component.\n", getDescription_c());
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
       return PV_POSTPONE;
    }
 
-   mWeightsPair = mapLookupByType<ImpliedWeightsPair>(message->mHierarchy, getDescription());
+   mWeightsPair = mapLookupByType<ImpliedWeightsPair>(hierarchy, getDescription());
    FatalIf(
          mWeightsPair == nullptr,
          "%s requires an ImpliedWeightsPair component.\n",
          getDescription_c());
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
       return PV_POSTPONE;
+   }
+
+   if (mNeedPostIndexLayer) {
+      pvAssert(mPostIndexLayerName);
+      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+      FatalIf(
+            objectMapComponent == nullptr,
+            "%s requires an ObjectMapComponent.\n",
+            getDescription_c());
+      mPostIndexLayer =
+            objectMapComponent->lookup<PoolingIndexLayer>(std::string(mPostIndexLayerName));
    }
 
    if (mUpdateGSynFromPostPerspective) {
@@ -194,7 +208,7 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
       default:
          pvAssert(0);
          // Only MAXPOOLING, SUMPOOLING, AVGPOOLING are allowed.
-         // UNDEFINED is the only possible value of mAccumulateType, but the type should be
+         // UNDEFINED is the only other possible value of mAccumulateType, but the type should be
          // defined before this function is ever called.
          break;
    }
@@ -479,7 +493,6 @@ void PoolingDelivery::deliverPresynapticPerspective() {
             int const nk              = patch->nx * preWeights->getPatchSizeF();
             int const ny              = patch->ny;
             int const sy              = postLoc->nx * postLoc->nf; // stride in restricted layer
-            float *weightDataStart    = nullptr;
             float *postPatchStart     = &gSynPatchHead[gSynPatchStart[kPreExt]];
             float *postGatePatchStart = &gatePatchHead[gSynPatchStart[kPreExt]];
 

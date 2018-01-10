@@ -13,6 +13,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 #   ${SUBDIR}/PresynapticPerspectiveGPUDelivery.cpp
    ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.cpp
    ${SUBDIR}/RescaleDelivery.cpp
+   ${SUBDIR}/TransposePoolingDelivery.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -30,4 +31,5 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 #   ${SUBDIR}/PresynapticPerspectiveGPUDelivery.hpp
    ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.hpp
    ${SUBDIR}/RescaleDelivery.hpp
+   ${SUBDIR}/TransposePoolingDelivery.hpp
 )

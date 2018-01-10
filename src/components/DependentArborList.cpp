@@ -9,7 +9,7 @@
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "connections/HyPerConn.hpp"
+#include "connections/BaseConnection.hpp"
 #include "utils/MapLookupByType.hpp"
 
 namespace PV {
@@ -87,11 +87,13 @@ ArborList *DependentArborList::getOriginalArborList(
    ObjectMapComponent *objectMapComponent =
          mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
    pvAssert(objectMapComponent);
-   HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
+   BaseConnection *originalConn =
+         objectMapComponent->lookup<BaseConnection>(std::string(originalConnName));
    if (originalConn == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not correspond to a HyPerConn in the column.\n",
+               "%s: originalConnName \"%s\" does not correspond to a BaseConnection in the "
+               "column.\n",
                getDescription_c(),
                originalConnName);
       }

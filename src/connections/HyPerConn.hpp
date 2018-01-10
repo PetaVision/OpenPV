@@ -11,6 +11,7 @@
 
 #include "components/ArborList.hpp"
 #include "components/ConnectionData.hpp"
+#include "components/SharedWeights.hpp"
 #include "components/WeightsPair.hpp"
 #include "connections/BaseConnection.hpp"
 #include "normalizers/NormalizeBase.hpp"
