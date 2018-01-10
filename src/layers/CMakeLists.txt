@@ -24,7 +24,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 #   ${SUBDIR}/LCALIFLayer.cpp
    ${SUBDIR}/LeakyIntegrator.cpp
    ${SUBDIR}/LIF.cpp
-#   ${SUBDIR}/LIFGap.cpp
+   ${SUBDIR}/LIFGap.cpp
    ${SUBDIR}/MaskLayer.cpp
    ${SUBDIR}/PoolingIndexLayer.cpp
    ${SUBDIR}/PtwiseProductLayer.cpp
@@ -66,7 +66,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 #   ${SUBDIR}/LCALIFLayer.hpp
    ${SUBDIR}/LeakyIntegrator.hpp
    ${SUBDIR}/LIF.hpp
-#   ${SUBDIR}/LIFGap.hpp
+   ${SUBDIR}/LIFGap.hpp
    ${SUBDIR}/MaskLayer.hpp
    ${SUBDIR}/PoolingIndexLayer.hpp
    ${SUBDIR}/PtwiseProductLayer.hpp

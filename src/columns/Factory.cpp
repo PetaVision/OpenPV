@@ -30,7 +30,7 @@
 #include "layers/KmeansLayer.hpp"
 // #include "layers/LCALIFLayer.hpp"
 #include "layers/LIF.hpp"
-// #include "layers/LIFGap.hpp"
+#include "layers/LIFGap.hpp"
 #include "layers/LabelErrorLayer.hpp"
 #include "layers/LeakyIntegrator.hpp"
 #include "layers/MaskLayer.hpp"
@@ -141,7 +141,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
    // registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
    registerKeyword("LIF", Factory::create<LIF>);
-   // registerKeyword("LIFGap", Factory::create<LIFGap>);
+   registerKeyword("LIFGap", Factory::create<LIFGap>);
    registerKeyword("LabelErrorLayer", Factory::create<LabelErrorLayer>);
    registerKeyword("LeakyIntegrator", Factory::create<LeakyIntegrator>);
    registerKeyword("MaskLayer", Factory::create<MaskLayer>);
