@@ -28,19 +28,19 @@ class DependentPatchSize : public PatchSize {
     * @brief nxp: DependentPatchSize does not read the nxp parameter,
     * but copies it from the original connection.
     */
-   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief nyp: DependentPatchSize does not read the nyp parameter,
     * but copies it from the original connection.
     */
-   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief nfp: DependentPatchSize does not read the nfp parameter,
     * but copies it from the original connection.
     */
-   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag) override;
 
    /** @} */ // end of DependentPatchSize parameters
 

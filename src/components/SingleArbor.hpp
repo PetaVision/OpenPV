@@ -28,7 +28,7 @@ class SingleArbor : public ArborList {
     * @brief numAxonalArbors: SingleArbors does not use the numAxonalArbors parameter,
     * but sets the number of arbors to one.
     */
-   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) override;
 
    /** @} */ // end of SingleArbor parameters
 

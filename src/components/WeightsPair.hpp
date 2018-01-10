@@ -66,14 +66,14 @@ class WeightsPair : public WeightsPairInterface {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual void createPreWeights();
-   virtual void createPostWeights();
+   virtual void createPreWeights() override;
+   virtual void createPostWeights() override;
 
    virtual int allocateDataStructures() override;
 
-   virtual void allocatePreWeights();
+   virtual void allocatePreWeights() override;
 
-   virtual void allocatePostWeights();
+   virtual void allocatePostWeights() override;
 
    virtual int registerData(Checkpointer *checkpointer) override;
 

@@ -42,7 +42,6 @@ void NonsharedConnDebugInitWeights::ioParam_weightInitType(enum ParamsIOFlag ioF
          mWeightInitTypeString == nullptr or mWeightInitTypeString[0] == '\0',
          "%s must set weightInitType.\n",
          getDescription_c());
-   mWeightInitializer == nullptr;
 }
 
 int NonsharedConnDebugInitWeights::communicateInitInfo(

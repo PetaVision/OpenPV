@@ -27,7 +27,7 @@ class SharedWeightsFalse : public SharedWeights {
     * @brief sharedWeights: SharedWeightsFalse always sets the sharedWeights flag to false.
     * Defaults to false (non-shared weights).
     */
-   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
 
    /** @} */ // end of SharedWeightsFalse parameters
 

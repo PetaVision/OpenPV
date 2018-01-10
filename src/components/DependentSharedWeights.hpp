@@ -28,7 +28,7 @@ class DependentSharedWeights : public SharedWeights {
     * @brief shareeWeihgts: DependentSharedWeightss does not use the sharedWeights parameter,
     * but uses the same setting as the original connection.
     */
-   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag) override;
 
    /** @} */ // end of DependentSharedWeights parameters
 

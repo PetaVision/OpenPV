@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 
    const int axonID     = 0;
    int num_pre_extended = pre->clayer->numExtended;
-   FatalIf(!num_pre_extended == cHyPer->getNumGeometryPatches(), "Test failed.\n");
+   FatalIf(num_pre_extended != cHyPer->getNumGeometryPatches(), "Test failed.\n");
 
    int status = PV_SUCCESS;
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {

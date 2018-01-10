@@ -29,7 +29,7 @@ class TransposePatchSize : public DependentPatchSize {
 
    int initialize(char const *name, HyPerCol *hc);
 
-   virtual void setPatchSize(PatchSize *originalPatchSize);
+   virtual void setPatchSize(PatchSize *originalPatchSize) override;
 
 }; // class TransposePatchSize
 

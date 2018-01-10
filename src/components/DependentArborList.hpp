@@ -29,7 +29,7 @@ class DependentArborList : public ArborList {
     * @brief numAxonalArbors: DependentArborList does not use the numAxonalArbors parameter,
     * but gets the number of arbors from the original connection.
     */
-   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) override;
 
    /** @} */ // end of DependentArborList parameters
 
