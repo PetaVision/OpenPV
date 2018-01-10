@@ -166,10 +166,10 @@ int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    return status;
 }
 
-void WeightsPair::createPreWeights() {
+void WeightsPair::createPreWeights(std::string const &weightsName) {
    pvAssert(mPreWeights == nullptr and mInitInfoCommunicatedFlag);
    mPreWeights = new Weights(
-         std::string(name),
+         weightsName,
          mPatchSize->getPatchSizeX(),
          mPatchSize->getPatchSizeY(),
          mPatchSize->getPatchSizeF(),
@@ -180,7 +180,7 @@ void WeightsPair::createPreWeights() {
          -std::numeric_limits<double>::infinity() /*timestamp*/);
 }
 
-void WeightsPair::createPostWeights() {
+void WeightsPair::createPostWeights(std::string const &weightsName) {
    pvAssert(mPostWeights == nullptr and mInitInfoCommunicatedFlag);
    PVLayerLoc const *preLoc  = mConnectionData->getPre()->getLayerLoc();
    PVLayerLoc const *postLoc = mConnectionData->getPost()->getLayerLoc();
@@ -189,7 +189,7 @@ void WeightsPair::createPostWeights() {
    int nypPre                = mPatchSize->getPatchSizeY();
    int nypPost               = PatchSize::calcPostPatchSize(nypPre, preLoc->ny, postLoc->ny);
    mPostWeights              = new Weights(
-         std::string(name),
+         weightsName,
          nxpPost,
          nypPost,
          preLoc->nf /* number of features in post patch */,

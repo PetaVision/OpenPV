@@ -190,12 +190,12 @@ void CloneWeightsPair::synchronizeMarginsPost() {
    origPost->synchronizeMarginWidth(thisPost);
 }
 
-void CloneWeightsPair::createPreWeights() {
+void CloneWeightsPair::createPreWeights(std::string const &weightsName) {
    mOriginalWeightsPair->needPre();
    mPreWeights = mOriginalWeightsPair->getPreWeights();
 }
 
-void CloneWeightsPair::createPostWeights() {
+void CloneWeightsPair::createPostWeights(std::string const &weightsName) {
    mOriginalWeightsPair->needPost();
    mPostWeights = mOriginalWeightsPair->getPostWeights();
 }

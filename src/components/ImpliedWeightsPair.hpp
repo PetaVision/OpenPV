@@ -25,8 +25,8 @@ class ImpliedWeightsPair : public WeightsPairInterface {
 
    virtual int setDescription() override;
 
-   virtual void createPreWeights() override;
-   virtual void createPostWeights() override;
+   virtual void createPreWeights(std::string const &weightsName) override;
+   virtual void createPostWeights(std::string const &weightsName) override;
 };
 
 } // namespace PV

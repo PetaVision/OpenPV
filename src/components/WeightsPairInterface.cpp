@@ -124,7 +124,8 @@ void WeightsPairInterface::needPre() {
          "%s must finish CommunicateInitInfo before needPre can be called.\n",
          getDescription_c());
    if (mPreWeights == nullptr) {
-      createPreWeights();
+      std::string weightsName(std::string("Pre-weights \"") + name + "\"");
+      createPreWeights(weightsName);
    }
 }
 
@@ -134,7 +135,8 @@ void WeightsPairInterface::needPost() {
          "%s must finish CommunicateInitInfo before needPost can be called.\n",
          getDescription_c());
    if (mPostWeights == nullptr) {
-      createPostWeights();
+      std::string weightsName(std::string("Post-weights \"") + name + "\"");
+      createPostWeights(weightsName);
    }
 }
 

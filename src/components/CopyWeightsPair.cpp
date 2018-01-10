@@ -172,14 +172,14 @@ void CopyWeightsPair::synchronizeMarginsPost() {
    origPost->synchronizeMarginWidth(thisPost);
 }
 
-void CopyWeightsPair::createPreWeights() {
-   WeightsPair::createPreWeights();
+void CopyWeightsPair::createPreWeights(std::string const &weightsName) {
+   WeightsPair::createPreWeights(weightsName);
    pvAssert(mOriginalWeightsPair);
    mOriginalWeightsPair->needPre();
 }
 
-void CopyWeightsPair::createPostWeights() {
-   WeightsPair::createPostWeights();
+void CopyWeightsPair::createPostWeights(std::string const &weightsName) {
+   WeightsPair::createPostWeights(weightsName);
    pvAssert(mOriginalWeightsPair);
    mOriginalWeightsPair->needPost();
 }

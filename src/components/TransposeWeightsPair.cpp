@@ -167,12 +167,12 @@ int TransposeWeightsPair::communicateInitInfo(
    return status;
 }
 
-void TransposeWeightsPair::createPreWeights() {
+void TransposeWeightsPair::createPreWeights(std::string const &weightsName) {
    mOriginalWeightsPair->needPost();
    mPreWeights = mOriginalWeightsPair->getPostWeights();
 }
 
-void TransposeWeightsPair::createPostWeights() {
+void TransposeWeightsPair::createPostWeights(std::string const &weightsName) {
    mOriginalWeightsPair->needPre();
    mPostWeights = mOriginalWeightsPair->getPreWeights();
 }

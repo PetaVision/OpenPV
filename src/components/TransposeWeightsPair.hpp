@@ -46,9 +46,8 @@ class TransposeWeightsPair : public WeightsPair {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual void createPreWeights() override;
-
-   virtual void createPostWeights() override;
+   virtual void createPreWeights(std::string const &weightsName) override;
+   virtual void createPostWeights(std::string const &weightsName) override;
 
    virtual int allocateDataStructures() override;
 

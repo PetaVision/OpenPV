@@ -63,7 +63,7 @@ class WeightsPairInterface : public BaseObject {
     * Implementations can assume that mPreWeights is null on entry, and should
     * and should instantiate mPreWeights using the 'new' operator.
     */
-   virtual void createPreWeights() = 0;
+   virtual void createPreWeights(std::string const &weightsName) = 0;
 
    /**
     * A pure virtual method for creating the postsynaptic weights, called by
@@ -72,7 +72,7 @@ class WeightsPairInterface : public BaseObject {
     * Implementations can assume that mPostWeights is null on entry, and should
     * and should instantiate mPostWeights using the 'new' operator.
     */
-   virtual void createPostWeights() = 0;
+   virtual void createPostWeights(std::string const &weightsName) = 0;
 
    virtual int allocateDataStructures() override;
 

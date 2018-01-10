@@ -25,10 +25,10 @@ int ImpliedWeightsPair::setDescription() {
    return PV_SUCCESS;
 }
 
-void ImpliedWeightsPair::createPreWeights() {
+void ImpliedWeightsPair::createPreWeights(std::string const &weightsName) {
    pvAssert(mPreWeights == nullptr and mInitInfoCommunicatedFlag);
    mPreWeights = new ImpliedWeights(
-         std::string(name),
+         weightsName,
          mPatchSize->getPatchSizeX(),
          mPatchSize->getPatchSizeY(),
          mPatchSize->getPatchSizeF(),
@@ -39,7 +39,7 @@ void ImpliedWeightsPair::createPreWeights() {
          -std::numeric_limits<double>::infinity() /*timestamp*/);
 }
 
-void ImpliedWeightsPair::createPostWeights() {
+void ImpliedWeightsPair::createPostWeights(std::string const &weightsName) {
    pvAssert(mPostWeights == nullptr and mInitInfoCommunicatedFlag);
    PVLayerLoc const *preLoc  = mConnectionData->getPre()->getLayerLoc();
    PVLayerLoc const *postLoc = mConnectionData->getPost()->getLayerLoc();
@@ -48,7 +48,7 @@ void ImpliedWeightsPair::createPostWeights() {
    int nypPre                = mPatchSize->getPatchSizeY();
    int nypPost               = PatchSize::calcPostPatchSize(nypPre, preLoc->ny, postLoc->ny);
    mPostWeights              = new ImpliedWeights(
-         std::string(name),
+         weightsName,
          nxpPost,
          nypPost,
          preLoc->nf /* number of features in post patch */,
