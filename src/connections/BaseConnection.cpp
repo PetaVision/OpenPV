@@ -117,8 +117,28 @@ int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       postLayer->addRecvConn(this);
    }
 
+#ifdef PV_USE_CUDA
+   for (auto &c : componentTable.getObjectVector()) {
+      auto *baseObject = dynamic_cast<BaseObject *>(c);
+      if (baseObject) {
+         mUsingGPUFlag |= baseObject->isUsingGPU();
+      }
+   }
+#endif // PV_USE_CUDA
+
    return PV_SUCCESS;
 }
+
+#ifdef PV_USE_CUDA
+int BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   int status = BaseObject::setCudaDevice(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   notify(mComponentTable, message, parent->getCommunicator()->globalCommunicator() /*printFlag*/);
+   return PV_SUCCESS;
+}
+#endif // PV_USE_CUDA
 
 int BaseConnection::allocateDataStructures() {
    notify(

@@ -77,7 +77,7 @@ class BaseDelivery : public BaseObject {
    ArborList *mArborList           = nullptr;
    HyPerLayer *mPreLayer           = nullptr;
    HyPerLayer *mPostLayer          = nullptr;
-   // Rather than the layers, should we store the buffers ant the PVLayerLoc data?
+   // Rather than the layers, should we store the buffers and the PVLayerLoc data?
 };
 
 } // namespace PV

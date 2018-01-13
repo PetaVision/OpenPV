@@ -371,12 +371,6 @@ void HyPerCol::allocateColumn() {
       return;
    }
 
-#ifdef PV_USE_CUDA
-   // Default to auto assign gpus
-   std::string const &gpu_devices = mPVInitObj->getStringArgument("GPUDevices");
-   initializeCUDA(gpu_devices);
-#endif
-
    setNumThreads(false);
    // When we call processParams, the communicateInitInfo stage will run, which
    // can put out a lot of messages.
@@ -399,6 +393,15 @@ void HyPerCol::allocateColumn() {
          processParams(mPrintParamsFilename);
       }
    }
+
+#ifdef PV_USE_CUDA
+   // Needs to go between CommunicateInitInfo (called by processParams) and
+   // AllocateDataStructures, because the object's mUsingGPUFlag might not get
+   // set until the communicate stage, but the objects will need to know the
+   // CudaDevice in order to allocate GPU memory.
+   std::string const &gpu_devices = mPVInitObj->getStringArgument("GPUDevices");
+   initializeCUDA(gpu_devices);
+#endif
 
    int thread_status =
          setNumThreads(true /*now, print messages related to setting number of threads*/);
@@ -1252,6 +1255,9 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
    if (globalRank() == 0) {
       mCudaDevice->query_device_info();
    }
+
+   // Broadcast the pointer to the CUDA device to the hierarchy
+   notify(std::make_shared<SetCudaDeviceMessage>(mCudaDevice));
 }
 
 int HyPerCol::finalizeCUDA() {

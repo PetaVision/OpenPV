@@ -33,11 +33,23 @@ class CudaBuffer {
 
    /**
     * A function to copy host memory to device memory. Note that the host and device memory must
-    * have the same size, otherwise undefined behavior
+    * have the same size, otherwise behavior is undefined.
     * @param h_ptr The pointer to the host address to copy to the device
     * #return Returns PV_Success if successful
     */
-   virtual int copyToDevice(const void *h_ptr);
+   int copyToDevice(const void *h_ptr);
+
+   /**
+    * A function to copy host memory to a portion of device memory.
+    * offset plus in_size must not be greater than getSize().
+    * Note that the offset is applied only to the device memory pointer,
+    * not the host memory pointer h_ptr: h_ptr[0] through h_ptr[in_size-1]
+    * are copied to d_ptr[offset] through d_ptr[offset + in_size - 1].
+    * @param h_ptr The pointer to the host address to copy to the device
+    * @param in_size The number of bytes for the data to copy
+    * @param offset The offset into the device memory at which the copy should start.
+    */
+   int copyToDevice(const void *h_ptr, size_t in_size, size_t offset);
 
    /**
     * A function to copy device memory to host memory. Note that the host and device memory must
@@ -46,14 +58,14 @@ class CudaBuffer {
     * @param in_size The size of the data to copy. Defaults to the size of the buffer.
     * #return Returns PV_Success if successful
     */
-   virtual int copyFromDevice(void *h_ptr);
-   virtual int copyFromDevice(void *h_ptr, size_t in_size);
+   int copyFromDevice(void *h_ptr);
+   int copyFromDevice(void *h_ptr, size_t in_size);
 
    /**
     * A getter function to return the device pointer allocated
     * #return Returns the device pointer
     */
-   virtual void *getPointer() { return d_ptr; }
+   void *getPointer() { return d_ptr; }
 
    /**
     * A getter function to return the size of the device memory
@@ -71,14 +83,6 @@ class CudaBuffer {
    CudaDevice *device;
 
   private:
-   /**
-    * A function to copy host memory to device memory. Note that the host and device memory must
-    * have the same size, otherwise undefined behavior
-    * @param h_ptr The pointer to the host address to copy to the device
-    * @param in_size The size of the data to copy. Defaults to the size of the buffer.
-    * #return Returns PV_Success if successful
-    */
-   virtual int copyToDevice(const void *h_ptr, size_t in_size);
    void callCudaPermuteWeightsPVToCudnn(
          int gridSize,
          int blockSize,

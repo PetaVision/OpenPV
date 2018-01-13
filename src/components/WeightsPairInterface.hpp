@@ -60,8 +60,8 @@ class WeightsPairInterface : public BaseObject {
     * A pure virtual method for creating the presynaptic weights, called by
     * needPre() if mPreWeights is null and the communicate stage has been completed.
     *
-    * Implementations can assume that mPreWeights is null on entry, and should
-    * and should instantiate mPreWeights using the 'new' operator.
+    * Implementations can assume that mPreWeights is null on entry, and should set that
+    * member variable.
     */
    virtual void createPreWeights(std::string const &weightsName) = 0;
 
@@ -69,8 +69,8 @@ class WeightsPairInterface : public BaseObject {
     * A pure virtual method for creating the postsynaptic weights, called by
     * needPost() if mPostWeights is null and the communicate stage has been completed.
     *
-    * Implementations can assume that mPostWeights is null on entry, and should
-    * and should instantiate mPostWeights using the 'new' operator.
+    * Implementations can assume that mPostWeights is null on entry, and should set that
+    * member variable.
     */
    virtual void createPostWeights(std::string const &weightsName) = 0;
 

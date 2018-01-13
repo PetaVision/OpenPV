@@ -31,11 +31,27 @@ int GPUSystemTestProbe::outputState(double timed) {
    const float *A        = getTargetLayer()->getLayerData();
    float sumsq           = 0;
    for (int i = 0; i < numExtNeurons; i++) {
-      FatalIf(!(fabsf(A[i]) < 5e-4f), "Test failed.\n");
+      float tol = 5.0e-4;
+      FatalIf(
+            fabsf(A[i]) >= 5e-4f,
+            "%s neuron index %d has value %f at time %f; tolerance is %f.\n",
+            getTargetLayer()->getDescription_c(),
+            i,
+            (double)A[i],
+            timed,
+            (double)tol);
    }
    for (int b = 0; b < loc->nbatch; b++) {
-      // For max std of 5e-5
-      FatalIf(!(sigma[b] <= 5e-5f), "Test failed.\n");
+      // For max std of 5.0fe-5
+      float tol = 5e-5;
+      FatalIf(
+            sigma[b] > tol,
+            "%s batch element %d has standard deviation %f at time %f; tolerance is %f.\n",
+            getTargetLayer()->getDescription_c(),
+            b,
+            (double)sigma[b],
+            timed,
+            (double)tol);
    }
 
    return status;

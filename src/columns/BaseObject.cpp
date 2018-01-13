@@ -95,6 +95,11 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
          auto castMessage = std::dynamic_pointer_cast<CommunicateInitInfoMessage const>(message)) {
       return respondCommunicateInitInfo(castMessage);
    }
+#ifdef PV_USE_CUDA
+   else if (auto castMessage = std::dynamic_pointer_cast<SetCudaDeviceMessage const>(message)) {
+      return respondSetCudaDevice(castMessage);
+   }
+#endif // PV_USE_CUDA
    else if (auto castMessage = std::dynamic_pointer_cast<AllocateDataMessage const>(message)) {
       return respondAllocateData(castMessage);
    }
@@ -126,6 +131,13 @@ int BaseObject::respondCommunicateInitInfo(
    }
    return status;
 }
+
+#ifdef PV_USE_CUDA
+int BaseObject::respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   int status = setCudaDevice(message);
+   return status;
+}
+#endif // PV_USE_CUDA
 
 int BaseObject::respondAllocateData(std::shared_ptr<AllocateDataMessage const> message) {
    int status = PV_SUCCESS;
@@ -166,6 +178,19 @@ int BaseObject::respondCopyInitialStateToGPU(
 }
 
 int BaseObject::respondCleanup(std::shared_ptr<CleanupMessage const> message) { return cleanup(); }
+
+#ifdef PV_USE_CUDA
+int BaseObject::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   if (mUsingGPUFlag) {
+      mCudaDevice = message->mCudaDevice;
+      FatalIf(
+            mCudaDevice == nullptr,
+            "%s received SetCudaDevice with null device pointer.\n",
+            getDescription_c());
+   }
+   return PV_SUCCESS;
+}
+#endif // PV_USE_CUDA
 
 BaseObject::~BaseObject() { free(name); }
 

@@ -17,6 +17,10 @@
 #include <map>
 #include <string>
 
+#ifdef PV_USE_CUDA
+#include "arch/cuda/CudaDevice.hpp"
+#endif // PV_USE_CUDA
+
 namespace PV {
 
 class CommunicateInitInfoMessage : public BaseMessage {
@@ -38,6 +42,17 @@ class CommunicateInitInfoMessage : public BaseMessage {
    }
    std::map<std::string, Observer *> mHierarchy;
 };
+
+#ifdef PV_USE_CUDA
+class SetCudaDeviceMessage : public BaseMessage {
+  public:
+   SetCudaDeviceMessage(PVCuda::CudaDevice *device) {
+      setMessageType("SetCudaDevice");
+      mCudaDevice = device;
+   }
+   PVCuda::CudaDevice *mCudaDevice = nullptr;
+};
+#endif // PV_USE_CUDA
 
 class AllocateDataMessage : public BaseMessage {
   public:

@@ -26,7 +26,7 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
 
    /**
     * @brief receiveGpu: PresynapticPerspectiveStochasticDelivery always sets receiveGpu to false.
-    * The receiveGpu=true cases is handled by the PresynapticPerspectiveGPU class.
+    * The receiveGpu=true case is handled by the PresynapticPerspectiveGPUDelivery class.
     */
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
    /** @} */ // End of list of BaseDelivery parameters.
@@ -55,11 +55,6 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
    virtual void deliver() override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
-
-   /**
-    * Returns the value of the receiveGpu parameter
-    */
-   bool getReceiveGpu() const { return mReceiveGpu; }
 
   protected:
    PresynapticPerspectiveStochasticDelivery();

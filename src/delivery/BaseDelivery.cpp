@@ -139,6 +139,9 @@ int BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
          }
       }
    }
+#ifdef PV_USE_CUDA
+   mUsingGPUFlag = mReceiveGpu;
+#endif // PV_USE_CUDA
 
    return PV_SUCCESS;
 }

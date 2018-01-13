@@ -45,7 +45,10 @@ void HyPerDelivery::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
 int HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status   = BaseDelivery::communicateInitInfo(message);
    mWeightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
-   pvAssert(mWeightsPair);
+   FatalIf(!mWeightsPair, "%s requires a WeightsPair component.\n", getDescription_c());
+   if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
+      return PV_POSTPONE;
+   }
    return status;
 }
 

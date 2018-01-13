@@ -26,7 +26,7 @@ class PostsynapticPerspectiveConvolveDelivery : public HyPerDelivery {
 
    /**
     * @brief receiveGpu: PostsynapticPerspectiveConvolveDelivery always sets receiveGpu to false.
-    * The receiveGpu=true cases is handled by the PostsynapticPerspectiveGPU class.
+    * The receiveGpu=true case is handled by the PostsynapticPerspectiveGPUDelivery class.
     */
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
    /** @} */ // End of list of BaseDelivery parameters.
@@ -52,11 +52,6 @@ class PostsynapticPerspectiveConvolveDelivery : public HyPerDelivery {
    virtual void deliver() override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
-
-   /**
-    * Returns the value of the receiveGpu parameter
-    */
-   bool getReceiveGpu() const { return mReceiveGpu; }
 
   protected:
    PostsynapticPerspectiveConvolveDelivery();

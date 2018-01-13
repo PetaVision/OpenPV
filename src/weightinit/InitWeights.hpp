@@ -89,8 +89,8 @@ class InitWeights : public BaseObject {
    /*
     * initializeState checks initWeightsFile. If initWeightsFile is set, the weights are
     * loaded from the file. If it is not set, it calls calcWeights with no arguments.
-    * Generally, derived classes should override one or both of the calcWeights methods,
-    * in order to preserve the initWeightsFile behavior.
+    * Generally, derived classes should not override initializeState, but instead override
+    * one or both of the calcWeights methods, in order to preserve the initWeightsFile behavior.
     */
    virtual int initializeState() override;
 

@@ -211,16 +211,28 @@ int WeightsPair::allocateDataStructures() {
 }
 
 void WeightsPair::allocatePreWeights() {
+   pvAssert(mPreWeights);
    mPreWeights->setMargins(
          mConnectionData->getPre()->getLayerLoc()->halo,
          mConnectionData->getPost()->getLayerLoc()->halo);
+#ifdef PV_USE_CUDA
+   if (mCudaDevice) {
+      mPreWeights->setCudaDevice(mCudaDevice);
+   }
+#endif // PV_USE_CUDA
    mPreWeights->allocateDataStructures();
 }
 
 void WeightsPair::allocatePostWeights() {
+   pvAssert(mPostWeights);
    mPostWeights->setMargins(
          mConnectionData->getPost()->getLayerLoc()->halo,
          mConnectionData->getPre()->getLayerLoc()->halo);
+#ifdef PV_USE_CUDA
+   if (mCudaDevice) {
+      mPostWeights->setCudaDevice(mCudaDevice);
+   }
+#endif // PV_USE_CUDA
    mPostWeights->allocateDataStructures();
 }
 
@@ -247,6 +259,10 @@ int WeightsPair::registerData(Checkpointer *checkpointer) {
 }
 
 void WeightsPair::finalizeUpdate(double timestamp, double deltaTime) {
+   pvAssert(mPreWeights);
+#ifdef PV_USE_CUDA
+   mPreWeights->copyToGPU();
+#endif // PV_USE_CUDA
    if (mPostWeights) {
       double const timestampPre  = mPreWeights->getTimestamp();
       double const timestampPost = mPostWeights->getTimestamp();
@@ -254,6 +270,9 @@ void WeightsPair::finalizeUpdate(double timestamp, double deltaTime) {
          TransposeWeights::transpose(mPreWeights, mPostWeights, parent->getCommunicator());
          mPostWeights->setTimestamp(timestampPre);
       }
+#ifdef PV_USE_CUDA
+      mPostWeights->copyToGPU();
+#endif // PV_USE_CUDA
    }
 }
 

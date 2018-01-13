@@ -37,12 +37,10 @@ int PresynapticPerspectiveConvolveDelivery::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = HyPerDelivery::communicateInitInfo(message);
    if (status != PV_SUCCESS) {
-      return PV_SUCCESS;
+      return status;
    }
-   pvAssert(mWeightsPair);
-   if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
-   }
+   // HyPerDelivery::communicateInitInfo() postpones until mWeightsPair communicates.
+   pvAssert(mWeightsPair and mWeightsPair->getInitInfoCommunicatedFlag());
    mWeightsPair->needPre();
    return status;
 }

@@ -16,6 +16,10 @@
 #include <string>
 #include <vector>
 
+#ifdef PV_USE_CUDA
+#include "arch/cuda/CudaDevice.hpp"
+#endif // PV_USE_CUDA
+
 namespace PV {
 
 /**
@@ -123,6 +127,13 @@ class Weights {
 
    int calcDataIndexFromPatchIndex(int patchIndex) const;
 
+#ifdef PV_USE_CUDA
+   /**
+    * If CUDA is being used, copy the weights onto the GPU.
+    */
+   void copyToGPU();
+#endif // PV_USE_CUDA
+
    /** The get-method for the sharedWeights flag */
    bool getSharedFlag() const { return mSharedFlag; }
 
@@ -224,13 +235,13 @@ class Weights {
     * Returns the memory stride between adjacent x-coordinates with the same y-coordinate and
     * feature index
     */
-   int getPatchStrideX() const { return mGeometry->getPatchSizeF(); }
+   int getPatchStrideX() const { return mGeometry->getPatchStrideX(); }
 
    /**
     * Returns the memory stride between adjacent y-coordinates with the same x-coordinate and
     * feature index
     */
-   int getPatchStrideY() const { return mGeometry->getPatchSizeF() * mGeometry->getPatchSizeX(); }
+   int getPatchStrideY() const { return mGeometry->getPatchStrideY(); }
 
    bool getWeightsArePlastic() const { return mWeightsArePlastic; }
 
@@ -244,6 +255,21 @@ class Weights {
     */
    void setMargins(PVHalo const &preHalo, PVHalo const &postHalo);
 
+#ifdef PV_USE_CUDA
+   bool isUsingGPU() { return mUsingGPUFlag; }
+   void useGPU() { mUsingGPUFlag = true; }
+
+   void setCudaDevice(PVCuda::CudaDevice *device) { mCudaDevice = device; }
+
+   PVCuda::CudaBuffer *getDevicePatches() const { return mDevicePatches; }
+   PVCuda::CudaBuffer *getDeviceGSynPatchStart() const { return mDeviceGSynPatchStart; }
+   PVCuda::CudaBuffer *getDevicePatchToDataLookup() const { return mDevicePatchToDataLookup; }
+   PVCuda::CudaBuffer *getDeviceData() const { return mDeviceData; }
+#ifdef PV_USE_CUDNN
+   PVCuda::CudaBuffer *getCUDNNData() const { return mCUDNNData; }
+#endif // PV_USE_CUDNN
+#endif // PV_USE_CUDA
+
   protected:
    /**
     * The default constructor, called by derived classes (e.g. PoolingWeights).
@@ -254,6 +280,10 @@ class Weights {
    void setName(std::string const &name) { mName = name; }
 
    void setNumDataPatches(int numDataPatchesX, int numDataPatchesY, int numDataPatchesF);
+
+#ifdef PV_USE_CUDA
+   void allocateCudaBuffers();
+#endif // PV_USE_CUDA
 
   private:
    virtual void initNumDataPatches();
@@ -271,6 +301,19 @@ class Weights {
    std::vector<std::vector<float>> mData;
 
    bool mWeightsArePlastic = false;
+
+#ifdef PV_USE_CUDA
+   bool mUsingGPUFlag                           = false;
+   PVCuda::CudaDevice *mCudaDevice              = nullptr;
+   PVCuda::CudaBuffer *mDevicePatches           = nullptr;
+   PVCuda::CudaBuffer *mDeviceGSynPatchStart    = nullptr;
+   PVCuda::CudaBuffer *mDevicePatchToDataLookup = nullptr;
+   PVCuda::CudaBuffer *mDeviceData              = nullptr;
+#ifdef PV_USE_CUDNN
+   PVCuda::CudaBuffer *mCUDNNData = nullptr;
+#endif // PV_USE_CUDNN
+   double mTimestampGPU;
+#endif // PV_USE_CUDA
 }; // end class Weights
 
 } // end namespace PV

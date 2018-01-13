@@ -80,6 +80,10 @@ class HyPerDeliveryFacade : public BaseDelivery {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+#ifdef PV_USE_CUDA
+   virtual int setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) override;
+#endif // PV_USE_CUDA
+
    virtual int allocateDataStructures() override;
 
    // Data members

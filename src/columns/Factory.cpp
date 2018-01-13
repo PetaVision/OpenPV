@@ -91,6 +91,11 @@
 #include "delivery/PresynapticPerspectiveStochasticDelivery.hpp"
 #include "delivery/RescaleDelivery.hpp"
 
+#ifdef PV_USE_CUDA
+// #include "delivery/PostsynapticPerspectiveGPUDelivery.hpp"
+#include "delivery/PresynapticPerspectiveGPUDelivery.hpp"
+#endif // PV_USE_CUDA
+
 #include "weightinit/InitCocircWeights.hpp"
 #include "weightinit/InitGauss2DWeights.hpp"
 #include "weightinit/InitGaussianRandomWeights.hpp"
@@ -208,6 +213,13 @@ int Factory::registerCoreKeywords() {
          "PresynapticPerspectiveStochasticDelivery",
          Factory::create<PresynapticPerspectiveStochasticDelivery>);
    registerKeyword("RescaleDelivery", Factory::create<RescaleDelivery>);
+#ifdef PV_USE_CUDA
+   // registerKeyword(
+   //       "PostsynapticPerspectiveGPUDelivery",
+   //       Factory::create<PostsynapticPerspectiveGPUDelivery>);
+   registerKeyword(
+         "PresynapticPerspectiveGPUDelivery", Factory::create<PresynapticPerspectiveGPUDelivery>);
+#endif // PV_USE_CUDA
 
    registerKeyword("Gauss2DWeight", Factory::create<InitGauss2DWeights>);
    registerKeyword("CoCircWeight", Factory::create<InitCocircWeights>);

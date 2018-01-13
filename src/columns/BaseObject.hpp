@@ -32,6 +32,10 @@
 #include "utils/PVLog.hpp"
 #include <memory>
 
+#ifdef PV_USE_CUDA
+#include "arch/cuda/CudaDevice.hpp"
+#endif // PV_USE_CUDA
+
 namespace PV {
 
 class HyPerCol;
@@ -127,6 +131,9 @@ class BaseObject : public CheckpointerDataInterface {
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SUCCESS; }
 
    int respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
+#ifdef PV_USE_CUDA
+   int respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
+#endif // PV_USE_CUDA
    int respondAllocateData(std::shared_ptr<AllocateDataMessage const> message);
    int respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
    int respondInitializeState(std::shared_ptr<InitializeStateMessage const> message);
@@ -136,6 +143,9 @@ class BaseObject : public CheckpointerDataInterface {
    virtual int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
       return PV_SUCCESS;
    }
+#ifdef PV_USE_CUDA
+   virtual int setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
+#endif // PV_USE_CUDA
    virtual int allocateDataStructures() { return PV_SUCCESS; }
    virtual int initializeState() { return PV_SUCCESS; }
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override { return PV_SUCCESS; }
@@ -166,7 +176,8 @@ class BaseObject : public CheckpointerDataInterface {
    bool mDataStructuresAllocatedFlag = false;
    bool mInitialValuesSetFlag        = false;
 #ifdef PV_USE_CUDA
-   bool mUsingGPUFlag = false;
+   bool mUsingGPUFlag              = false;
+   PVCuda::CudaDevice *mCudaDevice = nullptr;
 #endif // PV_USE_CUDA
 
   private:

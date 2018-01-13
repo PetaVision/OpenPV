@@ -34,19 +34,21 @@ CudaBuffer::CudaBuffer() {
 CudaBuffer::~CudaBuffer() { handleError(cudaFree(d_ptr), "Freeing device pointer"); }
 
 int CudaBuffer::copyToDevice(const void *h_ptr) {
-   copyToDevice(h_ptr, this->size);
+   handleError(
+         cudaMemcpyAsync(d_ptr, h_ptr, this->size, cudaMemcpyHostToDevice, stream),
+         "Copying buffer to device");
    return 0;
 }
 
-int CudaBuffer::copyToDevice(const void *h_ptr, size_t in_size) {
-   if (in_size > this->size) {
-      Fatal().printf(
-            "copyToDevice, in_size of %zu is bigger than buffer size of %zu\n",
-            in_size,
-            this->size);
-   }
+int CudaBuffer::copyToDevice(const void *h_ptr, size_t in_size, size_t offset) {
+   FatalIf(
+         in_size + offset > this->size,
+         "copyToDevice, in_size + offset of %zu is bigger than buffer size of %zu.\n",
+         in_size + offset,
+         this->size);
+   void *d_ptr_offset = (void *)&((char *)d_ptr)[offset];
    handleError(
-         cudaMemcpyAsync(d_ptr, h_ptr, in_size, cudaMemcpyHostToDevice, stream),
+         cudaMemcpyAsync(d_ptr_offset, h_ptr, this->size, cudaMemcpyHostToDevice, stream),
          "Copying buffer to device");
    return 0;
 }

@@ -93,8 +93,8 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
          //       "PostsynapticPerspectiveGPUDelivery", name, parent);
       }
       else {
-         // baseObject = Factory::instance()->createByKeyword(
-         //       "PresynapticPerspectiveGPUDelivery", name, parent);
+         baseObject = Factory::instance()->createByKeyword(
+               "PresynapticPerspectiveGPUDelivery", name, parent);
       }
 #else //
       pvAssert(0); // If PV_USE_CUDA is off, receiveGpu should always be false.
@@ -153,10 +153,26 @@ int HyPerDeliveryFacade::communicateInitInfo(
       auto internMessage =
             std::make_shared<CommunicateInitInfoMessage>(observerTable.getObjectMap());
       status = mDeliveryIntern->respond(internMessage);
+#ifdef PV_USE_CUDA
+      mUsingGPUFlag = mDeliveryIntern->isUsingGPU();
+#endif // PV_USE_CUDA
    }
 
    return status;
 }
+
+#ifdef PV_USE_CUDA
+int HyPerDeliveryFacade::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   int status = BaseDelivery::setCudaDevice(message);
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+   if (mDeliveryIntern) {
+      status = mDeliveryIntern->respond(message);
+   }
+   return status;
+}
+#endif // PV_USE_CUDA
 
 int HyPerDeliveryFacade::allocateDataStructures() {
    int status = BaseDelivery::allocateDataStructures();

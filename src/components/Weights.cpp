@@ -46,6 +46,11 @@ void Weights::initialize(
    mTimestamp  = timestamp;
 
    initNumDataPatches();
+
+#ifdef PV_USE_CUDA
+   InfoLog() << "&mTimestampGPU = " << &mTimestampGPU << std::endl;
+   mTimestampGPU = timestamp;
+#endif // PV_USE_CUDA
 }
 
 void Weights::initialize(Weights const *baseWeights) {
@@ -85,13 +90,68 @@ void Weights::allocateDataStructures() {
 
    int numDataPatches = mNumDataPatchesX * mNumDataPatchesY * mNumDataPatchesF;
    if (numDataPatches != 0) {
-      int numItemsPerPatch = getPatchSizeX() * getPatchSizeY() * getPatchSizeF();
+      int numItemsPerPatch = getPatchSizeOverall();
       mData.resize(mNumArbors);
       for (int arbor = 0; arbor < mNumArbors; arbor++) {
          mData[arbor].resize(numDataPatches * numItemsPerPatch);
       }
    }
+#ifdef PV_USE_CUDA
+   if (mUsingGPUFlag) {
+      allocateCudaBuffers();
+   }
+#endif // PV_USE_CUDA
 }
+
+#ifdef PV_USE_CUDA
+void Weights::allocateCudaBuffers() {
+   FatalIf(
+         mCudaDevice == nullptr,
+         "Weights::allocateCudaBuffers() called for weights \"%s\" without having set "
+         "CudaDevice.\n",
+         getName().c_str());
+   pvAssert(mDevicePatches == nullptr); // Should only be called once, by allocateDataStructures();
+   pvAssert(mDeviceData == nullptr); // Should only be called once, by allocateDataStructures();
+#ifdef PV_USE_CUDNN
+   pvAssert(mCUDNNData == nullptr); // Should only be called once, by allocateDataStructures();
+#endif // PV_USE_CUDNN
+   std::string description(mName);
+   int numPatches = getGeometry()->getNumPatchesX() * getGeometry()->getNumPatchesY()
+                    * getGeometry()->getNumPatchesF();
+   std::size_t size;
+
+   Patch const *hostPatches = &getGeometry()->getPatch(0); // Patches allocated as one vector
+   size                     = (std::size_t)numPatches * sizeof(*hostPatches);
+   mDevicePatches           = mCudaDevice->createBuffer(size, &description);
+   pvAssert(mDevicePatches);
+   // Copy patch geometry information onto CUDA device because it never changes.
+   mDevicePatches->copyToDevice(hostPatches);
+
+   std::vector<int> hostPatchToDataLookupVector(numPatches);
+   for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+      hostPatchToDataLookupVector[patchIndex] = calcDataIndexFromPatchIndex(patchIndex);
+   }
+   size = hostPatchToDataLookupVector.size() * sizeof(hostPatchToDataLookupVector[0]);
+   mDevicePatchToDataLookup = mCudaDevice->createBuffer(size, &description);
+   // Copy PatchToDataLookup array onto CUDA device because it never changes.
+   mDevicePatchToDataLookup->copyToDevice(hostPatchToDataLookupVector.data());
+
+   auto const *hostGSynPatchStart = getGeometry()->getGSynPatchStart().data();
+   size                           = (std::size_t)numPatches * sizeof(*hostGSynPatchStart);
+   mDeviceGSynPatchStart          = mCudaDevice->createBuffer(size, &description);
+   // Copy GSynPatchStart array onto CUDA device because it never changes.
+   mDeviceGSynPatchStart->copyToDevice(hostGSynPatchStart);
+
+   size = (std::size_t)getNumArbors() * (std::size_t)getNumDataPatches()
+          * (std::size_t)getPatchSizeOverall() * sizeof(float);
+   mDeviceData = mCudaDevice->createBuffer(size, &description);
+   pvAssert(mDeviceData);
+#ifdef PV_USE_CUDNN
+   mCUDNNData = mCudaDevice->createBuffer(size, &description);
+#endif
+   // no point in copying weights to device yet; they aren't set until the InitializeState stage.
+}
+#endif // PV_USE_CUDA
 
 void Weights::checkpointWeightPvp(
       Checkpointer *checkpointer,
@@ -246,5 +306,22 @@ float Weights::calcMaxWeight(int arbor) {
    }
    return arborMax;
 }
+
+#ifdef PV_USE_CUDA
+void Weights::copyToGPU() {
+   if (!(mUsingGPUFlag and mTimestampGPU < mTimestamp)) {
+      return;
+   }
+   pvAssert(mDeviceData);
+
+   int const numDataPatches    = mNumDataPatchesX * mNumDataPatchesY * mNumDataPatchesF;
+   std::size_t const arborSize = (std::size_t)numDataPatches * (std::size_t)getPatchSizeOverall();
+   std::size_t const numArbors = (std::size_t)mNumArbors;
+   for (std::size_t a = 0; a < numArbors; a++) {
+      mDeviceData->copyToDevice(mData[a].data(), arborSize, a * arborSize);
+   }
+   mTimestampGPU = mTimestamp;
+}
+#endif // PV_USE_CUDA
 
 } // end namespace PV
