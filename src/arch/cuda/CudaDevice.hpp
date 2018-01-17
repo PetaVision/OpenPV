@@ -129,7 +129,7 @@ class CudaDevice {
    struct cudaDeviceProp device_props;
    cudaStream_t stream;
    long deviceMem;
-   size_t numConvKernels;
+   size_t numConvKernels = (size_t)0;
 
    void *handle;
 };
