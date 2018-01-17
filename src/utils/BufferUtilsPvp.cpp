@@ -33,9 +33,8 @@ WeightHeader buildWeightHeader(
    baseHeader.numRecords = numArbors;
    baseHeader.recordSize = 0;
 
-   int numPatches        = preLayerNxExt * preLayerNyExt * preLayerNf;
-   int numPatchItems     = nxp * nyp * nfp;
-   baseHeader.recordSize = numPatches * weightPatchSize(numPatchItems, compress);
+   int numPatches    = preLayerNxExt * preLayerNyExt * preLayerNf;
+   int numPatchItems = nxp * nyp * nfp;
    if (compress) {
       baseHeader.dataSize = (int)sizeof(unsigned char);
       baseHeader.dataType = returnDataType<unsigned char>();
