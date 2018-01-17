@@ -2004,7 +2004,6 @@ void HyPerLayer::syncGpu() {
 void HyPerLayer::copyAllGSynToDevice() {
    if (mRecvGpu || mUpdateGpu) {
       // Copy it to device
-      // Allocated as a big chunk, this should work
       float *h_postGSyn              = GSyn[0];
       PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
       assert(d_postGSyn);
@@ -2015,7 +2014,6 @@ void HyPerLayer::copyAllGSynToDevice() {
 void HyPerLayer::copyAllGSynFromDevice() {
    // Only copy if recving
    if (mRecvGpu) {
-      // Allocated as a big chunk, this should work
       float *h_postGSyn              = GSyn[0];
       PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
       assert(d_postGSyn);

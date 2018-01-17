@@ -49,8 +49,6 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
     * possibility of collisions where more than one pre-neuron writes to the
     * same post-neuron, we internally allocate multiple buffers the size of the post channel,
     * and accumulate them at the end.
-    *
-    * The postWeights argument is not used.
     */
    virtual void deliver() override;
 

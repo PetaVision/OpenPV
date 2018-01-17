@@ -46,8 +46,6 @@ class PostsynapticPerspectiveConvolveDelivery : public HyPerDelivery {
     * possibility of collisions where more than one pre-neuron writes to the
     * same post-neuron, we internally allocate multiple buffers the size of the post channel,
     * and accumulate them at the end.
-    *
-    * The postWeights argument is not used.
     */
    virtual void deliver() override;
 
@@ -65,11 +63,6 @@ class PostsynapticPerspectiveConvolveDelivery : public HyPerDelivery {
 
    virtual int allocateDataStructures() override;
 
-   void allocateThreadGSyn();
-
-   // Data members
-  protected:
-   std::vector<std::vector<float>> mThreadGSyn;
 }; // end class PostsynapticPerspectiveConvolveDelivery
 
 } // end namespace PV

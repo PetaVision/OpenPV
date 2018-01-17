@@ -318,8 +318,17 @@ void Weights::copyToGPU() {
    std::size_t const arborSize = (std::size_t)numDataPatches * (std::size_t)getPatchSizeOverall();
    std::size_t const numArbors = (std::size_t)mNumArbors;
    for (std::size_t a = 0; a < numArbors; a++) {
-      mDeviceData->copyToDevice(mData[a].data(), arborSize, a * arborSize);
+      mDeviceData->copyToDevice(mData[a].data(), arborSize * sizeof(mData[a][0]), a * arborSize);
    }
+#ifdef PV_USE_CUDNN
+   mCUDNNData->permuteWeightsPVToCudnn(
+         mDeviceData->getPointer(),
+         mNumArbors,
+         numDataPatches,
+         getPatchSizeX(),
+         getPatchSizeY(),
+         getPatchSizeF());
+#endif // PV_USE_CUDNN
    mTimestampGPU = mTimestamp;
 }
 #endif // PV_USE_CUDA

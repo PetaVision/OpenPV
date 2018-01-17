@@ -164,7 +164,7 @@ TransposeConn "gpuTransposeConn" = {
     receiveGpu = true;
 };
 
-IdentConn "RecvPostTest" = {
+IdentConn "RecvGpuTest" = {
     preLayerName = "outputRecvGpu";
     postLayerName = "outputTest";
     channelCode = 0;
@@ -172,7 +172,7 @@ IdentConn "RecvPostTest" = {
     writeStep = -1;
 };
 
-IdentConn "RecvPreTest" = {
+IdentConn "RecvTest" = {
     preLayerName = "outputRecv";
     postLayerName = "outputTest";
     channelCode = 1;
@@ -184,8 +184,3 @@ GPUSystemTestProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
 };
-
-//RequireAllZeroActivityProbe "testProbe" = {
-//    targetLayer = "outputTest";
-//    nnzThreshold = 1e-6;
-//};

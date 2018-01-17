@@ -1,14 +1,16 @@
 /*
- * PostsynapticPerspectiveStochasticDelivery.hpp
+ * PostsynapticPerspectiveGPUDelivery.hpp
  *
  *  Created on: Aug 24, 2017
  *      Author: Pete Schultz
  */
 
-#ifndef POSTSYNAPTICPERSPECTIVESTOCHASTICDELIVERY_HPP_
-#define POSTSYNAPTICPERSPECTIVESTOCHASTICDELIVERY_HPP_
+#ifndef POSTSYNAPTICPERSPECTIVEGPUDELIVERY_HPP_
+#define POSTSYNAPTICPERSPECTIVEGPUDELIVERY_HPP_
 
-#include "delivery/HyPerDelivery.hpp"
+#include "HyPerDelivery.hpp"
+#include "arch/cuda/CudaBuffer.hpp"
+#include "cudakernels/CudaRecvPost.hpp"
 
 namespace PV {
 
@@ -16,25 +18,26 @@ namespace PV {
  * The delivery class for HyPerConns using the postsynaptic perspective on the CPU,
  * with accumulate type "convolve".
  */
-class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
+class PostsynapticPerspectiveGPUDelivery : public HyPerDelivery {
   protected:
    /**
-    * List of parameters needed from the PostsynapticPerspectiveStochasticDelivery class
-    * @name PostsynapticPerspectiveStochasticDelivery Parameters
+    * List of parameters needed from the PostsynapticPerspectiveGPUDelivery class
+    * @name PostsynapticPerspectiveGPUDelivery Parameters
     * @{
     */
 
    /**
-    * @brief receiveGpu: PostsynapticPerspectiveStochasticDelivery always sets receiveGpu to false.
-    * The receiveGpu=true case is handled by the PostsynapticPerspectiveGPUDelivery class.
+    * @brief receiveGpu: PostsynapticPerspectiveGPUDelivery always sets receiveGpu to true.
+    * The receiveGpu=false case is handled by the PostsynapticPerspectiveConvolveDelivery
+    * and PostsynapticPerspectiveStochasticDelivery classes.
     */
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
    /** @} */ // End of list of BaseDelivery parameters.
 
   public:
-   PostsynapticPerspectiveStochasticDelivery(char const *name, HyPerCol *hc);
+   PostsynapticPerspectiveGPUDelivery(char const *name, HyPerCol *hc);
 
-   virtual ~PostsynapticPerspectiveStochasticDelivery();
+   virtual ~PostsynapticPerspectiveGPUDelivery();
 
    /**
     * The method that delivers presynaptic activity to the given postsynaptic channel.
@@ -52,7 +55,7 @@ class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
    virtual void deliverUnitInput(float *recvBuffer) override;
 
   protected:
-   PostsynapticPerspectiveStochasticDelivery();
+   PostsynapticPerspectiveGPUDelivery();
 
    int initialize(char const *name, HyPerCol *hc);
 
@@ -61,16 +64,18 @@ class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   virtual int setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) override;
+
    virtual int allocateDataStructures() override;
 
-   void allocateThreadGSyn();
+   void initializeRecvKernelArgs();
 
    // Data members
   protected:
-   Random *mRandState = nullptr;
-
-}; // end class PostsynapticPerspectiveStochasticDelivery
+   PVCuda::CudaRecvPost *mRecvKernel            = nullptr;
+   PVCuda::CudaBuffer *mDevicePostToPreActivity = nullptr;
+}; // end class PostsynapticPerspectiveGPUDelivery
 
 } // end namespace PV
 
-#endif // POSTSYNAPTICPERSPECTIVESTOCHASTICDELIVERY_HPP_
+#endif // POSTSYNAPTICPERSPECTIVEGPUDELIVERY_HPP_

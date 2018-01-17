@@ -89,8 +89,8 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
    if (getReceiveGpu()) {
 #ifdef PV_USE_CUDA
       if (getUpdateGSynFromPostPerspective()) {
-         // baseObject = Factory::instance()->createByKeyword(
-         //       "PostsynapticPerspectiveGPUDelivery", name, parent);
+         baseObject = Factory::instance()->createByKeyword(
+               "PostsynapticPerspectiveGPUDelivery", name, parent);
       }
       else {
          baseObject = Factory::instance()->createByKeyword(

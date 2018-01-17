@@ -92,7 +92,7 @@
 #include "delivery/RescaleDelivery.hpp"
 
 #ifdef PV_USE_CUDA
-// #include "delivery/PostsynapticPerspectiveGPUDelivery.hpp"
+#include "delivery/PostsynapticPerspectiveGPUDelivery.hpp"
 #include "delivery/PresynapticPerspectiveGPUDelivery.hpp"
 #endif // PV_USE_CUDA
 
@@ -214,9 +214,8 @@ int Factory::registerCoreKeywords() {
          Factory::create<PresynapticPerspectiveStochasticDelivery>);
    registerKeyword("RescaleDelivery", Factory::create<RescaleDelivery>);
 #ifdef PV_USE_CUDA
-   // registerKeyword(
-   //       "PostsynapticPerspectiveGPUDelivery",
-   //       Factory::create<PostsynapticPerspectiveGPUDelivery>);
+   registerKeyword(
+         "PostsynapticPerspectiveGPUDelivery", Factory::create<PostsynapticPerspectiveGPUDelivery>);
    registerKeyword(
          "PresynapticPerspectiveGPUDelivery", Factory::create<PresynapticPerspectiveGPUDelivery>);
 #endif // PV_USE_CUDA

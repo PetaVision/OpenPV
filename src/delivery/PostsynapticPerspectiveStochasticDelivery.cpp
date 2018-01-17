@@ -52,22 +52,8 @@ int PostsynapticPerspectiveStochasticDelivery::communicateInitInfo(
 
 int PostsynapticPerspectiveStochasticDelivery::allocateDataStructures() {
    int status = HyPerDelivery::allocateDataStructures();
-   allocateThreadGSyn();
    mRandState = new Random(mPostLayer->getLayerLoc(), false /*restricted, not extended*/);
    return status;
-}
-
-void PostsynapticPerspectiveStochasticDelivery::allocateThreadGSyn() {
-   // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.
-   int const numThreads = parent->getNumThreads();
-   if (numThreads > 1) {
-      mThreadGSyn.resize(numThreads);
-      // mThreadGSyn is only a buffer for one batch element. We're threading over presynaptic
-      // neuron index, not batch element; so batch elements will be processed serially.
-      for (auto &th : mThreadGSyn) {
-         th.resize(mPostLayer->getNumNeurons());
-      }
-   }
 }
 
 void PostsynapticPerspectiveStochasticDelivery::deliver() {

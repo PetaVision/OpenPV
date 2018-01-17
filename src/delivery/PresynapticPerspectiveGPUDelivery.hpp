@@ -44,8 +44,6 @@ class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
     * It loops over presynaptic neurons, skipping over any whose activity is zero
     * (to take advantage of sparsity). Each neuron then modifies the region of the post channel
     * that the weights argument specifies for that pre-synaptic neuron.
-    *
-    * The postWeights argument is not used.
     */
    virtual void deliver() override;
 

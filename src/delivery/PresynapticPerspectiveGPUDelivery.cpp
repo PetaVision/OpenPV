@@ -90,7 +90,6 @@ int PresynapticPerspectiveGPUDelivery::allocateDataStructures() {
 }
 
 void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
-   int status                 = 0;
    PVCuda::CudaDevice *device = parent->getDevice();
    Weights *preWeights        = mWeightsPair->getPreWeights();
    mRecvKernel                = new PVCuda::CudaRecvPre(device);
@@ -119,7 +118,7 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    int nfp = mWeightsPair->getPreWeights()->getPatchSizeF();
 
    int sy  = postLoc->nx * postLoc->nf; // stride in restricted post layer
-   int syw = mWeightsPair->getPreWeights()->getPatchStrideY();
+   int syw = preWeights->getPatchStrideY();
 
    bool isSparse = getPreLayer()->getSparseFlag();
 
@@ -216,8 +215,7 @@ void PresynapticPerspectiveGPUDelivery::deliver() {
       const PVLayerLoc *postLoc = getPostLayer()->getLayerLoc();
       // If the connection uses gpu to receive, update all buffers
 
-      // Update pre datastore, post gsyn, and conn weights
-      // Only if their updated
+      // Update pre datastore, post gsyn, and conn weights only if they're updated
       if (getPreLayer()->getUpdatedDeviceDatastoreFlag()) {
          float *h_preDatastore              = activityCube.data;
          PVCuda::CudaBuffer *d_preDatastore = getPreLayer()->getDeviceDatastore();

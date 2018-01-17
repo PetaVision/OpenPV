@@ -32,12 +32,12 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 
 if(PV_USE_CUDA)
    set (PVLibSrcCpp ${PVLibSrcCpp}
-#      ${SUBDIR}/PostsynapticPerspectiveGPUDelivery.cpp
+      ${SUBDIR}/PostsynapticPerspectiveGPUDelivery.cpp
       ${SUBDIR}/PresynapticPerspectiveGPUDelivery.cpp
    )
 
    set (PVLibSrcHpp ${PVLibSrcHpp}
-#      ${SUBDIR}/PostsynapticPerspectiveGPUDelivery.hpp
+      ${SUBDIR}/PostsynapticPerspectiveGPUDelivery.hpp
       ${SUBDIR}/PresynapticPerspectiveGPUDelivery.hpp
    )
 endif(PV_USE_CUDA)

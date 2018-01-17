@@ -50,21 +50,7 @@ int PostsynapticPerspectiveConvolveDelivery::communicateInitInfo(
 
 int PostsynapticPerspectiveConvolveDelivery::allocateDataStructures() {
    int status = HyPerDelivery::allocateDataStructures();
-   allocateThreadGSyn();
    return status;
-}
-
-void PostsynapticPerspectiveConvolveDelivery::allocateThreadGSyn() {
-   // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.
-   int const numThreads = parent->getNumThreads();
-   if (numThreads > 1) {
-      mThreadGSyn.resize(numThreads);
-      // mThreadGSyn is only a buffer for one batch element. We're threading over presynaptic
-      // neuron index, not batch element; so batch elements will be processed serially.
-      for (auto &th : mThreadGSyn) {
-         th.resize(mPostLayer->getNumNeurons());
-      }
-   }
 }
 
 void PostsynapticPerspectiveConvolveDelivery::deliver() {
