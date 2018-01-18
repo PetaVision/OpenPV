@@ -144,8 +144,8 @@ int MomentumConnViscosityCheckpointerTestProbe::readStateFromCheckpoint(
 }
 
 int MomentumConnViscosityCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
-   pvAssert(timevalue >= parent->getStartTime());
-   int const step = (int)std::nearbyint(timevalue - parent->getStartTime());
+   pvAssert(timevalue >= 0.0);
+   int const step = (int)std::nearbyint(timevalue);
    pvAssert(step >= 0);
    int const updateNumber = (step + 3) / 4; // integer division
    return updateNumber;

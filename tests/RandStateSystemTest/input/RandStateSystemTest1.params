@@ -14,7 +14,6 @@ HyPerCol "column" = {
    ny                           = 64;
    dt                           = 1.0;
    randomSeed                   = 1020304050;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   startTime                    = 0.0;
    stopTime                     = 50.0;
    progressInterval             = 50.0;
    writeProgressToErr           = false;

@@ -456,7 +456,7 @@ class HyPerConn : public BaseConnection {
    float wMax;
    float wMin;
    double wPostTime; // time of last conversion to wPostPatches
-   double initialWriteTime;
+   double initialWriteTime = 0.0;
    double writeTime; // time of next output, initialized in params file parameter initialWriteTime
    double writeStep; // output time interval
    bool writeCompressedWeights; // if true, outputState writes weights with 8-bit precision; if

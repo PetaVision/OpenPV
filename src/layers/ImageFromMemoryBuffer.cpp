@@ -168,9 +168,7 @@ int ImageFromMemoryBuffer::updateState(double time, double dt) {
    return PV_SUCCESS;
 }
 
-double ImageFromMemoryBuffer::getDeltaUpdateTime() {
-   return parent->getStopTime() - parent->getStartTime();
-}
+double ImageFromMemoryBuffer::getDeltaUpdateTime() { return parent->getStopTime(); }
 
 ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {}
 

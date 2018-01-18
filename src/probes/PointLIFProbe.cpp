@@ -36,7 +36,7 @@ int PointLIFProbe::initialize_base() {
 
 int PointLIFProbe::initialize(const char *name, HyPerCol *hc) {
    int status = PointProbe::initialize(name, hc);
-   writeTime  = parent->getStartTime();
+   writeTime  = 0.0;
    return status;
 }
 

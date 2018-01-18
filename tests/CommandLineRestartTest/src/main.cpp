@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
          outputLayer == nullptr,
          "Params file does not have a FailBeforeExpectedStartTimeLayer called \"Output\".\n");
    outputLayer->setExpectedStartTime(0.0);
-   status = hc->run(0.0, 10.0, 1.0);
+   status = hc->run(10.0, 1.0);
    FatalIf(status != PV_SUCCESS, "HyPerCol::run failed with arguments (0.0, 10.0, 1.0).\n");
    std::vector<float> withoutRestart = copyOutput(outputLayer);
    delete hc;
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
          outputLayer == nullptr,
          "Params file does not have a FailBeforeExpectedStartTimeLayer called \"Output\".\n");
    outputLayer->setExpectedStartTime(0.0);
-   status = hc->run(0.0, 5.0, 1.0);
+   status = hc->run(5.0, 1.0);
    FatalIf(status != PV_SUCCESS, "HyPerCol::run failed with arguments (0.0, 5.0, 1.0).\n");
    delete hc;
 

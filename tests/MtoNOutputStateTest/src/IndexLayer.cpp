@@ -33,7 +33,7 @@ void IndexLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 int IndexLayer::setInitialValues() {
-   return updateState(parent->getStartTime(), parent->getDeltaTime());
+   return updateState(0.0 /*timestamp*/, parent->getDeltaTime());
 }
 
 int IndexLayer::updateState(double timef, double dt) {

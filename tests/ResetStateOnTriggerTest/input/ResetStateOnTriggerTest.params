@@ -31,7 +31,6 @@
 
 debugParsing = false;
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 100;
     progressInterval                    = 5;

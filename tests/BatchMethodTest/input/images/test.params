@@ -5,7 +5,6 @@ HyPerCol "column" = {
    ny = 32; 
    dt = 1.0;
    randomSeed = 1234567890;
-   startTime = 0.0;
    stopTime = 10.0;  
    progressInterval = 10.0;
    writeProgressToErr = false;  

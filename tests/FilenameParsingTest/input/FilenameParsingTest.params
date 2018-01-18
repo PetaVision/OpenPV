@@ -10,7 +10,6 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 200;
     progressInterval                    = 10;

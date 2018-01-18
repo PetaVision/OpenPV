@@ -96,7 +96,7 @@ int NormalizeBase::normalizeWeightsWrapper() {
    int status      = PV_SUCCESS;
    double simTime  = parent->simulationTime();
    bool needUpdate = false;
-   if (normalizeOnInitialize && simTime == parent->getStartTime()) {
+   if (normalizeOnInitialize && simTime == 0.0) {
       needUpdate = true;
    }
    else if (!normalizeOnWeightUpdate) {
