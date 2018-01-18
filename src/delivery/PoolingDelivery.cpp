@@ -186,6 +186,7 @@ void PoolingDelivery::deliver() {
          deliverPresynapticPerspective();
       }
    }
+   mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
 }
 
 void PoolingDelivery::deliverPostsynapticPerspective() {

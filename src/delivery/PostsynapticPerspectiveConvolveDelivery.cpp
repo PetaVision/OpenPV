@@ -149,6 +149,8 @@ void PostsynapticPerspectiveConvolveDelivery::deliver() {
          }
       }
    }
+   // CPU updated GSyn, now need to update GSyn on GPU
+   mPostLayer->setUpdatedDeviceGSynFlag(true);
 }
 
 void PostsynapticPerspectiveConvolveDelivery::deliverUnitInput(

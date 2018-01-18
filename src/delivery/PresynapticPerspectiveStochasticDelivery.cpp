@@ -246,6 +246,8 @@ void PresynapticPerspectiveStochasticDelivery::deliver() {
 #endif // PV_USE_OPENMP_THREADS
       }
    }
+   // CPU updated GSyn, now need to update GSyn on GPU
+   mPostLayer->setUpdatedDeviceGSynFlag(true);
 }
 
 void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffer) {

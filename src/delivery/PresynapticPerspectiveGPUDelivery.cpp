@@ -263,6 +263,8 @@ void PresynapticPerspectiveGPUDelivery::deliver() {
 
       mRecvKernel->run_nocheck(totThreads, numLocalThreads);
    }
+   // GSyn already living on GPU
+   mPostLayer->setUpdatedDeviceGSynFlag(false);
 }
 
 // This is a copy of PresynapticPerspectiveConvolveDelivery.

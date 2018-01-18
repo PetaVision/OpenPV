@@ -159,6 +159,7 @@ void IdentDelivery::deliver() {
          }
       }
    }
+   mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
 }
 
 void IdentDelivery::deliverUnitInput(float *recvBuffer) {

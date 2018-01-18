@@ -155,6 +155,8 @@ void PostsynapticPerspectiveStochasticDelivery::deliver() {
          }
       }
    }
+   // CPU updated GSyn, now need to update GSyn on GPU
+   mPostLayer->setUpdatedDeviceGSynFlag(true);
 }
 
 void PostsynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffer) {

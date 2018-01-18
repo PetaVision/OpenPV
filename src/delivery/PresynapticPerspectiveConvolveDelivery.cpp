@@ -230,6 +230,8 @@ void PresynapticPerspectiveConvolveDelivery::deliver() {
 #endif // PV_USE_OPENMP_THREADS
       }
    }
+   // CPU updated GSyn, now need to update GSyn on GPU
+   mPostLayer->setUpdatedDeviceGSynFlag(true);
 }
 
 void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer) {

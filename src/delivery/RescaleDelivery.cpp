@@ -100,6 +100,7 @@ void RescaleDelivery::deliver() {
          }
       }
    }
+   mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
 }
 
 void RescaleDelivery::deliverUnitInput(float *recvBuffer) {

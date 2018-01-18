@@ -272,7 +272,7 @@ IdentConn "InputToResidualGPU" = {
 
 HyPerConn "V1GPUToResidualGPU" = {
     #include "V1CPUToResidualCPU";
-    @preLayerName = "V1CPU";
+    @preLayerName = "V1GPU";
     @postLayerName = "ResidualGPU";
 };
 
