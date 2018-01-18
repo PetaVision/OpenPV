@@ -18,10 +18,10 @@ ImpliedWeights::ImpliedWeights(
       int patchSizeF,
       PVLayerLoc const *preLoc,
       PVLayerLoc const *postLoc,
-      int numArbors,
-      bool sharedWeights,
       double timestamp) {
    setName(name);
+   int const numArbors      = 1;
+   bool const sharedWeights = true;
    Weights::initialize(
          patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc, numArbors, sharedWeights, timestamp);
 }

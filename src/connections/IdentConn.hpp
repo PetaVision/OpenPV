@@ -9,6 +9,7 @@
 #define IDENTCONN_HPP_
 
 #include "BaseConnection.hpp"
+#include "components/SingleArbor.hpp"
 #include <assert.h>
 #include <string.h>
 
@@ -26,10 +27,10 @@ class IdentConn : public BaseConnection {
 
    virtual BaseDelivery *createDeliveryObject() override;
 
-   virtual ArborList *createArborList();
+   virtual SingleArbor *createSingleArbor();
 
   protected:
-   ArborList *mArborList = nullptr;
+   ArborList *mSingleArbor = nullptr;
 }; // class IdentConn
 
 } // end of block for namespace PV

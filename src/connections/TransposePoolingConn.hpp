@@ -8,11 +8,11 @@
 #define TRANSPOSEPOOLINGCONN_HPP_
 
 #include "components/OriginalConnNameParam.hpp"
-#include "connections/TransposeConn.hpp"
+#include "connections/PoolingConn.hpp"
 
 namespace PV {
 
-class TransposePoolingConn : public TransposeConn {
+class TransposePoolingConn : public PoolingConn {
   public:
    TransposePoolingConn(char const *name, HyPerCol *hc);
 
@@ -23,9 +23,16 @@ class TransposePoolingConn : public TransposeConn {
 
    int initialize(char const *name, HyPerCol *hc);
 
+   virtual void defineComponents() override;
+
    virtual BaseDelivery *createDeliveryObject() override;
-   virtual SharedWeights *createSharedWeights() override;
-   virtual WeightsPairInterface *createWeightsPair() override;
+
+   virtual PatchSize *createPatchSize() override;
+
+   virtual OriginalConnNameParam *createOriginalConnNameParam();
+
+  protected:
+   OriginalConnNameParam *mOriginalConnNameParam = nullptr;
 }; // class TransposePoolingConn
 
 } // namespace PV

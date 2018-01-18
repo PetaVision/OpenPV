@@ -139,20 +139,25 @@ int HyPerDeliveryFacade::communicateInitInfo(
    if (status != PV_SUCCESS) {
       return status;
    }
-   pvAssert(mConnectionData != nullptr);
-   WeightsPair *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
-   pvAssert(weightsPair != nullptr);
+   //   pvAssert(mConnectionData != nullptr);
+   //   WeightsPair *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy,
+   //   getDescription());
+   //   pvAssert(weightsPair != nullptr);
 
    // DeliveryIntern needs to know the ConnectionData and the WeightsPair.
    if (mDeliveryIntern) {
-      ObserverTable observerTable;
-      observerTable.addObject(mConnectionData->getDescription(), mConnectionData);
-      observerTable.addObject(mArborList->getDescription(), mArborList);
-      observerTable.addObject(weightsPair->getDescription(), weightsPair);
-      observerTable.addObject(mDeliveryIntern->getDescription(), mDeliveryIntern);
-      auto internMessage =
-            std::make_shared<CommunicateInitInfoMessage>(observerTable.getObjectMap());
-      status = mDeliveryIntern->respond(internMessage);
+      //      ObserverTable observerTable;
+      //      observerTable.addObject(mConnectionData->getDescription(), mConnectionData);
+      //      observerTable.addObject(mArborList->getDescription(), mArborList);
+      //      observerTable.addObject(weightsPair->getDescription(), weightsPair);
+      //      observerTable.addObject(mDeliveryIntern->getDescription(), mDeliveryIntern);
+      //      auto internMessage =
+      //            std::make_shared<CommunicateInitInfoMessage>(observerTable.getObjectMap());
+      //      status = mDeliveryIntern->respond(internMessage);
+      status = mDeliveryIntern->respond(message);
+      if (status != PV_SUCCESS) {
+         return status;
+      }
 #ifdef PV_USE_CUDA
       mUsingGPUFlag = mDeliveryIntern->isUsingGPU();
 #endif // PV_USE_CUDA

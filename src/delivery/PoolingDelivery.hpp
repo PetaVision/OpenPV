@@ -10,6 +10,7 @@
 
 #include "components/ImpliedWeightsPair.hpp"
 #include "components/PatchSize.hpp"
+#include "cudakernels/CudaPoolingDeliverKernel.hpp"
 #include "delivery/BaseDelivery.hpp"
 #include "layers/PoolingIndexLayer.hpp"
 
@@ -132,6 +133,9 @@ class PoolingDelivery : public BaseDelivery {
 
    std::vector<std::vector<float>> mThreadGSyn;
    std::vector<std::vector<float>> mThreadGateIdxBuffer;
+#ifdef PV_USE_CUDA
+   PVCuda::CudaPoolingDeliverKernel *mRecvKernel = nullptr; // Cuda kernel for updating GSyn
+#endif // PV_USE_CUDA
 
 }; // end class PoolingDelivery
 

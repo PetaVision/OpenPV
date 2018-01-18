@@ -8,6 +8,7 @@
 #ifndef WEIGHTSPAIR_HPP_
 #define WEIGHTSPAIR_HPP_
 
+#include "components/ArborList.hpp"
 #include "components/SharedWeights.hpp"
 #include "components/WeightsPairInterface.hpp"
 
@@ -48,6 +49,8 @@ class WeightsPair : public WeightsPairInterface {
    bool getInitializeFromCheckpointFlag() const { return mInitializeFromCheckpointFlag; }
 
    bool getWriteCompressedCheckpoints() const { return mWriteCompressedCheckpoints; }
+
+   ArborList const *getArborList() const { return mArborList; }
 
   protected:
    WeightsPair() {}
@@ -95,6 +98,7 @@ class WeightsPair : public WeightsPairInterface {
    // the initializeFromCheckpointDir directory.
    bool mInitializeFromCheckpointFlag = false;
 
+   ArborList *mArborList         = nullptr;
    SharedWeights *mSharedWeights = nullptr;
    double mWriteTime             = 0.0;
 

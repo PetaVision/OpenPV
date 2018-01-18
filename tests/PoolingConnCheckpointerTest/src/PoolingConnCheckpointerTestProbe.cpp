@@ -98,12 +98,6 @@ int PoolingConnCheckpointerTestProbe::initConnection(
    }
 
    FatalIf(
-         mConnection->getNumAxonalArbors() != 1,
-         "This test assumes that the connection has only 1 arbor.\n");
-   FatalIf(
-         mConnection->getDelay(0) != 0.0,
-         "This test assumes that the connection has zero delay.\n");
-   FatalIf(
          mConnection->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
    FatalIf(
          mConnection->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");

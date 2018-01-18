@@ -7,6 +7,7 @@
 
 #include "IdentDelivery.hpp"
 #include "columns/HyPerCol.hpp"
+#include "utils/MapLookupByType.hpp"
 #include <cstring>
 
 namespace PV {
@@ -30,6 +31,10 @@ int IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    if (status != PV_SUCCESS) {
       return status;
    }
+
+   mSingleArbor = mapLookupByType<SingleArbor>(message->mHierarchy, getDescription());
+   FatalIf(!mSingleArbor, "%s requires a SingleArbor component.\n", getDescription_c());
+
    checkPreAndPostDimensions();
    return status;
 }
@@ -84,11 +89,6 @@ void IdentDelivery::checkPreAndPostDimensions() {
          postLoc->nx,
          postLoc->ny,
          postLoc->nf);
-   FatalIf(
-         mArborList->getNumAxonalArbors() != 1,
-         "%s requires numAxonalArbors equal to 1 (value is %d).\n",
-         getDescription_c(),
-         mArborList->getNumAxonalArbors());
 }
 
 void IdentDelivery::deliver() {
@@ -96,13 +96,7 @@ void IdentDelivery::deliver() {
       return;
    }
 
-   std::size_t numArbors = mArborList->getNumAxonalArbors();
-   FatalIf(
-         numArbors != (std::size_t)1,
-         "%s can have only one arbor (there are %d).\n",
-         getDescription_c(),
-         (int)numArbors);
-   int delay                         = mArborList->getDelay(0);
+   int delay                         = mSingleArbor->getDelay(0);
    PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(delay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
    PVLayerLoc const &postLoc         = *mPostLayer->getLayerLoc();
@@ -178,7 +172,7 @@ bool IdentDelivery::isAllInputReady() {
       isReady = true;
    }
    else {
-      isReady = getPreLayer()->isExchangeFinished(mArborList->getDelay(0));
+      isReady = getPreLayer()->isExchangeFinished(mSingleArbor->getDelay(0));
    }
    return isReady;
 }

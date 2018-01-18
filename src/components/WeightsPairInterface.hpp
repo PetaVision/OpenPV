@@ -9,7 +9,6 @@
 #define WEIGHTSPAIRINTERFACE_HPP_
 
 #include "columns/BaseObject.hpp"
-#include "components/ArborList.hpp"
 #include "components/ConnectionData.hpp"
 #include "components/PatchSize.hpp"
 #include "components/Weights.hpp"
@@ -44,7 +43,6 @@ class WeightsPairInterface : public BaseObject {
    Weights *getPostWeights() { return mPostWeights; }
 
    ConnectionData const *getConnectionData() { return mConnectionData; }
-   ArborList const *getArborList() { return mArborList; }
 
   protected:
    WeightsPairInterface() {}
@@ -83,7 +81,6 @@ class WeightsPairInterface : public BaseObject {
   protected:
    PatchSize *mPatchSize           = nullptr;
    ConnectionData *mConnectionData = nullptr;
-   ArborList *mArborList           = nullptr;
 
    Weights *mPreWeights  = nullptr;
    Weights *mPostWeights = nullptr;

@@ -34,8 +34,6 @@ void ImpliedWeightsPair::createPreWeights(std::string const &weightsName) {
          mPatchSize->getPatchSizeF(),
          mConnectionData->getPre()->getLayerLoc(),
          mConnectionData->getPost()->getLayerLoc(),
-         mArborList->getNumAxonalArbors(),
-         true /*sharedWeights*/,
          -std::numeric_limits<double>::infinity() /*timestamp*/);
 }
 
@@ -54,8 +52,6 @@ void ImpliedWeightsPair::createPostWeights(std::string const &weightsName) {
          preLoc->nf /* number of features in post patch */,
          postLoc,
          preLoc,
-         mArborList->getNumAxonalArbors(),
-         true /*sharedWeights*/,
          -std::numeric_limits<double>::infinity() /*timestamp*/);
 }
 

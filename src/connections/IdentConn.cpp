@@ -6,7 +6,6 @@
  */
 
 #include "IdentConn.hpp"
-#include "components/SingleArbor.hpp"
 #include "delivery/IdentDelivery.hpp"
 
 namespace PV {
@@ -29,12 +28,12 @@ BaseDelivery *IdentConn::createDeliveryObject() {
 
 void IdentConn::defineComponents() {
    BaseConnection::defineComponents();
-   mArborList = createArborList();
-   if (mArborList) {
-      addObserver(mArborList);
+   mSingleArbor = createSingleArbor();
+   if (mSingleArbor) {
+      addObserver(mSingleArbor);
    }
 }
 
-ArborList *IdentConn::createArborList() { return new SingleArbor(name, parent); }
+SingleArbor *IdentConn::createSingleArbor() { return new SingleArbor(name, parent); }
 
 } // end of namespace PV block

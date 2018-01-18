@@ -8,7 +8,6 @@
 #ifndef POOLINGCONN_HPP_
 #define POOLINGCONN_HPP_
 
-#include "components/ArborList.hpp"
 #include "components/ImpliedWeightsPair.hpp"
 #include "components/PatchSize.hpp"
 #include "connections/BaseConnection.hpp"
@@ -27,9 +26,6 @@ class PoolingConn : public BaseConnection {
    int getPatchSizeX() const { return mPatchSize->getPatchSizeX(); }
    int getPatchSizeY() const { return mPatchSize->getPatchSizeY(); }
    int getPatchSizeF() const { return mPatchSize->getPatchSizeF(); }
-
-   int getNumAxonalArbors() const { return mArborList->getNumAxonalArbors(); }
-   int getDelay(int arbor) const { return mArborList->getDelay(arbor); }
 
    // other get-methods
    int getNumDataPatches() const { return mWeightsPair->getPreWeights()->getNumDataPatches(); }
@@ -50,8 +46,6 @@ class PoolingConn : public BaseConnection {
 
    virtual BaseDelivery *createDeliveryObject() override;
 
-   virtual ArborList *createArborList();
-
    virtual PatchSize *createPatchSize();
 
    virtual WeightsPairInterface *createWeightsPair();
@@ -59,7 +53,6 @@ class PoolingConn : public BaseConnection {
   protected:
    PatchSize *mPatchSize              = nullptr;
    WeightsPairInterface *mWeightsPair = nullptr;
-   ArborList *mArborList              = nullptr;
 
 }; // class PoolingConn
 

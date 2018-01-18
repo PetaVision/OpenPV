@@ -25,10 +25,6 @@ int PoolingConn::initialize(char const *name, HyPerCol *hc) {
 
 void PoolingConn::defineComponents() {
    BaseConnection::defineComponents();
-   mArborList = createArborList();
-   if (mArborList) {
-      addObserver(mArborList);
-   }
    mPatchSize = createPatchSize();
    if (mPatchSize) {
       addObserver(mPatchSize);
@@ -40,8 +36,6 @@ void PoolingConn::defineComponents() {
 }
 
 BaseDelivery *PoolingConn::createDeliveryObject() { return new PoolingDelivery(name, parent); }
-
-ArborList *PoolingConn::createArborList() { return new ArborList(name, parent); }
 
 PatchSize *PoolingConn::createPatchSize() { return new PatchSize(name, parent); }
 

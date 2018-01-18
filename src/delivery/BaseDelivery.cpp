@@ -106,21 +106,6 @@ int BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       return PV_POSTPONE;
    }
 
-   if (mArborList == nullptr) {
-      mArborList = mapLookupByType<ArborList>(message->mHierarchy, getDescription());
-      FatalIf(mArborList == nullptr, "%s requires an ArborList component.\n", getDescription_c());
-   }
-   pvAssert(mArborList);
-   if (!mArborList->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         InfoLog().printf(
-               "%s must wait until the ArborList component has finished its "
-               "communicateInitInfo stage.\n",
-               getDescription_c());
-      }
-      return PV_POSTPONE;
-   }
-
    mPreLayer  = mConnectionData->getPre();
    mPostLayer = mConnectionData->getPost();
    pvAssert(mPreLayer != nullptr and mPostLayer != nullptr);

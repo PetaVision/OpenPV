@@ -52,21 +52,6 @@ int WeightsPairInterface::communicateInitInfo(
       return PV_POSTPONE;
    }
 
-   if (mArborList == nullptr) {
-      mArborList = mapLookupByType<ArborList>(message->mHierarchy, getDescription());
-   }
-   FatalIf(mArborList == nullptr, "%s requires an ArborList component.\n", getDescription_c());
-
-   if (!mArborList->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         InfoLog().printf(
-               "%s must wait until the ArborList component has finished its "
-               "communicateInitInfo stage.\n",
-               getDescription_c());
-      }
-      return PV_POSTPONE;
-   }
-
    if (mPatchSize == nullptr) {
       mPatchSize = mapLookupByType<PatchSize>(message->mHierarchy, getDescription());
    }

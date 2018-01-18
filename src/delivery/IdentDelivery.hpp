@@ -8,7 +8,8 @@
 #ifndef IDENTDELIVERY_HPP_
 #define IDENTDELIVERY_HPP_
 
-#include "delivery/BaseDelivery.hpp"
+#include "BaseDelivery.hpp"
+#include "components/SingleArbor.hpp"
 
 namespace PV {
 
@@ -50,6 +51,9 @@ class IdentDelivery : public BaseDelivery {
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    void checkPreAndPostDimensions();
+
+  protected:
+   SingleArbor *mSingleArbor = nullptr;
 
 }; // end class IdentDelivery
 

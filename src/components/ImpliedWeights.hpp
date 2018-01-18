@@ -39,8 +39,6 @@ class ImpliedWeights : public Weights {
          int patchSizeF,
          PVLayerLoc const *preLoc,
          PVLayerLoc const *postLoc,
-         int numArbors,
-         bool sharedWeights,
          double timestamp);
 
    virtual ~ImpliedWeights() {}

@@ -8,8 +8,9 @@
 #ifndef HYPERDELIVERY_HPP_
 #define HYPERDELIVERY_HPP_
 
+#include "BaseDelivery.hpp"
+#include "components/ArborList.hpp"
 #include "components/WeightsPair.hpp"
-#include "delivery/BaseDelivery.hpp"
 
 namespace PV {
 
@@ -73,6 +74,7 @@ class HyPerDelivery : public BaseDelivery {
 
    float mDeltaTimeFactor    = 1.0f;
    WeightsPair *mWeightsPair = nullptr;
+   ArborList *mArborList     = nullptr;
 
 }; // end class HyPerDelivery
 
