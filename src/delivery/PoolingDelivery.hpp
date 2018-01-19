@@ -104,7 +104,11 @@ class PoolingDelivery : public BaseDelivery {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   virtual int setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) override;
+
    virtual int allocateDataStructures() override;
+
+   void initializeDeliverKernelArgs();
 
    void allocateThreadGSyn();
 

@@ -80,14 +80,19 @@ PoolingDelivery::parseAccumulateTypeString(char const *poolingTypeString) {
 }
 
 void PoolingDelivery::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   auto *params = parent->parameters();
+   pvAssert(!params->presentAndNotBeenRead(name, "receiveGpu"));
    if (!mReceiveGpu) {
-      parent->parameters()->ioParamValue(
+      params->ioParamValue(
             ioFlag,
             name,
             "updateGSynFromPostPerspective",
             &mUpdateGSynFromPostPerspective,
             mUpdateGSynFromPostPerspective);
+   }
+   else {
+      mUpdateGSynFromPostPerspective = true;
+      params->handleUnnecessaryParameter(name, "updateGSynFromPostPerspective", true);
    }
 }
 
@@ -145,13 +150,76 @@ int PoolingDelivery::communicateInitInfo(
    else {
       mWeightsPair->needPre();
    }
+
+   if (mReceiveGpu) {
+      // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
+      getPreLayer()->setAllocDeviceDatastore();
+      getPostLayer()->setAllocDeviceGSyn();
+      Weights *weights = mWeightsPair->getPostWeights();
+      pvAssert(weights);
+      weights->useGPU();
+
+      // If recv from pre and pre layer is sparse, allocate activeIndices
+      if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
+         getPreLayer()->setAllocDeviceActiveIndices();
+      }
+   }
    return PV_SUCCESS;
+}
+
+int PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   int status = PV_SUCCESS;
+   if (mUsingGPUFlag) {
+      status = BaseDelivery::setCudaDevice(message);
+      if (status != PV_SUCCESS) {
+         return status;
+      }
+      Weights *weights = mWeightsPair->getPostWeights();
+      pvAssert(weights);
+      weights->setCudaDevice(message->mCudaDevice);
+   }
+   return status;
 }
 
 int PoolingDelivery::allocateDataStructures() {
    int status = BaseDelivery::allocateDataStructures();
+   if (mReceiveGpu) {
+      initializeDeliverKernelArgs();
+   }
    allocateThreadGSyn();
    return status;
+}
+
+void PoolingDelivery::initializeDeliverKernelArgs() {
+   PVCuda::CudaBuffer *d_preDatastore = getPreLayer()->getDeviceDatastore();
+   PVCuda::CudaBuffer *d_postGSyn     = getPostLayer()->getDeviceGSyn();
+   Weights *weights                   = mWeightsPair->getPostWeights();
+   pvAssert(weights);
+   int const nxpPost = weights->getPatchSizeX();
+   int const nypPost = weights->getPatchSizeY();
+   cudnnPoolingMode_t poolingMode;
+   int multiplier = 1;
+   switch (mAccumulateType) {
+      case MAXPOOLING: poolingMode = CUDNN_POOLING_MAX; break;
+      case SUMPOOLING:
+         poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+         multiplier  = nxpPost * nypPost;
+         break;
+      case AVGPOOLING: poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING; break;
+      default: pvAssert(0); break;
+   }
+
+   mRecvKernel = new PVCuda::CudaPoolingDeliverKernel(parent->getDevice());
+   mRecvKernel->setArgs(
+         getPreLayer()->getLayerLoc(),
+         getPostLayer()->getLayerLoc(),
+         nxpPost,
+         nypPost,
+         poolingMode,
+         multiplier,
+         d_preDatastore,
+         d_postGSyn,
+         (int)mChannelCode);
 }
 
 void PoolingDelivery::allocateThreadGSyn() {

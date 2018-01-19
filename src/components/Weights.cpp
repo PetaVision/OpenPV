@@ -48,7 +48,6 @@ void Weights::initialize(
    initNumDataPatches();
 
 #ifdef PV_USE_CUDA
-   InfoLog() << "&mTimestampGPU = " << &mTimestampGPU << std::endl;
    mTimestampGPU = timestamp;
 #endif // PV_USE_CUDA
 }
@@ -127,29 +126,31 @@ void Weights::allocateCudaBuffers() {
    // Copy patch geometry information onto CUDA device because it never changes.
    mDevicePatches->copyToDevice(hostPatches);
 
-   std::vector<int> hostPatchToDataLookupVector(numPatches);
-   for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
-      hostPatchToDataLookupVector[patchIndex] = calcDataIndexFromPatchIndex(patchIndex);
-   }
-   size = hostPatchToDataLookupVector.size() * sizeof(hostPatchToDataLookupVector[0]);
-   mDevicePatchToDataLookup = mCudaDevice->createBuffer(size, &description);
-   // Copy PatchToDataLookup array onto CUDA device because it never changes.
-   mDevicePatchToDataLookup->copyToDevice(hostPatchToDataLookupVector.data());
-
    auto const *hostGSynPatchStart = getGeometry()->getGSynPatchStart().data();
    size                           = (std::size_t)numPatches * sizeof(*hostGSynPatchStart);
    mDeviceGSynPatchStart          = mCudaDevice->createBuffer(size, &description);
    // Copy GSynPatchStart array onto CUDA device because it never changes.
    mDeviceGSynPatchStart->copyToDevice(hostGSynPatchStart);
 
-   size = (std::size_t)getNumArbors() * (std::size_t)getNumDataPatches()
-          * (std::size_t)getPatchSizeOverall() * sizeof(float);
-   mDeviceData = mCudaDevice->createBuffer(size, &description);
-   pvAssert(mDeviceData);
+   if (getNumDataPatches() > 0) {
+      std::vector<int> hostPatchToDataLookupVector(numPatches);
+      for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+         hostPatchToDataLookupVector[patchIndex] = calcDataIndexFromPatchIndex(patchIndex);
+      }
+      size = hostPatchToDataLookupVector.size() * sizeof(hostPatchToDataLookupVector[0]);
+      mDevicePatchToDataLookup = mCudaDevice->createBuffer(size, &description);
+      // Copy PatchToDataLookup array onto CUDA device because it never changes.
+      mDevicePatchToDataLookup->copyToDevice(hostPatchToDataLookupVector.data());
+
+      size = (std::size_t)getNumArbors() * (std::size_t)getNumDataPatches()
+             * (std::size_t)getPatchSizeOverall() * sizeof(float);
+      mDeviceData = mCudaDevice->createBuffer(size, &description);
+      pvAssert(mDeviceData);
 #ifdef PV_USE_CUDNN
-   mCUDNNData = mCudaDevice->createBuffer(size, &description);
+      mCUDNNData = mCudaDevice->createBuffer(size, &description);
 #endif
-   // no point in copying weights to device yet; they aren't set until the InitializeState stage.
+      // no point in copying weights to device yet; they aren't set until the InitializeState stage.
+   }
 }
 #endif // PV_USE_CUDA
 
