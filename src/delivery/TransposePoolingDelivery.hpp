@@ -13,6 +13,9 @@
 #include "delivery/BaseDelivery.hpp"
 #include "delivery/PoolingDelivery.hpp"
 #include "layers/PoolingIndexLayer.hpp"
+#ifdef PV_USE_CUDA
+#include "cudakernels/CudaTransposePoolingDeliverKernel.hpp"
+#endif // PV_USE_CUDA
 
 namespace PV {
 
@@ -70,7 +73,11 @@ class TransposePoolingDelivery : public BaseDelivery {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   virtual int setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) override;
+
    virtual int allocateDataStructures() override;
+
+   void initializeDeliverKernelArgs();
 
    void allocateThreadGSyn();
 
@@ -89,7 +96,11 @@ class TransposePoolingDelivery : public BaseDelivery {
 
    DependentPatchSize *mPatchSize             = nullptr;
    ImpliedWeightsPair *mWeightsPair           = nullptr;
-   PoolingIndexLayer *mOriginalPostIndexLayer = nullptr;
+   PoolingIndexLayer *mOriginalPostIndexLayer = nullptr; // Used by deliverPresynapticPerspective
+   HyPerLayer *mOriginalPreLayer              = nullptr; // Used by deliverGPU
+   HyPerLayer *mOriginalPostLayer             = nullptr; // Used by deliverGPU
+
+   PVCuda::CudaTransposePoolingDeliverKernel *mDeliverKernel = nullptr;
 
    std::vector<std::vector<float>> mThreadGSyn;
 

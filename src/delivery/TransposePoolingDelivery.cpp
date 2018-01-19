@@ -41,14 +41,18 @@ void TransposePoolingDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 }
 
 void TransposePoolingDelivery::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-   if (!mReceiveGpu) {
-      parent->parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "updateGSynFromPostPerspective",
-            &mUpdateGSynFromPostPerspective,
-            mUpdateGSynFromPostPerspective);
+   // To read this param, we need to wait until the CommunicateInitInfo stage, because the behavior
+   // depends on mReceiveGpu, which isn't determined until the communicate stage, since it is
+   // copied from the original conn.
+   if (ioFlag == PARAMS_IO_WRITE) {
+      if (!mReceiveGpu) {
+         parent->parameters()->ioParamValue(
+               ioFlag,
+               name,
+               "updateGSynFromPostPerspective",
+               &mUpdateGSynFromPostPerspective,
+               mUpdateGSynFromPostPerspective);
+      }
    }
 }
 
@@ -92,7 +96,26 @@ int TransposePoolingDelivery::communicateInitInfo(
    pvAssert(originalPoolingDelivery);
    mAccumulateType         = originalPoolingDelivery->getAccumulateType();
    mReceiveGpu             = originalPoolingDelivery->getReceiveGpu();
+   mUsingGPUFlag           = originalPoolingDelivery->isUsingGPU();
    mOriginalPostIndexLayer = originalPoolingDelivery->getPostIndexLayer();
+   mOriginalPreLayer       = originalPoolingDelivery->getPreLayer();
+   mOriginalPostLayer      = originalPoolingDelivery->getPostLayer();
+
+   // If receiveGpu is false, we need to read updateGSynFromPostPerspective.
+   // If it is true, we use the CUDA routine, which always uses the post perspective.
+   if (!mReceiveGpu) {
+      parent->parameters()->ioParamValue(
+            PARAMS_IO_READ,
+            name,
+            "updateGSynFromPostPerspective",
+            &mUpdateGSynFromPostPerspective,
+            mUpdateGSynFromPostPerspective);
+   }
+   else {
+      mUpdateGSynFromPostPerspective = true;
+      parent->parameters()->handleUnnecessaryParameter(
+            name, "updateGSynFromPostPerspective", mUpdateGSynFromPostPerspective);
+   }
 
    mPatchSize = mapLookupByType<DependentPatchSize>(hierarchy, getDescription());
    FatalIf(
@@ -118,13 +141,84 @@ int TransposePoolingDelivery::communicateInitInfo(
    else {
       mWeightsPair->needPre();
    }
+
+   if (mReceiveGpu) {
+      // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
+      getPreLayer()->setAllocDeviceDatastore();
+      getPostLayer()->setAllocDeviceGSyn();
+      Weights *weights = mWeightsPair->getPostWeights();
+      pvAssert(weights);
+      weights->useGPU();
+
+      // If recv from pre and pre layer is sparse, allocate activeIndices
+      if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
+         getPreLayer()->setAllocDeviceActiveIndices();
+      }
+   }
    return PV_SUCCESS;
+}
+
+int TransposePoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   int status = PV_SUCCESS;
+   if (mUsingGPUFlag) {
+      status = BaseDelivery::setCudaDevice(message);
+      if (status != PV_SUCCESS) {
+         return status;
+      }
+      Weights *weights = mWeightsPair->getPostWeights();
+      pvAssert(weights);
+      weights->setCudaDevice(message->mCudaDevice);
+   }
+   return status;
 }
 
 int TransposePoolingDelivery::allocateDataStructures() {
    int status = BaseDelivery::allocateDataStructures();
+   if (mReceiveGpu) {
+      initializeDeliverKernelArgs();
+   }
    allocateThreadGSyn();
    return status;
+}
+
+void TransposePoolingDelivery::initializeDeliverKernelArgs() {
+   PVCuda::CudaDevice *device                 = parent->getDevice();
+   PVCuda::CudaBuffer *d_preDatastore         = mPreLayer->getDeviceDatastore();
+   PVCuda::CudaBuffer *d_postGSyn             = mPostLayer->getDeviceGSyn();
+   PVCuda::CudaBuffer *d_originalPreDatastore = mOriginalPreLayer->getDeviceDatastore();
+   PVCuda::CudaBuffer *d_originalPostGSyn     = mOriginalPostLayer->getDeviceGSyn();
+   Weights *weights                           = mWeightsPair->getPostWeights();
+   pvAssert(weights);
+   int const nxpPost = weights->getPatchSizeX();
+   int const nypPost = weights->getPatchSizeY();
+   cudnnPoolingMode_t poolingMode;
+   int multiplier = 1;
+   switch (mAccumulateType) {
+      case PoolingDelivery::MAXPOOLING: poolingMode = CUDNN_POOLING_MAX; break;
+      case PoolingDelivery::SUMPOOLING:
+         poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+         multiplier  = nxpPost * nypPost;
+         break;
+      case PoolingDelivery::AVGPOOLING:
+         poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+         break;
+      default: pvAssert(0); break;
+   }
+   mDeliverKernel = new PVCuda::CudaTransposePoolingDeliverKernel(device);
+   mDeliverKernel->setArgs(
+         mPreLayer->getLayerLoc(),
+         mPostLayer->getLayerLoc(),
+         mOriginalPreLayer->getLayerLoc(),
+         mOriginalPostLayer->getLayerLoc(),
+         nxpPost,
+         nypPost,
+         poolingMode,
+         multiplier,
+         d_preDatastore,
+         d_postGSyn,
+         d_originalPreDatastore,
+         d_originalPostGSyn,
+         (int)mChannelCode);
 }
 
 void TransposePoolingDelivery::allocateThreadGSyn() {
@@ -431,7 +525,21 @@ bool TransposePoolingDelivery::isAllInputReady() {
 }
 
 #ifdef PV_USE_CUDA
-void TransposePoolingDelivery::deliverGPU() {}
+void TransposePoolingDelivery::deliverGPU() {
+   pvAssert(mPostLayer->getChannel(getChannelCode()));
+
+   if (mPreLayer->getUpdatedDeviceDatastoreFlag()) {
+      PVLayerCube activityCube           = mPreLayer->getPublisher()->createCube(0 /*delay*/);
+      float *h_preDatastore              = activityCube.data;
+      PVCuda::CudaBuffer *d_preDatastore = mPreLayer->getDeviceDatastore();
+      pvAssert(d_preDatastore);
+      d_preDatastore->copyToDevice(h_preDatastore);
+      // Device now has updated
+      mPreLayer->setUpdatedDeviceDatastoreFlag(false);
+   }
+
+   mDeliverKernel->run();
+}
 #endif // PV_USE_CUDA
 
 } // end namespace PV
