@@ -55,6 +55,8 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    int initialize(char const *name, HyPerCol *hc);
 
+   virtual void setObjectType() override;
+
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

@@ -22,9 +22,13 @@ class BaseInitV : public BaseObject {
   protected:
    BaseInitV();
    int initialize(char const *name, HyPerCol *hc);
+   virtual void setObjectType() override;
 
   private:
    int initialize_base();
+
+  public:
+   static string const mDefaultInitV;
 }; // end class BaseInitV
 
 } // end namespace PV

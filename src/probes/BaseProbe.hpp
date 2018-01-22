@@ -141,6 +141,9 @@ class BaseProbe : public BaseObject {
   protected:
    BaseProbe();
    int initialize(const char *name, HyPerCol *hc);
+
+   virtual void setObjectType() override;
+
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**

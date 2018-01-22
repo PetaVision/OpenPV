@@ -22,7 +22,7 @@ class TransposePatchSize : public DependentPatchSize {
    TransposePatchSize(char const *name, HyPerCol *hc);
    virtual ~TransposePatchSize();
 
-   virtual int setDescription() override;
+   virtual void setObjectType() override;
 
   protected:
    TransposePatchSize();

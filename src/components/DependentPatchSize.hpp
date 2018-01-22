@@ -48,7 +48,7 @@ class DependentPatchSize : public PatchSize {
    DependentPatchSize(char const *name, HyPerCol *hc);
    virtual ~DependentPatchSize();
 
-   virtual int setDescription() override;
+   virtual void setObjectType() override;
 
   protected:
    DependentPatchSize();

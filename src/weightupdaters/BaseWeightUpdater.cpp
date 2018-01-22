@@ -17,11 +17,7 @@ int BaseWeightUpdater::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
 }
 
-int BaseWeightUpdater::setDescription() {
-   description.clear();
-   description.append("Weight Updater").append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
-}
+void BaseWeightUpdater::setObjectType() { mObjectType = "Updater for "; }
 
 int BaseWeightUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_plasticityFlag(ioFlag);

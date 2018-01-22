@@ -24,6 +24,10 @@ int PostsynapticPerspectiveConvolveDelivery::initialize(char const *name, HyPerC
    return BaseObject::initialize(name, hc);
 }
 
+void PostsynapticPerspectiveConvolveDelivery::setObjectType() {
+   mObjectType = "PostsynapticPerspectiveConvolveDelivery";
+}
+
 int PostsynapticPerspectiveConvolveDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerDelivery::ioParamsFillGroup(ioFlag);
    return status;

@@ -20,10 +20,10 @@ int NormalizeBase::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-int NormalizeBase::setDescription() {
-   description.clear();
-   description.append("Weight normalizer \"").append(getName()).append("\"");
-   return PV_SUCCESS;
+void NormalizeBase::setObjectType() {
+   auto *params                = parent->parameters();
+   char const *normalizeMethod = params->stringValue(name, "normalizeMethod", false);
+   mObjectType                 = normalizeMethod ? normalizeMethod : "Normalizer for";
 }
 
 int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

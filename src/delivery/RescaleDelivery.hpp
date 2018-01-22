@@ -47,6 +47,8 @@ class RescaleDelivery : public IdentDelivery {
 
    int initialize(char const *name, HyPerCol *hc);
 
+   virtual void setObjectType() override;
+
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   private:

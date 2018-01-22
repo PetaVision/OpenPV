@@ -59,6 +59,8 @@ class PostsynapticPerspectiveGPUDelivery : public HyPerDelivery {
 
    int initialize(char const *name, HyPerCol *hc);
 
+   virtual void setObjectType() override;
+
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual int

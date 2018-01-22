@@ -49,7 +49,7 @@ class WeightsPairInterface : public BaseObject {
 
    int initialize(char const *name, HyPerCol *hc);
 
-   virtual int setDescription() override;
+   virtual void setObjectType() override;
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

@@ -27,6 +27,8 @@ int TransposePoolingDelivery::initialize(char const *name, HyPerCol *hc) {
    return BaseDelivery::initialize(name, hc);
 }
 
+void TransposePoolingDelivery::setObjectType() { mObjectType = "TransposePoolingDelivery"; }
+
 int TransposePoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseDelivery::ioParamsFillGroup(ioFlag);
    ioParam_updateGSynFromPostPerspective(ioFlag);

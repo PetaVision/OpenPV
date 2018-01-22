@@ -36,7 +36,7 @@ class SingleArbor : public ArborList {
    SingleArbor(char const *name, HyPerCol *hc);
    virtual ~SingleArbor();
 
-   virtual int setDescription() override;
+   virtual void setObjectType() override;
 
   protected:
    SingleArbor();

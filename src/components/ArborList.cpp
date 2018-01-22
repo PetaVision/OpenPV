@@ -23,12 +23,7 @@ int ArborList::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
 }
 
-int ArborList::setDescription() {
-   description = "ArborList \"";
-   description += name;
-   description += "\"";
-   return PV_SUCCESS;
-}
+void ArborList::setObjectType() { mObjectType = "ArborList"; }
 
 int ArborList::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_numAxonalArbors(ioFlag);

@@ -37,7 +37,7 @@ class DependentArborList : public ArborList {
    DependentArborList(char const *name, HyPerCol *hc);
    virtual ~DependentArborList();
 
-   virtual int setDescription() override;
+   virtual void setObjectType() override;
 
   protected:
    DependentArborList();

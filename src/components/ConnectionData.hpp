@@ -38,8 +38,6 @@ class ConnectionData : public BaseObject {
    ConnectionData(char const *name, HyPerCol *hc);
    virtual ~ConnectionData();
 
-   virtual int setDescription() override;
-
    /**
     * Returns the name of the connection's presynaptic layer.
     */
@@ -64,6 +62,8 @@ class ConnectionData : public BaseObject {
    ConnectionData();
 
    int initialize(char const *name, HyPerCol *hc);
+
+   virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

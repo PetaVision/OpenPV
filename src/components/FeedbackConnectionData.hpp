@@ -40,12 +40,12 @@ class FeedbackConnectionData : public ConnectionData {
    FeedbackConnectionData(char const *name, HyPerCol *hc);
    virtual ~FeedbackConnectionData();
 
-   virtual int setDescription() override;
-
   protected:
    FeedbackConnectionData();
 
    int initialize(char const *name, HyPerCol *hc);
+
+   virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

@@ -20,12 +20,7 @@ int TransposePatchSize::initialize(char const *name, HyPerCol *hc) {
    return PatchSize::initialize(name, hc);
 }
 
-int TransposePatchSize::setDescription() {
-   description = "TransposePatchSize \"";
-   description += name;
-   description += "\"";
-   return PV_SUCCESS;
-}
+void TransposePatchSize::setObjectType() { mObjectType = "TransposePatchSize"; }
 
 void TransposePatchSize::setPatchSize(PatchSize *originalPatchSize) {
    auto *originalConnectionData = originalPatchSize->getConnectionData();

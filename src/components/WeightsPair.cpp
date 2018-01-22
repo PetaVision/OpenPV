@@ -22,11 +22,7 @@ int WeightsPair::initialize(char const *name, HyPerCol *hc) {
    return WeightsPairInterface::initialize(name, hc);
 }
 
-int WeightsPair::setDescription() {
-   description.clear();
-   description.append("WeightsPair").append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
-}
+void WeightsPair::setObjectType() { mObjectType = "WeightsPair"; }
 
 int WeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_writeStep(ioFlag);

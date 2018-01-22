@@ -23,7 +23,7 @@ class ImpliedWeightsPair : public WeightsPairInterface {
 
    int initialize(char const *name, HyPerCol *hc);
 
-   virtual int setDescription() override;
+   virtual void setObjectType() override;
 
    virtual void createPreWeights(std::string const &weightsName) override;
    virtual void createPostWeights(std::string const &weightsName) override;

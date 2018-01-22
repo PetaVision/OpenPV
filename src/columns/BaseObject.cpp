@@ -34,12 +34,12 @@ int BaseObject::initialize(const char *name, HyPerCol *hc) {
       status = setParent(hc);
    }
    if (status == PV_SUCCESS) {
-      status = setDescription();
+      setDescription();
    }
    return status;
 }
 
-char const *BaseObject::getKeyword() const {
+char const *BaseObject::lookupKeyword() const {
    return parent->parameters()->groupKeywordFromName(getName());
 }
 
@@ -64,11 +64,12 @@ int BaseObject::setParent(HyPerCol *hc) {
    return status;
 }
 
-int BaseObject::setDescription() {
-   description.clear();
-   description.append(getKeyword()).append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
+void BaseObject::setDescription() {
+   setObjectType();
+   description = getObjectType() + " \"" + getName() + "\"";
 }
+
+void BaseObject::setObjectType() { mObjectType = lookupKeyword(); }
 
 int BaseObject::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter) {
    if (printHeader) {

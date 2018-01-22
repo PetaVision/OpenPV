@@ -47,6 +47,8 @@ class IdentDelivery : public BaseDelivery {
 
    int initialize(char const *name, HyPerCol *hc);
 
+   virtual void setObjectType() override;
+
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 

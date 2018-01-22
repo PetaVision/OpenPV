@@ -18,6 +18,8 @@ int IdentDelivery::initialize(char const *name, HyPerCol *hc) {
    return BaseDelivery::initialize(name, hc);
 }
 
+void IdentDelivery::setObjectType() { mObjectType = "IdentDelivery"; }
+
 void IdentDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // Never receive from gpu
    mReceiveGpu = false;

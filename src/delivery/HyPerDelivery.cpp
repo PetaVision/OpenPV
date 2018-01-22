@@ -21,6 +21,8 @@ int HyPerDelivery::initialize(char const *name, HyPerCol *hc) {
    return BaseDelivery::initialize(name, hc);
 }
 
+void HyPerDelivery::setObjectType() { mObjectType = "HyPerDelivery"; }
+
 int HyPerDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV_SUCCESS;
    // Only read params because HyPerDeliveryFacade will read/write them too.

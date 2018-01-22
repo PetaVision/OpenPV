@@ -26,12 +26,7 @@ int FeedbackConnectionData::initialize(char const *name, HyPerCol *hc) {
    return ConnectionData::initialize(name, hc);
 }
 
-int FeedbackConnectionData::setDescription() {
-   description = "FeedbackConnectionData \"";
-   description += name;
-   description += "\"";
-   return PV_SUCCESS;
-}
+void FeedbackConnectionData::setObjectType() { mObjectType = "FeedbackConnectionData"; }
 
 int FeedbackConnectionData::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return ConnectionData::ioParamsFillGroup(ioFlag);

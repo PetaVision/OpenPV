@@ -18,11 +18,7 @@ int SharedWeights::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
 }
 
-int SharedWeights::setDescription() {
-   description.clear();
-   description.append("SharedWeights").append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
-}
+void SharedWeights::setObjectType() { mObjectType = "SharedWeights"; }
 
 int SharedWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_sharedWeights(ioFlag);

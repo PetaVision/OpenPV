@@ -27,6 +27,10 @@ int PostsynapticPerspectiveGPUDelivery::initialize(char const *name, HyPerCol *h
    return BaseObject::initialize(name, hc);
 }
 
+void PostsynapticPerspectiveGPUDelivery::setObjectType() {
+   mObjectType = "PostsynapticPerspectiveGPUDelivery";
+}
+
 int PostsynapticPerspectiveGPUDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerDelivery::ioParamsFillGroup(ioFlag);
    return status;

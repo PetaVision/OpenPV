@@ -24,11 +24,7 @@ int CloneWeightsPair::initialize(char const *name, HyPerCol *hc) {
    return WeightsPair::initialize(name, hc);
 }
 
-int CloneWeightsPair::setDescription() {
-   description.clear();
-   description.append("CloneWeightsPair").append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
-}
+void CloneWeightsPair::setObjectType() { mObjectType = "CloneWeightsPair"; }
 
 int CloneWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = WeightsPair::ioParamsFillGroup(ioFlag);

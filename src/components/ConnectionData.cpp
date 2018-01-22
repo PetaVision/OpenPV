@@ -25,12 +25,7 @@ int ConnectionData::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
 }
 
-int ConnectionData::setDescription() {
-   description = "ConnectionData \"";
-   description += name;
-   description += "\"";
-   return PV_SUCCESS;
-}
+void ConnectionData::setObjectType() { mObjectType = "ConnectionData"; }
 
 int ConnectionData::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_preLayerName(ioFlag);

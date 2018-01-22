@@ -21,6 +21,8 @@ int HyPerDeliveryFacade::initialize(char const *name, HyPerCol *hc) {
    return BaseDelivery::initialize(name, hc);
 }
 
+void HyPerDeliveryFacade::setObjectType() { mObjectType = "HyPerDeliveryFacade"; }
+
 int HyPerDeliveryFacade::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseDelivery::ioParamsFillGroup(ioFlag);
    ioParam_accumulateType(ioFlag);

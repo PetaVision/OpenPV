@@ -16,6 +16,8 @@ int RescaleDelivery::initialize(char const *name, HyPerCol *hc) {
    return BaseDelivery::initialize(name, hc);
 }
 
+void RescaleDelivery::setObjectType() { mObjectType = "RescaleDelivery"; }
+
 int RescaleDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseDelivery::ioParamsFillGroup(ioFlag);
    ioParam_scale(ioFlag);

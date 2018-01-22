@@ -18,11 +18,7 @@ int BaseDelivery::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
 }
 
-int BaseDelivery::setDescription() {
-   description.clear();
-   description.append("BaseDelivery").append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
-}
+void BaseDelivery::setObjectType() { mObjectType = "BaseDelivery"; }
 
 int BaseDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_channelCode(ioFlag);

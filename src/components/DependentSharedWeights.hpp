@@ -36,7 +36,7 @@ class DependentSharedWeights : public SharedWeights {
    DependentSharedWeights(char const *name, HyPerCol *hc);
    virtual ~DependentSharedWeights();
 
-   virtual int setDescription() override;
+   virtual void setObjectType() override;
 
   protected:
    DependentSharedWeights();

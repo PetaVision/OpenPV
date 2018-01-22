@@ -45,7 +45,13 @@ class BaseObject : public CheckpointerDataInterface {
    inline char const *getName() const { return name; }
    // No getParent method because we are refactoring away from having objects
    // having access to their containing HyPerCol.
-   char const *getKeyword() const;
+
+   inline std::string const &getObjectType() const { return mObjectType; }
+
+   /**
+    * Look up the keyword of the params group with the same name as the object.
+    */
+   char const *lookupKeyword() const;
 
    /**
     * A method that reads the parameters for the group whose name matches the name of the object.
@@ -114,7 +120,8 @@ class BaseObject : public CheckpointerDataInterface {
    int initialize(char const *name, HyPerCol *hc);
    int setName(char const *name);
    int setParent(HyPerCol *hc);
-   virtual int setDescription();
+   virtual void setObjectType();
+   void setDescription();
 
    /**
     * The virtual method for reading parameters from the parent HyPerCol's parameters, and writing
@@ -169,9 +176,10 @@ class BaseObject : public CheckpointerDataInterface {
 
    // Data members
   protected:
-   char *name       = nullptr;
-   HyPerCol *parent = nullptr; // TODO: eliminate HyPerCol argument to
-   // constructor in favor of PVParams argument
+   char *name = nullptr;
+   std::string mObjectType;
+   // TODO: eliminate HyPerCol argument to constructor in favor of PVParams argument
+   HyPerCol *parent                  = nullptr;
    bool mInitInfoCommunicatedFlag    = false;
    bool mDataStructuresAllocatedFlag = false;
    bool mInitialValuesSetFlag        = false;

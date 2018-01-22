@@ -24,11 +24,7 @@ int TransposeWeightsPair::initialize(char const *name, HyPerCol *hc) {
    return WeightsPair::initialize(name, hc);
 }
 
-int TransposeWeightsPair::setDescription() {
-   description.clear();
-   description.append("TransposeWeightsPair").append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
-}
+void TransposeWeightsPair::setObjectType() { mObjectType = "TransposeWeightsPair"; }
 
 int TransposeWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = WeightsPair::ioParamsFillGroup(ioFlag);

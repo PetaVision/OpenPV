@@ -26,6 +26,10 @@ int PostsynapticPerspectiveStochasticDelivery::initialize(char const *name, HyPe
    return BaseObject::initialize(name, hc);
 }
 
+void PostsynapticPerspectiveStochasticDelivery::setObjectType() {
+   mObjectType = "PostsynapticPerspectiveStochasticDelivery";
+}
+
 int PostsynapticPerspectiveStochasticDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerDelivery::ioParamsFillGroup(ioFlag);
    return status;

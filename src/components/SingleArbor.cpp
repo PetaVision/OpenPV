@@ -24,12 +24,7 @@ int SingleArbor::initialize(char const *name, HyPerCol *hc) {
    return ArborList::initialize(name, hc);
 }
 
-int SingleArbor::setDescription() {
-   description = "SingleArbor \"";
-   description += name;
-   description += "\"";
-   return PV_SUCCESS;
-}
+void SingleArbor::setObjectType() { mObjectType = "SingleArbor"; }
 
 int SingleArbor::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return ArborList::ioParamsFillGroup(ioFlag);

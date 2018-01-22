@@ -71,6 +71,8 @@ int BaseProbe::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+void BaseProbe::setObjectType() { mObjectType = lookupKeyword(); }
+
 int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_targetName(ioFlag);
    ioParam_message(ioFlag);

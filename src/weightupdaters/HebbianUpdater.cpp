@@ -20,6 +20,8 @@ int HebbianUpdater::initialize(char const *name, HyPerCol *hc) {
    return BaseWeightUpdater::initialize(name, hc);
 }
 
+void HebbianUpdater::setObjectType() { mObjectType = "HebbianUpdater"; }
+
 int HebbianUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseWeightUpdater::ioParamsFillGroup(ioFlag);
    ioParam_triggerLayerName(ioFlag);

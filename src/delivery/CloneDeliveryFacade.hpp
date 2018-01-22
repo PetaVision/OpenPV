@@ -28,6 +28,8 @@ class CloneDeliveryFacade : public HyPerDeliveryFacade {
 
    int initialize(char const *name, HyPerCol *hc);
 
+   virtual void setObjectType() override;
+
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 }; // end class CloneDeliveryFacade

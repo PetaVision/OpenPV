@@ -30,18 +30,10 @@ int InitWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-int InitWeights::setDescription() {
-   description.clear();
+void InitWeights::setObjectType() {
    char const *initType =
          parent->parameters()->stringValue(name, "weightInitType", false /*do not warn if absent*/);
-   if (initType == nullptr) {
-      description.append("Weight initializer ");
-   }
-   else {
-      description.append(initType);
-   }
-   description.append(" \"").append(name).append("\"");
-   return PV_SUCCESS;
+   mObjectType = initType ? initType : "Initializer for";
 }
 
 int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

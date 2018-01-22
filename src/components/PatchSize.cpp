@@ -19,11 +19,7 @@ int PatchSize::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
 }
 
-int PatchSize::setDescription() {
-   description.clear();
-   description.append("PatchSize").append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
-}
+void PatchSize::setObjectType() { mObjectType = "PatchSize"; }
 
 int PatchSize::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_nxp(ioFlag);

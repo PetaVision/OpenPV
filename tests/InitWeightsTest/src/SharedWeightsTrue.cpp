@@ -20,11 +20,7 @@ int SharedWeightsTrue::initialize(char const *name, HyPerCol *hc) {
    return SharedWeights::initialize(name, hc);
 }
 
-int SharedWeightsTrue::setDescription() {
-   description.clear();
-   description.append("SharedWeightsTrue").append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
-}
+void SharedWeightsTrue::setObjectType() { mObjectType = "SharedWeightsTrue"; }
 
 int SharedWeightsTrue::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return SharedWeights::ioParamsFillGroup(ioFlag);

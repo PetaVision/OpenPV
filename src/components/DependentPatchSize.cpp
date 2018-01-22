@@ -24,12 +24,7 @@ int DependentPatchSize::initialize(char const *name, HyPerCol *hc) {
    return PatchSize::initialize(name, hc);
 }
 
-int DependentPatchSize::setDescription() {
-   description = "DependentPatchSize \"";
-   description += name;
-   description += "\"";
-   return PV_SUCCESS;
-}
+void DependentPatchSize::setObjectType() { mObjectType = "DependentPatchSize"; }
 
 int DependentPatchSize::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return PatchSize::ioParamsFillGroup(ioFlag);

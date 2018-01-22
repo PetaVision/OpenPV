@@ -19,11 +19,7 @@ int ImpliedWeightsPair::initialize(char const *name, HyPerCol *hc) {
    return WeightsPairInterface::initialize(name, hc);
 }
 
-int ImpliedWeightsPair::setDescription() {
-   description.clear();
-   description.append("ImpliedWeightsPair").append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
-}
+void ImpliedWeightsPair::setObjectType() { mObjectType = "ImpliedWeightsPair"; }
 
 void ImpliedWeightsPair::createPreWeights(std::string const &weightsName) {
    pvAssert(mPreWeights == nullptr and mInitInfoCommunicatedFlag);

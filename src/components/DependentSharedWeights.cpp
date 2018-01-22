@@ -26,12 +26,7 @@ int DependentSharedWeights::initialize(char const *name, HyPerCol *hc) {
    return SharedWeights::initialize(name, hc);
 }
 
-int DependentSharedWeights::setDescription() {
-   description = "DependentSharedWeights \"";
-   description += name;
-   description += "\"";
-   return PV_SUCCESS;
-}
+void DependentSharedWeights::setObjectType() { mObjectType = "DependentSharedWeights"; }
 
 int DependentSharedWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return SharedWeights::ioParamsFillGroup(ioFlag);

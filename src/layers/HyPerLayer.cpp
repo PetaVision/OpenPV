@@ -702,7 +702,12 @@ void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) 
 
 void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamString(
-         ioFlag, name, "InitVType", &initVTypeString, "ConstantV", true /*warnIfAbsent*/);
+         ioFlag,
+         name,
+         "InitVType",
+         &initVTypeString,
+         BaseInitV::mDefaultInitV.data(),
+         true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       BaseObject *object = Factory::instance()->createByKeyword(initVTypeString, name, parent);
       mInitVObject       = dynamic_cast<BaseInitV *>(object);
@@ -1099,9 +1104,9 @@ int HyPerLayer::clearProgressFlags() {
 #ifdef PV_USE_CUDA
 
 int HyPerLayer::allocateUpdateKernel() {
-   Fatal() << "Layer \"" << name << "\" of type " << getKeyword()
+   Fatal() << "Layer \"" << name << "\" of type " << mObjectType
            << " does not support updating on gpus yet\n";
-   return -1;
+   return PV_FAILURE;
 }
 
 /**

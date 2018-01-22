@@ -81,7 +81,7 @@ class InitWeights : public BaseObject {
    int initialize(const char *name, HyPerCol *hc);
    void handleObsoleteFlag(std::string const &flagName);
 
-   virtual int setDescription() override;
+   virtual void setObjectType() override;
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

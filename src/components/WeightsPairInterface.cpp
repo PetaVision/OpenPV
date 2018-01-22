@@ -22,11 +22,7 @@ int WeightsPairInterface::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
 }
 
-int WeightsPairInterface::setDescription() {
-   description.clear();
-   description.append("WeightsPairInterface").append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
-}
+void WeightsPairInterface::setObjectType() { mObjectType = "WeightsPairInterface"; }
 
 int WeightsPairInterface::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {

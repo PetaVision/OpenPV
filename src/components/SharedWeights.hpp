@@ -45,7 +45,7 @@ class SharedWeights : public BaseObject {
 
    int initialize(char const *name, HyPerCol *hc);
 
-   virtual int setDescription() override;
+   virtual void setObjectType() override;
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

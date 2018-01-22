@@ -21,6 +21,8 @@ int CopyUpdater::initialize(char const *name, HyPerCol *hc) {
    return BaseWeightUpdater::initialize(name, hc);
 }
 
+void CopyUpdater::setObjectType() { mObjectType = "CopyUpdater"; }
+
 void CopyUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    // During the CommunicateInitInfo stage, plasticityFlag will be copied from
    // the original connection's updater.

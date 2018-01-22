@@ -44,7 +44,7 @@ class ArborList : public BaseObject {
    ArborList(char const *name, HyPerCol *hc);
    virtual ~ArborList();
 
-   virtual int setDescription() override;
+   virtual void setObjectType() override;
 
    /**
     * Returns the number of arbors in the connection

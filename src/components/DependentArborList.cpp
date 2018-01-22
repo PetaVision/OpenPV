@@ -24,12 +24,7 @@ int DependentArborList::initialize(char const *name, HyPerCol *hc) {
    return ArborList::initialize(name, hc);
 }
 
-int DependentArborList::setDescription() {
-   description = "DependentArborList \"";
-   description += name;
-   description += "\"";
-   return PV_SUCCESS;
-}
+void DependentArborList::setObjectType() { mObjectType = "DependentArborList"; }
 
 int DependentArborList::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return ArborList::ioParamsFillGroup(ioFlag);

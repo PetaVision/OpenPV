@@ -16,6 +16,8 @@ int MomentumUpdater::initialize(char const *name, HyPerCol *hc) {
    return HebbianUpdater::initialize(name, hc);
 }
 
+void MomentumUpdater::setObjectType() { mObjectType = "MomentumUpdater"; }
+
 int MomentumUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HebbianUpdater::ioParamsFillGroup(ioFlag);
    ioParam_momentumMethod(ioFlag);

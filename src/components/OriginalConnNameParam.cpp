@@ -22,11 +22,7 @@ int OriginalConnNameParam::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
 }
 
-int OriginalConnNameParam::setDescription() {
-   description.clear();
-   description.append("OriginalConnNameParam").append(" \"").append(getName()).append("\"");
-   return PV_SUCCESS;
-}
+void OriginalConnNameParam::setObjectType() { mObjectType = "OriginalConnNameParam"; }
 
 int OriginalConnNameParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_originalConnName(ioFlag);

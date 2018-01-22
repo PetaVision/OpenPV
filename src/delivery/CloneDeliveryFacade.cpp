@@ -22,6 +22,8 @@ int CloneDeliveryFacade::initialize(char const *name, HyPerCol *hc) {
    return HyPerDeliveryFacade::initialize(name, hc);
 }
 
+void CloneDeliveryFacade::setObjectType() { mObjectType = "CloneDeliveryFacade"; }
+
 int CloneDeliveryFacade::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = HyPerDeliveryFacade::communicateInitInfo(message);

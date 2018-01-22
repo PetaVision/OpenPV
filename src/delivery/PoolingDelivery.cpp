@@ -23,6 +23,8 @@ int PoolingDelivery::initialize(char const *name, HyPerCol *hc) {
    return BaseDelivery::initialize(name, hc);
 }
 
+void PoolingDelivery::setObjectType() { mObjectType = "PoolingDelivery"; }
+
 int PoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseDelivery::ioParamsFillGroup(ioFlag);
    ioParam_pvpatchAccumulateType(ioFlag);

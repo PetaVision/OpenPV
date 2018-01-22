@@ -24,6 +24,10 @@ int PresynapticPerspectiveConvolveDelivery::initialize(char const *name, HyPerCo
    return BaseObject::initialize(name, hc);
 }
 
+void PresynapticPerspectiveConvolveDelivery::setObjectType() {
+   mObjectType = "PresynapticPerspectiveConvolveDelivery";
+}
+
 int PresynapticPerspectiveConvolveDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerDelivery::ioParamsFillGroup(ioFlag);
    return status;
