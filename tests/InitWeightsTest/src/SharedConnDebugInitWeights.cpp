@@ -46,8 +46,7 @@ void SharedConnDebugInitWeights::ioParam_weightInitType(enum ParamsIOFlag ioFlag
 
 int SharedConnDebugInitWeights::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   HyPerConn::communicateInitInfo(message);
-   return PV_SUCCESS;
+   return HyPerConn::communicateInitInfo(message);
 }
 
 int SharedConnDebugInitWeights::initializeState() {

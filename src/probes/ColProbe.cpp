@@ -49,9 +49,9 @@ void ColProbe::initOutputStreams(const char *filename, Checkpointer *checkpointe
    outputHeader();
 }
 
-int ColProbe::respond(std::shared_ptr<BaseMessage const> message) {
-   int status = BaseProbe::respond(message);
-   if (status != PV_SUCCESS) {
+Response::Status ColProbe::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = BaseProbe::respond(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
    else if (
@@ -67,14 +67,14 @@ int ColProbe::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int ColProbe::respondColProbeWriteParams(
-      std::shared_ptr<ColProbeWriteParamsMessage const>(message)) {
-   return writeParams();
+Response::Status
+ColProbe::respondColProbeWriteParams(std::shared_ptr<ColProbeWriteParamsMessage const>(message)) {
+   return Response::convertIntToStatus(writeParams());
 }
 
-int ColProbe::respondColProbeOutputState(
-      std::shared_ptr<ColProbeOutputStateMessage const>(message)) {
-   return outputStateWrapper(message->mTime, message->mDeltaTime);
+Response::Status
+ColProbe::respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage const>(message)) {
+   return Response::convertIntToStatus(outputStateWrapper(message->mTime, message->mDeltaTime));
 }
 
 int ColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {

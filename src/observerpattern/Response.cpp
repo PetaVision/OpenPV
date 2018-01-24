@@ -8,6 +8,9 @@
  */
 
 #include "Response.hpp"
+#include "include/pv_common.h"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
 
 namespace PV {
 
@@ -16,9 +19,7 @@ Response &Response::operator+=(Response const &a) {
    return *this;
 }
 
-Response operator+(Response const &a, Response const &b) {
-   return Response(a() + b());  
-}
+Response operator+(Response const &a, Response const &b) { return Response(a() + b()); }
 
 Response::Status operator+(Response::Status const &a, Response::Status const &b) {
    if (a == Response::SUCCESS and b == Response::SUCCESS) {
@@ -27,7 +28,36 @@ Response::Status operator+(Response::Status const &a, Response::Status const &b)
    else if (a == Response::POSTPONE and b == Response::POSTPONE) {
       return Response::POSTPONE;
    }
-   else { return Response::PARTIAL; }
+   else {
+      return Response::PARTIAL;
+   }
+}
+
+int Response::convertStatusToInt(Response::Status status) {
+   int intValue;
+   switch (status) {
+      case Response::SUCCESS: intValue  = PV_SUCCESS; break;
+      case Response::PARTIAL: intValue  = PV_PARTIAL; break;
+      case Response::POSTPONE: intValue = PV_POSTPONE; break;
+      default: pvAssert(0); break;
+   }
+   return intValue;
+}
+
+Response::Status Response::convertIntToStatus(int deprecatedStatusCode) {
+   Response::Status status;
+   switch (deprecatedStatusCode) {
+      case PV_SUCCESS: status = Response::SUCCESS; break;
+      case PV_FAILURE:
+         Fatal().printf("Response::convertIntToStatus received failure code.\n");
+         break;
+      case PV_PARTIAL: status  = Response::PARTIAL; break;
+      case PV_POSTPONE: status = Response::POSTPONE; break;
+      default:
+         Fatal().printf("Unable to convert %d to Response::Status type.\n", deprecatedStatusCode);
+         break;
+   }
+   return status;
 }
 
 } // namespace PV

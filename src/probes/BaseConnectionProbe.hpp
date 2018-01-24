@@ -21,7 +21,7 @@ class BaseConnectionProbe : public BaseProbe {
    BaseConnectionProbe(const char *name, HyPerCol *hc);
    virtual ~BaseConnectionProbe();
 
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    BaseConnection *getTargetConn() { return mTargetConn; }
 
@@ -31,7 +31,7 @@ class BaseConnectionProbe : public BaseProbe {
    int initialize(const char *name, HyPerCol *hc);
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
-   int respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
+   Response::Status respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

@@ -157,9 +157,9 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
 
 BaseWeightUpdater *HyPerConn::createWeightUpdater() { return new HebbianUpdater(name, parent); }
 
-int HyPerConn::respond(std::shared_ptr<BaseMessage const> message) {
-   int status = BaseConnection::respond(message);
-   if (status != PV_SUCCESS) {
+Response::Status HyPerConn::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = BaseConnection::respond(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
    else if (auto castMessage = std::dynamic_pointer_cast<ConnectionUpdateMessage const>(message)) {
@@ -174,18 +174,19 @@ int HyPerConn::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int HyPerConn::respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message) {
+Response::Status
+HyPerConn::respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message) {
    auto *weightUpdater = getComponentByType<BaseWeightUpdater>();
    if (weightUpdater) {
       weightUpdater->updateState(message->mTime, message->mDeltaT);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
-int HyPerConn::respondConnectionNormalize(
-      std::shared_ptr<ConnectionNormalizeMessage const> message) {
+Response::Status
+HyPerConn::respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message) {
    notify(mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int HyPerConn::initializeState() {

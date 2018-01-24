@@ -900,9 +900,9 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
-   int status = BaseLayer::respond(message);
-   if (status != PV_SUCCESS) {
+Response::Status HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = BaseLayer::respond(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
    else if (auto castMessage = std::dynamic_pointer_cast<LayerSetMaxPhaseMessage const>(message)) {
@@ -954,27 +954,29 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int HyPerLayer::respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message) {
-   return setMaxPhase(message->mMaxPhase);
+Response::Status
+HyPerLayer::respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message) {
+   return Response::convertIntToStatus(setMaxPhase(message->mMaxPhase));
 }
 
-int HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message) {
-   return writeParams();
+Response::Status
+HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message) {
+   return Response::convertIntToStatus(writeParams());
 }
 
-int HyPerLayer::respondLayerProbeWriteParams(
+Response::Status HyPerLayer::respondLayerProbeWriteParams(
       std::shared_ptr<LayerProbeWriteParamsMessage const> message) {
-   return outputProbeParams();
+   return Response::convertIntToStatus(outputProbeParams());
 }
 
-int HyPerLayer::respondLayerClearProgressFlags(
+Response::Status HyPerLayer::respondLayerClearProgressFlags(
       std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
-   return clearProgressFlags();
+   return Response::convertIntToStatus(clearProgressFlags());
 }
 
-int HyPerLayer::respondLayerRecvSynapticInput(
+Response::Status HyPerLayer::respondLayerRecvSynapticInput(
       std::shared_ptr<LayerRecvSynapticInputMessage const> message) {
-   int status = PV_SUCCESS;
+   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
@@ -1001,8 +1003,9 @@ int HyPerLayer::respondLayerRecvSynapticInput(
    return status;
 }
 
-int HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message) {
+   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
@@ -1021,15 +1024,17 @@ int HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage 
       *(message->mSomeLayerIsPending) = true;
       return status;
    }
-   status                         = callUpdateState(message->mTime, message->mDeltaT);
+   status = Response::convertIntToStatus(callUpdateState(message->mTime, message->mDeltaT));
+
    mHasUpdated                    = true;
    *(message->mSomeLayerHasActed) = true;
    return status;
 }
 
 #ifdef PV_USE_CUDA
-int HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
+   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
@@ -1043,16 +1048,17 @@ int HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage 
 }
 #endif // PV_USE_CUDA
 
-int HyPerLayer::respondLayerAdvanceDataStore(
+Response::Status HyPerLayer::respondLayerAdvanceDataStore(
       std::shared_ptr<LayerAdvanceDataStoreMessage const> message) {
    if (message->mPhase < 0 || message->mPhase == getPhase()) {
       publisher->increaseTimeLevel();
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
-int HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message) {
+   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
@@ -1060,9 +1066,9 @@ int HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> m
    return status;
 }
 
-int HyPerLayer::respondLayerCheckNotANumber(
+Response::Status HyPerLayer::respondLayerCheckNotANumber(
       std::shared_ptr<LayerCheckNotANumberMessage const> message) {
-   int status = PV_SUCCESS;
+   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
@@ -1070,28 +1076,22 @@ int HyPerLayer::respondLayerCheckNotANumber(
    int const N    = getNumExtendedAllBatches();
    for (int n = 0; n < N; n++) {
       float a = layerData[n];
-      if (a != a) {
-         status = PV_FAILURE;
-         break;
-      }
-   }
-   if (status != PV_SUCCESS) {
-      if (parent->columnId() == 0) {
-         ErrorLog() << getDescription()
-                    << " has not-a-number values in the activity buffer.  Exiting.\n";
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
+      FatalIf(
+            a != a,
+            "%s has not-a-number values in the activity buffer.  Exiting.\n",
+            getDescription_c());
    }
    return status;
 }
 
-int HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
-   status = outputState(message->mTime); // also calls layer probes' outputState
+   status = Response::convertIntToStatus(
+         outputState(message->mTime)); // also calls layer probes' outputState
    return status;
 }
 

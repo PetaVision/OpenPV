@@ -47,7 +47,7 @@ class ColProbe : public BaseProbe {
     */
    virtual ~ColProbe();
 
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    /**
     * Calls BaseProbe::communicateInitInfo (which sets up any triggering or
@@ -100,8 +100,10 @@ class ColProbe : public BaseProbe {
     */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
-   int respondColProbeWriteParams(std::shared_ptr<ColProbeWriteParamsMessage const>(message));
-   int respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage const>(message));
+   Response::Status
+   respondColProbeWriteParams(std::shared_ptr<ColProbeWriteParamsMessage const>(message));
+   Response::Status
+   respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage const>(message));
 
    /**
     * Calls BaseProbe::initOutputStreams and then calls outputHeader()

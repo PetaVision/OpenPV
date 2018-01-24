@@ -43,7 +43,7 @@ class NormalizeBase : public BaseObject {
    virtual ~NormalizeBase() {}
 
    void addWeightsToList(Weights *weights);
-   int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    float getStrength() const { return mStrength; }
    bool getNormalizeArborsIndividuallyFlag() const { return mNormalizeArborsIndividually; }
@@ -65,7 +65,8 @@ class NormalizeBase : public BaseObject {
     * is greater than the normalizer's LastUpdateTime, this method calls the (virtual protected)
     * method normalizeWeights(). Otherwise, this method does nothing.
     */
-   int respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message);
+   Response::Status
+   respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message);
 
    int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 

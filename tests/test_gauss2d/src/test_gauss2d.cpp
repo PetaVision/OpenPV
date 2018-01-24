@@ -13,6 +13,10 @@
 
 using namespace PV;
 
+void broadcastMessage(
+      std::map<std::string, Observer *> *objectMap,
+      std::shared_ptr<BaseMessage const> messagePtr);
+
 int check_kernel_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int axonID);
 
 int main(int argc, char *argv[]) {
@@ -63,19 +67,18 @@ int main(int argc, char *argv[]) {
 
    ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
-   auto objectMap      = hc->copyObjectMap();
-   auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);
-   for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
-      int status = obj->respond(commMessagePtr);
-      FatalIf(status != PV_SUCCESS, "Test failed.\n");
-   }
-   delete objectMap;
+   auto objectMap = hc->copyObjectMap();
+
+   auto communicateMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);
+   broadcastMessage(objectMap, communicateMessagePtr);
 
    auto allocateMessagePtr = std::make_shared<AllocateDataMessage>();
-   for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
-      int status = obj->respond(allocateMessagePtr);
-      FatalIf(status != PV_SUCCESS, "Test failed.\n");
-   }
+   broadcastMessage(objectMap, allocateMessagePtr);
+
+   auto initializeMessagePtr = std::make_shared<InitializeStateMessage>();
+   broadcastMessage(objectMap, initializeMessagePtr);
+
+   delete objectMap;
 
    const int axonID     = 0;
    int num_pre_extended = pre->clayer->numExtended;
@@ -93,6 +96,25 @@ int main(int argc, char *argv[]) {
    delete hc;
    delete initObj;
    return status;
+}
+
+void broadcastMessage(
+      std::map<std::string, Observer *> *objectMap,
+      std::shared_ptr<BaseMessage const> messagePtr) {
+   int maxcount = 0;
+   Response::Status status;
+   do {
+      status = Response::SUCCESS;
+      for (auto &p : *objectMap) {
+         Observer *obj = p.second;
+         status        = status + obj->respond(messagePtr);
+      }
+      maxcount++;
+   } while (status != Response::SUCCESS and maxcount < 10);
+   FatalIf(
+         status != Response::SUCCESS,
+         "broadcastMessage(\"%s\") failed.\n",
+         messagePtr->getMessageType());
 }
 
 int check_kernel_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int axonID) {

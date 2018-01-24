@@ -24,6 +24,10 @@ class Response {
 
    Response &operator+=(Response const &a);
 
+   static int convertStatusToInt(Response::Status);
+
+   static Status convertIntToStatus(int deprecatedStatusCode);
+
   private:
    Status mStatus;
 };

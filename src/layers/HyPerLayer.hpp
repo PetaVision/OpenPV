@@ -321,7 +321,7 @@ class HyPerLayer : public BaseLayer {
    virtual double getTimeScale(int batchIdx) { return -1.0; };
    virtual bool activityIsSpiking() { return false; }
    PVDataType getDataType() { return dataType; }
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
   protected:
    /**
@@ -375,22 +375,26 @@ class HyPerLayer : public BaseLayer {
     */
    virtual double getDeltaTriggerTime();
 
-   int respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message);
-   int respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
-   int respondLayerProbeWriteParams(std::shared_ptr<LayerProbeWriteParamsMessage const> message);
-   int
+   Response::Status respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message);
+   Response::Status respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
+   Response::Status
+   respondLayerProbeWriteParams(std::shared_ptr<LayerProbeWriteParamsMessage const> message);
+   Response::Status
    respondLayerClearProgressFlags(std::shared_ptr<LayerClearProgressFlagsMessage const> message);
-   int respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
-   int respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message);
+   Response::Status
+   respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
+   Response::Status respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message);
 #ifdef PV_USE_CUDA
-   int respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message);
+   Response::Status respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message);
 #endif // PV_USE_CUDA
-   int respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);
-   int respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
-   int respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
+   Response::Status
+   respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);
+   Response::Status respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
+   Response::Status
+   respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
    // respondLayerUpdateActiveIndices removed Feb 3, 2017. Layers update active indices
    // in response to other messages, when needed.
-   int respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
+   Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
    virtual int publish(Communicator *comm, double simTime);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//

@@ -68,9 +68,9 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
          mNormalizeOnWeightUpdate);
 }
 
-int NormalizeBase::respond(std::shared_ptr<BaseMessage const> message) {
-   int status = BaseObject::respond(message);
-   if (status != PV_SUCCESS) {
+Response::Status NormalizeBase::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = BaseObject::respond(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
    else if (
@@ -82,7 +82,7 @@ int NormalizeBase::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int NormalizeBase::respondConnectionNormalize(
+Response::Status NormalizeBase::respondConnectionNormalize(
       std::shared_ptr<ConnectionNormalizeMessage const> message) {
    bool needUpdate = false;
    double simTime  = parent->simulationTime();
@@ -100,7 +100,7 @@ int NormalizeBase::respondConnectionNormalize(
          w->setTimestamp(simTime);
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {

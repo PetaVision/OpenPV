@@ -83,14 +83,14 @@ int BaseObject::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printF
    return PV_SUCCESS;
 }
 
-int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
+Response::Status BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
    // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
-   int status = CheckpointerDataInterface::respond(message);
-   if (status != PV_SUCCESS) {
+   Response::Status status = CheckpointerDataInterface::respond(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
    if (message == nullptr) {
-      return PV_SUCCESS;
+      return Response::SUCCESS;
    }
    else if (
          auto castMessage = std::dynamic_pointer_cast<CommunicateInitInfoMessage const>(message)) {
@@ -116,69 +116,75 @@ int BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
       return respondCleanup(castMessage);
    }
    else {
-      return PV_SUCCESS;
+      return Response::SUCCESS;
    }
 }
 
-int BaseObject::respondCommunicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+BaseObject::respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   Response::Status status = Response::SUCCESS;
    if (getInitInfoCommunicatedFlag()) {
       return status;
    }
-   status = communicateInitInfo(message);
-   if (status == PV_SUCCESS) {
+   int intStatus = communicateInitInfo(message);
+   status        = Response::convertIntToStatus(intStatus);
+   if (status == Response::SUCCESS) {
       setInitInfoCommunicatedFlag();
    }
    return status;
 }
 
 #ifdef PV_USE_CUDA
-int BaseObject::respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+Response::Status
+BaseObject::respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
    int status = setCudaDevice(message);
-   return status;
+   return Response::convertIntToStatus(status);
 }
 #endif // PV_USE_CUDA
 
-int BaseObject::respondAllocateData(std::shared_ptr<AllocateDataMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+BaseObject::respondAllocateData(std::shared_ptr<AllocateDataMessage const> message) {
+   Response::Status status = Response::SUCCESS;
    if (getDataStructuresAllocatedFlag()) {
       return status;
    }
-   status = allocateDataStructures();
-   if (status == PV_SUCCESS) {
+   status = Response::convertIntToStatus(allocateDataStructures());
+   if (status == Response::SUCCESS) {
       setDataStructuresAllocatedFlag();
    }
    return status;
 }
 
-int BaseObject::respondRegisterData(
-      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+Response::Status
+BaseObject::respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    int status = registerData(message->mDataRegistry);
    if (status != PV_SUCCESS) {
       Fatal() << getDescription() << ": registerData failed.\n";
    }
-   return status;
+   return Response::SUCCESS;
 }
 
-int BaseObject::respondInitializeState(std::shared_ptr<InitializeStateMessage const> message) {
+Response::Status
+BaseObject::respondInitializeState(std::shared_ptr<InitializeStateMessage const> message) {
    int status = PV_SUCCESS;
    if (getInitialValuesSetFlag()) {
-      return status;
+      return Response::SUCCESS;
    }
    status = initializeState();
    if (status == PV_SUCCESS) {
       setInitialValuesSetFlag();
    }
-   return status;
+   return Response::convertIntToStatus(status);
 }
 
-int BaseObject::respondCopyInitialStateToGPU(
+Response::Status BaseObject::respondCopyInitialStateToGPU(
       std::shared_ptr<CopyInitialStateToGPUMessage const> message) {
-   return copyInitialStateToGPU();
+   return Response::convertIntToStatus(copyInitialStateToGPU());
 }
 
-int BaseObject::respondCleanup(std::shared_ptr<CleanupMessage const> message) { return cleanup(); }
+Response::Status BaseObject::respondCleanup(std::shared_ptr<CleanupMessage const> message) {
+   return Response::convertIntToStatus(cleanup());
+}
 
 #ifdef PV_USE_CUDA
 int BaseObject::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {

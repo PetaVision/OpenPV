@@ -41,7 +41,7 @@ class WeightsPair : public WeightsPairInterface {
 
    virtual ~WeightsPair();
 
-   int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    Weights *getPreWeights() { return mPreWeights; }
    Weights *getPostWeights() { return mPostWeights; }
@@ -61,10 +61,10 @@ class WeightsPair : public WeightsPairInterface {
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   int
+   Response::Status
    respondConnectionFinalizeUpdate(std::shared_ptr<ConnectionFinalizeUpdateMessage const> message);
 
-   int respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
+   Response::Status respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

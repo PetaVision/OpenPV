@@ -416,9 +416,9 @@ void HyPerCol::allocateColumn() {
    omp_set_num_threads(mNumThreads);
 #endif // PV_USE_OPENMP_THREADS
 
-   notify(std::make_shared<AllocateDataMessage>());
+   notifyLoop(std::make_shared<AllocateDataMessage>());
 
-   notify(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
+   notifyLoop(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
    mNumPhases++;
 
    mPhaseRecvTimers.clear();
@@ -430,7 +430,7 @@ void HyPerCol::allocateColumn() {
       mCheckpointer->registerTimer(phaseRecvTimer);
    }
 
-   notify(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
+   notifyLoop(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
 
 #ifdef DEBUG_OUTPUT
    InfoLog().printf("[%d]: HyPerCol: running...\n", mCommunicator->globalCommRank());
@@ -442,7 +442,7 @@ void HyPerCol::allocateColumn() {
    // This needs to happen after initPublishers so that we can initialize
    // the values in the data stores, and before the layers' publish calls
    // so that the data in border regions gets copied correctly.
-   notify(std::make_shared<InitializeStateMessage>());
+   notifyLoop(std::make_shared<InitializeStateMessage>());
    if (mCheckpointReadFlag) {
       mCheckpointer->checkpointRead(&mSimTime, &mCurrentStep);
    }
@@ -455,17 +455,17 @@ void HyPerCol::allocateColumn() {
 // initializations that still need to happen when reading from checkpoint.
 
 #ifdef PV_USE_CUDA
-   notify(std::make_shared<CopyInitialStateToGPUMessage>());
+   notifyLoop(std::make_shared<CopyInitialStateToGPUMessage>());
 #endif // PV_USE_CUDA
 
    // Initial normalization moved here to facilitate normalizations of groups
    // of HyPerConns
-   notify(std::make_shared<ConnectionNormalizeMessage>());
-   notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ConnectionNormalizeMessage>());
+   notifyLoop(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
 
    // publish initial conditions
    for (int phase = 0; phase < mNumPhases; phase++) {
-      notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
+      notifyLoop(std::make_shared<LayerPublishMessage>(phase, mSimTime));
    }
 
    // Feb 2, 2017: waiting and updating active indices have been moved into
@@ -473,9 +473,9 @@ void HyPerCol::allocateColumn() {
 
    // output initial conditions
    if (!mCheckpointReadFlag) {
-      notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
+      notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime));
       for (int phase = 0; phase < mNumPhases; phase++) {
-         notify(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
+         notifyLoop(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
       }
    }
    mReadyFlag = true;
@@ -502,7 +502,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt) {
 
    advanceTimeLoop(runClock, 10 /*runClockStartingStep*/);
 
-   notify(std::make_shared<CleanupMessage>());
+   notifyLoop(std::make_shared<CleanupMessage>());
 
 #ifdef DEBUG_OUTPUT
    InfoLog().printf("[%d]: HyPerCol: done...\n", mCommunicator->globalCommRank());
@@ -612,7 +612,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
 int HyPerCol::processParams(char const *path) {
    if (!mParamsProcessedFlag) {
       auto const &objectMap = mObjectHierarchy.getObjectMap();
-      notify(std::make_shared<CommunicateInitInfoMessage>(objectMap));
+      notifyLoop(std::make_shared<CommunicateInitInfoMessage>(objectMap));
    }
 
    // Print a cleaned up version of params to the file given by
@@ -673,7 +673,7 @@ int HyPerCol::advanceTime(double sim_time) {
    // bypassing trigger event
    mSimTime = sim_time + mDeltaTime;
 
-   notify(std::make_shared<AdaptTimestepMessage>());
+   notifyLoop(std::make_shared<AdaptTimestepMessage>());
 
    // At this point all activity from the previous time step has
    // been delivered to the data store.
@@ -683,16 +683,16 @@ int HyPerCol::advanceTime(double sim_time) {
 
    // update the connections (weights)
    //
-   notify(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
-   notify(std::make_shared<ConnectionNormalizeMessage>());
-   notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
-   notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
+   notifyLoop(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ConnectionNormalizeMessage>());
+   notifyLoop(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime));
 
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {
-      notify(std::make_shared<LayerClearProgressFlagsMessage>());
+      notifyLoop(std::make_shared<LayerClearProgressFlagsMessage>());
 
-      // nonblockingLayerUpdate allows for more concurrency than notify.
+      // nonblockingLayerUpdate allows for more concurrency than notifyLoop.
       bool someLayerIsPending = false;
       bool someLayerHasActed  = false;
 #ifdef PV_USE_CUDA
@@ -751,7 +751,7 @@ int HyPerCol::advanceTime(double sim_time) {
 
       if (getDevice() != nullptr) {
          getDevice()->syncDevice();
-         notify(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
+         notifyLoop(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
       }
 
       // Update for gpu recv and non gpu update
@@ -777,22 +777,22 @@ int HyPerCol::advanceTime(double sim_time) {
       nonblockingLayerUpdate(recvMessage, updateMessage);
 #endif
       // Rotate DataStore ring buffers
-      notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
+      notifyLoop(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
 
       // copy activity buffer to DataStore, and do MPI exchange.
-      notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
+      notifyLoop(std::make_shared<LayerPublishMessage>(phase, mSimTime));
 
       // Feb 2, 2017: waiting and updating active indices have been moved into
       // OutputState and CheckNotANumber, where they are called if needed.
-      notify(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
+      notifyLoop(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
       if (mErrorOnNotANumber) {
-         notify(std::make_shared<LayerCheckNotANumberMessage>(phase));
+         notifyLoop(std::make_shared<LayerCheckNotANumberMessage>(phase));
       }
    }
 
    mRunTimer->stop();
 
-   notify(std::make_shared<ColProbeOutputStateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ColProbeOutputStateMessage>(mSimTime, mDeltaTime));
 
    return status;
 }
@@ -807,7 +807,7 @@ void HyPerCol::nonblockingLayerUpdate(
    while (*(updateMessage->mSomeLayerIsPending)) {
       *(updateMessage->mSomeLayerIsPending) = false;
       *(updateMessage->mSomeLayerHasActed)  = false;
-      notify(updateMessage);
+      notifyLoop(updateMessage);
 
       if (!*(updateMessage->mSomeLayerHasActed)) {
          idleCounter++;
@@ -838,8 +838,8 @@ void HyPerCol::nonblockingLayerUpdate(
    while (*(recvMessage->mSomeLayerIsPending)) {
       *(updateMessage->mSomeLayerIsPending) = false;
       *(updateMessage->mSomeLayerHasActed)  = false;
-      notify(recvMessage);
-      notify(updateMessage);
+      notifyLoop(recvMessage);
+      notifyLoop(updateMessage);
 
       if (!*(updateMessage->mSomeLayerHasActed)) {
          idleCounter++;
@@ -856,20 +856,20 @@ void HyPerCol::nonblockingLayerUpdate(
    }
 }
 
-int HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
+Response::Status HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
    if (auto castMessage = std::dynamic_pointer_cast<PrepareCheckpointWriteMessage const>(message)) {
       return respondPrepareCheckpointWrite(castMessage);
    }
    else {
-      return PV_SUCCESS;
+      return Response::SUCCESS;
    }
 }
 
-int HyPerCol::respondPrepareCheckpointWrite(
+Response::Status HyPerCol::respondPrepareCheckpointWrite(
       std::shared_ptr<PrepareCheckpointWriteMessage const> message) {
    std::string path(message->mDirectory);
    path.append("/").append("pv.params");
-   return outputParams(path.c_str());
+   return Response::convertIntToStatus(outputParams(path.c_str()));
 }
 
 int HyPerCol::outputParams(char const *path) {
@@ -924,11 +924,11 @@ int HyPerCol::outputParams(char const *path) {
    // Splitting this up into five messages for backwards compatibility in preserving the order.
    // If order preservation is not needed here, it would be better to replace with a single
    // message that all five types respond to.
-   notify(std::make_shared<LayerWriteParamsMessage>());
-   notify(std::make_shared<ConnectionWriteParamsMessage>());
-   notify(std::make_shared<ColProbeWriteParamsMessage>());
-   notify(std::make_shared<LayerProbeWriteParamsMessage>());
-   notify(std::make_shared<ConnectionProbeWriteParamsMessage>());
+   notifyLoop(std::make_shared<LayerWriteParamsMessage>());
+   notifyLoop(std::make_shared<ConnectionWriteParamsMessage>());
+   notifyLoop(std::make_shared<ColProbeWriteParamsMessage>());
+   notifyLoop(std::make_shared<LayerProbeWriteParamsMessage>());
+   notifyLoop(std::make_shared<ConnectionProbeWriteParamsMessage>());
 
    if (rank == 0) {
       mLuaPrintParamsStream->printf("} --End of pvParameters\n");
@@ -1257,7 +1257,7 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
    }
 
    // Broadcast the pointer to the CUDA device to the hierarchy
-   notify(std::make_shared<SetCudaDeviceMessage>(mCudaDevice));
+   notifyLoop(std::make_shared<SetCudaDeviceMessage>(mCudaDevice));
 }
 
 int HyPerCol::finalizeCUDA() {

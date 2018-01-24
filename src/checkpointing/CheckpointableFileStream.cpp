@@ -74,22 +74,22 @@ void CheckpointableFileStream::setDescription() {
    description.append(mObjName).append("\"");
 }
 
-int CheckpointableFileStream::respond(std::shared_ptr<BaseMessage const> message) {
+Response::Status CheckpointableFileStream::respond(std::shared_ptr<BaseMessage const> message) {
    if (message == nullptr) {
-      return PV_SUCCESS;
+      return Response::SUCCESS;
    }
    else if (
          ProcessCheckpointReadMessage const *castMessage =
                dynamic_cast<ProcessCheckpointReadMessage const *>(message.get())) {
       return respondProcessCheckpointRead(castMessage);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
-int CheckpointableFileStream::respondProcessCheckpointRead(
+Response::Status CheckpointableFileStream::respondProcessCheckpointRead(
       ProcessCheckpointReadMessage const *message) {
    syncFilePos();
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int CheckpointableFileStream::registerData(Checkpointer *checkpointer) {

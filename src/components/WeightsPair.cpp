@@ -104,9 +104,9 @@ void WeightsPair::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag)
          true /*warnIfAbsent*/);
 }
 
-int WeightsPair::respond(std::shared_ptr<BaseMessage const> message) {
-   int status = WeightsPairInterface::respond(message);
-   if (status != PV_SUCCESS) {
+Response::Status WeightsPair::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = WeightsPairInterface::respond(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
    else if (
@@ -122,15 +122,16 @@ int WeightsPair::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int WeightsPair::respondConnectionFinalizeUpdate(
+Response::Status WeightsPair::respondConnectionFinalizeUpdate(
       std::shared_ptr<ConnectionFinalizeUpdateMessage const> message) {
    finalizeUpdate(message->mTime, message->mDeltaT);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
-int WeightsPair::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
+Response::Status
+WeightsPair::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
    outputState(message->mTime);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {

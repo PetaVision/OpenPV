@@ -79,7 +79,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
   public:
    AdaptiveTimeScaleProbe(char const *name, HyPerCol *hc);
    virtual ~AdaptiveTimeScaleProbe();
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
@@ -90,7 +90,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    int initialize(char const *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual int registerData(Checkpointer *checkpointer) override;
-   int respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message);
+   Response::Status respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message);
    bool needRecalc(double timeValue) override {
       return parent->simulationTime() > getLastUpdateTime();
    }

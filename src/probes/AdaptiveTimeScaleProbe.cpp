@@ -141,8 +141,8 @@ int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer) {
    return status;
 }
 
-int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) {
-   int status = ColProbe::respond(message);
+Response::Status AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = ColProbe::respond(message);
    if (message == nullptr) {
       return status;
    }
@@ -154,9 +154,9 @@ int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) 
    }
 }
 
-int AdaptiveTimeScaleProbe::respondAdaptTimestep(
-      std::shared_ptr<AdaptTimestepMessage const> message) {
-   return getValues(parent->simulationTime());
+Response::Status
+AdaptiveTimeScaleProbe::respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message) {
+   return Response::convertIntToStatus(getValues(parent->simulationTime()));
 }
 
 // AdaptiveTimeScaleProbe::calcValues calls targetProbe->getValues() and passes the result to

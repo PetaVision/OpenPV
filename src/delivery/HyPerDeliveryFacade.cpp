@@ -156,9 +156,9 @@ int HyPerDeliveryFacade::communicateInitInfo(
       //      auto internMessage =
       //            std::make_shared<CommunicateInitInfoMessage>(observerTable.getObjectMap());
       //      status = mDeliveryIntern->respond(internMessage);
-      status = mDeliveryIntern->respond(message);
-      if (status != PV_SUCCESS) {
-         return status;
+      Response::Status internStatus = mDeliveryIntern->respond(message);
+      if (internStatus == Response::POSTPONE) {
+         return PV_POSTPONE;
       }
 #ifdef PV_USE_CUDA
       mUsingGPUFlag = mDeliveryIntern->isUsingGPU();
@@ -185,7 +185,8 @@ int HyPerDeliveryFacade::allocateDataStructures() {
    int status = BaseDelivery::allocateDataStructures();
    if (status == PV_SUCCESS and mDeliveryIntern != nullptr) {
       auto internMessage = std::make_shared<AllocateDataMessage>();
-      status             = mDeliveryIntern->respond(internMessage);
+      auto internStatus  = mDeliveryIntern->respond(internMessage);
+      status             = Response::convertStatusToInt(internStatus);
    }
    return status;
 }

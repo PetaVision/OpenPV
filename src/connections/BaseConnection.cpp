@@ -54,8 +54,8 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
-int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
-   int status = BaseObject::respond(message);
+Response::Status BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = BaseObject::respond(message);
    if (status != PV_SUCCESS) {
       return status;
    }
@@ -77,21 +77,23 @@ int BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int BaseConnection::respondConnectionWriteParams(
+Response::Status BaseConnection::respondConnectionWriteParams(
       std::shared_ptr<ConnectionWriteParamsMessage const> message) {
-   return writeParams();
+   return Response::convertIntToStatus(writeParams());
 }
 
-int BaseConnection::respondConnectionFinalizeUpdate(
+Response::Status BaseConnection::respondConnectionFinalizeUpdate(
       std::shared_ptr<ConnectionFinalizeUpdateMessage const> message) {
-   notify(mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
-   return PV_SUCCESS;
+   auto status = notify(
+         mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return status;
 }
 
-int BaseConnection::respondConnectionOutput(
-      std::shared_ptr<ConnectionOutputMessage const> message) {
-   notify(mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
-   return PV_SUCCESS;
+Response::Status
+BaseConnection::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
+   auto status = notify(
+         mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return status;
 }
 
 int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
@@ -105,28 +107,29 @@ int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    auto communicateMessage =
          std::make_shared<CommunicateInitInfoMessage>(componentTable.getObjectMap());
 
-   notify(
+   Response::Status status = notify(
          componentTable,
          communicateMessage,
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 
-   auto *deliveryObject = getComponentByType<BaseDelivery>();
-   pvAssert(deliveryObject);
-   HyPerLayer *postLayer = deliveryObject->getPostLayer();
-   if (postLayer != nullptr) {
-      postLayer->addRecvConn(this);
-   }
-
-#ifdef PV_USE_CUDA
-   for (auto &c : componentTable.getObjectVector()) {
-      auto *baseObject = dynamic_cast<BaseObject *>(c);
-      if (baseObject) {
-         mUsingGPUFlag |= baseObject->isUsingGPU();
+   if (status == Response::SUCCESS) {
+      auto *deliveryObject = getComponentByType<BaseDelivery>();
+      pvAssert(deliveryObject);
+      HyPerLayer *postLayer = deliveryObject->getPostLayer();
+      if (postLayer != nullptr) {
+         postLayer->addRecvConn(this);
       }
-   }
+#ifdef PV_USE_CUDA
+      for (auto &c : componentTable.getObjectVector()) {
+         auto *baseObject = dynamic_cast<BaseObject *>(c);
+         if (baseObject) {
+            mUsingGPUFlag |= baseObject->isUsingGPU();
+         }
+      }
 #endif // PV_USE_CUDA
+   }
 
-   return PV_SUCCESS;
+   return Response::convertStatusToInt(status);
 }
 
 #ifdef PV_USE_CUDA
@@ -135,25 +138,29 @@ int BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> me
    if (status != PV_SUCCESS) {
       return status;
    }
-   notify(mComponentTable, message, parent->getCommunicator()->globalCommunicator() /*printFlag*/);
-   return PV_SUCCESS;
+   status = Response::convertStatusToInt(
+         notify(
+               mComponentTable,
+               message,
+               parent->getCommunicator()->globalCommunicator() /*printFlag*/));
+   return status;
 }
 #endif // PV_USE_CUDA
 
 int BaseConnection::allocateDataStructures() {
-   notify(
+   Response::Status status = notify(
          mComponentTable,
          std::make_shared<AllocateDataMessage>(),
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
-   return PV_SUCCESS;
+   return Response::convertStatusToInt(status);
 }
 
 int BaseConnection::registerData(Checkpointer *checkpointer) {
-   notify(
+   Response::Status status = notify(
          mComponentTable,
          std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer),
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
-   return PV_SUCCESS;
+   return status;
 }
 
 void BaseConnection::deleteComponents() {

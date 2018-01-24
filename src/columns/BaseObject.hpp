@@ -81,7 +81,7 @@ class BaseObject : public CheckpointerDataInterface {
     */
    int ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter);
 
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
    // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
 
    virtual ~BaseObject();
@@ -137,15 +137,18 @@ class BaseObject : public CheckpointerDataInterface {
     */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SUCCESS; }
 
-   int respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
+   Response::Status
+   respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
 #ifdef PV_USE_CUDA
-   int respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
+   Response::Status respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
 #endif // PV_USE_CUDA
-   int respondAllocateData(std::shared_ptr<AllocateDataMessage const> message);
-   int respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
-   int respondInitializeState(std::shared_ptr<InitializeStateMessage const> message);
-   int respondCopyInitialStateToGPU(std::shared_ptr<CopyInitialStateToGPUMessage const> message);
-   int respondCleanup(std::shared_ptr<CleanupMessage const> message);
+   Response::Status respondAllocateData(std::shared_ptr<AllocateDataMessage const> message);
+   Response::Status
+   respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
+   Response::Status respondInitializeState(std::shared_ptr<InitializeStateMessage const> message);
+   Response::Status
+   respondCopyInitialStateToGPU(std::shared_ptr<CopyInitialStateToGPUMessage const> message);
+   Response::Status respondCleanup(std::shared_ptr<CleanupMessage const> message);
 
    virtual int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
       return PV_SUCCESS;

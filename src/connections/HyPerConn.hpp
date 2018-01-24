@@ -28,7 +28,7 @@ class HyPerConn : public BaseConnection {
 
    virtual ~HyPerConn();
 
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    // get-methods for params
    int getPatchSizeX() const { return mPatchSize->getPatchSizeX(); }
@@ -86,9 +86,10 @@ class HyPerConn : public BaseConnection {
    virtual NormalizeBase *createWeightNormalizer();
    virtual BaseWeightUpdater *createWeightUpdater();
 
-   int respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message);
+   Response::Status respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message);
 
-   int respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message);
+   Response::Status
+   respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message);
 
    virtual int initializeState() override;
 

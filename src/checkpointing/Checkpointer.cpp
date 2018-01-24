@@ -947,9 +947,9 @@ void Checkpointer::writeTimers(std::string const &directory) {
 
 std::string const Checkpointer::mDefaultOutputPath = "output";
 
-int CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage const> message) {
+Response::Status CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage const> message) {
    if (message == nullptr) {
-      return PV_SUCCESS;
+      return Response::SUCCESS;
    }
    else if (
          auto castMessage =
@@ -973,28 +973,28 @@ int CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage const> messag
       return respondPrepareCheckpointWrite(castMessage);
    }
    else {
-      return PV_SUCCESS;
+      return Response::SUCCESS;
    }
 }
 
-int CheckpointerDataInterface::respondRegisterData(
+Response::Status CheckpointerDataInterface::respondRegisterData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   return registerData(message->mDataRegistry);
+   return Response::convertIntToStatus(registerData(message->mDataRegistry));
 }
 
-int CheckpointerDataInterface::respondReadStateFromCheckpoint(
+Response::Status CheckpointerDataInterface::respondReadStateFromCheckpoint(
       std::shared_ptr<ReadStateFromCheckpointMessage<Checkpointer> const> message) {
-   return readStateFromCheckpoint(message->mDataRegistry);
+   return Response::convertIntToStatus(readStateFromCheckpoint(message->mDataRegistry));
 }
 
-int CheckpointerDataInterface::respondProcessCheckpointRead(
+Response::Status CheckpointerDataInterface::respondProcessCheckpointRead(
       std::shared_ptr<ProcessCheckpointReadMessage const> message) {
-   return processCheckpointRead();
+   return Response::convertIntToStatus(processCheckpointRead());
 }
 
-int CheckpointerDataInterface::respondPrepareCheckpointWrite(
+Response::Status CheckpointerDataInterface::respondPrepareCheckpointWrite(
       std::shared_ptr<PrepareCheckpointWriteMessage const> message) {
-   return prepareCheckpointWrite();
+   return Response::convertIntToStatus(prepareCheckpointWrite());
 }
 
 int CheckpointerDataInterface::registerData(Checkpointer *checkpointer) {

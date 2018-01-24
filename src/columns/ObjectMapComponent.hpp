@@ -25,10 +25,7 @@ class ObjectMapComponent : public BaseObject {
 
    virtual ~ObjectMapComponent() {}
 
-   virtual int setDescription() {
-      description = std::string("ObjectMapComponent \"") + name + "\"";
-      return PV_SUCCESS;
-   }
+   virtual void setObjectType() override { mObjectType = "ObjectMapComponent"; }
 
    void setObjectMap(std::map<std::string, Observer *> const &table) { mObjectMap = table; }
 

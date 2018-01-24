@@ -373,19 +373,22 @@ class CheckpointerDataInterface : public Observer {
   public:
    virtual int registerData(Checkpointer *checkpointer);
 
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
 
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
 
   protected:
-   int respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
-   int respondReadStateFromCheckpoint(
+   Response::Status
+   respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
+   Response::Status respondReadStateFromCheckpoint(
          std::shared_ptr<ReadStateFromCheckpointMessage<Checkpointer> const> message);
 
-   int respondProcessCheckpointRead(std::shared_ptr<ProcessCheckpointReadMessage const> message);
-   int respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
+   Response::Status
+   respondProcessCheckpointRead(std::shared_ptr<ProcessCheckpointReadMessage const> message);
+   Response::Status
+   respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
 
    virtual int processCheckpointRead() { return PV_SUCCESS; }
    virtual int prepareCheckpointWrite() { return PV_SUCCESS; }

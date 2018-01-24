@@ -116,7 +116,7 @@ class HyPerCol : public Subject, public Observer {
 
    // Public functions
 
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    /**
     * Returns the object in the hierarchy with the given name, if any exists.
@@ -222,14 +222,15 @@ class HyPerCol : public Subject, public Observer {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void addObject(BaseObject *obj);
    int checkDirExists(const char *dirname, struct stat *pathstat);
-   inline void notify(std::vector<std::shared_ptr<BaseMessage const>> messages) {
-      Subject::notify(
-            mObjectHierarchy, messages, getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   inline void notifyLoop(std::vector<std::shared_ptr<BaseMessage const>> messages) {
+      bool printFlag = getCommunicator()->globalCommRank() == 0;
+      Subject::notifyLoop(mObjectHierarchy, messages, printFlag, description);
    }
-   inline void notify(std::shared_ptr<BaseMessage const> message) {
-      notify(std::vector<std::shared_ptr<BaseMessage const>>{message});
+   inline void notifyLoop(std::shared_ptr<BaseMessage const> message) {
+      notifyLoop(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
-   int respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
+   Response::Status
+   respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
 #ifdef PV_USE_CUDA
    void initializeCUDA(std::string const &in_device);
    int finalizeCUDA();

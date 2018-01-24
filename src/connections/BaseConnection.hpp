@@ -30,7 +30,7 @@ class BaseConnection : public BaseObject, public Subject {
    template <typename S>
    S *getComponentByType();
 
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    /**
     * The function that calls the DeliveryObject's deliver method
@@ -64,12 +64,13 @@ class BaseConnection : public BaseObject, public Subject {
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   int respondConnectionWriteParams(std::shared_ptr<ConnectionWriteParamsMessage const> message);
+   Response::Status
+   respondConnectionWriteParams(std::shared_ptr<ConnectionWriteParamsMessage const> message);
 
-   int
+   Response::Status
    respondConnectionFinalizeUpdate(std::shared_ptr<ConnectionFinalizeUpdateMessage const> message);
 
-   int respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
+   Response::Status respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
