@@ -40,9 +40,6 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
    calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales);
    void writeTimestepInfo(double timeValue, std::vector<PrintStream *> &streams);
 
-  private:
-   void calcTimeScaleTrue(double timeValue);
-
    // Data members
   protected:
    char *mName;

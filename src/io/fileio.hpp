@@ -47,7 +47,7 @@ size_t
 PV_fwrite(const void *RESTRICT ptr, size_t size, size_t nitems, PV_Stream *RESTRICT pvstream);
 size_t PV_fread(void *RESTRICT ptr, size_t size, size_t nitems, PV_Stream *RESTRICT pvstream);
 int PV_fclose(PV_Stream *pvstream);
-int ensureDirExists(MPIBlock const *mpiBlock, char const *dirname);
+void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname);
 
 // Unused function pvp_open_read_file was removed Mar 23, 2017. Instead, construct a FileStream.
 // Unused function pvp_open_write_file was removed Mar 10, 2017. Instead, construct a FileStream.

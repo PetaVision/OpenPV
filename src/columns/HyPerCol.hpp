@@ -235,9 +235,8 @@ class HyPerCol : public Subject, public Observer {
    void initializeCUDA(std::string const &in_device);
    int finalizeCUDA();
 #endif // PV_USE_CUDA
-   int outputParams(char const *path);
-   int outputParamsHeadComments(FileStream *fileStream, char const *commentToken);
-   int calcTimeScaleTrue();
+   void outputParams(char const *path);
+   void outputParamsHeadComments(FileStream *fileStream, char const *commentToken);
    /**
     * Sets the mNumThreads member variable based on whether PV_USE_OPENMP is set
     * and the NumThreads argument in the ConfigFile (-t option if using the

@@ -531,7 +531,7 @@ static inline int makeDirectory(char const *dir) {
    return status;
 }
 
-int ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
+void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
    // If rank zero, see if path exists, and try to create it if it doesn't.
    // If not rank zero, the routine does nothing.
    int rank = mpiBlock->getRank();
@@ -583,7 +583,6 @@ int ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
       }
       exit(EXIT_FAILURE);
    }
-   return PV_SUCCESS;
 }
 
 // Unused function getNumGlobalPatches was removed Mar 15, 2017.

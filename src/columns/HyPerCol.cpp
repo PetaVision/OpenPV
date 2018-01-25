@@ -869,25 +869,20 @@ Response::Status HyPerCol::respondPrepareCheckpointWrite(
       std::shared_ptr<PrepareCheckpointWriteMessage const> message) {
    std::string path(message->mDirectory);
    path.append("/").append("pv.params");
-   return Response::convertIntToStatus(outputParams(path.c_str()));
+   outputParams(path.c_str());
+   return Response::SUCCESS;
 }
 
-int HyPerCol::outputParams(char const *path) {
+void HyPerCol::outputParams(char const *path) {
    assert(path != nullptr && path[0] != '\0');
-   int status = PV_SUCCESS;
-   int rank   = mCheckpointer->getMPIBlock()->getRank();
+   int rank = mCheckpointer->getMPIBlock()->getRank();
    assert(mPrintParamsStream == nullptr);
-   char *tmp = strdup(path); // duplicate string since dirname() is allowed to
-   // modify its argument
+   char *tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
    if (tmp == nullptr) {
       Fatal().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
    }
    char *containingdir = dirname(tmp);
-   status              = ensureDirExists(mCheckpointer->getMPIBlock(), containingdir);
-   if (status != PV_SUCCESS) {
-      ErrorLog().printf(
-            "HyPerCol::outputParams unable to create directory \"%s\"\n", containingdir);
-   }
+   ensureDirExists(mCheckpointer->getMPIBlock(), containingdir);
    free(tmp);
    if (rank == 0) {
       mPrintParamsStream = new FileStream(path, std::ios_base::out, getVerifyWrites());
@@ -916,8 +911,8 @@ int HyPerCol::outputParams(char const *path) {
    }
 
    // Parent HyPerCol params
-   status = ioParams(PARAMS_IO_WRITE);
-   if (status != PV_SUCCESS) {
+   int writeStatus = ioParams(PARAMS_IO_WRITE);
+   if (writeStatus != PV_SUCCESS) {
       Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
    }
 
@@ -948,10 +943,9 @@ int HyPerCol::outputParams(char const *path) {
       mLuaPrintParamsStream = nullptr;
       parameters()->setPrintLuaStream(mLuaPrintParamsStream);
    }
-   return status;
 }
 
-int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *commentToken) {
+void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *commentToken) {
    time_t t = time(nullptr);
    fileStream->printf("%s PetaVision, " PV_GIT_REVISION "\n", commentToken);
    fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
@@ -1044,7 +1038,6 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
             commentToken,
             mCheckpointer->getCheckpointReadDirectory().c_str());
    }
-   return PV_SUCCESS;
 }
 
 int HyPerCol::getAutoGPUDevice() {
