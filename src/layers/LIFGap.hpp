@@ -22,9 +22,9 @@ class LIFGap : public PV::LIF {
    LIFGap(const char *name, HyPerCol *hc);
    virtual ~LIFGap();
 
-   int virtual updateState(double time, double dt) override;
+   virtual int updateState(double time, double dt) override;
 
-   int virtual readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    const float *getGapStrength() { return gapStrength; }
 
@@ -32,8 +32,8 @@ class LIFGap : public PV::LIF {
    LIFGap();
    int initialize(const char *name, HyPerCol *hc, const char *kernel_name);
    virtual int allocateConductances(int num_channels) override;
-   virtual int registerData(Checkpointer *checkpointer) override;
-   virtual int readGapStrengthFromCheckpoint(Checkpointer *checkpointer);
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual void readGapStrengthFromCheckpoint(Checkpointer *checkpointer);
 
   private:
    int initialize_base();

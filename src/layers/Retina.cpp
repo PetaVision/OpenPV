@@ -231,23 +231,27 @@ int Retina::setRetinaParams(PVParams *p) {
    return 0;
 }
 
-int Retina::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = PV_SUCCESS;
+Response::Status Retina::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
-      int status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      if (status != Response::SUCCESS) {
+         return status;
+      }
       readRandStateFromCheckpoint(checkpointer);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
-int Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
+void Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(
          std::string(name), std::string("rand_state.pvp"), false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int Retina::registerData(Checkpointer *checkpointer) {
-   int status = HyPerLayer::registerData(checkpointer);
+Response::Status Retina::registerData(Checkpointer *checkpointer) {
+   auto status = HyPerLayer::registerData(checkpointer);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    if (spikingFlag) {
       pvAssert(randState != nullptr);
       checkpointRandState(checkpointer, "rand_state", randState, true /*extended*/);

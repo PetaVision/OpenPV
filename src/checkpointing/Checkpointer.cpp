@@ -979,28 +979,28 @@ Response::Status CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage 
 
 Response::Status CheckpointerDataInterface::respondRegisterData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   return Response::convertIntToStatus(registerData(message->mDataRegistry));
+   return registerData(message->mDataRegistry);
 }
 
 Response::Status CheckpointerDataInterface::respondReadStateFromCheckpoint(
       std::shared_ptr<ReadStateFromCheckpointMessage<Checkpointer> const> message) {
-   return Response::convertIntToStatus(readStateFromCheckpoint(message->mDataRegistry));
+   return readStateFromCheckpoint(message->mDataRegistry);
 }
 
 Response::Status CheckpointerDataInterface::respondProcessCheckpointRead(
       std::shared_ptr<ProcessCheckpointReadMessage const> message) {
-   return Response::convertIntToStatus(processCheckpointRead());
+   return processCheckpointRead();
 }
 
 Response::Status CheckpointerDataInterface::respondPrepareCheckpointWrite(
       std::shared_ptr<PrepareCheckpointWriteMessage const> message) {
-   return Response::convertIntToStatus(prepareCheckpointWrite());
+   return prepareCheckpointWrite();
 }
 
-int CheckpointerDataInterface::registerData(Checkpointer *checkpointer) {
+Response::Status CheckpointerDataInterface::registerData(Checkpointer *checkpointer) {
    mMPIBlock = checkpointer->getMPIBlock();
    checkpointer->addObserver(this);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // namespace PV

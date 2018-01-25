@@ -120,7 +120,8 @@ int HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *depend
    }
 }
 
-int HyPerConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkpointer) {
+PV::Response::Status
+HyPerConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkpointer) {
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
@@ -133,7 +134,7 @@ int HyPerConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *ch
 
    mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
 
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
 int HyPerConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {

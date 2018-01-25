@@ -88,9 +88,9 @@ int CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    return status;
 }
 
-int CopyUpdater::registerData(Checkpointer *checkpointer) {
-   int status = BaseWeightUpdater::registerData(checkpointer);
-   if (status != PV_SUCCESS) {
+Response::Status CopyUpdater::registerData(Checkpointer *checkpointer) {
+   auto status = BaseWeightUpdater::registerData(checkpointer);
+   if (status != Response::SUCCESS) {
       return status;
    }
    std::string nameString = std::string(name);

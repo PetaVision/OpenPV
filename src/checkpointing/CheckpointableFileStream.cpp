@@ -92,16 +92,16 @@ Response::Status CheckpointableFileStream::respondProcessCheckpointRead(
    return Response::SUCCESS;
 }
 
-int CheckpointableFileStream::registerData(Checkpointer *checkpointer) {
-   int status = CheckpointerDataInterface::registerData(checkpointer);
-   if (status != PV_SUCCESS) {
+Response::Status CheckpointableFileStream::registerData(Checkpointer *checkpointer) {
+   auto status = CheckpointerDataInterface::registerData(checkpointer);
+   if (status != Response::SUCCESS) {
       return status;
    }
    checkpointer->registerCheckpointData<long>(
          mObjName, string("FileStreamRead"), &mFileReadPos, (std::size_t)1, false, false);
    checkpointer->registerCheckpointData<long>(
          mObjName, string("FileStreamWrite"), &mFileWritePos, (std::size_t)1, false, false);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 // When restoring from checkpoint, the variables mFileReadPos and mFileWritePos

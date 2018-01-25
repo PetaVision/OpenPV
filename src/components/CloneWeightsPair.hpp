@@ -70,7 +70,7 @@ class CloneWeightsPair : public WeightsPair {
 
    virtual int allocateDataStructures() override;
 
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    virtual void finalizeUpdate(double timestamp, double deltaTime) override;
 

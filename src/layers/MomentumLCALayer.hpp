@@ -33,9 +33,9 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
 
    /** @} */
 
-   virtual int registerData(Checkpointer *checkpointer) override;
-   virtual int processCheckpointRead() override;
-   virtual int prepareCheckpointWrite() override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status processCheckpointRead() override;
+   virtual Response::Status prepareCheckpointWrite() override;
 
    virtual int updateState(double time, double dt) override;
 

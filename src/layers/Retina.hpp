@@ -65,11 +65,11 @@ class Retina : public PV::HyPerLayer {
    virtual void ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual int allocateV() override;
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
    virtual int initializeV() override;
    virtual int initializeActivity() override;
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
-   virtual int readRandStateFromCheckpoint(Checkpointer *checkpointer);
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual void readRandStateFromCheckpoint(Checkpointer *checkpointer);
 
    bool spikingFlag; // specifies that layer is spiking
    Retina_params rParams; // used in update state

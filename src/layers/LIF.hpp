@@ -58,7 +58,7 @@ class LIF : public PV::HyPerLayer {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    virtual int updateState(double time, double dt) override;
    virtual int setActivity() override;
@@ -110,12 +110,12 @@ class LIF : public PV::HyPerLayer {
    virtual void ioParam_method(enum ParamsIOFlag ioFlag);
    virtual int allocateBuffers() override;
    virtual int allocateConductances(int num_channels);
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
-   virtual int readVthFromCheckpoint(Checkpointer *checkpointer);
-   virtual int readG_EFromCheckpoint(Checkpointer *checkpointer);
-   virtual int readG_IFromCheckpoint(Checkpointer *checkpointer);
-   virtual int readG_IBFromCheckpoint(Checkpointer *checkpointer);
-   virtual int readRandStateFromCheckpoint(Checkpointer *checkpointer);
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual void readVthFromCheckpoint(Checkpointer *checkpointer);
+   virtual void readG_EFromCheckpoint(Checkpointer *checkpointer);
+   virtual void readG_IFromCheckpoint(Checkpointer *checkpointer);
+   virtual void readG_IBFromCheckpoint(Checkpointer *checkpointer);
+   virtual void readRandStateFromCheckpoint(Checkpointer *checkpointer);
 
   private:
    int initialize_base();

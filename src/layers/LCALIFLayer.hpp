@@ -36,10 +36,10 @@ class LCALIFLayer : public PV::LIFGap {
    virtual void ioParam_targetRate(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeInput(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vscale(enum ParamsIOFlag ioFlag);
-   virtual int registerData(Checkpointer *checkpointer) override;
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
-   virtual int read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer);
-   virtual int readVadptFromCheckpoint(Checkpointer *checkpointer);
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual void read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer);
+   virtual void readVadptFromCheckpoint(Checkpointer *checkpointer);
 
    int allocateBuffers() override;
 

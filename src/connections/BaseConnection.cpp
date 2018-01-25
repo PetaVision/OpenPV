@@ -155,8 +155,8 @@ int BaseConnection::allocateDataStructures() {
    return Response::convertStatusToInt(status);
 }
 
-int BaseConnection::registerData(Checkpointer *checkpointer) {
-   Response::Status status = notify(
+Response::Status BaseConnection::registerData(Checkpointer *checkpointer) {
+   auto status = notify(
          mComponentTable,
          std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer),
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);

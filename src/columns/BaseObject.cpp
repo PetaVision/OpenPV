@@ -157,7 +157,7 @@ BaseObject::respondAllocateData(std::shared_ptr<AllocateDataMessage const> messa
 
 Response::Status
 BaseObject::respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   int status = registerData(message->mDataRegistry);
+   auto status = registerData(message->mDataRegistry);
    if (status != PV_SUCCESS) {
       Fatal() << getDescription() << ": registerData failed.\n";
    }

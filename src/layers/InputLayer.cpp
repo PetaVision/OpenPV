@@ -452,8 +452,11 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-int InputLayer::registerData(Checkpointer *checkpointer) {
-   int status = HyPerLayer::registerData(checkpointer);
+Response::Status InputLayer::registerData(Checkpointer *checkpointer) {
+   auto status = HyPerLayer::registerData(checkpointer);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    if (checkpointer->getMPIBlock()->getRank() == 0) {
       mRNG.seed(mRandomSeed);
       int numBatch = getLayerLoc()->nbatch;
@@ -481,10 +484,13 @@ int InputLayer::registerData(Checkpointer *checkpointer) {
    return status;
 }
 
-int InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = PV_SUCCESS;
+Response::Status InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   auto status = Response::SUCCESS;
    if (initializeFromCheckpointFlag) {
-      int status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      if (status != Response::SUCCESS) {
+         return status;
+      }
       if (mBatchIndexer) {
          pvAssert(getMPIBlock()->getRank() == 0);
       }

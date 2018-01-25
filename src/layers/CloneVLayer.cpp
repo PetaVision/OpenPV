@@ -139,16 +139,16 @@ int CloneVLayer::allocateGSyn() {
 
 int CloneVLayer::initializeV() { return PV_SUCCESS; }
 
-int CloneVLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
+void CloneVLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
    // If we just inherit HyPerLayer::readVFromCheckpoint, we checkpoint V since it is non-null.
    // This is redundant since V is a clone.
-   return PV_SUCCESS;
 }
 
-int CloneVLayer::registerData(Checkpointer *checkpointer) {
-   float *V   = clayer->V;
-   int status = HyPerLayer::registerData(checkpointer);
-   clayer->V  = V;
+Response::Status CloneVLayer::registerData(Checkpointer *checkpointer) {
+   float *V    = clayer->V;
+   clayer->V   = nullptr;
+   auto status = HyPerLayer::registerData(checkpointer);
+   clayer->V   = V;
    return status;
 }
 

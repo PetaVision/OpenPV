@@ -1618,8 +1618,11 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
    return 0;
 }
 
-int HyPerLayer::registerData(Checkpointer *checkpointer) {
-   int status = BaseLayer::registerData(checkpointer);
+Response::Status HyPerLayer::registerData(Checkpointer *checkpointer) {
+   auto status = BaseLayer::registerData(checkpointer);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    checkpointPvpActivityFloat(checkpointer, "A", getActivity(), true /*extended*/);
    if (getV() != nullptr) {
       checkpointPvpActivityFloat(checkpointer, "V", getV(), false /*not extended*/);
@@ -1696,7 +1699,7 @@ int HyPerLayer::registerData(Checkpointer *checkpointer) {
       mInitVObject->respond(message);
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 double HyPerLayer::getDeltaUpdateTime() {
@@ -2164,39 +2167,37 @@ int HyPerLayer::outputState(double timef) {
    return status;
 }
 
-int HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = PV_SUCCESS;
+Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
-      status = readActivityFromCheckpoint(checkpointer);
-      status = readVFromCheckpoint(checkpointer);
-      status = readDelaysFromCheckpoint(checkpointer);
+      readActivityFromCheckpoint(checkpointer);
+      readVFromCheckpoint(checkpointer);
+      readDelaysFromCheckpoint(checkpointer);
       updateAllActiveIndices();
    }
-   return status;
+   return Response::SUCCESS;
 }
 
-int HyPerLayer::readActivityFromCheckpoint(Checkpointer *checkpointer) {
+void HyPerLayer::readActivityFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), std::string("A"), false);
-   return PV_SUCCESS;
 }
 
-int HyPerLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
+void HyPerLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
    if (getV() != nullptr) {
       checkpointer->readNamedCheckpointEntry(std::string(name), std::string("V"), false);
    }
-   return PV_SUCCESS;
 }
 
-int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
+void HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), std::string("Delays"), false);
-   return PV_SUCCESS;
 }
 
 // readBufferFile and readDataStoreFromFile were removed Jan 23, 2017.
 // They were only used by checkpointing, which is now handled by the
 // CheckpointEntry class hierarchy.
 
-int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
+Response::Status HyPerLayer::processCheckpointRead() {
+   return Response::convertIntToStatus(updateAllActiveIndices());
+}
 
 int HyPerLayer::writeActivitySparse(double timed) {
    PVLayerCube cube      = publisher->createCube(0 /*delay*/);

@@ -349,45 +349,46 @@ int LIF::allocateConductances(int num_channels) {
    return PV_SUCCESS;
 }
 
-int LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
+Response::Status LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
-      HyPerLayer::readStateFromCheckpoint(checkpointer);
+      auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      if (status != Response::SUCCESS) {
+         return status;
+      }
       readVthFromCheckpoint(checkpointer);
       readG_EFromCheckpoint(checkpointer);
       readG_IFromCheckpoint(checkpointer);
       readG_IBFromCheckpoint(checkpointer);
       readRandStateFromCheckpoint(checkpointer);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
-int LIF::readVthFromCheckpoint(Checkpointer *checkpointer) {
+void LIF::readVthFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), "Vth", false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int LIF::readG_EFromCheckpoint(Checkpointer *checkpointer) {
+void LIF::readG_EFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), "G_E", false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int LIF::readG_IFromCheckpoint(Checkpointer *checkpointer) {
+void LIF::readG_IFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), "G_I", false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int LIF::readG_IBFromCheckpoint(Checkpointer *checkpointer) {
+void LIF::readG_IBFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), "G_IB", false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int LIF::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
+void LIF::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), "rand_state", false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int LIF::registerData(Checkpointer *checkpointer) {
-   int status = HyPerLayer::registerData(checkpointer);
+Response::Status LIF::registerData(Checkpointer *checkpointer) {
+   auto status = HyPerLayer::registerData(checkpointer);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    checkpointPvpActivityFloat(checkpointer, "Vth", Vth, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_E", G_E, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_I", G_I, false /*not extended*/);

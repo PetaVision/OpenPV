@@ -121,7 +121,8 @@ int PoolingConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *depe
    }
 }
 
-int PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkpointer) {
+PV::Response::Status
+PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkpointer) {
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
@@ -134,7 +135,7 @@ int PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *
 
    mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
 
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
 int PoolingConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {

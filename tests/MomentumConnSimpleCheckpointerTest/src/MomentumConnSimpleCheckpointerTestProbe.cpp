@@ -128,8 +128,8 @@ int MomentumConnSimpleCheckpointerTestProbe::checkCommunicatedFlag(
    }
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::readStateFromCheckpoint(
-      PV::Checkpointer *checkpointer) {
+PV::Response::Status
+MomentumConnSimpleCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkpointer) {
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
@@ -142,7 +142,7 @@ int MomentumConnSimpleCheckpointerTestProbe::readStateFromCheckpoint(
 
    mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
 
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
 int MomentumConnSimpleCheckpointerTestProbe::calcUpdateNumber(double timevalue) {

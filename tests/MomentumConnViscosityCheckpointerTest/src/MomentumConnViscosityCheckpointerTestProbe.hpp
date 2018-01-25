@@ -40,7 +40,7 @@ class MomentumConnViscosityCheckpointerTestProbe : public PV::ColProbe {
    virtual void ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) override;
    virtual int
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;
-   virtual int readStateFromCheckpoint(PV::Checkpointer *checkpointer) override;
+   virtual PV::Response::Status readStateFromCheckpoint(PV::Checkpointer *checkpointer) override;
    virtual bool needRecalc(double timevalue) override { return true; }
    virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
    virtual int outputState(double timevalue) override;

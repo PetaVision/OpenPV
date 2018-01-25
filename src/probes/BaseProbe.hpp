@@ -45,7 +45,7 @@ class BaseProbe : public BaseObject {
     * Derived classes that override this method should make sure to
     * call this method in their own allocateDataStructures methods.
     */
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    /**
     * Returns the number of value indices the probe can compute (typically the

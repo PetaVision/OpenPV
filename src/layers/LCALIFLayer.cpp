@@ -192,8 +192,11 @@ int LCALIFLayer::allocateBuffers() {
    return LIFGap::allocateBuffers();
 }
 
-int LCALIFLayer::registerData(Checkpointer *checkpointer) {
-   int status = LIFGap::registerData(checkpointer);
+Response::Status LCALIFLayer::registerData(Checkpointer *checkpointer) {
+   auto status = LIFGap::registerData(checkpointer);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    checkpointPvpActivityFloat(
          checkpointer, "integratedSpikeCount", integratedSpikeCount, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "Vadpt", Vadpt, false /*not extended*/);
@@ -257,26 +260,26 @@ int LCALIFLayer::updateState(double timed, double dt) {
    return PV_SUCCESS;
 }
 
-int LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = PV_SUCCESS;
+Response::Status LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
-      status = LIFGap::readStateFromCheckpoint(checkpointer);
-      status = read_integratedSpikeCountFromCheckpoint(checkpointer);
-      status = readVadptFromCheckpoint(checkpointer);
+      auto status = LIFGap::readStateFromCheckpoint(checkpointer);
+      if (status != Response::SUCCESS) {
+         return status;
+      }
+      read_integratedSpikeCountFromCheckpoint(checkpointer);
+      readVadptFromCheckpoint(checkpointer);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
-int LCALIFLayer::read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer) {
+void LCALIFLayer::read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer) {
    std::string checkpointEntryName(name);
    checkpointEntryName.append("_integratedSpikeCount.pvp");
-   return PV_SUCCESS;
 }
 
-int LCALIFLayer::readVadptFromCheckpoint(Checkpointer *checkpointer) {
+void LCALIFLayer::readVadptFromCheckpoint(Checkpointer *checkpointer) {
    std::string checkpointEntryName(name);
    checkpointEntryName.append("_Vadpt.pvp");
-   return PV_SUCCESS;
 }
 
 } // namespace PV

@@ -11,7 +11,7 @@ class ImageLayer : public InputLayer {
   protected:
    ImageLayer() {}
    virtual int countInputImages() override;
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
    void populateFileList();
    virtual Buffer<float> retrieveData(int inputIndex) override;
    virtual std::string describeInput(int index) override;

@@ -158,7 +158,9 @@ class BaseObject : public CheckpointerDataInterface {
 #endif // PV_USE_CUDA
    virtual int allocateDataStructures() { return PV_SUCCESS; }
    virtual int initializeState() { return PV_SUCCESS; }
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override { return PV_SUCCESS; }
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override {
+      return Response::SUCCESS;
+   }
    virtual int copyInitialStateToGPU() { return PV_SUCCESS; }
    virtual int cleanup() { return PV_SUCCESS; }
 

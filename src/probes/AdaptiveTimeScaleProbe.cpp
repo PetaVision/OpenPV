@@ -135,8 +135,11 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
          parent->getCommunicator());
 }
 
-int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer) {
-   int status = ColProbe::registerData(checkpointer);
+Response::Status AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer) {
+   auto status = ColProbe::registerData(checkpointer);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    mAdaptiveTimeScaleController->registerData(checkpointer);
    return status;
 }

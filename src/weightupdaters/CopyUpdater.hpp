@@ -44,7 +44,7 @@ class CopyUpdater : public BaseWeightUpdater {
 
    int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    virtual void updateState(double timestamp, double dt) override;
 

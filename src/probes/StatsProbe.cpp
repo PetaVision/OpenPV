@@ -181,12 +181,15 @@ void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
 
 int StatsProbe::initNumValues() { return setNumValues(-1); }
 
-int StatsProbe::registerData(Checkpointer *checkpointer) {
-   LayerProbe::registerData(checkpointer);
+Response::Status StatsProbe::registerData(Checkpointer *checkpointer) {
+   auto status = LayerProbe::registerData(checkpointer);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    checkpointer->registerTimer(iotimer);
    checkpointer->registerTimer(mpitimer);
    checkpointer->registerTimer(comptimer);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int StatsProbe::outputState(double timed) {

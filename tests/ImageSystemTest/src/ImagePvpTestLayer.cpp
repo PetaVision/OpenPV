@@ -4,16 +4,16 @@ namespace PV {
 
 ImagePvpTestLayer::ImagePvpTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-int ImagePvpTestLayer::registerData(Checkpointer *checkpointer) {
-   int status = PvpLayer::registerData(checkpointer);
-   if (status != PV_SUCCESS) {
+Response::Status ImagePvpTestLayer::registerData(Checkpointer *checkpointer) {
+   auto status = PvpLayer::registerData(checkpointer);
+   if (status != Response::SUCCESS) {
       return status;
    }
    if (getMPIBlock()->getRank() == 0) {
       mNumFrames = countInputImages();
    }
    MPI_Bcast(&mNumFrames, 1, MPI_INT, 0, getMPIBlock()->getComm());
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int ImagePvpTestLayer::updateState(double time, double dt) {

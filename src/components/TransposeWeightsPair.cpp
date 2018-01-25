@@ -175,7 +175,9 @@ void TransposeWeightsPair::createPostWeights(std::string const &weightsName) {
 
 int TransposeWeightsPair::allocateDataStructures() { return PV_SUCCESS; }
 
-int TransposeWeightsPair::registerData(Checkpointer *checkpointer) { return PV_SUCCESS; }
+Response::Status TransposeWeightsPair::registerData(Checkpointer *checkpointer) {
+   return Response::SUCCESS;
+}
 
 void TransposeWeightsPair::finalizeUpdate(double timestamp, double deltaTime) {}
 

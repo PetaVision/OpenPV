@@ -63,9 +63,9 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    virtual int allocateDataStructures() override;
 
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    virtual void updateState(double timestamp, double dt) override;
 

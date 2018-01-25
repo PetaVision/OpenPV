@@ -129,7 +129,7 @@ int MomentumConnViscosityCheckpointerTestProbe::checkCommunicatedFlag(
    }
 }
 
-int MomentumConnViscosityCheckpointerTestProbe::readStateFromCheckpoint(
+PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::readStateFromCheckpoint(
       PV::Checkpointer *checkpointer) {
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
@@ -143,7 +143,7 @@ int MomentumConnViscosityCheckpointerTestProbe::readStateFromCheckpoint(
 
    mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
 
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
 int MomentumConnViscosityCheckpointerTestProbe::calcUpdateNumber(double timevalue) {

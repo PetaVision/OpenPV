@@ -316,11 +316,12 @@ bool BaseProbe::needUpdate(double simTime, double dt) {
    return true;
 }
 
-int BaseProbe::registerData(Checkpointer *checkpointer) {
-   int status = BaseObject::registerData(checkpointer);
-   if (status == PV_SUCCESS) {
-      initOutputStreams(probeOutputFilename, checkpointer);
+Response::Status BaseProbe::registerData(Checkpointer *checkpointer) {
+   auto status = BaseObject::registerData(checkpointer);
+   if (status != Response::SUCCESS) {
+      return status;
    }
+   initOutputStreams(probeOutputFilename, checkpointer);
    return status;
 }
 

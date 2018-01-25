@@ -371,11 +371,13 @@ class Checkpointer : public Subject {
  */
 class CheckpointerDataInterface : public Observer {
   public:
-   virtual int registerData(Checkpointer *checkpointer);
+   virtual Response::Status registerData(Checkpointer *checkpointer);
 
    virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) {
+      return Response::SUCCESS;
+   }
 
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
 
@@ -390,8 +392,8 @@ class CheckpointerDataInterface : public Observer {
    Response::Status
    respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
 
-   virtual int processCheckpointRead() { return PV_SUCCESS; }
-   virtual int prepareCheckpointWrite() { return PV_SUCCESS; }
+   virtual Response::Status processCheckpointRead() { return Response::SUCCESS; }
+   virtual Response::Status prepareCheckpointWrite() { return Response::SUCCESS; }
 
   private:
    MPIBlock const *mMPIBlock = nullptr;

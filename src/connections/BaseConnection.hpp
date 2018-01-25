@@ -81,7 +81,7 @@ class BaseConnection : public BaseObject, public Subject {
 
    virtual int allocateDataStructures() override;
 
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    virtual void deleteComponents();
 
