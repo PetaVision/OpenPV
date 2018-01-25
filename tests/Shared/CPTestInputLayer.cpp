@@ -36,20 +36,14 @@ int CPTestInputLayer::initialize(const char *name, HyPerCol *hc) {
 
 int CPTestInputLayer::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
-   if (status != PV_SUCCESS)
-      return status;
-
-   status = initializeV();
    if (status != PV_SUCCESS) {
-      ErrorLog().printf(
-            "CPTestInputLayer \"%s\" in rank %d process: initializeV failed.\n",
-            name,
-            parent->columnId());
+      return status;
    }
+   initializeV();
    return status;
 }
 
-int CPTestInputLayer::initializeV() {
+void CPTestInputLayer::initializeV() {
    FatalIf(
          !(parent->parameters()->value(name, "restart", 0.0, false) == 0.0),
          "Test failed.\n"); // initializeV should only be called if restart is false
@@ -65,7 +59,6 @@ int CPTestInputLayer::initializeV() {
          VBatch[k] = (float)kGlobal;
       }
    }
-   return PV_SUCCESS;
 }
 
 int CPTestInputLayer::updateState(double timed, double dt) {

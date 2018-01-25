@@ -29,7 +29,7 @@ class IndexLayer : public HyPerLayer {
   protected:
    IndexLayer();
    int initialize(char const *name, HyPerCol *hc);
-   virtual int setInitialValues() override;
+   virtual Response::Status setInitialValues() override;
    virtual int updateState(double timef, double dt) override;
 
   private:

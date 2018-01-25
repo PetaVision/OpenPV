@@ -210,12 +210,9 @@ int Segmentify::allocateV() {
    return PV_SUCCESS;
 }
 
-int Segmentify::initializeV() {
-   assert(getV() == NULL);
-   return PV_SUCCESS;
-}
+void Segmentify::initializeV() { assert(getV() == NULL); }
 
-int Segmentify::initializeActivity() { return PV_SUCCESS; }
+void Segmentify::initializeActivity() {}
 
 int Segmentify::buildLabelToIdx(int batchIdx) {
    Communicator *icComm = parent->getCommunicator();

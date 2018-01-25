@@ -255,7 +255,7 @@ class HyPerCol : public Subject, public Observer {
    // exit with an error if any appear
    bool mCheckpointReadFlag; // whether to load from a checkpoint directory
    bool mReadyFlag; // Initially false; set to true when communicateInitInfo,
-   // allocateDataStructures, and setInitialValues stages are completed
+   // allocateDataStructures, and initializeState stages are completed
    bool mParamsProcessedFlag; // Initially false; set to true when processParams
    // is called.
    bool mWriteTimeScaleFieldnames; // determines whether fieldnames are written to

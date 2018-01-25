@@ -189,12 +189,11 @@ HyPerConn::respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage
    return Response::SUCCESS;
 }
 
-int HyPerConn::initializeState() {
-   notify(
+Response::Status HyPerConn::initializeState() {
+   return notify(
          mComponentTable,
          std::make_shared<InitializeStateMessage>(),
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
-   return PV_SUCCESS;
 }
 
 float const *HyPerConn::getDeltaWeightsDataStart(int arbor) const {

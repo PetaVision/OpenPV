@@ -34,7 +34,7 @@ class GaussianRandomV : public BaseInitV {
    GaussianRandomV(char const *name, HyPerCol *hc);
    virtual ~GaussianRandomV();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual int calcV(float *V, PVLayerLoc const *loc) override;
+   virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    GaussianRandomV();

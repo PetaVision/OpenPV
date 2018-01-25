@@ -137,7 +137,7 @@ int CloneVLayer::allocateGSyn() {
    return PV_SUCCESS;
 }
 
-int CloneVLayer::initializeV() { return PV_SUCCESS; }
+void CloneVLayer::initializeV() {}
 
 void CloneVLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
    // If we just inherit HyPerLayer::readVFromCheckpoint, we checkpoint V since it is non-null.

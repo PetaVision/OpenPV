@@ -37,7 +37,7 @@ class CloneConn : public HyPerConn {
    virtual BaseWeightUpdater *createWeightUpdater() override;
    virtual OriginalConnNameParam *createOriginalConnNameParam();
 
-   virtual int initializeState() override;
+   virtual Response::Status initializeState() override;
 
   protected:
    OriginalConnNameParam *mOriginalConnNameParam = nullptr;

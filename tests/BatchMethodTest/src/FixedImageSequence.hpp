@@ -21,7 +21,7 @@ class FixedImageSequence : public PV::HyPerLayer {
     * the pure virtual method initIndices to set the
     * mIndexStart and mIndexSkip data members.
     */
-   virtual int setInitialValues() override;
+   virtual PV::Response::Status setInitialValues() override;
 
    /**
     * A pure virtual method where derived classes should set the data members

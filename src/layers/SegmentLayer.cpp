@@ -233,12 +233,9 @@ int SegmentLayer::allocateV() {
    return PV_SUCCESS;
 }
 
-int SegmentLayer::initializeV() {
-   assert(getV() == NULL);
-   return PV_SUCCESS;
-}
+void SegmentLayer::initializeV() { assert(getV() == NULL); }
 
-int SegmentLayer::initializeActivity() { return PV_SUCCESS; }
+void SegmentLayer::initializeActivity() {}
 
 int SegmentLayer::updateState(double timef, double dt) {
    float *srcA  = originalLayer->getActivity();

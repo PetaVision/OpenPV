@@ -121,14 +121,9 @@ int Retina::allocateV() {
    return PV_SUCCESS;
 }
 
-int Retina::initializeV() {
-   assert(getV() == NULL);
-   return PV_SUCCESS;
-}
+void Retina::initializeV() { assert(getV() == NULL); }
 
-int Retina::initializeActivity() {
-   return updateState(parent->simulationTime(), parent->getDeltaTime());
-}
+void Retina::initializeActivity() { updateState(parent->simulationTime(), parent->getDeltaTime()); }
 
 int Retina::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);

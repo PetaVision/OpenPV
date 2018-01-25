@@ -28,8 +28,8 @@ class Segmentify : public PV::HyPerLayer {
    // reduced scalar method. Options are "centroid" and "fill"
    void ioParam_outputMethod(enum ParamsIOFlag ioFlag);
    int allocateV() override;
-   int initializeV() override;
-   virtual int initializeActivity() override;
+   virtual void initializeV() override;
+   virtual void initializeActivity() override;
 
    virtual int updateState(double timef, double dt) override;
 

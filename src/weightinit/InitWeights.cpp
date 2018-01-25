@@ -124,7 +124,7 @@ int InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    return status;
 }
 
-int InitWeights::initializeState() {
+Response::Status InitWeights::initializeState() {
    FatalIf(
          mWeights == nullptr,
          "initializeState was called for %s with a null Weights object.\n",
@@ -137,7 +137,7 @@ int InitWeights::initializeState() {
       calcWeights();
    } // mFilename != null
    mWeights->setTimestamp(parent->getStartTime());
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 void InitWeights::calcWeights() {

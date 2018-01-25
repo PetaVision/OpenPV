@@ -77,12 +77,9 @@ int WTALayer::allocateV() {
    return PV_SUCCESS;
 }
 
-int WTALayer::initializeV() {
-   assert(getV() == NULL);
-   return PV_SUCCESS;
-}
+void WTALayer::initializeV() { assert(getV() == NULL); }
 
-int WTALayer::initializeActivity() { return PV_SUCCESS; }
+void WTALayer::initializeActivity() {}
 
 int WTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);

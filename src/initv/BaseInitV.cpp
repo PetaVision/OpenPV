@@ -33,7 +33,7 @@ void BaseInitV::setObjectType() {
 
 int BaseInitV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SUCCESS; }
 
-int BaseInitV::calcV(float *V, PVLayerLoc const *loc) { return PV_SUCCESS; }
+void BaseInitV::calcV(float *V, PVLayerLoc const *loc) {}
 
 string const BaseInitV::mDefaultInitV = "ConstantV";
 

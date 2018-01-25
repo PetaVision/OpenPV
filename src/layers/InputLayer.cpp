@@ -415,14 +415,10 @@ int InputLayer::allocateV() {
    return PV_SUCCESS;
 }
 
-int InputLayer::initializeV() {
-   pvAssert(getV() == nullptr);
-   return PV_SUCCESS;
-}
+void InputLayer::initializeV() { pvAssert(getV() == nullptr); }
 
-int InputLayer::initializeActivity() {
+void InputLayer::initializeActivity() {
    retrieveInput(parent->simulationTime(), parent->getDeltaTime());
-   return PV_SUCCESS;
 }
 
 int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

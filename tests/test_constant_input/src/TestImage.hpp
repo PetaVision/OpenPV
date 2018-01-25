@@ -27,7 +27,7 @@ class TestImage : public HyPerLayer {
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_constantVal(enum ParamsIOFlag ioFlag);
    virtual int allocateV() override;
-   virtual int initializeActivity() override;
+   virtual void initializeActivity() override;
 
   private:
    int initialize_base();

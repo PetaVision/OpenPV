@@ -28,8 +28,8 @@ class BinningLayer : public PV::HyPerLayer {
    void ioParam_zeroDCR(enum ParamsIOFlag ioFlag);
    void ioParam_normalDist(enum ParamsIOFlag ioFlag);
    int allocateV() override;
-   int initializeV() override;
-   virtual int initializeActivity() override;
+   virtual void initializeV() override;
+   virtual void initializeActivity() override;
    virtual int updateState(double timef, double dt) override;
    virtual int doUpdateState(
          double timed,

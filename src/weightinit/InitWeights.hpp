@@ -92,7 +92,7 @@ class InitWeights : public BaseObject {
     * Generally, derived classes should not override initializeState, but instead override
     * one or both of the calcWeights methods, in order to preserve the initWeightsFile behavior.
     */
-   virtual int initializeState() override;
+   virtual Response::Status initializeState() override;
 
    /**
     * Called by initializeWeights, to calculate the weights in all arbors and all patches.

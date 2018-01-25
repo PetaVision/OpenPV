@@ -165,15 +165,15 @@ BaseObject::respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer
 
 Response::Status
 BaseObject::respondInitializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   int status = PV_SUCCESS;
+   auto status = Response::NO_ACTION;
    if (getInitialValuesSetFlag()) {
-      return Response::SUCCESS;
+      return Response::NO_ACTION;
    }
    status = initializeState();
-   if (status == PV_SUCCESS) {
+   if (Response::completed(status)) {
       setInitialValuesSetFlag();
    }
-   return Response::convertIntToStatus(status);
+   return status;
 }
 
 Response::Status BaseObject::respondCopyInitialStateToGPU(

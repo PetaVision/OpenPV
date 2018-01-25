@@ -22,7 +22,7 @@ class CPTestInputLayer : public HyPerLayer {
 
   protected:
    int initialize(const char *name, HyPerCol *hc);
-   virtual int initializeV() override;
+   virtual void initializeV() override;
 
 }; // end class CPTestInputLayer
 

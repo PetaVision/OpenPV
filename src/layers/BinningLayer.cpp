@@ -159,12 +159,9 @@ int BinningLayer::allocateV() {
    return PV_SUCCESS;
 }
 
-int BinningLayer::initializeV() {
-   assert(getV() == NULL);
-   return PV_SUCCESS;
-}
+void BinningLayer::initializeV() { assert(getV() == NULL); }
 
-int BinningLayer::initializeActivity() { return PV_SUCCESS; }
+void BinningLayer::initializeActivity() {}
 
 int BinningLayer::updateState(double timef, double dt) {
    int status;

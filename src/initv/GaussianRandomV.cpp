@@ -42,7 +42,7 @@ void GaussianRandomV::ioParam_sigmaV(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "maxV", &sigmaV, sigmaV);
 }
 
-int GaussianRandomV::calcV(float *V, PVLayerLoc const *loc) {
+void GaussianRandomV::calcV(float *V, PVLayerLoc const *loc) {
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
    flatLoc.nf = 1;
@@ -60,7 +60,6 @@ int GaussianRandomV::calcV(float *V, PVLayerLoc const *loc) {
          }
       }
    }
-   return PV_SUCCESS;
 }
 
 } // end namespace PV

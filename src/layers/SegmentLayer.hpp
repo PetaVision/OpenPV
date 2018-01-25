@@ -22,10 +22,10 @@ class SegmentLayer : public PV::HyPerLayer {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_segmentMethod(enum ParamsIOFlag ioFlag);
-   virtual int initializeActivity() override;
+   virtual void initializeActivity() override;
 
    virtual int allocateV() override;
-   virtual int initializeV() override;
+   virtual void initializeV() override;
 
    virtual int updateState(double timef, double dt) override;
 

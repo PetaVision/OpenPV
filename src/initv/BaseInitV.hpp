@@ -17,7 +17,7 @@ class BaseInitV : public BaseObject {
    BaseInitV(char const *name, HyPerCol *hc);
    virtual ~BaseInitV();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int calcV(float *V, PVLayerLoc const *loc);
+   virtual void calcV(float *V, PVLayerLoc const *loc);
 
   protected:
    BaseInitV();

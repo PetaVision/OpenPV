@@ -120,7 +120,7 @@ class ImageFromMemoryBuffer : public ImageLayer {
    /**
     * Called by HyPerLayer::setActivity() during setInitialValues stage; calls copyBuffer()
     */
-   virtual int initializeActivity(double time, double dt);
+   virtual void initializeActivity(double time, double dt);
 
   private:
    int initialize_base();

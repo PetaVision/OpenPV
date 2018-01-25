@@ -142,8 +142,8 @@ class InputLayer : public HyPerLayer {
     */
    virtual void normalizePixels(int batchElement);
    virtual int allocateV() override;
-   virtual int initializeV() override;
-   virtual int initializeActivity() override;
+   virtual void initializeV() override;
+   virtual void initializeActivity() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;

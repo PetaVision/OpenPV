@@ -49,7 +49,7 @@ int SharedConnDebugInitWeights::communicateInitInfo(
    return HyPerConn::communicateInitInfo(message);
 }
 
-int SharedConnDebugInitWeights::initializeState() {
+Response::Status SharedConnDebugInitWeights::initializeState() {
    FatalIf(
          mWeightsPair->getPreWeights() == nullptr,
          "SharedConnDebugInitWeights::initializeState called with no presynaptic weights.\n");
@@ -73,7 +73,7 @@ int SharedConnDebugInitWeights::initializeState() {
          initializeGaussian2DWeights(arborStart, numKernelPatches);
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 void SharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, int numPatches) {

@@ -91,7 +91,7 @@ class HyPerConn : public BaseConnection {
    Response::Status
    respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message);
 
-   virtual int initializeState() override;
+   virtual Response::Status initializeState() override;
 
   protected:
    ArborList *mArborList              = nullptr;

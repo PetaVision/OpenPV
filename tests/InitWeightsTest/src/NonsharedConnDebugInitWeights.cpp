@@ -49,10 +49,10 @@ int NonsharedConnDebugInitWeights::communicateInitInfo(
    return HyPerConn::communicateInitInfo(message);
 }
 
-int NonsharedConnDebugInitWeights::initializeState() {
+Response::Status NonsharedConnDebugInitWeights::initializeState() {
    FatalIf(
          mWeightsPair->getPreWeights() == nullptr,
-         "NonsharedConnDebugInitWeights::setInitialValues called with no presynaptic weights.\n");
+         "NonsharedConnDebugInitWeights::initializeState called with no presynaptic weights.\n");
    FatalIf(
          mWeightInitTypeString == nullptr or mWeightInitTypeString[0] == '\0',
          "NonsharedConnDebugInitWeights did not set weightInitTypeString.\n");
@@ -73,7 +73,7 @@ int NonsharedConnDebugInitWeights::initializeState() {
          initializeGaussian2DWeights(arborStart, numPatches);
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 void NonsharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, int numPatches) {

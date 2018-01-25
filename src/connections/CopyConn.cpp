@@ -51,14 +51,14 @@ OriginalConnNameParam *CopyConn::createOriginalConnNameParam() {
    return new OriginalConnNameParam(name, parent);
 }
 
-int CopyConn::initializeState() {
+Response::Status CopyConn::initializeState() {
    auto *copyWeightsPair = dynamic_cast<CopyWeightsPair *>(mWeightsPair);
    pvAssert(copyWeightsPair);
    if (!copyWeightsPair->getOriginalWeightsPair()->getInitialValuesSetFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    copyWeightsPair->copy();
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // namespace PV

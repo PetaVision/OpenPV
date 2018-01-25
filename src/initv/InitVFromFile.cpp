@@ -50,7 +50,7 @@ void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "frameNumber", &mFrameNumber, mFrameNumber, true /*warnIfAbsent*/);
 }
 
-int InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
+void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
    char const *ext = strrchr(mVfilename, '.');
    bool isPvpFile  = (ext && strcmp(ext, ".pvp") == 0);
    if (isPvpFile) {
@@ -77,7 +77,6 @@ int InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
       MPI_Barrier(getMPIBlock()->getComm());
       exit(EXIT_FAILURE);
    }
-   return PV_SUCCESS;
 }
 
 void InitVFromFile::readDenseActivityPvp(

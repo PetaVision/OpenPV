@@ -154,10 +154,7 @@ template float ImageFromMemoryBuffer::pixelTypeConvert<unsigned char>(
       unsigned char zeroval,
       unsigned char oneval);
 
-int ImageFromMemoryBuffer::initializeActivity(double time, double dt) {
-   retrieveInput(time, dt);
-   return PV_SUCCESS;
-}
+void ImageFromMemoryBuffer::initializeActivity(double time, double dt) { retrieveInput(time, dt); }
 
 int ImageFromMemoryBuffer::updateState(double time, double dt) {
    assert(hasNewImageFlag); // updateState shouldn't have been called otherwise.

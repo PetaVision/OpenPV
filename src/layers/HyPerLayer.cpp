@@ -544,10 +544,7 @@ void HyPerLayer::checkpointRandState(
          bufferName);
 }
 
-int HyPerLayer::initializeState() {
-   int status = setInitialValues();
-   return status;
-}
+Response::Status HyPerLayer::initializeState() { return setInitialValues(); }
 
 #ifdef PV_USE_CUDA
 int HyPerLayer::copyInitialStateToGPU() {
@@ -569,25 +566,21 @@ int HyPerLayer::copyInitialStateToGPU() {
 
 #endif // PV_USE_CUDA
 
-int HyPerLayer::setInitialValues() {
-   int status = PV_SUCCESS;
-   status     = initializeV();
-   if (status == PV_SUCCESS)
-      initializeActivity();
-   return status;
+Response::Status HyPerLayer::setInitialValues() {
+   initializeV();
+   initializeActivity();
+   return Response::SUCCESS;
 }
 
-int HyPerLayer::initializeV() {
-   int status = PV_SUCCESS;
+void HyPerLayer::initializeV() {
    if (getV() != nullptr && mInitVObject != nullptr) {
-      status = mInitVObject->calcV(getV(), getLayerLoc());
+      mInitVObject->calcV(getV(), getLayerLoc());
    }
-   return status;
 }
 
-int HyPerLayer::initializeActivity() {
+void HyPerLayer::initializeActivity() {
    int status = setActivity();
-   return status;
+   FatalIf(status != PV_SUCCESS, "%s failed to initialize activity.\n", getDescription_c());
 }
 
 int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

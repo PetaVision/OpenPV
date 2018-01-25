@@ -11,12 +11,12 @@ int FixedImageSequence::allocateV() {
    return PV_SUCCESS;
 }
 
-int FixedImageSequence::setInitialValues() {
+PV::Response::Status FixedImageSequence::setInitialValues() {
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       clayer->activity->data[k] = 0.0f;
    }
    defineImageSequence();
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
 int FixedImageSequence::updateState(double timestamp, double dt) {

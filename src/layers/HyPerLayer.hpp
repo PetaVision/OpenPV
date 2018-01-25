@@ -237,7 +237,7 @@ class HyPerLayer : public BaseLayer {
    virtual int allocateV();
    virtual int allocateActivity();
    virtual int allocatePrevActivity();
-   virtual int setInitialValues();
+   virtual Response::Status setInitialValues();
 
    void checkpointPvpActivityFloat(
          Checkpointer *checkpointer,
@@ -251,8 +251,8 @@ class HyPerLayer : public BaseLayer {
          Random *randState,
          bool extendedFlag);
 
-   virtual int initializeV();
-   virtual int initializeActivity();
+   virtual void initializeV();
+   virtual void initializeActivity();
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual void readActivityFromCheckpoint(Checkpointer *checkpointer);
    virtual void readVFromCheckpoint(Checkpointer *checkpointer);
@@ -501,7 +501,7 @@ class HyPerLayer : public BaseLayer {
    virtual int allocateDataStructures() override;
    virtual int setMaxPhase(int *maxPhase);
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
-   virtual int initializeState() override final;
+   virtual Response::Status initializeState() override final;
    // Not overridable since all layers should respond to initializeFromCheckpointFlag the same way.
    // initializeState calls the virtual methods readStateFromCheckpoint() and setInitialValues().
 

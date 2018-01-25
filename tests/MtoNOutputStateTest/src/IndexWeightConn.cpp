@@ -29,12 +29,12 @@ BaseWeightUpdater *IndexWeightConn::createWeightUpdater() {
    return new IndexWeightUpdater(name, parent);
 }
 
-int IndexWeightConn::initializeState() {
+Response::Status IndexWeightConn::initializeState() {
    auto *weightUpdater =
          mapLookupByType<IndexWeightUpdater>(mComponentTable.getObjectMap(), getDescription());
    pvAssert(weightUpdater);
    weightUpdater->initializeWeights();
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end of namespace PV block
