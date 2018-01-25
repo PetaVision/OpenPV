@@ -38,7 +38,7 @@ class HebbianUpdater : public BaseWeightUpdater {
   public:
    HebbianUpdater(char const *name, HyPerCol *hc);
 
-   virtual ~HebbianUpdater() {}
+   virtual ~HebbianUpdater();
 
    void addClone(ConnectionData *connectionData);
 
@@ -66,6 +66,8 @@ class HebbianUpdater : public BaseWeightUpdater {
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
+
+   virtual Response::Status prepareCheckpointWrite() override;
 
    virtual void updateState(double timestamp, double dt) override;
 
@@ -127,6 +129,8 @@ class HebbianUpdater : public BaseWeightUpdater {
    void decay_dWMax();
 
    virtual void computeNewWeightUpdateTime(double time, double currentUpdateTime);
+
+   virtual Response::Status cleanup() override;
 
   protected:
    char *mTriggerLayerName         = nullptr;

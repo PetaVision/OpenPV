@@ -16,6 +16,8 @@ namespace PV {
 
 HebbianUpdater::HebbianUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
+HebbianUpdater::~HebbianUpdater() { cleanup(); }
+
 int HebbianUpdater::initialize(char const *name, HyPerCol *hc) {
    return BaseWeightUpdater::initialize(name, hc);
 }
@@ -861,6 +863,19 @@ void HebbianUpdater::computeNewWeightUpdateTime(double simTime, double currentUp
          mWeightUpdateTime += mWeightUpdatePeriod;
       }
    }
+}
+
+Response::Status HebbianUpdater::prepareCheckpointWrite() {
+   blockingNormalize_dW();
+   pvAssert(mDeltaWeightsReduceRequests.empty());
+   return Response::SUCCESS;
+}
+
+Response::Status HebbianUpdater::cleanup() {
+   if (!mDeltaWeightsReduceRequests.empty()) {
+      wait_dWReduceRequests();
+   }
+   return Response::SUCCESS;
 }
 
 } // namespace PV

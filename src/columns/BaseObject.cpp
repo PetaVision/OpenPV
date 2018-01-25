@@ -182,7 +182,7 @@ Response::Status BaseObject::respondCopyInitialStateToGPU(
 }
 
 Response::Status BaseObject::respondCleanup(std::shared_ptr<CleanupMessage const> message) {
-   return Response::convertIntToStatus(cleanup());
+   return cleanup();
 }
 
 #ifdef PV_USE_CUDA

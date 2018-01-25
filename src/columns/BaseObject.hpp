@@ -162,7 +162,7 @@ class BaseObject : public CheckpointerDataInterface {
       return Response::NO_ACTION;
    }
    virtual Response::Status copyInitialStateToGPU() { return Response::SUCCESS; }
-   virtual int cleanup() { return PV_SUCCESS; }
+   virtual Response::Status cleanup() { return Response::NO_ACTION; }
 
    /**
     * This method sets mInitInfoCommunicatedFlag to true.
