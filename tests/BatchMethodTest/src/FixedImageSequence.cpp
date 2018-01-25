@@ -11,7 +11,7 @@ int FixedImageSequence::allocateV() {
    return PV_SUCCESS;
 }
 
-PV::Response::Status FixedImageSequence::setInitialValues() {
+PV::Response::Status FixedImageSequence::initializeState() {
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       clayer->activity->data[k] = 0.0f;
    }

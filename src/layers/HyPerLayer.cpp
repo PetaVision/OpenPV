@@ -544,7 +544,11 @@ void HyPerLayer::checkpointRandState(
          bufferName);
 }
 
-Response::Status HyPerLayer::initializeState() { return setInitialValues(); }
+Response::Status HyPerLayer::initializeState() {
+   initializeV();
+   initializeActivity();
+   return Response::SUCCESS;
+}
 
 #ifdef PV_USE_CUDA
 int HyPerLayer::copyInitialStateToGPU() {
@@ -565,12 +569,6 @@ int HyPerLayer::copyInitialStateToGPU() {
 }
 
 #endif // PV_USE_CUDA
-
-Response::Status HyPerLayer::setInitialValues() {
-   initializeV();
-   initializeActivity();
-   return Response::SUCCESS;
-}
 
 void HyPerLayer::initializeV() {
    if (getV() != nullptr && mInitVObject != nullptr) {
