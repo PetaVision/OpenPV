@@ -161,7 +161,7 @@ class BaseObject : public CheckpointerDataInterface {
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override {
       return Response::NO_ACTION;
    }
-   virtual int copyInitialStateToGPU() { return PV_SUCCESS; }
+   virtual Response::Status copyInitialStateToGPU() { return Response::SUCCESS; }
    virtual int cleanup() { return PV_SUCCESS; }
 
    /**

@@ -551,7 +551,7 @@ Response::Status HyPerLayer::initializeState() {
 }
 
 #ifdef PV_USE_CUDA
-int HyPerLayer::copyInitialStateToGPU() {
+Response::Status HyPerLayer::copyInitialStateToGPU() {
    if (mUpdateGpu) {
       float *h_V = getV();
       if (h_V != NULL) {
@@ -565,7 +565,7 @@ int HyPerLayer::copyInitialStateToGPU() {
       float *h_activity = getCLayer()->activity->data;
       d_activity->copyToDevice(h_activity);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 #endif // PV_USE_CUDA

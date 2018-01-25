@@ -178,7 +178,7 @@ BaseObject::respondInitializeState(std::shared_ptr<InitializeStateMessage const>
 
 Response::Status BaseObject::respondCopyInitialStateToGPU(
       std::shared_ptr<CopyInitialStateToGPUMessage const> message) {
-   return Response::convertIntToStatus(copyInitialStateToGPU());
+   return copyInitialStateToGPU();
 }
 
 Response::Status BaseObject::respondCleanup(std::shared_ptr<CleanupMessage const> message) {

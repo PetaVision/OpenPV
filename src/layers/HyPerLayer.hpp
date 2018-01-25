@@ -257,7 +257,7 @@ class HyPerLayer : public BaseLayer {
    virtual void readVFromCheckpoint(Checkpointer *checkpointer);
    virtual void readDelaysFromCheckpoint(Checkpointer *checkpointer);
 #ifdef PV_USE_CUDA
-   virtual int copyInitialStateToGPU() override;
+   virtual Response::Status copyInitialStateToGPU() override;
 #endif // PV_USE_CUDA
 
    // readBufferFile and readDataStoreFromFile were removed Jan 23, 2017.
