@@ -64,11 +64,11 @@ int PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
    return PV_SUCCESS;
 }
 
-int PostsynapticPerspectiveGPUDelivery::setCudaDevice(
+Response::Status PostsynapticPerspectiveGPUDelivery::setCudaDevice(
       std::shared_ptr<SetCudaDeviceMessage const> message) {
    pvAssert(mUsingGPUFlag);
-   int status = HyPerDelivery::setCudaDevice(message);
-   if (status != PV_SUCCESS) {
+   auto status = HyPerDelivery::setCudaDevice(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
    mWeightsPair->getPostWeights()->setCudaDevice(message->mCudaDevice);

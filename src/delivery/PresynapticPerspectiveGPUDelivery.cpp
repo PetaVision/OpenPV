@@ -62,11 +62,11 @@ int PresynapticPerspectiveGPUDelivery::communicateInitInfo(
    return status;
 }
 
-int PresynapticPerspectiveGPUDelivery::setCudaDevice(
+Response::Status PresynapticPerspectiveGPUDelivery::setCudaDevice(
       std::shared_ptr<SetCudaDeviceMessage const> message) {
    pvAssert(mUsingGPUFlag);
-   int status = HyPerDelivery::setCudaDevice(message);
-   if (status != PV_SUCCESS) {
+   auto status = HyPerDelivery::setCudaDevice(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
    mWeightsPair->getPreWeights()->setCudaDevice(message->mCudaDevice);

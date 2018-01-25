@@ -169,18 +169,18 @@ int PoolingDelivery::communicateInitInfo(
    return PV_SUCCESS;
 }
 
-int PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
    if (mUsingGPUFlag) {
-      status = BaseDelivery::setCudaDevice(message);
-      if (status != PV_SUCCESS) {
+      auto status = BaseDelivery::setCudaDevice(message);
+      if (status != Response::SUCCESS) {
          return status;
       }
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
       weights->setCudaDevice(message->mCudaDevice);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 int PoolingDelivery::allocateDataStructures() {

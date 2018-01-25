@@ -169,9 +169,10 @@ int HyPerDeliveryFacade::communicateInitInfo(
 }
 
 #ifdef PV_USE_CUDA
-int HyPerDeliveryFacade::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
-   int status = BaseDelivery::setCudaDevice(message);
-   if (status != PV_SUCCESS) {
+Response::Status
+HyPerDeliveryFacade::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   auto status = BaseDelivery::setCudaDevice(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
    if (mDeliveryIntern) {

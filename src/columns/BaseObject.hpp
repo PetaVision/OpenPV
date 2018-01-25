@@ -154,7 +154,7 @@ class BaseObject : public CheckpointerDataInterface {
       return PV_SUCCESS;
    }
 #ifdef PV_USE_CUDA
-   virtual int setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
+   virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
 #endif // PV_USE_CUDA
    virtual int allocateDataStructures() { return PV_SUCCESS; }
    virtual int initializeState() { return PV_SUCCESS; }

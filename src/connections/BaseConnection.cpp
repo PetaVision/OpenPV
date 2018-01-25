@@ -133,16 +133,14 @@ int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
 }
 
 #ifdef PV_USE_CUDA
-int BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
-   int status = BaseObject::setCudaDevice(message);
-   if (status != PV_SUCCESS) {
+Response::Status
+BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   auto status = BaseObject::setCudaDevice(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
-   status = Response::convertStatusToInt(
-         notify(
-               mComponentTable,
-               message,
-               parent->getCommunicator()->globalCommunicator() /*printFlag*/));
+   status = notify(
+         mComponentTable, message, parent->getCommunicator()->globalCommunicator() /*printFlag*/);
    return status;
 }
 #endif // PV_USE_CUDA

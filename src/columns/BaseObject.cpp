@@ -137,8 +137,7 @@ BaseObject::respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
 #ifdef PV_USE_CUDA
 Response::Status
 BaseObject::respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
-   int status = setCudaDevice(message);
-   return Response::convertIntToStatus(status);
+   return setCudaDevice(message);
 }
 #endif // PV_USE_CUDA
 
@@ -187,7 +186,7 @@ Response::Status BaseObject::respondCleanup(std::shared_ptr<CleanupMessage const
 }
 
 #ifdef PV_USE_CUDA
-int BaseObject::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+Response::Status BaseObject::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
    if (mUsingGPUFlag) {
       mCudaDevice = message->mCudaDevice;
       FatalIf(
@@ -195,7 +194,7 @@ int BaseObject::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messag
             "%s received SetCudaDevice with null device pointer.\n",
             getDescription_c());
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 #endif // PV_USE_CUDA
 
