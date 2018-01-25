@@ -14,50 +14,55 @@
 
 namespace PV {
 
-Response &Response::operator+=(Response const &a) {
-   mStatus = mStatus + a();
-   return *this;
-}
+namespace Response {
 
-Response operator+(Response const &a, Response const &b) { return Response(a() + b()); }
-
-Response::Status operator+(Response::Status const &a, Response::Status const &b) {
-   if (a == Response::SUCCESS and b == Response::SUCCESS) {
-      return Response::SUCCESS;
+Status operator+(Status const &a, Status const &b) {
+   if (a == NO_ACTION) {
+      return b;
    }
-   else if (a == Response::POSTPONE and b == Response::POSTPONE) {
-      return Response::POSTPONE;
+   else if (b == NO_ACTION) {
+      return a;
+   }
+   else if (a == SUCCESS and b == SUCCESS) {
+      return SUCCESS;
+   }
+   else if (a == POSTPONE and b == POSTPONE) {
+      return POSTPONE;
    }
    else {
-      return Response::PARTIAL;
+      return PARTIAL;
    }
 }
 
-int Response::convertStatusToInt(Response::Status status) {
+int convertStatusToInt(Response::Status status) {
    int intValue;
    switch (status) {
-      case Response::SUCCESS: intValue  = PV_SUCCESS; break;
-      case Response::PARTIAL: intValue  = PV_PARTIAL; break;
-      case Response::POSTPONE: intValue = PV_POSTPONE; break;
+      case SUCCESS: intValue   = PV_SUCCESS; break;
+      case NO_ACTION: intValue = PV_NO_ACTION; break;
+      case PARTIAL: intValue   = PV_PARTIAL; break;
+      case POSTPONE: intValue  = PV_POSTPONE; break;
       default: pvAssert(0); break;
    }
    return intValue;
 }
 
-Response::Status Response::convertIntToStatus(int deprecatedStatusCode) {
-   Response::Status status;
+Status convertIntToStatus(int deprecatedStatusCode) {
+   Status status;
    switch (deprecatedStatusCode) {
-      case PV_SUCCESS: status = Response::SUCCESS; break;
+      case PV_SUCCESS: status = SUCCESS; break;
       case PV_FAILURE:
          Fatal().printf("Response::convertIntToStatus received failure code.\n");
          break;
-      case PV_PARTIAL: status  = Response::PARTIAL; break;
-      case PV_POSTPONE: status = Response::POSTPONE; break;
+      case PV_PARTIAL: status   = PARTIAL; break;
+      case PV_POSTPONE: status  = POSTPONE; break;
+      case PV_NO_ACTION: status = NO_ACTION; break;
       default:
          Fatal().printf("Unable to convert %d to Response::Status type.\n", deprecatedStatusCode);
          break;
    }
    return status;
 }
+
+} // namespace Response
 
 } // namespace PV

@@ -20,7 +20,7 @@ class Observer {
    Observer() {}
    virtual ~Observer() {}
    virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) {
-      return Response::SUCCESS;
+      return Response::NO_ACTION;
    }
    inline std::string const &getDescription() const { return description; }
    inline char const *getDescription_c() const { return description.c_str(); }

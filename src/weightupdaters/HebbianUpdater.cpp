@@ -571,7 +571,7 @@ int HebbianUpdater::update_dW(int arborID) {
    return PV_SUCCESS;
 }
 
-int HebbianUpdater::updateInd_dW(
+void HebbianUpdater::updateInd_dW(
       int arborID,
       int batchID,
       float const *preLayerData,
@@ -589,14 +589,14 @@ int HebbianUpdater::updateInd_dW(
 
    float preact = preactbuf[kExt];
    if (preact == 0.0f) {
-      return PV_CONTINUE;
+      return;
    }
 
    Patch const &patch = mWeights->getPatch(kExt);
    int ny             = patch.ny;
    int nk             = patch.nx * mWeights->getPatchSizeF();
    if (ny == 0 || nk == 0) {
-      return PV_SUCCESS;
+      return;
    }
 
    size_t offset           = mWeights->getGeometry()->getAPostOffset(kExt);
@@ -636,7 +636,6 @@ int HebbianUpdater::updateInd_dW(
       lineoffseta += sya;
       lineoffsetm += sym;
    }
-   return PV_SUCCESS;
 }
 
 float HebbianUpdater::updateRule_dW(float pre, float post) { return mDWMax * pre * post; }

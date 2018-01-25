@@ -1,8 +1,8 @@
 #include <columns/PV_Init.hpp>
 #include <include/pv_common.h>
+#include <map>
 #include <observerpattern/Response.hpp>
 #include <utils/PVLog.hpp>
-#include <map>
 #include <vector>
 
 typedef PV::Response::Status Status;
@@ -18,30 +18,32 @@ struct AnswerKey {
 };
 
 AnswerKey::AnswerKey() {
-   Status const success = PV::Response::SUCCESS;
-   Status const partial = PV::Response::PARTIAL;
+   Status const success  = PV::Response::SUCCESS;
+   Status const noAction = PV::Response::NO_ACTION;
+   Status const partial  = PV::Response::PARTIAL;
    Status const postpone = PV::Response::POSTPONE;
 
-   input = {success, partial, postpone};
-   description = {"Success", "Partial", "Postpone"};
+   input       = {success, noAction, partial, postpone};
+   description = {"Success", "No Action", "Partial", "Postpone"};
 
    std::size_t const N = input.size();
 
    lookup.clear();
    for (std::size_t n = 0; n < N; n++) {
-      lookup.insert({input[n], n}); 
+      lookup.insert({input[n], n});
    }
 
    correctStatus.resize(N);
-   correctStatus[0]   = {success, partial, partial};
-   correctStatus[1]   = {partial, partial, partial};
-   correctStatus[2]   = {partial, partial, postpone};
+   correctStatus[0] = {success, success, partial, partial};
+   correctStatus[1] = {success, noAction, partial, postpone};
+   correctStatus[2] = {partial, partial, partial, partial};
+   correctStatus[3] = {partial, postpone, partial, postpone};
 
    correctDescription.resize(N);
    for (std::size_t m = 0; m < N; m++) {
       correctDescription[m].resize(N);
       for (std::size_t n = 0; n < N; n++) {
-         std::size_t index = lookup.find(correctStatus[m][n])->second;
+         std::size_t index        = lookup.find(correctStatus[m][n])->second;
          correctDescription[m][n] = description[index];
       }
    }
@@ -64,33 +66,14 @@ int main(int argc, char *argv[]) {
          auto x = cs.input[m];
          auto y = cs.input[n];
          auto z = x + y;
-         if (checkResult(x, y, z, cs) != PV_SUCCESS) { status = PV_FAILURE; }
+         if (checkResult(x, y, z, cs) != PV_SUCCESS) {
+            status = PV_FAILURE;
+         }
       }
    }
-   if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
-
-   // Test operator+ for Response arguments
-   for (std::size_t m = 0; m < N; m++) {
-      for (std::size_t n = 0; n < N; n++) {
-         PV::Response X(cs.input[m]);
-         PV::Response Y(cs.input[n]);
-         auto Z = X + Y;
-         if (checkResult(X(), Y(), Z(), cs) != PV_SUCCESS) { status = PV_FAILURE; }
-      }
+   if (status != PV_SUCCESS) {
+      exit(EXIT_FAILURE);
    }
-   if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
-
-   // Test operator+= for Response arguments
-   for (std::size_t m = 0; m < N; m++) {
-      for (std::size_t n = 0; n < N; n++) {
-         PV::Response X(cs.input[m]);
-         PV::Response Y(cs.input[n]);
-         auto Z = X;
-         Z += Y;
-         if (checkResult(X(), Y(), Z(), cs) != PV_SUCCESS) { status = PV_FAILURE; }
-      }
-   }
-   if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
 
    InfoLog() << "Test passed.\n";
    delete pvInit;

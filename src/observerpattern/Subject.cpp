@@ -16,7 +16,7 @@ Response::Status Subject::notify(
       ObserverTable const &table,
       std::vector<std::shared_ptr<BaseMessage const>> messages,
       bool printFlag) {
-   Response::Status returnStatus = Response::SUCCESS;
+   Response::Status returnStatus = Response::NO_ACTION;
    auto &objectVector            = table.getObjectVector();
    std::vector<int> numPostponed(messages.size());
    for (auto &obj : objectVector) {
@@ -68,7 +68,7 @@ void Subject::notifyLoop(
          "At least one object of %s postponed, but no object of %s progressed.\n",
          description.c_str(),
          description.c_str());
-   pvAssert(status == Response::SUCCESS);
+   pvAssert(Response::completed(status));
 }
 
 } /* namespace PV */

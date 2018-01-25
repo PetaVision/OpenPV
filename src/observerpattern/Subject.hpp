@@ -49,16 +49,20 @@ class Subject {
     * C->Y.
     *
     * The objects' respond() method returns one of the Response::Status types:
-    * SUCCESS, PARTIAL, or PV_POSTPONE.
+    * SUCCESS, NO_ACTION, PARTIAL, or PV_POSTPONE.
     *
-    * PV_SUCCESS: the object has completed all tasks it needed to (or had no tasks to complete).
-    * PV_POSTPONE: the object needs to act but cannot until some event outside its control occurs.
-    * PV_PARTIAL: the object has not yet completed but is making progress. It is expected that
-    * there are a small number of descrete tasks, so that an object will not return PV_PARTIAL
+    * SUCCESS: the object completed the task requested by the messages.
+    * NO_ACTION: the object has nothing to do in response to the message, or had already done it.
+    * PARTIAL: the object has not yet completed but is making progress. It is expected that
+    * there are a small number of descrete tasks, so that an object will not return PARTIAL
     * a large number of times in response to the same message.
+    * POSTPONE: the object needs to act but cannot do so until an event outside its control occurs.
     *
-    * If all objects return SUCCESS, notify() returns SUCCESS.
-    * If all objects return POSTPONE, notify() returns POSTPONE.
+    * If all objects return NO_ACTION, then notify() returns NO_ACTION.
+    * If all objects return either SUCCESS or NO_ACTION and there is at least one SUCCESS,
+    * then notify() returns SUCCESS.
+    * If all objects return either POSTPONE or NO_ACTION and there is at least one POSTPONE,
+    * then notify() returns POSTPONE.
     * Otherwise, notify() returns PARTIAL.
     *
     * Generally each message in the messages vector is sent to each object in the table.

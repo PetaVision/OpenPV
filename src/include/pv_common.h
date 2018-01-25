@@ -22,7 +22,7 @@
 #define PV_BREAK 2
 #define PV_PARTIAL 3
 #define PV_POSTPONE 4
-#define PV_CONTINUE 5
+#define PV_NO_ACTION 5
 #define PV_MARGINWIDTH_FAILURE 65
 
 // For debugging/control:

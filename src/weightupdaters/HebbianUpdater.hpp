@@ -89,7 +89,7 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    int update_dW(int arborID);
 
-   int updateInd_dW(
+   void updateInd_dW(
          int arborID,
          int batchID,
          float const *preLayerData,
