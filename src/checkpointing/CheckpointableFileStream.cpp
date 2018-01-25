@@ -75,15 +75,16 @@ void CheckpointableFileStream::setDescription() {
 }
 
 Response::Status CheckpointableFileStream::respond(std::shared_ptr<BaseMessage const> message) {
+   auto status = Response::NO_ACTION;
    if (message == nullptr) {
-      return Response::SUCCESS;
+      return status;
    }
    else if (
          ProcessCheckpointReadMessage const *castMessage =
                dynamic_cast<ProcessCheckpointReadMessage const *>(message.get())) {
-      return respondProcessCheckpointRead(castMessage);
+      status = respondProcessCheckpointRead(castMessage);
    }
-   return Response::SUCCESS;
+   return status;
 }
 
 Response::Status CheckpointableFileStream::respondProcessCheckpointRead(
@@ -94,7 +95,7 @@ Response::Status CheckpointableFileStream::respondProcessCheckpointRead(
 
 Response::Status CheckpointableFileStream::registerData(Checkpointer *checkpointer) {
    auto status = CheckpointerDataInterface::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    checkpointer->registerCheckpointData<long>(

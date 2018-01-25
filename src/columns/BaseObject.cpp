@@ -86,11 +86,11 @@ int BaseObject::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printF
 Response::Status BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
    // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
    Response::Status status = CheckpointerDataInterface::respond(message);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    if (message == nullptr) {
-      return Response::SUCCESS;
+      return Response::NO_ACTION;
    }
    else if (
          auto castMessage = std::dynamic_pointer_cast<CommunicateInitInfoMessage const>(message)) {
@@ -122,7 +122,7 @@ Response::Status BaseObject::respond(std::shared_ptr<BaseMessage const> message)
 
 Response::Status
 BaseObject::respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   Response::Status status = Response::SUCCESS;
+   Response::Status status = Response::NO_ACTION;
    if (getInitInfoCommunicatedFlag()) {
       return status;
    }
@@ -143,7 +143,7 @@ BaseObject::respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> mes
 
 Response::Status
 BaseObject::respondAllocateData(std::shared_ptr<AllocateDataMessage const> message) {
-   Response::Status status = Response::SUCCESS;
+   Response::Status status = Response::NO_ACTION;
    if (getDataStructuresAllocatedFlag()) {
       return status;
    }
@@ -157,10 +157,10 @@ BaseObject::respondAllocateData(std::shared_ptr<AllocateDataMessage const> messa
 Response::Status
 BaseObject::respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto status = registerData(message->mDataRegistry);
-   if (status != PV_SUCCESS) {
+   if (!Response::completed(status)) {
       Fatal() << getDescription() << ": registerData failed.\n";
    }
-   return Response::SUCCESS;
+   return status;
 }
 
 Response::Status

@@ -403,8 +403,8 @@ class HyPerLayer : public BaseLayer {
    // next time step
    virtual int waitOnPublish(Communicator *comm);
 
-   virtual int updateAllActiveIndices();
-   virtual int updateActiveIndices();
+   virtual void updateAllActiveIndices();
+   void updateActiveIndices();
    int resetBuffer(float *buf, int numItems);
 
    static bool localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2);

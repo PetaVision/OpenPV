@@ -63,7 +63,7 @@ Response::Status FilenameParsingGroundTruthLayer::registerData(Checkpointer *che
    // only in registerData through the checkpointer argument.
    // But is this the best default?
    auto status = HyPerLayer::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
 
@@ -96,7 +96,7 @@ Response::Status FilenameParsingGroundTruthLayer::registerData(Checkpointer *che
          getLayerLoc()->nf,
          outPath.c_str(),
          mClasses.size());
-   return status;
+   return Response::SUCCESS;
 }
 
 int FilenameParsingGroundTruthLayer::communicateInitInfo(

@@ -1620,7 +1620,7 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
 
 Response::Status HyPerLayer::registerData(Checkpointer *checkpointer) {
    auto status = BaseLayer::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    checkpointPvpActivityFloat(checkpointer, "A", getActivity(), true /*extended*/);
@@ -1944,8 +1944,9 @@ int HyPerLayer::setActivity() {
 }
 
 // Updates active indices for all levels (delays) here
-int HyPerLayer::updateAllActiveIndices() { return publisher->updateAllActiveIndices(); }
-int HyPerLayer::updateActiveIndices() { return publisher->updateActiveIndices(0); }
+void HyPerLayer::updateAllActiveIndices() { publisher->updateAllActiveIndices(); }
+
+void HyPerLayer::updateActiveIndices() { publisher->updateActiveIndices(0); }
 
 bool HyPerLayer::isExchangeFinished(int delay) { return publisher->isExchangeFinished(delay); }
 
@@ -2173,8 +2174,11 @@ Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer)
       readVFromCheckpoint(checkpointer);
       readDelaysFromCheckpoint(checkpointer);
       updateAllActiveIndices();
+      return Response::SUCCESS;
    }
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 void HyPerLayer::readActivityFromCheckpoint(Checkpointer *checkpointer) {
@@ -2196,7 +2200,8 @@ void HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
 // CheckpointEntry class hierarchy.
 
 Response::Status HyPerLayer::processCheckpointRead() {
-   return Response::convertIntToStatus(updateAllActiveIndices());
+   updateAllActiveIndices();
+   return Response::SUCCESS;
 }
 
 int HyPerLayer::writeActivitySparse(double timed) {

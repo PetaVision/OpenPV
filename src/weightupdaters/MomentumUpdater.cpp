@@ -93,7 +93,7 @@ int MomentumUpdater::allocateDataStructures() {
 
 Response::Status MomentumUpdater::registerData(Checkpointer *checkpointer) {
    auto status = HebbianUpdater::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    // Note: HebbianUpdater does not checkpoint dW if the mImmediateWeightUpdate flag is true.
@@ -101,7 +101,7 @@ Response::Status MomentumUpdater::registerData(Checkpointer *checkpointer) {
    if (mPlasticityFlag) {
       mPrevDeltaWeights->checkpointWeightPvp(checkpointer, "prev_dW", mWriteCompressedCheckpoints);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status MomentumUpdater::readStateFromCheckpoint(Checkpointer *checkpointer) {
@@ -112,8 +112,11 @@ Response::Status MomentumUpdater::readStateFromCheckpoint(Checkpointer *checkpoi
          checkpointer->readNamedCheckpointEntry(
                std::string(name), std::string("prev_dW"), false /*not constant*/);
       }
+      return Response::SUCCESS;
    }
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 int MomentumUpdater::updateWeights(int arborId) {

@@ -323,7 +323,7 @@ int HebbianUpdater::allocateDataStructures() {
 
 Response::Status HebbianUpdater::registerData(Checkpointer *checkpointer) {
    auto status = BaseWeightUpdater::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    if (mPlasticityFlag and !mImmediateWeightUpdate) {
@@ -347,7 +347,7 @@ Response::Status HebbianUpdater::registerData(Checkpointer *checkpointer) {
             true /*broadcast*/,
             false /*not constant*/);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status HebbianUpdater::readStateFromCheckpoint(Checkpointer *checkpointer) {
@@ -356,8 +356,11 @@ Response::Status HebbianUpdater::readStateFromCheckpoint(Checkpointer *checkpoin
          checkpointer->readNamedCheckpointEntry(
                std::string(name), std::string("dW"), false /*not constant*/);
       }
+      return Response::SUCCESS;
    }
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 void HebbianUpdater::updateState(double simTime, double dt) {

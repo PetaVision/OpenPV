@@ -90,7 +90,7 @@ int CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
 Response::Status CopyUpdater::registerData(Checkpointer *checkpointer) {
    auto status = BaseWeightUpdater::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    std::string nameString = std::string(name);
@@ -101,7 +101,7 @@ Response::Status CopyUpdater::registerData(Checkpointer *checkpointer) {
          (std::size_t)1,
          true /*broadcast*/,
          false /*not constant*/);
-   return status;
+   return Response::SUCCESS;
 }
 
 void CopyUpdater::updateState(double simTime, double dt) {

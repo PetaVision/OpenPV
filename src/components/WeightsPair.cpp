@@ -249,11 +249,11 @@ void WeightsPair::allocatePostWeights() {
 
 Response::Status WeightsPair::registerData(Checkpointer *checkpointer) {
    auto status = WeightsPairInterface::registerData(checkpointer);
-   needPre();
-   mPreWeights->checkpointWeightPvp(checkpointer, "W", mWriteCompressedCheckpoints);
    if (status != Response::SUCCESS) {
       return status;
    }
+   needPre();
+   mPreWeights->checkpointWeightPvp(checkpointer, "W", mWriteCompressedCheckpoints);
    if (mWriteStep >= 0) {
       checkpointer->registerCheckpointData(
             std::string(name),
@@ -266,7 +266,7 @@ Response::Status WeightsPair::registerData(Checkpointer *checkpointer) {
       openOutputStateFile(checkpointer);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 void WeightsPair::finalizeUpdate(double timestamp, double deltaTime) {
@@ -307,8 +307,11 @@ Response::Status WeightsPair::readStateFromCheckpoint(Checkpointer *checkpointer
    if (getInitializeFromCheckpointFlag()) {
       checkpointer->readNamedCheckpointEntry(
             std::string(name), std::string("W"), !mPreWeights->getWeightsArePlastic());
+      return Response::SUCCESS;
    }
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 void WeightsPair::outputState(double timestamp) {

@@ -182,22 +182,25 @@ int LIFGap::calcGapStrength() {
 
 Response::Status LIFGap::registerData(Checkpointer *checkpointer) {
    auto status = LIF::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    checkpointPvpActivityFloat(checkpointer, "gapStrength", gapStrength, false /*not extended*/);
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status LIFGap::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
       auto status = LIF::readStateFromCheckpoint(checkpointer);
-      if (status != Response::SUCCESS) {
+      if (!Response::completed(status)) {
          return status;
       }
       readGapStrengthFromCheckpoint(checkpointer);
+      return Response::SUCCESS;
    }
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 void LIFGap::readGapStrengthFromCheckpoint(Checkpointer *checkpointer) {

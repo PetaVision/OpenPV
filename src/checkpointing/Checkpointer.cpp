@@ -948,8 +948,9 @@ void Checkpointer::writeTimers(std::string const &directory) {
 std::string const Checkpointer::mDefaultOutputPath = "output";
 
 Response::Status CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage const> message) {
+   auto status = Response::NO_ACTION;
    if (message == nullptr) {
-      return Response::SUCCESS;
+      return status;
    }
    else if (
          auto castMessage =
@@ -973,7 +974,7 @@ Response::Status CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage 
       return respondPrepareCheckpointWrite(castMessage);
    }
    else {
-      return Response::SUCCESS;
+      return status;
    }
 }
 
@@ -998,9 +999,14 @@ Response::Status CheckpointerDataInterface::respondPrepareCheckpointWrite(
 }
 
 Response::Status CheckpointerDataInterface::registerData(Checkpointer *checkpointer) {
-   mMPIBlock = checkpointer->getMPIBlock();
-   checkpointer->addObserver(this);
-   return Response::SUCCESS;
+   if (mMPIBlock) {
+      return Response::NO_ACTION;
+   }
+   else {
+      mMPIBlock = checkpointer->getMPIBlock();
+      checkpointer->addObserver(this);
+      return Response::SUCCESS;
+   }
 }
 
 } // namespace PV

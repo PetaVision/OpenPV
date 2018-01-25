@@ -230,22 +230,31 @@ int MomentumLCALayer::updateState(double time, double dt) {
 
 Response::Status MomentumLCALayer::registerData(Checkpointer *checkpointer) {
    auto status = HyPerLCALayer::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    checkpointPvpActivityFloat(checkpointer, "prevDrive", prevDrive, false /*not extended*/);
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status MomentumLCALayer::processCheckpointRead() {
+   auto status = HyPerLCALayer::processCheckpointRead();
+   if (!Response::completed(status)) {
+      return status;
+   }
 #ifdef PV_USE_CUDA
    // Copy prevDrive onto GPU
    if (mUpdateGpu) {
       d_prevDrive->copyToDevice(prevDrive);
       parent->getDevice()->syncDevice();
+      return Response::SUCCESS;
    }
+   else {
+      return Response::NO_ACTION;
+   }
+#else
+   return Response::NO_ACTION;
 #endif
-   return Response::SUCCESS;
 }
 
 Response::Status MomentumLCALayer::prepareCheckpointWrite() {
@@ -254,9 +263,14 @@ Response::Status MomentumLCALayer::prepareCheckpointWrite() {
    if (mUpdateGpu) {
       d_prevDrive->copyFromDevice(prevDrive);
       parent->getDevice()->syncDevice();
+      return Response::SUCCESS;
    }
+   else {
+      return Response::NO_ACTION;
+   }
+#else
+   return Response::NOACTION;
 #endif
-   return Response::SUCCESS;
 }
 
 } // end namespace PV

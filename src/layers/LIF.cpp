@@ -352,7 +352,7 @@ int LIF::allocateConductances(int num_channels) {
 Response::Status LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
       auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
-      if (status != Response::SUCCESS) {
+      if (!Response::completed(status)) {
          return status;
       }
       readVthFromCheckpoint(checkpointer);
@@ -360,8 +360,11 @@ Response::Status LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
       readG_IFromCheckpoint(checkpointer);
       readG_IBFromCheckpoint(checkpointer);
       readRandStateFromCheckpoint(checkpointer);
+      return Response::SUCCESS;
    }
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 void LIF::readVthFromCheckpoint(Checkpointer *checkpointer) {
@@ -386,7 +389,7 @@ void LIF::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
 
 Response::Status LIF::registerData(Checkpointer *checkpointer) {
    auto status = HyPerLayer::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    checkpointPvpActivityFloat(checkpointer, "Vth", Vth, false /*not extended*/);
@@ -394,7 +397,7 @@ Response::Status LIF::registerData(Checkpointer *checkpointer) {
    checkpointPvpActivityFloat(checkpointer, "G_I", G_I, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_IB", G_IB, false /*not extended*/);
    checkpointRandState(checkpointer, "rand_state", randState, false /*not extended*/);
-   return status;
+   return Response::SUCCESS;
 }
 
 int LIF::updateState(double time, double dt) {

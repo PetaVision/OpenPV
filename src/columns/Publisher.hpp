@@ -53,8 +53,8 @@ class Publisher {
 
    void increaseTimeLevel();
 
-   int updateAllActiveIndices();
-   int updateActiveIndices(int delay = 0);
+   void updateAllActiveIndices();
+   void updateActiveIndices(int delay = 0);
 
   private:
    float *recvBuffer(int bufferId) { return store->buffer(bufferId); }

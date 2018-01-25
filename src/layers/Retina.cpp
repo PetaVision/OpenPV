@@ -234,12 +234,15 @@ int Retina::setRetinaParams(PVParams *p) {
 Response::Status Retina::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
       auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
-      if (status != Response::SUCCESS) {
+      if (!Response::completed(status)) {
          return status;
       }
       readRandStateFromCheckpoint(checkpointer);
+      return Response::SUCCESS;
    }
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 void Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
@@ -249,14 +252,14 @@ void Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
 
 Response::Status Retina::registerData(Checkpointer *checkpointer) {
    auto status = HyPerLayer::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    if (spikingFlag) {
       pvAssert(randState != nullptr);
       checkpointRandState(checkpointer, "rand_state", randState, true /*extended*/);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 //! Updates the state of the Retina

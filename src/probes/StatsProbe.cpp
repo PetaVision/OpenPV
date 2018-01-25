@@ -183,7 +183,7 @@ int StatsProbe::initNumValues() { return setNumValues(-1); }
 
 Response::Status StatsProbe::registerData(Checkpointer *checkpointer) {
    auto status = LayerProbe::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    checkpointer->registerTimer(iotimer);

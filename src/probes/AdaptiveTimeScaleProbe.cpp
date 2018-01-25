@@ -137,11 +137,11 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
 
 Response::Status AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer) {
    auto status = ColProbe::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    mAdaptiveTimeScaleController->registerData(checkpointer);
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) {

@@ -454,7 +454,7 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 Response::Status InputLayer::registerData(Checkpointer *checkpointer) {
    auto status = HyPerLayer::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    if (checkpointer->getMPIBlock()->getRank() == 0) {
@@ -481,14 +481,14 @@ Response::Status InputLayer::registerData(Checkpointer *checkpointer) {
                timestampFilename, needToCreateFile, checkpointer, cpFileStreamLabel);
       }
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   auto status = Response::SUCCESS;
+   auto status = Response::NO_ACTION;
    if (initializeFromCheckpointFlag) {
       status = HyPerLayer::readStateFromCheckpoint(checkpointer);
-      if (status != Response::SUCCESS) {
+      if (!Response::completed(status)) {
          return status;
       }
       if (mBatchIndexer) {

@@ -199,7 +199,7 @@ void CloneWeightsPair::createPostWeights(std::string const &weightsName) {
 int CloneWeightsPair::allocateDataStructures() { return PV_SUCCESS; }
 
 Response::Status CloneWeightsPair::registerData(Checkpointer *checkpointer) {
-   return Response::SUCCESS;
+   return Response::NO_ACTION;
 }
 
 void CloneWeightsPair::finalizeUpdate(double timestamp, double deltaTime) {}

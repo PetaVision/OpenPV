@@ -107,7 +107,7 @@ void BatchIndexer::shuffleLookupTable() {
 
 Response::Status BatchIndexer::registerData(Checkpointer *checkpointer) {
    auto status = CheckpointerDataInterface::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    checkpointer->registerCheckpointData<int>(
@@ -138,8 +138,11 @@ Response::Status BatchIndexer::readStateFromCheckpoint(Checkpointer *checkpointe
    if (mInitializeFromCheckpointFlag) {
       checkpointer->readNamedCheckpointEntry(mObjName, "FrameNumbers", false /*not constant*/);
       checkIndices();
+      return Response::SUCCESS;
    }
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 void BatchIndexer::checkIndices() {

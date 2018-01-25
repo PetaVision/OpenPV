@@ -194,7 +194,7 @@ int LCALIFLayer::allocateBuffers() {
 
 Response::Status LCALIFLayer::registerData(Checkpointer *checkpointer) {
    auto status = LIFGap::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    checkpointPvpActivityFloat(
@@ -212,7 +212,7 @@ Response::Status LCALIFLayer::registerData(Checkpointer *checkpointer) {
    checkpointPvpActivityFloat(
          checkpointer, "inhibitoryNoise", inhibitoryNoise, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "inhibNoiseB", inhibNoiseB, false /*not extended*/);
-   return status;
+   return Response::SUCCESS;
 }
 
 int LCALIFLayer::updateState(double timed, double dt) {
@@ -268,8 +268,11 @@ Response::Status LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer
       }
       read_integratedSpikeCountFromCheckpoint(checkpointer);
       readVadptFromCheckpoint(checkpointer);
+      return Response::SUCCESS;
    }
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 void LCALIFLayer::read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer) {

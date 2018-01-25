@@ -6,7 +6,7 @@ ImagePvpTestLayer::ImagePvpTestLayer(const char *name, HyPerCol *hc) { initializ
 
 Response::Status ImagePvpTestLayer::registerData(Checkpointer *checkpointer) {
    auto status = PvpLayer::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    if (getMPIBlock()->getRank() == 0) {

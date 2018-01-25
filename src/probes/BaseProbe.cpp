@@ -318,11 +318,11 @@ bool BaseProbe::needUpdate(double simTime, double dt) {
 
 Response::Status BaseProbe::registerData(Checkpointer *checkpointer) {
    auto status = BaseObject::registerData(checkpointer);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    initOutputStreams(probeOutputFilename, checkpointer);
-   return status;
+   return Response::SUCCESS;
 }
 
 int BaseProbe::getValues(double timevalue) {
