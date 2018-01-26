@@ -171,7 +171,7 @@ void MomentumConnViscosityCheckpointerTestProbe::initializeCorrectValues(double 
    }
 }
 
-int MomentumConnViscosityCheckpointerTestProbe::outputState(double timevalue) {
+PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::outputState(double timevalue) {
    if (!mValuesSet) {
       initializeCorrectValues(timevalue);
       mValuesSet = true;
@@ -203,7 +203,8 @@ int MomentumConnViscosityCheckpointerTestProbe::outputState(double timevalue) {
                "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }
-   return PV_SUCCESS; // Test runs all timesteps and then checks the mTestFailed flag at the end.
+   // Test runs all timesteps and then checks the mTestFailed flag at the end.
+   return PV::Response::SUCCESS;
 }
 
 bool MomentumConnViscosityCheckpointerTestProbe::verifyConnection(

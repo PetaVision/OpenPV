@@ -149,10 +149,10 @@ void QuotientColProbe::calcValues(double timeValue) {
 
 double QuotientColProbe::referenceUpdateTime() const { return parent->simulationTime(); }
 
-int QuotientColProbe::outputState(double timevalue) {
+Response::Status QuotientColProbe::outputState(double timevalue) {
    getValues(timevalue);
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return Response::SUCCESS;
    }
    double *valuesBuffer = getValuesBuffer();
    int numValues        = this->getNumValues();
@@ -162,7 +162,7 @@ int QuotientColProbe::outputState(double timevalue) {
       }
       output(b) << timevalue << "," << b << "," << valuesBuffer[b] << std::endl;
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 } // end QuotientColProbe::outputState(float, HyPerCol *)
 
 } // end namespace PV

@@ -43,7 +43,7 @@ class PoolingConnCheckpointerTestProbe : public PV::ColProbe {
    virtual PV::Response::Status readStateFromCheckpoint(PV::Checkpointer *checkpointer) override;
    virtual bool needRecalc(double timevalue) override { return true; }
    virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
-   virtual int outputState(double timevalue) override;
+   virtual PV::Response::Status outputState(double timestamp) override;
 
   private:
    PoolingConnCheckpointerTestProbe();

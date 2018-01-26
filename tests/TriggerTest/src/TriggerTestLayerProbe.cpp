@@ -20,7 +20,7 @@ void TriggerTestLayerProbe::calcValues(double timevalue) {
    }
 }
 
-int TriggerTestLayerProbe::outputStateWrapper(double time, double dt) {
+Response::Status TriggerTestLayerProbe::outputStateWrapper(double time, double dt) {
    // Time 0 is initialization, doesn't matter if it updates or not
    if (time < dt / 2) {
       return LayerProbe::outputStateWrapper(time, dt);
@@ -77,6 +77,7 @@ int TriggerTestLayerProbe::outputStateWrapper(double time, double dt) {
    }
    return LayerProbe::outputStateWrapper(time, dt);
 }
-int TriggerTestLayerProbe::outputState(double timef) { return 0; }
+
+Response::Status TriggerTestLayerProbe::outputState(double timef) { return Response::SUCCESS; }
 
 } // namespace PV

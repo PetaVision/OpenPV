@@ -160,24 +160,24 @@ void HyPerConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
    }
 }
 
-int HyPerConnCheckpointerTestProbe::outputState(double timevalue) {
+PV::Response::Status HyPerConnCheckpointerTestProbe::outputState(double timestamp) {
    if (!mValuesSet) {
-      initializeCorrectValues(timevalue);
+      initializeCorrectValues(timestamp);
       mValuesSet = true;
    }
-   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
+   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timestamp);
    while (updateNumber > mCorrectState->getUpdateNumber()) {
       mCorrectState->update();
    }
 
    bool failed = false;
 
-   failed |= verifyConnection(mConnection, mCorrectState->getCorrectWeight(), timevalue);
-   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), timevalue);
-   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), timevalue);
+   failed |= verifyConnection(mConnection, mCorrectState->getCorrectWeight(), timestamp);
+   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), timestamp);
+   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), timestamp);
 
    if (failed) {
-      std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timevalue) + "\n");
+      std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timestamp) + "\n");
       if (!mOutputStreams.empty()) {
          output(0).printf(errorMsg.c_str());
       }
@@ -189,10 +189,11 @@ int HyPerConnCheckpointerTestProbe::outputState(double timevalue) {
    else {
       if (!mOutputStreams.empty()) {
          output(0).printf(
-               "%s found all correct values at time %f\n", getDescription_c(), timevalue);
+               "%s found all correct values at time %f\n", getDescription_c(), timestamp);
       }
    }
-   return PV_SUCCESS; // Test runs all timesteps and then checks the mTestFailed flag at the end.
+   // The test runs all timesteps and then checks the mTestFailed flag at the end.
+   return PV::Response::SUCCESS;
 }
 
 bool HyPerConnCheckpointerTestProbe::verifyLayer(

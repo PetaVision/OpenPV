@@ -57,7 +57,7 @@ class WeightComparisonProbe : public PV::ColProbe {
     * Exits with an error if any connections are found to be different
     * from each other.
     */
-   virtual int outputState(double timestamp) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   private:
    int initialize_base();

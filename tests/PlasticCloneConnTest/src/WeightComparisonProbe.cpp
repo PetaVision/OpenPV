@@ -96,7 +96,7 @@ int WeightComparisonProbe::allocateDataStructures() {
    return PV_SUCCESS;
 }
 
-int WeightComparisonProbe::outputState(double timestamp) {
+Response::Status WeightComparisonProbe::outputState(double timestamp) {
    for (auto &c : mConnectionList) {
       for (int a = 0; a < mNumArbors; a++) {
          float *firstConn = mConnectionList[0]->getWeightsDataStart(a);
@@ -108,7 +108,7 @@ int WeightComparisonProbe::outputState(double timestamp) {
                mConnectionList[0]->getDescription_c());
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

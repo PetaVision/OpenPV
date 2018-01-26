@@ -67,10 +67,10 @@ void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    }
 }
 
-int ResetStateOnTriggerTestProbe::outputState(double timevalue) {
+PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double timevalue) {
    getValues(timevalue); // calls calcValues
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return PV::Response::SUCCESS;
    }
    if (probeStatus != 0) {
       int nBatch = getNumValues();
@@ -102,7 +102,7 @@ int ResetStateOnTriggerTestProbe::outputState(double timevalue) {
          }
       }
    }
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
 ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {}

@@ -354,8 +354,8 @@ double BaseProbe::getValue(double timevalue, int index) {
    return probeValues[index];
 }
 
-int BaseProbe::outputStateWrapper(double timef, double dt) {
-   int status = PV_SUCCESS;
+Response::Status BaseProbe::outputStateWrapper(double timef, double dt) {
+   auto status = Response::NO_ACTION;
    if (textOutputFlag && needUpdate(timef, dt)) {
       status = outputState(timef);
    }

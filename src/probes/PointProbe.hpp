@@ -20,7 +20,7 @@ class PointProbe : public PV::LayerProbe {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual int outputState(double timef) override;
+   virtual Response::Status outputState(double timef) override;
 
   protected:
    int xLoc;
@@ -43,7 +43,7 @@ class PointProbe : public PV::LayerProbe {
     */
    virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
 
-   virtual int writeState(double timevalue);
+   virtual void writeState(double timevalue);
 
    /**
     * Overrides initNumValues() to set numValues to 2 (membrane potential and

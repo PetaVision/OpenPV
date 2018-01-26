@@ -170,7 +170,7 @@ void MomentumConnSimpleCheckpointerTestProbe::initializeCorrectValues(double tim
    }
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::outputState(double timevalue) {
+PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::outputState(double timevalue) {
    if (!mValuesSet) {
       initializeCorrectValues(timevalue);
       mValuesSet = true;
@@ -202,7 +202,8 @@ int MomentumConnSimpleCheckpointerTestProbe::outputState(double timevalue) {
                "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }
-   return PV_SUCCESS; // Test runs all timesteps and then checks the mTestFailed flag at the end.
+   // Test runs all timesteps and then checks the mTestFailed flag at the end.
+   return PV::Response::SUCCESS;
 }
 
 bool MomentumConnSimpleCheckpointerTestProbe::verifyConnection(

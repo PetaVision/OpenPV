@@ -18,7 +18,7 @@ class L2ConnProbe : public KernelProbe {
   public:
    L2ConnProbe(const char *probename, HyPerCol *hc);
    virtual ~L2ConnProbe();
-   virtual int outputState(double timef) override;
+   virtual Response::Status outputState(double timef) override;
 
   protected:
    L2ConnProbe();

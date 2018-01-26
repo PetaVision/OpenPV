@@ -17,7 +17,7 @@ class StatsProbe : public PV::LayerProbe {
    StatsProbe(const char *name, HyPerCol *hc);
    virtual ~StatsProbe();
 
-   virtual int outputState(double timef) override;
+   virtual Response::Status outputState(double timef) override;
    virtual int checkpointTimers(PrintStream &timerstream);
 
   protected:

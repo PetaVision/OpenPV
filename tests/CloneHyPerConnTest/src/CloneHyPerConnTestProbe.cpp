@@ -24,12 +24,15 @@ int CloneHyPerConnTestProbe::initialize(const char *name, HyPerCol *hc) {
    return StatsProbe::initialize(name, hc);
 }
 
-int CloneHyPerConnTestProbe::outputState(double timed) {
-   int status           = StatsProbe::outputState(timed);
-   Communicator *icComm = parent->getCommunicator();
-   const int rcvProc    = 0;
-   if (icComm->commRank() != rcvProc) {
-      return 0;
+Response::Status CloneHyPerConnTestProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
+   int const rank    = parent->getCommunicator()->commRank();
+   int const rcvProc = 0;
+   if (rank != rcvProc) {
+      return status;
    }
    for (int b = 0; b < parent->getNBatch(); b++) {
       if (timed > 2.0) {

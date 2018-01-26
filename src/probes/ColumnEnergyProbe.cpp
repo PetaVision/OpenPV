@@ -166,10 +166,10 @@ void ColumnEnergyProbe::calcValues(double timevalue) {
    }
 }
 
-int ColumnEnergyProbe::outputState(double timevalue) {
+Response::Status ColumnEnergyProbe::outputState(double timevalue) {
    getValues(timevalue);
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return Response::SUCCESS;
    }
 
    double *valuesBuffer = getValuesBuffer();
@@ -184,7 +184,7 @@ int ColumnEnergyProbe::outputState(double timevalue) {
       stream.printf("%10f, %d, %10.9f\n", timevalue, b, valuesBuffer[b]);
       stream.flush();
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 } // end ColumnEnergyProbe::outputState(double)
 
 } // end namespace PV

@@ -21,7 +21,7 @@ class KernelProbe : public BaseHyPerConnProbe {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
-   virtual int outputState(double timef) override;
+   virtual Response::Status outputState(double timef) override;
 
   protected:
    KernelProbe(); // Default constructor, can only be called by derived classes

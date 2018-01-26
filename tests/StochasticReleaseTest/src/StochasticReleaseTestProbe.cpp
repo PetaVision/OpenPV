@@ -78,7 +78,7 @@ bool compar(double const &a, double const &b) {
    return a < b;
 }
 
-int StochasticReleaseTestProbe::outputState(double timed) {
+Response::Status StochasticReleaseTestProbe::outputState(double timed) {
    FatalIf(
          !(conn->getNumAxonalArbors() == 1),
          ": %s connection %s has %d arbors; only one is allowed.\n",
@@ -104,12 +104,13 @@ int StochasticReleaseTestProbe::outputState(double timed) {
          conn->getName(),
          conn->getNumDataPatches(),
          conn->getPatchSizeF());
-   int status = StatsProbe::outputState(timed);
+   auto status = StatsProbe::outputState(timed);
    FatalIf(
-         !(status == PV_SUCCESS),
+         status != Response::SUCCESS,
          ": %s failed in StatsProbe::outputState at time %f.\n",
          getDescription_c(),
          timed);
+   bool failed = false;
    if (timed > 0.0) {
       computePValues();
       if (parent->getCommunicator()->commRank() == 0
@@ -133,17 +134,17 @@ int StochasticReleaseTestProbe::outputState(double timed) {
                      k,
                      N,
                      hbCorr);
-               status = PV_FAILURE;
+               failed = true;
             }
          }
       }
    }
    FatalIf(
-         status != PV_SUCCESS,
+         failed,
          ": %s failed in StochasticReleaseTestProbe::outputState at time %f.\n",
          getTargetLayer()->getName(),
          timed);
-   return status;
+   return Response::SUCCESS;
 }
 
 void StochasticReleaseTestProbe::computePValues() {

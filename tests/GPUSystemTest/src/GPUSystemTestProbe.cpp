@@ -24,8 +24,11 @@ int GPUSystemTestProbe::initialize(const char *name, HyPerCol *hc) {
 void GPUSystemTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 // 2 tests: max difference can be 5e-4, max std is 5e-5
-int GPUSystemTestProbe::outputState(double timed) {
-   int status            = StatsProbe::outputState(timed);
+Response::Status GPUSystemTestProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    int numExtNeurons     = getTargetLayer()->getNumExtendedAllBatches();
    const float *A        = getTargetLayer()->getLayerData();

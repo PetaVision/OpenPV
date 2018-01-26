@@ -75,7 +75,7 @@ ColProbe::respondColProbeWriteParams(std::shared_ptr<ColProbeWriteParamsMessage 
 
 Response::Status
 ColProbe::respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage const>(message)) {
-   return Response::convertIntToStatus(outputStateWrapper(message->mTime, message->mDeltaTime));
+   return outputStateWrapper(message->mTime, message->mDeltaTime);
 }
 
 int ColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {

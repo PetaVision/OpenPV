@@ -38,7 +38,7 @@ class PointLIFProbe : public PointProbe {
     */
    virtual void calcValues(double timevalue) override;
 
-   virtual int writeState(double timevalue) override;
+   virtual void writeState(double timevalue) override;
 
   private:
    int initialize_base();

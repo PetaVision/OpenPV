@@ -27,7 +27,7 @@ class FilenameParsingProbe : public PV::LayerProbe {
    virtual int
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;
    virtual void calcValues(double timevalue) override {}
-   virtual int outputState(double timestamp) override;
+   virtual PV::Response::Status outputState(double timestamp) override;
 
   private:
    int initialize_base();

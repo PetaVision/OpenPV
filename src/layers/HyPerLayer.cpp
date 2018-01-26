@@ -2128,8 +2128,6 @@ Response::Status HyPerLayer::outputState(double timef) {
       probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
    }
 
-   auto status = Response::NO_ACTION;
-
    if (timef >= (writeTime - (parent->getDeltaTime() / 2)) && writeStep >= 0) {
       int writeStatus = PV_SUCCESS;
       writeTime += writeStep;
@@ -2144,11 +2142,10 @@ Response::Status HyPerLayer::outputState(double timef) {
             "%s: outputState failed on rank %d process.\n",
             getDescription_c(),
             parent->columnId());
-      status = Response::SUCCESS;
    }
 
    io_timer->stop();
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {

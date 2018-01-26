@@ -67,12 +67,12 @@ class BaseProbe : public BaseObject {
     * This behavior is intended to be general, but the method can be overridden
     * if needed.
     */
-   virtual int outputStateWrapper(double timef, double dt);
+   virtual Response::Status outputStateWrapper(double timef, double dt);
 
    /**
     * A pure virtual method for writing output to the output file.
     */
-   virtual int outputState(double timef) = 0;
+   virtual Response::Status outputState(double timef) = 0;
    virtual int writeTimer(PrintStream &stream) { return PV_SUCCESS; }
 
    /**

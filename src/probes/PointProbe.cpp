@@ -156,9 +156,10 @@ void PointProbe::initOutputStreams(const char *filename, Checkpointer *checkpoin
  *     writeState is only called by the processor with (xLoc,yLoc) in its
  *     non-extended region.
  */
-int PointProbe::outputState(double timef) {
+Response::Status PointProbe::outputState(double timef) {
    getValues(timef);
-   return writeState(timef);
+   writeState(timef);
+   return Response::SUCCESS;
 }
 
 void PointProbe::calcValues(double timevalue) {
@@ -233,13 +234,12 @@ void PointProbe::calcValues(double timevalue) {
    }
 }
 
-int PointProbe::writeState(double timevalue) {
-   double *valuesBuffer = this->getValuesBuffer();
+void PointProbe::writeState(double timevalue) {
    if (!mOutputStreams.empty()) {
+      double *valuesBuffer = this->getValuesBuffer();
       output(0).printf("%s t=%.1f V=%6.5f a=%.5f", getMessage(), timevalue, getV(), getA());
       output(0) << std::endl;
    }
-   return PV_SUCCESS;
 }
 
 double PointProbe::getV() { return getValuesBuffer()[0]; }

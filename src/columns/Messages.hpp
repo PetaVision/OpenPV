@@ -136,11 +136,13 @@ class ConnectionFinalizeUpdateMessage : public BaseMessage {
 
 class ConnectionOutputMessage : public BaseMessage {
   public:
-   ConnectionOutputMessage(double simTime) {
+   ConnectionOutputMessage(double simTime, double deltaTime) {
       setMessageType("ConnectionOutput");
-      mTime = simTime;
+      mTime   = simTime;
+      mDeltaT = deltaTime;
    }
    double mTime;
+   double mDeltaT;
 };
 
 class LayerClearProgressFlagsMessage : public BaseMessage {

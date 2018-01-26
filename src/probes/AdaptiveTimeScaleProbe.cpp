@@ -185,11 +185,11 @@ void AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    memcpy(getValuesBuffer(), timeSteps.data(), sizeof(double) * getNumValues());
 }
 
-int AdaptiveTimeScaleProbe::outputState(double timeValue) {
+Response::Status AdaptiveTimeScaleProbe::outputState(double timeValue) {
    if (!mOutputStreams.empty()) {
       mAdaptiveTimeScaleController->writeTimestepInfo(timeValue, mOutputStreams);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

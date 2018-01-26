@@ -29,7 +29,7 @@ class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
     */
    void calcValues(double timevalue) override;
 
-   int outputState(double timevalue) override;
+   virtual PV::Response::Status outputState(double timestamp) override;
 
   private:
    int initialize_base();

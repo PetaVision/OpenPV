@@ -15,12 +15,12 @@ L2ConnProbe::L2ConnProbe(const char *probename, HyPerCol *hc) : KernelProbe(prob
 
 L2ConnProbe::~L2ConnProbe() {}
 
-int L2ConnProbe::outputState(double timed) {
+Response::Status L2ConnProbe::outputState(double timed) {
+   if (mOutputStreams.empty()) {
+      return Response::NO_ACTION;
+   }
    Communicator *icComm = parent->getCommunicator();
    const int rank       = icComm->commRank();
-   if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
-   }
    assert(getTargetConn() != NULL);
    int nxp       = getTargetHyPerConn()->getPatchSizeX();
    int nyp       = getTargetHyPerConn()->getPatchSizeY();
@@ -61,7 +61,7 @@ int L2ConnProbe::outputState(double timed) {
       output(0) << "t=" << timed << ", f=" << kernelIndex << ", squaredL2=" << sumsq << "\n";
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

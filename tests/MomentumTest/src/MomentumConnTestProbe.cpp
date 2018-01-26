@@ -11,11 +11,6 @@
 
 namespace PV {
 
-/**
- * @filename
- * @type
- * @msg
- */
 MomentumConnTestProbe::MomentumConnTestProbe(const char *probename, HyPerCol *hc) {
    initialize(probename, hc);
 }
@@ -35,14 +30,11 @@ void MomentumConnTestProbe::ioParam_isViscosity(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "isViscosity", &isViscosity, 0 /*default value*/);
 }
 
-/**
- * @timef
- */
-int MomentumConnTestProbe::outputState(double timed) {
+Response::Status MomentumConnTestProbe::outputState(double timed) {
    HyPerConn *c = getTargetHyPerConn();
    FatalIf(c == nullptr, "%s has targetConnection set to null.\n", getDescription_c());
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return Response::NO_ACTION;
    }
    output(0).printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
    const float *w  = c->getWeightsDataHead(getArbor(), getKernelIndex());
@@ -83,11 +75,11 @@ int MomentumConnTestProbe::outputState(double timed) {
          int y = kyPos(k, nxp, nyp, nfp);
          int f = featureIndex(k, nxp, nyp, nfp);
          output(0).printf("        w = %f, should be %f\n", (double)wObserved, (double)wCorrect);
-         exit(-1);
+         exit(EXIT_FAILURE);
       }
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end of namespace PV block

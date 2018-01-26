@@ -11,11 +11,6 @@
 
 namespace PV {
 
-/**
- * @filename
- * @type
- * @msg
- */
 PlasticConnTestProbe::PlasticConnTestProbe(const char *probename, HyPerCol *hc) {
    initialize(probename, hc);
 }
@@ -24,14 +19,12 @@ int PlasticConnTestProbe::initialize(const char *probename, HyPerCol *hc) {
    errorPresent = false;
    return KernelProbe::initialize(probename, hc);
 }
-/**
- * @timef
- */
-int PlasticConnTestProbe::outputState(double timed) {
+
+Response::Status PlasticConnTestProbe::outputState(double timed) {
    HyPerConn *c = getTargetHyPerConn();
    FatalIf(c == nullptr, "%s has targetConnection set to null.\n");
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return Response::NO_ACTION;
    }
    output(0).printf("    Time %f, %s:\n", timed, c->getDescription_c());
    const float *w  = c->getWeightsDataHead(getArbor(), getKernelIndex());
@@ -97,7 +90,7 @@ int PlasticConnTestProbe::outputState(double timed) {
       patchIndices(c);
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 PlasticConnTestProbe::~PlasticConnTestProbe() {

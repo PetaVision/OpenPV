@@ -16,7 +16,7 @@ class KernelTestProbe : public PV::StatsProbe {
   public:
    KernelTestProbe(const char *name, HyPerCol *hc);
 
-   virtual int outputState(double timed) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);

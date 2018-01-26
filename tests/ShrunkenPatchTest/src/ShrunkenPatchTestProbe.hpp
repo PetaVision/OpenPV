@@ -19,7 +19,7 @@ class ShrunkenPatchTestProbe : public PV::StatsProbe {
    ShrunkenPatchTestProbe(const char *probename, HyPerCol *hc);
    ShrunkenPatchTestProbe(const char *probename, HyPerLayer *layer, const char *msg);
 
-   virtual int outputState(double timed) override;
+   virtual Response::Status outputState(double timestamp) override;
 
    virtual ~ShrunkenPatchTestProbe();
 

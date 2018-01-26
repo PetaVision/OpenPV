@@ -154,7 +154,7 @@ void PoolingConnCheckpointerTestProbe::initializeCorrectValues(double timevalue)
    // outputState calls mCorrectState->update() if needed.
 }
 
-int PoolingConnCheckpointerTestProbe::outputState(double timevalue) {
+PV::Response::Status PoolingConnCheckpointerTestProbe::outputState(double timevalue) {
    if (!mValuesSet) {
       initializeCorrectValues(timevalue);
       mValuesSet = true;
@@ -185,7 +185,8 @@ int PoolingConnCheckpointerTestProbe::outputState(double timevalue) {
                "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }
-   return PV_SUCCESS; // Test runs all timesteps and then checks the mTestFailed flag at the end.
+   // Test runs all timesteps and then checks the mTestFailed flag at the end.
+   return PV::Response::SUCCESS;
 }
 
 bool PoolingConnCheckpointerTestProbe::verifyLayer(

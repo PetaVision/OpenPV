@@ -40,11 +40,11 @@ int DatastoreDelayTestProbe::communicateInitInfo(
    return status;
 }
 
-int DatastoreDelayTestProbe::outputState(double timed) {
-   HyPerLayer *l = getTargetLayer();
+Response::Status DatastoreDelayTestProbe::outputState(double timed) {
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return Response::NO_ACTION;
    }
+   HyPerLayer *l       = getTargetLayer();
    int status          = PV_SUCCESS;
    float correctValue  = mNumDelayLevels * (mNumDelayLevels + 1) / 2;
    int localBatchWidth = getTargetLayer()->getLayerLoc()->nbatch;
@@ -87,7 +87,7 @@ int DatastoreDelayTestProbe::outputState(double timed) {
    }
 
    FatalIf(status != PV_SUCCESS, "Test failed.\n");
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 DatastoreDelayTestProbe::~DatastoreDelayTestProbe() {}

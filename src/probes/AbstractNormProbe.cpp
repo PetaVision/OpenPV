@@ -144,7 +144,7 @@ void AbstractNormProbe::calcValues(double timeValue) {
          parent->getCommunicator()->communicator());
 }
 
-int AbstractNormProbe::outputState(double timevalue) {
+Response::Status AbstractNormProbe::outputState(double timevalue) {
    getValues(timevalue);
    double *valuesBuffer = this->getValuesBuffer();
    if (!mOutputStreams.empty()) {
@@ -155,7 +155,7 @@ int AbstractNormProbe::outputState(double timevalue) {
          output(b) << std::endl;
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

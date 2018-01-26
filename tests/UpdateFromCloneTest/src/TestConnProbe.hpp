@@ -16,7 +16,7 @@ class TestConnProbe : public BaseHyPerConnProbe {
   public:
    TestConnProbe(const char *probename, HyPerCol *hc);
    virtual ~TestConnProbe();
-   virtual int outputState(double timed) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
    TestConnProbe(); // Default constructor, can only be called by derived classes

@@ -156,7 +156,7 @@ void PointLIFProbe::calcValues(double timevalue) {
  * "restricted"
  *     frame.
  */
-int PointLIFProbe::writeState(double timevalue) {
+void PointLIFProbe::writeState(double timevalue) {
    if (!mOutputStreams.empty() and timevalue >= writeTime) {
       writeTime += writeStep;
       PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
@@ -178,7 +178,6 @@ int PointLIFProbe::writeState(double timevalue) {
             valuesBuffer[5]);
       output(0) << std::endl;
    }
-   return PV_SUCCESS;
 }
 
 } // namespace PV

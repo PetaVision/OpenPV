@@ -53,7 +53,7 @@ Response::Status BaseConnectionProbe::respondConnectionProbeWriteParams(
 
 Response::Status BaseConnectionProbe::respondConnectionOutput(
       std::shared_ptr<ConnectionOutputMessage const> message) {
-   return Response::convertIntToStatus(outputState(message->mTime));
+   return outputStateWrapper(message->mTime, message->mDeltaT);
 }
 
 int BaseConnectionProbe::communicateInitInfo(

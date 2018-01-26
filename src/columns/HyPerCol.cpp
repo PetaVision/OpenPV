@@ -469,7 +469,7 @@ void HyPerCol::allocateColumn() {
 
    // output initial conditions
    if (!mCheckpointReadFlag) {
-      notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime));
+      notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime, mDeltaTime));
       for (int phase = 0; phase < mNumPhases; phase++) {
          notifyLoop(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
       }
@@ -682,7 +682,7 @@ int HyPerCol::advanceTime(double sim_time) {
    notifyLoop(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
    notifyLoop(std::make_shared<ConnectionNormalizeMessage>());
    notifyLoop(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
-   notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime));
+   notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime, mDeltaTime));
 
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {

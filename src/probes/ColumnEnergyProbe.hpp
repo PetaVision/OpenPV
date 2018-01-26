@@ -67,7 +67,7 @@ class ColumnEnergyProbe : public ColProbe {
     * from 0 to
     * getVectorSize()-1.
     */
-   virtual int outputState(double timevalue) override;
+   virtual Response::Status outputState(double timevalue) override;
 
    virtual void calcValues(double timevalue) override;
 

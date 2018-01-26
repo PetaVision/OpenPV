@@ -192,7 +192,7 @@ Response::Status StatsProbe::registerData(Checkpointer *checkpointer) {
    return Response::SUCCESS;
 }
 
-int StatsProbe::outputState(double timed) {
+Response::Status StatsProbe::outputState(double timed) {
 #ifdef PV_USE_MPI
    Communicator *icComm = parent->getCommunicator();
    MPI_Comm comm        = icComm->communicator();
@@ -216,11 +216,11 @@ int StatsProbe::outputState(double timed) {
             if (buf == NULL) {
 #ifdef PV_USE_MPI
                if (rank != rcvProc) {
-                  return 0;
+                  return Response::SUCCESS;
                }
 #endif // PV_USE_MPI
                output(b) << getMessage() << "V buffer is NULL\n";
-               return 0;
+               return Response::SUCCESS;
             }
             for (int k = 0; k < nk; k++) {
                float a = buf[k];
@@ -289,7 +289,7 @@ int StatsProbe::outputState(double timed) {
 
    mpitimer->stop();
    if (rank != rcvProc) {
-      return 0;
+      return Response::SUCCESS;
    }
 
 #endif // PV_USE_MPI
@@ -328,7 +328,7 @@ int StatsProbe::outputState(double timed) {
 
    iotimer->stop();
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int StatsProbe::checkpointTimers(PrintStream &timerstream) {

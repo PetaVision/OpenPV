@@ -114,12 +114,12 @@ int KernelProbe::allocateDataStructures() {
    return status;
 }
 
-int KernelProbe::outputState(double timed) {
-   Communicator *icComm = parent->getCommunicator();
-   const int rank       = icComm->commRank();
+Response::Status KernelProbe::outputState(double timed) {
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return Response::NO_ACTION;
    }
+   Communicator *icComm  = parent->getCommunicator();
+   const int rank        = icComm->commRank();
    auto *targetHyPerConn = getTargetHyPerConn();
    assert(targetHyPerConn != nullptr);
    int nxp       = targetHyPerConn->getPatchSizeX();
@@ -150,7 +150,7 @@ int KernelProbe::outputState(double timed) {
       }
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int KernelProbe::patchIndices(HyPerConn *conn) {

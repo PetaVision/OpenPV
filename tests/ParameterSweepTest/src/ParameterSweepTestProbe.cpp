@@ -41,12 +41,15 @@ void ParameterSweepTestProbe::ioParam_expectedMax(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, getName(), "expectedMax", &expectedMax, 0.0f);
 }
 
-int ParameterSweepTestProbe::outputState(double timed) {
-   int status           = StatsProbe::outputState(timed);
+Response::Status ParameterSweepTestProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
-      return 0;
+      return status;
    }
    for (int b = 0; b < parent->getNBatch(); b++) {
       if (timed >= 3.0) {

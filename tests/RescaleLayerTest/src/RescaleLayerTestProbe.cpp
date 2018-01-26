@@ -43,29 +43,33 @@ int RescaleLayerTestProbe::communicateInitInfo(
    return status;
 }
 
-int RescaleLayerTestProbe::outputState(double timed) {
-   int status = StatsProbe::outputState(timed);
+Response::Status RescaleLayerTestProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    if (timed == parent->getStartTime()) {
-      return PV_SUCCESS;
+      return status;
    }
    float tolerance      = 2.0e-5f;
    Communicator *icComm = parent->getCommunicator();
    bool isRoot          = icComm->commRank() == 0;
 
    RescaleLayer *targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
-   FatalIf(!(targetRescaleLayer), "Test failed.\n");
+   FatalIf(!targetRescaleLayer, "Test failed.\n");
 
+   bool failed = false;
    if (targetRescaleLayer->getRescaleMethod() == NULL) {
       ErrorLog().printf(
             "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" does not have rescaleMethod set.  "
             "Exiting.\n",
             name,
             targetRescaleLayer->getName());
-      status = PV_FAILURE;
+      failed = true;
    }
    else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "maxmin")) {
       if (!isRoot) {
-         return PV_SUCCESS;
+         return Response::SUCCESS;
       }
       for (int b = 0; b < parent->getNBatch(); b++) {
          float targetMax = targetRescaleLayer->getTargetMax();
@@ -77,7 +81,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
                   targetRescaleLayer->getName(),
                   (double)fMax[b],
                   (double)targetMax);
-            status = PV_FAILURE;
+            failed = true;
          }
          float targetMin = targetRescaleLayer->getTargetMin();
          if (fabsf(fMin[b] - targetMin) > tolerance) {
@@ -88,7 +92,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
                   targetRescaleLayer->getName(),
                   (double)fMin[b],
                   (double)targetMin);
-            status = PV_FAILURE;
+            failed = true;
          }
 
          // Now, check whether rescaled activity and original V are colinear.
@@ -144,7 +148,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
                   "%s: %s data is not a linear rescaling of original membrane potential.\n",
                   getDescription_c(),
                   targetRescaleLayer->getDescription_c());
-            status = PV_FAILURE;
+            failed = true;
          }
       }
    }
@@ -154,7 +158,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
          !strcmp(targetRescaleLayer->getRescaleMethod(), "meanstd")
          || !strcmp(targetRescaleLayer->getRescaleMethod(), "l2")) {
       if (!isRoot) {
-         return PV_SUCCESS;
+         return Response::SUCCESS;
       }
       for (int b = 0; b < parent->getNBatch(); b++) {
          float targetMean, targetStd;
@@ -174,7 +178,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
                   targetRescaleLayer->getDescription_c(),
                   (double)avg[b],
                   (double)targetMean);
-            status = PV_FAILURE;
+            failed = true;
          }
          if (sigma[b] > tolerance && fabsf(sigma[b] - targetStd) > tolerance) {
             ErrorLog().printf(
@@ -183,7 +187,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
                   targetRescaleLayer->getDescription_c(),
                   (double)sigma[b],
                   (double)targetStd);
-            status = PV_FAILURE;
+            failed = true;
          }
 
          // Now, check whether rescaled activity and original V are colinear.
@@ -239,7 +243,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
                   "%s: %s data is not a linear rescaling of original membrane potential.\n",
                   getDescription_c(),
                   targetRescaleLayer->getDescription_c());
-            status = PV_FAILURE;
+            failed = true;
          }
       }
    }
@@ -247,7 +251,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
       PVLayerLoc const *loc = targetRescaleLayer->getLayerLoc();
       int nf                = loc->nf;
       if (nf < 2) {
-         return PV_SUCCESS;
+         return Response::SUCCESS;
       }
       PVHalo const *halo = &loc->halo;
       float targetMean   = targetRescaleLayer->getTargetMean();
@@ -283,7 +287,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
                      k,
                      (double)pointmean,
                      (double)targetMean);
-               status = PV_FAILURE;
+               failed = true;
             }
             if (pointstd > tolerance && fabsf(pointstd - targetStd) > tolerance) {
                ErrorLog().printf(
@@ -296,7 +300,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
                      k,
                      (double)pointstd,
                      (double)targetStd);
-               status = PV_FAILURE;
+               failed = true;
             }
             bool iscolinear = colinear(
                   nf,
@@ -317,7 +321,7 @@ int RescaleLayerTestProbe::outputState(double timed) {
                      targetRescaleLayer->getName(),
                      parent->columnId(),
                      k);
-               status = PV_FAILURE;
+               failed = true;
             }
          }
       }
@@ -371,18 +375,18 @@ int RescaleLayerTestProbe::outputState(double timed) {
                      k,
                      (double)observedval,
                      (double)correctval);
-               status = PV_FAILURE;
+               failed = true;
             }
          }
       }
    }
    else {
-      FatalIf(!(0), "Test failed.\n"); // All allowable rescaleMethod values are handled above.
+      Fatal().printf("Unrecognized rescaleMethod.\n");
    }
-   if (status == PV_FAILURE) {
+   if (failed) {
       exit(EXIT_FAILURE);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 bool RescaleLayerTestProbe::colinear(

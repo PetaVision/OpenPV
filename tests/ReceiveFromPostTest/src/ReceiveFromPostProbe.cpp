@@ -36,11 +36,15 @@ void ReceiveFromPostProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
 }
 
-int ReceiveFromPostProbe::outputState(double timed) {
-   int status            = StatsProbe::outputState(timed);
+Response::Status ReceiveFromPostProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    int numExtNeurons     = getTargetLayer()->getNumExtended();
    const float *A        = getTargetLayer()->getLayerData();
+   bool failed           = false;
    for (int i = 0; i < numExtNeurons; i++) {
       if (fabsf(A[i]) != 0) {
          int xpos =
@@ -71,9 +75,9 @@ int ReceiveFromPostProbe::outputState(double timed) {
                (double)tolerance,
                i,
                (double)A[i]);
-         status = PV_FAILURE;
+         failed = true;
       }
-      if (status != PV_SUCCESS) {
+      if (failed) {
          exit(EXIT_FAILURE);
       }
    }
