@@ -193,7 +193,7 @@ void TransposePoolingConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) 
 
 void TransposePoolingConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      initialWeightUpdateTime = parent->getStartTime();
+      initialWeightUpdateTime = 0.0;
       // Every timestep needUpdate checks mOriginalConn's lastUpdateTime against transpose's
       // lastUpdateTime, so weightUpdatePeriod and initialWeightUpdateTime aren't needed
       parent->parameters()->handleUnnecessaryParameter(

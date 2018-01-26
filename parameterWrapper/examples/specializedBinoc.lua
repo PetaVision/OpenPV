@@ -52,7 +52,6 @@ local pvParams = {
       ny = nySize;
       dt = 1.0;
       randomSeed = 1234567890;
-      startTime = 0.0;
       stopTime = 100000000.0; 
       progressInterval = 5000.0;
       writeProgressToErr = true;

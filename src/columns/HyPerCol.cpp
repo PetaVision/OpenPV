@@ -79,7 +79,6 @@ int HyPerCol::initialize_base() {
    mParamsProcessedFlag      = false;
    mNumPhases                = 0;
    mCheckpointReadFlag       = false;
-   mStartTime                = 0.0;
    mStopTime                 = 0.0;
    mDeltaTime                = DEFAULT_DELTA_T;
    mWriteTimeScaleFieldnames = true;
@@ -177,12 +176,12 @@ int HyPerCol::initialize(PV_Init *initObj) {
          std::string(mName), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
    mCheckpointer->addObserver(this, BaseMessage{});
    ioParams(PARAMS_IO_READ);
-   mSimTime     = mStartTime;
-   mInitialStep = (long int)nearbyint(mStartTime / mDeltaTime);
+   mSimTime     = 0.0;
+   mInitialStep = 0L;
    mCurrentStep = mInitialStep;
    mFinalStep   = (long int)nearbyint(mStopTime / mDeltaTime);
    mCheckpointer->provideFinalStep(mFinalStep);
-   mNextProgressTime = mStartTime;
+   mNextProgressTime = 0.0;
 
    RandomSeed::instance()->initialize(mRandomSeed);
    if (getCommunicator()->globalCommRank() == 0) {
@@ -253,7 +252,6 @@ int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_nam
 }
 
 int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_startTime(ioFlag);
    ioParam_dt(ioFlag);
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
@@ -276,10 +274,6 @@ int HyPerCol::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
       mLuaPrintParamsStream->printf("};\n\n");
    }
    return PV_SUCCESS;
-}
-
-void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, mName, "startTime", &mStartTime, mStartTime);
 }
 
 void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
@@ -483,9 +477,8 @@ void HyPerCol::allocateColumn() {
 }
 
 // typically called by buildandrun via HyPerCol::run()
-int HyPerCol::run(double start_time, double stop_time, double dt) {
-   mStartTime = start_time;
-   mStopTime  = stop_time;
+int HyPerCol::run(double stopTime, double dt) {
+   mStopTime  = stopTime;
    mDeltaTime = dt;
 
    allocateColumn();

@@ -772,22 +772,20 @@ void HyPerConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (writeStep >= 0) {
-      double start_time = parent->getStartTime();
       parent->parameters()->ioParamValue(
-            ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
+            ioFlag, name, "initialWriteTime", &initialWriteTime, initialWriteTime);
       if (ioFlag == PARAMS_IO_READ) {
-         if (writeStep > 0 && initialWriteTime < start_time) {
+         if (writeStep > 0 && initialWriteTime < 0.0) {
             if (parent->columnId() == 0) {
                WarnLog(adjustInitialWriteTime);
                adjustInitialWriteTime.printf(
-                     "%s: initialWriteTime %f earlier than starting time %f.  Adjusting "
+                     "%s: initialWriteTime %f is negative.  Adjusting "
                      "initialWriteTime:\n",
                      getDescription_c(),
-                     initialWriteTime,
-                     start_time);
+                     initialWriteTime);
                adjustInitialWriteTime.flush();
             }
-            while (initialWriteTime < start_time) {
+            while (initialWriteTime < 0.0) {
                initialWriteTime += writeStep;
             }
             if (parent->columnId() == 0) {

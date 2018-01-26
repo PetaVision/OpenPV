@@ -132,7 +132,7 @@ int QuotientColProbe::communicateInitInfo(
 int QuotientColProbe::calcValues(double timeValue) {
    int numValues        = this->getNumValues();
    double *valuesBuffer = getValuesBuffer();
-   if (parent->simulationTime() == parent->getStartTime()) {
+   if (parent->simulationTime() == 0.0) {
       for (int b = 0; b < numValues; b++) {
          valuesBuffer[b] = 1.0;
       }

@@ -45,7 +45,7 @@ int RescaleLayerTestProbe::communicateInitInfo(
 
 int RescaleLayerTestProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
-   if (timed == parent->getStartTime()) {
+   if (timed == 0.0) {
       return PV_SUCCESS;
    }
    float tolerance      = 2.0e-5f;

@@ -848,22 +848,19 @@ void HyPerLayer::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (writeStep >= 0.0) {
-      double start_time = parent->getStartTime();
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
-      if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < start_time) {
+      parent->parameters()->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, 0.0);
+      if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < 0.0) {
          double storeInitialWriteTime = initialWriteTime;
-         while (initialWriteTime < start_time) {
+         while (initialWriteTime < 0.0) {
             initialWriteTime += writeStep;
          }
          if (parent->columnId() == 0) {
             WarnLog(warningMessage);
             warningMessage.printf(
-                  "%s: initialWriteTime %f is earlier than start time %f.  Adjusting "
+                  "%s: initialWriteTime %f is negative.  Adjusting "
                   "initialWriteTime:\n",
                   getDescription_c(),
-                  initialWriteTime,
-                  start_time);
+                  initialWriteTime);
             warningMessage.printf("    initialWriteTime adjusted to %f\n", initialWriteTime);
          }
       }

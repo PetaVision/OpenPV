@@ -86,8 +86,7 @@ class ImageFromMemoryBuffer : public ImageLayer {
    virtual bool needUpdate(double time, double dt) override { return hasNewImageFlag; }
 
    /**
-    * For ImageFromMemoryBuffer, the updateTime is the parent->getStopTime() -
-    * parent->getStartTime().
+    * For ImageFromMemoryBuffer, the updateTime is the parent->getStopTime().
     * Implemented to allow triggering off of an ImageFromMemoryBuffer layer.
     */
    virtual double getDeltaUpdateTime() override;

@@ -5,7 +5,6 @@
 debugParsing = false;
 
 HyPerCol "test_mirror_BCs_column" = {
-   startTime = 0.0;
    dt = 1.0;
    stopTime = 1.0;
    outputPath = "output/";

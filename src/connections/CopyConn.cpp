@@ -94,7 +94,7 @@ void CopyConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
 
 void CopyConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      initialWeightUpdateTime = parent->getStartTime();
+      initialWeightUpdateTime = 0.0;
       parent->parameters()->handleUnnecessaryParameter(name, "initialWeightUpdateTime");
       weightUpdateTime = initialWeightUpdateTime;
    }
