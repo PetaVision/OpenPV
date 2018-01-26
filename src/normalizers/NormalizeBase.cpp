@@ -99,8 +99,11 @@ Response::Status NormalizeBase::respondConnectionNormalize(
          pvAssert(w);
          w->setTimestamp(simTime);
       }
+      return Response::SUCCESS;
    }
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 int NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {

@@ -185,8 +185,8 @@ HyPerConn::respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const
 
 Response::Status
 HyPerConn::respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message) {
-   notify(mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
-   return Response::SUCCESS;
+   return notify(
+         mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 }
 
 Response::Status HyPerConn::initializeState() {
