@@ -422,7 +422,7 @@ class HyPerLayer : public BaseLayer {
     */
    bool isExchangeFinished(int delay = 0);
 
-   int clearProgressFlags();
+   void clearProgressFlags();
 
    int getNumProbes() { return numProbes; }
    LayerProbe *getProbe(int n) { return (n >= 0 && n < numProbes) ? probes[n] : NULL; }

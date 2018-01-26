@@ -959,7 +959,8 @@ Response::Status HyPerLayer::respondLayerProbeWriteParams(
 
 Response::Status HyPerLayer::respondLayerClearProgressFlags(
       std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
-   return Response::convertIntToStatus(clearProgressFlags());
+   clearProgressFlags();
+   return PV::SUCCESS;
 }
 
 Response::Status HyPerLayer::respondLayerRecvSynapticInput(
@@ -1082,10 +1083,9 @@ HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage cons
    return status;
 }
 
-int HyPerLayer::clearProgressFlags() {
+void HyPerLayer::clearProgressFlags() {
    mHasReceived = false;
    mHasUpdated  = false;
-   return PV_SUCCESS;
 }
 
 #ifdef PV_USE_CUDA
