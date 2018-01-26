@@ -1078,8 +1078,7 @@ HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage cons
    if (message->mPhase != getPhase()) {
       return status;
    }
-   status = Response::convertIntToStatus(
-         outputState(message->mTime)); // also calls layer probes' outputState
+   status = outputState(message->mTime); // also calls layer probes' outputState
    return status;
 }
 
@@ -2122,27 +2121,30 @@ Response::Status HyPerLayer::outputProbeParams() {
    return Response::SUCCESS;
 }
 
-int HyPerLayer::outputState(double timef) {
-   int status = PV_SUCCESS;
-
+Response::Status HyPerLayer::outputState(double timef) {
    io_timer->start();
 
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
    }
 
+   auto status = Response::NO_ACTION;
+
    if (timef >= (writeTime - (parent->getDeltaTime() / 2)) && writeStep >= 0) {
+      int writeStatus = PV_SUCCESS;
       writeTime += writeStep;
       if (sparseLayer) {
-         status = writeActivitySparse(timef);
+         writeStatus = writeActivitySparse(timef);
       }
       else {
-         status = writeActivity(timef);
+         writeStatus = writeActivity(timef);
       }
-   }
-   if (status != PV_SUCCESS) {
-      Fatal().printf(
-            "%s: outputState failed on rank %d process.\n", getDescription_c(), parent->columnId());
+      FatalIf(
+            writeStatus != PV_SUCCESS,
+            "%s: outputState failed on rank %d process.\n",
+            getDescription_c(),
+            parent->columnId());
+      status = Response::SUCCESS;
    }
 
    io_timer->stop();
