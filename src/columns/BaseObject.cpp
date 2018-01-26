@@ -71,7 +71,7 @@ void BaseObject::setDescription() {
 
 void BaseObject::setObjectType() { mObjectType = lookupKeyword(); }
 
-int BaseObject::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter) {
+void BaseObject::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter) {
    if (printHeader) {
       parent->ioParamsStartGroup(ioFlag, name);
    }
@@ -79,8 +79,6 @@ int BaseObject::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printF
    if (printFooter) {
       parent->ioParamsFinishGroup(ioFlag);
    }
-
-   return PV_SUCCESS;
 }
 
 Response::Status BaseObject::respond(std::shared_ptr<BaseMessage const> message) {

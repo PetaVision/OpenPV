@@ -414,7 +414,7 @@ class HyPerLayer : public BaseLayer {
    virtual int writeActivitySparse(double timed);
 
    virtual int insertProbe(LayerProbe *probe);
-   int outputProbeParams();
+   Response::Status outputProbeParams();
 
    /**
     * Returns true if the MPI exchange for the specified delay has finished;

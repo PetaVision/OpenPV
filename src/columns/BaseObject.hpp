@@ -58,14 +58,14 @@ class BaseObject : public CheckpointerDataInterface {
     * It, along with writeParams(), is a wrapper around ioParams, so that readParams and
     * writeParams automatically run through the same parameters in the same order.
     */
-   int readParams() { return ioParams(PARAMS_IO_READ, false, false); }
+   void readParams() { ioParams(PARAMS_IO_READ, false, false); }
 
    /**
     * A method that writes the parameters for the group whose name matches the name of the object.
     * It, along with readParams(), is a wrapper around ioParams, so that readParams and writeParams
     * automatically run through the same parameters in the same order.
     */
-   int writeParams() { return ioParams(PARAMS_IO_WRITE, true, true); }
+   void writeParams() { ioParams(PARAMS_IO_WRITE, true, true); }
 
    /**
     * Method for reading or writing the params from group in the parent HyPerCol's parameters.
@@ -79,7 +79,7 @@ class BaseObject : public CheckpointerDataInterface {
     * Note that ioParams is not virtual.  To add parameters in a derived class, override
     * ioParamFillGroup.
     */
-   int ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter);
+   void ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter);
 
    virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
    // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE

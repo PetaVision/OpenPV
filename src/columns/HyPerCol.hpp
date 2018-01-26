@@ -218,7 +218,7 @@ class HyPerCol : public Subject, public Observer {
    void setDescription();
    int initialize_base();
    int initialize(PV_Init *initObj);
-   int ioParams(enum ParamsIOFlag ioFlag);
+   void ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void addObject(BaseObject *obj);
    int checkDirExists(const char *dirname, struct stat *pathstat);

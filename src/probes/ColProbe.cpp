@@ -69,7 +69,8 @@ Response::Status ColProbe::respond(std::shared_ptr<BaseMessage const> message) {
 
 Response::Status
 ColProbe::respondColProbeWriteParams(std::shared_ptr<ColProbeWriteParamsMessage const>(message)) {
-   return Response::convertIntToStatus(writeParams());
+   writeParams();
+   return Response::SUCCESS;
 }
 
 Response::Status

@@ -31,6 +31,9 @@ class BaseConnectionProbe : public BaseProbe {
    int initialize(const char *name, HyPerCol *hc);
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
+   Response::Status respondConnectionProbeWriteParams(
+         std::shared_ptr<ConnectionProbeWriteParamsMessage const> message);
+
    Response::Status respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
 
    virtual int

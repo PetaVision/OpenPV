@@ -234,11 +234,10 @@ void HyPerCol::setDescription() {
    description.append(getName()).append("\"");
 }
 
-int HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
+void HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
    ioParamsStartGroup(ioFlag, mName);
    ioParamsFillGroup(ioFlag);
    ioParamsFinishGroup(ioFlag);
-   return PV_SUCCESS;
 }
 
 int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name) {
@@ -908,10 +907,7 @@ void HyPerCol::outputParams(char const *path) {
    }
 
    // Parent HyPerCol params
-   int writeStatus = ioParams(PARAMS_IO_WRITE);
-   if (writeStatus != PV_SUCCESS) {
-      Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
-   }
+   ioParams(PARAMS_IO_WRITE);
 
    // Splitting this up into five messages for backwards compatibility in preserving the order.
    // If order preservation is not needed here, it would be better to replace with a single

@@ -20,10 +20,11 @@ BaseConnection::~BaseConnection() { deleteComponents(); }
 
 int BaseConnection::initialize(char const *name, HyPerCol *hc) {
    int status = BaseObject::initialize(name, hc);
-   defineComponents();
 
-   if (status == PV_SUCCESS)
-      status = readParams();
+   if (status == PV_SUCCESS) {
+      defineComponents();
+      readParams();
+   }
    return status;
 }
 
@@ -79,7 +80,8 @@ Response::Status BaseConnection::respond(std::shared_ptr<BaseMessage const> mess
 
 Response::Status BaseConnection::respondConnectionWriteParams(
       std::shared_ptr<ConnectionWriteParamsMessage const> message) {
-   return Response::convertIntToStatus(writeParams());
+   writeParams();
+   return Response::SUCCESS;
 }
 
 Response::Status BaseConnection::respondConnectionFinalizeUpdate(

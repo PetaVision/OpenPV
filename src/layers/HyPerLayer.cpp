@@ -131,11 +131,7 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    if (status != PV_SUCCESS) {
       return status;
    }
-
-   PVParams *params = parent->parameters();
-
-   status = readParams();
-   assert(status == PV_SUCCESS);
+   readParams();
 
    writeTime                = initialWriteTime;
    writeActivityCalls       = 0;
@@ -952,12 +948,13 @@ HyPerLayer::respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage cons
 
 Response::Status
 HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message) {
-   return Response::convertIntToStatus(writeParams());
+   writeParams();
+   return Response::SUCCESS;
 }
 
 Response::Status HyPerLayer::respondLayerProbeWriteParams(
       std::shared_ptr<LayerProbeWriteParamsMessage const> message) {
-   return Response::convertIntToStatus(outputProbeParams());
+   return outputProbeParams();
 }
 
 Response::Status HyPerLayer::respondLayerClearProgressFlags(
@@ -2120,15 +2117,11 @@ int HyPerLayer::insertProbe(LayerProbe *p) {
    return ++numProbes;
 }
 
-int HyPerLayer::outputProbeParams() {
-   int status = PV_SUCCESS;
+Response::Status HyPerLayer::outputProbeParams() {
    for (int p = 0; p < numProbes; p++) {
-      int status1 = probes[p]->writeParams();
-      if (status1 != PV_SUCCESS) {
-         status = PV_FAILURE;
-      }
+      probes[p]->writeParams();
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 int HyPerLayer::outputState(double timef) {
