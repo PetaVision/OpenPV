@@ -31,7 +31,7 @@ int KmeansLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int KmeansLayer::updateState(double time, double dt) {
+Response::Status KmeansLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -59,7 +59,7 @@ int KmeansLayer::updateState(double time, double dt) {
          loc->halo.up,
          trainingFlag);
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int KmeansLayer::setActivity() {

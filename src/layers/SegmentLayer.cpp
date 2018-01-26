@@ -237,7 +237,7 @@ void SegmentLayer::initializeV() { assert(getV() == NULL); }
 
 void SegmentLayer::initializeActivity() {}
 
-int SegmentLayer::updateState(double timef, double dt) {
+Response::Status SegmentLayer::updateState(double timef, double dt) {
    float *srcA  = originalLayer->getActivity();
    float *thisA = getActivity();
    assert(srcA);
@@ -455,7 +455,7 @@ int SegmentLayer::updateState(double timef, double dt) {
    } // End batch loop
 
    // centerIdx now stores each center coordinate of each segment
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 SegmentLayer::~SegmentLayer() {

@@ -438,9 +438,7 @@ int Segmentify::setOutputVals(int batchIdx) {
    return PV_SUCCESS;
 }
 
-int Segmentify::updateState(double timef, double dt) {
-   int status;
-
+Response::Status Segmentify::updateState(double timef, double dt) {
    // Using the segment activity, we want to compress all values within a segment to a single value
    // (per feature)
    for (int bi = 0; bi < getLayerLoc()->nbatch; bi++) {
@@ -449,7 +447,7 @@ int Segmentify::updateState(double timef, double dt) {
       setOutputVals(bi);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 Segmentify::~Segmentify() {

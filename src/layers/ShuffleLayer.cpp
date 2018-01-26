@@ -366,8 +366,7 @@ void ShuffleLayer::randomShuffle(const float *sourceData, float *activity) {
    }
 }
 
-int ShuffleLayer::updateState(double timef, double dt) {
-   int status = PV_SUCCESS;
+Response::Status ShuffleLayer::updateState(double timef, double dt) {
    // sourceData is extended
    const float *sourceData     = originalLayer->getLayerData();
    float *A                    = getActivity();
@@ -387,7 +386,7 @@ int ShuffleLayer::updateState(double timef, double dt) {
       rejectionShuffle(sourceData, A);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

@@ -54,19 +54,19 @@ int GapLayer::allocateDataStructures() {
    return status;
 }
 
-int GapLayer::updateState(double timef, double dt) {
+Response::Status GapLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(
+   updateState(
          timef,
          dt,
          getLayerLoc(),
          getCLayer()->activity->data,
          getV(),
          originalLayer->getCLayer()->activity->data);
-   return status;
+   return Response::SUCCESS;
 }
 
-int GapLayer::updateState(
+void GapLayer::updateState(
       double timef,
       double dt,
       const PVLayerLoc *loc,
@@ -97,7 +97,6 @@ int GapLayer::updateState(
          originalLayer->getLayerLoc()->halo.up,
          checkActive,
          ampSpikelet);
-   return PV_SUCCESS;
 }
 
 int GapLayer::setActivity() {

@@ -6,7 +6,7 @@ SegmentTestLayer::SegmentTestLayer(const char *name, HyPerCol *hc) {
    SegmentLayer::initialize(name, hc);
 }
 
-int SegmentTestLayer::updateState(double timef, double dt) {
+Response::Status SegmentTestLayer::updateState(double timef, double dt) {
    // Do update state first
    SegmentLayer::updateState(timef, dt);
    const PVLayerLoc *loc = getLayerLoc();
@@ -48,7 +48,7 @@ int SegmentTestLayer::updateState(double timef, double dt) {
       }
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

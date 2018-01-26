@@ -82,7 +82,7 @@ int MPITestLayer::allocateDataStructures() {
    return status;
 }
 
-int MPITestLayer::updateState(double timed, double dt) { return PV_SUCCESS; }
+Response::Status MPITestLayer::updateState(double timed, double dt) { return Response::SUCCESS; }
 
 int MPITestLayer::publish(Communicator *comm, double timed) {
    setActivitytoGlobalPos();

@@ -60,7 +60,7 @@ class LIF : public PV::HyPerLayer {
    virtual int allocateDataStructures() override;
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
    virtual int setActivity() override;
 
    float *getVth() { return Vth; }

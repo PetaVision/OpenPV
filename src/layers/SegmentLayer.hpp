@@ -27,7 +27,7 @@ class SegmentLayer : public PV::HyPerLayer {
    virtual int allocateV() override;
    virtual void initializeV() override;
 
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
   private:
    int initialize_base();

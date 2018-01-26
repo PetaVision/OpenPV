@@ -123,7 +123,7 @@ int ANNErrorLayer::checkVertices() const {
    return status;
 }
 
-int ANNErrorLayer::updateState(double time, double dt) {
+Response::Status ANNErrorLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -152,7 +152,7 @@ int ANNErrorLayer::updateState(double time, double dt) {
          gSynHead,
          A,
          errScale);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

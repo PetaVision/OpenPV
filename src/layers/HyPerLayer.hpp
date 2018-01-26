@@ -280,7 +280,7 @@ class HyPerLayer : public BaseLayer {
     * event occurs.
     * Copies the membrane potential V from triggerResetLayer and then calls setActivity to update A.
     */
-   virtual int resetStateOnTrigger();
+   virtual void resetStateOnTrigger();
 
    /*
     * Frees a buffer created by allocateBuffer().  Note that the address to the buffer
@@ -347,7 +347,7 @@ class HyPerLayer : public BaseLayer {
    virtual int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
 
    // An updateState wrapper that determines if updateState needs to be called
-   int callUpdateState(double simTime, double dt);
+   Response::Status callUpdateState(double simTime, double dt);
    /**
      * A virtual function to determine if callUpdateState method needs to be called
      * Default behavior is dependent on the triggering method.
@@ -507,9 +507,9 @@ class HyPerLayer : public BaseLayer {
 
 #ifdef PV_USE_CUDA
    virtual int runUpdateKernel();
-   virtual int updateStateGpu(double timef, double dt);
+   virtual Response::Status updateStateGpu(double timef, double dt);
 #endif
-   virtual int updateState(double timef, double dt);
+   virtual Response::Status updateState(double timef, double dt);
    virtual int setActivity();
    void freeChannels();
 

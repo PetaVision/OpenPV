@@ -23,7 +23,7 @@ class PtwiseProductLayer : public ANNLayer {
    virtual ~PtwiseProductLayer();
 
    virtual int allocateDataStructures() override;
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
   protected:
    PtwiseProductLayer();

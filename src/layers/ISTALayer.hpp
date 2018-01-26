@@ -51,10 +51,10 @@ class ISTALayer : public PV::ANNLayer {
    virtual void ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag);
    /** @} */
 
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
-   virtual int updateStateGpu(double time, double dt) override;
+   virtual Response::Status updateStateGpu(double time, double dt) override;
 #endif
 
    virtual float getChannelTimeConst(enum ChannelType channel_type) override {

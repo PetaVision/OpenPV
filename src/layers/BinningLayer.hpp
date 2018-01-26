@@ -30,8 +30,8 @@ class BinningLayer : public PV::HyPerLayer {
    int allocateV() override;
    virtual void initializeV() override;
    virtual void initializeActivity() override;
-   virtual int updateState(double timef, double dt) override;
-   virtual int doUpdateState(
+   virtual Response::Status updateState(double timef, double dt) override;
+   void doUpdateState(
          double timed,
          double dt,
          const PVLayerLoc *origLoc,

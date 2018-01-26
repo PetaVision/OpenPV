@@ -30,7 +30,7 @@ class IndexLayer : public HyPerLayer {
    IndexLayer();
    int initialize(char const *name, HyPerCol *hc);
    virtual Response::Status initializeState() override;
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
   private:
    int initialize_base();

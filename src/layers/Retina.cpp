@@ -276,7 +276,7 @@ Response::Status Retina::registerData(Checkpointer *checkpointer) {
  *
  *
  */
-int Retina::updateState(double timed, double dt) {
+Response::Status Retina::updateState(double timed, double dt) {
    const int nx       = clayer->loc.nx;
    const int ny       = clayer->loc.ny;
    const int nf       = clayer->loc.nf;
@@ -336,7 +336,7 @@ int Retina::updateState(double timed, double dt) {
    debugRetina().printf("----------------\n");
 
 #endif // DEBUG_PRINT
-   return 0;
+   return Response::SUCCESS;
 }
 
 } // namespace PV

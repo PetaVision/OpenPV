@@ -22,9 +22,9 @@ class FailBeforeExpectedStartTimeLayer : public PV::HyPerLayer {
    FailBeforeExpectedStartTimeLayer();
    int initialize(char const *name, PV::HyPerCol *hc);
 #ifdef PV_USE_CUDA
-   virtual int updateStateGpu(double simTime, double dt) override;
+   virtual PV::Response::Status updateStateGpu(double simTime, double dt) override;
 #endif
-   virtual int updateState(double simTime, double dt) override;
+   virtual PV::Response::Status updateState(double simTime, double dt) override;
 
   private:
    int initialize_base();

@@ -152,7 +152,7 @@ Response::Status CloneVLayer::registerData(Checkpointer *checkpointer) {
    return status;
 }
 
-int CloneVLayer::updateState(double timed, double dt) {
+Response::Status CloneVLayer::updateState(double timed, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -163,7 +163,7 @@ int CloneVLayer::updateState(double timed, double dt) {
    int nf                = loc->nf;
    int num_neurons       = nx * ny * nf;
    int nbatch            = loc->nbatch;
-   int status            = setActivity_HyPerLayer(
+   setActivity_HyPerLayer(
          nbatch,
          num_neurons,
          A,
@@ -175,7 +175,7 @@ int CloneVLayer::updateState(double timed, double dt) {
          loc->halo.rt,
          loc->halo.dn,
          loc->halo.up);
-   return status;
+   return Response::SUCCESS;
 }
 
 CloneVLayer::~CloneVLayer() {

@@ -67,9 +67,8 @@ int RunningAverageLayer::setActivity() {
    return 0;
 }
 
-int RunningAverageLayer::updateState(double timef, double dt) {
+Response::Status RunningAverageLayer::updateState(double timef, double dt) {
    numUpdateTimes++;
-   int status = PV_SUCCESS;
    // Check if an update is needed
    // Done in cloneVLayer
    int numNeurons                = originalLayer->getNumNeurons();
@@ -142,7 +141,7 @@ int RunningAverageLayer::updateState(double timef, double dt) {
          }
       }
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

@@ -95,7 +95,7 @@ class ImageFromMemoryBuffer : public ImageLayer {
    /**
        * Overrides updateState
        */
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
   protected:
    ImageFromMemoryBuffer();

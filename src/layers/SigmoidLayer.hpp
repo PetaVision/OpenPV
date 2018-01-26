@@ -21,7 +21,7 @@ class SigmoidLayer : public CloneVLayer {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
    virtual int setActivity() override;
 
   protected:
@@ -33,7 +33,7 @@ class SigmoidLayer : public CloneVLayer {
    virtual void ioParam_InverseFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_SigmoidFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag);
-   /* static */ int updateState(
+   /* static */ void updateState(
          double timef,
          double dt,
          const PVLayerLoc *loc,

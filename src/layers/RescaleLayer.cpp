@@ -131,9 +131,7 @@ int RescaleLayer::setActivity() {
 }
 
 // GTK: changed to rescale activity instead of V
-int RescaleLayer::updateState(double timef, double dt) {
-   int status = PV_SUCCESS;
-
+Response::Status RescaleLayer::updateState(double timef, double dt) {
    int numNeurons                = originalLayer->getNumNeurons();
    float *A                      = clayer->activity->data;
    const float *originalA        = originalLayer->getCLayer()->activity->data;
@@ -810,7 +808,7 @@ int RescaleLayer::updateState(double timef, double dt) {
          }
       }
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

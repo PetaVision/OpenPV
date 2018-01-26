@@ -400,8 +400,7 @@ Response::Status LIF::registerData(Checkpointer *checkpointer) {
    return Response::SUCCESS;
 }
 
-int LIF::updateState(double time, double dt) {
-   int status = 0;
+Response::Status LIF::updateState(double time, double dt) {
    update_timer->start();
 
    const int nx       = clayer->loc.nx;
@@ -486,7 +485,7 @@ int LIF::updateState(double time, double dt) {
       default: assert(0); break;
    }
    update_timer->stop();
-   return status;
+   return Response::SUCCESS;
 }
 
 float LIF::getChannelTimeConst(enum ChannelType channel_type) {

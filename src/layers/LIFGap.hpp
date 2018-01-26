@@ -22,7 +22,7 @@ class LIFGap : public PV::LIF {
    LIFGap(const char *name, HyPerCol *hc);
    virtual ~LIFGap();
 
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
@@ -39,7 +39,7 @@ class LIFGap : public PV::LIF {
    int initialize_base();
    float *gapStrength;
    bool gapStrengthInitialized;
-   int calcGapStrength();
+   void calcGapStrength();
 
 }; // class LIFGap
 

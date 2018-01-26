@@ -36,7 +36,7 @@ class CloneVLayer : public PV::HyPerLayer {
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
    virtual void initializeV() override;
    virtual void readVFromCheckpoint(Checkpointer *checkpointer) override;
-   virtual int updateState(double timed, double dt) override;
+   virtual Response::Status updateState(double timed, double dt) override;
 
   private:
    int initialize_base();

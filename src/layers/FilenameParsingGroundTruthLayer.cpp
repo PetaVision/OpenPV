@@ -122,7 +122,7 @@ bool FilenameParsingGroundTruthLayer::needUpdate(double time, double dt) {
    return mInputLayer->needUpdate(parent->simulationTime(), parent->getDeltaTime());
 }
 
-int FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
+Response::Status FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
    update_timer->start();
    float *A                  = getCLayer()->activity->data;
    const PVLayerLoc *loc     = getLayerLoc();
@@ -171,7 +171,7 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
       }
    }
    update_timer->stop();
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

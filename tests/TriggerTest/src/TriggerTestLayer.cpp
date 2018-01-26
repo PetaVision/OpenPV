@@ -11,7 +11,7 @@ TriggerTestLayer::TriggerTestLayer(const char *name, HyPerCol *hc) {
    HyPerLayer::initialize(name, hc);
 }
 
-int TriggerTestLayer::updateState(double time, double dt) {
+Response::Status TriggerTestLayer::updateState(double time, double dt) {
    // 4 different layers
    // No trigger, always update
    InfoLog().printf(

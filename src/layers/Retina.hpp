@@ -46,7 +46,7 @@ class Retina : public PV::HyPerLayer {
 
    int setRetinaParams(PVParams *p);
 
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
    virtual bool activityIsSpiking() override { return spikingFlag; }
 

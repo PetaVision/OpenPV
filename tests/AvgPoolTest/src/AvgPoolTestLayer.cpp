@@ -6,7 +6,7 @@ AvgPoolTestLayer::AvgPoolTestLayer(const char *name, HyPerCol *hc) {
    HyPerLayer::initialize(name, hc);
 }
 
-int AvgPoolTestLayer::updateState(double timef, double dt) {
+Response::Status AvgPoolTestLayer::updateState(double timef, double dt) {
    // Do update state of HyPerLayer first
    HyPerLayer::updateState(timef, dt);
 
@@ -71,7 +71,7 @@ int AvgPoolTestLayer::updateState(double timef, double dt) {
          exit(-1);
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

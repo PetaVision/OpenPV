@@ -37,7 +37,7 @@ class FixedImageSequence : public PV::HyPerLayer {
     * timestamp * globalBatchSize + globalBatchIndex
     * into the activity buffer.
     */
-   virtual int updateState(double timestamp, double dt) override;
+   virtual PV::Response::Status updateState(double timestamp, double dt) override;
 
    int getNumImages() const { return mNumImages; }
 

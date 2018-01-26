@@ -4,7 +4,7 @@ namespace PV {
 
 ComparisonLayer::ComparisonLayer(const char *name, HyPerCol *hc) { ANNLayer::initialize(name, hc); }
 
-int ComparisonLayer::updateState(double timef, double dt) {
+Response::Status ComparisonLayer::updateState(double timef, double dt) {
 
    // Grab layer size
    const PVLayerLoc *loc = getLayerLoc();
@@ -32,7 +32,7 @@ int ComparisonLayer::updateState(double timef, double dt) {
    if (!isCorrect) {
       exit(-1);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

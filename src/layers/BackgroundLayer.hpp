@@ -22,7 +22,7 @@ class BackgroundLayer : public CloneVLayer {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateV() override;
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
    virtual int setActivity() override;
 
   protected:

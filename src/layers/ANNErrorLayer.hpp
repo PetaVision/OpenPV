@@ -67,7 +67,7 @@ class ANNErrorLayer : public PV::ANNLayer {
 
    virtual int setVertices() override;
    virtual int checkVertices() const override;
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
   private:
    int initialize_base();

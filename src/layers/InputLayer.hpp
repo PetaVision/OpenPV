@@ -187,7 +187,7 @@ class InputLayer : public HyPerLayer {
    virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
    void makeInputRegionsPointer() { mNeedInputRegionsPointer = true; }
    virtual int allocateDataStructures() override;
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
    /**
     * This function is called by updateState if writeFrameToTimestamp is used.

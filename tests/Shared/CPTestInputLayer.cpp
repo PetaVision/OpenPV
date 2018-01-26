@@ -61,7 +61,7 @@ void CPTestInputLayer::initializeV() {
    }
 }
 
-int CPTestInputLayer::updateState(double timed, double dt) {
+Response::Status CPTestInputLayer::updateState(double timed, double dt) {
    update_timer->start();
    const int nx         = clayer->loc.nx;
    const int ny         = clayer->loc.ny;
@@ -89,7 +89,7 @@ int CPTestInputLayer::updateState(double timed, double dt) {
          activity);
 
    update_timer->stop();
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end of namespace PV block

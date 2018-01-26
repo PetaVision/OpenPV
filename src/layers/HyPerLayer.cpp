@@ -960,7 +960,7 @@ Response::Status HyPerLayer::respondLayerProbeWriteParams(
 Response::Status HyPerLayer::respondLayerClearProgressFlags(
       std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
    clearProgressFlags();
-   return PV::SUCCESS;
+   return Response::SUCCESS;
 }
 
 Response::Status HyPerLayer::respondLayerRecvSynapticInput(
@@ -1013,7 +1013,7 @@ HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage cons
       *(message->mSomeLayerIsPending) = true;
       return status;
    }
-   status = Response::convertIntToStatus(callUpdateState(message->mTime, message->mDeltaT));
+   status = callUpdateState(message->mTime, message->mDeltaT);
 
    mHasUpdated                    = true;
    *(message->mSomeLayerHasActed) = true;
@@ -1748,11 +1748,11 @@ bool HyPerLayer::needReset(double simTime, double dt) {
    return false;
 }
 
-int HyPerLayer::callUpdateState(double simTime, double dt) {
-   int status = PV_SUCCESS;
+Response::Status HyPerLayer::callUpdateState(double simTime, double dt) {
+   auto status = Response::NO_ACTION;
    if (needUpdate(simTime, dt)) {
       if (needReset(simTime, dt)) {
-         status           = resetStateOnTrigger();
+         resetStateOnTrigger();
          mLastTriggerTime = simTime;
       }
 
@@ -1781,7 +1781,7 @@ int HyPerLayer::callUpdateState(double simTime, double dt) {
    return status;
 }
 
-int HyPerLayer::resetStateOnTrigger() {
+void HyPerLayer::resetStateOnTrigger() {
    assert(triggerResetLayer != NULL);
    float *V = getV();
    if (V == NULL) {
@@ -1821,7 +1821,7 @@ int HyPerLayer::resetStateOnTrigger() {
       }
    }
 
-   int status = setActivity();
+   setActivity();
 
 // Update V on GPU after CPU V gets set
 #ifdef PV_USE_CUDA
@@ -1835,8 +1835,6 @@ int HyPerLayer::resetStateOnTrigger() {
       updatedDeviceDatastore = true;
    }
 #endif
-
-   return status;
 }
 
 int HyPerLayer::resetGSynBuffers(double timef, double dt) {
@@ -1871,13 +1869,13 @@ int HyPerLayer::runUpdateKernel() {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::updateStateGpu(double timef, double dt) {
+Response::Status HyPerLayer::updateStateGpu(double timef, double dt) {
    Fatal() << "Update state for layer " << name << " is not implemented\n";
-   return -1;
+   return Response::NO_ACTION; // never reached; added to prevent compiler warnings.
 }
 #endif
 
-int HyPerLayer::updateState(double timef, double dt) {
+Response::Status HyPerLayer::updateState(double timef, double dt) {
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
@@ -1911,7 +1909,7 @@ int HyPerLayer::updateState(double timef, double dt) {
          loc->halo.dn,
          loc->halo.up);
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int HyPerLayer::setActivity() {

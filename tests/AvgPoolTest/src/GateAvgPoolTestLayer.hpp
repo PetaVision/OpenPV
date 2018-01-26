@@ -10,7 +10,7 @@ class GateAvgPoolTestLayer : public PV::HyPerLayer {
    GateAvgPoolTestLayer(const char *name, HyPerCol *hc);
 
   protected:
-   int updateState(double timef, double dt) override;
+   Response::Status updateState(double timef, double dt) override;
 
   private:
 }; // end class GateAvgPoolTestLayer

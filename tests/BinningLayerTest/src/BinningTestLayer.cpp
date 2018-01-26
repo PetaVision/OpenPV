@@ -6,7 +6,7 @@ BinningTestLayer::BinningTestLayer(const char *name, HyPerCol *hc) {
    BinningLayer::initialize(name, hc);
 }
 
-int BinningTestLayer::updateState(double timef, double dt) {
+Response::Status BinningTestLayer::updateState(double timef, double dt) {
    // Do update state of Binning Layer first
    BinningLayer::updateState(timef, dt);
    // Grab layer size
@@ -71,7 +71,7 @@ int BinningTestLayer::updateState(double timef, double dt) {
          }
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

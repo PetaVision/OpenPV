@@ -20,7 +20,7 @@ void DropoutLayer::ioParam_probability(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int DropoutLayer::updateState(double timestamp, double dt) {
+Response::Status DropoutLayer::updateState(double timestamp, double dt) {
    ANNLayer::updateState(timestamp, dt);
    float *A  = getCLayer()->activity->data;
    int total = getNumExtendedAllBatches();
@@ -34,6 +34,6 @@ int DropoutLayer::updateState(double timestamp, double dt) {
       }
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 }

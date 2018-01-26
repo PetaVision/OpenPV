@@ -78,7 +78,9 @@ int ShrunkenPatchTestLayer::allocateDataStructures() {
    return status;
 }
 
-int ShrunkenPatchTestLayer::updateState(double timed, double dt) { return PV_SUCCESS; }
+Response::Status ShrunkenPatchTestLayer::updateState(double timed, double dt) {
+   return Response::SUCCESS;
+}
 
 int ShrunkenPatchTestLayer::publish(Communicator *comm, double timed) {
    setActivitytoGlobalPos();

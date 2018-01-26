@@ -19,7 +19,7 @@ class LCALIFLayer : public PV::LIFGap {
    LCALIFLayer(const char *name, HyPerCol *hc); // The constructor called by other methods
    virtual ~LCALIFLayer();
    virtual int allocateDataStructures() override;
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
    int findFlag(int numMatrixCol, int numMatrixRow);
 
    inline float getTargetRate() { return targetRateHz; }

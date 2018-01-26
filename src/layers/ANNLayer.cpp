@@ -417,7 +417,7 @@ int ANNLayer::resetGSynBuffers(double timef, double dt) {
    return HyPerLayer::resetGSynBuffers(timef, dt);
 }
 
-int ANNLayer::updateState(double time, double dt) {
+Response::Status ANNLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -469,7 +469,7 @@ int ANNLayer::updateState(double time, double dt) {
             gSynHead,
             A);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int ANNLayer::setActivity() {

@@ -215,7 +215,7 @@ Response::Status LCALIFLayer::registerData(Checkpointer *checkpointer) {
    return Response::SUCCESS;
 }
 
-int LCALIFLayer::updateState(double timed, double dt) {
+Response::Status LCALIFLayer::updateState(double timed, double dt) {
    // Calculate_state kernel
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       G_Norm[k] = GSyn[CHANNEL_NORM][k]; // Copy GSyn buffer on normalizing channel for
@@ -257,7 +257,7 @@ int LCALIFLayer::updateState(double timed, double dt) {
          excitatoryNoise,
          inhibitoryNoise,
          inhibNoiseB);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 Response::Status LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {

@@ -163,12 +163,11 @@ void BinningLayer::initializeV() { assert(getV() == NULL); }
 
 void BinningLayer::initializeActivity() {}
 
-int BinningLayer::updateState(double timef, double dt) {
-   int status;
+Response::Status BinningLayer::updateState(double timef, double dt) {
    assert(GSyn == NULL);
    float *gSynHead = NULL;
 
-   status = doUpdateState(
+   doUpdateState(
          timef,
          dt,
          originalLayer->getLayerLoc(),
@@ -177,10 +176,10 @@ int BinningLayer::updateState(double timef, double dt) {
          getActivity(),
          binMax,
          binMin);
-   return status;
+   return Response::SUCCESS;
 }
 
-int BinningLayer::doUpdateState(
+void BinningLayer::doUpdateState(
       double timed,
       double dt,
       const PVLayerLoc *origLoc,
@@ -305,7 +304,6 @@ int BinningLayer::doUpdateState(
          }
       }
    }
-   return status;
 }
 
 float BinningLayer::calcNormDist(float xVal, float mean, float sigma) {

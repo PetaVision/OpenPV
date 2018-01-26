@@ -5,7 +5,7 @@ namespace PV {
 
 MoviePvpTestLayer::MoviePvpTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-int MoviePvpTestLayer::updateState(double time, double dt) {
+Response::Status MoviePvpTestLayer::updateState(double time, double dt) {
    PvpLayer::updateState(time, dt);
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -44,7 +44,7 @@ int MoviePvpTestLayer::updateState(double time, double dt) {
          }
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

@@ -10,7 +10,7 @@ class MaskTestInputLayer : public PV::ANNLayer {
    MaskTestInputLayer(const char *name, HyPerCol *hc);
 
   protected:
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
   private:
 };

@@ -119,8 +119,7 @@ int BackgroundLayer::setActivity() {
    return 0;
 }
 
-int BackgroundLayer::updateState(double timef, double dt) {
-   int status                    = PV_SUCCESS;
+Response::Status BackgroundLayer::updateState(double timef, double dt) {
    float *A                      = clayer->activity->data;
    const float *originalA        = originalLayer->getCLayer()->activity->data;
    const PVLayerLoc *loc         = getLayerLoc();
@@ -192,7 +191,7 @@ int BackgroundLayer::updateState(double timef, double dt) {
          }
       }
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

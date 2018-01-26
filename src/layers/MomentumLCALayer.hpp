@@ -37,10 +37,10 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
    virtual Response::Status processCheckpointRead() override;
    virtual Response::Status prepareCheckpointWrite() override;
 
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
-   virtual int updateStateGpu(double time, double dt) override;
+   virtual Response::Status updateStateGpu(double time, double dt) override;
    virtual int allocateUpdateKernel() override;
 #endif
 

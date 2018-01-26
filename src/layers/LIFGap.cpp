@@ -141,7 +141,7 @@ int LIFGap::allocateConductances(int num_channels) {
    return status;
 }
 
-int LIFGap::calcGapStrength() {
+void LIFGap::calcGapStrength() {
    bool needsNewCalc = !gapStrengthInitialized;
    if (!needsNewCalc) {
       for (auto &c : recvConns) {
@@ -156,7 +156,7 @@ int LIFGap::calcGapStrength() {
       }
    }
    if (!needsNewCalc) {
-      return PV_SUCCESS;
+      return;
    }
 
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
@@ -177,7 +177,6 @@ int LIFGap::calcGapStrength() {
       c->deliverUnitInput(gapStrength);
    }
    gapStrengthInitialized = true;
-   return PV_SUCCESS;
 }
 
 Response::Status LIFGap::registerData(Checkpointer *checkpointer) {
@@ -208,10 +207,8 @@ void LIFGap::readGapStrengthFromCheckpoint(Checkpointer *checkpointer) {
          std::string(name), std::string("gapStrength"), false /*not constant*/);
 }
 
-int LIFGap::updateState(double time, double dt) {
-   int status = PV_SUCCESS;
-
-   status = calcGapStrength();
+Response::Status LIFGap::updateState(double time, double dt) {
+   calcGapStrength();
 
    const int nx       = clayer->loc.nx;
    const int ny       = clayer->loc.ny;
@@ -297,7 +294,7 @@ int LIFGap::updateState(double time, double dt) {
          break;
       default: break;
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 } // namespace PV

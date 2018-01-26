@@ -67,7 +67,7 @@ bool InputLayer::readyForNextFile() {
    return mDisplayPeriod > 0;
 }
 
-int InputLayer::updateState(double time, double dt) {
+Response::Status InputLayer::updateState(double time, double dt) {
    if (readyForNextFile()) {
 
       // Write file path to timestamp file
@@ -90,7 +90,7 @@ int InputLayer::updateState(double time, double dt) {
       // Read in the next file
       retrieveInputAndAdvanceIndex(time, dt);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 void InputLayer::retrieveInput(double timef, double dt) {

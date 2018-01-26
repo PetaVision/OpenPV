@@ -53,6 +53,6 @@ void TestImage::initializeActivity() {
    }
 }
 
-int TestImage::updateState(double timed, double dt) { return PV_SUCCESS; }
+Response::Status TestImage::updateState(double timed, double dt) { return Response::SUCCESS; }
 
 } // namespace PV

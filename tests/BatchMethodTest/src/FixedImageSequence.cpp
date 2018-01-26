@@ -19,7 +19,7 @@ PV::Response::Status FixedImageSequence::initializeState() {
    return PV::Response::SUCCESS;
 }
 
-int FixedImageSequence::updateState(double timestamp, double dt) {
+PV::Response::Status FixedImageSequence::updateState(double timestamp, double dt) {
    FatalIf(dt != 1.0, "FixedImageSequence assumes dt = 1.\n");
    double timestampRounded = std::nearbyint(timestamp);
    FatalIf(
@@ -95,5 +95,5 @@ int FixedImageSequence::updateState(double timestamp, double dt) {
          }
       }
    }
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }

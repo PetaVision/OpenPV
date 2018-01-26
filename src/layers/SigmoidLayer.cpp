@@ -92,9 +92,9 @@ int SigmoidLayer::setActivity() {
    return 0;
 }
 
-int SigmoidLayer::updateState(double timef, double dt) {
+Response::Status SigmoidLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(
+   updateState(
          timef,
          dt,
          getLayerLoc(),
@@ -107,10 +107,10 @@ int SigmoidLayer::updateState(double timef, double dt) {
          SigmoidAlpha,
          SigmoidFlag,
          InverseFlag);
-   return status;
+   return Response::SUCCESS;
 }
 
-int SigmoidLayer::updateState(
+void SigmoidLayer::updateState(
       double timef,
       double dt,
       const PVLayerLoc *loc,
@@ -147,7 +147,6 @@ int SigmoidLayer::updateState(
          sigmoid_flag,
          inverse_flag,
          dt);
-   return PV_SUCCESS;
 }
 
 } // end namespace PV

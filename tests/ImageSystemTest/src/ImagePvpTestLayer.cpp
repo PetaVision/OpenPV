@@ -16,7 +16,7 @@ Response::Status ImagePvpTestLayer::registerData(Checkpointer *checkpointer) {
    return Response::SUCCESS;
 }
 
-int ImagePvpTestLayer::updateState(double time, double dt) {
+Response::Status ImagePvpTestLayer::updateState(double time, double dt) {
    PvpLayer::updateState(time, dt);
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -45,7 +45,7 @@ int ImagePvpTestLayer::updateState(double time, double dt) {
          }
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

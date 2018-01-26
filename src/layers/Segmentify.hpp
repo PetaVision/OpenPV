@@ -31,7 +31,7 @@ class Segmentify : public PV::HyPerLayer {
    virtual void initializeV() override;
    virtual void initializeActivity() override;
 
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
    float calcNormDist(float xVal, float mean, float binSigma);
 

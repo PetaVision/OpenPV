@@ -211,7 +211,7 @@ int HyPerLCALayer::allocateUpdateKernel() {
 #endif
 
 #ifdef PV_USE_CUDA
-int HyPerLCALayer::updateStateGpu(double time, double dt) {
+Response::Status HyPerLCALayer::updateStateGpu(double time, double dt) {
    // Copy over d_dtAdapt
    d_dtAdapt->copyToDevice(deltaTimes());
    // Change dt to match what is passed in
@@ -219,13 +219,13 @@ int HyPerLCALayer::updateStateGpu(double time, double dt) {
          dynamic_cast<PVCuda::CudaUpdateHyPerLCALayer *>(krUpdate);
    assert(updateKernel);
    runUpdateKernel();
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 #endif
 
 double HyPerLCALayer::getDeltaUpdateTime() { return parent->getDeltaTime(); }
 
-int HyPerLCALayer::updateState(double time, double dt) {
+Response::Status HyPerLCALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -262,7 +262,7 @@ int HyPerLCALayer::updateState(double time, double dt) {
             A);
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 double *HyPerLCALayer::deltaTimes() {

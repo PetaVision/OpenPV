@@ -172,7 +172,7 @@ int MomentumLCALayer::allocateUpdateKernel() {
    return PV_SUCCESS;
 }
 
-int MomentumLCALayer::updateStateGpu(double time, double dt) {
+Response::Status MomentumLCALayer::updateStateGpu(double time, double dt) {
    if (triggerLayer != NULL) {
       Fatal().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
    }
@@ -185,11 +185,11 @@ int MomentumLCALayer::updateStateGpu(double time, double dt) {
    assert(updateKernel);
    runUpdateKernel();
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 #endif
 
-int MomentumLCALayer::updateState(double time, double dt) {
+Response::Status MomentumLCALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -225,7 +225,7 @@ int MomentumLCALayer::updateState(double time, double dt) {
          gSynHead,
          A,
          prevDrive);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 Response::Status MomentumLCALayer::registerData(Checkpointer *checkpointer) {

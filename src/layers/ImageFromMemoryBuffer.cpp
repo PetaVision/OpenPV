@@ -156,13 +156,13 @@ template float ImageFromMemoryBuffer::pixelTypeConvert<unsigned char>(
 
 void ImageFromMemoryBuffer::initializeActivity(double time, double dt) { retrieveInput(time, dt); }
 
-int ImageFromMemoryBuffer::updateState(double time, double dt) {
+Response::Status ImageFromMemoryBuffer::updateState(double time, double dt) {
    assert(hasNewImageFlag); // updateState shouldn't have been called otherwise.
    Fatal() << "ImageFromMemoryBuffer is currently broken.\n"; // Marked broken Apr 24, 2017.
    hasNewImageFlag = false;
    // TODO: Need to refactor ImageFromMemoryBuffer to reflect the refactoring of the rest of
    // the InputLayer hierarchy.
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 double ImageFromMemoryBuffer::getDeltaUpdateTime() {

@@ -10,7 +10,7 @@ class AvgPoolTestLayer : public PV::HyPerLayer {
    AvgPoolTestLayer(const char *name, HyPerCol *hc);
 
   protected:
-   int updateState(double timef, double dt) override;
+   Response::Status updateState(double timef, double dt) override;
 
   private:
 }; // end class AvgPoolTestLayer

@@ -23,7 +23,7 @@ class GapLayer : public CloneVLayer {
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
 
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
   protected:
    GapLayer();
@@ -31,7 +31,7 @@ class GapLayer : public CloneVLayer {
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_ampSpikelet(enum ParamsIOFlag ioFlag);
 
-   /* static */ int updateState(
+   /* static */ void updateState(
          double timef,
          double dt,
          const PVLayerLoc *loc,

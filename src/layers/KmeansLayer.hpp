@@ -20,7 +20,7 @@ class KmeansLayer : public HyPerLayer {
   protected:
    KmeansLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
    virtual int setActivity() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_TrainingFlag(enum ParamsIOFlag ioFlag);

@@ -33,11 +33,10 @@ void IndexLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 PV::Response::Status IndexLayer::initializeState() {
-   int status = updateState(parent->getStartTime(), parent->getDeltaTime());
-   return PV::Response::convertIntToStatus(status);
+   return updateState(parent->getStartTime(), parent->getDeltaTime());
 }
 
-int IndexLayer::updateState(double timef, double dt) {
+Response::Status IndexLayer::updateState(double timef, double dt) {
    PVLayerLoc const *loc = getLayerLoc();
    PVHalo const &halo    = loc->halo;
    for (int b = 0; b < loc->nbatch; b++) {
@@ -53,7 +52,7 @@ int IndexLayer::updateState(double timef, double dt) {
          A[kExt] = value;
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

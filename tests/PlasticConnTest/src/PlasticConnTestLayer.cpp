@@ -65,7 +65,9 @@ int PlasticConnTestLayer::allocateDataStructures() {
    return status;
 }
 
-int PlasticConnTestLayer::updateState(double timef, double dt) { return PV_SUCCESS; }
+Response::Status PlasticConnTestLayer::updateState(double timef, double dt) {
+   return Response::SUCCESS;
+}
 
 int PlasticConnTestLayer::publish(Communicator *comm, double timef) {
    setActivitytoGlobalPos();

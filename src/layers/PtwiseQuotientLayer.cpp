@@ -38,14 +38,13 @@ int PtwiseQuotientLayer::allocateDataStructures() {
    return status;
 }
 
-int PtwiseQuotientLayer::updateState(double timef, double dt) {
-   int status;
-   status = doUpdateState(
+Response::Status PtwiseQuotientLayer::updateState(double timef, double dt) {
+   doUpdateState(
          timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0]);
-   return status;
+   return Response::SUCCESS;
 }
 
-int PtwiseQuotientLayer::doUpdateState(
+void PtwiseQuotientLayer::doUpdateState(
       double timef,
       double dt,
       const PVLayerLoc *loc,
@@ -71,7 +70,6 @@ int PtwiseQuotientLayer::doUpdateState(
          loc->halo.rt,
          loc->halo.dn,
          loc->halo.up);
-   return PV_SUCCESS;
 }
 
 } // end namespace PV

@@ -15,7 +15,7 @@ namespace PV {
 class TestImage : public HyPerLayer {
   public:
    TestImage(const char *name, HyPerCol *hc);
-   virtual int updateState(double timed, double dt) override;
+   virtual Response::Status updateState(double timed, double dt) override;
    const float getConstantVal() { return val; }
    virtual bool activityIsSpiking() override { return false; }
    virtual ~TestImage();

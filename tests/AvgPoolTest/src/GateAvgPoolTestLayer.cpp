@@ -8,7 +8,7 @@ GateAvgPoolTestLayer::GateAvgPoolTestLayer(const char *name, HyPerCol *hc) {
    HyPerLayer::initialize(name, hc);
 }
 
-int GateAvgPoolTestLayer::updateState(double timef, double dt) {
+Response::Status GateAvgPoolTestLayer::updateState(double timef, double dt) {
    // Do update state of HyPerLayer first
    HyPerLayer::updateState(timef, dt);
 
@@ -67,7 +67,7 @@ int GateAvgPoolTestLayer::updateState(double timef, double dt) {
       // the run before process 0 reports the error.
       exit(-1);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

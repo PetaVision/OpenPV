@@ -38,7 +38,7 @@ int PtwiseProductLayer::allocateDataStructures() {
    return status;
 }
 
-int PtwiseProductLayer::updateState(double timef, double dt) {
+Response::Status PtwiseProductLayer::updateState(double timef, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -62,7 +62,7 @@ int PtwiseProductLayer::updateState(double timef, double dt) {
          loc->halo.rt,
          loc->halo.dn,
          loc->halo.up);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

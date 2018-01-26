@@ -171,7 +171,7 @@ int MaskLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    return status;
 }
 
-int MaskLayer::updateState(double time, double dt) {
+Response::Status MaskLayer::updateState(double time, double dt) {
    ANNLayer::updateState(time, dt);
 
    float *A              = getCLayer()->activity->data;
@@ -294,7 +294,7 @@ int MaskLayer::updateState(double time, double dt) {
          }
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */
