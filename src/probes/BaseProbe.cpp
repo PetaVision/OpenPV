@@ -325,28 +325,21 @@ Response::Status BaseProbe::registerData(Checkpointer *checkpointer) {
    return Response::SUCCESS;
 }
 
-int BaseProbe::getValues(double timevalue) {
-   int status = PV_SUCCESS;
+void BaseProbe::getValues(double timevalue) {
    if (needRecalc(timevalue)) {
-      status = calcValues(timevalue);
-      if (status == PV_SUCCESS) {
-         lastUpdateTime = referenceUpdateTime();
-      }
+      calcValues(timevalue);
+      lastUpdateTime = referenceUpdateTime();
    }
-   return status;
 }
 
-int BaseProbe::getValues(double timevalue, double *values) {
-   int status = getValues(timevalue);
-   if (status == PV_SUCCESS) {
-      memcpy(values, probeValues, sizeof(*probeValues) * (size_t)getNumValues());
-   }
-   return status;
+void BaseProbe::getValues(double timevalue, double *values) {
+   getValues(timevalue);
+   memcpy(values, probeValues, sizeof(*probeValues) * (size_t)getNumValues());
 }
 
-int BaseProbe::getValues(double timevalue, std::vector<double> *valuesVector) {
+void BaseProbe::getValues(double timevalue, std::vector<double> *valuesVector) {
    valuesVector->resize(this->getNumValues());
-   return getValues(timevalue, &valuesVector->front());
+   getValues(timevalue, &valuesVector->front());
 }
 
 double BaseProbe::getValue(double timevalue, int index) {
@@ -354,12 +347,8 @@ double BaseProbe::getValue(double timevalue, int index) {
       return std::numeric_limits<double>::signaling_NaN();
    }
    else {
-      int status = PV_SUCCESS;
       if (needRecalc(timevalue)) {
-         status = getValues(timevalue);
-      }
-      if (status != PV_SUCCESS) {
-         return std::numeric_limits<double>::signaling_NaN();
+         getValues(timevalue);
       }
    }
    return probeValues[index];

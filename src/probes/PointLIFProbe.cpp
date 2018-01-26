@@ -54,7 +54,7 @@ void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 
 int PointLIFProbe::initNumValues() { return setNumValues(NUMBER_OF_VALUES); }
 
-int PointLIFProbe::calcValues(double timevalue) {
+void PointLIFProbe::calcValues(double timevalue) {
    // TODO: Reduce duplicated code between PointProbe::calcValues and
    // PointLIFProbe::calcValues.
    assert(this->getNumValues() == NUMBER_OF_VALUES);
@@ -141,7 +141,6 @@ int PointLIFProbe::calcValues(double timevalue) {
                MPI_STATUS_IGNORE);
       }
    }
-   return PV_SUCCESS;
 }
 
 /**

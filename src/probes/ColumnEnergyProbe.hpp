@@ -69,7 +69,7 @@ class ColumnEnergyProbe : public ColProbe {
     */
    virtual int outputState(double timevalue) override;
 
-   virtual int calcValues(double timevalue) override;
+   virtual void calcValues(double timevalue) override;
 
   protected:
    /**

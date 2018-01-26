@@ -116,7 +116,7 @@ class BaseProbe : public BaseObject {
     * should override
     * calcValues.
     */
-   int getValues(double timevalue, double *valuesVector);
+   void getValues(double timevalue, double *valuesVector);
    /**
     * getValues(double timevalue, vector<double> * valuesVector) is a wrapper
     * around
@@ -124,7 +124,7 @@ class BaseProbe : public BaseObject {
     * to size getNumValues() and then fills the vector with the values returned
     * by getValues.
     */
-   int getValues(double timevalue, std::vector<double> *valuesVector);
+   void getValues(double timevalue, std::vector<double> *valuesVector);
    /**
     * getValue() is meant for situations where the caller needs one value
     * that would be returned by getValues(), not the whole buffer.
@@ -265,14 +265,14 @@ class BaseProbe : public BaseObject {
     * It should write the computed values into the buffer of member variable
     * 'probeValues'.
     */
-   virtual int calcValues(double timevalue) = 0;
+   virtual void calcValues(double timevalue) = 0;
 
    /**
     * If needRecalc() returns true, getValues(double) updates the probeValues
     * buffer (by calling calcValues) and sets lastUpdateTime to the timevalue
     * input argument.
     */
-   int getValues(double timevalue);
+   void getValues(double timevalue);
 
    /**
     * Returns a pointer to the message parameter.

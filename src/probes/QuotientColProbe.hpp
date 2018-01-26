@@ -117,7 +117,7 @@ class QuotientColProbe : public ColProbe {
     * Implements the needRecalc method.  Always returns true, in the expectation
     * that the hard work is done by the probes in the numerator and denominator.
     */
-   virtual int calcValues(double timeValue) override;
+   virtual void calcValues(double timeValue) override;
 
    virtual void outputHeader() override;
 

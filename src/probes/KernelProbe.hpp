@@ -36,7 +36,9 @@ class KernelProbe : public BaseHyPerConnProbe {
 
    virtual int initNumValues() override;
 
-   virtual int calcValues(double timevalue) override { return PV_FAILURE; }
+   virtual void calcValues(double timevalue) override {
+      Fatal().printf("%s does not use calcValues.\n", getDescription_c());
+   };
 
    int getKernelIndex() { return kernelIndex; }
    int getArbor() { return arborID; }

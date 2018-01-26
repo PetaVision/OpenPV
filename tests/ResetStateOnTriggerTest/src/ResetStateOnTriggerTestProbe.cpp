@@ -20,7 +20,7 @@ int ResetStateOnTriggerTestProbe::initialize(char const *name, PV::HyPerCol *hc)
    return status;
 }
 
-int ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
+void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    int nBatch = getNumValues();
    if (timevalue > parent->getStartTime()) {
       int N                 = targetLayer->getNumNeurons();
@@ -65,7 +65,6 @@ int ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
          getValuesBuffer()[b] = 0.0;
       }
    }
-   return PV_SUCCESS;
 }
 
 int ResetStateOnTriggerTestProbe::outputState(double timevalue) {

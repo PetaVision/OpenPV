@@ -161,7 +161,7 @@ int PointProbe::outputState(double timef) {
    return writeState(timef);
 }
 
-int PointProbe::calcValues(double timevalue) {
+void PointProbe::calcValues(double timevalue) {
    assert(this->getNumValues() == 2);
    double *valuesBuffer = this->getValuesBuffer();
    // We need to calculate which mpi process contains the target point, and send
@@ -231,7 +231,6 @@ int PointProbe::calcValues(double timevalue) {
                MPI_STATUS_IGNORE);
       }
    }
-   return PV_SUCCESS;
 }
 
 int PointProbe::writeState(double timevalue) {

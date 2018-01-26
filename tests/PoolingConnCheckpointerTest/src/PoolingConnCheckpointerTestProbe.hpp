@@ -31,7 +31,7 @@ class PoolingConnCheckpointerTestProbe : public PV::ColProbe {
     * Implementation of the calcValues method. This probe does not compute
     * any values that are available to other objects through getValues().
     */
-   virtual int calcValues(double timevalue) override { return PV_SUCCESS; }
+   virtual void calcValues(double timevalue) override {}
 
    bool getTestFailed() const { return mTestFailed; }
 

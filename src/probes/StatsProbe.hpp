@@ -52,7 +52,9 @@ class StatsProbe : public PV::LayerProbe {
     * getValue methods should
     * not be used).
     */
-   virtual int calcValues(double timevalue) override { return PV_FAILURE; }
+   virtual void calcValues(double timevalue) override {
+      Fatal().printf("%s does not use calcValues.\n", getDescription_c());
+   }
 
    // Member variables
    PVBufType type;

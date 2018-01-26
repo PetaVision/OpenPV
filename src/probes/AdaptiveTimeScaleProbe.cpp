@@ -159,7 +159,8 @@ Response::Status AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage con
 
 Response::Status
 AdaptiveTimeScaleProbe::respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message) {
-   return Response::convertIntToStatus(getValues(parent->simulationTime()));
+   getValues(parent->simulationTime());
+   return Response::SUCCESS;
 }
 
 // AdaptiveTimeScaleProbe::calcValues calls targetProbe->getValues() and passes the result to
@@ -168,7 +169,7 @@ AdaptiveTimeScaleProbe::respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessag
 // probeValues. AdaptiveTimeScaleProbe also processes the triggering and only reads the
 // mAdaptiveTimeScaleController when triggering doesn't happen.
 
-int AdaptiveTimeScaleProbe::calcValues(double timeValue) {
+void AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    std::vector<double> rawProbeValues;
    if (triggerLayer != nullptr
        && triggerLayer->needUpdate(timeValue + triggerOffset, parent->getDeltaTime())) {
@@ -182,7 +183,6 @@ int AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    std::vector<double> timeSteps =
          mAdaptiveTimeScaleController->calcTimesteps(timeValue, rawProbeValues);
    memcpy(getValuesBuffer(), timeSteps.data(), sizeof(double) * getNumValues());
-   return PV_SUCCESS;
 }
 
 int AdaptiveTimeScaleProbe::outputState(double timeValue) {

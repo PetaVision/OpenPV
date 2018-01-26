@@ -39,7 +39,7 @@ class L2NormProbe : public AbstractNormProbe {
    /**
     * Overrides AbstractNormProbe::calcValues method to apply the exponent.
     */
-   virtual int calcValues(double timevalue) override;
+   virtual void calcValues(double timevalue) override;
 
    /**
     * Each MPI process returns the sum of the squares of the activities in its

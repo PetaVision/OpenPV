@@ -94,7 +94,7 @@ class AbstractNormProbe : public LayerProbe {
     * Computes the norms.  Each MPI process calls getValueInternal to compute its
     * own contribution to the norms, and then calcValues calls MPI_Allreduce.
     */
-   virtual int calcValues(double timeValue) override;
+   virtual void calcValues(double timeValue) override;
 
    /**
     * getValueInternal(double, index) is a pure virtual function

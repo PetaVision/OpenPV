@@ -146,10 +146,10 @@ bool ColumnEnergyProbe::needRecalc(double timevalue) { return true; }
 
 double ColumnEnergyProbe::referenceUpdateTime() const { return parent->simulationTime(); }
 
-int ColumnEnergyProbe::calcValues(double timevalue) {
+void ColumnEnergyProbe::calcValues(double timevalue) {
    if (mLastTimeValue == timevalue || --mSkipTimer > 0) {
       mLastTimeValue = timevalue;
-      return PV_SUCCESS;
+      return;
    }
    mSkipTimer           = mSkipInterval + 1;
    double *valuesBuffer = getValuesBuffer();
@@ -164,7 +164,6 @@ int ColumnEnergyProbe::calcValues(double timevalue) {
          valuesBuffer[b] += coeff * energy1[b];
       }
    }
-   return PV_SUCCESS;
 }
 
 int ColumnEnergyProbe::outputState(double timevalue) {

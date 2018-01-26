@@ -130,7 +130,7 @@ int AbstractNormProbe::setNormDescriptionToString(char const *s) {
    return normDescription ? PV_SUCCESS : PV_FAILURE;
 }
 
-int AbstractNormProbe::calcValues(double timeValue) {
+void AbstractNormProbe::calcValues(double timeValue) {
    double *valuesBuffer = this->getValuesBuffer();
    for (int b = 0; b < this->getNumValues(); b++) {
       valuesBuffer[b] = getValueInternal(timeValue, b);
@@ -142,7 +142,6 @@ int AbstractNormProbe::calcValues(double timeValue) {
          MPI_DOUBLE,
          MPI_SUM,
          parent->getCommunicator()->communicator());
-   return PV_SUCCESS;
 }
 
 int AbstractNormProbe::outputState(double timevalue) {
@@ -152,12 +151,7 @@ int AbstractNormProbe::outputState(double timevalue) {
       int nBatch = getNumValues();
       int nk     = getTargetLayer()->getNumGlobalNeurons();
       for (int b = 0; b < nBatch; b++) {
-         output(b).printf(
-               "%6.3f, %d, %8d, %f",
-               timevalue,
-               b,
-               nk,
-               valuesBuffer[b]);
+         output(b).printf("%6.3f, %d, %8d, %f", timevalue, b, nk, valuesBuffer[b]);
          output(b) << std::endl;
       }
    }

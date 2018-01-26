@@ -147,11 +147,8 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
    return l2normsq;
 }
 
-int L2NormProbe::calcValues(double timevalue) {
-   int status = AbstractNormProbe::calcValues(timevalue);
-   if (status != PV_SUCCESS) {
-      return status;
-   }
+void L2NormProbe::calcValues(double timevalue) {
+   AbstractNormProbe::calcValues(timevalue);
    if (exponent != 2.0) {
       double *valBuf = getValuesBuffer();
       int numVals    = this->getNumValues();
@@ -160,7 +157,6 @@ int L2NormProbe::calcValues(double timevalue) {
          valBuf[b] = pow(v, exponent / 2.0);
       }
    }
-   return PV_SUCCESS;
 }
 
 } // end namespace PV

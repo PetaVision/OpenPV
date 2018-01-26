@@ -37,7 +37,9 @@ class MomentumTestConnProbe : public BaseHyPerConnProbe {
     * MomentumTestConnProbe::calcValues() always fails since this probe does not use getValues() or
     * getValue().
     */
-   int calcValues(double timevalue) override { return PV_FAILURE; }
+   void calcValues(double timevalue) override {
+      Fatal().printf("%s does not use calcValues().\n", getDescription_c());
+   }
 
   private:
    int initialize_base();

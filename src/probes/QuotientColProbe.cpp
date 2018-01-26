@@ -129,14 +129,14 @@ int QuotientColProbe::communicateInitInfo(
    return status;
 }
 
-int QuotientColProbe::calcValues(double timeValue) {
+void QuotientColProbe::calcValues(double timeValue) {
    int numValues        = this->getNumValues();
    double *valuesBuffer = getValuesBuffer();
    if (parent->simulationTime() == parent->getStartTime()) {
       for (int b = 0; b < numValues; b++) {
          valuesBuffer[b] = 1.0;
       }
-      return PV_SUCCESS;
+      return;
    }
    double n[numValues];
    numerProbe->getValues(timeValue, n);
@@ -145,7 +145,6 @@ int QuotientColProbe::calcValues(double timeValue) {
    for (int b = 0; b < numValues; b++) {
       valuesBuffer[b] = n[b] / d[b];
    }
-   return PV_SUCCESS;
 }
 
 double QuotientColProbe::referenceUpdateTime() const { return parent->simulationTime(); }

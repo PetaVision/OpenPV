@@ -62,7 +62,7 @@ class PointProbe : public PV::LayerProbe {
     * contain
     * the values.
     */
-   virtual int calcValues(double timevalue) override;
+   virtual void calcValues(double timevalue) override;
 
   private:
    int initialize_base();
