@@ -468,9 +468,6 @@ void HyPerCol::allocateColumn() {
       notifyLoop(std::make_shared<LayerPublishMessage>(phase, mSimTime));
    }
 
-   // Feb 2, 2017: waiting and updating active indices have been moved into
-   // OutputState and CheckNotANumber, where they are called if needed.
-
    // output initial conditions
    if (!mCheckpointReadFlag) {
       notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime));

@@ -1049,12 +1049,11 @@ Response::Status HyPerLayer::respondLayerAdvanceDataStore(
 
 Response::Status
 HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message) {
-   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
-      return status;
+      return Response::NO_ACTION;
    }
    publish(parent->getCommunicator(), message->mTime);
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status HyPerLayer::respondLayerCheckNotANumber(
