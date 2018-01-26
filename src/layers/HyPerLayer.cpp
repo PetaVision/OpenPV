@@ -947,7 +947,7 @@ Response::Status HyPerLayer::respond(std::shared_ptr<BaseMessage const> message)
 
 Response::Status
 HyPerLayer::respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message) {
-   return Response::convertIntToStatus(setMaxPhase(message->mMaxPhase));
+   return setMaxPhase(message->mMaxPhase);
 }
 
 Response::Status
@@ -1243,11 +1243,11 @@ int HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    return status;
 }
 
-int HyPerLayer::setMaxPhase(int *maxPhase) {
+Response::Status HyPerLayer::setMaxPhase(int *maxPhase) {
    if (*maxPhase < phase) {
       *maxPhase = phase;
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 void HyPerLayer::addRecvConn(BaseConnection *conn) {

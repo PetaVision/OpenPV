@@ -498,7 +498,7 @@ class HyPerLayer : public BaseLayer {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual int allocateDataStructures() override;
-   virtual int setMaxPhase(int *maxPhase);
+   virtual Response::Status setMaxPhase(int *maxPhase);
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
    virtual Response::Status initializeState() override;
 
