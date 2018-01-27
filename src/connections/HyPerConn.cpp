@@ -130,26 +130,24 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
       free(normalizeMethod);
       normalizeMethod = strdup("none");
    }
-   if (strcmp(normalizeMethod, "none")) {
-      BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, name, parent);
-      if (baseObj == nullptr) {
-         if (parent->columnId() == 0) {
-            Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
-                    << "\" is not recognized." << std::endl;
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
+   BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, name, parent);
+   if (baseObj == nullptr) {
+      if (parent->columnId() == 0) {
+         Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
+                 << "\" is not recognized." << std::endl;
       }
-      normalizer = dynamic_cast<NormalizeBase *>(baseObj);
-      if (normalizer == nullptr) {
-         pvAssert(baseObj);
-         if (parent->columnId() == 0) {
-            Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
-                    << "\" is not a recognized normalization method." << std::endl;
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   normalizer = dynamic_cast<NormalizeBase *>(baseObj);
+   if (normalizer == nullptr) {
+      pvAssert(baseObj);
+      if (parent->columnId() == 0) {
+         Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
+                 << "\" is not a recognized normalization method." << std::endl;
       }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
    free(normalizeMethod);
    return normalizer;

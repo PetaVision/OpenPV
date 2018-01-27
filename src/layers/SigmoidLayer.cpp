@@ -78,11 +78,11 @@ int SigmoidLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    return status;
 }
 
-int SigmoidLayer::allocateDataStructures() {
-   int status = CloneVLayer::allocateDataStructures();
+Response::Status SigmoidLayer::allocateDataStructures() {
+   auto status = CloneVLayer::allocateDataStructures();
    // Should have been initialized with zero channels, so GSyn should be NULL and freeChannels()
    // call should be unnecessary
-   assert(GSyn == NULL);
+   pvAssert(GSyn == nullptr);
    return status;
 }
 

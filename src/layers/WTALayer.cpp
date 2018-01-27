@@ -71,10 +71,9 @@ int WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    return status;
 }
 
-int WTALayer::allocateV() {
+void WTALayer::allocateV() {
    // Allocate V does nothing since binning does not need a V layer
    clayer->V = NULL;
-   return PV_SUCCESS;
 }
 
 void WTALayer::initializeV() { assert(getV() == NULL); }

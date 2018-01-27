@@ -63,8 +63,11 @@ int HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    return status;
 }
 
-int HyPerDelivery::allocateDataStructures() {
-   int status = BaseDelivery::allocateDataStructures();
+Response::Status HyPerDelivery::allocateDataStructures() {
+   auto status = BaseDelivery::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (mAccumulateType == STOCHASTIC) {
       mDeltaTimeFactor = (float)parent->getDeltaTime();
    }
@@ -75,7 +78,7 @@ int HyPerDelivery::allocateDataStructures() {
    else {
       mDeltaTimeFactor = 1.0f;
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 double HyPerDelivery::convertToRateDeltaTimeFactor(double timeConstantTau) const {

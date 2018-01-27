@@ -65,7 +65,6 @@ class NormalizeMultiply : public NormalizeBase {
    NormalizeMultiply(const char *name, HyPerCol *hc);
    virtual ~NormalizeMultiply();
 
-   const char *getName() { return name; }
    float getRMinX() { return mRMinX; }
    float getRMinY() { return mRMinY; }
    float getNormalizeCutoff() { return mNormalizeCutoff; }

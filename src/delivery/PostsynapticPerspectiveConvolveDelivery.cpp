@@ -52,8 +52,8 @@ int PostsynapticPerspectiveConvolveDelivery::communicateInitInfo(
    return PV_SUCCESS;
 }
 
-int PostsynapticPerspectiveConvolveDelivery::allocateDataStructures() {
-   int status = HyPerDelivery::allocateDataStructures();
+Response::Status PostsynapticPerspectiveConvolveDelivery::allocateDataStructures() {
+   auto status = HyPerDelivery::allocateDataStructures();
    return status;
 }
 

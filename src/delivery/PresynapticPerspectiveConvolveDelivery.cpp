@@ -49,10 +49,13 @@ int PresynapticPerspectiveConvolveDelivery::communicateInitInfo(
    return status;
 }
 
-int PresynapticPerspectiveConvolveDelivery::allocateDataStructures() {
-   int status = HyPerDelivery::allocateDataStructures();
+Response::Status PresynapticPerspectiveConvolveDelivery::allocateDataStructures() {
+   auto status = HyPerDelivery::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
    allocateThreadGSyn();
-   return status;
+   return Response::SUCCESS;
 }
 
 void PresynapticPerspectiveConvolveDelivery::allocateThreadGSyn() {

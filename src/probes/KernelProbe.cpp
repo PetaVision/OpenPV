@@ -83,8 +83,11 @@ int KernelProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    return status;
 }
 
-int KernelProbe::allocateDataStructures() {
-   int status            = BaseHyPerConnProbe::allocateDataStructures();
+Response::Status KernelProbe::allocateDataStructures() {
+   auto status = BaseHyPerConnProbe::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
    auto *targetHyPerConn = getTargetHyPerConn();
    assert(targetHyPerConn);
    if (getKernelIndex() < 0 || getKernelIndex() >= targetHyPerConn->getNumDataPatches()) {
@@ -111,7 +114,7 @@ int KernelProbe::allocateDataStructures() {
       patchIndices(targetHyPerConn);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status KernelProbe::outputState(double timed) {

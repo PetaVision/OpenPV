@@ -73,24 +73,24 @@ Response::Status PresynapticPerspectiveGPUDelivery::setCudaDevice(
    return status;
 }
 
-int PresynapticPerspectiveGPUDelivery::allocateDataStructures() {
+Response::Status PresynapticPerspectiveGPUDelivery::allocateDataStructures() {
    FatalIf(
          mCudaDevice == nullptr,
          "%s received AllocateData without having received SetCudaDevice.\n",
          getDescription_c());
    if (!mWeightsPair->getDataStructuresAllocatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
-   int status = HyPerDelivery::allocateDataStructures();
-   if (status != PV_SUCCESS) {
+   auto status = HyPerDelivery::allocateDataStructures();
+   if (!Response::completed(status)) {
       return status;
    }
 
    initializeRecvKernelArgs();
 
    allocateThreadGSyn(); // Needed for deliverUnitInput, because it doesn't use GPU yet.
-   return status;
+   return Response::SUCCESS;
 }
 
 void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {

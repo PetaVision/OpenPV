@@ -299,12 +299,15 @@ int LIF::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> m
    return status;
 }
 
-int LIF::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+Response::Status LIF::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    // // a random state variable is needed for every neuron/clthread
    randState = new Random(getLayerLoc(), false /*isExtended*/);
-   if (randState == NULL) {
+   if (randState == nullptr) {
       Fatal().printf(
             "LIF::initialize:  %s unable to create object of Random class.\n", getDescription_c());
    }
@@ -314,12 +317,11 @@ int LIF::allocateDataStructures() {
    for (size_t k = 0; k < numNeurons; k++) {
       Vth[k] = lParams.VthRest; // lParams.VthRest is set in setLIFParams
    }
-   return status;
+   return Response::SUCCESS;
 }
 
-int LIF::allocateBuffers() {
-   int status = allocateConductances(numChannels);
-   assert(status == PV_SUCCESS);
+void LIF::allocateBuffers() {
+   allocateConductances(numChannels);
    Vth = (float *)calloc((size_t)getNumNeuronsAllBatches(), sizeof(float));
    if (Vth == NULL) {
       Fatal().printf(
@@ -328,10 +330,10 @@ int LIF::allocateBuffers() {
             parent->columnId(),
             strerror(errno));
    }
-   return HyPerLayer::allocateBuffers();
+   HyPerLayer::allocateBuffers();
 }
 
-int LIF::allocateConductances(int num_channels) {
+void LIF::allocateConductances(int num_channels) {
    assert(num_channels >= 3); // Need exc, inh, and inhb at a minimum.
    const int numNeurons = getNumNeuronsAllBatches();
    G_E = (float *)calloc((size_t)(getNumNeuronsAllBatches() * numChannels), sizeof(float));
@@ -346,7 +348,6 @@ int LIF::allocateConductances(int num_channels) {
 
    G_I  = G_E + 1 * numNeurons;
    G_IB = G_E + 2 * numNeurons;
-   return PV_SUCCESS;
 }
 
 Response::Status LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {

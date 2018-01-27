@@ -74,9 +74,9 @@ void MomentumUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int MomentumUpdater::allocateDataStructures() {
-   int status = HebbianUpdater::allocateDataStructures();
-   if (status != PV_SUCCESS) {
+Response::Status MomentumUpdater::allocateDataStructures() {
+   auto status = HebbianUpdater::allocateDataStructures();
+   if (!Response::completed(status)) {
       return status;
    }
    if (!mPlasticityFlag) {
@@ -88,7 +88,7 @@ int MomentumUpdater::allocateDataStructures() {
          mConnectionData->getPre()->getLayerLoc()->halo,
          mConnectionData->getPost()->getLayerLoc()->halo);
    mPrevDeltaWeights->allocateDataStructures();
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status MomentumUpdater::registerData(Checkpointer *checkpointer) {

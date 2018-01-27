@@ -58,10 +58,7 @@ int ISTALayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int ISTALayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures();
-   return status;
-}
+Response::Status ISTALayer::allocateDataStructures() { return ANNLayer::allocateDataStructures(); }
 
 int ISTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);

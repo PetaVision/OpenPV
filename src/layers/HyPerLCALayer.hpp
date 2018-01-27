@@ -25,7 +25,7 @@ class HyPerLCALayer : public PV::ANNLayer {
    int initialize(const char *name, HyPerCol *hc);
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**

@@ -31,7 +31,7 @@ class LIFGap : public PV::LIF {
   protected:
    LIFGap();
    int initialize(const char *name, HyPerCol *hc, const char *kernel_name);
-   virtual int allocateConductances(int num_channels) override;
+   virtual void allocateConductances(int num_channels) override;
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
    virtual void readGapStrengthFromCheckpoint(Checkpointer *checkpointer);
 

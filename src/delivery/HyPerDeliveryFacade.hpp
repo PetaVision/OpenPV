@@ -87,7 +87,7 @@ class HyPerDeliveryFacade : public BaseDelivery {
    setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) override;
 #endif // PV_USE_CUDA
 
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    // Data members
   protected:

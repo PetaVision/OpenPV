@@ -196,7 +196,7 @@ void CloneWeightsPair::createPostWeights(std::string const &weightsName) {
    mPostWeights = mOriginalWeightsPair->getPostWeights();
 }
 
-int CloneWeightsPair::allocateDataStructures() { return PV_SUCCESS; }
+Response::Status CloneWeightsPair::allocateDataStructures() { return Response::SUCCESS; }
 
 Response::Status CloneWeightsPair::registerData(Checkpointer *checkpointer) {
    return Response::NO_ACTION;

@@ -6,10 +6,7 @@ FixedImageSequence::FixedImageSequence(char const *name, PV::HyPerCol *hc) {
    PV::HyPerLayer::initialize(name, hc);
 }
 
-int FixedImageSequence::allocateV() {
-   clayer->V = nullptr;
-   return PV_SUCCESS;
-}
+void FixedImageSequence::allocateV() { clayer->V = nullptr; }
 
 PV::Response::Status FixedImageSequence::initializeState() {
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {

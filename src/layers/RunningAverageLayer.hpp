@@ -19,7 +19,7 @@ class RunningAverageLayer : public CloneVLayer {
    virtual ~RunningAverageLayer();
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateV() override;
+   virtual void allocateV() override;
    virtual Response::Status updateState(double timef, double dt) override;
    virtual int setActivity() override;
    int getNumImagesToAverage() { return numImagesToAverage; }

@@ -18,7 +18,7 @@ class LCALIFLayer : public PV::LIFGap {
   public:
    LCALIFLayer(const char *name, HyPerCol *hc); // The constructor called by other methods
    virtual ~LCALIFLayer();
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual Response::Status updateState(double timef, double dt) override;
    int findFlag(int numMatrixCol, int numMatrixRow);
 
@@ -41,7 +41,7 @@ class LCALIFLayer : public PV::LIFGap {
    virtual void read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer);
    virtual void readVadptFromCheckpoint(Checkpointer *checkpointer);
 
-   int allocateBuffers() override;
+   virtual void allocateBuffers() override;
 
    float *integratedSpikeCount; // plasticity decrement variable for postsynaptic layer
    float *G_Norm; // Copy of GSyn[CHANNEL_NORM] to be written out during checkpointing

@@ -50,7 +50,7 @@ int WeightComparisonProbe::communicateInitInfo(
    return PV_SUCCESS;
 }
 
-int WeightComparisonProbe::allocateDataStructures() {
+Response::Status WeightComparisonProbe::allocateDataStructures() {
    std::string firstConn;
    int nxp, nyp, nfp, numPatches;
    bool initialized = false;
@@ -93,7 +93,7 @@ int WeightComparisonProbe::allocateDataStructures() {
          initialized        = true;
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 Response::Status WeightComparisonProbe::outputState(double timestamp) {

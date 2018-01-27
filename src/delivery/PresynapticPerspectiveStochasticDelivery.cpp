@@ -54,11 +54,14 @@ int PresynapticPerspectiveStochasticDelivery::communicateInitInfo(
    return status;
 }
 
-int PresynapticPerspectiveStochasticDelivery::allocateDataStructures() {
-   int status = HyPerDelivery::allocateDataStructures();
+Response::Status PresynapticPerspectiveStochasticDelivery::allocateDataStructures() {
+   auto status = HyPerDelivery::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
    allocateThreadGSyn();
    allocateRandState();
-   return status;
+   return Response::SUCCESS;
 }
 
 void PresynapticPerspectiveStochasticDelivery::allocateThreadGSyn() {

@@ -34,13 +34,13 @@ int CPTestInputLayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int CPTestInputLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
-   if (status != PV_SUCCESS) {
+Response::Status CPTestInputLayer::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
       return status;
    }
    initializeV();
-   return status;
+   return Response::SUCCESS;
 }
 
 void CPTestInputLayer::initializeV() {

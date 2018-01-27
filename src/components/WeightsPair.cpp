@@ -211,16 +211,6 @@ void WeightsPair::createPostWeights(std::string const &weightsName) {
          -std::numeric_limits<double>::infinity() /*timestamp*/);
 }
 
-int WeightsPair::allocateDataStructures() {
-   if (mPreWeights) {
-      allocatePreWeights();
-   }
-   if (mPostWeights) {
-      allocatePostWeights();
-   }
-   return PV_SUCCESS;
-}
-
 void WeightsPair::allocatePreWeights() {
    pvAssert(mPreWeights);
    mPreWeights->setMargins(

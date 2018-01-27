@@ -24,7 +24,7 @@ class ISTALayer : public PV::ANNLayer {
   protected:
    ISTALayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**

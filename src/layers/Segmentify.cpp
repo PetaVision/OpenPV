@@ -174,8 +174,11 @@ int Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    return status;
 }
 
-int Segmentify::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+Response::Status Segmentify::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    labelToIdx.clear();
    labelVals   = (float **)calloc(getLayerLoc()->nf, sizeof(float *));
@@ -184,7 +187,7 @@ int Segmentify::allocateDataStructures() {
    // Don't allocate inner buffers yet; this will get done based on how many labels are in the
    // current image
 
-   return status;
+   return Response::SUCCESS;
 }
 
 int Segmentify::checkLabelValBuf(int newSize) {
@@ -204,10 +207,9 @@ int Segmentify::checkLabelValBuf(int newSize) {
    return PV_SUCCESS;
 }
 
-int Segmentify::allocateV() {
+void Segmentify::allocateV() {
    // Allocate V does nothing since binning does not need a V layer
    clayer->V = NULL;
-   return PV_SUCCESS;
 }
 
 void Segmentify::initializeV() { assert(getV() == NULL); }

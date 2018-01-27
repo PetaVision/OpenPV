@@ -72,8 +72,6 @@ class WeightsPair : public WeightsPairInterface {
    virtual void createPreWeights(std::string const &weightsName) override;
    virtual void createPostWeights(std::string const &weightsName) override;
 
-   virtual int allocateDataStructures() override;
-
    virtual void allocatePreWeights() override;
 
    virtual void allocatePostWeights() override;

@@ -174,13 +174,16 @@ TransposePoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage con
    return Response::SUCCESS;
 }
 
-int TransposePoolingDelivery::allocateDataStructures() {
-   int status = BaseDelivery::allocateDataStructures();
+Response::Status TransposePoolingDelivery::allocateDataStructures() {
+   auto status = BaseDelivery::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (mReceiveGpu) {
       initializeDeliverKernelArgs();
    }
    allocateThreadGSyn();
-   return status;
+   return Response::SUCCESS;
 }
 
 void TransposePoolingDelivery::initializeDeliverKernelArgs() {

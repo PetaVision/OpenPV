@@ -211,8 +211,8 @@ class HyPerLayer : public BaseLayer {
 
    virtual int allocateClayerBuffers();
    int setLayerLoc(PVLayerLoc *layerLoc, float nxScale, float nyScale, int nf, int numBatches);
-   virtual int allocateBuffers();
-   virtual int allocateGSyn();
+   virtual void allocateBuffers();
+   virtual void allocateGSyn();
    void addPublisher();
 
    /*
@@ -221,22 +221,21 @@ class HyPerLayer : public BaseLayer {
     * To free a buffer created with this method, call freeBuffer().
     */
    template <typename T>
-   int allocateBuffer(T **buf, int bufsize, const char *bufname);
+   void allocateBuffer(T **buf, int bufsize, const char *bufname);
 
    /**
     * Allocates a restricted buffer (that is, buffer's length is getNumNeuronsAllBatches()).
     */
-   int allocateRestrictedBuffer(float **buf, const char *bufname);
+   void allocateRestrictedBuffer(float **buf, const char *bufname);
 
    /**
     * Allocates an extended buffer (that is, buffer's length is getNumExtendedAllBatches()).
     */
-   int allocateExtendedBuffer(float **buf, const char *bufname);
+   void allocateExtendedBuffer(float **buf, const char *bufname);
 
-   int allocateCube();
-   virtual int allocateV();
-   virtual int allocateActivity();
-   virtual int allocatePrevActivity();
+   virtual void allocateV();
+   virtual void allocateActivity();
+   virtual void allocatePrevActivity();
 
    void checkpointPvpActivityFloat(
          Checkpointer *checkpointer,
@@ -497,7 +496,7 @@ class HyPerLayer : public BaseLayer {
   protected:
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual Response::Status setMaxPhase(int *maxPhase);
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
    virtual Response::Status initializeState() override;

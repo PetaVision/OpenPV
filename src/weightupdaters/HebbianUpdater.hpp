@@ -61,7 +61,7 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
 

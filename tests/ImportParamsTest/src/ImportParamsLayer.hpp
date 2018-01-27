@@ -10,7 +10,7 @@ class ImportParamsLayer : public PV::ANNLayer {
    ImportParamsLayer(const char *name, HyPerCol *hc);
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
   private:
    int initialize(const char *name, HyPerCol *hc);

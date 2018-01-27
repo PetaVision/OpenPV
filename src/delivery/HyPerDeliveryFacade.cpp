@@ -182,12 +182,11 @@ HyPerDeliveryFacade::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> m
 }
 #endif // PV_USE_CUDA
 
-int HyPerDeliveryFacade::allocateDataStructures() {
-   int status = BaseDelivery::allocateDataStructures();
-   if (status == PV_SUCCESS and mDeliveryIntern != nullptr) {
+Response::Status HyPerDeliveryFacade::allocateDataStructures() {
+   auto status = BaseDelivery::allocateDataStructures();
+   if (Response::completed(status) and mDeliveryIntern != nullptr) {
       auto internMessage = std::make_shared<AllocateDataMessage>();
-      auto internStatus  = mDeliveryIntern->respond(internMessage);
-      status             = Response::convertStatusToInt(internStatus);
+      status             = mDeliveryIntern->respond(internMessage);
    }
    return status;
 }

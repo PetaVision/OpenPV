@@ -17,9 +17,9 @@ class CloneVLayer : public PV::HyPerLayer {
    CloneVLayer(const char *name, HyPerCol *hc);
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
-   virtual int allocateGSyn() override;
+   virtual void allocateGSyn() override;
    virtual int
    requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) override;
    virtual bool activityIsSpiking() override { return false; }
@@ -32,7 +32,7 @@ class CloneVLayer : public PV::HyPerLayer {
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
-   virtual int allocateV() override;
+   virtual void allocateV() override;
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
    virtual void initializeV() override;
    virtual void readVFromCheckpoint(Checkpointer *checkpointer) override;

@@ -127,18 +127,16 @@ int LIFGap::initialize(const char *name, HyPerCol *hc, const char *kernel_name) 
    return status;
 }
 
-int LIFGap::allocateConductances(int num_channels) {
-   int status = LIF::allocateConductances(
-         num_channels - 1); // CHANNEL_GAP doesn't have a conductance per se.
+void LIFGap::allocateConductances(int num_channels) {
+   LIF::allocateConductances(num_channels - 1); // CHANNEL_GAP doesn't have a conductance per se.
    gapStrength = (float *)calloc((size_t)getNumNeuronsAllBatches(), sizeof(*gapStrength));
-   if (gapStrength == NULL) {
+   if (gapStrength == nullptr) {
       Fatal().printf(
             "%s: rank %d process unable to allocate memory for gapStrength: %s\n",
             getDescription_c(),
             parent->columnId(),
             strerror(errno));
    }
-   return status;
 }
 
 void LIFGap::calcGapStrength() {

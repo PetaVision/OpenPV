@@ -68,7 +68,7 @@ class CloneWeightsPair : public WeightsPair {
    virtual void createPreWeights(std::string const &weightsName) override;
    virtual void createPostWeights(std::string const &weightsName) override;
 
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
 

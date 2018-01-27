@@ -20,7 +20,7 @@ class KernelProbe : public BaseHyPerConnProbe {
    virtual ~KernelProbe();
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual Response::Status outputState(double timef) override;
 
   protected:

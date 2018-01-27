@@ -209,8 +209,11 @@ int SegmentLayer::checkIdxBufSize(int newSize) {
    return PV_SUCCESS;
 }
 
-int SegmentLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+Response::Status SegmentLayer::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    int nbatch = getLayerLoc()->nbatch;
    maxX.clear();
@@ -224,13 +227,12 @@ int SegmentLayer::allocateDataStructures() {
       centerIdx.push_back(std::map<int, int>());
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
-int SegmentLayer::allocateV() {
+void SegmentLayer::allocateV() {
    // Allocate V does nothing since binning does not need a V layer
    clayer->V = NULL;
-   return PV_SUCCESS;
 }
 
 void SegmentLayer::initializeV() { assert(getV() == NULL); }

@@ -77,23 +77,23 @@ Response::Status PostsynapticPerspectiveGPUDelivery::setCudaDevice(
    return status;
 }
 
-int PostsynapticPerspectiveGPUDelivery::allocateDataStructures() {
+Response::Status PostsynapticPerspectiveGPUDelivery::allocateDataStructures() {
    FatalIf(
          mCudaDevice == nullptr,
          "%s received AllocateData without having received SetCudaDevice.\n",
          getDescription_c());
    if (!mWeightsPair->getDataStructuresAllocatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
-   int status = HyPerDelivery::allocateDataStructures();
-   if (status != PV_SUCCESS) {
+   auto status = HyPerDelivery::allocateDataStructures();
+   if (!Response::completed(status)) {
       return status;
    }
 
    initializeRecvKernelArgs();
 
-   return status;
+   return Response::SUCCESS;
 }
 
 void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {

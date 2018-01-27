@@ -63,7 +63,7 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    void allocateThreadGSyn();
 

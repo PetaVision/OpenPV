@@ -39,10 +39,7 @@ void TestImage::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (float)1);
 }
 
-int TestImage::allocateV() {
-   FatalIf(!(getV() == NULL), "Test failed.\n");
-   return PV_SUCCESS;
-}
+void TestImage::allocateV() { FatalIf(!(getV() == nullptr), "Test failed.\n"); }
 
 void TestImage::initializeActivity() {
    for (int k = 0; k < getNumNeurons(); k++) {

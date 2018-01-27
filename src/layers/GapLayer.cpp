@@ -49,9 +49,8 @@ int GapLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    return status;
 }
 
-int GapLayer::allocateDataStructures() {
-   int status = CloneVLayer::allocateDataStructures();
-   return status;
+Response::Status GapLayer::allocateDataStructures() {
+   return CloneVLayer::allocateDataStructures();
 }
 
 Response::Status GapLayer::updateState(double timef, double dt) {

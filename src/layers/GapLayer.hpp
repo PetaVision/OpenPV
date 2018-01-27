@@ -21,7 +21,7 @@ class GapLayer : public CloneVLayer {
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    virtual Response::Status updateState(double timef, double dt) override;
 

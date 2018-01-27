@@ -147,12 +147,12 @@ BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messag
 }
 #endif // PV_USE_CUDA
 
-int BaseConnection::allocateDataStructures() {
+Response::Status BaseConnection::allocateDataStructures() {
    Response::Status status = notify(
          mComponentTable,
          std::make_shared<AllocateDataMessage>(),
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
-   return Response::convertStatusToInt(status);
+   return status;
 }
 
 Response::Status BaseConnection::registerData(Checkpointer *checkpointer) {

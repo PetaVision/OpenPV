@@ -108,8 +108,11 @@ int AdaptiveTimeScaleProbe::communicateInitInfo(
    return status;
 }
 
-int AdaptiveTimeScaleProbe::allocateDataStructures() {
-   int status = ColProbe::allocateDataStructures();
+Response::Status AdaptiveTimeScaleProbe::allocateDataStructures() {
+   auto status = ColProbe::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (mTargetProbe->getNumValues() != getNumValues()) {
       if (parent->getCommunicator()->commRank() == 0) {
          Fatal() << getDescription() << ": target probe \"" << mTargetProbe->getDescription()
@@ -120,7 +123,7 @@ int AdaptiveTimeScaleProbe::allocateDataStructures() {
       exit(EXIT_FAILURE);
    }
    allocateTimeScaleController();
-   return status;
+   return Response::SUCCESS;
 }
 
 void AdaptiveTimeScaleProbe::allocateTimeScaleController() {

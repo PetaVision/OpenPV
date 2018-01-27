@@ -54,10 +54,13 @@ int PostsynapticPerspectiveStochasticDelivery::communicateInitInfo(
    return PV_SUCCESS;
 }
 
-int PostsynapticPerspectiveStochasticDelivery::allocateDataStructures() {
-   int status = HyPerDelivery::allocateDataStructures();
+Response::Status PostsynapticPerspectiveStochasticDelivery::allocateDataStructures() {
+   auto status = HyPerDelivery::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
    mRandState = new Random(mPostLayer->getLayerLoc(), false /*restricted, not extended*/);
-   return status;
+   return Response::SUCCESS;
 }
 
 void PostsynapticPerspectiveStochasticDelivery::deliver() {

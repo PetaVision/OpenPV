@@ -49,7 +49,7 @@ class MomentumUpdater : public HebbianUpdater {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
 

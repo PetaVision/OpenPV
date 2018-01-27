@@ -294,11 +294,11 @@ int HyPerLayer::allocateClayerBuffers() {
    // clayer fields numNeurons, numExtended, loc, xScale, yScale,
    // dx, dy, xOrigin, yOrigin were set in initClayer().
    assert(clayer);
-   FatalIf(allocateV() != PV_SUCCESS, "%s: allocateV() failed.\n", getName());
-   FatalIf(allocateActivity() != PV_SUCCESS, "%s: allocateActivity() failed.\n", getName());
+   allocateV();
+   allocateActivity();
 
    // athresher 11-4-16 TODO: Should these be called on non-spiking layers?
-   FatalIf(allocatePrevActivity() != PV_SUCCESS, "%s: allocatePrevActivity() failed.\n", getName());
+   allocatePrevActivity();
    for (int k = 0; k < getNumExtendedAllBatches(); k++) {
       clayer->prevActivity[k] = -10 * REFRACTORY_PERIOD; // allow neuron to fire at time t==0
    }
@@ -306,42 +306,42 @@ int HyPerLayer::allocateClayerBuffers() {
 }
 
 template <typename T>
-int HyPerLayer::allocateBuffer(T **buf, int bufsize, const char *bufname) {
-   int status = PV_SUCCESS;
-   *buf       = (T *)calloc(bufsize, sizeof(T));
+void HyPerLayer::allocateBuffer(T **buf, int bufsize, const char *bufname) {
+   *buf = (T *)calloc(bufsize, sizeof(T));
    if (*buf == NULL) {
-      ErrorLog().printf(
+      Fatal().printf(
             "%s: rank %d process unable to allocate memory for %s: %s.\n",
             getDescription_c(),
             parent->columnId(),
             bufname,
             strerror(errno));
-      status = PV_FAILURE;
    }
-   return status;
 }
 // Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may
 // get linker errors.
-template int HyPerLayer::allocateBuffer<float>(float **buf, int bufsize, const char *bufname);
-template int HyPerLayer::allocateBuffer<int>(int **buf, int bufsize, const char *bufname);
+template void HyPerLayer::allocateBuffer<float>(float **buf, int bufsize, const char *bufname);
+template void HyPerLayer::allocateBuffer<int>(int **buf, int bufsize, const char *bufname);
 
-int HyPerLayer::allocateRestrictedBuffer(float **buf, char const *bufname) {
-   return allocateBuffer(buf, getNumNeuronsAllBatches(), bufname);
+void HyPerLayer::allocateRestrictedBuffer(float **buf, char const *bufname) {
+   allocateBuffer(buf, getNumNeuronsAllBatches(), bufname);
 }
 
-int HyPerLayer::allocateExtendedBuffer(float **buf, char const *bufname) {
-   return allocateBuffer(buf, getNumExtendedAllBatches(), bufname);
+void HyPerLayer::allocateExtendedBuffer(float **buf, char const *bufname) {
+   allocateBuffer(buf, getNumExtendedAllBatches(), bufname);
 }
 
-int HyPerLayer::allocateV() { return allocateRestrictedBuffer(&clayer->V, "membrane potential V"); }
+void HyPerLayer::allocateV() {
+   return allocateRestrictedBuffer(&clayer->V, "membrane potential V");
+}
 
-int HyPerLayer::allocateActivity() {
+void HyPerLayer::allocateActivity() {
    clayer->activity = pvcube_new(&clayer->loc, getNumExtendedAllBatches());
-   return clayer->activity != NULL ? PV_SUCCESS : PV_FAILURE;
+   FatalIf(
+         clayer->activity == nullptr, "%s failed to allocate activity cube.\n", getDescription_c());
 }
 
-int HyPerLayer::allocatePrevActivity() {
-   return allocateExtendedBuffer(&clayer->prevActivity, "time of previous activity");
+void HyPerLayer::allocatePrevActivity() {
+   allocateExtendedBuffer(&clayer->prevActivity, "time of previous activity");
 }
 
 int HyPerLayer::setLayerLoc(
@@ -457,40 +457,31 @@ void HyPerLayer::calcNumExtended() {
    clayer->numExtendedAllBatches = clayer->numExtended * loc->nbatch;
 }
 
-int HyPerLayer::allocateBuffers() {
+void HyPerLayer::allocateBuffers() {
    // allocate memory for input buffers.  For HyPerLayer, allocates GSyn
    // virtual so that subclasses can initialize additional buffers if needed.
    // Typically an overriding allocateBuffers should call HyPerLayer::allocateBuffers
    // Specialized subclasses that don't use GSyn (e.g. CloneVLayer) should override
    // allocateGSyn to do nothing.
 
-   return allocateGSyn();
+   allocateGSyn();
 }
 
-int HyPerLayer::allocateGSyn() {
-   int status = PV_SUCCESS;
-   GSyn       = NULL;
+void HyPerLayer::allocateGSyn() {
+   GSyn = nullptr;
    if (numChannels > 0) {
       GSyn = (float **)malloc(numChannels * sizeof(float *));
-      if (GSyn == NULL) {
-         status = PV_FAILURE;
-         return status;
-      }
+      FatalIf(GSyn == nullptr, "%s unable to allocate GSyn pointers.\n", getDescription_c());
 
       GSyn[0] = (float *)calloc(getNumNeuronsAllBatches() * numChannels, sizeof(float));
       // All channels allocated at once and contiguously.  resetGSynBuffers_HyPerLayer() assumes
       // this is true, to make it easier to port to GPU.
-      if (GSyn[0] == NULL) {
-         status = PV_FAILURE;
-         return status;
-      }
+      FatalIf(GSyn[0] == nullptr, "%s unable to allocate GSyn buffer.\n", getDescription_c());
 
       for (int m = 1; m < numChannels; m++) {
          GSyn[m] = GSyn[0] + m * getNumNeuronsAllBatches();
       }
    }
-
-   return status;
 }
 
 void HyPerLayer::addPublisher() {
@@ -1373,11 +1364,11 @@ int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
    return status;
 }
 
-int HyPerLayer::allocateDataStructures() {
+Response::Status HyPerLayer::allocateDataStructures() {
    // Once initialize and communicateInitInfo have been called, HyPerLayer has the
    // information it needs to allocate the membrane potential buffer V, the
    // activity buffer activity->data, and the data store.
-   int status = PV_SUCCESS;
+   auto status = Response::SUCCESS;
 
    // Doing this check here, since trigger layers are being set up in communicateInitInfo
    // If the magnitude of the trigger offset is bigger than the delta update time, then error
@@ -1434,8 +1425,7 @@ int HyPerLayer::allocateDataStructures() {
    }
 
    // allocate storage for the input conductance arrays
-   status = allocateBuffers();
-   assert(status == PV_SUCCESS);
+   allocateBuffers();
 
    // Allocate temp buffers if needed, 1 for each thread
    if (parent->getNumThreads() > 1) {
@@ -1460,10 +1450,10 @@ int HyPerLayer::allocateDataStructures() {
 
 // Allocate cuda stuff on gpu if set
 #ifdef PV_USE_CUDA
-   status = allocateDeviceBuffers();
+   int deviceStatus = allocateDeviceBuffers();
    // Allocate receive from post kernel
-   if (status == 0) {
-      status = PV_SUCCESS;
+   if (deviceStatus == 0) {
+      status = Response::SUCCESS;
    }
    else {
       Fatal().printf(
@@ -1474,9 +1464,9 @@ int HyPerLayer::allocateDataStructures() {
    }
    if (mUpdateGpu) {
       // This function needs to be overwritten as needed on a subclass basis
-      status = allocateUpdateKernel();
-      if (status == 0) {
-         status = PV_SUCCESS;
+      deviceStatus = allocateUpdateKernel();
+      if (deviceStatus == 0) {
+         status = Response::SUCCESS;
       }
    }
 #endif

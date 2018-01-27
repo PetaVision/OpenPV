@@ -102,8 +102,11 @@ int Retina::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    return status;
 }
 
-int Retina::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+Response::Status Retina::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
    if (spikingFlag) {
@@ -111,15 +114,13 @@ int Retina::allocateDataStructures() {
       const PVLayerLoc *loc = getLayerLoc();
       // Allocate extended loc
       randState = new Random(loc, true);
+      status    = Response::SUCCESS;
    }
 
    return status;
 }
 
-int Retina::allocateV() {
-   clayer->V = NULL;
-   return PV_SUCCESS;
-}
+void Retina::allocateV() { clayer->V = NULL; }
 
 void Retina::initializeV() { assert(getV() == NULL); }
 

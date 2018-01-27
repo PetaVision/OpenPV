@@ -56,11 +56,12 @@ int PlasticConnTestLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int PlasticConnTestLayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures();
-   if (status == PV_SUCCESS) {
+Response::Status PlasticConnTestLayer::allocateDataStructures() {
+   auto status = ANNLayer::allocateDataStructures();
+   if (Response::completed(status)) {
       setActivitytoGlobalPos();
       copyAtoV();
+      status = Response::SUCCESS;
    }
    return status;
 }

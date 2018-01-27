@@ -270,9 +270,9 @@ void HebbianUpdater::addClone(ConnectionData *connectionData) {
    mClones.push_back(connectionData);
 }
 
-int HebbianUpdater::allocateDataStructures() {
-   int status = BaseWeightUpdater::allocateDataStructures();
-   if (status != PV_SUCCESS) {
+Response::Status HebbianUpdater::allocateDataStructures() {
+   auto status = BaseWeightUpdater::allocateDataStructures();
+   if (!Response::completed(status)) {
       return status;
    }
    if (mPlasticityFlag) {
@@ -281,7 +281,7 @@ int HebbianUpdater::allocateDataStructures() {
       }
       else {
          if (mWeights->getGeometry() == nullptr) {
-            return PV_POSTPONE;
+            return status + Response::POSTPONE;
          }
          mDeltaWeights = new Weights(name);
          mDeltaWeights->initialize(mWeights);
@@ -320,7 +320,7 @@ int HebbianUpdater::allocateDataStructures() {
    }
    mLastTimeUpdateCalled = parent->simulationTime();
 
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status HebbianUpdater::registerData(Checkpointer *checkpointer) {

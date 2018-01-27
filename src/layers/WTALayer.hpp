@@ -22,7 +22,7 @@ class WTALayer : public PV::HyPerLayer {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
-   int allocateV() override;
+   virtual void allocateV() override;
    virtual void initializeV() override;
    virtual void initializeActivity() override;
 

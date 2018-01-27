@@ -63,7 +63,7 @@ class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    void allocateThreadGSyn();
 

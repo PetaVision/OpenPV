@@ -145,8 +145,8 @@ BaseObject::respondAllocateData(std::shared_ptr<AllocateDataMessage const> messa
    if (getDataStructuresAllocatedFlag()) {
       return status;
    }
-   status = Response::convertIntToStatus(allocateDataStructures());
-   if (status == Response::SUCCESS) {
+   status = allocateDataStructures();
+   if (Response::completed(status)) {
       setDataStructuresAllocatedFlag();
    }
    return status;

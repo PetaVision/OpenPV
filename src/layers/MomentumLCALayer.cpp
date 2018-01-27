@@ -65,8 +65,8 @@ int MomentumLCALayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int MomentumLCALayer::allocateDataStructures() {
-   int status = HyPerLCALayer::allocateDataStructures();
+Response::Status MomentumLCALayer::allocateDataStructures() {
+   auto status = HyPerLCALayer::allocateDataStructures();
    allocateRestrictedBuffer(&prevDrive, "prevDrive of LCA layer");
 
    // Initialize buffer to 0

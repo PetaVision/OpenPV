@@ -16,7 +16,7 @@ class PvpLayer : public InputLayer {
   public:
    PvpLayer(const char *name, HyPerCol *hc);
    virtual ~PvpLayer();
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
   private:
    struct BufferUtils::SparseFileTable sparseTable;

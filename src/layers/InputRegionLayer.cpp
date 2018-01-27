@@ -165,19 +165,17 @@ void InputRegionLayer::checkLayerDimensions() {
    pvAssert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
 }
 
-int InputRegionLayer::allocateDataStructures() {
+Response::Status InputRegionLayer::allocateDataStructures() {
    if (!originalLayer->getDataStructuresAllocatedFlag()) {
-      return PV_POSTPONE; // original layer needs to create InputRegionsAllBatchElements first
+      // original layer needs to create InputRegionsAllBatchElements first
+      return Response::POSTPONE;
    }
    return HyPerLayer::allocateDataStructures();
 }
 
-int InputRegionLayer::allocateV() {
-   clayer->V = nullptr;
-   return PV_SUCCESS;
-}
+void InputRegionLayer::allocateV() { clayer->V = nullptr; }
 
-int InputRegionLayer::allocateActivity() {
+void InputRegionLayer::allocateActivity() {
    int const numItems = getNumExtendedAllBatches();
    PVLayerCube *cube  = (PVLayerCube *)calloc(pvcube_size(numItems), sizeof(char));
    FatalIf(cube == nullptr, "Unable to allocate PVLayerCube for %s\n", getDescription_c());
@@ -186,7 +184,6 @@ int InputRegionLayer::allocateActivity() {
    cube->loc        = *getLayerLoc();
    cube->data       = originalLayer->getInputRegionsAllBatchElements();
    clayer->activity = cube;
-   return PV_SUCCESS;
 }
 
 int InputRegionLayer::setActivity() { return PV_SUCCESS; }
@@ -203,10 +200,7 @@ int InputRegionLayer::requireChannel(int channelNeeded, int *numChannelsResult) 
    return PV_FAILURE;
 }
 
-int InputRegionLayer::allocateGSyn() {
-   pvAssert(GSyn == nullptr);
-   return PV_SUCCESS;
-}
+void InputRegionLayer::allocateGSyn() { pvAssert(GSyn == nullptr); }
 
 bool InputRegionLayer::needUpdate(double timed, double dt) { return false; }
 

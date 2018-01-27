@@ -173,7 +173,7 @@ void TransposeWeightsPair::createPostWeights(std::string const &weightsName) {
    mPostWeights = mOriginalWeightsPair->getPreWeights();
 }
 
-int TransposeWeightsPair::allocateDataStructures() { return PV_SUCCESS; }
+Response::Status TransposeWeightsPair::allocateDataStructures() { return Response::SUCCESS; }
 
 Response::Status TransposeWeightsPair::registerData(Checkpointer *checkpointer) {
    return Response::NO_ACTION;

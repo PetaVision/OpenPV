@@ -80,7 +80,7 @@ class BaseConnection : public BaseObject, public Subject {
    setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) override;
 #endif // PV_USE_CUDA
 
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
 

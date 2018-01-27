@@ -148,15 +148,13 @@ int BinningLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResu
    return PV_SUCCESS;
 }
 
-int BinningLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
-   return status;
+Response::Status BinningLayer::allocateDataStructures() {
+   return HyPerLayer::allocateDataStructures();
 }
 
-int BinningLayer::allocateV() {
+void BinningLayer::allocateV() {
    // Allocate V does nothing since binning does not need a V layer
    clayer->V = NULL;
-   return PV_SUCCESS;
 }
 
 void BinningLayer::initializeV() { assert(getV() == NULL); }

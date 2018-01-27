@@ -39,9 +39,8 @@ int ImportParamsConn::communicateInitInfo(
    return status;
 }
 
-int ImportParamsConn::allocateDataStructures() {
-   int status = HyPerConn::allocateDataStructures();
-   return status;
+Response::Status ImportParamsConn::allocateDataStructures() {
+   return HyPerConn::allocateDataStructures();
 }
 
 } /* namespace PV */

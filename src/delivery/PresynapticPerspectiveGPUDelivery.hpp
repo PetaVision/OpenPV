@@ -64,7 +64,7 @@ class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
    virtual Response::Status
    setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) override;
 
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    void initializeRecvKernelArgs();
 

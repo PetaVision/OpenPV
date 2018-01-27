@@ -72,7 +72,7 @@ class WeightsPairInterface : public BaseObject {
     */
    virtual void createPostWeights(std::string const &weightsName) = 0;
 
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    virtual void allocatePreWeights();
 

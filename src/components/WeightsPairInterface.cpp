@@ -120,14 +120,14 @@ void WeightsPairInterface::needPost() {
    }
 }
 
-int WeightsPairInterface::allocateDataStructures() {
+Response::Status WeightsPairInterface::allocateDataStructures() {
    if (mPreWeights) {
       allocatePreWeights();
    }
    if (mPostWeights) {
       allocatePostWeights();
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 void WeightsPairInterface::allocatePreWeights() {

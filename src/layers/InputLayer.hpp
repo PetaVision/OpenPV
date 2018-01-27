@@ -141,7 +141,7 @@ class InputLayer : public HyPerLayer {
     * Pixels not occupied by the actual image (due to offsets, padding, etc.) are not changed.
     */
    virtual void normalizePixels(int batchElement);
-   virtual int allocateV() override;
+   virtual void allocateV() override;
    virtual void initializeV() override;
    virtual void initializeActivity() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -186,7 +186,7 @@ class InputLayer : public HyPerLayer {
 
    virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
    void makeInputRegionsPointer() { mNeedInputRegionsPointer = true; }
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual Response::Status updateState(double time, double dt) override;
 
    /**

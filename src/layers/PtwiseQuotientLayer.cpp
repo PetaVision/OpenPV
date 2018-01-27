@@ -32,9 +32,9 @@ int PtwiseQuotientLayer::initialize(const char *name, HyPerCol *hc) {
    return ANNLayer::initialize(name, hc);
 }
 
-int PtwiseQuotientLayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures();
-   assert(numChannels >= 2);
+Response::Status PtwiseQuotientLayer::allocateDataStructures() {
+   auto status = ANNLayer::allocateDataStructures();
+   pvAssert(numChannels >= 2);
    return status;
 }
 

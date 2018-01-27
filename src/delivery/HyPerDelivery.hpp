@@ -64,7 +64,7 @@ class HyPerDelivery : public BaseDelivery {
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    double convertToRateDeltaTimeFactor(double timeConstantTau) const;
 

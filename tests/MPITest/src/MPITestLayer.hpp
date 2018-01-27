@@ -15,7 +15,7 @@ namespace PV {
 class MPITestLayer : public PV::ANNLayer {
   public:
    MPITestLayer(const char *name, HyPerCol *hc);
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual Response::Status updateState(double time, double dt) override;
    virtual int publish(Communicator *comm, double timed) override;
    int setVtoGlobalPos();

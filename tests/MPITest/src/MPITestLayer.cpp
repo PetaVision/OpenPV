@@ -73,11 +73,12 @@ int MPITestLayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int MPITestLayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures();
-   if (status == PV_SUCCESS) {
+Response::Status MPITestLayer::allocateDataStructures() {
+   auto status = ANNLayer::allocateDataStructures();
+   if (Response::completed(status)) {
       setVtoGlobalPos();
       setActivitytoGlobalPos();
+      status = Response::SUCCESS;
    }
    return status;
 }

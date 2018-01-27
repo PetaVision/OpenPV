@@ -148,8 +148,11 @@ LCALIFLayer::~LCALIFLayer() {
    Vmeminf = NULL;
 }
 
-int LCALIFLayer::allocateDataStructures() {
-   int status = LIFGap::allocateDataStructures();
+Response::Status LCALIFLayer::allocateDataStructures() {
+   auto status = LIFGap::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    int numNeurons = getNumNeuronsAllBatches();
    for (int k = 0; k < numNeurons; k++) {
@@ -160,36 +163,23 @@ int LCALIFLayer::allocateDataStructures() {
       Vmeminf[k]   = lParams.Vrest;
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
-int LCALIFLayer::allocateBuffers() {
+void LCALIFLayer::allocateBuffers() {
    const size_t numNeurons = getNumNeuronsAllBatches();
    // Allocate data to keep track of trace
-   int status = PV_SUCCESS;
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&integratedSpikeCount, numNeurons, "integratedSpikeCount");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&Vadpt, numNeurons, "Vadpt");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&Vattained, numNeurons, "Vattained");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&Vmeminf, numNeurons, "Vmeminf");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&G_Norm, numNeurons, "G_Norm");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&GSynExcEffective, numNeurons, "GSynExcEffective");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&GSynInhEffective, numNeurons, "GSynInhEffective");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&excitatoryNoise, numNeurons, "excitatoryNoise");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&inhibitoryNoise, numNeurons, "inhibitoryNoise");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&inhibNoiseB, numNeurons, "inhibNoiseB");
-   if (status != PV_SUCCESS)
-      exit(EXIT_FAILURE);
-   return LIFGap::allocateBuffers();
+   allocateBuffer(&integratedSpikeCount, numNeurons, "integratedSpikeCount");
+   allocateBuffer(&Vadpt, numNeurons, "Vadpt");
+   allocateBuffer(&Vattained, numNeurons, "Vattained");
+   allocateBuffer(&Vmeminf, numNeurons, "Vmeminf");
+   allocateBuffer(&G_Norm, numNeurons, "G_Norm");
+   allocateBuffer(&GSynExcEffective, numNeurons, "GSynExcEffective");
+   allocateBuffer(&GSynInhEffective, numNeurons, "GSynInhEffective");
+   allocateBuffer(&excitatoryNoise, numNeurons, "excitatoryNoise");
+   allocateBuffer(&inhibitoryNoise, numNeurons, "inhibitoryNoise");
+   allocateBuffer(&inhibNoiseB, numNeurons, "inhibNoiseB");
+   LIFGap::allocateBuffers();
 }
 
 Response::Status LCALIFLayer::registerData(Checkpointer *checkpointer) {

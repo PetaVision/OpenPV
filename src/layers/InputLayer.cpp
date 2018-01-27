@@ -23,12 +23,15 @@ int InputLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int InputLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+Response::Status InputLayer::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (mNeedInputRegionsPointer) {
       mInputRegionsAllBatchElements.resize(getNumExtendedAllBatches());
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 void InputLayer::initializeBatchIndexer() {
@@ -410,10 +413,7 @@ int InputLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    return PV_FAILURE;
 }
 
-int InputLayer::allocateV() {
-   clayer->V = nullptr;
-   return PV_SUCCESS;
-}
+void InputLayer::allocateV() { clayer->V = nullptr; }
 
 void InputLayer::initializeV() { pvAssert(getV() == nullptr); }
 

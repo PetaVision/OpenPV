@@ -48,7 +48,7 @@ class WeightComparisonProbe : public PV::ColProbe {
     * and verifies that these quantities are the same for each connection
     * in the column.
     */
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    virtual bool needRecalc(double timevalue) override { return true; }
    virtual double referenceUpdateTime() const override { return parent->simulationTime(); }

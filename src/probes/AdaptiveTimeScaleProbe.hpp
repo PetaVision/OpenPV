@@ -82,7 +82,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual Response::Status outputState(double timeValue) override;
 
   protected:

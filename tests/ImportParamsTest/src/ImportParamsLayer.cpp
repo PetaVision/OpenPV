@@ -39,9 +39,8 @@ int ImportParamsLayer::communicateInitInfo(
    return status;
 }
 
-int ImportParamsLayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures();
-   return status;
+Response::Status ImportParamsLayer::allocateDataStructures() {
+   return ANNLayer::allocateDataStructures();
 }
 
 } /* namespace PV */

@@ -57,7 +57,7 @@ class LIF : public PV::HyPerLayer {
 
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    virtual Response::Status updateState(double time, double dt) override;
@@ -108,8 +108,8 @@ class LIF : public PV::HyPerLayer {
    virtual void ioParam_noiseFreqI(enum ParamsIOFlag ioFlag);
    virtual void ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag);
    virtual void ioParam_method(enum ParamsIOFlag ioFlag);
-   virtual int allocateBuffers() override;
-   virtual int allocateConductances(int num_channels);
+   virtual void allocateBuffers() override;
+   virtual void allocateConductances(int num_channels);
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual void readVthFromCheckpoint(Checkpointer *checkpointer);
    virtual void readG_EFromCheckpoint(Checkpointer *checkpointer);

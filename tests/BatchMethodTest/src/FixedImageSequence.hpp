@@ -14,7 +14,7 @@ class FixedImageSequence : public PV::HyPerLayer {
    /**
     * This layer type does not use the V buffer.
     */
-   virtual int allocateV() override;
+   virtual void allocateV() override;
 
    /**
     * Initializes the activity buffer to zero and calls

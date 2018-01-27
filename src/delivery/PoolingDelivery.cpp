@@ -183,13 +183,16 @@ PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messa
    return Response::SUCCESS;
 }
 
-int PoolingDelivery::allocateDataStructures() {
-   int status = BaseDelivery::allocateDataStructures();
+Response::Status PoolingDelivery::allocateDataStructures() {
+   auto status = BaseDelivery::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (mReceiveGpu) {
       initializeDeliverKernelArgs();
    }
    allocateThreadGSyn();
-   return status;
+   return Response::SUCCESS;
 }
 
 void PoolingDelivery::initializeDeliverKernelArgs() {

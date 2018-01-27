@@ -60,13 +60,16 @@ int HyPerLCALayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int HyPerLCALayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures(); // Calls allocateUpdateKernel()
+Response::Status HyPerLCALayer::allocateDataStructures() {
+   auto status = ANNLayer::allocateDataStructures(); // Calls allocateUpdateKernel()
+   if (!Response::completed(status)) {
+      return status;
+   }
    pvAssert(
          mAdaptiveTimeScaleProbe == nullptr
          || getLayerLoc()->nbatch == mAdaptiveTimeScaleProbe->getNumValues());
    mDeltaTimes.resize(getLayerLoc()->nbatch);
-   return status;
+   return Response::SUCCESS;
 }
 
 int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

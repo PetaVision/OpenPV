@@ -94,21 +94,21 @@ int CloneVLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResul
    return PV_SUCCESS;
 }
 
-int CloneVLayer::allocateDataStructures() {
+Response::Status CloneVLayer::allocateDataStructures() {
    assert(originalLayer);
-   int status = PV_SUCCESS;
+   auto status = Response::SUCCESS;
    // Make sure originalLayer has allocated its V buffer before copying its address to clone's V
    // buffer
    if (originalLayer->getDataStructuresAllocatedFlag()) {
       status = HyPerLayer::allocateDataStructures();
    }
    else {
-      status = PV_POSTPONE;
+      status = Response::POSTPONE;
    }
    return status;
 }
 
-int CloneVLayer::allocateV() {
+void CloneVLayer::allocateV() {
    assert(originalLayer && originalLayer->getCLayer());
    clayer->V = originalLayer->getV();
    if (getV() == NULL) {
@@ -118,7 +118,6 @@ int CloneVLayer::allocateV() {
             originalLayerName,
             parent->columnId());
    }
-   return PV_SUCCESS;
 }
 
 int CloneVLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
@@ -132,10 +131,7 @@ int CloneVLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    return PV_FAILURE;
 }
 
-int CloneVLayer::allocateGSyn() {
-   assert(GSyn == NULL);
-   return PV_SUCCESS;
-}
+void CloneVLayer::allocateGSyn() { pvAssert(GSyn == nullptr); }
 
 void CloneVLayer::initializeV() {}
 

@@ -10,7 +10,7 @@ class BinningLayer : public PV::HyPerLayer {
    BinningLayer(const char *name, HyPerCol *hc);
    virtual int
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual int
    requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) override;
    virtual bool activityIsSpiking() override { return false; }
@@ -27,7 +27,7 @@ class BinningLayer : public PV::HyPerLayer {
    void ioParam_zeroNeg(enum ParamsIOFlag ioFlag);
    void ioParam_zeroDCR(enum ParamsIOFlag ioFlag);
    void ioParam_normalDist(enum ParamsIOFlag ioFlag);
-   int allocateV() override;
+   virtual void allocateV() override;
    virtual void initializeV() override;
    virtual void initializeActivity() override;
    virtual Response::Status updateState(double timef, double dt) override;
