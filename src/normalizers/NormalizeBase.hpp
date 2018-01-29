@@ -68,7 +68,8 @@ class NormalizeBase : public BaseObject {
    Response::Status
    respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message);
 
-   int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    bool weightsHaveUpdated() const;
 

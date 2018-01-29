@@ -48,8 +48,12 @@ void CloneVLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status    = HyPerLayer::communicateInitInfo(message);
+Response::Status
+CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
@@ -85,7 +89,7 @@ int CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       exit(EXIT_FAILURE);
    }
    assert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
-   return status;
+   return Response::SUCCESS;
 }
 
 int CloneVLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) {

@@ -90,7 +90,7 @@ class PatchSize : public BaseObject {
     * different values. It is also a fatal error if there is no ConnectionData component, or
     * more than one, in the CommunicateInitInfo message.
     */
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   protected:

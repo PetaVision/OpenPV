@@ -37,8 +37,8 @@ void DependentArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    // During the communication phase, numAxonalArbors will be copied from originalConn
 }
 
-int DependentArborList::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+Response::Status
+DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto hierarchy = message->mHierarchy;
 
    char const *originalConnName = getOriginalConnName(hierarchy);
@@ -55,13 +55,16 @@ int DependentArborList::communicateInitInfo(
                getDescription_c(),
                originalConnName);
       }
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    mNumAxonalArbors = originalArborList->getNumAxonalArbors();
    parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", mNumAxonalArbors);
 
-   int status = ArborList::communicateInitInfo(message);
-   return status;
+   auto status = ArborList::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   return Response::SUCCESS;
 }
 
 char const *

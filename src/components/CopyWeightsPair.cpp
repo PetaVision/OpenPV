@@ -29,8 +29,8 @@ int CopyWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-int CopyWeightsPair::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+Response::Status
+CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mOriginalConn == nullptr) {
       OriginalConnNameParam *originalConnNameParam =
             mapLookupByType<OriginalConnNameParam>(message->mHierarchy, getDescription());
@@ -46,7 +46,7 @@ int CopyWeightsPair::communicateInitInfo(
                   "communicateInitInfo stage.\n",
                   getDescription_c());
          }
-         return PV_POSTPONE;
+         return Response::POSTPONE;
       }
       char const *originalConnName = originalConnNameParam->getOriginalConnName();
 
@@ -77,11 +77,11 @@ int CopyWeightsPair::communicateInitInfo(
                getDescription_c(),
                mOriginalWeightsPair->getName());
       }
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
-   int status = WeightsPair::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = WeightsPair::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
 
@@ -89,7 +89,7 @@ int CopyWeightsPair::communicateInitInfo(
    // patches won't line up with each other.
    synchronizeMarginsPre();
 
-   return status;
+   return Response::SUCCESS;
 }
 
 void CopyWeightsPair::synchronizeMarginsPre() {

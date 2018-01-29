@@ -32,11 +32,10 @@ int RunningAverageLayer::initialize(const char *name, HyPerCol *hc) {
    return status_init;
 }
 
-int RunningAverageLayer::communicateInitInfo(
+Response::Status RunningAverageLayer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = CloneVLayer::communicateInitInfo(message);
+   return CloneVLayer::communicateInitInfo(message);
    // CloneVLayer sets originalLayer and errors out if originalLayerName is not valid
-   return status;
 }
 
 // RunningAverageLayer does not use the V buffer, so absolutely fine to clone off of an null V layer

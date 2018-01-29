@@ -45,9 +45,10 @@ void PatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseObject::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+Response::Status
+PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseObject::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
    mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
@@ -63,7 +64,7 @@ int PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
                "communicateInitInfo stage.\n",
                getDescription_c());
       }
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    HyPerLayer *post = mConnectionData->getPost();
@@ -94,7 +95,7 @@ int PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    // with each feature connecting to only a few nearby features.
    // Accordingly, we still keep ioParam_nfp.
 
-   return status;
+   return Response::SUCCESS;
 }
 
 int PatchSize::calcPostPatchSize(int prePatchSize, int numNeuronsPre, int numNeuronsPost) {

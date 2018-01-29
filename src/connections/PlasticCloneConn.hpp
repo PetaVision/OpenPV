@@ -33,7 +33,7 @@ class PlasticCloneConn : public CloneConn {
    PlasticCloneConn();
    int initialize(const char *name, HyPerCol *hc);
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 }; // end class PlasticCloneConn
 

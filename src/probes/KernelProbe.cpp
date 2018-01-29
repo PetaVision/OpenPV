@@ -61,10 +61,14 @@ void KernelProbe::ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "outputPatchIndices", &outputPatchIndices, false /*default value*/);
 }
 
-int KernelProbe::initNumValues() { return setNumValues(-1); }
+void KernelProbe::initNumValues() { setNumValues(-1); }
 
-int KernelProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status            = BaseHyPerConnProbe::communicateInitInfo(message);
+Response::Status
+KernelProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseHyPerConnProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    auto *targetHyPerConn = getTargetHyPerConn();
    assert(targetHyPerConn);
    if (targetHyPerConn->getSharedWeights() == false) {
@@ -74,13 +78,10 @@ int KernelProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
                getDescription_c(),
                targetHyPerConn->getDescription_c());
       }
-      status = PV_FAILURE;
-   }
-   MPI_Barrier(parent->getCommunicator()->communicator());
-   if (status != PV_SUCCESS) {
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status KernelProbe::allocateDataStructures() {

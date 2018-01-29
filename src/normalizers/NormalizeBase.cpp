@@ -106,14 +106,15 @@ Response::Status NormalizeBase::respondConnectionNormalize(
    }
 }
 
-int NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+Response::Status
+NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
    pvAssert(weightsPair);
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
-   int status = BaseObject::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = BaseObject::communicateInitInfo(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
 
@@ -121,7 +122,7 @@ int NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    Weights *weights = weightsPair->getPreWeights();
    pvAssert(weights != nullptr);
    addWeightsToList(weights);
-   return status;
+   return Response::SUCCESS;
 }
 
 void NormalizeBase::addWeightsToList(Weights *weights) {

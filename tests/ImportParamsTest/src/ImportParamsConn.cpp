@@ -33,10 +33,9 @@ int ImportParamsConn::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int ImportParamsConn::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerConn::communicateInitInfo(message);
-   return status;
+Response::Status
+ImportParamsConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return HyPerConn::communicateInitInfo(message);
 }
 
 Response::Status ImportParamsConn::allocateDataStructures() {

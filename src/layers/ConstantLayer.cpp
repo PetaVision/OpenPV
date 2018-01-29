@@ -38,9 +38,9 @@ void ConstantLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int ConstantLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerLayer::communicateInitInfo(message);
-   return status;
+Response::Status
+ConstantLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return HyPerLayer::communicateInitInfo(message);
 }
 
 // bool ConstantLayer::checkIfUpdateNeeded() {

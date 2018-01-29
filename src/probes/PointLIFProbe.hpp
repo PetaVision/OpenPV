@@ -25,7 +25,7 @@ class PointLIFProbe : public PointProbe {
    /**
     * Overrides initNumValues to set numValues to 6 (G_E, G_I, G_IB, V, Vth, a)
     */
-   virtual int initNumValues() override;
+   virtual void initNumValues() override;
 
    /**
     * Overrides PointProbe::calcValues to report the conductances and threshold V

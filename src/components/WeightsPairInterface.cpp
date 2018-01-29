@@ -24,10 +24,10 @@ int WeightsPairInterface::initialize(char const *name, HyPerCol *hc) {
 
 void WeightsPairInterface::setObjectType() { mObjectType = "WeightsPairInterface"; }
 
-int WeightsPairInterface::communicateInitInfo(
+Response::Status WeightsPairInterface::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseObject::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = BaseObject::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
    if (mConnectionData == nullptr) {
@@ -45,7 +45,7 @@ int WeightsPairInterface::communicateInitInfo(
                "communicateInitInfo stage.\n",
                getDescription_c());
       }
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    if (mPatchSize == nullptr) {
@@ -60,7 +60,7 @@ int WeightsPairInterface::communicateInitInfo(
                "communicateInitInfo stage.\n",
                getDescription_c());
       }
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    HyPerLayer *pre           = mConnectionData->getPre();
@@ -69,6 +69,7 @@ int WeightsPairInterface::communicateInitInfo(
    PVLayerLoc const *postLoc = post->getLayerLoc();
 
    // Margins
+   bool failed = false;
    int xmargin = requiredConvolveMargin(preLoc->nx, postLoc->nx, mPatchSize->getPatchSizeX());
    int receivedxmargin = 0;
    int statusx         = pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');
@@ -80,7 +81,7 @@ int WeightsPairInterface::communicateInitInfo(
             receivedxmargin,
             name,
             xmargin);
-      status = PV_MARGINWIDTH_FAILURE;
+      failed = true;
    }
    int ymargin = requiredConvolveMargin(preLoc->ny, postLoc->ny, mPatchSize->getPatchSizeY());
    int receivedymargin = 0;
@@ -93,10 +94,13 @@ int WeightsPairInterface::communicateInitInfo(
             receivedymargin,
             name,
             ymargin);
-      status = PV_MARGINWIDTH_FAILURE;
+      failed = true;
+   }
+   if (failed) {
+      exit(EXIT_FAILURE);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 void WeightsPairInterface::needPre() {

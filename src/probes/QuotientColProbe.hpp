@@ -83,7 +83,7 @@ class QuotientColProbe : public ColProbe {
 
    /** @} */ /* end of io functions for QuotientColProbe parameters */
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**

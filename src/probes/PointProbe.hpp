@@ -17,7 +17,7 @@ class PointProbe : public PV::LayerProbe {
    PointProbe(const char *name, HyPerCol *hc);
    virtual ~PointProbe();
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual Response::Status outputState(double timef) override;
@@ -49,7 +49,7 @@ class PointProbe : public PV::LayerProbe {
     * Overrides initNumValues() to set numValues to 2 (membrane potential and
     * activity)
     */
-   virtual int initNumValues() override;
+   virtual void initNumValues() override;
 
    /**
     * Implements calcValues for PointProbe.  probeValues[0] is the point's

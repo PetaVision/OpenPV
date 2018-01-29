@@ -39,7 +39,7 @@ void DependentSharedWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    // During the communication phase, sharedWeights will be copied from originalConn
 }
 
-int DependentSharedWeights::communicateInitInfo(
+Response::Status DependentSharedWeights::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto hierarchy = message->mHierarchy;
 
@@ -57,13 +57,16 @@ int DependentSharedWeights::communicateInitInfo(
                getDescription_c(),
                originalConnName);
       }
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    mSharedWeights = originalSharedWeights->getSharedWeights();
    parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
 
-   int status = SharedWeights::communicateInitInfo(message);
-   return status;
+   auto status = SharedWeights::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   return Response::SUCCESS;
 }
 
 char const *DependentSharedWeights::getOriginalConnName(

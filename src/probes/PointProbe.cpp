@@ -62,13 +62,18 @@ void PointProbe::ioParam_batchLoc(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValueRequired(ioFlag, getName(), "batchLoc", &batchLoc);
 }
 
-int PointProbe::initNumValues() { return setNumValues(2); }
+void PointProbe::initNumValues() { setNumValues(2); }
 
-int PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = LayerProbe::communicateInitInfo(message);
+Response::Status
+PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = LayerProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    assert(getTargetLayer());
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    bool isRoot           = parent->getCommunicator()->commRank() == 0;
+   bool failed           = false;
    if ((xLoc < 0 || xLoc > loc->nxGlobal) && isRoot) {
       ErrorLog().printf(
             "PointProbe on layer %s: xLoc coordinate %d is out "
@@ -77,7 +82,7 @@ int PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
             getTargetLayer()->getName(),
             xLoc,
             loc->nxGlobal);
-      status = PV_FAILURE;
+      failed = true;
    }
    if ((yLoc < 0 || yLoc > loc->nyGlobal) && isRoot) {
       ErrorLog().printf(
@@ -87,7 +92,7 @@ int PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
             getTargetLayer()->getName(),
             yLoc,
             loc->nyGlobal);
-      status = PV_FAILURE;
+      failed = true;
    }
    if ((fLoc < 0 || fLoc > loc->nf) && isRoot) {
       ErrorLog().printf(
@@ -96,7 +101,7 @@ int PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
             getTargetLayer()->getName(),
             fLoc,
             loc->nf);
-      status = PV_FAILURE;
+      failed = true;
    }
    if ((batchLoc < 0 || batchLoc > loc->nbatch) && isRoot) {
       ErrorLog().printf(
@@ -106,11 +111,11 @@ int PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
             getTargetLayer()->getName(),
             batchLoc,
             loc->nbatch);
-      status = PV_FAILURE;
+      failed = true;
    }
-   if (status != PV_SUCCESS)
-      abort();
-   return status;
+   if (failed)
+      exit(EXIT_FAILURE);
+   return Response::SUCCESS;
 }
 
 void PointProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {

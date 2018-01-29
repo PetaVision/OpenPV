@@ -193,18 +193,18 @@ void HebbianUpdater::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status              = PV_SUCCESS;
+Response::Status
+HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto componentMap       = message->mHierarchy;
    std::string const &desc = getDescription();
    auto *weightsPair       = mapLookupByType<WeightsPair>(componentMap, desc);
    pvAssert(weightsPair);
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
-   status = BaseWeightUpdater::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = BaseWeightUpdater::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
 
@@ -252,7 +252,7 @@ int HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       mWeightUpdateTime = parent->getDeltaTime();
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 void HebbianUpdater::addClone(ConnectionData *connectionData) {

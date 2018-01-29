@@ -111,10 +111,10 @@ void PoolingDelivery::ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int PoolingDelivery::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseDelivery::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+Response::Status
+PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseDelivery::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
 
@@ -123,7 +123,7 @@ int PoolingDelivery::communicateInitInfo(
    mPatchSize = mapLookupByType<PatchSize>(hierarchy, getDescription());
    FatalIf(mPatchSize == nullptr, "%s requires a PatchSize component.\n", getDescription_c());
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    mWeightsPair = mapLookupByType<ImpliedWeightsPair>(hierarchy, getDescription());
@@ -132,7 +132,7 @@ int PoolingDelivery::communicateInitInfo(
          "%s requires an ImpliedWeightsPair component.\n",
          getDescription_c());
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    if (mNeedPostIndexLayer) {
@@ -166,7 +166,7 @@ int PoolingDelivery::communicateInitInfo(
          getPreLayer()->setAllocDeviceActiveIndices();
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 Response::Status

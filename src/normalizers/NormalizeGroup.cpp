@@ -41,9 +41,10 @@ void NormalizeGroup::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "normalizeGroupName", &mNormalizeGroupName);
 }
 
-int NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = NormalizeBase::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+Response::Status
+NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = NormalizeBase::communicateInitInfo(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
 
@@ -70,7 +71,7 @@ int NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    Weights *preWeights      = weightsPair->getPreWeights();
    pvAssert(preWeights); // NormalizeBase::communicateInitInfo should have called needPre.
    mGroupHead->addWeightsToList(preWeights);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int NormalizeGroup::normalizeWeights() { return PV_SUCCESS; }

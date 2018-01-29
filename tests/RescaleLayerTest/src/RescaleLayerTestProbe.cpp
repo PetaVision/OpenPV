@@ -26,10 +26,12 @@ int RescaleLayerTestProbe::initialize(const char *name, HyPerCol *hc) {
 
 void RescaleLayerTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
-int RescaleLayerTestProbe::communicateInitInfo(
+Response::Status RescaleLayerTestProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = StatsProbe::communicateInitInfo(message);
-   FatalIf(!(getTargetLayer()), "Test failed.\n");
+   auto status = StatsProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    RescaleLayer *targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
    if (targetRescaleLayer == NULL) {
       if (parent->columnId() == 0) {
@@ -40,7 +42,7 @@ int RescaleLayerTestProbe::communicateInitInfo(
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status RescaleLayerTestProbe::outputState(double timed) {

@@ -79,7 +79,7 @@ class HyPerDeliveryFacade : public BaseDelivery {
 
    void createDeliveryIntern();
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
 #ifdef PV_USE_CUDA

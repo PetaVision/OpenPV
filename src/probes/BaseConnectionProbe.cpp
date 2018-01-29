@@ -56,12 +56,14 @@ Response::Status BaseConnectionProbe::respondConnectionOutput(
    return outputStateWrapper(message->mTime, message->mDeltaT);
 }
 
-int BaseConnectionProbe::communicateInitInfo(
+Response::Status BaseConnectionProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseProbe::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = BaseProbe::communicateInitInfo(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
+
+   bool failed = false;
    mTargetConn = message->lookup<BaseConnection>(std::string(targetName));
    if (mTargetConn == nullptr) {
       ErrorLog().printf(
@@ -69,13 +71,14 @@ int BaseConnectionProbe::communicateInitInfo(
             getDescription_c(),
             parent->columnId(),
             targetName);
-      status = PV_FAILURE;
+      failed = true;
+      ;
    }
    MPI_Barrier(parent->getCommunicator()->communicator());
-   if (status != PV_SUCCESS) {
+   if (failed) {
       exit(EXIT_FAILURE);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 void BaseConnectionProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {

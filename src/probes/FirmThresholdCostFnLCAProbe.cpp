@@ -17,10 +17,14 @@ FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(const char *name, HyPer
 
 FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe() { initialize_base(); }
 
-int FirmThresholdCostFnLCAProbe::communicateInitInfo(
+Response::Status FirmThresholdCostFnLCAProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = FirmThresholdCostFnProbe::communicateInitInfo(message);
+   auto status = FirmThresholdCostFnProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    assert(targetLayer);
+   bool failed                   = false;
    HyPerLCALayer *targetLCALayer = dynamic_cast<HyPerLCALayer *>(targetLayer);
    if (targetLCALayer == nullptr) {
       if (parent->columnId() == 0) {
@@ -29,8 +33,7 @@ int FirmThresholdCostFnLCAProbe::communicateInitInfo(
                getDescription_c(),
                getTargetName());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
+      failed = true;
    }
    if (targetLCALayer->layerListsVerticesInParams() == true) {
       if (parent->columnId() == 0) {
@@ -41,13 +44,14 @@ int FirmThresholdCostFnLCAProbe::communicateInitInfo(
                getDescription_c(),
                getTargetName());
       }
+      failed = true;
+   }
+   if (failed) {
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   if (status == PV_SUCCESS) {
-      coefficient = targetLCALayer->getVThresh();
-   }
-   return status;
+   coefficient = targetLCALayer->getVThresh();
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

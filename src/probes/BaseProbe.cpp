@@ -67,7 +67,7 @@ int BaseProbe::initialize(const char *name, HyPerCol *hc) {
       return status;
    }
    readParams();
-   status = initNumValues();
+   initNumValues();
    return status;
 }
 
@@ -216,32 +216,28 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
    }
 }
 
-int BaseProbe::initNumValues() { return setNumValues(parent->getNBatch()); }
+void BaseProbe::initNumValues() { setNumValues(parent->getNBatch()); }
 
-int BaseProbe::setNumValues(int n) {
-   int status = PV_SUCCESS;
+void BaseProbe::setNumValues(int n) {
    if (n > 0) {
       double *newValuesBuffer = (double *)realloc(probeValues, (size_t)n * sizeof(*probeValues));
-      if (newValuesBuffer != NULL) {
-         // realloc() succeeded
-         probeValues = newValuesBuffer;
-         numValues   = n;
-      }
-      else {
-         // realloc() failed
-         status = PV_FAILURE;
-      }
+      FatalIf(
+            newValuesBuffer == nullptr,
+            "%s unable to set number of values to %d\n",
+            getDescription_c(),
+            n);
+      // realloc() succeeded
+      probeValues = newValuesBuffer;
+      numValues   = n;
    }
    else {
       free(probeValues);
-      probeValues = NULL;
+      probeValues = nullptr;
    }
-   return status;
 }
 
-int BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = PV_SUCCESS;
-
+Response::Status
+BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    // Set up triggering.
    if (triggerFlag) {
       triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
@@ -273,9 +269,14 @@ int BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
          MPI_Barrier(parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
-      status = probe->addTerm(this);
+      int termAdded = probe->addTerm(this);
+      FatalIf(
+            termAdded != PV_SUCCESS,
+            "Failed to add %s to %s.\n",
+            getDescription_c(),
+            probe->getDescription());
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 int BaseProbe::initMessage(const char *msg) {

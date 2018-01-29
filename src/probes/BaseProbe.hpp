@@ -36,7 +36,7 @@ class BaseProbe : public BaseObject {
     * the energy probe,
     * if either triggerFlag or energyProbe are set.
     */
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override = 0;
 
    /**
@@ -297,7 +297,7 @@ class BaseProbe : public BaseObject {
     * Derived classes can override initNumValues to initialize numValues to a
     * different value.
     */
-   virtual int initNumValues();
+   virtual void initNumValues();
 
    /**
     * Sets the numValues member variable (returned by getNumValues()) and
@@ -306,7 +306,7 @@ class BaseProbe : public BaseObject {
     * buffer is left unchanged, errno is set (by a realloc() call),
     * and PV_FAILURE is returned. Otherwise, PV_SUCCESS is returned.
     */
-   int setNumValues(int n);
+   void setNumValues(int n);
 
    /**
     * Returns the probeOutputFilename parameter

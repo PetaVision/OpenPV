@@ -28,9 +28,10 @@ void IdentDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseDelivery::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+Response::Status
+IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseDelivery::communicateInitInfo(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
 
@@ -38,7 +39,7 @@ int IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    FatalIf(!mSingleArbor, "%s requires a SingleArbor component.\n", getDescription_c());
 
    checkPreAndPostDimensions();
-   return status;
+   return Response::SUCCESS;
 }
 
 void IdentDelivery::checkPreAndPostDimensions() {

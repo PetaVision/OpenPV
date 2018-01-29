@@ -32,10 +32,6 @@ namespace Response {
 
 enum Status { SUCCESS, NO_ACTION, PARTIAL, POSTPONE };
 
-int convertStatusToInt(Response::Status);
-
-Status convertIntToStatus(int deprecatedStatusCode);
-
 /**
  * The addition operator for the Response::Status type. The rationale is that if A and B
  * are two Response::Status variables, the value of A+B is the status of a container

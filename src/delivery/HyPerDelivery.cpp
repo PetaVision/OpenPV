@@ -44,23 +44,24 @@ void HyPerDelivery::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
          mConvertRateToSpikeCount /*default value*/);
 }
 
-int HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseDelivery::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+Response::Status
+HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseDelivery::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
    mWeightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
    FatalIf(!mWeightsPair, "%s requires a WeightsPair component.\n", getDescription_c());
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    mArborList = mapLookupByType<ArborList>(message->mHierarchy, getDescription());
    FatalIf(!mArborList, "%s requires an ArborList component.\n", getDescription_c());
    if (!mArborList->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status HyPerDelivery::allocateDataStructures() {

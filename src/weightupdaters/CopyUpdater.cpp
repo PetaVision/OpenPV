@@ -28,8 +28,8 @@ void CopyUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    // the original connection's updater.
 }
 
-int CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status        = PV_SUCCESS;
+Response::Status
+CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto componentMap = message->mHierarchy;
 
    mCopyWeightsPair = mapLookupByType<CopyWeightsPair>(componentMap, getDescription());
@@ -38,7 +38,7 @@ int CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
          "%s requires a CopyWeightsPair component.\n",
          getDescription_c());
    if (!mCopyWeightsPair->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    mCopyWeightsPair->needPre();
 
@@ -49,7 +49,7 @@ int CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
          "%s requires a OriginalConnNameParam component.\n",
          getDescription_c());
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    char const *originalConnName = originalConnNameParam->getOriginalConnName();
@@ -62,21 +62,21 @@ int CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    pvAssert(originalConn);
    auto *originalWeightUpdater = originalConn->getComponentByType<BaseWeightUpdater>();
    if (originalWeightUpdater and !originalWeightUpdater->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    mPlasticityFlag = originalWeightUpdater ? originalWeightUpdater->getPlasticityFlag() : false;
 
    auto *originalWeightsPair = originalConn->getComponentByType<WeightsPair>();
    pvAssert(originalWeightsPair);
    if (!originalWeightsPair->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    originalWeightsPair->needPre();
    mOriginalWeights = originalWeightsPair->getPreWeights();
    pvAssert(mOriginalWeights);
 
-   status = BaseWeightUpdater::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = BaseWeightUpdater::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
 
@@ -85,7 +85,7 @@ int CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    }
    mWriteCompressedCheckpoints = mCopyWeightsPair->getWriteCompressedCheckpoints();
 
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status CopyUpdater::registerData(Checkpointer *checkpointer) {

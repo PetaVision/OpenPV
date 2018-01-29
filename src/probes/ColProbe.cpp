@@ -78,9 +78,9 @@ ColProbe::respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage 
    return outputStateWrapper(message->mTime, message->mDeltaTime);
 }
 
-int ColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseProbe::communicateInitInfo(message);
-   return status;
+Response::Status
+ColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return BaseProbe::communicateInitInfo(message);
 }
 
 } // end namespace PV

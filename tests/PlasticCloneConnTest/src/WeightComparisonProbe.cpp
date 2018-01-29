@@ -24,7 +24,7 @@ int WeightComparisonProbe::initialize(char const *name, PV::HyPerCol *hc) {
    return ColProbe::initialize(name, hc);
 }
 
-int WeightComparisonProbe::communicateInitInfo(
+Response::Status WeightComparisonProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnA")));
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnB")));
@@ -33,7 +33,7 @@ int WeightComparisonProbe::communicateInitInfo(
 
    for (auto &c : mConnectionList) {
       if (!c->getInitInfoCommunicatedFlag()) {
-         return PV_POSTPONE;
+         return Response::POSTPONE;
       }
       auto *deliveryComponent = c->getComponentByType<HyPerDeliveryFacade>();
       pvAssert(deliveryComponent);
@@ -47,7 +47,7 @@ int WeightComparisonProbe::communicateInitInfo(
          weightsPair->needPre();
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 Response::Status WeightComparisonProbe::allocateDataStructures() {

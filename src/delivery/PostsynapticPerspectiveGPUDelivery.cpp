@@ -40,10 +40,10 @@ void PostsynapticPerspectiveGPUDelivery::ioParam_receiveGpu(enum ParamsIOFlag io
    mReceiveGpu = true; // If it's false, we should be using a different class.
 }
 
-int PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
+Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerDelivery::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = HyPerDelivery::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
    // HyPerDelivery::communicateInitInfo() postpones until mWeightsPair communicates.
@@ -61,7 +61,7 @@ int PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
    if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
       getPreLayer()->setAllocDeviceActiveIndices();
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 Response::Status PostsynapticPerspectiveGPUDelivery::setCudaDevice(

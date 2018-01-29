@@ -52,7 +52,7 @@ void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
          ioFlag, getName(), "writeStep", &writeStep, writeStep, true /*warnIfAbsent*/);
 }
 
-int PointLIFProbe::initNumValues() { return setNumValues(NUMBER_OF_VALUES); }
+void PointLIFProbe::initNumValues() { setNumValues(NUMBER_OF_VALUES); }
 
 void PointLIFProbe::calcValues(double timevalue) {
    // TODO: Reduce duplicated code between PointProbe::calcValues and

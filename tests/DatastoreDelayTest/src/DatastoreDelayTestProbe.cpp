@@ -27,17 +27,17 @@ void DatastoreDelayTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int DatastoreDelayTestProbe::communicateInitInfo(
+Response::Status DatastoreDelayTestProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = StatsProbe::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = StatsProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
    HyPerLayer *inputLayer = message->lookup<HyPerLayer>(std::string("input"));
    FatalIf(inputLayer == nullptr, "Unable to find layer \"input\".\n");
    mNumDelayLevels = inputLayer->getNumDelayLevels();
 
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status DatastoreDelayTestProbe::outputState(double timed) {

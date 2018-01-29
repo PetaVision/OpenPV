@@ -30,9 +30,12 @@ void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    requireType(BufActivity);
 }
 
-int StochasticReleaseTestProbe::communicateInitInfo(
+Response::Status StochasticReleaseTestProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = StatsProbe::communicateInitInfo(message);
+   auto status = StatsProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    FatalIf(!getTargetLayer(), ": %s did not set target layer.\n", getDescription_c());
    FatalIf(
          getTargetLayer()->getLayerLoc()->nbatch != 1,
@@ -61,7 +64,7 @@ int StochasticReleaseTestProbe::communicateInitInfo(
          ": %s requires a connection going to target %s.\n",
          getDescription_c(),
          getTargetLayer()->getName());
-   return status;
+   return Response::SUCCESS;
 }
 
 bool compar(double const &a, double const &b) {

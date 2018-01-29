@@ -10,7 +10,7 @@ class ImportParamsConn : public PV::HyPerConn {
    ImportParamsConn(const char *name, HyPerCol *hc);
 
   protected:
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
 

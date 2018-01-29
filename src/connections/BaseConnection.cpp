@@ -98,7 +98,8 @@ BaseConnection::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage 
    return status;
 }
 
-int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+Response::Status
+BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    // build a CommunicateInitInfoMessage consisting of everything in the passed message
    // and everything in the observer table. This way components can communicate with
    // other objects in the HyPerCol's hierarchy.
@@ -114,7 +115,7 @@ int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
          communicateMessage,
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 
-   if (status == Response::SUCCESS) {
+   if (Response::completed(status)) {
       auto *deliveryObject = getComponentByType<BaseDelivery>();
       pvAssert(deliveryObject);
       HyPerLayer *postLayer = deliveryObject->getPostLayer();
@@ -129,9 +130,10 @@ int BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
          }
       }
 #endif // PV_USE_CUDA
+      status = Response::SUCCESS;
    }
 
-   return Response::convertStatusToInt(status);
+   return status;
 }
 
 #ifdef PV_USE_CUDA

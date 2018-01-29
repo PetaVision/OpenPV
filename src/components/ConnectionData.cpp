@@ -43,9 +43,8 @@ void ConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {
          ioFlag, this->getName(), "postLayerName", &mPostLayerName, NULL, false /*warnIfAbsent*/);
 }
 
-int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = PV_SUCCESS;
-
+Response::Status
+ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (getPreLayerName() == nullptr and getPostLayerName() == nullptr) {
       std::string preLayerNameString, postLayerNameString;
       inferPreAndPostFromConnName(
@@ -73,7 +72,8 @@ int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
          "CommunicateInitInfo called for %s with no ObjectMapComponent object.\n",
          getDescription_c());
 
-   mPre = objectMapComponent->lookup<HyPerLayer>(std::string(getPreLayerName()));
+   bool failed = false;
+   mPre        = objectMapComponent->lookup<HyPerLayer>(std::string(getPreLayerName()));
    if (getPre() == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -81,7 +81,7 @@ int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
                getDescription_c(),
                getPreLayerName());
       }
-      status = PV_FAILURE;
+      failed = true;
    }
 
    mPost = objectMapComponent->lookup<HyPerLayer>(std::string(getPostLayerName()));
@@ -92,14 +92,14 @@ int ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
                getDescription_c(),
                getPostLayerName());
       }
-      status = PV_FAILURE;
+      failed = true;
    }
    MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-   if (status != PV_SUCCESS) {
+   if (failed) {
       exit(EXIT_FAILURE);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 void ConnectionData::inferPreAndPostFromConnName(

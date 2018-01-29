@@ -150,8 +150,9 @@ class BaseObject : public CheckpointerDataInterface {
    respondCopyInitialStateToGPU(std::shared_ptr<CopyInitialStateToGPUMessage const> message);
    Response::Status respondCleanup(std::shared_ptr<CleanupMessage const> message);
 
-   virtual int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-      return PV_SUCCESS;
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+      return Response::SUCCESS;
    }
 #ifdef PV_USE_CUDA
    virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);

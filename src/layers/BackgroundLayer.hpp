@@ -19,7 +19,7 @@ class BackgroundLayer : public CloneVLayer {
   public:
    BackgroundLayer(const char *name, HyPerCol *hc);
    virtual ~BackgroundLayer();
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual void allocateV() override;
    virtual Response::Status updateState(double timef, double dt) override;

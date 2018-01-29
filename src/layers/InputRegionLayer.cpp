@@ -95,13 +95,16 @@ void InputRegionLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #endif // PV_USE_CUDA
 }
 
-int InputRegionLayer::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerLayer::communicateInitInfo(message);
+Response::Status
+InputRegionLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    setOriginalLayer(message->lookup<HyPerLayer>(std::string(originalLayerName)));
    pvAssert(originalLayer);
    if (!originalLayer->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE; // Make sure original layer has all the information we need to copy
+      return Response::POSTPONE; // Make sure original layer has all the information we need to copy
    }
    phase        = originalLayer->getPhase();
    mirrorBCflag = originalLayer->useMirrorBCs();
@@ -109,7 +112,7 @@ int InputRegionLayer::communicateInitInfo(
    checkLayerDimensions();
    synchronizeMarginWidth(originalLayer);
    originalLayer->synchronizeMarginWidth(this);
-   return status;
+   return Response::SUCCESS;
 }
 
 void InputRegionLayer::setOriginalLayer(HyPerLayer *layer) {

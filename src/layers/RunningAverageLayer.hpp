@@ -17,7 +17,7 @@ class RunningAverageLayer : public CloneVLayer {
   public:
    RunningAverageLayer(const char *name, HyPerCol *hc);
    virtual ~RunningAverageLayer();
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual void allocateV() override;
    virtual Response::Status updateState(double timef, double dt) override;

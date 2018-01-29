@@ -293,10 +293,9 @@ int LIF::setActivity() {
    return 0;
 }
 
-int LIF::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerLayer::communicateInitInfo(message);
-
-   return status;
+Response::Status
+LIF::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return HyPerLayer::communicateInitInfo(message);
 }
 
 Response::Status LIF::allocateDataStructures() {

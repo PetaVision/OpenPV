@@ -37,10 +37,8 @@ int FeedbackConnectionData::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void FeedbackConnectionData::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {}
 void FeedbackConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {}
 
-int FeedbackConnectionData::communicateInitInfo(
+Response::Status FeedbackConnectionData::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = PV_SUCCESS;
-
    auto hierarchy = message->mHierarchy;
    auto *originalConnNameParam =
          mapLookupByType<OriginalConnNameParam>(hierarchy, getDescription());
@@ -49,7 +47,7 @@ int FeedbackConnectionData::communicateInitInfo(
          "%s requires an OriginalConnNameParam component.\n",
          getDescription_c());
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    char const *originalConnName = originalConnNameParam->getOriginalConnName();
    pvAssert(originalConnName != nullptr);
@@ -75,7 +73,7 @@ int FeedbackConnectionData::communicateInitInfo(
          getDescription_c(),
          originalConn->getName());
    if (!originalConnectionData->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    free(mPreLayerName);
    mPreLayerName = strdup(originalConnectionData->getPostLayerName());

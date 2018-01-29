@@ -36,7 +36,7 @@ class StatsProbe : public PV::LayerProbe {
     * getValues-friendly
     * probes.
     */
-   virtual int initNumValues() override;
+   virtual void initNumValues() override;
 
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
 

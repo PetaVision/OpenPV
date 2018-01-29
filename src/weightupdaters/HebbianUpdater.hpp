@@ -59,7 +59,8 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual Response::Status allocateDataStructures() override;
 

@@ -42,7 +42,8 @@ class CopyUpdater : public BaseWeightUpdater {
 
    virtual void setObjectType() override;
 
-   int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
 

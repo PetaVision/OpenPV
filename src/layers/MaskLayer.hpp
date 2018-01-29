@@ -17,7 +17,7 @@ class MaskLayer : public PV::ANNLayer {
    MaskLayer(const char *name, HyPerCol *hc);
    MaskLayer();
    virtual ~MaskLayer();
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   protected:

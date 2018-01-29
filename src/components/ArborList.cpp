@@ -63,8 +63,8 @@ void ArborList::ioParam_delay(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    ConnectionData *connectionData =
          mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
    FatalIf(
@@ -79,7 +79,7 @@ int ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
                "communicateInitInfo stage.\n",
                getDescription_c());
       }
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    HyPerLayer *preLayer = connectionData->getPre();
 
@@ -95,10 +95,11 @@ int ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
                maxDelay,
                allowedDelay);
       }
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
       exit(EXIT_FAILURE);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 void ArborList::initializeDelays() {

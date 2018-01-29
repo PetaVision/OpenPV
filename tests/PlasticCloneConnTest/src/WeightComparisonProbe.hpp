@@ -40,7 +40,7 @@ class WeightComparisonProbe : public PV::ColProbe {
    /**
     * Assembles the list of HyPerConns in the column.
     */
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**

@@ -8,7 +8,7 @@ namespace PV {
 class BinningLayer : public PV::HyPerLayer {
   public:
    BinningLayer(const char *name, HyPerCol *hc);
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
    virtual int

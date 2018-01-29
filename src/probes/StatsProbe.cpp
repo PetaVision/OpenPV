@@ -179,7 +179,7 @@ void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, 0.0f);
 }
 
-int StatsProbe::initNumValues() { return setNumValues(-1); }
+void StatsProbe::initNumValues() { setNumValues(-1); }
 
 Response::Status StatsProbe::registerData(Checkpointer *checkpointer) {
    auto status = LayerProbe::registerData(checkpointer);

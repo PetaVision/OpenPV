@@ -27,7 +27,7 @@ class DatastoreDelayTestProbe : public StatsProbe {
 
   protected:
    int initialize(const char *name, HyPerCol *hc);
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    // Data members

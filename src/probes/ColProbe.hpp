@@ -53,7 +53,7 @@ class ColProbe : public BaseProbe {
     * Calls BaseProbe::communicateInitInfo (which sets up any triggering or
     * attaching to an energy probe)
     */
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**

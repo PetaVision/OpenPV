@@ -37,10 +37,10 @@ void PresynapticPerspectiveGPUDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioF
    mReceiveGpu = true; // If it's false, we should be using a different class.
 }
 
-int PresynapticPerspectiveGPUDelivery::communicateInitInfo(
+Response::Status PresynapticPerspectiveGPUDelivery::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerDelivery::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = HyPerDelivery::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
    // HyPerDelivery::communicateInitInfo() postpones until mWeightsPair communicates.

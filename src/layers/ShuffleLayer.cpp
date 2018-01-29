@@ -99,9 +99,9 @@ Response::Status ShuffleLayer::allocateDataStructures() {
    return Response::SUCCESS;
 }
 
-int ShuffleLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = CloneVLayer::communicateInitInfo(message);
-   return status;
+Response::Status
+ShuffleLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return CloneVLayer::communicateInitInfo(message);
 }
 
 int ShuffleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

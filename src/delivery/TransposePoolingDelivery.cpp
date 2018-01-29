@@ -58,10 +58,10 @@ void TransposePoolingDelivery::ioParam_updateGSynFromPostPerspective(enum Params
    }
 }
 
-int TransposePoolingDelivery::communicateInitInfo(
+Response::Status TransposePoolingDelivery::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseDelivery::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = BaseDelivery::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
 
@@ -74,7 +74,7 @@ int TransposePoolingDelivery::communicateInitInfo(
          "%s requires an OriginalConnNameParam component.\n",
          getDescription_c());
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    const char *originalConnName = originalConnNameParam->getOriginalConnName();
 
@@ -92,7 +92,7 @@ int TransposePoolingDelivery::communicateInitInfo(
                originalConnName);
       }
       MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-      exit(PV_FAILURE);
+      exit(EXIT_FAILURE);
    }
    auto *originalPoolingDelivery = originalConn->getComponentByType<PoolingDelivery>();
    pvAssert(originalPoolingDelivery);
@@ -125,7 +125,7 @@ int TransposePoolingDelivery::communicateInitInfo(
          "%s requires a DependentPatchSize component.\n",
          getDescription_c());
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    mWeightsPair = mapLookupByType<ImpliedWeightsPair>(hierarchy, getDescription());
@@ -134,7 +134,7 @@ int TransposePoolingDelivery::communicateInitInfo(
          "%s requires an ImpliedWeightsPair component.\n",
          getDescription_c());
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    if (mUpdateGSynFromPostPerspective) {
@@ -157,7 +157,7 @@ int TransposePoolingDelivery::communicateInitInfo(
          getPreLayer()->setAllocDeviceActiveIndices();
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 Response::Status

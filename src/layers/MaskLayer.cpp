@@ -96,8 +96,12 @@ void MaskLayer::ioParam_featureIdxs(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int MaskLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = ANNLayer::communicateInitInfo(message);
+Response::Status
+MaskLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = ANNLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (strcmp(maskMethod, "layer") == 0 || strcmp(maskMethod, "invertLayer") == 0) {
       maskLayer = message->lookup<HyPerLayer>(std::string(maskLayerName));
       if (maskLayer == NULL) {
@@ -168,7 +172,7 @@ int MaskLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
       }
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status MaskLayer::updateState(double time, double dt) {

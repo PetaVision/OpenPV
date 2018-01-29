@@ -124,9 +124,8 @@ BaseObject::respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    if (getInitInfoCommunicatedFlag()) {
       return status;
    }
-   int intStatus = communicateInitInfo(message);
-   status        = Response::convertIntToStatus(intStatus);
-   if (status == Response::SUCCESS) {
+   status = communicateInitInfo(message);
+   if (Response::completed(status)) {
       setInitInfoCommunicatedFlag();
    }
    return status;

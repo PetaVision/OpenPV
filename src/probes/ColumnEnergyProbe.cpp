@@ -85,15 +85,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
          exit(EXIT_FAILURE);
       }
       if (newNumValues != this->getNumValues()) {
-         status = setNumValues(newNumValues);
-         if (status != PV_SUCCESS) {
-            ErrorLog().printf(
-                  "%s: unable to allocate memory for %d probe values: %s\n",
-                  getDescription_c(),
-                  newNumValues,
-                  strerror(errno));
-            exit(EXIT_FAILURE);
-         }
+         setNumValues(newNumValues);
       }
    }
    else {

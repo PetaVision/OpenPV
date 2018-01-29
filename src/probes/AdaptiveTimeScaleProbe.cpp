@@ -93,9 +93,12 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag 
    }
 }
 
-int AdaptiveTimeScaleProbe::communicateInitInfo(
+Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status   = ColProbe::communicateInitInfo(message);
+   auto status = ColProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    mTargetProbe = message->lookup<BaseProbe>(std::string(targetName));
    if (mTargetProbe == nullptr) {
       if (parent->getCommunicator()->commRank() == 0) {
@@ -105,7 +108,7 @@ int AdaptiveTimeScaleProbe::communicateInitInfo(
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status AdaptiveTimeScaleProbe::allocateDataStructures() {

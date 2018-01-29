@@ -17,10 +17,13 @@ int BaseHyPerConnProbe::initialize(const char *name, HyPerCol *hc) {
    return BaseConnectionProbe::initialize(name, hc);
 }
 
-int BaseHyPerConnProbe::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseConnectionProbe::communicateInitInfo(message);
-   assert(getTargetConn());
+Response::Status
+BaseHyPerConnProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseConnectionProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   pvAssert(getTargetConn());
    if (getTargetHyPerConn() == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -29,7 +32,8 @@ int BaseHyPerConnProbe::communicateInitInfo(
                getDescription_c(),
                mTargetConn->getName());
       }
-      status = PV_FAILURE;
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      exit(EXIT_FAILURE);
    }
    return status;
 }

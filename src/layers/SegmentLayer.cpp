@@ -75,8 +75,9 @@ void SegmentLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int SegmentLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerLayer::communicateInitInfo(message);
+Response::Status
+SegmentLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
    // Get original layer
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
@@ -90,7 +91,7 @@ int SegmentLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       exit(EXIT_FAILURE);
    }
    if (originalLayer->getInitInfoCommunicatedFlag() == false) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    // Sync margins

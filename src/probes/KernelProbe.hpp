@@ -18,7 +18,7 @@ class KernelProbe : public BaseHyPerConnProbe {
   public:
    KernelProbe(const char *probename, HyPerCol *hc);
    virtual ~KernelProbe();
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
    virtual Response::Status outputState(double timef) override;
@@ -34,7 +34,7 @@ class KernelProbe : public BaseHyPerConnProbe {
    virtual void ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag);
    int patchIndices(HyPerConn *conn);
 
-   virtual int initNumValues() override;
+   virtual void initNumValues() override;
 
    virtual void calcValues(double timevalue) override {
       Fatal().printf("%s does not use calcValues.\n", getDescription_c());

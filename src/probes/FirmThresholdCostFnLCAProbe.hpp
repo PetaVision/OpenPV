@@ -24,7 +24,7 @@ namespace PV {
 class FirmThresholdCostFnLCAProbe : public FirmThresholdCostFnProbe {
   public:
    FirmThresholdCostFnLCAProbe(const char *name, HyPerCol *hc);
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual ~FirmThresholdCostFnLCAProbe() {}
 

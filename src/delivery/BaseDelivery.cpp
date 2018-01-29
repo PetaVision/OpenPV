@@ -83,7 +83,8 @@ void BaseDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #endif // PV_USE_CUDA
 }
 
-int BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+Response::Status
+BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mConnectionData == nullptr) {
       mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
       FatalIf(
@@ -99,7 +100,7 @@ int BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
                "communicateInitInfo stage.\n",
                getDescription_c());
       }
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    mPreLayer  = mConnectionData->getPre();
@@ -118,13 +119,15 @@ int BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
                   getPostLayer()->getName(),
                   channelAsInt);
          }
+         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+         exit(EXIT_FAILURE);
       }
    }
 #ifdef PV_USE_CUDA
    mUsingGPUFlag = mReceiveGpu;
 #endif // PV_USE_CUDA
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // namespace PV

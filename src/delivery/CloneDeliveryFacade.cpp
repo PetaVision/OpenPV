@@ -24,10 +24,10 @@ int CloneDeliveryFacade::initialize(char const *name, HyPerCol *hc) {
 
 void CloneDeliveryFacade::setObjectType() { mObjectType = "CloneDeliveryFacade"; }
 
-int CloneDeliveryFacade::communicateInitInfo(
+Response::Status CloneDeliveryFacade::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerDeliveryFacade::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = HyPerDeliveryFacade::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
    if (mUpdateGSynFromPostPerspective) {
@@ -36,7 +36,7 @@ int CloneDeliveryFacade::communicateInitInfo(
       pvAssert(cloneWeightsPair);
       cloneWeightsPair->synchronizeMarginsPost();
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

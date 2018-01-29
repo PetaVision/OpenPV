@@ -1137,7 +1137,8 @@ int HyPerLayer::allocateDeviceBuffers() {
 
 #endif // PV_USE_CUDA
 
-int HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+Response::Status
+HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    // HyPerLayers need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
    // calls each layer's communicateInitInfo() sequentially in a repeatable order
@@ -1224,9 +1225,7 @@ int HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
 #endif
 
-   int status = PV_SUCCESS;
-
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status HyPerLayer::setMaxPhase(int *maxPhase) {

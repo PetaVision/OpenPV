@@ -72,7 +72,7 @@ class BaseConnection : public BaseObject, public Subject {
 
    Response::Status respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
 #ifdef PV_USE_CUDA

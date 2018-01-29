@@ -135,37 +135,25 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
    }
 }
 
-int HyPerDeliveryFacade::communicateInitInfo(
+Response::Status HyPerDeliveryFacade::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseDelivery::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = BaseDelivery::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
-   //   pvAssert(mConnectionData != nullptr);
-   //   WeightsPair *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy,
-   //   getDescription());
-   //   pvAssert(weightsPair != nullptr);
 
    // DeliveryIntern needs to know the ConnectionData and the WeightsPair.
    if (mDeliveryIntern) {
-      //      ObserverTable observerTable;
-      //      observerTable.addObject(mConnectionData->getDescription(), mConnectionData);
-      //      observerTable.addObject(mArborList->getDescription(), mArborList);
-      //      observerTable.addObject(weightsPair->getDescription(), weightsPair);
-      //      observerTable.addObject(mDeliveryIntern->getDescription(), mDeliveryIntern);
-      //      auto internMessage =
-      //            std::make_shared<CommunicateInitInfoMessage>(observerTable.getObjectMap());
-      //      status = mDeliveryIntern->respond(internMessage);
       Response::Status internStatus = mDeliveryIntern->respond(message);
       if (internStatus == Response::POSTPONE) {
-         return PV_POSTPONE;
+         return Response::POSTPONE;
       }
 #ifdef PV_USE_CUDA
       mUsingGPUFlag = mDeliveryIntern->isUsingGPU();
 #endif // PV_USE_CUDA
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 #ifdef PV_USE_CUDA

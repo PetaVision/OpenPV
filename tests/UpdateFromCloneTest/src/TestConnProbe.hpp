@@ -25,7 +25,7 @@ class TestConnProbe : public BaseHyPerConnProbe {
     * TestConnProbe::initNumValues() sets numValues to -1, indicating that getValues() and
     * getValue() should not be used.
     */
-   int initNumValues() override;
+   void initNumValues() override;
 
    /**
     * TestConnProbe::needRecalc() always returns false since calcValues should not be called.

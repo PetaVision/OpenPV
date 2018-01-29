@@ -72,13 +72,17 @@ void QuotientColProbe::ioParam_denominator(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "denominator", &denominator);
 }
 
-int QuotientColProbe::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = ColProbe::communicateInitInfo(message);
-   numerProbe = message->lookup<BaseProbe>(std::string(numerator));
-   denomProbe = message->lookup<BaseProbe>(std::string(denominator));
+Response::Status
+QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   Response::Status status = ColProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   numerProbe  = message->lookup<BaseProbe>(std::string(numerator));
+   denomProbe  = message->lookup<BaseProbe>(std::string(denominator));
+   bool failed = false;
    if (numerProbe == NULL || denomProbe == NULL) {
-      status = PV_FAILURE;
+      failed = true;
       if (parent->columnId() == 0) {
          if (numerProbe == NULL) {
             ErrorLog().printf(
@@ -94,9 +98,10 @@ int QuotientColProbe::communicateInitInfo(
          }
       }
    }
-   if (status == PV_SUCCESS) {
-      int nNumValues = numerProbe->getNumValues();
-      int dNumValues = denomProbe->getNumValues();
+   int nNumValues, dNumValues;
+   if (!failed) {
+      nNumValues = numerProbe->getNumValues();
+      dNumValues = denomProbe->getNumValues();
       if (nNumValues != dNumValues) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(
@@ -109,24 +114,17 @@ int QuotientColProbe::communicateInitInfo(
                   nNumValues,
                   dNumValues);
          }
-         MPI_Barrier(this->parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-      status = setNumValues(nNumValues);
-      if (status != PV_SUCCESS) {
-         ErrorLog().printf(
-               "%s: unable to allocate memory for %d values: %s\n",
-               this->getDescription_c(),
-               nNumValues,
-               strerror(errno));
-         exit(EXIT_FAILURE);
+         failed = true;
       }
    }
-   if (status != PV_SUCCESS) {
+   if (!failed) {
+      setNumValues(nNumValues);
+   }
+   if (failed) {
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 void QuotientColProbe::calcValues(double timeValue) {

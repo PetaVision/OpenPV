@@ -14,7 +14,7 @@ MomentumTestConnProbe::~MomentumTestConnProbe() {}
 
 int MomentumTestConnProbe::initialize_base() { return PV_SUCCESS; }
 
-int MomentumTestConnProbe::initNumValues() { return setNumValues(-1); }
+void MomentumTestConnProbe::initNumValues() { setNumValues(-1); }
 
 Response::Status MomentumTestConnProbe::outputState(double timed) {
    // Grab weights of probe and test for the value of .625/1.5, or .4166666

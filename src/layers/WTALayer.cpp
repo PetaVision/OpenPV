@@ -26,8 +26,12 @@ int WTALayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status    = HyPerLayer::communicateInitInfo(message);
+Response::Status
+WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
@@ -40,7 +44,7 @@ int WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
       exit(EXIT_FAILURE);
    }
    if (originalLayer->getInitInfoCommunicatedFlag() == false) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    originalLayer->synchronizeMarginWidth(this);
    this->synchronizeMarginWidth(originalLayer);
@@ -67,8 +71,8 @@ int WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    if (getLayerLoc()->nf != 1) {
       ErrorLog().printf("%s: WTALayer can only have 1 feature.\n", getDescription_c());
    }
-   assert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
-   return status;
+   pvAssert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
+   return Response::SUCCESS;
 }
 
 void WTALayer::allocateV() {

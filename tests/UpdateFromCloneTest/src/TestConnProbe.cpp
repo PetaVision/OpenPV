@@ -14,7 +14,7 @@ TestConnProbe::~TestConnProbe() {}
 
 int TestConnProbe::initialize_base() { return PV_SUCCESS; }
 
-int TestConnProbe::initNumValues() { return setNumValues(-1); }
+void TestConnProbe::initNumValues() { setNumValues(-1); }
 
 Response::Status TestConnProbe::outputState(double timed) {
    // Grab weights of probe and test for the value of .625/1.5, or .4166666

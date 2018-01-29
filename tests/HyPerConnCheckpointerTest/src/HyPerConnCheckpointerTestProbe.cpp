@@ -37,54 +37,49 @@ void HyPerConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOFla
    }
 }
 
-int HyPerConnCheckpointerTestProbe::communicateInitInfo(
+PV::Response::Status HyPerConnCheckpointerTestProbe::communicateInitInfo(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   int status = PV::ColProbe::communicateInitInfo(message);
-   FatalIf(
-         status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
+   auto status = PV::ColProbe::communicateInitInfo(message);
+   if (!PV::Response::completed(status)) {
+      return status;
+   }
 
-   if (initInputLayer(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
-   if (initOutputLayer(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
-   if (initConnection(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
+   status = status + initInputLayer(message);
+   status = status + initOutputLayer(message);
+   status = status + initConnection(message);
    return status;
 }
 
-int HyPerConnCheckpointerTestProbe::initInputLayer(
+PV::Response::Status HyPerConnCheckpointerTestProbe::initInputLayer(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
-   if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mInputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
 
    FatalIf(
          mInputLayer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int HyPerConnCheckpointerTestProbe::initOutputLayer(
+PV::Response::Status HyPerConnCheckpointerTestProbe::initOutputLayer(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
-   if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mOutputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int HyPerConnCheckpointerTestProbe::initConnection(
+PV::Response::Status HyPerConnCheckpointerTestProbe::initConnection(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mConnection = message->lookup<PV::HyPerConn>(std::string("InputToOutput"));
    FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
-   if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
 
    FatalIf(
@@ -102,10 +97,11 @@ int HyPerConnCheckpointerTestProbe::initConnection(
          mConnection->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(
          mConnection->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
+PV::Response::Status
+HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
    if (!dependencyObject->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->commRank() == 0) {
          InfoLog().printf(
@@ -113,10 +109,10 @@ int HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *depend
                getDescription_c(),
                dependencyObject->getName());
       }
-      return PV_POSTPONE;
+      return PV::Response::POSTPONE;
    }
    else {
-      return PV_SUCCESS;
+      return PV::Response::SUCCESS;
    }
 }
 

@@ -51,8 +51,8 @@ void DependentPatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    // During the communication phase, nfp will be copied from originalConn
 }
 
-int DependentPatchSize::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+Response::Status
+DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto hierarchy = message->mHierarchy;
 
    char const *originalConnName = getOriginalConnName(hierarchy);
@@ -69,7 +69,7 @@ int DependentPatchSize::communicateInitInfo(
                getDescription_c(),
                originalConnName);
       }
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    setPatchSize(originalPatchSize);
@@ -77,7 +77,7 @@ int DependentPatchSize::communicateInitInfo(
    parent->parameters()->handleUnnecessaryParameter(name, "nyp", mPatchSizeY);
    parent->parameters()->handleUnnecessaryParameter(name, "nfp", mPatchSizeF);
 
-   int status = PatchSize::communicateInitInfo(message);
+   auto status = PatchSize::communicateInitInfo(message);
    return status;
 }
 

@@ -83,7 +83,7 @@ class InitWeights : public BaseObject {
 
    virtual void setObjectType() override;
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /*

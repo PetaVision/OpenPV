@@ -55,7 +55,7 @@ class LIF : public PV::HyPerLayer {
    LIF(const char *name, HyPerCol *hc, int num_channels);
    virtual ~LIF();
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
    virtual Response::Status registerData(Checkpointer *checkpointer) override;

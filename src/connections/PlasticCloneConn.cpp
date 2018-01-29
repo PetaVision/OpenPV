@@ -22,10 +22,10 @@ int PlasticCloneConn::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int PlasticCloneConn::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = CloneConn::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+Response::Status
+PlasticCloneConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = CloneConn::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
    auto *originalConnNameParam = getComponentByType<OriginalConnNameParam>();
@@ -51,7 +51,7 @@ int PlasticCloneConn::communicateInitInfo(
    // CloneConn::CommunicateInitInfo shouldn't return until its components have communicated.
    originalUpdater->addClone(connectionData);
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

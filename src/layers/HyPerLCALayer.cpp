@@ -115,7 +115,8 @@ int HyPerLCALayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    return status;
 }
 
-int HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+Response::Status
+HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mAdaptiveTimeScaleProbeName) {
       mAdaptiveTimeScaleProbe =
             message->lookup<AdaptiveTimeScaleProbe>(std::string(mAdaptiveTimeScaleProbeName));
@@ -137,7 +138,11 @@ int HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
          exit(EXIT_FAILURE);
       }
    }
-   return ANNLayer::communicateInitInfo(message);
+   auto status = ANNLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   return Response::SUCCESS;
 }
 
 #ifdef PV_USE_CUDA

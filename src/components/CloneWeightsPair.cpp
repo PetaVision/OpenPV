@@ -47,8 +47,8 @@ void CloneWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFl
    // CloneConn never writes checkpoints: set writeCompressedCheckpoints to false.
 }
 
-int CloneWeightsPair::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+Response::Status
+CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mOriginalConn == nullptr) {
       OriginalConnNameParam *originalConnNameParam =
             mapLookupByType<OriginalConnNameParam>(message->mHierarchy, getDescription());
@@ -64,7 +64,7 @@ int CloneWeightsPair::communicateInitInfo(
                   "communicateInitInfo stage.\n",
                   getDescription_c());
          }
-         return PV_POSTPONE;
+         return Response::POSTPONE;
       }
       char const *originalConnName = originalConnNameParam->getOriginalConnName();
 
@@ -95,11 +95,11 @@ int CloneWeightsPair::communicateInitInfo(
                getDescription_c(),
                mOriginalWeightsPair->getName());
       }
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
-   int status = WeightsPair::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   Response::Status status = WeightsPair::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
 
@@ -107,7 +107,7 @@ int CloneWeightsPair::communicateInitInfo(
    // patches won't line up with each other.
    synchronizeMarginsPre();
 
-   return status;
+   return Response::SUCCESS;
 }
 
 void CloneWeightsPair::synchronizeMarginsPre() {

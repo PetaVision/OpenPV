@@ -45,7 +45,7 @@ class DependentSharedWeights : public SharedWeights {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    char const *getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const;

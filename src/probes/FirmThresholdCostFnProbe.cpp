@@ -52,11 +52,14 @@ int FirmThresholdCostFnProbe::setNormDescription() {
    return setNormDescriptionToString("Cost function");
 }
 
-int FirmThresholdCostFnProbe::communicateInitInfo(
+Response::Status FirmThresholdCostFnProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   AbstractNormProbe::communicateInitInfo(message);
+   auto status = AbstractNormProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    ANNLayer *targetANNLayer = dynamic_cast<ANNLayer *>(getTargetLayer());
-   if (targetANNLayer != NULL) {
+   if (targetANNLayer != nullptr) {
       if (!parent->parameters()->present(getName(), "VThresh")) {
          VThresh = targetANNLayer->getVThresh();
       }
@@ -72,7 +75,7 @@ int FirmThresholdCostFnProbe::communicateInitInfo(
       parent->parameters()->ioParamValue(
             PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh /*default*/, true /*warnIfAbsent*/);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {

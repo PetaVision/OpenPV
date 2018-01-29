@@ -57,7 +57,7 @@ class CopyWeightsPair : public WeightsPair {
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual void createPreWeights(std::string const &weightsName) override;

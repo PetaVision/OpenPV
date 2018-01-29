@@ -134,9 +134,10 @@ WeightsPair::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage con
    return Response::SUCCESS;
 }
 
-int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = WeightsPairInterface::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+Response::Status
+WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = WeightsPairInterface::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
    pvAssert(mConnectionData); // set during WeightsPairInterface::communicateInitInfo()
@@ -153,7 +154,7 @@ int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
                "communicateInitInfo stage.\n",
                getDescription_c());
       }
-      return PV_POSTPONE;
+      return status + Response::POSTPONE;
    }
 
    if (mSharedWeights == nullptr) {
@@ -171,7 +172,7 @@ int WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
                "communicateInitInfo stage.\n",
                getDescription_c());
       }
-      return PV_POSTPONE;
+      return status + Response::POSTPONE;
    }
 
    return status;

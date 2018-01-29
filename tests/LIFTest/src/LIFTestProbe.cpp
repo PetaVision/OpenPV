@@ -104,8 +104,9 @@ LIFTestProbe::~LIFTestProbe() {
    free(counts);
 }
 
-int LIFTestProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = StatsProbe::communicateInitInfo(message);
+Response::Status
+LIFTestProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = StatsProbe::communicateInitInfo(message);
    FatalIf(
          getTargetLayer()->getLayerLoc()->nbatch != 1,
          "%s requires nbatch = 1.\n",

@@ -32,18 +32,21 @@ int BackgroundLayer::initialize(const char *name, HyPerCol *hc) {
    return status_init;
 }
 
-int BackgroundLayer::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status    = HyPerLayer::communicateInitInfo(message);
+Response::Status
+BackgroundLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(),
                originalLayerName);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
       exit(EXIT_FAILURE);
    }
    const PVLayerLoc *srcLoc = originalLayer->getLayerLoc();
@@ -90,7 +93,7 @@ int BackgroundLayer::communicateInitInfo(
       exit(EXIT_FAILURE);
    }
    assert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
-   return status;
+   return Response::SUCCESS;
 }
 
 // Background Layer does not use the V buffer, so absolutely fine to clone off of an null V layer

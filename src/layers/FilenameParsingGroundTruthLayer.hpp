@@ -18,7 +18,7 @@ class FilenameParsingGroundTruthLayer : public HyPerLayer {
   public:
    FilenameParsingGroundTruthLayer(const char *name, HyPerCol *hc);
    virtual ~FilenameParsingGroundTruthLayer();
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status updateState(double timef, double dt) override;
    virtual bool needUpdate(double time, double dt) override;

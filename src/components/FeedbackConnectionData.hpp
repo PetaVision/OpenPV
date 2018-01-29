@@ -49,7 +49,7 @@ class FeedbackConnectionData : public ConnectionData {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
 }; // class FeedbackConnectionData

@@ -40,55 +40,50 @@ void MomentumConnSimpleCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::Pa
    }
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::communicateInitInfo(
+PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::communicateInitInfo(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   int status = PV::ColProbe::communicateInitInfo(message);
-   FatalIf(
-         status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
+   auto status = PV::ColProbe::communicateInitInfo(message);
+   if (!PV::Response::completed(status)) {
+      return status;
+   }
 
-   if (initInputLayer(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
-   if (initOutputLayer(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
-   if (initConnection(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
+   status = status + initInputLayer(message);
+   status = status + initOutputLayer(message);
+   status = status + initConnection(message);
    return status;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::initInputLayer(
+PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::initInputLayer(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
-   if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mInputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
 
    FatalIf(
          mInputLayer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(
+PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
-   if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mOutputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::initConnection(
+PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::initConnection(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mConnection = message->lookup<PV::MomentumConn>(std::string("InputToOutput"));
    FatalIf(
          mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
-   if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
 
    FatalIf(
@@ -109,11 +104,11 @@ int MomentumConnSimpleCheckpointerTestProbe::initConnection(
    FatalIf(
          std::strcmp(mConnection->getMomentumMethod(), "simple"),
          "This test assumes that the connection has momentumMethod=\"simple\".\n");
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::checkCommunicatedFlag(
-      PV::BaseObject *dependencyObject) {
+PV::Response::Status
+MomentumConnSimpleCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
    if (!dependencyObject->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->commRank() == 0) {
          InfoLog().printf(
@@ -121,10 +116,10 @@ int MomentumConnSimpleCheckpointerTestProbe::checkCommunicatedFlag(
                getDescription_c(),
                dependencyObject->getName());
       }
-      return PV_POSTPONE;
+      return PV::Response::POSTPONE;
    }
    else {
-      return PV_SUCCESS;
+      return PV::Response::SUCCESS;
    }
 }
 

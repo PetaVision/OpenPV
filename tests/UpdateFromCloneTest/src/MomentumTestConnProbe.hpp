@@ -25,7 +25,7 @@ class MomentumTestConnProbe : public BaseHyPerConnProbe {
     * MomentumTestConnProbe::initNumValues() sets numValues to -1, indicating that getValues() and
     * getValue() should not be used.
     */
-   int initNumValues() override;
+   void initNumValues() override;
 
    /**
     * MomentumTestConnProbe::needRecalc() always returns false since calcValues should not be

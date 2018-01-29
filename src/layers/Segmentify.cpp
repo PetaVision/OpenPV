@@ -99,8 +99,12 @@ void Segmentify::ioParam_segmentLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerLayer::communicateInitInfo(message);
+Response::Status
+Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    // Get original layer
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
@@ -115,7 +119,7 @@ int Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       exit(EXIT_FAILURE);
    }
    if (originalLayer->getInitInfoCommunicatedFlag() == false) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    // Get segment layer
@@ -132,7 +136,7 @@ int Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
 
    if (segmentLayer->getInitInfoCommunicatedFlag() == false) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    // Sync with input layer
@@ -171,7 +175,7 @@ int Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       exit(EXIT_FAILURE);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status Segmentify::allocateDataStructures() {

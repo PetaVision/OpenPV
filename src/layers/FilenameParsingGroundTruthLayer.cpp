@@ -99,7 +99,7 @@ Response::Status FilenameParsingGroundTruthLayer::registerData(Checkpointer *che
    return Response::SUCCESS;
 }
 
-int FilenameParsingGroundTruthLayer::communicateInitInfo(
+Response::Status FilenameParsingGroundTruthLayer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    mInputLayer = message->lookup<InputLayer>(std::string(mInputLayerName));
    FatalIf(
@@ -115,7 +115,7 @@ int FilenameParsingGroundTruthLayer::communicateInitInfo(
          mInputLayerName,
          mInputLayer->getPhase(),
          getPhase());
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 bool FilenameParsingGroundTruthLayer::needUpdate(double time, double dt) {

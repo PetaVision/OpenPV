@@ -494,7 +494,7 @@ class HyPerLayer : public BaseLayer {
    Publisher *getPublisher() { return publisher; }
 
   protected:
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
    virtual Response::Status setMaxPhase(int *maxPhase);

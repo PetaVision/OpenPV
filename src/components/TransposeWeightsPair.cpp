@@ -39,7 +39,7 @@ void TransposeWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag 
    // TransposeWeightsPair never checkpoints, so we always set writeCompressedCheckpoints to false.
 }
 
-int TransposeWeightsPair::communicateInitInfo(
+Response::Status TransposeWeightsPair::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto hierarchy = message->mHierarchy;
    if (mOriginalConn == nullptr) {
@@ -57,7 +57,7 @@ int TransposeWeightsPair::communicateInitInfo(
                   "communicateInitInfo stage.\n",
                   getDescription_c());
          }
-         return PV_POSTPONE;
+         return Response::POSTPONE;
       }
       char const *originalConnName = originalConnNameParam->getOriginalConnName();
 
@@ -87,11 +87,11 @@ int TransposeWeightsPair::communicateInitInfo(
                getDescription_c(),
                mOriginalWeightsPair->getName());
       }
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
-   int status = WeightsPair::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = WeightsPair::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
 
@@ -160,7 +160,7 @@ int TransposeWeightsPair::communicateInitInfo(
    mOriginalConn->getPost()->synchronizeMarginWidth(mConnectionData->getPre());
    mConnectionData->getPre()->synchronizeMarginWidth(mOriginalConn->getPost());
 
-   return status;
+   return Response::SUCCESS;
 }
 
 void TransposeWeightsPair::createPreWeights(std::string const &weightsName) {
