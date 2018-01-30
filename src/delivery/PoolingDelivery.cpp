@@ -184,6 +184,16 @@ PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messa
 }
 
 Response::Status PoolingDelivery::allocateDataStructures() {
+   if (mPostIndexLayer and !mPostIndexLayer->getDataStructuresAllocatedFlag()) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s must wait until postIndexLayer \"%s\" has finished its "
+               "allocateDataStructures stage.\n",
+               getDescription_c(),
+               mPostIndexLayer->getName());
+      }
+      return Response::POSTPONE;
+   }
    auto status = BaseDelivery::allocateDataStructures();
    if (!Response::completed(status)) {
       return status;
@@ -232,10 +242,12 @@ void PoolingDelivery::allocateThreadGSyn() {
    int const numThreads = parent->getNumThreads();
    if (numThreads > 1) {
       mThreadGSyn.resize(numThreads);
+      mThreadGateIdxBuffer.resize(numThreads);
       // mThreadGSyn is only a buffer for one batch element. We're threading over presynaptic
       // neuron index, not batch element; so batch elements will be processed serially.
-      for (auto &th : mThreadGSyn) {
-         th.resize(mPostLayer->getNumNeurons());
+      for (int th = 0; th < numThreads; th++) {
+         mThreadGSyn[th].resize(mPostLayer->getNumNeurons());
+         mThreadGateIdxBuffer[th].resize(mPostLayer->getNumNeurons());
       }
    }
 }
