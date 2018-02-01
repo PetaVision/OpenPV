@@ -1908,8 +1908,7 @@ void PVParams::action_parameter_def(char *id, double val) {
       InfoLog().printf("action_parameter_def: %s = %lf\n", id, val);
       InfoLog().flush();
    }
-   if (checkDuplicates(id, val) != PV_SUCCESS)
-      exit(EXIT_FAILURE);
+   checkDuplicates(id);
    Parameter *p = new Parameter(id, val);
    stack->push(p);
 }
@@ -1962,8 +1961,7 @@ void PVParams::action_parameter_array(char *id) {
    }
    int status = currentParamArray->setName(id);
    assert(status == PV_SUCCESS);
-   if (checkDuplicates(id, 0.0) != PV_SUCCESS)
-      exit(EXIT_FAILURE);
+   checkDuplicates(id);
    arrayStack->push(currentParamArray);
    currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
 }
@@ -2032,8 +2030,7 @@ void PVParams::action_parameter_string_def(const char *id, const char *stringval
       InfoLog().printf("action_parameter_string_def: %s = %s\n", id, stringval);
       InfoLog().flush();
    }
-   if (checkDuplicates(id, 0.0) != PV_SUCCESS)
-      exit(EXIT_FAILURE);
+   checkDuplicates(id);
    char *param_value = stripQuotationMarks(stringval);
    assert(!stringval || param_value); // stringval can be null, but if stringval is not null,
    // param_value should also be non-null
@@ -2080,9 +2077,7 @@ void PVParams::action_parameter_filename_def(const char *id, const char *stringv
       InfoLog().printf("action_parameter_filename_def: %s = %s\n", id, stringval);
       InfoLog().flush();
    }
-   if (checkDuplicates(id, 0.0) != PV_SUCCESS) {
-      exit(EXIT_FAILURE);
-   }
+   checkDuplicates(id);
    char *param_value = stripQuotationMarks(stringval);
    assert(param_value);
    ParameterString *pstr = new ParameterString(id, param_value);
@@ -2245,70 +2240,48 @@ void PVParams::action_parameter_sweep_values_filename(const char *stringval) {
    free(filename);
 }
 
-int PVParams::checkDuplicates(const char *paramName, double val) {
-   int status = PV_SUCCESS;
+void PVParams::checkDuplicates(const char *paramName) {
+   bool hasDuplicate = false;
    for (int k = 0; k < stack->size(); k++) {
       Parameter *parm = stack->peek(k);
       if (!strcmp(paramName, parm->name())) {
-         double oldval = parm->value();
-         if (val == oldval) {
-            if (worldRank == 0) {
-               WarnLog().printf(
-                     "parameter name \"%s\" duplicates a previous parameter name and value "
-                     "(%s = %f)\n",
-                     paramName,
-                     parm->name(),
-                     val);
-            }
-         }
-         else {
-            ErrorLog().printf(
-                  "Rank %d process: parameter name \"%s\" duplicates a previous parameter name "
-                  "with inconsistent values (%f versus %f)\n",
-                  worldRank,
-                  paramName,
-                  oldval,
-                  val);
-            status = PV_FAILURE;
-         }
-         break;
+         ErrorLog().printf(
+               "Rank %d process: The params group for %s \"%s\" duplicates "
+               "parameter \"%s\".\n",
+               worldRank,
+               currGroupKeyword,
+               currGroupName,
+               paramName);
+         hasDuplicate = true;
       }
    }
    for (int k = 0; k < arrayStack->size(); k++) {
       if (!strcmp(paramName, arrayStack->peek(k)->name())) {
          ErrorLog().printf(
-               "Rank %d process: parameter name \"%s\" duplicates a previous array parameter "
-               "name\n",
+               "Rank %d process: The params group for %s \"%s\" duplicates "
+               "array parameter \"%s\".\n",
                worldRank,
+               currGroupKeyword,
+               currGroupName,
                paramName);
-         status = PV_FAILURE;
-         break;
+         hasDuplicate = true;
       }
    }
    for (int k = 0; k < stringStack->size(); k++) {
       if (!strcmp(paramName, stringStack->peek(k)->getName())) {
          ErrorLog().printf(
-               "Rank %d process: parameter name \"%s\" duplicates a previous string parameter "
-               "name\n",
+               "Rank %d process: The params group for %s \"%s\" duplicates "
+               "string parameter \"%s\".\n",
                worldRank,
+               currGroupKeyword,
+               currGroupName,
                paramName);
-         status = PV_FAILURE;
-         break;
+         hasDuplicate = true;
       }
    }
-   if (status != PV_SUCCESS) {
-      if (numberOfGroups() == 0) {
-         ErrorLog().printf(
-               "Rank %d process: this is the first parameter group being parsed\n", worldRank);
-      }
-      else {
-         ErrorLog().printf(
-               "Rank %d process: last parameter group successfully added was \"%s\"\n",
-               worldRank,
-               groups[numberOfGroups() - 1]->name());
-      }
+   if (hasDuplicate) {
+      exit(EXIT_FAILURE);
    }
-   return status;
 }
 
 char *PVParams::stripQuotationMarks(const char *s) {

@@ -183,7 +183,6 @@ HyPerConn "input_to_output" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    convertRateToSpikeCount = false;
     receiveGpu = false;
 
     delay = 0;

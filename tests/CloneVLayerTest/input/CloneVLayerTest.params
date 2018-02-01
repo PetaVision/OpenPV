@@ -226,7 +226,6 @@ HyPerConn "InputToOutput" = {
     normalizeFromPostPerspective = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    convertRateToSpikeCount = false;
     receiveGpu = false;
 
     delay = 0;
@@ -259,7 +258,6 @@ HyPerConn "OutputToDuplicateSigmoid" = {
     plasticityFlag = false;
     convertRateToSpikeCount = false;
     receiveGpu = false;
-    convertRateToSpikeCount = false;
 
     delay = 0;
 
