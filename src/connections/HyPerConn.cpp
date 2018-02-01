@@ -7,6 +7,7 @@
 
 #include "HyPerConn.hpp"
 #include "columns/HyPerCol.hpp"
+#include "components/StrengthParam.hpp"
 #include "delivery/HyPerDeliveryFacade.hpp"
 #include "utils/MapLookupByType.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
@@ -129,6 +130,10 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    if (!strcmp(normalizeMethod, "")) {
       free(normalizeMethod);
       normalizeMethod = strdup("none");
+   }
+   if (strcmp(normalizeMethod, "none")) {
+      auto strengthParam = new StrengthParam(name, parent);
+      addObserver(strengthParam);
    }
    BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, name, parent);
    if (baseObj == nullptr) {

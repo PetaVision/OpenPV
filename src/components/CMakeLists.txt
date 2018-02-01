@@ -18,6 +18,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PatchSize.cpp
    ${SUBDIR}/SharedWeights.cpp
    ${SUBDIR}/SingleArbor.cpp
+   ${SUBDIR}/StrengthParam.cpp
    ${SUBDIR}/TransposePatchSize.cpp
    ${SUBDIR}/TransposeWeightsPair.cpp
    ${SUBDIR}/Weights.cpp
@@ -46,6 +47,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PatchSize.hpp
    ${SUBDIR}/SharedWeights.hpp
    ${SUBDIR}/SingleArbor.hpp
+   ${SUBDIR}/StrengthParam.hpp
    ${SUBDIR}/TransposePatchSize.hpp
    ${SUBDIR}/TransposeWeightsPair.hpp
    ${SUBDIR}/Weights.hpp

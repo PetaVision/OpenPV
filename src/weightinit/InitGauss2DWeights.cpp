@@ -6,6 +6,10 @@
  */
 
 #include "InitGauss2DWeights.hpp"
+#include "columns/ObjectMapComponent.hpp"
+#include "components/StrengthParam.hpp"
+#include "connections/BaseConnection.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -26,7 +30,6 @@ int InitGauss2DWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_sigma(ioFlag);
    ioParam_rMax(ioFlag);
    ioParam_rMin(ioFlag);
-   ioParam_strength(ioFlag);
    ioParam_numOrientationsPost(ioFlag);
    ioParam_numOrientationsPre(ioFlag);
    ioParam_deltaThetaMax(ioFlag);
@@ -61,11 +64,6 @@ void InitGauss2DWeights::ioParam_rMin(enum ParamsIOFlag ioFlag) {
       double rMind = (double)mRMin;
       mRMinSquared = rMind * rMind;
    }
-}
-
-void InitGauss2DWeights::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "strength", &mStrength, mStrength /*default value*/, true /*warnIfAbsent*/);
 }
 
 void InitGauss2DWeights::ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag) {
@@ -107,6 +105,45 @@ void InitGauss2DWeights::ioParam_bowtieAngle(enum ParamsIOFlag ioFlag) {
    if (mBowtieFlag) {
       parent->parameters()->ioParamValue(ioFlag, name, "bowtieAngle", &mBowtieAngle, mBowtieAngle);
    }
+}
+
+Response::Status
+InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = InitWeights::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto hierarchy      = message->mHierarchy;
+   auto *strengthParam = mapLookupByType<StrengthParam>(hierarchy, getDescription());
+   if (strengthParam) {
+      if (strengthParam->getInitInfoCommunicatedFlag()) {
+         mStrength = strengthParam->getStrength();
+         status    = status + Response::SUCCESS;
+      }
+      else {
+         status = status + Response::POSTPONE;
+      }
+   }
+   else {
+      strengthParam           = new StrengthParam(name, parent);
+      auto objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+      FatalIf(
+            objectMapComponent == nullptr,
+            "%s unable to add strength component.\n",
+            getDescription_c());
+      BaseConnection *parentConn = objectMapComponent->lookup<BaseConnection>(std::string(name));
+      FatalIf(
+            parentConn == nullptr,
+            "%s objectMapComponent is missing an object called \"%s\".\n",
+            getDescription_c(),
+            name);
+      parentConn->addObserver(strengthParam);
+      // connection has already components' readParams(); we have to fill the gap here (could
+      // addObserver do it?)
+      strengthParam->readParams();
+      status = status + Response::POSTPONE;
+   }
+   return status;
 }
 
 void InitGauss2DWeights::calcWeights() {

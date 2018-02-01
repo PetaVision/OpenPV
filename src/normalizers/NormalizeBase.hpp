@@ -31,7 +31,6 @@ class NormalizeBase : public BaseObject {
     * instantiate the function.
     */
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag);

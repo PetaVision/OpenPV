@@ -31,7 +31,6 @@ int NormalizeGroup::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 // The NormalizeBase parameters are overridden to do nothing in NormalizeGroup.
-void NormalizeGroup::ioParam_strength(enum ParamsIOFlag ioFlag) {}
 void NormalizeGroup::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {}
 void NormalizeGroup::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {}
 void NormalizeGroup::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {}

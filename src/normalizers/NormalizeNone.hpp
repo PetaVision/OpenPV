@@ -15,7 +15,6 @@ namespace PV {
 class NormalizeNone : public NormalizeBase {
    // Member functions
   protected:
-   virtual void ioParam_strength(enum ParamsIOFlag ioFlag) override {}
    virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) override {}
    virtual void ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) override {}
    virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) override {}
@@ -27,6 +26,9 @@ class NormalizeNone : public NormalizeBase {
   protected:
    NormalizeNone();
    int initialize(const char *name, HyPerCol *hc);
+
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 }; // class NormalizeNone
 
 } /* namespace PV */

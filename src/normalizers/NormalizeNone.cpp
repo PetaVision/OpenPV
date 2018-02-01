@@ -19,4 +19,9 @@ int NormalizeNone::initialize(const char *name, HyPerCol *hc) {
    return NormalizeBase::initialize(name, hc);
 }
 
+Response::Status
+NormalizeNone::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return Response::NO_ACTION;
+}
+
 } /* namespace PV */

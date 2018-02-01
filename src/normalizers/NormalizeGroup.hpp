@@ -27,11 +27,6 @@ class NormalizeGroup : public NormalizeBase {
    int initialize(char const *name, HyPerCol *hc);
 
    /**
-    * NormalizeGroup does not read the strength parameter, but inherits it from its group head.
-    */
-   virtual void ioParam_strength(enum ParamsIOFlag ioFlag) override;
-
-   /**
     * NormalizeGroup does not read the normalizeArborsIndividually parameter, but inherits it from
     * its group head.
     */

@@ -23,7 +23,6 @@ class InitGauss2DWeights : public PV::InitWeights {
    virtual void ioParam_sigma(enum ParamsIOFlag ioFlag);
    virtual void ioParam_rMax(enum ParamsIOFlag ioFlag);
    virtual void ioParam_rMin(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
 
    /**
     * numOrientationsPost is the number of orientations on the post synaptic layer.
@@ -56,6 +55,9 @@ class InitGauss2DWeights : public PV::InitWeights {
   protected:
    InitGauss2DWeights();
    int initialize(char const *name, HyPerCol *hc);
+
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    void calcOtherParams(int patchIndex);
 

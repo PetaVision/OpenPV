@@ -7,6 +7,7 @@
 
 #include "NormalizeBase.hpp"
 #include "columns/HyPerCol.hpp"
+#include "components/StrengthParam.hpp"
 #include "components/WeightsPair.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "utils/MapLookupByType.hpp"
@@ -28,7 +29,6 @@ void NormalizeBase::setObjectType() {
 
 int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_normalizeMethod(ioFlag);
-   ioParam_strength(ioFlag);
    ioParam_normalizeArborsIndividually(ioFlag);
    ioParam_normalizeOnInitialize(ioFlag);
    ioParam_normalizeOnWeightUpdate(ioFlag);
@@ -37,11 +37,6 @@ int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void NormalizeBase::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "normalizeMethod", &mNormalizeMethod);
-}
-
-void NormalizeBase::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "strength", &mStrength, mStrength /*default*/, true /*warn if absent*/);
 }
 
 void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {
@@ -113,6 +108,14 @@ NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
+
+   auto *strengthParam = mapLookupByType<StrengthParam>(message->mHierarchy, getDescription());
+   pvAssert(strengthParam);
+   if (!strengthParam->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
+   mStrength = strengthParam->getStrength();
+
    auto status = BaseObject::communicateInitInfo(message);
    if (status != Response::SUCCESS) {
       return status;
@@ -122,6 +125,7 @@ NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    Weights *weights = weightsPair->getPreWeights();
    pvAssert(weights != nullptr);
    addWeightsToList(weights);
+
    return Response::SUCCESS;
 }
 
