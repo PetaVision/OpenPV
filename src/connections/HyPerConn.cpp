@@ -157,7 +157,7 @@ BaseWeightUpdater *HyPerConn::createWeightUpdater() { return new HebbianUpdater(
 
 Response::Status HyPerConn::respond(std::shared_ptr<BaseMessage const> message) {
    Response::Status status = BaseConnection::respond(message);
-   if (status != Response::SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    else if (auto castMessage = std::dynamic_pointer_cast<ConnectionUpdateMessage const>(message)) {

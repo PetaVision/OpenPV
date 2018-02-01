@@ -57,7 +57,7 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 Response::Status BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
    Response::Status status = BaseObject::respond(message);
-   if (status != PV_SUCCESS) {
+   if (!Response::completed(status)) {
       return status;
    }
    else if (
