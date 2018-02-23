@@ -24,6 +24,7 @@
 #define BASEOBJECT_HPP_
 
 #include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointerDataInterface.hpp"
 #include "columns/Messages.hpp"
 #include "include/pv_common.h"
 #include "observerpattern/Observer.hpp"

@@ -1,7 +1,7 @@
 #ifndef __CHECKPOINTABLEFILESTREAM_HPP__
 #define __CHECKPOINTABLEFILESTREAM_HPP__
 
-#include "Checkpointer.hpp"
+#include "CheckpointerDataInterface.hpp"
 #include "io/FileStream.hpp"
 
 #include <string>

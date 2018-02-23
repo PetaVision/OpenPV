@@ -1,7 +1,7 @@
 #ifndef BATCHINDEXER_HPP_
 #define BATCHINDEXER_HPP_
 
-#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointerDataInterface.hpp"
 #include <vector>
 
 namespace PV {

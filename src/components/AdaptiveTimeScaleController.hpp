@@ -9,7 +9,7 @@
 #define ADAPTIVETIMESCALECONTROLLER_HPP_
 
 #include "checkpointing/CheckpointEntry.hpp"
-#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointerDataInterface.hpp"
 #include "columns/Communicator.hpp"
 #include "io/PrintStream.hpp"
 #include "structures/MPIBlock.hpp"
