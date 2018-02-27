@@ -13,10 +13,11 @@ BaseConnectionProbe::BaseConnectionProbe() {}
 
 BaseConnectionProbe::BaseConnectionProbe(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-BaseConnectionProbe::~BaseConnectionProbe() {}
+BaseConnectionProbe::~BaseConnectionProbe() { delete mIOTimer; }
 
 int BaseConnectionProbe::initialize(const char *name, HyPerCol *hc) {
    int status = BaseProbe::initialize(name, hc);
+   mIOTimer   = new Timer(getName(), "probe", "update");
    return status;
 }
 
@@ -53,7 +54,10 @@ Response::Status BaseConnectionProbe::respondConnectionProbeWriteParams(
 
 Response::Status BaseConnectionProbe::respondConnectionOutput(
       std::shared_ptr<ConnectionOutputMessage const> message) {
-   return outputStateWrapper(message->mTime, message->mDeltaT);
+   mIOTimer->start();
+   Response::Status status = outputStateWrapper(message->mTime, message->mDeltaT);
+   mIOTimer->stop();
+   return status;
 }
 
 Response::Status BaseConnectionProbe::communicateInitInfo(

@@ -18,10 +18,13 @@ HyPerConn::HyPerConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 HyPerConn::HyPerConn() {}
 
-HyPerConn::~HyPerConn() {}
+HyPerConn::~HyPerConn() { delete mUpdateTimer; }
 
 int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    int status = BaseConnection::initialize(name, hc);
+   if (mWeightUpdater) {
+      mUpdateTimer = new Timer(getName(), "conn", "update");
+   }
    return status;
 }
 
@@ -181,7 +184,9 @@ Response::Status
 HyPerConn::respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message) {
    auto *weightUpdater = getComponentByType<BaseWeightUpdater>();
    if (weightUpdater) {
+      mUpdateTimer->start();
       weightUpdater->updateState(message->mTime, message->mDeltaT);
+      mUpdateTimer->stop();
    }
    return Response::SUCCESS;
 }
@@ -197,6 +202,16 @@ Response::Status HyPerConn::initializeState() {
          mComponentTable,
          std::make_shared<InitializeStateMessage>(),
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+}
+
+Response::Status HyPerConn::registerData(Checkpointer *checkpointer) {
+   auto status = BaseConnection::registerData(checkpointer);
+   if (Response::completed(status)) {
+      if (mUpdateTimer) {
+         checkpointer->registerTimer(mUpdateTimer);
+      }
+   }
+   return status;
 }
 
 float const *HyPerConn::getDeltaWeightsDataStart(int arbor) const {

@@ -49,6 +49,7 @@ class BaseConnectionProbe : public BaseProbe {
    // Member Variables
   protected:
    BaseConnection *mTargetConn = nullptr; // The connection being probed.
+   Timer *mIOTimer             = nullptr;
 };
 
 } // end of namespace PV block

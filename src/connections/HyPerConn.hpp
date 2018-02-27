@@ -91,6 +91,8 @@ class HyPerConn : public BaseConnection {
    Response::Status
    respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message);
 
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+
    virtual Response::Status initializeState() override;
 
   protected:
@@ -101,6 +103,8 @@ class HyPerConn : public BaseConnection {
    InitWeights *mWeightInitializer    = nullptr;
    NormalizeBase *mWeightNormalizer   = nullptr;
    BaseWeightUpdater *mWeightUpdater  = nullptr;
+
+   Timer *mUpdateTimer = nullptr;
 
 }; // class HyPerConn
 

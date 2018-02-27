@@ -14,6 +14,7 @@
 #include "delivery/BaseDelivery.hpp"
 #include "observerpattern/Subject.hpp"
 #include "utils/MapLookupByType.hpp"
+#include "utils/Timer.hpp"
 
 namespace PV {
 
@@ -92,6 +93,8 @@ class BaseConnection : public BaseObject, public Subject {
   private:
    ConnectionData *mConnectionData = nullptr;
    BaseDelivery *mDeliveryObject   = nullptr;
+
+   Timer *mIOTimer = nullptr;
 
 }; // class BaseConnection
 

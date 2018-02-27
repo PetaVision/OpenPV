@@ -16,7 +16,10 @@ BaseConnection::BaseConnection(char const *name, HyPerCol *hc) { initialize(name
 
 BaseConnection::BaseConnection() {}
 
-BaseConnection::~BaseConnection() { deleteComponents(); }
+BaseConnection::~BaseConnection() {
+   deleteComponents();
+   delete mIOTimer;
+}
 
 int BaseConnection::initialize(char const *name, HyPerCol *hc) {
    int status = BaseObject::initialize(name, hc);
@@ -25,6 +28,7 @@ int BaseConnection::initialize(char const *name, HyPerCol *hc) {
       defineComponents();
       readParams();
    }
+   mIOTimer = new Timer(getName(), "conn", "io");
    return status;
 }
 
@@ -93,8 +97,10 @@ Response::Status BaseConnection::respondConnectionFinalizeUpdate(
 
 Response::Status
 BaseConnection::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
+   mIOTimer->start();
    auto status = notify(
          mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   mIOTimer->stop();
    return status;
 }
 
@@ -162,6 +168,7 @@ Response::Status BaseConnection::registerData(Checkpointer *checkpointer) {
          mComponentTable,
          std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer),
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   checkpointer->registerTimer(mIOTimer);
    return status;
 }
 
