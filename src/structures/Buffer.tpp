@@ -89,9 +89,11 @@ void Buffer<T>::resize(int width, int height, int features) {
 // Grows a buffer
 template <class T>
 void Buffer<T>::grow(int newWidth, int newHeight, enum Anchor anchor) {
-   if (newWidth < getWidth() && newHeight < getHeight()) {
+   if (newWidth <= getWidth() && newHeight <= getHeight()) {
       return;
    }
+   newWidth  = std::max(newWidth, getWidth());
+   newHeight = std::max(newHeight, getHeight());
    int offsetX = getAnchorX(anchor, getWidth(), newWidth);
    int offsetY = getAnchorY(anchor, getHeight(), newHeight);
    Buffer bigger(newWidth, newHeight, getFeatures());
