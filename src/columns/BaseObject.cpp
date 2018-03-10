@@ -152,15 +152,6 @@ BaseObject::respondAllocateData(std::shared_ptr<AllocateDataMessage const> messa
 }
 
 Response::Status
-BaseObject::respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = registerData(message->mDataRegistry);
-   if (!Response::completed(status)) {
-      Fatal() << getDescription() << ": registerData failed.\n";
-   }
-   return status;
-}
-
-Response::Status
 BaseObject::respondInitializeState(std::shared_ptr<InitializeStateMessage const> message) {
    auto status = Response::NO_ACTION;
    if (getInitialValuesSetFlag()) {

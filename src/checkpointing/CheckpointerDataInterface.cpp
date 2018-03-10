@@ -42,7 +42,11 @@ Response::Status CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage 
 
 Response::Status CheckpointerDataInterface::respondRegisterData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   return registerData(message->mDataRegistry);
+   auto status = registerData(message->mDataRegistry);
+   if (!Response::completed(status)) {
+      Fatal() << getDescription() << ": registerData failed.\n";
+   }
+   return status;
 }
 
 Response::Status CheckpointerDataInterface::respondReadStateFromCheckpoint(

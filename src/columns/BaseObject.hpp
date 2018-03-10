@@ -144,8 +144,6 @@ class BaseObject : public CheckpointerDataInterface {
    Response::Status respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
 #endif // PV_USE_CUDA
    Response::Status respondAllocateData(std::shared_ptr<AllocateDataMessage const> message);
-   Response::Status
-   respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
    Response::Status respondInitializeState(std::shared_ptr<InitializeStateMessage const> message);
    Response::Status
    respondCopyInitialStateToGPU(std::shared_ptr<CopyInitialStateToGPUMessage const> message);
