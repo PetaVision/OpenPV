@@ -28,7 +28,6 @@ int BaseConnection::initialize(char const *name, HyPerCol *hc) {
       defineComponents();
       readParams();
    }
-   mIOTimer = new Timer(getName(), "conn", "io");
    return status;
 }
 
@@ -168,6 +167,7 @@ Response::Status BaseConnection::registerData(Checkpointer *checkpointer) {
          mComponentTable,
          std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer),
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   mIOTimer = new Timer(getName(), "conn", "io");
    checkpointer->registerTimer(mIOTimer);
    return status;
 }

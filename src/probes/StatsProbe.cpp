@@ -62,21 +62,6 @@ int StatsProbe::initialize(const char *name, HyPerCol *hc) {
    int status = LayerProbe::initialize(name, hc);
 
    assert(status == PV_SUCCESS);
-   size_t timermessagelen = strlen("StatsProbe ") + strlen(getName()) + strlen(" Comp timer ");
-   char timermessage[timermessagelen + 1];
-   int charsneeded;
-   charsneeded =
-         snprintf(timermessage, timermessagelen + 1, "StatsProbe %s I/O  timer ", getName());
-   assert(charsneeded <= timermessagelen);
-   iotimer = new Timer(timermessage);
-   charsneeded =
-         snprintf(timermessage, timermessagelen + 1, "StatsProbe %s MPI  timer ", getName());
-   assert(charsneeded <= timermessagelen);
-   mpitimer = new Timer(timermessage);
-   charsneeded =
-         snprintf(timermessage, timermessagelen + 1, "StatsProbe %s Comp timer ", getName());
-   assert(charsneeded <= timermessagelen);
-   comptimer = new Timer(timermessage);
 
    int nbatch = parent->getNBatch();
 
@@ -186,8 +171,21 @@ Response::Status StatsProbe::registerData(Checkpointer *checkpointer) {
    if (!Response::completed(status)) {
       return status;
    }
+
+   std::string timermessagehead;
+   timermessagehead.append("StatsProbe ").append(getName());
+   std::string timermessage;
+
+   timermessage = timermessagehead + " I/O  timer ";
+   iotimer      = new Timer(timermessage.c_str());
    checkpointer->registerTimer(iotimer);
+
+   timermessage = timermessagehead + " MPI  timer ";
+   mpitimer     = new Timer(timermessage.c_str());
    checkpointer->registerTimer(mpitimer);
+
+   timermessage = timermessagehead + " Comp timer ";
+   comptimer    = new Timer(timermessage.c_str());
    checkpointer->registerTimer(comptimer);
    return Response::SUCCESS;
 }

@@ -22,9 +22,6 @@ HyPerConn::~HyPerConn() { delete mUpdateTimer; }
 
 int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    int status = BaseConnection::initialize(name, hc);
-   if (mWeightUpdater) {
-      mUpdateTimer = new Timer(getName(), "conn", "update");
-   }
    return status;
 }
 
@@ -207,7 +204,8 @@ Response::Status HyPerConn::initializeState() {
 Response::Status HyPerConn::registerData(Checkpointer *checkpointer) {
    auto status = BaseConnection::registerData(checkpointer);
    if (Response::completed(status)) {
-      if (mUpdateTimer) {
+      if (mWeightUpdater) {
+         mUpdateTimer = new Timer(getName(), "conn", "update");
          checkpointer->registerTimer(mUpdateTimer);
       }
    }

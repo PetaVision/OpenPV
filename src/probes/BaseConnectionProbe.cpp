@@ -17,7 +17,6 @@ BaseConnectionProbe::~BaseConnectionProbe() { delete mIOTimer; }
 
 int BaseConnectionProbe::initialize(const char *name, HyPerCol *hc) {
    int status = BaseProbe::initialize(name, hc);
-   mIOTimer   = new Timer(getName(), "probe", "update");
    return status;
 }
 
@@ -82,6 +81,16 @@ Response::Status BaseConnectionProbe::communicateInitInfo(
    if (failed) {
       exit(EXIT_FAILURE);
    }
+   return Response::SUCCESS;
+}
+
+Response::Status BaseConnectionProbe::registerData(Checkpointer *checkpointer) {
+   auto status = BaseProbe::registerData(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   mIOTimer = new Timer(getName(), "probe", "update");
+   checkpointer->registerTimer(mIOTimer);
    return Response::SUCCESS;
 }
 
