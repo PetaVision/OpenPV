@@ -107,7 +107,7 @@ void broadcastMessage(
    FatalIf(
          status != Response::SUCCESS,
          "broadcastMessage(\"%s\") failed.\n",
-         messagePtr->getMessageType());
+         messagePtr->getMessageType().c_str());
 }
 
 int check_cocirc_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int axonID) {

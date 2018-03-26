@@ -274,7 +274,7 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
             termAdded != PV_SUCCESS,
             "Failed to add %s to %s.\n",
             getDescription_c(),
-            probe->getDescription());
+            probe->getDescription_c());
    }
    return Response::SUCCESS;
 }
