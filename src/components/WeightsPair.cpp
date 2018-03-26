@@ -41,22 +41,20 @@ void WeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (mWriteStep >= 0) {
-      double startTime = parent->getStartTime();
       parent->parameters()->ioParamValue(
-            ioFlag, name, "initialWriteTime", &mInitialWriteTime, startTime, true /*warnifabsent*/);
+            ioFlag, name, "initialWriteTime", &mInitialWriteTime, mInitialWriteTime, true /*warnifabsent*/);
       if (ioFlag == PARAMS_IO_READ) {
-         if (mWriteStep > 0 && mInitialWriteTime < startTime) {
+         if (mWriteStep > 0 && mInitialWriteTime < 0.0) {
             if (parent->getCommunicator()->globalCommRank() == 0) {
                WarnLog(adjustInitialWriteTime);
                adjustInitialWriteTime.printf(
-                     "%s: initialWriteTime %f earlier than starting time %f.  Adjusting "
+                     "%s: initialWriteTime %f earlier than starting time 0.0.  Adjusting "
                      "initialWriteTime:\n",
                      getDescription_c(),
-                     mInitialWriteTime,
-                     startTime);
+                     mInitialWriteTime);
                adjustInitialWriteTime.flush();
             }
-            while (mInitialWriteTime < startTime) {
+            while (mInitialWriteTime < 0.0) {
                mInitialWriteTime += mWriteStep; // TODO: this hangs if writeStep is zero.
             }
             if (parent->getCommunicator()->globalCommRank() == 0) {

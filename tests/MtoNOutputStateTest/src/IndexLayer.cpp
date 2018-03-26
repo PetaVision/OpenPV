@@ -33,7 +33,7 @@ void IndexLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 PV::Response::Status IndexLayer::initializeState() {
-   return updateState(parent->getStartTime(), parent->getDeltaTime());
+   return updateState(0.0 /*timestamp*/, parent->getDeltaTime());
 }
 
 Response::Status IndexLayer::updateState(double timef, double dt) {

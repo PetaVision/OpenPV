@@ -1,7 +1,6 @@
 debugParsing = false;
 
 HyPerCol "Column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 1;
     progressInterval                    = 1;

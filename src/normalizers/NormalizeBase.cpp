@@ -81,7 +81,7 @@ Response::Status NormalizeBase::respondConnectionNormalize(
       std::shared_ptr<ConnectionNormalizeMessage const> message) {
    bool needUpdate = false;
    double simTime  = parent->simulationTime();
-   if (mNormalizeOnInitialize and simTime == parent->getStartTime()) {
+   if (mNormalizeOnInitialize && simTime == 0.0) {
       needUpdate = true;
    }
    else if (mNormalizeOnWeightUpdate and weightsHaveUpdated()) {

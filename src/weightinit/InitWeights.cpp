@@ -137,7 +137,7 @@ Response::Status InitWeights::initializeState() {
       initRNGs(mWeights->getSharedFlag());
       calcWeights();
    } // mFilename != null
-   mWeights->setTimestamp(parent->getStartTime());
+   mWeights->setTimestamp(0.0);
    return Response::SUCCESS;
 }
 

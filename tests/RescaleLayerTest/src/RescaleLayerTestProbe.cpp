@@ -50,7 +50,7 @@ Response::Status RescaleLayerTestProbe::outputState(double timed) {
    if (status != Response::SUCCESS) {
       return status;
    }
-   if (timed == parent->getStartTime()) {
+   if (timed == 0.0) {
       return status;
    }
    float tolerance      = 2.0e-5f;

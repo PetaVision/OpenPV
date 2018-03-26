@@ -10,9 +10,11 @@
 
 #include "components/ImpliedWeightsPair.hpp"
 #include "components/PatchSize.hpp"
-#include "cudakernels/CudaPoolingDeliverKernel.hpp"
 #include "delivery/BaseDelivery.hpp"
 #include "layers/PoolingIndexLayer.hpp"
+#ifdef PV_USE_CUDA
+#include "cudakernels/CudaPoolingDeliverKernel.hpp"
+#endif // PV_USE_CUDA
 
 namespace PV {
 
@@ -106,8 +108,10 @@ class PoolingDelivery : public BaseDelivery {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+#ifdef PV_USE_CUDA
    virtual Response::Status
    setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) override;
+#endif // PV_USE_CUDA
 
    virtual Response::Status allocateDataStructures() override;
 

@@ -6,7 +6,6 @@
 // Started from checkpoint "output_freshstart_triggering/checkpoints/Checkpoint08"
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 20;
     progressInterval                    = 100;

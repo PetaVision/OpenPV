@@ -96,7 +96,9 @@ void RescaleDelivery::deliver() {
          }
       }
    }
+#ifdef PV_USE_CUDA
    mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
+#endif // PV_USE_CUDA
 }
 
 void RescaleDelivery::deliverUnitInput(float *recvBuffer) {

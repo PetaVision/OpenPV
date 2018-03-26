@@ -34,7 +34,6 @@ local basicParams = {
       ny = nySize;
       dt = 1.0;
       randomSeed = 1234567890;
-      startTime = 0.0;
       stopTime = 10.0; 
       errorOnNotANumber = true;
       progressInterval = 10.0;

@@ -48,11 +48,6 @@ class HyPerCol : public Subject, public Observer {
     */
 
    /**
-    * @brief mStartTime: The set starting time for the run
-    */
-   virtual void ioParam_startTime(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief mStopTime: The set stopping time for the run
     */
    virtual void ioParam_stopTime(enum ParamsIOFlag ioFlag);
@@ -155,8 +150,8 @@ class HyPerCol : public Subject, public Observer {
     * This method is called by the run() method.
     */
    void allocateColumn();
-   int run() { return run(mStartTime, mStopTime, mDeltaTime); }
-   int run(double mStartTime, double mStopTime, double dt);
+   int run() { return run(mStopTime, mDeltaTime); }
+   int run(double stopTime, double dt);
 
    // Getters and setters
 
@@ -169,7 +164,6 @@ class HyPerCol : public Subject, public Observer {
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    double getDeltaTime() const { return mDeltaTime; }
    double simulationTime() const { return mSimTime; }
-   double getStartTime() const { return mStartTime; }
    double getStopTime() const { return mStopTime; }
    int globalRank() { return mCommunicator->globalCommRank(); }
    int columnId() { return mCommunicator->commRank(); }
@@ -271,7 +265,6 @@ class HyPerCol : public Subject, public Observer {
    char *mPrintParamsFilename; // filename for outputting the mParams, including
    // defaults and
    // excluding unread mParams
-   double mStartTime;
    double mSimTime;
    double mStopTime; // time to stop time
    double mDeltaTime; // time step interval

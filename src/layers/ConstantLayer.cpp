@@ -44,15 +44,10 @@ ConstantLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 }
 
 // bool ConstantLayer::checkIfUpdateNeeded() {
-bool ConstantLayer::needUpdate(double time, double dt) {
+bool ConstantLayer::needUpdate(double timestamp, double dt) {
    // Only update on initialization
-   assert(time >= parent->getStartTime());
-   if (time == parent->getStartTime()) {
-      return true;
-   }
-   else {
-      return false;
-   }
+   assert(timestamp >= 0.0);
+   return (timestamp == 0.0);
 }
 
 } /* namespace PV */

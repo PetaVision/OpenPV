@@ -153,6 +153,7 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       mWeightsPair->needPre();
    }
 
+#ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
       getPreLayer()->setAllocDeviceDatastore();
@@ -166,9 +167,11 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
          getPreLayer()->setAllocDeviceActiveIndices();
       }
    }
+#endif // PV_USE_CUDA
    return Response::SUCCESS;
 }
 
+#ifdef PV_USE_CUDA
 Response::Status
 PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
    if (mUsingGPUFlag) {
@@ -182,6 +185,7 @@ PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messa
    }
    return Response::SUCCESS;
 }
+#endif // PV_USE_CUDA
 
 Response::Status PoolingDelivery::allocateDataStructures() {
    if (mPostIndexLayer and !mPostIndexLayer->getDataStructuresAllocatedFlag()) {
@@ -198,13 +202,16 @@ Response::Status PoolingDelivery::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
+#ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       initializeDeliverKernelArgs();
    }
+#endif // PV_USE_CUDA
    allocateThreadGSyn();
    return Response::SUCCESS;
 }
 
+#ifdef PV_USE_CUDA
 void PoolingDelivery::initializeDeliverKernelArgs() {
    PVCuda::CudaBuffer *d_preDatastore = getPreLayer()->getDeviceDatastore();
    PVCuda::CudaBuffer *d_postGSyn     = getPostLayer()->getDeviceGSyn();
@@ -236,6 +243,7 @@ void PoolingDelivery::initializeDeliverKernelArgs() {
          d_postGSyn,
          (int)mChannelCode);
 }
+#endif // PV_USE_CUDA
 
 void PoolingDelivery::allocateThreadGSyn() {
    // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.
@@ -271,7 +279,9 @@ void PoolingDelivery::deliver() {
          deliverPresynapticPerspective();
       }
    }
+#ifdef PV_USE_CUDA
    mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
+#endif // PV_USE_CUDA
 }
 
 void PoolingDelivery::deliverPostsynapticPerspective() {

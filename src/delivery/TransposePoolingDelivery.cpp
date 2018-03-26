@@ -98,7 +98,9 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    pvAssert(originalPoolingDelivery);
    mAccumulateType         = originalPoolingDelivery->getAccumulateType();
    mReceiveGpu             = originalPoolingDelivery->getReceiveGpu();
+#ifdef PV_USE_CUDA
    mUsingGPUFlag           = originalPoolingDelivery->isUsingGPU();
+#endif // PV_USE_CUDA
    mOriginalPostIndexLayer = originalPoolingDelivery->getPostIndexLayer();
    mOriginalPreLayer       = originalPoolingDelivery->getPreLayer();
    mOriginalPostLayer      = originalPoolingDelivery->getPostLayer();
@@ -144,6 +146,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
       mWeightsPair->needPre();
    }
 
+#ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
       getPreLayer()->setAllocDeviceDatastore();
@@ -157,9 +160,11 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
          getPreLayer()->setAllocDeviceActiveIndices();
       }
    }
+#endif // PV_USE_CUDA
    return Response::SUCCESS;
 }
 
+#ifdef PV_USE_CUDA
 Response::Status
 TransposePoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
    if (mUsingGPUFlag) {
@@ -173,19 +178,23 @@ TransposePoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage con
    }
    return Response::SUCCESS;
 }
+#endif // PV_USE_CUDA
 
 Response::Status TransposePoolingDelivery::allocateDataStructures() {
    auto status = BaseDelivery::allocateDataStructures();
    if (!Response::completed(status)) {
       return status;
    }
+#ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       initializeDeliverKernelArgs();
    }
+#endif // PV_USE_CUDA
    allocateThreadGSyn();
    return Response::SUCCESS;
 }
 
+#ifdef PV_USE_CUDA
 void TransposePoolingDelivery::initializeDeliverKernelArgs() {
    PVCuda::CudaDevice *device                 = parent->getDevice();
    PVCuda::CudaBuffer *d_preDatastore         = mPreLayer->getDeviceDatastore();
@@ -225,6 +234,7 @@ void TransposePoolingDelivery::initializeDeliverKernelArgs() {
          d_originalPostGSyn,
          (int)mChannelCode);
 }
+#endif // PV_USE_CUDA
 
 void TransposePoolingDelivery::allocateThreadGSyn() {
    // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.

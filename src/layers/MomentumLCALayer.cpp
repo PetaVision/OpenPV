@@ -269,7 +269,7 @@ Response::Status MomentumLCALayer::prepareCheckpointWrite() {
       return Response::NO_ACTION;
    }
 #else
-   return Response::NOACTION;
+   return Response::NO_ACTION;
 #endif
 }
 

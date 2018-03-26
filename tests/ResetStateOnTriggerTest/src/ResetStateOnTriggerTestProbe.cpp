@@ -22,7 +22,7 @@ int ResetStateOnTriggerTestProbe::initialize(char const *name, PV::HyPerCol *hc)
 
 void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    int nBatch = getNumValues();
-   if (timevalue > parent->getStartTime()) {
+   if (timevalue > 0.0) {
       int N                 = targetLayer->getNumNeurons();
       int NGlobal           = targetLayer->getNumGlobalNeurons();
       PVLayerLoc const *loc = targetLayer->getLayerLoc();

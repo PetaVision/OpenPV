@@ -75,12 +75,16 @@ class TransposePoolingDelivery : public BaseDelivery {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+#ifdef PV_USE_CUDA
    virtual Response::Status
    setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) override;
+#endif // PV_USE_CUDA
 
    virtual Response::Status allocateDataStructures() override;
 
+#ifdef PV_USE_CUDA
    void initializeDeliverKernelArgs();
+#endif // PV_USE_CUDA
 
    void allocateThreadGSyn();
 
@@ -103,7 +107,9 @@ class TransposePoolingDelivery : public BaseDelivery {
    HyPerLayer *mOriginalPreLayer              = nullptr; // Used by deliverGPU
    HyPerLayer *mOriginalPostLayer             = nullptr; // Used by deliverGPU
 
+#ifdef PV_USE_CUDA
    PVCuda::CudaTransposePoolingDeliverKernel *mDeliverKernel = nullptr;
+#endif // PV_USE_CUDA
 
    std::vector<std::vector<float>> mThreadGSyn;
 
