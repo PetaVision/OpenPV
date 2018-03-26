@@ -299,6 +299,7 @@ class Weights {
    int mNumDataPatchesF;
 
    std::vector<std::vector<float>> mData;
+   std::vector<int> dataIndexLookupTable;
 
    bool mWeightsArePlastic = false;
 

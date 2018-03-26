@@ -95,6 +95,13 @@ void Weights::allocateDataStructures() {
          mData[arbor].resize(numDataPatches * numItemsPerPatch);
       }
    }
+   if (mSharedFlag and getNumDataPatches() > 0) {
+      int const numPatches = mGeometry->getNumPatches();
+      dataIndexLookupTable.resize(numPatches);
+      for (int p = 0; p < numPatches; p++) {
+         dataIndexLookupTable[p] = calcDataIndexFromPatchIndex(p);
+      }
+   }
 #ifdef PV_USE_CUDA
    if (mUsingGPUFlag) {
       allocateCudaBuffers();
@@ -134,8 +141,15 @@ void Weights::allocateCudaBuffers() {
 
    if (getNumDataPatches() > 0) {
       std::vector<int> hostPatchToDataLookupVector(numPatches);
-      for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
-         hostPatchToDataLookupVector[patchIndex] = calcDataIndexFromPatchIndex(patchIndex);
+      if (mSharedFlag) {
+         for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+            hostPatchToDataLookupVector[patchIndex] = dataIndexLookupTable[patchIndex];
+         }
+      }
+      else {
+         for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
+            hostPatchToDataLookupVector[patchIndex] = patchIndex;
+         }
       }
       size = hostPatchToDataLookupVector.size() * sizeof(hostPatchToDataLookupVector[0]);
       mDevicePatchToDataLookup = mCudaDevice->createBuffer(size, &description);
@@ -198,7 +212,7 @@ float *Weights::getDataFromDataIndex(int arbor, int dataIndex) {
 }
 
 float *Weights::getDataFromPatchIndex(int arbor, int patchIndex) {
-   int dataIndex = calcDataIndexFromPatchIndex(patchIndex);
+   int dataIndex = mSharedFlag ? dataIndexLookupTable[patchIndex] : patchIndex;
    return getDataFromDataIndex(arbor, dataIndex);
 }
 
