@@ -26,12 +26,15 @@ int ArborTestForOnesProbe::initialize(const char *name, HyPerCol *hc) {
    return StatsProbe::initialize(name, hc);
 }
 
-int ArborTestForOnesProbe::outputState(double timed) {
-   int status           = StatsProbe::outputState(timed);
-   Communicator *icComm = parent->getCommunicator();
-   const int rcvProc    = 0;
-   if (icComm->commRank() != rcvProc) {
-      return 0;
+Response::Status ArborTestForOnesProbe::outputState(double timed) {
+   Response::Status status = StatsProbe::outputState(timed);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
+   int const rank    = parent->getCommunicator()->commRank();
+   const int rcvProc = 0;
+   if (rank != rcvProc) {
+      return status;
    }
    if (timed > 1.0) {
       for (int b = 0; b < parent->getNBatch(); b++) {

@@ -48,8 +48,12 @@ void CloneVLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status    = HyPerLayer::communicateInitInfo(message);
+Response::Status
+CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
@@ -85,7 +89,7 @@ int CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       exit(EXIT_FAILURE);
    }
    assert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
-   return status;
+   return Response::SUCCESS;
 }
 
 int CloneVLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) {
@@ -94,21 +98,21 @@ int CloneVLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResul
    return PV_SUCCESS;
 }
 
-int CloneVLayer::allocateDataStructures() {
+Response::Status CloneVLayer::allocateDataStructures() {
    assert(originalLayer);
-   int status = PV_SUCCESS;
+   auto status = Response::SUCCESS;
    // Make sure originalLayer has allocated its V buffer before copying its address to clone's V
    // buffer
    if (originalLayer->getDataStructuresAllocatedFlag()) {
       status = HyPerLayer::allocateDataStructures();
    }
    else {
-      status = PV_POSTPONE;
+      status = Response::POSTPONE;
    }
    return status;
 }
 
-int CloneVLayer::allocateV() {
+void CloneVLayer::allocateV() {
    assert(originalLayer && originalLayer->getCLayer());
    clayer->V = originalLayer->getV();
    if (getV() == NULL) {
@@ -118,7 +122,6 @@ int CloneVLayer::allocateV() {
             originalLayerName,
             parent->columnId());
    }
-   return PV_SUCCESS;
 }
 
 int CloneVLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
@@ -132,27 +135,24 @@ int CloneVLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    return PV_FAILURE;
 }
 
-int CloneVLayer::allocateGSyn() {
-   assert(GSyn == NULL);
-   return PV_SUCCESS;
-}
+void CloneVLayer::allocateGSyn() { pvAssert(GSyn == nullptr); }
 
-int CloneVLayer::initializeV() { return PV_SUCCESS; }
+void CloneVLayer::initializeV() {}
 
-int CloneVLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
+void CloneVLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
    // If we just inherit HyPerLayer::readVFromCheckpoint, we checkpoint V since it is non-null.
    // This is redundant since V is a clone.
-   return PV_SUCCESS;
 }
 
-int CloneVLayer::registerData(Checkpointer *checkpointer) {
-   float *V   = clayer->V;
-   int status = HyPerLayer::registerData(checkpointer);
-   clayer->V  = V;
+Response::Status CloneVLayer::registerData(Checkpointer *checkpointer) {
+   float *V    = clayer->V;
+   clayer->V   = nullptr;
+   auto status = HyPerLayer::registerData(checkpointer);
+   clayer->V   = V;
    return status;
 }
 
-int CloneVLayer::updateState(double timed, double dt) {
+Response::Status CloneVLayer::updateState(double timed, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -163,7 +163,7 @@ int CloneVLayer::updateState(double timed, double dt) {
    int nf                = loc->nf;
    int num_neurons       = nx * ny * nf;
    int nbatch            = loc->nbatch;
-   int status            = setActivity_HyPerLayer(
+   setActivity_HyPerLayer(
          nbatch,
          num_neurons,
          A,
@@ -175,7 +175,7 @@ int CloneVLayer::updateState(double timed, double dt) {
          loc->halo.rt,
          loc->halo.dn,
          loc->halo.up);
-   return status;
+   return Response::SUCCESS;
 }
 
 CloneVLayer::~CloneVLayer() {

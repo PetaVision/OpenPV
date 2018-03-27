@@ -17,8 +17,12 @@ L1NormLCAProbe::L1NormLCAProbe(const char *name, HyPerCol *hc) {
 
 L1NormLCAProbe::L1NormLCAProbe() { initialize_base(); }
 
-int L1NormLCAProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = L1NormProbe::communicateInitInfo(message);
+Response::Status
+L1NormLCAProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = L1NormProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    assert(targetLayer);
    HyPerLCALayer *targetLCALayer = dynamic_cast<HyPerLCALayer *>(targetLayer);
    if (targetLCALayer == NULL) {
@@ -43,10 +47,8 @@ int L1NormLCAProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   if (status == PV_SUCCESS) {
-      coefficient = targetLCALayer->getVThresh();
-   }
-   return status;
+   coefficient = targetLCALayer->getVThresh();
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

@@ -99,8 +99,12 @@ void Segmentify::ioParam_segmentLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerLayer::communicateInitInfo(message);
+Response::Status
+Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    // Get original layer
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
@@ -115,7 +119,7 @@ int Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       exit(EXIT_FAILURE);
    }
    if (originalLayer->getInitInfoCommunicatedFlag() == false) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    // Get segment layer
@@ -132,7 +136,7 @@ int Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
 
    if (segmentLayer->getInitInfoCommunicatedFlag() == false) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    // Sync with input layer
@@ -171,11 +175,14 @@ int Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       exit(EXIT_FAILURE);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
-int Segmentify::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+Response::Status Segmentify::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    labelToIdx.clear();
    labelVals   = (float **)calloc(getLayerLoc()->nf, sizeof(float *));
@@ -184,7 +191,7 @@ int Segmentify::allocateDataStructures() {
    // Don't allocate inner buffers yet; this will get done based on how many labels are in the
    // current image
 
-   return status;
+   return Response::SUCCESS;
 }
 
 int Segmentify::checkLabelValBuf(int newSize) {
@@ -204,18 +211,14 @@ int Segmentify::checkLabelValBuf(int newSize) {
    return PV_SUCCESS;
 }
 
-int Segmentify::allocateV() {
+void Segmentify::allocateV() {
    // Allocate V does nothing since binning does not need a V layer
    clayer->V = NULL;
-   return PV_SUCCESS;
 }
 
-int Segmentify::initializeV() {
-   assert(getV() == NULL);
-   return PV_SUCCESS;
-}
+void Segmentify::initializeV() { assert(getV() == NULL); }
 
-int Segmentify::initializeActivity() { return PV_SUCCESS; }
+void Segmentify::initializeActivity() {}
 
 int Segmentify::buildLabelToIdx(int batchIdx) {
    Communicator *icComm = parent->getCommunicator();
@@ -441,9 +444,7 @@ int Segmentify::setOutputVals(int batchIdx) {
    return PV_SUCCESS;
 }
 
-int Segmentify::updateState(double timef, double dt) {
-   int status;
-
+Response::Status Segmentify::updateState(double timef, double dt) {
    // Using the segment activity, we want to compress all values within a segment to a single value
    // (per feature)
    for (int bi = 0; bi < getLayerLoc()->nbatch; bi++) {
@@ -452,7 +453,7 @@ int Segmentify::updateState(double timef, double dt) {
       setOutputVals(bi);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 Segmentify::~Segmentify() {

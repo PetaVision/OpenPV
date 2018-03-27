@@ -23,9 +23,9 @@ class HyPerLCALayer : public PV::ANNLayer {
   protected:
    HyPerLCALayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
@@ -53,10 +53,10 @@ class HyPerLCALayer : public PV::ANNLayer {
    virtual void ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag);
    /** @} */
 
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
-   virtual int updateStateGpu(double time, double dt) override;
+   virtual Response::Status updateStateGpu(double time, double dt) override;
 #endif
 
    virtual float getChannelTimeConst(enum ChannelType channel_type) override {

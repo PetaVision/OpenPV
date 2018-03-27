@@ -9,7 +9,7 @@
 #define INITWEIGHTS_HPP_
 
 #include "columns/BaseObject.hpp"
-#include "connections/HyPerConn.hpp"
+#include "components/WeightsPair.hpp"
 #include "layers/HyPerLayer.hpp"
 
 namespace PV {
@@ -21,6 +21,16 @@ class InitWeights : public BaseObject {
     * @name InitWeights Parameters
     * @{
     */
+
+   /**
+    * @brief weightInitType: Specifies the type of weight initialization.
+    * @details This parameter is not used directly inside the InitWeights class,
+    * except to include the parameter in generated params files.
+    * Generally, instantiation should proceed by separately reading the
+    * WeightInitType and using the Factory::createByKeyword template to
+    * instantiate the function.
+    */
+   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief initWeightsFile: A path to a weight pvp file to use for
@@ -66,57 +76,55 @@ class InitWeights : public BaseObject {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   /*
-    * initializeWeights is not virtual.  It checks initFromLastFlag and then
-    * filename, loading weights from a file if appropriate.  Otherwise
-    * it calls calcWeights with no arguments.
-    * For most InitWeights objects, calcWeights(void) does not have to be
-    * overridden but calcWeights(dataStart, patchIndex, arborId) should be.
-    * For a few InitWeights classes (e.g. InitDistributedWeights),
-    * calcWeights(void) is overridden: a fixed number of weights is active,
-    * so it is more convenient and efficient to handle all the weights
-    * together than to call one patch at a time.
-    */
-   int initializeWeights(PVPatch ***patches, float **dataStart, double *timef = NULL);
-
   protected:
    InitWeights();
    int initialize(const char *name, HyPerCol *hc);
    void handleObsoleteFlag(std::string const &flagName);
 
-   virtual int setDescription() override;
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual void calcWeights();
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId);
+   virtual void setObjectType() override;
 
-   virtual int readWeights(
-         bool sharedWeights,
-         float **dataStart,
-         int numPatchesX,
-         int numPatchesY,
-         int numPatchesF,
-         const char *filename,
-         int frameNumber,
-         double *timestampPtr = nullptr);
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   /*
+    * initializeState checks initWeightsFile. If initWeightsFile is set, the weights are
+    * loaded from the file. If it is not set, it calls calcWeights with no arguments.
+    * Generally, derived classes should not override initializeState, but instead override
+    * one or both of the calcWeights methods, in order to preserve the initWeightsFile behavior.
+    */
+   virtual Response::Status initializeState() override;
+
+   /**
+    * Called by initializeWeights, to calculate the weights in all arbors and all patches.
+    * The base implementation callse calcWeights(int, int) in a loop over arbors and
+    * patches
+    */
+   virtual void calcWeights();
+
+   /**
+    * Called by calcWeights(void), to calculate the weights in the given arbor and patch.
+    * Derived classes generally override this method.
+    */
+   virtual void calcWeights(int dataPatchIndex, int arborId);
+
+   virtual int readWeights(const char *filename, int frameNumber, double *timestampPtr = nullptr);
 
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
-   virtual int zeroWeightsOutsideShrunkenPatch(PVPatch ***patches);
 
+   int
+   dataIndexToUnitCellIndex(int dataIndex, int *kx = nullptr, int *ky = nullptr, int *kf = nullptr);
    int kernelIndexCalculations(int patchIndex);
    float calcYDelta(int jPost);
    float calcXDelta(int iPost);
    float calcDelta(int post, float dPost, float distHeadPreUnits);
 
-  private:
-   int initialize_base();
-
   protected:
-   char *mFilename         = nullptr;
-   int mFrameNumber        = 0;
-   HyPerConn *mCallingConn = nullptr;
-   HyPerLayer *mPreLayer   = nullptr;
-   HyPerLayer *mPostLayer  = nullptr;
+   Weights *mWeights = nullptr; // initializeWeights sets this to the WeightsPair's PreWeights.
+
+   char *mWeightInitTypeString = nullptr;
+
+   char *mFilename  = nullptr;
+   int mFrameNumber = 0;
    float mDxPost;
    float mDyPost;
    float mXDistHeadPreUnits;

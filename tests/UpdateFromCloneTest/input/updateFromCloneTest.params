@@ -127,7 +127,6 @@ HyPerConn "origConn" = {
     normalizeMethod = "none";
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 1;
@@ -140,7 +139,6 @@ HyPerConn "origConn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 };
@@ -151,7 +149,6 @@ PlasticCloneConn "cloneConn" = {
     channelCode = 0;
     writeStep = -1;
     originalConnName = "origConn";
-    selfFlag = false;
     delay = 0;
     convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;

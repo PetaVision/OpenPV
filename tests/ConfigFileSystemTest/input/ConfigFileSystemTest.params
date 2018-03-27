@@ -127,11 +127,9 @@ HyPerConn "InputToOutput" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;
 
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 };

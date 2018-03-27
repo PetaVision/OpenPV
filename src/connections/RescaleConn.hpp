@@ -5,48 +5,26 @@
  *      Author: pschultz
  */
 
-#ifndef PV_CORE_SRC_CONNECTIONS_RESCALECONN_HPP_
-#define PV_CORE_SRC_CONNECTIONS_RESCALECONN_HPP_
+#ifndef RESCALECONN_HPP_
+#define RESCALECONN_HPP_
 
 #include "IdentConn.hpp"
+#include <assert.h>
+#include <string.h>
 
 namespace PV {
 
 class RescaleConn : public IdentConn {
   public:
-   RescaleConn(char const *name, HyPerCol *hc);
-   virtual ~RescaleConn();
+   RescaleConn(const char *name, HyPerCol *hc);
 
   protected:
    RescaleConn();
-   int initialize(char const *name, HyPerCol *hc);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   int initialize(const char *name, HyPerCol *hc);
 
-   /**
-    * List of parameters needed from the HyPerConn class
-    * @name HyPerConn Parameters
-    * @{
-    */
+   virtual BaseDelivery *createDeliveryObject() override;
+}; // class RescaleConn
 
-   /**
-    * scale: presynaptic activity is multiplied by this scale factor before being added to the
-    * postsynaptic input.
-    */
-   void ioParam_scale(enum ParamsIOFlag ioFlag);
+} // end of block for namespace PV
 
-   /** @} */
-   // End of parameters needed from the RescaleConn class.
-
-   virtual int deliverPresynapticPerspective(PVLayerCube const *activity, int arborID) override;
-
-  private:
-   int initialize_base();
-
-   // Member variables
-  protected:
-   float scale;
-};
-
-} /* namespace PV */
-
-#endif /* PV_CORE_SRC_CONNECTIONS_RESCALECONN_HPP_ */
+#endif /* RESCALECONN_HPP_ */

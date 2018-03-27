@@ -37,8 +37,7 @@ void ConstantV::ioParam_valueV(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "valueV", &mValueV, (float)V_REST);
 }
 
-int ConstantV::calcV(float *V, PVLayerLoc const *loc) {
-   int status = PV_SUCCESS;
+void ConstantV::calcV(float *V, PVLayerLoc const *loc) {
    if (V == NULL) {
       Fatal().printf("%s: calcV called but membrane potential V is null.\n", getDescription_c());
    }
@@ -46,7 +45,6 @@ int ConstantV::calcV(float *V, PVLayerLoc const *loc) {
    for (int k = 0; k < numNeurons; k++) {
       V[k] = mValueV;
    }
-   return PV_SUCCESS;
 }
 
 } // end namespace PV

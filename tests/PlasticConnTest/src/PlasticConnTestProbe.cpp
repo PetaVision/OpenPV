@@ -11,11 +11,6 @@
 
 namespace PV {
 
-/**
- * @filename
- * @type
- * @msg
- */
 PlasticConnTestProbe::PlasticConnTestProbe(const char *probename, HyPerCol *hc) {
    initialize(probename, hc);
 }
@@ -24,18 +19,16 @@ int PlasticConnTestProbe::initialize(const char *probename, HyPerCol *hc) {
    errorPresent = false;
    return KernelProbe::initialize(probename, hc);
 }
-/**
- * @timef
- */
-int PlasticConnTestProbe::outputState(double timed) {
+
+Response::Status PlasticConnTestProbe::outputState(double timed) {
    HyPerConn *c = getTargetHyPerConn();
    FatalIf(c == nullptr, "%s has targetConnection set to null.\n");
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return Response::NO_ACTION;
    }
    output(0).printf("    Time %f, %s:\n", timed, c->getDescription_c());
-   const float *w  = c->get_wDataHead(getArbor(), getKernelIndex());
-   const float *dw = c->get_dwDataHead(getArbor(), getKernelIndex());
+   const float *w  = c->getWeightsDataHead(getArbor(), getKernelIndex());
+   const float *dw = c->getDeltaWeightsDataHead(getArbor(), getKernelIndex());
    if (getOutputPlasticIncr() && dw == NULL) {
       Fatal().printf(
             "%s: %s has dKernelData(%d,%d) set to null.\n",
@@ -44,9 +37,9 @@ int PlasticConnTestProbe::outputState(double timed) {
             getKernelIndex(),
             getArbor());
    }
-   int nxp    = c->xPatchSize();
-   int nyp    = c->yPatchSize();
-   int nfp    = c->fPatchSize();
+   int nxp    = c->getPatchSizeX();
+   int nyp    = c->getPatchSizeY();
+   int nfp    = c->getPatchSizeF();
    int status = PV_SUCCESS;
    for (int k = 0; k < nxp * nyp * nfp; k++) {
       int x  = kxPos(k, nxp, nyp, nfp);
@@ -97,7 +90,7 @@ int PlasticConnTestProbe::outputState(double timed) {
       patchIndices(c);
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 PlasticConnTestProbe::~PlasticConnTestProbe() {

@@ -36,7 +36,7 @@ class BaseProbe : public BaseObject {
     * the energy probe,
     * if either triggerFlag or energyProbe are set.
     */
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override = 0;
 
    /**
@@ -45,7 +45,7 @@ class BaseProbe : public BaseObject {
     * Derived classes that override this method should make sure to
     * call this method in their own allocateDataStructures methods.
     */
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    /**
     * Returns the number of value indices the probe can compute (typically the
@@ -67,12 +67,12 @@ class BaseProbe : public BaseObject {
     * This behavior is intended to be general, but the method can be overridden
     * if needed.
     */
-   virtual int outputStateWrapper(double timef, double dt);
+   virtual Response::Status outputStateWrapper(double timef, double dt);
 
    /**
     * A pure virtual method for writing output to the output file.
     */
-   virtual int outputState(double timef) = 0;
+   virtual Response::Status outputState(double timef) = 0;
    virtual int writeTimer(PrintStream &stream) { return PV_SUCCESS; }
 
    /**
@@ -116,7 +116,7 @@ class BaseProbe : public BaseObject {
     * should override
     * calcValues.
     */
-   int getValues(double timevalue, double *valuesVector);
+   void getValues(double timevalue, double *valuesVector);
    /**
     * getValues(double timevalue, vector<double> * valuesVector) is a wrapper
     * around
@@ -124,7 +124,7 @@ class BaseProbe : public BaseObject {
     * to size getNumValues() and then fills the vector with the values returned
     * by getValues.
     */
-   int getValues(double timevalue, std::vector<double> *valuesVector);
+   void getValues(double timevalue, std::vector<double> *valuesVector);
    /**
     * getValue() is meant for situations where the caller needs one value
     * that would be returned by getValues(), not the whole buffer.
@@ -141,6 +141,9 @@ class BaseProbe : public BaseObject {
   protected:
    BaseProbe();
    int initialize(const char *name, HyPerCol *hc);
+
+   virtual void setObjectType() override;
+
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
@@ -262,14 +265,14 @@ class BaseProbe : public BaseObject {
     * It should write the computed values into the buffer of member variable
     * 'probeValues'.
     */
-   virtual int calcValues(double timevalue) = 0;
+   virtual void calcValues(double timevalue) = 0;
 
    /**
     * If needRecalc() returns true, getValues(double) updates the probeValues
     * buffer (by calling calcValues) and sets lastUpdateTime to the timevalue
     * input argument.
     */
-   int getValues(double timevalue);
+   void getValues(double timevalue);
 
    /**
     * Returns a pointer to the message parameter.
@@ -294,7 +297,7 @@ class BaseProbe : public BaseObject {
     * Derived classes can override initNumValues to initialize numValues to a
     * different value.
     */
-   virtual int initNumValues();
+   virtual void initNumValues();
 
    /**
     * Sets the numValues member variable (returned by getNumValues()) and
@@ -303,7 +306,7 @@ class BaseProbe : public BaseObject {
     * buffer is left unchanged, errno is set (by a realloc() call),
     * and PV_FAILURE is returned. Otherwise, PV_SUCCESS is returned.
     */
-   int setNumValues(int n);
+   void setNumValues(int n);
 
    /**
     * Returns the probeOutputFilename parameter

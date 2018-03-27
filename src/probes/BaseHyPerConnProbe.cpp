@@ -9,46 +9,41 @@
 
 namespace PV {
 
-BaseHyPerConnProbe::BaseHyPerConnProbe(const char *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+BaseHyPerConnProbe::BaseHyPerConnProbe(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-BaseHyPerConnProbe::BaseHyPerConnProbe() { initialize_base(); }
-
-int BaseHyPerConnProbe::initialize_base() {
-   targetHyPerConn = NULL;
-   return PV_SUCCESS;
-}
+BaseHyPerConnProbe::BaseHyPerConnProbe() {}
 
 int BaseHyPerConnProbe::initialize(const char *name, HyPerCol *hc) {
    return BaseConnectionProbe::initialize(name, hc);
 }
 
-int BaseHyPerConnProbe::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseConnectionProbe::communicateInitInfo(message);
-   assert(getTargetConn());
-   targetHyPerConn = dynamic_cast<HyPerConn *>(targetConn);
-   if (targetHyPerConn == NULL) {
-      if (parent->columnId() == 0) {
+Response::Status
+BaseHyPerConnProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseConnectionProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   pvAssert(getTargetConn());
+   if (getTargetHyPerConn() == nullptr) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: targetConn \"%s\" must be a HyPerConn or "
                "HyPerConn-derived class.\n",
                getDescription_c(),
-               targetConn->getName());
+               mTargetConn->getName());
       }
-      status = PV_FAILURE;
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      exit(EXIT_FAILURE);
    }
    return status;
 }
 
 bool BaseHyPerConnProbe::needRecalc(double timevalue) {
-   return this->getLastUpdateTime() < targetHyPerConn->getLastUpdateTime();
+   return getLastUpdateTime() < getTargetHyPerConn()->getLastUpdateTime();
 }
 
 double BaseHyPerConnProbe::referenceUpdateTime() const {
-   return targetHyPerConn->getLastUpdateTime();
+   return getTargetHyPerConn()->getLastUpdateTime();
 }
 
 BaseHyPerConnProbe::~BaseHyPerConnProbe() {}

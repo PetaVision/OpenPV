@@ -90,7 +90,7 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
       status = PV_FAILURE;
    }
    CopyConn *copyConn = dynamic_cast<CopyConn *>(hc->getObjectFromName("CopyConn"));
-   if (origConn == NULL) {
+   if (copyConn == NULL) {
       if (rank == 0) {
          ErrorLog().printf(
                "Unable to find connection named \"CopyConn\" in params file \"%s\".\n", paramsfile);
@@ -102,29 +102,25 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
       return status;
    }
 
-   NormalizeBase *origNormalizer = origConn->getNormalizer();
-   FatalIf(!(origNormalizer), "Test failed.\n");
-   float origStrength = origNormalizer->getStrength();
+   float origStrength = origConn->getStrength();
 
-   NormalizeBase *copyNormalizer = copyConn->getNormalizer();
-   FatalIf(!(copyNormalizer), "Test failed.\n");
-   float copyStrength = copyNormalizer->getStrength();
+   float copyStrength = copyConn->getStrength();
 
    int origNumPatches = origConn->getNumDataPatches();
    int copyNumPatches = copyConn->getNumDataPatches();
-   FatalIf(!(origNumPatches == copyNumPatches), "Test failed.\n");
-   int origNxp = origConn->xPatchSize();
-   int copyNxp = copyConn->xPatchSize();
-   FatalIf(!(origNxp == copyNxp), "Test failed.\n");
-   int origNyp = origConn->yPatchSize();
-   int copyNyp = copyConn->yPatchSize();
-   FatalIf(!(origNyp == copyNyp), "Test failed.\n");
-   int origNfp = origConn->fPatchSize();
-   int copyNfp = copyConn->fPatchSize();
-   FatalIf(!(origNfp == copyNfp), "Test failed.\n");
-   int origNumArbors = origConn->numberOfAxonalArborLists();
-   int copyNumArbors = copyConn->numberOfAxonalArborLists();
-   FatalIf(!(origNumArbors == copyNumArbors), "Test failed.\n");
+   FatalIf(origNumPatches != copyNumPatches, "Test failed.\n");
+   int origNxp = origConn->getPatchSizeX();
+   int copyNxp = copyConn->getPatchSizeX();
+   FatalIf(origNxp != copyNxp, "Test failed.\n");
+   int origNyp = origConn->getPatchSizeY();
+   int copyNyp = copyConn->getPatchSizeY();
+   FatalIf(origNyp != copyNyp, "Test failed.\n");
+   int origNfp = origConn->getPatchSizeF();
+   int copyNfp = copyConn->getPatchSizeF();
+   FatalIf(origNfp != copyNfp, "Test failed.\n");
+   int origNumArbors = origConn->getNumAxonalArbors();
+   int copyNumArbors = copyConn->getNumAxonalArbors();
+   FatalIf(origNumArbors != copyNumArbors, "Test failed.\n");
 
    for (int arbor = 0; arbor < origNumArbors; arbor++) {
       for (int patchindex = 0; patchindex < origNumPatches; patchindex++) {
@@ -132,8 +128,8 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
             for (int x = 0; x < origNxp; x++) {
                for (int f = 0; f < origNfp; f++) {
                   int indexinpatch = kIndex(x, y, f, origNxp, origNyp, origNfp);
-                  float origWeight = origConn->get_wDataHead(arbor, patchindex)[indexinpatch];
-                  float copyWeight = copyConn->get_wDataHead(arbor, patchindex)[indexinpatch];
+                  float origWeight = origConn->getWeightsDataHead(arbor, patchindex)[indexinpatch];
+                  float copyWeight = copyConn->getWeightsDataHead(arbor, patchindex)[indexinpatch];
                   float discrep    = fabsf(origWeight * copyStrength - copyWeight * origStrength);
                   if (discrep > 1e-6f) {
                      ErrorLog().printf(

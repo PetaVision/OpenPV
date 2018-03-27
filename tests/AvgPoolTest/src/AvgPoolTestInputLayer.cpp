@@ -3,12 +3,12 @@
 namespace PV {
 
 AvgPoolTestInputLayer::AvgPoolTestInputLayer(const char *name, HyPerCol *hc) {
-   ANNLayer::initialize(name, hc);
+   HyPerLayer::initialize(name, hc);
 }
 
 // Makes a layer such that the restricted space is the index, but with spinning order be [x, y, f]
 // as opposed to [f, x, y]
-int AvgPoolTestInputLayer::updateState(double timef, double dt) {
+Response::Status AvgPoolTestInputLayer::updateState(double timef, double dt) {
    // Grab layer size
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -50,7 +50,7 @@ int AvgPoolTestInputLayer::updateState(double timef, double dt) {
       }
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

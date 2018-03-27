@@ -85,15 +85,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
          exit(EXIT_FAILURE);
       }
       if (newNumValues != this->getNumValues()) {
-         status = setNumValues(newNumValues);
-         if (status != PV_SUCCESS) {
-            ErrorLog().printf(
-                  "%s: unable to allocate memory for %d probe values: %s\n",
-                  getDescription_c(),
-                  newNumValues,
-                  strerror(errno));
-            exit(EXIT_FAILURE);
-         }
+         setNumValues(newNumValues);
       }
    }
    else {
@@ -146,10 +138,10 @@ bool ColumnEnergyProbe::needRecalc(double timevalue) { return true; }
 
 double ColumnEnergyProbe::referenceUpdateTime() const { return parent->simulationTime(); }
 
-int ColumnEnergyProbe::calcValues(double timevalue) {
+void ColumnEnergyProbe::calcValues(double timevalue) {
    if (mLastTimeValue == timevalue || --mSkipTimer > 0) {
       mLastTimeValue = timevalue;
-      return PV_SUCCESS;
+      return;
    }
    mSkipTimer           = mSkipInterval + 1;
    double *valuesBuffer = getValuesBuffer();
@@ -164,13 +156,12 @@ int ColumnEnergyProbe::calcValues(double timevalue) {
          valuesBuffer[b] += coeff * energy1[b];
       }
    }
-   return PV_SUCCESS;
 }
 
-int ColumnEnergyProbe::outputState(double timevalue) {
+Response::Status ColumnEnergyProbe::outputState(double timevalue) {
    getValues(timevalue);
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return Response::SUCCESS;
    }
 
    double *valuesBuffer = getValuesBuffer();
@@ -185,7 +176,7 @@ int ColumnEnergyProbe::outputState(double timevalue) {
       stream.printf("%10f, %d, %10.9f\n", timevalue, b, valuesBuffer[b]);
       stream.flush();
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 } // end ColumnEnergyProbe::outputState(double)
 
 } // end namespace PV

@@ -74,34 +74,35 @@ void CheckpointableFileStream::setDescription() {
    description.append(mObjName).append("\"");
 }
 
-int CheckpointableFileStream::respond(std::shared_ptr<BaseMessage const> message) {
+Response::Status CheckpointableFileStream::respond(std::shared_ptr<BaseMessage const> message) {
+   auto status = Response::NO_ACTION;
    if (message == nullptr) {
-      return PV_SUCCESS;
+      return status;
    }
    else if (
          ProcessCheckpointReadMessage const *castMessage =
                dynamic_cast<ProcessCheckpointReadMessage const *>(message.get())) {
-      return respondProcessCheckpointRead(castMessage);
+      status = respondProcessCheckpointRead(castMessage);
    }
-   return PV_SUCCESS;
+   return status;
 }
 
-int CheckpointableFileStream::respondProcessCheckpointRead(
+Response::Status CheckpointableFileStream::respondProcessCheckpointRead(
       ProcessCheckpointReadMessage const *message) {
    syncFilePos();
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
-int CheckpointableFileStream::registerData(Checkpointer *checkpointer) {
-   int status = CheckpointerDataInterface::registerData(checkpointer);
-   if (status != PV_SUCCESS) {
+Response::Status CheckpointableFileStream::registerData(Checkpointer *checkpointer) {
+   auto status = CheckpointerDataInterface::registerData(checkpointer);
+   if (!Response::completed(status)) {
       return status;
    }
    checkpointer->registerCheckpointData<long>(
          mObjName, string("FileStreamRead"), &mFileReadPos, (std::size_t)1, false, false);
    checkpointer->registerCheckpointData<long>(
          mObjName, string("FileStreamWrite"), &mFileWritePos, (std::size_t)1, false, false);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 // When restoring from checkpoint, the variables mFileReadPos and mFileWritePos

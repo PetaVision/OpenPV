@@ -10,7 +10,7 @@ class ImagePvpOffsetTestLayer : public PV::PvpLayer {
    virtual double getDeltaUpdateTime() override;
 
   protected:
-   int updateState(double timef, double dt) override;
+   Response::Status updateState(double timef, double dt) override;
    bool readyForNextFile() override;
 };
 }

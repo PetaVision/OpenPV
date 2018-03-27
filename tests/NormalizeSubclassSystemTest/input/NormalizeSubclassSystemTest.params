@@ -151,11 +151,9 @@ HyPerConn "NormalizeL3Connection" = {
    initialWriteTime = 0.0;
    writeCompressedWeights = false;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    nxp = 16;
    nyp = 16;
    nfp = 4;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
 
    weightInitType = "Gauss2DWeight";
@@ -222,11 +220,9 @@ HyPerConn "NormalizeL3CheckConnection" = {
    initialWriteTime = 0.0;
    writeCompressedWeights = false;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    nxp = 1;
    nyp = 1;
    nfp = 1;
-   shrinkPatches = false;
    updateGSynFromPostPerspective = false;
    
    weightInitType = "UniformWeight";

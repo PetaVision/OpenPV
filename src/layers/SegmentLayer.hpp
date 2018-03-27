@@ -9,9 +9,9 @@ namespace PV {
 class SegmentLayer : public PV::HyPerLayer {
   public:
    SegmentLayer(const char *name, HyPerCol *hc);
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual bool activityIsSpiking() override { return false; }
    virtual ~SegmentLayer();
    const std::map<int, int> getCenterIdxBuf(int batch) { return centerIdx[batch]; }
@@ -22,12 +22,12 @@ class SegmentLayer : public PV::HyPerLayer {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_segmentMethod(enum ParamsIOFlag ioFlag);
-   virtual int initializeActivity() override;
+   virtual void initializeActivity() override;
 
-   virtual int allocateV() override;
-   virtual int initializeV() override;
+   virtual void allocateV() override;
+   virtual void initializeV() override;
 
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
   private:
    int initialize_base();

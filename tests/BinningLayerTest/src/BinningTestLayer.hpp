@@ -10,7 +10,7 @@ class BinningTestLayer : public PV::BinningLayer {
    BinningTestLayer(const char *name, HyPerCol *hc);
 
   protected:
-   int updateState(double timef, double dt) override;
+   Response::Status updateState(double timef, double dt) override;
 
   private:
 };

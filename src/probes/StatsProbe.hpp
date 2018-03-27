@@ -17,7 +17,7 @@ class StatsProbe : public PV::LayerProbe {
    StatsProbe(const char *name, HyPerCol *hc);
    virtual ~StatsProbe();
 
-   virtual int outputState(double timef) override;
+   virtual Response::Status outputState(double timef) override;
    virtual int checkpointTimers(PrintStream &timerstream);
 
   protected:
@@ -36,9 +36,9 @@ class StatsProbe : public PV::LayerProbe {
     * getValues-friendly
     * probes.
     */
-   virtual int initNumValues() override;
+   virtual void initNumValues() override;
 
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    /**
     * Implements needRecalc() for StatsProbe to always return false (getValues
@@ -52,7 +52,9 @@ class StatsProbe : public PV::LayerProbe {
     * getValue methods should
     * not be used).
     */
-   virtual int calcValues(double timevalue) override { return PV_FAILURE; }
+   virtual void calcValues(double timevalue) override {
+      Fatal().printf("%s does not use calcValues.\n", getDescription_c());
+   }
 
    // Member variables
    PVBufType type;

@@ -52,7 +52,6 @@
 #include "connections/GapConn.hpp"
 #include "connections/HyPerConn.hpp"
 #include "connections/IdentConn.hpp"
-#include "connections/ImprintConn.hpp"
 #include "connections/MomentumConn.hpp"
 #include "connections/PlasticCloneConn.hpp"
 #include "connections/PoolingConn.hpp"
@@ -70,6 +69,7 @@
 #include "probes/L0NormProbe.hpp"
 #include "probes/L1NormLCAProbe.hpp"
 #include "probes/L1NormProbe.hpp"
+#include "probes/L2ConnProbe.hpp"
 #include "probes/L2NormProbe.hpp"
 #include "probes/LogTimeScaleProbe.hpp"
 #include "probes/PointLIFProbe.hpp"
@@ -84,6 +84,18 @@
 #include "initv/UniformRandomV.hpp"
 #include "initv/ZeroV.hpp"
 
+#include "delivery/IdentDelivery.hpp"
+#include "delivery/PostsynapticPerspectiveConvolveDelivery.hpp"
+#include "delivery/PostsynapticPerspectiveStochasticDelivery.hpp"
+#include "delivery/PresynapticPerspectiveConvolveDelivery.hpp"
+#include "delivery/PresynapticPerspectiveStochasticDelivery.hpp"
+#include "delivery/RescaleDelivery.hpp"
+
+#ifdef PV_USE_CUDA
+#include "delivery/PostsynapticPerspectiveGPUDelivery.hpp"
+#include "delivery/PresynapticPerspectiveGPUDelivery.hpp"
+#endif // PV_USE_CUDA
+
 #include "weightinit/InitCocircWeights.hpp"
 #include "weightinit/InitGauss2DWeights.hpp"
 #include "weightinit/InitGaussianRandomWeights.hpp"
@@ -96,10 +108,13 @@
 #include "weightinit/InitUniformWeights.hpp"
 #include "weightinit/InitWeights.hpp"
 
+#include "weightupdaters/HebbianUpdater.hpp"
+
 #include "normalizers/NormalizeContrastZeroMean.hpp"
 #include "normalizers/NormalizeGroup.hpp"
 #include "normalizers/NormalizeL2.hpp"
 #include "normalizers/NormalizeMax.hpp"
+#include "normalizers/NormalizeNone.hpp"
 #include "normalizers/NormalizeSum.hpp"
 
 namespace PV {
@@ -149,11 +164,11 @@ int Factory::registerCoreKeywords() {
 
    registerKeyword("HyPerConn", Factory::create<HyPerConn>);
    registerKeyword("CloneConn", Factory::create<CloneConn>);
+   // registerKeyword("ComponentsConn", Factory::create<ComponentsConn>);
    registerKeyword("CopyConn", Factory::create<CopyConn>);
    registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
    registerKeyword("GapConn", Factory::create<GapConn>);
    registerKeyword("IdentConn", Factory::create<IdentConn>);
-   registerKeyword("ImprintConn", Factory::create<ImprintConn>);
    registerKeyword("MomentumConn", Factory::create<MomentumConn>);
    registerKeyword("PlasticCloneConn", Factory::create<PlasticCloneConn>);
    registerKeyword("PoolingConn", Factory::create<PoolingConn>);
@@ -171,6 +186,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("L0NormProbe", Factory::create<L0NormProbe>);
    registerKeyword("L1NormLCAProbe", Factory::create<L1NormLCAProbe>);
    registerKeyword("L1NormProbe", Factory::create<L1NormProbe>);
+   registerKeyword("L2ConnProbe", Factory::create<L2ConnProbe>);
    registerKeyword("L2NormProbe", Factory::create<L2NormProbe>);
    registerKeyword("PointLIFProbe", Factory::create<PointLIFProbe>);
    registerKeyword("PointProbe", Factory::create<PointProbe>);
@@ -184,6 +200,27 @@ int Factory::registerCoreKeywords() {
    registerKeyword("UniformRandomV", Factory::create<UniformRandomV>);
    registerKeyword("ZeroV", Factory::create<ZeroV>);
 
+   registerKeyword("IdentDelivery", Factory::create<IdentDelivery>);
+   registerKeyword(
+         "PostsynapticPerspectiveConvolveDelivery",
+         Factory::create<PostsynapticPerspectiveConvolveDelivery>);
+   registerKeyword(
+         "PostsynapticPerspectiveStochasticDelivery",
+         Factory::create<PostsynapticPerspectiveStochasticDelivery>);
+   registerKeyword(
+         "PresynapticPerspectiveConvolveDelivery",
+         Factory::create<PresynapticPerspectiveConvolveDelivery>);
+   registerKeyword(
+         "PresynapticPerspectiveStochasticDelivery",
+         Factory::create<PresynapticPerspectiveStochasticDelivery>);
+   registerKeyword("RescaleDelivery", Factory::create<RescaleDelivery>);
+#ifdef PV_USE_CUDA
+   registerKeyword(
+         "PostsynapticPerspectiveGPUDelivery", Factory::create<PostsynapticPerspectiveGPUDelivery>);
+   registerKeyword(
+         "PresynapticPerspectiveGPUDelivery", Factory::create<PresynapticPerspectiveGPUDelivery>);
+#endif // PV_USE_CUDA
+
    registerKeyword("Gauss2DWeight", Factory::create<InitGauss2DWeights>);
    registerKeyword("CoCircWeight", Factory::create<InitCocircWeights>);
    registerKeyword("UniformWeight", Factory::create<InitUniformWeights>);
@@ -196,9 +233,12 @@ int Factory::registerCoreKeywords() {
    registerKeyword("SpreadOverArborsWeight", Factory::create<InitSpreadOverArborsWeights>);
    registerKeyword("FileWeight", Factory::create<InitWeights>);
 
+   registerKeyword("HebbianUpdater", Factory::create<HebbianUpdater>);
+
    registerKeyword("normalizeContrastZeroMean", Factory::create<NormalizeContrastZeroMean>);
    registerKeyword("normalizeL2", Factory::create<NormalizeL2>);
    registerKeyword("normalizeMax", Factory::create<NormalizeMax>);
+   registerKeyword("none", Factory::create<NormalizeNone>);
    registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
    registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
 

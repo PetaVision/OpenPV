@@ -231,14 +231,12 @@ PoolingConn "input2maxPoolPre" = {
     //rMinY                               = 1.5;
     //normalize_cutoff                    = 0;
     
-    shrinkPatches = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "maxpooling";
      
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
    
     needPostIndexLayer = true;
     postIndexLayerName = "maxPoolIndexPre";
@@ -262,14 +260,12 @@ PoolingConn "input2maxPoolPost" = {
     //rMinY                               = 1.5;
     //normalize_cutoff                    = 0;
     
-    shrinkPatches = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "maxpooling";
      
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
    
     needPostIndexLayer = true;
     postIndexLayerName = "maxPoolIndexPost";
@@ -283,7 +279,6 @@ TransposePoolingConn "maxPoolPreToGatedMaxPoolPre" = {
     postLayerName = "GatedMaxPoolPre";
     channelCode = 0;
     originalConnName = "input2maxPoolPre";
-    selfFlag = false;
     convertRateToSpikeCount = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
     writeCompressedCheckpoints = false;
@@ -297,7 +292,6 @@ TransposePoolingConn "maxPoolPostToGatedMaxPoolPost" = {
     postLayerName = "GatedMaxPoolPost";
     channelCode = 0;
     originalConnName = "input2maxPoolPost";
-    selfFlag = false;
     convertRateToSpikeCount = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
     writeCompressedCheckpoints = false;

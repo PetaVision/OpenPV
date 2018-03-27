@@ -20,7 +20,7 @@ class ANNWhitenedLayer : public PV::ANNLayer {
   protected:
    ANNWhitenedLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
   private:
    int initialize_base();

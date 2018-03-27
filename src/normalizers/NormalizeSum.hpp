@@ -32,7 +32,8 @@ class NormalizeSum : public PV::NormalizeMultiply {
 
    // Member variables
   protected:
-   float minSumTolerated; // Error if abs(sum(weights)) in any patch is less than this amount.
+   float mMinSumTolerated = 0.0f; // Error if any patch has abs(sum(weights)) less than this amount.
+
 }; // class NormalizeSum
 
 } /* namespace PV */

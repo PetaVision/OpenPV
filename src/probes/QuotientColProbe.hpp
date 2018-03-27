@@ -83,7 +83,7 @@ class QuotientColProbe : public ColProbe {
 
    /** @} */ /* end of io functions for QuotientColProbe parameters */
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
@@ -94,7 +94,7 @@ class QuotientColProbe : public ColProbe {
     * from 0 to
     * getVectorSize()-1.
     */
-   virtual int outputState(double timevalue) override;
+   virtual Response::Status outputState(double timevalue) override;
 
   protected:
    /**
@@ -117,7 +117,7 @@ class QuotientColProbe : public ColProbe {
     * Implements the needRecalc method.  Always returns true, in the expectation
     * that the hard work is done by the probes in the numerator and denominator.
     */
-   virtual int calcValues(double timeValue) override;
+   virtual void calcValues(double timeValue) override;
 
    virtual void outputHeader() override;
 

@@ -44,7 +44,7 @@ int ANNSquaredLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int ANNSquaredLayer::updateState(double time, double dt) {
+Response::Status ANNSquaredLayer::updateState(double time, double dt) {
    const int nx     = clayer->loc.nx;
    const int ny     = clayer->loc.ny;
    const int nf     = clayer->loc.nf;
@@ -67,7 +67,7 @@ int ANNSquaredLayer::updateState(double time, double dt) {
          V,
          GSynHead,
          activity);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

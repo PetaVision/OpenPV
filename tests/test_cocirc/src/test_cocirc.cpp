@@ -14,6 +14,10 @@
 
 using namespace PV;
 
+void broadcastMessage(
+      std::map<std::string, Observer *> *objectMap,
+      std::shared_ptr<BaseMessage const> messagePtr);
+
 // First argument to check_cocirc_vs_hyper should have sharedWeights = false
 // Second argument should have sharedWeights = true
 int check_cocirc_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int axonID);
@@ -34,91 +38,115 @@ int main(int argc, char *argv[]) {
    FatalIf(!cHyPer, "Test failed.\n");
    PV::HyPerConn *cCocirc =
          dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_cocirc_cocircconn"));
-   FatalIf(!(cCocirc), "Test failed.\n");
+   FatalIf(!cCocirc, "Test failed.\n");
 
    PV::HyPerLayer *pre2 = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_cocirc_pre2"));
-   FatalIf(!(pre2), "Test failed.\n");
+   FatalIf(!pre2, "Test failed.\n");
    PV::HyPerLayer *post2 = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_cocirc_post2"));
-   FatalIf(!(post2), "Test failed.\n");
+   FatalIf(!post2, "Test failed.\n");
    PV::HyPerConn *cHyPer1to2 =
          dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_cocirc_hyperconn1to2"));
-   FatalIf(!(cHyPer1to2), "Test failed.\n");
+   FatalIf(!cHyPer1to2, "Test failed.\n");
    PV::HyPerConn *cCocirc1to2 =
          dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_cocirc_cocircconn1to2"));
-   FatalIf(!(cCocirc1to2), "Test failed.\n");
+   FatalIf(!cCocirc1to2, "Test failed.\n");
    PV::HyPerConn *cHyPer2to1 =
          dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_cocirc_hyperconn2to1"));
-   FatalIf(!(cHyPer2to1), "Test failed.\n");
+   FatalIf(!cHyPer2to1, "Test failed.\n");
    PV::HyPerConn *cCocirc2to1 =
          dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_cocirc_cocircconn2to1"));
-   FatalIf(!(cCocirc2to1), "Test failed.\n");
+   FatalIf(!cCocirc2to1, "Test failed.\n");
 
    ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
-   auto objectMap      = hc->copyObjectMap();
-   auto commMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);
-   for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
-      int status = obj->respond(commMessagePtr);
-      FatalIf(status != PV_SUCCESS, "Test failed.\n");
-   }
+   auto objectMap = hc->copyObjectMap();
+
+   auto communicateMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);
+   broadcastMessage(objectMap, communicateMessagePtr);
 
    auto allocateMessagePtr = std::make_shared<AllocateDataMessage>();
-   for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
-      int status = obj->respond(allocateMessagePtr);
-      FatalIf(status != PV_SUCCESS, "Test failed.\n");
-   }
+   broadcastMessage(objectMap, allocateMessagePtr);
+
+   auto initializeMessagePtr = std::make_shared<InitializeStateMessage>();
+   broadcastMessage(objectMap, initializeMessagePtr);
+
+   delete objectMap;
 
    const int axonID     = 0;
    int num_pre_extended = pre->clayer->numExtended;
-   FatalIf(!(num_pre_extended == cHyPer->getNumWeightPatches()), "Test failed.\n");
+   FatalIf(num_pre_extended != cHyPer->getNumGeometryPatches(), "Test failed.\n");
 
-   int status = 0;
+   int status = PV_SUCCESS;
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {
       status = check_cocirc_vs_hyper(cHyPer, cCocirc, kPre, axonID);
-      FatalIf(!(status == 0), "Test failed.\n");
+      FatalIf(status != PV_SUCCESS, "Test failed.\n");
       status = check_cocirc_vs_hyper(cHyPer1to2, cCocirc1to2, kPre, axonID);
-      FatalIf(!(status == 0), "Test failed.\n");
+      FatalIf(status != PV_SUCCESS, "Test failed.\n");
       status = check_cocirc_vs_hyper(cHyPer2to1, cCocirc2to1, kPre, axonID);
-      FatalIf(!(status == 0), "Test failed.\n");
+      FatalIf(status != PV_SUCCESS, "Test failed.\n");
    }
 
    delete hc;
    delete initObj;
-   return 0;
+   return status;
+}
+
+void broadcastMessage(
+      std::map<std::string, Observer *> *objectMap,
+      std::shared_ptr<BaseMessage const> messagePtr) {
+   int maxcount = 0;
+   Response::Status status;
+   do {
+      status = Response::SUCCESS;
+      for (auto &p : *objectMap) {
+         Observer *obj = p.second;
+         status        = status + obj->respond(messagePtr);
+      }
+      maxcount++;
+   } while (status != Response::SUCCESS and maxcount < 10);
+   FatalIf(
+         status != Response::SUCCESS,
+         "broadcastMessage(\"%s\") failed.\n",
+         messagePtr->getMessageType().c_str());
 }
 
 int check_cocirc_vs_hyper(HyPerConn *cHyPer, HyPerConn *cKernel, int kPre, int axonID) {
-   FatalIf(!(cKernel->usingSharedWeights() == true), "Test failed.\n");
-   FatalIf(!(cHyPer->usingSharedWeights() == false), "Test failed.\n");
-   int status           = 0;
-   PVPatch *hyperPatch  = cHyPer->getWeights(kPre, axonID);
-   PVPatch *cocircPatch = cKernel->getWeights(kPre, axonID);
-   int hyPerDataIndex   = cHyPer->patchIndexToDataIndex(kPre);
-   int kernelDataIndex  = cKernel->patchIndexToDataIndex(kPre);
+   FatalIf(cKernel->getSharedWeights() != true, "Test failed.\n");
+   FatalIf(cHyPer->getSharedWeights() != false, "Test failed.\n");
+   int status               = PV_SUCCESS;
+   Patch const *hyperPatch  = cHyPer->getPatch(kPre);
+   Patch const *cocircPatch = cKernel->getPatch(kPre);
+   int hyPerDataIndex       = cHyPer->calcDataIndexFromPatchIndex(kPre);
+   int kernelDataIndex      = cKernel->calcDataIndexFromPatchIndex(kPre);
 
-   int nk = cHyPer->fPatchSize() * (int)hyperPatch->nx;
-   FatalIf(!(nk == (cKernel->fPatchSize() * (int)cocircPatch->nx)), "Test failed.\n");
+   int nk = cHyPer->getPatchSizeF() * (int)hyperPatch->nx;
+   FatalIf(nk != (cKernel->getPatchSizeF() * (int)cocircPatch->nx), "Test failed.\n");
    int ny = hyperPatch->ny;
-   FatalIf(!(ny == cocircPatch->ny), "Test failed.\n");
-   int sy = cHyPer->yPatchStride();
-   FatalIf(!(sy == cKernel->yPatchStride()), "Test failed.\n");
-   float *hyperWeights  = cHyPer->get_wData(axonID, hyPerDataIndex);
-   float *cocircWeights = cKernel->get_wDataHead(axonID, kernelDataIndex) + hyperPatch->offset;
+   FatalIf(ny != cocircPatch->ny, "Test failed.\n");
+   int sy = cHyPer->getPatchStrideY();
+   FatalIf(sy != cKernel->getPatchStrideY(), "Test failed.\n");
+   float *hyperWeights  = cHyPer->getWeightsData(axonID, hyPerDataIndex);
+   float *cocircWeights = cKernel->getWeightsDataHead(axonID, kernelDataIndex) + hyperPatch->offset;
    float test_cond      = 0.0f;
    for (int y = 0; y < ny; y++) {
       for (int k = 0; k < nk; k++) {
          test_cond = cocircWeights[k] - hyperWeights[k];
-         if (fabsf(test_cond) > 0.001f) {
-            const char *cHyper_filename = "cocirc_hyper.txt";
-            cHyPer->writeTextWeights(cHyper_filename, false /*verifyWrites*/, kPre);
-            const char *cKernel_filename = "cocirc_cocirc.txt";
-            cKernel->writeTextWeights(cKernel_filename, false /*verifyWrites*/, kPre);
+         if (std::abs(test_cond) > 0.001f) {
+            ErrorLog().printf(
+                  "axodID %d, patch index %d, k=%d, y=%d: %s weight is %f; %s is %f.\n",
+                  axonID,
+                  kPre,
+                  k,
+                  y,
+                  cHyPer->getName(),
+                  cKernel->getName());
+            status = PV_SUCCESS;
          }
-         FatalIf(!(fabsf(test_cond) <= 0.001f), "Test failed.\n");
       }
       // advance pointers in y
       hyperWeights += sy;
       cocircWeights += sy;
    }
+   FatalIf(status != PV_SUCCESS, "Test failed.\n");
    return status;
 }

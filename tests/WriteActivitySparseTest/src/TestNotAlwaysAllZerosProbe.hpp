@@ -12,7 +12,7 @@ class TestNotAlwaysAllZerosProbe : public StatsProbe {
    TestNotAlwaysAllZerosProbe(const char *name, HyPerCol *hc);
    bool nonzeroValueHasOccurred() { return nonzeroValueOccurred; }
 
-   virtual int outputState(double timed) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);

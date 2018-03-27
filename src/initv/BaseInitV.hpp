@@ -16,15 +16,19 @@ class BaseInitV : public BaseObject {
   public:
    BaseInitV(char const *name, HyPerCol *hc);
    virtual ~BaseInitV();
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int calcV(float *V, PVLayerLoc const *loc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void calcV(float *V, PVLayerLoc const *loc);
 
   protected:
    BaseInitV();
    int initialize(char const *name, HyPerCol *hc);
+   virtual void setObjectType() override;
 
   private:
    int initialize_base();
+
+  public:
+   static string const mDefaultInitV;
 }; // end class BaseInitV
 
 } // end namespace PV

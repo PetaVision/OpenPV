@@ -72,17 +72,16 @@ void SigmoidLayer::ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "SigmoidAlpha", &SigmoidAlpha, (float)SIGMOIDALPHA);
 }
 
-int SigmoidLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = CloneVLayer::communicateInitInfo(message);
-
-   return status;
+Response::Status
+SigmoidLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return CloneVLayer::communicateInitInfo(message);
 }
 
-int SigmoidLayer::allocateDataStructures() {
-   int status = CloneVLayer::allocateDataStructures();
+Response::Status SigmoidLayer::allocateDataStructures() {
+   auto status = CloneVLayer::allocateDataStructures();
    // Should have been initialized with zero channels, so GSyn should be NULL and freeChannels()
    // call should be unnecessary
-   assert(GSyn == NULL);
+   pvAssert(GSyn == nullptr);
    return status;
 }
 
@@ -92,9 +91,9 @@ int SigmoidLayer::setActivity() {
    return 0;
 }
 
-int SigmoidLayer::updateState(double timef, double dt) {
+Response::Status SigmoidLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(
+   updateState(
          timef,
          dt,
          getLayerLoc(),
@@ -107,10 +106,10 @@ int SigmoidLayer::updateState(double timef, double dt) {
          SigmoidAlpha,
          SigmoidFlag,
          InverseFlag);
-   return status;
+   return Response::SUCCESS;
 }
 
-int SigmoidLayer::updateState(
+void SigmoidLayer::updateState(
       double timef,
       double dt,
       const PVLayerLoc *loc,
@@ -147,7 +146,6 @@ int SigmoidLayer::updateState(
          sigmoid_flag,
          inverse_flag,
          dt);
-   return PV_SUCCESS;
 }
 
 } // end namespace PV

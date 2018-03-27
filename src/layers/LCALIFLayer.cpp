@@ -148,8 +148,11 @@ LCALIFLayer::~LCALIFLayer() {
    Vmeminf = NULL;
 }
 
-int LCALIFLayer::allocateDataStructures() {
-   int status = LIFGap::allocateDataStructures();
+Response::Status LCALIFLayer::allocateDataStructures() {
+   auto status = LIFGap::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    int numNeurons = getNumNeuronsAllBatches();
    for (int k = 0; k < numNeurons; k++) {
@@ -160,40 +163,30 @@ int LCALIFLayer::allocateDataStructures() {
       Vmeminf[k]   = lParams.Vrest;
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
-int LCALIFLayer::allocateBuffers() {
+void LCALIFLayer::allocateBuffers() {
    const size_t numNeurons = getNumNeuronsAllBatches();
    // Allocate data to keep track of trace
-   int status = PV_SUCCESS;
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&integratedSpikeCount, numNeurons, "integratedSpikeCount");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&Vadpt, numNeurons, "Vadpt");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&Vattained, numNeurons, "Vattained");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&Vmeminf, numNeurons, "Vmeminf");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&G_Norm, numNeurons, "G_Norm");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&GSynExcEffective, numNeurons, "GSynExcEffective");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&GSynInhEffective, numNeurons, "GSynInhEffective");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&excitatoryNoise, numNeurons, "excitatoryNoise");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&inhibitoryNoise, numNeurons, "inhibitoryNoise");
-   if (status == PV_SUCCESS)
-      status = allocateBuffer(&inhibNoiseB, numNeurons, "inhibNoiseB");
-   if (status != PV_SUCCESS)
-      exit(EXIT_FAILURE);
-   return LIFGap::allocateBuffers();
+   allocateBuffer(&integratedSpikeCount, numNeurons, "integratedSpikeCount");
+   allocateBuffer(&Vadpt, numNeurons, "Vadpt");
+   allocateBuffer(&Vattained, numNeurons, "Vattained");
+   allocateBuffer(&Vmeminf, numNeurons, "Vmeminf");
+   allocateBuffer(&G_Norm, numNeurons, "G_Norm");
+   allocateBuffer(&GSynExcEffective, numNeurons, "GSynExcEffective");
+   allocateBuffer(&GSynInhEffective, numNeurons, "GSynInhEffective");
+   allocateBuffer(&excitatoryNoise, numNeurons, "excitatoryNoise");
+   allocateBuffer(&inhibitoryNoise, numNeurons, "inhibitoryNoise");
+   allocateBuffer(&inhibNoiseB, numNeurons, "inhibNoiseB");
+   LIFGap::allocateBuffers();
 }
 
-int LCALIFLayer::registerData(Checkpointer *checkpointer) {
-   int status = LIFGap::registerData(checkpointer);
+Response::Status LCALIFLayer::registerData(Checkpointer *checkpointer) {
+   auto status = LIFGap::registerData(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
    checkpointPvpActivityFloat(
          checkpointer, "integratedSpikeCount", integratedSpikeCount, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "Vadpt", Vadpt, false /*not extended*/);
@@ -209,10 +202,10 @@ int LCALIFLayer::registerData(Checkpointer *checkpointer) {
    checkpointPvpActivityFloat(
          checkpointer, "inhibitoryNoise", inhibitoryNoise, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "inhibNoiseB", inhibNoiseB, false /*not extended*/);
-   return status;
+   return Response::SUCCESS;
 }
 
-int LCALIFLayer::updateState(double timed, double dt) {
+Response::Status LCALIFLayer::updateState(double timed, double dt) {
    // Calculate_state kernel
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       G_Norm[k] = GSyn[CHANNEL_NORM][k]; // Copy GSyn buffer on normalizing channel for
@@ -254,29 +247,32 @@ int LCALIFLayer::updateState(double timed, double dt) {
          excitatoryNoise,
          inhibitoryNoise,
          inhibNoiseB);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
-int LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = PV_SUCCESS;
+Response::Status LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
-      status = LIFGap::readStateFromCheckpoint(checkpointer);
-      status = read_integratedSpikeCountFromCheckpoint(checkpointer);
-      status = readVadptFromCheckpoint(checkpointer);
+      auto status = LIFGap::readStateFromCheckpoint(checkpointer);
+      if (status != Response::SUCCESS) {
+         return status;
+      }
+      read_integratedSpikeCountFromCheckpoint(checkpointer);
+      readVadptFromCheckpoint(checkpointer);
+      return Response::SUCCESS;
    }
-   return status;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
-int LCALIFLayer::read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer) {
+void LCALIFLayer::read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer) {
    std::string checkpointEntryName(name);
    checkpointEntryName.append("_integratedSpikeCount.pvp");
-   return PV_SUCCESS;
 }
 
-int LCALIFLayer::readVadptFromCheckpoint(Checkpointer *checkpointer) {
+void LCALIFLayer::readVadptFromCheckpoint(Checkpointer *checkpointer) {
    std::string checkpointEntryName(name);
    checkpointEntryName.append("_Vadpt.pvp");
-   return PV_SUCCESS;
 }
 
 } // namespace PV

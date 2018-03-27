@@ -46,6 +46,7 @@ set(SRC_SUBDIRS
   components
   connections
   cudakernels
+  delivery
   include
   initv
   io
@@ -56,6 +57,7 @@ set(SRC_SUBDIRS
   probes
   utils
   weightinit
+  weightupdaters
 )
 
 foreach(SUBDIR ${SRC_SUBDIRS})

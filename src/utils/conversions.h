@@ -17,14 +17,11 @@
 extern "C" {
 #endif // __cplusplus
 
-int dist2NearestCell(
-      int kzPre,
-      int log2ScalePre,
-      int log2ScalePost,
-      float *distPre,
-      float *distPost);
+// zLog2ScaleDiff in the x-direction is post->getXScale() - pre->getXScale() = log2(nxPre/nxPost);
+// analogously in y-direction.
+int dist2NearestCell(int kzPre, int zLog2ScaleDiff, float *distPre, float *distPost);
 
-int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post);
+int zPatchHead(int kzPre, int nzPatch, int zLog2ScaleDiff);
 
 /*
  * The following functions are simple, static inline functions.  They have been given the
@@ -261,8 +258,8 @@ static inline size_t strideBExtended(const PVLayerLoc *loc) {
  *  presynaptic index should always be in restricted space
  *
  */
-static inline int nearby_neighbor(int kzPre, int zScaleLog2Pre, int zScaleLog2Post) {
-   float a = powf(2.0f, (float)(zScaleLog2Pre - zScaleLog2Post));
+static inline int nearby_neighbor(int kzPre, int zLog2ScaleDiff) {
+   float a = powf(2.0f, -(float)zLog2ScaleDiff);
    int ia  = (int)a;
 
    int k0 = (ia < 2) ? 0 : ia / 2 - 1;

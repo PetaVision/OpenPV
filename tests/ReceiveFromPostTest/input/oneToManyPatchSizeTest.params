@@ -122,7 +122,6 @@ HyPerConn "origConn" = {
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -132,7 +131,6 @@ HyPerConn "origConn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -143,7 +141,6 @@ CloneConn "clone" = {
     postLayerName = "outputRecvPost";
     channelCode = 0;
     originalConnName = "origConn";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;

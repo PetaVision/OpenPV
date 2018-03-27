@@ -18,7 +18,7 @@ class PlasticTestConn : public HyPerConn {
    virtual ~PlasticTestConn();
 
   protected:
-   virtual float updateRule_dW(float pre, float post) override;
+   BaseWeightUpdater *createWeightUpdater() override;
 }; // end class PlasticTestConn
 
 } // end namespace PV

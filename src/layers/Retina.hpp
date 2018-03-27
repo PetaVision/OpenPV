@@ -40,13 +40,13 @@ class Retina : public PV::HyPerLayer {
 
    Retina(const char *name, HyPerCol *hc);
    virtual ~Retina();
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    int setRetinaParams(PVParams *p);
 
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
    virtual bool activityIsSpiking() override { return spikingFlag; }
 
@@ -64,12 +64,12 @@ class Retina : public PV::HyPerLayer {
    virtual void ioParam_burstDuration(enum ParamsIOFlag ioFlag);
    virtual void ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag);
-   virtual int allocateV() override;
-   virtual int registerData(Checkpointer *checkpointer) override;
-   virtual int initializeV() override;
-   virtual int initializeActivity() override;
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
-   virtual int readRandStateFromCheckpoint(Checkpointer *checkpointer);
+   virtual void allocateV() override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual void initializeV() override;
+   virtual void initializeActivity() override;
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual void readRandStateFromCheckpoint(Checkpointer *checkpointer);
 
    bool spikingFlag; // specifies that layer is spiking
    Retina_params rParams; // used in update state

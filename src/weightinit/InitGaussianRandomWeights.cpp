@@ -10,21 +10,15 @@
 namespace PV {
 
 InitGaussianRandomWeights::InitGaussianRandomWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
    initialize(name, hc);
 }
 
-InitGaussianRandomWeights::InitGaussianRandomWeights() { initialize_base(); }
+InitGaussianRandomWeights::InitGaussianRandomWeights() {}
 
 InitGaussianRandomWeights::~InitGaussianRandomWeights() {
-   mGaussianRandState = nullptr;
-   // Don't delete. base class deletes mRandState,
-   // which mGaussianRandState is effectively a dynamic_cast of.
-}
-
-int InitGaussianRandomWeights::initialize_base() {
-   mGaussianRandState = nullptr;
-   return PV_SUCCESS;
+   pvAssert(dynamic_cast<Random *>(mGaussianRandState) == mRandState);
+   delete mGaussianRandState;
+   mRandState = nullptr; // Prevents InitRandomWeights destructor from double-deleting
 }
 
 int InitGaussianRandomWeights::initialize(char const *name, HyPerCol *hc) {
@@ -51,18 +45,18 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
    pvAssert(mRandState == nullptr && mGaussianRandState == nullptr);
    int status = PV_SUCCESS;
    if (isKernel) {
-      mGaussianRandState = new GaussianRandom(mCallingConn->getNumDataPatches());
+      mGaussianRandState = new GaussianRandom(mWeights->getNumDataPatches());
    }
    else {
-      mGaussianRandState = new GaussianRandom(
-            mCallingConn->preSynapticLayer()->getLayerLoc(), true /*isExtended*/);
+      mGaussianRandState =
+            new GaussianRandom(&mWeights->getGeometry()->getPreLoc(), true /*isExtended*/);
    }
 
    if (mGaussianRandState == nullptr) {
       Fatal().printf(
             "InitRandomWeights error in rank %d process: unable to create object of class "
             "Random.\n",
-            parent->columnId());
+            parent->getCommunicator()->globalCommRank());
    }
    mRandState = (Random *)mGaussianRandState;
    return status;
@@ -73,11 +67,7 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
  * shrunken.
  */
 void InitGaussianRandomWeights::randomWeights(float *patchDataStart, int patchIndex) {
-   const int nxp = mCallingConn->xPatchSize();
-   const int nyp = mCallingConn->yPatchSize();
-   const int nfp = mCallingConn->fPatchSize();
-
-   const int patchSize = nxp * nyp * nfp;
+   const int patchSize = mWeights->getPatchSizeOverall();
    for (int n = 0; n < patchSize; n++) {
       patchDataStart[n] = mGaussianRandState->gaussianDist(patchIndex, mWGaussMean, mWGaussStdev);
    }

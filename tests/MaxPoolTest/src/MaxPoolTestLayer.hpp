@@ -10,7 +10,7 @@ class MaxPoolTestLayer : public PV::ANNLayer {
    MaxPoolTestLayer(const char *name, HyPerCol *hc);
 
   protected:
-   int updateState(double timef, double dt) override;
+   Response::Status updateState(double timef, double dt) override;
 
   private:
 };

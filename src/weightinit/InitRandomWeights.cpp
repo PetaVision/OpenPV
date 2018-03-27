@@ -9,16 +9,11 @@
 
 namespace PV {
 
-InitRandomWeights::InitRandomWeights() { initialize_base(); }
+InitRandomWeights::InitRandomWeights() {}
 
 InitRandomWeights::~InitRandomWeights() {
    delete mRandState;
    mRandState = nullptr;
-}
-
-int InitRandomWeights::initialize_base() {
-   mRandState = nullptr;
-   return PV_SUCCESS;
 }
 
 int InitRandomWeights::initialize(char const *name, HyPerCol *hc) {
@@ -26,8 +21,8 @@ int InitRandomWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-void InitRandomWeights::calcWeights(float *dataStart, int dataPatchIndex, int arborId) {
-   randomWeights(dataStart, dataPatchIndex);
+void InitRandomWeights::calcWeights(int dataPatchIndex, int arborId) {
+   randomWeights(mWeights->getDataFromDataIndex(arborId, dataPatchIndex), dataPatchIndex);
    // RNG depends on dataPatchIndex but not on arborId.
 }
 
@@ -46,16 +41,16 @@ int InitRandomWeights::initRNGs(bool isKernel) {
    assert(mRandState == nullptr);
    int status = PV_SUCCESS;
    if (isKernel) {
-      mRandState = new Random(mCallingConn->getNumDataPatches());
+      mRandState = new Random(mWeights->getNumDataPatches());
    }
    else {
-      mRandState = new Random(mCallingConn->preSynapticLayer()->getLayerLoc(), true /*isExtended*/);
+      mRandState = new Random(&mWeights->getGeometry()->getPreLoc(), true /*isExtended*/);
    }
    if (mRandState == nullptr) {
       Fatal().printf(
             "InitRandomWeights error in rank %d process: unable to create object of class "
             "Random.\n",
-            parent->columnId());
+            parent->getCommunicator()->globalCommRank());
    }
    return status;
 }

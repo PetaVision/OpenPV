@@ -16,7 +16,7 @@ class InitWeightTestProbe : public PV::StatsProbe {
   public:
    InitWeightTestProbe(const char *name, HyPerCol *hc);
 
-   virtual int outputState(double timef) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);

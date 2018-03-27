@@ -49,13 +49,12 @@ void Publisher::checkpointDataStore(
          false /*not constant*/);
 }
 
-int Publisher::updateAllActiveIndices() {
+void Publisher::updateAllActiveIndices() {
    if (store->isSparse()) {
       for (int l = 0; l < store->getNumLevels(); l++) {
          updateActiveIndices(l);
       }
    }
-   return PV_SUCCESS;
 }
 
 PVLayerCube Publisher::createCube(int delay) {
@@ -63,7 +62,7 @@ PVLayerCube Publisher::createCube(int delay) {
    return store->createCube(mLayerCube->loc, delay);
 }
 
-int Publisher::updateActiveIndices(int delay) {
+void Publisher::updateActiveIndices(int delay) {
    if (store->isSparse()) {
       for (int b = 0; b < store->getNumBuffers(); b++) {
          // Active indicies stored as local extended values
@@ -73,7 +72,6 @@ int Publisher::updateActiveIndices(int delay) {
          pvAssert(*store->numActiveBuffer(b, delay) >= 0L);
       }
    }
-   return PV_SUCCESS;
 }
 
 int Publisher::publish(double lastUpdateTime) {

@@ -8,22 +8,16 @@
 #ifndef INITONETOONEWEIGHTSWITHDELAYS_HPP_
 #define INITONETOONEWEIGHTSWITHDELAYS_HPP_
 
-#include "InitWeights.hpp"
+#include "InitOneToOneWeights.hpp"
 
 namespace PV {
 
-// TODO make InitOneToOneWeightsWithDelays a derived class of InitOneToOneWeights
-class InitOneToOneWeightsWithDelays : public InitWeights {
-  protected:
-   virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
-
+class InitOneToOneWeightsWithDelays : public InitOneToOneWeights {
   public:
    InitOneToOneWeightsWithDelays(char const *name, HyPerCol *hc);
    virtual ~InitOneToOneWeightsWithDelays();
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
+   virtual void calcWeights(int patchIndex, int arborId) override;
    void calcOtherParams(int patchIndex);
 
   protected:
@@ -31,9 +25,6 @@ class InitOneToOneWeightsWithDelays : public InitWeights {
    int initialize(char const *name, HyPerCol *hc);
    void
    createOneToOneConnectionWithDelays(float *dataStart, int patchIndex, float iWeight, int arborId);
-
-  private:
-   int initialize_base();
 
   protected:
    float mWeightInit = 1.0f;

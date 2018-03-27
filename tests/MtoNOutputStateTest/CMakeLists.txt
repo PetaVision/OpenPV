@@ -7,12 +7,14 @@ if (PV_USE_MPI AND MPI_FOUND)
   set(SRC_CPP
     src/IndexLayer.cpp
     src/IndexWeightConn.cpp
+    src/IndexWeightUpdater.cpp
     src/MtoNOutputStateTest.cpp
   )
   
   set(SRC_HPP
     src/IndexLayer.hpp
     src/IndexWeightConn.hpp
+    src/IndexWeightUpdater.hpp
   )
   
   get_filename_component(TEST_NAME_BASE ${CMAKE_CURRENT_SOURCE_DIR} NAME)

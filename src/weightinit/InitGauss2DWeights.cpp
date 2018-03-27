@@ -6,19 +6,18 @@
  */
 
 #include "InitGauss2DWeights.hpp"
+#include "columns/ObjectMapComponent.hpp"
+#include "components/StrengthParam.hpp"
+#include "connections/BaseConnection.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-InitGauss2DWeights::InitGauss2DWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+InitGauss2DWeights::InitGauss2DWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-InitGauss2DWeights::InitGauss2DWeights() { initialize_base(); }
+InitGauss2DWeights::InitGauss2DWeights() {}
 
 InitGauss2DWeights::~InitGauss2DWeights() {}
-
-int InitGauss2DWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitGauss2DWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitWeights::initialize(name, hc);
@@ -31,16 +30,15 @@ int InitGauss2DWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_sigma(ioFlag);
    ioParam_rMax(ioFlag);
    ioParam_rMin(ioFlag);
-   ioParam_strength(ioFlag);
-   if (ioFlag != PARAMS_IO_READ) {
-      // numOrientationsPost and numOrientationsPre are only meaningful if
-      // relevant layers have nf>1, so reading those params and params that
-      // depend on them is delayed until communicateParamsInfo, so that
-      // pre&post will have been defined.
-      ioParam_numOrientationsPost(ioFlag);
-      ioParam_numOrientationsPre(ioFlag);
-      ioParam_aspectRelatedParams(ioFlag);
-   }
+   ioParam_numOrientationsPost(ioFlag);
+   ioParam_numOrientationsPre(ioFlag);
+   ioParam_deltaThetaMax(ioFlag);
+   ioParam_thetaMax(ioFlag);
+   ioParam_numFlanks(ioFlag);
+   ioParam_flankShift(ioFlag);
+   ioParam_rotate(ioFlag);
+   ioParam_bowtieFlag(ioFlag);
+   ioParam_bowtieAngle(ioFlag);
    return status;
 }
 
@@ -68,27 +66,13 @@ void InitGauss2DWeights::ioParam_rMin(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void InitGauss2DWeights::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "strength", &mStrength, mStrength /*default value*/, true /*warnIfAbsent*/);
-}
-
 void InitGauss2DWeights::ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag) {
-   pvAssert(mPostLayer);
-   int nfPost = mPostLayer->getLayerLoc()->nf;
-   if (nfPost > 1) {
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "numOrientationsPost", &mNumOrientationsPost, nfPost);
-   }
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "numOrientationsPost", &mNumOrientationsPost, -1);
 }
 
 void InitGauss2DWeights::ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag) {
-   pvAssert(mPreLayer);
-   int nfPre = mPreLayer->getLayerLoc()->nf;
-   if (nfPre > 1) {
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "numOrientationsPre", &mNumOrientationsPre, nfPre);
-   }
+   parent->parameters()->ioParamValue(ioFlag, name, "numOrientationsPre", &mNumOrientationsPre, -1);
 }
 
 void InitGauss2DWeights::ioParam_deltaThetaMax(enum ParamsIOFlag ioFlag) {
@@ -123,46 +107,59 @@ void InitGauss2DWeights::ioParam_bowtieAngle(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void InitGauss2DWeights::ioParam_aspectRelatedParams(enum ParamsIOFlag ioFlag) {
-   if (needAspectParams()) {
-      ioParam_deltaThetaMax(ioFlag);
-      ioParam_thetaMax(ioFlag);
-      ioParam_numFlanks(ioFlag);
-      ioParam_flankShift(ioFlag);
-      ioParam_rotate(ioFlag);
-      ioParam_bowtieFlag(ioFlag);
-      ioParam_bowtieAngle(ioFlag);
-   }
-}
-
-bool InitGauss2DWeights::needAspectParams() {
-   pvAssert(mPreLayer && mPostLayer);
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "aspect"));
-   if (mPostLayer->getLayerLoc()->nf > 1) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "numOrientationsPost"));
-   }
-   if (mPreLayer->getLayerLoc()->nf > 1) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "numOrientationsPre"));
-   }
-   return (mAspect != 1.0f && ((mNumOrientationsPre <= 1) or (mNumOrientationsPost <= 1)));
-}
-
-int InitGauss2DWeights::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = InitWeights::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+Response::Status
+InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = InitWeights::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
-   // Handle params that depend on pre and post layers' nf
-   ioParam_numOrientationsPost(PARAMS_IO_READ);
-   ioParam_numOrientationsPre(PARAMS_IO_READ);
-   ioParam_aspectRelatedParams(PARAMS_IO_READ);
+   auto hierarchy      = message->mHierarchy;
+   auto *strengthParam = mapLookupByType<StrengthParam>(hierarchy, getDescription());
+   if (strengthParam) {
+      if (strengthParam->getInitInfoCommunicatedFlag()) {
+         mStrength = strengthParam->getStrength();
+         status    = status + Response::SUCCESS;
+      }
+      else {
+         status = status + Response::POSTPONE;
+      }
+   }
+   else {
+      strengthParam           = new StrengthParam(name, parent);
+      auto objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+      FatalIf(
+            objectMapComponent == nullptr,
+            "%s unable to add strength component.\n",
+            getDescription_c());
+      BaseConnection *parentConn = objectMapComponent->lookup<BaseConnection>(std::string(name));
+      FatalIf(
+            parentConn == nullptr,
+            "%s objectMapComponent is missing an object called \"%s\".\n",
+            getDescription_c(),
+            name);
+      parentConn->addObserver(strengthParam);
+      // connection has already components' readParams(); we have to fill the gap here (could
+      // addObserver do it?)
+      strengthParam->readParams();
+      status = status + Response::POSTPONE;
+   }
    return status;
 }
 
-void InitGauss2DWeights::calcWeights(float *dataStart, int dataPatchIndex, int arborId) {
+void InitGauss2DWeights::calcWeights() {
+   pvAssert(mWeights);
+   if (mNumOrientationsPost <= 0) {
+      mNumOrientationsPost = mWeights->getGeometry()->getPostLoc().nf;
+   }
+   if (mNumOrientationsPre <= 0) {
+      mNumOrientationsPre = mWeights->getGeometry()->getPreLoc().nf;
+   }
+   InitWeights::calcWeights();
+}
+
+void InitGauss2DWeights::calcWeights(int dataPatchIndex, int arborId) {
    calcOtherParams(dataPatchIndex);
-   gauss2DCalcWeights(dataStart);
+   gauss2DCalcWeights(mWeights->getDataFromDataIndex(arborId, dataPatchIndex));
    // Weight does not depend on the arborId.
 }
 
@@ -172,13 +169,12 @@ void InitGauss2DWeights::calcOtherParams(int patchIndex) {
 }
 
 void InitGauss2DWeights::gauss2DCalcWeights(float *dataStart) {
-   // load necessary params:
-   int nfPatch = mCallingConn->fPatchSize();
-   int nyPatch = mCallingConn->yPatchSize();
-   int nxPatch = mCallingConn->xPatchSize();
-   int sx      = mCallingConn->xPatchStride();
-   int sy      = mCallingConn->yPatchStride();
-   int sf      = mCallingConn->fPatchStride();
+   int nfPatch = mWeights->getPatchSizeF();
+   int nyPatch = mWeights->getPatchSizeY();
+   int nxPatch = mWeights->getPatchSizeX();
+   int sx      = mWeights->getGeometry()->getPatchStrideX();
+   int sy      = mWeights->getGeometry()->getPatchStrideY();
+   int sf      = mWeights->getGeometry()->getPatchStrideF();
 
    float normalizer = 1.0f / (2.0f * mSigma * mSigma);
 
@@ -197,7 +193,7 @@ void InitGauss2DWeights::gauss2DCalcWeights(float *dataStart) {
          for (int iPost = 0; iPost < nxPatch; iPost++) {
             float xDelta = calcXDelta(iPost);
 
-            if (isSameLocOrSelf(xDelta, yDelta, fPost)) {
+            if (isSameLocAndSelf(xDelta, yDelta, fPost)) {
                continue;
             }
 
@@ -234,7 +230,7 @@ void InitGauss2DWeights::calculateThetas(int kfPre_tmp, int patchIndex) {
    mTheta0Post        = mRotate * mDeltaThetaPost / 2.0f;
    const float dthPre = PI * mThetaMax / (float)mNumOrientationsPre;
    const float th0Pre = mRotate * dthPre / 2.0f;
-   mFeaturePre        = patchIndex % mPreLayer->getLayerLoc()->nf;
+   mFeaturePre        = patchIndex % mWeights->getGeometry()->getPreLoc().nf;
    assert(mFeaturePre == kfPre_tmp);
    const int iThPre = patchIndex % mNumOrientationsPre;
    mThetaPre        = th0Pre + iThPre * dthPre;
@@ -253,7 +249,7 @@ float InitGauss2DWeights::calcThPost(int fPost) {
 }
 
 bool InitGauss2DWeights::checkThetaDiff(float thPost) {
-   if ((mDeltaTheta = std::abs(mThetaPre - mTheta0Post)) > mDeltaThetaMax) {
+   if ((mDeltaTheta = std::abs(mThetaPre - thPost)) > mDeltaThetaMax) {
       // the following is obviously not ideal. But cocirc needs this mDeltaTheta:
       mDeltaTheta = (mDeltaTheta <= PI / 2.0f) ? mDeltaTheta : PI - mDeltaTheta;
       return true;
@@ -271,12 +267,10 @@ bool InitGauss2DWeights::checkColorDiff(int fPost) {
    return false;
 }
 
-bool InitGauss2DWeights::isSameLocOrSelf(float xDelta, float yDelta, int fPost) {
-   bool sameLoc = ((mFeaturePre == fPost) && (xDelta == 0.0f) && (yDelta == 0.0f));
-   if ((sameLoc) && (mPreLayer == mPostLayer)) {
-      return true;
-   }
-   return false;
+bool InitGauss2DWeights::isSameLocAndSelf(float xDelta, float yDelta, int fPost) {
+   bool sameLoc        = ((mFeaturePre == fPost) && (xDelta == 0.0f) && (yDelta == 0.0f));
+   bool selfConnection = mWeights->getGeometry()->getSelfConnectionFlag();
+   return sameLoc and selfConnection;
 }
 
 bool InitGauss2DWeights::checkBowtieAngle(float xp, float yp) {

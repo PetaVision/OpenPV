@@ -25,14 +25,13 @@ class InitCocircWeights : public PV::InitGauss2DWeights {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
+   virtual void calcWeights(int patchIndex, int arborId) override;
 
   protected:
    InitCocircWeights();
    int initialize(char const *name, HyPerCol *hc);
 
   private:
-   int initialize_base();
    float calcKurvePostAndSigmaKurvePost(int kfPost);
    float calcKurveAndSigmaKurve(
          int kf,
@@ -54,7 +53,7 @@ class InitCocircWeights : public PV::InitGauss2DWeights {
    bool checkFlags(float dyP_shift, float dxP);
    void updategKurvePreNgKurvePost(float cocircKurve_shift);
    float calculateWeight();
-   void cocircCalcWeights(float *w_tmp);
+   void cocircCalcWeights(float *dataStart);
 
   private:
    float mSigmaCocirc          = 0.5f * PI;
@@ -66,24 +65,24 @@ class InitCocircWeights : public PV::InitGauss2DWeights {
    bool mSaddleFlag            = false; // handle saddle points separately
 
    // calculated parameters:
-   int nKurvePre;
-   bool iPosKurvePre;
-   bool iSaddlePre;
-   float kurvePre;
-   int nKurvePost;
-   bool iPosKurvePost;
-   bool iSaddlePost;
-   float kurvePost;
-   float sigma_kurve_pre;
-   float sigma_kurve_pre2;
-   float sigma_kurve_post;
-   float sigma_kurve_post2;
+   int mNKurvePre;
+   bool mIPosKurvePre;
+   bool mISaddlePre;
+   float mKurvePre;
+   int mNKurvePost;
+   bool mIPosKurvePost;
+   bool mISaddlePost;
+   float mKurvePost;
+   float mSigmaKurvePre;
+   float mSigmaKurvePre2;
+   float mSigmaKurvePost;
+   float mSigmaKurvePost2;
 
    // used for calculating weights:
-   float gDist;
-   float gCocirc;
-   float gKurvePre;
-   float gKurvePost;
+   float mGDist;
+   float mGCocirc;
+   float mGKurvePre;
+   float mGKurvePost;
 
 }; // class InitCocircWeights
 

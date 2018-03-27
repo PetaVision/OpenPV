@@ -10,16 +10,11 @@
 
 namespace PV {
 
-InitGaborWeights::InitGaborWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+InitGaborWeights::InitGaborWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-InitGaborWeights::InitGaborWeights() { initialize_base(); }
+InitGaborWeights::InitGaborWeights() {}
 
 InitGaborWeights::~InitGaborWeights() {}
-
-int InitGaborWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitGaborWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitGauss2DWeights::initialize(name, hc);
@@ -51,22 +46,22 @@ void InitGaborWeights::calcOtherParams(int patchIndex) {
    calculateThetas(kfPre, patchIndex);
 }
 
-void InitGaborWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
+void InitGaborWeights::calcWeights(int patchIndex, int arborId) {
    calcOtherParams(patchIndex);
-   gaborWeights(dataStart);
+   gaborWeights(mWeights->getDataFromDataIndex(arborId, patchIndex));
 }
 
 void InitGaborWeights::gaborWeights(float *dataStart) {
    // load necessary params:
-   int nfPatch = mCallingConn->fPatchSize();
-   int nyPatch = mCallingConn->yPatchSize();
-   int nxPatch = mCallingConn->xPatchSize();
-   int sx      = mCallingConn->xPatchStride();
-   int sy      = mCallingConn->yPatchStride();
-   int sf      = mCallingConn->fPatchStride();
+   int nfPatch = mWeights->getPatchSizeF();
+   int nyPatch = mWeights->getPatchSizeY();
+   int nxPatch = mWeights->getPatchSizeX();
+   int sx      = mWeights->getGeometry()->getPatchStrideX();
+   int sy      = mWeights->getGeometry()->getPatchStrideY();
+   int sf      = mWeights->getGeometry()->getPatchStrideF();
 
-   float wMin = mCallingConn->getWMin();
-   float wMax = mCallingConn->getWMax();
+   float wMin = mWeights->calcMinWeight();
+   float wMax = mWeights->calcMaxWeight();
 
    bool const compress = (sizeof(float) == sizeof(unsigned char));
 

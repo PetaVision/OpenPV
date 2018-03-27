@@ -23,12 +23,15 @@ int InputLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int InputLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+Response::Status InputLayer::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (mNeedInputRegionsPointer) {
       mInputRegionsAllBatchElements.resize(getNumExtendedAllBatches());
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 void InputLayer::initializeBatchIndexer() {
@@ -67,7 +70,7 @@ bool InputLayer::readyForNextFile() {
    return mDisplayPeriod > 0;
 }
 
-int InputLayer::updateState(double time, double dt) {
+Response::Status InputLayer::updateState(double time, double dt) {
    if (readyForNextFile()) {
 
       // Write file path to timestamp file
@@ -90,7 +93,7 @@ int InputLayer::updateState(double time, double dt) {
       // Read in the next file
       retrieveInputAndAdvanceIndex(time, dt);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 void InputLayer::retrieveInput(double timef, double dt) {
@@ -410,19 +413,12 @@ int InputLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    return PV_FAILURE;
 }
 
-int InputLayer::allocateV() {
-   clayer->V = nullptr;
-   return PV_SUCCESS;
-}
+void InputLayer::allocateV() { clayer->V = nullptr; }
 
-int InputLayer::initializeV() {
-   pvAssert(getV() == nullptr);
-   return PV_SUCCESS;
-}
+void InputLayer::initializeV() { pvAssert(getV() == nullptr); }
 
-int InputLayer::initializeActivity() {
+void InputLayer::initializeActivity() {
    retrieveInput(parent->simulationTime(), parent->getDeltaTime());
-   return PV_SUCCESS;
 }
 
 int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -452,8 +448,11 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-int InputLayer::registerData(Checkpointer *checkpointer) {
-   int status = HyPerLayer::registerData(checkpointer);
+Response::Status InputLayer::registerData(Checkpointer *checkpointer) {
+   auto status = HyPerLayer::registerData(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (checkpointer->getMPIBlock()->getRank() == 0) {
       mRNG.seed(mRandomSeed);
       int numBatch = getLayerLoc()->nbatch;
@@ -478,13 +477,16 @@ int InputLayer::registerData(Checkpointer *checkpointer) {
                timestampFilename, needToCreateFile, checkpointer, cpFileStreamLabel);
       }
    }
-   return status;
+   return Response::SUCCESS;
 }
 
-int InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = PV_SUCCESS;
+Response::Status InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   auto status = Response::NO_ACTION;
    if (initializeFromCheckpointFlag) {
-      int status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      if (!Response::completed(status)) {
+         return status;
+      }
       if (mBatchIndexer) {
          pvAssert(getMPIBlock()->getRank() == 0);
       }
@@ -550,7 +552,6 @@ int InputLayer::ioParam_flipsToggle(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "yFlipToggle", &mYFlipToggle, mYFlipToggle);
    return PV_SUCCESS;
 }
-
 
 int InputLayer::ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(

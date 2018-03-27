@@ -31,19 +31,19 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
     * Implementation of the calcValues method. This probe does not compute
     * any values that are available to other objects through getValues().
     */
-   virtual int calcValues(double timevalue) override { return PV_SUCCESS; }
+   virtual void calcValues(double timevalue) override {}
 
    bool getTestFailed() const { return mTestFailed; }
 
   protected:
    int initialize(const char *name, PV::HyPerCol *hc);
    virtual void ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) override;
-   virtual int
+   virtual PV::Response::Status
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;
-   virtual int readStateFromCheckpoint(PV::Checkpointer *checkpointer) override;
+   virtual PV::Response::Status readStateFromCheckpoint(PV::Checkpointer *checkpointer) override;
    virtual bool needRecalc(double timevalue) override { return true; }
    virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
-   virtual int outputState(double timevalue) override;
+   virtual PV::Response::Status outputState(double timestamp) override;
 
   private:
    MomentumConnSimpleCheckpointerTestProbe();
@@ -51,27 +51,30 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
 
    /**
     * Sets the input layer data member, and checks that the input layer's parameters are
-    * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
+    * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
     */
-   int initInputLayer(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
+   PV::Response::Status
+   initInputLayer(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
 
    /**
     * Sets the output layer data member, and checks that the output layer's parameters are
-    * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
+    * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
     */
-   int initOutputLayer(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
+   PV::Response::Status
+   initOutputLayer(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
 
    /**
     * Sets the connection data member, and checks that the connection's parameters are
-    * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
+    * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
     */
-   int initConnection(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
+   PV::Response::Status
+   initConnection(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
 
    /**
     * Checks whether the given object has finished its communicateInitInfo stage, and
-    * returns PV_SUCCESS if it has, or PV_POSTPONE if it has not.
+    * returns SUCCESS if it has, or POSTPONE if it has not.
     */
-   int checkCommunicatedFlag(PV::BaseObject *dependencyObject);
+   PV::Response::Status checkCommunicatedFlag(PV::BaseObject *dependencyObject);
 
    int calcUpdateNumber(double timevalue);
    void initializeCorrectValues(double timevalue);

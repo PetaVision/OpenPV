@@ -52,35 +52,35 @@ void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum Params
 int NormalizeContrastZeroMean::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   pvAssert(!connectionList.empty());
+   pvAssert(!mWeightsList.empty());
 
-   // TODO: need to ensure that all connections in connectionList have same
+   // TODO: need to ensure that all connections in mWeightsList have same
    // nxp,nyp,nfp,numArbors,numDataPatches
-   HyPerConn *conn0 = connectionList[0];
-   for (auto &conn : connectionList) {
-      if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
+   Weights *weights0 = mWeightsList[0];
+   for (auto &weights : mWeightsList) {
+      if (weights->getNumArbors() != weights0->getNumArbors()) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "arbors (%s has %d; %s has %d).\n",
                   getDescription_c(),
-                  conn0->getDescription_c(),
-                  conn0->numberOfAxonalArborLists(),
-                  conn->getDescription_c(),
-                  conn->numberOfAxonalArborLists());
+                  weights0->getName().c_str(),
+                  weights0->getNumArbors(),
+                  weights->getName().c_str(),
+                  weights->getNumArbors());
          }
          status = PV_FAILURE;
       }
-      if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
+      if (weights->getNumDataPatches() != weights0->getNumDataPatches()) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "data patches (%s has %d; %s has %d).\n",
                   getDescription_c(),
-                  conn0->getDescription_c(),
-                  conn0->getNumDataPatches(),
-                  conn->getDescription_c(),
-                  conn->getNumDataPatches());
+                  weights0->getName().c_str(),
+                  weights0->getNumDataPatches(),
+                  weights->getName().c_str(),
+                  weights->getNumDataPatches());
          }
          status = PV_FAILURE;
       }
@@ -90,27 +90,26 @@ int NormalizeContrastZeroMean::normalizeWeights() {
       }
    }
 
-   float scale_factor = strength;
+   float scale_factor = mStrength;
 
    status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and
    // symmetrizeWeights
 
-   int nArbors        = conn0->numberOfAxonalArborLists();
-   int numDataPatches = conn0->getNumDataPatches();
-   if (normalizeArborsIndividually) {
+   int nArbors        = weights0->getNumArbors();
+   int numDataPatches = weights0->getNumDataPatches();
+   if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
          for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
-            float sum             = 0.0f;
-            float sumsq           = 0.0f;
-            int weights_per_patch = 0;
-            for (auto &conn : connectionList) {
-               int nxp = conn0->xPatchSize();
-               int nyp = conn0->yPatchSize();
-               int nfp = conn0->fPatchSize();
-               weights_per_patch += nxp * nyp * nfp;
-               float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
-               accumulateSumAndSumSquared(dataStartPatch, weights_per_patch, &sum, &sumsq);
+            float sum           = 0.0f;
+            float sumsq         = 0.0f;
+            int weightsPerPatch = 0;
+            for (auto &weights : mWeightsList) {
+               int nxp = weights0->getPatchSizeX();
+               int nyp = weights0->getPatchSizeY();
+               int nfp = weights0->getPatchSizeF();
+               weightsPerPatch += nxp * nyp * nfp;
+               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               accumulateSumAndSumSquared(dataStartPatch, weightsPerPatch, &sum, &sumsq);
             }
             if (fabsf(sum) <= minSumTolerated) {
                WarnLog().printf(
@@ -122,15 +121,14 @@ int NormalizeContrastZeroMean::normalizeWeights() {
                      (double)minSumTolerated);
                continue;
             }
-            float mean = sum / weights_per_patch;
-            float var  = sumsq / weights_per_patch - mean * mean;
-            for (auto &conn : connectionList) {
-               float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+            float mean = sum / weightsPerPatch;
+            float var  = sumsq / weightsPerPatch - mean * mean;
+            for (auto &weights : mWeightsList) {
+               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
                subtractOffsetAndNormalize(
                      dataStartPatch,
-                     weights_per_patch,
-                     sum / weights_per_patch,
+                     weightsPerPatch,
+                     sum / weightsPerPatch,
                      sqrtf(var) / scale_factor);
             }
          }
@@ -138,18 +136,17 @@ int NormalizeContrastZeroMean::normalizeWeights() {
    }
    else {
       for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
-         float sum             = 0.0f;
-         float sumsq           = 0.0f;
-         int weights_per_patch = 0;
+         float sum           = 0.0f;
+         float sumsq         = 0.0f;
+         int weightsPerPatch = 0;
          for (int arborID = 0; arborID < nArbors; arborID++) {
-            for (auto &conn : connectionList) {
-               int nxp = conn0->xPatchSize();
-               int nyp = conn0->yPatchSize();
-               int nfp = conn0->fPatchSize();
-               weights_per_patch += nxp * nyp * nfp;
-               float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
-               accumulateSumAndSumSquared(dataStartPatch, weights_per_patch, &sum, &sumsq);
+            for (auto &weights : mWeightsList) {
+               int nxp = weights0->getPatchSizeX();
+               int nyp = weights0->getPatchSizeY();
+               int nfp = weights0->getPatchSizeF();
+               weightsPerPatch += nxp * nyp * nfp;
+               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               accumulateSumAndSumSquared(dataStartPatch, weightsPerPatch, &sum, &sumsq);
             }
          }
          if (fabsf(sum) <= minSumTolerated) {
@@ -161,15 +158,14 @@ int NormalizeContrastZeroMean::normalizeWeights() {
                   (double)minSumTolerated);
             continue;
          }
-         int count  = weights_per_patch * nArbors;
+         int count  = weightsPerPatch * nArbors;
          float mean = sum / count;
          float var  = sumsq / count - mean * mean;
          for (int arborID = 0; arborID < nArbors; arborID++) {
-            for (auto &conn : connectionList) {
-               float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+            for (auto &weights : mWeightsList) {
+               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
                subtractOffsetAndNormalize(
-                     dataStartPatch, weights_per_patch, mean, sqrtf(var) / scale_factor);
+                     dataStartPatch, weightsPerPatch, mean, sqrtf(var) / scale_factor);
             }
          }
       }
@@ -180,10 +176,10 @@ int NormalizeContrastZeroMean::normalizeWeights() {
 
 void NormalizeContrastZeroMean::subtractOffsetAndNormalize(
       float *dataStartPatch,
-      int weights_per_patch,
+      int weightsPerPatch,
       float offset,
       float normalizer) {
-   for (int k = 0; k < weights_per_patch; k++) {
+   for (int k = 0; k < weightsPerPatch; k++) {
       dataStartPatch[k] -= offset;
       dataStartPatch[k] /= normalizer;
    }

@@ -32,17 +32,15 @@ int RunningAverageLayer::initialize(const char *name, HyPerCol *hc) {
    return status_init;
 }
 
-int RunningAverageLayer::communicateInitInfo(
+Response::Status RunningAverageLayer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = CloneVLayer::communicateInitInfo(message);
+   return CloneVLayer::communicateInitInfo(message);
    // CloneVLayer sets originalLayer and errors out if originalLayerName is not valid
-   return status;
 }
 
 // RunningAverageLayer does not use the V buffer, so absolutely fine to clone off of an null V layer
-int RunningAverageLayer::allocateV() {
+void RunningAverageLayer::allocateV() {
    // Do nothing
-   return PV_SUCCESS;
 }
 
 int RunningAverageLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -67,9 +65,8 @@ int RunningAverageLayer::setActivity() {
    return 0;
 }
 
-int RunningAverageLayer::updateState(double timef, double dt) {
+Response::Status RunningAverageLayer::updateState(double timef, double dt) {
    numUpdateTimes++;
-   int status = PV_SUCCESS;
    // Check if an update is needed
    // Done in cloneVLayer
    int numNeurons                = originalLayer->getNumNeurons();
@@ -142,7 +139,7 @@ int RunningAverageLayer::updateState(double timef, double dt) {
          }
       }
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

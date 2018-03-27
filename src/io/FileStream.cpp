@@ -34,6 +34,8 @@ FileStream::~FileStream() {}
 void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
    string fullPath = expandLeadingTilde(path);
    mFileName       = fullPath;
+   mMode           = mode;
+   mVerifyWrites   = verifyWrites;
    int attempts    = 0;
    while (!mFStream.is_open()) {
       mFStream.open(fullPath, mode);
@@ -58,7 +60,6 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
                 << attempts + 1 << "\n";
    }
    verifyFlags("openFile");
-   mVerifyWrites = verifyWrites;
 }
 
 void FileStream::verifyFlags(const char *caller) {
@@ -113,6 +114,11 @@ void FileStream::read(void *data, long length) {
    verifyFlags("read");
 }
 
+void FileStream::setOutPos(long pos, std::ios_base::seekdir seekAnchor) {
+   mFStream.seekp(pos, seekAnchor);
+   verifyFlags("setOutPos");
+}
+
 void FileStream::setOutPos(long pos, bool fromBeginning) {
    if (!fromBeginning) {
       mFStream.seekp(pos, std::ios_base::cur);
@@ -121,6 +127,11 @@ void FileStream::setOutPos(long pos, bool fromBeginning) {
       mFStream.seekp(pos);
    }
    verifyFlags("setOutPos");
+}
+
+void FileStream::setInPos(long pos, std::ios_base::seekdir seekAnchor) {
+   mFStream.seekg(pos, seekAnchor);
+   verifyFlags("setInPos");
 }
 
 void FileStream::setInPos(long pos, bool fromBeginning) {

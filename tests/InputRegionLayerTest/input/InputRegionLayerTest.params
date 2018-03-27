@@ -146,12 +146,10 @@ HyPerConn "InputToOutput" = {
     initialWriteTime                    = 0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };
 
 HyPerConn "CorrectInputRegionToOutput" = {

@@ -39,21 +39,17 @@ void TestImage::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (float)1);
 }
 
-int TestImage::allocateV() {
-   FatalIf(!(getV() == NULL), "Test failed.\n");
-   return PV_SUCCESS;
-}
+void TestImage::allocateV() { FatalIf(!(getV() == nullptr), "Test failed.\n"); }
 
-int TestImage::initializeActivity() {
+void TestImage::initializeActivity() {
    for (int k = 0; k < getNumNeurons(); k++) {
       const PVLayerLoc *loc = getLayerLoc();
       int kExt              = kIndexExtended(
             k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       getActivity()[kExt] = val;
    }
-   return PV_SUCCESS;
 }
 
-int TestImage::updateState(double timed, double dt) { return PV_SUCCESS; }
+Response::Status TestImage::updateState(double timed, double dt) { return Response::SUCCESS; }
 
 } // namespace PV

@@ -12,7 +12,7 @@ class DropoutLayer : public ANNLayer {
    virtual ~DropoutLayer();
 
   protected:
-   virtual int updateState(double timestamp, double dt) override;
+   virtual Response::Status updateState(double timestamp, double dt) override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_probability(enum ParamsIOFlag ioFlag);
 

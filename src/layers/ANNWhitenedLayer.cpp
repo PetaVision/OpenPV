@@ -48,7 +48,7 @@ int ANNWhitenedLayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int ANNWhitenedLayer::updateState(double time, double dt) {
+Response::Status ANNWhitenedLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -77,7 +77,7 @@ int ANNWhitenedLayer::updateState(double time, double dt) {
          gSynHead,
          A);
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

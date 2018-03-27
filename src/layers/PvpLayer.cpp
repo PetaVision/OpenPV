@@ -13,10 +13,7 @@ PvpLayer::PvpLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
 PvpLayer::~PvpLayer() {}
 
-int PvpLayer::allocateDataStructures() {
-   int status = InputLayer::allocateDataStructures();
-   return status;
-}
+Response::Status PvpLayer::allocateDataStructures() { return InputLayer::allocateDataStructures(); }
 
 int PvpLayer::countInputImages() {
    FileStream headerStream(

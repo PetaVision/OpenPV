@@ -8,6 +8,7 @@
  */
 
 #include <columns/buildandrun.hpp>
+#include <layers/HyPerLayer.hpp>
 
 int custominit(HyPerCol *hc, int argc, char **argv);
 // custominit is for doing things after the HyPerCol has been built but before the run method is

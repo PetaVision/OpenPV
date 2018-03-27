@@ -20,10 +20,12 @@ class FileStream : public PrintStream {
    virtual ~FileStream();
    virtual void write(void const *data, long length);
    virtual void read(void *data, long length);
+   virtual void setOutPos(long pos, std::ios_base::seekdir seekAnchor);
    virtual void setOutPos(long pos, bool fromBeginning);
+   virtual void setInPos(long pos, std::ios_base::seekdir seekAnchor);
    virtual void setInPos(long pos, bool fromBeginning);
-   bool readable() { return mFStream.flags() & std::ios_base::in; }
-   bool writeable() { return mFStream.flags() & std::ios_base::out; }
+   bool readable() { return mMode & std::ios_base::in; }
+   bool writeable() { return mMode & std::ios_base::out; }
    bool binary() { return mFStream.flags() & std::ios_base::binary; }
    bool readwrite() { return readable() && writeable(); }
    long getOutPos();
@@ -39,8 +41,9 @@ class FileStream : public PrintStream {
    std::string mFileName;
 
   private:
-   bool mVerifyWrites         = false;
-   int const mMaxAttempts     = 5;
+   std::ios_base::openmode mMode;
+   bool mVerifyWrites     = false;
+   int const mMaxAttempts = 5;
 };
 
 } /* namespace PV */

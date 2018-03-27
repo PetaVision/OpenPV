@@ -9,16 +9,11 @@
 
 namespace PV {
 
-InitOneToOneWeights::InitOneToOneWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+InitOneToOneWeights::InitOneToOneWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-InitOneToOneWeights::InitOneToOneWeights() { initialize_base(); }
+InitOneToOneWeights::InitOneToOneWeights() {}
 
 InitOneToOneWeights::~InitOneToOneWeights() {}
-
-int InitOneToOneWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitOneToOneWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitWeights::initialize(name, hc);
@@ -35,24 +30,25 @@ void InitOneToOneWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
 }
 
-void InitOneToOneWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
+void InitOneToOneWeights::calcWeights(int patchIndex, int arborId) {
+   float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    createOneToOneConnection(dataStart, patchIndex, mWeightInit);
 }
 
 int InitOneToOneWeights::createOneToOneConnection(
       float *dataStart,
       int dataPatchIndex,
-      float iWeight) {
+      float weightInit) {
 
-   int k = mCallingConn->dataIndexToUnitCellIndex(dataPatchIndex);
+   int unitCellIndex = dataIndexToUnitCellIndex(dataPatchIndex);
 
-   const int nfp = mCallingConn->fPatchSize();
-   const int nxp = mCallingConn->xPatchSize();
-   const int nyp = mCallingConn->yPatchSize();
+   int nfp = mWeights->getPatchSizeF();
+   int nxp = mWeights->getPatchSizeX();
+   int nyp = mWeights->getPatchSizeY();
 
-   const int sxp = mCallingConn->xPatchStride();
-   const int syp = mCallingConn->yPatchStride();
-   const int sfp = mCallingConn->fPatchStride();
+   int sxp = mWeights->getGeometry()->getPatchStrideX();
+   int syp = mWeights->getGeometry()->getPatchStrideY();
+   int sfp = mWeights->getGeometry()->getPatchStrideF();
 
    // clear all weights in patch
    memset(dataStart, 0, nxp * nyp * nfp);
@@ -60,7 +56,7 @@ int InitOneToOneWeights::createOneToOneConnection(
    int x = (int)(nxp / 2);
    int y = (int)(nyp / 2);
    for (int f = 0; f < nfp; f++) {
-      dataStart[x * sxp + y * syp + f * sfp] = f == k ? mWeightInit : 0;
+      dataStart[x * sxp + y * syp + f * sfp] = f == unitCellIndex ? weightInit : 0;
    }
 
    return PV_SUCCESS;

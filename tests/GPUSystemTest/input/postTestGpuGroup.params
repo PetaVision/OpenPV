@@ -1,3 +1,8 @@
+// GPUSystemTest postTestGpuGroup.params for testing gpuGroupIdx.
+// This test was removed from ctest Nov 7, 2017 during the
+// weights/connection refactoring. It might be restored if there is
+// enough demand for it.
+
 debugParsing = false;
 
 HyPerCol "column" = {
@@ -203,7 +208,6 @@ HyPerConn "origConn1" = {
         
     normalizeMethod                     = "none";
 
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -213,7 +217,6 @@ HyPerConn "origConn1" = {
      
     convertRateToSpikeCount = false;
     receiveGpu = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -224,7 +227,6 @@ TransposeConn "TransposeConn1" = {
     postLayerName = "outputRecv1";
     channelCode = 0; 
     originalConnName = "origConn1";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
@@ -238,7 +240,6 @@ TransposeConn "gpuTransposeConn1" = {
     postLayerName = "outputRecvGpu1";
     channelCode = 0;
     originalConnName = "origConn1";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
@@ -283,7 +284,6 @@ HyPerConn "origConn2" = {
         
     normalizeMethod                     = "none";
 
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -293,7 +293,6 @@ HyPerConn "origConn2" = {
      
     convertRateToSpikeCount = false;
     receiveGpu = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -304,7 +303,6 @@ TransposeConn "TransposeConn2" = {
     postLayerName = "outputRecv2";
     channelCode = 0; 
     originalConnName = "origConn2";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
@@ -318,7 +316,6 @@ TransposeConn "gpuTransposeConn2" = {
     postLayerName = "outputRecvGpu2";
     channelCode = 0;
     originalConnName = "origConn2";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;

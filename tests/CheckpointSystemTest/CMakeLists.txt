@@ -1,11 +1,13 @@
 set(SRC_CPP
   src/main.cpp
   ${TESTS_SHARED_DIR}/CPTestInputLayer.cpp
+  ${TESTS_SHARED_DIR}/IncrementingWeightUpdater.cpp
   ${TESTS_SHARED_DIR}/VaryingHyPerConn.cpp
 )
 
 set(SRC_HPP
   ${TESTS_SHARED_DIR}/CPTestInputLayer.hpp
+  ${TESTS_SHARED_DIR}/IncrementingWeightUpdater.hpp
   ${TESTS_SHARED_DIR}/VaryingHyPerConn.hpp
 )
 

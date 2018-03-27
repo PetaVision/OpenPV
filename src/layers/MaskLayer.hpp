@@ -17,11 +17,11 @@ class MaskLayer : public PV::ANNLayer {
    MaskLayer(const char *name, HyPerCol *hc);
    MaskLayer();
    virtual ~MaskLayer();
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   protected:
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_maskMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);

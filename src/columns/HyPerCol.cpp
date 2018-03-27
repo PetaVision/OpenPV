@@ -14,7 +14,6 @@
 #include "columns/RandomSeed.hpp"
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
-#include "normalizers/NormalizeBase.hpp"
 #include "pvGitRevision.h"
 
 #include <assert.h>
@@ -33,6 +32,11 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+
+#ifdef PV_USE_OPENMP_THREADS
+#include <omp.h>
+#endif
+
 #ifdef PV_USE_CUDA
 #include <cuda.h>
 #include <cudnn.h>
@@ -56,10 +60,6 @@ HyPerCol::~HyPerCol() {
    }
    delete mCheckpointer;
    mObjectHierarchy.clear(true /*delete the objects in the hierarchy*/);
-   for (auto iterator = mNormalizers.begin(); iterator != mNormalizers.end();) {
-      delete *iterator;
-      iterator = mNormalizers.erase(iterator);
-   }
    for (auto iterator = mPhaseRecvTimers.begin(); iterator != mPhaseRecvTimers.end();) {
       delete *iterator;
       iterator = mPhaseRecvTimers.erase(iterator);
@@ -86,20 +86,19 @@ int HyPerCol::initialize_base() {
    mWriteProgressToErr       = false;
    mOrigStdOut               = -1;
    mOrigStdErr               = -1;
-   mNormalizers.clear(); // Pretty sure these aren't necessary
-   mLayerStatus          = nullptr;
-   mConnectionStatus     = nullptr;
-   mPrintParamsFilename  = nullptr;
-   mPrintParamsStream    = nullptr;
-   mLuaPrintParamsStream = nullptr;
-   mNumXGlobal           = 0;
-   mNumYGlobal           = 0;
-   mNumBatch             = 1;
-   mNumBatchGlobal       = 1;
-   mOwnsCommunicator     = true;
-   mParams               = nullptr;
-   mCommunicator         = nullptr;
-   mRunTimer             = nullptr;
+   mLayerStatus              = nullptr;
+   mConnectionStatus         = nullptr;
+   mPrintParamsFilename      = nullptr;
+   mPrintParamsStream        = nullptr;
+   mLuaPrintParamsStream     = nullptr;
+   mNumXGlobal               = 0;
+   mNumYGlobal               = 0;
+   mNumBatch                 = 1;
+   mNumBatchGlobal           = 1;
+   mOwnsCommunicator         = true;
+   mParams                   = nullptr;
+   mCommunicator             = nullptr;
+   mRunTimer                 = nullptr;
    mPhaseRecvTimers.clear();
    mRandomSeed        = 0U;
    mErrorOnNotANumber = false;
@@ -174,7 +173,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
 
    mCheckpointer = new Checkpointer(
          std::string(mName), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
-   mCheckpointer->addObserver(this, BaseMessage{});
+   mCheckpointer->addObserver(this);
    ioParams(PARAMS_IO_READ);
    mSimTime     = 0.0;
    mInitialStep = 0L;
@@ -213,11 +212,14 @@ int HyPerCol::initialize(PV_Init *initObj) {
          }
       }
       else {
-         BaseObject *addedObject = Factory::instance()->createByKeyword(kw, name, this);
+         BaseObject *addedObject = nullptr;
+         try {
+            addedObject = Factory::instance()->createByKeyword(kw, name, this);
+         } catch (std::exception const &e) {
+            Fatal() << e.what() << std::endl;
+         }
          if (addedObject == nullptr) {
-            if (globalRank() == 0) {
-               ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
-            }
+            ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
             return PV_FAILURE;
          }
          addObject(addedObject);
@@ -231,11 +233,10 @@ void HyPerCol::setDescription() {
    description.append(getName()).append("\"");
 }
 
-int HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
+void HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
    ioParamsStartGroup(ioFlag, mName);
    ioParamsFillGroup(ioFlag);
    ioParamsFinishGroup(ioFlag);
-   return PV_SUCCESS;
 }
 
 int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name) {
@@ -358,22 +359,10 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
          ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
-int HyPerCol::addNormalizer(NormalizeBase *normalizer) {
-   mNormalizers.push_back(normalizer);
-   return PV_SUCCESS; // Why does this return success when the other add
-   // functions return an index?
-}
-
 void HyPerCol::allocateColumn() {
    if (mReadyFlag) {
       return;
    }
-
-#ifdef PV_USE_CUDA
-   // Default to auto assign gpus
-   std::string const &gpu_devices = mPVInitObj->getStringArgument("GPUDevices");
-   initializeCUDA(gpu_devices);
-#endif
 
    setNumThreads(false);
    // When we call processParams, the communicateInitInfo stage will run, which
@@ -398,6 +387,15 @@ void HyPerCol::allocateColumn() {
       }
    }
 
+#ifdef PV_USE_CUDA
+   // Needs to go between CommunicateInitInfo (called by processParams) and
+   // AllocateDataStructures, because the object's mUsingGPUFlag might not get
+   // set until the communicate stage, but the objects will need to know the
+   // CudaDevice in order to allocate GPU memory.
+   std::string const &gpu_devices = mPVInitObj->getStringArgument("GPUDevices");
+   initializeCUDA(gpu_devices);
+#endif
+
    int thread_status =
          setNumThreads(true /*now, print messages related to setting number of threads*/);
    MPI_Barrier(mCommunicator->globalCommunicator());
@@ -411,9 +409,9 @@ void HyPerCol::allocateColumn() {
    omp_set_num_threads(mNumThreads);
 #endif // PV_USE_OPENMP_THREADS
 
-   notify(std::make_shared<AllocateDataMessage>());
+   notifyLoop(std::make_shared<AllocateDataMessage>());
 
-   notify(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
+   notifyLoop(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
    mNumPhases++;
 
    mPhaseRecvTimers.clear();
@@ -425,7 +423,7 @@ void HyPerCol::allocateColumn() {
       mCheckpointer->registerTimer(phaseRecvTimer);
    }
 
-   notify(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
+   notifyLoop(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
 
 #ifdef DEBUG_OUTPUT
    InfoLog().printf("[%d]: HyPerCol: running...\n", mCommunicator->globalCommRank());
@@ -437,7 +435,7 @@ void HyPerCol::allocateColumn() {
    // This needs to happen after initPublishers so that we can initialize
    // the values in the data stores, and before the layers' publish calls
    // so that the data in border regions gets copied correctly.
-   notify(std::make_shared<InitializeStateMessage>());
+   notifyLoop(std::make_shared<InitializeStateMessage>());
    if (mCheckpointReadFlag) {
       mCheckpointer->checkpointRead(&mSimTime, &mCurrentStep);
    }
@@ -450,27 +448,24 @@ void HyPerCol::allocateColumn() {
 // initializations that still need to happen when reading from checkpoint.
 
 #ifdef PV_USE_CUDA
-   notify(std::make_shared<CopyInitialStateToGPUMessage>());
+   notifyLoop(std::make_shared<CopyInitialStateToGPUMessage>());
 #endif // PV_USE_CUDA
 
    // Initial normalization moved here to facilitate normalizations of groups
    // of HyPerConns
-   normalizeWeights();
-   notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ConnectionNormalizeMessage>());
+   notifyLoop(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
 
    // publish initial conditions
    for (int phase = 0; phase < mNumPhases; phase++) {
-      notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
+      notifyLoop(std::make_shared<LayerPublishMessage>(phase, mSimTime));
    }
-
-   // Feb 2, 2017: waiting and updating active indices have been moved into
-   // OutputState and CheckNotANumber, where they are called if needed.
 
    // output initial conditions
    if (!mCheckpointReadFlag) {
-      notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
+      notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime, mDeltaTime));
       for (int phase = 0; phase < mNumPhases; phase++) {
-         notify(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
+         notifyLoop(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
       }
    }
    mReadyFlag = true;
@@ -496,7 +491,7 @@ int HyPerCol::run(double stopTime, double dt) {
 
    advanceTimeLoop(runClock, 10 /*runClockStartingStep*/);
 
-   notify(std::make_shared<CleanupMessage>());
+   notifyLoop(std::make_shared<CleanupMessage>());
 
 #ifdef DEBUG_OUTPUT
    InfoLog().printf("[%d]: HyPerCol: done...\n", mCommunicator->globalCommRank());
@@ -606,7 +601,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
 int HyPerCol::processParams(char const *path) {
    if (!mParamsProcessedFlag) {
       auto const &objectMap = mObjectHierarchy.getObjectMap();
-      notify(std::make_shared<CommunicateInitInfoMessage>(objectMap));
+      notifyLoop(std::make_shared<CommunicateInitInfoMessage>(objectMap));
    }
 
    // Print a cleaned up version of params to the file given by
@@ -625,20 +620,6 @@ int HyPerCol::processParams(char const *path) {
    }
    mParamsProcessedFlag = true;
    return PV_SUCCESS;
-}
-
-int HyPerCol::normalizeWeights() {
-   int status = PV_SUCCESS;
-   for (int n = 0; n < mNormalizers.size(); n++) {
-      NormalizeBase *normalizer = mNormalizers.at(n);
-      if (normalizer) {
-         status = normalizer->normalizeWeightsWrapper();
-      }
-      if (status != PV_SUCCESS) {
-         ErrorLog().printf("Normalizer \"%s\" failed.\n", mNormalizers[n]->getName());
-      }
-   }
-   return status;
 }
 
 void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) {
@@ -681,7 +662,7 @@ int HyPerCol::advanceTime(double sim_time) {
    // bypassing trigger event
    mSimTime = sim_time + mDeltaTime;
 
-   notify(std::make_shared<AdaptTimestepMessage>());
+   notifyLoop(std::make_shared<AdaptTimestepMessage>());
 
    // At this point all activity from the previous time step has
    // been delivered to the data store.
@@ -691,16 +672,16 @@ int HyPerCol::advanceTime(double sim_time) {
 
    // update the connections (weights)
    //
-   notify(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
-   normalizeWeights();
-   notify(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
-   notify(std::make_shared<ConnectionOutputMessage>(mSimTime));
+   notifyLoop(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ConnectionNormalizeMessage>());
+   notifyLoop(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime, mDeltaTime));
 
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {
-      notify(std::make_shared<LayerClearProgressFlagsMessage>());
+      notifyLoop(std::make_shared<LayerClearProgressFlagsMessage>());
 
-      // nonblockingLayerUpdate allows for more concurrency than notify.
+      // nonblockingLayerUpdate allows for more concurrency than notifyLoop.
       bool someLayerIsPending = false;
       bool someLayerHasActed  = false;
 #ifdef PV_USE_CUDA
@@ -759,7 +740,7 @@ int HyPerCol::advanceTime(double sim_time) {
 
       if (getDevice() != nullptr) {
          getDevice()->syncDevice();
-         notify(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
+         notifyLoop(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
       }
 
       // Update for gpu recv and non gpu update
@@ -785,22 +766,22 @@ int HyPerCol::advanceTime(double sim_time) {
       nonblockingLayerUpdate(recvMessage, updateMessage);
 #endif
       // Rotate DataStore ring buffers
-      notify(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
+      notifyLoop(std::make_shared<LayerAdvanceDataStoreMessage>(phase));
 
       // copy activity buffer to DataStore, and do MPI exchange.
-      notify(std::make_shared<LayerPublishMessage>(phase, mSimTime));
+      notifyLoop(std::make_shared<LayerPublishMessage>(phase, mSimTime));
 
       // Feb 2, 2017: waiting and updating active indices have been moved into
       // OutputState and CheckNotANumber, where they are called if needed.
-      notify(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
+      notifyLoop(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
       if (mErrorOnNotANumber) {
-         notify(std::make_shared<LayerCheckNotANumberMessage>(phase));
+         notifyLoop(std::make_shared<LayerCheckNotANumberMessage>(phase));
       }
    }
 
    mRunTimer->stop();
 
-   notify(std::make_shared<ColProbeOutputStateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ColProbeOutputStateMessage>(mSimTime, mDeltaTime));
 
    return status;
 }
@@ -815,7 +796,7 @@ void HyPerCol::nonblockingLayerUpdate(
    while (*(updateMessage->mSomeLayerIsPending)) {
       *(updateMessage->mSomeLayerIsPending) = false;
       *(updateMessage->mSomeLayerHasActed)  = false;
-      notify(updateMessage);
+      notifyLoop(updateMessage);
 
       if (!*(updateMessage->mSomeLayerHasActed)) {
          idleCounter++;
@@ -846,8 +827,8 @@ void HyPerCol::nonblockingLayerUpdate(
    while (*(recvMessage->mSomeLayerIsPending)) {
       *(updateMessage->mSomeLayerIsPending) = false;
       *(updateMessage->mSomeLayerHasActed)  = false;
-      notify(recvMessage);
-      notify(updateMessage);
+      notifyLoop(recvMessage);
+      notifyLoop(updateMessage);
 
       if (!*(updateMessage->mSomeLayerHasActed)) {
          idleCounter++;
@@ -864,38 +845,33 @@ void HyPerCol::nonblockingLayerUpdate(
    }
 }
 
-int HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
+Response::Status HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
    if (auto castMessage = std::dynamic_pointer_cast<PrepareCheckpointWriteMessage const>(message)) {
       return respondPrepareCheckpointWrite(castMessage);
    }
    else {
-      return PV_SUCCESS;
+      return Response::SUCCESS;
    }
 }
 
-int HyPerCol::respondPrepareCheckpointWrite(
+Response::Status HyPerCol::respondPrepareCheckpointWrite(
       std::shared_ptr<PrepareCheckpointWriteMessage const> message) {
    std::string path(message->mDirectory);
    path.append("/").append("pv.params");
-   return outputParams(path.c_str());
+   outputParams(path.c_str());
+   return Response::SUCCESS;
 }
 
-int HyPerCol::outputParams(char const *path) {
+void HyPerCol::outputParams(char const *path) {
    assert(path != nullptr && path[0] != '\0');
-   int status = PV_SUCCESS;
-   int rank   = mCheckpointer->getMPIBlock()->getRank();
+   int rank = mCheckpointer->getMPIBlock()->getRank();
    assert(mPrintParamsStream == nullptr);
-   char *tmp = strdup(path); // duplicate string since dirname() is allowed to
-   // modify its argument
+   char *tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
    if (tmp == nullptr) {
       Fatal().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
    }
    char *containingdir = dirname(tmp);
-   status              = ensureDirExists(mCheckpointer->getMPIBlock(), containingdir);
-   if (status != PV_SUCCESS) {
-      ErrorLog().printf(
-            "HyPerCol::outputParams unable to create directory \"%s\"\n", containingdir);
-   }
+   ensureDirExists(mCheckpointer->getMPIBlock(), containingdir);
    free(tmp);
    if (rank == 0) {
       mPrintParamsStream = new FileStream(path, std::ios_base::out, getVerifyWrites());
@@ -924,19 +900,16 @@ int HyPerCol::outputParams(char const *path) {
    }
 
    // Parent HyPerCol params
-   status = ioParams(PARAMS_IO_WRITE);
-   if (status != PV_SUCCESS) {
-      Fatal().printf("outputParams: Error copying params to \"%s\"\n", path);
-   }
+   ioParams(PARAMS_IO_WRITE);
 
    // Splitting this up into five messages for backwards compatibility in preserving the order.
    // If order preservation is not needed here, it would be better to replace with a single
    // message that all five types respond to.
-   notify(std::make_shared<LayerWriteParamsMessage>());
-   notify(std::make_shared<ConnectionWriteParamsMessage>());
-   notify(std::make_shared<ColProbeWriteParamsMessage>());
-   notify(std::make_shared<LayerProbeWriteParamsMessage>());
-   notify(std::make_shared<ConnectionProbeWriteParamsMessage>());
+   notifyLoop(std::make_shared<LayerWriteParamsMessage>());
+   notifyLoop(std::make_shared<ConnectionWriteParamsMessage>());
+   notifyLoop(std::make_shared<ColProbeWriteParamsMessage>());
+   notifyLoop(std::make_shared<LayerProbeWriteParamsMessage>());
+   notifyLoop(std::make_shared<ConnectionProbeWriteParamsMessage>());
 
    if (rank == 0) {
       mLuaPrintParamsStream->printf("} --End of pvParameters\n");
@@ -956,10 +929,9 @@ int HyPerCol::outputParams(char const *path) {
       mLuaPrintParamsStream = nullptr;
       parameters()->setPrintLuaStream(mLuaPrintParamsStream);
    }
-   return status;
 }
 
-int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *commentToken) {
+void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *commentToken) {
    time_t t = time(nullptr);
    fileStream->printf("%s PetaVision, " PV_GIT_REVISION "\n", commentToken);
    fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
@@ -1052,7 +1024,6 @@ int HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comme
             commentToken,
             mCheckpointer->getCheckpointReadDirectory().c_str());
    }
-   return PV_SUCCESS;
 }
 
 int HyPerCol::getAutoGPUDevice() {
@@ -1263,6 +1234,9 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
    if (globalRank() == 0) {
       mCudaDevice->query_device_info();
    }
+
+   // Broadcast the pointer to the CUDA device to the hierarchy
+   notifyLoop(std::make_shared<SetCudaDeviceMessage>(mCudaDevice));
 }
 
 int HyPerCol::finalizeCUDA() {
@@ -1275,21 +1249,6 @@ int HyPerCol::finalizeCUDA() {
 void HyPerCol::addObject(BaseObject *obj) {
    bool succeeded = mObjectHierarchy.addObject(obj->getName(), obj);
    FatalIf(!succeeded, "Adding %s failed.\n", getDescription_c());
-}
-
-NormalizeBase *HyPerCol::getNormalizerFromName(const char *normalizerName) {
-   if (normalizerName == nullptr)
-      return nullptr;
-   int n = numberOfNormalizers();
-   for (int i = 0; i < n; i++) {
-      NormalizeBase *curNormalizer = getNormalizer(i);
-      assert(curNormalizer);
-      const char *curNormalizerName = curNormalizer->getName();
-      assert(curNormalizerName);
-      if (!strcmp(curNormalizer->getName(), normalizerName))
-         return curNormalizer;
-   }
-   return nullptr;
 }
 
 Observer *HyPerCol::getObjectFromName(std::string const &objectName) const {

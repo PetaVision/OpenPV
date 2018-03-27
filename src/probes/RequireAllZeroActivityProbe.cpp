@@ -53,9 +53,9 @@ void RequireAllZeroActivityProbe::ioParam_immediateExitOnFailure(enum ParamsIOFl
    }
 }
 
-int RequireAllZeroActivityProbe::outputState(double timed) {
-   int status = StatsProbe::outputState(timed);
-   if (status != PV_SUCCESS) {
+Response::Status RequireAllZeroActivityProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
+   if (!Response::completed(status)) {
       Fatal() << getDescription() << ": StatsProbe::outputState failed at time " << timed << ".\n";
    }
    for (int b = 0; b < parent->getNBatch(); b++) {
@@ -67,7 +67,7 @@ int RequireAllZeroActivityProbe::outputState(double timed) {
          nonzeroFoundMessage(nonzeroTime, parent->columnId() == 0, immediateExitOnFailure);
       }
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 void RequireAllZeroActivityProbe::nonzeroFoundMessage(

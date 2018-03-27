@@ -32,25 +32,23 @@ int main(int argc, char *argv[]) {
    min = -1 - 8 * 10000;
    max = 8 * 10000;
 
-   int scaleLog2Pre  = 0;
-   int scaleLog2Post = 0;
+   int log2ScaleDiff;
 
    // post-synaptic layer has same size
    //
 
    a             = 1;
-   scaleLog2Post = 0;
+   log2ScaleDiff = 0;
    ans           = a * min + 0;
    test          = 1;
    for (kPre = min; kPre < max; kPre++) {
-      kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
+      kPost = nearby_neighbor(kPre, log2ScaleDiff);
       if (kPost != kPre) {
          Fatal().printf(
                "FAILED:TEST_NEARBY_NEIGHBOR: "
-               "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
+               "test==%d log2ScaleDiff==%d kPre==%d kPost==%d ans==%d\n",
                test,
-               scaleLog2Pre,
-               scaleLog2Post,
+               log2ScaleDiff,
                kPre,
                kPost,
                ans);
@@ -60,18 +58,17 @@ int main(int argc, char *argv[]) {
 
    // post-synaptic layer density decreases by 2 (dx increases by 2)
    //
-   scaleLog2Post = 1;
+   log2ScaleDiff = 1;
    ans           = (min - 1) / 2;
    test          = 2;
    for (kPre = min; kPre <= max; kPre++) {
-      kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
+      kPost = nearby_neighbor(kPre, log2ScaleDiff);
       if (kPost != ans) {
          Fatal().printf(
                "FAILED:TEST_NEARBY_NEIGHBOR: "
-               "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
+               "test==%d log2ScaleDiff==%d kPre==%d kPost==%d ans==%d\n",
                test,
-               scaleLog2Pre,
-               scaleLog2Post,
+               log2ScaleDiff,
                kPre,
                kPost,
                ans);
@@ -82,18 +79,18 @@ int main(int argc, char *argv[]) {
 
    // post-synaptic layer density decreases by 4 (dx increases by 4)
    //
-   scaleLog2Post = 2;
+   log2ScaleDiff = 2;
    ans           = (min - 3) / 4;
    test          = 3;
    for (kPre = min; kPre <= max; kPre++) {
-      kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
+      kPost = nearby_neighbor(kPre, log2ScaleDiff);
       if (kPost != ans) {
          Fatal().printf(
                "FAILED:TEST_NEARBY_NEIGHBOR: "
-               "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
+               "test==%d log2ScaleDiff==%d kPre==%d kPost==%d ans==%d\n",
                test,
-               scaleLog2Pre,
-               scaleLog2Post,
+
+               log2ScaleDiff,
                kPre,
                kPost,
                ans);
@@ -104,18 +101,18 @@ int main(int argc, char *argv[]) {
 
    // post-synaptic layer density decreases by 8 (dx increases by 8)
    //
-   scaleLog2Post = 3;
+   log2ScaleDiff = 3;
    ans           = (min - 7) / 8;
    test          = 4;
    for (kPre = min; kPre <= max; kPre++) {
-      kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
+      kPost = nearby_neighbor(kPre, log2ScaleDiff);
       if (kPost != ans) {
          Fatal().printf(
                "FAILED:TEST_NEARBY_NEIGHBOR: "
-               "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
+               "test==%d log2ScaleDiff==%d kPre==%d kPost==%d ans==%d\n",
                test,
-               scaleLog2Pre,
-               scaleLog2Post,
+
+               log2ScaleDiff,
                kPre,
                kPost,
                ans);
@@ -127,19 +124,19 @@ int main(int argc, char *argv[]) {
    // post-synaptic layer density increases by 2 (dx decreases by 2)
    //
    a             = 2;
-   scaleLog2Post = -1;
+   log2ScaleDiff = -1;
    ans           = a * min + 0;
    test          = 5;
    for (kPre = min; kPre <= max; kPre++) {
-      kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
-      kBack = nearby_neighbor(kPost, scaleLog2Post, scaleLog2Pre);
+      kPost = nearby_neighbor(kPre, log2ScaleDiff);
+      kBack = nearby_neighbor(kPost, -log2ScaleDiff);
       if (kPost != ans && kBack != kPre) {
          Fatal().printf(
                "FAILED:TEST_NEARBY_NEIGHBOR: "
-               "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
+               "test==%d log2ScaleDiff==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
                test,
-               scaleLog2Pre,
-               scaleLog2Post,
+
+               log2ScaleDiff,
                kPre,
                kPost,
                kBack,
@@ -151,19 +148,19 @@ int main(int argc, char *argv[]) {
    // post-synaptic layer density increases by 4 (dx decreases by 4)
    //
    a             = 4;
-   scaleLog2Post = -2;
+   log2ScaleDiff = -2;
    ans           = a * min + 1;
    test          = 6;
    for (kPre = min; kPre < max; kPre++) {
-      kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
-      kBack = nearby_neighbor(kPost, scaleLog2Post, scaleLog2Pre);
+      kPost = nearby_neighbor(kPre, log2ScaleDiff);
+      kBack = nearby_neighbor(kPost, -log2ScaleDiff);
       if (kPost != ans && kBack != kPre) {
          Fatal().printf(
                "FAILED:TEST_NEARBY_NEIGHBOR: "
-               "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
+               "test==%d log2ScaleDiff==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
                test,
-               scaleLog2Pre,
-               scaleLog2Post,
+
+               log2ScaleDiff,
                kPre,
                kPost,
                kBack,
@@ -175,19 +172,19 @@ int main(int argc, char *argv[]) {
    // post-synaptic layer density increases by 8 (dx decreases by 8)
    //
    a             = 8;
-   scaleLog2Post = -3;
+   log2ScaleDiff = -3;
    ans           = a * min + 3;
    test          = 7;
    for (kPre = min; kPre < max; kPre++) {
-      kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
-      kBack = nearby_neighbor(kPost, scaleLog2Post, scaleLog2Pre);
+      kPost = nearby_neighbor(kPre, log2ScaleDiff);
+      kBack = nearby_neighbor(kPost, -log2ScaleDiff);
       if (kPost != ans && kBack != kPre) {
          Fatal().printf(
                "FAILED:TEST_NEARBY_NEIGHBOR: "
-               "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
+               "test==%d log2ScaleDiff==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
                test,
-               scaleLog2Pre,
-               scaleLog2Post,
+
+               log2ScaleDiff,
                kPre,
                kPost,
                kBack,

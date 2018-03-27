@@ -29,6 +29,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/HyPerCol.hpp
    ${SUBDIR}/KeywordHandler.hpp
    ${SUBDIR}/Messages.hpp
+   ${SUBDIR}/ObjectMapComponent.hpp
    ${SUBDIR}/Publisher.hpp
    ${SUBDIR}/PV_Init.hpp
    ${SUBDIR}/Random.hpp

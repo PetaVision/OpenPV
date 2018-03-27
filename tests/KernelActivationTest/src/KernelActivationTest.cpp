@@ -18,6 +18,7 @@
 
 #include "arch/mpi/mpi.h"
 #include "columns/buildandrun.hpp"
+#include "connections/HyPerConn.hpp"
 #include "io/io.hpp"
 
 int dumpweights(HyPerCol *hc, int argc, char *argv[]);
@@ -45,8 +46,12 @@ int dumpweights(HyPerCol *hc, int argc, char *argv[]) {
    bool existsgenconn = false;
    for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
       HyPerConn *conn = dynamic_cast<HyPerConn *>(obj);
+      if (conn == nullptr) {
+         continue;
+      }
       // Only test plastic conns
-      if (conn != nullptr and conn->getPlasticityFlag()) {
+      auto *weightUpdater = conn->getComponentByType<BaseWeightUpdater>();
+      if (weightUpdater->getPlasticityFlag()) {
          existsgenconn = true;
          int status1   = dumponeweight(conn);
          if (status == PV_SUCCESS)
@@ -75,24 +80,24 @@ int dumpweights(HyPerCol *hc, int argc, char *argv[]) {
 int dumponeweight(HyPerConn *conn) {
    int status          = PV_SUCCESS;
    bool errorfound     = false;
-   int nxp             = conn->xPatchSize();
-   int nyp             = conn->yPatchSize();
-   int nfp             = conn->fPatchSize();
+   int nxp             = conn->getPatchSizeX();
+   int nyp             = conn->getPatchSizeY();
+   int nfp             = conn->getPatchSizeF();
    int xcenter         = (nxp - 1) / 2;
    int ycenter         = (nyp - 1) / 2;
-   int nxpre           = conn->preSynapticLayer()->getLayerLoc()->nxGlobal;
-   int nypre           = conn->preSynapticLayer()->getLayerLoc()->nyGlobal;
-   bool usingMirrorBCs = conn->preSynapticLayer()->useMirrorBCs();
+   int nxpre           = conn->getPre()->getLayerLoc()->nxGlobal;
+   int nypre           = conn->getPre()->getLayerLoc()->nyGlobal;
+   bool usingMirrorBCs = conn->getPre()->useMirrorBCs();
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    // If xScaleDiff > 0, it's a many-to-one connection.
-   int xScaleDiff = conn->postSynapticLayer()->getXScale() - conn->preSynapticLayer()->getXScale();
+   int xScaleDiff = conn->getPost()->getXScale() - conn->getPre()->getXScale();
    float xFalloff = powf(2, xScaleDiff);
-   int yScaleDiff = conn->postSynapticLayer()->getYScale() - conn->preSynapticLayer()->getYScale();
+   int yScaleDiff = conn->getPost()->getYScale() - conn->getPre()->getYScale();
    float yFalloff = powf(2, yScaleDiff);
 
    for (int p = 0; p < conn->getNumDataPatches(); p++) {
-      float *wgtData = conn->get_wDataHead(0, p); // conn->getKernelPatch(0,p)->data;
+      float *wgtData = conn->getWeightsDataHead(0, p); // conn->getKernelPatch(0,p)->data;
       for (int f = 0; f < nfp; f++) {
          for (int x = 0; x < nxp; x++) {
             int xoffset = abs((int)floor((x - xcenter) * xFalloff));

@@ -160,12 +160,10 @@ HyPerConn "input_to_ganglion" = {
 
     writeCompressedCheckpoints       = false;
     plasticityFlag                   = false;
-    selfFlag                         = false;
 
     delay                            = 0;
 
     pvpatchAccumulateType            = "Convolve";
-    shrinkPatches                    = false;
     updateGSynFromPostPerspective    = false;
     convertRateToSpikeCount          = false;
     receiveGpu                       = false;

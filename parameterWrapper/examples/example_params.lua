@@ -134,11 +134,9 @@ pv.addMultiGroups(basicParams,
       nonnegativeConstraintFlag = false;
       writeCompressedCheckpoints = false;
       plasticityFlag = false;
-      selfFlag = false;
       delay = 0;
 
       pvpatchAccumulateType = "Convolve";
-      shrinkPatches = false;
       updateGSynFromPostPerspective = false;
    };
 } --End of table constructor

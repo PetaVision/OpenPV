@@ -6,7 +6,7 @@ MaxPoolTestLayer::MaxPoolTestLayer(const char *name, HyPerCol *hc) {
    ANNLayer::initialize(name, hc);
 }
 
-int MaxPoolTestLayer::updateState(double timef, double dt) {
+Response::Status MaxPoolTestLayer::updateState(double timef, double dt) {
    // Do update state of ANNLayer first
    ANNLayer::updateState(timef, dt);
 
@@ -66,9 +66,9 @@ int MaxPoolTestLayer::updateState(double timef, double dt) {
       }
    }
    if (!isCorrect) {
-      exit(-1);
+      exit(EXIT_FAILURE);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

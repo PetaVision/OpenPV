@@ -346,7 +346,7 @@ static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex) 
 
    for (int f = 0; f < upToIndex + 1; ++f) {
       double timeStamp      = 0;
-      long frameLength       = 0;
+      long frameLength      = 0;
       long frameStartOffset = fStream.getInPos();
       fStream.read(&timeStamp, sizeof(double));
       fStream.read(&frameLength, sizeof(int));

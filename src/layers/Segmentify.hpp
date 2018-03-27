@@ -9,9 +9,9 @@ namespace PV {
 class Segmentify : public PV::HyPerLayer {
   public:
    Segmentify(const char *name, HyPerCol *hc);
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual bool activityIsSpiking() override { return false; }
    virtual ~Segmentify();
 
@@ -27,11 +27,11 @@ class Segmentify : public PV::HyPerLayer {
    // Defines the way to fill the output segment with the
    // reduced scalar method. Options are "centroid" and "fill"
    void ioParam_outputMethod(enum ParamsIOFlag ioFlag);
-   int allocateV() override;
-   int initializeV() override;
-   virtual int initializeActivity() override;
+   virtual void allocateV() override;
+   virtual void initializeV() override;
+   virtual void initializeActivity() override;
 
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
    float calcNormDist(float xVal, float mean, float binSigma);
 

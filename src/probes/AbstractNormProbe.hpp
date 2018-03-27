@@ -94,7 +94,7 @@ class AbstractNormProbe : public LayerProbe {
     * Computes the norms.  Each MPI process calls getValueInternal to compute its
     * own contribution to the norms, and then calcValues calls MPI_Allreduce.
     */
-   virtual int calcValues(double timeValue) override;
+   virtual void calcValues(double timeValue) override;
 
    /**
     * getValueInternal(double, index) is a pure virtual function
@@ -111,7 +111,7 @@ class AbstractNormProbe : public LayerProbe {
     * Calls LayerProbe::communicateInitInfo to set up the targetLayer and
     * attach the probe; and then checks the masking layer if masking is used.
     */
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
@@ -129,7 +129,7 @@ class AbstractNormProbe : public LayerProbe {
     * and norm value for
     * each batch element.
     */
-   virtual int outputState(double timevalue) override;
+   virtual Response::Status outputState(double timevalue) override;
 
    char const *getNormDescription() { return normDescription; }
 

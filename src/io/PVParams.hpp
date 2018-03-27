@@ -413,7 +413,7 @@ class PVParams {
    int setParameterSweepSize();
    void addGroup(char *keyword, char *name);
    void addActiveParamSweep(const char *group_name, const char *param_name);
-   int checkDuplicates(const char *paramName, double val);
+   void checkDuplicates(const char *paramName);
    int newActiveParamSweep();
    int clearHasBeenReadFlags();
    static char *stripQuotationMarks(const char *s);

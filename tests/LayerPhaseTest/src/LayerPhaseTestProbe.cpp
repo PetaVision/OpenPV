@@ -39,12 +39,15 @@ void LayerPhaseTestProbe::ioParam_equilibriumTime(enum ParamsIOFlag ioFlag) {
          ioFlag, getName(), "equilibriumTime", &equilibriumTime, 0.0, true);
 }
 
-int LayerPhaseTestProbe::outputState(double timed) {
-   int status           = StatsProbe::outputState(timed);
+Response::Status LayerPhaseTestProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
-      return 0;
+      return status;
    }
    for (int b = 0; b < parent->getNBatch(); b++) {
       if (timed >= equilibriumTime) {

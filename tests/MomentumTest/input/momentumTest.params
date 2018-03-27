@@ -78,7 +78,6 @@ MomentumConn "preToPost" = {
 
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
@@ -93,7 +92,6 @@ MomentumConn "preToPost" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 

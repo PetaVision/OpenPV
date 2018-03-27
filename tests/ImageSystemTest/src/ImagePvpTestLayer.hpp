@@ -12,7 +12,7 @@ namespace PV {
 class ImagePvpTestLayer : public PV::PvpLayer {
   public:
    ImagePvpTestLayer(const char *name, HyPerCol *hc);
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
   protected:
    /**
@@ -20,7 +20,7 @@ class ImagePvpTestLayer : public PV::PvpLayer {
     * All processes need to know the number of input images in order to verify that
     * they received the correct data, but ordinarily, only the parent class knows.
     */
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
   private:
    int mNumFrames = 0; // The number of frames in the pvp file at the input path.

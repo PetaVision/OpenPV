@@ -85,7 +85,7 @@ int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, flo
    return PV_SUCCESS;
 }
 
-int SegmentifyTest::updateState(double timef, double dt) {
+Response::Status SegmentifyTest::updateState(double timef, double dt) {
    // Do update state first
    Segmentify::updateState(timef, dt);
    const PVLayerLoc *loc = getLayerLoc();
@@ -110,7 +110,7 @@ int SegmentifyTest::updateState(double timef, double dt) {
       }
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

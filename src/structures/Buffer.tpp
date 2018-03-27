@@ -149,7 +149,7 @@ void Buffer<T>::flip(bool xFlip, bool yFlip) {
    for (int y = 0; y < getHeight(); ++y) {
       for (int x = 0; x < getWidth(); ++x) {
          for (int f = 0; f < getFeatures(); ++f) {
-            int destX = xFlip ? getWidth()  - 1 - x : x;
+            int destX = xFlip ? getWidth() - 1 - x : x;
             int destY = yFlip ? getHeight() - 1 - y : y;
             result.set(destX, destY, f, at(x, y, f));
          }

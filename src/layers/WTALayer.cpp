@@ -26,8 +26,12 @@ int WTALayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status    = HyPerLayer::communicateInitInfo(message);
+Response::Status
+WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
@@ -40,7 +44,7 @@ int WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
       exit(EXIT_FAILURE);
    }
    if (originalLayer->getInitInfoCommunicatedFlag() == false) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    originalLayer->synchronizeMarginWidth(this);
    this->synchronizeMarginWidth(originalLayer);
@@ -67,22 +71,18 @@ int WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    if (getLayerLoc()->nf != 1) {
       ErrorLog().printf("%s: WTALayer can only have 1 feature.\n", getDescription_c());
    }
-   assert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
-   return status;
+   pvAssert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
+   return Response::SUCCESS;
 }
 
-int WTALayer::allocateV() {
+void WTALayer::allocateV() {
    // Allocate V does nothing since binning does not need a V layer
    clayer->V = NULL;
-   return PV_SUCCESS;
 }
 
-int WTALayer::initializeV() {
-   assert(getV() == NULL);
-   return PV_SUCCESS;
-}
+void WTALayer::initializeV() { assert(getV() == NULL); }
 
-int WTALayer::initializeActivity() { return PV_SUCCESS; }
+void WTALayer::initializeActivity() {}
 
 int WTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
@@ -119,7 +119,7 @@ void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int WTALayer::updateState(double timef, double dt) {
+Response::Status WTALayer::updateState(double timef, double dt) {
    float *currA = getCLayer()->activity->data;
    float *srcA  = originalLayer->getCLayer()->activity->data;
 
@@ -165,6 +165,6 @@ int WTALayer::updateState(double timef, double dt) {
          }
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 }

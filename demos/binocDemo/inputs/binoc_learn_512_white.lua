@@ -298,11 +298,9 @@ pv.addMultiGroups(pvParams,
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       nxp                                 = 3;
       nyp                                 = 3;
       nfp                                 = 1;
-      shrinkPatches                       = false;
       normalizeMethod                     = "normalizeSum";
       normalizeArborsIndividually         = false;
       normalizeOnInitialize               = true;
@@ -336,11 +334,9 @@ pv.addMultiGroups(pvParams,
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       nxp                                 = 1;
       nyp                                 = 1;
       nfp                                 = 1;
-      shrinkPatches                       = false;
       normalizeMethod                     = "normalizeSum";
       normalizeArborsIndividually         = false;
       normalizeOnInitialize               = true;
@@ -374,11 +370,9 @@ pv.addMultiGroups(pvParams,
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       nxp                                 = 11;
       nyp                                 = 11;
       nfp                                 = 1;
-      shrinkPatches                       = false;
       normalizeMethod                     = "normalizeSum";
       normalizeArborsIndividually         = false;
       normalizeOnInitialize               = true;
@@ -441,7 +435,6 @@ pv.addGroup(pvParams, "V1ToLeftError",
       sharedWeights = true;
       nxp = dictPatchSize;
       nyp = dictPatchSize;
-      shrinkPatches = false;
       numAxonalArbors = 1;
       initFromLastFlag = 0;
       sharedWeights = true;
@@ -465,7 +458,6 @@ pv.addGroup(pvParams, "V1ToLeftError",
       dWMax = learningRate;
       momentumTau = learningMomentumTau;
       momentumMethod = "viscosity";
-      selfFlag = false;
       shmget_flag = false;
       delay = 0;
       useWindowPost = false;
@@ -512,7 +504,6 @@ pv.addMultiGroups(pvParams,
       postLayerName = "V1";
       channelCode = 0;
       originalConnName = "V1ToLeftError";
-      selfFlag = false;
       convertRateToSpikeCount = false;
       writeStep = -1;
       writeCompressedCheckpoints = false;
@@ -530,7 +521,6 @@ pv.addMultiGroups(pvParams,
       channelCode = 0;
       writeStep = -1;
       originalConnName = "V1ToLeftError";
-      selfFlag = false;
       delay = 0;
       convertRateToSpikeCount = false;
       useWindowPost = false;

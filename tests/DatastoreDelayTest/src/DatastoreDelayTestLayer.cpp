@@ -27,9 +27,9 @@ int DatastoreDelayTestLayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int DatastoreDelayTestLayer::updateState(double timed, double dt) {
+Response::Status DatastoreDelayTestLayer::updateState(double timed, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   return updateState(
+   updateState(
          timed,
          dt,
          getNumNeurons(),
@@ -42,9 +42,10 @@ int DatastoreDelayTestLayer::updateState(double timed, double dt) {
          loc->halo.rt,
          loc->halo.dn,
          loc->halo.up);
+   return Response::SUCCESS;
 }
 
-int DatastoreDelayTestLayer::updateState(
+void DatastoreDelayTestLayer::updateState(
       double timef,
       double dt,
       int num_neurons,
@@ -61,8 +62,6 @@ int DatastoreDelayTestLayer::updateState(
    updateV_DatastoreDelayTestLayer(getLayerLoc(), &inited, getV(), getNumDelayLevels());
    setActivity_HyPerLayer(parent->getNBatch(), num_neurons, A, V, nx, ny, nf, lt, rt, dn, up);
    // resetGSynBuffers(); // Since V doesn't use the GSyn buffers, no need to maintain them.
-
-   return PV_SUCCESS;
 }
 
 int DatastoreDelayTestLayer::updateV_DatastoreDelayTestLayer(

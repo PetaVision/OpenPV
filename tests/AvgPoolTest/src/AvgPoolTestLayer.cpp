@@ -3,12 +3,12 @@
 namespace PV {
 
 AvgPoolTestLayer::AvgPoolTestLayer(const char *name, HyPerCol *hc) {
-   ANNLayer::initialize(name, hc);
+   HyPerLayer::initialize(name, hc);
 }
 
-int AvgPoolTestLayer::updateState(double timef, double dt) {
-   // Do update state of ANN Layer first
-   ANNLayer::updateState(timef, dt);
+Response::Status AvgPoolTestLayer::updateState(double timef, double dt) {
+   // Do update state of HyPerLayer first
+   HyPerLayer::updateState(timef, dt);
 
    // Grab layer size
    const PVLayerLoc *loc = getLayerLoc();
@@ -71,7 +71,7 @@ int AvgPoolTestLayer::updateState(double timef, double dt) {
          exit(-1);
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

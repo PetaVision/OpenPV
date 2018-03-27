@@ -140,11 +140,9 @@ HyPerConn "InputToOutput" = {
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 0.0;
     combine_dW_with_W_flag = false;
-    selfFlag = false; 
 
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 };

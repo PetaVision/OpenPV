@@ -117,7 +117,6 @@ HyPerConn "origConn" = {
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -126,7 +125,6 @@ HyPerConn "origConn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
     shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
@@ -138,7 +136,6 @@ TransposeConn "preTransposeConn" = {
     postLayerName = "outputRecvPre";
     channelCode = 0; //Does nothing to the input layer
     originalConnName = "origConn";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1;
     shmget_flag = false;
@@ -152,7 +149,6 @@ TransposeConn "postTransposeConn" = {
     postLayerName = "outputRecvPost";
     channelCode = 0;
     originalConnName = "origConn";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     shmget_flag = false;

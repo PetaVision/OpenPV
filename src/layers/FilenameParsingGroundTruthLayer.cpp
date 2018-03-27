@@ -57,12 +57,15 @@ void FilenameParsingGroundTruthLayer::ioParam_classList(enum ParamsIOFlag ioFlag
    }
 }
 
-int FilenameParsingGroundTruthLayer::registerData(Checkpointer *checkpointer) {
+Response::Status FilenameParsingGroundTruthLayer::registerData(Checkpointer *checkpointer) {
    // Belongs in registerData and not allocateDataStructures because the
    // default path for the class list is the output path, which is available
    // only in registerData through the checkpointer argument.
    // But is this the best default?
-   int status = HyPerLayer::registerData(checkpointer);
+   auto status = HyPerLayer::registerData(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    std::ifstream inputFile;
    std::string outPath("");
@@ -93,10 +96,10 @@ int FilenameParsingGroundTruthLayer::registerData(Checkpointer *checkpointer) {
          getLayerLoc()->nf,
          outPath.c_str(),
          mClasses.size());
-   return status;
+   return Response::SUCCESS;
 }
 
-int FilenameParsingGroundTruthLayer::communicateInitInfo(
+Response::Status FilenameParsingGroundTruthLayer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    mInputLayer = message->lookup<InputLayer>(std::string(mInputLayerName));
    FatalIf(
@@ -112,14 +115,14 @@ int FilenameParsingGroundTruthLayer::communicateInitInfo(
          mInputLayerName,
          mInputLayer->getPhase(),
          getPhase());
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 bool FilenameParsingGroundTruthLayer::needUpdate(double time, double dt) {
    return mInputLayer->needUpdate(parent->simulationTime(), parent->getDeltaTime());
 }
 
-int FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
+Response::Status FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
    update_timer->start();
    float *A                  = getCLayer()->activity->data;
    const PVLayerLoc *loc     = getLayerLoc();
@@ -168,7 +171,7 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
       }
    }
    update_timer->stop();
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

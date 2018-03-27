@@ -19,7 +19,7 @@ class LayerPhaseTestProbe : public PV::StatsProbe {
   public:
    LayerPhaseTestProbe(const char *name, HyPerCol *hc);
 
-   virtual int outputState(double timed) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);

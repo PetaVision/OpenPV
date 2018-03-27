@@ -9,5 +9,5 @@ case "$1" in
     *)
         egrep "processor cycle time" "$1" |
         sed -e '1,$s/://g' |
-        sort -n -k 11;;
+        sort -g -k 11;;
 esac

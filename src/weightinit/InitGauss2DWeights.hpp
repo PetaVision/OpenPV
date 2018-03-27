@@ -23,8 +23,19 @@ class InitGauss2DWeights : public PV::InitWeights {
    virtual void ioParam_sigma(enum ParamsIOFlag ioFlag);
    virtual void ioParam_rMax(enum ParamsIOFlag ioFlag);
    virtual void ioParam_rMin(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
+
+   /**
+    * numOrientationsPost is the number of orientations on the post synaptic layer.
+    * Zero or a negative number indicates that the number of orientations is the
+    * same as the number of features in the postsynaptic layer. The default is 0.
+    */
    virtual void ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag);
+
+   /**
+    * numOrientationsPre is the number of orientations on the pre synaptic layer.
+    * Zero or a negative number indicates that the number of orientations is the
+    * same as the number of features in the presynaptic layer. The default is 0.
+    */
    virtual void ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag);
    virtual void ioParam_deltaThetaMax(enum ParamsIOFlag ioFlag);
    virtual void ioParam_thetaMax(enum ParamsIOFlag ioFlag);
@@ -45,24 +56,23 @@ class InitGauss2DWeights : public PV::InitWeights {
    InitGauss2DWeights();
    int initialize(char const *name, HyPerCol *hc);
 
-   void ioParam_aspectRelatedParams(enum ParamsIOFlag ioFlag);
-   bool needAspectParams();
-   void calcOtherParams(int patchIndex);
-
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual void calcWeights(float *dataStart, int dataPatchIndex, int arborId) override;
+   void calcOtherParams(int patchIndex);
+
+   virtual void calcWeights() override;
+
+   virtual void calcWeights(int dataPatchIndex, int arborId) override;
 
    void calculateThetas(int kfPre_tmp, int patchIndex);
    float calcThPost(int fPost);
    bool checkThetaDiff(float thPost);
    bool checkColorDiff(int fPost);
-   bool isSameLocOrSelf(float xDelta, float yDelta, int fPost);
+   bool isSameLocAndSelf(float xDelta, float yDelta, int fPost);
    bool checkBowtieAngle(float xp, float yp);
 
   private:
-   int initialize_base();
    void gauss2DCalcWeights(float *dataStart);
 
   protected:

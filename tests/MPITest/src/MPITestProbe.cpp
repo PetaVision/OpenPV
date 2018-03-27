@@ -21,8 +21,11 @@ int MPITestProbe::initialize(const char *name, HyPerCol *hc) {
    return StatsProbe::initialize(name, hc);
 }
 
-int MPITestProbe::outputState(double timed) {
-   int status = StatsProbe::outputState(timed);
+Response::Status MPITestProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    if (mOutputStreams.empty()) {
       return status;
    }

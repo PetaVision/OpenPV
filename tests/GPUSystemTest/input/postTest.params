@@ -32,7 +32,7 @@ ConstantLayer "input" = {
     phase = 1; 
 };
 
-ANNLayer "outputRecv" = {
+HyPerLayer "outputRecv" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
@@ -43,16 +43,12 @@ ANNLayer "outputRecv" = {
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
     // 
     phase = 2; 
     triggerLayerName = NULL;
 };
 
-ANNLayer "outputRecvGpu" = {
+HyPerLayer "outputRecvGpu" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
@@ -63,16 +59,12 @@ ANNLayer "outputRecvGpu" = {
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
     // 
     phase = 2; 
     triggerLayerName = NULL;
 };
 
-ANNLayer "outputTest" = {
+HyPerLayer "outputTest" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
@@ -83,10 +75,6 @@ ANNLayer "outputTest" = {
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
     // 
     phase = 3; 
     triggerLayerName = NULL;
@@ -122,7 +110,6 @@ ANNLayer "outputTest" = {
 //
 //    symmetrizeWeights = false;
 //    
-//    shrinkPatches = false;
 //    //writeCompressedWeights = 0.0;
 //    writeCompressedCheckpoints = false;
 //    plasticityFlag = 0;
@@ -131,7 +118,6 @@ ANNLayer "outputTest" = {
 //    delay = 0;
 //     
 //    convertRateToSpikeCount = false;
-//    selfFlag = false;
 //
 //    updateGSynFromPostPerspective = false;
 //
@@ -167,7 +153,6 @@ HyPerConn "origConn" = {
 
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -176,7 +161,6 @@ HyPerConn "origConn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -187,7 +171,6 @@ TransposeConn "TransposeConn" = {
     postLayerName = "outputRecv";
     channelCode = 0; 
     originalConnName = "origConn";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
@@ -201,7 +184,6 @@ TransposeConn "gpuTransposeConn" = {
     postLayerName = "outputRecvGpu";
     channelCode = 0;
     originalConnName = "origConn";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
@@ -230,8 +212,3 @@ GPUSystemTestProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
 };
-
-//RequireAllZeroActivityProbe "testProbe" = {
-//    targetLayer = "outputTest";
-//    nnzThreshold = 1e-6;
-//};

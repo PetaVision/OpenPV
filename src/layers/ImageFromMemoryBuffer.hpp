@@ -94,7 +94,7 @@ class ImageFromMemoryBuffer : public ImageLayer {
    /**
        * Overrides updateState
        */
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
   protected:
    ImageFromMemoryBuffer();
@@ -117,9 +117,9 @@ class ImageFromMemoryBuffer : public ImageLayer {
    virtual void ioParam_inputPath(enum ParamsIOFlag ioFlag) override { return; }
 
    /**
-    * Called by HyPerLayer::setActivity() during setInitialValues stage; calls copyBuffer()
+    * Called by HyPerLayer::setActivity() during InitializeState stage; calls copyBuffer()
     */
-   virtual int initializeActivity(double time, double dt);
+   virtual void initializeActivity(double time, double dt);
 
   private:
    int initialize_base();

@@ -12,16 +12,15 @@ TriggerTestLayerProbe::TriggerTestLayerProbe(const char *name, HyPerCol *hc) {
    LayerProbe::initialize(name, hc);
 }
 
-int TriggerTestLayerProbe::calcValues(double timevalue) {
+void TriggerTestLayerProbe::calcValues(double timevalue) {
    double v             = needUpdate(timevalue, parent->getDeltaTime()) ? 1.0 : 0.0;
    double *valuesBuffer = this->getValuesBuffer();
    for (int n = 0; n < this->getNumValues(); n++) {
       valuesBuffer[n] = v;
    }
-   return PV_SUCCESS;
 }
 
-int TriggerTestLayerProbe::outputStateWrapper(double time, double dt) {
+Response::Status TriggerTestLayerProbe::outputStateWrapper(double time, double dt) {
    // Time 0 is initialization, doesn't matter if it updates or not
    if (time < dt / 2) {
       return LayerProbe::outputStateWrapper(time, dt);
@@ -78,6 +77,7 @@ int TriggerTestLayerProbe::outputStateWrapper(double time, double dt) {
    }
    return LayerProbe::outputStateWrapper(time, dt);
 }
-int TriggerTestLayerProbe::outputState(double timef) { return 0; }
+
+Response::Status TriggerTestLayerProbe::outputState(double timef) { return Response::SUCCESS; }
 
 } // namespace PV

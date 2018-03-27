@@ -12,8 +12,8 @@ namespace PV {
 class TriggerTestLayerProbe : public PV::LayerProbe {
   public:
    TriggerTestLayerProbe(const char *name, HyPerCol *hc);
-   virtual int outputStateWrapper(double time, double dt) override;
-   virtual int outputState(double time) override;
+   virtual Response::Status outputStateWrapper(double time, double dt) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
    /**
@@ -32,7 +32,7 @@ class TriggerTestLayerProbe : public PV::LayerProbe {
     * Sets calcValue to the value of needUpdate(timevalue, dt), where dt is the parent HyPerCol's
     * dt.
     */
-   virtual int calcValues(double timevalue) override;
+   virtual void calcValues(double timevalue) override;
 }; // end TriggerTestLayer
 
 } // end namespacePV

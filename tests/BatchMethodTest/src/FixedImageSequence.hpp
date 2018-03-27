@@ -14,14 +14,14 @@ class FixedImageSequence : public PV::HyPerLayer {
    /**
     * This layer type does not use the V buffer.
     */
-   virtual int allocateV() override;
+   virtual void allocateV() override;
 
    /**
     * Initializes the activity buffer to zero and calls
     * the pure virtual method initIndices to set the
     * mIndexStart and mIndexSkip data members.
     */
-   virtual int setInitialValues() override;
+   virtual PV::Response::Status initializeState() override;
 
    /**
     * A pure virtual method where derived classes should set the data members
@@ -37,7 +37,7 @@ class FixedImageSequence : public PV::HyPerLayer {
     * timestamp * globalBatchSize + globalBatchIndex
     * into the activity buffer.
     */
-   virtual int updateState(double timestamp, double dt) override;
+   virtual PV::Response::Status updateState(double timestamp, double dt) override;
 
    int getNumImages() const { return mNumImages; }
 

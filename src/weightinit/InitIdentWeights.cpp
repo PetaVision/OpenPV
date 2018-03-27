@@ -9,16 +9,11 @@
 
 namespace PV {
 
-InitIdentWeights::InitIdentWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+InitIdentWeights::InitIdentWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-InitIdentWeights::InitIdentWeights() { initialize_base(); }
+InitIdentWeights::InitIdentWeights() {}
 
 InitIdentWeights::~InitIdentWeights() {}
-
-int InitIdentWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitIdentWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitOneToOneWeights::initialize(name, hc);

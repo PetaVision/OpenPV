@@ -1,0 +1,153 @@
+//
+// IdentConnTest.params
+//
+// created by peteschultz: Aug 17, 2017
+//
+
+//  A params file to test IdentConn, used by src/IdentConnTest.cpp
+//  There are four presynaptic HyPerLayers connected to a postsynaptic HyPerLayer
+//  by IdentConns, two on channel 0 and two on channel 1.
+//  The result should be that each channel on the post is the sum of the two HyPerLayers
+//  connected on that channel.
+
+//  The layers are initialized as follows:
+//  PreLayerExc0: 0, 1, 4, 9, 16, etc.
+//  PreLayerExc0: 1, 3, 5, 7, 9, etc.
+//  PreLayerInh0: 0, 0, 2, 4, 8, 12, 18, etc. (half the square of the index, rounded down)
+//  PreLayerInh1: 0, 1, 1, 2, 2, 3, 3, etc. (half the index, rounded up)
+
+//  The postsynaptic excitatory channel should end up with 1, 4, 9, 16, etc.
+//  The postsynaptic inhibitary channel should end up with 0, 1, 3, 6, 10, etc.
+
+debugParsing = false;    // Debug the reading of this parameter file.
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    stopTime                            = 1;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 1;
+    errorOnNotANumber                   = true;
+};
+
+ConstantLayer "PreLayerExc0" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/exc0.pvp";
+    frameNumber                         = 0;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+ConstantLayer "PreLayerExc1" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/exc1.pvp";
+    frameNumber                         = 0;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+ConstantLayer "PreLayerInh0" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/inh0.pvp";
+    frameNumber                         = 0;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+ConstantLayer "PreLayerInh1" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/inh1.pvp";
+    frameNumber                         = 0;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+HyPerLayer "PostLayer" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+IdentConn "Exc0" = {
+    preLayerName                        = "PreLayerExc0";
+    postLayerName                       = "PostLayer";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "Exc1" = {
+    preLayerName                        = "PreLayerExc1";
+    postLayerName                       = "PostLayer";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "Inh0" = {
+    preLayerName                        = "PreLayerInh0";
+    postLayerName                       = "PostLayer";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+};
+
+IdentConn "Inh1" = {
+    preLayerName                        = "PreLayerInh1";
+    postLayerName                       = "PostLayer";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+};

@@ -24,6 +24,7 @@
 #define BASEOBJECT_HPP_
 
 #include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointerDataInterface.hpp"
 #include "columns/Messages.hpp"
 #include "include/pv_common.h"
 #include "observerpattern/Observer.hpp"
@@ -31,6 +32,10 @@
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include <memory>
+
+#ifdef PV_USE_CUDA
+#include "arch/cuda/CudaDevice.hpp"
+#endif // PV_USE_CUDA
 
 namespace PV {
 
@@ -41,21 +46,27 @@ class BaseObject : public CheckpointerDataInterface {
    inline char const *getName() const { return name; }
    // No getParent method because we are refactoring away from having objects
    // having access to their containing HyPerCol.
-   char const *getKeyword() const;
+
+   inline std::string const &getObjectType() const { return mObjectType; }
+
+   /**
+    * Look up the keyword of the params group with the same name as the object.
+    */
+   char const *lookupKeyword() const;
 
    /**
     * A method that reads the parameters for the group whose name matches the name of the object.
     * It, along with writeParams(), is a wrapper around ioParams, so that readParams and
     * writeParams automatically run through the same parameters in the same order.
     */
-   int readParams() { return ioParams(PARAMS_IO_READ, false, false); }
+   void readParams() { ioParams(PARAMS_IO_READ, false, false); }
 
    /**
     * A method that writes the parameters for the group whose name matches the name of the object.
     * It, along with readParams(), is a wrapper around ioParams, so that readParams and writeParams
     * automatically run through the same parameters in the same order.
     */
-   int writeParams() { return ioParams(PARAMS_IO_WRITE, true, true); }
+   void writeParams() { ioParams(PARAMS_IO_WRITE, true, true); }
 
    /**
     * Method for reading or writing the params from group in the parent HyPerCol's parameters.
@@ -69,14 +80,11 @@ class BaseObject : public CheckpointerDataInterface {
     * Note that ioParams is not virtual.  To add parameters in a derived class, override
     * ioParamFillGroup.
     */
-   int ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter);
+   void ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter);
 
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override; // TODO: should return
-   // enum with values
-   // corresponding to
-   // PV_SUCCESS,
-   // PV_FAILURE,
-   // PV_POSTPONE
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
+   // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
+
    virtual ~BaseObject();
 
    /**
@@ -84,20 +92,20 @@ class BaseObject : public CheckpointerDataInterface {
     * and
     * then becomes true once setInitInfoCommunicatedFlag() is called.
     */
-   bool getInitInfoCommunicatedFlag() { return mInitInfoCommunicatedFlag; }
+   bool getInitInfoCommunicatedFlag() const { return mInitInfoCommunicatedFlag; }
 
    /**
     * Get-method for mDataStructuresAllocatedFlag, which is false on
     * initialization and
     * then becomes true once setDataStructuresAllocatedFlag() is called.
     */
-   bool getDataStructuresAllocatedFlag() { return mDataStructuresAllocatedFlag; }
+   bool getDataStructuresAllocatedFlag() const { return mDataStructuresAllocatedFlag; }
 
    /**
     * Get-method for mInitialValuesSetFlag, which is false on initialization and
     * then becomes true once setInitialValuesSetFlag() is called.
     */
-   bool getInitialValuesSetFlag() { return mInitialValuesSetFlag; }
+   bool getInitialValuesSetFlag() const { return mInitialValuesSetFlag; }
 
 #ifdef PV_USE_CUDA
    /**
@@ -113,7 +121,8 @@ class BaseObject : public CheckpointerDataInterface {
    int initialize(char const *name, HyPerCol *hc);
    int setName(char const *name);
    int setParent(HyPerCol *hc);
-   virtual int setDescription();
+   virtual void setObjectType();
+   void setDescription();
 
    /**
     * The virtual method for reading parameters from the parent HyPerCol's parameters, and writing
@@ -129,21 +138,31 @@ class BaseObject : public CheckpointerDataInterface {
     */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SUCCESS; }
 
-   int respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
-   int respondAllocateData(std::shared_ptr<AllocateDataMessage const> message);
-   int respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
-   int respondInitializeState(std::shared_ptr<InitializeStateMessage const> message);
-   int respondCopyInitialStateToGPU(std::shared_ptr<CopyInitialStateToGPUMessage const> message);
-   int respondCleanup(std::shared_ptr<CleanupMessage const> message);
+   Response::Status
+   respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
+#ifdef PV_USE_CUDA
+   Response::Status respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
+#endif // PV_USE_CUDA
+   Response::Status respondAllocateData(std::shared_ptr<AllocateDataMessage const> message);
+   Response::Status respondInitializeState(std::shared_ptr<InitializeStateMessage const> message);
+   Response::Status
+   respondCopyInitialStateToGPU(std::shared_ptr<CopyInitialStateToGPUMessage const> message);
+   Response::Status respondCleanup(std::shared_ptr<CleanupMessage const> message);
 
-   virtual int communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-      return PV_SUCCESS;
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+      return Response::SUCCESS;
    }
-   virtual int allocateDataStructures() { return PV_SUCCESS; }
-   virtual int initializeState() { return PV_SUCCESS; }
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override { return PV_SUCCESS; }
-   virtual int copyInitialStateToGPU() { return PV_SUCCESS; }
-   virtual int cleanup() { return PV_SUCCESS; }
+#ifdef PV_USE_CUDA
+   virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
+#endif // PV_USE_CUDA
+   virtual Response::Status allocateDataStructures() { return Response::NO_ACTION; }
+   virtual Response::Status initializeState() { return Response::NO_ACTION; }
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override {
+      return Response::NO_ACTION;
+   }
+   virtual Response::Status copyInitialStateToGPU() { return Response::SUCCESS; }
+   virtual Response::Status cleanup() { return Response::NO_ACTION; }
 
    /**
     * This method sets mInitInfoCommunicatedFlag to true.
@@ -162,14 +181,16 @@ class BaseObject : public CheckpointerDataInterface {
 
    // Data members
   protected:
-   char *name       = nullptr;
-   HyPerCol *parent = nullptr; // TODO: eliminate HyPerCol argument to
-   // constructor in favor of PVParams argument
+   char *name = nullptr;
+   std::string mObjectType;
+   // TODO: eliminate HyPerCol argument to constructor in favor of PVParams argument
+   HyPerCol *parent                  = nullptr;
    bool mInitInfoCommunicatedFlag    = false;
    bool mDataStructuresAllocatedFlag = false;
    bool mInitialValuesSetFlag        = false;
 #ifdef PV_USE_CUDA
-   bool mUsingGPUFlag = false;
+   bool mUsingGPUFlag              = false;
+   PVCuda::CudaDevice *mCudaDevice = nullptr;
 #endif // PV_USE_CUDA
 
   private:

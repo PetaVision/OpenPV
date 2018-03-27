@@ -41,43 +41,45 @@ void NormalizeL3::ioParam_minL3NormTolerated(enum ParamsIOFlag ioFlag) {
 int NormalizeL3::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   FatalIf(connectionList.empty(), "normalizeWeights called with connectionList empty.\n");
+   FatalIf(mWeightsList.empty(), "normalizeWeights called with weightsList empty.\n");
 
    // All connections in the group must have the same values of sharedWeights, numArbors, and
    // numDataPatches
-   HyPerConn *conn0 = connectionList[0];
+   Weights *weights0 = mWeightsList[0];
 
-   float scale_factor = 1.0f;
-   if (normalizeFromPostPerspective) {
-      if (conn0->usingSharedWeights() == false) {
+   float scaleFactor = 1.0f;
+   if (mNormalizeFromPostPerspective) {
+      if (weights0->getSharedFlag() == false) {
          Fatal().printf(
                "NormalizeL3 error for %s: normalizeFromPostPerspective is true but connection does "
                "not use shared weights.\n",
-               conn0->getDescription_c());
+               weights0->getName().c_str());
       }
-      scale_factor = ((float)conn0->postSynapticLayer()->getNumNeurons())
-                     / ((float)conn0->preSynapticLayer()->getNumNeurons());
+      PVLayerLoc const &preLoc  = weights0->getGeometry()->getPreLoc();
+      PVLayerLoc const &postLoc = weights0->getGeometry()->getPostLoc();
+      int numNeuronsPre         = preLoc.nx * preLoc.ny * preLoc.nf;
+      int numNeuronsPost        = postLoc.nx * postLoc.ny * postLoc.nf;
+      scaleFactor               = ((float)numNeuronsPre) / ((float)numNeuronsPost);
    }
-   scale_factor *= strength;
+   scaleFactor *= mStrength;
 
    status = NormalizeMultiply::normalizeWeights(); // applies normalize_cutoff threshold and
    // rMinX,rMinY
 
-   int nArbors        = conn0->numberOfAxonalArborLists();
-   int numDataPatches = conn0->getNumDataPatches();
-   if (normalizeArborsIndividually) {
+   int nArbors        = weights0->getNumArbors();
+   int numDataPatches = weights0->getNumDataPatches();
+   if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
          for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float sumcubed = 0.0f;
-            for (auto &conn : connectionList) {
-               int nxp               = conn->xPatchSize();
-               int nyp               = conn->yPatchSize();
-               int nfp               = conn->fPatchSize();
-               int xPatchStride      = conn->xPatchStride();
-               int yPatchStride      = conn->yPatchStride();
+            for (auto &weights : mWeightsList) {
+               int nxp               = weights->getPatchSizeX();
+               int nyp               = weights->getPatchSizeY();
+               int nfp               = weights->getPatchSizeF();
+               int xPatchStride      = weights->getPatchStrideX();
+               int yPatchStride      = weights->getPatchStrideY();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               float *dataStartPatch = weights->getData(arborID) + patchindex * weights_per_patch;
                for (int k = 0; k < weights_per_patch; k++) {
                   float w = fabs(dataStartPatch[k]);
                   sumcubed += w * w * w;
@@ -94,14 +96,13 @@ int NormalizeL3::normalizeWeights() {
                      (double)minL3NormTolerated);
                continue;
             }
-            for (auto &conn : connectionList) {
-               int nxp               = conn->xPatchSize();
-               int nyp               = conn->yPatchSize();
-               int nfp               = conn->fPatchSize();
+            for (auto &weights : mWeightsList) {
+               int nxp               = weights->getPatchSizeX();
+               int nyp               = weights->getPatchSizeY();
+               int nfp               = weights->getPatchSizeF();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch =
-                     conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
-               normalizePatch(dataStartPatch, weights_per_patch, scale_factor / l3norm);
+               float *dataStartPatch = weights0->getData(arborID) + patchindex * weights_per_patch;
+               normalizePatch(dataStartPatch, weights_per_patch, scaleFactor / l3norm);
             }
          }
       }
@@ -110,15 +111,14 @@ int NormalizeL3::normalizeWeights() {
       for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
          float sumcubed = 0.0f;
          for (int arborID = 0; arborID < nArbors; arborID++) {
-            for (auto &conn : connectionList) {
-               int nxp               = conn->xPatchSize();
-               int nyp               = conn->yPatchSize();
-               int nfp               = conn->fPatchSize();
-               int xPatchStride      = conn->xPatchStride();
-               int yPatchStride      = conn->yPatchStride();
+            for (auto &weights : mWeightsList) {
+               int nxp               = weights->getPatchSizeX();
+               int nyp               = weights->getPatchSizeY();
+               int nfp               = weights->getPatchSizeF();
+               int xPatchStride      = weights->getPatchStrideX();
+               int yPatchStride      = weights->getPatchStrideY();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               float *dataStartPatch = weights->getData(arborID) + patchindex * weights_per_patch;
                for (int k = 0; k < weights_per_patch; k++) {
                   float w = fabs(dataStartPatch[k]);
                   sumcubed += w * w * w;
@@ -136,14 +136,13 @@ int NormalizeL3::normalizeWeights() {
             continue;
          }
          for (int arborID = 0; arborID < nArbors; arborID++) {
-            for (auto &conn : connectionList) {
-               int nxp               = conn->xPatchSize();
-               int nyp               = conn->yPatchSize();
-               int nfp               = conn->fPatchSize();
+            for (auto &weights : mWeightsList) {
+               int nxp               = weights->getPatchSizeX();
+               int nyp               = weights->getPatchSizeY();
+               int nfp               = weights->getPatchSizeF();
                int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch =
-                     conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
-               normalizePatch(dataStartPatch, weights_per_patch, scale_factor / l3norm);
+               float *dataStartPatch = weights->getData(arborID) + patchindex * weights_per_patch;
+               normalizePatch(dataStartPatch, weights_per_patch, scaleFactor / l3norm);
             }
          }
       }

@@ -8,7 +8,7 @@ double ImageOffsetTestLayer::getDeltaUpdateTime() { return 1; }
 
 bool ImageOffsetTestLayer::readyForNextFile() { return false; }
 
-int ImageOffsetTestLayer::updateState(double timef, double dt) {
+Response::Status ImageOffsetTestLayer::updateState(double timef, double dt) {
    // Grab layer size
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -123,9 +123,9 @@ int ImageOffsetTestLayer::updateState(double timef, double dt) {
       }
    }
    if (!isCorrect) {
-      exit(-1);
+      exit(PV_FAILURE);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

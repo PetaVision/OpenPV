@@ -259,8 +259,6 @@ HyPerConn "16x16ImagesToPre16x16Multiband" = {
     numOrientationsPost = 4;
     normalizeMethod = "none";
 
-    shrinkPatches = false;
-    selfFlag = false;
     convertRateToSpikeCount = false;
     
 };
@@ -294,8 +292,6 @@ HyPerConn "8x8ImagesToPost8x8Multiband" = {
     numOrientationsPost = 4;
     normalizeMethod = "none";
     
-    shrinkPatches = false;
-    selfFlag = false;
     convertRateToSpikeCount = false;
 };
 
@@ -328,8 +324,6 @@ HyPerConn "16x16ImagesToPost16x16Multiband" = {
     numOrientationsPost = 4;
     normalizeMethod = "none";
     
-    shrinkPatches = false;
-    selfFlag = false;
     convertRateToSpikeCount = false;
 };
 
@@ -362,8 +356,6 @@ HyPerConn "32x32ImagesToPost32x32Multiband" = {
     numOrientationsPost = 4;
     normalizeMethod = "none";
 
-    shrinkPatches = false;
-    selfFlag = false;
     convertRateToSpikeCount = false;
 };
 
@@ -388,8 +380,6 @@ HyPerConn "Pre16x16SinglebandToPost16x16Singleband" = {
     dWMax = 1.0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
     convertRateToSpikeCount = false;
     
@@ -421,8 +411,6 @@ HyPerConn "Pre16x16SinglebandToPost16x16Multiband" = {
 
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
     convertRateToSpikeCount = false;
 };
@@ -451,8 +439,6 @@ HyPerConn "Pre16x16MultibandToPost16x16Singleband" = {
     
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
     convertRateToSpikeCount = false;
 };
@@ -481,8 +467,6 @@ HyPerConn "Pre16x16MultibandToPost16x16Multiband" = {
     
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
     convertRateToSpikeCount = false;
 };
@@ -509,8 +493,6 @@ HyPerConn "Pre16x16SinglebandToPost8x8Singleband" = {
     weightUpdatePeriod = 1.0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
@@ -538,8 +520,6 @@ HyPerConn "Pre16x16SinglebandToPost8x8Multiband" = {
     weightUpdatePeriod = 1;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
@@ -566,8 +546,6 @@ HyPerConn "Pre16x16MultibandToPost8x8Singleband" = {
 
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
@@ -593,8 +571,6 @@ HyPerConn "Pre16x16MultibandToPost8x8Multiband" = {
     weightUpdatePeriod = 1.0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
@@ -620,8 +596,6 @@ HyPerConn "Pre16x16SinglebandToPost32x32Singleband" = {
     weightUpdatePeriod = 1.0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
@@ -647,8 +621,6 @@ HyPerConn "Pre16x16SinglebandToPost32x32Multiband" = {
     weightUpdatePeriod = 1;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
@@ -674,8 +646,6 @@ HyPerConn "Pre16x16MultibandToPost32x32Singleband" = {
     weightUpdatePeriod = 1.0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
@@ -701,7 +671,5 @@ HyPerConn "Pre16x16MultibandToPost32x32Multiband" = {
     weightUpdatePeriod = 1;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };

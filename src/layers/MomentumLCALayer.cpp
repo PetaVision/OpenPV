@@ -65,8 +65,8 @@ int MomentumLCALayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int MomentumLCALayer::allocateDataStructures() {
-   int status = HyPerLCALayer::allocateDataStructures();
+Response::Status MomentumLCALayer::allocateDataStructures() {
+   auto status = HyPerLCALayer::allocateDataStructures();
    allocateRestrictedBuffer(&prevDrive, "prevDrive of LCA layer");
 
    // Initialize buffer to 0
@@ -172,7 +172,7 @@ int MomentumLCALayer::allocateUpdateKernel() {
    return PV_SUCCESS;
 }
 
-int MomentumLCALayer::updateStateGpu(double time, double dt) {
+Response::Status MomentumLCALayer::updateStateGpu(double time, double dt) {
    if (triggerLayer != NULL) {
       Fatal().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
    }
@@ -185,11 +185,11 @@ int MomentumLCALayer::updateStateGpu(double time, double dt) {
    assert(updateKernel);
    runUpdateKernel();
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 #endif
 
-int MomentumLCALayer::updateState(double time, double dt) {
+Response::Status MomentumLCALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -225,35 +225,52 @@ int MomentumLCALayer::updateState(double time, double dt) {
          gSynHead,
          A,
          prevDrive);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
-int MomentumLCALayer::registerData(Checkpointer *checkpointer) {
-   int status = HyPerLCALayer::registerData(checkpointer);
+Response::Status MomentumLCALayer::registerData(Checkpointer *checkpointer) {
+   auto status = HyPerLCALayer::registerData(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
    checkpointPvpActivityFloat(checkpointer, "prevDrive", prevDrive, false /*not extended*/);
-   return status;
+   return Response::SUCCESS;
 }
 
-int MomentumLCALayer::processCheckpointRead() {
+Response::Status MomentumLCALayer::processCheckpointRead() {
+   auto status = HyPerLCALayer::processCheckpointRead();
+   if (!Response::completed(status)) {
+      return status;
+   }
 #ifdef PV_USE_CUDA
    // Copy prevDrive onto GPU
    if (mUpdateGpu) {
       d_prevDrive->copyToDevice(prevDrive);
       parent->getDevice()->syncDevice();
+      return Response::SUCCESS;
    }
+   else {
+      return Response::NO_ACTION;
+   }
+#else
+   return Response::NO_ACTION;
 #endif
-   return PV_SUCCESS;
 }
 
-int MomentumLCALayer::prepareCheckpointWrite() {
+Response::Status MomentumLCALayer::prepareCheckpointWrite() {
 #ifdef PV_USE_CUDA
    // Copy prevDrive from GPU
    if (mUpdateGpu) {
       d_prevDrive->copyFromDevice(prevDrive);
       parent->getDevice()->syncDevice();
+      return Response::SUCCESS;
    }
+   else {
+      return Response::NO_ACTION;
+   }
+#else
+   return Response::NO_ACTION;
 #endif
-   return PV_SUCCESS;
 }
 
 } // end namespace PV

@@ -186,7 +186,6 @@ ANNLayer "outputTest2" = {
 //
 //    symmetrizeWeights = false;
 //    
-//    shrinkPatches = false;
 //    //writeCompressedWeights = 0.0;
 //    writeCompressedCheckpoints = false;
 //    plasticityFlag = 0;
@@ -195,7 +194,6 @@ ANNLayer "outputTest2" = {
 //    delay = 0;
 //     
 //    convertRateToSpikeCount = false;
-//    selfFlag = false;
 //
 //    updateGSynFromPostPerspective = false;
 //
@@ -234,7 +232,6 @@ HyPerConn "origConn1" = {
 
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -243,7 +240,6 @@ HyPerConn "origConn1" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -279,7 +275,6 @@ HyPerConn "origConn2" = {
 
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -288,7 +283,6 @@ HyPerConn "origConn2" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -299,7 +293,6 @@ HyPerConn "origConn2" = {
 //    postLayerName = "outputRecv1";
 //    channelCode = 0; 
 //    originalConnName = "origConn1";
-//    selfFlag = false;
 //    convertRateToSpikeCount = false;
 //    writeStep = -1;
 //    delay = 0;
@@ -313,7 +306,6 @@ HyPerConn "origConn2" = {
 //    postLayerName = "outputRecv2";
 //    channelCode = 0; 
 //    originalConnName = "origConn2";
-//    selfFlag = false;
 //    convertRateToSpikeCount = false;
 //    writeStep = -1;
 //    delay = 0;
@@ -327,7 +319,6 @@ CloneConn "gpuClone1" = {
     postLayerName = "outputRecv1Gpu";
     channelCode = 0;
     originalConnName = "origConn1";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
@@ -341,7 +332,6 @@ CloneConn "gpuClone2" = {
     postLayerName = "outputRecv2Gpu";
     channelCode = 0;
     originalConnName = "origConn2";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;

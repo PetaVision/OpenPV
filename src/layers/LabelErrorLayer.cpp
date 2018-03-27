@@ -67,7 +67,7 @@ void LabelErrorLayer::ioParam_isBinary(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "isBinary", &isBinary, isBinary);
 }
 
-int LabelErrorLayer::updateState(double time, double dt) {
+Response::Status LabelErrorLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -98,7 +98,7 @@ int LabelErrorLayer::updateState(double time, double dt) {
          errScale,
          isBinary);
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

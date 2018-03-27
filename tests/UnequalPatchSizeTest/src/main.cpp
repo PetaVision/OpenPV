@@ -4,6 +4,8 @@
  */
 
 #include "columns/buildandrun.hpp"
+#include "connections/HyPerConn.hpp"
+#include "layers/HyPerLayer.hpp"
 #include "probes/RequireAllZeroActivityProbe.hpp"
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);
@@ -33,12 +35,12 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    FatalIf(!(conn), "Test failed.\n");
 
-   int nxp       = conn->xPatchSize();
+   int nxp       = conn->getPatchSizeX();
    int nxPre     = inlayer->getLayerLoc()->nx;
    int nxPost    = outlayer->getLayerLoc()->nx;
    int xHaloSize = correctHaloSize(nxp, nxPre, nxPost);
 
-   int nyp       = conn->yPatchSize();
+   int nyp       = conn->getPatchSizeY();
    int nyPre     = inlayer->getLayerLoc()->ny;
    int nyPost    = outlayer->getLayerLoc()->ny;
    int yHaloSize = correctHaloSize(nyp, nyPre, nyPost);

@@ -325,16 +325,13 @@ void CudaRecvPost::setArgs(
          filterDescriptor,
          convDescriptor,
          outputDescriptor,
-         // TODO: use this flag, but we need to calculate how much free space is left on the GPU and
-         // pass it in as next argument
          CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT,
-         // CUDNN_CONVOLUTION_FWD_NO_WORKSPACE,
          workspaceMem,
          convAlgo);
    cudnnHandleError(status, "Get convolution forward algorithm");
    params.v_convAlgo = (void *)convAlgo;
 
-   // Based on algortihm, allocate workspace memory for GPU
+   // Based on algorithm, allocate workspace memory for GPU
    size_t *temp = new size_t();
    status       = cudnnGetConvolutionForwardWorkspaceSize(
          handle,

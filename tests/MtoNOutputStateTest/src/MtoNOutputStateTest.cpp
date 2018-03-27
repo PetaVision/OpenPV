@@ -27,6 +27,17 @@ void verifyOutputStateSharedWeights(std::string const &path, MPIBlock const &mpi
 int main(int argc, char *argv[]) {
    // Initialize
    PV_Init pv_init(&argc, &argv, false /*no unrecognized arguments*/);
+   if (pv_init.getParams() == nullptr) {
+      if (pv_init.getWorldRank() == 0) {
+         char const *progName = pv_init.getProgramName();
+         if (progName == nullptr) {
+            progName = "PetaVision";
+         }
+         ErrorLog().printf("%s was called without having set a params file\n", progName);
+      }
+      MPI_Barrier(pv_init.getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
    pv_init.registerKeyword("IndexLayer", Factory::create<IndexLayer>);
    pv_init.registerKeyword("IndexWeightConn", Factory::create<IndexWeightConn>);
 

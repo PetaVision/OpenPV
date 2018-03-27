@@ -4,19 +4,19 @@ namespace PV {
 
 ImagePvpTestLayer::ImagePvpTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-int ImagePvpTestLayer::registerData(Checkpointer *checkpointer) {
-   int status = PvpLayer::registerData(checkpointer);
-   if (status != PV_SUCCESS) {
+Response::Status ImagePvpTestLayer::registerData(Checkpointer *checkpointer) {
+   auto status = PvpLayer::registerData(checkpointer);
+   if (!Response::completed(status)) {
       return status;
    }
    if (getMPIBlock()->getRank() == 0) {
       mNumFrames = countInputImages();
    }
    MPI_Bcast(&mNumFrames, 1, MPI_INT, 0, getMPIBlock()->getComm());
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
-int ImagePvpTestLayer::updateState(double time, double dt) {
+Response::Status ImagePvpTestLayer::updateState(double time, double dt) {
    PvpLayer::updateState(time, dt);
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -45,7 +45,7 @@ int ImagePvpTestLayer::updateState(double time, double dt) {
          }
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

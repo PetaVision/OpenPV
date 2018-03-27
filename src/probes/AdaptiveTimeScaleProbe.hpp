@@ -79,23 +79,23 @@ class AdaptiveTimeScaleProbe : public ColProbe {
   public:
    AdaptiveTimeScaleProbe(char const *name, HyPerCol *hc);
    virtual ~AdaptiveTimeScaleProbe();
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
-   virtual int
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
-   virtual int outputState(double timeValue) override;
+   virtual Response::Status allocateDataStructures() override;
+   virtual Response::Status outputState(double timeValue) override;
 
   protected:
    AdaptiveTimeScaleProbe();
    int initialize(char const *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual int registerData(Checkpointer *checkpointer) override;
-   int respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message);
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   Response::Status respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message);
    bool needRecalc(double timeValue) override {
       return parent->simulationTime() > getLastUpdateTime();
    }
    double referenceUpdateTime() const override { return parent->simulationTime(); }
-   int calcValues(double timeValue) override;
+   virtual void calcValues(double timeValue) override;
    virtual bool needUpdate(double timeValue, double dt) override { return true; }
    virtual void allocateTimeScaleController();
 

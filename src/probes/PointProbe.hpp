@@ -17,10 +17,10 @@ class PointProbe : public PV::LayerProbe {
    PointProbe(const char *name, HyPerCol *hc);
    virtual ~PointProbe();
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual int outputState(double timef) override;
+   virtual Response::Status outputState(double timef) override;
 
   protected:
    int xLoc;
@@ -43,13 +43,13 @@ class PointProbe : public PV::LayerProbe {
     */
    virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
 
-   virtual int writeState(double timevalue);
+   virtual void writeState(double timevalue);
 
    /**
     * Overrides initNumValues() to set numValues to 2 (membrane potential and
     * activity)
     */
-   virtual int initNumValues() override;
+   virtual void initNumValues() override;
 
    /**
     * Implements calcValues for PointProbe.  probeValues[0] is the point's
@@ -62,7 +62,7 @@ class PointProbe : public PV::LayerProbe {
     * contain
     * the values.
     */
-   virtual int calcValues(double timevalue) override;
+   virtual void calcValues(double timevalue) override;
 
   private:
    int initialize_base();

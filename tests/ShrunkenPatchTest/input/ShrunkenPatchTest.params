@@ -208,9 +208,7 @@ HyPerConn "L0toLx2unshrunken" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -254,9 +252,7 @@ HyPerConn "L0toLx4unshrunken" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -300,9 +296,7 @@ HyPerConn "L0toLx2shrunken" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -346,9 +340,7 @@ HyPerConn "L0toLx4shrunken" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -391,9 +383,7 @@ HyPerConn "L0toLx4shrunken_tall" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -436,9 +426,7 @@ HyPerConn "L0toLx4shrunken_wide" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 

@@ -61,44 +61,50 @@ void KernelProbe::ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "outputPatchIndices", &outputPatchIndices, false /*default value*/);
 }
 
-int KernelProbe::initNumValues() { return setNumValues(-1); }
+void KernelProbe::initNumValues() { setNumValues(-1); }
 
-int KernelProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseHyPerConnProbe::communicateInitInfo(message);
+Response::Status
+KernelProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseHyPerConnProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *targetHyPerConn = getTargetHyPerConn();
    assert(targetHyPerConn);
-   if (getTargetHyPerConn()->usingSharedWeights() == false) {
-      if (parent->columnId() == 0) {
+   if (targetHyPerConn->getSharedWeights() == false) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: %s is not using shared weights.\n",
                getDescription_c(),
-               targetConn->getDescription_c());
+               targetHyPerConn->getDescription_c());
       }
-      status = PV_FAILURE;
-   }
-   MPI_Barrier(parent->getCommunicator()->communicator());
-   if (status != PV_SUCCESS) {
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
-int KernelProbe::allocateDataStructures() {
-   int status = BaseHyPerConnProbe::allocateDataStructures();
-   assert(getTargetConn());
-   if (getKernelIndex() < 0 || getKernelIndex() >= getTargetHyPerConn()->getNumDataPatches()) {
+Response::Status KernelProbe::allocateDataStructures() {
+   auto status = BaseHyPerConnProbe::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *targetHyPerConn = getTargetHyPerConn();
+   assert(targetHyPerConn);
+   if (getKernelIndex() < 0 || getKernelIndex() >= targetHyPerConn->getNumDataPatches()) {
       Fatal().printf(
             "KernelProbe \"%s\": kernelIndex %d is out of bounds.  "
             "(min 0, max %d)\n",
             name,
             getKernelIndex(),
-            getTargetHyPerConn()->getNumDataPatches() - 1);
+            targetHyPerConn->getNumDataPatches() - 1);
    }
-   if (getArbor() < 0 || getArbor() >= getTargetConn()->numberOfAxonalArborLists()) {
+   if (getArbor() < 0 || getArbor() >= getTargetHyPerConn()->getNumAxonalArbors()) {
       Fatal().printf(
             "KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n",
             name,
             getArbor(),
-            getTargetConn()->numberOfAxonalArborLists() - 1);
+            getTargetHyPerConn()->getNumAxonalArbors() - 1);
    }
 
    if (!mOutputStreams.empty()) {
@@ -106,28 +112,29 @@ int KernelProbe::allocateDataStructures() {
                 << getArbor() << ".\n";
    }
    if (getOutputPatchIndices()) {
-      patchIndices(getTargetHyPerConn());
+      patchIndices(targetHyPerConn);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
-int KernelProbe::outputState(double timed) {
-   Communicator *icComm = parent->getCommunicator();
-   const int rank       = icComm->commRank();
+Response::Status KernelProbe::outputState(double timed) {
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return Response::NO_ACTION;
    }
-   assert(getTargetConn() != NULL);
-   int nxp       = getTargetHyPerConn()->xPatchSize();
-   int nyp       = getTargetHyPerConn()->yPatchSize();
-   int nfp       = getTargetHyPerConn()->fPatchSize();
+   Communicator *icComm  = parent->getCommunicator();
+   const int rank        = icComm->commRank();
+   auto *targetHyPerConn = getTargetHyPerConn();
+   assert(targetHyPerConn != nullptr);
+   int nxp       = targetHyPerConn->getPatchSizeX();
+   int nyp       = targetHyPerConn->getPatchSizeY();
+   int nfp       = targetHyPerConn->getPatchSizeF();
    int patchSize = nxp * nyp * nfp;
 
-   const float *wdata = getTargetHyPerConn()->get_wDataStart(arborID) + patchSize * kernelIndex;
+   const float *wdata = targetHyPerConn->getWeightsDataStart(arborID) + patchSize * kernelIndex;
    const float *dwdata =
          outputPlasticIncr
-               ? getTargetHyPerConn()->get_dwDataStart(arborID) + patchSize * kernelIndex
+               ? targetHyPerConn->getDeltaWeightsDataStart(arborID) + patchSize * kernelIndex
                : NULL;
    output(0) << "Time " << timed << ", Conn \"" << getTargetConn()->getName() << ", nxp=" << nxp
              << ", nyp=" << nyp << ", nfp=" << nfp << "\n";
@@ -147,17 +154,17 @@ int KernelProbe::outputState(double timed) {
       }
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int KernelProbe::patchIndices(HyPerConn *conn) {
    pvAssert(!mOutputStreams.empty());
-   int nxp     = conn->xPatchSize();
-   int nyp     = conn->yPatchSize();
-   int nfp     = conn->fPatchSize();
-   int nPreExt = conn->getNumWeightPatches();
-   assert(nPreExt == conn->preSynapticLayer()->getNumExtended());
-   const PVLayerLoc *loc = conn->preSynapticLayer()->getLayerLoc();
+   int nxp     = conn->getPatchSizeX();
+   int nyp     = conn->getPatchSizeY();
+   int nfp     = conn->getPatchSizeF();
+   int nPreExt = conn->getNumGeometryPatches();
+   assert(nPreExt == conn->getPre()->getNumExtended());
+   const PVLayerLoc *loc = conn->getPre()->getLayerLoc();
    const PVHalo *halo    = &loc->halo;
    int nxPre             = loc->nx;
    int nyPre             = loc->ny;
@@ -165,15 +172,15 @@ int KernelProbe::patchIndices(HyPerConn *conn) {
    int nxPreExt          = nxPre + loc->halo.lt + loc->halo.rt;
    int nyPreExt          = nyPre + loc->halo.dn + loc->halo.up;
    for (int kPre = 0; kPre < nPreExt; kPre++) {
-      PVPatch *w  = conn->getWeights(kPre, arborID);
-      int xOffset = kxPos(w->offset, nxp, nyp, nfp);
-      int yOffset = kyPos(w->offset, nxp, nyp, nfp);
-      int kxPre   = kxPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.lt;
-      int kyPre   = kyPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.up;
-      int kfPre   = featureIndex(kPre, nxPreExt, nyPreExt, nfPre);
+      Patch const *patch = conn->getPatch(kPre);
+      int xOffset        = kxPos(patch->offset, nxp, nyp, nfp);
+      int yOffset        = kyPos(patch->offset, nxp, nyp, nfp);
+      int kxPre          = kxPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.lt;
+      int kyPre          = kyPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.up;
+      int kfPre          = featureIndex(kPre, nxPreExt, nyPreExt, nfPre);
       output(0) << "    presynaptic neuron " << kPre;
       output(0) << " (x=" << kxPre << ", y=" << kyPre << ", f=" << kfPre;
-      output(0) << ") uses kernel index " << conn->patchIndexToDataIndex(kPre);
+      output(0) << ") uses kernel index " << conn->calcDataIndexFromPatchIndex(kPre);
       output(0) << ", starting at x=" << xOffset << ", y=" << yOffset << "\n";
    }
    return PV_SUCCESS;

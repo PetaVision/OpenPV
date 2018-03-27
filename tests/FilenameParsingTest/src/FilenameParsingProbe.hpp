@@ -24,10 +24,10 @@ class FilenameParsingProbe : public PV::LayerProbe {
   protected:
    FilenameParsingProbe();
    int initialize(const char *name, PV::HyPerCol *hc);
-   virtual int
+   virtual PV::Response::Status
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;
-   virtual int calcValues(double timevalue) override { return 0; }
-   virtual int outputState(double timestamp) override;
+   virtual void calcValues(double timevalue) override {}
+   virtual PV::Response::Status outputState(double timestamp) override;
 
   private:
    int initialize_base();

@@ -22,8 +22,8 @@ class PtwiseProductLayer : public ANNLayer {
    PtwiseProductLayer(const char *name, HyPerCol *hc);
    virtual ~PtwiseProductLayer();
 
-   virtual int allocateDataStructures() override;
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status allocateDataStructures() override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
   protected:
    PtwiseProductLayer();

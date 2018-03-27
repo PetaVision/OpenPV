@@ -21,10 +21,10 @@ HyPerCol "column" = {
    outputPath = "output/";
    printParamsFilename = "pv.params";
    initializeFromCheckpointDir = "";
-   checkpointWrite = false;
-   // checkpointWriteDir = "Checkpoints";
-   // checkpointWriteStepInterval = 1;
-   lastCheckpointDir = "output/Last";
+   checkpointWrite = true;
+   checkpointWriteDir = "output/Checkpoints";
+   checkpointWriteStepInterval = 1;
+   // lastCheckpointDir = "output/Last";
    errorOnNotANumber = false;
    nbatch = 2;
 };
@@ -241,7 +241,6 @@ HyPerConn "RetinaToL0" = {
     rMin = 0;
     numOrientationsPost = 4;
     
-    selfFlag = false;
     
     // combine_dW_with_W_flag = false;
       
@@ -259,7 +258,6 @@ HyPerConn "RetinaToL0" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;
@@ -297,7 +295,6 @@ HyPerConn "L0ToLx1" = {
     numOrientationsPost = 4;
     numOrientationsPre = 4;
       
-    selfFlag = false;
     // combine_dW_with_W_flag = false;
 
     strength = 1; //0.25; //was 1, now 1/4 // 1.0 x post->num_neurons / pre->num_neurons
@@ -314,7 +311,6 @@ HyPerConn "L0ToLx1" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;
@@ -350,7 +346,6 @@ HyPerConn "L0ToLx2" = {
     numOrientationsPost = 8;
     numOrientationsPre = 4;
       
-    selfFlag = false;
     // combine_dW_with_W_flag = false;
       
     strength = 8; //2.0; //was 8, now 2 // 1.0 x post->num_neurons / pre->num_neurons
@@ -367,7 +362,6 @@ HyPerConn "L0ToLx2" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;
@@ -403,7 +397,6 @@ HyPerConn "L0ToLx4" = {
     numOrientationsPost = 16;
     numOrientationsPre = 4;
       
-    selfFlag = false;
     // combine_dW_with_W_flag = false;
       
     strength = 64; //16.0; //was 64.0, now 64/4 // 1.0 x post->num_neurons / pre->num_neurons
@@ -420,7 +413,6 @@ HyPerConn "L0ToLx4" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;
@@ -456,7 +448,6 @@ HyPerConn "L0ToLx1_2" = {
     numOrientationsPost = 2;
     numOrientationsPre = 4;
       
-    selfFlag = false;
     // combine_dW_with_W_flag = false;
       
     strength = 0.125; //0.03125; //was 0.125, now 0.125/4 1.0 x post->num_neurons / pre->num_neurons
@@ -473,7 +464,6 @@ HyPerConn "L0ToLx1_2" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;
@@ -508,7 +498,6 @@ HyPerConn "L0ToLx1_4" = {
     rMin = 0;
     numOrientationsPre = 4;
       
-    selfFlag = false;
     // combine_dW_with_W_flag = false;
       
     strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
@@ -525,7 +514,6 @@ HyPerConn "L0ToLx1_4" = {
 
     pvpatchAccumulateType = "convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 
     // wMax = 1.0;

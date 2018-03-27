@@ -27,11 +27,6 @@ enum PVDataType {
    PV_INT   = 1,
 };
 
-typedef struct PVPatch_ {
-   unsigned int offset;
-   unsigned short nx, ny;
-} PVPatch __attribute__((aligned));
-
 typedef struct PVPatchStrides_ {
    int sx, sy, sf; // stride in x,y,features
 } PVPatchStrides;

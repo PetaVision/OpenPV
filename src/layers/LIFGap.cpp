@@ -127,21 +127,19 @@ int LIFGap::initialize(const char *name, HyPerCol *hc, const char *kernel_name) 
    return status;
 }
 
-int LIFGap::allocateConductances(int num_channels) {
-   int status = LIF::allocateConductances(
-         num_channels - 1); // CHANNEL_GAP doesn't have a conductance per se.
+void LIFGap::allocateConductances(int num_channels) {
+   LIF::allocateConductances(num_channels - 1); // CHANNEL_GAP doesn't have a conductance per se.
    gapStrength = (float *)calloc((size_t)getNumNeuronsAllBatches(), sizeof(*gapStrength));
-   if (gapStrength == NULL) {
+   if (gapStrength == nullptr) {
       Fatal().printf(
             "%s: rank %d process unable to allocate memory for gapStrength: %s\n",
             getDescription_c(),
             parent->columnId(),
             strerror(errno));
    }
-   return status;
 }
 
-int LIFGap::calcGapStrength() {
+void LIFGap::calcGapStrength() {
    bool needsNewCalc = !gapStrengthInitialized;
    if (!needsNewCalc) {
       for (auto &c : recvConns) {
@@ -149,69 +147,66 @@ int LIFGap::calcGapStrength() {
          if (conn != nullptr) {
             continue;
          }
-         if (conn->getChannel() == CHANNEL_GAP and mLastUpdateTime < conn->getLastUpdateTime()) {
+         if (conn->getChannelCode() == CHANNEL_GAP && mLastUpdateTime < conn->getLastUpdateTime()) {
             needsNewCalc = true;
             break;
          }
       }
    }
    if (!needsNewCalc) {
-      return PV_SUCCESS;
+      return;
    }
 
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       gapStrength[k] = (float)0;
    }
    for (auto &c : recvConns) {
-      HyPerConn *conn = dynamic_cast<HyPerConn *>(c);
-      if (conn == nullptr or conn->getChannel() != CHANNEL_GAP) {
+      if (c == nullptr or c->getChannelCode() != CHANNEL_GAP) {
          continue;
       }
-      pvAssert(conn->postSynapticLayer() == this);
-      if (conn->getPlasticityFlag() && parent->columnId() == 0) {
+      pvAssert(c->getPost() == this);
+      auto *weightUpdater = c->getComponentByType<BaseWeightUpdater>();
+      if (weightUpdater and weightUpdater->getPlasticityFlag() and parent->columnId() == 0) {
          WarnLog().printf(
                "%s: %s on CHANNEL_GAP has plasticity flag set to true\n",
                getDescription_c(),
-               conn->getDescription_c());
+               c->getDescription_c());
       }
-      HyPerLayer *pre = conn->preSynapticLayer();
-      const int sy    = conn->getPostNonextStrides()->sy;
-      const int syw   = conn->yPatchStride();
-      for (int arbor = 0; arbor < conn->numberOfAxonalArborLists(); arbor++) {
-         for (int k = 0; k < pre->getNumExtendedAllBatches(); k++) {
-            conn->deliverOnePreNeuronActivity(k, arbor, (float)1.0, gapStrength, NULL);
-         }
-      }
+      c->deliverUnitInput(gapStrength);
    }
    gapStrengthInitialized = true;
-   return PV_SUCCESS;
 }
 
-int LIFGap::registerData(Checkpointer *checkpointer) {
-   int status = LIF::registerData(checkpointer);
-   checkpointPvpActivityFloat(checkpointer, "gapStrength", gapStrength, false /*not extended*/);
-   return status;
-}
-
-int LIFGap::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = PV_SUCCESS;
-   if (initializeFromCheckpointFlag) {
-      status = LIF::readStateFromCheckpoint(checkpointer);
-      status = readGapStrengthFromCheckpoint(checkpointer);
+Response::Status LIFGap::registerData(Checkpointer *checkpointer) {
+   auto status = LIF::registerData(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
    }
-   return status;
+   checkpointPvpActivityFloat(checkpointer, "gapStrength", gapStrength, false /*not extended*/);
+   return Response::SUCCESS;
 }
 
-int LIFGap::readGapStrengthFromCheckpoint(Checkpointer *checkpointer) {
+Response::Status LIFGap::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   if (initializeFromCheckpointFlag) {
+      auto status = LIF::readStateFromCheckpoint(checkpointer);
+      if (!Response::completed(status)) {
+         return status;
+      }
+      readGapStrengthFromCheckpoint(checkpointer);
+      return Response::SUCCESS;
+   }
+   else {
+      return Response::NO_ACTION;
+   }
+}
+
+void LIFGap::readGapStrengthFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(
          std::string(name), std::string("gapStrength"), false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int LIFGap::updateState(double time, double dt) {
-   int status = PV_SUCCESS;
-
-   status = calcGapStrength();
+Response::Status LIFGap::updateState(double time, double dt) {
+   calcGapStrength();
 
    const int nx       = clayer->loc.nx;
    const int ny       = clayer->loc.ny;
@@ -297,7 +292,7 @@ int LIFGap::updateState(double time, double dt) {
          break;
       default: break;
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 } // namespace PV

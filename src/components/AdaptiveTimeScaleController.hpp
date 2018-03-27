@@ -9,7 +9,7 @@
 #define ADAPTIVETIMESCALECONTROLLER_HPP_
 
 #include "checkpointing/CheckpointEntry.hpp"
-#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointerDataInterface.hpp"
 #include "columns/Communicator.hpp"
 #include "io/PrintStream.hpp"
 #include "structures/MPIBlock.hpp"
@@ -35,13 +35,10 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
          bool writeTimeScaleFieldnames,
          Communicator *comm);
    virtual ~AdaptiveTimeScaleController();
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
    virtual std::vector<double>
    calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales);
    void writeTimestepInfo(double timeValue, std::vector<PrintStream *> &streams);
-
-  private:
-   void calcTimeScaleTrue(double timeValue);
 
    // Data members
   protected:
