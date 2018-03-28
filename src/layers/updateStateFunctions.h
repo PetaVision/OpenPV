@@ -83,51 +83,6 @@ int updateV_ANNLayer_vertices(
       int dn,
       int up);
 
-#ifdef OBSOLETE // Marked obsolete Jun 30, 2017. Use updateV_ANNLayer_vertices
-// updateV_PtwiseLinearTransferLayer was deprecated Jun 28, 2016, along with the
-// PtwiseLinearTransferLayer class.
-// Use ANNLayer with verticesA/verticesV/slopeNegInf/slopePosInf, and updateV_ANNLayer_vertices
-// instead.
-KERNEL
-int updateV_PtwiseLinearTransferLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      int num_channels,
-      MEM_GLOBAL float *GSynHead,
-      MEM_GLOBAL float *activity,
-      int numVertices,
-      float *verticesV,
-      float *verticesA,
-      float *slopes,
-      int nx,
-      int ny,
-      int nf,
-      int lt,
-      int rt,
-      int dn,
-      int up) {
-   return updateV_ANNLayer_vertices(
-         nbatch,
-         numNeurons,
-         V,
-         num_channels,
-         GSynHead,
-         activity,
-         numVertices,
-         verticesV,
-         verticesA,
-         slopes,
-         nx,
-         ny,
-         nf,
-         lt,
-         rt,
-         dn,
-         up);
-}
-#endif // OBSOLETE // Marked obsolete Jun 30, 2017. Use updateV_ANNLayer_vertices
-
 KERNEL
 int updateV_ANNLayer_threshminmax(
       int nbatch,
