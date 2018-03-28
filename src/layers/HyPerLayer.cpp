@@ -2138,10 +2138,6 @@ void HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), std::string("Delays"), false);
 }
 
-// readBufferFile and readDataStoreFromFile were removed Jan 23, 2017.
-// They were only used by checkpointing, which is now handled by the
-// CheckpointEntry class hierarchy.
-
 Response::Status HyPerLayer::processCheckpointRead() {
    updateAllActiveIndices();
    return Response::SUCCESS;

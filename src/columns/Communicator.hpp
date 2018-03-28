@@ -20,15 +20,6 @@ namespace PV {
 
 class Communicator {
   public:
-   // The following Communicator methods related to border exchange were moved to
-   // the BorderExchange class in utils/BorderExchange.{c,h}pp Feb 6, 2017.
-   //     newDatatypes
-   //     freeDatatypes
-   //     exchange
-   //     wait
-   //     recvOffset
-   //     sendOffset
-
    Communicator(Arguments *argumentList);
    virtual ~Communicator();
 

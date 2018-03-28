@@ -19,11 +19,6 @@
 
 namespace PV {
 
-// Unused function timeToParams was removed Mar 10, 2017.
-// Unused function timeFromParams was removed Mar 15, 2017.
-// Unused function pv_sizeof was removed Mar 15, 2017.
-// Unused function pv_sizeof_patch was removed Mar 15, 2017.
-
 PV_Stream *PV_fopen(const char *path, const char *mode, bool verifyWrites) {
    if (mode == NULL) {
       ErrorLog().printf("PV_fopen: mode argument must be a string (path was \"%s\").\n", path);
@@ -584,27 +579,6 @@ void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
       exit(EXIT_FAILURE);
    }
 }
-
-// Unused function getNumGlobalPatches was removed Mar 15, 2017.
-// Instead, use calcNumberOfPatches in utils/BufferUtilsPvp.*
-
-// Unused function pvp_open_read_file was removed Mar 23, 2017. Instead, construct a FileStream.
-// Unused function pvp_open_write_file was removed Mar 10, 2017. Instead, construct a FileStream.
-// Unused function pvp_close_file was removed Mar 23, 2017.
-// Unused function pvp_check_file_header was removed Mar 15, 2017.
-// Unused functions pvp_read_header and pvp_write_header were removed Mar 15, 2017.
-// Unused function pvp_set_activity_params was removed Jan 26, 2017.
-// Unused function pvp_set_weight_params was removed Jan 26, 2017.
-// Unused function pvp_set_nonspiking_act_params was removed Feb 21, 2017.
-// Unused function pvp_set_nonspiking_sparse_act_params was removed Feb 21, 2017.
-// Unused function alloc_params was removed Feb 21, 2017.
-
-// writeActivity and writeActivitySparse removed Feb 17, 2017.
-// Corresponding HyPerLayer methods now use BufferUtils routines
-// gatherActivity and scatterActivity were also removed.
-// Use BufferUtils::gather and BufferUtils::scatter instead.
-
-// readWeights was removed Mar 15, 2017. Use the WeightsFileIO class instead.
 
 int pv_text_write_patch(
       PrintStream *outStream,

@@ -770,8 +770,6 @@ int HyPerCol::advanceTime(double sim_time) {
       // copy activity buffer to DataStore, and do MPI exchange.
       notifyLoop(std::make_shared<LayerPublishMessage>(phase, mSimTime));
 
-      // Feb 2, 2017: waiting and updating active indices have been moved into
-      // OutputState and CheckNotANumber, where they are called if needed.
       notifyLoop(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
       if (mErrorOnNotANumber) {
          notifyLoop(std::make_shared<LayerCheckNotANumberMessage>(phase));

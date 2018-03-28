@@ -254,10 +254,6 @@ class HyPerLayer : public BaseLayer {
    virtual Response::Status copyInitialStateToGPU() override;
 #endif // PV_USE_CUDA
 
-   // readBufferFile and readDataStoreFromFile were removed Jan 23, 2017.
-   // They were only used by checkpointing, which is now handled by the
-   // CheckpointEntry class hierarchy.
-
    void updateNBands(int numCalls);
 
    virtual Response::Status processCheckpointRead() override;
@@ -385,8 +381,6 @@ class HyPerLayer : public BaseLayer {
    Response::Status respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
    Response::Status
    respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
-   // respondLayerUpdateActiveIndices removed Feb 3, 2017. Layers update active indices
-   // in response to other messages, when needed.
    Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
    virtual int publish(Communicator *comm, double simTime);
    virtual int resetGSynBuffers(double timef, double dt);
