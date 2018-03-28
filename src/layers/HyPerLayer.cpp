@@ -587,7 +587,6 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_writeStep(ioFlag);
    ioParam_initialWriteTime(ioFlag);
    ioParam_sparseLayer(ioFlag);
-   ioParam_writeSparseValues(ioFlag);
 
    // GPU-specific parameter.  If not using GPUs, this flag
    // can be set to false or left out, but it is an error
@@ -850,29 +849,7 @@ void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && !parent->parameters()->present(name, "sparseLayer")
-       && parent->parameters()->present(name, "writeSparseActivity")) {
-      Fatal().printf("writeSparseActivity is obsolete. Use sparseLayer instead.\n");
-   }
-   // writeSparseActivity was deprecated Nov 4, 2014 and marked obsolete Mar 14, 2017.
    parent->parameters()->ioParamValue(ioFlag, name, "sparseLayer", &sparseLayer, false);
-}
-
-// writeSparseValues is obsolete as of Mar 14, 2017.
-void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      assert(!parent->parameters()->presentAndNotBeenRead(name, "sparseLayer"));
-      if (sparseLayer && parent->parameters()->present(name, "writeSparseValues")) {
-         WarnLog() << "writeSparseValues parameter, defined in " << getDescription()
-                   << ", is obsolete.\n";
-         bool writeSparseValues;
-         parent->parameters()->ioParamValue(
-               ioFlag, name, "writeSparseValues", &writeSparseValues, true /*default value*/);
-         if (!writeSparseValues) {
-            WarnLog() << "The sparse-values format is used for all sparse layers.\n";
-         }
-      }
-   }
 }
 
 Response::Status HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
