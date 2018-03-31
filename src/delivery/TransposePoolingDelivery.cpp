@@ -96,10 +96,10 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    }
    auto *originalPoolingDelivery = originalConn->getComponentByType<PoolingDelivery>();
    pvAssert(originalPoolingDelivery);
-   mAccumulateType         = originalPoolingDelivery->getAccumulateType();
-   mReceiveGpu             = originalPoolingDelivery->getReceiveGpu();
+   mAccumulateType = originalPoolingDelivery->getAccumulateType();
+   mReceiveGpu     = originalPoolingDelivery->getReceiveGpu();
 #ifdef PV_USE_CUDA
-   mUsingGPUFlag           = originalPoolingDelivery->isUsingGPU();
+   mUsingGPUFlag = originalPoolingDelivery->isUsingGPU();
 #endif // PV_USE_CUDA
    mOriginalPostIndexLayer = originalPoolingDelivery->getPostIndexLayer();
    mOriginalPreLayer       = originalPoolingDelivery->getPreLayer();
@@ -317,9 +317,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective() {
    // Grab postIdxLayer's data
    float *postIdxData = nullptr;
    if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
-      assert(mOriginalPostIndexLayer);
-      // Make sure this layer is an integer layer
-      assert(mOriginalPostIndexLayer->getDataType() == PV_INT);
+      pvAssert(dynamic_cast<PoolingIndexLayer *>(mOriginalPostIndexLayer));
       PVLayerCube cube = mOriginalPostIndexLayer->getPublisher()->createCube(0 /*delay*/);
       postIdxData      = cube.data;
    }

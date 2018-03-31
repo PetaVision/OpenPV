@@ -22,10 +22,8 @@ enum ChannelType {
    CHANNEL_NOUPDATE = -1
 };
 
-enum PVDataType {
-   PV_FLOAT = 0,
-   PV_INT   = 1,
-};
+// PVDatatType enum was removed Mar 29, 2018.
+// Used only for the HyPerLayer dataType param, which has been removed.
 
 typedef struct PVPatchStrides_ {
    int sx, sy, sf; // stride in x,y,features

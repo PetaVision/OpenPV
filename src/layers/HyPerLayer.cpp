@@ -77,9 +77,6 @@ int HyPerLayer::initialize_base() {
    numSynchronizedMarginWidthLayers = 0;
    synchronizedMarginWidthLayers    = NULL;
 
-   dataType       = PV_FLOAT;
-   dataTypeString = NULL;
-
 #ifdef PV_USE_CUDA
    allocDeviceV             = false;
    allocDeviceGSyn          = false;
@@ -597,23 +594,16 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
+// The dataType parameter was marked obsolete Mar 29, 2018.
+// Only TransposePoolingConn made use of the dataType, by checking
+// that the post index layer is PV_INT. But mPostIndexLayer has type
+// PoolingIndexLayer*, which is automatically PV_INT. So the dataType
+// check has become vacuous.
 void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
-   this->parent->parameters()->ioParamString(
-         ioFlag, this->getName(), "dataType", &dataTypeString, NULL, false /*warnIfAbsent*/);
-   if (dataTypeString == NULL) {
-      // Default value
-      dataType = PV_FLOAT;
-      return;
-   }
-   if (!strcmp(dataTypeString, "float")) {
-      dataType = PV_FLOAT;
-   }
-   else if (!strcmp(dataTypeString, "int")) {
-      dataType = PV_INT;
-   }
-   else {
-      Fatal() << "BaseLayer \"" << name
-              << "\": dataType not recognized, can be \"float\" or \"int\"\n";
+   if (ioFlag == PARAMS_IO_READ and parent->parameters()->stringPresent(getName(), "dataType")) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         WarnLog().printf("%s defines the dataType param, which is no longer used.\n");
+      }
    }
 }
 

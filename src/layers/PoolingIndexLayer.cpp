@@ -38,13 +38,6 @@ int PoolingIndexLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-void PoolingIndexLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "dataType");
-      dataType = PV_INT;
-   }
-}
-
 // This function should never be called, since this layer should never be a post layer and only
 // accessed from PoolingConn.
 int PoolingIndexLayer::requireChannel(int channelNeeded, int *numChannelsResult) {

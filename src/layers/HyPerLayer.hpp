@@ -70,6 +70,8 @@ class HyPerLayer : public BaseLayer {
     * @{
     */
 
+   // The dataType param was marked obsolete Mar 29, 2018.
+   /** @brief dataType: no longer used. */
    virtual void ioParam_dataType(enum ParamsIOFlag ioFlag);
 
    /**
@@ -309,7 +311,6 @@ class HyPerLayer : public BaseLayer {
    } // TODO: access to clayer->activity->data should not be public
    virtual double getTimeScale(int batchIdx) { return -1.0; };
    virtual bool activityIsSpiking() { return false; }
-   PVDataType getDataType() { return dataType; }
    virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
   protected:
@@ -569,9 +570,6 @@ class HyPerLayer : public BaseLayer {
    // triggerLayerName layer updates.
    HyPerLayer *triggerLayer;
    HyPerLayer *triggerResetLayer;
-
-   char *dataTypeString;
-   PVDataType dataType;
 
    double mLastUpdateTime;
    double mLastTriggerTime;

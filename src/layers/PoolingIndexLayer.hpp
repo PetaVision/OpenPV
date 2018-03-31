@@ -23,7 +23,6 @@ class PoolingIndexLayer : public HyPerLayer {
    PoolingIndexLayer();
    int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_dataType(enum ParamsIOFlag ioFlag) override;
    virtual int resetGSynBuffers(double timef, double dt) override;
 
   private:
