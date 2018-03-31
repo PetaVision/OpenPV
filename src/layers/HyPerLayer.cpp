@@ -124,7 +124,7 @@ int HyPerLayer::initialize_base() {
 /// does not call initialize.  This way, HyPerLayer::initialize can call virtual
 /// methods and the derived class's method will be the one that gets called.
 int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = BaseLayer::initialize(name, hc);
+   int status = BaseObject::initialize(name, hc);
    if (status != PV_SUCCESS) {
       return status;
    }
@@ -843,7 +843,7 @@ void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
 }
 
 Response::Status HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
-   Response::Status status = BaseLayer::respond(message);
+   Response::Status status = BaseObject::respond(message);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -1558,7 +1558,7 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
 }
 
 Response::Status HyPerLayer::registerData(Checkpointer *checkpointer) {
-   auto status = BaseLayer::registerData(checkpointer);
+   auto status = BaseObject::registerData(checkpointer);
    if (!Response::completed(status)) {
       return status;
    }

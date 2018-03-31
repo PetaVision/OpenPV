@@ -5,7 +5,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ANNWhitenedLayer.cpp
    ${SUBDIR}/BackgroundLayer.cpp
    ${SUBDIR}/InputLayer.cpp
-   ${SUBDIR}/BaseLayer.cpp
    ${SUBDIR}/BinningLayer.cpp
    ${SUBDIR}/DropoutLayer.cpp
    ${SUBDIR}/CloneVLayer.cpp
@@ -48,7 +47,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ANNWhitenedLayer.hpp
    ${SUBDIR}/BackgroundLayer.hpp
    ${SUBDIR}/InputLayer.hpp
-   ${SUBDIR}/BaseLayer.hpp
    ${SUBDIR}/BinningLayer.hpp
    ${SUBDIR}/CloneVLayer.hpp
    ${SUBDIR}/DropoutLayer.hpp
