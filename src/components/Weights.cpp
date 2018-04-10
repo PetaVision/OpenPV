@@ -116,7 +116,6 @@ void Weights::allocateCudaBuffers() {
          "Weights::allocateCudaBuffers() called for weights \"%s\" without having set "
          "CudaDevice.\n",
          getName().c_str());
-   pvAssert(mDevicePatches == nullptr); // Should only be called once, by allocateDataStructures();
    pvAssert(mDeviceData == nullptr); // Should only be called once, by allocateDataStructures();
 #ifdef PV_USE_CUDNN
    pvAssert(mCUDNNData == nullptr); // Should only be called once, by allocateDataStructures();
@@ -126,18 +125,9 @@ void Weights::allocateCudaBuffers() {
                     * getGeometry()->getNumPatchesF();
    std::size_t size;
 
-   Patch const *hostPatches = &getGeometry()->getPatch(0); // Patches allocated as one vector
-   size                     = (std::size_t)numPatches * sizeof(*hostPatches);
-   mDevicePatches           = mCudaDevice->createBuffer(size, &description);
-   pvAssert(mDevicePatches);
-   // Copy patch geometry information onto CUDA device because it never changes.
-   mDevicePatches->copyToDevice(hostPatches);
-
-   auto const *hostGSynPatchStart = getGeometry()->getGSynPatchStart().data();
-   size                           = (std::size_t)numPatches * sizeof(*hostGSynPatchStart);
-   mDeviceGSynPatchStart          = mCudaDevice->createBuffer(size, &description);
-   // Copy GSynPatchStart array onto CUDA device because it never changes.
-   mDeviceGSynPatchStart->copyToDevice(hostGSynPatchStart);
+   // Apr 10, 2018: mDevicePatches and mDeviceGSynPatchStart have been moved to
+   // PresynapticPerspectiveGPUDelivery, since they are needed for the presynaptic perspective,
+   // but not the postsynaptic perspective.
 
    if (getNumDataPatches() > 0) {
       std::vector<int> hostPatchToDataLookupVector(numPatches);
