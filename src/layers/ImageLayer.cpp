@@ -66,6 +66,11 @@ void ImageLayer::populateFileList() {
             mFileList.push_back(noWhiteSpace);
          }
       }
+      FatalIf(
+            mFileList.empty(),
+            "%s inputPath file list \"%s\" is empty.\n",
+            getDescription_c(),
+            getInputPath().c_str());
    }
 }
 
