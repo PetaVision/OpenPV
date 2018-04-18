@@ -70,6 +70,7 @@ Response::Status PresynapticPerspectiveGPUDelivery::setCudaDevice(
       return status;
    }
    mWeightsPair->getPreWeights()->setCudaDevice(message->mCudaDevice);
+   mCudaDevice = message->mCudaDevice;
    return status;
 }
 
@@ -105,17 +106,33 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
 
    PVCuda::CudaBuffer *d_PreData           = getPreLayer()->getDeviceDatastore();
    PVCuda::CudaBuffer *d_PostGSyn          = getPostLayer()->getDeviceGSyn();
-   PVCuda::CudaBuffer *d_Patches           = preWeights->getDevicePatches();
-   PVCuda::CudaBuffer *d_GSynPatchStart    = preWeights->getDeviceGSynPatchStart();
    PVCuda::CudaBuffer *d_PatchToDataLookup = preWeights->getDevicePatchToDataLookup();
    PVCuda::CudaBuffer *d_WData             = preWeights->getDeviceData();
 
    pvAssert(d_PreData);
    pvAssert(d_PostGSyn);
-   pvAssert(d_Patches);
-   pvAssert(d_GSynPatchStart);
    pvAssert(d_PatchToDataLookup);
    pvAssert(d_WData);
+
+   // We create mDevicePatches and mDeviceGSynPatchStart here, as opposed to creating them in
+   // the Weights object, because they are only needed by presynaptic-perspective delivery.
+   auto preGeometry = preWeights->getGeometry();
+   std::size_t const numPatches = (std::size_t)preGeometry->getNumPatches();
+   std::size_t size;
+
+   Patch const *hostPatches = &preGeometry->getPatch(0); // Patches allocated as one vector
+   size                     = (std::size_t)numPatches * sizeof(*hostPatches);
+   mDevicePatches           = mCudaDevice->createBuffer(size, &description);
+   pvAssert(mDevicePatches);
+   // Copy patch geometry information onto CUDA device because it never changes.
+   mDevicePatches->copyToDevice(hostPatches);
+
+   auto const *hostGSynPatchStart = preGeometry->getGSynPatchStart().data();
+   size                           = (std::size_t)numPatches * sizeof(*hostGSynPatchStart);
+   mDeviceGSynPatchStart          = mCudaDevice->createBuffer(size, &description);
+   // Copy GSynPatchStart array onto CUDA device because it never changes.
+   pvAssert(mDeviceGSynPatchStart);
+   mDeviceGSynPatchStart->copyToDevice(hostGSynPatchStart);
 
    int nxp = mWeightsPair->getPreWeights()->getPatchSizeX();
    int nyp = mWeightsPair->getPreWeights()->getPatchSizeY();
@@ -152,8 +169,8 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
          syw,
          mDeltaTimeFactor,
          preWeights->getSharedFlag(),
-         d_Patches,
-         d_GSynPatchStart,
+         mDevicePatches,
+         mDeviceGSynPatchStart,
 
          d_PreData,
          preWeights->getDeviceData(),

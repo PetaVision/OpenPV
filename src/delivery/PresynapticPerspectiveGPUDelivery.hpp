@@ -75,6 +75,7 @@ class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
    std::vector<std::vector<float>> mThreadGSyn; // needed since deliverUnitInput is not on the GPU
    PVCuda::CudaRecvPre *mRecvKernel   = nullptr;
    PVCuda::CudaBuffer *mDevicePatches = nullptr;
+   PVCuda::CudaBuffer *mDeviceGSynPatchStart = nullptr;
 
 }; // end class PresynapticPerspectiveGPUDelivery
 

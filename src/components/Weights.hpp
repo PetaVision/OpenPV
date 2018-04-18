@@ -261,8 +261,6 @@ class Weights {
 
    void setCudaDevice(PVCuda::CudaDevice *device) { mCudaDevice = device; }
 
-   PVCuda::CudaBuffer *getDevicePatches() const { return mDevicePatches; }
-   PVCuda::CudaBuffer *getDeviceGSynPatchStart() const { return mDeviceGSynPatchStart; }
    PVCuda::CudaBuffer *getDevicePatchToDataLookup() const { return mDevicePatchToDataLookup; }
    PVCuda::CudaBuffer *getDeviceData() const { return mDeviceData; }
 #ifdef PV_USE_CUDNN
@@ -306,8 +304,6 @@ class Weights {
 #ifdef PV_USE_CUDA
    bool mUsingGPUFlag                           = false;
    PVCuda::CudaDevice *mCudaDevice              = nullptr;
-   PVCuda::CudaBuffer *mDevicePatches           = nullptr;
-   PVCuda::CudaBuffer *mDeviceGSynPatchStart    = nullptr;
    PVCuda::CudaBuffer *mDevicePatchToDataLookup = nullptr;
    PVCuda::CudaBuffer *mDeviceData              = nullptr;
 #ifdef PV_USE_CUDNN

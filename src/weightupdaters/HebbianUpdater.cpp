@@ -333,14 +333,14 @@ Response::Status HebbianUpdater::registerData(Checkpointer *checkpointer) {
       // Do we need to get PrepareCheckpointWrite messages, to call blockingNormalize_dW()?
    }
    std::string nameString = std::string(name);
-   checkpointer->registerCheckpointData(
-         nameString,
-         "lastUpdateTime",
-         &mLastUpdateTime,
-         (std::size_t)1,
-         true /*broadcast*/,
-         false /*not constant*/);
    if (mPlasticityFlag && !mTriggerLayer) {
+      checkpointer->registerCheckpointData(
+            nameString,
+            "lastUpdateTime",
+            &mLastUpdateTime,
+            (std::size_t)1,
+            true /*broadcast*/,
+            false /*not constant*/);
       checkpointer->registerCheckpointData(
             nameString,
             "weightUpdateTime",
