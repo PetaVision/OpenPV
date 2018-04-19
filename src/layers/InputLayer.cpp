@@ -96,16 +96,29 @@ int InputLayer::updateState(double time, double dt) {
 void InputLayer::retrieveInput(double timef, double dt) {
    if (getMPIBlock()->getRank() == 0) {
       int displayPeriodIndex = std::floor(timef / (mDisplayPeriod * dt));
+      bool panEnabled = true; // hack to test panning 
       if (displayPeriodIndex % mJitterChangeInterval == 0) {
          for (int b = 0; b < mRandomShiftX.size(); b++) {
-            mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2 * mMaxShiftX + 1));
-            mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2 * mMaxShiftY + 1));
-            if (mXFlipEnabled) {
-               mMirrorFlipX[b] = mXFlipToggle ? !mMirrorFlipX[b] : (mRNG() % 100) > 50;
-            }
-            if (mYFlipEnabled) {
-               mMirrorFlipY[b] = mYFlipToggle ? !mMirrorFlipY[b] : (mRNG() % 100) > 50;
-            }
+	   if (panEnabled){
+	     mRandomShiftX[b] += 1;
+	     if (mRandomShiftX[b]>mMaxShiftX){
+	       mRandomShiftX[b]=-mMaxShiftX;
+	     }
+	     mRandomShiftY[b] += 1;
+	     if (mRandomShiftY[b]>mMaxShiftY){
+	       mRandomShiftY[b]=-mMaxShiftY;
+	     }
+	   }
+	   else{
+	     mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2 * mMaxShiftX + 1));
+	     mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2 * mMaxShiftY + 1));
+	   }
+	   if (mXFlipEnabled) {
+	     mMirrorFlipX[b] = mXFlipToggle ? !mMirrorFlipX[b] : (mRNG() % 100) > 50;
+	   }
+	   if (mYFlipEnabled) {
+	     mMirrorFlipY[b] = mYFlipToggle ? !mMirrorFlipY[b] : (mRNG() % 100) > 50;
+	   }
          }
       }
    }
@@ -145,6 +158,11 @@ void InputLayer::retrieveInput(double timef, double dt) {
 // nextIndex first, and then call retrieveInput, which seems more natural.
 void InputLayer::retrieveInputAndAdvanceIndex(double timef, double dt) {
    retrieveInput(timef, dt);
+   int displayPeriodIndex = std::floor(timef / (mDisplayPeriod * dt));
+   bool panEnabled = true; // hack to test panning 
+   if ((panEnabled) && (displayPeriodIndex % (2*mMaxShiftX+1) != 0)) {
+     return;
+   }
    if (mBatchIndexer) {
       int blockBatchCount = getLayerLoc()->nbatch * getMPIBlock()->getBatchDimension();
       for (int b = 0; b < blockBatchCount; b++) {
