@@ -110,7 +110,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    int status = PV_SUCCESS;
    if (rank == rootproc) {
-      int index             = hc->getFinalStep() - hc->getInitialStep();
+      int index             = hc->getFinalStep();
       const char *cpdir1    = "checkpoints1";
       const char *cpdir2    = hc->parameters()->stringValue("column", "checkpointWriteDir");
       const int max_buf_len = 1024;

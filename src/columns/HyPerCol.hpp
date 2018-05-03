@@ -185,7 +185,6 @@ class HyPerCol : public Subject, public Observer {
    PV_Init *getPV_InitObj() const { return mPVInitObj; }
    FileStream *getPrintParamsStream() const { return mPrintParamsStream; }
    PVParams *parameters() const { return mParams; }
-   long int getInitialStep() const { return mInitialStep; }
    long int getFinalStep() const { return mFinalStep; }
    unsigned int getRandomSeed() { return mRandomSeed; }
    unsigned int seedRandomFromWallClock();
@@ -284,7 +283,6 @@ class HyPerCol : public Subject, public Observer {
    Communicator *mCommunicator; // manages communication between HyPerColumns};
 
    Checkpointer *mCheckpointer = nullptr; // manages checkpointing and outputState output
-   long int mInitialStep;
    long int mCurrentStep;
    long int mFinalStep;
    PV_Init *mPVInitObj;

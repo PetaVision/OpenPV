@@ -176,8 +176,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
    mCheckpointer->addObserver(this);
    ioParams(PARAMS_IO_READ);
    mSimTime     = 0.0;
-   mInitialStep = 0L;
-   mCurrentStep = mInitialStep;
+   mCurrentStep = 0L;
    mFinalStep   = (long int)nearbyint(mStopTime / mDeltaTime);
    mCheckpointer->provideFinalStep(mFinalStep);
    mNextProgressTime = 0.0;
