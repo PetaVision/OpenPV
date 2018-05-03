@@ -23,19 +23,13 @@ class InitOneToOneWeights : public InitWeights {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
+   virtual void calcWeights(int patchIndex, int arborId) override;
    void calcOtherParams(int patchIndex);
 
   protected:
    InitOneToOneWeights();
    int initialize(char const *name, HyPerCol *hc);
-   int createOneToOneConnection(
-         /* PVPatch * patch */ float *dataStart,
-         int patchIndex,
-         float iWeight);
-
-  private:
-   int initialize_base();
+   int createOneToOneConnection(float *dataStart, int patchIndex, float weightInit);
 
   protected:
    float mWeightInit;

@@ -6,6 +6,7 @@
  */
 
 #include "PlasticTestConn.hpp"
+#include "PlasticTestUpdater.hpp"
 
 namespace PV {
 
@@ -13,7 +14,9 @@ PlasticTestConn::PlasticTestConn(const char *name, HyPerCol *hc) : HyPerConn() {
    HyPerConn::initialize(name, hc);
 }
 
-float PlasticTestConn::updateRule_dW(float pre, float post) { return pre - post; }
+BaseWeightUpdater *PlasticTestConn::createWeightUpdater() {
+   return new PlasticTestUpdater(name, parent);
+}
 
 PlasticTestConn::~PlasticTestConn() {}
 

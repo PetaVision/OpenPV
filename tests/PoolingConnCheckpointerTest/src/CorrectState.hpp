@@ -10,9 +10,6 @@
 
 #include "probes/ColProbe.hpp"
 
-#include "connections/HyPerConn.hpp"
-#include "layers/HyPerLayer.hpp"
-#include "layers/InputLayer.hpp"
 #include "structures/Buffer.hpp"
 
 /**

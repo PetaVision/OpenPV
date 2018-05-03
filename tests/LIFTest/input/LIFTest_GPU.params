@@ -4,7 +4,7 @@
 // created by peteschultz: Aug 3, 2012
 //
 
-//  A params file for testing LIF, GapLayer, LIFGapLayer, GapConn
+//  A params file for testing LIF, GapLayer, LIFGapLayer
 //
 
 debugParsing = false;
@@ -15,7 +15,6 @@ HyPerCol "column" = {
    ny                               = 64;
    dt                               = 0.25;
    randomSeed                       = 1829107657; // if not set here,  clock time is used to generate seed
-   startTime                        = 0.0;
    stopTime                         = 2000.0;
    progressInterval                 = 100.0;
    writeProgressToErr               = false;
@@ -273,8 +272,6 @@ HyPerConn "InputToScaledInput" = {
     pvpatchAccumulateType           = "convolve";
     // writeCompressedWeights       = true;
     writeCompressedCheckpoints      = true;
-    selfFlag                        = false;
-    shrinkPatches                   = false;
     convertRateToSpikeCount         = false;
     updateGSynFromPostPerspective   = true;
     receiveGpu = true;
@@ -311,8 +308,6 @@ HyPerConn "RetinaToLIFTest" = {
     pvpatchAccumulateType           = "convolve";
     // writeCompressedWeights       = true;
     writeCompressedCheckpoints      = true;
-    selfFlag                        = false;
-    shrinkPatches                   = false;
     convertRateToSpikeCount         = false;
     updateGSynFromPostPerspective   = true;
     receiveGpu = true;
@@ -324,10 +319,10 @@ IdentConn "LIFTestToLIFTestSpikeCounter" = {
     writeStep                       = -1;
 };
 
-GapConn "GapTestToLIFGapTest" = {
+HyPerConn "GapTestToLIFGapTest" = {
     preLayerName                    = "GapTest";
     postLayerName                   = "LIFGapTest";
-    // channelCode                  = 3;
+    channelCode                  = 3;
     sharedWeights                   = true;
     nxp                             = 3;
     nyp                             = 3;
@@ -355,8 +350,6 @@ GapConn "GapTestToLIFGapTest" = {
     
     plasticityFlag                  = false;
     pvpatchAccumulateType           = "convolve";
-    selfFlag                        = false;
-    shrinkPatches                   = false;
     convertRateToSpikeCount         = false;
     
     // writeCompressedWeights       = false;

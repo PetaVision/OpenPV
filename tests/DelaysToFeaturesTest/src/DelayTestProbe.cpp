@@ -26,12 +26,15 @@ int DelayTestProbe::initialize(const char *name, HyPerCol *hc) {
    return StatsProbe::initialize(name, hc);
 }
 
-int DelayTestProbe::outputState(double timestamp) {
-   int status           = StatsProbe::outputState(timestamp);
+Response::Status DelayTestProbe::outputState(double timestamp) {
+   auto status = StatsProbe::outputState(timestamp);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    Communicator *icComm = parent->getCommunicator();
-   const int rcvProc    = 0;
+   int const rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
-      return 0;
+      return status;
    }
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    const int rows        = icComm->numCommRows();

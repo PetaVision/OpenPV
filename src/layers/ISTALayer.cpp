@@ -58,10 +58,7 @@ int ISTALayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int ISTALayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures();
-   return status;
-}
+Response::Status ISTALayer::allocateDataStructures() { return ANNLayer::allocateDataStructures(); }
 
 int ISTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
@@ -160,7 +157,7 @@ int ISTALayer::allocateUpdateKernel() {
    return PV_SUCCESS;
 }
 
-int ISTALayer::updateStateGpu(double time, double dt) {
+Response::Status ISTALayer::updateStateGpu(double time, double dt) {
    if (triggerLayer != NULL) {
       Fatal().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
    }
@@ -171,13 +168,13 @@ int ISTALayer::updateStateGpu(double time, double dt) {
          dynamic_cast<PVCuda::CudaUpdateISTALayer *>(krUpdate);
    assert(updateKernel);
    runUpdateKernel();
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 #endif
 
 double ISTALayer::getDeltaUpdateTime() { return parent->getDeltaTime(); }
 
-int ISTALayer::updateState(double time, double dt) {
+Response::Status ISTALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -213,7 +210,7 @@ int ISTALayer::updateState(double time, double dt) {
          timeConstantTau / (float)dt,
          gSynHead,
          A);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 double *ISTALayer::deltaTimes() {

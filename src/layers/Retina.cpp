@@ -94,16 +94,20 @@ int Retina::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int Retina::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerLayer::communicateInitInfo(message);
+Response::Status
+Retina::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
    if (parent->getNBatch() != 1) {
       Fatal() << "Retina does not support batches yet, TODO\n";
    }
    return status;
 }
 
-int Retina::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+Response::Status Retina::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
    if (spikingFlag) {
@@ -111,24 +115,17 @@ int Retina::allocateDataStructures() {
       const PVLayerLoc *loc = getLayerLoc();
       // Allocate extended loc
       randState = new Random(loc, true);
+      status    = Response::SUCCESS;
    }
 
    return status;
 }
 
-int Retina::allocateV() {
-   clayer->V = NULL;
-   return PV_SUCCESS;
-}
+void Retina::allocateV() { clayer->V = NULL; }
 
-int Retina::initializeV() {
-   assert(getV() == NULL);
-   return PV_SUCCESS;
-}
+void Retina::initializeV() { assert(getV() == NULL); }
 
-int Retina::initializeActivity() {
-   return updateState(parent->simulationTime(), parent->getDeltaTime());
-}
+void Retina::initializeActivity() { updateState(parent->simulationTime(), parent->getDeltaTime()); }
 
 int Retina::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
@@ -231,28 +228,35 @@ int Retina::setRetinaParams(PVParams *p) {
    return 0;
 }
 
-int Retina::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = PV_SUCCESS;
+Response::Status Retina::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
-      int status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      if (!Response::completed(status)) {
+         return status;
+      }
       readRandStateFromCheckpoint(checkpointer);
+      return Response::SUCCESS;
    }
-   return status;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
-int Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
+void Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(
          std::string(name), std::string("rand_state.pvp"), false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int Retina::registerData(Checkpointer *checkpointer) {
-   int status = HyPerLayer::registerData(checkpointer);
+Response::Status Retina::registerData(Checkpointer *checkpointer) {
+   auto status = HyPerLayer::registerData(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (spikingFlag) {
       pvAssert(randState != nullptr);
       checkpointRandState(checkpointer, "rand_state", randState, true /*extended*/);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 //! Updates the state of the Retina
@@ -274,7 +278,7 @@ int Retina::registerData(Checkpointer *checkpointer) {
  *
  *
  */
-int Retina::updateState(double timed, double dt) {
+Response::Status Retina::updateState(double timed, double dt) {
    const int nx       = clayer->loc.nx;
    const int ny       = clayer->loc.ny;
    const int nf       = clayer->loc.nf;
@@ -334,7 +338,7 @@ int Retina::updateState(double timed, double dt) {
    debugRetina().printf("----------------\n");
 
 #endif // DEBUG_PRINT
-   return 0;
+   return Response::SUCCESS;
 }
 
 } // namespace PV

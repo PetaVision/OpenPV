@@ -10,15 +10,12 @@
 namespace PV {
 
 InitUniformRandomWeights::InitUniformRandomWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
    initialize(name, hc);
 }
 
-InitUniformRandomWeights::InitUniformRandomWeights() { initialize_base(); }
+InitUniformRandomWeights::InitUniformRandomWeights() {}
 
 InitUniformRandomWeights::~InitUniformRandomWeights() {}
-
-int InitUniformRandomWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitUniformRandomWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitRandomWeights::initialize(name, hc);
@@ -74,9 +71,9 @@ void InitUniformRandomWeights::randomWeights(float *patchDataStart, int patchInd
 
    // loop over all post-synaptic cells in patch
 
-   const int nxp       = mCallingConn->xPatchSize();
-   const int nyp       = mCallingConn->yPatchSize();
-   const int nfp       = mCallingConn->fPatchSize();
+   const int nxp       = mWeights->getPatchSizeX();
+   const int nyp       = mWeights->getPatchSizeY();
+   const int nfp       = mWeights->getPatchSizeF();
    const int patchSize = nxp * nyp * nfp;
 
    // Force a minimum number of nonzero weights

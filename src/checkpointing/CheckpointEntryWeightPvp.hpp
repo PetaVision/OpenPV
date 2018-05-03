@@ -9,6 +9,7 @@
 #define CHECKPOINTENTRYDATASTORE_HPP_
 
 #include "checkpointing/CheckpointEntry.hpp"
+#include "components/Weights.hpp"
 #include "include/pv_types.h"
 #include <string>
 
@@ -19,67 +20,19 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
    CheckpointEntryWeightPvp(
          std::string const &name,
          MPIBlock const *mpiBlock,
-         int numArbors,
-         bool sharedWeights,
-         PVPatch const *const *const *patchGeometry,
-         float **weightData,
-         int numPatchesX,
-         int numPatchesY,
-         int numPatchesF,
-         int nxp,
-         int nyp,
-         int nfp,
-         PVLayerLoc const *preLoc,
-         PVLayerLoc const *postLoc,
+         Weights *weights,
          bool compressFlag)
          : CheckpointEntry(name, mpiBlock) {
-      initialize(
-            numArbors,
-            sharedWeights,
-            patchGeometry,
-            weightData,
-            numPatchesX,
-            numPatchesY,
-            numPatchesF,
-            nxp,
-            nyp,
-            nfp,
-            preLoc,
-            postLoc,
-            compressFlag);
+      initialize(weights, compressFlag);
    }
    CheckpointEntryWeightPvp(
          std::string const &objName,
          std::string const &dataName,
          MPIBlock const *mpiBlock,
-         int numArbors,
-         bool sharedWeights,
-         PVPatch const *const *const *patchGeometry,
-         float **weightData,
-         int numPatchesX,
-         int numPatchesY,
-         int numPatchesF,
-         int nxp,
-         int nyp,
-         int nfp,
-         PVLayerLoc const *preLoc,
-         PVLayerLoc const *postLoc,
+         Weights *weights,
          bool compressFlag)
          : CheckpointEntry(objName, dataName, mpiBlock) {
-      initialize(
-            numArbors,
-            sharedWeights,
-            patchGeometry,
-            weightData,
-            numPatchesX,
-            numPatchesY,
-            numPatchesF,
-            nxp,
-            nyp,
-            nfp,
-            preLoc,
-            postLoc,
-            compressFlag);
+      initialize(weights, compressFlag);
    }
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
          const override;
@@ -87,37 +40,10 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
    virtual void remove(std::string const &checkpointDirectory) const override;
 
   protected:
-   void initialize(
-         int numArbors,
-         bool sharedWeights,
-         PVPatch const *const *const *patchGeometry,
-         float **weightData,
-         int numPatchesX,
-         int numPatchesY,
-         int numPatchesF,
-         int nxp,
-         int nyp,
-         int nfp,
-         PVLayerLoc const *preLoc,
-         PVLayerLoc const *postLoc,
-         bool compressFlag);
-
-   void calcMinMaxWeights(float *minWeight, float *maxWeight) const;
+   void initialize(Weights *weights, bool compressFlag);
 
   private:
-   bool mSharedWeights;
-   PVPatch const *const *const *mPatchGeometry;
-   int mNumArbors;
-   float **mWeightData;
-   int mNumPatchesX;
-   int mNumPatchesY;
-   int mNumPatchesF;
-   int mWeightDataSize;
-   int mPatchSizeX;
-   int mPatchSizeY;
-   int mPatchSizeF;
-   PVLayerLoc const *mPreLoc;
-   PVLayerLoc const *mPostLoc;
+   Weights *mWeights = nullptr;
    bool mCompressFlag;
 };
 

@@ -37,7 +37,6 @@ HyPerCol "column" = {
    ny = 16;
    dt = 1.0;  //time step in ms.
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
    stopTime = 5.0;  
    errorOnNotANumber = true;
    progressInterval = 10.0; //Program will output its progress at each progressInterval
@@ -148,12 +147,10 @@ HyPerConn "input_to_output1" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;
 
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -178,12 +175,10 @@ HyPerConn "input_to_output2" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;
 
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 };
 

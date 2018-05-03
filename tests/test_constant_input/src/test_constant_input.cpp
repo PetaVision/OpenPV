@@ -14,7 +14,6 @@
 
 #include "columns/HyPerCol.hpp"
 #include "connections/HyPerConn.hpp"
-#include "connections/IdentConn.hpp"
 #include "io/io.hpp"
 #include "layers/Retina.hpp"
 
@@ -53,8 +52,8 @@ int main(int argc, char *argv[]) {
    HyPerConn *conn =
          dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_constant_input_connection"));
 
-   const int nxp               = conn->xPatchSize();
-   const int nyp               = conn->yPatchSize();
+   const int nxp               = conn->getPatchSizeX();
+   const int nyp               = conn->getPatchSizeY();
    const PVLayerLoc *imageLoc  = image->getLayerLoc();
    const PVLayerLoc *retinaLoc = retina->getLayerLoc();
    const int nfPre             = imageLoc->nf;

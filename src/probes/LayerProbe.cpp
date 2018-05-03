@@ -50,8 +50,12 @@ void LayerProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int LayerProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   BaseProbe::communicateInitInfo(message);
+Response::Status
+LayerProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    // Set target layer
    targetLayer = message->lookup<HyPerLayer>(std::string(targetName));
    if (targetLayer == NULL) {
@@ -67,7 +71,7 @@ int LayerProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
 
    // Add to layer
    targetLayer->insertProbe(this);
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 bool LayerProbe::needRecalc(double timevalue) {

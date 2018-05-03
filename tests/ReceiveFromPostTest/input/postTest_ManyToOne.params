@@ -5,7 +5,6 @@ HyPerCol "column" = {
     ny = 32;  //218;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    startTime = 0.0;
     stopTime = 10.0;       // Depends on number of VINE video frames
     progressInterval = 1.0;
     //Change this
@@ -118,7 +117,6 @@ HyPerConn "origConn" = {
     normalizeFromPostPerspective = false;
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -127,7 +125,6 @@ HyPerConn "origConn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
     shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
@@ -139,7 +136,6 @@ TransposeConn "preTransposeConn" = {
     postLayerName = "outputRecvPre";
     channelCode = 0; //Does nothing to the input layer
     originalConnName = "origConn";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1;
     shmget_flag = false;
@@ -153,7 +149,6 @@ TransposeConn "postTransposeConn" = {
     postLayerName = "outputRecvPost";
     channelCode = 0;
     originalConnName = "origConn";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     shmget_flag = false;

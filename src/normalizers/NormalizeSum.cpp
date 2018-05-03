@@ -17,6 +17,8 @@ NormalizeSum::NormalizeSum(const char *name, HyPerCol *hc) {
    initialize(name, hc);
 }
 
+NormalizeSum::~NormalizeSum() {}
+
 int NormalizeSum::initialize_base() { return PV_SUCCESS; }
 
 int NormalizeSum::initialize(const char *name, HyPerCol *hc) {
@@ -31,65 +33,73 @@ int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void NormalizeSum::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(
-         ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true /*warnIfAbsent*/);
+         ioFlag,
+         name,
+         "minSumTolerated",
+         &mMinSumTolerated,
+         mMinSumTolerated,
+         true /*warnIfAbsent*/);
 }
 
 int NormalizeSum::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   pvAssert(!connectionList.empty());
+   pvAssert(!mWeightsList.empty());
 
    // All connections in the group must have the same values of sharedWeights, numArbors, and
    // numDataPatches
-   HyPerConn *conn0 = connectionList[0];
+   Weights *weights0 = mWeightsList[0];
 
-   float scale_factor = 1.0f;
-   if (normalizeFromPostPerspective) {
-      if (conn0->usingSharedWeights() == false) {
+   float scaleFactor = 1.0f;
+   if (mNormalizeFromPostPerspective) {
+      if (weights0->getSharedFlag() == false) {
          Fatal().printf(
                "NormalizeSum error for %s: normalizeFromPostPerspective is true but connection "
                "does not use shared weights.\n",
                getDescription_c());
       }
-      scale_factor = ((float)conn0->postSynapticLayer()->getNumNeurons())
-                     / ((float)conn0->preSynapticLayer()->getNumNeurons());
+      PVLayerLoc const &preLoc  = weights0->getGeometry()->getPreLoc();
+      PVLayerLoc const &postLoc = weights0->getGeometry()->getPostLoc();
+      int numNeuronsPre         = preLoc.nx * preLoc.ny * preLoc.nf;
+      int numNeuronsPost        = postLoc.nx * postLoc.ny * postLoc.nf;
+      scaleFactor               = ((float)numNeuronsPost) / ((float)numNeuronsPre);
    }
-   scale_factor *= strength;
+   scaleFactor *= mStrength;
 
    status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and
    // symmetrizeWeights
 
-   int nArbors        = conn0->numberOfAxonalArborLists();
-   int numDataPatches = conn0->getNumDataPatches();
-   if (normalizeArborsIndividually) {
+   int nArbors        = weights0->getNumArbors();
+   int numDataPatches = weights0->getNumDataPatches();
+   if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
          for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float sum = 0.0;
-            for (auto &conn : connectionList) {
-               int nxp               = conn->xPatchSize();
-               int nyp               = conn->yPatchSize();
-               int nfp               = conn->fPatchSize();
-               int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
-               accumulateSum(dataStartPatch, weights_per_patch, &sum);
+            for (auto &weights : mWeightsList) {
+               int nxp               = weights->getPatchSizeX();
+               int nyp               = weights->getPatchSizeY();
+               int nfp               = weights->getPatchSizeF();
+               int weightsPerPatch   = nxp * nyp * nfp;
+               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               accumulateSum(dataStartPatch, weightsPerPatch, &sum);
             }
-            if (fabsf(sum) <= minSumTolerated) {
+            if (fabsf(sum) <= mMinSumTolerated) {
                WarnLog().printf(
                      "NormalizeSum for %s: sum of weights in patch %d of arbor %d is within "
                      "minSumTolerated=%f of zero. Weights in this patch unchanged.\n",
                      getDescription_c(),
                      patchindex,
                      arborID,
-                     (double)minSumTolerated);
+                     (double)mMinSumTolerated);
                continue;
             }
-            for (auto &conn : connectionList) {
-               int nxp               = conn->xPatchSize();
-               int nyp               = conn->yPatchSize();
-               int nfp               = conn->fPatchSize();
-               int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
-               normalizePatch(dataStartPatch, weights_per_patch, scale_factor / sum);
+            for (auto &weights : mWeightsList) {
+               int nxp               = weights->getPatchSizeX();
+               int nyp               = weights->getPatchSizeY();
+               int nfp               = weights->getPatchSizeF();
+               int weightsPerPatch   = nxp * nyp * nfp;
+               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / sum);
             }
          }
       }
@@ -98,39 +108,37 @@ int NormalizeSum::normalizeWeights() {
       for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
          float sum = 0.0;
          for (int arborID = 0; arborID < nArbors; arborID++) {
-            for (auto &conn : connectionList) {
-               int nxp               = conn->xPatchSize();
-               int nyp               = conn->yPatchSize();
-               int nfp               = conn->fPatchSize();
-               int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
-               accumulateSum(dataStartPatch, weights_per_patch, &sum);
+            for (auto &weights : mWeightsList) {
+               int nxp               = weights->getPatchSizeX();
+               int nyp               = weights->getPatchSizeY();
+               int nfp               = weights->getPatchSizeF();
+               int weightsPerPatch   = nxp * nyp * nfp;
+               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               accumulateSum(dataStartPatch, weightsPerPatch, &sum);
             }
          }
-         if (fabsf(sum) <= minSumTolerated) {
+         if (fabsf(sum) <= mMinSumTolerated) {
             WarnLog().printf(
                   "NormalizeSum for %s: sum of weights in patch %d is within minSumTolerated=%f of "
                   "zero.  Weights in this patch unchanged.\n",
                   getDescription_c(),
                   patchindex,
-                  (double)minSumTolerated);
+                  (double)mMinSumTolerated);
             continue;
          }
          for (int arborID = 0; arborID < nArbors; arborID++) {
-            for (auto &conn : connectionList) {
-               int nxp               = conn->xPatchSize();
-               int nyp               = conn->yPatchSize();
-               int nfp               = conn->fPatchSize();
-               int weights_per_patch = nxp * nyp * nfp;
-               float *dataStartPatch = conn->get_wDataHead(arborID, patchindex);
-               normalizePatch(dataStartPatch, weights_per_patch, scale_factor / sum);
+            for (auto &weights : mWeightsList) {
+               int nxp               = weights->getPatchSizeX();
+               int nyp               = weights->getPatchSizeY();
+               int nfp               = weights->getPatchSizeF();
+               int weightsPerPatch   = nxp * nyp * nfp;
+               float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
+               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / sum);
             }
          }
       } // patchindex
-   } // normalizeArborsIndividually
+   } // mNormalizeArborsIndividually
    return status;
 }
-
-NormalizeSum::~NormalizeSum() {}
 
 } /* namespace PV */

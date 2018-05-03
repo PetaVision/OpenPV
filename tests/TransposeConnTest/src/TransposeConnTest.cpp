@@ -33,8 +33,8 @@ int testTransposeOfTransposeWeights(
       const char *message);
 int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2);
 int testPatchesEqual(
-      PVPatch *patch1,
-      PVPatch *patch2,
+      Patch const *patch1,
+      Patch const *patch2,
       int index,
       const char *conn1name,
       const char *conn2name);
@@ -94,21 +94,6 @@ int main(int argc, char *argv[]) {
          "OriginalMapForOneToManyTest",
          "TransposeForOneToManyTestOfTransposeConn",
          "TransposeOfTransposeForOneToManyTestOfTransposeConn");
-   status = testTransposeConn(
-         hc,
-         "OriginalMapForOneToOneTest",
-         "TransposeForOneToOneTestOfFeedbackConn",
-         "TransposeOfTransposeForOneToOneTestOfFeedbackConn");
-   status = testTransposeConn(
-         hc,
-         "OriginalMapForManyToOneTest",
-         "TransposeForManyToOneTestOfFeedbackConn",
-         "TransposeOfTransposeForManyToOneTestOfFeedbackConn");
-   status = testTransposeConn(
-         hc,
-         "OriginalMapForOneToManyTest",
-         "TransposeForOneToManyTestOfFeedbackConn",
-         "TransposeOfTransposeForOneToManyTestOfFeedbackConn");
 
    delete hc;
    delete initObj;
@@ -123,7 +108,7 @@ int testTransposeConn(
    HyPerConn *originalMap = dynamic_cast<HyPerConn *>(hc->getObjectFromName(originalName));
    FatalIf(!originalMap, "Connection \"%s\" does not exist.\n", originalName);
    FatalIf(
-         !originalMap->usingSharedWeights(),
+         !originalMap->getSharedWeights(),
          "%s does not use shared weights, but this test requires shared weights to be on.\n",
          originalMap->getDescription_c());
 
@@ -161,37 +146,37 @@ int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2) {
    int status = PV_SUCCESS;
 
    status = verifyEqual(
-         conn1->xPatchSize(),
-         conn2->xPatchSize(),
+         conn1->getPatchSizeX(),
+         conn2->getPatchSizeX(),
          "nxp",
          conn1->getName(),
          conn2->getName(),
          status);
    status = verifyEqual(
-         conn1->yPatchSize(),
-         conn2->yPatchSize(),
+         conn1->getPatchSizeY(),
+         conn2->getPatchSizeY(),
          "nyp",
          conn1->getName(),
          conn2->getName(),
          status);
    status = verifyEqual(
-         conn1->fPatchSize(),
-         conn2->fPatchSize(),
+         conn1->getPatchSizeF(),
+         conn2->getPatchSizeF(),
          "nfp",
          conn1->getName(),
          conn2->getName(),
          status);
    status = verifyEqual(
-         conn1->numberOfAxonalArborLists(),
-         conn2->numberOfAxonalArborLists(),
+         conn1->getNumAxonalArbors(),
+         conn2->getNumAxonalArbors(),
          "numAxonalArbors",
          conn1->getName(),
          conn2->getName(),
          status);
    status = verifyEqual(
-         conn1->getNumWeightPatches(),
-         conn2->getNumWeightPatches(),
-         "numWeightPatches",
+         conn1->getNumGeometryPatches(),
+         conn2->getNumGeometryPatches(),
+         "numGeometryPatches",
          conn1->getName(),
          conn2->getName(),
          status);
@@ -206,12 +191,12 @@ int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2) {
    if (status != PV_SUCCESS)
       return status;
 
-   int numWeightPatches = conn1->getNumWeightPatches();
-   FatalIf(!(numWeightPatches == conn2->getNumWeightPatches()), "Test failed.\n");
-   for (int patchindex = 0; patchindex < numWeightPatches; patchindex++) {
+   int numGeometryPatches = conn1->getNumGeometryPatches();
+   FatalIf(!(numGeometryPatches == conn2->getNumGeometryPatches()), "Test failed.\n");
+   for (int patchindex = 0; patchindex < numGeometryPatches; patchindex++) {
       int status1 = testPatchesEqual(
-            conn1->getWeights(patchindex, Communicator::LOCAL),
-            conn2->getWeights(patchindex, Communicator::LOCAL),
+            conn1->getPatch(patchindex),
+            conn2->getPatch(patchindex),
             patchindex,
             conn1->getName(),
             conn2->getName());
@@ -224,18 +209,18 @@ int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2) {
    if (status != PV_SUCCESS)
       return status;
 
-   int numArbors = conn1->numberOfAxonalArborLists();
-   FatalIf(!(numArbors == conn2->numberOfAxonalArborLists()), "Test failed.\n");
+   int numArbors = conn1->getNumAxonalArbors();
+   FatalIf(!(numArbors == conn2->getNumAxonalArbors()), "Test failed.\n");
    int numDataPatches = conn1->getNumDataPatches();
    FatalIf(!(numDataPatches == conn2->getNumDataPatches()), "Test failed.\n");
-   int patchSize = conn1->xPatchSize() * conn1->yPatchSize() * conn1->fPatchSize();
+   int patchSize = conn1->getPatchSizeX() * conn1->getPatchSizeY() * conn1->getPatchSizeF();
    FatalIf(
-         !(patchSize == conn2->xPatchSize() * conn2->yPatchSize() * conn2->fPatchSize()),
+         !(patchSize == conn2->getPatchSizeX() * conn2->getPatchSizeY() * conn2->getPatchSizeF()),
          "Test failed.\n");
    for (int arbor = 0; arbor < numArbors; arbor++) {
       for (int dataindex = 0; dataindex < numDataPatches; dataindex++) {
-         float *w1 = conn1->get_wDataStart(arbor) + patchSize * dataindex;
-         float *w2 = conn2->get_wDataStart(arbor) + patchSize * dataindex;
+         float *w1 = conn1->getWeightsDataStart(arbor) + patchSize * dataindex;
+         float *w2 = conn2->getWeightsDataStart(arbor) + patchSize * dataindex;
          status = testDataPatchEqual(w1, w2, patchSize, conn1->getName(), conn2->getName(), status);
          if (status != PV_SUCCESS)
             break;
@@ -245,8 +230,8 @@ int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2) {
 }
 
 int testPatchesEqual(
-      PVPatch *patch1,
-      PVPatch *patch2,
+      Patch const *patch1,
+      Patch const *patch2,
       int index,
       const char *conn1name,
       const char *conn2name) {
@@ -306,19 +291,19 @@ int testDataPatchEqual(
 
 int dumpWeights(HyPerConn *conn) {
    ErrorLog().printf("Dumping weights for connection %s\n", conn->getName());
-   int nxp       = conn->xPatchSize();
-   int nyp       = conn->yPatchSize();
-   int nfp       = conn->fPatchSize();
-   int numArbors = conn->numberOfAxonalArborLists();
+   int nxp       = conn->getPatchSizeX();
+   int nyp       = conn->getPatchSizeY();
+   int nfp       = conn->getPatchSizeF();
+   int numArbors = conn->getNumAxonalArbors();
    ErrorLog().printf(
          "    nxp = %d, nyp = %d, nfp = %d, numAxonalArbors = %d\n", nxp, nyp, nfp, numArbors);
-   int numPatches = conn->getNumWeightPatches();
+   int numPatches = conn->getNumGeometryPatches();
    for (int arbor = 0; arbor < numArbors; arbor++) {
       for (int kn = 0; kn < numPatches; kn++) {
-         PVPatch *kp = conn->getWeights(kn, 0);
-         int nx      = kp->nx;
-         int ny      = kp->ny;
-         int offset  = kp->offset;
+         Patch const *kp = conn->getPatch(kn);
+         int nx          = kp->nx;
+         int ny          = kp->ny;
+         int offset      = kp->offset;
          ErrorLog().printf("    Weight Patch %d: nx=%d, ny=%d, offset=%d\n", kn, nx, ny, offset);
       }
    }
@@ -334,7 +319,7 @@ int dumpWeights(HyPerConn *conn) {
                   kxPos(k, nxp, nyp, nfp),
                   kyPos(k, nxp, nyp, nfp),
                   featureIndex(k, nxp, nyp, nfp),
-                  (double)conn->get_wData(arbor, n)[k]);
+                  (double)conn->getWeightsData(arbor, n)[k]);
          }
       }
    }

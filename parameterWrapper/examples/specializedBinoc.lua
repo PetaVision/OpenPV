@@ -52,7 +52,6 @@ local pvParams = {
       ny = nySize;
       dt = 1.0;
       randomSeed = 1234567890;
-      startTime = 0.0;
       stopTime = 100000000.0; 
       progressInterval = 5000.0;
       writeProgressToErr = true;
@@ -274,13 +273,11 @@ pv.addMultiGroups(pvParams,
       writeStep = -1;
       initialWriteTime = 0.0;
       writeCompressedWeights = false;
-      shrinkPatches = false;
       writeCompressedCheckpoints = false;
       plasticityFlag = 0;
       pvpatchAccumulateType = "maxpooling";
       delay = 0;
       convertRateToSpikeCount = false;
-      selfFlag = false;
       updateGSynFromPostPerspective = true;
       useWindowPost = false;
    };
@@ -368,7 +365,6 @@ for i=0,numDepthBins do
       channelCode = 1; --Inhib connection to error
       nxp = dictPatchSize;
       nyp = dictPatchSize;
-      shrinkPatches = false;
       numAxonalArbors = 1;
       initFromLastFlag = 0;
       sharedWeights = true;
@@ -389,7 +385,6 @@ for i=0,numDepthBins do
       dWMax = learningRate;
       momentumTau = learningMomentumTau;
       momentumMethod = "viscosity";
-      selfFlag = false;
       shmget_flag = false;
       delay = 0;
       useWindowPost = false;
@@ -402,10 +397,6 @@ for i=0,numDepthBins do
       normalize_cutoff = 0.0;
       normalizeFromPostPerspective = false;
 
-      useMask = true;
-      maskLayerName = "DepthGT";
-      maskFeatureIdx = i; --Masking out based on what dict is part of
-      
    }
    )
 
@@ -446,7 +437,6 @@ for i=0,numDepthBins do
       postLayerName = "V1_spec_"..i;
       channelCode = 0;
       originalConnName = "V1_spec_"..i.."ToLeftError";
-      selfFlag = false;
       convertRateToSpikeCount = false;
       writeStep = -1;
       writeCompressedCheckpoints = false;
@@ -471,7 +461,6 @@ for i=0,numDepthBins do
       channelCode = 0;
       writeStep = -1;
       originalConnName = "V1_spec_"..i.."ToLeftError";
-      selfFlag = false;
       delay = 0;
       convertRateToSpikeCount = false;
       useWindowPost = false;

@@ -10,15 +10,12 @@
 namespace PV {
 
 InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
    initialize(name, hc);
 }
 
-InitSpreadOverArborsWeights::InitSpreadOverArborsWeights() { initialize_base(); }
+InitSpreadOverArborsWeights::InitSpreadOverArborsWeights() {}
 
 InitSpreadOverArborsWeights::~InitSpreadOverArborsWeights() {}
-
-int InitSpreadOverArborsWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitSpreadOverArborsWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitGauss2DWeights::initialize(name, hc);
@@ -35,21 +32,22 @@ void InitSpreadOverArborsWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "weightInit", &mWeightInit, mWeightInit);
 }
 
-void InitSpreadOverArborsWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
+void InitSpreadOverArborsWeights::calcWeights(int patchIndex, int arborId) {
    calcOtherParams(patchIndex);
+   float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    spreadOverArborsWeights(dataStart, arborId);
 }
 
 int InitSpreadOverArborsWeights::spreadOverArborsWeights(float *dataStart, int arborId) {
-   // load necessary params:
-   int nfPatch = mCallingConn->fPatchSize();
-   int nyPatch = mCallingConn->yPatchSize();
-   int nxPatch = mCallingConn->xPatchSize();
-   int sx      = mCallingConn->xPatchStride();
-   int sy      = mCallingConn->yPatchStride();
-   int sf      = mCallingConn->fPatchStride();
+   int nfPatch = mWeights->getPatchSizeF();
+   int nyPatch = mWeights->getPatchSizeY();
+   int nxPatch = mWeights->getPatchSizeX();
 
-   int const nArbors = mCallingConn->numberOfAxonalArborLists();
+   int sx = mWeights->getGeometry()->getPatchStrideX();
+   int sy = mWeights->getGeometry()->getPatchStrideY();
+   int sf = mWeights->getGeometry()->getPatchStrideF();
+
+   int const nArbors = mWeights->getNumArbors();
 
    // loop over all post-synaptic cells in temporary patch
    for (int fPost = 0; fPost < nfPatch; fPost++) {
@@ -95,7 +93,6 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(float *dataStart, int a
                float intpart;
                float fracpart = modff(zone, &intpart);
                assert(intpart >= 0 && intpart < nArbors && fracpart >= 0 && fracpart < 1);
-
                if (intpart == arborId) {
                   weight = mWeightInit * (1 - fracpart);
                }

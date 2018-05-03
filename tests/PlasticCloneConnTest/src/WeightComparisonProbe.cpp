@@ -6,8 +6,8 @@
  */
 
 #include "WeightComparisonProbe.hpp"
-
 #include <cstring>
+#include <delivery/HyPerDeliveryFacade.hpp>
 
 namespace PV {
 
@@ -24,23 +24,40 @@ int WeightComparisonProbe::initialize(char const *name, PV::HyPerCol *hc) {
    return ColProbe::initialize(name, hc);
 }
 
-int WeightComparisonProbe::communicateInitInfo(
+Response::Status WeightComparisonProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnA")));
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnB")));
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnC")));
    mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnD")));
-   return PV_SUCCESS;
+
+   for (auto &c : mConnectionList) {
+      if (!c->getInitInfoCommunicatedFlag()) {
+         return Response::POSTPONE;
+      }
+      auto *deliveryComponent = c->getComponentByType<HyPerDeliveryFacade>();
+      pvAssert(deliveryComponent);
+      auto *weightsPair = c->getComponentByType<WeightsPair>();
+      pvAssert(weightsPair);
+      bool deliverPostPerspective = deliveryComponent->getUpdateGSynFromPostPerspective();
+      if (deliverPostPerspective) {
+         weightsPair->needPost();
+      }
+      else {
+         weightsPair->needPre();
+      }
+   }
+   return Response::SUCCESS;
 }
 
-int WeightComparisonProbe::allocateDataStructures() {
+Response::Status WeightComparisonProbe::allocateDataStructures() {
    std::string firstConn;
    int nxp, nyp, nfp, numPatches;
    bool initialized = false;
    for (auto &c : mConnectionList) {
       if (initialized) {
          FatalIf(
-               mNumArbors != c->numberOfAxonalArborLists(),
+               mNumArbors != c->getNumAxonalArbors(),
                "%s and %s have different numbers of arbors.\n",
                firstConn.c_str(),
                c->getDescription_c());
@@ -50,40 +67,40 @@ int WeightComparisonProbe::allocateDataStructures() {
                firstConn.c_str(),
                c->getDescription_c());
          FatalIf(
-               nxp != c->xPatchSize(),
+               nxp != c->getPatchSizeX(),
                "%s and %s have different nxp.\n",
                firstConn.c_str(),
                c->getDescription_c());
          FatalIf(
-               nyp != c->yPatchSize(),
+               nyp != c->getPatchSizeY(),
                "%s and %s have different nyp.\n",
                firstConn.c_str(),
                c->getDescription_c());
          FatalIf(
-               nfp != c->fPatchSize(),
+               nfp != c->getPatchSizeF(),
                "%s and %s have different nfp.\n",
                firstConn.c_str(),
                c->getDescription_c());
       }
       else {
          firstConn          = c->getDescription();
-         mNumArbors         = c->numberOfAxonalArborLists();
+         mNumArbors         = c->getNumAxonalArbors();
          numPatches         = c->getNumDataPatches();
-         nxp                = c->xPatchSize();
-         nyp                = c->yPatchSize();
-         nfp                = c->fPatchSize();
+         nxp                = c->getPatchSizeX();
+         nyp                = c->getPatchSizeY();
+         nfp                = c->getPatchSizeF();
          mNumWeightsInArbor = (std::size_t)(nxp * nyp * nfp * numPatches);
          initialized        = true;
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
-int WeightComparisonProbe::outputState(double timestamp) {
+Response::Status WeightComparisonProbe::outputState(double timestamp) {
    for (auto &c : mConnectionList) {
       for (int a = 0; a < mNumArbors; a++) {
-         float *firstConn = mConnectionList[0]->get_wDataStart(a);
-         float *thisConn  = c->get_wDataStart(a);
+         float *firstConn = mConnectionList[0]->getWeightsDataStart(a);
+         float *thisConn  = c->getWeightsDataStart(a);
          FatalIf(
                memcmp(firstConn, thisConn, sizeof(float) * mNumWeightsInArbor) != 0,
                "%s and %s do not have the same weights.\n",
@@ -91,7 +108,7 @@ int WeightComparisonProbe::outputState(double timestamp) {
                mConnectionList[0]->getDescription_c());
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

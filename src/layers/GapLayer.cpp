@@ -41,32 +41,29 @@ void GapLayer::ioParam_ampSpikelet(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "ampSpikelet", &ampSpikelet, ampSpikelet);
 }
 
-int GapLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = CloneVLayer::communicateInitInfo(message);
-
+Response::Status
+GapLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return CloneVLayer::communicateInitInfo(message);
    // Handled by CloneVLayer
-
-   return status;
 }
 
-int GapLayer::allocateDataStructures() {
-   int status = CloneVLayer::allocateDataStructures();
-   return status;
+Response::Status GapLayer::allocateDataStructures() {
+   return CloneVLayer::allocateDataStructures();
 }
 
-int GapLayer::updateState(double timef, double dt) {
+Response::Status GapLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(
+   updateState(
          timef,
          dt,
          getLayerLoc(),
          getCLayer()->activity->data,
          getV(),
          originalLayer->getCLayer()->activity->data);
-   return status;
+   return Response::SUCCESS;
 }
 
-int GapLayer::updateState(
+void GapLayer::updateState(
       double timef,
       double dt,
       const PVLayerLoc *loc,
@@ -97,7 +94,6 @@ int GapLayer::updateState(
          originalLayer->getLayerLoc()->halo.up,
          checkActive,
          ampSpikelet);
-   return PV_SUCCESS;
 }
 
 int GapLayer::setActivity() {

@@ -14,20 +14,20 @@ MomentumTestConnProbe::~MomentumTestConnProbe() {}
 
 int MomentumTestConnProbe::initialize_base() { return PV_SUCCESS; }
 
-int MomentumTestConnProbe::initNumValues() { return setNumValues(-1); }
+void MomentumTestConnProbe::initNumValues() { setNumValues(-1); }
 
-int MomentumTestConnProbe::outputState(double timed) {
+Response::Status MomentumTestConnProbe::outputState(double timed) {
    // Grab weights of probe and test for the value of .625/1.5, or .4166666
    HyPerConn *conn = getTargetHyPerConn();
-   int numPreExt   = conn->preSynapticLayer()->getNumExtended();
-   int syw         = conn->yPatchStride(); // stride in patch
+   int numPreExt   = conn->getPre()->getNumExtended();
+   int syw         = conn->getPatchStrideY(); // stride in patch
 
    for (int kPre = 0; kPre < numPreExt; kPre++) {
-      PVPatch *weights = conn->getWeights(kPre, 0);
-      int nk           = conn->fPatchSize() * weights->nx;
+      Patch const *patch = conn->getPatch(kPre);
+      int nk             = conn->getPatchSizeF() * patch->nx;
 
-      float *data = conn->get_wData(0, kPre);
-      int ny      = weights->ny;
+      float *data = conn->getWeightsData(0, kPre);
+      int ny      = patch->ny;
       float wCorrect;
       for (int y = 0; y < ny; y++) {
          float *dataYStart = data + y * syw;
@@ -46,7 +46,7 @@ int MomentumTestConnProbe::outputState(double timed) {
          }
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end of namespace PV

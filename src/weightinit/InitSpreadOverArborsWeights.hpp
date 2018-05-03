@@ -22,14 +22,13 @@ class InitSpreadOverArborsWeights : public InitGauss2DWeights {
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
+   virtual void calcWeights(int patchIndex, int arborId) override;
 
   protected:
    InitSpreadOverArborsWeights();
    int initialize(char const *name, HyPerCol *hc);
 
   private:
-   int initialize_base();
    int spreadOverArborsWeights(float *dataStart, int arborId);
 
   private:

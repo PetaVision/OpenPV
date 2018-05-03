@@ -35,10 +35,10 @@ int test_PatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post
    else if (nzPatch % 2 == 1 && a < 1) {
       // density decreases in post-synaptic layer
       shift = -(int)(0.5f * (float)nzPatch);
-      return shift + nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+      return shift + nearby_neighbor(kzPre, zScaleLog2Post - zScaleLog2Pre);
    }
 
-   int neighbor = nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+   int neighbor = nearby_neighbor(kzPre, zScaleLog2Post - zScaleLog2Pre);
 
    // added if nzPatch == 1
    if (nzPatch == 1) {
@@ -71,8 +71,8 @@ int main(int argc, char *argv[]) {
    nPatch = 1;
    test   = 1;
    for (kpre = -9; kpre < 9; kpre++) {
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch, scaleLog2Post, scaleLog2Pre) + nPatch - 1;
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch, scaleLog2Pre - scaleLog2Post) + nPatch - 1;
       if (kh != kpre - nPatch / 2 || kBack != kpre) {
          Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
@@ -86,8 +86,8 @@ int main(int argc, char *argv[]) {
    nPatch = 7;
    test   = 2;
    for (kpre = -9; kpre < 9; kpre++) {
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch, scaleLog2Post, scaleLog2Pre) + nPatch - 1;
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch, scaleLog2Pre - scaleLog2Post) + nPatch - 1;
       if (kh != kpre - nPatch / 2 || kBack != kpre) {
          Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
@@ -101,8 +101,8 @@ int main(int argc, char *argv[]) {
    nPatch = 27;
    test   = 3;
    for (kpre = -9; kpre < 9; kpre++) {
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch, scaleLog2Post, scaleLog2Pre) + nPatch - 1;
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch, scaleLog2Pre - scaleLog2Post) + nPatch - 1;
       if (kh != kpre - nPatch / 2 || kBack != kpre) {
          Fatal().printf(
                "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n",
@@ -131,8 +131,8 @@ int main(int argc, char *argv[]) {
       else {
          kmod = ainv - 1 - ((-1 - kpre) % ainv);
       }
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre) + nPatch * ainv - ainv
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Pre - scaleLog2Post) + nPatch * ainv - ainv
               + kmod;
       if (kh != ans || kBack != kpre) {
          Fatal().printf(
@@ -159,8 +159,8 @@ int main(int argc, char *argv[]) {
       else {
          kmod = ainv - 1 - ((-1 - kpre) % ainv);
       }
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre) + nPatch * ainv - ainv
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Pre - scaleLog2Post) + nPatch * ainv - ainv
               + kmod;
       if (kh != ans || kBack != kpre) {
          InfoLog().printf(
@@ -190,8 +190,8 @@ int main(int argc, char *argv[]) {
       else {
          kmod = ainv - 1 - ((-1 - kpre) % ainv);
       }
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre) + nPatch * ainv - ainv
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Pre - scaleLog2Post) + nPatch * ainv - ainv
               + kmod;
       if (kh != ans || kBack != kpre) {
          Fatal().printf(
@@ -218,8 +218,8 @@ int main(int argc, char *argv[]) {
       else {
          kmod = ainv - 1 - ((-1 - kpre) % ainv);
       }
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre) + nPatch * ainv - ainv
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Pre - scaleLog2Post) + nPatch * ainv - ainv
               + kmod;
       if (kh != ans || kBack != kpre) {
          Fatal().printf(
@@ -243,8 +243,8 @@ int main(int argc, char *argv[]) {
    test   = 8;
    ans    = -18; // head starts at -18, increases by 2
    for (kpre = -9; kpre < 9; kpre++) {
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Post, scaleLog2Pre) + nPatch / a - 2
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
@@ -265,8 +265,8 @@ int main(int argc, char *argv[]) {
    test   = 9;
    ans    = -18 - 1; // head starts at -19, increases by 2
    for (kpre = -9; kpre < 9; kpre++) {
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Post, scaleLog2Pre) + nPatch / a - 2
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
@@ -287,8 +287,8 @@ int main(int argc, char *argv[]) {
    test   = 10;
    ans    = -18 - 3; // head starts at -21, increases by 2
    for (kpre = -9; kpre < 9; kpre++) {
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Post, scaleLog2Pre) + nPatch / a - 2
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
@@ -312,8 +312,8 @@ int main(int argc, char *argv[]) {
    test   = 11;
    ans    = -35; // head starts at -35, increases by 4
    for (kpre = -9; kpre < 9; kpre++) {
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Post, scaleLog2Pre) + nPatch / a - 2
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
@@ -331,8 +331,8 @@ int main(int argc, char *argv[]) {
    test   = 12;
    ans    = -35 - 1; // head starts at -36, increases by 4
    for (kpre = -9; kpre < 9; kpre++) {
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Post, scaleLog2Pre) + nPatch / a - 2
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {
@@ -350,8 +350,8 @@ int main(int argc, char *argv[]) {
    test   = 13;
    ans    = -35 - 3; // head starts at -38, increases by 4
    for (kpre = -9; kpre < 9; kpre++) {
-      kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
-      kBack = zPatchHead(kh, nPatch / a, scaleLog2Post, scaleLog2Pre) + nPatch / a - 2
+      kh    = zPatchHead(kpre, nPatch, scaleLog2Post - scaleLog2Pre);
+      kBack = zPatchHead(kh, nPatch / a, scaleLog2Pre - scaleLog2Post) + nPatch / a - 2
               + (kpre % 2 == 0);
       kBack = kpre;
       if (kh != ans || kBack != kpre) {

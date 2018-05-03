@@ -10,32 +10,20 @@
 namespace PV {
 
 InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays(char const *name, HyPerCol *hc) {
-   initialize_base();
    initialize(name, hc);
 }
 
-InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays() { initialize_base(); }
+InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays() {}
 
 InitOneToOneWeightsWithDelays::~InitOneToOneWeightsWithDelays() {}
-
-int InitOneToOneWeightsWithDelays::initialize_base() { return PV_SUCCESS; }
 
 int InitOneToOneWeightsWithDelays::initialize(char const *name, HyPerCol *hc) {
    int status = InitWeights::initialize(name, hc);
    return status;
 }
 
-int InitOneToOneWeightsWithDelays::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = InitWeights::ioParamsFillGroup(ioFlag);
-   ioParam_weightInit(ioFlag);
-   return status;
-}
-
-void InitOneToOneWeightsWithDelays::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
-}
-
-void InitOneToOneWeightsWithDelays::calcWeights(float *dataStart, int patchIndex, int arborId) {
+void InitOneToOneWeightsWithDelays::calcWeights(int patchIndex, int arborId) {
+   float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    createOneToOneConnectionWithDelays(dataStart, patchIndex, mWeightInit, arborId);
 }
 
@@ -45,16 +33,16 @@ void InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(
       float iWeight,
       int arborId) {
 
-   const int nArbors = mCallingConn->numberOfAxonalArborLists();
-   int k             = mCallingConn->dataIndexToUnitCellIndex(dataPatchIndex);
+   const int nArbors = mWeights->getNumArbors();
+   int unitCellIndex = dataIndexToUnitCellIndex(dataPatchIndex);
 
-   const int nfp = mCallingConn->fPatchSize();
-   const int nxp = mCallingConn->xPatchSize();
-   const int nyp = mCallingConn->yPatchSize();
+   int const nfp = mWeights->getPatchSizeF();
+   int const nyp = mWeights->getPatchSizeY();
+   int const nxp = mWeights->getPatchSizeX();
 
-   const int sxp = mCallingConn->xPatchStride();
-   const int syp = mCallingConn->yPatchStride();
-   const int sfp = mCallingConn->fPatchStride();
+   int const sxp = mWeights->getGeometry()->getPatchStrideX();
+   int const syp = mWeights->getGeometry()->getPatchStrideY();
+   int const sfp = mWeights->getGeometry()->getPatchStrideF();
 
    // clear all weights in patch
    memset(dataStart, 0, nxp * nyp * nfp);
@@ -62,7 +50,7 @@ void InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(
    int x = (int)(nxp / 2);
    int y = (int)(nyp / 2);
    for (int f = 0; f < nfp; f++) {
-      dataStart[x * sxp + y * syp + f * sfp] = f == nArbors * k + arborId ? iWeight : 0;
+      dataStart[x * sxp + y * syp + f * sfp] = f == nArbors * unitCellIndex + arborId ? iWeight : 0;
    }
 }
 

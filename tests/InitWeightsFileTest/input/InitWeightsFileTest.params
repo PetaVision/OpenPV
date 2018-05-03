@@ -12,7 +12,6 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 10;
     progressInterval                    = 10;
@@ -75,11 +74,8 @@ HyPerConn "InputToOutput" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 5;
     nyp                                 = 5;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };

@@ -15,7 +15,7 @@ namespace PV {
 class TestImage : public HyPerLayer {
   public:
    TestImage(const char *name, HyPerCol *hc);
-   virtual int updateState(double timed, double dt) override;
+   virtual Response::Status updateState(double timed, double dt) override;
    const float getConstantVal() { return val; }
    virtual bool activityIsSpiking() override { return false; }
    virtual ~TestImage();
@@ -26,8 +26,8 @@ class TestImage : public HyPerLayer {
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_constantVal(enum ParamsIOFlag ioFlag);
-   virtual int allocateV() override;
-   virtual int initializeActivity() override;
+   virtual void allocateV() override;
+   virtual void initializeActivity() override;
 
   private:
    int initialize_base();

@@ -1,37 +1,31 @@
-/*
- * FeedbackConn.hpp
+/* FeedbackConn.cpp
  *
- *  Created on: Oct 27, 2010
- *      Author: pschultz
+ * Created on: Oct 27, 2010
+ *     Author: peteschultz
  */
 
 #ifndef FEEDBACKCONN_HPP_
 #define FEEDBACKCONN_HPP_
 
-#include <assert.h>
-#include <string.h>
-
-#include "TransposeConn.hpp"
-#include "io/fileio.hpp"
-#include "io/io.hpp"
+#include "components/OriginalConnNameParam.hpp"
+#include "connections/TransposeConn.hpp"
 
 namespace PV {
 
 class FeedbackConn : public TransposeConn {
   public:
-   FeedbackConn(const char *name, HyPerCol *hc);
+   FeedbackConn(char const *name, HyPerCol *hc);
+
+   virtual ~FeedbackConn();
 
   protected:
    FeedbackConn();
-   int initialize_base();
-   int initialize(const char *name, HyPerCol *hc);
-   void ioParam_preLayerName(enum ParamsIOFlag ioFlag) override;
-   void ioParam_postLayerName(enum ParamsIOFlag ioFlag) override;
 
-   virtual int setPreAndPostLayerNames() override;
-   virtual int handleMissingPreAndPostLayerNames() override;
-}; // end class FeedbackConn
+   int initialize(char const *name, HyPerCol *hc);
 
-} // end of block for namespace PV
+   virtual ConnectionData *createConnectionData() override;
+}; // class FeedbackConn
 
-#endif /* FEEDBACKCONN_HPP_ */
+} // namespace PV
+
+#endif // FEEDBACKCONN_HPP_

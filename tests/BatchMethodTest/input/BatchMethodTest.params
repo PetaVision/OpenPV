@@ -35,7 +35,6 @@
 debugParsing = true;
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 10;
     progressInterval                    = 10;
@@ -148,13 +147,10 @@ HyPerConn "InputByFileToOutputByFile" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };
 
 IdentConn "InputByFileToComparisonByFile" = {
@@ -163,7 +159,6 @@ IdentConn "InputByFileToComparisonByFile" = {
     channelCode                         = 0;
     delay                               = [0.0];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "CheckInputByFileToComparisonByFile" = {
@@ -172,7 +167,6 @@ IdentConn "CheckInputByFileToComparisonByFile" = {
     channelCode                         = 1;
     delay                               = [0.0];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 RequireAllZeroActivityProbe "ProbeByFile" = {
@@ -282,13 +276,10 @@ HyPerConn "InputByListToOutputByList" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };
 
 IdentConn "InputByListToComparisonByList" = {
@@ -297,7 +288,6 @@ IdentConn "InputByListToComparisonByList" = {
     channelCode                         = 0;
     delay                               = [0.0];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "CheckInputByListToComparisonByList" = {
@@ -306,7 +296,6 @@ IdentConn "CheckInputByListToComparisonByList" = {
     channelCode                         = 1;
     delay                               = [0.0];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 RequireAllZeroActivityProbe "ProbeByList" = {

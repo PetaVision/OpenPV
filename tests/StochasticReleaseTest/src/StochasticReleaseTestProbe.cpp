@@ -30,9 +30,12 @@ void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    requireType(BufActivity);
 }
 
-int StochasticReleaseTestProbe::communicateInitInfo(
+Response::Status StochasticReleaseTestProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = StatsProbe::communicateInitInfo(message);
+   auto status = StatsProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    FatalIf(!getTargetLayer(), ": %s did not set target layer.\n", getDescription_c());
    FatalIf(
          getTargetLayer()->getLayerLoc()->nbatch != 1,
@@ -61,7 +64,7 @@ int StochasticReleaseTestProbe::communicateInitInfo(
          ": %s requires a connection going to target %s.\n",
          getDescription_c(),
          getTargetLayer()->getName());
-   return status;
+   return Response::SUCCESS;
 }
 
 bool compar(double const &a, double const &b) {
@@ -78,38 +81,39 @@ bool compar(double const &a, double const &b) {
    return a < b;
 }
 
-int StochasticReleaseTestProbe::outputState(double timed) {
+Response::Status StochasticReleaseTestProbe::outputState(double timed) {
    FatalIf(
-         !(conn->numberOfAxonalArborLists() == 1),
+         !(conn->getNumAxonalArbors() == 1),
          ": %s connection %s has %d arbors; only one is allowed.\n",
          getDescription_c(),
          conn->getName(),
-         conn->numberOfAxonalArborLists());
+         conn->getNumAxonalArbors());
    FatalIf(
-         !(conn->xPatchSize() == 1),
+         !(conn->getPatchSizeX() == 1),
          ": %s connection %s has nxp=%d, nxp=1 is required.\n",
          getDescription_c(),
          conn->getName(),
-         conn->xPatchSize());
+         conn->getPatchSizeX());
    FatalIf(
-         !(conn->yPatchSize() == 1),
+         !(conn->getPatchSizeY() == 1),
          ": %s connection %s has nyp=%d, nyp=1 is required.\n",
          getDescription_c(),
          conn->getName(),
-         conn->yPatchSize());
+         conn->getPatchSizeY());
    FatalIf(
-         !(conn->getNumDataPatches() == conn->fPatchSize()),
+         !(conn->getNumDataPatches() == conn->getPatchSizeF()),
          ": %s connection %s must have number of data patches (%d) and nfp equal (%d).\n",
          getDescription_c(),
          conn->getName(),
          conn->getNumDataPatches(),
-         conn->fPatchSize());
-   int status = StatsProbe::outputState(timed);
+         conn->getPatchSizeF());
+   auto status = StatsProbe::outputState(timed);
    FatalIf(
-         !(status == PV_SUCCESS),
+         status != Response::SUCCESS,
          ": %s failed in StatsProbe::outputState at time %f.\n",
          getDescription_c(),
          timed);
+   bool failed = false;
    if (timed > 0.0) {
       computePValues();
       if (parent->getCommunicator()->commRank() == 0
@@ -133,16 +137,17 @@ int StochasticReleaseTestProbe::outputState(double timed) {
                      k,
                      N,
                      hbCorr);
-               status = PV_FAILURE;
+               failed = true;
             }
          }
       }
    }
    FatalIf(
-         status != PV_SUCCESS,
+         failed,
          ": %s failed in StochasticReleaseTestProbe::outputState at time %f.\n",
+         getTargetLayer()->getName(),
          timed);
-   return status;
+   return Response::SUCCESS;
 }
 
 void StochasticReleaseTestProbe::computePValues() {
@@ -152,9 +157,10 @@ void StochasticReleaseTestProbe::computePValues() {
    for (int f = 0; f < nf; f++) {
       int nf = getTargetLayer()->getLayerLoc()->nf;
       FatalIf(!(f >= 0 && f < nf), "Test failed.\n");
-      float wgt = conn->get_wDataStart(0)[f * (nf + 1)]; // weights should be one-to-one weights
+      float wgt =
+            conn->getWeightsDataStart(0)[f * (nf + 1)]; // weights should be one-to-one weights
 
-      HyPerLayer *pre          = conn->preSynapticLayer();
+      HyPerLayer *pre          = conn->getPre();
       const float *preactPtr   = pre->getLayerData();
       const PVLayerLoc *preLoc = pre->getLayerLoc();
       const int numPreNeurons  = pre->getNumNeurons();

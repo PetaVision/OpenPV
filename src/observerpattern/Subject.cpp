@@ -8,69 +8,67 @@
 #include "observerpattern/Subject.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
+#include <numeric>
 
 namespace PV {
 
-void Subject::notify(
+Response::Status Subject::notify(
       ObserverTable const &table,
       std::vector<std::shared_ptr<BaseMessage const>> messages,
       bool printFlag) {
-   auto needsUpdate    = table.getObjectVector();
-   auto numNeedsUpdate = needsUpdate.size();
-   while (numNeedsUpdate > 0) {
-      auto oldNumNeedsUpdate = numNeedsUpdate;
-      auto iter              = needsUpdate.begin();
-      while (iter != needsUpdate.end()) {
-         auto obj   = (*iter);
-         int status = PV_SUCCESS;
-         for (auto &msg : messages) {
-            status = obj->respond(msg);
-            if (status == PV_BREAK) {
-               status = PV_SUCCESS;
-            } // Can we get rid of PV_BREAK as a possible return value of
-            // connections' updateState?
-            switch (status) {
-               case PV_SUCCESS: continue; break;
-               case PV_POSTPONE: break;
-               case PV_FAILURE:
-                  Fatal() << obj->getDescription() << " failed " << msg->getMessageType() << ".\n";
-                  break;
-               default:
-                  Fatal() << obj->getDescription() << ": response to " << msg->getMessageType()
-                          << " returned unrecognized return code " << status << ".\n";
-                  break;
+   Response::Status returnStatus = Response::NO_ACTION;
+   auto &objectVector            = table.getObjectVector();
+   std::vector<int> numPostponed(messages.size());
+   for (auto &obj : objectVector) {
+      for (int msgIdx = 0; msgIdx < messages.size(); msgIdx++) {
+         auto &msg               = messages[msgIdx];
+         Response::Status status = obj->respond(msg);
+         returnStatus            = returnStatus + status;
+
+         // If an object postpones, skip any subsequent messages to that object.
+         // But continue onto the next object, in case it is what the postponing
+         // object is waiting for.
+         if (status == Response::POSTPONE) {
+            numPostponed[msgIdx]++;
+            if (printFlag) {
+               InfoLog().printf(
+                     "%s postponed on %s.\n",
+                     obj->getDescription_c(),
+                     msg->getMessageType().c_str());
             }
-         }
-         switch (status) {
-            case PV_SUCCESS: iter = needsUpdate.erase(iter); break;
-            case PV_POSTPONE: iter++; break;
-            default: pvAssert(0); break;
-         }
-      }
-      numNeedsUpdate = needsUpdate.size();
-      if (numNeedsUpdate == oldNumNeedsUpdate) {
-         if (printFlag) {
-            ErrorLog() << "HyPerCol::notify has hung with " << numNeedsUpdate
-                       << " objects still postponed.\n";
-            for (auto &obj : needsUpdate) {
-               ErrorLog() << obj->getDescription() << " is still postponed.\n";
-            }
-         }
-         exit(EXIT_FAILURE);
-         break;
-      }
-      else if (printFlag and numNeedsUpdate > 0) {
-         for (auto &msg : messages) {
-            if (numNeedsUpdate == 1) {
-               InfoLog() << "1 object has still postponed " << msg->getMessageType() << ".\n";
-            }
-            else {
-               InfoLog() << numNeedsUpdate << " objects have still postponed "
-                         << msg->getMessageType() << ".\n";
-            }
+            break;
          }
       }
    }
+   if (printFlag) {
+      for (int msgIdx = 0; msgIdx < messages.size(); msgIdx++) {
+         int numPostponedThisMsg = numPostponed.at(msgIdx);
+         if (numPostponedThisMsg > 0) {
+            InfoLog().printf(
+                  "%d objects postponed %s\n",
+                  numPostponedThisMsg,
+                  messages[msgIdx]->getMessageType().c_str());
+         }
+      }
+   }
+   return returnStatus;
+}
+
+void Subject::notifyLoop(
+      ObserverTable const &table,
+      std::vector<std::shared_ptr<BaseMessage const>> messages,
+      bool printFlag,
+      std::string const &description) {
+   Response::Status status = Response::PARTIAL;
+   while (status == Response::PARTIAL) {
+      status = notify(table, messages, printFlag);
+   }
+   FatalIf(
+         status == Response::POSTPONE,
+         "At least one object of %s postponed, but no object of %s progressed.\n",
+         description.c_str(),
+         description.c_str());
+   pvAssert(Response::completed(status));
 }
 
 } /* namespace PV */

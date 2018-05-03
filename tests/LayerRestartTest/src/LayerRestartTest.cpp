@@ -27,6 +27,7 @@
 #include "arch/mpi/mpi.h"
 #include "columns/buildandrun.hpp"
 #include "io/io.hpp"
+#include "layers/HyPerLayer.hpp"
 
 int checkComparisonZero(HyPerCol *hc, int argc, char *argv[]);
 int checkComparisonNonzero(HyPerCol *hc, int argc, char *argv[]);

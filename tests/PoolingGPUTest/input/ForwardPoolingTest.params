@@ -1,7 +1,6 @@
 debugParsing = false;
 
 HyPerCol "Column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 5;
     progressInterval                    = 1;
@@ -76,13 +75,10 @@ PoolingConn "InputToOutputCPU" = {
     receiveGpu                          = false;
     sharedWeights                       = true;
     updateGSynFromPostPerspective       = true;
-    pvpatchAccumulateType               = "sumpooling";
-    selfFlag                            = false;
+    // pvpatchAccumulateType is set in ParameterSweep
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 4;
-    shrinkPatches                       = false;
-    weightSparsity                      = 0;
     needPostIndexLayer                  = false;
 };
 
@@ -123,7 +119,7 @@ RequireAllZeroActivityProbe "ComparisonVerify" = {
     targetLayer = "Comparison";
     textOutputFlag = true;
     probeOutputFile = "ComparisonVerify.txt";
-    nnzThreshold = 0;
+    // nnzThreshold is set in parameter sweep
     exitOnFailure = true;
     immediateExitOnFailure = false;
 };
@@ -163,10 +159,32 @@ ParameterSweep "OutputGPU":nyScale = {
     1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
 };
 
+ParameterSweep "InputToOutputCPU":pvpatchAccumulateType = {
+    "maxpooling";
+    "maxpooling";
+    "sumpooling";
+    "sumpooling";
+    "avgpooling";
+    "avgpooling";
+};
+
+ParameterSweep "InputToOutputGPU":pvpatchAccumulateType = {
+    "maxpooling";
+    "maxpooling";
+    "sumpooling";
+    "sumpooling";
+    "avgpooling";
+    "avgpooling";
+};
+
 ParameterSweep "Comparison":nxScale = {
     1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
 };
 
 ParameterSweep "Comparison":nyScale = {
     1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
+};
+
+ParameterSweep "ComparisonVerify":nnzThreshold = {
+    0.0; 0.0; 0.0; 0.0; 2.0e-5; 2.0e-5;
 };

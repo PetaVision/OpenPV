@@ -7,6 +7,7 @@
 
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
+#include <connections/HyPerConn.hpp>
 
 int checkWeights(HyPerCol *hc, int argc, char *argv[]);
 
@@ -51,7 +52,7 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(
          conn->getNumDataPatches() != N,
          "connection InputToOutput and layer SumInputs have different sizes.\n");
-   float const *weights       = conn->get_wDataStart(0);
+   float const *weights       = conn->getWeightsDataStart(0);
    float const *correctValues = correctValuesLayer->getLayerData(0);
    int status                 = PV_SUCCESS;
    for (int k = 0; k < N; k++) {

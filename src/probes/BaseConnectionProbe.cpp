@@ -9,19 +9,11 @@
 
 namespace PV {
 
-BaseConnectionProbe::BaseConnectionProbe() { initialize_base(); }
+BaseConnectionProbe::BaseConnectionProbe() {}
 
-BaseConnectionProbe::BaseConnectionProbe(const char *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+BaseConnectionProbe::BaseConnectionProbe(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-BaseConnectionProbe::~BaseConnectionProbe() {}
-
-int BaseConnectionProbe::initialize_base() {
-   targetConn = NULL;
-   return PV_SUCCESS;
-}
+BaseConnectionProbe::~BaseConnectionProbe() { delete mIOTimer; }
 
 int BaseConnectionProbe::initialize(const char *name, HyPerCol *hc) {
    int status = BaseProbe::initialize(name, hc);
@@ -35,28 +27,71 @@ void BaseConnectionProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int BaseConnectionProbe::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = BaseProbe::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+Response::Status BaseConnectionProbe::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = BaseProbe::respond(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
-   targetConn = message->lookup<BaseConnection>(std::string(targetName));
-   if (targetConn == nullptr) {
+   else if (
+         auto castMessage =
+               std::dynamic_pointer_cast<ConnectionProbeWriteParamsMessage const>(message)) {
+      return respondConnectionProbeWriteParams(castMessage);
+   }
+   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(message)) {
+      return respondConnectionOutput(castMessage);
+   }
+   else {
+      return status;
+   }
+}
+
+Response::Status BaseConnectionProbe::respondConnectionProbeWriteParams(
+      std::shared_ptr<ConnectionProbeWriteParamsMessage const> message) {
+   writeParams();
+   return Response::SUCCESS;
+}
+
+Response::Status BaseConnectionProbe::respondConnectionOutput(
+      std::shared_ptr<ConnectionOutputMessage const> message) {
+   mIOTimer->start();
+   Response::Status status = outputStateWrapper(message->mTime, message->mDeltaT);
+   mIOTimer->stop();
+   return status;
+}
+
+Response::Status BaseConnectionProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseProbe::communicateInitInfo(message);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
+
+   bool failed = false;
+   mTargetConn = message->lookup<BaseConnection>(std::string(targetName));
+   if (mTargetConn == nullptr) {
       ErrorLog().printf(
-            "%s, rank %d process: targetConnection \"%s\" is "
-            "not a connection in the column.\n",
+            "%s, rank %d process: targetConnection \"%s\" is not a connection in the column.\n",
             getDescription_c(),
             parent->columnId(),
             targetName);
-      status = PV_FAILURE;
+      failed = true;
+      ;
    }
    MPI_Barrier(parent->getCommunicator()->communicator());
-   if (status != PV_SUCCESS) {
+   if (failed) {
       exit(EXIT_FAILURE);
    }
-   targetConn->insertProbe(this);
-   return status;
+   return Response::SUCCESS;
+}
+
+Response::Status BaseConnectionProbe::registerData(Checkpointer *checkpointer) {
+   auto status = BaseProbe::registerData(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   mIOTimer = new Timer(getName(), "probe", "update");
+   checkpointer->registerTimer(mIOTimer);
+   return Response::SUCCESS;
 }
 
 void BaseConnectionProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {

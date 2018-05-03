@@ -24,8 +24,11 @@ int identicalBatchProbe::initidenticalBatchProbe(const char *name, HyPerCol *hc)
 void identicalBatchProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 // 2 tests: max difference can be 5e-4, max std is 5e-5
-int identicalBatchProbe::outputState(double timed) {
-   int status            = StatsProbe::outputState(timed);
+Response::Status identicalBatchProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    const float *A        = getTargetLayer()->getActivity();
    int numExtNeurons     = getTargetLayer()->getNumExtended();

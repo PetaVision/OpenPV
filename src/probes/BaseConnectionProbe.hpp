@@ -21,16 +21,25 @@ class BaseConnectionProbe : public BaseProbe {
    BaseConnectionProbe(const char *name, HyPerCol *hc);
    virtual ~BaseConnectionProbe();
 
-   virtual int
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
-   BaseConnection *getTargetConn() { return targetConn; }
+   BaseConnection *getTargetConn() { return mTargetConn; }
 
   protected:
    BaseConnectionProbe(); // Default constructor, can only be called by derived
    // classes
    int initialize(const char *name, HyPerCol *hc);
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
+
+   Response::Status respondConnectionProbeWriteParams(
+         std::shared_ptr<ConnectionProbeWriteParamsMessage const> message);
+
+   Response::Status respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
+
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    /**
     * The root process of each MPIBlock sets the vector of PrintStreams to
@@ -39,12 +48,10 @@ class BaseConnectionProbe : public BaseProbe {
     */
    virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
 
-  private:
-   int initialize_base();
-
    // Member Variables
   protected:
-   BaseConnection *targetConn; // The connection itself.
+   BaseConnection *mTargetConn = nullptr; // The connection being probed.
+   Timer *mIOTimer             = nullptr;
 };
 
 } // end of namespace PV block

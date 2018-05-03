@@ -36,7 +36,7 @@ int PointLIFProbe::initialize_base() {
 
 int PointLIFProbe::initialize(const char *name, HyPerCol *hc) {
    int status = PointProbe::initialize(name, hc);
-   writeTime  = parent->getStartTime();
+   writeTime  = 0.0;
    return status;
 }
 
@@ -52,9 +52,9 @@ void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
          ioFlag, getName(), "writeStep", &writeStep, writeStep, true /*warnIfAbsent*/);
 }
 
-int PointLIFProbe::initNumValues() { return setNumValues(NUMBER_OF_VALUES); }
+void PointLIFProbe::initNumValues() { setNumValues(NUMBER_OF_VALUES); }
 
-int PointLIFProbe::calcValues(double timevalue) {
+void PointLIFProbe::calcValues(double timevalue) {
    // TODO: Reduce duplicated code between PointProbe::calcValues and
    // PointLIFProbe::calcValues.
    assert(this->getNumValues() == NUMBER_OF_VALUES);
@@ -141,7 +141,6 @@ int PointLIFProbe::calcValues(double timevalue) {
                MPI_STATUS_IGNORE);
       }
    }
-   return PV_SUCCESS;
 }
 
 /**
@@ -157,7 +156,7 @@ int PointLIFProbe::calcValues(double timevalue) {
  * "restricted"
  *     frame.
  */
-int PointLIFProbe::writeState(double timevalue) {
+void PointLIFProbe::writeState(double timevalue) {
    if (!mOutputStreams.empty() and timevalue >= writeTime) {
       writeTime += writeStep;
       PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
@@ -179,7 +178,6 @@ int PointLIFProbe::writeState(double timevalue) {
             valuesBuffer[5]);
       output(0) << std::endl;
    }
-   return PV_SUCCESS;
 }
 
 } // namespace PV

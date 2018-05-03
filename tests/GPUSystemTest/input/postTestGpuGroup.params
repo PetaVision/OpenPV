@@ -1,3 +1,8 @@
+// GPUSystemTest postTestGpuGroup.params for testing gpuGroupIdx.
+// This test was removed from ctest Nov 7, 2017 during the
+// weights/connection refactoring. It might be restored if there is
+// enough demand for it.
+
 debugParsing = false;
 
 HyPerCol "column" = {
@@ -5,7 +10,6 @@ HyPerCol "column" = {
     ny = 64;  //218;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    startTime = 0.0;
     stopTime = 10.0;       // Depends on number of VINE video frames
     progressInterval = 1.0;
     writeProgressToErr = true;
@@ -204,7 +208,6 @@ HyPerConn "origConn1" = {
         
     normalizeMethod                     = "none";
 
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -214,7 +217,6 @@ HyPerConn "origConn1" = {
      
     convertRateToSpikeCount = false;
     receiveGpu = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -225,7 +227,6 @@ TransposeConn "TransposeConn1" = {
     postLayerName = "outputRecv1";
     channelCode = 0; 
     originalConnName = "origConn1";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
@@ -239,7 +240,6 @@ TransposeConn "gpuTransposeConn1" = {
     postLayerName = "outputRecvGpu1";
     channelCode = 0;
     originalConnName = "origConn1";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
@@ -284,7 +284,6 @@ HyPerConn "origConn2" = {
         
     normalizeMethod                     = "none";
 
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -294,7 +293,6 @@ HyPerConn "origConn2" = {
      
     convertRateToSpikeCount = false;
     receiveGpu = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -305,7 +303,6 @@ TransposeConn "TransposeConn2" = {
     postLayerName = "outputRecv2";
     channelCode = 0; 
     originalConnName = "origConn2";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
@@ -319,7 +316,6 @@ TransposeConn "gpuTransposeConn2" = {
     postLayerName = "outputRecvGpu2";
     channelCode = 0;
     originalConnName = "origConn2";
-    selfFlag = false;
     convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;

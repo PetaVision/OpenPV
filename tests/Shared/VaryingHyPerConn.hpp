@@ -17,12 +17,11 @@ class VaryingHyPerConn : public HyPerConn {
   public:
    VaryingHyPerConn(const char *name, HyPerCol *hc);
    virtual ~VaryingHyPerConn();
-   virtual int allocateDataStructures() override;
-   virtual int updateWeights(int axonId = 0) override;
 
   protected:
+   VaryingHyPerConn() {}
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   BaseWeightUpdater *createWeightUpdater() override;
 
 }; // end class VaryingHyPerConn
 

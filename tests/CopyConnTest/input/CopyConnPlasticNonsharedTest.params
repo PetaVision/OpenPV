@@ -1,7 +1,6 @@
 debugParsing = true;
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 10;
     progressInterval                    = 10;
@@ -107,12 +106,10 @@ HyPerConn "OriginalConn" = {
     initialWriteTime                    = 0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     combine_dW_with_W_flag              = false;
     nxp                                 = 7;
     nyp                                 = 7;
     nfp                                 = 8;
-    shrinkPatches                       = false;
     normalizeMethod                     = "normalizeSum";
     strength                            = 1;
     normalizeArborsIndividually         = false;
@@ -125,7 +122,6 @@ HyPerConn "OriginalConn" = {
     normalizeFromPostPerspective        = false;
     minSumTolerated                     = 0;
     dWMax                               = 1;
-    useMask                             = false;
 };
 
 CopyConn "CopyConn" = {
@@ -141,8 +137,6 @@ CopyConn "CopyConn" = {
     initialWriteTime                    = 0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
-    shrinkPatches                       = false;
     normalizeMethod                     = "normalizeSum";
     strength                            = 2;
     normalizeArborsIndividually         = false;
@@ -155,6 +149,5 @@ CopyConn "CopyConn" = {
     normalizeFromPostPerspective        = false;
     minSumTolerated                     = 0;
     dWMax                               = 1;
-    useMask                             = false;
     originalConnName                    = "OriginalConn";
 };

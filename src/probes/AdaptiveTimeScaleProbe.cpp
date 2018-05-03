@@ -93,9 +93,12 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag 
    }
 }
 
-int AdaptiveTimeScaleProbe::communicateInitInfo(
+Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status   = ColProbe::communicateInitInfo(message);
+   auto status = ColProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    mTargetProbe = message->lookup<BaseProbe>(std::string(targetName));
    if (mTargetProbe == nullptr) {
       if (parent->getCommunicator()->commRank() == 0) {
@@ -105,11 +108,14 @@ int AdaptiveTimeScaleProbe::communicateInitInfo(
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   return status;
+   return Response::SUCCESS;
 }
 
-int AdaptiveTimeScaleProbe::allocateDataStructures() {
-   int status = ColProbe::allocateDataStructures();
+Response::Status AdaptiveTimeScaleProbe::allocateDataStructures() {
+   auto status = ColProbe::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (mTargetProbe->getNumValues() != getNumValues()) {
       if (parent->getCommunicator()->commRank() == 0) {
          Fatal() << getDescription() << ": target probe \"" << mTargetProbe->getDescription()
@@ -120,7 +126,7 @@ int AdaptiveTimeScaleProbe::allocateDataStructures() {
       exit(EXIT_FAILURE);
    }
    allocateTimeScaleController();
-   return status;
+   return Response::SUCCESS;
 }
 
 void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
@@ -135,14 +141,17 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
          parent->getCommunicator());
 }
 
-int AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer) {
-   int status = ColProbe::registerData(checkpointer);
+Response::Status AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer) {
+   auto status = ColProbe::registerData(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
    mAdaptiveTimeScaleController->registerData(checkpointer);
-   return status;
+   return Response::SUCCESS;
 }
 
-int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) {
-   int status = ColProbe::respond(message);
+Response::Status AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = ColProbe::respond(message);
    if (message == nullptr) {
       return status;
    }
@@ -154,9 +163,10 @@ int AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) 
    }
 }
 
-int AdaptiveTimeScaleProbe::respondAdaptTimestep(
-      std::shared_ptr<AdaptTimestepMessage const> message) {
-   return getValues(parent->simulationTime());
+Response::Status
+AdaptiveTimeScaleProbe::respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message) {
+   getValues(parent->simulationTime());
+   return Response::SUCCESS;
 }
 
 // AdaptiveTimeScaleProbe::calcValues calls targetProbe->getValues() and passes the result to
@@ -165,7 +175,7 @@ int AdaptiveTimeScaleProbe::respondAdaptTimestep(
 // probeValues. AdaptiveTimeScaleProbe also processes the triggering and only reads the
 // mAdaptiveTimeScaleController when triggering doesn't happen.
 
-int AdaptiveTimeScaleProbe::calcValues(double timeValue) {
+void AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    std::vector<double> rawProbeValues;
    if (triggerLayer != nullptr
        && triggerLayer->needUpdate(timeValue + triggerOffset, parent->getDeltaTime())) {
@@ -179,14 +189,13 @@ int AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    std::vector<double> timeSteps =
          mAdaptiveTimeScaleController->calcTimesteps(timeValue, rawProbeValues);
    memcpy(getValuesBuffer(), timeSteps.data(), sizeof(double) * getNumValues());
-   return PV_SUCCESS;
 }
 
-int AdaptiveTimeScaleProbe::outputState(double timeValue) {
+Response::Status AdaptiveTimeScaleProbe::outputState(double timeValue) {
    if (!mOutputStreams.empty()) {
       mAdaptiveTimeScaleController->writeTimestepInfo(timeValue, mOutputStreams);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

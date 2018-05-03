@@ -9,16 +9,11 @@
 
 namespace PV {
 
-InitUniformWeights::InitUniformWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+InitUniformWeights::InitUniformWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-InitUniformWeights::InitUniformWeights() { initialize_base(); }
+InitUniformWeights::InitUniformWeights() {}
 
 InitUniformWeights::~InitUniformWeights() {}
-
-int InitUniformWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitUniformWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitWeights::initialize(name, hc);
@@ -45,10 +40,10 @@ void InitUniformWeights::ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFla
          mConnectOnlySameFeatures);
 }
 
-void InitUniformWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
-
-   const int nfp = mCallingConn->fPatchSize();
-   const int kf  = patchIndex % nfp;
+void InitUniformWeights::calcWeights(int patchIndex, int arborId) {
+   float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
+   const int nfp    = mWeights->getPatchSizeF();
+   const int kf     = patchIndex % nfp;
 
    uniformWeights(dataStart, mWeightInit, kf, mConnectOnlySameFeatures);
 }
@@ -58,13 +53,13 @@ void InitUniformWeights::uniformWeights(
       float weightInit,
       int kf,
       bool connectOnlySameFeatures) {
-   const int nxp = mCallingConn->xPatchSize();
-   const int nyp = mCallingConn->yPatchSize();
-   const int nfp = mCallingConn->fPatchSize();
+   const int nxp = mWeights->getPatchSizeX();
+   const int nyp = mWeights->getPatchSizeY();
+   const int nfp = mWeights->getPatchSizeF();
 
-   const int sxp = mCallingConn->xPatchStride();
-   const int syp = mCallingConn->yPatchStride();
-   const int sfp = mCallingConn->fPatchStride();
+   const int sxp = mWeights->getGeometry()->getPatchStrideX();
+   const int syp = mWeights->getGeometry()->getPatchStrideY();
+   const int sfp = mWeights->getGeometry()->getPatchStrideF();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {

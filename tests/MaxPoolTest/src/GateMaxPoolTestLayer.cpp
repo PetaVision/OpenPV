@@ -6,7 +6,7 @@ GateMaxPoolTestLayer::GateMaxPoolTestLayer(const char *name, HyPerCol *hc) {
    ANNLayer::initialize(name, hc);
 }
 
-int GateMaxPoolTestLayer::updateState(double timef, double dt) {
+Response::Status GateMaxPoolTestLayer::updateState(double timef, double dt) {
 
    // Grab layer size
    const PVLayerLoc *loc = getLayerLoc();
@@ -46,9 +46,9 @@ int GateMaxPoolTestLayer::updateState(double timef, double dt) {
    }
 
    if (!isCorrect) {
-      exit(-1);
+      exit(EXIT_FAILURE);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

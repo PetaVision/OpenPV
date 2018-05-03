@@ -14,7 +14,6 @@ HyPerCol "column" = {
    ny = 16;
    dt = 1.0;
    randomSeed = 30926100951;  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
    stopTime = 20.0;
    progressInterval = 20.0;
    writeProgressToErr = false;
@@ -151,8 +150,6 @@ HyPerConn "delayArbor" = {
     plasticityFlag         = false;
     pvpatchAccumulateType  = "convolve";
     writeCompressedCheckpoints = true;
-    selfFlag               = false;
-    shrinkPatches          = false;
     updateGSynFromPostPerspective = false;
     convertRateToSpikeCount   = false;
 };

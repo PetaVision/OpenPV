@@ -34,22 +34,16 @@ int CPTestInputLayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int CPTestInputLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
-   if (status != PV_SUCCESS)
+Response::Status CPTestInputLayer::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
       return status;
-
-   status = initializeV();
-   if (status != PV_SUCCESS) {
-      ErrorLog().printf(
-            "CPTestInputLayer \"%s\" in rank %d process: initializeV failed.\n",
-            name,
-            parent->columnId());
    }
-   return status;
+   initializeV();
+   return Response::SUCCESS;
 }
 
-int CPTestInputLayer::initializeV() {
+void CPTestInputLayer::initializeV() {
    FatalIf(
          !(parent->parameters()->value(name, "restart", 0.0, false) == 0.0),
          "Test failed.\n"); // initializeV should only be called if restart is false
@@ -65,10 +59,9 @@ int CPTestInputLayer::initializeV() {
          VBatch[k] = (float)kGlobal;
       }
    }
-   return PV_SUCCESS;
 }
 
-int CPTestInputLayer::updateState(double timed, double dt) {
+Response::Status CPTestInputLayer::updateState(double timed, double dt) {
    update_timer->start();
    const int nx         = clayer->loc.nx;
    const int ny         = clayer->loc.ny;
@@ -96,7 +89,7 @@ int CPTestInputLayer::updateState(double timed, double dt) {
          activity);
 
    update_timer->stop();
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end of namespace PV block

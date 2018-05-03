@@ -13,7 +13,6 @@
 
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 10;
     progressInterval                    = 10;

@@ -20,7 +20,6 @@ HyPerCol "column" = {
    nbatch = 1;
    dt = 1.0;
    randomSeed = 1234567890;  
-   startTime = 0.0;
    stopTime = 10.0;  
    errorOnNotANumber = true;
    progressInterval = 10.0; 
@@ -123,13 +122,11 @@ HyPerConn "initializeFromInitWeights" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  
 
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
     convertRateToSpikeCount = false;
-    shrinkPatches = false; 
     updateGSynFromPostPerspective = false; 
 };
 

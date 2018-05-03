@@ -19,7 +19,6 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 20;
     progressInterval                    = 100;
@@ -105,19 +104,15 @@ MomentumConn "InputToOutput" = {
     initialWriteTime                    = 0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     combine_dW_with_W_flag              = false;
     nxp                                 = 1;
     nyp                                 = 1;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
     dWMax                               = 1;
     normalizeDw                         = true;
-    useMask                             = false;
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
-    weightSparsity                      = 0;
     momentumMethod                      = "viscosity";
     momentumTau                         = 1.4426950408889634;
     momentumDecay                       = 0;

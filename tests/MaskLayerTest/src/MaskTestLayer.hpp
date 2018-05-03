@@ -11,7 +11,7 @@ class MaskTestLayer : public PV::ANNLayer {
    ~MaskTestLayer();
 
   protected:
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_maskMethod(enum ParamsIOFlag ioFlag);
 

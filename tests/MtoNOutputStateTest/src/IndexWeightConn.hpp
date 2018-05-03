@@ -20,17 +20,15 @@
 namespace PV {
 
 class IndexWeightConn : public HyPerConn {
-  protected:
-   virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag) override {}
-
   public:
    IndexWeightConn(const char *name, HyPerCol *hc);
    virtual ~IndexWeightConn();
-   virtual int updateWeights(int axonId = 0) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);
-   virtual int setInitialValues() override;
+   virtual InitWeights *createWeightInitializer() override;
+   virtual BaseWeightUpdater *createWeightUpdater() override;
+   virtual Response::Status initializeState() override;
 
 }; // end class IndexWeightConn
 

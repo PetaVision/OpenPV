@@ -16,7 +16,6 @@ HyPerCol "column" = {
    ny = 32;
    dt = 1.0;  //time step in ms.	     
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
    stopTime = 10.0;  
    progressInterval = 10.0; //Program will output its progress at each progressInterval
    writeProgressToErr = false;  
@@ -118,9 +117,7 @@ ImportParamsConn "origConn" = {
     normalizeFromPostPerspective = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  // conntect to itself
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //testing arrays with delays

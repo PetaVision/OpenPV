@@ -30,9 +30,6 @@ class InitUniformRandomWeights : public PV::InitRandomWeights {
    int initialize(char const *name, HyPerCol *hc);
    void randomWeights(float *patchDataStart, int patchIndex) override;
 
-  private:
-   int initialize_base();
-
    // Data members
   protected:
    float mWMin           = 0;

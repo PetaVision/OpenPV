@@ -5,7 +5,6 @@ HyPerCol "column" = {
     ny = 8;  //218;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    startTime = 0.0;
     stopTime = 10.0;       // Depends on number of VINE video frames
     progressInterval = 1.0;
     outputPath = "sumOutput/unpoolTest";
@@ -149,14 +148,12 @@ PoolingConn "input2sumPoolPre" = {
     //rMinY                               = 1.5;
     //normalize_cutoff                    = 0;
     
-    shrinkPatches = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "sumpooling";
      
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -173,7 +170,6 @@ TransposePoolingConn "sumPoolPreToUnpoolPre" = {
     postLayerName = "UnpoolTestPre";
     channelCode = 0;
     originalConnName = "input2sumPoolPre";
-    selfFlag = false;
     convertRateToSpikeCount = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
     writeCompressedCheckpoints = false;
@@ -187,7 +183,6 @@ TransposePoolingConn "sumPoolPostToUnpoolPost" = {
     postLayerName = "UnpoolTestPost";
     channelCode = 0;
     originalConnName = "input2sumPoolPost";
-    selfFlag = false;
     convertRateToSpikeCount = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
     writeCompressedCheckpoints = false;

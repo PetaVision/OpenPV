@@ -104,8 +104,9 @@ LIFTestProbe::~LIFTestProbe() {
    free(counts);
 }
 
-int LIFTestProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = StatsProbe::communicateInitInfo(message);
+Response::Status
+LIFTestProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = StatsProbe::communicateInitInfo(message);
    FatalIf(
          getTargetLayer()->getLayerLoc()->nbatch != 1,
          "%s requires nbatch = 1.\n",
@@ -124,8 +125,8 @@ void LIFTestProbe::initOutputStreams(const char *filename, Checkpointer *checkpo
    }
 }
 
-int LIFTestProbe::outputState(double timed) {
-   int status = PV_SUCCESS;
+Response::Status LIFTestProbe::outputState(double timed) {
+   bool failed = false;
 
    HyPerLayer *l         = getTargetLayer();
    const PVLayerLoc *loc = l->getLayerLoc();
@@ -176,7 +177,7 @@ int LIFTestProbe::outputState(double timed) {
                      timed,
                      observed,
                      tolerance);
-               status = PV_FAILURE;
+               failed = true;
             }
          }
       }
@@ -192,9 +193,8 @@ int LIFTestProbe::outputState(double timed) {
             icComm->communicator());
       // Not using Allreduce, so the value of rates does not get updated in non-root processes.
    }
-   if (status != PV_SUCCESS)
-      abort();
-   return status;
+   FatalIf(failed, "%s failed.\n", getDescription_c());
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

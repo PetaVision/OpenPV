@@ -211,8 +211,8 @@ class HyPerLayer : public BaseLayer {
 
    virtual int allocateClayerBuffers();
    int setLayerLoc(PVLayerLoc *layerLoc, float nxScale, float nyScale, int nf, int numBatches);
-   virtual int allocateBuffers();
-   virtual int allocateGSyn();
+   virtual void allocateBuffers();
+   virtual void allocateGSyn();
    void addPublisher();
 
    /*
@@ -221,23 +221,21 @@ class HyPerLayer : public BaseLayer {
     * To free a buffer created with this method, call freeBuffer().
     */
    template <typename T>
-   int allocateBuffer(T **buf, int bufsize, const char *bufname);
+   void allocateBuffer(T **buf, int bufsize, const char *bufname);
 
    /**
     * Allocates a restricted buffer (that is, buffer's length is getNumNeuronsAllBatches()).
     */
-   int allocateRestrictedBuffer(float **buf, const char *bufname);
+   void allocateRestrictedBuffer(float **buf, const char *bufname);
 
    /**
     * Allocates an extended buffer (that is, buffer's length is getNumExtendedAllBatches()).
     */
-   int allocateExtendedBuffer(float **buf, const char *bufname);
+   void allocateExtendedBuffer(float **buf, const char *bufname);
 
-   int allocateCube();
-   virtual int allocateV();
-   virtual int allocateActivity();
-   virtual int allocatePrevActivity();
-   virtual int setInitialValues();
+   virtual void allocateV();
+   virtual void allocateActivity();
+   virtual void allocatePrevActivity();
 
    void checkpointPvpActivityFloat(
          Checkpointer *checkpointer,
@@ -251,14 +249,14 @@ class HyPerLayer : public BaseLayer {
          Random *randState,
          bool extendedFlag);
 
-   virtual int initializeV();
-   virtual int initializeActivity();
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
-   virtual int readActivityFromCheckpoint(Checkpointer *checkpointer);
-   virtual int readVFromCheckpoint(Checkpointer *checkpointer);
-   virtual int readDelaysFromCheckpoint(Checkpointer *checkpointer);
+   virtual void initializeV();
+   virtual void initializeActivity();
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual void readActivityFromCheckpoint(Checkpointer *checkpointer);
+   virtual void readVFromCheckpoint(Checkpointer *checkpointer);
+   virtual void readDelaysFromCheckpoint(Checkpointer *checkpointer);
 #ifdef PV_USE_CUDA
-   virtual int copyInitialStateToGPU() override;
+   virtual Response::Status copyInitialStateToGPU() override;
 #endif // PV_USE_CUDA
 
    // readBufferFile and readDataStoreFromFile were removed Jan 23, 2017.
@@ -267,7 +265,7 @@ class HyPerLayer : public BaseLayer {
 
    void updateNBands(int numCalls);
 
-   virtual int processCheckpointRead() override;
+   virtual Response::Status processCheckpointRead() override;
 
    void calcNumExtended();
 
@@ -281,7 +279,7 @@ class HyPerLayer : public BaseLayer {
     * event occurs.
     * Copies the membrane potential V from triggerResetLayer and then calls setActivity to update A.
     */
-   virtual int resetStateOnTrigger();
+   virtual void resetStateOnTrigger();
 
    /*
     * Frees a buffer created by allocateBuffer().  Note that the address to the buffer
@@ -321,7 +319,7 @@ class HyPerLayer : public BaseLayer {
    virtual double getTimeScale(int batchIdx) { return -1.0; };
    virtual bool activityIsSpiking() { return false; }
    PVDataType getDataType() { return dataType; }
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
   protected:
    /**
@@ -348,7 +346,7 @@ class HyPerLayer : public BaseLayer {
    virtual int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
 
    // An updateState wrapper that determines if updateState needs to be called
-   int callUpdateState(double simTime, double dt);
+   Response::Status callUpdateState(double simTime, double dt);
    /**
      * A virtual function to determine if callUpdateState method needs to be called
      * Default behavior is dependent on the triggering method.
@@ -375,22 +373,26 @@ class HyPerLayer : public BaseLayer {
     */
    virtual double getDeltaTriggerTime();
 
-   int respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message);
-   int respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
-   int respondLayerProbeWriteParams(std::shared_ptr<LayerProbeWriteParamsMessage const> message);
-   int
+   Response::Status respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message);
+   Response::Status respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
+   Response::Status
+   respondLayerProbeWriteParams(std::shared_ptr<LayerProbeWriteParamsMessage const> message);
+   Response::Status
    respondLayerClearProgressFlags(std::shared_ptr<LayerClearProgressFlagsMessage const> message);
-   int respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
-   int respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message);
+   Response::Status
+   respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
+   Response::Status respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message);
 #ifdef PV_USE_CUDA
-   int respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message);
+   Response::Status respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message);
 #endif // PV_USE_CUDA
-   int respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);
-   int respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
-   int respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
+   Response::Status
+   respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);
+   Response::Status respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
+   Response::Status
+   respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
    // respondLayerUpdateActiveIndices removed Feb 3, 2017. Layers update active indices
    // in response to other messages, when needed.
-   int respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
+   Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
    virtual int publish(Communicator *comm, double simTime);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
@@ -399,19 +401,19 @@ class HyPerLayer : public BaseLayer {
    // next time step
    virtual int waitOnPublish(Communicator *comm);
 
-   virtual int updateAllActiveIndices();
-   virtual int updateActiveIndices();
+   virtual void updateAllActiveIndices();
+   void updateActiveIndices();
    int resetBuffer(float *buf, int numItems);
 
    static bool localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2);
    int mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *borderCube);
 
-   virtual int outputState(double timef);
+   virtual Response::Status outputState(double timef);
    virtual int writeActivity(double timed);
    virtual int writeActivitySparse(double timed);
 
    virtual int insertProbe(LayerProbe *probe);
-   int outputProbeParams();
+   Response::Status outputProbeParams();
 
    /**
     * Returns true if the MPI exchange for the specified delay has finished;
@@ -419,7 +421,7 @@ class HyPerLayer : public BaseLayer {
     */
    bool isExchangeFinished(int delay = 0);
 
-   int clearProgressFlags();
+   void clearProgressFlags();
 
    int getNumProbes() { return numProbes; }
    LayerProbe *getProbe(int n) { return (n >= 0 && n < numProbes) ? probes[n] : NULL; }
@@ -469,7 +471,7 @@ class HyPerLayer : public BaseLayer {
    float *getChannel(ChannelType ch) { // name query
       return (ch < this->numChannels && ch >= 0) ? GSyn[ch] : NULL;
    }
-   virtual float getChannelTimeConst(enum ChannelType channel_type) { return 0.0f; };
+   virtual float getChannelTimeConst(enum ChannelType channel_type) { return 0.0f; }
    int getXScale() { return clayer->xScale; }
    int getYScale() { return clayer->yScale; }
 
@@ -492,23 +494,21 @@ class HyPerLayer : public BaseLayer {
    Publisher *getPublisher() { return publisher; }
 
   protected:
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
-   virtual int setMaxPhase(int *maxPhase);
-   virtual int registerData(Checkpointer *checkpointer) override;
-   virtual int initializeState() override final;
-   // Not overridable since all layers should respond to initializeFromCheckpointFlag the same way.
-   // initializeState calls the virtual methods readStateFromCheckpoint() and setInitialValues().
+   virtual Response::Status allocateDataStructures() override;
+   virtual Response::Status setMaxPhase(int *maxPhase);
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status initializeState() override;
 
    int openOutputStateFile(Checkpointer *checkpointer);
 /* static methods called by updateState({long_argument_list})*/
 
 #ifdef PV_USE_CUDA
    virtual int runUpdateKernel();
-   virtual int updateStateGpu(double timef, double dt);
+   virtual Response::Status updateStateGpu(double timef, double dt);
 #endif
-   virtual int updateState(double timef, double dt);
+   virtual Response::Status updateState(double timef, double dt);
    virtual int setActivity();
    void freeChannels();
 

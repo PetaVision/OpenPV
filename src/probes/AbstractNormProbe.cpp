@@ -55,9 +55,12 @@ void AbstractNormProbe::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "maskLayerName", &maskLayerName, NULL, false /*warnIfAbsent*/);
 }
 
-int AbstractNormProbe::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = LayerProbe::communicateInitInfo(message);
+Response::Status
+AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = LayerProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    assert(targetLayer);
    if (maskLayerName && maskLayerName[0]) {
       maskLayer = message->lookup<HyPerLayer>(std::string(maskLayerName));
@@ -120,7 +123,7 @@ int AbstractNormProbe::communicateInitInfo(
       assert(maskLoc->nx == loc->nx && maskLoc->ny == loc->ny);
       singleFeatureMask = maskLoc->nf == 1 && loc->nf != 1;
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 int AbstractNormProbe::setNormDescription() { return setNormDescriptionToString("norm"); }
@@ -130,7 +133,7 @@ int AbstractNormProbe::setNormDescriptionToString(char const *s) {
    return normDescription ? PV_SUCCESS : PV_FAILURE;
 }
 
-int AbstractNormProbe::calcValues(double timeValue) {
+void AbstractNormProbe::calcValues(double timeValue) {
    double *valuesBuffer = this->getValuesBuffer();
    for (int b = 0; b < this->getNumValues(); b++) {
       valuesBuffer[b] = getValueInternal(timeValue, b);
@@ -142,26 +145,20 @@ int AbstractNormProbe::calcValues(double timeValue) {
          MPI_DOUBLE,
          MPI_SUM,
          parent->getCommunicator()->communicator());
-   return PV_SUCCESS;
 }
 
-int AbstractNormProbe::outputState(double timevalue) {
+Response::Status AbstractNormProbe::outputState(double timevalue) {
    getValues(timevalue);
    double *valuesBuffer = this->getValuesBuffer();
    if (!mOutputStreams.empty()) {
       int nBatch = getNumValues();
       int nk     = getTargetLayer()->getNumGlobalNeurons();
       for (int b = 0; b < nBatch; b++) {
-         output(b).printf(
-               "%6.3f, %d, %8d, %f",
-               timevalue,
-               b,
-               nk,
-               valuesBuffer[b]);
+         output(b).printf("%6.3f, %d, %8d, %f", timevalue, b, nk, valuesBuffer[b]);
          output(b) << std::endl;
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

@@ -4,6 +4,7 @@
  */
 
 #include <columns/buildandrun.hpp>
+#include <layers/HyPerLayer.hpp>
 
 int customexit(HyPerCol *hc, int argc, char **argv);
 

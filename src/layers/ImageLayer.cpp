@@ -39,14 +39,14 @@ std::string const &ImageLayer::getCurrentFilename(int localBatchElement, int mpi
       return getInputPath();
    }
 }
- 
-int ImageLayer::registerData(Checkpointer *checkpointer) {
-   int status = InputLayer::registerData(checkpointer);
-   if (status != PV_SUCCESS) {
+
+Response::Status ImageLayer::registerData(Checkpointer *checkpointer) {
+   auto status = InputLayer::registerData(checkpointer);
+   if (!Response::completed(status)) {
       return status;
    }
    mURLDownloadTemplate = checkpointer->getOutputPath() + "/temp.XXXXXX";
-   return status;
+   return Response::SUCCESS;
 }
 
 void ImageLayer::populateFileList() {
@@ -66,6 +66,11 @@ void ImageLayer::populateFileList() {
             mFileList.push_back(noWhiteSpace);
          }
       }
+      FatalIf(
+            mFileList.empty(),
+            "%s inputPath file list \"%s\" is empty.\n",
+            getDescription_c(),
+            getInputPath().c_str());
    }
 }
 

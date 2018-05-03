@@ -12,7 +12,7 @@ namespace PV {
 class ImageTestLayer : public PV::ImageLayer {
   public:
    ImageTestLayer(const char *name, HyPerCol *hc);
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 };
 }
 

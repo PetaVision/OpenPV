@@ -40,7 +40,7 @@ class WeightComparisonProbe : public PV::ColProbe {
    /**
     * Assembles the list of HyPerConns in the column.
     */
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
@@ -48,16 +48,16 @@ class WeightComparisonProbe : public PV::ColProbe {
     * and verifies that these quantities are the same for each connection
     * in the column.
     */
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
    virtual bool needRecalc(double timevalue) override { return true; }
    virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
-   virtual int calcValues(double timevalue) override { return PV_SUCCESS; }
+   virtual void calcValues(double timevalue) override {}
    /**
     * Exits with an error if any connections are found to be different
     * from each other.
     */
-   virtual int outputState(double timestamp) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   private:
    int initialize_base();

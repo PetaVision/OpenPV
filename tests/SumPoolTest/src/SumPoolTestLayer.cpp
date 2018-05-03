@@ -6,7 +6,7 @@ SumPoolTestLayer::SumPoolTestLayer(const char *name, HyPerCol *hc) {
    ANNLayer::initialize(name, hc);
 }
 
-int SumPoolTestLayer::updateState(double timef, double dt) {
+Response::Status SumPoolTestLayer::updateState(double timef, double dt) {
    // Do update state of ANN Layer first
    ANNLayer::updateState(timef, dt);
 
@@ -71,10 +71,10 @@ int SumPoolTestLayer::updateState(double timef, double dt) {
          Communicator *icComm = parent->getCommunicator();
          MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't
          // kill the run before process 0 reports the error.
-         exit(-1);
+         exit(EXIT_FAILURE);
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

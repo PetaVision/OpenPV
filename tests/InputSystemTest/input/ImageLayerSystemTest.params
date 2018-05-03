@@ -30,7 +30,6 @@ HyPerCol "column" = {
    nbatch                           = 1;
    dt                               = 1.0;
    randomSeed                       = 1234567890;
-   startTime                        = 0.0;
    stopTime                         = 320;
    progressInterval                 = 1000;
    writeProgressToErr               = false;
@@ -164,12 +163,10 @@ HyPerConn "input_to_ganglion" = {
 
     writeCompressedCheckpoints       = false;
     plasticityFlag                   = false;
-    selfFlag                         = false;
 
     delay                            = 0;
 
     pvpatchAccumulateType            = "Convolve";
-    shrinkPatches                    = false;
     updateGSynFromPostPerspective    = false;
     convertRateToSpikeCount          = false;
     receiveGpu                       = false;

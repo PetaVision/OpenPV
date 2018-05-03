@@ -13,7 +13,6 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 10;
     progressInterval                    = 10;
@@ -84,7 +83,6 @@ IdentConn "IdentConn" = {
     delay                               = [0.000000];
     receiveGpu                          = false;
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IndexWeightConn "SharedWeights" = {
@@ -107,19 +105,15 @@ IndexWeightConn "SharedWeights" = {
     initialWriteTime                    = 0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     combine_dW_with_W_flag              = false;
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
     dWMax                               = 1;
     normalizeDw                         = true;
-    useMask                             = false;
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
-    weightSparsity                      = 0;
 };
 
 // TODO: NonsharedWeight

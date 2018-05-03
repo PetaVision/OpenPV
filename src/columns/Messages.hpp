@@ -17,6 +17,10 @@
 #include <map>
 #include <string>
 
+#ifdef PV_USE_CUDA
+#include "arch/cuda/CudaDevice.hpp"
+#endif // PV_USE_CUDA
+
 namespace PV {
 
 class CommunicateInitInfoMessage : public BaseMessage {
@@ -38,6 +42,17 @@ class CommunicateInitInfoMessage : public BaseMessage {
    }
    std::map<std::string, Observer *> mHierarchy;
 };
+
+#ifdef PV_USE_CUDA
+class SetCudaDeviceMessage : public BaseMessage {
+  public:
+   SetCudaDeviceMessage(PVCuda::CudaDevice *device) {
+      setMessageType("SetCudaDevice");
+      mCudaDevice = device;
+   }
+   PVCuda::CudaDevice *mCudaDevice = nullptr;
+};
+#endif // PV_USE_CUDA
 
 class AllocateDataMessage : public BaseMessage {
   public:
@@ -102,6 +117,11 @@ class ConnectionUpdateMessage : public BaseMessage {
    // timesteps
 };
 
+class ConnectionNormalizeMessage : public BaseMessage {
+  public:
+   ConnectionNormalizeMessage() { setMessageType("ConnectionNormalizeMessage"); }
+};
+
 class ConnectionFinalizeUpdateMessage : public BaseMessage {
   public:
    ConnectionFinalizeUpdateMessage(double simTime, double deltaTime) {
@@ -116,11 +136,13 @@ class ConnectionFinalizeUpdateMessage : public BaseMessage {
 
 class ConnectionOutputMessage : public BaseMessage {
   public:
-   ConnectionOutputMessage(double simTime) {
+   ConnectionOutputMessage(double simTime, double deltaTime) {
       setMessageType("ConnectionOutput");
-      mTime = simTime;
+      mTime   = simTime;
+      mDeltaT = deltaTime;
    }
    double mTime;
+   double mDeltaT;
 };
 
 class LayerClearProgressFlagsMessage : public BaseMessage {
@@ -169,10 +191,8 @@ class LayerUpdateStateMessage : public BaseMessage {
          int phase,
 #ifdef PV_USE_CUDA
          bool recvOnGpuFlag,
-         bool updateOnGpuFlag, // updateState needs
-// recvOnGpuFlag because correct
-// order of updating
-// depends on it.
+         bool updateOnGpuFlag,
+// updateState needs recvOnGpuFlag because correct order of updating depends on it.
 #endif // PV_USE_CUDA
          double simTime,
          double deltaTime,

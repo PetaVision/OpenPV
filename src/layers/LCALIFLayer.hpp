@@ -18,8 +18,8 @@ class LCALIFLayer : public PV::LIFGap {
   public:
    LCALIFLayer(const char *name, HyPerCol *hc); // The constructor called by other methods
    virtual ~LCALIFLayer();
-   virtual int allocateDataStructures() override;
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status allocateDataStructures() override;
+   virtual Response::Status updateState(double timef, double dt) override;
    int findFlag(int numMatrixCol, int numMatrixRow);
 
    inline float getTargetRate() { return targetRateHz; }
@@ -36,12 +36,12 @@ class LCALIFLayer : public PV::LIFGap {
    virtual void ioParam_targetRate(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeInput(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vscale(enum ParamsIOFlag ioFlag);
-   virtual int registerData(Checkpointer *checkpointer) override;
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
-   virtual int read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer);
-   virtual int readVadptFromCheckpoint(Checkpointer *checkpointer);
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual void read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer);
+   virtual void readVadptFromCheckpoint(Checkpointer *checkpointer);
 
-   int allocateBuffers() override;
+   virtual void allocateBuffers() override;
 
    float *integratedSpikeCount; // plasticity decrement variable for postsynaptic layer
    float *G_Norm; // Copy of GSyn[CHANNEL_NORM] to be written out during checkpointing

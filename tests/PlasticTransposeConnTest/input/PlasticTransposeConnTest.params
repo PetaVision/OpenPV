@@ -25,7 +25,6 @@ HyPerCol "column" = {
    ny = 8;
    dt = 1.0;  //time step in ms.
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
    stopTime = 10.0;  
    errorOnNotANumber = true;
    progressInterval = 10.0; //Program will output its progress at each progressInterval
@@ -142,7 +141,6 @@ HyPerConn "OriginalMap" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 };
 

@@ -19,7 +19,6 @@
 debugParsing = true;
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 100;
     progressInterval                    = 100;
@@ -133,19 +132,15 @@ HyPerConn "ConnA" = {
     initialWriteTime                    = 0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     combine_dW_with_W_flag              = false;
     nxp                                 = 5;
     nyp                                 = 5;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
     dWMax                               = 1;
     normalizeDw                         = false;
-    useMask                             = false;
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
-    weightSparsity                      = 0;
 };
 
 PlasticCloneConn "ConnB" = {
@@ -157,10 +152,7 @@ PlasticCloneConn "ConnB" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    selfFlag                            = false;
     combine_dW_with_W_flag              = false;
-    useMask                             = false;
-    weightSparsity                      = 0;
     originalConnName                    = "ConnA";
 };
 
@@ -245,19 +237,15 @@ HyPerConn "ConnC" = {
     initialWriteTime                    = 0;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     combine_dW_with_W_flag              = false;
     nxp                                 = 5;
     nyp                                 = 5;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
     dWMax                               = 1;
     normalizeDw                         = false;
-    useMask                             = false;
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
-    weightSparsity                      = 0;
 };
 
 PlasticCloneConn "ConnD" = {
@@ -269,10 +257,7 @@ PlasticCloneConn "ConnD" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    selfFlag                            = false;
     combine_dW_with_W_flag              = false;
-    useMask                             = false;
-    weightSparsity                      = 0;
     originalConnName                    = "ConnC";
 };
 

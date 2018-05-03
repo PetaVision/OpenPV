@@ -34,16 +34,15 @@ int RescaleLayer::initialize(const char *name, HyPerCol *hc) {
    return status_init;
 }
 
-int RescaleLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = CloneVLayer::communicateInitInfo(message);
+Response::Status
+RescaleLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return CloneVLayer::communicateInitInfo(message);
    // CloneVLayer sets originalLayer and errors out if originalLayerName is not valid
-   return status;
 }
 
 // Rescale layer does not use the V buffer, so absolutely fine to clone off of an null V layer
-int RescaleLayer::allocateV() {
+void RescaleLayer::allocateV() {
    // Do nothing
-   return PV_SUCCESS;
 }
 
 int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -131,9 +130,7 @@ int RescaleLayer::setActivity() {
 }
 
 // GTK: changed to rescale activity instead of V
-int RescaleLayer::updateState(double timef, double dt) {
-   int status = PV_SUCCESS;
-
+Response::Status RescaleLayer::updateState(double timef, double dt) {
    int numNeurons                = originalLayer->getNumNeurons();
    float *A                      = clayer->activity->data;
    const float *originalA        = originalLayer->getCLayer()->activity->data;
@@ -810,7 +807,7 @@ int RescaleLayer::updateState(double timef, double dt) {
          }
       }
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

@@ -18,10 +18,11 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
    BaseHyPerConnProbe(const char *name, HyPerCol *hc);
    virtual ~BaseHyPerConnProbe();
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   HyPerConn *getTargetHyPerConn() { return targetHyPerConn; }
+   HyPerConn *getTargetHyPerConn() { return dynamic_cast<HyPerConn *>(mTargetConn); }
+   HyPerConn const *getTargetHyPerConn() const { return dynamic_cast<HyPerConn *>(mTargetConn); }
 
   protected:
    BaseHyPerConnProbe();
@@ -34,12 +35,6 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
     * HyPerConn.
     */
    virtual double referenceUpdateTime() const override;
-
-  private:
-   int initialize_base();
-
-  protected:
-   HyPerConn *targetHyPerConn;
 };
 
 } /* namespace PV */

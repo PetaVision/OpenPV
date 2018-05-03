@@ -46,7 +46,6 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 4;
     progressInterval                    = 4;
@@ -255,13 +254,10 @@ HyPerConn "InputToOutput" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };
 
 IdentConn "OutputToComparison" = {
@@ -270,7 +266,6 @@ IdentConn "OutputToComparison" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "ExpectedOutputToComparison" = {
@@ -279,7 +274,6 @@ IdentConn "ExpectedOutputToComparison" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 HyPerConn "NormalizedInputToNormalizedOutput" = {
@@ -300,13 +294,10 @@ HyPerConn "NormalizedInputToNormalizedOutput" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 3;
     nyp                                 = 3;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "none";
-    weightSparsity                      = 0;
 };
 
 IdentConn "NormalizedOutputToComparisonNormalized" = {
@@ -315,7 +306,6 @@ IdentConn "NormalizedOutputToComparisonNormalized" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "ExpectedNormalizedOutputToComparisonNormalized" = {
@@ -324,7 +314,6 @@ IdentConn "ExpectedNormalizedOutputToComparisonNormalized" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 RequireAllZeroActivityProbe "Probe" = {

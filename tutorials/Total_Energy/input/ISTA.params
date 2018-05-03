@@ -160,11 +160,9 @@ HyPerConn "V1_to_residual" = {
     writeStep                           = -1;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 16;
     nyp                                 = 16;
     nfp                                 = 3;
-    shrinkPatches                       = false;
     normalizeMethod                     = "normalizeL2";
     strength                            = 1;
     normalizeArborsIndividually         = false;
@@ -190,7 +188,6 @@ TransposeConn "residual_to_V1" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     gpuGroupIdx                         = 0;
     originalConnName                    = "V1_to_residual";
 };
@@ -206,7 +203,6 @@ CloneConn "V1_to_reconstruction" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     gpuGroupIdx                         = 0;
     originalConnName                    = "V1_to_residual";
 };

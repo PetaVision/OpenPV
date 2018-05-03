@@ -3,6 +3,8 @@
  */
 
 #include <columns/buildandrun.hpp>
+#include <connections/HyPerConn.hpp>
+#include <layers/HyPerLayer.hpp>
 
 int checkoutput(HyPerCol *hc, int argc, char **argv);
 // checkoutput is passed as a custom handle in the buildandrun customexit argument,
@@ -79,12 +81,12 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
    // Connection should be a 3x3 kernel with values 0 through 8 in the weights
    HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getObjectFromName("InputToOutput"));
    FatalIf(
-         !(conn->xPatchSize() == 3 && conn->yPatchSize() == 3 && conn->fPatchSize() == 1),
+         !(conn->getPatchSizeX() == 3 && conn->getPatchSizeY() == 3 && conn->getPatchSizeF() == 1),
          "Test failed. Connection \"InputToOutput\" must have patch size 3x3x1.\n");
-   int patchSize = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
-   FatalIf(!(conn->numberOfAxonalArborLists() == 1), "Test failed.\n");
+   int patchSize = conn->getPatchSizeX() * conn->getPatchSizeY() * conn->getPatchSizeF();
+   FatalIf(conn->getNumAxonalArbors() != 1, "Test failed.\n");
    FatalIf(!(conn->getNumDataPatches() == 1), "Test failed.\n");
-   float *w = conn->get_wDataHead(0, 0);
+   float *w = conn->getWeightsDataHead(0, 0);
    for (int r = 0; r < hc->getCommunicator()->commSize(); r++) {
       if (r == hc->columnId()) {
          InfoLog().printf("Rank %d, Weight values\n", r);

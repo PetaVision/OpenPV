@@ -13,7 +13,7 @@ class identicalBatchProbe : public PV::StatsProbe {
   public:
    identicalBatchProbe(const char *name, HyPerCol *hc);
 
-   virtual int outputState(double timed) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
    int initidenticalBatchProbe(const char *name, HyPerCol *hc);

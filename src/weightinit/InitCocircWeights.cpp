@@ -9,16 +9,11 @@
 
 namespace PV {
 
-InitCocircWeights::InitCocircWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+InitCocircWeights::InitCocircWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-InitCocircWeights::InitCocircWeights() { initialize_base(); }
+InitCocircWeights::InitCocircWeights() {}
 
 InitCocircWeights::~InitCocircWeights() {}
-
-int InitCocircWeights::initialize_base() { return PV_SUCCESS; }
 
 int InitCocircWeights::initialize(char const *name, HyPerCol *hc) {
    int status = InitGauss2DWeights::initialize(name, hc);
@@ -54,22 +49,21 @@ void InitCocircWeights::ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "deltaRadiusCurvature", &mDeltaRadiusCurvature, mDeltaRadiusCurvature);
 }
 
-void InitCocircWeights::calcWeights(float *dataStart, int patchIndex, int arborId) {
+void InitCocircWeights::calcWeights(int patchIndex, int arborId) {
    calcOtherParams(patchIndex);
-   nKurvePre  = mPreLayer->getLayerLoc()->nf / mNumOrientationsPre;
-   nKurvePost = mPostLayer->getLayerLoc()->nf / mNumOrientationsPost;
+   mNKurvePre       = mWeights->getGeometry()->getPreLoc().nf / mNumOrientationsPre;
+   mNKurvePost      = mWeights->getGeometry()->getPostLoc().nf / mNumOrientationsPost;
+   float *dataStart = mWeights->getDataFromDataIndex(arborId, patchIndex);
    cocircCalcWeights(dataStart);
 }
 
 void InitCocircWeights::cocircCalcWeights(float *dataStart) {
-
-   // load stored params:
-   int nfPatch = mCallingConn->fPatchSize();
-   int nyPatch = mCallingConn->yPatchSize();
-   int nxPatch = mCallingConn->xPatchSize();
-   int sx      = mCallingConn->xPatchStride();
-   int sy      = mCallingConn->yPatchStride();
-   int sf      = mCallingConn->fPatchStride();
+   int nfPatch = mWeights->getPatchSizeF();
+   int nyPatch = mWeights->getPatchSizeY();
+   int nxPatch = mWeights->getPatchSizeX();
+   int sx      = mWeights->getGeometry()->getPatchStrideX();
+   int sy      = mWeights->getGeometry()->getPatchStrideY();
+   int sf      = mWeights->getGeometry()->getPatchStrideF();
 
    // loop over all post synaptic neurons in patch
    for (int kfPost = 0; kfPost < nfPatch; kfPost++) {
@@ -104,10 +98,10 @@ void InitCocircWeights::cocircCalcWeights(float *dataStart) {
 }
 
 float InitCocircWeights::calcKurvePostAndSigmaKurvePost(int kfPost) {
-   int iKvPost       = kfPost % nKurvePost;
+   int iKvPost       = kfPost % mNKurvePost;
    float radKurvPost = calcKurveAndSigmaKurve(
-         iKvPost, nKurvePost, sigma_kurve_post, kurvePost, iPosKurvePost, iSaddlePost);
-   sigma_kurve_post2 = 2 * sigma_kurve_post * sigma_kurve_post;
+         iKvPost, mNKurvePost, mSigmaKurvePost, mKurvePost, mIPosKurvePost, mISaddlePost);
+   mSigmaKurvePost2 = 2 * mSigmaKurvePost * mSigmaKurvePost;
    return radKurvPost;
 }
 
@@ -145,10 +139,10 @@ float InitCocircWeights::calcKurveAndSigmaKurve(
 }
 
 void InitCocircWeights::initializeDistChordCocircKurvePreAndKurvePost() {
-   gDist      = 0.0f;
-   gCocirc    = 1.0f;
-   gKurvePre  = 1.0f;
-   gKurvePost = 1.0f;
+   mGDist      = 0.0f;
+   mGCocirc    = 1.0f;
+   mGKurvePre  = 1.0f;
+   mGKurvePost = 1.0f;
 }
 
 bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
@@ -177,7 +171,7 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
          addToGDist(std::exp(-d2_shift2 / sigmaSquared));
       }
    }
-   if (gDist == 0.0f) {
+   if (mGDist == 0.0f) {
       return true;
    }
    if (d2 == 0) {
@@ -188,16 +182,16 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
    else { // d2 > 0
 
       // compute curvature of cocircular contour
-      float cocircKurve_shift = d2_shift > 0 ? std::abs(2 * dyP_shift) / d2_shift : 0.0f;
+      float cocircKurveShift = d2_shift > 0 ? std::abs(2 * dyP_shift) / d2_shift : 0.0f;
 
-      updateCocircNChord(thPost, dyP_shift, dxP, cocircKurve_shift, d2_shift);
+      updateCocircNChord(thPost, dyP_shift, dxP, cocircKurveShift, d2_shift);
 
       if (checkFlags(dyP_shift, dxP)) {
          return true;
       }
 
-      // calculate values for gKurvePre and gKurvePost:
-      updategKurvePreNgKurvePost(cocircKurve_shift);
+      // calculate values for mGKurvePre and mGKurvePost:
+      updategKurvePreNgKurvePost(cocircKurveShift);
 
       if (mNumFlanks > 1) {
 
@@ -209,7 +203,7 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
             return true;
          }
 
-         // calculate values for gKurvePre and gKurvePost:
+         // calculate values for mGKurvePre and mGKurvePost:
          updategKurvePreNgKurvePost(cocircKurve_shift2);
       }
    }
@@ -217,22 +211,22 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
    return false;
 }
 
-void InitCocircWeights::addToGDist(float inc) { gDist += inc; }
+void InitCocircWeights::addToGDist(float inc) { mGDist += inc; }
 
 bool InitCocircWeights::checkSameLoc(int kfPost) {
    const float mSigmaCocirc2 = 2 * mSigmaCocirc * mSigmaCocirc;
    bool sameLoc              = (mFeaturePre == kfPost);
    if ((!sameLoc) || (mCocircSelf)) {
-      gCocirc = mSigmaCocirc > 0 ? expf(-mDeltaTheta * mDeltaTheta / mSigmaCocirc2)
-                                 : expf(-mDeltaTheta * mDeltaTheta / mSigmaCocirc2) - 1.0f;
-      if ((nKurvePre > 1) && (nKurvePost > 1)) {
-         gKurvePre =
-               expf(-(kurvePre - kurvePost) * (kurvePre - kurvePost)
-                    / (sigma_kurve_pre2 + sigma_kurve_post2));
+      mGCocirc = mSigmaCocirc > 0 ? expf(-mDeltaTheta * mDeltaTheta / mSigmaCocirc2)
+                                  : expf(-mDeltaTheta * mDeltaTheta / mSigmaCocirc2) - 1.0f;
+      if ((mNKurvePre > 1) && (mNKurvePost > 1)) {
+         mGKurvePre =
+               expf(-(mKurvePre - mKurvePost) * (mKurvePre - mKurvePost)
+                    / (mSigmaKurvePre2 + mSigmaKurvePost2));
       }
    }
    else { // sameLoc && !cocircSelf
-      gCocirc = 0.0f;
+      mGCocirc = 0.0f;
       return true;
    }
    return false;
@@ -242,7 +236,7 @@ void InitCocircWeights::updateCocircNChord(
       float thPost,
       float dyP_shift,
       float dxP,
-      float cocircKurve_shift,
+      float cocircKurveShift,
       float d2_shift) {
 
    const float sigmaCocirc2 = 2 * mSigmaCocirc * mSigmaCocirc;
@@ -256,34 +250,34 @@ void InitCocircWeights::updateCocircNChord(
       chi_shift = PI - chi_shift;
    }
    if (mNumOrientationsPre > 1 && mNumOrientationsPost > 1) {
-      gCocirc = sigmaCocirc2 > 0 ? expf(-chi_shift * chi_shift / sigmaCocirc2)
-                                 : expf(-chi_shift * chi_shift / sigmaCocirc2) - 1.0f;
+      mGCocirc = sigmaCocirc2 > 0 ? expf(-chi_shift * chi_shift / sigmaCocirc2)
+                                  : expf(-chi_shift * chi_shift / sigmaCocirc2) - 1.0f;
    }
 }
 
 bool InitCocircWeights::checkFlags(float dyP_shift, float dxP) {
    if (mPosKurveFlag) {
       if (mSaddleFlag) {
-         if ((iPosKurvePre) && !(iSaddlePre) && (dyP_shift < 0)) {
+         if ((mIPosKurvePre) && !(mISaddlePre) && (dyP_shift < 0)) {
             return true;
          }
-         if (!(iPosKurvePre) && !(iSaddlePre) && (dyP_shift > 0)) {
+         if (!(mIPosKurvePre) && !(mISaddlePre) && (dyP_shift > 0)) {
             return true;
          }
-         if ((iPosKurvePre) && (iSaddlePre)
+         if ((mIPosKurvePre) && (mISaddlePre)
              && (((dyP_shift > 0) && (dxP < 0)) || ((dyP_shift > 0) && (dxP < 0)))) {
             return true;
          }
-         if (!(iPosKurvePre) && (iSaddlePre)
+         if (!(mIPosKurvePre) && (mISaddlePre)
              && (((dyP_shift > 0) && (dxP > 0)) || ((dyP_shift < 0) && (dxP < 0)))) {
             return true;
          }
       }
       else { // mSaddleFlag
-         if ((iPosKurvePre) && (dyP_shift < 0)) {
+         if ((mIPosKurvePre) && (dyP_shift < 0)) {
             return true;
          }
-         if (!(iPosKurvePre) && (dyP_shift > 0)) {
+         if (!(mIPosKurvePre) && (dyP_shift > 0)) {
             return true;
          }
       }
@@ -291,21 +285,21 @@ bool InitCocircWeights::checkFlags(float dyP_shift, float dxP) {
    return false;
 }
 
-void InitCocircWeights::updategKurvePreNgKurvePost(float cocircKurve_shift) {
+void InitCocircWeights::updategKurvePreNgKurvePost(float cocircKurveShift) {
    const float sigmaCocirc2 = 2 * mSigmaCocirc * mSigmaCocirc;
 
-   gKurvePre =
-         (nKurvePre > 1)
+   mGKurvePre =
+         (mNKurvePre > 1)
                ? std::exp(
-                       -std::pow((cocircKurve_shift - std::abs(kurvePre)), 2.0f) / sigma_kurve_pre2)
+                       -std::pow((cocircKurveShift - std::abs(mKurvePre)), 2.0f) / mSigmaKurvePre2)
                : 1.0f;
-   gKurvePost = ((nKurvePre > 1) && (nKurvePost > 1) && (sigmaCocirc2 > 0))
-                      ? std::exp(
-                              -std::pow((cocircKurve_shift - std::abs(kurvePost)), 2.0f)
-                              / sigma_kurve_post2)
-                      : 1.0f;
+   mGKurvePost = ((mNKurvePre > 1) && (mNKurvePost > 1) && (sigmaCocirc2 > 0))
+                       ? std::exp(
+                               -std::pow((cocircKurveShift - std::abs(mKurvePost)), 2.0f)
+                               / mSigmaKurvePost2)
+                       : 1.0f;
 }
 
-float InitCocircWeights::calculateWeight() { return gDist * gKurvePre * gKurvePost * gCocirc; }
+float InitCocircWeights::calculateWeight() { return mGDist * mGKurvePre * mGKurvePost * mGCocirc; }
 
 } /* namespace PV */

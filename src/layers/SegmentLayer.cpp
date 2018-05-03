@@ -75,8 +75,9 @@ void SegmentLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int SegmentLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerLayer::communicateInitInfo(message);
+Response::Status
+SegmentLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
    // Get original layer
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
@@ -90,7 +91,7 @@ int SegmentLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       exit(EXIT_FAILURE);
    }
    if (originalLayer->getInitInfoCommunicatedFlag() == false) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
 
    // Sync margins
@@ -209,8 +210,11 @@ int SegmentLayer::checkIdxBufSize(int newSize) {
    return PV_SUCCESS;
 }
 
-int SegmentLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+Response::Status SegmentLayer::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    int nbatch = getLayerLoc()->nbatch;
    maxX.clear();
@@ -224,23 +228,19 @@ int SegmentLayer::allocateDataStructures() {
       centerIdx.push_back(std::map<int, int>());
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
-int SegmentLayer::allocateV() {
+void SegmentLayer::allocateV() {
    // Allocate V does nothing since binning does not need a V layer
    clayer->V = NULL;
-   return PV_SUCCESS;
 }
 
-int SegmentLayer::initializeV() {
-   assert(getV() == NULL);
-   return PV_SUCCESS;
-}
+void SegmentLayer::initializeV() { assert(getV() == NULL); }
 
-int SegmentLayer::initializeActivity() { return PV_SUCCESS; }
+void SegmentLayer::initializeActivity() {}
 
-int SegmentLayer::updateState(double timef, double dt) {
+Response::Status SegmentLayer::updateState(double timef, double dt) {
    float *srcA  = originalLayer->getActivity();
    float *thisA = getActivity();
    assert(srcA);
@@ -458,7 +458,7 @@ int SegmentLayer::updateState(double timef, double dt) {
    } // End batch loop
 
    // centerIdx now stores each center coordinate of each segment
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 SegmentLayer::~SegmentLayer() {

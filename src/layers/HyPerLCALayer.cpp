@@ -60,13 +60,16 @@ int HyPerLCALayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int HyPerLCALayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures(); // Calls allocateUpdateKernel()
+Response::Status HyPerLCALayer::allocateDataStructures() {
+   auto status = ANNLayer::allocateDataStructures(); // Calls allocateUpdateKernel()
+   if (!Response::completed(status)) {
+      return status;
+   }
    pvAssert(
          mAdaptiveTimeScaleProbe == nullptr
          || getLayerLoc()->nbatch == mAdaptiveTimeScaleProbe->getNumValues());
    mDeltaTimes.resize(getLayerLoc()->nbatch);
-   return status;
+   return Response::SUCCESS;
 }
 
 int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -112,7 +115,8 @@ int HyPerLCALayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    return status;
 }
 
-int HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+Response::Status
+HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mAdaptiveTimeScaleProbeName) {
       mAdaptiveTimeScaleProbe =
             message->lookup<AdaptiveTimeScaleProbe>(std::string(mAdaptiveTimeScaleProbeName));
@@ -134,7 +138,11 @@ int HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
          exit(EXIT_FAILURE);
       }
    }
-   return ANNLayer::communicateInitInfo(message);
+   auto status = ANNLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   return Response::SUCCESS;
 }
 
 #ifdef PV_USE_CUDA
@@ -211,7 +219,7 @@ int HyPerLCALayer::allocateUpdateKernel() {
 #endif
 
 #ifdef PV_USE_CUDA
-int HyPerLCALayer::updateStateGpu(double time, double dt) {
+Response::Status HyPerLCALayer::updateStateGpu(double time, double dt) {
    // Copy over d_dtAdapt
    d_dtAdapt->copyToDevice(deltaTimes());
    // Change dt to match what is passed in
@@ -219,13 +227,13 @@ int HyPerLCALayer::updateStateGpu(double time, double dt) {
          dynamic_cast<PVCuda::CudaUpdateHyPerLCALayer *>(krUpdate);
    assert(updateKernel);
    runUpdateKernel();
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 #endif
 
 double HyPerLCALayer::getDeltaUpdateTime() { return parent->getDeltaTime(); }
 
-int HyPerLCALayer::updateState(double time, double dt) {
+Response::Status HyPerLCALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -262,7 +270,7 @@ int HyPerLCALayer::updateState(double time, double dt) {
             A);
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 double *HyPerLCALayer::deltaTimes() {

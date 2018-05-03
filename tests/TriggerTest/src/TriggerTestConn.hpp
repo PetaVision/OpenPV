@@ -12,8 +12,10 @@ namespace PV {
 class TriggerTestConn : public PV::HyPerConn {
   public:
    TriggerTestConn(const char *name, HyPerCol *hc);
-   int virtual updateState(double time, double dt) override;
+
+  protected:
+   BaseWeightUpdater *createWeightUpdater() override;
 }; // end class TriggerTestConn
 
 } // end namespace PV
-#endif /* IMAGETESTPROBE_HPP */
+#endif /* TRIGGERTESTCONN_HPP_ */

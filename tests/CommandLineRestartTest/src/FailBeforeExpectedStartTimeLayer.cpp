@@ -17,12 +17,12 @@ int FailBeforeExpectedStartTimeLayer::initialize(char const *name, PV::HyPerCol 
 }
 
 #ifdef PV_USE_CUDA
-int FailBeforeExpectedStartTimeLayer::updateStateGpu(double simTime, double dt) {
+PV::Response::Status FailBeforeExpectedStartTimeLayer::updateStateGpu(double simTime, double dt) {
    return updateState(simTime, dt);
 }
 #endif // PV_USE_CUDA
 
-int FailBeforeExpectedStartTimeLayer::updateState(double simTime, double dt) {
+PV::Response::Status FailBeforeExpectedStartTimeLayer::updateState(double simTime, double dt) {
    FatalIf(
          simTime < mExpectedStartTime,
          "expected starting time is %f, but updateState was called with t=%f\n",

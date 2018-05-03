@@ -30,7 +30,6 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 10;
     progressInterval                    = 10;
@@ -123,7 +122,6 @@ IdentConn "GeneratedMovieToComparison" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "OriginalMovieToComparison" = {
@@ -132,7 +130,6 @@ IdentConn "OriginalMovieToComparison" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 TestNotAlwaysAllZerosProbe "OriginalMovieProbe" = {

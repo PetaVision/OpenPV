@@ -21,13 +21,13 @@ class DatastoreDelayTestProbe : public StatsProbe {
   public:
    DatastoreDelayTestProbe(const char *name, HyPerCol *hc);
 
-   virtual int outputState(double timed) override;
+   virtual Response::Status outputState(double timestamp) override;
 
    virtual ~DatastoreDelayTestProbe();
 
   protected:
    int initialize(const char *name, HyPerCol *hc);
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    // Data members

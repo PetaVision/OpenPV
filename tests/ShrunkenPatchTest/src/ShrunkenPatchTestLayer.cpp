@@ -69,16 +69,19 @@ int ShrunkenPatchTestLayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int ShrunkenPatchTestLayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures();
-   if (status == PV_SUCCESS) {
+Response::Status ShrunkenPatchTestLayer::allocateDataStructures() {
+   auto status = ANNLayer::allocateDataStructures();
+   if (Response::completed(status)) {
       setVtoGlobalPos();
       setActivitytoGlobalPos();
+      status = Response::SUCCESS;
    }
    return status;
 }
 
-int ShrunkenPatchTestLayer::updateState(double timed, double dt) { return PV_SUCCESS; }
+Response::Status ShrunkenPatchTestLayer::updateState(double timed, double dt) {
+   return Response::SUCCESS;
+}
 
 int ShrunkenPatchTestLayer::publish(Communicator *comm, double timed) {
    setActivitytoGlobalPos();

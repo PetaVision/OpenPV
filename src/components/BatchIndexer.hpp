@@ -1,7 +1,7 @@
 #ifndef BATCHINDEXER_HPP_
 #define BATCHINDEXER_HPP_
 
-#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointerDataInterface.hpp"
 #include <vector>
 
 namespace PV {
@@ -30,11 +30,11 @@ class BatchIndexer : public CheckpointerDataInterface {
    bool getWrapToStartIndex() { return mWrapToStartIndex; }
    std::vector<int> getIndices() { return mIndices; }
 
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
   protected:
-   virtual int processCheckpointRead() override;
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual Response::Status processCheckpointRead() override;
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    /** Exits with error if any of index is negative or >= fileCount.
     *  Called when reading or initializing from checkpoint.

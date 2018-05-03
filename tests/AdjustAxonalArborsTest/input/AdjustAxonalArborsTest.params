@@ -4,7 +4,7 @@
 // created by peteschultz: Oct 11, 2013
 //
 
-// A params file testing whether HyPerConn::adjustAxonalArbors()
+// A params file testing whether PatchGeometry::initPatchGeometry()
 // shrinks patches correctly in the case where the patch size exceeds
 // the post-synaptic restricted layer size, so that the patch must be
 // shrunken in both directions.
@@ -34,7 +34,6 @@ HyPerCol "column" = {
    ny = 2;
    dt = 1.0;  //time step in ms.	     
    randomSeed = 1290140979;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
    stopTime = 10.0;  
    progressInterval = 10.0; //Program will output its progress at each progressInterval
    writeProgressToErr = false;  
@@ -121,11 +120,9 @@ HyPerConn "InputToOutput" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;  // conntect to itself
 
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 };

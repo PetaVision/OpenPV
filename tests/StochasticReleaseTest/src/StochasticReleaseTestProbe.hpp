@@ -10,6 +10,7 @@
 
 #include "columns/HyPerCol.hpp"
 #include "columns/buildandrun.hpp"
+#include "connections/HyPerConn.hpp"
 #include "probes/StatsProbe.hpp"
 #include <cmath>
 #include <stdlib.h>
@@ -21,10 +22,10 @@ class StochasticReleaseTestProbe : public PV::StatsProbe {
    StochasticReleaseTestProbe(const char *name, HyPerCol *hc);
    virtual ~StochasticReleaseTestProbe();
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual int outputState(double timed) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
    StochasticReleaseTestProbe();

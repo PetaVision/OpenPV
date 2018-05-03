@@ -18,9 +18,9 @@ class FilenameParsingGroundTruthLayer : public HyPerLayer {
   public:
    FilenameParsingGroundTruthLayer(const char *name, HyPerCol *hc);
    virtual ~FilenameParsingGroundTruthLayer();
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
    virtual bool needUpdate(double time, double dt) override;
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
@@ -33,7 +33,7 @@ class FilenameParsingGroundTruthLayer : public HyPerLayer {
    float mGtClassFalseValue = 0.0f;
 
   protected:
-   virtual int registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    /**
     * List of protected paramters needed from FilenameParsingGroundTruthLayer

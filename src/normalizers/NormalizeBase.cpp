@@ -2,63 +2,41 @@
  * NormalizeBase.cpp
  *
  *  Created on: Apr 5, 2013
- *      Author: pschultz
+ *      Author: Pete Schultz
  */
 
 #include "NormalizeBase.hpp"
+#include "columns/HyPerCol.hpp"
+#include "components/StrengthParam.hpp"
+#include "components/WeightsPair.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-NormalizeBase::NormalizeBase() { initialize_base(); }
+NormalizeBase::NormalizeBase(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-NormalizeBase::~NormalizeBase() {}
-
-int NormalizeBase::initialize_base() {
-   strength                    = 1.0f;
-   normalizeArborsIndividually = false;
-   normalizeOnInitialize       = true;
-   normalizeOnWeightUpdate     = true;
-   return PV_SUCCESS;
-}
-
-// NormalizeBase does not directly call initialize since it is an abstract base class.
-// Subclasses should call NormalizeBase::initialize from their own initialize routine
-// This allows virtual methods called from initialize to be aware of which class's constructor was
-// called.
-int NormalizeBase::initialize(const char *name, HyPerCol *hc) {
-   // name is the name of a group in the PVParams object.  Parameters related to normalization
-   // should be in the indicated group.
-
+int NormalizeBase::initialize(char const *name, HyPerCol *hc) {
    int status = BaseObject::initialize(name, hc);
-   status     = parent->addNormalizer(this);
    return status;
 }
 
-int NormalizeBase::setDescription() {
-   description.clear();
-   char const *method = parent->parameters()->stringValue(
-         name, "normalizeMethod", false /*do not warn if absent*/);
-   if (method == nullptr) {
-      description.append("weight normalizer ");
-   }
-   else {
-      description.append(method);
-   }
-   description.append(" \"").append(name).append("\"");
-   return PV_SUCCESS;
+void NormalizeBase::setObjectType() {
+   auto *params                = parent->parameters();
+   char const *normalizeMethod = params->stringValue(name, "normalizeMethod", false);
+   mObjectType                 = normalizeMethod ? normalizeMethod : "Normalizer for";
 }
 
 int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_strength(ioFlag);
+   ioParam_normalizeMethod(ioFlag);
    ioParam_normalizeArborsIndividually(ioFlag);
    ioParam_normalizeOnInitialize(ioFlag);
    ioParam_normalizeOnWeightUpdate(ioFlag);
    return PV_SUCCESS;
 }
 
-void NormalizeBase::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "strength", &strength, strength /*default*/, true /*warn if absent*/);
+void NormalizeBase::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "normalizeMethod", &mNormalizeMethod);
 }
 
 void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {
@@ -66,14 +44,14 @@ void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag
          ioFlag,
          name,
          "normalizeArborsIndividually",
-         &normalizeArborsIndividually,
-         false /*default*/,
+         &mNormalizeArborsIndividually,
+         mNormalizeArborsIndividually,
          true /*warnIfAbsent*/);
 }
 
 void NormalizeBase::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(
-         ioFlag, name, "normalizeOnInitialize", &normalizeOnInitialize, normalizeOnInitialize);
+         ioFlag, name, "normalizeOnInitialize", &mNormalizeOnInitialize, mNormalizeOnInitialize);
 }
 
 void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
@@ -81,46 +59,94 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
          ioFlag,
          name,
          "normalizeOnWeightUpdate",
-         &normalizeOnWeightUpdate,
-         normalizeOnWeightUpdate);
+         &mNormalizeOnWeightUpdate,
+         mNormalizeOnWeightUpdate);
 }
 
-int NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   HyPerConn *conn = message->lookup<HyPerConn>(std::string(name));
-   pvAssertMessage(conn != nullptr, "No connection \"%s\" for %s.\n", name, getDescription_c());
-   pvAssert(conn != nullptr);
-   return addConnToList(conn);
-}
-
-int NormalizeBase::normalizeWeightsWrapper() {
-   int status      = PV_SUCCESS;
-   double simTime  = parent->simulationTime();
-   bool needUpdate = false;
-   if (normalizeOnInitialize && simTime == parent->getStartTime()) {
-      needUpdate = true;
+Response::Status NormalizeBase::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = BaseObject::respond(message);
+   if (status != Response::SUCCESS) {
+      return status;
    }
-   else if (!normalizeOnWeightUpdate) {
-      needUpdate = false;
+   else if (
+         auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(message)) {
+      return respondConnectionNormalize(castMessage);
    }
    else {
-      for (auto &c : connectionList) {
-         if (simTime == c->getLastUpdateTime()) {
-            needUpdate = true;
-         }
-      }
+      return status;
    }
-   if (needUpdate) {
-      status = normalizeWeights();
-   }
-   // Need to set each connection's last update time to simTime
-   return status;
 }
 
-int NormalizeBase::normalizeWeights() {
-   int status = PV_SUCCESS;
-   for (auto &c : connectionList) {
+Response::Status NormalizeBase::respondConnectionNormalize(
+      std::shared_ptr<ConnectionNormalizeMessage const> message) {
+   bool needUpdate = false;
+   double simTime  = parent->simulationTime();
+   if (mNormalizeOnInitialize && simTime == 0.0) {
+      needUpdate = true;
    }
-   return status;
+   else if (mNormalizeOnWeightUpdate and weightsHaveUpdated()) {
+      needUpdate = true;
+   }
+   if (needUpdate) {
+      normalizeWeights();
+      mLastTimeNormalized = simTime;
+      for (auto &w : mWeightsList) {
+         pvAssert(w);
+         w->setTimestamp(simTime);
+      }
+      return Response::SUCCESS;
+   }
+   else {
+      return Response::NO_ACTION;
+   }
+}
+
+Response::Status
+NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
+   pvAssert(weightsPair);
+   if (!weightsPair->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
+
+   auto *strengthParam = mapLookupByType<StrengthParam>(message->mHierarchy, getDescription());
+   pvAssert(strengthParam);
+   if (!strengthParam->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
+   mStrength = strengthParam->getStrength();
+
+   auto status = BaseObject::communicateInitInfo(message);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
+
+   weightsPair->needPre();
+   Weights *weights = weightsPair->getPreWeights();
+   pvAssert(weights != nullptr);
+   addWeightsToList(weights);
+
+   return Response::SUCCESS;
+}
+
+void NormalizeBase::addWeightsToList(Weights *weights) {
+   mWeightsList.push_back(weights);
+   if (parent->getCommunicator()->globalCommRank() == 0) {
+      InfoLog().printf(
+            "Adding %s to normalizer group \"%s\".\n", weights->getName().c_str(), this->getName());
+   }
+}
+
+bool NormalizeBase::weightsHaveUpdated() const {
+   bool haveUpdated = false;
+   for (auto &w : mWeightsList) {
+      pvAssert(w);
+      if (w->getTimestamp() > mLastTimeNormalized) {
+         haveUpdated = true;
+         break;
+      }
+   }
+   return haveUpdated;
 }
 
 int NormalizeBase::accumulateSum(float *dataPatchStart, int weights_in_patch, float *sum) {
@@ -129,7 +155,6 @@ int NormalizeBase::accumulateSum(float *dataPatchStart, int weights_in_patch, fl
    // several patches with multiple calls
    for (int k = 0; k < weights_in_patch; k++) {
       float w = dataPatchStart[k];
-      // TODO-CER-2014.4.4 - weight conversion
       *sum += w;
    }
    return PV_SUCCESS;
@@ -234,20 +259,4 @@ int NormalizeBase::accumulateMin(float *dataPatchStart, int weights_in_patch, fl
    return PV_SUCCESS;
 }
 
-int NormalizeBase::addConnToList(HyPerConn *newConn) {
-   connectionList.push_back(newConn);
-   if (parent->columnId() == 0) {
-      InfoLog().printf(
-            "Adding %s to normalizer group \"%s\".\n",
-            newConn->getDescription_c(),
-            this->getName());
-   }
-   return PV_SUCCESS;
-}
-
-void NormalizeBase::normalizePatch(float *dataStartPatch, int weights_per_patch, float multiplier) {
-   for (int k = 0; k < weights_per_patch; k++)
-      dataStartPatch[k] *= multiplier;
-}
-
-} // end namespace PV
+} // namespace PV

@@ -72,7 +72,7 @@ function writepvpsharedweightfile(filename, data)
        hdr(5) = 1;   % Presynaptic ny, not used by weights
        hdr(6) = numpatches; % Presynaptic nf, assuming it's the same as the number of weight patches
        hdr(7) = numarbors;   % Number of records, for weight files one arbor is a record.
-       hdr(8) = numpatches*(8+4*nxp*nyp*nfp);   % Record size, the data for the arbor is preceded by nx(2 bytes), ny(2 bytes) and offset(4 bytes)
+       hdr(8) = 0;   % Weight pvp files do not use the record size header field
        hdr(9) = 4;   % Data size: floats are four bytes
        hdr(10) = 3;  % Types are 1=byte, 2=int, 3=float.  Type 1 is for compressed weights; type 2 isn't used for weight files
        hdr(11) = 1;  % Number of processes in x-direction; no longer used
@@ -81,7 +81,7 @@ function writepvpsharedweightfile(filename, data)
        hdr(14) = 1;  % Presynaptic nyGlobal, not used by weights
        hdr(15) = 0;  % kx0, no longer used
        hdr(16) = 0;  % ky0, no longer used
-       hdr(17) = 0;  % Presynaptic nb, not used by weights
+       hdr(17) = 1;  % Presynaptic nb, not used by weights
        hdr(18) = numel(data{frameno}.values); % number of arbors
        hdr(19:20) = typecast(double(data{frameno}.time),'uint32'); % timestamp
        % hdr(21:26) is for extra header values used by weights

@@ -39,14 +39,14 @@ class InputRegionLayer : public HyPerLayer {
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag) override;
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    void setOriginalLayer(HyPerLayer *layer);
    void checkLayerDimensions();
-   virtual int allocateDataStructures() override;
-   virtual int allocateGSyn() override;
-   virtual int allocateV() override;
-   virtual int allocateActivity() override;
+   virtual Response::Status allocateDataStructures() override;
+   virtual void allocateGSyn() override;
+   virtual void allocateV() override;
+   virtual void allocateActivity() override;
    virtual int setActivity() override;
 
   private:

@@ -6,20 +6,17 @@ FixedImageSequence::FixedImageSequence(char const *name, PV::HyPerCol *hc) {
    PV::HyPerLayer::initialize(name, hc);
 }
 
-int FixedImageSequence::allocateV() {
-   clayer->V = nullptr;
-   return PV_SUCCESS;
-}
+void FixedImageSequence::allocateV() { clayer->V = nullptr; }
 
-int FixedImageSequence::setInitialValues() {
+PV::Response::Status FixedImageSequence::initializeState() {
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       clayer->activity->data[k] = 0.0f;
    }
    defineImageSequence();
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int FixedImageSequence::updateState(double timestamp, double dt) {
+PV::Response::Status FixedImageSequence::updateState(double timestamp, double dt) {
    FatalIf(dt != 1.0, "FixedImageSequence assumes dt = 1.\n");
    double timestampRounded = std::nearbyint(timestamp);
    FatalIf(
@@ -95,5 +92,5 @@ int FixedImageSequence::updateState(double timestamp, double dt) {
          }
       }
    }
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }

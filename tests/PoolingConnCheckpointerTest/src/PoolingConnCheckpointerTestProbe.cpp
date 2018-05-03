@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <climits>
 #include <cmath>
+#include <connections/PoolingConn.hpp>
 #include <utils/BufferUtilsMPI.hpp>
 
 PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe() { initialize_base(); }
@@ -41,31 +42,25 @@ void PoolingConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOF
    }
 }
 
-int PoolingConnCheckpointerTestProbe::communicateInitInfo(
+PV::Response::Status PoolingConnCheckpointerTestProbe::communicateInitInfo(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   int status = PV::ColProbe::communicateInitInfo(message);
-   FatalIf(
-         status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
+   auto status = PV::ColProbe::communicateInitInfo(message);
+   if (!PV::Response::completed(status)) {
+      return status;
+   }
 
-   if (initInputLayer(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
-   if (initOutputLayer(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
-   if (initConnection(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
-   FatalIf(parent->getNBatch() > 1, "PoolingConnCheckpointerTestProbe requires nbatch = 1.\n");
+   status = status + initInputLayer(message);
+   status = status + initOutputLayer(message);
+   status = status + initConnection(message);
    return status;
 }
 
-int PoolingConnCheckpointerTestProbe::initInputLayer(
+PV::Response::Status PoolingConnCheckpointerTestProbe::initInputLayer(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
-   if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mInputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
 
    PVHalo const *halo = &mInputLayer->getLayerLoc()->halo;
@@ -75,40 +70,38 @@ int PoolingConnCheckpointerTestProbe::initInputLayer(
    FatalIf(
          mInputLayer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int PoolingConnCheckpointerTestProbe::initOutputLayer(
+PV::Response::Status PoolingConnCheckpointerTestProbe::initOutputLayer(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
-   if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mOutputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int PoolingConnCheckpointerTestProbe::initConnection(
+PV::Response::Status PoolingConnCheckpointerTestProbe::initConnection(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   mConnection = message->lookup<PV::HyPerConn>(std::string("InputToOutput"));
+   mConnection = message->lookup<PV::PoolingConn>(std::string("InputToOutput"));
    FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
-   if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
 
    FatalIf(
-         mConnection->numberOfAxonalArborLists() != 1,
-         "This test assumes that the connection has only 1 arbor.\n");
+         mConnection->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
    FatalIf(
-         mConnection->getDelay(0) != 0.0,
-         "This test assumes that the connection has zero delay.\n");
-   FatalIf(mConnection->xPatchSize() != 1, "This test assumes that the connection has nxp==1.\n");
-   FatalIf(mConnection->yPatchSize() != 1, "This test assumes that the connection has nyp==1.\n");
-   FatalIf(mConnection->fPatchSize() != 1, "This test assumes that the connection has nfp==1.\n");
-   return PV_SUCCESS;
+         mConnection->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
+   FatalIf(
+         mConnection->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
+   return PV::Response::SUCCESS;
 }
 
-int PoolingConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
+PV::Response::Status
+PoolingConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
    if (!dependencyObject->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->commRank() == 0) {
          InfoLog().printf(
@@ -116,14 +109,15 @@ int PoolingConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *depe
                getDescription_c(),
                dependencyObject->getName());
       }
-      return PV_POSTPONE;
+      return PV::Response::POSTPONE;
    }
    else {
-      return PV_SUCCESS;
+      return PV::Response::SUCCESS;
    }
 }
 
-int PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkpointer) {
+PV::Response::Status
+PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkpointer) {
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
@@ -136,12 +130,12 @@ int PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *
 
    mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
 
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
 int PoolingConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
-   pvAssert(timevalue >= parent->getStartTime());
-   int const step = (int)std::nearbyint(timevalue - parent->getStartTime());
+   pvAssert(timevalue >= 0.0);
+   int const step = (int)std::nearbyint(timevalue);
    pvAssert(step >= 0);
    int const updateNumber = (step + 3) / 4; // integer division
    return updateNumber;
@@ -155,7 +149,7 @@ void PoolingConnCheckpointerTestProbe::initializeCorrectValues(double timevalue)
    // outputState calls mCorrectState->update() if needed.
 }
 
-int PoolingConnCheckpointerTestProbe::outputState(double timevalue) {
+PV::Response::Status PoolingConnCheckpointerTestProbe::outputState(double timevalue) {
    if (!mValuesSet) {
       initializeCorrectValues(timevalue);
       mValuesSet = true;
@@ -186,7 +180,8 @@ int PoolingConnCheckpointerTestProbe::outputState(double timevalue) {
                "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }
-   return PV_SUCCESS; // Test runs all timesteps and then checks the mTestFailed flag at the end.
+   // Test runs all timesteps and then checks the mTestFailed flag at the end.
+   return PV::Response::SUCCESS;
 }
 
 bool PoolingConnCheckpointerTestProbe::verifyLayer(

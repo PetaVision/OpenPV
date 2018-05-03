@@ -17,14 +17,14 @@
  *
  * kzPre is always in restricted space
  */
-int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post) {
+int zPatchHead(int kzPre, int nzPatch, int zLog2ScaleDiff) {
    int shift;
 
-   float a = powf(2.0f, (float)(zScaleLog2Pre - zScaleLog2Post));
+   float a = powf(2.0f, -(float)(zLog2ScaleDiff));
 
    if ((int)a == 1) {
       shift = -(int)(0.5f * (float)nzPatch);
-      return shift + nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+      return shift + nearby_neighbor(kzPre, zLog2ScaleDiff);
    }
 
    shift = 1 - (int)(0.5f * (float)nzPatch);
@@ -56,7 +56,7 @@ int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post) {
       shift = -(int)(0.5f * (float)nzPatch);
    }
 
-   int neighbor = nearby_neighbor(kzPre, zScaleLog2Pre, zScaleLog2Post);
+   int neighbor = nearby_neighbor(kzPre, zLog2ScaleDiff);
 
    // added if nzPatch == 1
    if (nzPatch == 1) {
@@ -81,27 +81,22 @@ int zPatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post) {
  * @distPre
  * @distPost
  */
-int dist2NearestCell(
-      int kzPre,
-      int log2ScalePre,
-      int log2ScalePost,
-      float *distPre,
-      float *distPost) {
+int dist2NearestCell(int kzPre, int log2ScaleDiff, float *distPre, float *distPost) {
    // scaleFac == 1
    assert(kzPre >= 0); // not valid in general if kzPre < 0
    int kzPost = kzPre;
    *distPost  = 0.0;
    *distPre   = 0.0;
-   if (log2ScalePre > log2ScalePost) {
+   if (log2ScaleDiff < 0) {
       // post-synaptic layer has smaller size scale (is denser)
-      int scaleFac = pow(2, log2ScalePre) / pow(2, log2ScalePost);
+      int scaleFac = pow(2, -log2ScaleDiff);
       *distPost    = -0.5;
       *distPre     = -0.5 / scaleFac;
       kzPost       = (int)((kzPre + 0.5) * scaleFac) - 1; // left neighbor, add 1 for right neighbor
    }
-   else if (log2ScalePre < log2ScalePost) {
+   else if (log2ScaleDiff > 0) {
       // post-synaptic layer has larger size scale (is less dense), scaleFac > 1
-      int scaleFac = pow(2, log2ScalePost) / pow(2, log2ScalePre);
+      int scaleFac = pow(2, log2ScaleDiff);
       *distPre     = 0.5 * (scaleFac - 2 * (kzPre % scaleFac) - 1);
       *distPost    = *distPre / scaleFac;
       kzPost       = kzPre / scaleFac;

@@ -13,7 +13,6 @@
 debugParsing = true;
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 40;
     progressInterval                    = 40;
@@ -134,7 +133,6 @@ IdentConn "InputToResidualCPU" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 HyPerConn "V1CPUToResidualCPU" = {
@@ -153,11 +151,9 @@ HyPerConn "V1CPUToResidualCPU" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 18;
     nyp                                 = 18;
     nfp                                 = 1;
-    shrinkPatches                       = false;
     normalizeMethod                     = "normalizeL2";
     strength                            = 1;
     normalizeArborsIndividually         = false;
@@ -169,7 +165,6 @@ HyPerConn "V1CPUToResidualCPU" = {
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     minL2NormTolerated                  = 0;
-    weightSparsity                      = 0;
 };
 
 TransposeConn "ResidualCPUToV1CPU" = {
@@ -183,8 +178,6 @@ TransposeConn "ResidualCPUToV1CPU" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
-    weightSparsity                      = 0;
     originalConnName                    = "V1CPUToResidualCPU";
 };
 
@@ -197,8 +190,6 @@ CloneConn "V1CPUToReconstructionCPU" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    selfFlag                            = false;
-    weightSparsity                      = 0;
     originalConnName                    = "V1CPUToResidualCPU";
 };
 
@@ -208,7 +199,6 @@ IdentConn "ReconstructionCPUToResidualCPU" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 AdaptiveTimeScaleProbe "AdaptiveTimeScalesCPU" = {
@@ -281,7 +271,7 @@ IdentConn "InputToResidualGPU" = {
 
 HyPerConn "V1GPUToResidualGPU" = {
     #include "V1CPUToResidualCPU";
-    @preLayerName = "V1CPU";
+    @preLayerName = "V1GPU";
     @postLayerName = "ResidualGPU";
 };
 
@@ -358,7 +348,6 @@ IdentConn "ReconstructionGPUToComparison" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 IdentConn "ReconstructionCPUToComparison" = {
@@ -367,7 +356,6 @@ IdentConn "ReconstructionCPUToComparison" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
-    weightSparsity                      = 0;
 };
 
 RequireAllZeroActivityProbe "ComparisonTest" = {

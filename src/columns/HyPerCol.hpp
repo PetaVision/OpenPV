@@ -33,15 +33,12 @@
 #include <arch/cuda/CudaDevice.hpp>
 #endif
 
-#include <vector>
-
 namespace PV {
 
-class NormalizeBase;
 class PV_Init;
 class PVParams;
 
-class HyPerCol : public Subject, Observer {
+class HyPerCol : public Subject, public Observer {
 
   private:
    /**
@@ -49,11 +46,6 @@ class HyPerCol : public Subject, Observer {
     * @name HyPerCol Parameters
     * @{
     */
-
-   /**
-    * @brief mStartTime: The set starting time for the run
-    */
-   virtual void ioParam_startTime(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief mStopTime: The set stopping time for the run
@@ -119,7 +111,7 @@ class HyPerCol : public Subject, Observer {
 
    // Public functions
 
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    /**
     * Returns the object in the hierarchy with the given name, if any exists.
@@ -138,13 +130,6 @@ class HyPerCol : public Subject, Observer {
     */
    Observer *getNextObject(Observer const *currentObject) const;
 
-   /**
-    * Adds an object (layer, connection, etc.) to the hierarchy.
-    * Exits with an error if adding the object failed.
-    * The usual reason for failing to add the object is that the name is the same
-    * as that of an earlier added object.
-    */
-   int addNormalizer(NormalizeBase *normalizer);
    void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
    void nonblockingLayerUpdate(std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
@@ -165,9 +150,8 @@ class HyPerCol : public Subject, Observer {
     * This method is called by the run() method.
     */
    void allocateColumn();
-   int run() { return run(mStartTime, mStopTime, mDeltaTime); }
-   int run(double mStartTime, double mStopTime, double dt);
-   NormalizeBase *getNormalizerFromName(const char *normalizerName);
+   int run() { return run(mStopTime, mDeltaTime); }
+   int run(double stopTime, double dt);
 
    // Getters and setters
 
@@ -180,7 +164,6 @@ class HyPerCol : public Subject, Observer {
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    double getDeltaTime() const { return mDeltaTime; }
    double simulationTime() const { return mSimTime; }
-   double getStartTime() const { return mStartTime; }
    double getStopTime() const { return mStopTime; }
    int globalRank() { return mCommunicator->globalCommRank(); }
    int columnId() { return mCommunicator->commRank(); }
@@ -189,7 +172,6 @@ class HyPerCol : public Subject, Observer {
    int getNBatch() { return mNumBatch; }
    int getNBatchGlobal() { return mNumBatchGlobal; }
    int getNumThreads() const { return mNumThreads; }
-   int numberOfNormalizers() const { return mNormalizers.size(); }
    int numberOfBorderRegions() const { return MAX_NEIGHBORS; }
    int numberOfColumns() { return mCommunicator->commSize(); }
    int numberOfGlobalColumns() { return mCommunicator->globalCommSize(); }
@@ -200,7 +182,6 @@ class HyPerCol : public Subject, Observer {
    int numCommRows() { return mCommunicator->numCommRows(); }
    int numCommBatches() { return mCommunicator->numCommBatches(); }
    Communicator *getCommunicator() const { return mCommunicator; }
-   NormalizeBase *getNormalizer(int which) { return mNormalizers.at(which); }
    PV_Init *getPV_InitObj() const { return mPVInitObj; }
    FileStream *getPrintParamsStream() const { return mPrintParamsStream; }
    PVParams *parameters() const { return mParams; }
@@ -231,26 +212,25 @@ class HyPerCol : public Subject, Observer {
    void setDescription();
    int initialize_base();
    int initialize(PV_Init *initObj);
-   int ioParams(enum ParamsIOFlag ioFlag);
+   void ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void addObject(BaseObject *obj);
    int checkDirExists(const char *dirname, struct stat *pathstat);
-   inline void notify(std::vector<std::shared_ptr<BaseMessage const>> messages) {
-      Subject::notify(
-            mObjectHierarchy, messages, getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   inline void notifyLoop(std::vector<std::shared_ptr<BaseMessage const>> messages) {
+      bool printFlag = getCommunicator()->globalCommRank() == 0;
+      Subject::notifyLoop(mObjectHierarchy, messages, printFlag, description);
    }
-   inline void notify(std::shared_ptr<BaseMessage const> message) {
-      notify(std::vector<std::shared_ptr<BaseMessage const>>{message});
+   inline void notifyLoop(std::shared_ptr<BaseMessage const> message) {
+      notifyLoop(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
-   int respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
+   Response::Status
+   respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
 #ifdef PV_USE_CUDA
    void initializeCUDA(std::string const &in_device);
    int finalizeCUDA();
 #endif // PV_USE_CUDA
-   int normalizeWeights();
-   int outputParams(char const *path);
-   int outputParamsHeadComments(FileStream *fileStream, char const *commentToken);
-   int calcTimeScaleTrue();
+   void outputParams(char const *path);
+   void outputParamsHeadComments(FileStream *fileStream, char const *commentToken);
    /**
     * Sets the mNumThreads member variable based on whether PV_USE_OPENMP is set
     * and the NumThreads argument in the ConfigFile (-t option if using the
@@ -269,7 +249,7 @@ class HyPerCol : public Subject, Observer {
    // exit with an error if any appear
    bool mCheckpointReadFlag; // whether to load from a checkpoint directory
    bool mReadyFlag; // Initially false; set to true when communicateInitInfo,
-   // allocateDataStructures, and setInitialValues stages are completed
+   // allocateDataStructures, and initializeState stages are completed
    bool mParamsProcessedFlag; // Initially false; set to true when processParams
    // is called.
    bool mWriteTimeScaleFieldnames; // determines whether fieldnames are written to
@@ -285,7 +265,6 @@ class HyPerCol : public Subject, Observer {
    char *mPrintParamsFilename; // filename for outputting the mParams, including
    // defaults and
    // excluding unread mParams
-   double mStartTime;
    double mSimTime;
    double mStopTime; // time to stop time
    double mDeltaTime; // time step interval
@@ -308,15 +287,12 @@ class HyPerCol : public Subject, Observer {
    long int mInitialStep;
    long int mCurrentStep;
    long int mFinalStep;
-   std::vector<NormalizeBase *> mNormalizers; // NormalizeBase ** mNormalizers; // Objects for
-   // normalizing connections or groups of connections
    PV_Init *mPVInitObj;
    FileStream *mPrintParamsStream; // file pointer associated with mPrintParamsFilename
    FileStream *mLuaPrintParamsStream; // file pointer associated with the output lua file
    PVParams *mParams; // manages input parameters
    size_t mLayerArraySize;
    size_t mConnectionArraySize;
-   size_t mNormalizerArraySize;
    std::ofstream mTimeScaleStream;
    Timer *mRunTimer;
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;

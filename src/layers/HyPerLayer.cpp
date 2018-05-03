@@ -17,7 +17,6 @@
 #include "checkpointing/CheckpointEntryRandState.hpp"
 #include "columns/HyPerCol.hpp"
 #include "connections/BaseConnection.hpp"
-#include "connections/TransposeConn.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
 #include "io/FileStream.hpp"
@@ -132,11 +131,7 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    if (status != PV_SUCCESS) {
       return status;
    }
-
-   PVParams *params = parent->parameters();
-
-   status = readParams();
-   assert(status == PV_SUCCESS);
+   readParams();
 
    writeTime                = initialWriteTime;
    writeActivityCalls       = 0;
@@ -299,11 +294,11 @@ int HyPerLayer::allocateClayerBuffers() {
    // clayer fields numNeurons, numExtended, loc, xScale, yScale,
    // dx, dy, xOrigin, yOrigin were set in initClayer().
    assert(clayer);
-   FatalIf(allocateV() != PV_SUCCESS, "%s: allocateV() failed.\n", getName());
-   FatalIf(allocateActivity() != PV_SUCCESS, "%s: allocateActivity() failed.\n", getName());
+   allocateV();
+   allocateActivity();
 
    // athresher 11-4-16 TODO: Should these be called on non-spiking layers?
-   FatalIf(allocatePrevActivity() != PV_SUCCESS, "%s: allocatePrevActivity() failed.\n", getName());
+   allocatePrevActivity();
    for (int k = 0; k < getNumExtendedAllBatches(); k++) {
       clayer->prevActivity[k] = -10 * REFRACTORY_PERIOD; // allow neuron to fire at time t==0
    }
@@ -311,42 +306,42 @@ int HyPerLayer::allocateClayerBuffers() {
 }
 
 template <typename T>
-int HyPerLayer::allocateBuffer(T **buf, int bufsize, const char *bufname) {
-   int status = PV_SUCCESS;
-   *buf       = (T *)calloc(bufsize, sizeof(T));
+void HyPerLayer::allocateBuffer(T **buf, int bufsize, const char *bufname) {
+   *buf = (T *)calloc(bufsize, sizeof(T));
    if (*buf == NULL) {
-      ErrorLog().printf(
+      Fatal().printf(
             "%s: rank %d process unable to allocate memory for %s: %s.\n",
             getDescription_c(),
             parent->columnId(),
             bufname,
             strerror(errno));
-      status = PV_FAILURE;
    }
-   return status;
 }
 // Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may
 // get linker errors.
-template int HyPerLayer::allocateBuffer<float>(float **buf, int bufsize, const char *bufname);
-template int HyPerLayer::allocateBuffer<int>(int **buf, int bufsize, const char *bufname);
+template void HyPerLayer::allocateBuffer<float>(float **buf, int bufsize, const char *bufname);
+template void HyPerLayer::allocateBuffer<int>(int **buf, int bufsize, const char *bufname);
 
-int HyPerLayer::allocateRestrictedBuffer(float **buf, char const *bufname) {
-   return allocateBuffer(buf, getNumNeuronsAllBatches(), bufname);
+void HyPerLayer::allocateRestrictedBuffer(float **buf, char const *bufname) {
+   allocateBuffer(buf, getNumNeuronsAllBatches(), bufname);
 }
 
-int HyPerLayer::allocateExtendedBuffer(float **buf, char const *bufname) {
-   return allocateBuffer(buf, getNumExtendedAllBatches(), bufname);
+void HyPerLayer::allocateExtendedBuffer(float **buf, char const *bufname) {
+   allocateBuffer(buf, getNumExtendedAllBatches(), bufname);
 }
 
-int HyPerLayer::allocateV() { return allocateRestrictedBuffer(&clayer->V, "membrane potential V"); }
+void HyPerLayer::allocateV() {
+   return allocateRestrictedBuffer(&clayer->V, "membrane potential V");
+}
 
-int HyPerLayer::allocateActivity() {
+void HyPerLayer::allocateActivity() {
    clayer->activity = pvcube_new(&clayer->loc, getNumExtendedAllBatches());
-   return clayer->activity != NULL ? PV_SUCCESS : PV_FAILURE;
+   FatalIf(
+         clayer->activity == nullptr, "%s failed to allocate activity cube.\n", getDescription_c());
 }
 
-int HyPerLayer::allocatePrevActivity() {
-   return allocateExtendedBuffer(&clayer->prevActivity, "time of previous activity");
+void HyPerLayer::allocatePrevActivity() {
+   allocateExtendedBuffer(&clayer->prevActivity, "time of previous activity");
 }
 
 int HyPerLayer::setLayerLoc(
@@ -462,40 +457,31 @@ void HyPerLayer::calcNumExtended() {
    clayer->numExtendedAllBatches = clayer->numExtended * loc->nbatch;
 }
 
-int HyPerLayer::allocateBuffers() {
+void HyPerLayer::allocateBuffers() {
    // allocate memory for input buffers.  For HyPerLayer, allocates GSyn
    // virtual so that subclasses can initialize additional buffers if needed.
    // Typically an overriding allocateBuffers should call HyPerLayer::allocateBuffers
    // Specialized subclasses that don't use GSyn (e.g. CloneVLayer) should override
    // allocateGSyn to do nothing.
 
-   return allocateGSyn();
+   allocateGSyn();
 }
 
-int HyPerLayer::allocateGSyn() {
-   int status = PV_SUCCESS;
-   GSyn       = NULL;
+void HyPerLayer::allocateGSyn() {
+   GSyn = nullptr;
    if (numChannels > 0) {
       GSyn = (float **)malloc(numChannels * sizeof(float *));
-      if (GSyn == NULL) {
-         status = PV_FAILURE;
-         return status;
-      }
+      FatalIf(GSyn == nullptr, "%s unable to allocate GSyn pointers.\n", getDescription_c());
 
       GSyn[0] = (float *)calloc(getNumNeuronsAllBatches() * numChannels, sizeof(float));
       // All channels allocated at once and contiguously.  resetGSynBuffers_HyPerLayer() assumes
       // this is true, to make it easier to port to GPU.
-      if (GSyn[0] == NULL) {
-         status = PV_FAILURE;
-         return status;
-      }
+      FatalIf(GSyn[0] == nullptr, "%s unable to allocate GSyn buffer.\n", getDescription_c());
 
       for (int m = 1; m < numChannels; m++) {
          GSyn[m] = GSyn[0] + m * getNumNeuronsAllBatches();
       }
    }
-
-   return status;
 }
 
 void HyPerLayer::addPublisher() {
@@ -545,13 +531,14 @@ void HyPerLayer::checkpointRandState(
          bufferName);
 }
 
-int HyPerLayer::initializeState() {
-   int status = setInitialValues();
-   return status;
+Response::Status HyPerLayer::initializeState() {
+   initializeV();
+   initializeActivity();
+   return Response::SUCCESS;
 }
 
 #ifdef PV_USE_CUDA
-int HyPerLayer::copyInitialStateToGPU() {
+Response::Status HyPerLayer::copyInitialStateToGPU() {
    if (mUpdateGpu) {
       float *h_V = getV();
       if (h_V != NULL) {
@@ -565,30 +552,20 @@ int HyPerLayer::copyInitialStateToGPU() {
       float *h_activity = getCLayer()->activity->data;
       d_activity->copyToDevice(h_activity);
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 #endif // PV_USE_CUDA
 
-int HyPerLayer::setInitialValues() {
-   int status = PV_SUCCESS;
-   status     = initializeV();
-   if (status == PV_SUCCESS)
-      initializeActivity();
-   return status;
-}
-
-int HyPerLayer::initializeV() {
-   int status = PV_SUCCESS;
+void HyPerLayer::initializeV() {
    if (getV() != nullptr && mInitVObject != nullptr) {
-      status = mInitVObject->calcV(getV(), getLayerLoc());
+      mInitVObject->calcV(getV(), getLayerLoc());
    }
-   return status;
 }
 
-int HyPerLayer::initializeActivity() {
+void HyPerLayer::initializeActivity() {
    int status = setActivity();
-   return status;
+   FatalIf(status != PV_SUCCESS, "%s failed to initialize activity.\n", getDescription_c());
 }
 
 int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -703,7 +680,12 @@ void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) 
 
 void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamString(
-         ioFlag, name, "InitVType", &initVTypeString, "ConstantV", true /*warnIfAbsent*/);
+         ioFlag,
+         name,
+         "InitVType",
+         &initVTypeString,
+         BaseInitV::mDefaultInitV.data(),
+         true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       BaseObject *object = Factory::instance()->createByKeyword(initVTypeString, name, parent);
       mInitVObject       = dynamic_cast<BaseInitV *>(object);
@@ -848,22 +830,19 @@ void HyPerLayer::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (writeStep >= 0.0) {
-      double start_time = parent->getStartTime();
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
-      if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < start_time) {
+      parent->parameters()->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, 0.0);
+      if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < 0.0) {
          double storeInitialWriteTime = initialWriteTime;
-         while (initialWriteTime < start_time) {
+         while (initialWriteTime < 0.0) {
             initialWriteTime += writeStep;
          }
          if (parent->columnId() == 0) {
             WarnLog(warningMessage);
             warningMessage.printf(
-                  "%s: initialWriteTime %f is earlier than start time %f.  Adjusting "
+                  "%s: initialWriteTime %f is negative.  Adjusting "
                   "initialWriteTime:\n",
                   getDescription_c(),
-                  initialWriteTime,
-                  start_time);
+                  initialWriteTime);
             warningMessage.printf("    initialWriteTime adjusted to %f\n", initialWriteTime);
          }
       }
@@ -896,9 +875,9 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
-   int status = BaseLayer::respond(message);
-   if (status != PV_SUCCESS) {
+Response::Status HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = BaseLayer::respond(message);
+   if (status != Response::SUCCESS) {
       return status;
    }
    else if (auto castMessage = std::dynamic_pointer_cast<LayerSetMaxPhaseMessage const>(message)) {
@@ -950,27 +929,31 @@ int HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
    }
 }
 
-int HyPerLayer::respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message) {
+Response::Status
+HyPerLayer::respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message) {
    return setMaxPhase(message->mMaxPhase);
 }
 
-int HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message) {
-   return writeParams();
+Response::Status
+HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message) {
+   writeParams();
+   return Response::SUCCESS;
 }
 
-int HyPerLayer::respondLayerProbeWriteParams(
+Response::Status HyPerLayer::respondLayerProbeWriteParams(
       std::shared_ptr<LayerProbeWriteParamsMessage const> message) {
    return outputProbeParams();
 }
 
-int HyPerLayer::respondLayerClearProgressFlags(
+Response::Status HyPerLayer::respondLayerClearProgressFlags(
       std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
-   return clearProgressFlags();
+   clearProgressFlags();
+   return Response::SUCCESS;
 }
 
-int HyPerLayer::respondLayerRecvSynapticInput(
+Response::Status HyPerLayer::respondLayerRecvSynapticInput(
       std::shared_ptr<LayerRecvSynapticInputMessage const> message) {
-   int status = PV_SUCCESS;
+   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
@@ -997,8 +980,9 @@ int HyPerLayer::respondLayerRecvSynapticInput(
    return status;
 }
 
-int HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message) {
+   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
@@ -1017,15 +1001,17 @@ int HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage 
       *(message->mSomeLayerIsPending) = true;
       return status;
    }
-   status                         = callUpdateState(message->mTime, message->mDeltaT);
+   status = callUpdateState(message->mTime, message->mDeltaT);
+
    mHasUpdated                    = true;
    *(message->mSomeLayerHasActed) = true;
    return status;
 }
 
 #ifdef PV_USE_CUDA
-int HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
+   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
@@ -1039,26 +1025,26 @@ int HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage 
 }
 #endif // PV_USE_CUDA
 
-int HyPerLayer::respondLayerAdvanceDataStore(
+Response::Status HyPerLayer::respondLayerAdvanceDataStore(
       std::shared_ptr<LayerAdvanceDataStoreMessage const> message) {
    if (message->mPhase < 0 || message->mPhase == getPhase()) {
       publisher->increaseTimeLevel();
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
-int HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message) {
    if (message->mPhase != getPhase()) {
-      return status;
+      return Response::NO_ACTION;
    }
    publish(parent->getCommunicator(), message->mTime);
-   return status;
+   return Response::SUCCESS;
 }
 
-int HyPerLayer::respondLayerCheckNotANumber(
+Response::Status HyPerLayer::respondLayerCheckNotANumber(
       std::shared_ptr<LayerCheckNotANumberMessage const> message) {
-   int status = PV_SUCCESS;
+   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
@@ -1066,24 +1052,17 @@ int HyPerLayer::respondLayerCheckNotANumber(
    int const N    = getNumExtendedAllBatches();
    for (int n = 0; n < N; n++) {
       float a = layerData[n];
-      if (a != a) {
-         status = PV_FAILURE;
-         break;
-      }
-   }
-   if (status != PV_SUCCESS) {
-      if (parent->columnId() == 0) {
-         ErrorLog() << getDescription()
-                    << " has not-a-number values in the activity buffer.  Exiting.\n";
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
+      FatalIf(
+            a != a,
+            "%s has not-a-number values in the activity buffer.  Exiting.\n",
+            getDescription_c());
    }
    return status;
 }
 
-int HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
-   int status = PV_SUCCESS;
+Response::Status
+HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   Response::Status status = Response::SUCCESS;
    if (message->mPhase != getPhase()) {
       return status;
    }
@@ -1091,18 +1070,17 @@ int HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage 
    return status;
 }
 
-int HyPerLayer::clearProgressFlags() {
+void HyPerLayer::clearProgressFlags() {
    mHasReceived = false;
    mHasUpdated  = false;
-   return PV_SUCCESS;
 }
 
 #ifdef PV_USE_CUDA
 
 int HyPerLayer::allocateUpdateKernel() {
-   Fatal() << "Layer \"" << name << "\" of type " << getKeyword()
+   Fatal() << "Layer \"" << name << "\" of type " << mObjectType
            << " does not support updating on gpus yet\n";
-   return -1;
+   return PV_FAILURE;
 }
 
 /**
@@ -1156,7 +1134,8 @@ int HyPerLayer::allocateDeviceBuffers() {
 
 #endif // PV_USE_CUDA
 
-int HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+Response::Status
+HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    // HyPerLayers need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
    // calls each layer's communicateInitInfo() sequentially in a repeatable order
@@ -1243,21 +1222,19 @@ int HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
 #endif
 
-   int status = PV_SUCCESS;
-
-   return status;
+   return Response::SUCCESS;
 }
 
-int HyPerLayer::setMaxPhase(int *maxPhase) {
+Response::Status HyPerLayer::setMaxPhase(int *maxPhase) {
    if (*maxPhase < phase) {
       *maxPhase = phase;
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 void HyPerLayer::addRecvConn(BaseConnection *conn) {
    FatalIf(
-         conn->postSynapticLayer() != this,
+         conn->getPost() != this,
          "%s called addRecvConn for %s, but \"%s\" is not the post-synaptic layer for \"%s\"\n.",
          conn->getDescription_c(),
          getDescription_c(),
@@ -1383,11 +1360,11 @@ int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
    return status;
 }
 
-int HyPerLayer::allocateDataStructures() {
+Response::Status HyPerLayer::allocateDataStructures() {
    // Once initialize and communicateInitInfo have been called, HyPerLayer has the
    // information it needs to allocate the membrane potential buffer V, the
    // activity buffer activity->data, and the data store.
-   int status = PV_SUCCESS;
+   auto status = Response::SUCCESS;
 
    // Doing this check here, since trigger layers are being set up in communicateInitInfo
    // If the magnitude of the trigger offset is bigger than the delta update time, then error
@@ -1444,8 +1421,7 @@ int HyPerLayer::allocateDataStructures() {
    }
 
    // allocate storage for the input conductance arrays
-   status = allocateBuffers();
-   assert(status == PV_SUCCESS);
+   allocateBuffers();
 
    // Allocate temp buffers if needed, 1 for each thread
    if (parent->getNumThreads() > 1) {
@@ -1470,10 +1446,10 @@ int HyPerLayer::allocateDataStructures() {
 
 // Allocate cuda stuff on gpu if set
 #ifdef PV_USE_CUDA
-   status = allocateDeviceBuffers();
+   int deviceStatus = allocateDeviceBuffers();
    // Allocate receive from post kernel
-   if (status == 0) {
-      status = PV_SUCCESS;
+   if (deviceStatus == 0) {
+      status = Response::SUCCESS;
    }
    else {
       Fatal().printf(
@@ -1484,9 +1460,9 @@ int HyPerLayer::allocateDataStructures() {
    }
    if (mUpdateGpu) {
       // This function needs to be overwritten as needed on a subclass basis
-      status = allocateUpdateKernel();
-      if (status == 0) {
-         status = PV_SUCCESS;
+      deviceStatus = allocateUpdateKernel();
+      if (deviceStatus == 0) {
+         status = Response::SUCCESS;
       }
    }
 #endif
@@ -1614,8 +1590,11 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
    return 0;
 }
 
-int HyPerLayer::registerData(Checkpointer *checkpointer) {
-   int status = BaseLayer::registerData(checkpointer);
+Response::Status HyPerLayer::registerData(Checkpointer *checkpointer) {
+   auto status = BaseLayer::registerData(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
    checkpointPvpActivityFloat(checkpointer, "A", getActivity(), true /*extended*/);
    if (getV() != nullptr) {
       checkpointPvpActivityFloat(checkpointer, "V", getV(), false /*not extended*/);
@@ -1692,7 +1671,7 @@ int HyPerLayer::registerData(Checkpointer *checkpointer) {
       mInitVObject->respond(message);
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 double HyPerLayer::getDeltaUpdateTime() {
@@ -1754,11 +1733,11 @@ bool HyPerLayer::needReset(double simTime, double dt) {
    return false;
 }
 
-int HyPerLayer::callUpdateState(double simTime, double dt) {
-   int status = PV_SUCCESS;
+Response::Status HyPerLayer::callUpdateState(double simTime, double dt) {
+   auto status = Response::NO_ACTION;
    if (needUpdate(simTime, dt)) {
       if (needReset(simTime, dt)) {
-         status           = resetStateOnTrigger();
+         resetStateOnTrigger();
          mLastTriggerTime = simTime;
       }
 
@@ -1787,7 +1766,7 @@ int HyPerLayer::callUpdateState(double simTime, double dt) {
    return status;
 }
 
-int HyPerLayer::resetStateOnTrigger() {
+void HyPerLayer::resetStateOnTrigger() {
    assert(triggerResetLayer != NULL);
    float *V = getV();
    if (V == NULL) {
@@ -1827,7 +1806,7 @@ int HyPerLayer::resetStateOnTrigger() {
       }
    }
 
-   int status = setActivity();
+   setActivity();
 
 // Update V on GPU after CPU V gets set
 #ifdef PV_USE_CUDA
@@ -1841,8 +1820,6 @@ int HyPerLayer::resetStateOnTrigger() {
       updatedDeviceDatastore = true;
    }
 #endif
-
-   return status;
 }
 
 int HyPerLayer::resetGSynBuffers(double timef, double dt) {
@@ -1877,13 +1854,13 @@ int HyPerLayer::runUpdateKernel() {
    return PV_SUCCESS;
 }
 
-int HyPerLayer::updateStateGpu(double timef, double dt) {
+Response::Status HyPerLayer::updateStateGpu(double timef, double dt) {
    Fatal() << "Update state for layer " << name << " is not implemented\n";
-   return -1;
+   return Response::NO_ACTION; // never reached; added to prevent compiler warnings.
 }
 #endif
 
-int HyPerLayer::updateState(double timef, double dt) {
+Response::Status HyPerLayer::updateState(double timef, double dt) {
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
 
@@ -1917,7 +1894,7 @@ int HyPerLayer::updateState(double timef, double dt) {
          loc->halo.dn,
          loc->halo.up);
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 int HyPerLayer::setActivity() {
@@ -1937,17 +1914,16 @@ int HyPerLayer::setActivity() {
 }
 
 // Updates active indices for all levels (delays) here
-int HyPerLayer::updateAllActiveIndices() { return publisher->updateAllActiveIndices(); }
-int HyPerLayer::updateActiveIndices() { return publisher->updateActiveIndices(0); }
+void HyPerLayer::updateAllActiveIndices() { publisher->updateAllActiveIndices(); }
+
+void HyPerLayer::updateActiveIndices() { publisher->updateActiveIndices(0); }
 
 bool HyPerLayer::isExchangeFinished(int delay) { return publisher->isExchangeFinished(delay); }
 
 bool HyPerLayer::isAllInputReady() {
    bool isReady = true;
    for (auto &c : recvConns) {
-      for (int a = 0; a < c->numberOfAxonalArborLists(); a++) {
-         isReady &= c->getPre()->isExchangeFinished(c->getDelay(a));
-      }
+      isReady &= c->isAllInputReady();
    }
    return isReady;
 }
@@ -2007,7 +1983,6 @@ void HyPerLayer::syncGpu() {
 void HyPerLayer::copyAllGSynToDevice() {
    if (mRecvGpu || mUpdateGpu) {
       // Copy it to device
-      // Allocated as a big chunk, this should work
       float *h_postGSyn              = GSyn[0];
       PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
       assert(d_postGSyn);
@@ -2018,7 +1993,6 @@ void HyPerLayer::copyAllGSynToDevice() {
 void HyPerLayer::copyAllGSynFromDevice() {
    // Only copy if recving
    if (mRecvGpu) {
-      // Allocated as a big chunk, this should work
       float *h_postGSyn              = GSyn[0];
       PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
       assert(d_postGSyn);
@@ -2126,20 +2100,14 @@ int HyPerLayer::insertProbe(LayerProbe *p) {
    return ++numProbes;
 }
 
-int HyPerLayer::outputProbeParams() {
-   int status = PV_SUCCESS;
+Response::Status HyPerLayer::outputProbeParams() {
    for (int p = 0; p < numProbes; p++) {
-      int status1 = probes[p]->writeParams();
-      if (status1 != PV_SUCCESS) {
-         status = PV_FAILURE;
-      }
+      probes[p]->writeParams();
    }
-   return status;
+   return Response::SUCCESS;
 }
 
-int HyPerLayer::outputState(double timef) {
-   int status = PV_SUCCESS;
-
+Response::Status HyPerLayer::outputState(double timef) {
    io_timer->start();
 
    for (int i = 0; i < numProbes; i++) {
@@ -2147,56 +2115,60 @@ int HyPerLayer::outputState(double timef) {
    }
 
    if (timef >= (writeTime - (parent->getDeltaTime() / 2)) && writeStep >= 0) {
+      int writeStatus = PV_SUCCESS;
       writeTime += writeStep;
       if (sparseLayer) {
-         status = writeActivitySparse(timef);
+         writeStatus = writeActivitySparse(timef);
       }
       else {
-         status = writeActivity(timef);
+         writeStatus = writeActivity(timef);
       }
-   }
-   if (status != PV_SUCCESS) {
-      Fatal().printf(
-            "%s: outputState failed on rank %d process.\n", getDescription_c(), parent->columnId());
+      FatalIf(
+            writeStatus != PV_SUCCESS,
+            "%s: outputState failed on rank %d process.\n",
+            getDescription_c(),
+            parent->columnId());
    }
 
    io_timer->stop();
-   return status;
+   return Response::SUCCESS;
 }
 
-int HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   int status = PV_SUCCESS;
+Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
-      status = readActivityFromCheckpoint(checkpointer);
-      status = readVFromCheckpoint(checkpointer);
-      status = readDelaysFromCheckpoint(checkpointer);
+      readActivityFromCheckpoint(checkpointer);
+      readVFromCheckpoint(checkpointer);
+      readDelaysFromCheckpoint(checkpointer);
       updateAllActiveIndices();
+      return Response::SUCCESS;
    }
-   return status;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
-int HyPerLayer::readActivityFromCheckpoint(Checkpointer *checkpointer) {
+void HyPerLayer::readActivityFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), std::string("A"), false);
-   return PV_SUCCESS;
 }
 
-int HyPerLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
+void HyPerLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
    if (getV() != nullptr) {
       checkpointer->readNamedCheckpointEntry(std::string(name), std::string("V"), false);
    }
-   return PV_SUCCESS;
 }
 
-int HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
+void HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), std::string("Delays"), false);
-   return PV_SUCCESS;
 }
 
 // readBufferFile and readDataStoreFromFile were removed Jan 23, 2017.
 // They were only used by checkpointing, which is now handled by the
 // CheckpointEntry class hierarchy.
 
-int HyPerLayer::processCheckpointRead() { return updateAllActiveIndices(); }
+Response::Status HyPerLayer::processCheckpointRead() {
+   updateAllActiveIndices();
+   return Response::SUCCESS;
+}
 
 int HyPerLayer::writeActivitySparse(double timed) {
    PVLayerCube cube      = publisher->createCube(0 /*delay*/);

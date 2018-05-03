@@ -66,9 +66,12 @@ int ShuffleLayer::initialize(const char *name, HyPerCol *hc) {
    return status_init;
 }
 
-int ShuffleLayer::allocateDataStructures() {
-   int status = CloneVLayer::allocateDataStructures();
-   int nf     = getLayerLoc()->nf;
+Response::Status ShuffleLayer::allocateDataStructures() {
+   auto status = CloneVLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   int nf = getLayerLoc()->nf;
    // Calloc to initialize all zeros
    featureFreqCount = (long **)calloc(getLayerLoc()->nbatch, sizeof(long *));
    long *tmp        = (long *)calloc(getLayerLoc()->nbatch * nf, sizeof(long));
@@ -93,12 +96,12 @@ int ShuffleLayer::allocateDataStructures() {
    for (int b = 0; b < getLayerLoc()->nbatch; b++) {
       maxCount[b] = -99999999;
    }
-   return status;
+   return Response::SUCCESS;
 }
 
-int ShuffleLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = CloneVLayer::communicateInitInfo(message);
-   return status;
+Response::Status
+ShuffleLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return CloneVLayer::communicateInitInfo(message);
 }
 
 int ShuffleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -366,8 +369,7 @@ void ShuffleLayer::randomShuffle(const float *sourceData, float *activity) {
    }
 }
 
-int ShuffleLayer::updateState(double timef, double dt) {
-   int status = PV_SUCCESS;
+Response::Status ShuffleLayer::updateState(double timef, double dt) {
    // sourceData is extended
    const float *sourceData     = originalLayer->getLayerData();
    float *A                    = getActivity();
@@ -387,7 +389,7 @@ int ShuffleLayer::updateState(double timef, double dt) {
       rejectionShuffle(sourceData, A);
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

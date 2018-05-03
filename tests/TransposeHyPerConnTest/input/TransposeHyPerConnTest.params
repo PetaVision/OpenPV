@@ -5,7 +5,6 @@ debugParsing = false;
 HyPerCol "column" = {
     nx                                  = 32;
     ny                                  = 32;
-    startTime                           = 0.0;
     stopTime                            = 1.0;
     dt                                  = 1.0;
     randomSeed                          = 570934122;
@@ -140,7 +139,6 @@ HyPerConn "OriginalMapForOneToOneTest" = {
     // initialWriteTime;
     // writeCompressedWeights;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 
     weightInitType                      = "UniformRandomWeight";
     wMinInit                            = 1.0;
@@ -171,7 +169,6 @@ TransposeConn "TransposeForOneToOneTestOfTransposeConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };
 
 TransposeConn "TransposeOfTransposeForOneToOneTestOfTransposeConn" = {
@@ -185,7 +182,6 @@ TransposeConn "TransposeOfTransposeForOneToOneTestOfTransposeConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };
 
 FeedbackConn "TransposeForOneToOneTestOfFeedbackConn" = {
@@ -197,7 +193,6 @@ FeedbackConn "TransposeForOneToOneTestOfFeedbackConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };
 
 FeedbackConn "TransposeOfTransposeForOneToOneTestOfFeedbackConn" = {
@@ -209,7 +204,6 @@ FeedbackConn "TransposeOfTransposeForOneToOneTestOfFeedbackConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };
 
 HyPerConn "OriginalMapForManyToOneTest" = {
@@ -231,7 +225,6 @@ HyPerConn "OriginalMapForManyToOneTest" = {
     // initialWriteTime;
     // writeCompressedWeights;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 
     weightInitType                      = "UniformRandomWeight";
     wMinInit                            = 1.0;
@@ -262,7 +255,6 @@ TransposeConn "TransposeForManyToOneTestOfTransposeConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };
 
 TransposeConn "TransposeOfTransposeForManyToOneTestOfTransposeConn" = {
@@ -276,7 +268,6 @@ TransposeConn "TransposeOfTransposeForManyToOneTestOfTransposeConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };
 
 FeedbackConn "TransposeForManyToOneTestOfFeedbackConn" = {
@@ -288,7 +279,6 @@ FeedbackConn "TransposeForManyToOneTestOfFeedbackConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };
 
 FeedbackConn "TransposeOfTransposeForManyToOneTestOfFeedbackConn" = {
@@ -300,7 +290,6 @@ FeedbackConn "TransposeOfTransposeForManyToOneTestOfFeedbackConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };
 
 HyPerConn "OriginalMapForOneToManyTest" = {
@@ -322,7 +311,6 @@ HyPerConn "OriginalMapForOneToManyTest" = {
     // initialWriteTime;
     // writeCompressedWeights;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 
     weightInitType                      = "UniformRandomWeight";
     wMinInit                            = 1.0;
@@ -353,7 +341,6 @@ TransposeConn "TransposeForOneToManyTestOfTransposeConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };
 
 TransposeConn "TransposeOfTransposeForOneToManyTestOfTransposeConn" = {
@@ -367,7 +354,6 @@ TransposeConn "TransposeOfTransposeForOneToManyTestOfTransposeConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };
 
 FeedbackConn "TransposeForOneToManyTestOfFeedbackConn" = {
@@ -379,7 +365,6 @@ FeedbackConn "TransposeForOneToManyTestOfFeedbackConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };
 
 FeedbackConn "TransposeOfTransposeForOneToManyTestOfFeedbackConn" = {
@@ -391,5 +376,4 @@ FeedbackConn "TransposeOfTransposeForOneToManyTestOfFeedbackConn" = {
     convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
 };

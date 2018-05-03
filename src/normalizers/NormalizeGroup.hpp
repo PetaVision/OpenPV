@@ -19,17 +19,12 @@ class NormalizeGroup : public NormalizeBase {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   protected:
    NormalizeGroup();
    int initialize(char const *name, HyPerCol *hc);
-
-   /**
-    * NormalizeGroup does not read the strength parameter, but inherits it from its group head.
-    */
-   virtual void ioParam_strength(enum ParamsIOFlag ioFlag) override;
 
    /**
     * NormalizeGroup does not read the normalizeArborsIndividually parameter, but inherits it from
@@ -62,13 +57,10 @@ class NormalizeGroup : public NormalizeBase {
     */
    virtual int normalizeWeights() override;
 
-  private:
-   int initialize_base();
-
    // Data members
   private:
-   char *normalizeGroupName = nullptr;
-   NormalizeBase *groupHead = nullptr;
+   char *mNormalizeGroupName = nullptr;
+   NormalizeBase *mGroupHead = nullptr;
 }; // class NormalizeGroup
 
 } /* namespace PV */

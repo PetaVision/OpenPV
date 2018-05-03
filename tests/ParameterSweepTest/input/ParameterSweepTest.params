@@ -14,7 +14,6 @@ HyPerCol "column" = {
    ny = 16;
    dt = 1.0;
    randomSeed = 1946576187;  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
    stopTime = 10.0;
    progressInterval = 10;
    writeProgressToErr = false;
@@ -238,13 +237,11 @@ HyPerConn "InputToOutput" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
 };
 
@@ -266,13 +263,11 @@ HyPerConn "InputToOutput1x1" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
 };
 
@@ -294,13 +289,11 @@ HyPerConn "InputToOutput3x3" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
 };
 
@@ -322,13 +315,11 @@ HyPerConn "InputToOutput5x5" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
 };
 
@@ -350,13 +341,11 @@ HyPerConn "InputToOutput7x7" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
 };
 

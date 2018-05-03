@@ -16,7 +16,7 @@ class TestConnProbe : public BaseHyPerConnProbe {
   public:
    TestConnProbe(const char *probename, HyPerCol *hc);
    virtual ~TestConnProbe();
-   virtual int outputState(double timed) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
    TestConnProbe(); // Default constructor, can only be called by derived classes
@@ -25,7 +25,7 @@ class TestConnProbe : public BaseHyPerConnProbe {
     * TestConnProbe::initNumValues() sets numValues to -1, indicating that getValues() and
     * getValue() should not be used.
     */
-   int initNumValues() override;
+   void initNumValues() override;
 
    /**
     * TestConnProbe::needRecalc() always returns false since calcValues should not be called.
@@ -36,7 +36,9 @@ class TestConnProbe : public BaseHyPerConnProbe {
     * TestConnProbe::calcValues() always fails since this probe does not use getValues() or
     * getValue().
     */
-   int calcValues(double timevalue) override { return PV_FAILURE; }
+   void calcValues(double timevalue) override {
+      Fatal().printf("%s does not use calcValues().\n", getDescription_c());
+   }
 
   private:
    int initialize_base();

@@ -4,7 +4,7 @@ namespace PV {
 
 ImageTestLayer::ImageTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-int ImageTestLayer::updateState(double time, double dt) {
+Response::Status ImageTestLayer::updateState(double time, double dt) {
    ImageLayer::updateState(time, dt);
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -31,6 +31,6 @@ int ImageTestLayer::updateState(double time, double dt) {
          }
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 }

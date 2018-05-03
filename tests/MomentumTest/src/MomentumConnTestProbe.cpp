@@ -11,11 +11,6 @@
 
 namespace PV {
 
-/**
- * @filename
- * @type
- * @msg
- */
 MomentumConnTestProbe::MomentumConnTestProbe(const char *probename, HyPerCol *hc) {
    initialize(probename, hc);
 }
@@ -35,18 +30,15 @@ void MomentumConnTestProbe::ioParam_isViscosity(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "isViscosity", &isViscosity, 0 /*default value*/);
 }
 
-/**
- * @timef
- */
-int MomentumConnTestProbe::outputState(double timed) {
+Response::Status MomentumConnTestProbe::outputState(double timed) {
    HyPerConn *c = getTargetHyPerConn();
    FatalIf(c == nullptr, "%s has targetConnection set to null.\n", getDescription_c());
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return Response::NO_ACTION;
    }
    output(0).printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
-   const float *w  = c->get_wDataHead(getArbor(), getKernelIndex());
-   const float *dw = c->get_dwDataHead(getArbor(), getKernelIndex());
+   const float *w  = c->getWeightsDataHead(getArbor(), getKernelIndex());
+   const float *dw = c->getDeltaWeightsDataHead(getArbor(), getKernelIndex());
    if (getOutputPlasticIncr() && dw == NULL) {
       Fatal().printf(
             "%s: %s has dKernelData(%d,%d) set to null.\n",
@@ -55,9 +47,9 @@ int MomentumConnTestProbe::outputState(double timed) {
             getKernelIndex(),
             getArbor());
    }
-   int nxp    = c->xPatchSize();
-   int nyp    = c->yPatchSize();
-   int nfp    = c->fPatchSize();
+   int nxp    = c->getPatchSizeX();
+   int nyp    = c->getPatchSizeY();
+   int nfp    = c->getPatchSizeF();
    int status = PV_SUCCESS;
    for (int k = 0; k < nxp * nyp * nfp; k++) {
       float wObserved = w[k];
@@ -83,11 +75,11 @@ int MomentumConnTestProbe::outputState(double timed) {
          int y = kyPos(k, nxp, nyp, nfp);
          int f = featureIndex(k, nxp, nyp, nfp);
          output(0).printf("        w = %f, should be %f\n", (double)wObserved, (double)wCorrect);
-         exit(-1);
+         exit(EXIT_FAILURE);
       }
    }
 
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 } // end of namespace PV block

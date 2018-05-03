@@ -1,11 +1,9 @@
 set(SRC_CPP
-  src/AverageRateConn.cpp
   src/LIFTestProbe.cpp
   src/main.cpp
 )
 
 set(SRC_HPP
-  src/AverageRateConn.hpp
   src/LIFTestProbe.hpp
 )
 

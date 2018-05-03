@@ -73,16 +73,17 @@ int MPITestLayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-int MPITestLayer::allocateDataStructures() {
-   int status = ANNLayer::allocateDataStructures();
-   if (status == PV_SUCCESS) {
+Response::Status MPITestLayer::allocateDataStructures() {
+   auto status = ANNLayer::allocateDataStructures();
+   if (Response::completed(status)) {
       setVtoGlobalPos();
       setActivitytoGlobalPos();
+      status = Response::SUCCESS;
    }
    return status;
 }
 
-int MPITestLayer::updateState(double timed, double dt) { return PV_SUCCESS; }
+Response::Status MPITestLayer::updateState(double timed, double dt) { return Response::SUCCESS; }
 
 int MPITestLayer::publish(Communicator *comm, double timed) {
    setActivitytoGlobalPos();

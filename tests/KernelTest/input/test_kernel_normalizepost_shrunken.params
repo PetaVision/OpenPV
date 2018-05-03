@@ -14,7 +14,6 @@ HyPerCol "column" = {
    ny = 32;
    dt = 1.0;
    randomSeed = 926268668;  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
    stopTime = 4.0;  // num images plus (num layers + 1) * delay
    progressInterval = 5.0;
    writeProgressToErr = false;
@@ -232,9 +231,7 @@ HyPerConn "RetinaToL0" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -271,9 +268,7 @@ HyPerConn "L0ToLx1" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -310,9 +305,7 @@ HyPerConn "L0ToLx2" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -349,9 +342,7 @@ HyPerConn "L0ToLx4" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -388,9 +379,7 @@ HyPerConn "L0ToLx1_2" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -427,9 +416,7 @@ HyPerConn "L0ToLx1_4" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     updateGSynFromPostPerspective = false;
 };
 

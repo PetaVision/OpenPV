@@ -17,7 +17,6 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 20;
     progressInterval                    = 100;
@@ -92,12 +91,9 @@ PoolingConn "InputToOutput" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "maxpooling";
-    selfFlag                            = false;
     nxp                                 = 1;
     nyp                                 = 1;
     nfp                                 = 1;
-    shrinkPatches                       = false;
-    weightSparsity                      = 0;
     needPostIndexLayer                  = false;
 };
 

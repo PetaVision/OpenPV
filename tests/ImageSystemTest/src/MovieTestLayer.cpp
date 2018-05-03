@@ -5,7 +5,7 @@ namespace PV {
 
 MovieTestLayer::MovieTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-int MovieTestLayer::updateState(double time, double dt) {
+Response::Status MovieTestLayer::updateState(double time, double dt) {
    ImageLayer::updateState(time, dt);
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -41,6 +41,6 @@ int MovieTestLayer::updateState(double time, double dt) {
          }
       }
    }
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 }

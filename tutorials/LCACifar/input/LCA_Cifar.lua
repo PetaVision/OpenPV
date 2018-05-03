@@ -190,7 +190,6 @@ local pvParameters = {
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       gpuGroupIdx                         = -1;
       originalConnName                    = "V1ToInputError";
    };
@@ -222,11 +221,9 @@ local pvParameters = {
       initialWriteTime                    = initialWriteTime;
       writeCompressedWeights              = false;
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       combine_dW_with_W_flag              = false;
       nxp                                 = patchSize;
       nyp                                 = patchSize;
-      shrinkPatches                       = false;
       normalizeMethod                     = "normalizeL2";
       strength                            = 1;
       normalizeArborsIndividually         = false;
@@ -239,7 +236,6 @@ local pvParameters = {
       normalizeFromPostPerspective        = false;
       minL2NormTolerated                  = 0;
       dWMax                               = dWMax; 
-      useMask                             = false;
       momentumTau                         = momentumTau;   --The momentum parameter. A single weight update will last for momentumTau timesteps.
       momentumMethod                      = "viscosity";
       momentumDecay                       = 0;
@@ -256,7 +252,6 @@ local pvParameters = {
       updateGSynFromPostPerspective       = false;
       pvpatchAccumulateType               = "convolve";
       writeCompressedCheckpoints          = false;
-      selfFlag                            = false;
       originalConnName                    = "V1ToInputError";
    };
 

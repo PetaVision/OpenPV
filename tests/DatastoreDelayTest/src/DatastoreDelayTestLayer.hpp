@@ -18,11 +18,11 @@ class DatastoreDelayTestLayer : public ANNLayer {
    DatastoreDelayTestLayer(const char *name, HyPerCol *hc);
    virtual ~DatastoreDelayTestLayer();
 
-   virtual int updateState(double timed, double dt) override;
+   virtual Response::Status updateState(double timed, double dt) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);
-   int updateState(
+   void updateState(
          double timed,
          double dt,
          int numNeurons,

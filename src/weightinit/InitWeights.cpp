@@ -6,15 +6,15 @@
  */
 
 #include "InitWeights.hpp"
+#include "components/WeightsPair.hpp"
+#include "io/WeightsFileIO.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-InitWeights::InitWeights(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+InitWeights::InitWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-InitWeights::InitWeights() { initialize_base(); }
+InitWeights::InitWeights() {}
 
 InitWeights::~InitWeights() {}
 
@@ -30,21 +30,14 @@ int InitWeights::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-int InitWeights::setDescription() {
-   description.clear();
+void InitWeights::setObjectType() {
    char const *initType =
          parent->parameters()->stringValue(name, "weightInitType", false /*do not warn if absent*/);
-   if (initType == nullptr) {
-      description.append("Weight initializer ");
-   }
-   else {
-      description.append(initType);
-   }
-   description.append(" \"").append(name).append("\"");
-   return PV_SUCCESS;
+   mObjectType = initType ? initType : "Initializer for";
 }
 
 int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_weightInitType(ioFlag);
    ioParam_initWeightsFile(ioFlag);
    ioParam_frameNumber(ioFlag);
 
@@ -52,6 +45,11 @@ int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_useListOfArborFiles(ioFlag);
    ioParam_combineWeightFiles(ioFlag);
    return PV_SUCCESS;
+}
+
+void InitWeights::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamStringRequired(
+         ioFlag, name, "weightInitType", &mWeightInitTypeString);
 }
 
 void InitWeights::ioParam_initWeightsFile(enum ParamsIOFlag ioFlag) {
@@ -106,180 +104,61 @@ void InitWeights::handleObsoleteFlag(std::string const &flagName) {
    }
 }
 
-int InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   if (mCallingConn == nullptr) {
-      mCallingConn = message->lookup<HyPerConn>(std::string(name));
+Response::Status
+InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
+   pvAssert(weightsPair);
+   auto status = BaseObject::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
    }
-   if (mCallingConn == nullptr) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf("InitWeights error: \"%s\" is not a HyPerConn.\n", name);
-      }
-      return PV_FAILURE;
+   if (!weightsPair->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
    }
-   mPreLayer  = mCallingConn->getPre();
-   mPostLayer = mCallingConn->getPost();
-   if (mPreLayer == nullptr or mPostLayer == nullptr) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "InitWeights error: calling connection \"%s\" has not set pre and post layers.\n",
-               mCallingConn->getName());
-      }
-      return PV_FAILURE;
-   }
-   return PV_SUCCESS;
+   weightsPair->needPre();
+   mWeights = weightsPair->getPreWeights();
+   FatalIf(
+         mWeights == nullptr,
+         "%s cannot get Weights object from %s.\n",
+         getDescription_c(),
+         weightsPair->getDescription_c());
+   return Response::SUCCESS;
 }
 
-/*This method does the three steps involved in initializing weights.  Subclasses usually don't need
- * to override this method.
- * Instead they should override calcWeights to do their own type of weight initialization.
- *
- * For KernelConns (i.e., sharedWeights=true), patches should be nullptr.
- *
- */
-int InitWeights::initializeWeights(
-      PVPatch ***patches,
-      float **dataStart,
-      double *timef /*default nullptr*/) {
-   int numPatchesX    = mCallingConn->getNumDataPatchesX();
-   int numPatchesY    = mCallingConn->getNumDataPatchesY();
-   int numPatchesF    = mCallingConn->getNumDataPatchesF();
-   bool sharedWeights = patches == nullptr;
+Response::Status InitWeights::initializeState() {
+   FatalIf(
+         mWeights == nullptr,
+         "initializeState was called for %s with a null Weights object.\n",
+         getDescription_c());
    if (mFilename && mFilename[0]) {
-      readWeights(
-            sharedWeights,
-            dataStart,
-            numPatchesX,
-            numPatchesY,
-            numPatchesF,
-            mFilename,
-            mFrameNumber,
-            timef);
+      readWeights(mFilename, mFrameNumber);
    }
    else {
-      initRNGs(sharedWeights);
+      initRNGs(mWeights->getSharedFlag());
       calcWeights();
-   } // filename != null
-   int successFlag = zeroWeightsOutsideShrunkenPatch(patches);
-   if (successFlag != PV_SUCCESS) {
-      Fatal().printf(
-            "Failed to zero annulus around shrunken patch for %s! Exiting...\n",
-            mCallingConn->getName());
-   }
-   return PV_SUCCESS;
+   } // mFilename != null
+   mWeights->setTimestamp(0.0);
+   return Response::SUCCESS;
 }
 
-int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch ***patches) {
-   // hack to bypass HyPerConn's for now, because HyPerConn normalization currently needs "outside"
-   // weights
-   // correct solution is to implement normalization of HyPerConns from post POV
-   if (patches != nullptr) {
-      return PV_SUCCESS;
-   }
-   int numArbors = mCallingConn->numberOfAxonalArborLists();
-   // initialize full sized patch dimensions
-   int nxPatch       = mCallingConn->xPatchSize();
-   int nyPatch       = mCallingConn->yPatchSize();
-   int nkPatch       = mCallingConn->fPatchSize() * nxPatch;
-   int syPatch       = mCallingConn->yPatchStride(); // stride in patch
-   int offsetPatch   = 0;
-   float *wData_head = nullptr;
-   int delta_offset  = 0;
-   for (int arborID = 0; arborID < numArbors; arborID++) {
-      for (int kPre = 0; kPre < mCallingConn->getNumDataPatches(); kPre++) {
-         wData_head = mCallingConn->get_wDataHead(arborID, kPre);
-         if (patches != nullptr) { // mCallingConn does not use shared weights
-            PVPatch *weightPatch = mCallingConn->getWeights(kPre, arborID);
-            nxPatch              = weightPatch->nx;
-            nyPatch              = weightPatch->ny;
-            offsetPatch          = weightPatch->offset;
-            float *wData         = mCallingConn->get_wData(arborID, kPre);
-            delta_offset         = wData - wData_head;
-         }
-         else { // mCallingConn uses shared weights
-            delta_offset = 0;
-            nxPatch      = mCallingConn->xPatchSize();
-            nyPatch      = mCallingConn->yPatchSize();
-         }
-         nkPatch      = mCallingConn->fPatchSize() * nxPatch;
-         int dy_south = delta_offset / syPatch;
-         assert(dy_south >= 0);
-         assert(dy_south <= mCallingConn->yPatchSize());
-         int dy_north = mCallingConn->yPatchSize() - nyPatch - dy_south;
-         assert(dy_north >= 0);
-         assert(dy_north <= mCallingConn->yPatchSize());
-         int dx_west = (delta_offset - dy_south * syPatch) / mCallingConn->fPatchSize();
-         assert(dx_west >= 0);
-         assert(dx_west <= mCallingConn->xPatchSize());
-         int dx_east = mCallingConn->xPatchSize() - nxPatch - dx_west;
-         assert(dx_east >= 0);
-         assert(dx_east <= mCallingConn->xPatchSize());
-         // zero north border
-         float *outside_weights = wData_head;
-         for (int ky = 0; ky < dy_north; ky++) {
-            for (int kPatch = 0; kPatch < syPatch; kPatch++) {
-               outside_weights[kPatch] = 0;
-            }
-            outside_weights += syPatch;
-         }
-         // zero south border
-         outside_weights = wData_head + (dy_north + nyPatch) * syPatch;
-         for (int ky = 0; ky < dy_south; ky++) {
-            for (int kPatch = 0; kPatch < syPatch; kPatch++) {
-               outside_weights[kPatch] = 0;
-            }
-            outside_weights += syPatch;
-         }
-         // zero west border
-         outside_weights = wData_head + dy_north * syPatch;
-         for (int ky = 0; ky < nyPatch; ky++) {
-            for (int kPatch = 0; kPatch < dx_west * mCallingConn->fPatchSize(); kPatch++) {
-               outside_weights[kPatch] = 0;
-            }
-            outside_weights += syPatch;
-         }
-         // zero east border
-         outside_weights =
-               wData_head + dy_north * syPatch + (dx_west + nxPatch) * mCallingConn->fPatchSize();
-         for (int ky = 0; ky < nyPatch; ky++) {
-            for (int kPatch = 0; kPatch < dx_east * mCallingConn->fPatchSize(); kPatch++) {
-               outside_weights[kPatch] = 0;
-            }
-            outside_weights += syPatch;
-         }
-      } // kPre
-   } // arborID
-   return PV_SUCCESS;
-}
-
-// Override this function to calculate weights over all patches.
-// The default loops over arbors and data patches, and calls calcWeights(dataStart, dataPatchIndex,
-// arborId)
 void InitWeights::calcWeights() {
-   int numArbors  = mCallingConn->numberOfAxonalArborLists();
-   int numPatches = mCallingConn->getNumDataPatches();
+   int numArbors  = mWeights->getNumArbors();
+   int numPatches = mWeights->getNumDataPatches();
    for (int arbor = 0; arbor < numArbors; arbor++) {
       for (int dataPatchIndex = 0; dataPatchIndex < numPatches; dataPatchIndex++) {
-         calcWeights(mCallingConn->get_wDataHead(arbor, dataPatchIndex), dataPatchIndex, arbor);
+         calcWeights(dataPatchIndex, arbor);
       }
    }
 }
 
 // Override this function to calculate the weights in a single patch, given the arbor index, patch
 // index and the pointer to the data
-void InitWeights::calcWeights(float *dataStart, int dataPatchIndex, int arborId) {}
-
-int InitWeights::initialize_base() { return PV_SUCCESS; }
+void InitWeights::calcWeights(int dataPatchIndex, int arborId) {}
 
 int InitWeights::readWeights(
-      bool sharedWeights,
-      float **dataStart,
-      int numPatchesX,
-      int numPatchesY,
-      int numPatchesF,
       const char *filename,
       int frameNumber,
       double *timestampPtr /*default=nullptr*/) {
-   pvAssert(mCallingConn);
    double timestamp;
    MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
 
@@ -287,44 +166,68 @@ int InitWeights::readWeights(
    if (mpiBlock->getRank() == 0) {
       fileStream = new FileStream(filename, std::ios_base::in, false);
    }
-
-   PVLayerLoc const *preLoc = mCallingConn->preSynapticLayer()->getLayerLoc();
-   int numArbors            = mCallingConn->numberOfAxonalArborLists();
-   if (sharedWeights) {
-      readSharedWeights(
-            fileStream,
-            frameNumber,
-            mpiBlock,
-            preLoc,
-            mCallingConn->xPatchSize(),
-            mCallingConn->yPatchSize(),
-            mCallingConn->fPatchSize(),
-            numArbors,
-            dataStart,
-            numPatchesX,
-            numPatchesY,
-            numPatchesF);
-   }
-   else {
-      readNonsharedWeights(
-            fileStream,
-            frameNumber,
-            mpiBlock,
-            preLoc,
-            mCallingConn->xPatchSize(),
-            mCallingConn->yPatchSize(),
-            mCallingConn->fPatchSize(),
-            numArbors,
-            dataStart,
-            true /*extended*/,
-            mCallingConn->postSynapticLayer()->getLayerLoc(),
-            mpiBlock->getStartColumn() * preLoc->nx,
-            mpiBlock->getStartRow() * preLoc->ny);
-   }
+   WeightsFileIO weightsFileIO(fileStream, mpiBlock, mWeights);
+   timestamp = weightsFileIO.readWeights(frameNumber);
    if (timestampPtr != nullptr) {
       *timestampPtr = timestamp;
    }
    return PV_SUCCESS;
+}
+
+int InitWeights::dataIndexToUnitCellIndex(int dataIndex, int *kx, int *ky, int *kf) {
+   PVLayerLoc const &preLoc  = mWeights->getGeometry()->getPreLoc();
+   PVLayerLoc const &postLoc = mWeights->getGeometry()->getPostLoc();
+
+   int xDataIndex, yDataIndex, fDataIndex;
+   if (mWeights->getSharedFlag()) {
+
+      int nxData = mWeights->getNumDataPatchesX();
+      int nyData = mWeights->getNumDataPatchesY();
+      int nfData = mWeights->getNumDataPatchesF();
+      pvAssert(nfData == preLoc.nf);
+
+      xDataIndex = kxPos(dataIndex, nxData, nyData, nfData);
+      yDataIndex = kyPos(dataIndex, nxData, nyData, nfData);
+      fDataIndex = featureIndex(dataIndex, nxData, nyData, nfData);
+   }
+   else { // nonshared weights.
+      // data index is extended presynaptic index; convert to restricted.
+      int nxExt  = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
+      int nyExt  = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
+      xDataIndex = kxPos(dataIndex, nxExt, nyExt, preLoc.nf) - preLoc.halo.lt;
+      yDataIndex = kyPos(dataIndex, nxExt, nyExt, preLoc.nf) - preLoc.halo.up;
+      fDataIndex = featureIndex(dataIndex, nxExt, nyExt, preLoc.nf);
+   }
+   int xStride = (preLoc.nx > postLoc.nx) ? preLoc.nx / postLoc.nx : 1;
+   pvAssert(xStride > 0);
+
+   int yStride = (preLoc.ny > postLoc.ny) ? preLoc.ny / postLoc.ny : 1;
+   pvAssert(yStride > 0);
+
+   int xUnitCell = xDataIndex % xStride;
+   if (xUnitCell < 0) {
+      xUnitCell += xStride;
+   }
+   pvAssert(xUnitCell >= 0 and xUnitCell < xStride);
+
+   int yUnitCell = yDataIndex % yStride;
+   if (yUnitCell < 0) {
+      yUnitCell += yStride;
+   }
+   pvAssert(yUnitCell >= 0 and yUnitCell < yStride);
+
+   int kUnitCell = kIndex(xUnitCell, yUnitCell, fDataIndex, xStride, yStride, preLoc.nf);
+
+   if (kx) {
+      *kx = xUnitCell;
+   }
+   if (ky) {
+      *ky = yUnitCell;
+   }
+   if (kf) {
+      *kf = fDataIndex;
+   }
+   return kUnitCell;
 }
 
 int InitWeights::kernelIndexCalculations(int dataPatchIndex) {
@@ -332,44 +235,34 @@ int InitWeights::kernelIndexCalculations(int dataPatchIndex) {
    int kxKernelIndex;
    int kyKernelIndex;
    int kfKernelIndex;
-   mCallingConn->dataIndexToUnitCellIndex(
-         dataPatchIndex, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
+   dataIndexToUnitCellIndex(dataPatchIndex, &kxKernelIndex, &kyKernelIndex, &kfKernelIndex);
    const int kxPre = kxKernelIndex;
    const int kyPre = kyKernelIndex;
    const int kfPre = kfKernelIndex;
 
    // get distances to nearest neighbor in post synaptic layer (meaured relative to pre-synatpic
    // cell)
+   int log2ScaleDiffX = mWeights->getGeometry()->getLog2ScaleDiffX();
    float xDistNNPreUnits;
    float xDistNNPostUnits;
-   dist2NearestCell(
-         kxPre,
-         mPreLayer->getXScale(),
-         mPostLayer->getXScale(),
-         &xDistNNPreUnits,
-         &xDistNNPostUnits);
+   dist2NearestCell(kxPre, log2ScaleDiffX, &xDistNNPreUnits, &xDistNNPostUnits);
+
+   int log2ScaleDiffY = mWeights->getGeometry()->getLog2ScaleDiffY();
    float yDistNNPreUnits;
    float yDistNNPostUnits;
-   dist2NearestCell(
-         kyPre,
-         mPreLayer->getYScale(),
-         mPostLayer->getYScale(),
-         &yDistNNPreUnits,
-         &yDistNNPostUnits);
+   dist2NearestCell(kxPre, log2ScaleDiffY, &yDistNNPreUnits, &yDistNNPostUnits);
 
    // get indices of nearest neighbor
    int kxNN;
    int kyNN;
-   kxNN = nearby_neighbor(kxPre, mPreLayer->getXScale(), mPostLayer->getXScale());
-   kyNN = nearby_neighbor(kyPre, mPreLayer->getYScale(), mPostLayer->getYScale());
+   kxNN = nearby_neighbor(kxPre, log2ScaleDiffX);
+   kyNN = nearby_neighbor(kyPre, log2ScaleDiffY);
 
    // get indices of patch head
    int kxHead;
    int kyHead;
-   kxHead = zPatchHead(
-         kxPre, mCallingConn->xPatchSize(), mPreLayer->getXScale(), mPostLayer->getXScale());
-   kyHead = zPatchHead(
-         kyPre, mCallingConn->yPatchSize(), mPreLayer->getYScale(), mPostLayer->getYScale());
+   kxHead = zPatchHead(kxPre, mWeights->getPatchSizeX(), log2ScaleDiffX);
+   kyHead = zPatchHead(kyPre, mWeights->getPatchSizeY(), log2ScaleDiffY);
 
    // get distance to patch head (measured relative to pre-synaptic cell)
    float xDistHeadPostUnits;

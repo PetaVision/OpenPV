@@ -18,7 +18,6 @@ HyPerCol "column" = {
    ny = 32;
    dt = 1.0;
    randomSeed = 1554498580;  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
    stopTime = 10;
    progressInterval = 10;
    writeProgressToErr = false;
@@ -192,13 +191,11 @@ HyPerConn "Original" = {
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;
     convertRateToSpikeCount = false;
 
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -210,7 +207,6 @@ CloneConn "Clone" = {
 
     channelCode = 0;
 
-    selfFlag = false;
     convertRateToSpikeCount = false;
     receiveGpu = false;
 

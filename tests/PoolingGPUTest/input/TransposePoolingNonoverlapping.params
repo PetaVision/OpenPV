@@ -1,7 +1,6 @@
 debugParsing = false;
 
 HyPerCol "Column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 1;
     progressInterval                    = 1;
@@ -110,12 +109,9 @@ PoolingConn "ForwardCPU" = {
     sharedWeights                       = true;
     updateGSynFromPostPerspective       = true;
     pvpatchAccumulateType               = "maxpooling";
-    selfFlag                            = false;
     nxp                                 = 1;
     nyp                                 = 1;
     nfp                                 = 4;
-    shrinkPatches                       = false;
-    weightSparsity                      = 0;
     needPostIndexLayer                  = true;
     postIndexLayerName                  = "PostIndexLayerCPU";
 };
@@ -128,8 +124,6 @@ TransposePoolingConn "BackwardCPU" = {
     convertRateToSpikeCount             = false;
     updateGSynFromPostPerspective       = false;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
-    weightSparsity                      = 0;
     originalConnName                    = "ForwardCPU";
 };
 
@@ -165,14 +159,10 @@ PoolingConn "ForwardGPU" = {
     convertRateToSpikeCount             = false;
     receiveGpu                          = true;
     sharedWeights                       = true;
-    updateGSynFromPostPerspective       = true;
     pvpatchAccumulateType               = "maxpooling";
-    selfFlag                            = false;
     nxp                                 = 1;
     nyp                                 = 1;
     nfp                                 = 4;
-    shrinkPatches                       = false;
-    weightSparsity                      = 0;
     needPostIndexLayer                  = false;
 };
 
@@ -182,10 +172,7 @@ TransposePoolingConn "BackwardGPU" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     convertRateToSpikeCount             = false;
-    updateGSynFromPostPerspective       = false;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
-    weightSparsity                      = 0;
     originalConnName                    = "ForwardGPU";
 };
 

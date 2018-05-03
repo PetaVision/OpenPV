@@ -29,8 +29,14 @@ class InputLayer : public HyPerLayer {
 
    // maxShiftX: max random shift in X direction
    // maxShiftY: max random shift in Y direction
-   // Defines the maximal random shift in image space
+   // Defines the max random shift in image space
    virtual int ioParam_maxShifts(enum ParamsIOFlag ioFlag);
+   // xFlipEnabled: When true, 50% chance to mirror input horizontally
+   // yFlipEnabled: When true, 50% chance to mirror input vertically
+   virtual int ioParam_flipsEnabled(enum ParamsIOFlag ioFlag);
+   // xFlipToggle: When true, flip every jitter interval instead of randomly
+   // yFlipToggle: When true, flip every jitter interval instead of randomly
+   virtual int ioParam_flipsToggle(enum ParamsIOFlag ioFlag);
    // jitterChangeInterval: interval measured in displayPeriods
    // Defines the frequency of the random shifts updates
    virtual int ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag);
@@ -135,12 +141,12 @@ class InputLayer : public HyPerLayer {
     * Pixels not occupied by the actual image (due to offsets, padding, etc.) are not changed.
     */
    virtual void normalizePixels(int batchElement);
-   virtual int allocateV() override;
-   virtual int initializeV() override;
-   virtual int initializeActivity() override;
+   virtual void allocateV() override;
+   virtual void initializeV() override;
+   virtual void initializeActivity() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual int registerData(Checkpointer *checkpointer) override;
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual double getDeltaUpdateTime() override;
 
    // Method that signals when to load the next file.
@@ -180,8 +186,8 @@ class InputLayer : public HyPerLayer {
 
    virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
    void makeInputRegionsPointer() { mNeedInputRegionsPointer = true; }
-   virtual int allocateDataStructures() override;
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status allocateDataStructures() override;
+   virtual Response::Status updateState(double time, double dt) override;
 
    /**
     * This function is called by updateState if writeFrameToTimestamp is used.
@@ -260,6 +266,14 @@ class InputLayer : public HyPerLayer {
    // How often to change random shifts (measured in displayPeriods)
    int mJitterChangeInterval = 1;
 
+   // Are horizontal or vertical mirror flips enabled during the augmentation stage?
+   bool mXFlipEnabled = false;
+   bool mYFlipEnabled = false;
+
+   // If this is true, toggle mirror flips each time instead of randomly selecting
+   bool mXFlipToggle = false;
+   bool mYFlipToggle = false;
+
    // Random seed used when batchMethod == random
    int mRandomSeed = 123456789;
 
@@ -322,6 +336,9 @@ class InputLayer : public HyPerLayer {
    std::vector<int> mRandomShiftX;
    // An array of random shifts in y direction, one per batch
    std::vector<int> mRandomShiftY;
+   // Same for mirror flips
+   std::vector<bool> mMirrorFlipX;
+   std::vector<bool> mMirrorFlipY;
 };
 
 } // end namespace PV

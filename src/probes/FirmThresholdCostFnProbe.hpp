@@ -35,7 +35,7 @@ class FirmThresholdCostFnProbe : public AbstractNormProbe {
    FirmThresholdCostFnProbe(const char *name, HyPerCol *hc);
    virtual ~FirmThresholdCostFnProbe();
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   protected:

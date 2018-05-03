@@ -25,18 +25,21 @@ int KernelTestProbe::initialize(const char *name, HyPerCol *hc) {
 
 void KernelTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
-int KernelTestProbe::outputState(double timed) {
-   int status           = StatsProbe::outputState(timed);
+Response::Status KernelTestProbe::outputState(double timestamp) {
+   auto status = StatsProbe::outputState(timestamp);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    Communicator *icComm = parent->getCommunicator();
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
-      return 0;
+      return status;
    }
    for (int b = 0; b < parent->getNBatch(); b++) {
-      if (timed > 2.0) {
-         FatalIf(!((fMin[b] > 0.99f) && (fMin[b] < 1.010f)), "Test failed.\n");
-         FatalIf(!((fMax[b] > 0.99f) && (fMax[b] < 1.010f)), "Test failed.\n");
-         FatalIf(!((avg[b] > 0.99f) && (avg[b] < 1.010f)), "Test failed.\n");
+      if (timestamp > 2.0) {
+         FatalIf((fMin[b] <= 0.99f) or (fMin[b] >= 1.010f), "Test failed.\n");
+         FatalIf((fMax[b] <= 0.99f) or (fMax[b] >= 1.010f), "Test failed.\n");
+         FatalIf((avg[b] <= 0.99f) or (avg[b] >= 1.010f), "Test failed.\n");
       }
    }
 

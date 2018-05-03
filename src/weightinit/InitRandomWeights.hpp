@@ -22,24 +22,20 @@ class InitRandomWeights : public InitWeights {
    InitRandomWeights();
    int initialize(char const *name, HyPerCol *hc);
    virtual int initRNGs(bool isKernel) override;
-   virtual void calcWeights(float *dataStart, int patchIndex, int arborId) override;
+   virtual void calcWeights(int patchIndex, int arborId) override;
    virtual void randomWeights(float *patchDataStart, int patchIndex) = 0;
    // Subclasses must implement randomWeights.
    // patchDataStart is a pointer to the beginning of a data patch.
    // patchIndex is the index for that patch.  The RNGs are accessed by calling randState's get
-   // method;
-   //     or random numbers are generated directly by calling randState methods.
+   // method; or random numbers are generated directly by calling randState methods.
    // The method should fill the entire patch (the dimensions are in weightParams) regardless of
    // whether the patch is shrunken.
    // This means that weights on different MPI processes that represent the same physical synapse
    // will have the same weight.
 
-  private:
-   int initialize_base();
-
    // Data members
   protected:
-   Random *mRandState;
+   Random *mRandState = nullptr;
    // For HyPerConns, there will be an RNG for each presynaptic extended neuron.
    // In MPI, if a presynaptic neuron is represented on more than one process, its RNG should be
    // in the same state in each of these processes.

@@ -23,9 +23,6 @@ class InitIdentWeights : public PV::InitOneToOneWeights {
   protected:
    InitIdentWeights();
    int initialize(char const *name, HyPerCol *hc);
-
-  protected:
-   int initialize_base();
 }; // class InitIdentWeights
 
 } /* namespace PV */

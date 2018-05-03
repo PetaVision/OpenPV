@@ -20,7 +20,7 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
   protected:
    MomentumLCALayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
@@ -33,14 +33,14 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
 
    /** @} */
 
-   virtual int registerData(Checkpointer *checkpointer) override;
-   virtual int processCheckpointRead() override;
-   virtual int prepareCheckpointWrite() override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status processCheckpointRead() override;
+   virtual Response::Status prepareCheckpointWrite() override;
 
-   virtual int updateState(double time, double dt) override;
+   virtual Response::Status updateState(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
-   virtual int updateStateGpu(double time, double dt) override;
+   virtual Response::Status updateStateGpu(double time, double dt) override;
    virtual int allocateUpdateKernel() override;
 #endif
 

@@ -87,7 +87,10 @@ function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbP
         nyLocalPreExt = nyLocalPre+2*nbPre;
         nxLocalPost = nxGlobalPost/numxprocs;
         nyLocalPost = nyGlobalPost/numyprocs;
+        nxGlobalPreExt = nxGlobalPre+2*nbPre;
+        nyGlobalPreExt = nyGlobalPre+2*nbPre;
         cell1size = size(data{frameno}.values{1,1,1});
+        % Note: calculation of wmin and wmax is off because it runs over the full patch instead of the shrunken patch
         wmax = max(data{frameno}.values{1,1,1}(:)); % The other cells in the values cell array are handled below.
         wmin = min(data{frameno}.values{1,1,1}(:));
         for cell=2:numcells
@@ -123,20 +126,20 @@ function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbP
         hdr(1) = 104; % Number of bytes in header
         hdr(2) = 26;  % Number of 4-byte values in header
         hdr(3) = 3;   % File type for non
-        hdr(4) = nxLocalPre;   % Presynaptic nx
-        hdr(5) = nyLocalPre;   % Presynaptic ny
+        hdr(4) = nxGlobalPre;   % Presynaptic nx
+        hdr(5) = nyGlobalPre;   % Presynaptic ny
         hdr(6) = nfPre; % Presynaptic nf
-        hdr(7) = numcells;   % Number of records, for weight files one cell is a record.
-        hdr(8) = numpatches*(8+4*nxp*nyp*nfp);   % Record size, the data for the arbor is preceded by nx(2 bytes), ny(2 bytes) and offset(4 bytes)
+        hdr(7) = numarbors;   % Number of records, for weight files one arbor is a record.
+        hdr(8) = 0;   % Weight pvp files do not use the record size header field
         hdr(9) = 4;   % Data size: floats are four bytes
         hdr(10) = 3;  % Types are 1=byte, 2=int, 3=float.  Type 1 is for compressed weights; type 2 isn't used for weight files
-        hdr(11) = numxprocs;  % Number of processes in x-direction
-        hdr(12) = numyprocs;  % Number of processes in y-direction
-        hdr(13) = nxGlobalPre;  % Presynaptic nxGlobal
-        hdr(14) = nyGlobalPre;  % Presynaptic nyGlobal
+        hdr(11) = 1;  % Number of processes in x-direction
+        hdr(12) = 1;  % Number of processes in y-direction
+        hdr(13) = nxGlobalPreExt;  % Presynaptic nxGlobal
+        hdr(14) = nyGlobalPreExt;  % Presynaptic nyGlobal
         hdr(15) = 0;  % kx0, no longer used
         hdr(16) = 0;  % ky0, no longer used
-        hdr(17) = nbPre;  % Presynaptic nb
+        hdr(17) = 1;  % Number of batches is 1 for weight files
         hdr(18) = numarbors; % number of arbors
         hdr(19:20) = typecast(double(data{frameno}.time),'uint32'); % timestamp
         % hdr(21:26) is for extra header values used by weights
@@ -165,9 +168,9 @@ function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbP
                 for x=1:nxLocalPre+2*nbPre
                     for f=1:nfPre
                         patchno=patchno+1;
-                        fwrite(fid,nx(x),'uint16');
-                        fwrite(fid,ny(y),'uint16');
-                        fwrite(fid,offset(x,y),'uint32');
+                        fwrite(fid,nxp,'uint16');
+                        fwrite(fid,nyp,'uint16');
+                        fwrite(fid,0,'uint32');
                         fwrite(fid,permute(data{frameno}.values{cell}(:,:,:,patchno),[3 1 2]),'single');                       
                     end%for
                 end%for

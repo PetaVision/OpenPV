@@ -1,7 +1,7 @@
 #ifndef __CHECKPOINTABLEFILESTREAM_HPP__
 #define __CHECKPOINTABLEFILESTREAM_HPP__
 
-#include "Checkpointer.hpp"
+#include "CheckpointerDataInterface.hpp"
 #include "io/FileStream.hpp"
 
 #include <string>
@@ -44,7 +44,7 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
          bool newFile,
          Checkpointer *checkpointer,
          string const &objName);
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
    virtual void write(void const *data, long length) override;
    virtual void read(void *data, long length) override;
    virtual void setOutPos(long pos, bool fromBeginning) override;
@@ -58,8 +58,8 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
          string const &objName,
          bool verifyWrites);
    void setDescription();
-   virtual int registerData(Checkpointer *checkpointer) override;
-   int respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   Response::Status respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
    void syncFilePos();
    void updateFilePos();
    long mFileReadPos  = 0;

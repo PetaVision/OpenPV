@@ -14,7 +14,6 @@ HyPerCol "column" = {
    ny = 32;
    dt = 1.0;
    randomSeed = 1364931845;  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
    stopTime = 100.0;
    progressInterval = 100.0;
    writeProgressToErr = false;
@@ -97,9 +96,7 @@ PlasticTestConn "PreToPost" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
     convertRateToSpikeCount = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
     dWMax = 1.0;
     updateGSynFromPostPerspective = false;

@@ -25,7 +25,6 @@ HyPerCol "column" = {
    nbatch = 1;
    // dt // parameter sweep
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
    stopTime = 10.0;  
    errorOnNotANumber = true;
    verifyWrites = true;
@@ -35,7 +34,7 @@ HyPerCol "column" = {
    printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
-   lastCheckpointDir = "output/Last"; //If true, save the last output as checkpoint.
+   // lastCheckpointDir // parameter sweep
 };
 
 //
@@ -67,7 +66,7 @@ PvpLayer "input" = {
     displayPeriod = 0;
 };
 
-ANNLayer "output_noconversion" = {
+HyPerLayer "output_noconversion" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 8; // 8 outputs 
@@ -78,16 +77,9 @@ ANNLayer "output_noconversion" = {
     sparseLayer = false;
 
     InitVType = "ZeroV";
-
-    //define a linear relation between its input and output, with some hard cut-off.
-    VThresh = -infinity;   
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
 };
 
-ANNLayer "output_withconversion" = {
+HyPerLayer "output_withconversion" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 8; // 8 outputs 
@@ -98,13 +90,6 @@ ANNLayer "output_withconversion" = {
     sparseLayer = false;
 
     InitVType = "ZeroV";
-
-    //define a linear relation between its input and output, with some hard cut-off.
-    VThresh = -infinity;   
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
 };
 
 HyPerLayer "comparison" = {
@@ -151,12 +136,10 @@ HyPerConn "input_to_output_noconversion" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  // connect to itself
 
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
     convertRateToSpikeCount = false;
 };
@@ -189,12 +172,10 @@ HyPerConn "input_to_output_withconversion" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    selfFlag = false;  // connect to itself
 
     delay = 0;
 
     pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
-    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
     convertRateToSpikeCount = true;
 };
@@ -230,5 +211,6 @@ RequireAllZeroActivityProbe "probe" = {
 };
 
 ParameterSweep "column":outputPath = { "output1000"; "output0500"; "output0250"; "output0125"; };
+ParameterSweep "column":lastCheckpointDir = { "output1000/Last"; "output0500/Last"; "output0250/Last"; "output0125/Last"; };
 ParameterSweep "column":dt = { 1.0; 0.5; 0.25; 0.125; };
 ParameterSweep "input_to_output_noconversion":strength = { 1.0; 0.5; 0.25; 0.125; };

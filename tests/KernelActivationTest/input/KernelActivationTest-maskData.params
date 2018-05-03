@@ -8,7 +8,6 @@ HyPerCol "column" = {
     ny = 16;
     dt = 1;
     randomSeed = 1328498006;
-    startTime = 0.0;
     stopTime = 5.0;
     progressInterval = 1000;
     writeProgressToErr = false;
@@ -250,8 +249,6 @@ ANNLayer "Post32x32Multiband" = {
 //    numOrientationsPost = 4;
 //    normalizeMethod = "none";
 //
-//    shrinkPatches = false;
-//    selfFlag = false;
 //    convertRateToSpikeCount = false;
 //    
 //};
@@ -285,8 +282,6 @@ HyPerConn "8x8ImagesToPost8x8Multiband" = {
     numOrientationsPost = 4;
     normalizeMethod = "none";
     
-    shrinkPatches = false;
-    selfFlag = false;
     convertRateToSpikeCount = false;
 };
 
@@ -319,8 +314,6 @@ HyPerConn "16x16ImagesToPost16x16Multiband" = {
     numOrientationsPost = 4;
     normalizeMethod = "none";
     
-    shrinkPatches = false;
-    selfFlag = false;
     convertRateToSpikeCount = false;
 };
 
@@ -353,16 +346,11 @@ HyPerConn "32x32ImagesToPost32x32Multiband" = {
     numOrientationsPost = 4;
     normalizeMethod = "none";
 
-    shrinkPatches = false;
-    selfFlag = false;
     convertRateToSpikeCount = false;
 };
 
 //Feed post to mask as well
 HyPerConn "Pre16x16SinglebandToPost16x16Singleband" = {
-    useMask = true;
-    maskLayerName = "Post16x16Singleband";
-
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -383,8 +371,6 @@ HyPerConn "Pre16x16SinglebandToPost16x16Singleband" = {
     dWMax = 1.0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
     convertRateToSpikeCount = false;
     
@@ -393,9 +379,6 @@ HyPerConn "Pre16x16SinglebandToPost16x16Singleband" = {
 };
 
 HyPerConn "Pre16x16SinglebandToPost16x16Multiband" = {
-    useMask = true;
-    maskLayerName = "Post16x16Multiband";
-
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -419,8 +402,6 @@ HyPerConn "Pre16x16SinglebandToPost16x16Multiband" = {
 
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
     convertRateToSpikeCount = false;
 
@@ -431,8 +412,6 @@ HyPerConn "Pre16x16SinglebandToPost16x16Multiband" = {
 };
 
 HyPerConn "Pre16x16MultibandToPost16x16Singleband" = {
-    useMask = true;
-    maskLayerName = "Post16x16Singleband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -456,15 +435,11 @@ HyPerConn "Pre16x16MultibandToPost16x16Singleband" = {
     
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
     convertRateToSpikeCount = false;
 };
 
 HyPerConn "Pre16x16MultibandToPost16x16Multiband" = {
-    useMask = true;
-    maskLayerName = "Post16x16Multiband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -488,15 +463,11 @@ HyPerConn "Pre16x16MultibandToPost16x16Multiband" = {
     
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
     convertRateToSpikeCount = false;
 };
 
 HyPerConn "Pre16x16SinglebandToPost8x8Singleband" = {
-    useMask = true;
-    maskLayerName = "Post8x8Singleband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -518,8 +489,6 @@ HyPerConn "Pre16x16SinglebandToPost8x8Singleband" = {
     weightUpdatePeriod = 1.0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
     
     relaxation = 1.0;
@@ -530,8 +499,6 @@ HyPerConn "Pre16x16SinglebandToPost8x8Singleband" = {
 };
 
 HyPerConn "Pre16x16SinglebandToPost8x8Multiband" = {
-    useMask = true;
-    maskLayerName = "Post8x8Multiband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -555,14 +522,10 @@ HyPerConn "Pre16x16SinglebandToPost8x8Multiband" = {
     weightUpdatePeriod = 1;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
 HyPerConn "Pre16x16MultibandToPost8x8Singleband" = {
-    useMask = true;
-    maskLayerName = "Post8x8Singleband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -585,14 +548,10 @@ HyPerConn "Pre16x16MultibandToPost8x8Singleband" = {
 
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
 HyPerConn "Pre16x16MultibandToPost8x8Multiband" = {
-    useMask = true;
-    maskLayerName = "Post8x8Multiband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 5;
@@ -614,14 +573,10 @@ HyPerConn "Pre16x16MultibandToPost8x8Multiband" = {
     weightUpdatePeriod = 1.0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
 HyPerConn "Pre16x16SinglebandToPost32x32Singleband" = {
-    useMask = true;
-    maskLayerName = "Post32x32Singleband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 10;
@@ -643,14 +598,10 @@ HyPerConn "Pre16x16SinglebandToPost32x32Singleband" = {
     weightUpdatePeriod = 1.0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
 HyPerConn "Pre16x16SinglebandToPost32x32Multiband" = {
-    useMask = true;
-    maskLayerName = "Post32x32Multiband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 10;
@@ -672,8 +623,6 @@ HyPerConn "Pre16x16SinglebandToPost32x32Multiband" = {
     weightUpdatePeriod = 1;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
     
     relaxation = 1.0;
@@ -684,8 +633,6 @@ HyPerConn "Pre16x16SinglebandToPost32x32Multiband" = {
 };
 
 HyPerConn "Pre16x16MultibandToPost32x32Singleband" = {
-    useMask = true;
-    maskLayerName = "Post32x32Singleband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 10;
@@ -707,14 +654,10 @@ HyPerConn "Pre16x16MultibandToPost32x32Singleband" = {
     weightUpdatePeriod = 1.0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };
 
 HyPerConn "Pre16x16MultibandToPost32x32Multiband" = {
-    useMask = true;
-    maskLayerName = "Post32x32Multiband";
     channelCode = -1;
     sharedWeights = true;
     nxp = 10;
@@ -736,7 +679,5 @@ HyPerConn "Pre16x16MultibandToPost32x32Multiband" = {
     weightUpdatePeriod = 1;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    shrinkPatches = false;
-    selfFlag = false;
     combine_dW_with_W_flag = false;
 };

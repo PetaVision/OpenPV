@@ -10,5 +10,19 @@ set(SRC_HPP
 )
 
 if (PV_USE_CUDA)
-  pv_add_test(PARAMS preTest postTest postTestNoTranspose postTestOneToMany postTest_linked postTestGpuGroup HyPerLCAGpuTest postRecvBatch preRecvBatch diffMarginPostTest oneToTwo oneToTwoTranspose twoToOneAccumulation SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})
+  pv_add_test(PARAMS
+    preTest
+    postTest
+    postTestNoTranspose
+    postTestOneToMany
+    postTest_linked
+#   postTestGpuGroup
+    HyPerLCAGpuTest
+    postRecvBatch
+    preRecvBatch
+    diffMarginPostTest
+    oneToTwo
+    oneToTwoTranspose
+    twoToOneAccumulation
+    SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})
 endif()

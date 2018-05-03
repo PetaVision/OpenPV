@@ -44,7 +44,7 @@ void UniformRandomV::ioParam_maxV(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "maxV", &maxV, minV + 1.0f);
 }
 
-int UniformRandomV::calcV(float *V, PVLayerLoc const *loc) {
+void UniformRandomV::calcV(float *V, PVLayerLoc const *loc) {
    PVLayerLoc flatLoc;
    memcpy(&flatLoc, loc, sizeof(PVLayerLoc));
    flatLoc.nf = 1;
@@ -62,7 +62,6 @@ int UniformRandomV::calcV(float *V, PVLayerLoc const *loc) {
          }
       }
    }
-   return PV_SUCCESS;
 }
 
 } // end namespace PV

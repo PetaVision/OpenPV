@@ -5,7 +5,6 @@ HyPerCol "column" = {
     ny = 32;  //218;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    startTime = 0.0;
     stopTime = 1.0;       // Depends on number of VINE video frames
     progressInterval = 1.0;
     //Change this
@@ -128,7 +127,6 @@ HyPerConn "origConn" = {
     normalizeMethod = "none";
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 1;
@@ -141,7 +139,6 @@ HyPerConn "origConn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 };
@@ -152,7 +149,6 @@ PlasticCloneConn "cloneConn" = {
     channelCode = 0;
     writeStep = -1;
     originalConnName = "origConn";
-    selfFlag = false;
     delay = 0;
     convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;

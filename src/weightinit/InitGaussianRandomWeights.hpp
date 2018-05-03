@@ -30,9 +30,6 @@ class InitGaussianRandomWeights : public PV::InitRandomWeights {
    virtual int initRNGs(bool isKernel) override;
    virtual void randomWeights(float *patchDataStart, int patchIndex) override;
 
-  private:
-   int initialize_base();
-
    // Member variables
   protected:
    GaussianRandom *mGaussianRandState;

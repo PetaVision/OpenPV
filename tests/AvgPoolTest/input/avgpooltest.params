@@ -1,12 +1,11 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    nx = 8; //1242;  // KITTI synced value
-    ny = 8;  //218;
+    nx = 8;
+    ny = 8;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    startTime = 0.0;
-    stopTime = 10.0;       // Depends on number of VINE video frames
+    stopTime = 10.0;
     progressInterval = 1.0;
     outputPath = "output/avgpooltest";
     printParamsFilename = "pv.params";
@@ -20,7 +19,6 @@ HyPerCol "column" = {
     nbatch = 2;
 };
 
-// this is a input layer
 // value is equal to restricted index into extended layer (with negative values) index, with order [x, y, f] from fastest to slowest
 AvgPoolTestInputLayer "input" = {
     restart = 0;
@@ -33,11 +31,6 @@ AvgPoolTestInputLayer "input" = {
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0.0;
-    VWidth = 0.0;
     // 
     phase = 0; 
     triggerLayerName = NULL;
@@ -55,11 +48,6 @@ AvgPoolTestLayer "avgPoolPre" = {
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0.0;
-    VWidth = 0.0;
     // 
     phase = 1; 
     triggerLayerName = NULL;
@@ -77,11 +65,6 @@ AvgPoolTestLayer "avgPoolPost" = {
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0.0;
-    VWidth = 0.0;
     // 
     phase = 1; 
     triggerLayerName = NULL;
@@ -96,13 +79,11 @@ PoolingConn "input2avgPoolPre" = {
     nyp = 3; 
     numAxonalArbors = 1;
     
-    shrinkPatches = false;
     pvpatchAccumulateType = "avgpooling";
      
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
     updateGSynFromPostPerspective = false;
 

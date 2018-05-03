@@ -2,7 +2,6 @@
 
 
 HyPerCol "column" = {
-    startTime                           = 0;
     dt                                  = 1;
     stopTime                            = 10;
     progressInterval                    = 10;
@@ -88,11 +87,9 @@ HyPerConn "InputToOutput" = {
     pvpatchAccumulateType               = "convolve";
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
     nxp                                 = 7;
     nyp                                 = 7;
     nfp                                 = 8;
-    shrinkPatches                       = false;
     normalizeMethod                     = "normalizeSum";
     strength                            = 4;
     normalizeArborsIndividually         = false;
@@ -104,5 +101,4 @@ HyPerConn "InputToOutput" = {
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     minSumTolerated                     = 0;
-    weightSparsity                      = 0;
 };

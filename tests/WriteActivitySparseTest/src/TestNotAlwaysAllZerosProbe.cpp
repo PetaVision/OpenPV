@@ -21,9 +21,9 @@ TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(const char *name, HyPerCo
    initialize(name, hc);
 }
 
-int TestNotAlwaysAllZerosProbe::outputState(double timed) {
-   int status = StatsProbe::outputState(timed);
-   if (status != PV_SUCCESS) {
+Response::Status TestNotAlwaysAllZerosProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
+   if (status != Response::SUCCESS) {
       Fatal().printf(
             "!!Time %f: TestNotAlwaysAllZerosProbe::outputState failed for %s\n",
             timed,

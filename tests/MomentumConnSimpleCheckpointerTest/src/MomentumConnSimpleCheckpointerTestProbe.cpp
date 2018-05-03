@@ -40,77 +40,75 @@ void MomentumConnSimpleCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::Pa
    }
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::communicateInitInfo(
+PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::communicateInitInfo(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   int status = PV::ColProbe::communicateInitInfo(message);
-   FatalIf(
-         status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
+   auto status = PV::ColProbe::communicateInitInfo(message);
+   if (!PV::Response::completed(status)) {
+      return status;
+   }
 
-   if (initInputLayer(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
-   if (initOutputLayer(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
-   if (initConnection(message) == PV_POSTPONE) {
-      return PV_POSTPONE;
-   }
+   status = status + initInputLayer(message);
+   status = status + initOutputLayer(message);
+   status = status + initConnection(message);
    return status;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::initInputLayer(
+PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::initInputLayer(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
-   if (checkCommunicatedFlag(mInputLayer) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mInputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
 
    FatalIf(
          mInputLayer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(
+PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
-   if (checkCommunicatedFlag(mOutputLayer) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mOutputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::initConnection(
+PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::initConnection(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    mConnection = message->lookup<PV::MomentumConn>(std::string("InputToOutput"));
    FatalIf(
          mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
-   if (checkCommunicatedFlag(mConnection) == PV_POSTPONE) {
-      return PV_POSTPONE;
+   if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
 
    FatalIf(
-         mConnection->numberOfAxonalArborLists() != 1,
+         mConnection->getNumAxonalArbors() != 1,
          "This test assumes that the connection has only 1 arbor.\n");
    FatalIf(
          mConnection->getDelay(0) != 0.0,
          "This test assumes that the connection has zero delay.\n");
    FatalIf(
-         !mConnection->usingSharedWeights(),
+         !mConnection->getSharedWeights(),
          "This test assumes that the connection is using shared weights.\n");
-   FatalIf(mConnection->xPatchSize() != 1, "This test assumes that the connection has nxp==1.\n");
-   FatalIf(mConnection->yPatchSize() != 1, "This test assumes that the connection has nyp==1.\n");
-   FatalIf(mConnection->fPatchSize() != 1, "This test assumes that the connection has nfp==1.\n");
+   FatalIf(
+         mConnection->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
+   FatalIf(
+         mConnection->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
+   FatalIf(
+         mConnection->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
    FatalIf(
          std::strcmp(mConnection->getMomentumMethod(), "simple"),
          "This test assumes that the connection has momentumMethod=\"simple\".\n");
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::checkCommunicatedFlag(
-      PV::BaseObject *dependencyObject) {
+PV::Response::Status
+MomentumConnSimpleCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
    if (!dependencyObject->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->commRank() == 0) {
          InfoLog().printf(
@@ -118,15 +116,15 @@ int MomentumConnSimpleCheckpointerTestProbe::checkCommunicatedFlag(
                getDescription_c(),
                dependencyObject->getName());
       }
-      return PV_POSTPONE;
+      return PV::Response::POSTPONE;
    }
    else {
-      return PV_SUCCESS;
+      return PV::Response::SUCCESS;
    }
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::readStateFromCheckpoint(
-      PV::Checkpointer *checkpointer) {
+PV::Response::Status
+MomentumConnSimpleCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkpointer) {
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
@@ -139,12 +137,12 @@ int MomentumConnSimpleCheckpointerTestProbe::readStateFromCheckpoint(
 
    mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
 
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
 int MomentumConnSimpleCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
-   pvAssert(timevalue >= parent->getStartTime());
-   int const step = (int)std::nearbyint(timevalue - parent->getStartTime());
+   pvAssert(timevalue >= 0.0);
+   int const step = (int)std::nearbyint(timevalue);
    pvAssert(step >= 0);
    int const updateNumber = (step + 3) / 4; // integer division
    return updateNumber;
@@ -167,7 +165,7 @@ void MomentumConnSimpleCheckpointerTestProbe::initializeCorrectValues(double tim
    }
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::outputState(double timevalue) {
+PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::outputState(double timevalue) {
    if (!mValuesSet) {
       initializeCorrectValues(timevalue);
       mValuesSet = true;
@@ -199,7 +197,8 @@ int MomentumConnSimpleCheckpointerTestProbe::outputState(double timevalue) {
                "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }
-   return PV_SUCCESS; // Test runs all timesteps and then checks the mTestFailed flag at the end.
+   // Test runs all timesteps and then checks the mTestFailed flag at the end.
+   return PV::Response::SUCCESS;
 }
 
 bool MomentumConnSimpleCheckpointerTestProbe::verifyConnection(
@@ -209,11 +208,11 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyConnection(
    bool failed = false;
 
    if (parent->getCommunicator()->commRank() == 0) {
-      float observedWeightValue = connection->get_wDataStart(0)[0];
+      float observedWeightValue = connection->getWeightsDataStart(0)[0];
       float correctWeightValue  = correctState->getCorrectWeight();
       failed |= verifyConnValue(timevalue, observedWeightValue, correctWeightValue, "weight");
 
-      float observed_dwValue = connection->get_dwDataStart(0)[0];
+      float observed_dwValue = connection->getDeltaWeightsDataStart(0)[0];
       float correct_dwValue  = correctState->getCorrect_dw();
       failed |= verifyConnValue(timevalue, observed_dwValue, correct_dwValue, "dw");
    }

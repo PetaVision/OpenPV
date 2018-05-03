@@ -293,18 +293,20 @@ int LIF::setActivity() {
    return 0;
 }
 
-int LIF::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status = HyPerLayer::communicateInitInfo(message);
-
-   return status;
+Response::Status
+LIF::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   return HyPerLayer::communicateInitInfo(message);
 }
 
-int LIF::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
+Response::Status LIF::allocateDataStructures() {
+   auto status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
 
    // // a random state variable is needed for every neuron/clthread
    randState = new Random(getLayerLoc(), false /*isExtended*/);
-   if (randState == NULL) {
+   if (randState == nullptr) {
       Fatal().printf(
             "LIF::initialize:  %s unable to create object of Random class.\n", getDescription_c());
    }
@@ -314,12 +316,11 @@ int LIF::allocateDataStructures() {
    for (size_t k = 0; k < numNeurons; k++) {
       Vth[k] = lParams.VthRest; // lParams.VthRest is set in setLIFParams
    }
-   return status;
+   return Response::SUCCESS;
 }
 
-int LIF::allocateBuffers() {
-   int status = allocateConductances(numChannels);
-   assert(status == PV_SUCCESS);
+void LIF::allocateBuffers() {
+   allocateConductances(numChannels);
    Vth = (float *)calloc((size_t)getNumNeuronsAllBatches(), sizeof(float));
    if (Vth == NULL) {
       Fatal().printf(
@@ -328,10 +329,10 @@ int LIF::allocateBuffers() {
             parent->columnId(),
             strerror(errno));
    }
-   return HyPerLayer::allocateBuffers();
+   HyPerLayer::allocateBuffers();
 }
 
-int LIF::allocateConductances(int num_channels) {
+void LIF::allocateConductances(int num_channels) {
    assert(num_channels >= 3); // Need exc, inh, and inhb at a minimum.
    const int numNeurons = getNumNeuronsAllBatches();
    G_E = (float *)calloc((size_t)(getNumNeuronsAllBatches() * numChannels), sizeof(float));
@@ -346,58 +347,60 @@ int LIF::allocateConductances(int num_channels) {
 
    G_I  = G_E + 1 * numNeurons;
    G_IB = G_E + 2 * numNeurons;
-   return PV_SUCCESS;
 }
 
-int LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
+Response::Status LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (initializeFromCheckpointFlag) {
-      HyPerLayer::readStateFromCheckpoint(checkpointer);
+      auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+      if (!Response::completed(status)) {
+         return status;
+      }
       readVthFromCheckpoint(checkpointer);
       readG_EFromCheckpoint(checkpointer);
       readG_IFromCheckpoint(checkpointer);
       readG_IBFromCheckpoint(checkpointer);
       readRandStateFromCheckpoint(checkpointer);
+      return Response::SUCCESS;
    }
-   return PV_SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
-int LIF::readVthFromCheckpoint(Checkpointer *checkpointer) {
+void LIF::readVthFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), "Vth", false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int LIF::readG_EFromCheckpoint(Checkpointer *checkpointer) {
+void LIF::readG_EFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), "G_E", false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int LIF::readG_IFromCheckpoint(Checkpointer *checkpointer) {
+void LIF::readG_IFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), "G_I", false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int LIF::readG_IBFromCheckpoint(Checkpointer *checkpointer) {
+void LIF::readG_IBFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), "G_IB", false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int LIF::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
+void LIF::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), "rand_state", false /*not constant*/);
-   return PV_SUCCESS;
 }
 
-int LIF::registerData(Checkpointer *checkpointer) {
-   int status = HyPerLayer::registerData(checkpointer);
+Response::Status LIF::registerData(Checkpointer *checkpointer) {
+   auto status = HyPerLayer::registerData(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
    checkpointPvpActivityFloat(checkpointer, "Vth", Vth, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_E", G_E, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_I", G_I, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_IB", G_IB, false /*not extended*/);
    checkpointRandState(checkpointer, "rand_state", randState, false /*not extended*/);
-   return status;
+   return Response::SUCCESS;
 }
 
-int LIF::updateState(double time, double dt) {
-   int status = 0;
+Response::Status LIF::updateState(double time, double dt) {
    update_timer->start();
 
    const int nx       = clayer->loc.nx;
@@ -482,7 +485,7 @@ int LIF::updateState(double time, double dt) {
       default: assert(0); break;
    }
    update_timer->stop();
-   return status;
+   return Response::SUCCESS;
 }
 
 float LIF::getChannelTimeConst(enum ChannelType channel_type) {

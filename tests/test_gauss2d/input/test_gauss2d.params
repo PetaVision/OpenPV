@@ -6,7 +6,6 @@ debugParsing = false;
 HyPerCol "test_gauss2d_column" = {
    nx = 16;
    ny = 16;
-   startTime = 0.0;
    stopTime = 1.0;
    progressInterval = 1.0;
    writeProgressToErr = false;
@@ -75,10 +74,8 @@ HyPerConn "test_gauss2d_hyperconn" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
    delay = 0;
-   shrinkPatches = false;
 };
 
 HyPerConn "test_gauss2d_kernelconn" = {
@@ -106,10 +103,8 @@ HyPerConn "test_gauss2d_kernelconn" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
    delay = 0;
-   shrinkPatches = false;
 };
 
 HyPerLayer "test_gauss2d_pre2" = {
@@ -167,11 +162,9 @@ HyPerConn "test_gauss2d_hyperconn1to2" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
 
    delay = 0;
-   shrinkPatches = false;
 };
 
 HyPerConn "test_gauss2d_kernelconn1to2" = {
@@ -199,11 +192,9 @@ HyPerConn "test_gauss2d_kernelconn1to2" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
 
    delay = 0;
-   shrinkPatches = false;
 };
 
 HyPerConn "test_gauss2d_hyperconn2to1" = {
@@ -231,11 +222,9 @@ HyPerConn "test_gauss2d_hyperconn2to1" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
 
    delay = 0;
-   shrinkPatches = false;
 };
 
 HyPerConn "test_gauss2d_kernelconn2to1" = {
@@ -263,9 +252,7 @@ HyPerConn "test_gauss2d_kernelconn2to1" = {
    writeStep = 1.0;
    initialWriteTime = 0.0;
    writeCompressedCheckpoints = false;
-   selfFlag = false;
    updateGSynFromPostPerspective = false;
 
    delay = 0;
-   shrinkPatches = false;
 };

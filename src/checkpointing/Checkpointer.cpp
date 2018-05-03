@@ -6,15 +6,17 @@
  */
 
 #include "Checkpointer.hpp"
+
+#include "checkpointing/CheckpointingMessages.hpp"
 #include <cerrno>
 #include <climits>
-#include <cmath>
-#include <cstring>
+// #include <cmath>
+// #include <cstring>
 #include <fts.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
+// #include <unistd.h>
 #define DEFAULT_OUTPUT_PATH "output"
 
 namespace PV {
@@ -451,7 +453,7 @@ void Checkpointer::provideFinalStep(long int finalStep) {
    }
 }
 
-void Checkpointer::addObserver(Observer *observer, BaseMessage const &message) {
+void Checkpointer::addObserver(Observer *observer) {
    mObserverTable.addObject(observer->getDescription(), observer);
 }
 
@@ -946,61 +948,4 @@ void Checkpointer::writeTimers(std::string const &directory) {
 }
 
 std::string const Checkpointer::mDefaultOutputPath = "output";
-
-int CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage const> message) {
-   if (message == nullptr) {
-      return PV_SUCCESS;
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<RegisterDataMessage<Checkpointer> const>(message)) {
-      return respondRegisterData(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ReadStateFromCheckpointMessage<Checkpointer> const>(
-                     message)) {
-      return respondReadStateFromCheckpoint(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ProcessCheckpointReadMessage const>(message)) {
-      return respondProcessCheckpointRead(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<PrepareCheckpointWriteMessage const>(message)) {
-      return respondPrepareCheckpointWrite(castMessage);
-   }
-   else {
-      return PV_SUCCESS;
-   }
-}
-
-int CheckpointerDataInterface::respondRegisterData(
-      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   return registerData(message->mDataRegistry);
-}
-
-int CheckpointerDataInterface::respondReadStateFromCheckpoint(
-      std::shared_ptr<ReadStateFromCheckpointMessage<Checkpointer> const> message) {
-   return readStateFromCheckpoint(message->mDataRegistry);
-}
-
-int CheckpointerDataInterface::respondProcessCheckpointRead(
-      std::shared_ptr<ProcessCheckpointReadMessage const> message) {
-   return processCheckpointRead();
-}
-
-int CheckpointerDataInterface::respondPrepareCheckpointWrite(
-      std::shared_ptr<PrepareCheckpointWriteMessage const> message) {
-   return prepareCheckpointWrite();
-}
-
-int CheckpointerDataInterface::registerData(Checkpointer *checkpointer) {
-   mMPIBlock = checkpointer->getMPIBlock();
-   checkpointer->addObserver(this, BaseMessage());
-   return PV_SUCCESS;
-}
-
 } // namespace PV

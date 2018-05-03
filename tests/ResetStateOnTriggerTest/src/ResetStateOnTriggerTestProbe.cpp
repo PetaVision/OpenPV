@@ -20,9 +20,9 @@ int ResetStateOnTriggerTestProbe::initialize(char const *name, PV::HyPerCol *hc)
    return status;
 }
 
-int ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
+void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    int nBatch = getNumValues();
-   if (timevalue > parent->getStartTime()) {
+   if (timevalue > 0.0) {
       int N                 = targetLayer->getNumNeurons();
       int NGlobal           = targetLayer->getNumGlobalNeurons();
       PVLayerLoc const *loc = targetLayer->getLayerLoc();
@@ -65,13 +65,12 @@ int ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
          getValuesBuffer()[b] = 0.0;
       }
    }
-   return PV_SUCCESS;
 }
 
-int ResetStateOnTriggerTestProbe::outputState(double timevalue) {
+PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double timevalue) {
    getValues(timevalue); // calls calcValues
    if (mOutputStreams.empty()) {
-      return PV_SUCCESS;
+      return PV::Response::SUCCESS;
    }
    if (probeStatus != 0) {
       int nBatch = getNumValues();
@@ -103,7 +102,7 @@ int ResetStateOnTriggerTestProbe::outputState(double timevalue) {
          }
       }
    }
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
 ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {}

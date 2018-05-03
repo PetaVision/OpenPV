@@ -10,16 +10,15 @@
 
 #include "checkpointing/CheckpointEntry.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
-#include "checkpointing/CheckpointingMessages.hpp"
 #include "io/PVParams.hpp"
-#include "io/io.hpp"
+// #include "io/io.hpp"
 #include "observerpattern/Subject.hpp"
-#include "structures/MPIBlock.hpp"
+// #include "structures/MPIBlock.hpp"
 #include "utils/Timer.hpp"
 #include <ctime>
-#include <map>
-#include <memory>
-#include <string>
+// #include <map>
+// #include <memory>
+// #include <string>
 
 namespace PV {
 
@@ -181,7 +180,7 @@ class Checkpointer : public Subject {
          bool constantEntireRun);
 
    void registerTimer(Timer const *timer);
-   virtual void addObserver(Observer *observer, BaseMessage const &message) override;
+   virtual void addObserver(Observer *observer) override;
 
    void readNamedCheckpointEntry(
          std::string const &objName,
@@ -258,7 +257,7 @@ class Checkpointer : public Subject {
 
    /**
      * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "clock". If the
-     * elapsed time between the wall clock time and mLastCheckpointWallclock exceeds 
+     * elapsed time between the wall clock time and mLastCheckpointWallclock exceeds
      * mCheckpointWriteWallclockInterval, it sets mLastCheckpointWallclock to the current
      * wall clock time and returns true. Otherwise it returns false.
      */
@@ -340,58 +339,6 @@ class Checkpointer : public Subject {
    Timer *mCheckpointTimer = nullptr;
 
    static std::string const mDefaultOutputPath;
-};
-
-/**
- * CheckpointerDataInterface provides a virtual method intended for interfacing
- * with Checkpointer register methods.  An object that does checkpointing should
- * derive from CheckpointerDataInterface and override the following methods:
- *
- * - registerData should call Checkpointer::registerCheckpointEntry
- * once for each piece of data that should be read when restarting a run from
- * a checkpoint. Note that for simple data, where CheckpointEntryData is the
- * appropriate derived class of CheckpointEntry to use, it is convenient to
- * use the Checkpointer::registerCheckpointData method template, which handles
- * creating the shared_ptr needed by registerCheckpointEntry().
- * Note that CheckpointerDataInterface::registerData sets mMPIBlock. Derived
- * classes that override registerData should call
- * CheckpointerDataInterface::registerData in order to use this data member.
- *
- * - readStateFromCheckpoint should call one of the readNamedCheckpointEntry
- * methods for each piece of data that should be read when the object's
- * initializeFromCheckpointFlag is set. The data read by readStateFromCheckpoint
- * must be a subset of the data registered by the registerData function member.
- *
- * BaseObject derives from CheckpointerDataInterface, and calls registerData
- * when it receives a RegisterDataMessage (which HyPerCol::run calls after
- * AllocateDataMessage and before InitializeStateMessage); and calls
- * readStateFromCheckpoint when it receives a ReadStateFromCheckpointMessage
- * (which HyPerCol::run calls after InitializeStateMessage if
- * CheckpointReadDirectory is not set).
- */
-class CheckpointerDataInterface : public Observer {
-  public:
-   virtual int registerData(Checkpointer *checkpointer);
-
-   virtual int respond(std::shared_ptr<BaseMessage const> message) override;
-
-   virtual int readStateFromCheckpoint(Checkpointer *checkpointer) { return PV_SUCCESS; }
-
-   MPIBlock const *getMPIBlock() { return mMPIBlock; }
-
-  protected:
-   int respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
-   int respondReadStateFromCheckpoint(
-         std::shared_ptr<ReadStateFromCheckpointMessage<Checkpointer> const> message);
-
-   int respondProcessCheckpointRead(std::shared_ptr<ProcessCheckpointReadMessage const> message);
-   int respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
-
-   virtual int processCheckpointRead() { return PV_SUCCESS; }
-   virtual int prepareCheckpointWrite() { return PV_SUCCESS; }
-
-  private:
-   MPIBlock const *mMPIBlock = nullptr;
 };
 
 } // namespace PV

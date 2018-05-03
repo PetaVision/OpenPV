@@ -16,7 +16,6 @@ HyPerCol "column" = {
    ny = 64;
    dt = 1.0;  //time step in ms.	     
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
    stopTime = 5.0;  
    nbatch = 16;
    threadBatch = 0;
@@ -142,7 +141,6 @@ HyPerConn "conn" = {
 
     symmetrizeWeights = false;
     
-    shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
@@ -151,7 +149,6 @@ HyPerConn "conn" = {
     delay = 0;
      
     convertRateToSpikeCount = false;
-    selfFlag = false;
 
 
     updateGSynFromPostPerspective = true;
@@ -171,7 +168,6 @@ CloneConn "gpuconn" = {
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    selfFlag = false;
     convertRateToSpikeCount = false;
 
     delay = 0;

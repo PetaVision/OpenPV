@@ -40,7 +40,7 @@ void LeakyIntegrator::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "integrationTime", &integrationTime, integrationTime);
 }
 
-int LeakyIntegrator::updateState(double timed, double dt) {
+Response::Status LeakyIntegrator::updateState(double timed, double dt) {
    float *V    = getV();
    float *gSyn = GSyn[0];
 
@@ -59,7 +59,7 @@ int LeakyIntegrator::updateState(double timed, double dt) {
 
    PVHalo const *halo = &getLayerLoc()->halo;
    float *A           = getActivity();
-   int status         = setActivity_PtwiseLinearTransferLayer(
+   setActivity_PtwiseLinearTransferLayer(
          nbatch,
          getNumNeurons(),
          A,
@@ -75,7 +75,7 @@ int LeakyIntegrator::updateState(double timed, double dt) {
          verticesV,
          verticesA,
          slopes);
-   return status;
+   return Response::SUCCESS;
 }
 
 LeakyIntegrator::~LeakyIntegrator() {}

@@ -16,7 +16,7 @@ class ConstantLayer : public PV::HyPerLayer {
   public:
    ConstantLayer(const char *name, HyPerCol *hc);
    virtual ~ConstantLayer();
-   virtual bool needUpdate(double time, double dt) override;
+   virtual bool needUpdate(double timestamp, double dt) override;
 
   protected:
    ConstantLayer();
@@ -34,7 +34,7 @@ class ConstantLayer : public PV::HyPerLayer {
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
    /** @} */ // End list of ConstantLayer parameters
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   private:

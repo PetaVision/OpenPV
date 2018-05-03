@@ -10,7 +10,6 @@
 #define GAPLAYER_HPP_
 
 #include "CloneVLayer.hpp"
-#include "LIFGap.hpp"
 
 namespace PV {
 
@@ -20,20 +19,19 @@ class GapLayer : public CloneVLayer {
    GapLayer(const char *name, HyPerCol *hc);
    virtual ~GapLayer();
 
-   virtual int
+   virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual int allocateDataStructures() override;
+   virtual Response::Status allocateDataStructures() override;
 
-   virtual int updateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
   protected:
    GapLayer();
    int initialize(const char *name, HyPerCol *hc);
-   // use LIFGap as source layer instead (LIFGap updates gap junctions more accurately)
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_ampSpikelet(enum ParamsIOFlag ioFlag);
 
-   /* static */ int updateState(
+   /* static */ void updateState(
          double timef,
          double dt,
          const PVLayerLoc *loc,

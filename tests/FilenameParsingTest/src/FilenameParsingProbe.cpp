@@ -26,10 +26,10 @@ int FilenameParsingProbe::initialize(const char *name, PV::HyPerCol *hc) {
    return status;
 }
 
-int FilenameParsingProbe::communicateInitInfo(
+PV::Response::Status FilenameParsingProbe::communicateInitInfo(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   int status = PV::LayerProbe::communicateInitInfo(message);
-   if (status != PV_SUCCESS) {
+   auto status = PV::LayerProbe::communicateInitInfo(message);
+   if (!PV::Response::completed(status)) {
       return status;
    }
 
@@ -39,13 +39,12 @@ int FilenameParsingProbe::communicateInitInfo(
    PV::InputLayer *inputLayer = message->lookup<PV::InputLayer>(std::string(inputLayerName));
    pvAssert(inputLayer);
    mInputDisplayPeriod = inputLayer->getDisplayPeriod();
-   return PV_SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-int FilenameParsingProbe::outputState(double timestamp) {
-   int status = PV_SUCCESS;
+PV::Response::Status FilenameParsingProbe::outputState(double timestamp) {
    if (timestamp == 0.0) {
-      return status;
+      return PV::Response::NO_ACTION;
    } // FilenameParsingGroundTruthLayer hasn't updated.
 
    double const displayTime = (timestamp - parent->getDeltaTime()) / mInputDisplayPeriod;
@@ -62,6 +61,7 @@ int FilenameParsingProbe::outputState(double timestamp) {
    int const numExtended      = getTargetLayer()->getNumExtended();
    int const nxExt            = loc->nx + loc->halo.lt + loc->halo.rt;
    int const nyExt            = loc->ny + loc->halo.dn + loc->halo.up;
+   bool failed                = false;
    for (int b = 0; b < localBatchWidth; b++) {
       float const *activity =
             getTargetLayer()->getLayerData(0) + b * getTargetLayer()->getNumExtended();
@@ -75,10 +75,10 @@ int FilenameParsingProbe::outputState(double timestamp) {
          float expectedValue = f == expectedCategory ? 1.0f : 0.0f;
          float observedValue = activity[k];
          if (expectedValue != observedValue) {
-            status = PV_FAILURE;
+            failed = true;
          }
       }
    }
-   FatalIf(status != PV_SUCCESS, "FilenameParsingProbe failed at t=%f\n", timestamp);
-   return status;
+   FatalIf(failed, "FilenameParsingProbe failed at t=%f\n", timestamp);
+   return PV::Response::SUCCESS;
 }

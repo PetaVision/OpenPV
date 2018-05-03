@@ -94,8 +94,12 @@ void BinningLayer::ioParam_normalDist(enum ParamsIOFlag ioFlag) {
 
 // TODO read params for gaussian over features
 
-int BinningLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int status    = HyPerLayer::communicateInitInfo(message);
+Response::Status
+BinningLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {
       if (parent->columnId() == 0) {
@@ -108,7 +112,7 @@ int BinningLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       exit(EXIT_FAILURE);
    }
    if (originalLayer->getInitInfoCommunicatedFlag() == false) {
-      return PV_POSTPONE;
+      return Response::POSTPONE;
    }
    originalLayer->synchronizeMarginWidth(this);
    this->synchronizeMarginWidth(originalLayer);
@@ -139,7 +143,7 @@ int BinningLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
             originalLayerName);
    }
    assert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
-   return status;
+   return Response::SUCCESS;
 }
 
 int BinningLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) {
@@ -148,30 +152,24 @@ int BinningLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResu
    return PV_SUCCESS;
 }
 
-int BinningLayer::allocateDataStructures() {
-   int status = HyPerLayer::allocateDataStructures();
-   return status;
+Response::Status BinningLayer::allocateDataStructures() {
+   return HyPerLayer::allocateDataStructures();
 }
 
-int BinningLayer::allocateV() {
+void BinningLayer::allocateV() {
    // Allocate V does nothing since binning does not need a V layer
    clayer->V = NULL;
-   return PV_SUCCESS;
 }
 
-int BinningLayer::initializeV() {
-   assert(getV() == NULL);
-   return PV_SUCCESS;
-}
+void BinningLayer::initializeV() { assert(getV() == NULL); }
 
-int BinningLayer::initializeActivity() { return PV_SUCCESS; }
+void BinningLayer::initializeActivity() {}
 
-int BinningLayer::updateState(double timef, double dt) {
-   int status;
+Response::Status BinningLayer::updateState(double timef, double dt) {
    assert(GSyn == NULL);
    float *gSynHead = NULL;
 
-   status = doUpdateState(
+   doUpdateState(
          timef,
          dt,
          originalLayer->getLayerLoc(),
@@ -180,10 +178,10 @@ int BinningLayer::updateState(double timef, double dt) {
          getActivity(),
          binMax,
          binMin);
-   return status;
+   return Response::SUCCESS;
 }
 
-int BinningLayer::doUpdateState(
+void BinningLayer::doUpdateState(
       double timed,
       double dt,
       const PVLayerLoc *origLoc,
@@ -308,7 +306,6 @@ int BinningLayer::doUpdateState(
          }
       }
    }
-   return status;
 }
 
 float BinningLayer::calcNormDist(float xVal, float mean, float sigma) {

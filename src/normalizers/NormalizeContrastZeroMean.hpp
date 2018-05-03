@@ -30,7 +30,7 @@ class NormalizeContrastZeroMean : public PV::NormalizeBase {
 
    static void subtractOffsetAndNormalize(
          float *dataStartPatch,
-         int weights_per_patch,
+         int weightsPerPatch,
          float offset,
          float normalizer);
    int accumulateSumAndSumSquared(

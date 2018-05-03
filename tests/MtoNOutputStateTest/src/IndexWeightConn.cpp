@@ -6,6 +6,7 @@
  */
 
 #include "IndexWeightConn.hpp"
+#include "IndexWeightUpdater.hpp"
 
 namespace PV {
 
@@ -19,22 +20,21 @@ int IndexWeightConn::initialize(const char *name, HyPerCol *hc) {
    return HyPerConn::initialize(name, hc);
 }
 
-int IndexWeightConn::setInitialValues() {
-   for (int arbor = 0; arbor < numberOfAxonalArborLists(); arbor++) {
-      updateWeights(arbor);
-   }
-   return PV_SUCCESS;
+InitWeights *IndexWeightConn::createWeightInitializer() {
+   parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", nullptr);
+   return nullptr;
 }
 
-int IndexWeightConn::updateWeights(int axonId) {
-   int nPatch = fPatchSize() * xPatchSize() * yPatchSize();
-   for (int patchIndex = 0; patchIndex < getNumDataPatches(); patchIndex++) {
-      float *Wdata = get_wDataHead(axonId, patchIndex);
-      for (int kPatch = 0; kPatch < nPatch; kPatch++) {
-         Wdata[kPatch] = patchIndex * nPatch + kPatch + parent->simulationTime();
-      }
-   }
-   return PV_SUCCESS;
+BaseWeightUpdater *IndexWeightConn::createWeightUpdater() {
+   return new IndexWeightUpdater(name, parent);
+}
+
+Response::Status IndexWeightConn::initializeState() {
+   auto *weightUpdater =
+         mapLookupByType<IndexWeightUpdater>(mComponentTable.getObjectMap(), getDescription());
+   pvAssert(weightUpdater);
+   weightUpdater->initializeWeights();
+   return Response::SUCCESS;
 }
 
 } // end of namespace PV block
