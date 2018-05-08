@@ -48,7 +48,7 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
 
    ObjectMapComponent *objectMapComponent =
-         mapLookupByType<ObjectMapComponent>(message->mHierarchy, getDescription());
+         mapLookupByType<ObjectMapComponent>(message->mHierarchy);
    pvAssert(objectMapComponent);
    HyPerConn *groupHeadConn =
          objectMapComponent->lookup<HyPerConn>(std::string(mNormalizeGroupName));
@@ -66,7 +66,7 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
 
    auto hierarchy           = message->mHierarchy;
-   WeightsPair *weightsPair = mapLookupByType<WeightsPair>(hierarchy, getDescription());
+   WeightsPair *weightsPair = mapLookupByType<WeightsPair>(hierarchy);
    Weights *preWeights      = weightsPair->getPreWeights();
    pvAssert(preWeights); // NormalizeBase::communicateInitInfo should have called needPre.
    mGroupHead->addWeightsToList(preWeights);

@@ -67,19 +67,14 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
 
    auto hierarchy = message->mHierarchy;
 
-   auto *originalConnNameParam =
-         mapLookupByType<OriginalConnNameParam>(hierarchy, getDescription());
-   FatalIf(
-         originalConnNameParam == nullptr,
-         "%s requires an OriginalConnNameParam component.\n",
-         getDescription_c());
+   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
+   pvAssert(originalConnNameParam);
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
    const char *originalConnName = originalConnNameParam->getOriginalConnName();
 
-   ObjectMapComponent *objectMapComponent =
-         mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
    FatalIf(
          objectMapComponent == nullptr, "%s requires an ObjectMapComponent.\n", getDescription_c());
    PoolingConn *originalConn =
@@ -121,7 +116,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
             name, "updateGSynFromPostPerspective", mUpdateGSynFromPostPerspective);
    }
 
-   mPatchSize = mapLookupByType<DependentPatchSize>(hierarchy, getDescription());
+   mPatchSize = mapLookupByType<DependentPatchSize>(hierarchy);
    FatalIf(
          mPatchSize == nullptr,
          "%s requires a DependentPatchSize component.\n",
@@ -130,7 +125,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   mWeightsPair = mapLookupByType<ImpliedWeightsPair>(hierarchy, getDescription());
+   mWeightsPair = mapLookupByType<ImpliedWeightsPair>(hierarchy);
    FatalIf(
          mWeightsPair == nullptr,
          "%s requires an ImpliedWeightsPair component.\n",

@@ -27,11 +27,11 @@ int CopyConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-void CopyConn::defineComponents() {
-   HyPerConn::defineComponents();
+void CopyConn::setObserverTable() {
+   HyPerConn::setObserverTable();
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
-      addObserver(mOriginalConnNameParam);
+      addObserver(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
    }
 }
 

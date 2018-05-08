@@ -64,13 +64,9 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       exit(EXIT_FAILURE);
    }
 
-   auto hierarchy = message->mHierarchy;
-   ObjectMapComponent *objectMapComponent =
-         mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-   FatalIf(
-         objectMapComponent == nullptr,
-         "CommunicateInitInfo called for %s with no ObjectMapComponent object.\n",
-         getDescription_c());
+   auto hierarchy           = message->mHierarchy;
+   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
+   pvAssert(objectMapComponent);
 
    bool failed = false;
    mPre        = objectMapComponent->lookup<HyPerLayer>(std::string(getPreLayerName()));

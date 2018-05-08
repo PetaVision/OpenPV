@@ -27,7 +27,7 @@ class CopyConn : public HyPerConn {
 
    int initialize(char const *name, HyPerCol *hc);
 
-   virtual void defineComponents() override;
+   virtual void setObserverTable() override;
 
    virtual ArborList *createArborList() override;
    virtual PatchSize *createPatchSize() override;

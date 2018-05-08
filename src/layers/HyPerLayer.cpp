@@ -1064,35 +1064,35 @@ int HyPerLayer::allocateDeviceBuffers() {
 
    // Allocate based on which flags are set
    if (allocDeviceV) {
-      d_V = device->createBuffer(size, &description);
+      d_V = device->createBuffer(size, &getDescription());
    }
 
    if (allocDeviceDatastore) {
-      d_Datastore = device->createBuffer(size_ex, &description);
+      d_Datastore = device->createBuffer(size_ex, &getDescription());
       assert(d_Datastore);
 #ifdef PV_USE_CUDNN
-      cudnn_Datastore = device->createBuffer(size_ex, &description);
+      cudnn_Datastore = device->createBuffer(size_ex, &getDescription());
       assert(cudnn_Datastore);
 #endif
    }
 
    if (allocDeviceActiveIndices) {
-      d_numActive     = device->createBuffer(parent->getNBatch() * sizeof(long), &description);
+      d_numActive     = device->createBuffer(parent->getNBatch() * sizeof(long), &getDescription());
       d_ActiveIndices = device->createBuffer(
-            getNumExtendedAllBatches() * sizeof(SparseList<float>::Entry), &description);
+            getNumExtendedAllBatches() * sizeof(SparseList<float>::Entry), &getDescription());
       assert(d_ActiveIndices);
    }
 
    if (allocDeviceActivity) {
-      d_Activity = device->createBuffer(size_ex, &description);
+      d_Activity = device->createBuffer(size_ex, &getDescription());
    }
 
    // d_GSyn is the entire gsyn buffer. cudnn_GSyn is only one gsyn channel
    if (allocDeviceGSyn) {
-      d_GSyn = device->createBuffer(size * numChannels, &description);
+      d_GSyn = device->createBuffer(size * numChannels, &getDescription());
       assert(d_GSyn);
 #ifdef PV_USE_CUDNN
-      cudnn_GSyn = device->createBuffer(size, &description);
+      cudnn_GSyn = device->createBuffer(size, &getDescription());
 #endif
    }
 

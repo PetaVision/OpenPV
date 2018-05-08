@@ -42,7 +42,7 @@ class PoolingConn : public BaseConnection {
 
    int initialize(char const *name, HyPerCol *hc);
 
-   virtual void defineComponents() override;
+   virtual void setObserverTable() override;
 
    virtual BaseDelivery *createDeliveryObject() override;
 

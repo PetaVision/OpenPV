@@ -98,7 +98,7 @@ void MomentumLCALayer::ioParam_LCAMomentumRate(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
 int MomentumLCALayer::allocateUpdateKernel() {
    PVCuda::CudaDevice *device = parent->getDevice();
-   d_prevDrive = device->createBuffer(getNumNeuronsAllBatches() * sizeof(float), &description);
+   d_prevDrive = device->createBuffer(getNumNeuronsAllBatches() * sizeof(float), &getDescription());
    // Set to temp pointer of the subclass
    PVCuda::CudaUpdateMomentumLCALayer *updateKernel =
          new PVCuda::CudaUpdateMomentumLCALayer(device);
@@ -129,12 +129,12 @@ int MomentumLCALayer::allocateUpdateKernel() {
    PVCuda::CudaBuffer *d_activity = getDeviceActivity();
 
    size_t size = parent->getNBatch() * sizeof(double);
-   d_dtAdapt   = device->createBuffer(size, &description);
+   d_dtAdapt   = device->createBuffer(size, &getDescription());
 
    size        = (size_t)numVertices * sizeof(*verticesV);
-   d_verticesV = device->createBuffer(size, &description);
-   d_verticesA = device->createBuffer(size, &description);
-   d_slopes    = device->createBuffer(size + sizeof(*slopes), &description);
+   d_verticesV = device->createBuffer(size, &getDescription());
+   d_verticesA = device->createBuffer(size, &getDescription());
+   d_slopes    = device->createBuffer(size + sizeof(*slopes), &getDescription());
 
    d_verticesV->copyToDevice(verticesV);
    d_verticesA->copyToDevice(verticesA);

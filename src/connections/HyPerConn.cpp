@@ -25,35 +25,35 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-void HyPerConn::defineComponents() {
-   BaseConnection::defineComponents();
+void HyPerConn::setObserverTable() {
+   BaseConnection::setObserverTable();
    mArborList = createArborList();
    if (mArborList) {
-      addObserver(mArborList);
+      addObserver(mArborList->getDescription(), mArborList);
    }
    mPatchSize = createPatchSize();
    if (mPatchSize) {
-      addObserver(mPatchSize);
+      addObserver(mPatchSize->getDescription(), mPatchSize);
    }
    mSharedWeights = createSharedWeights();
    if (mSharedWeights) {
-      addObserver(mSharedWeights);
+      addObserver(mSharedWeights->getDescription(), mSharedWeights);
    }
    mWeightsPair = createWeightsPair();
    if (mWeightsPair) {
-      addObserver(mWeightsPair);
+      addObserver(mWeightsPair->getDescription(), mWeightsPair);
    }
    mWeightInitializer = createWeightInitializer();
    if (mWeightInitializer) {
-      addObserver(mWeightInitializer);
+      addObserver(mWeightInitializer->getDescription(), mWeightInitializer);
    }
    mWeightNormalizer = createWeightNormalizer();
    if (mWeightNormalizer) {
-      addObserver(mWeightNormalizer);
+      addObserver(mWeightNormalizer->getDescription(), mWeightNormalizer);
    }
    mWeightUpdater = createWeightUpdater();
    if (mWeightUpdater) {
-      addObserver(mWeightUpdater);
+      addObserver(mWeightUpdater->getDescription(), mWeightUpdater);
    }
 }
 
@@ -133,7 +133,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    }
    if (strcmp(normalizeMethod, "none")) {
       auto strengthParam = new StrengthParam(name, parent);
-      addObserver(strengthParam);
+      addObserver(strengthParam->getDescription(), strengthParam);
    }
    BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, name, parent);
    if (baseObj == nullptr) {
@@ -190,13 +190,11 @@ HyPerConn::respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const
 
 Response::Status
 HyPerConn::respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message) {
-   return notify(
-         mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 }
 
 Response::Status HyPerConn::initializeState() {
    return notify(
-         mComponentTable,
          std::make_shared<InitializeStateMessage>(),
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 }
@@ -213,8 +211,8 @@ Response::Status HyPerConn::registerData(Checkpointer *checkpointer) {
 }
 
 float const *HyPerConn::getDeltaWeightsDataStart(int arbor) const {
-   auto *hebbianUpdater =
-         mapLookupByType<HebbianUpdater>(mComponentTable.getObjectMap(), getDescription());
+   auto *hebbianUpdater = mapLookupByType<HebbianUpdater>(mObserverTable.getObjectMap());
+   pvAssert(hebbianUpdater);
    if (hebbianUpdater) {
       return hebbianUpdater->getDeltaWeightsDataStart(arbor);
    }
@@ -224,8 +222,8 @@ float const *HyPerConn::getDeltaWeightsDataStart(int arbor) const {
 }
 
 float const *HyPerConn::getDeltaWeightsDataHead(int arbor, int dataIndex) const {
-   auto *hebbianUpdater =
-         mapLookupByType<HebbianUpdater>(mComponentTable.getObjectMap(), getDescription());
+   auto *hebbianUpdater = mapLookupByType<HebbianUpdater>(mObserverTable.getObjectMap());
+   pvAssert(hebbianUpdater);
    if (hebbianUpdater) {
       return hebbianUpdater->getDeltaWeightsDataHead(arbor, dataIndex);
    }

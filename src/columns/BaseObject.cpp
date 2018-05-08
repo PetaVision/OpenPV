@@ -34,7 +34,8 @@ int BaseObject::initialize(const char *name, HyPerCol *hc) {
       status = setParent(hc);
    }
    if (status == PV_SUCCESS) {
-      setDescription();
+      setObjectType();
+      setDescription(getObjectType() + " \"" + getName() + "\"");
    }
    return status;
 }
@@ -62,11 +63,6 @@ int BaseObject::setParent(HyPerCol *hc) {
       parent = parentCol;
    }
    return status;
-}
-
-void BaseObject::setDescription() {
-   setObjectType();
-   description = getObjectType() + " \"" + getName() + "\"";
 }
 
 void BaseObject::setObjectType() { mObjectType = lookupKeyword(); }

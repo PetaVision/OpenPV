@@ -42,7 +42,12 @@ void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (mWriteStep >= 0) {
       parent->parameters()->ioParamValue(
-            ioFlag, name, "initialWriteTime", &mInitialWriteTime, mInitialWriteTime, true /*warnifabsent*/);
+            ioFlag,
+            name,
+            "initialWriteTime",
+            &mInitialWriteTime,
+            mInitialWriteTime,
+            true /*warnifabsent*/);
       if (ioFlag == PARAMS_IO_READ) {
          if (mWriteStep > 0 && mInitialWriteTime < 0.0) {
             if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -140,10 +145,8 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
    pvAssert(mConnectionData); // set during WeightsPairInterface::communicateInitInfo()
 
-   if (mArborList == nullptr) {
-      mArborList = mapLookupByType<ArborList>(message->mHierarchy, getDescription());
-   }
-   FatalIf(mArborList == nullptr, "%s requires an ArborList component.\n", getDescription_c());
+   mArborList = mapLookupByType<ArborList>(message->mHierarchy);
+   pvAssert(mArborList);
 
    if (!mArborList->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -156,12 +159,9 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
 
    if (mSharedWeights == nullptr) {
-      mSharedWeights = mapLookupByType<SharedWeights>(message->mHierarchy, getDescription());
+      mSharedWeights = mapLookupByType<SharedWeights>(message->mHierarchy);
+      pvAssert(mSharedWeights);
    }
-   FatalIf(
-         mSharedWeights == nullptr,
-         "%s requires an SharedWeights component.\n",
-         getDescription_c());
 
    if (!mSharedWeights->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {

@@ -86,11 +86,7 @@ void BaseDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 Response::Status
 BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mConnectionData == nullptr) {
-      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
-      FatalIf(
-            mConnectionData == nullptr,
-            "%s requires a ConnectionData component.\n",
-            getDescription_c());
+      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy);
    }
    pvAssert(mConnectionData);
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {

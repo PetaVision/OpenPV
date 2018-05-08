@@ -17,13 +17,8 @@ std::vector<Observer *>::size_type ObserverTable::size() const {
 }
 
 bool ObserverTable::addObject(std::string const &name, Observer *entry) {
-   bool addSucceeded =
-         mObjectMap.insert(std::make_pair(std::string(name), entry)).second; // map::insert()
-   // returns a pair whose
-   // second element is
-   // whether the
-   // insertion was
-   // successful.
+   bool addSucceeded = mObjectMap.insert(std::make_pair(std::string(name), entry)).second;
+   // map::insert() returns a pair whose second element is whether the insertion was successful.
    if (addSucceeded) {
       mObjectVector.emplace_back(entry);
    }

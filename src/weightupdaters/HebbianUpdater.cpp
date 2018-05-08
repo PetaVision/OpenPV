@@ -195,9 +195,8 @@ void HebbianUpdater::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto componentMap       = message->mHierarchy;
-   std::string const &desc = getDescription();
-   auto *weightsPair       = mapLookupByType<WeightsPair>(componentMap, desc);
+   auto componentMap = message->mHierarchy;
+   auto *weightsPair = mapLookupByType<WeightsPair>(componentMap);
    pvAssert(weightsPair);
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
@@ -216,17 +215,17 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    mWriteCompressedCheckpoints   = weightsPair->getWriteCompressedCheckpoints();
    mInitializeFromCheckpointFlag = weightsPair->getInitializeFromCheckpointFlag();
 
-   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy);
    FatalIf(
          mConnectionData == nullptr,
          "%s requires a ConnectionData component.\n",
          getDescription_c());
 
-   mArborList = mapLookupByType<ArborList>(message->mHierarchy, getDescription());
+   mArborList = mapLookupByType<ArborList>(message->mHierarchy);
    FatalIf(mArborList == nullptr, "%s requires a ArborList component.\n", getDescription_c());
 
    if (mTriggerFlag) {
-      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(componentMap, desc);
+      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(componentMap);
       pvAssert(objectMapComponent);
       mTriggerLayer = objectMapComponent->lookup<HyPerLayer>(std::string(mTriggerLayerName));
 

@@ -37,6 +37,7 @@ AdaptiveTimeScaleController::AdaptiveTimeScaleController(
    mTimeScaleInfo.mTimeScaleTrue.assign(mBatchWidth, -1.0);
    mOldTimeScale.assign(mBatchWidth, mBaseMin);
    mOldTimeScaleTrue.assign(mBatchWidth, -1.0);
+   setDescription(std::string("AdaptiveTimeScaleController \"") + mName + "\"");
 }
 
 AdaptiveTimeScaleController::~AdaptiveTimeScaleController() { free(mName); }

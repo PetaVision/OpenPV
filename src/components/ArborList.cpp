@@ -65,12 +65,8 @@ void ArborList::ioParam_delay(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   ConnectionData *connectionData =
-         mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
-   FatalIf(
-         connectionData == nullptr,
-         "%s received CommunicateInitInfo message without a ConnectionData component.\n",
-         getDescription_c());
+   auto *connectionData = mapLookupByType<ConnectionData>(message->mHierarchy);
+   pvAssert(connectionData);
 
    if (!connectionData->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {

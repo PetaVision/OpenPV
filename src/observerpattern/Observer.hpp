@@ -22,12 +22,16 @@ class Observer {
    virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) {
       return Response::NO_ACTION;
    }
-   inline std::string const &getDescription() const { return description; }
-   inline char const *getDescription_c() const { return description.c_str(); }
+   inline std::string const &getDescription() const { return mDescription; }
+   inline char const *getDescription_c() const { return mDescription.c_str(); }
+
+  protected:
+   void setDescription(std::string const &description) { mDescription = description; }
+   void setDescription(char const *description) { mDescription = description; }
 
    // Data members
-  protected:
-   std::string description;
+  private:
+   std::string mDescription;
 };
 
 } /* namespace PV */

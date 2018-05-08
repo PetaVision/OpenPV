@@ -51,11 +51,8 @@ PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    if (!Response::completed(status)) {
       return status;
    }
-   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
-   FatalIf(
-         mConnectionData == nullptr,
-         "%s received CommunicateInitInfo message without a ConnectionData component.\n",
-         getDescription_c());
+   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy);
+   pvAssert(mConnectionData);
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {

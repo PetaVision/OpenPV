@@ -31,12 +31,9 @@ Response::Status WeightsPairInterface::communicateInitInfo(
       return status;
    }
    if (mConnectionData == nullptr) {
-      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy);
+      pvAssert(mConnectionData);
    }
-   FatalIf(
-         mConnectionData == nullptr,
-         "%s requires a ConnectionData component.\n",
-         getDescription_c());
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -49,9 +46,18 @@ Response::Status WeightsPairInterface::communicateInitInfo(
    }
 
    if (mPatchSize == nullptr) {
-      mPatchSize = mapLookupByType<PatchSize>(message->mHierarchy, getDescription());
+      mPatchSize = nullptr;
+      try {
+         mPatchSize = mapLookupByType<PatchSize>(message->mHierarchy);
+      } catch (const std::invalid_argument &e) {
+         pvAssertMessage(
+               0,
+               "Communicate message to %s has %s PatchSize component.\n",
+               getDescription_c(),
+               e.what() /*either "more than one" or "no"*/);
+      }
+      pvAssert(mPatchSize);
    }
-   FatalIf(mPatchSize == nullptr, "%s requires a PatchSize component.\n", getDescription_c());
 
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {

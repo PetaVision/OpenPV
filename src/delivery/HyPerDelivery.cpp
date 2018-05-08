@@ -50,14 +50,14 @@ HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    if (!Response::completed(status)) {
       return status;
    }
-   mWeightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
-   FatalIf(!mWeightsPair, "%s requires a WeightsPair component.\n", getDescription_c());
+   mWeightsPair = mapLookupByType<WeightsPair>(message->mHierarchy);
+   pvAssert(mWeightsPair);
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
 
-   mArborList = mapLookupByType<ArborList>(message->mHierarchy, getDescription());
-   FatalIf(!mArborList, "%s requires an ArborList component.\n", getDescription_c());
+   mArborList = mapLookupByType<ArborList>(message->mHierarchy);
+   pvAssert(mArborList);
    if (!mArborList->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }

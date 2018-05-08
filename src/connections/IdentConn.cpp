@@ -26,11 +26,11 @@ BaseDelivery *IdentConn::createDeliveryObject() {
    return deliveryObject;
 }
 
-void IdentConn::defineComponents() {
-   BaseConnection::defineComponents();
+void IdentConn::setObserverTable() {
+   BaseConnection::setObserverTable();
    mSingleArbor = createSingleArbor();
    if (mSingleArbor) {
-      addObserver(mSingleArbor);
+      addObserver(mSingleArbor->getDescription(), mSingleArbor);
    }
 }
 

@@ -35,8 +35,8 @@ IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
       return status;
    }
 
-   mSingleArbor = mapLookupByType<SingleArbor>(message->mHierarchy, getDescription());
-   FatalIf(!mSingleArbor, "%s requires a SingleArbor component.\n", getDescription_c());
+   mSingleArbor = mapLookupByType<SingleArbor>(message->mHierarchy);
+   pvAssert(mSingleArbor);
 
    checkPreAndPostDimensions();
    return Response::SUCCESS;

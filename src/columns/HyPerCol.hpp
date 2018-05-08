@@ -189,35 +189,23 @@ class HyPerCol : public Subject, public Observer {
    unsigned int getRandomSeed() { return mRandomSeed; }
    unsigned int seedRandomFromWallClock();
 
-   // A hack to allow test_cocirc, test_gauss2d, and test_post_weights to send a
-   // CommunicateInitInfoMessage.
-   std::map<std::string, Observer *> *copyObjectMap() {
-      auto objectMap = new std::map<std::string, Observer *>;
-      *objectMap     = mObjectHierarchy.getObjectMap();
-      return objectMap;
-   }
-
-  private:
-   int getAutoGPUDevice();
-
 #ifdef PV_USE_CUDA
-  public:
    PVCuda::CudaDevice *getDevice() { return mCudaDevice; }
 #endif
 
    // Private functions
 
   private:
-   void setDescription();
+   int getAutoGPUDevice();
    int initialize_base();
    int initialize(PV_Init *initObj);
    void ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   void addObject(BaseObject *obj);
    int checkDirExists(const char *dirname, struct stat *pathstat);
+   virtual void addObserver(std::string const &tag, Observer *observer) override;
    inline void notifyLoop(std::vector<std::shared_ptr<BaseMessage const>> messages) {
       bool printFlag = getCommunicator()->globalCommRank() == 0;
-      Subject::notifyLoop(mObjectHierarchy, messages, printFlag, description);
+      Subject::notifyLoop(messages, printFlag, getDescription());
    }
    inline void notifyLoop(std::shared_ptr<BaseMessage const> message) {
       notifyLoop(std::vector<std::shared_ptr<BaseMessage const>>{message});
@@ -242,7 +230,6 @@ class HyPerCol : public Subject, public Observer {
    // Private variables
 
   private:
-   ObserverTable mObjectHierarchy;
    bool mErrorOnNotANumber; // If true, check each layer's activity buffer for
    // not-a-numbers and
    // exit with an error if any appear

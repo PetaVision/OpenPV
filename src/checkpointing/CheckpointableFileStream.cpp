@@ -62,16 +62,11 @@ void CheckpointableFileStream::initialize(
    }
 
    mObjName = objName;
-   setDescription();
+   setDescription(std::string("CheckpointableFileStream \"") + objName + "\"");
    setOutStream(mFStream);
    openFile(fullPath.c_str(), std::ios_base::in | std::ios_base::out, verifyWrites);
    updateFilePos();
    registerData(checkpointer);
-}
-
-void CheckpointableFileStream::setDescription() {
-   description = "CheckpointableFileStream \"";
-   description.append(mObjName).append("\"");
 }
 
 Response::Status CheckpointableFileStream::respond(std::shared_ptr<BaseMessage const> message) {

@@ -180,7 +180,6 @@ class Checkpointer : public Subject {
          bool constantEntireRun);
 
    void registerTimer(Timer const *timer);
-   virtual void addObserver(Observer *observer) override;
 
    void readNamedCheckpointEntry(
          std::string const &objName,
@@ -304,7 +303,6 @@ class Checkpointer : public Subject {
    // that each MPI process
    // iterates over the entries
    // in the same order.
-   ObserverTable mObserverTable;
    TimeInfo mTimeInfo;
    std::shared_ptr<CheckpointEntryData<TimeInfo>> mTimeInfoCheckpointEntry = nullptr;
    bool mWarmStart                                                         = false;

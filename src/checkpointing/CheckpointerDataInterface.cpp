@@ -70,7 +70,7 @@ Response::Status CheckpointerDataInterface::registerData(Checkpointer *checkpoin
    }
    else {
       mMPIBlock = checkpointer->getMPIBlock();
-      checkpointer->addObserver(this);
+      checkpointer->addObserver(this->getDescription(), this);
       return Response::SUCCESS;
    }
 }

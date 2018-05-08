@@ -13,7 +13,6 @@
 #include "components/ConnectionData.hpp"
 #include "delivery/BaseDelivery.hpp"
 #include "observerpattern/Subject.hpp"
-#include "utils/MapLookupByType.hpp"
 #include "utils/Timer.hpp"
 
 namespace PV {
@@ -26,10 +25,7 @@ class BaseConnection : public BaseObject, public Subject {
 
    virtual ~BaseConnection();
 
-   virtual void addObserver(Observer *observer) override;
-
-   template <typename S>
-   S *getComponentByType();
+   virtual void addObserver(std::string const &tag, Observer *observer) override;
 
    virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
@@ -58,7 +54,7 @@ class BaseConnection : public BaseObject, public Subject {
 
    int initialize(char const *name, HyPerCol *hc);
 
-   virtual void defineComponents();
+   virtual void setObserverTable() override;
 
    virtual ConnectionData *createConnectionData();
    virtual BaseDelivery *createDeliveryObject();
@@ -85,11 +81,6 @@ class BaseConnection : public BaseObject, public Subject {
 
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
-   virtual void deleteComponents();
-
-  protected:
-   ObserverTable mComponentTable;
-
   private:
    ConnectionData *mConnectionData = nullptr;
    BaseDelivery *mDeliveryObject   = nullptr;
@@ -97,11 +88,6 @@ class BaseConnection : public BaseObject, public Subject {
    Timer *mIOTimer = nullptr;
 
 }; // class BaseConnection
-
-template <typename S>
-S *BaseConnection::getComponentByType() {
-   return mapLookupByType<S>(mComponentTable.getObjectMap(), getDescription());
-}
 
 } // namespace PV
 

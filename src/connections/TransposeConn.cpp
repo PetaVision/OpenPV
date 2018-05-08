@@ -24,11 +24,11 @@ int TransposeConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-void TransposeConn::defineComponents() {
-   HyPerConn::defineComponents();
+void TransposeConn::setObserverTable() {
+   HyPerConn::setObserverTable();
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
-      addObserver(mOriginalConnNameParam);
+      addObserver(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
    }
 }
 

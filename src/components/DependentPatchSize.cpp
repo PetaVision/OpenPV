@@ -89,12 +89,8 @@ void DependentPatchSize::setPatchSize(PatchSize *originalPatchSize) {
 
 char const *
 DependentPatchSize::getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const {
-   OriginalConnNameParam *originalConnNameParam =
-         mapLookupByType<OriginalConnNameParam>(hierarchy, getDescription());
-   FatalIf(
-         originalConnNameParam == nullptr,
-         "%s requires an OriginalConnNameParam component.\n",
-         getDescription_c());
+   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
+   pvAssert(originalConnNameParam);
    char const *originalConnName = originalConnNameParam->getOriginalConnName();
    return originalConnName;
 }
@@ -102,8 +98,7 @@ DependentPatchSize::getOriginalConnName(std::map<std::string, Observer *> const 
 PatchSize *DependentPatchSize::getOriginalPatchSize(
       std::map<std::string, Observer *> const hierarchy,
       char const *originalConnName) const {
-   ObjectMapComponent *objectMapComponent =
-         mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
    pvAssert(objectMapComponent);
    BaseConnection *originalConn =
          objectMapComponent->lookup<BaseConnection>(std::string(originalConnName));

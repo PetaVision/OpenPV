@@ -162,7 +162,7 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    // has length post->getNumExtended().
    int const postNumRestricted = postNx * postNy * postNf;
    mDevicePostToPreActivity =
-         parent->getDevice()->createBuffer(postNumRestricted * sizeof(long), &description);
+         parent->getDevice()->createBuffer(postNumRestricted * sizeof(long), &getDescription());
    auto *h_PostToPreActivityVector = new vector<long>(postNumRestricted);
    auto *h_PostToPreActivity       = h_PostToPreActivityVector->data();
    auto postGeometry               = postWeights->getGeometry();

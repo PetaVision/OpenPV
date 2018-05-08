@@ -69,12 +69,8 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
 
 char const *
 DependentArborList::getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const {
-   OriginalConnNameParam *originalConnNameParam =
-         mapLookupByType<OriginalConnNameParam>(hierarchy, getDescription());
-   FatalIf(
-         originalConnNameParam == nullptr,
-         "%s requires an OriginalConnNameParam component.\n",
-         getDescription_c());
+   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
+   pvAssert(originalConnNameParam);
    char const *originalConnName = originalConnNameParam->getOriginalConnName();
    return originalConnName;
 }
@@ -82,8 +78,16 @@ DependentArborList::getOriginalConnName(std::map<std::string, Observer *> const 
 ArborList *DependentArborList::getOriginalArborList(
       std::map<std::string, Observer *> const hierarchy,
       char const *originalConnName) const {
-   ObjectMapComponent *objectMapComponent =
-         mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+   ObjectMapComponent *objectMapComponent;
+   try {
+      objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
+   } catch (const std::invalid_argument &e) {
+      pvAssertMessage(
+            0,
+            "Communicate message to %s has %s ObjectMapComponent.\n",
+            getDescription_c(),
+            e.what() /*either "more than one" or "no"*/);
+   }
    pvAssert(objectMapComponent);
    BaseConnection *originalConn =
          objectMapComponent->lookup<BaseConnection>(std::string(originalConnName));

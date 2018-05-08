@@ -25,7 +25,7 @@ class CloneConn : public HyPerConn {
 
    int initialize(char const *name, HyPerCol *hc);
 
-   virtual void defineComponents() override;
+   virtual void setObserverTable() override;
 
    virtual BaseDelivery *createDeliveryObject() override;
    virtual ArborList *createArborList() override;

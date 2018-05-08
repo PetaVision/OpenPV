@@ -31,8 +31,7 @@ Response::Status CloneDeliveryFacade::communicateInitInfo(
       return status;
    }
    if (mUpdateGSynFromPostPerspective) {
-      auto *cloneWeightsPair =
-            mapLookupByType<CloneWeightsPair>(message->mHierarchy, getDescription());
+      auto *cloneWeightsPair = mapLookupByType<CloneWeightsPair>(message->mHierarchy);
       pvAssert(cloneWeightsPair);
       cloneWeightsPair->synchronizeMarginsPost();
    }

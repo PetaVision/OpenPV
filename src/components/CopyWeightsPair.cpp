@@ -32,12 +32,9 @@ int CopyWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 Response::Status
 CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mOriginalConn == nullptr) {
-      OriginalConnNameParam *originalConnNameParam =
-            mapLookupByType<OriginalConnNameParam>(message->mHierarchy, getDescription());
-      FatalIf(
-            originalConnNameParam == nullptr,
-            "%s requires an OriginalConnNameParam component.\n",
-            getDescription_c());
+      auto hierarchy              = message->mHierarchy;
+      auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
+      pvAssert(originalConnNameParam);
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
          if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -50,9 +47,7 @@ CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       }
       char const *originalConnName = originalConnNameParam->getOriginalConnName();
 
-      auto hierarchy = message->mHierarchy;
-      ObjectMapComponent *objectMapComponent =
-            mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
       pvAssert(objectMapComponent);
       mOriginalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
       if (mOriginalConn == nullptr) {

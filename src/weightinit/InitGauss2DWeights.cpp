@@ -114,7 +114,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       return status;
    }
    auto hierarchy      = message->mHierarchy;
-   auto *strengthParam = mapLookupByType<StrengthParam>(hierarchy, getDescription());
+   auto *strengthParam = mapLookupByType<StrengthParam>(hierarchy);
    if (strengthParam) {
       if (strengthParam->getInitInfoCommunicatedFlag()) {
          mStrength = strengthParam->getStrength();
@@ -126,7 +126,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    }
    else {
       strengthParam           = new StrengthParam(name, parent);
-      auto objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+      auto objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
       FatalIf(
             objectMapComponent == nullptr,
             "%s unable to add strength component.\n",
@@ -137,7 +137,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
             "%s objectMapComponent is missing an object called \"%s\".\n",
             getDescription_c(),
             name);
-      parentConn->addObserver(strengthParam);
+      parentConn->addObserver(strengthParam->getDescription(), strengthParam);
       // connection has already components' readParams(); we have to fill the gap here (could
       // addObserver do it?)
       strengthParam->readParams();

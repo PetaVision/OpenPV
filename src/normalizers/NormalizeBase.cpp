@@ -103,13 +103,13 @@ Response::Status NormalizeBase::respondConnectionNormalize(
 
 Response::Status
 NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
+   auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy);
    pvAssert(weightsPair);
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
 
-   auto *strengthParam = mapLookupByType<StrengthParam>(message->mHierarchy, getDescription());
+   auto *strengthParam = mapLookupByType<StrengthParam>(message->mHierarchy);
    pvAssert(strengthParam);
    if (!strengthParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;

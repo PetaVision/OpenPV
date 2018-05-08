@@ -10,6 +10,7 @@
 
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/ObserverTable.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -28,15 +29,33 @@ namespace PV {
 class Subject {
   public:
    Subject() {}
-   virtual ~Subject() {}
+   virtual ~Subject();
 
    /**
     * The virtual method for adding an Observer-derived object.
-    * Derived classes must override this method to add the object to their hierarchy.
+    * Derived classes can override this method, for example, to require the objects in
+    * their ObserverTable have a particular class requirement.
     */
-   virtual void addObserver(Observer *observer) { return; }
+   virtual void addObserver(std::string const &tag, Observer *observer);
+
+   template <typename S>
+   S *getComponentByType();
+
+   // A hack to allow test_cocirc, test_gauss2d, and test_post_weights to send a
+   // CommunicateInitInfoMessage. A better way would be to write a method that
+   // passes a message to the notify function.
+   std::map<std::string, Observer *> *copyObjectMap() {
+      auto objectMap = new std::map<std::string, Observer *>;
+      *objectMap     = mObserverTable.getObjectMap();
+      return objectMap;
+   }
 
   protected:
+   /**
+    * The virtual method for populating the ObserverTable data member.
+    */
+   virtual void setObserverTable(){};
+
    /**
     * This method calls the respond() method of each object in the given table, using the given
     * vector of messages. If the table consists of objects A, B, and C; and the messages vector
@@ -77,19 +96,16 @@ class Subject {
     *
     * If printFlag is true, the method prints information regarding postponement to standard output.
     */
-   Response::Status notify(
-         ObserverTable const &table,
-         std::vector<std::shared_ptr<BaseMessage const>> messages,
-         bool printFlag);
+   Response::Status
+   notify(std::vector<std::shared_ptr<BaseMessage const>> messages, bool printFlag);
 
    /**
     *
     * A convenience overload of the basic notify method where there is only one message to send to
     * the objects. This overloading handles enclosing the message in a vector of length one.
     */
-   inline Response::Status
-   notify(ObserverTable const &table, std::shared_ptr<BaseMessage const> message, bool printFlag) {
-      return notify(table, std::vector<std::shared_ptr<BaseMessage const>>{message}, printFlag);
+   inline Response::Status notify(std::shared_ptr<BaseMessage const> message, bool printFlag) {
+      return notify(std::vector<std::shared_ptr<BaseMessage const>>{message}, printFlag);
    }
 
    /**
@@ -102,7 +118,6 @@ class Subject {
     * in the table of objects; otherwise the routine will hang.
     */
    void notifyLoop(
-         ObserverTable const &table,
          std::vector<std::shared_ptr<BaseMessage const>> messages,
          bool printFlag,
          std::string const &description);
@@ -112,17 +127,22 @@ class Subject {
     * to the objects. This overloading handles enclosing the message in a vector of length one.
     */
    inline void notifyLoop(
-         ObserverTable const &table,
          std::shared_ptr<BaseMessage const> message,
          bool printFlag,
          std::string const &description) {
-      notifyLoop(
-            table,
-            std::vector<std::shared_ptr<BaseMessage const>>{message},
-            printFlag,
-            description);
+      notifyLoop(std::vector<std::shared_ptr<BaseMessage const>>{message}, printFlag, description);
    }
+
+   virtual void deleteObserverTable();
+
+  protected:
+   ObserverTable mObserverTable;
 };
+
+template <typename S>
+S *Subject::getComponentByType() {
+   return mapLookupByType<S>(mObserverTable.getObjectMap());
+}
 
 } /* namespace PV */
 

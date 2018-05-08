@@ -21,7 +21,7 @@ class TransposeConn : public HyPerConn {
   protected:
    TransposeConn();
 
-   virtual void defineComponents() override;
+   virtual void setObserverTable() override;
 
    int initialize(char const *name, HyPerCol *hc);
 

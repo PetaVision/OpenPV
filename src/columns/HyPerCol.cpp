@@ -59,7 +59,6 @@ HyPerCol::~HyPerCol() {
       mCheckpointer->writeTimers(pStream);
    }
    delete mCheckpointer;
-   mObjectHierarchy.clear(true /*delete the objects in the hierarchy*/);
    for (auto iterator = mPhaseRecvTimers.begin(); iterator != mPhaseRecvTimers.end();) {
       delete *iterator;
       iterator = mPhaseRecvTimers.erase(iterator);
@@ -69,6 +68,7 @@ HyPerCol::~HyPerCol() {
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
    free(mName);
+   mObserverTable.clear(true); // delete the layers, connections, etc.
 }
 
 int HyPerCol::initialize_base() {
@@ -136,7 +136,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
       return PV_FAILURE;
    }
    mName = strdup(mParams->groupNameFromIndex(0));
-   setDescription();
+   setDescription(std::string("HyPerCol \"") + getName() + "\"");
 
    // mNumThreads will not be set, or used until HyPerCol::run.
    // This means that threading cannot happen in the initialization or
@@ -173,7 +173,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
 
    mCheckpointer = new Checkpointer(
          std::string(mName), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
-   mCheckpointer->addObserver(this);
+   mCheckpointer->addObserver(this->getName(), this);
    ioParams(PARAMS_IO_READ);
    mSimTime     = 0.0;
    mCurrentStep = 0L;
@@ -221,15 +221,10 @@ int HyPerCol::initialize(PV_Init *initObj) {
             ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
             return PV_FAILURE;
          }
-         addObject(addedObject);
+         addObserver(addedObject->getName(), addedObject);
       }
    } // for-loop over parameter groups
    return PV_SUCCESS;
-}
-
-void HyPerCol::setDescription() {
-   description = "HyPerCol \"";
-   description.append(getName()).append("\"");
 }
 
 void HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
@@ -599,7 +594,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
 
 int HyPerCol::processParams(char const *path) {
    if (!mParamsProcessedFlag) {
-      auto const &objectMap = mObjectHierarchy.getObjectMap();
+      auto const &objectMap = mObserverTable.getObjectMap();
       notifyLoop(std::make_shared<CommunicateInitInfoMessage>(objectMap));
    }
 
@@ -1153,7 +1148,7 @@ int HyPerCol::getAutoGPUDevice() {
 void HyPerCol::initializeCUDA(std::string const &in_device) {
    // Don't do anything unless some object needs CUDA.
    bool needGPU    = false;
-   auto &objectMap = mObjectHierarchy.getObjectMap();
+   auto &objectMap = mObserverTable.getObjectMap();
    for (auto &obj : objectMap) {
       Observer *observer = obj.second;
       BaseObject *object = dynamic_cast<BaseObject *>(observer);
@@ -1243,19 +1238,22 @@ int HyPerCol::finalizeCUDA() {
 
 #endif // PV_USE_CUDA
 
-void HyPerCol::addObject(BaseObject *obj) {
-   bool succeeded = mObjectHierarchy.addObject(obj->getName(), obj);
-   FatalIf(!succeeded, "Adding %s failed.\n", getDescription_c());
+void HyPerCol::addObserver(std::string const &tag, Observer *observer) {
+   auto addedObject = dynamic_cast<BaseObject *>(observer);
+   FatalIf(
+         addedObject == nullptr,
+         "%s cannot be added to %s, which is not a BaseObject-derived object.\n",
+         observer->getDescription_c(),
+         getDescription_c());
+   Subject::addObserver(tag, observer);
 }
 
 Observer *HyPerCol::getObjectFromName(std::string const &objectName) const {
-   auto &objectMap = mObjectHierarchy.getObjectMap();
-   auto search     = objectMap.find(objectName);
-   return search == objectMap.end() ? nullptr : search->second;
+   return mObserverTable.getObject(objectName);
 }
 
 Observer *HyPerCol::getNextObject(Observer const *currentObject) const {
-   if (mObjectHierarchy.getObjectVector().empty()) {
+   if (mObserverTable.getObjectVector().empty()) {
       if (currentObject != nullptr) {
          throw std::domain_error("HyPerCol::getNextObject called with empty hierarchy");
       }
@@ -1264,7 +1262,7 @@ Observer *HyPerCol::getNextObject(Observer const *currentObject) const {
       }
    }
    else {
-      auto objectVector = mObjectHierarchy.getObjectVector();
+      auto objectVector = mObserverTable.getObjectVector();
       if (currentObject == nullptr) {
          return objectVector[0];
       }

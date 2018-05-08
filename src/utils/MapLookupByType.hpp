@@ -19,7 +19,7 @@ namespace PV {
  * If there is more than one, it exits with an error.
  */
 template <typename S>
-S *mapLookupByType(std::map<std::string, Observer *> const &objectMap, std::string const &ident) {
+S *mapLookupByType(std::map<std::string, Observer *> const &objectMap) {
    // TODO: should be possible to do this very compactly using <algorithm>
    S *foundObject = nullptr;
    for (auto &objpair : objectMap) {
@@ -28,8 +28,7 @@ S *mapLookupByType(std::map<std::string, Observer *> const &objectMap, std::stri
       if (castObject != nullptr) {
          FatalIf(
                foundObject != nullptr,
-               "mapLookupByType found more than one object of the specified type in %s.\n",
-               ident.c_str());
+               "mapLookupByType called with multiple objects of the given type.\n");
          foundObject = castObject;
       }
    }

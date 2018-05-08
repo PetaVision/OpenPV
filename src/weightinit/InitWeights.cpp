@@ -106,7 +106,7 @@ void InitWeights::handleObsoleteFlag(std::string const &flagName) {
 
 Response::Status
 InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
+   auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy);
    pvAssert(weightsPair);
    auto status = BaseObject::communicateInitInfo(message);
    if (!Response::completed(status)) {

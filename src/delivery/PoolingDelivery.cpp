@@ -120,13 +120,13 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
    auto &hierarchy = message->mHierarchy;
 
-   mPatchSize = mapLookupByType<PatchSize>(hierarchy, getDescription());
+   mPatchSize = mapLookupByType<PatchSize>(hierarchy);
    FatalIf(mPatchSize == nullptr, "%s requires a PatchSize component.\n", getDescription_c());
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
 
-   mWeightsPair = mapLookupByType<ImpliedWeightsPair>(hierarchy, getDescription());
+   mWeightsPair = mapLookupByType<ImpliedWeightsPair>(hierarchy);
    FatalIf(
          mWeightsPair == nullptr,
          "%s requires an ImpliedWeightsPair component.\n",
@@ -137,7 +137,7 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
    if (mNeedPostIndexLayer) {
       pvAssert(mPostIndexLayerName);
-      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
       FatalIf(
             objectMapComponent == nullptr,
             "%s requires an ObjectMapComponent.\n",

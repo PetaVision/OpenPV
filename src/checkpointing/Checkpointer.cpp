@@ -453,10 +453,6 @@ void Checkpointer::provideFinalStep(long int finalStep) {
    }
 }
 
-void Checkpointer::addObserver(Observer *observer) {
-   mObserverTable.addObject(observer->getDescription(), observer);
-}
-
 bool Checkpointer::registerCheckpointEntry(
       std::shared_ptr<CheckpointEntry> checkpointEntry,
       bool constantEntireRun) {
@@ -586,7 +582,6 @@ void Checkpointer::findWarmStartDirectory() {
 void Checkpointer::readStateFromCheckpoint() {
    if (getInitializeFromCheckpointDir() and getInitializeFromCheckpointDir()[0]) {
       notify(
-            mObserverTable,
             std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(this),
             mMPIBlock->getRank() == 0 /*printFlag*/);
    }
@@ -649,7 +644,6 @@ void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepP
       *currentStepPointer = mTimeInfo.mCurrentCheckpointStep;
    }
    notify(
-         mObserverTable,
          std::make_shared<ProcessCheckpointReadMessage const>(checkpointReadDirectory),
          mMPIBlock->getRank() == 0 /*printFlag*/);
 }
@@ -812,7 +806,6 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
       }
    }
    notify(
-         mObserverTable,
          std::make_shared<PrepareCheckpointWriteMessage const>(checkpointDirectory),
          mMPIBlock->getRank() == 0 /*printFlag*/);
    ensureDirExists(mMPIBlock, checkpointDirectory.c_str());

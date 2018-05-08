@@ -32,7 +32,7 @@ Response::Status
 CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto componentMap = message->mHierarchy;
 
-   mCopyWeightsPair = mapLookupByType<CopyWeightsPair>(componentMap, getDescription());
+   mCopyWeightsPair = mapLookupByType<CopyWeightsPair>(componentMap);
    FatalIf(
          mCopyWeightsPair == nullptr,
          "%s requires a CopyWeightsPair component.\n",
@@ -42,8 +42,7 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
    mCopyWeightsPair->needPre();
 
-   auto *originalConnNameParam =
-         mapLookupByType<OriginalConnNameParam>(componentMap, getDescription());
+   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(componentMap);
    FatalIf(
          originalConnNameParam == nullptr,
          "%s requires a OriginalConnNameParam component.\n",
@@ -56,7 +55,7 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    pvAssert(originalConnName != nullptr and originalConnName[0] != '\0');
 
    auto hierarchy           = message->mHierarchy;
-   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
    pvAssert(objectMapComponent);
    HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
    pvAssert(originalConn);

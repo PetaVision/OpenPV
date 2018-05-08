@@ -122,7 +122,6 @@ class BaseObject : public CheckpointerDataInterface {
    int setName(char const *name);
    int setParent(HyPerCol *hc);
    virtual void setObjectType();
-   void setDescription();
 
    /**
     * The virtual method for reading parameters from the parent HyPerCol's parameters, and writing

@@ -124,12 +124,12 @@ HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
          if (parent->getCommunicator()->commRank() == 0) {
             auto isBadType = message->lookup<BaseObject>(std::string(mAdaptiveTimeScaleProbeName));
             if (isBadType != nullptr) {
-               ErrorLog() << description << ": adaptiveTimeScaleProbe parameter \""
+               ErrorLog() << getDescription() << ": adaptiveTimeScaleProbe parameter \""
                           << mAdaptiveTimeScaleProbeName
                           << "\" must be an AdaptiveTimeScaleProbe.\n";
             }
             else {
-               ErrorLog() << description << ": adaptiveTimeScaleProbe parameter \""
+               ErrorLog() << getDescription() << ": adaptiveTimeScaleProbe parameter \""
                           << mAdaptiveTimeScaleProbeName
                           << "\" is not an AdaptiveTimeScaleProbe in the column.\n";
             }
@@ -176,12 +176,12 @@ int HyPerLCALayer::allocateUpdateKernel() {
    PVCuda::CudaBuffer *d_activity = getDeviceActivity();
 
    size_t size = parent->getNBatch() * sizeof(double);
-   d_dtAdapt   = device->createBuffer(size, &description);
+   d_dtAdapt   = device->createBuffer(size, &getDescription());
 
    size        = (size_t)numVertices * sizeof(*verticesV);
-   d_verticesV = device->createBuffer(size, &description);
-   d_verticesA = device->createBuffer(size, &description);
-   d_slopes    = device->createBuffer(size + sizeof(*slopes), &description);
+   d_verticesV = device->createBuffer(size, &getDescription());
+   d_verticesA = device->createBuffer(size, &getDescription());
+   d_slopes    = device->createBuffer(size + sizeof(*slopes), &getDescription());
 
    d_verticesV->copyToDevice(verticesV);
    d_verticesA->copyToDevice(verticesA);

@@ -116,20 +116,20 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
 
    // We create mDevicePatches and mDeviceGSynPatchStart here, as opposed to creating them in
    // the Weights object, because they are only needed by presynaptic-perspective delivery.
-   auto preGeometry = preWeights->getGeometry();
+   auto preGeometry             = preWeights->getGeometry();
    std::size_t const numPatches = (std::size_t)preGeometry->getNumPatches();
    std::size_t size;
 
    Patch const *hostPatches = &preGeometry->getPatch(0); // Patches allocated as one vector
    size                     = (std::size_t)numPatches * sizeof(*hostPatches);
-   mDevicePatches           = mCudaDevice->createBuffer(size, &description);
+   mDevicePatches           = mCudaDevice->createBuffer(size, &getDescription());
    pvAssert(mDevicePatches);
    // Copy patch geometry information onto CUDA device because it never changes.
    mDevicePatches->copyToDevice(hostPatches);
 
    auto const *hostGSynPatchStart = preGeometry->getGSynPatchStart().data();
    size                           = (std::size_t)numPatches * sizeof(*hostGSynPatchStart);
-   mDeviceGSynPatchStart          = mCudaDevice->createBuffer(size, &description);
+   mDeviceGSynPatchStart          = mCudaDevice->createBuffer(size, &getDescription());
    // Copy GSynPatchStart array onto CUDA device because it never changes.
    pvAssert(mDeviceGSynPatchStart);
    mDeviceGSynPatchStart->copyToDevice(hostGSynPatchStart);

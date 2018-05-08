@@ -50,12 +50,8 @@ void CloneWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFl
 Response::Status
 CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mOriginalConn == nullptr) {
-      OriginalConnNameParam *originalConnNameParam =
-            mapLookupByType<OriginalConnNameParam>(message->mHierarchy, getDescription());
-      FatalIf(
-            originalConnNameParam == nullptr,
-            "%s requires an OriginalConnNameParam component.\n",
-            getDescription_c());
+      auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(message->mHierarchy);
+      pvAssert(originalConnNameParam);
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
          if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -69,9 +65,18 @@ CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       char const *originalConnName = originalConnNameParam->getOriginalConnName();
 
       auto hierarchy = message->mHierarchy;
-      ObjectMapComponent *objectMapComponent =
-            mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-      pvAssert(objectMapComponent);
+      ObjectMapComponent *objectMapComponent;
+      try {
+         objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
+      } catch (std::invalid_argument &e) {
+         pvAssertMessage(
+               0,
+               "Communicate message to %s has %s ObjectMapComponent.\n",
+               getDescription_c(),
+               e.what() /*either "more than one" or "no"*/);
+      }
+      pvAssertMessage(
+            objectMapComponent, "CommunicateInitInfoMessage has no ObjectMapComponent.\n");
       mOriginalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
       if (mOriginalConn == nullptr) {
          if (parent->getCommunicator()->globalCommRank() == 0) {

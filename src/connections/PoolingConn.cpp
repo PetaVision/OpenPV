@@ -23,15 +23,15 @@ int PoolingConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-void PoolingConn::defineComponents() {
-   BaseConnection::defineComponents();
+void PoolingConn::setObserverTable() {
+   BaseConnection::setObserverTable();
    mPatchSize = createPatchSize();
    if (mPatchSize) {
-      addObserver(mPatchSize);
+      addObserver(mPatchSize->getDescription(), mPatchSize);
    }
    mWeightsPair = createWeightsPair();
    if (mWeightsPair) {
-      addObserver(mWeightsPair);
+      addObserver(mWeightsPair->getDescription(), mWeightsPair);
    }
 }
 

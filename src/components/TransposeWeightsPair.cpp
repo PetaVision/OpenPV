@@ -43,27 +43,13 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto hierarchy = message->mHierarchy;
    if (mOriginalConn == nullptr) {
-      OriginalConnNameParam *originalConnNameParam =
-            mapLookupByType<OriginalConnNameParam>(hierarchy, getDescription());
-      FatalIf(
-            originalConnNameParam == nullptr,
-            "%s requires an OriginalConnNameParam component.\n",
-            getDescription_c());
-
-      if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
-            InfoLog().printf(
-                  "%s must wait until the OriginalConnNameParam component has finished its "
-                  "communicateInitInfo stage.\n",
-                  getDescription_c());
-         }
-         return Response::POSTPONE;
-      }
+      auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
+      pvAssert(originalConnNameParam);
       char const *originalConnName = originalConnNameParam->getOriginalConnName();
 
-      ObjectMapComponent *objectMapComponent =
-            mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
       pvAssert(objectMapComponent);
+
       mOriginalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
       if (mOriginalConn == nullptr) {
          if (parent->getCommunicator()->globalCommRank() == 0) {

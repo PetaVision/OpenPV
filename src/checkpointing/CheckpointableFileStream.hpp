@@ -57,7 +57,6 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
          Checkpointer *checkpointer,
          string const &objName,
          bool verifyWrites);
-   void setDescription();
    virtual Response::Status registerData(Checkpointer *checkpointer) override;
    Response::Status respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
    void syncFilePos();

@@ -24,8 +24,7 @@ int MomentumConn::initialize(char const *name, HyPerCol *hc) {
 BaseWeightUpdater *MomentumConn::createWeightUpdater() { return new MomentumUpdater(name, parent); }
 
 char const *MomentumConn::getMomentumMethod() const {
-   auto *momentumUpdater =
-         mapLookupByType<MomentumUpdater>(mComponentTable.getObjectMap(), getDescription());
+   auto *momentumUpdater = mapLookupByType<MomentumUpdater>(mObserverTable.getObjectMap());
    pvAssert(momentumUpdater);
    return momentumUpdater->getMomentumMethod();
 }

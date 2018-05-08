@@ -39,21 +39,13 @@ void FeedbackConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {}
 
 Response::Status FeedbackConnectionData::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto hierarchy = message->mHierarchy;
-   auto *originalConnNameParam =
-         mapLookupByType<OriginalConnNameParam>(hierarchy, getDescription());
-   FatalIf(
-         originalConnNameParam == nullptr,
-         "%s requires an OriginalConnNameParam component.\n",
-         getDescription_c());
-   if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-      return Response::POSTPONE;
-   }
+   auto hierarchy              = message->mHierarchy;
+   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
+   pvAssert(originalConnNameParam);
    char const *originalConnName = originalConnNameParam->getOriginalConnName();
-   pvAssert(originalConnName != nullptr);
 
-   ObjectMapComponent *objectMapComponent =
-         mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+   ObjectMapComponent *objectMapComponent;
+   objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
    pvAssert(objectMapComponent);
    HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
    if (originalConn == nullptr) {
