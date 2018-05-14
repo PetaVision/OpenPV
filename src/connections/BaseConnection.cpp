@@ -31,24 +31,14 @@ int BaseConnection::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-void BaseConnection::addObserver(std::string const &tag, Observer *observer) {
-   auto addedObject = dynamic_cast<BaseObject *>(observer);
-   FatalIf(
-         addedObject == nullptr,
-         "%s cannot be a component of %s.\n",
-         getDescription_c(),
-         observer->getDescription_c());
-   Subject::addObserver(tag, observer);
-}
-
 void BaseConnection::setObserverTable() {
    mConnectionData = createConnectionData();
    if (mConnectionData) {
-      addObserver(mConnectionData->getDescription(), mConnectionData);
+      addUniqueComponent(mConnectionData->getDescription(), mConnectionData);
    }
    mDeliveryObject = createDeliveryObject();
    if (mDeliveryObject) {
-      addObserver(mDeliveryObject->getDescription(), mDeliveryObject);
+      addUniqueComponent(mDeliveryObject->getDescription(), mDeliveryObject);
    }
 }
 
@@ -118,7 +108,7 @@ BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    if (!objectMapComponent) {
       objectMapComponent = new ObjectMapComponent(name, parent);
       objectMapComponent->setObjectMap(message->mHierarchy);
-      addObserver(objectMapComponent->getDescription(), objectMapComponent);
+      addUniqueComponent(objectMapComponent->getDescription(), objectMapComponent);
       // ObserverTable takes ownership; objectMapComponent will be deleted by
       // Subject::deleteObserverTable() method during destructor.
    }

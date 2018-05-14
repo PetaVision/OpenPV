@@ -32,11 +32,20 @@ class Subject {
    virtual ~Subject();
 
    /**
-    * The virtual method for adding an Observer-derived object.
-    * Derived classes can override this method, for example, to require the objects in
-    * their ObserverTable have a particular class requirement.
+    * Adds an Observer-derived object to the observer table.
+    * Exits with an error if the object is unable to be added.
     */
-   virtual void addObserver(std::string const &tag, Observer *observer);
+   void addObserver(std::string const &tag, Observer *observer);
+
+   /**
+    * Adds an object to the observer table, subject to the restriction that
+    * no other observer of the specified type is in the table.
+    * Exits with an error if the object is unable to be added, either because
+    * the internal call to addObject failed, or because there already was an
+    * object of the specified type in the table.
+    */
+   template <typename S>
+   void addUniqueComponent(std::string const &tag, S *component);
 
    template <typename S>
    S *getComponentByType();
@@ -142,6 +151,17 @@ class Subject {
 template <typename S>
 S *Subject::getComponentByType() {
    return mapLookupByType<S>(mObserverTable.getObjectMap());
+}
+
+template <typename S>
+void Subject::addUniqueComponent(std::string const &tag, S *component) {
+   auto *foundComponent = getComponentByType<S>();
+   FatalIf(
+         foundComponent,
+         "attempt to add %s using addUniqueComponent, but the table already has %s.\n",
+         component->getDescription(),
+         foundComponent->getDescription());
+   addObserver(tag, component);
 }
 
 } /* namespace PV */

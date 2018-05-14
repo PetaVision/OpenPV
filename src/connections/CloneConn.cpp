@@ -29,7 +29,7 @@ void CloneConn::setObserverTable() {
    HyPerConn::setObserverTable();
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
-      addObserver(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
+      addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
    }
 }
 

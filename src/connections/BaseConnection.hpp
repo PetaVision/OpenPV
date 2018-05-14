@@ -25,7 +25,8 @@ class BaseConnection : public BaseObject, public Subject {
 
    virtual ~BaseConnection();
 
-   virtual void addObserver(std::string const &tag, Observer *observer) override;
+   template <typename S>
+   void addComponent(S *observer);
 
    virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
@@ -88,6 +89,17 @@ class BaseConnection : public BaseObject, public Subject {
    Timer *mIOTimer = nullptr;
 
 }; // class BaseConnection
+
+template <typename S>
+void BaseConnection::addComponent(S *observer) {
+   auto addedObject = dynamic_cast<BaseObject *>(observer);
+   FatalIf(
+         addedObject == nullptr,
+         "%s cannot be a component of %s.\n",
+         getDescription_c(),
+         observer->getDescription_c());
+   addUniqueComponent(observer->getDescription(), observer);
+}
 
 } // namespace PV
 

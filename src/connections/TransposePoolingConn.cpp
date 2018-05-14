@@ -27,7 +27,7 @@ void TransposePoolingConn::setObserverTable() {
    PoolingConn::setObserverTable();
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
-      addObserver(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
+      addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
    }
 }
 

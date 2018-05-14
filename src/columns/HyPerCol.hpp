@@ -202,7 +202,7 @@ class HyPerCol : public Subject, public Observer {
    void ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    int checkDirExists(const char *dirname, struct stat *pathstat);
-   virtual void addObserver(std::string const &tag, Observer *observer) override;
+   void addComponent(BaseObject *component);
    inline void notifyLoop(std::vector<std::shared_ptr<BaseMessage const>> messages) {
       bool printFlag = getCommunicator()->globalCommRank() == 0;
       Subject::notifyLoop(messages, printFlag, getDescription());

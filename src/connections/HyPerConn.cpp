@@ -29,31 +29,31 @@ void HyPerConn::setObserverTable() {
    BaseConnection::setObserverTable();
    mArborList = createArborList();
    if (mArborList) {
-      addObserver(mArborList->getDescription(), mArborList);
+      addUniqueComponent(mArborList->getDescription(), mArborList);
    }
    mPatchSize = createPatchSize();
    if (mPatchSize) {
-      addObserver(mPatchSize->getDescription(), mPatchSize);
+      addUniqueComponent(mPatchSize->getDescription(), mPatchSize);
    }
    mSharedWeights = createSharedWeights();
    if (mSharedWeights) {
-      addObserver(mSharedWeights->getDescription(), mSharedWeights);
+      addUniqueComponent(mSharedWeights->getDescription(), mSharedWeights);
    }
    mWeightsPair = createWeightsPair();
    if (mWeightsPair) {
-      addObserver(mWeightsPair->getDescription(), mWeightsPair);
+      addUniqueComponent(mWeightsPair->getDescription(), mWeightsPair);
    }
    mWeightInitializer = createWeightInitializer();
    if (mWeightInitializer) {
-      addObserver(mWeightInitializer->getDescription(), mWeightInitializer);
+      addUniqueComponent(mWeightInitializer->getDescription(), mWeightInitializer);
    }
    mWeightNormalizer = createWeightNormalizer();
    if (mWeightNormalizer) {
-      addObserver(mWeightNormalizer->getDescription(), mWeightNormalizer);
+      addUniqueComponent(mWeightNormalizer->getDescription(), mWeightNormalizer);
    }
    mWeightUpdater = createWeightUpdater();
    if (mWeightUpdater) {
-      addObserver(mWeightUpdater->getDescription(), mWeightUpdater);
+      addUniqueComponent(mWeightUpdater->getDescription(), mWeightUpdater);
    }
 }
 
@@ -133,7 +133,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    }
    if (strcmp(normalizeMethod, "none")) {
       auto strengthParam = new StrengthParam(name, parent);
-      addObserver(strengthParam->getDescription(), strengthParam);
+      addUniqueComponent(strengthParam->getDescription(), strengthParam);
    }
    BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, name, parent);
    if (baseObj == nullptr) {

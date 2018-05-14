@@ -30,7 +30,7 @@ void IdentConn::setObserverTable() {
    BaseConnection::setObserverTable();
    mSingleArbor = createSingleArbor();
    if (mSingleArbor) {
-      addObserver(mSingleArbor->getDescription(), mSingleArbor);
+      addUniqueComponent(mSingleArbor->getDescription(), mSingleArbor);
    }
 }
 

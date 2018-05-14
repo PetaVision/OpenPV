@@ -27,11 +27,11 @@ void PoolingConn::setObserverTable() {
    BaseConnection::setObserverTable();
    mPatchSize = createPatchSize();
    if (mPatchSize) {
-      addObserver(mPatchSize->getDescription(), mPatchSize);
+      addUniqueComponent(mPatchSize->getDescription(), mPatchSize);
    }
    mWeightsPair = createWeightsPair();
    if (mWeightsPair) {
-      addObserver(mWeightsPair->getDescription(), mWeightsPair);
+      addUniqueComponent(mWeightsPair->getDescription(), mWeightsPair);
    }
 }
 

@@ -221,7 +221,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
             ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
             return PV_FAILURE;
          }
-         addObserver(addedObject->getName(), addedObject);
+         addComponent(addedObject);
       }
    } // for-loop over parameter groups
    return PV_SUCCESS;
@@ -1238,15 +1238,7 @@ int HyPerCol::finalizeCUDA() {
 
 #endif // PV_USE_CUDA
 
-void HyPerCol::addObserver(std::string const &tag, Observer *observer) {
-   auto addedObject = dynamic_cast<BaseObject *>(observer);
-   FatalIf(
-         addedObject == nullptr,
-         "%s cannot be added to %s, which is not a BaseObject-derived object.\n",
-         observer->getDescription_c(),
-         getDescription_c());
-   Subject::addObserver(tag, observer);
-}
+void HyPerCol::addComponent(BaseObject *component) { addObserver(component->getName(), component); }
 
 Observer *HyPerCol::getObjectFromName(std::string const &objectName) const {
    return mObserverTable.getObject(objectName);
