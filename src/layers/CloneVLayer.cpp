@@ -92,12 +92,6 @@ CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    return Response::SUCCESS;
 }
 
-int CloneVLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) {
-   HyPerLayer::requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
-   assert(*marginWidthResult >= marginWidthNeeded);
-   return PV_SUCCESS;
-}
-
 Response::Status CloneVLayer::allocateDataStructures() {
    assert(originalLayer);
    auto status = Response::SUCCESS;

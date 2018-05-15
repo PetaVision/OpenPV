@@ -34,16 +34,18 @@ int PlasticConnTestLayer::copyAtoV() {
 
 // set activity to global x/y/f position, using position in border/margin as required
 int PlasticConnTestLayer::setActivitytoGlobalPos() {
+   auto *layerGeometry   = getComponentByType<LayerGeometry>();
+   PVLayerLoc const *loc = layerGeometry->getLayerLoc();
+   float xScaleLog2      = layerGeometry->getXScale();
+   float x0              = xOriginGlobal(xScaleLog2);
+   float dx              = deltaX(xScaleLog2);
    for (int kLocalExt = 0; kLocalExt < getNumExtended(); kLocalExt++) {
       int kxLocalExt = kxPos(kLocalExt,
-                             clayer->loc.nx + clayer->loc.halo.lt + clayer->loc.halo.rt,
-                             clayer->loc.ny + clayer->loc.halo.dn + clayer->loc.halo.up,
-                             clayer->loc.nf)
-                       - clayer->loc.halo.lt;
-      int kxGlobalExt                   = kxLocalExt + clayer->loc.kx0;
-      float xScaleLog2                  = clayer->xScale;
-      float x0                          = xOriginGlobal(xScaleLog2);
-      float dx                          = deltaX(xScaleLog2);
+                             loc->nx + loc->halo.lt + loc->halo.rt,
+                             loc->ny + loc->halo.dn + loc->halo.up,
+                             loc->nf)
+                       - loc->halo.lt;
+      int kxGlobalExt                   = kxLocalExt + loc->kx0;
       float x_global_pos                = (x0 + dx * kxGlobalExt);
       clayer->activity->data[kLocalExt] = x_global_pos;
    }

@@ -34,7 +34,8 @@ Response::Status MPITestProbe::outputState(double timed) {
    // if many to one connection, each neuron should receive its global x/y/f position
    // if one to many connection, the position of the nearest sending cell is received
    // assume sending layer has scale factor == 1
-   int xScaleLog2 = getTargetLayer()->getCLayer()->xScale;
+   auto *layerGeometry = getTargetLayer()->getComponentByType<LayerGeometry>();
+   int xScaleLog2      = layerGeometry->getXScale();
 
    // determine min/max position of receiving layer
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();

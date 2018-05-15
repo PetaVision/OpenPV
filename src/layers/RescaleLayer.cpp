@@ -125,7 +125,7 @@ void RescaleLayer::ioParam_patchSize(enum ParamsIOFlag ioFlag) {
 
 int RescaleLayer::setActivity() {
    float *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
+   memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
    return 0;
 }
 

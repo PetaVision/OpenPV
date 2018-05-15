@@ -75,36 +75,12 @@ Response::Status WeightsPairInterface::communicateInitInfo(
    PVLayerLoc const *postLoc = post->getLayerLoc();
 
    // Margins
-   bool failed = false;
    int xmargin = requiredConvolveMargin(preLoc->nx, postLoc->nx, mPatchSize->getPatchSizeX());
    int receivedxmargin = 0;
-   int statusx         = pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');
-   if (statusx != PV_SUCCESS) {
-      ErrorLog().printf(
-            "Margin Failure for layer %s.  Received x-margin is %d, but %s requires margin of at "
-            "least %d\n",
-            pre->getDescription_c(),
-            receivedxmargin,
-            name,
-            xmargin);
-      failed = true;
-   }
+   pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');
    int ymargin = requiredConvolveMargin(preLoc->ny, postLoc->ny, mPatchSize->getPatchSizeY());
    int receivedymargin = 0;
-   int statusy         = pre->requireMarginWidth(ymargin, &receivedymargin, 'y');
-   if (statusy != PV_SUCCESS) {
-      ErrorLog().printf(
-            "Margin Failure for layer %s.  Received y-margin is %d, but %s requires margin of at "
-            "least %d\n",
-            pre->getDescription_c(),
-            receivedymargin,
-            name,
-            ymargin);
-      failed = true;
-   }
-   if (failed) {
-      exit(EXIT_FAILURE);
-   }
+   pre->requireMarginWidth(ymargin, &receivedymargin, 'y');
 
    return Response::SUCCESS;
 }

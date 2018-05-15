@@ -52,6 +52,8 @@ int main(int argc, char *argv[]) {
    HyPerConn *conn =
          dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_constant_input_connection"));
 
+   hc->allocateColumn();
+
    const int nxp               = conn->getPatchSizeX();
    const int nyp               = conn->getPatchSizeY();
    const PVLayerLoc *imageLoc  = image->getLayerLoc();

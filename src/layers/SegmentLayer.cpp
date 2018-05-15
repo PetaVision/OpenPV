@@ -78,6 +78,9 @@ void SegmentLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
 Response::Status
 SegmentLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    // Get original layer
    originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == NULL) {

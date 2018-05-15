@@ -94,6 +94,9 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    if (failed) {
       exit(EXIT_FAILURE);
    }
+   if (!mPre->getInitInfoCommunicatedFlag() or !mPost->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
 
    return Response::SUCCESS;
 }

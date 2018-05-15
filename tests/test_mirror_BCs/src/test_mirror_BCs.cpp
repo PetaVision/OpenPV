@@ -20,34 +20,42 @@ int main(int argc, char *argv[]) {
    PV::HyPerCol *hc = new PV::HyPerCol(initObj);
    PV::HyPerLayer *l =
          dynamic_cast<PV::HyPerLayer *>(hc->getObjectFromName("test_mirror_BCs_layer"));
+   int margin = 1;
+   l->requireMarginWidth(1, &margin, 'x');
+   l->requireMarginWidth(1, &margin, 'y');
+   hc->allocateColumn();
 
-   int nf             = l->clayer->loc.nf;
-   PVHalo const *halo = &l->clayer->loc.halo;
-   int nS             = l->clayer->loc.nx; // 8;
-   int syex           = (nS + halo->lt + halo->rt) * nf;
-   int sy             = nS * nf;
+   PVLayerLoc const *loc = l->getLayerLoc();
+
+   int nf          = loc->nf;
+   int const nxExt = loc->nx + loc->halo.lt + loc->halo.rt;
+   int const nyExt = loc->ny + loc->halo.dn + loc->halo.up;
+   int syex        = nxExt * nf;
+   int sy          = loc->nx * nf;
 
    sLoc.nbatch   = 1;
-   sLoc.nxGlobal = sLoc.nyGlobal = nS; // shouldn't be used
+   sLoc.nxGlobal = loc->nx; // shouldn't be used
+   sLoc.nyGlobal = loc->ny; // shouldn't be used
    sLoc.kx0 = sLoc.ky0 = 0; // shouldn't be used
-   sLoc.nx = sLoc.ny = nS;
-   sLoc.nf           = nf;
-   sLoc.halo.lt      = halo->lt;
-   sLoc.halo.rt      = halo->rt;
-   sLoc.halo.dn      = halo->dn;
-   sLoc.halo.up      = halo->up;
+   sLoc.nx             = loc->nx;
+   sLoc.ny             = loc->ny;
+   sLoc.nf             = nf;
+   sLoc.halo.lt        = loc->halo.lt;
+   sLoc.halo.rt        = loc->halo.rt;
+   sLoc.halo.dn        = loc->halo.dn;
+   sLoc.halo.up        = loc->halo.up;
 
    bLoc = sLoc;
 
-   sCube = PV::pvcube_new(&sLoc, (nS + halo->lt + halo->rt) * (nS + halo->dn + halo->up) * nf);
+   sCube = PV::pvcube_new(&sLoc, nxExt * nyExt * nf);
    bCube = sCube;
 
    // fill interior with non-extended index of each neuron
    // leave border values at zero to start with
-   int kxFirst = halo->lt;
-   int kxLast  = nS + halo->lt;
-   int kyFirst = halo->up;
-   int kyLast  = nS + halo->up;
+   int kxFirst = loc->halo.lt;
+   int kxLast  = loc->nx + loc->halo.lt;
+   int kyFirst = loc->halo.up;
+   int kyLast  = loc->ny + loc->halo.up;
    for (int ky = kyFirst; ky < kyLast; ky++) {
       for (int kx = kxFirst; kx < kxLast; kx++) {
          for (int kf = 0; kf < nf; kf++) {
@@ -97,9 +105,9 @@ int main(int argc, char *argv[]) {
    // uses a completely different algorithm than mirrorInteriorToBorder
 
    // northwest
-   for (int ky = kxFirst; ky < kyFirst + halo->lt; ky++) {
+   for (int ky = kxFirst; ky < kyFirst + loc->halo.lt; ky++) {
       int kymirror = kyFirst - 1 - (ky - kyFirst);
-      for (int kx = kxFirst; kx < kxFirst + halo->lt; kx++) {
+      for (int kx = kxFirst; kx < kxFirst + loc->halo.lt; kx++) {
          int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
@@ -119,7 +127,7 @@ int main(int argc, char *argv[]) {
    }
 
    // north
-   for (int ky = kyFirst; ky < kyFirst + halo->up; ky++) {
+   for (int ky = kyFirst; ky < kyFirst + loc->halo.up; ky++) {
       int kymirror = kyFirst - 1 - (ky - kyFirst);
       for (int kx = kxFirst; kx < kxLast; kx++) {
          int kxmirror = kx;
@@ -141,9 +149,9 @@ int main(int argc, char *argv[]) {
    }
 
    // northeast
-   for (int ky = kyFirst; ky < kyFirst + halo->up; ky++) {
+   for (int ky = kyFirst; ky < kyFirst + loc->halo.up; ky++) {
       int kymirror = kyFirst - 1 - (ky - kyFirst);
-      for (int kx = kxLast - halo->rt; kx < kxLast; kx++) {
+      for (int kx = kxLast - loc->halo.rt; kx < kxLast; kx++) {
          int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
@@ -165,7 +173,7 @@ int main(int argc, char *argv[]) {
    // west
    for (int ky = kyFirst; ky < kyLast; ky++) {
       int kymirror = ky;
-      for (int kx = kxFirst; kx < kxFirst + halo->lt; kx++) {
+      for (int kx = kxFirst; kx < kxFirst + loc->halo.lt; kx++) {
          int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
@@ -187,7 +195,7 @@ int main(int argc, char *argv[]) {
    // east
    for (int ky = kyFirst; ky < kyLast; ky++) {
       int kymirror = ky;
-      for (int kx = kxLast - halo->rt; kx < kxLast; kx++) {
+      for (int kx = kxLast - loc->halo.rt; kx < kxLast; kx++) {
          int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
@@ -207,9 +215,9 @@ int main(int argc, char *argv[]) {
    }
 
    // southwest
-   for (int ky = kyLast - halo->dn; ky < kyLast; ky++) {
+   for (int ky = kyLast - loc->halo.dn; ky < kyLast; ky++) {
       int kymirror = kyLast - 1 + (kyLast - ky);
-      for (int kx = kxFirst; kx < kxFirst + halo->lt; kx++) {
+      for (int kx = kxFirst; kx < kxFirst + loc->halo.lt; kx++) {
          int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
@@ -229,7 +237,7 @@ int main(int argc, char *argv[]) {
    }
 
    // south
-   for (int ky = kyLast - halo->dn; ky < kyLast; ky++) {
+   for (int ky = kyLast - loc->halo.dn; ky < kyLast; ky++) {
       int kymirror = kyLast - 1 + (kyLast - ky);
       for (int kx = kxFirst; kx < kxLast; kx++) {
          int kxmirror = kx;
@@ -251,9 +259,9 @@ int main(int argc, char *argv[]) {
    }
 
    // southeast
-   for (int ky = kyLast - halo->dn; ky < kyLast; ky++) {
+   for (int ky = kyLast - loc->halo.dn; ky < kyLast; ky++) {
       int kymirror = kyLast - 1 + (kyLast - ky);
-      for (int kx = kxLast - halo->rt; kx < kxLast; kx++) {
+      for (int kx = kxLast - loc->halo.rt; kx < kxLast; kx++) {
          int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;

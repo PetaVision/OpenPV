@@ -88,10 +88,11 @@ int main(int argc, char *argv[]) {
 }
 
 int buildandverify(PV::PV_Init *initObj) {
-   PV::HyPerCol *hc = new PV::HyPerCol(initObj);
-   int rows         = initObj->getIntegerArgument("NumRows");
-   int columns      = initObj->getIntegerArgument("NumColumns");
+   int rows    = initObj->getIntegerArgument("NumRows");
+   int columns = initObj->getIntegerArgument("NumColumns");
    FatalIf(rows <= 0 or columns <= 0, "Test failed.\n");
+   PV::HyPerCol *hc = new PV::HyPerCol(initObj);
+   hc->allocateColumn();
    int status = verifyLoc(hc, rows, columns);
    delete hc;
    return status;

@@ -289,7 +289,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
 
 int LIF::setActivity() {
    float *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
+   memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
    return 0;
 }
 
@@ -403,11 +403,10 @@ Response::Status LIF::registerData(Checkpointer *checkpointer) {
 Response::Status LIF::updateState(double time, double dt) {
    update_timer->start();
 
-   const int nx       = clayer->loc.nx;
-   const int ny       = clayer->loc.ny;
-   const int nf       = clayer->loc.nf;
-   const PVHalo *halo = &clayer->loc.halo;
-   const int nbatch   = clayer->loc.nbatch;
+   const int nx     = getLayerLoc()->nx;
+   const int ny     = getLayerLoc()->ny;
+   const int nf     = getLayerLoc()->nf;
+   const int nbatch = getLayerLoc()->nbatch;
 
    float *GSynHead = GSyn[0];
    float *activity = clayer->activity->data;
@@ -422,10 +421,10 @@ Response::Status LIF::updateState(double time, double dt) {
                nx,
                ny,
                nf,
-               halo->lt,
-               halo->rt,
-               halo->dn,
-               halo->up,
+               getLayerLoc()->halo.lt,
+               getLayerLoc()->halo.rt,
+               getLayerLoc()->halo.dn,
+               getLayerLoc()->halo.up,
                &lParams,
                randState->getRNG(0),
                clayer->V,
@@ -445,10 +444,10 @@ Response::Status LIF::updateState(double time, double dt) {
                nx,
                ny,
                nf,
-               halo->lt,
-               halo->rt,
-               halo->dn,
-               halo->up,
+               getLayerLoc()->halo.lt,
+               getLayerLoc()->halo.rt,
+               getLayerLoc()->halo.dn,
+               getLayerLoc()->halo.up,
                &lParams,
                randState->getRNG(0),
                clayer->V,
@@ -468,10 +467,10 @@ Response::Status LIF::updateState(double time, double dt) {
                nx,
                ny,
                nf,
-               halo->lt,
-               halo->rt,
-               halo->dn,
-               halo->up,
+               getLayerLoc()->halo.lt,
+               getLayerLoc()->halo.rt,
+               getLayerLoc()->halo.dn,
+               getLayerLoc()->halo.up,
                &lParams,
                randState->getRNG(0),
                clayer->V,

@@ -101,6 +101,10 @@ Response::Status FilenameParsingGroundTruthLayer::registerData(Checkpointer *che
 
 Response::Status FilenameParsingGroundTruthLayer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    mInputLayer = message->lookup<InputLayer>(std::string(mInputLayerName));
    FatalIf(
          mInputLayer == nullptr && parent->columnId() == 0,

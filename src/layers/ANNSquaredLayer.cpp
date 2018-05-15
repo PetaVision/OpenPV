@@ -45,10 +45,10 @@ int ANNSquaredLayer::initialize(const char *name, HyPerCol *hc) {
 }
 
 Response::Status ANNSquaredLayer::updateState(double time, double dt) {
-   const int nx     = clayer->loc.nx;
-   const int ny     = clayer->loc.ny;
-   const int nf     = clayer->loc.nf;
-   const int nbatch = clayer->loc.nbatch;
+   const int nx     = getLayerLoc()->nx;
+   const int ny     = getLayerLoc()->ny;
+   const int nf     = getLayerLoc()->nf;
+   const int nbatch = getLayerLoc()->nbatch;
 
    float *GSynHead = GSyn[0];
    float *V        = getV();
@@ -60,10 +60,10 @@ Response::Status ANNSquaredLayer::updateState(double time, double dt) {
          nx,
          ny,
          nf,
-         clayer->loc.halo.lt,
-         clayer->loc.halo.rt,
-         clayer->loc.halo.dn,
-         clayer->loc.halo.up,
+         getLayerLoc()->halo.lt,
+         getLayerLoc()->halo.rt,
+         getLayerLoc()->halo.dn,
+         getLayerLoc()->halo.up,
          V,
          GSynHead,
          activity);

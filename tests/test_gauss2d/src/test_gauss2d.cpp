@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
    delete objectMap;
 
    const int axonID     = 0;
-   int num_pre_extended = pre->clayer->numExtended;
+   int num_pre_extended = pre->getNumExtended();
    FatalIf(num_pre_extended != cHyPer->getNumGeometryPatches(), "Test failed.\n");
 
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {

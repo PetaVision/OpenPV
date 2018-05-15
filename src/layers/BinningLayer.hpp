@@ -11,8 +11,6 @@ class BinningLayer : public PV::HyPerLayer {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
-   virtual int
-   requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) override;
    virtual bool activityIsSpiking() override { return false; }
    virtual ~BinningLayer();
 

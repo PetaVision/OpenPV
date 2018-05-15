@@ -61,7 +61,7 @@ void RunningAverageLayer::ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag) {
 
 int RunningAverageLayer::setActivity() {
    float *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
+   memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
    return 0;
 }
 

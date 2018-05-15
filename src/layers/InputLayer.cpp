@@ -201,6 +201,7 @@ int InputLayer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
       activityBuffer[n] = mPadValue;
    }
 
+   int const numFeatures = getLayerLoc()->nf;
    for (int y = 0; y < activityHeight; ++y) {
       for (int x = 0; x < activityWidth; ++x) {
          for (int f = 0; f < numFeatures; ++f) {

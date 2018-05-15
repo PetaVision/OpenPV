@@ -63,12 +63,11 @@ void CPTestInputLayer::initializeV() {
 
 Response::Status CPTestInputLayer::updateState(double timed, double dt) {
    update_timer->start();
-   const int nx         = clayer->loc.nx;
-   const int ny         = clayer->loc.ny;
-   const int nf         = clayer->loc.nf;
-   const PVHalo *halo   = &clayer->loc.halo;
+   const int nx         = getLayerLoc()->nx;
+   const int ny         = getLayerLoc()->ny;
+   const int nf         = getLayerLoc()->nf;
    const int numNeurons = getNumNeurons();
-   const int nbatch     = clayer->loc.nbatch;
+   const int nbatch     = getLayerLoc()->nbatch;
 
    float *GSynHead = GSyn[0];
    float *V        = getV();
@@ -80,10 +79,10 @@ Response::Status CPTestInputLayer::updateState(double timed, double dt) {
          nx,
          ny,
          nf,
-         halo->lt,
-         halo->rt,
-         halo->dn,
-         halo->up,
+         getLayerLoc()->halo.lt,
+         getLayerLoc()->halo.rt,
+         getLayerLoc()->halo.dn,
+         getLayerLoc()->halo.up,
          V,
          GSynHead,
          activity);

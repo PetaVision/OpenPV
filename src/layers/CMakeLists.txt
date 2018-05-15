@@ -4,7 +4,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ANNSquaredLayer.cpp
    ${SUBDIR}/ANNWhitenedLayer.cpp
    ${SUBDIR}/BackgroundLayer.cpp
-   ${SUBDIR}/InputLayer.cpp
    ${SUBDIR}/BinningLayer.cpp
    ${SUBDIR}/DropoutLayer.cpp
    ${SUBDIR}/CloneVLayer.cpp
@@ -16,6 +15,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/MomentumLCALayer.cpp
    ${SUBDIR}/ImageLayer.cpp
    ${SUBDIR}/ImageFromMemoryBuffer.cpp
+   ${SUBDIR}/InputLayer.cpp
    ${SUBDIR}/InputRegionLayer.cpp
    ${SUBDIR}/ISTALayer.cpp
    ${SUBDIR}/KmeansLayer.cpp
@@ -46,7 +46,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ANNSquaredLayer.hpp
    ${SUBDIR}/ANNWhitenedLayer.hpp
    ${SUBDIR}/BackgroundLayer.hpp
-   ${SUBDIR}/InputLayer.hpp
    ${SUBDIR}/BinningLayer.hpp
    ${SUBDIR}/CloneVLayer.hpp
    ${SUBDIR}/DropoutLayer.hpp
@@ -57,6 +56,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/HyPerLCALayer.hpp
    ${SUBDIR}/ImageLayer.hpp
    ${SUBDIR}/ImageFromMemoryBuffer.hpp
+   ${SUBDIR}/InputLayer.hpp
    ${SUBDIR}/InputRegionLayer.cpp
    ${SUBDIR}/ISTALayer.hpp
    ${SUBDIR}/KmeansLayer.hpp

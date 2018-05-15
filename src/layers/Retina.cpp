@@ -97,6 +97,9 @@ int Retina::initialize(const char *name, HyPerCol *hc) {
 Response::Status
 Retina::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (parent->getNBatch() != 1) {
       Fatal() << "Retina does not support batches yet, TODO\n";
    }
@@ -279,11 +282,10 @@ Response::Status Retina::registerData(Checkpointer *checkpointer) {
  *
  */
 Response::Status Retina::updateState(double timed, double dt) {
-   const int nx       = clayer->loc.nx;
-   const int ny       = clayer->loc.ny;
-   const int nf       = clayer->loc.nf;
-   const int nbatch   = clayer->loc.nbatch;
-   const PVHalo *halo = &clayer->loc.halo;
+   const int nx     = getLayerLoc()->nx;
+   const int ny     = getLayerLoc()->ny;
+   const int nf     = getLayerLoc()->nf;
+   const int nbatch = getLayerLoc()->nbatch;
 
    float *GSynHead = GSyn[0];
    float *activity = clayer->activity->data;
@@ -297,10 +299,10 @@ Response::Status Retina::updateState(double timed, double dt) {
             nx,
             ny,
             nf,
-            halo->lt,
-            halo->rt,
-            halo->dn,
-            halo->up,
+            getLayerLoc()->halo.lt,
+            getLayerLoc()->halo.rt,
+            getLayerLoc()->halo.dn,
+            getLayerLoc()->halo.up,
             &rParams,
             randState->getRNG(0),
             GSynHead,
@@ -316,10 +318,10 @@ Response::Status Retina::updateState(double timed, double dt) {
             nx,
             ny,
             nf,
-            halo->lt,
-            halo->rt,
-            halo->dn,
-            halo->up,
+            getLayerLoc()->halo.lt,
+            getLayerLoc()->halo.rt,
+            getLayerLoc()->halo.dn,
+            getLayerLoc()->halo.up,
             &rParams,
             GSynHead,
             activity);

@@ -70,22 +70,9 @@ typedef struct PVLayerCube_ {
  * PVLayer is a collection of neurons of a specific class
  */
 typedef struct PVLayer_ {
-   // # neurons in this layer
-   int numNeurons;
-   // # neurons in layer including extended border regions
-   int numExtended;
 
-   // # neurons in this layer across all batches
-   int numNeuronsAllBatches;
-
-   // # neurons in this layer across all batches, including extended regions
-   int numExtendedAllBatches;
-
-   PVLayerLoc loc;
-
-   // Layer size = 2^(-scale) * column size.
-   // Layers with positive xScale are more dense in the x dimension
-   int xScale, yScale;
+   // int numNeurons, int numExtended, int numNeuronsAllBatches, int numExtendedAllBatches,
+   // PVLayerLoc loc, int xScale, and int yScale are now handled by the LayerGeometry class.
 
    PVLayerCube *activity;
 

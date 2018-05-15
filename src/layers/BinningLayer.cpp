@@ -146,12 +146,6 @@ BinningLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    return Response::SUCCESS;
 }
 
-int BinningLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) {
-   HyPerLayer::requireMarginWidth(marginWidthNeeded, marginWidthResult, axis);
-   assert(*marginWidthResult >= marginWidthNeeded);
-   return PV_SUCCESS;
-}
-
 Response::Status BinningLayer::allocateDataStructures() {
    return HyPerLayer::allocateDataStructures();
 }

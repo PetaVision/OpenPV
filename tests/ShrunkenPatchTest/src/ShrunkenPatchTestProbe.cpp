@@ -82,7 +82,7 @@ Response::Status ShrunkenPatchTestProbe::outputState(double timed) {
       int nx        = loc->nx;
       correctValues = (float *)malloc((size_t)nx * sizeof(float));
 
-      int xScaleLog2 = getTargetLayer()->getCLayer()->xScale;
+      int xScaleLog2 = getTargetLayer()->getComponentByType<LayerGeometry>()->getXScale();
 
       if (xScaleLog2 >= 0) {
          Fatal().printf(

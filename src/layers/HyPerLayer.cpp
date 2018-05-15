@@ -16,6 +16,7 @@
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
 #include "columns/HyPerCol.hpp"
+#include "columns/ObjectMapComponent.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
@@ -46,12 +47,7 @@ HyPerLayer::HyPerLayer(const char *name, HyPerCol *hc) {
 int HyPerLayer::initialize_base() {
    name                         = NULL;
    probes                       = NULL;
-   nxScale                      = 1.0f;
-   nyScale                      = 1.0f;
-   numFeatures                  = 1;
    mirrorBCflag                 = 0;
-   xmargin                      = 0;
-   ymargin                      = 0;
    numProbes                    = 0;
    numChannels                  = 2;
    clayer                       = NULL;
@@ -73,9 +69,6 @@ int HyPerLayer::initialize_base() {
    mLastTriggerTime = 0.0;
 
    phase = 0;
-
-   numSynchronizedMarginWidthLayers = 0;
-   synchronizedMarginWidthLayers    = NULL;
 
 #ifdef PV_USE_CUDA
    allocDeviceV             = false;
@@ -128,6 +121,7 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    if (status != PV_SUCCESS) {
       return status;
    }
+   setObserverTable();
    readParams();
 
    writeTime                = initialWriteTime;
@@ -144,6 +138,15 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
+void HyPerLayer::setObserverTable() {
+   mLayerGeometry = createLayerGeometry();
+   if (mLayerGeometry) {
+      addUniqueComponent(mLayerGeometry->getDescription(), mLayerGeometry);
+   }
+}
+
+LayerGeometry *HyPerLayer::createLayerGeometry() { return new LayerGeometry(name, parent); }
+
 int HyPerLayer::initClayer() {
    clayer     = (PVLayer *)calloc(1UL, sizeof(PVLayer));
    int status = PV_SUCCESS;
@@ -154,28 +157,10 @@ int HyPerLayer::initClayer() {
             parent->columnId());
    }
 
-   PVLayerLoc *loc = &clayer->loc;
-   setLayerLoc(loc, nxScale, nyScale, numFeatures, parent->getNBatch());
-   assert(loc->halo.lt == 0 && loc->halo.rt == 0 && loc->halo.dn == 0 && loc->halo.up == 0);
-
-   int nBatch = parent->getNBatch();
-
-   clayer->numNeurons  = loc->nx * loc->ny * loc->nf;
-   clayer->numExtended = clayer->numNeurons; // initially, margin is zero; it will be updated as
-   // needed during the communicateInitInfo stage.
-   clayer->numNeuronsAllBatches  = nBatch * loc->nx * loc->ny * loc->nf;
-   clayer->numExtendedAllBatches = clayer->numNeuronsAllBatches;
-
-   double xScaled = -log2((double)nxScale);
-   double yScaled = -log2((double)nyScale);
-
-   int xScale = (int)nearbyint(xScaled);
-   int yScale = (int)nearbyint(yScaled);
-
-   clayer->xScale = xScale;
-   clayer->yScale = yScale;
-
-   // Other fields of clayer will be set in allocateClayerBuffers, or during updateState
+   // May 14, 2018: Setting of clayer->numNeurons, etc. has been moved to
+   // LayerGeometry::communicateInitInfo, since loc->nx, loc->ny, loc->nf, etc.
+   // are handled by LayerGeometry and are not certain to be set until the
+   // CommunicateInitInfo stage.
    return status;
 }
 
@@ -220,8 +205,6 @@ HyPerLayer::~HyPerLayer() {
    free(marginIndices);
    free(probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be deleted,
    // only the array itself.
-
-   free(synchronizedMarginWidthLayers);
 
    free(triggerLayerName);
    free(triggerBehavior);
@@ -332,7 +315,7 @@ void HyPerLayer::allocateV() {
 }
 
 void HyPerLayer::allocateActivity() {
-   clayer->activity = pvcube_new(&clayer->loc, getNumExtendedAllBatches());
+   clayer->activity = pvcube_new(getLayerLoc(), getNumExtendedAllBatches());
    FatalIf(
          clayer->activity == nullptr, "%s failed to allocate activity cube.\n", getDescription_c());
 }
@@ -445,13 +428,6 @@ int HyPerLayer::setLayerLoc(
    layerLoc->halo.up = 0;
 
    return 0;
-}
-
-void HyPerLayer::calcNumExtended() {
-   PVLayerLoc const *loc = getLayerLoc();
-   clayer->numExtended   = (loc->nx + loc->halo.lt + loc->halo.rt)
-                         * (loc->ny + loc->halo.dn + loc->halo.up) * loc->nf;
-   clayer->numExtendedAllBatches = clayer->numExtended * loc->nbatch;
 }
 
 void HyPerLayer::allocateBuffers() {
@@ -568,9 +544,10 @@ void HyPerLayer::initializeActivity() {
 int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // Derived classes with new params behavior should override ioParamsFillGroup
    // and the overriding method should call the base class's ioParamsFillGroup.
-   ioParam_nxScale(ioFlag);
-   ioParam_nyScale(ioFlag);
-   ioParam_nf(ioFlag);
+   for (auto &c : mObserverTable) {
+      auto obj = dynamic_cast<BaseObject *>(c);
+      obj->ioParams(ioFlag, false, false);
+   }
    ioParam_phase(ioFlag);
    ioParam_mirrorBCflag(ioFlag);
    ioParam_valueBC(ioFlag);
@@ -623,18 +600,6 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
             getDescription_c());
    }
 #endif // PV_USE_CUDA
-}
-
-void HyPerLayer::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "nxScale", &nxScale, nxScale);
-}
-
-void HyPerLayer::ioParam_nyScale(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "nyScale", &nyScale, nyScale);
-}
-
-void HyPerLayer::ioParam_nf(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "nf", &numFeatures, numFeatures);
 }
 
 void HyPerLayer::ioParam_phase(enum ParamsIOFlag ioFlag) {
@@ -1103,20 +1068,27 @@ int HyPerLayer::allocateDeviceBuffers() {
 
 Response::Status
 HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   // HyPerLayers need to tell the parent HyPerCol how many random number
-   // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
-   // calls each layer's communicateInitInfo() sequentially in a repeatable order
-   // (probably the order the layers appear in the params file) to make sure
-   // that the same runs use the same RNG seeds in the same way.
-   //
-   // If any other object in the column needs the layer to have a certain minimum
-   // margin width (e.g. a HyPerConn with patch size bigger than one), it should
-   // call the layer's requireMarginWidth() method during its communicateInitInfo
-   // stage.
-   //
-   // Since all communicateInitInfo() methods are called before any allocateDataStructures()
-   // methods, HyPerLayer knows its marginWidth before it has to allocate
-   // anything.  So the margin width does not have to be specified in params.
+   auto *objectMapComponent = getComponentByType<ObjectMapComponent>();
+   if (!objectMapComponent) {
+      objectMapComponent = new ObjectMapComponent(name, parent);
+      objectMapComponent->setObjectMap(message->mHierarchy);
+      addUniqueComponent(objectMapComponent->getDescription(), objectMapComponent);
+      // ObserverTable takes ownership; objectMapComponent will be deleted by
+      // Subject::deleteObserverTable() method during destructor.
+   }
+   pvAssert(objectMapComponent);
+
+   auto communicateMessage =
+         std::make_shared<CommunicateInitInfoMessage>(mObserverTable.getObjectMap());
+
+   Response::Status status =
+         notify(communicateMessage, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   if (!Response::completed(status)) {
+      return status;
+   }
+
+   PVLayerLoc const *loc = getLayerLoc();
+
    if (triggerFlag) {
       triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
@@ -1151,6 +1123,9 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
                exit(EXIT_FAILURE);
             }
          }
+         if (!triggerResetLayer->getInitInfoCommunicatedFlag()) {
+            return Response::POSTPONE;
+         }
          // Check that triggerResetLayer and this layer have the same (restricted) dimensions.
          // Do we need to postpone until triggerResetLayer has finished its communicateInitInfo?
          PVLayerLoc const *triggerLoc = triggerResetLayer->getLayerLoc();
@@ -1180,7 +1155,7 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    }
 
 #ifdef PV_USE_CUDA
-   // Here, the connection tells all participating recev layers to allocate memory on gpu
+   // Here, the connection tells all participating recv layers to allocate memory on gpu
    // if receive from gpu is set. These buffers should be set in allocate
    if (mUpdateGpu) {
       this->setAllocDeviceGSyn();
@@ -1245,24 +1220,11 @@ void HyPerLayer::synchronizeMarginWidth(HyPerLayer *layer) {
    if (layer == this) {
       return;
    }
-   assert(layer->getLayerLoc() != NULL && this->getLayerLoc() != NULL);
-   HyPerLayer **newSynchronizedMarginWidthLayers =
-         (HyPerLayer **)calloc(numSynchronizedMarginWidthLayers + 1, sizeof(HyPerLayer *));
-   assert(newSynchronizedMarginWidthLayers);
-   if (numSynchronizedMarginWidthLayers > 0) {
-      for (int k = 0; k < numSynchronizedMarginWidthLayers; k++) {
-         newSynchronizedMarginWidthLayers[k] = synchronizedMarginWidthLayers[k];
-      }
-      free(synchronizedMarginWidthLayers);
-   }
-   else {
-      assert(synchronizedMarginWidthLayers == NULL);
-   }
-   synchronizedMarginWidthLayers = newSynchronizedMarginWidthLayers;
-   synchronizedMarginWidthLayers[numSynchronizedMarginWidthLayers] = layer;
-   numSynchronizedMarginWidthLayers++;
-
-   equalizeMargins(this, layer);
+   auto *thisLayerGeometry  = getComponentByType<LayerGeometry>();
+   auto *otherLayerGeometry = layer->getComponentByType<LayerGeometry>();
+   pvAssert(thisLayerGeometry != nullptr);
+   pvAssert(otherLayerGeometry != nullptr);
+   thisLayerGeometry->synchronizeMarginWidth(otherLayerGeometry);
 
    return;
 }
@@ -1452,75 +1414,22 @@ int HyPerLayer::increaseDelayLevels(int neededDelay) {
    return numDelayLevels;
 }
 
-int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) {
-   // TODO: Is there a good way to handle x- and y-axis margins without so much duplication of code?
-   // Navigating through the halo makes it difficult to combine cases.
-   PVLayerLoc *loc = &clayer->loc;
-   PVHalo *halo    = &loc->halo;
+void HyPerLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) {
+   auto *layerGeometry = getComponentByType<LayerGeometry>();
+   pvAssert(layerGeometry);
+   layerGeometry->requireMarginWidth(marginWidthNeeded, axis);
    switch (axis) {
       case 'x':
-         *marginWidthResult = xmargin;
-         if (xmargin < marginWidthNeeded) {
-            assert(clayer);
-            if (parent->columnId() == 0) {
-               InfoLog().printf(
-                     "%s: adjusting x-margin width from %d to %d\n",
-                     getDescription_c(),
-                     xmargin,
-                     marginWidthNeeded);
-            }
-            xmargin  = marginWidthNeeded;
-            halo->lt = xmargin;
-            halo->rt = xmargin;
-            calcNumExtended();
-            assert(axis == 'x' && getLayerLoc()->halo.lt == getLayerLoc()->halo.rt);
-            *marginWidthResult = xmargin;
-            if (synchronizedMarginWidthLayers != NULL) {
-               for (int k = 0; k < numSynchronizedMarginWidthLayers; k++) {
-                  HyPerLayer *l = synchronizedMarginWidthLayers[k];
-                  if (l->getLayerLoc()->halo.lt < marginWidthNeeded) {
-                     synchronizedMarginWidthLayers[k]->requireMarginWidth(
-                           marginWidthNeeded, marginWidthResult, axis);
-                  }
-                  assert(l->getLayerLoc()->halo.lt == getLayerLoc()->halo.lt);
-                  assert(l->getLayerLoc()->halo.rt == getLayerLoc()->halo.rt);
-               }
-            }
-         }
+         *marginWidthResult = getLayerLoc()->halo.lt;
+         pvAssert(*marginWidthResult == getLayerLoc()->halo.rt);
          break;
       case 'y':
-         *marginWidthResult = ymargin;
-         if (ymargin < marginWidthNeeded) {
-            assert(clayer);
-            if (parent->columnId() == 0) {
-               InfoLog().printf(
-                     "%s: adjusting y-margin width from %d to %d\n",
-                     getDescription_c(),
-                     ymargin,
-                     marginWidthNeeded);
-            }
-            ymargin  = marginWidthNeeded;
-            halo->dn = ymargin;
-            halo->up = ymargin;
-            calcNumExtended();
-            assert(axis == 'y' && getLayerLoc()->halo.dn == getLayerLoc()->halo.up);
-            *marginWidthResult = ymargin;
-            if (synchronizedMarginWidthLayers != NULL) {
-               for (int k = 0; k < numSynchronizedMarginWidthLayers; k++) {
-                  HyPerLayer *l = synchronizedMarginWidthLayers[k];
-                  if (l->getLayerLoc()->halo.up < marginWidthNeeded) {
-                     synchronizedMarginWidthLayers[k]->requireMarginWidth(
-                           marginWidthNeeded, marginWidthResult, axis);
-                  }
-                  assert(l->getLayerLoc()->halo.dn == getLayerLoc()->halo.dn);
-                  assert(l->getLayerLoc()->halo.up == getLayerLoc()->halo.up);
-               }
-            }
-         }
+         *marginWidthResult = getLayerLoc()->halo.dn;
+         pvAssert(*marginWidthResult == getLayerLoc()->halo.up);
          break;
       default: assert(0); break;
    }
-   return PV_SUCCESS;
+   pvAssert(*marginWidthResult >= marginWidthNeeded);
 }
 
 int HyPerLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
@@ -2198,6 +2107,7 @@ int HyPerLayer::writeActivitySparse(double timed) {
 
 // write non-spiking activity
 int HyPerLayer::writeActivity(double timed) {
+   InfoLog() << getDescription() << " calling writeActivity" << std::endl;
    PVLayerCube cube      = publisher->createCube(0);
    PVLayerLoc const *loc = getLayerLoc();
    pvAssert(cube.numItems == loc->nbatch * getNumExtended());
@@ -2298,8 +2208,8 @@ int HyPerLayer::mirrorToNorth(PVLayerCube *dest, PVLayerCube *src) {
    if (!localDimensionsEqual(&dest->loc, &src->loc)) {
       return -1;
    }
-   int nx         = clayer->loc.nx;
-   int nf         = clayer->loc.nf;
+   int nx         = getLayerLoc()->nx;
+   int nf         = getLayerLoc()->nf;
    int leftBorder = dest->loc.halo.lt;
    int topBorder  = dest->loc.halo.up;
    int nbatch     = dest->loc.nbatch;
@@ -2404,9 +2314,9 @@ int HyPerLayer::mirrorToEast(PVLayerCube *dest, PVLayerCube *src) {
    if (!localDimensionsEqual(&dest->loc, &src->loc)) {
       return -1;
    }
-   int nx          = clayer->loc.nx;
-   int ny          = clayer->loc.ny;
-   int nf          = clayer->loc.nf;
+   int nx          = getLayerLoc()->nx;
+   int ny          = getLayerLoc()->ny;
+   int nf          = getLayerLoc()->nf;
    int leftBorder  = dest->loc.halo.lt;
    int rightBorder = dest->loc.halo.rt;
    int topBorder   = dest->loc.halo.up;

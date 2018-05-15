@@ -13,6 +13,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FeedbackConnectionData.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/ImpliedWeightsPair.cpp
+   ${SUBDIR}/LayerGeometry.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
    ${SUBDIR}/PatchGeometry.cpp
    ${SUBDIR}/PatchSize.cpp
@@ -41,6 +42,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FeedbackConnectionData.hpp
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/ImpliedWeightsPair.hpp
+   ${SUBDIR}/LayerGeometry.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
    ${SUBDIR}/Patch.hpp
    ${SUBDIR}/PatchGeometry.hpp

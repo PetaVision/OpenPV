@@ -18,11 +18,13 @@
 #include "columns/HyPerCol.hpp"
 #include "columns/Publisher.hpp"
 #include "columns/Random.hpp"
+#include "components/LayerGeometry.hpp"
 #include "include/pv_common.h"
 #include "include/pv_types.h"
 #include "initv/BaseInitV.hpp"
 #include "io/fileio.hpp"
 #include "layers/PVLayerCube.hpp"
+#include "observerpattern/Subject.hpp"
 #include "probes/LayerProbe.hpp"
 #include "utils/Timer.hpp"
 
@@ -61,7 +63,7 @@ typedef enum TriggerBehaviorTypeEnum {
    RESETSTATE_TRIGGER
 } TriggerBehaviorType;
 
-class HyPerLayer : public BaseObject {
+class HyPerLayer : public BaseObject, public Subject {
 
   protected:
    /**
@@ -80,21 +82,6 @@ class HyPerLayer : public BaseObject {
     * If PetaVision was compiled without GPU acceleration, it is an error to set this flag to true.
     */
    virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief nxScale: Defines the relationship between the x column size and the layer size.
-    * @details Must be 2^n or 1/2^n
-    */
-   virtual void ioParam_nxScale(enum ParamsIOFlag ioFlag);
-   /**
-    * @brief nyScale: Defines the relationship between the y column size and the layer size.
-    * @details Must be 2^n or 1/2^n
-    */
-   virtual void ioParam_nyScale(enum ParamsIOFlag ioFlag);
-   /**
-    * @brief nf: Defines how many features this layer has
-    */
-   virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief phase: Defines the ordering in which each layer is updated
@@ -204,6 +191,8 @@ class HyPerLayer : public BaseObject {
    // only subclasses can be constructed directly
    HyPerLayer();
    int initialize(const char *name, HyPerCol *hc);
+   virtual void setObserverTable() override;
+   virtual LayerGeometry *createLayerGeometry();
    virtual int initClayer();
 
    virtual int allocateClayerBuffers();
@@ -259,8 +248,6 @@ class HyPerLayer : public BaseObject {
    void updateNBands(int numCalls);
 
    virtual Response::Status processCheckpointRead() override;
-
-   void calcNumExtended();
 
    /**
     * Returns true if the trigger behavior is resetStateOnTrigger and the layer was triggered.
@@ -435,10 +422,10 @@ class HyPerLayer : public BaseObject {
 
    // Public access functions:
 
-   int getNumNeurons() { return clayer->numNeurons; }
-   int getNumExtended() { return clayer->numExtended; }
-   int getNumNeuronsAllBatches() { return clayer->numNeuronsAllBatches; }
-   int getNumExtendedAllBatches() { return clayer->numExtendedAllBatches; }
+   int getNumNeurons() const { return mLayerGeometry->getNumNeurons(); }
+   int getNumExtended() const { return mLayerGeometry->getNumExtended(); }
+   int getNumNeuronsAllBatches() const { return mLayerGeometry->getNumNeuronsAllBatches(); }
+   int getNumExtendedAllBatches() const { return mLayerGeometry->getNumExtendedAllBatches(); }
 
    int getNumGlobalNeurons() {
       const PVLayerLoc *loc = getLayerLoc();
@@ -452,7 +439,7 @@ class HyPerLayer : public BaseObject {
    int getNumDelayLevels() { return numDelayLevels; }
 
    int increaseDelayLevels(int neededDelay);
-   virtual int requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis);
+   void requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis);
    virtual int requireChannel(int channelNeeded, int *numChannelsResult);
 
    PVLayer *getCLayer() { return clayer; }
@@ -462,8 +449,12 @@ class HyPerLayer : public BaseObject {
       return (ch < this->numChannels && ch >= 0) ? GSyn[ch] : NULL;
    }
    virtual float getChannelTimeConst(enum ChannelType channel_type) { return 0.0f; }
-   int getXScale() { return clayer->xScale; }
-   int getYScale() { return clayer->yScale; }
+
+   // Eventually, anything that calls one of getXScale, getYScale, or getLayerLoc should retrieve
+   // the LayerGeometry component, and these get-methods can be removed from HyPerLayer.
+   int getXScale() const { return mLayerGeometry->getXScale(); }
+   int getYScale() const { return mLayerGeometry->getYScale(); }
+   PVLayerLoc const *getLayerLoc() const { return mLayerGeometry->getLayerLoc(); }
 
    bool useMirrorBCs() { return this->mirrorBCflag; }
    float getValueBC() { return this->valueBC; }
@@ -475,7 +466,6 @@ class HyPerLayer : public BaseObject {
    // implementation of LayerDataInterface interface
    //
    const float *getLayerData(int delay = 0);
-   PVLayerLoc const *getLayerLoc() const { return &(clayer->loc); }
    bool isExtended() { return true; }
 
    double getLastUpdateTime() { return mLastUpdateTime; }
@@ -508,10 +498,6 @@ class HyPerLayer : public BaseObject {
    float **GSyn; // of dynamic length numChannels
    Publisher *publisher = nullptr;
 
-   float nxScale, nyScale; // Size of layer relative to column
-   int numFeatures;
-   int xmargin, ymargin;
-
    bool initializeFromCheckpointFlag = true;
    // If parent HyPerCol sets initializeFromCheckpointDir and this flag is set,
    // the initial state is loaded from the initializeFromCheckpointDir.
@@ -520,6 +506,8 @@ class HyPerLayer : public BaseObject {
 
    int numProbes;
    LayerProbe **probes;
+
+   LayerGeometry *mLayerGeometry = nullptr;
 
    int phase; // All layers with phase 0 get updated before any with phase 1, etc.
    int numDelayLevels; // The number of timesteps in the datastore ring buffer to store older
@@ -548,9 +536,6 @@ class HyPerLayer : public BaseObject {
 
    char *initVTypeString   = nullptr;
    BaseInitV *mInitVObject = nullptr;
-
-   HyPerLayer **synchronizedMarginWidthLayers;
-   int numSynchronizedMarginWidthLayers;
 
    // Trigger-related parameters
    //  Although triggerFlag was deprecated as a params file parameter, it remains as a member

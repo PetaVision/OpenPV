@@ -11,14 +11,16 @@ Response::Status SumPoolTestLayer::updateState(double timef, double dt) {
    ANNLayer::updateState(timef, dt);
 
    // Grab layer size
-   const PVLayerLoc *loc = getLayerLoc();
-   int nx                = loc->nx;
-   int ny                = loc->ny;
-   int nxGlobal          = loc->nxGlobal;
-   int nyGlobal          = loc->nyGlobal;
-   int nf                = loc->nf;
-   int kx0               = loc->kx0;
-   int ky0               = loc->ky0;
+   auto const *layerGeometry = getComponentByType<LayerGeometry>();
+   const PVLayerLoc *loc     = layerGeometry->getLayerLoc();
+   int nx                    = loc->nx;
+   int ny                    = loc->ny;
+   int nxGlobal              = loc->nxGlobal;
+   int nyGlobal              = loc->nyGlobal;
+   int nf                    = loc->nf;
+   int kx0                   = loc->kx0;
+   int ky0                   = loc->ky0;
+   int xScale                = layerGeometry->getXScale(); // xScale = -log2(nxScale)
 
    bool isCorrect = true;
    // Grab the activity layer of current layer
@@ -45,7 +47,7 @@ Response::Status SumPoolTestLayer::updateState(double timef, double dt) {
 
                // expectedValue is set for avg pool, multiply by patch size for actual answer
                float expectedvalue;
-               if (nxScale == 0.5f) {
+               if (xScale == 1 /* equivalent to nxScale == 0.5f */) {
                   expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5f;
                   expectedvalue *= 4;
                }

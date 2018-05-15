@@ -152,7 +152,7 @@ void ShuffleLayer::ioParam_freqCollectTime(enum ParamsIOFlag ioFlag) {
 
 int ShuffleLayer::setActivity() {
    float *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
+   memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
    return 0;
 }
 

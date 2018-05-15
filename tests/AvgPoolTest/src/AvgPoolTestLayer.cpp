@@ -44,7 +44,7 @@ Response::Status AvgPoolTestLayer::updateState(double timef, double dt) {
                FatalIf(!(yval >= 0 && yval < loc->nxGlobal), "Test failed.\n");
 
                float expectedvalue;
-               if (nxScale == 0.5f) {
+               if (mLayerGeometry->getXScale() == 1 /* equivalent to nxScale = 0.5 */) {
                   expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5f;
                }
                else {
