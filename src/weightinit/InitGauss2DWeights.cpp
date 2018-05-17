@@ -113,6 +113,16 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    if (!Response::completed(status)) {
       return status;
    }
+   pvAssert(mWeights);
+
+   // set NumOrientationsPre and NumOrientationsPost if they were not set in params
+   if (mNumOrientationsPost <= 0) {
+      mNumOrientationsPost = mWeights->getGeometry()->getPostLoc().nf;
+   }
+   if (mNumOrientationsPre <= 0) {
+      mNumOrientationsPre = mWeights->getGeometry()->getPreLoc().nf;
+   }
+
    auto hierarchy      = message->mHierarchy;
    auto *strengthParam = mapLookupByType<StrengthParam>(hierarchy);
    if (strengthParam) {
@@ -144,17 +154,6 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       status = status + Response::POSTPONE;
    }
    return status;
-}
-
-void InitGauss2DWeights::calcWeights() {
-   pvAssert(mWeights);
-   if (mNumOrientationsPost <= 0) {
-      mNumOrientationsPost = mWeights->getGeometry()->getPostLoc().nf;
-   }
-   if (mNumOrientationsPre <= 0) {
-      mNumOrientationsPre = mWeights->getGeometry()->getPreLoc().nf;
-   }
-   InitWeights::calcWeights();
 }
 
 void InitGauss2DWeights::calcWeights(int dataPatchIndex, int arborId) {

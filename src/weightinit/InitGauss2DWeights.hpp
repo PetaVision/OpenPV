@@ -61,8 +61,6 @@ class InitGauss2DWeights : public PV::InitWeights {
 
    void calcOtherParams(int patchIndex);
 
-   virtual void calcWeights() override;
-
    virtual void calcWeights(int dataPatchIndex, int arborId) override;
 
    void calculateThetas(int kfPre_tmp, int patchIndex);
