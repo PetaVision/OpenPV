@@ -805,10 +805,13 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
          mTimeInfoCheckpointEntry->remove(checkpointDirectory);
       }
    }
-   notify(
-         std::make_shared<PrepareCheckpointWriteMessage const>(checkpointDirectory),
-         mMPIBlock->getRank() == 0 /*printFlag*/);
    ensureDirExists(mMPIBlock, checkpointDirectory.c_str());
+   notify(
+         std::make_shared<WriteParamsFileMessage const>(checkpointDirectory),
+         mMPIBlock->getRank() == 0 /*printFlag*/);
+   notify(
+         std::make_shared<PrepareCheckpointWriteMessage const>(),
+         mMPIBlock->getRank() == 0 /*printFlag*/);
    for (auto &c : mCheckpointRegistry) {
       c->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWrites);
    }

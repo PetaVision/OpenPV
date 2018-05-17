@@ -119,7 +119,7 @@ class ConnectionUpdateMessage : public BaseMessage {
 
 class ConnectionNormalizeMessage : public BaseMessage {
   public:
-   ConnectionNormalizeMessage() { setMessageType("ConnectionNormalizeMessage"); }
+   ConnectionNormalizeMessage() { setMessageType("ConnectionNormalize"); }
 };
 
 class ConnectionFinalizeUpdateMessage : public BaseMessage {

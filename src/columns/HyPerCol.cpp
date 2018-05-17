@@ -807,16 +807,20 @@ void HyPerCol::nonblockingLayerUpdate(
 }
 
 Response::Status HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
-   if (auto castMessage = std::dynamic_pointer_cast<PrepareCheckpointWriteMessage const>(message)) {
-      return respondPrepareCheckpointWrite(castMessage);
+   if (auto castMessage = std::dynamic_pointer_cast<WriteParamsFileMessage const>(message)) {
+      return respondWriteParamsFile(castMessage);
    }
    else {
       return Response::SUCCESS;
    }
 }
 
-Response::Status HyPerCol::respondPrepareCheckpointWrite(
-      std::shared_ptr<PrepareCheckpointWriteMessage const> message) {
+Response::Status
+HyPerCol::respondWriteParamsFile(std::shared_ptr<WriteParamsFileMessage const> message) {
+   return writeParamsFile(message);
+}
+
+Response::Status HyPerCol::writeParamsFile(std::shared_ptr<WriteParamsFileMessage const> message) {
    std::string path(message->mDirectory);
    path.append("/").append("pv.params");
    outputParams(path.c_str());

@@ -205,12 +205,13 @@ class HyPerCol : public Subject, public ParamsInterface {
    inline void notifyLoop(std::shared_ptr<BaseMessage const> message) {
       notifyLoop(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
-   Response::Status
-   respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
+   Response::Status respondWriteParamsFile(std::shared_ptr<WriteParamsFileMessage const> message);
 #ifdef PV_USE_CUDA
    void initializeCUDA(std::string const &in_device);
    int finalizeCUDA();
 #endif // PV_USE_CUDA
+
+   virtual Response::Status writeParamsFile(std::shared_ptr<WriteParamsFileMessage const> message);
    void outputParams(char const *path);
    void outputParamsHeadComments(FileStream *fileStream, char const *commentToken);
    /**
