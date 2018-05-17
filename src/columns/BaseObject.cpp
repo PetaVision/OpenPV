@@ -22,57 +22,16 @@ BaseObject::BaseObject() {
    // constructor.
 }
 
-int BaseObject::initialize_base() {
-   name   = NULL;
-   parent = NULL;
-   return PV_SUCCESS;
-}
+int BaseObject::initialize_base() { return PV_SUCCESS; }
 
 int BaseObject::initialize(const char *name, HyPerCol *hc) {
-   int status = setName(name);
-   if (status == PV_SUCCESS) {
-      status = setParent(hc);
-   }
-   if (status == PV_SUCCESS) {
-      setObjectType();
-      setDescription(getObjectType() + " \"" + getName() + "\"");
-   }
-   return status;
+   setParent(hc);
+   return ParamsInterface::initialize(name, hc->parameters());
 }
 
-int BaseObject::setName(char const *name) {
-   pvAssert(this->name == NULL);
-   int status = PV_SUCCESS;
-   this->name = strdup(name);
-   if (this->name == NULL) {
-      ErrorLog().printf("could not set name \"%s\": %s\n", name, strerror(errno));
-      status = PV_FAILURE;
-   }
-   return status;
-}
-
-int BaseObject::setParent(HyPerCol *hc) {
-   pvAssert(parent == NULL);
-   HyPerCol *parentCol = dynamic_cast<HyPerCol *>(hc);
-   int status          = parentCol != NULL ? PV_SUCCESS : PV_FAILURE;
-   if (parentCol) {
-      parent = parentCol;
-   }
-   return status;
-}
-
-void BaseObject::setObjectType() {
-   mObjectType = parent->parameters()->groupKeywordFromName(getName());
-}
-
-void BaseObject::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter) {
-   if (printHeader) {
-      parent->ioParamsStartGroup(ioFlag, name);
-   }
-   ioParamsFillGroup(ioFlag);
-   if (printFooter) {
-      parent->ioParamsFinishGroup(ioFlag);
-   }
+void BaseObject::setParent(HyPerCol *hc) {
+   pvAssert(parent == nullptr);
+   parent = hc;
 }
 
 Response::Status BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
@@ -180,6 +139,6 @@ Response::Status BaseObject::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage 
 }
 #endif // PV_USE_CUDA
 
-BaseObject::~BaseObject() { free(name); }
+BaseObject::~BaseObject() {}
 
 } /* namespace PV */

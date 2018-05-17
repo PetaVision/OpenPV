@@ -374,7 +374,7 @@ class PVParams {
    int numberOfParameterSweeps() { return numParamSweeps; }
    int getParameterSweepSize() { return parameterSweepSize; }
    FileStream *getPrintParamsStream() { return mPrintParamsStream; }
-   FileStream *getLuaPrintParamsStream() { return mPrintLuaStream; }
+   FileStream *getPrintLuaStream() { return mPrintLuaStream; }
 
   private:
    int parseStatus;

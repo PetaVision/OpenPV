@@ -13,6 +13,7 @@
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "columns/PV_Init.hpp"
+#include "columns/ParamsInterface.hpp"
 #include "include/pv_types.h"
 #include "io/PVParams.hpp"
 #include "observerpattern/Observer.hpp"
@@ -38,7 +39,7 @@ namespace PV {
 class PV_Init;
 class PVParams;
 
-class HyPerCol : public Subject, public Observer {
+class HyPerCol : public Subject, public ParamsInterface {
 
   private:
    /**
@@ -137,8 +138,6 @@ class HyPerCol : public Subject, public Observer {
          std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
          std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
    int processParams(char const *path);
-   int ioParamsFinishGroup(enum ParamsIOFlag);
-   int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name);
 
    /**
     * This function tells each added object to perform the tasks necessary
@@ -159,7 +158,6 @@ class HyPerCol : public Subject, public Observer {
    bool getCheckpointWriteFlag() const { return mCheckpointer->getCheckpointWriteFlag(); }
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
    bool getWriteTimescales() const { return mWriteTimescales; }
-   const char *getName() { return mName; }
    const char *getOutputPath() { return mCheckpointer->getOutputPath().c_str(); }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    double getDeltaTime() const { return mDeltaTime; }
@@ -183,8 +181,6 @@ class HyPerCol : public Subject, public Observer {
    int numCommBatches() { return mCommunicator->numCommBatches(); }
    Communicator *getCommunicator() const { return mCommunicator; }
    PV_Init *getPV_InitObj() const { return mPVInitObj; }
-   FileStream *getPrintParamsStream() const { return mPrintParamsStream; }
-   PVParams *parameters() const { return mParams; }
    long int getFinalStep() const { return mFinalStep; }
    unsigned int getRandomSeed() { return mRandomSeed; }
    unsigned int seedRandomFromWallClock();
@@ -199,8 +195,7 @@ class HyPerCol : public Subject, public Observer {
    int getAutoGPUDevice();
    int initialize_base();
    int initialize(PV_Init *initObj);
-   void ioParams(enum ParamsIOFlag ioFlag);
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    int checkDirExists(const char *dirname, struct stat *pathstat);
    void addComponent(BaseObject *component);
    inline void notifyLoop(std::vector<std::shared_ptr<BaseMessage const>> messages) {
@@ -247,7 +242,6 @@ class HyPerCol : public Subject, public Observer {
    // passed in the
    // constructor
    bool mWriteTimescales;
-   char *mName;
    char *mPrintParamsFilename; // filename for outputting the mParams, including
    // defaults and
    // excluding unread mParams
@@ -273,8 +267,6 @@ class HyPerCol : public Subject, public Observer {
    long int mCurrentStep;
    long int mFinalStep;
    PV_Init *mPVInitObj;
-   FileStream *mPrintParamsStream; // file pointer associated with mPrintParamsFilename
-   FileStream *mLuaPrintParamsStream; // file pointer associated with the output lua file
    PVParams *mParams; // manages input parameters
    size_t mLayerArraySize;
    size_t mConnectionArraySize;

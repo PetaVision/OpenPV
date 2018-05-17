@@ -20,6 +20,8 @@ namespace PV {
 class ParamsInterface : public CheckpointerDataInterface {
    // Function members
   public:
+   virtual ~ParamsInterface();
+
    /**
     * A method that reads the parameters for the group whose name matches the name of the object.
     * It, along with writeParams(), is a wrapper around ioParams, so that readParams and
@@ -48,7 +50,7 @@ class ParamsInterface : public CheckpointerDataInterface {
     */
    void ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter);
 
-   char const *getName() const { return mName; }
+   char const *getName() const { return name; }
    PVParams *parameters() const { return mParams; } // TODO: change to getParams()
    std::string const &getObjectType() const { return mObjectType; }
 
@@ -76,7 +78,7 @@ class ParamsInterface : public CheckpointerDataInterface {
   private:
    // Data members
   protected:
-   char *mName       = nullptr;
+   char *name        = nullptr; // TODO: change to mName
    PVParams *mParams = nullptr;
    std::string mObjectType;
 

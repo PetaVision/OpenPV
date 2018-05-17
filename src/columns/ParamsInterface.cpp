@@ -8,6 +8,8 @@
 #include "ParamsInterface.hpp"
 
 namespace PV {
+ParamsInterface::~ParamsInterface() { free(name); }
+
 int ParamsInterface::initialize(char const *name, PVParams *params) {
    setName(name);
    setParams(params);
@@ -17,9 +19,9 @@ int ParamsInterface::initialize(char const *name, PVParams *params) {
 }
 
 void ParamsInterface::setName(char const *name) {
-   pvAssert(mName == nullptr);
-   mName = strdup(name);
-   FatalIf(mName == nullptr, "could not set name \"%s\". %s\n", name, strerror(errno));
+   pvAssert(this->name == nullptr);
+   this->name = strdup(name);
+   FatalIf(name == nullptr, "could not set name \"%s\". %s\n", name, strerror(errno));
 }
 
 void ParamsInterface::setParams(PVParams *params) { mParams = params; }
@@ -43,25 +45,30 @@ void ParamsInterface::ioParamsStartGroup(enum ParamsIOFlag ioFlag) {
       const char *keyword = mParams->groupKeywordFromName(getName());
 
       auto *printParamsStream = mParams->getPrintParamsStream();
-      pvAssert(printParamsStream);
-      printParamsStream->printf("\n");
-      printParamsStream->printf("%s \"%s\" = {\n", keyword, getName());
+      if (printParamsStream) {
+         printParamsStream->printf("\n");
+         printParamsStream->printf("%s \"%s\" = {\n", keyword, getName());
+      }
 
-      auto *luaPrintParamsStream = mParams->getLuaPrintParamsStream();
-      pvAssert(luaPrintParamsStream);
-      luaPrintParamsStream->printf("%s = {\n", getName());
-      luaPrintParamsStream->printf("groupType = \"%s\";\n", keyword);
+      auto *printLuaStream = mParams->getPrintLuaStream();
+      if (printLuaStream) {
+         printLuaStream->printf("%s = {\n", getName());
+         printLuaStream->printf("groupType = \"%s\";\n", keyword);
+      }
    }
 }
 
 void ParamsInterface::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_WRITE) {
       auto *printParamsStream = mParams->getPrintParamsStream();
-      printParamsStream->printf("};\n");
+      if (printParamsStream) {
+         printParamsStream->printf("};\n");
+      }
 
-      auto *luaPrintParamsStream = mParams->getLuaPrintParamsStream();
-      pvAssert(luaPrintParamsStream);
-      luaPrintParamsStream->printf("};\n\n");
+      auto *printLuaStream = mParams->getPrintLuaStream();
+      if (printLuaStream) {
+         printLuaStream->printf("};\n\n");
+      }
    }
 }
 

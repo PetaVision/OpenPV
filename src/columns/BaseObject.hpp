@@ -12,8 +12,8 @@
 #define BASEOBJECT_HPP_
 
 #include "checkpointing/Checkpointer.hpp"
-#include "checkpointing/CheckpointerDataInterface.hpp"
 #include "columns/Messages.hpp"
+#include "columns/ParamsInterface.hpp"
 #include "include/pv_common.h"
 #include "observerpattern/Observer.hpp"
 #include "utils/PVAlloc.hpp"
@@ -31,45 +31,13 @@ class HyPerCol;
 
 /**
  * The base class for layers, connections, probes, and components of those
- * objects. Provides methods for reading/writing params files, and common
- * interfaces for CommunicateInitInfo, AllocateDataStructures, SetInitialValues
- * messages, and a few others.
+ * objects. Provides common interfaces for CommunicateInitInfo, AllocateDataStructures,
+ * SetInitialValues messages, and a few others.
  */
-class BaseObject : public CheckpointerDataInterface {
+class BaseObject : public ParamsInterface {
   public:
-   inline char const *getName() const { return name; }
    // No getParent method because we are refactoring away from having objects
    // having access to their containing HyPerCol.
-
-   inline std::string const &getObjectType() const { return mObjectType; }
-
-   /**
-    * A method that reads the parameters for the group whose name matches the name of the object.
-    * It, along with writeParams(), is a wrapper around ioParams, so that readParams and
-    * writeParams automatically run through the same parameters in the same order.
-    */
-   void readParams() { ioParams(PARAMS_IO_READ, false, false); }
-
-   /**
-    * A method that writes the parameters for the group whose name matches the name of the object.
-    * It, along with readParams(), is a wrapper around ioParams, so that readParams and writeParams
-    * automatically run through the same parameters in the same order.
-    */
-   void writeParams() { ioParams(PARAMS_IO_WRITE, true, true); }
-
-   /**
-    * Method for reading or writing the params from group in the parent HyPerCol's parameters.
-    * The group from params is selected using the name of the connection.
-    *
-    * If ioFlag is set to write, the printHeader and printFooter flags control whether
-    * a header and footer for the parameter group is produces. These flags are set to true
-    * for layers, connections, and probes; and set to false for weight initializers and
-    * normalizers. If ioFlag is set to read, the printHeader and printFooter flags are ignored.
-    *
-    * Note that ioParams is not virtual.  To add parameters in a derived class, override
-    * ioParamFillGroup.
-    */
-   void ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter);
 
    virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
@@ -107,23 +75,7 @@ class BaseObject : public CheckpointerDataInterface {
   protected:
    BaseObject();
    int initialize(char const *name, HyPerCol *hc);
-   int setName(char const *name);
-   int setParent(HyPerCol *hc);
-   virtual void setObjectType();
-
-   /**
-    * The virtual method for reading parameters from the parent HyPerCol's parameters, and writing
-    * to the output params file.
-    *
-    * Derived classes with additional parameters typically override ioParamsFillGroup to call the
-    * base class's ioParamsFillGroup
-    * method and then call ioParam_[parametername] for each of their parameters.
-    * The ioParam_[parametername] methods should call the parent HyPerCol's ioParamValue() and
-    * related methods,
-    * to ensure that all parameters that get read also get written to the outputParams-generated
-    * file.
-    */
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SUCCESS; }
+   void setParent(HyPerCol *hc);
 
    Response::Status
    respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);
@@ -165,8 +117,6 @@ class BaseObject : public CheckpointerDataInterface {
 
    // Data members
   protected:
-   char *name = nullptr;
-   std::string mObjectType;
    // TODO: eliminate HyPerCol argument to constructor in favor of PVParams argument
    HyPerCol *parent                  = nullptr;
    bool mInitInfoCommunicatedFlag    = false;

@@ -67,7 +67,6 @@ HyPerCol::~HyPerCol() {
    delete mRunTimer;
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
-   free(mName);
    mObserverTable.clear(true); // delete the layers, connections, etc.
 }
 
@@ -89,8 +88,6 @@ int HyPerCol::initialize_base() {
    mLayerStatus              = nullptr;
    mConnectionStatus         = nullptr;
    mPrintParamsFilename      = nullptr;
-   mPrintParamsStream        = nullptr;
-   mLuaPrintParamsStream     = nullptr;
    mNumXGlobal               = 0;
    mNumYGlobal               = 0;
    mNumBatch                 = 1;
@@ -120,8 +117,6 @@ int HyPerCol::initialize(PV_Init *initObj) {
       }
       exit(EXIT_FAILURE);
    }
-   std::string working_dir = mPVInitObj->getStringArgument("WorkingDirectory");
-   working_dir             = expandLeadingTilde(working_dir);
 
    int numGroups          = mParams->numberOfGroups();
    std::string paramsFile = initObj->getStringArgument("ParamsFile");
@@ -135,8 +130,8 @@ int HyPerCol::initialize(PV_Init *initObj) {
                  << "\" does not define a HyPerCol.\n";
       return PV_FAILURE;
    }
-   mName = strdup(mParams->groupNameFromIndex(0));
-   setDescription(std::string("HyPerCol \"") + getName() + "\"");
+   char const *group0Name = mParams->groupNameFromIndex(0);
+   ParamsInterface::initialize(group0Name, mParams);
 
    // mNumThreads will not be set, or used until HyPerCol::run.
    // This means that threading cannot happen in the initialization or
@@ -144,6 +139,8 @@ int HyPerCol::initialize(PV_Init *initObj) {
    // but that should not be a problem.
    char const *programName = mPVInitObj->getProgramName();
 
+   std::string working_dir = mPVInitObj->getStringArgument("WorkingDirectory");
+   working_dir             = expandLeadingTilde(working_dir);
    if (columnId() == 0 && !working_dir.empty()) {
       int status = chdir(working_dir.c_str());
       if (status) {
@@ -172,9 +169,9 @@ int HyPerCol::initialize(PV_Init *initObj) {
    mRandomSeed = mPVInitObj->getUnsignedIntArgument("RandomSeed");
 
    mCheckpointer = new Checkpointer(
-         std::string(mName), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
+         std::string(getName()), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
    mCheckpointer->addObserver(this->getName(), this);
-   ioParams(PARAMS_IO_READ);
+   readParams();
    mSimTime     = 0.0;
    mCurrentStep = 0L;
    mFinalStep   = (long int)nearbyint(mStopTime / mDeltaTime);
@@ -186,10 +183,10 @@ int HyPerCol::initialize(PV_Init *initObj) {
       InfoLog() << "RandomSeed initialized to " << mRandomSeed << ".\n";
    }
 
-   mRunTimer = new Timer(mName, "column", "run    ");
+   mRunTimer = new Timer(getName(), "column", "run    ");
    mCheckpointer->registerTimer(mRunTimer);
    mCheckpointer->registerCheckpointData(
-         mName,
+         getName(),
          "nextProgressTime",
          &mNextProgressTime,
          (std::size_t)1,
@@ -227,25 +224,6 @@ int HyPerCol::initialize(PV_Init *initObj) {
    return PV_SUCCESS;
 }
 
-void HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
-   ioParamsStartGroup(ioFlag, mName);
-   ioParamsFillGroup(ioFlag);
-   ioParamsFinishGroup(ioFlag);
-}
-
-int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name) {
-   if (ioFlag == PARAMS_IO_WRITE && mCheckpointer->getMPIBlock()->getRank() == 0) {
-      pvAssert(mPrintParamsStream);
-      pvAssert(mLuaPrintParamsStream);
-      const char *keyword = mParams->groupKeywordFromName(group_name);
-      mPrintParamsStream->printf("\n");
-      mPrintParamsStream->printf("%s \"%s\" = {\n", keyword, group_name);
-      mLuaPrintParamsStream->printf("%s = {\n", group_name);
-      mLuaPrintParamsStream->printf("groupType = \"%s\";\n", keyword);
-   }
-   return PV_SUCCESS;
-}
-
 int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_dt(ioFlag);
    ioParam_stopTime(ioFlag);
@@ -262,36 +240,27 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
-int HyPerCol::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_WRITE && mPrintParamsStream != nullptr) {
-      pvAssert(mLuaPrintParamsStream);
-      mPrintParamsStream->printf("};\n");
-      mLuaPrintParamsStream->printf("};\n\n");
-   }
-   return PV_SUCCESS;
-}
-
 void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, mName, "dt", &mDeltaTime, mDeltaTime);
+   parameters()->ioParamValue(ioFlag, getName(), "dt", &mDeltaTime, mDeltaTime);
 }
 
 void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, mName, "stopTime", &mStopTime, mStopTime);
+   parameters()->ioParamValue(ioFlag, getName(), "stopTime", &mStopTime, mStopTime);
 }
 
 void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, mName, "progressInterval", &mProgressInterval, mProgressInterval);
+         ioFlag, getName(), "progressInterval", &mProgressInterval, mProgressInterval);
 }
 
 void HyPerCol::ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, mName, "writeProgressToErr", &mWriteProgressToErr, mWriteProgressToErr);
+         ioFlag, getName(), "writeProgressToErr", &mWriteProgressToErr, mWriteProgressToErr);
 }
 
 void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
-         ioFlag, mName, "printParamsFilename", &mPrintParamsFilename, "pv.params");
+         ioFlag, getName(), "printParamsFilename", &mPrintParamsFilename, "pv.params");
    if (mPrintParamsFilename == nullptr || mPrintParamsFilename[0] == '\0') {
       if (mCheckpointer->getMPIBlock()->getRank() == 0) {
          ErrorLog().printf("printParamsFilename cannot be null or the empty string.\n");
@@ -308,8 +277,8 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
       case PARAMS_IO_READ:
          // set random seed if it wasn't set in the command line
          if (!mRandomSeed) {
-            if (mParams->present(mName, "randomSeed")) {
-               mRandomSeed = (unsigned long)mParams->value(mName, "randomSeed");
+            if (mParams->present(getName(), "randomSeed")) {
+               mRandomSeed = (unsigned long)mParams->value(getName(), "randomSeed");
             }
             else {
                mRandomSeed = seedRandomFromWallClock();
@@ -328,15 +297,15 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerCol::ioParam_nx(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, mName, "nx", &mNumXGlobal);
+   parameters()->ioParamValueRequired(ioFlag, getName(), "nx", &mNumXGlobal);
 }
 
 void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, mName, "ny", &mNumYGlobal);
+   parameters()->ioParamValueRequired(ioFlag, getName(), "ny", &mNumYGlobal);
 }
 
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, mName, "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
+   parameters()->ioParamValue(ioFlag, getName(), "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
    // Make sure numCommBatches is a multiple of mNumBatch specified in the params
    // file
    FatalIf(
@@ -350,7 +319,7 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, mName, "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
+         ioFlag, getName(), "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
 }
 
 void HyPerCol::allocateColumn() {
@@ -412,7 +381,7 @@ void HyPerCol::allocateColumn() {
    for (int phase = 0; phase < mNumPhases; phase++) {
       std::string timerTypeString("phRecv");
       timerTypeString.append(std::to_string(phase));
-      Timer *phaseRecvTimer = new Timer(mName, "column", timerTypeString.c_str());
+      Timer *phaseRecvTimer = new Timer(getName(), "column", timerTypeString.c_str());
       mPhaseRecvTimers.push_back(phaseRecvTimer);
       mCheckpointer->registerTimer(phaseRecvTimer);
    }
@@ -609,7 +578,7 @@ int HyPerCol::processParams(char const *path) {
          InfoLog().printf(
                "HyPerCol \"%s\": path for printing parameters file was "
                "empty or null.\n",
-               mName);
+               getName());
       }
    }
    mParamsProcessedFlag = true;
@@ -857,7 +826,8 @@ Response::Status HyPerCol::respondPrepareCheckpointWrite(
 void HyPerCol::outputParams(char const *path) {
    assert(path != nullptr && path[0] != '\0');
    int rank = mCheckpointer->getMPIBlock()->getRank();
-   assert(mPrintParamsStream == nullptr);
+   pvAssert(parameters()->getPrintParamsStream() == nullptr);
+   pvAssert(parameters()->getPrintLuaStream() == nullptr);
    char *tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
    if (tmp == nullptr) {
       Fatal().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
@@ -865,34 +835,34 @@ void HyPerCol::outputParams(char const *path) {
    char *containingdir = dirname(tmp);
    ensureDirExists(mCheckpointer->getMPIBlock(), containingdir);
    free(tmp);
+   FileStream *printParamsStream = nullptr;
+   FileStream *printLuaStream    = nullptr;
    if (rank == 0) {
-      mPrintParamsStream = new FileStream(path, std::ios_base::out, getVerifyWrites());
+      printParamsStream = new FileStream(path, std::ios_base::out, getVerifyWrites());
       // Get new lua path
       std::string luaPath(path);
       luaPath.append(".lua");
-      char luapath[PV_PATH_MAX];
-      mLuaPrintParamsStream =
-            new FileStream(luaPath.c_str(), std::ios_base::out, getVerifyWrites());
-      parameters()->setPrintParamsStream(mPrintParamsStream);
-      parameters()->setPrintLuaStream(mLuaPrintParamsStream);
+      printLuaStream = new FileStream(luaPath.c_str(), std::ios_base::out, getVerifyWrites());
+      parameters()->setPrintParamsStream(printParamsStream);
+      parameters()->setPrintLuaStream(printLuaStream);
 
       // Params file output
-      outputParamsHeadComments(mPrintParamsStream, "//");
+      outputParamsHeadComments(printParamsStream, "//");
 
       // Lua file output
-      outputParamsHeadComments(mLuaPrintParamsStream, "--");
+      outputParamsHeadComments(printLuaStream, "--");
       // Load util module based on PVPath
-      mLuaPrintParamsStream->printf(
+      printLuaStream->printf(
             "package.path = package.path .. \";\" .. \"" PV_DIR "/../parameterWrapper/?.lua\"\n");
-      mLuaPrintParamsStream->printf("local pv = require \"PVModule\"\n\n");
-      mLuaPrintParamsStream->printf(
+      printLuaStream->printf("local pv = require \"PVModule\"\n\n");
+      printLuaStream->printf(
             "NULL = function() end; -- to allow string parameters to be set to NULL\n\n");
-      mLuaPrintParamsStream->printf("-- Base table variable to store\n");
-      mLuaPrintParamsStream->printf("local pvParameters = {\n");
+      printLuaStream->printf("-- Base table variable to store\n");
+      printLuaStream->printf("local pvParameters = {\n");
    }
 
-   // Parent HyPerCol params
-   ioParams(PARAMS_IO_WRITE);
+   // Writes the parent HyPerCol params group
+   writeParams();
 
    // Splitting this up into five messages for backwards compatibility in preserving the order.
    // If order preservation is not needed here, it would be better to replace with a single
@@ -904,22 +874,19 @@ void HyPerCol::outputParams(char const *path) {
    notifyLoop(std::make_shared<ConnectionProbeWriteParamsMessage>());
 
    if (rank == 0) {
-      mLuaPrintParamsStream->printf("} --End of pvParameters\n");
-      mLuaPrintParamsStream->printf(
-            "\n-- Print out PetaVision approved parameter file to the console\n");
-      mLuaPrintParamsStream->printf("paramsFileString = pv.createParamsFileString(pvParameters)\n");
-      mLuaPrintParamsStream->printf("io.write(paramsFileString)\n");
+      printLuaStream->printf("} --End of pvParameters\n");
+      printLuaStream->printf("\n-- Print out PetaVision approved parameter file to the console\n");
+      printLuaStream->printf("paramsFileString = pv.createParamsFileString(pvParameters)\n");
+      printLuaStream->printf("io.write(paramsFileString)\n");
    }
 
-   if (mPrintParamsStream) {
-      delete mPrintParamsStream;
-      mPrintParamsStream = nullptr;
-      parameters()->setPrintParamsStream(mPrintParamsStream);
-   }
-   if (mLuaPrintParamsStream) {
-      delete mLuaPrintParamsStream;
-      mLuaPrintParamsStream = nullptr;
-      parameters()->setPrintLuaStream(mLuaPrintParamsStream);
+   if (rank == 0) {
+      delete printParamsStream;
+      printParamsStream = nullptr;
+      parameters()->setPrintParamsStream(printParamsStream);
+      delete printLuaStream;
+      printLuaStream = nullptr;
+      parameters()->setPrintLuaStream(printLuaStream);
    }
 }
 
