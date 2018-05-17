@@ -40,10 +40,6 @@ int BaseObject::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-char const *BaseObject::lookupKeyword() const {
-   return parent->parameters()->groupKeywordFromName(getName());
-}
-
 int BaseObject::setName(char const *name) {
    pvAssert(this->name == NULL);
    int status = PV_SUCCESS;
@@ -65,7 +61,9 @@ int BaseObject::setParent(HyPerCol *hc) {
    return status;
 }
 
-void BaseObject::setObjectType() { mObjectType = lookupKeyword(); }
+void BaseObject::setObjectType() {
+   mObjectType = parent->parameters()->groupKeywordFromName(getName());
+}
 
 void BaseObject::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter) {
    if (printHeader) {

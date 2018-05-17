@@ -1,20 +1,8 @@
 /*
  * BaseObject.hpp
  *
- *  This is the base class for HyPerCol, layers, connections, probes, and
- *  anything else that the Factory object needs to know about.
- *
- *  All objects in the BaseObject hierarchy should have an associated
- *  instantiating function, with the prototype
- *  BaseObject * createNameOfClass(char const * name, HyPerCol * initData);
- *
- *  Each class's instantiating function should create an object of that class,
- *  with the arguments specifying the object's name and any necessary
- *  initializing data (for most classes, this is the parent HyPerCol.
- *  For HyPerCol, it is the PVInit object).  This way, the class can be
- *  registered with the Factory object by calling
- *  Factory::registerKeyword() with a pointer to the class's instantiating
- *  method.
+ *  This is the base class for layers, connections, probes, components
+ *  of those objects, and anything else that the Factory object needs to know about.
  *
  *  Created on: Jan 20, 2016
  *      Author: pschultz
@@ -41,6 +29,12 @@ namespace PV {
 
 class HyPerCol;
 
+/**
+ * The base class for layers, connections, probes, and components of those
+ * objects. Provides methods for reading/writing params files, and common
+ * interfaces for CommunicateInitInfo, AllocateDataStructures, SetInitialValues
+ * messages, and a few others.
+ */
 class BaseObject : public CheckpointerDataInterface {
   public:
    inline char const *getName() const { return name; }
@@ -48,11 +42,6 @@ class BaseObject : public CheckpointerDataInterface {
    // having access to their containing HyPerCol.
 
    inline std::string const &getObjectType() const { return mObjectType; }
-
-   /**
-    * Look up the keyword of the params group with the same name as the object.
-    */
-   char const *lookupKeyword() const;
 
    /**
     * A method that reads the parameters for the group whose name matches the name of the object.
@@ -83,7 +72,6 @@ class BaseObject : public CheckpointerDataInterface {
    void ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter);
 
    virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
-   // TODO: should return enum with values corresponding to PV_SUCCESS, PV_FAILURE, PV_POSTPONE
 
    virtual ~BaseObject();
 
@@ -157,9 +145,6 @@ class BaseObject : public CheckpointerDataInterface {
 #endif // PV_USE_CUDA
    virtual Response::Status allocateDataStructures() { return Response::NO_ACTION; }
    virtual Response::Status initializeState() { return Response::NO_ACTION; }
-   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override {
-      return Response::NO_ACTION;
-   }
    virtual Response::Status copyInitialStateToGPU() { return Response::SUCCESS; }
    virtual Response::Status cleanup() { return Response::NO_ACTION; }
 

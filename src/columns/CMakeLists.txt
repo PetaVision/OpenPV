@@ -10,6 +10,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/GaussianRandom.cpp
    ${SUBDIR}/HyPerCol.cpp
    ${SUBDIR}/KeywordHandler.cpp
+   ${SUBDIR}/ParamsInterface.cpp
    ${SUBDIR}/Publisher.cpp
    ${SUBDIR}/PV_Init.cpp
    ${SUBDIR}/Random.cpp
@@ -30,6 +31,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/KeywordHandler.hpp
    ${SUBDIR}/Messages.hpp
    ${SUBDIR}/ObjectMapComponent.hpp
+   ${SUBDIR}/ParamsInterface.hpp
    ${SUBDIR}/Publisher.hpp
    ${SUBDIR}/PV_Init.hpp
    ${SUBDIR}/Random.hpp

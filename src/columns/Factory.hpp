@@ -41,8 +41,8 @@ class BaseObject;
  * ...
  * PV_Init pv_init(&argc, &argv, false);
  * HyPerCol * hc = new HyPerCol("column", &pv_init);
- * pv_init.registerKeyword("CustomLayerType", Factory::create<CustomLayerType>);
- * Factory::instance()->create("customLayerType", hc);
+ * pv_init.registerKeyword("CustomType", Factory::create<CustomType>);
+ * CustomType customObject = *Factory::instance()->create("CustomType", hc);
  * ...
  * Note that buildandrun() automates the task of calling the create() method;
  * in practice, you only need to specify the instantiator function, and
