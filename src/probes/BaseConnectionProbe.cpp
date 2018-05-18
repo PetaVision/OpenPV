@@ -84,13 +84,14 @@ Response::Status BaseConnectionProbe::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-Response::Status BaseConnectionProbe::registerData(Checkpointer *checkpointer) {
-   auto status = BaseProbe::registerData(checkpointer);
+Response::Status BaseConnectionProbe::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseProbe::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
    mIOTimer = new Timer(getName(), "probe", "update");
-   checkpointer->registerTimer(mIOTimer);
+   message->mDataRegistry->registerTimer(mIOTimer);
    return Response::SUCCESS;
 }
 

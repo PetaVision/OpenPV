@@ -250,13 +250,15 @@ void Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
          std::string(name), std::string("rand_state.pvp"), false /*not constant*/);
 }
 
-Response::Status Retina::registerData(Checkpointer *checkpointer) {
-   auto status = HyPerLayer::registerData(checkpointer);
+Response::Status
+Retina::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = HyPerLayer::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
    if (spikingFlag) {
       pvAssert(randState != nullptr);
+      auto *checkpointer = message->mDataRegistry;
       checkpointRandState(checkpointer, "rand_state", randState, true /*extended*/);
    }
    return Response::SUCCESS;

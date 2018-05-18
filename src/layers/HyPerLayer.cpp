@@ -1199,9 +1199,11 @@ void HyPerLayer::addRecvConn(BaseConnection *conn) {
    }
 }
 
-int HyPerLayer::openOutputStateFile(Checkpointer *checkpointer) {
+int HyPerLayer::openOutputStateFile(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    pvAssert(writeStep >= 0);
 
+   auto *checkpointer = message->mDataRegistry;
    if (checkpointer->getMPIBlock()->getRank() == 0) {
       std::string outputStatePath(getName());
       outputStatePath.append(".pvp");
@@ -1212,6 +1214,7 @@ int HyPerLayer::openOutputStateFile(Checkpointer *checkpointer) {
       bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
       mOutputStateStream = new CheckpointableFileStream(
             outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
+      mOutputStateStream->respond(message); // CheckpointableFileStream needs to register data
    }
    return PV_SUCCESS;
 }
@@ -1466,11 +1469,13 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
    return 0;
 }
 
-Response::Status HyPerLayer::registerData(Checkpointer *checkpointer) {
-   auto status = BaseObject::registerData(checkpointer);
+Response::Status
+HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseObject::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer = message->mDataRegistry;
    checkpointPvpActivityFloat(checkpointer, "A", getActivity(), true /*extended*/);
    if (getV() != nullptr) {
       checkpointPvpActivityFloat(checkpointer, "V", getV(), false /*not extended*/);
@@ -1492,7 +1497,7 @@ Response::Status HyPerLayer::registerData(Checkpointer *checkpointer) {
          false /*not constant*/);
 
    if (writeStep >= 0.0) {
-      openOutputStateFile(checkpointer);
+      openOutputStateFile(message);
       if (sparseLayer) {
          checkpointer->registerCheckpointData(
                std::string(getName()),

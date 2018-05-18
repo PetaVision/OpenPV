@@ -199,12 +199,13 @@ Response::Status HyPerConn::initializeState() {
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 }
 
-Response::Status HyPerConn::registerData(Checkpointer *checkpointer) {
-   auto status = BaseConnection::registerData(checkpointer);
+Response::Status
+HyPerConn::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseConnection::registerData(message);
    if (Response::completed(status)) {
       if (mWeightUpdater) {
          mUpdateTimer = new Timer(getName(), "conn", "update");
-         checkpointer->registerTimer(mUpdateTimer);
+         message->mDataRegistry->registerTimer(mUpdateTimer);
       }
    }
    return status;

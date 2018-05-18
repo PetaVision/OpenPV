@@ -322,11 +322,13 @@ Response::Status HebbianUpdater::allocateDataStructures() {
    return Response::SUCCESS;
 }
 
-Response::Status HebbianUpdater::registerData(Checkpointer *checkpointer) {
-   auto status = BaseWeightUpdater::registerData(checkpointer);
+Response::Status
+HebbianUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseWeightUpdater::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer = message->mDataRegistry;
    if (mPlasticityFlag and !mImmediateWeightUpdate) {
       mDeltaWeights->checkpointWeightPvp(checkpointer, "dW", mWriteCompressedCheckpoints);
       // Do we need to get PrepareCheckpointWrite messages, to call blockingNormalize_dW()?

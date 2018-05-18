@@ -160,8 +160,10 @@ Response::Status BaseConnection::allocateDataStructures() {
    return status;
 }
 
-Response::Status BaseConnection::registerData(Checkpointer *checkpointer) {
-   auto status = notify(
+Response::Status
+BaseConnection::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto *checkpointer = message->mDataRegistry;
+   auto status        = notify(
          std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer),
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
    mIOTimer = new Timer(getName(), "conn", "io");

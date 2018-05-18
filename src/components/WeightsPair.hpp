@@ -76,13 +76,14 @@ class WeightsPair : public WeightsPairInterface {
 
    virtual void allocatePostWeights() override;
 
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    virtual void finalizeUpdate(double timestamp, double deltaTime);
 
-   void openOutputStateFile(Checkpointer *checkpointer);
+   void openOutputStateFile(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
 
    virtual void outputState(double timestamp);
 

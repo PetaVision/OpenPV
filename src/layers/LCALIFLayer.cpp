@@ -182,11 +182,13 @@ void LCALIFLayer::allocateBuffers() {
    LIFGap::allocateBuffers();
 }
 
-Response::Status LCALIFLayer::registerData(Checkpointer *checkpointer) {
-   auto status = LIFGap::registerData(checkpointer);
+Response::Status
+LCALIFLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = LIFGap::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer = message->mDataRegistry;
    checkpointPvpActivityFloat(
          checkpointer, "integratedSpikeCount", integratedSpikeCount, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "Vadpt", Vadpt, false /*not extended*/);

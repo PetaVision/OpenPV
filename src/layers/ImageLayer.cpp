@@ -40,11 +40,13 @@ std::string const &ImageLayer::getCurrentFilename(int localBatchElement, int mpi
    }
 }
 
-Response::Status ImageLayer::registerData(Checkpointer *checkpointer) {
-   auto status = InputLayer::registerData(checkpointer);
+Response::Status
+ImageLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = InputLayer::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer   = message->mDataRegistry;
    mURLDownloadTemplate = checkpointer->getOutputPath() + "/temp.XXXXXX";
    return Response::SUCCESS;
 }

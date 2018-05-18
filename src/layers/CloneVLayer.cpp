@@ -138,10 +138,11 @@ void CloneVLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
    // This is redundant since V is a clone.
 }
 
-Response::Status CloneVLayer::registerData(Checkpointer *checkpointer) {
+Response::Status
+CloneVLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    float *V    = clayer->V;
    clayer->V   = nullptr;
-   auto status = HyPerLayer::registerData(checkpointer);
+   auto status = HyPerLayer::registerData(message);
    clayer->V   = V;
    return status;
 }

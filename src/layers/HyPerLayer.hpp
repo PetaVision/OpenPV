@@ -478,10 +478,11 @@ class HyPerLayer : public BaseObject, public Subject {
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
    virtual Response::Status setMaxPhase(int *maxPhase);
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual Response::Status initializeState() override;
 
-   int openOutputStateFile(Checkpointer *checkpointer);
+   int openOutputStateFile(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
 /* static methods called by updateState({long_argument_list})*/
 
 #ifdef PV_USE_CUDA

@@ -166,11 +166,13 @@ void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
 
 void StatsProbe::initNumValues() { setNumValues(-1); }
 
-Response::Status StatsProbe::registerData(Checkpointer *checkpointer) {
-   auto status = LayerProbe::registerData(checkpointer);
+Response::Status
+StatsProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = LayerProbe::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer = message->mDataRegistry;
 
    std::string timermessagehead;
    timermessagehead.append("StatsProbe ").append(getName());

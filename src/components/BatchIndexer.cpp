@@ -106,11 +106,13 @@ void BatchIndexer::shuffleLookupTable() {
    std::shuffle(mIndexLookupTable.begin(), mIndexLookupTable.end(), rng);
 }
 
-Response::Status BatchIndexer::registerData(Checkpointer *checkpointer) {
-   auto status = CheckpointerDataInterface::registerData(checkpointer);
+Response::Status
+BatchIndexer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = CheckpointerDataInterface::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer = message->mDataRegistry;
    checkpointer->registerCheckpointData<int>(
          mObjName,
          std::string("FrameNumbers"),

@@ -65,7 +65,8 @@ class Retina : public PV::HyPerLayer {
    virtual void ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual void allocateV() override;
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual void initializeV() override;
    virtual void initializeActivity() override;
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;

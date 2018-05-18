@@ -31,7 +31,8 @@ class CloneVLayer : public PV::HyPerLayer {
    virtual void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
    virtual void allocateV() override;
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual void initializeV() override;
    virtual void readVFromCheckpoint(Checkpointer *checkpointer) override;
    virtual Response::Status updateState(double timed, double dt) override;

@@ -33,7 +33,8 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
 
    /** @} */
 
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual Response::Status processCheckpointRead() override;
    virtual Response::Status prepareCheckpointWrite() override;
 

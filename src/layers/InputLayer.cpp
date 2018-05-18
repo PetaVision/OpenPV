@@ -449,11 +449,13 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-Response::Status InputLayer::registerData(Checkpointer *checkpointer) {
-   auto status = HyPerLayer::registerData(checkpointer);
+Response::Status
+InputLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = HyPerLayer::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer = message->mDataRegistry;
    if (checkpointer->getMPIBlock()->getRank() == 0) {
       mRNG.seed(mRandomSeed);
       int numBatch = getLayerLoc()->nbatch;
@@ -466,7 +468,7 @@ Response::Status InputLayer::registerData(Checkpointer *checkpointer) {
       mInputRegion.resize(numBatch);
       initializeBatchIndexer();
       mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
-      mBatchIndexer->registerData(checkpointer);
+      mBatchIndexer->registerData(message);
 
       if (mWriteFrameToTimestamp) {
          std::string timestampFilename = std::string("timestamps/");
@@ -476,6 +478,7 @@ Response::Status InputLayer::registerData(Checkpointer *checkpointer) {
          bool needToCreateFile = checkpointer->getCheckpointReadDirectory().empty();
          mTimestampStream      = new CheckpointableFileStream(
                timestampFilename, needToCreateFile, checkpointer, cpFileStreamLabel);
+         mTimestampStream->respond(message); // CheckpointableFileStream needs to register data
       }
    }
    return Response::SUCCESS;

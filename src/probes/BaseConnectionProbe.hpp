@@ -39,7 +39,8 @@ class BaseConnectionProbe : public BaseProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    /**
     * The root process of each MPIBlock sets the vector of PrintStreams to

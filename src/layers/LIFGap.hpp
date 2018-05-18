@@ -32,7 +32,8 @@ class LIFGap : public PV::LIF {
    LIFGap();
    int initialize(const char *name, HyPerCol *hc, const char *kernel_name);
    virtual void allocateConductances(int num_channels) override;
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual void readGapStrengthFromCheckpoint(Checkpointer *checkpointer);
 
   private:

@@ -87,12 +87,14 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    return Response::SUCCESS;
 }
 
-Response::Status CopyUpdater::registerData(Checkpointer *checkpointer) {
-   auto status = BaseWeightUpdater::registerData(checkpointer);
+Response::Status
+CopyUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseWeightUpdater::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
    std::string nameString = std::string(name);
+   auto *checkpointer     = message->mDataRegistry;
    checkpointer->registerCheckpointData(
          nameString,
          "lastUpdateTime",

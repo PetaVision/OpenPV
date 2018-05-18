@@ -30,7 +30,8 @@ class BatchIndexer : public CheckpointerDataInterface {
    bool getWrapToStartIndex() { return mWrapToStartIndex; }
    std::vector<int> getIndices() { return mIndices; }
 
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
   protected:
    virtual Response::Status processCheckpointRead() override;

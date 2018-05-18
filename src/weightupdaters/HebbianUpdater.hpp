@@ -64,7 +64,8 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    virtual Response::Status allocateDataStructures() override;
 
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 

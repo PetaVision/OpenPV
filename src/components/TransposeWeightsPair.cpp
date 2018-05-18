@@ -161,7 +161,8 @@ void TransposeWeightsPair::createPostWeights(std::string const &weightsName) {
 
 Response::Status TransposeWeightsPair::allocateDataStructures() { return Response::SUCCESS; }
 
-Response::Status TransposeWeightsPair::registerData(Checkpointer *checkpointer) {
+Response::Status TransposeWeightsPair::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    return Response::NO_ACTION;
 }
 

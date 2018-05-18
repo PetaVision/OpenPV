@@ -236,12 +236,14 @@ void WeightsPair::allocatePostWeights() {
    mPostWeights->allocateDataStructures();
 }
 
-Response::Status WeightsPair::registerData(Checkpointer *checkpointer) {
-   auto status = WeightsPairInterface::registerData(checkpointer);
+Response::Status
+WeightsPair::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = WeightsPairInterface::registerData(message);
    if (status != Response::SUCCESS) {
       return status;
    }
    needPre();
+   auto *checkpointer = message->mDataRegistry;
    mPreWeights->checkpointWeightPvp(checkpointer, "W", mWriteCompressedCheckpoints);
    if (mWriteStep >= 0) {
       checkpointer->registerCheckpointData(
@@ -252,7 +254,7 @@ Response::Status WeightsPair::registerData(Checkpointer *checkpointer) {
             true /*broadcast*/,
             false /*not constant*/);
 
-      openOutputStateFile(checkpointer);
+      openOutputStateFile(message);
    }
 
    return Response::SUCCESS;
@@ -276,8 +278,10 @@ void WeightsPair::finalizeUpdate(double timestamp, double deltaTime) {
    }
 }
 
-void WeightsPair::openOutputStateFile(Checkpointer *checkpointer) {
+void WeightsPair::openOutputStateFile(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    if (mWriteStep >= 0) {
+      auto *checkpointer = message->mDataRegistry;
       if (checkpointer->getMPIBlock()->getRank() == 0) {
          std::string outputStatePath(getName());
          outputStatePath.append(".pvp");
@@ -288,6 +292,7 @@ void WeightsPair::openOutputStateFile(Checkpointer *checkpointer) {
          bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
          mOutputStateStream = new CheckpointableFileStream(
                outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
+         mOutputStateStream->respond(message); // CheckpointableFileStream needs to register data
       }
    }
 }

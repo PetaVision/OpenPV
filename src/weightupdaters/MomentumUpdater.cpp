@@ -91,14 +91,16 @@ Response::Status MomentumUpdater::allocateDataStructures() {
    return Response::SUCCESS;
 }
 
-Response::Status MomentumUpdater::registerData(Checkpointer *checkpointer) {
-   auto status = HebbianUpdater::registerData(checkpointer);
+Response::Status
+MomentumUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = HebbianUpdater::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
    // Note: HebbianUpdater does not checkpoint dW if the mImmediateWeightUpdate flag is true.
    // Do we need to handle it here and in readStateFromCheckpoint? --pschultz, 2017-12-16
    if (mPlasticityFlag) {
+      auto *checkpointer = message->mDataRegistry;
       mPrevDeltaWeights->checkpointWeightPvp(checkpointer, "prev_dW", mWriteCompressedCheckpoints);
    }
    return Response::SUCCESS;

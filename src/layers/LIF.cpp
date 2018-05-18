@@ -387,11 +387,13 @@ void LIF::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), "rand_state", false /*not constant*/);
 }
 
-Response::Status LIF::registerData(Checkpointer *checkpointer) {
-   auto status = HyPerLayer::registerData(checkpointer);
+Response::Status
+LIF::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = HyPerLayer::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer = message->mDataRegistry;
    checkpointPvpActivityFloat(checkpointer, "Vth", Vth, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_E", G_E, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "G_I", G_I, false /*not extended*/);

@@ -38,7 +38,8 @@ class StatsProbe : public PV::LayerProbe {
     */
    virtual void initNumValues() override;
 
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    /**
     * Implements needRecalc() for StatsProbe to always return false (getValues

@@ -177,11 +177,13 @@ void LIFGap::calcGapStrength() {
    gapStrengthInitialized = true;
 }
 
-Response::Status LIFGap::registerData(Checkpointer *checkpointer) {
-   auto status = LIF::registerData(checkpointer);
+Response::Status
+LIFGap::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = LIF::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer = message->mDataRegistry;
    checkpointPvpActivityFloat(checkpointer, "gapStrength", gapStrength, false /*not extended*/);
    return Response::SUCCESS;
 }

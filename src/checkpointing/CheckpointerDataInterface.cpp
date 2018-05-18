@@ -42,7 +42,7 @@ Response::Status CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage 
 
 Response::Status CheckpointerDataInterface::respondRegisterData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = registerData(message->mDataRegistry);
+   auto status = registerData(message);
    if (!Response::completed(status)) {
       Fatal() << getDescription() << ": registerData failed.\n";
    }
@@ -64,12 +64,14 @@ Response::Status CheckpointerDataInterface::respondPrepareCheckpointWrite(
    return prepareCheckpointWrite();
 }
 
-Response::Status CheckpointerDataInterface::registerData(Checkpointer *checkpointer) {
+Response::Status CheckpointerDataInterface::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    if (mMPIBlock) {
       return Response::NO_ACTION;
    }
    else {
-      mMPIBlock = checkpointer->getMPIBlock();
+      auto *checkpointer = message->mDataRegistry;
+      mMPIBlock          = checkpointer->getMPIBlock();
       checkpointer->addObserver(this->getDescription(), this);
       return Response::SUCCESS;
    }

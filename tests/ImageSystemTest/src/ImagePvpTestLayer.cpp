@@ -4,8 +4,9 @@ namespace PV {
 
 ImagePvpTestLayer::ImagePvpTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-Response::Status ImagePvpTestLayer::registerData(Checkpointer *checkpointer) {
-   auto status = PvpLayer::registerData(checkpointer);
+Response::Status
+ImagePvpTestLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = PvpLayer::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }

@@ -228,11 +228,13 @@ Response::Status MomentumLCALayer::updateState(double time, double dt) {
    return Response::SUCCESS;
 }
 
-Response::Status MomentumLCALayer::registerData(Checkpointer *checkpointer) {
-   auto status = HyPerLCALayer::registerData(checkpointer);
+Response::Status
+MomentumLCALayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = HyPerLCALayer::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer = message->mDataRegistry;
    checkpointPvpActivityFloat(checkpointer, "prevDrive", prevDrive, false /*not extended*/);
    return Response::SUCCESS;
 }

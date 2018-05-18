@@ -57,12 +57,13 @@ void FilenameParsingGroundTruthLayer::ioParam_classList(enum ParamsIOFlag ioFlag
    }
 }
 
-Response::Status FilenameParsingGroundTruthLayer::registerData(Checkpointer *checkpointer) {
+Response::Status FilenameParsingGroundTruthLayer::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    // Belongs in registerData and not allocateDataStructures because the
    // default path for the class list is the output path, which is available
    // only in registerData through the checkpointer argument.
    // But is this the best default?
-   auto status = HyPerLayer::registerData(checkpointer);
+   auto status = HyPerLayer::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
@@ -74,6 +75,7 @@ Response::Status FilenameParsingGroundTruthLayer::registerData(Checkpointer *che
       outPath += std::string(mClassListFileName);
    }
    else {
+      auto *checkpointer = message->mDataRegistry;
       outPath += checkpointer->getOutputPath();
       outPath += "/classes.txt";
    }

@@ -315,12 +315,13 @@ bool BaseProbe::needUpdate(double simTime, double dt) {
    return true;
 }
 
-Response::Status BaseProbe::registerData(Checkpointer *checkpointer) {
-   auto status = BaseObject::registerData(checkpointer);
+Response::Status
+BaseProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseObject::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
-   initOutputStreams(probeOutputFilename, checkpointer);
+   initOutputStreams(probeOutputFilename, message->mDataRegistry);
    return Response::SUCCESS;
 }
 

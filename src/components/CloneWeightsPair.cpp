@@ -203,7 +203,8 @@ void CloneWeightsPair::createPostWeights(std::string const &weightsName) {
 
 Response::Status CloneWeightsPair::allocateDataStructures() { return Response::SUCCESS; }
 
-Response::Status CloneWeightsPair::registerData(Checkpointer *checkpointer) {
+Response::Status
+CloneWeightsPair::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    return Response::NO_ACTION;
 }
 
