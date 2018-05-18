@@ -76,6 +76,7 @@ class BaseObject : public ParamsInterface {
    BaseObject();
    int initialize(char const *name, HyPerCol *hc);
    void setParent(HyPerCol *hc);
+   virtual void initMessageActionMap() override;
 
    Response::Status
    respondCommunicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message);

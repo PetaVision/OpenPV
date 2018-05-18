@@ -55,6 +55,8 @@ class BaseConnection : public BaseObject, public Subject {
 
    int initialize(char const *name, HyPerCol *hc);
 
+   virtual void initMessageActionMap() override;
+
    virtual void setObserverTable() override;
 
    virtual ConnectionData *createConnectionData();

@@ -224,6 +224,17 @@ int HyPerCol::initialize(PV_Init *initObj) {
    return PV_SUCCESS;
 }
 
+void HyPerCol::initMessageActionMap() {
+   ParamsInterface::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<WriteParamsFileMessage const>(msgptr);
+      return respondWriteParamsFile(castMessage);
+   };
+   mMessageActionMap.emplace("WriteParamsFile", action);
+}
+
 int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_dt(ioFlag);
    ioParam_stopTime(ioFlag);

@@ -29,6 +29,7 @@ class BaseConnectionProbe : public BaseProbe {
    BaseConnectionProbe(); // Default constructor, can only be called by derived
    // classes
    int initialize(const char *name, HyPerCol *hc);
+   virtual void initMessageActionMap() override;
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
    Response::Status respondConnectionProbeWriteParams(

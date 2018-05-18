@@ -34,8 +34,50 @@ void BaseObject::setParent(HyPerCol *hc) {
    parent = hc;
 }
 
+void BaseObject::initMessageActionMap() {
+   ParamsInterface::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<CommunicateInitInfoMessage const>(msgptr);
+      return respondCommunicateInitInfo(castMessage);
+   };
+   mMessageActionMap.emplace("CommunicateInitInfo", action);
+
+#ifdef PV_USE_CUDA
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<SetCudaDeviceMessage const>(msgptr);
+      return respondSetCudaDevice(castMessage);
+   };
+   mMessageActionMap.emplace("SetCudaDevice", action);
+#endif // PV_USE_CUDA
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<AllocateDataMessage const>(msgptr);
+      return respondAllocateData(castMessage);
+   };
+   mMessageActionMap.emplace("AllocateData", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<InitializeStateMessage const>(msgptr);
+      return respondInitializeState(castMessage);
+   };
+   mMessageActionMap.emplace("InitializeState", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<CopyInitialStateToGPUMessage const>(msgptr);
+      return respondCopyInitialStateToGPU(castMessage);
+   };
+   mMessageActionMap.emplace("CopyInitialStateToGPU", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<CleanupMessage const>(msgptr);
+      return respondCleanup(castMessage);
+   };
+   mMessageActionMap.emplace("Cleanup", action);
+}
+
 Response::Status BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
-   // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
    Response::Status status = CheckpointerDataInterface::respond(message);
    if (!Response::completed(status)) {
       return status;

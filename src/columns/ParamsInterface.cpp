@@ -11,6 +11,7 @@ namespace PV {
 ParamsInterface::~ParamsInterface() { free(name); }
 
 int ParamsInterface::initialize(char const *name, PVParams *params) {
+   CheckpointerDataInterface::initialize();
    setName(name);
    setParams(params);
    setObjectType();

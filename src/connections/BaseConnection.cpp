@@ -31,6 +31,29 @@ int BaseConnection::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
+void BaseConnection::initMessageActionMap() {
+   ParamsInterface::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionWriteParamsMessage const>(msgptr);
+      return respondConnectionWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionWriteParams", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionFinalizeUpdateMessage const>(msgptr);
+      return respondConnectionFinalizeUpdate(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionFinalizeUpdate", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(msgptr);
+      return respondConnectionOutput(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionOutput", action);
+}
+
 void BaseConnection::setObserverTable() {
    mConnectionData = createConnectionData();
    if (mConnectionData) {

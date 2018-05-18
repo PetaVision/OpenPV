@@ -59,6 +59,8 @@ class WeightsPair : public WeightsPairInterface {
 
    virtual void setObjectType() override;
 
+   virtual void initMessageActionMap() override;
+
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    Response::Status

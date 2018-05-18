@@ -195,6 +195,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    int getAutoGPUDevice();
    int initialize_base();
    int initialize(PV_Init *initObj);
+   virtual void initMessageActionMap() override;
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    int checkDirExists(const char *dirname, struct stat *pathstat);
    void addComponent(BaseObject *component);

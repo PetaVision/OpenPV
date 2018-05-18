@@ -138,6 +138,77 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
+void HyPerLayer::initMessageActionMap() {
+   BaseObject::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerSetMaxPhaseMessage const>(msgptr);
+      return respondLayerSetMaxPhase(castMessage);
+   };
+   mMessageActionMap.emplace("LayerSetMaxPhase", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerWriteParamsMessage const>(msgptr);
+      return respondLayerWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("LayerWriteParams", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerProbeWriteParamsMessage const>(msgptr);
+      return respondLayerProbeWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("LayerProbeWriteParams", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerClearProgressFlagsMessage const>(msgptr);
+      return respondLayerClearProgressFlags(castMessage);
+   };
+   mMessageActionMap.emplace("LayerClearProgressFlags", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerRecvSynapticInputMessage const>(msgptr);
+      return respondLayerRecvSynapticInput(castMessage);
+   };
+   mMessageActionMap.emplace("LayerRecvSynapticInput", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerUpdateStateMessage const>(msgptr);
+      return respondLayerUpdateState(castMessage);
+   };
+   mMessageActionMap.emplace("LayerUpdateState", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerCopyFromGpuMessage const>(msgptr);
+      return respondLayerCopyFromGpu(castMessage);
+   };
+   mMessageActionMap.emplace("LayerCopyFromGpu", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerAdvanceDataStoreMessage const>(msgptr);
+      return respondLayerAdvanceDataStore(castMessage);
+   };
+   mMessageActionMap.emplace("LayerAdvanceDataStore", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerPublishMessage const>(msgptr);
+      return respondLayerPublish(castMessage);
+   };
+   mMessageActionMap.emplace("LayerPublish", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerCheckNotANumberMessage const>(msgptr);
+      return respondLayerCheckNotANumber(castMessage);
+   };
+   mMessageActionMap.emplace("LayerCheckNotANumber", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(msgptr);
+      return respondLayerOutputState(castMessage);
+   };
+   mMessageActionMap.emplace("LayerOutputState", action);
+}
+
 void HyPerLayer::setObserverTable() {
    mLayerGeometry = createLayerGeometry();
    if (mLayerGeometry) {

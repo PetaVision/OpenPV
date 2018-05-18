@@ -25,6 +25,23 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
+void HyPerConn::initMessageActionMap() {
+   ParamsInterface::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionUpdateMessage const>(msgptr);
+      return respondConnectionUpdate(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionUpdate", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(msgptr);
+      return respondConnectionNormalize(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionNormalize", action);
+}
+
 void HyPerConn::setObserverTable() {
    BaseConnection::setObserverTable();
    mArborList = createArborList();

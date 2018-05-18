@@ -33,6 +33,23 @@ int ColProbe::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+void ColProbe::initMessageActionMap() {
+   BaseProbe::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ColProbeWriteParamsMessage const>(msgptr);
+      return respondColProbeWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("ColProbeWriteParams", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ColProbeOutputStateMessage const>(msgptr);
+      return respondColProbeOutputState(castMessage);
+   };
+   mMessageActionMap.emplace("ColProbeOutputState", action);
+}
+
 int ColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV::BaseProbe::ioParamsFillGroup(ioFlag);
    return status;

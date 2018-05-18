@@ -191,6 +191,7 @@ class HyPerLayer : public BaseObject, public Subject {
    // only subclasses can be constructed directly
    HyPerLayer();
    int initialize(const char *name, HyPerCol *hc);
+   virtual void initMessageActionMap() override;
    virtual void setObserverTable() override;
    virtual LayerGeometry *createLayerGeometry();
    virtual int initClayer();

@@ -88,6 +88,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
   protected:
    AdaptiveTimeScaleProbe();
    int initialize(char const *name, HyPerCol *hc);
+   virtual void initMessageActionMap() override;
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;

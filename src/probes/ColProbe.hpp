@@ -78,6 +78,12 @@ class ColProbe : public BaseProbe {
    int initialize(const char *name, HyPerCol *hc);
 
    /**
+    * Defines actions for the ColProbeWriteParams and ColProbeOutputState messages,
+    * as well as as the actions recognized by BaseProbe.
+    */
+   virtual void initMessageActionMap() override;
+
+   /**
     * Reads parameters from the params file/writes parameters to the output
     * params file.
     * If a derived class introduces a new parameter, its ioParamsFillGroup method

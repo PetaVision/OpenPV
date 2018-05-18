@@ -23,6 +23,17 @@ int AdaptiveTimeScaleProbe::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
+void AdaptiveTimeScaleProbe::initMessageActionMap() {
+   BaseProbe::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<AdaptTimestepMessage const>(msgptr);
+      return respondAdaptTimestep(castMessage);
+   };
+   mMessageActionMap.emplace("AdaptTimestep", action);
+}
+
 int AdaptiveTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ColProbe::ioParamsFillGroup(ioFlag);
    ioParam_baseMax(ioFlag);

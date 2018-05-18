@@ -11,6 +11,8 @@
 #include "include/pv_common.h"
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Response.hpp"
+#include <functional>
+#include <map>
 #include <memory>
 
 namespace PV {
@@ -28,8 +30,18 @@ class Observer {
   protected:
    void setDescription(std::string const &description) { mDescription = description; }
    void setDescription(char const *description) { mDescription = description; }
+   int initialize() {
+      initMessageActionMap();
+      return PV_SUCCESS;
+   }
+
+   virtual void initMessageActionMap() {}
 
    // Data members
+  protected:
+   std::map<std::string, std::function<Response::Status(std::shared_ptr<BaseMessage const>)>>
+         mMessageActionMap;
+
   private:
    std::string mDescription;
 };

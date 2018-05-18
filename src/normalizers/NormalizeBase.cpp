@@ -21,6 +21,17 @@ int NormalizeBase::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
+void NormalizeBase::initMessageActionMap() {
+   BaseObject::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(msgptr);
+      return respondConnectionNormalize(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionNormalize", action);
+}
+
 void NormalizeBase::setObjectType() {
    auto *params                = parent->parameters();
    char const *normalizeMethod = params->stringValue(name, "normalizeMethod", false);

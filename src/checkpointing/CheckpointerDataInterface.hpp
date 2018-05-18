@@ -49,6 +49,11 @@ class CheckpointerDataInterface : public Observer {
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
 
   protected:
+   CheckpointerDataInterface() {}
+
+   int initialize();
+   virtual void initMessageActionMap() override;
+
    Response::Status
    respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
    Response::Status respondReadStateFromCheckpoint(

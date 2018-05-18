@@ -54,6 +54,8 @@ class NormalizeBase : public BaseObject {
 
    int initialize(char const *name, HyPerCol *hc);
 
+   virtual void initMessageActionMap() override;
+
    virtual void setObjectType() override;
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
