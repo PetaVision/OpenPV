@@ -39,8 +39,6 @@ class BaseObject : public ParamsInterface {
    // No getParent method because we are refactoring away from having objects
    // having access to their containing HyPerCol.
 
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
-
    virtual ~BaseObject();
 
    /**
@@ -83,7 +81,8 @@ class BaseObject : public ParamsInterface {
 #ifdef PV_USE_CUDA
    Response::Status respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
 #endif // PV_USE_CUDA
-   Response::Status respondAllocateData(std::shared_ptr<AllocateDataMessage const> message);
+   Response::Status
+   respondAllocateDataStructures(std::shared_ptr<AllocateDataStructuresMessage const> message);
    Response::Status respondInitializeState(std::shared_ptr<InitializeStateMessage const> message);
    Response::Status
    respondCopyInitialStateToGPU(std::shared_ptr<CopyInitialStateToGPUMessage const> message);

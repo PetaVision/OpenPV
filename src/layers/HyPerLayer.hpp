@@ -299,7 +299,6 @@ class HyPerLayer : public BaseObject, public Subject {
    } // TODO: access to clayer->activity->data should not be public
    virtual double getTimeScale(int batchIdx) { return -1.0; };
    virtual bool activityIsSpiking() { return false; }
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
   protected:
    /**

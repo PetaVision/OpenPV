@@ -112,8 +112,6 @@ class HyPerCol : public Subject, public ParamsInterface {
 
    // Public functions
 
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
-
    /**
     * Returns the object in the hierarchy with the given name, if any exists.
     * Returns the null pointer if the string does not match any object.

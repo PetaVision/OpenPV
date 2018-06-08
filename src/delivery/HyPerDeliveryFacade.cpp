@@ -173,7 +173,7 @@ HyPerDeliveryFacade::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> m
 Response::Status HyPerDeliveryFacade::allocateDataStructures() {
    auto status = BaseDelivery::allocateDataStructures();
    if (Response::completed(status) and mDeliveryIntern != nullptr) {
-      auto internMessage = std::make_shared<AllocateDataMessage>();
+      auto internMessage = std::make_shared<AllocateDataStructuresMessage>();
       status             = mDeliveryIntern->respond(internMessage);
    }
    return status;

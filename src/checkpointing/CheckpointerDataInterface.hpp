@@ -37,15 +37,13 @@ namespace PV {
  *
  * BaseObject derives from CheckpointerDataInterface, and calls registerData
  * when it receives a RegisterDataMessage (which HyPerCol::run calls after
- * AllocateDataMessage and before InitializeStateMessage); and calls
+ * AllocateDataStructuresMessage and before InitializeStateMessage); and calls
  * readStateFromCheckpoint when it receives a ReadStateFromCheckpointMessage
  * (which HyPerCol::run calls after InitializeStateMessage if
  * CheckpointReadDirectory is not set).
  */
 class CheckpointerDataInterface : public Observer {
   public:
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
-
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
 
   protected:

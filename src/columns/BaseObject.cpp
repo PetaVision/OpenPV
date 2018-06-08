@@ -53,10 +53,10 @@ void BaseObject::initMessageActionMap() {
 #endif // PV_USE_CUDA
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<AllocateDataMessage const>(msgptr);
-      return respondAllocateData(castMessage);
+      auto castMessage = std::dynamic_pointer_cast<AllocateDataStructuresMessage const>(msgptr);
+      return respondAllocateDataStructures(castMessage);
    };
-   mMessageActionMap.emplace("AllocateData", action);
+   mMessageActionMap.emplace("AllocateDataStructures", action);
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<InitializeStateMessage const>(msgptr);
@@ -75,42 +75,6 @@ void BaseObject::initMessageActionMap() {
       return respondCleanup(castMessage);
    };
    mMessageActionMap.emplace("Cleanup", action);
-}
-
-Response::Status BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
-   Response::Status status = CheckpointerDataInterface::respond(message);
-   if (!Response::completed(status)) {
-      return status;
-   }
-   if (message == nullptr) {
-      return Response::NO_ACTION;
-   }
-   else if (
-         auto castMessage = std::dynamic_pointer_cast<CommunicateInitInfoMessage const>(message)) {
-      return respondCommunicateInitInfo(castMessage);
-   }
-#ifdef PV_USE_CUDA
-   else if (auto castMessage = std::dynamic_pointer_cast<SetCudaDeviceMessage const>(message)) {
-      return respondSetCudaDevice(castMessage);
-   }
-#endif // PV_USE_CUDA
-   else if (auto castMessage = std::dynamic_pointer_cast<AllocateDataMessage const>(message)) {
-      return respondAllocateData(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<InitializeStateMessage const>(message)) {
-      return respondInitializeState(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<CopyInitialStateToGPUMessage const>(message)) {
-      return respondCopyInitialStateToGPU(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<CleanupMessage const>(message)) {
-      return respondCleanup(castMessage);
-   }
-   else {
-      return Response::SUCCESS;
-   }
 }
 
 Response::Status
@@ -133,8 +97,8 @@ BaseObject::respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> mes
 }
 #endif // PV_USE_CUDA
 
-Response::Status
-BaseObject::respondAllocateData(std::shared_ptr<AllocateDataMessage const> message) {
+Response::Status BaseObject::respondAllocateDataStructures(
+      std::shared_ptr<AllocateDataStructuresMessage const> message) {
    Response::Status status = Response::NO_ACTION;
    if (getDataStructuresAllocatedFlag()) {
       return status;

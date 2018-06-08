@@ -26,7 +26,7 @@ int HyPerConn::initialize(char const *name, HyPerCol *hc) {
 }
 
 void HyPerConn::initMessageActionMap() {
-   ParamsInterface::initMessageActionMap();
+   BaseConnection::initMessageActionMap();
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
@@ -176,23 +176,6 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
 }
 
 BaseWeightUpdater *HyPerConn::createWeightUpdater() { return new HebbianUpdater(name, parent); }
-
-Response::Status HyPerConn::respond(std::shared_ptr<BaseMessage const> message) {
-   Response::Status status = BaseConnection::respond(message);
-   if (!Response::completed(status)) {
-      return status;
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionUpdateMessage const>(message)) {
-      return respondConnectionUpdate(castMessage);
-   }
-   else if (
-         auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(message)) {
-      return respondConnectionNormalize(castMessage);
-   }
-   else {
-      return status;
-   }
-}
 
 Response::Status
 HyPerConn::respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message) {

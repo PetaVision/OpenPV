@@ -42,7 +42,6 @@ class NormalizeBase : public BaseObject {
    virtual ~NormalizeBase() {}
 
    void addWeightsToList(Weights *weights);
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    float getStrength() const { return mStrength; }
    bool getNormalizeArborsIndividuallyFlag() const { return mNormalizeArborsIndividually; }

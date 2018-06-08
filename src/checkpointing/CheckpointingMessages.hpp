@@ -7,7 +7,7 @@ template <typename T> // In practice, T is always Checkpointer.
 class RegisterDataMessage : public BaseMessage {
   public:
    RegisterDataMessage(T *dataRegistry) {
-      setMessageType("RegisterCheckpointData");
+      setMessageType("RegisterData");
       mDataRegistry = dataRegistry;
    }
    T *mDataRegistry;

@@ -24,7 +24,7 @@ int AdaptiveTimeScaleProbe::initialize(char const *name, HyPerCol *hc) {
 }
 
 void AdaptiveTimeScaleProbe::initMessageActionMap() {
-   BaseProbe::initMessageActionMap();
+   ColProbe::initMessageActionMap();
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
@@ -160,19 +160,6 @@ Response::Status AdaptiveTimeScaleProbe::registerData(
    }
    mAdaptiveTimeScaleController->registerData(message);
    return Response::SUCCESS;
-}
-
-Response::Status AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) {
-   Response::Status status = ColProbe::respond(message);
-   if (message == nullptr) {
-      return status;
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<AdaptTimestepMessage const>(message)) {
-      return respondAdaptTimestep(castMessage);
-   }
-   else {
-      return status;
-   }
 }
 
 Response::Status

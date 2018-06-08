@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
    auto communicateMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);
    broadcastMessage(objectMap, communicateMessagePtr);
 
-   auto allocateMessagePtr = std::make_shared<AllocateDataMessage>();
+   auto allocateMessagePtr = std::make_shared<AllocateDataStructuresMessage>();
    broadcastMessage(objectMap, allocateMessagePtr);
 
    auto initializeMessagePtr = std::make_shared<InitializeStateMessage>();

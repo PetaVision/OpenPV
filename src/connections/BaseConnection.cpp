@@ -32,7 +32,7 @@ int BaseConnection::initialize(char const *name, HyPerCol *hc) {
 }
 
 void BaseConnection::initMessageActionMap() {
-   ParamsInterface::initMessageActionMap();
+   BaseObject::initMessageActionMap();
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
@@ -75,29 +75,6 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       obj->ioParams(ioFlag, false, false);
    }
    return PV_SUCCESS;
-}
-
-Response::Status BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
-   Response::Status status = BaseObject::respond(message);
-   if (!Response::completed(status)) {
-      return status;
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ConnectionWriteParamsMessage const>(message)) {
-      return respondConnectionWriteParams(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ConnectionFinalizeUpdateMessage const>(message)) {
-      return respondConnectionFinalizeUpdate(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(message)) {
-      return respondConnectionOutput(castMessage);
-   }
-   else {
-      return status;
-   }
 }
 
 Response::Status BaseConnection::respondConnectionWriteParams(
@@ -178,7 +155,7 @@ BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messag
 
 Response::Status BaseConnection::allocateDataStructures() {
    Response::Status status = notify(
-         std::make_shared<AllocateDataMessage>(),
+         std::make_shared<AllocateDataStructuresMessage>(),
          parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
    return status;
 }

@@ -74,20 +74,6 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
          mNormalizeOnWeightUpdate);
 }
 
-Response::Status NormalizeBase::respond(std::shared_ptr<BaseMessage const> message) {
-   Response::Status status = BaseObject::respond(message);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
-   else if (
-         auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(message)) {
-      return respondConnectionNormalize(castMessage);
-   }
-   else {
-      return status;
-   }
-}
-
 Response::Status NormalizeBase::respondConnectionNormalize(
       std::shared_ptr<ConnectionNormalizeMessage const> message) {
    bool needUpdate = false;

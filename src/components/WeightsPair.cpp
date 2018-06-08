@@ -124,24 +124,6 @@ void WeightsPair::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag)
          true /*warnIfAbsent*/);
 }
 
-Response::Status WeightsPair::respond(std::shared_ptr<BaseMessage const> message) {
-   Response::Status status = WeightsPairInterface::respond(message);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ConnectionFinalizeUpdateMessage const>(message)) {
-      return respondConnectionFinalizeUpdate(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(message)) {
-      return respondConnectionOutput(castMessage);
-   }
-   else {
-      return status;
-   }
-}
-
 Response::Status WeightsPair::respondConnectionFinalizeUpdate(
       std::shared_ptr<ConnectionFinalizeUpdateMessage const> message) {
    finalizeUpdate(message->mTime, message->mDeltaT);

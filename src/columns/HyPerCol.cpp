@@ -383,7 +383,7 @@ void HyPerCol::allocateColumn() {
    omp_set_num_threads(mNumThreads);
 #endif // PV_USE_OPENMP_THREADS
 
-   notifyLoop(std::make_shared<AllocateDataMessage>());
+   notifyLoop(std::make_shared<AllocateDataStructuresMessage>());
 
    notifyLoop(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
    mNumPhases++;
@@ -814,15 +814,6 @@ void HyPerCol::nonblockingLayerUpdate(
                 << updateMessage->mUpdateOnGpuFlag
 #endif // PV_USE_CUDA
                 << ", idle count " << idleCounter << "\n";
-   }
-}
-
-Response::Status HyPerCol::respond(std::shared_ptr<BaseMessage const> message) {
-   if (auto castMessage = std::dynamic_pointer_cast<WriteParamsFileMessage const>(message)) {
-      return respondWriteParamsFile(castMessage);
-   }
-   else {
-      return Response::SUCCESS;
    }
 }
 

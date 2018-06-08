@@ -28,8 +28,6 @@ class HyPerConn : public BaseConnection {
 
    virtual ~HyPerConn();
 
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
-
    // get-methods for params
    int getPatchSizeX() const { return mPatchSize->getPatchSizeX(); }
    int getPatchSizeY() const { return mPatchSize->getPatchSizeY(); }

@@ -650,7 +650,8 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ and parent->parameters()->stringPresent(getName(), "dataType")) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
-         WarnLog().printf("%s defines the dataType param, which is no longer used.\n");
+         WarnLog().printf(
+               "%s defines the dataType param, which is no longer used.\n, getDescription_c()");
       }
    }
 }
@@ -876,60 +877,6 @@ void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
 
 void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamValue(ioFlag, name, "sparseLayer", &sparseLayer, false);
-}
-
-Response::Status HyPerLayer::respond(std::shared_ptr<BaseMessage const> message) {
-   Response::Status status = BaseObject::respond(message);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<LayerSetMaxPhaseMessage const>(message)) {
-      return respondLayerSetMaxPhase(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<LayerWriteParamsMessage const>(message)) {
-      return respondLayerWriteParams(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<LayerProbeWriteParamsMessage const>(message)) {
-      return respondLayerProbeWriteParams(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<LayerClearProgressFlagsMessage const>(message)) {
-      return respondLayerClearProgressFlags(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<LayerUpdateStateMessage const>(message)) {
-      return respondLayerUpdateState(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<LayerRecvSynapticInputMessage const>(message)) {
-      return respondLayerRecvSynapticInput(castMessage);
-   }
-#ifdef PV_USE_CUDA
-   else if (auto castMessage = std::dynamic_pointer_cast<LayerCopyFromGpuMessage const>(message)) {
-      return respondLayerCopyFromGpu(castMessage);
-   }
-#endif // PV_USE_CUDA
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<LayerAdvanceDataStoreMessage const>(message)) {
-      return respondLayerAdvanceDataStore(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<LayerPublishMessage const>(message)) {
-      return respondLayerPublish(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(message)) {
-      return respondLayerOutputState(castMessage);
-   }
-   else if (
-         auto castMessage = std::dynamic_pointer_cast<LayerCheckNotANumberMessage const>(message)) {
-      return respondLayerCheckNotANumber(castMessage);
-   }
-   else {
-      return status;
-   }
 }
 
 Response::Status
@@ -2183,7 +2130,6 @@ int HyPerLayer::writeActivitySparse(double timed) {
 
 // write non-spiking activity
 int HyPerLayer::writeActivity(double timed) {
-   InfoLog() << getDescription() << " calling writeActivity" << std::endl;
    PVLayerCube cube      = publisher->createCube(0);
    PVLayerLoc const *loc = getLayerLoc();
    pvAssert(cube.numItems == loc->nbatch * getNumExtended());

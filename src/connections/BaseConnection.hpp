@@ -28,8 +28,6 @@ class BaseConnection : public BaseObject, public Subject {
    template <typename S>
    void addComponent(S *observer);
 
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
-
    /**
     * The function that calls the DeliveryObject's deliver method
     */

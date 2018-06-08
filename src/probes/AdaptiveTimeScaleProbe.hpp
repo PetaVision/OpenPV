@@ -79,7 +79,6 @@ class AdaptiveTimeScaleProbe : public ColProbe {
   public:
    AdaptiveTimeScaleProbe(char const *name, HyPerCol *hc);
    virtual ~AdaptiveTimeScaleProbe();
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;

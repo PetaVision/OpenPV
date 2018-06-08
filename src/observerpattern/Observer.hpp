@@ -19,21 +19,25 @@ namespace PV {
 
 class Observer {
   public:
-   Observer() {}
+   // No public constructor; only derived classes of observer can be constructed.
    virtual ~Observer() {}
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) {
-      return Response::NO_ACTION;
-   }
+   Response::Status respond(std::shared_ptr<BaseMessage const> message);
    inline std::string const &getDescription() const { return mDescription; }
    inline char const *getDescription_c() const { return mDescription.c_str(); }
 
   protected:
+   Observer() {}
    void setDescription(std::string const &description) { mDescription = description; }
    void setDescription(char const *description) { mDescription = description; }
-   int initialize() {
-      initMessageActionMap();
-      return PV_SUCCESS;
-   }
+
+   /**
+    * Calls the initMessageActionMap() method. Note that this function is not called
+    * by the Observer's constructor; instead it must be called by the derived class's
+    * initialize function. The reason is so that when initMessageActionMap is called,
+    * the object uses the derived class's initMessageActionMap, not the base class's
+    * method.
+    */
+   int initialize();
 
    virtual void initMessageActionMap() {}
 

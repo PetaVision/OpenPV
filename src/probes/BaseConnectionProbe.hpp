@@ -21,8 +21,6 @@ class BaseConnectionProbe : public BaseProbe {
    BaseConnectionProbe(const char *name, HyPerCol *hc);
    virtual ~BaseConnectionProbe();
 
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
-
    BaseConnection *getTargetConn() { return mTargetConn; }
 
   protected:

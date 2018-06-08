@@ -44,24 +44,6 @@ void BaseConnectionProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-Response::Status BaseConnectionProbe::respond(std::shared_ptr<BaseMessage const> message) {
-   Response::Status status = BaseProbe::respond(message);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ConnectionProbeWriteParamsMessage const>(message)) {
-      return respondConnectionProbeWriteParams(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(message)) {
-      return respondConnectionOutput(castMessage);
-   }
-   else {
-      return status;
-   }
-}
-
 Response::Status BaseConnectionProbe::respondConnectionProbeWriteParams(
       std::shared_ptr<ConnectionProbeWriteParamsMessage const> message) {
    writeParams();

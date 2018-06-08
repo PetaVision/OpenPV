@@ -41,37 +41,6 @@ void CheckpointerDataInterface::initMessageActionMap() {
    mMessageActionMap.emplace("PrepareCheckpointWrite", action);
 }
 
-Response::Status CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage const> message) {
-   auto status = Response::NO_ACTION;
-   if (message == nullptr) {
-      return status;
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<RegisterDataMessage<Checkpointer> const>(message)) {
-      return respondRegisterData(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ReadStateFromCheckpointMessage<Checkpointer> const>(
-                     message)) {
-      return respondReadStateFromCheckpoint(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ProcessCheckpointReadMessage const>(message)) {
-      return respondProcessCheckpointRead(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<PrepareCheckpointWriteMessage const>(message)) {
-      return respondPrepareCheckpointWrite(castMessage);
-   }
-   else {
-      return status;
-   }
-}
-
 Response::Status CheckpointerDataInterface::respondRegisterData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto status = registerData(message);

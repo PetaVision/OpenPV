@@ -41,8 +41,6 @@ class WeightsPair : public WeightsPairInterface {
 
    virtual ~WeightsPair();
 
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
-
    Weights *getPreWeights() { return mPreWeights; }
    Weights *getPostWeights() { return mPostWeights; }
 

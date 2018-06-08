@@ -54,15 +54,15 @@ class SetCudaDeviceMessage : public BaseMessage {
 };
 #endif // PV_USE_CUDA
 
-class AllocateDataMessage : public BaseMessage {
+class AllocateDataStructuresMessage : public BaseMessage {
   public:
-   AllocateDataMessage() { setMessageType("AllocateDataStructures"); }
+   AllocateDataStructuresMessage() { setMessageType("AllocateDataStructures"); }
 };
 
 class LayerSetMaxPhaseMessage : public BaseMessage {
   public:
    LayerSetMaxPhaseMessage(int *maxPhase) {
-      setMessageType("LayerSetPhase");
+      setMessageType("LayerSetMaxPhase");
       mMaxPhase = maxPhase;
    }
    int *mMaxPhase = nullptr;

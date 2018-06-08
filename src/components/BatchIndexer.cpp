@@ -27,6 +27,7 @@ BatchIndexer::BatchIndexer(
    mSkipAmounts.resize(mBatchWidth, 0);
    shuffleLookupTable();
    setDescription(std::string("BatchIndexer \"") + mObjName + "\"");
+   CheckpointerDataInterface::initialize();
 }
 
 int BatchIndexer::nextIndex(int localBatchIndex) {
