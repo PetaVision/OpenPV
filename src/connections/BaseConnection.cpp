@@ -22,17 +22,11 @@ BaseConnection::~BaseConnection() {
 }
 
 int BaseConnection::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseObject::initialize(name, hc);
-
-   if (status == PV_SUCCESS) {
-      setObserverTable();
-      readParams();
-   }
-   return status;
+   return ComponentBasedObject::initialize(name, hc);
 }
 
 void BaseConnection::initMessageActionMap() {
-   BaseObject::initMessageActionMap();
+   ComponentBasedObject::initMessageActionMap();
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
@@ -144,7 +138,7 @@ BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
 #ifdef PV_USE_CUDA
 Response::Status
 BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
-   auto status = BaseObject::setCudaDevice(message);
+   auto status = ComponentBasedObject::setCudaDevice(message);
    if (status != Response::SUCCESS) {
       return status;
    }

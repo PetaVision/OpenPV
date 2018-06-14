@@ -12,7 +12,7 @@
 #define HYPERLAYER_HPP_
 
 #include "checkpointing/CheckpointableFileStream.hpp"
-#include "columns/BaseObject.hpp"
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/DataStore.hpp"
 #include "columns/HyPerCol.hpp"
@@ -24,7 +24,6 @@
 #include "initv/BaseInitV.hpp"
 #include "io/fileio.hpp"
 #include "layers/PVLayerCube.hpp"
-#include "observerpattern/Subject.hpp"
 #include "probes/LayerProbe.hpp"
 #include "utils/Timer.hpp"
 
@@ -63,7 +62,7 @@ typedef enum TriggerBehaviorTypeEnum {
    RESETSTATE_TRIGGER
 } TriggerBehaviorType;
 
-class HyPerLayer : public BaseObject, public Subject {
+class HyPerLayer : public ComponentBasedObject {
 
   protected:
    /**

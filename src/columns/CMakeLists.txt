@@ -4,6 +4,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/buildandrun.cpp
    ${SUBDIR}/CommandLineArguments.cpp
    ${SUBDIR}/Communicator.cpp
+   ${SUBDIR}/ComponentBasedObject.cpp
    ${SUBDIR}/ConfigFileArguments.cpp
    ${SUBDIR}/DataStore.cpp
    ${SUBDIR}/Factory.cpp
@@ -23,6 +24,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/buildandrun.hpp
    ${SUBDIR}/CommandLineArguments.hpp
    ${SUBDIR}/Communicator.hpp
+   ${SUBDIR}/ComponentBasedObject.hpp
    ${SUBDIR}/ConfigFileArguments.hpp
    ${SUBDIR}/DataStore.hpp
    ${SUBDIR}/Factory.hpp

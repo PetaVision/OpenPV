@@ -9,17 +9,16 @@
 #ifndef BASECONNECTION_HPP_
 #define BASECONNECTION_HPP_
 
-#include "columns/BaseObject.hpp"
+#include "columns/ComponentBasedObject.hpp"
 #include "components/ConnectionData.hpp"
 #include "delivery/BaseDelivery.hpp"
-#include "observerpattern/Subject.hpp"
 #include "utils/Timer.hpp"
 
 namespace PV {
 
 class HyPerCol;
 
-class BaseConnection : public BaseObject, public Subject {
+class BaseConnection : public ComponentBasedObject {
   public:
    BaseConnection(char const *name, HyPerCol *hc);
 

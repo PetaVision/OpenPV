@@ -117,12 +117,10 @@ int HyPerLayer::initialize_base() {
 /// does not call initialize.  This way, HyPerLayer::initialize can call virtual
 /// methods and the derived class's method will be the one that gets called.
 int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = BaseObject::initialize(name, hc);
+   int status = ComponentBasedObject::initialize(name, hc);
    if (status != PV_SUCCESS) {
       return status;
    }
-   setObserverTable();
-   readParams();
 
    writeTime                = initialWriteTime;
    writeActivityCalls       = 0;
@@ -139,7 +137,7 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
 }
 
 void HyPerLayer::initMessageActionMap() {
-   BaseObject::initMessageActionMap();
+   ComponentBasedObject::initMessageActionMap();
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
@@ -1489,7 +1487,7 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *border) {
 
 Response::Status
 HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = BaseObject::registerData(message);
+   auto status = ComponentBasedObject::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
