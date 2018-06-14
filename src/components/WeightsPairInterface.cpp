@@ -46,18 +46,13 @@ Response::Status WeightsPairInterface::communicateInitInfo(
    }
 
    if (mPatchSize == nullptr) {
-      mPatchSize = nullptr;
-      try {
-         mPatchSize = mapLookupByType<PatchSize>(message->mHierarchy);
-      } catch (const std::invalid_argument &e) {
-         pvAssertMessage(
-               0,
-               "Communicate message to %s has %s PatchSize component.\n",
-               getDescription_c(),
-               e.what() /*either "more than one" or "no"*/);
-      }
-      pvAssert(mPatchSize);
+      mPatchSize = mapLookupByType<PatchSize>(message->mHierarchy);
+      FatalIf(
+            mPatchSize == nullptr,
+            "Communicate message to %s has no PatchSize component.\n",
+            getDescription_c());
    }
+   pvAssert(mPatchSize);
 
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {

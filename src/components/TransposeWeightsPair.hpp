@@ -9,7 +9,6 @@
 #define TRANSPOSEWEIGHTSPAIR_HPP_
 
 #include "components/WeightsPair.hpp"
-#include "connections/HyPerConn.hpp"
 
 namespace PV {
 
@@ -59,7 +58,6 @@ class TransposeWeightsPair : public WeightsPair {
    virtual void outputState(double timestamp) override;
 
   protected:
-   HyPerConn *mOriginalConn          = nullptr;
    WeightsPair *mOriginalWeightsPair = nullptr;
 };
 

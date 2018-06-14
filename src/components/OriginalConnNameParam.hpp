@@ -9,6 +9,7 @@
 #define ORIGINALCONNNAMEPARAM_HPP_
 
 #include "columns/BaseObject.hpp"
+#include "columns/ComponentBasedObject.hpp"
 
 namespace PV {
 
@@ -40,6 +41,8 @@ class OriginalConnNameParam : public BaseObject {
    virtual ~OriginalConnNameParam();
 
    char const *getOriginalConnName() const { return mOriginalConnName; }
+
+   ComponentBasedObject *findOriginalObject(std::map<std::string, Observer *> const &hierarchy);
 
   protected:
    OriginalConnNameParam() {}

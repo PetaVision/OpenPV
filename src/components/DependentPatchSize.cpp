@@ -6,10 +6,10 @@
  */
 
 #include "DependentPatchSize.hpp"
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "connections/BaseConnection.hpp"
 #include "utils/MapLookupByType.hpp"
 
 namespace PV {
@@ -53,13 +53,33 @@ void DependentPatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto hierarchy = message->mHierarchy;
+   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(message->mHierarchy);
+   pvAssert(originalConnNameParam);
 
-   char const *originalConnName = getOriginalConnName(hierarchy);
-   pvAssert(originalConnName);
+   if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s must wait until the OriginalConnNameParam component has finished its "
+               "communicateInitInfo stage.\n",
+               getDescription_c());
+      }
+      return Response::POSTPONE;
+   }
 
-   auto *originalPatchSize = getOriginalPatchSize(hierarchy, originalConnName);
-   pvAssert(originalPatchSize);
+   ComponentBasedObject *originalConn = nullptr;
+   try {
+      originalConn = originalConnNameParam->findOriginalObject(message->mHierarchy);
+   } catch (std::invalid_argument &e) {
+      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
+   }
+   pvAssert(originalConn);
+
+   auto *originalPatchSize = originalConn->getComponentByType<PatchSize>();
+   FatalIf(
+         originalPatchSize == nullptr,
+         "%s original connection \"%s\" does not have an PatchSize.\n",
+         getDescription_c(),
+         originalConn->getName());
 
    if (!originalPatchSize->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -67,7 +87,7 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConnName);
+               originalConn->getName());
       }
       return Response::POSTPONE;
    }
@@ -85,42 +105,6 @@ void DependentPatchSize::setPatchSize(PatchSize *originalPatchSize) {
    mPatchSizeX = originalPatchSize->getPatchSizeX();
    mPatchSizeY = originalPatchSize->getPatchSizeY();
    mPatchSizeF = originalPatchSize->getPatchSizeF();
-}
-
-char const *
-DependentPatchSize::getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const {
-   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
-   pvAssert(originalConnNameParam);
-   char const *originalConnName = originalConnNameParam->getOriginalConnName();
-   return originalConnName;
-}
-
-PatchSize *DependentPatchSize::getOriginalPatchSize(
-      std::map<std::string, Observer *> const hierarchy,
-      char const *originalConnName) const {
-   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
-   pvAssert(objectMapComponent);
-   BaseConnection *originalConn =
-         objectMapComponent->lookup<BaseConnection>(std::string(originalConnName));
-   if (originalConn == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not correspond to a BaseConnection in the "
-               "column.\n",
-               getDescription_c(),
-               originalConnName);
-      }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-      exit(PV_FAILURE);
-   }
-
-   auto *originalPatchSize = originalConn->getComponentByType<PatchSize>();
-   FatalIf(
-         originalPatchSize == nullptr,
-         "%s original connection \"%s\" does not have an PatchSize.\n",
-         getDescription_c(),
-         originalConnName);
-   return originalPatchSize;
 }
 
 } // namespace PV

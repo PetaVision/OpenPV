@@ -60,7 +60,6 @@ class DependentPatchSize : public PatchSize {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   char const *getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const;
    PatchSize *getOriginalPatchSize(
          std::map<std::string, Observer *> const hierarchy,
          char const *originalConnName) const;

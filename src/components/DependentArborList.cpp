@@ -6,10 +6,10 @@
  */
 
 #include "DependentArborList.hpp"
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "connections/BaseConnection.hpp"
 #include "utils/MapLookupByType.hpp"
 
 namespace PV {
@@ -39,13 +39,33 @@ void DependentArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto hierarchy = message->mHierarchy;
+   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(message->mHierarchy);
+   pvAssert(originalConnNameParam);
 
-   char const *originalConnName = getOriginalConnName(hierarchy);
-   pvAssert(originalConnName);
+   if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s must wait until the OriginalConnNameParam component has finished its "
+               "communicateInitInfo stage.\n",
+               getDescription_c());
+      }
+      return Response::POSTPONE;
+   }
 
-   auto *originalArborList = getOriginalArborList(hierarchy, originalConnName);
-   pvAssert(originalArborList);
+   ComponentBasedObject *originalConn = nullptr;
+   try {
+      originalConn = originalConnNameParam->findOriginalObject(message->mHierarchy);
+   } catch (std::invalid_argument &e) {
+      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
+   }
+   pvAssert(originalConn);
+
+   auto *originalArborList = originalConn->getComponentByType<ArborList>();
+   FatalIf(
+         originalArborList == nullptr,
+         "%s original connection \"%s\" does not have an ArborList.\n",
+         getDescription_c(),
+         originalConn->getName());
 
    if (!originalArborList->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -53,10 +73,11 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConnName);
+               originalConn->getName());
       }
       return Response::POSTPONE;
    }
+
    mNumAxonalArbors = originalArborList->getNumAxonalArbors();
    parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", mNumAxonalArbors);
 
@@ -65,51 +86,6 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       return status;
    }
    return Response::SUCCESS;
-}
-
-char const *
-DependentArborList::getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const {
-   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
-   pvAssert(originalConnNameParam);
-   char const *originalConnName = originalConnNameParam->getOriginalConnName();
-   return originalConnName;
-}
-
-ArborList *DependentArborList::getOriginalArborList(
-      std::map<std::string, Observer *> const hierarchy,
-      char const *originalConnName) const {
-   ObjectMapComponent *objectMapComponent;
-   try {
-      objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
-   } catch (const std::invalid_argument &e) {
-      pvAssertMessage(
-            0,
-            "Communicate message to %s has %s ObjectMapComponent.\n",
-            getDescription_c(),
-            e.what() /*either "more than one" or "no"*/);
-   }
-   pvAssert(objectMapComponent);
-   BaseConnection *originalConn =
-         objectMapComponent->lookup<BaseConnection>(std::string(originalConnName));
-   if (originalConn == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not correspond to a BaseConnection in the "
-               "column.\n",
-               getDescription_c(),
-               originalConnName);
-      }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-      exit(PV_FAILURE);
-   }
-
-   auto *originalArborList = originalConn->getComponentByType<ArborList>();
-   FatalIf(
-         originalArborList == nullptr,
-         "%s original connection \"%s\" does not have an ArborList.\n",
-         getDescription_c(),
-         originalConnName);
-   return originalArborList;
 }
 
 } // namespace PV

@@ -6,6 +6,7 @@
  */
 
 #include "TransposeWeightsPair.hpp"
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
@@ -41,39 +42,46 @@ void TransposeWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag 
 
 Response::Status TransposeWeightsPair::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto hierarchy = message->mHierarchy;
-   if (mOriginalConn == nullptr) {
-      auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
+   ConnectionData *originalConnData = nullptr;
+   if (mOriginalWeightsPair == nullptr) {
+      auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(message->mHierarchy);
       pvAssert(originalConnNameParam);
-      char const *originalConnName = originalConnNameParam->getOriginalConnName();
 
-      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
-      pvAssert(objectMapComponent);
-
-      mOriginalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
-      if (mOriginalConn == nullptr) {
+      if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
          if (parent->getCommunicator()->globalCommRank() == 0) {
-            ErrorLog().printf(
-                  "%s: originalConnName \"%s\" does not correspond to a HyPerConn in the column.\n",
-                  getDescription_c(),
-                  originalConnName);
+            InfoLog().printf(
+                  "%s must wait until the OriginalConnNameParam component has finished its "
+                  "communicateInitInfo stage.\n",
+                  getDescription_c());
          }
-         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-         exit(PV_FAILURE);
+         return Response::POSTPONE;
       }
-   }
-   mOriginalWeightsPair = mOriginalConn->getComponentByType<WeightsPair>();
-   pvAssert(mOriginalWeightsPair);
 
-   if (!mOriginalWeightsPair->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         InfoLog().printf(
-               "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
-               "stage.\n",
-               getDescription_c(),
-               mOriginalWeightsPair->getName());
+      ComponentBasedObject *originalConn = nullptr;
+      try {
+         originalConn = originalConnNameParam->findOriginalObject(message->mHierarchy);
+      } catch (std::invalid_argument &e) {
+         Fatal().printf("%s: %s\n", getDescription_c(), e.what());
       }
-      return Response::POSTPONE;
+      pvAssert(originalConn); // findOriginalObject() throws instead of returns nullptr
+
+      if (!originalConn->getInitInfoCommunicatedFlag()) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
+            InfoLog().printf(
+                  "%s must wait until original connection \"%s\" has finished its "
+                  "communicateInitInfo stage.\n",
+                  getDescription_c(),
+                  originalConn->getName());
+         }
+         return Response::POSTPONE;
+      }
+
+      mOriginalWeightsPair = originalConn->getComponentByType<WeightsPair>();
+      pvAssert(mOriginalWeightsPair);
+      pvAssert(mOriginalWeightsPair->getInitInfoCommunicatedFlag());
+      originalConnData = originalConn->getComponentByType<ConnectionData>();
+      pvAssert(originalConnData);
+      pvAssert(originalConnData->getInitInfoCommunicatedFlag());
    }
 
    auto status = WeightsPair::communicateInitInfo(message);
@@ -97,7 +105,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
    }
 
    const PVLayerLoc *preLoc      = mConnectionData->getPre()->getLayerLoc();
-   const PVLayerLoc *origPostLoc = mOriginalConn->getPost()->getLayerLoc();
+   const PVLayerLoc *origPostLoc = originalConnData->getPost()->getLayerLoc();
    if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny
        || preLoc->nf != origPostLoc->nf) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -118,11 +126,11 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   mOriginalConn->getPre()->synchronizeMarginWidth(mConnectionData->getPost());
-   mConnectionData->getPost()->synchronizeMarginWidth(mOriginalConn->getPre());
+   originalConnData->getPre()->synchronizeMarginWidth(mConnectionData->getPost());
+   mConnectionData->getPost()->synchronizeMarginWidth(originalConnData->getPre());
 
    const PVLayerLoc *postLoc    = mConnectionData->getPost()->getLayerLoc();
-   const PVLayerLoc *origPreLoc = mOriginalConn->getPre()->getLayerLoc();
+   const PVLayerLoc *origPreLoc = originalConnData->getPre()->getLayerLoc();
    if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny
        || postLoc->nf != origPreLoc->nf) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -143,8 +151,8 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   mOriginalConn->getPost()->synchronizeMarginWidth(mConnectionData->getPre());
-   mConnectionData->getPre()->synchronizeMarginWidth(mOriginalConn->getPost());
+   originalConnData->getPost()->synchronizeMarginWidth(mConnectionData->getPre());
+   mConnectionData->getPre()->synchronizeMarginWidth(originalConnData->getPost());
 
    return Response::SUCCESS;
 }

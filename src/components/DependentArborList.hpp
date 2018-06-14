@@ -49,11 +49,6 @@ class DependentArborList : public ArborList {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   char const *getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const;
-   ArborList *getOriginalArborList(
-         std::map<std::string, Observer *> const hierarchy,
-         char const *originalConnName) const;
-
 }; // class DependentArborList
 
 } // namespace PV

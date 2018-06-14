@@ -6,10 +6,10 @@
  */
 
 #include "FeedbackConnectionData.hpp"
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "connections/HyPerConn.hpp"
 #include "utils/MapLookupByType.hpp"
 
 namespace PV {
@@ -47,11 +47,12 @@ Response::Status FeedbackConnectionData::communicateInitInfo(
    ObjectMapComponent *objectMapComponent;
    objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
    pvAssert(objectMapComponent);
-   HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
+   ComponentBasedObject *originalConn =
+         objectMapComponent->lookup<ComponentBasedObject>(std::string(originalConnName));
    if (originalConn == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not correspond to a HyPerConn in the column.\n",
+               "%s: originalConnName \"%s\" does not correspond to an object in the column.\n",
                getDescription_c(),
                originalConnName);
       }
@@ -61,7 +62,7 @@ Response::Status FeedbackConnectionData::communicateInitInfo(
    auto *originalConnectionData = originalConn->getComponentByType<ConnectionData>();
    FatalIf(
          originalConnectionData == nullptr,
-         "%s has original connection \"%s\", which does not have a ConnectionData component.\n",
+         "%s set original connection to \"%s\", which does not have a ConnectionData component.\n",
          getDescription_c(),
          originalConn->getName());
    if (!originalConnectionData->getInitInfoCommunicatedFlag()) {
