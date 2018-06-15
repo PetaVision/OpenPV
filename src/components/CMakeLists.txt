@@ -9,6 +9,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/CopyWeightsPair.cpp
    ${SUBDIR}/DependentArborList.cpp
    ${SUBDIR}/DependentPatchSize.cpp
+   ${SUBDIR}/DependentPhaseParam.cpp
    ${SUBDIR}/DependentSharedWeights.cpp
    ${SUBDIR}/FeedbackConnectionData.cpp
    ${SUBDIR}/ImpliedWeights.cpp
@@ -19,6 +20,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/OriginalLayerNameParam.cpp
    ${SUBDIR}/PatchGeometry.cpp
    ${SUBDIR}/PatchSize.cpp
+   ${SUBDIR}/PhaseParam.cpp
    ${SUBDIR}/SharedWeights.cpp
    ${SUBDIR}/SingleArbor.cpp
    ${SUBDIR}/StrengthParam.cpp
@@ -40,6 +42,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CopyWeightsPair.hpp
    ${SUBDIR}/DependentArborList.hpp
    ${SUBDIR}/DependentPatchSize.hpp
+   ${SUBDIR}/DependentPhaseParam.hpp
    ${SUBDIR}/DependentSharedWeights.hpp
    ${SUBDIR}/FeedbackConnectionData.hpp
    ${SUBDIR}/ImpliedWeights.hpp
@@ -51,6 +54,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Patch.hpp
    ${SUBDIR}/PatchGeometry.hpp
    ${SUBDIR}/PatchSize.hpp
+   ${SUBDIR}/PhaseParam.hpp
    ${SUBDIR}/SharedWeights.hpp
    ${SUBDIR}/SingleArbor.hpp
    ${SUBDIR}/StrengthParam.hpp

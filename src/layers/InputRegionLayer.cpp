@@ -6,6 +6,7 @@
  */
 
 #include "InputRegionLayer.hpp"
+#include "components/DependentPhaseParam.hpp"
 
 namespace PV {
 
@@ -37,16 +38,10 @@ void InputRegionLayer::setObserverTable() {
    }
 }
 
+PhaseParam *InputRegionLayer::createPhaseParam() { return new DependentPhaseParam(name, parent); }
+
 OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(name, parent);
-}
-
-void InputRegionLayer::ioParam_phase(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      // Phase will be copied from original layer in CommunicateInitInfo stage,
-      // but probably is not needed.
-      parent->parameters()->handleUnnecessaryParameter(name, "phase");
-   }
 }
 
 void InputRegionLayer::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
@@ -107,7 +102,6 @@ InputRegionLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       return Response::POSTPONE; // Make sure original layer has all the information we need to copy
    }
    mOriginalLayer->makeInputRegionsPointer();
-   phase        = mOriginalLayer->getPhase();
    mirrorBCflag = mOriginalLayer->useMirrorBCs();
    valueBC      = mOriginalLayer->getValueBC();
    checkLayerDimensions();

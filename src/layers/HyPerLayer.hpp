@@ -12,13 +12,14 @@
 #define HYPERLAYER_HPP_
 
 #include "checkpointing/CheckpointableFileStream.hpp"
-#include "columns/ComponentBasedObject.hpp"
 #include "columns/Communicator.hpp"
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/DataStore.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/Publisher.hpp"
 #include "columns/Random.hpp"
 #include "components/LayerGeometry.hpp"
+#include "components/PhaseParam.hpp"
 #include "include/pv_common.h"
 #include "include/pv_types.h"
 #include "initv/BaseInitV.hpp"
@@ -81,11 +82,6 @@ class HyPerLayer : public ComponentBasedObject {
     * If PetaVision was compiled without GPU acceleration, it is an error to set this flag to true.
     */
    virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief phase: Defines the ordering in which each layer is updated
-    */
-   virtual void ioParam_phase(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief mirrorBCflag: If set to true, the margin will mirror the data
@@ -193,6 +189,7 @@ class HyPerLayer : public ComponentBasedObject {
    virtual void initMessageActionMap() override;
    virtual void setObserverTable() override;
    virtual LayerGeometry *createLayerGeometry();
+   virtual PhaseParam *createPhaseParam();
    virtual int initClayer();
 
    virtual int allocateClayerBuffers();
@@ -460,7 +457,7 @@ class HyPerLayer : public ComponentBasedObject {
 
    bool getSparseFlag() { return this->sparseLayer; }
 
-   int getPhase() { return this->phase; }
+   int getPhase() { return mPhaseParam->getPhase(); }
 
    // implementation of LayerDataInterface interface
    //
@@ -476,7 +473,6 @@ class HyPerLayer : public ComponentBasedObject {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
-   virtual Response::Status setMaxPhase(int *maxPhase);
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual Response::Status initializeState() override;
@@ -509,7 +505,8 @@ class HyPerLayer : public ComponentBasedObject {
 
    LayerGeometry *mLayerGeometry = nullptr;
 
-   int phase; // All layers with phase 0 get updated before any with phase 1, etc.
+   // All layers with phase 0 get updated before any with phase 1, etc.
+   PhaseParam *mPhaseParam = nullptr;
    int numDelayLevels; // The number of timesteps in the datastore ring buffer to store older
    // timesteps for connections with delays
 

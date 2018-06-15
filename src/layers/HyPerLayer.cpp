@@ -68,8 +68,6 @@ int HyPerLayer::initialize_base() {
    mLastUpdateTime  = 0.0;
    mLastTriggerTime = 0.0;
 
-   phase = 0;
-
 #ifdef PV_USE_CUDA
    allocDeviceV             = false;
    allocDeviceGSyn          = false;
@@ -212,9 +210,15 @@ void HyPerLayer::setObserverTable() {
    if (mLayerGeometry) {
       addUniqueComponent(mLayerGeometry->getDescription(), mLayerGeometry);
    }
+   mPhaseParam = createPhaseParam();
+   if (mPhaseParam) {
+      addUniqueComponent(mPhaseParam->getDescription(), mPhaseParam);
+   }
 }
 
 LayerGeometry *HyPerLayer::createLayerGeometry() { return new LayerGeometry(name, parent); }
+
+PhaseParam *HyPerLayer::createPhaseParam() { return new PhaseParam(name, parent); }
 
 int HyPerLayer::initClayer() {
    clayer     = (PVLayer *)calloc(1UL, sizeof(PVLayer));
@@ -617,7 +621,6 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       auto obj = dynamic_cast<BaseObject *>(c);
       obj->ioParams(ioFlag, false, false);
    }
-   ioParam_phase(ioFlag);
    ioParam_mirrorBCflag(ioFlag);
    ioParam_valueBC(ioFlag);
    ioParam_initializeFromCheckpointFlag(ioFlag);
@@ -670,15 +673,6 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
             getDescription_c());
    }
 #endif // PV_USE_CUDA
-}
-
-void HyPerLayer::ioParam_phase(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "phase", &phase, phase);
-   if (ioFlag == PARAMS_IO_READ && phase < 0) {
-      if (parent->columnId() == 0)
-         Fatal().printf(
-               "%s: phase must be >= 0 (given value was %d).\n", getDescription_c(), phase);
-   }
 }
 
 void HyPerLayer::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
@@ -879,7 +873,7 @@ void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 HyPerLayer::respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message) {
-   return setMaxPhase(message->mMaxPhase);
+   return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 }
 
 Response::Status
@@ -1180,13 +1174,6 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    }
 #endif
 
-   return Response::SUCCESS;
-}
-
-Response::Status HyPerLayer::setMaxPhase(int *maxPhase) {
-   if (*maxPhase < phase) {
-      *maxPhase = phase;
-   }
    return Response::SUCCESS;
 }
 

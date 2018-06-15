@@ -32,8 +32,8 @@ class InputRegionLayer : public HyPerLayer {
    InputRegionLayer();
    int initialize(const char *name, HyPerCol *hc);
    void setObserverTable();
+   virtual PhaseParam *createPhaseParam() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
-   virtual void ioParam_phase(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
