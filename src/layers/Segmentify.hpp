@@ -2,15 +2,14 @@
 #define SEGMENTIFY_HPP_
 
 #include "HyPerLayer.hpp"
-#include "SegmentLayer.hpp"
+#include "components/OriginalLayerNameParam.hpp"
+#include "layers/SegmentLayer.hpp"
 
 namespace PV {
 
 class Segmentify : public PV::HyPerLayer {
   public:
    Segmentify(const char *name, HyPerCol *hc);
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
    virtual bool activityIsSpiking() override { return false; }
    virtual ~Segmentify();
@@ -18,8 +17,9 @@ class Segmentify : public PV::HyPerLayer {
   protected:
    Segmentify();
    int initialize(const char *name, HyPerCol *hc);
+   virtual void setObserverTable() override;
+   virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_segmentLayerName(enum ParamsIOFlag ioFlag);
    // Defines the way to reduce values within a segment
    // into a single scalar. Options are "average", "sum", and "max".
@@ -30,6 +30,9 @@ class Segmentify : public PV::HyPerLayer {
    virtual void allocateV() override;
    virtual void initializeV() override;
    virtual void initializeActivity() override;
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   void setOriginalLayer();
 
    virtual Response::Status updateState(double timef, double dt) override;
 
@@ -44,8 +47,7 @@ class Segmentify : public PV::HyPerLayer {
    int calculateLabelVals(int batchIdx);
    int setOutputVals(int batchIdx);
 
-   char *originalLayerName;
-   HyPerLayer *originalLayer;
+   HyPerLayer *mOriginalLayer = nullptr;
    char *segmentLayerName;
    SegmentLayer *segmentLayer;
 

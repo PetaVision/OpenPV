@@ -16,6 +16,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LayerGeometry.cpp
    ${SUBDIR}/LinkedObjectParam.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
+   ${SUBDIR}/OriginalLayerNameParam.cpp
    ${SUBDIR}/PatchGeometry.cpp
    ${SUBDIR}/PatchSize.cpp
    ${SUBDIR}/SharedWeights.cpp
@@ -46,6 +47,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LayerGeometry.hpp
    ${SUBDIR}/LinkedObjectParam.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
+   ${SUBDIR}/OriginalLayerNameParam.hpp
    ${SUBDIR}/Patch.hpp
    ${SUBDIR}/PatchGeometry.hpp
    ${SUBDIR}/PatchSize.hpp

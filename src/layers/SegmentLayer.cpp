@@ -13,18 +13,17 @@ SegmentLayer::SegmentLayer() {
 }
 
 int SegmentLayer::initialize_base() {
-   segmentMethod     = NULL;
-   originalLayerName = NULL;
-   numChannels       = 0;
-   labelBufSize      = 0;
-   labelBuf          = NULL;
-   maxXBuf           = NULL;
-   maxYBuf           = NULL;
-   minXBuf           = NULL;
-   minYBuf           = NULL;
-   centerIdxBufSize  = 0;
-   centerIdxBuf      = NULL;
-   allLabelsBuf      = NULL;
+   segmentMethod    = NULL;
+   numChannels      = 0;
+   labelBufSize     = 0;
+   labelBuf         = NULL;
+   maxXBuf          = NULL;
+   maxYBuf          = NULL;
+   minXBuf          = NULL;
+   minYBuf          = NULL;
+   centerIdxBufSize = 0;
+   centerIdxBuf     = NULL;
+   allLabelsBuf     = NULL;
 
    return PV_SUCCESS;
 }
@@ -34,10 +33,21 @@ int SegmentLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+void SegmentLayer::setObserverTable() {
+   HyPerLayer::setObserverTable();
+   auto *originalLayerNameParam = createOriginalLayerNameParam();
+   if (originalLayerNameParam) {
+      addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);
+   }
+}
+
+OriginalLayerNameParam *SegmentLayer::createOriginalLayerNameParam() {
+   return new OriginalLayerNameParam(name, parent);
+}
+
 int SegmentLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
    ioParam_segmentMethod(ioFlag);
-   ioParam_originalLayerName(ioFlag);
    return status;
 }
 
@@ -62,47 +72,25 @@ void SegmentLayer::ioParam_segmentMethod(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void SegmentLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, "originalLayerName", &originalLayerName);
-   assert(originalLayerName);
-   if (ioFlag == PARAMS_IO_READ && originalLayerName[0] == '\0') {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf("%s: originalLayerName must be set.\n", getDescription_c());
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-}
-
 Response::Status
 SegmentLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = HyPerLayer::communicateInitInfo(message);
    if (!Response::completed(status)) {
       return status;
    }
-   // Get original layer
-   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
-   if (originalLayer == NULL) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-               getDescription_c(),
-               originalLayerName);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   if (originalLayer->getInitInfoCommunicatedFlag() == false) {
+
+   setOriginalLayer();
+   pvAssert(mOriginalLayer);
+   if (mOriginalLayer->getInitInfoCommunicatedFlag() == false) {
       return Response::POSTPONE;
    }
 
    // Sync margins
-   originalLayer->synchronizeMarginWidth(this);
-   this->synchronizeMarginWidth(originalLayer);
+   mOriginalLayer->synchronizeMarginWidth(this);
+   this->synchronizeMarginWidth(mOriginalLayer);
 
    // Check size
-   const PVLayerLoc *srcLoc  = originalLayer->getLayerLoc();
+   const PVLayerLoc *srcLoc  = mOriginalLayer->getLayerLoc();
    const PVLayerLoc *thisLoc = getLayerLoc();
 
    // Original layer must be the same x/y size as this layer
@@ -113,7 +101,7 @@ SegmentLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
                "%s: originalLayer \"%s\" does not have the same x and y dimensions as this "
                "layer.\n",
                getDescription_c(),
-               originalLayerName);
+               mOriginalLayer->getName());
          errorMessage.printf(
                "    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
                srcLoc->nxGlobal,
@@ -146,6 +134,31 @@ SegmentLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    }
 
    return status;
+}
+
+void SegmentLayer::setOriginalLayer() {
+   auto *originalLayerNameParam = getComponentByType<OriginalLayerNameParam>();
+   pvAssert(originalLayerNameParam);
+
+   ComponentBasedObject *originalObject = nullptr;
+   try {
+      originalObject = originalLayerNameParam->findLinkedObject(mObserverTable.getObjectMap());
+   } catch (std::invalid_argument &e) {
+      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
+   }
+   pvAssert(originalObject);
+
+   mOriginalLayer = dynamic_cast<HyPerLayer *>(originalObject);
+   if (mOriginalLayer == nullptr) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         ErrorLog().printf(
+               "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
+               getDescription_c(),
+               originalObject->getName());
+      }
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      exit(EXIT_FAILURE);
+   }
 }
 
 int SegmentLayer::checkLabelBufSize(int newSize) {
@@ -244,7 +257,7 @@ void SegmentLayer::initializeV() { assert(getV() == NULL); }
 void SegmentLayer::initializeActivity() {}
 
 Response::Status SegmentLayer::updateState(double timef, double dt) {
-   float *srcA  = originalLayer->getActivity();
+   float *srcA  = mOriginalLayer->getActivity();
    float *thisA = getActivity();
    assert(srcA);
    assert(thisA);
@@ -465,7 +478,6 @@ Response::Status SegmentLayer::updateState(double timef, double dt) {
 }
 
 SegmentLayer::~SegmentLayer() {
-   free(originalLayerName);
    clayer->V = NULL;
    maxX.clear();
    maxY.clear();

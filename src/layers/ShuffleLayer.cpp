@@ -197,7 +197,7 @@ void ShuffleLayer::readFreq() { // TODO: Add MPI Bcast so that only root proc do
 }
 
 void ShuffleLayer::collectFreq(const float *sourceData) {
-   PVHalo const *haloOrig = &originalLayer->getLayerLoc()->halo;
+   PVHalo const *haloOrig = &mOriginalLayer->getLayerLoc()->halo;
    int nx                 = getLayerLoc()->nx;
    int ny                 = getLayerLoc()->ny;
    int nxExt              = nx + haloOrig->lt + haloOrig->rt;
@@ -242,7 +242,7 @@ void ShuffleLayer::collectFreq(const float *sourceData) {
 
 void ShuffleLayer::rejectionShuffle(const float *sourceData, float *activity) {
    const PVLayerLoc *loc  = getLayerLoc();
-   PVHalo const *haloOrig = &originalLayer->getLayerLoc()->halo;
+   PVHalo const *haloOrig = &mOriginalLayer->getLayerLoc()->halo;
    PVHalo const *halo     = &loc->halo;
    int nx                 = loc->nx;
    int ny                 = loc->ny;
@@ -318,7 +318,7 @@ void ShuffleLayer::rejectionShuffle(const float *sourceData, float *activity) {
 
 void ShuffleLayer::randomShuffle(const float *sourceData, float *activity) {
    const PVLayerLoc *loc  = getLayerLoc();
-   PVHalo const *haloOrig = &originalLayer->getLayerLoc()->halo;
+   PVHalo const *haloOrig = &mOriginalLayer->getLayerLoc()->halo;
    PVHalo const *halo     = &loc->halo;
    int nx                 = loc->nx;
    int ny                 = loc->ny;
@@ -371,10 +371,10 @@ void ShuffleLayer::randomShuffle(const float *sourceData, float *activity) {
 
 Response::Status ShuffleLayer::updateState(double timef, double dt) {
    // sourceData is extended
-   const float *sourceData     = originalLayer->getLayerData();
+   const float *sourceData     = mOriginalLayer->getLayerData();
    float *A                    = getActivity();
    const PVLayerLoc *loc       = getLayerLoc();
-   const PVLayerLoc *sourceLoc = originalLayer->getLayerLoc();
+   const PVLayerLoc *sourceLoc = mOriginalLayer->getLayerLoc();
 
    // Make sure layer loc and source layer loc is equivelent
    assert(loc->nx == sourceLoc->nx);

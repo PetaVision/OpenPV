@@ -13,15 +13,13 @@ Segmentify::Segmentify() {
 }
 
 int Segmentify::initialize_base() {
-   numChannels       = 0;
-   originalLayerName = NULL;
-   originalLayer     = NULL;
-   segmentLayerName  = NULL;
-   segmentLayer      = NULL;
-   numLabelVals      = 0;
-   labelIdxBuf       = NULL;
-   labelVals         = NULL;
-   labelCount        = NULL;
+   numChannels      = 0;
+   segmentLayerName = NULL;
+   segmentLayer     = NULL;
+   numLabelVals     = 0;
+   labelIdxBuf      = NULL;
+   labelVals        = NULL;
+   labelCount       = NULL;
 
    return PV_SUCCESS;
 }
@@ -31,9 +29,20 @@ int Segmentify::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+void Segmentify::setObserverTable() {
+   HyPerLayer::setObserverTable();
+   auto *originalLayerNameParam = createOriginalLayerNameParam();
+   if (originalLayerNameParam) {
+      addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);
+   }
+}
+
+OriginalLayerNameParam *Segmentify::createOriginalLayerNameParam() {
+   return new OriginalLayerNameParam(name, parent);
+}
+
 int Segmentify::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
-   ioParam_originalLayerName(ioFlag);
    ioParam_segmentLayerName(ioFlag);
    ioParam_inputMethod(ioFlag);
    ioParam_outputMethod(ioFlag);
@@ -74,19 +83,6 @@ void Segmentify::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void Segmentify::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, "originalLayerName", &originalLayerName);
-   assert(originalLayerName);
-   if (ioFlag == PARAMS_IO_READ && originalLayerName[0] == '\0') {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf("%s: originalLayerName must be set.\n", getDescription_c());
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-}
-
 void Segmentify::ioParam_segmentLayerName(enum ParamsIOFlag ioFlag) {
    parent->parameters()->ioParamStringRequired(ioFlag, name, "segmentLayerName", &segmentLayerName);
    assert(segmentLayerName);
@@ -106,19 +102,9 @@ Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
       return status;
    }
 
-   // Get original layer
-   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
-   if (originalLayer == NULL) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-               getDescription_c(),
-               originalLayerName);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   if (originalLayer->getInitInfoCommunicatedFlag() == false) {
+   setOriginalLayer();
+   pvAssert(mOriginalLayer);
+   if (mOriginalLayer->getInitInfoCommunicatedFlag() == false) {
       return Response::POSTPONE;
    }
 
@@ -139,12 +125,12 @@ Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
       return Response::POSTPONE;
    }
 
-   // Sync with input layer
-   originalLayer->synchronizeMarginWidth(this);
-   this->synchronizeMarginWidth(originalLayer);
+   // Sync margins with input layer
+   mOriginalLayer->synchronizeMarginWidth(this);
+   this->synchronizeMarginWidth(mOriginalLayer);
 
    // Check sizes
-   const PVLayerLoc *srcLoc  = originalLayer->getLayerLoc();
+   const PVLayerLoc *srcLoc  = mOriginalLayer->getLayerLoc();
    const PVLayerLoc *segLoc  = segmentLayer->getLayerLoc();
    const PVLayerLoc *thisLoc = getLayerLoc();
    assert(srcLoc != NULL && segLoc != NULL);
@@ -156,7 +142,7 @@ Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
          errorMessage.printf(
                "%s: originalLayer \"%s\" does not have the same feature dimension as this layer.\n",
                getDescription_c(),
-               originalLayerName);
+               mOriginalLayer->getName());
          errorMessage.printf("    original (nf=%d) versus (nf=%d)\n", srcLoc->nf, thisLoc->nf);
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
@@ -176,6 +162,31 @@ Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    }
 
    return Response::SUCCESS;
+}
+
+void Segmentify::setOriginalLayer() {
+   auto *originalLayerNameParam = getComponentByType<OriginalLayerNameParam>();
+   pvAssert(originalLayerNameParam);
+
+   ComponentBasedObject *originalObject = nullptr;
+   try {
+      originalObject = originalLayerNameParam->findLinkedObject(mObserverTable.getObjectMap());
+   } catch (std::invalid_argument &e) {
+      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
+   }
+   pvAssert(originalObject);
+
+   mOriginalLayer = dynamic_cast<HyPerLayer *>(originalObject);
+   if (mOriginalLayer == nullptr) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         ErrorLog().printf(
+               "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
+               getDescription_c(),
+               originalObject->getName());
+      }
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      exit(EXIT_FAILURE);
+   }
 }
 
 Response::Status Segmentify::allocateDataStructures() {
@@ -275,18 +286,18 @@ int Segmentify::buildLabelToIdx(int batchIdx) {
 int Segmentify::calculateLabelVals(int batchIdx) {
    Communicator *icComm = parent->getCommunicator();
 
-   const PVLayerLoc *srcLoc = originalLayer->getLayerLoc();
+   const PVLayerLoc *srcLoc = mOriginalLayer->getLayerLoc();
    const PVLayerLoc *segLoc = segmentLayer->getLayerLoc();
 
    assert(segLoc->nf == 1);
 
-   float *srcA = originalLayer->getActivity();
+   float *srcA = mOriginalLayer->getActivity();
    float *segA = segmentLayer->getActivity();
 
    assert(srcA);
    assert(segA);
 
-   float *srcBatchA = srcA + batchIdx * originalLayer->getNumExtended();
+   float *srcBatchA = srcA + batchIdx * mOriginalLayer->getNumExtended();
    float *segBatchA = segA + batchIdx * segmentLayer->getNumExtended();
 
    // Loop through source values
@@ -456,9 +467,6 @@ Response::Status Segmentify::updateState(double timef, double dt) {
    return Response::SUCCESS;
 }
 
-Segmentify::~Segmentify() {
-   free(originalLayerName);
-   clayer->V = NULL;
-}
+Segmentify::~Segmentify() { clayer->V = NULL; }
 
 } /* namespace PV */

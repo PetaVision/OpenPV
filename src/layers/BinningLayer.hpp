@@ -2,14 +2,13 @@
 #define BINNINGLAYER_HPP_
 
 #include "HyPerLayer.hpp"
+#include "components/OriginalLayerNameParam.hpp"
 
 namespace PV {
 
 class BinningLayer : public PV::HyPerLayer {
   public:
    BinningLayer(const char *name, HyPerCol *hc);
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
    virtual bool activityIsSpiking() override { return false; }
    virtual ~BinningLayer();
@@ -17,14 +16,18 @@ class BinningLayer : public PV::HyPerLayer {
   protected:
    BinningLayer();
    int initialize(const char *name, HyPerCol *hc);
+   virtual void setObserverTable() override;
+   virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
    void ioParam_delay(enum ParamsIOFlag ioFlag);
    void ioParam_binSigma(enum ParamsIOFlag ioFlag);
    void ioParam_zeroNeg(enum ParamsIOFlag ioFlag);
    void ioParam_zeroDCR(enum ParamsIOFlag ioFlag);
    void ioParam_normalDist(enum ParamsIOFlag ioFlag);
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   void setOriginalLayer();
    virtual void allocateV() override;
    virtual void initializeV() override;
    virtual void initializeActivity() override;
@@ -53,8 +56,7 @@ class BinningLayer : public PV::HyPerLayer {
    bool normalDist;
 
   protected:
-   char *originalLayerName;
-   HyPerLayer *originalLayer;
+   HyPerLayer *mOriginalLayer = nullptr;
 }; // class BinningLayer
 
 } /* namespace PV */

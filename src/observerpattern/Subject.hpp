@@ -63,7 +63,7 @@ class Subject {
    /**
     * The virtual method for populating the ObserverTable data member.
     */
-   virtual void setObserverTable(){};
+   virtual void setObserverTable() {}
 
    /**
     * This method calls the respond() method of each object in the given table, using the given

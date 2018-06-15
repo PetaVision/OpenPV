@@ -20,9 +20,7 @@ InputRegionLayer::InputRegionLayer() {
 }
 
 int InputRegionLayer::initialize_base() {
-   numChannels       = 0;
-   originalLayerName = nullptr;
-   originalLayer     = nullptr;
+   numChannels = 0;
    return PV_SUCCESS;
 }
 
@@ -31,15 +29,16 @@ int InputRegionLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int InputRegionLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
-   ioParam_originalLayerName(ioFlag);
-   return status;
+void InputRegionLayer::setObserverTable() {
+   HyPerLayer::setObserverTable();
+   auto *originalLayerNameParam = createOriginalLayerNameParam();
+   if (originalLayerNameParam) {
+      addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);
+   }
 }
 
-void InputRegionLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, "originalLayerName", &originalLayerName);
+OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
+   return new OriginalLayerNameParam(name, parent);
 }
 
 void InputRegionLayer::ioParam_phase(enum ParamsIOFlag ioFlag) {
@@ -101,48 +100,50 @@ InputRegionLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    if (!Response::completed(status)) {
       return status;
    }
-   setOriginalLayer(message->lookup<HyPerLayer>(std::string(originalLayerName)));
-   pvAssert(originalLayer);
-   if (!originalLayer->getInitInfoCommunicatedFlag()) {
+
+   setOriginalLayer();
+   pvAssert(mOriginalLayer);
+   if (!mOriginalLayer->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE; // Make sure original layer has all the information we need to copy
    }
-   phase        = originalLayer->getPhase();
-   mirrorBCflag = originalLayer->useMirrorBCs();
-   valueBC      = originalLayer->getValueBC();
+   mOriginalLayer->makeInputRegionsPointer();
+   phase        = mOriginalLayer->getPhase();
+   mirrorBCflag = mOriginalLayer->useMirrorBCs();
+   valueBC      = mOriginalLayer->getValueBC();
    checkLayerDimensions();
-   synchronizeMarginWidth(originalLayer);
-   originalLayer->synchronizeMarginWidth(this);
+   synchronizeMarginWidth(mOriginalLayer);
+   mOriginalLayer->synchronizeMarginWidth(this);
    return Response::SUCCESS;
 }
 
-void InputRegionLayer::setOriginalLayer(HyPerLayer *layer) {
-   if (layer == nullptr) {
-      if (parent->columnId() == 0) {
+void InputRegionLayer::setOriginalLayer() {
+   auto *originalLayerNameParam = getComponentByType<OriginalLayerNameParam>();
+   pvAssert(originalLayerNameParam);
+
+   ComponentBasedObject *originalObject = nullptr;
+   try {
+      originalObject = originalLayerNameParam->findLinkedObject(mObserverTable.getObjectMap());
+   } catch (std::invalid_argument &e) {
+      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
+   }
+   pvAssert(originalObject);
+
+   mOriginalLayer = dynamic_cast<InputLayer *>(originalObject);
+   if (mOriginalLayer == nullptr) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(),
-               originalLayerName);
+               originalObject->getName());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
       exit(EXIT_FAILURE);
    }
-   originalLayer = dynamic_cast<InputLayer *>(layer);
-   if (originalLayer == nullptr) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: originalLayerName \"%s\" is not an InputLayer-derived class.\n",
-               getDescription_c(),
-               originalLayerName);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   originalLayer->makeInputRegionsPointer();
 }
 
 void InputRegionLayer::checkLayerDimensions() {
-   pvAssert(originalLayer);
-   const PVLayerLoc *srcLoc = originalLayer->getLayerLoc();
+   pvAssert(mOriginalLayer);
+   const PVLayerLoc *srcLoc = mOriginalLayer->getLayerLoc();
    const PVLayerLoc *loc    = getLayerLoc();
    pvAssert(srcLoc != nullptr && loc != nullptr);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal
@@ -152,7 +153,7 @@ void InputRegionLayer::checkLayerDimensions() {
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same dimensions.\n",
                getDescription_c(),
-               originalLayerName);
+               mOriginalLayer->getName());
          errorMessage.printf(
                "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                srcLoc->nxGlobal,
@@ -169,7 +170,7 @@ void InputRegionLayer::checkLayerDimensions() {
 }
 
 Response::Status InputRegionLayer::allocateDataStructures() {
-   if (!originalLayer->getDataStructuresAllocatedFlag()) {
+   if (!mOriginalLayer->getDataStructuresAllocatedFlag()) {
       // original layer needs to create InputRegionsAllBatchElements first
       return Response::POSTPONE;
    }
@@ -185,7 +186,7 @@ void InputRegionLayer::allocateActivity() {
    cube->size       = pvcube_size(numItems);
    cube->numItems   = numItems;
    cube->loc        = *getLayerLoc();
-   cube->data       = originalLayer->getInputRegionsAllBatchElements();
+   cube->data       = mOriginalLayer->getInputRegionsAllBatchElements();
    clayer->activity = cube;
 }
 
@@ -207,6 +208,6 @@ void InputRegionLayer::allocateGSyn() { pvAssert(GSyn == nullptr); }
 
 bool InputRegionLayer::needUpdate(double timed, double dt) { return false; }
 
-InputRegionLayer::~InputRegionLayer() { free(originalLayerName); }
+InputRegionLayer::~InputRegionLayer() {}
 
 } /* namespace PV */

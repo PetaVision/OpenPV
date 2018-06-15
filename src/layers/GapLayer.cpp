@@ -25,10 +25,7 @@ int GapLayer::initialize_base() {
 }
 
 int GapLayer::initialize(const char *name, HyPerCol *hc) {
-   int status_init = CloneVLayer::initialize(name, hc);
-   assert(originalLayerName != NULL);
-
-   return status_init;
+   return CloneVLayer::initialize(name, hc);
 }
 
 int GapLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -59,7 +56,7 @@ Response::Status GapLayer::updateState(double timef, double dt) {
          getLayerLoc(),
          getCLayer()->activity->data,
          getV(),
-         originalLayer->getCLayer()->activity->data);
+         mOriginalLayer->getCLayer()->activity->data);
    return Response::SUCCESS;
 }
 
@@ -88,10 +85,10 @@ void GapLayer::updateState(
          loc->halo.rt,
          loc->halo.dn,
          loc->halo.up,
-         originalLayer->getLayerLoc()->halo.lt,
-         originalLayer->getLayerLoc()->halo.rt,
-         originalLayer->getLayerLoc()->halo.dn,
-         originalLayer->getLayerLoc()->halo.up,
+         mOriginalLayer->getLayerLoc()->halo.lt,
+         mOriginalLayer->getLayerLoc()->halo.rt,
+         mOriginalLayer->getLayerLoc()->halo.dn,
+         mOriginalLayer->getLayerLoc()->halo.up,
          checkActive,
          ampSpikelet);
 }
@@ -110,10 +107,10 @@ int GapLayer::setActivity() {
          loc->halo.rt,
          loc->halo.dn,
          loc->halo.up,
-         originalLayer->getLayerLoc()->halo.lt,
-         originalLayer->getLayerLoc()->halo.rt,
-         originalLayer->getLayerLoc()->halo.dn,
-         originalLayer->getLayerLoc()->halo.up,
+         mOriginalLayer->getLayerLoc()->halo.lt,
+         mOriginalLayer->getLayerLoc()->halo.rt,
+         mOriginalLayer->getLayerLoc()->halo.dn,
+         mOriginalLayer->getLayerLoc()->halo.up,
          getCLayer()->activity->data,
          ampSpikelet);
 }

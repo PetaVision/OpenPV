@@ -20,9 +20,7 @@ CloneVLayer::CloneVLayer() {
 }
 
 int CloneVLayer::initialize_base() {
-   numChannels       = 0;
-   originalLayerName = NULL;
-   originalLayer     = NULL;
+   numChannels = 0;
    return PV_SUCCESS;
 }
 
@@ -31,15 +29,16 @@ int CloneVLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int CloneVLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
-   ioParam_originalLayerName(ioFlag);
-   return status;
+void CloneVLayer::setObserverTable() {
+   HyPerLayer::setObserverTable();
+   auto *originalLayerNameParam = createOriginalLayerNameParam();
+   if (originalLayerNameParam) {
+      addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);
+   }
 }
 
-void CloneVLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, "originalLayerName", &originalLayerName);
+OriginalLayerNameParam *CloneVLayer::createOriginalLayerNameParam() {
+   return new OriginalLayerNameParam(name, parent);
 }
 
 void CloneVLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
@@ -54,18 +53,10 @@ CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    if (!Response::completed(status)) {
       return status;
    }
-   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
-   if (originalLayer == NULL) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-               getDescription_c(),
-               originalLayerName);
-      }
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   const PVLayerLoc *srcLoc = originalLayer->getLayerLoc();
+
+   setOriginalLayer();
+   pvAssert(mOriginalLayer);
+   const PVLayerLoc *srcLoc = mOriginalLayer->getLayerLoc();
    const PVLayerLoc *loc    = getLayerLoc();
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal
@@ -75,7 +66,7 @@ CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same dimensions.\n",
                getDescription_c(),
-               originalLayerName);
+               mOriginalLayer->getName());
          errorMessage.printf(
                "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                srcLoc->nxGlobal,
@@ -92,12 +83,37 @@ CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    return Response::SUCCESS;
 }
 
+void CloneVLayer::setOriginalLayer() {
+   auto *originalLayerNameParam = getComponentByType<OriginalLayerNameParam>();
+   pvAssert(originalLayerNameParam);
+
+   ComponentBasedObject *originalObject = nullptr;
+   try {
+      originalObject = originalLayerNameParam->findLinkedObject(mObserverTable.getObjectMap());
+   } catch (std::invalid_argument &e) {
+      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
+   }
+   pvAssert(originalObject);
+
+   mOriginalLayer = dynamic_cast<HyPerLayer *>(originalObject);
+   if (mOriginalLayer == nullptr) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         ErrorLog().printf(
+               "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
+               getDescription_c(),
+               originalObject->getName());
+      }
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      exit(EXIT_FAILURE);
+   }
+}
+
 Response::Status CloneVLayer::allocateDataStructures() {
-   assert(originalLayer);
+   assert(mOriginalLayer);
    auto status = Response::SUCCESS;
-   // Make sure originalLayer has allocated its V buffer before copying its address to clone's V
-   // buffer
-   if (originalLayer->getDataStructuresAllocatedFlag()) {
+   // Make sure mOriginalLayer has allocated its V buffer before copying its address to
+   // clone's V buffer
+   if (mOriginalLayer->getDataStructuresAllocatedFlag()) {
       status = HyPerLayer::allocateDataStructures();
    }
    else {
@@ -107,13 +123,13 @@ Response::Status CloneVLayer::allocateDataStructures() {
 }
 
 void CloneVLayer::allocateV() {
-   assert(originalLayer && originalLayer->getCLayer());
-   clayer->V = originalLayer->getV();
+   assert(mOriginalLayer && mOriginalLayer->getCLayer());
+   clayer->V = mOriginalLayer->getV();
    if (getV() == NULL) {
       Fatal().printf(
-            "%s: originalLayer \"%s\" has a null V buffer in rank %d process.\n",
+            "%s: original layer \"%s\" has a null V buffer in rank %d process.\n",
             getDescription_c(),
-            originalLayerName,
+            mOriginalLayer->getName(),
             parent->columnId());
    }
 }
@@ -173,9 +189,6 @@ Response::Status CloneVLayer::updateState(double timed, double dt) {
    return Response::SUCCESS;
 }
 
-CloneVLayer::~CloneVLayer() {
-   free(originalLayerName);
-   clayer->V = NULL;
-}
+CloneVLayer::~CloneVLayer() { clayer->V = NULL; }
 
 } /* namespace PV */

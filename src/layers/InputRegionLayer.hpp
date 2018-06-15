@@ -8,6 +8,7 @@
 #ifndef INPUTREGIONLAYER_HPP_
 #define INPUTREGIONLAYER_HPP_
 
+#include "components/OriginalLayerNameParam.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/InputLayer.hpp"
 
@@ -25,13 +26,13 @@ class InputRegionLayer : public HyPerLayer {
    virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
    virtual bool needUpdate(double timestamp, double dt) override;
    virtual bool activityIsSpiking() override { return false; }
-   InputLayer *getOriginalLayer() { return originalLayer; }
+   InputLayer *getOriginalLayer() { return mOriginalLayer; }
 
   protected:
    InputRegionLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
+   void setObserverTable();
+   virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    virtual void ioParam_phase(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag) override;
@@ -41,7 +42,7 @@ class InputRegionLayer : public HyPerLayer {
    virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   void setOriginalLayer(HyPerLayer *layer);
+   void setOriginalLayer();
    void checkLayerDimensions();
    virtual Response::Status allocateDataStructures() override;
    virtual void allocateGSyn() override;
@@ -53,8 +54,7 @@ class InputRegionLayer : public HyPerLayer {
    int initialize_base();
 
   protected:
-   char *originalLayerName;
-   InputLayer *originalLayer;
+   InputLayer *mOriginalLayer = nullptr;
 }; // class InputRegionLayer
 
 } /* namespace PV */

@@ -21,7 +21,6 @@ BackgroundLayer::BackgroundLayer(const char *name, HyPerCol *hc) {
 BackgroundLayer::~BackgroundLayer() {}
 
 int BackgroundLayer::initialize_base() {
-   originalLayer = NULL;
    repFeatureNum = 1;
    return PV_SUCCESS;
 }
@@ -38,18 +37,11 @@ BackgroundLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    if (!Response::completed(status)) {
       return status;
    }
-   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
-   if (originalLayer == NULL) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-               getDescription_c(),
-               originalLayerName);
-      }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-      exit(EXIT_FAILURE);
-   }
-   const PVLayerLoc *srcLoc = originalLayer->getLayerLoc();
+
+   setOriginalLayer();
+   pvAssert(mOriginalLayer);
+
+   const PVLayerLoc *srcLoc = mOriginalLayer->getLayerLoc();
    const PVLayerLoc *loc    = getLayerLoc();
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
@@ -58,7 +50,7 @@ BackgroundLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same X/Y dimensions.\n",
                getDescription_c(),
-               originalLayerName);
+               mOriginalLayer->getName());
          errorMessage.printf(
                "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                srcLoc->nxGlobal,
@@ -79,7 +71,7 @@ BackgroundLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
                "where n is the orig layer number of features.\n",
                getDescription_c(),
                (srcLoc->nf + 1) * repFeatureNum,
-               originalLayerName);
+               mOriginalLayer->getName());
          errorMessage.printf(
                "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                srcLoc->nxGlobal,
@@ -123,9 +115,9 @@ int BackgroundLayer::setActivity() {
 
 Response::Status BackgroundLayer::updateState(double timef, double dt) {
    float *A                      = clayer->activity->data;
-   const float *originalA        = originalLayer->getCLayer()->activity->data;
+   const float *originalA        = mOriginalLayer->getCLayer()->activity->data;
    const PVLayerLoc *loc         = getLayerLoc();
-   const PVLayerLoc *locOriginal = originalLayer->getLayerLoc();
+   const PVLayerLoc *locOriginal = mOriginalLayer->getLayerLoc();
 
    // Make sure all sizes match
    assert(locOriginal->nx == loc->nx);
@@ -143,7 +135,7 @@ Response::Status BackgroundLayer::updateState(double timef, double dt) {
 
    for (int b = 0; b < nbatch; b++) {
       float *ABatch               = A + b * getNumExtended();
-      const float *originalABatch = originalA + b * originalLayer->getNumExtended();
+      const float *originalABatch = originalA + b * mOriginalLayer->getNumExtended();
 
 // Loop through all nx and ny
 // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside

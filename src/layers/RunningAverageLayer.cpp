@@ -21,7 +21,6 @@ RunningAverageLayer::RunningAverageLayer(const char *name, HyPerCol *hc) {
 RunningAverageLayer::~RunningAverageLayer() {}
 
 int RunningAverageLayer::initialize_base() {
-   originalLayer      = NULL;
    numImagesToAverage = 10;
    numUpdateTimes     = 0;
    return PV_SUCCESS;
@@ -35,7 +34,7 @@ int RunningAverageLayer::initialize(const char *name, HyPerCol *hc) {
 Response::Status RunningAverageLayer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    return CloneVLayer::communicateInitInfo(message);
-   // CloneVLayer sets originalLayer and errors out if originalLayerName is not valid
+   // CloneVLayer sets mOriginalLayer and errors out if originalLayerName is not valid
 }
 
 // RunningAverageLayer does not use the V buffer, so absolutely fine to clone off of an null V layer
@@ -69,11 +68,11 @@ Response::Status RunningAverageLayer::updateState(double timef, double dt) {
    numUpdateTimes++;
    // Check if an update is needed
    // Done in cloneVLayer
-   int numNeurons                = originalLayer->getNumNeurons();
+   int numNeurons                = mOriginalLayer->getNumNeurons();
    float *A                      = clayer->activity->data;
-   const float *originalA        = originalLayer->getCLayer()->activity->data;
+   const float *originalA        = mOriginalLayer->getCLayer()->activity->data;
    const PVLayerLoc *loc         = getLayerLoc();
-   const PVLayerLoc *locOriginal = originalLayer->getLayerLoc();
+   const PVLayerLoc *locOriginal = mOriginalLayer->getLayerLoc();
    int nbatch                    = loc->nbatch;
    // Make sure all sizes match
    assert(locOriginal->nx == loc->nx);
@@ -81,7 +80,7 @@ Response::Status RunningAverageLayer::updateState(double timef, double dt) {
    assert(locOriginal->nf == loc->nf);
 
    for (int b = 0; b < nbatch; b++) {
-      const float *originalABatch = originalA + b * originalLayer->getNumExtended();
+      const float *originalABatch = originalA + b * mOriginalLayer->getNumExtended();
       float *ABatch               = A + b * getNumExtended();
       if (numUpdateTimes < numImagesToAverage * dt) {
 #ifdef PV_USE_OPENMP_THREADS

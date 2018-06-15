@@ -2,6 +2,7 @@
 #define SEGMENTLAYER_HPP_
 
 #include "HyPerLayer.hpp"
+#include "components/OriginalLayerNameParam.hpp"
 #include <map>
 
 namespace PV {
@@ -9,8 +10,6 @@ namespace PV {
 class SegmentLayer : public PV::HyPerLayer {
   public:
    SegmentLayer(const char *name, HyPerCol *hc);
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
    virtual bool activityIsSpiking() override { return false; }
    virtual ~SegmentLayer();
@@ -19,9 +18,13 @@ class SegmentLayer : public PV::HyPerLayer {
   protected:
    SegmentLayer();
    int initialize(const char *name, HyPerCol *hc);
+   virtual void setObserverTable() override;
+   virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_segmentMethod(enum ParamsIOFlag ioFlag);
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   void setOriginalLayer();
    virtual void initializeActivity() override;
 
    virtual void allocateV() override;
@@ -39,8 +42,7 @@ class SegmentLayer : public PV::HyPerLayer {
 
    // Data structures to keep track of segmentation labels and centroid idx
    char *segmentMethod;
-   char *originalLayerName;
-   HyPerLayer *originalLayer;
+   HyPerLayer *mOriginalLayer = nullptr;
 
   protected:
    int labelBufSize;

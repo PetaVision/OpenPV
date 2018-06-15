@@ -15,8 +15,6 @@ namespace PV {
 /**
  * A component to contain the originalConnName param, used by connection
  * types (TransposeConn, CloneConn, etc.) that are dependent on another connection.
- * patch size. The dimensions are read from the originalConnName parameter, and
- * retrieved using the getOriginalConnName() method.
  */
 class OriginalConnNameParam : public LinkedObjectParam {
   public:

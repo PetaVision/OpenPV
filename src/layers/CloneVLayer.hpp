@@ -9,27 +9,29 @@
 #define CLONEVLAYER_HPP_
 
 #include "HyPerLayer.hpp"
+#include "components/OriginalLayerNameParam.hpp"
 
 namespace PV {
 
 class CloneVLayer : public PV::HyPerLayer {
   public:
    CloneVLayer(const char *name, HyPerCol *hc);
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
    virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
    virtual void allocateGSyn() override;
    virtual bool activityIsSpiking() override { return false; }
-   HyPerLayer *getOriginalLayer() { return originalLayer; }
+   HyPerLayer *getOriginalLayer() { return mOriginalLayer; }
    virtual ~CloneVLayer();
 
   protected:
    CloneVLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
+   virtual void setObserverTable() override;
+   virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   void setOriginalLayer();
    virtual void allocateV() override;
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
@@ -41,8 +43,7 @@ class CloneVLayer : public PV::HyPerLayer {
    int initialize_base();
 
   protected:
-   char *originalLayerName;
-   HyPerLayer *originalLayer;
+   HyPerLayer *mOriginalLayer = nullptr;
 }; // class CloneVLayer
 
 } /* namespace PV */

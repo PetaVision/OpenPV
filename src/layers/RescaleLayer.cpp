@@ -18,7 +18,6 @@ RescaleLayer::RescaleLayer(const char *name, HyPerCol *hc) {
 RescaleLayer::~RescaleLayer() { free(rescaleMethod); }
 
 int RescaleLayer::initialize_base() {
-   originalLayer = NULL;
    targetMax     = 1;
    targetMin     = -1;
    targetMean    = 0;
@@ -37,7 +36,7 @@ int RescaleLayer::initialize(const char *name, HyPerCol *hc) {
 Response::Status
 RescaleLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    return CloneVLayer::communicateInitInfo(message);
-   // CloneVLayer sets originalLayer and errors out if originalLayerName is not valid
+   // CloneVLayer sets mOriginalLayer and errors out if originalLayerName is not valid
 }
 
 // Rescale layer does not use the V buffer, so absolutely fine to clone off of an null V layer
@@ -131,11 +130,11 @@ int RescaleLayer::setActivity() {
 
 // GTK: changed to rescale activity instead of V
 Response::Status RescaleLayer::updateState(double timef, double dt) {
-   int numNeurons                = originalLayer->getNumNeurons();
+   int numNeurons                = mOriginalLayer->getNumNeurons();
    float *A                      = clayer->activity->data;
-   const float *originalA        = originalLayer->getCLayer()->activity->data;
+   const float *originalA        = mOriginalLayer->getCLayer()->activity->data;
    const PVLayerLoc *loc         = getLayerLoc();
-   const PVLayerLoc *locOriginal = originalLayer->getLayerLoc();
+   const PVLayerLoc *locOriginal = mOriginalLayer->getLayerLoc();
    int nbatch                    = loc->nbatch;
    // Make sure all sizes match
    assert(locOriginal->nx == loc->nx);
@@ -143,7 +142,7 @@ Response::Status RescaleLayer::updateState(double timef, double dt) {
    assert(locOriginal->nf == loc->nf);
 
    for (int b = 0; b < nbatch; b++) {
-      const float *originalABatch = originalA + b * originalLayer->getNumExtended();
+      const float *originalABatch = originalA + b * mOriginalLayer->getNumExtended();
       float *ABatch               = A + b * getNumExtended();
 
       if (strcmp(rescaleMethod, "maxmin") == 0) {
@@ -258,7 +257,7 @@ Response::Status RescaleLayer::updateState(double timef, double dt) {
                MPI_SUM,
                parent->getCommunicator()->communicator());
 
-         float mean = sum / originalLayer->getNumGlobalNeurons();
+         float mean = sum / mOriginalLayer->getNumGlobalNeurons();
 
 // Find (val - mean)^2 of originalA
 #ifdef PV_USE_OPENMP_THREADS
@@ -284,7 +283,7 @@ Response::Status RescaleLayer::updateState(double timef, double dt) {
                MPI_FLOAT,
                MPI_SUM,
                parent->getCommunicator()->communicator());
-         float std = sqrtf(sumsq / originalLayer->getNumGlobalNeurons());
+         float std = sqrtf(sumsq / mOriginalLayer->getNumGlobalNeurons());
          // The difference between the if and the else clauses is only in the computation of
          // A[kext], but this
          // way the std != 0.0 conditional is only evaluated once, not every time through the
@@ -371,7 +370,7 @@ Response::Status RescaleLayer::updateState(double timef, double dt) {
                MPI_SUM,
                parent->getCommunicator()->communicator());
 
-         float mean = sum / originalLayer->getNumGlobalNeurons();
+         float mean = sum / mOriginalLayer->getNumGlobalNeurons();
 
 // Find (val - mean)^2 of originalA
 #ifdef PV_USE_OPENMP_THREADS
@@ -397,7 +396,7 @@ Response::Status RescaleLayer::updateState(double timef, double dt) {
                MPI_FLOAT,
                MPI_SUM,
                parent->getCommunicator()->communicator());
-         float std = sqrtf(sumsq / originalLayer->getNumGlobalNeurons());
+         float std = sqrtf(sumsq / mOriginalLayer->getNumGlobalNeurons());
          // The difference between the if and the else clauses is only in the computation of
          // A[kext], but this
          // way the std != 0.0 conditional is only evaluated once, not every time through the
@@ -431,7 +430,7 @@ Response::Status RescaleLayer::updateState(double timef, double dt) {
             }
          }
          else {
-            WarnLog() << "std of layer " << originalLayer->getName()
+            WarnLog() << "std of layer " << mOriginalLayer->getName()
                       << " is 0, layer remains unchanged\n";
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
@@ -487,7 +486,7 @@ Response::Status RescaleLayer::updateState(double timef, double dt) {
                parent->getCommunicator()->communicator());
 #endif // PV_USE_MPI
 
-         float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
+         float std = sqrt(sumsq / mOriginalLayer->getNumGlobalNeurons());
          // The difference between the if and the else clauses is only in the computation of
          // A[kext], but this
          // way the std != 0.0 conditional is only evaluated once, not every time through the
@@ -520,7 +519,7 @@ Response::Status RescaleLayer::updateState(double timef, double dt) {
             }
          }
          else {
-            WarnLog() << "std of layer " << originalLayer->getName()
+            WarnLog() << "std of layer " << mOriginalLayer->getName()
                       << " is 0, layer remains unchanged\n";
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
