@@ -33,7 +33,7 @@ PlasticCloneConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
          originalConnNameParam == nullptr,
          "%s requires an OriginalConnNameParam component.\n",
          getDescription_c());
-   auto *originalConnName = originalConnNameParam->getOriginalConnName();
+   auto *originalConnName = originalConnNameParam->getLinkedObjectName();
    auto *originalConn     = message->lookup<HyPerConn>(std::string(originalConnName));
    pvAssert(originalConn); // CloneConn::communicateInitInfo should have failed if this fails.
    auto *originalUpdater = originalConn->getComponentByType<HebbianUpdater>();

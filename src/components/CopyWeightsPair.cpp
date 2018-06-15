@@ -48,11 +48,11 @@ CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
       ComponentBasedObject *originalConn = nullptr;
       try {
-         originalConn = originalConnNameParam->findOriginalObject(message->mHierarchy);
+         originalConn = originalConnNameParam->findLinkedObject(message->mHierarchy);
       } catch (std::invalid_argument &e) {
          Fatal().printf("%s: %s\n", getDescription_c(), e.what());
       }
-      pvAssert(originalConn); // findOriginalObject() throws instead of returns nullptr
+      pvAssert(originalConn); // findLinkedObject() throws instead of returns nullptr
 
       if (!originalConn->getInitInfoCommunicatedFlag()) {
          if (parent->getCommunicator()->globalCommRank() == 0) {

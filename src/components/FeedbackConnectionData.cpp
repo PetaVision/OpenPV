@@ -42,7 +42,7 @@ Response::Status FeedbackConnectionData::communicateInitInfo(
    auto hierarchy              = message->mHierarchy;
    auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
    pvAssert(originalConnNameParam);
-   char const *originalConnName = originalConnNameParam->getOriginalConnName();
+   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
 
    ObjectMapComponent *objectMapComponent;
    objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);

@@ -54,7 +54,7 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
 
    ComponentBasedObject *originalConn = nullptr;
    try {
-      originalConn = originalConnNameParam->findOriginalObject(message->mHierarchy);
+      originalConn = originalConnNameParam->findLinkedObject(message->mHierarchy);
    } catch (std::invalid_argument &e) {
       Fatal().printf("%s: %s\n", getDescription_c(), e.what());
    }

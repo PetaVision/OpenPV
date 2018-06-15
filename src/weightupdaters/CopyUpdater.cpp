@@ -51,7 +51,7 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
       return Response::POSTPONE;
    }
 
-   char const *originalConnName = originalConnNameParam->getOriginalConnName();
+   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
    pvAssert(originalConnName != nullptr and originalConnName[0] != '\0');
 
    auto hierarchy           = message->mHierarchy;

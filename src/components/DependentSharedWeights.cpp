@@ -56,7 +56,7 @@ Response::Status DependentSharedWeights::communicateInitInfo(
 
    ComponentBasedObject *originalConn = nullptr;
    try {
-      originalConn = originalConnNameParam->findOriginalObject(message->mHierarchy);
+      originalConn = originalConnNameParam->findLinkedObject(message->mHierarchy);
    } catch (std::invalid_argument &e) {
       Fatal().printf("%s: %s\n", getDescription_c(), e.what());
    }
@@ -93,7 +93,7 @@ char const *DependentSharedWeights::getOriginalConnName(
       std::map<std::string, Observer *> const hierarchy) const {
    auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
    pvAssert(originalConnNameParam);
-   char const *originalConnName = originalConnNameParam->getOriginalConnName();
+   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
    return originalConnName;
 }
 

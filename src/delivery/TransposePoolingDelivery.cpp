@@ -72,7 +72,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
-   const char *originalConnName = originalConnNameParam->getOriginalConnName();
+   const char *originalConnName = originalConnNameParam->getLinkedObjectName();
 
    auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
    FatalIf(

@@ -8,8 +8,7 @@
 #ifndef ORIGINALCONNNAMEPARAM_HPP_
 #define ORIGINALCONNNAMEPARAM_HPP_
 
-#include "columns/BaseObject.hpp"
-#include "columns/ComponentBasedObject.hpp"
+#include "components/LinkedObjectParam.hpp"
 
 namespace PV {
 
@@ -19,30 +18,11 @@ namespace PV {
  * patch size. The dimensions are read from the originalConnName parameter, and
  * retrieved using the getOriginalConnName() method.
  */
-class OriginalConnNameParam : public BaseObject {
-  protected:
-   /**
-    * List of parameters needed from the OriginalConnNameParam class
-    * @name OriginalConnNameParam Parameters
-    * @{
-    */
-
-   /**
-    * @brief originalConnName: String parameter. It cannot be null or empty,
-    * and must point to another connection in the hierarchy.
-    */
-   virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
-
-   /** @} */ // end of OriginalConnNameParam parameters
-
+class OriginalConnNameParam : public LinkedObjectParam {
   public:
    OriginalConnNameParam(char const *name, HyPerCol *hc);
 
    virtual ~OriginalConnNameParam();
-
-   char const *getOriginalConnName() const { return mOriginalConnName; }
-
-   ComponentBasedObject *findOriginalObject(std::map<std::string, Observer *> const &hierarchy);
 
   protected:
    OriginalConnNameParam() {}
@@ -50,11 +30,6 @@ class OriginalConnNameParam : public BaseObject {
    int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
-
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-
-  protected:
-   char *mOriginalConnName = nullptr;
 };
 
 } // namespace PV
