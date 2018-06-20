@@ -89,40 +89,4 @@ Response::Status DependentSharedWeights::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-char const *DependentSharedWeights::getOriginalConnName(
-      std::map<std::string, Observer *> const hierarchy) const {
-   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
-   pvAssert(originalConnNameParam);
-   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
-   return originalConnName;
-}
-
-SharedWeights *DependentSharedWeights::getOriginalSharedWeights(
-      std::map<std::string, Observer *> const hierarchy,
-      char const *originalConnName) const {
-   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
-   pvAssert(objectMapComponent);
-   auto *originalConn =
-         objectMapComponent->lookup<ComponentBasedObject>(std::string(originalConnName));
-   if (originalConn == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not correspond to a ComponentBasedObject in the "
-               "column.\n",
-               getDescription_c(),
-               originalConnName);
-      }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-      exit(PV_FAILURE);
-   }
-
-   auto *originalSharedWeights = originalConn->getComponentByType<SharedWeights>();
-   FatalIf(
-         originalSharedWeights == nullptr,
-         "%s original connection \"%s\" does not have an SharedWeights.\n",
-         getDescription_c(),
-         originalConnName);
-   return originalSharedWeights;
-}
-
 } // namespace PV

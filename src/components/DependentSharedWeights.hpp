@@ -48,11 +48,6 @@ class DependentSharedWeights : public SharedWeights {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   char const *getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const;
-   SharedWeights *getOriginalSharedWeights(
-         std::map<std::string, Observer *> const hierarchy,
-         char const *originalConnName) const;
-
 }; // class DependentSharedWeights
 
 } // namespace PV
