@@ -32,7 +32,7 @@ class KernelProbe : public BaseHyPerConnProbe {
    virtual void ioParam_outputWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_outputPlasticIncr(enum ParamsIOFlag ioFlag);
    virtual void ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag);
-   int patchIndices(HyPerConn *conn);
+   int patchIndices();
 
    virtual void initNumValues() override;
 
@@ -56,8 +56,12 @@ class KernelProbe : public BaseHyPerConnProbe {
    bool outputWeights; // whether to output W
    bool outputPlasticIncr; // whether to output dW
    bool outputPatchIndices; // whether to output which presynaptic neurons using
-   // the given kernel
-   // index
+   // the given kernel index
+
+   PatchSize const *mPatchSize;
+   Weights *mWeights; // should be const but Weights and PatchGeometry are not const-correct yet
+   float const *mWeightData;
+   float const *mDeltaWeightData;
 
 }; // end of class KernelProbe block
 

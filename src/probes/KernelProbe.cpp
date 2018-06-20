@@ -6,6 +6,8 @@
  */
 
 #include "KernelProbe.hpp"
+#include "components/SharedWeights.hpp"
+#include "weightupdaters/HebbianUpdater.hpp"
 
 namespace PV {
 
@@ -69,18 +71,64 @@ KernelProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    if (!Response::completed(status)) {
       return status;
    }
-   auto *targetHyPerConn = getTargetHyPerConn();
-   assert(targetHyPerConn);
-   if (targetHyPerConn->getSharedWeights() == false) {
+   pvAssert(mTargetConn);
+
+   auto *sharedWeights = mTargetConn->getComponentByType<SharedWeights>();
+   FatalIf(
+         sharedWeights == nullptr, 
+         "%s target connection \"%s\" does not have a SharedWeights component.\n",
+         getDescription_c(),
+         mTargetConn->getName());
+
+   if (!sharedWeights->getInitInfoCommunicatedFlag()) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s must wait until target connection \"%s\" has finished its CommunicateInitInfo "
+               "stage.\n",
+               getDescription_c(),
+               mTargetConn->getName());
+      }
+      return Response::POSTPONE;
+   }
+   if (sharedWeights->getSharedWeights() == false) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: %s is not using shared weights.\n",
                getDescription_c(),
-               targetHyPerConn->getDescription_c());
+               mTargetConn->getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+
+   mPatchSize = mTargetConn->getComponentByType<PatchSize>();
+   FatalIf(
+         mPatchSize == nullptr, 
+         "%s target connection \"%s\" does not have a PatchSize component.\n",
+         getDescription_c(),
+         mTargetConn->getName());
+
+   auto *weightsPair = mTargetConn->getComponentByType<WeightsPair>();
+   FatalIf(
+         weightsPair == nullptr, 
+         "%s target connection \"%s\" does not have a WeightsPair component.\n",
+         getDescription_c(),
+         mTargetConn->getName());
+   if (!weightsPair->getInitInfoCommunicatedFlag()) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s must wait until target connection \"%s\" has finished its CommunicateInitInfo "
+               "stage.\n",
+               getDescription_c(),
+               mTargetConn->getName());
+      }
+      return Response::POSTPONE;
+   }
+   weightsPair->needPre();
+
+   mWeights = weightsPair->getPreWeights();
+   pvAssert(mWeights); // Created by needPre() call.
+
    return Response::SUCCESS;
 }
 
@@ -89,22 +137,61 @@ Response::Status KernelProbe::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
-   auto *targetHyPerConn = getTargetHyPerConn();
-   assert(targetHyPerConn);
-   if (getKernelIndex() < 0 || getKernelIndex() >= targetHyPerConn->getNumDataPatches()) {
+
+   auto *arborList = mTargetConn->getComponentByType<ArborList>();
+   if (getArbor() < 0 || getArbor() >= arborList->getNumAxonalArbors()) {
       Fatal().printf(
-            "KernelProbe \"%s\": kernelIndex %d is out of bounds.  "
+            "KernelProbe \"%s\" arborId %d is out of bounds. (min 0, max %d)\n",
+            name,
+            getArbor(),
+            arborList->getNumAxonalArbors() - 1);
+   }
+
+   if (getKernelIndex() < 0 || getKernelIndex() >= mWeights->getNumDataPatches()) {
+      Fatal().printf(
+            "KernelProbe \"%s\" kernelIndex %d is out of bounds.  "
             "(min 0, max %d)\n",
             name,
             getKernelIndex(),
-            targetHyPerConn->getNumDataPatches() - 1);
+            mWeights->getNumDataPatches() - 1);
    }
-   if (getArbor() < 0 || getArbor() >= getTargetHyPerConn()->getNumAxonalArbors()) {
-      Fatal().printf(
-            "KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n",
-            name,
-            getArbor(),
-            getTargetHyPerConn()->getNumAxonalArbors() - 1);
+
+   pvAssert(mWeights); // Was set in CommunicateInitInfo stage
+   if (!mWeights->getDataStructuresAllocatedFlag()) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s must wait until target connection \"%s\" has finished its "
+               "AllocateDataStructures stage.\n",
+               getDescription_c(),
+               mTargetConn->getName());
+      }
+      return Response::POSTPONE;
+   }
+   mWeightData = mWeights->getDataReadOnly(getArbor());
+
+   if (outputPlasticIncr) {
+      auto *hebbianUpdater = mTargetConn->getComponentByType<HebbianUpdater>();
+      FatalIf(
+            hebbianUpdater == nullptr, 
+            "%s target connection \"%s\" does not have a HebbianUpdater component.\n",
+            getDescription_c(),
+            mTargetConn->getName());
+      FatalIf(
+            !hebbianUpdater->getPlasticityFlag(),
+            "%s target connection \"%s\" is not plastic, but outputPlasticIncr is set.\n",
+            getDescription_c(),
+            mTargetConn->getName());
+      if (!hebbianUpdater->getDataStructuresAllocatedFlag()) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
+            InfoLog().printf(
+                  "%s must wait until target connection \"%s\" has finished its "
+                  "AllocateDataStructures stage.\n",
+                  getDescription_c(),
+                  mTargetConn->getName());
+         }
+         return Response::POSTPONE;
+      }
+      mDeltaWeightData = hebbianUpdater->getDeltaWeightsDataStart(getArbor());
    }
 
    if (!mOutputStreams.empty()) {
@@ -112,7 +199,7 @@ Response::Status KernelProbe::allocateDataStructures() {
                 << getArbor() << ".\n";
    }
    if (getOutputPatchIndices()) {
-      patchIndices(targetHyPerConn);
+      patchIndices();
    }
 
    return Response::SUCCESS;
@@ -124,18 +211,13 @@ Response::Status KernelProbe::outputState(double timed) {
    }
    Communicator *icComm  = parent->getCommunicator();
    const int rank        = icComm->commRank();
-   auto *targetHyPerConn = getTargetHyPerConn();
-   assert(targetHyPerConn != nullptr);
-   int nxp       = targetHyPerConn->getPatchSizeX();
-   int nyp       = targetHyPerConn->getPatchSizeY();
-   int nfp       = targetHyPerConn->getPatchSizeF();
+   int nxp       = mPatchSize->getPatchSizeX();
+   int nyp       = mPatchSize->getPatchSizeY();
+   int nfp       = mPatchSize->getPatchSizeF();
    int patchSize = nxp * nyp * nfp;
 
-   const float *wdata = targetHyPerConn->getWeightsDataStart(arborID) + patchSize * kernelIndex;
-   const float *dwdata =
-         outputPlasticIncr
-               ? targetHyPerConn->getDeltaWeightsDataStart(arborID) + patchSize * kernelIndex
-               : NULL;
+   const float *wdata = mWeightData + patchSize * kernelIndex;
+   const float *dwdata = outputPlasticIncr ? mDeltaWeightData + patchSize * kernelIndex : nullptr;
    output(0) << "Time " << timed << ", Conn \"" << getTargetConn()->getName() << ", nxp=" << nxp
              << ", nyp=" << nyp << ", nfp=" << nfp << "\n";
    for (int f = 0; f < nfp; f++) {
@@ -157,30 +239,31 @@ Response::Status KernelProbe::outputState(double timed) {
    return Response::SUCCESS;
 }
 
-int KernelProbe::patchIndices(HyPerConn *conn) {
+int KernelProbe::patchIndices() {
    pvAssert(!mOutputStreams.empty());
-   int nxp     = conn->getPatchSizeX();
-   int nyp     = conn->getPatchSizeY();
-   int nfp     = conn->getPatchSizeF();
-   int nPreExt = conn->getNumGeometryPatches();
-   assert(nPreExt == conn->getPre()->getNumExtended());
-   const PVLayerLoc *loc = conn->getPre()->getLayerLoc();
-   const PVHalo *halo    = &loc->halo;
+   int nxp     = mPatchSize->getPatchSizeX();
+   int nyp     = mPatchSize->getPatchSizeY();
+   int nfp     = mPatchSize->getPatchSizeF();
+
+   auto geometry = mWeights->getGeometry();
+   int nPreExt = geometry->getNumPatches();
+   const PVLayerLoc *loc = &geometry->getPreLoc();
    int nxPre             = loc->nx;
    int nyPre             = loc->ny;
    int nfPre             = loc->nf;
    int nxPreExt          = nxPre + loc->halo.lt + loc->halo.rt;
    int nyPreExt          = nyPre + loc->halo.dn + loc->halo.up;
    for (int kPre = 0; kPre < nPreExt; kPre++) {
-      Patch const *patch = conn->getPatch(kPre);
-      int xOffset        = kxPos(patch->offset, nxp, nyp, nfp);
-      int yOffset        = kyPos(patch->offset, nxp, nyp, nfp);
+      Patch const &patch = mWeights->getPatch(kPre);
+      int const offset   = patch.offset;
+      int xOffset        = kxPos(offset, nxp, nyp, nfp);
+      int yOffset        = kyPos(offset, nxp, nyp, nfp);
       int kxPre          = kxPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.lt;
       int kyPre          = kyPos(kPre, nxPreExt, nyPreExt, nfPre) - loc->halo.up;
       int kfPre          = featureIndex(kPre, nxPreExt, nyPreExt, nfPre);
       output(0) << "    presynaptic neuron " << kPre;
       output(0) << " (x=" << kxPre << ", y=" << kyPre << ", f=" << kfPre;
-      output(0) << ") uses kernel index " << conn->calcDataIndexFromPatchIndex(kPre);
+      output(0) << ") uses kernel index " << mWeights->calcDataIndexFromPatchIndex(kPre);
       output(0) << ", starting at x=" << xOffset << ", y=" << yOffset << "\n";
    }
    return PV_SUCCESS;

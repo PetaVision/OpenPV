@@ -107,6 +107,8 @@ class Weights {
     */
    void allocateDataStructures();
 
+   bool getDataStructuresAllocatedFlag() const { return mDataStructuresAllocatedFlag; }
+
    void checkpointWeightPvp(Checkpointer *checkpointer, char const *bufferName, bool compressFlag);
 
    /** Calculates the minimum value of the patch data over all arbors. For nonshared weights, only
@@ -311,6 +313,7 @@ class Weights {
 #endif // PV_USE_CUDNN
    double mTimestampGPU;
 #endif // PV_USE_CUDA
+   bool mDataStructuresAllocatedFlag = false;
 }; // end class Weights
 
 } // end namespace PV

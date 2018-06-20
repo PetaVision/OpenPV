@@ -87,7 +87,7 @@ Response::Status PlasticConnTestProbe::outputState(double timed) {
       }
    }
    if (getOutputPatchIndices()) {
-      patchIndices(c);
+      patchIndices();
    }
 
    return Response::SUCCESS;

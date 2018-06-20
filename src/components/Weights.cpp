@@ -107,6 +107,7 @@ void Weights::allocateDataStructures() {
       allocateCudaBuffers();
    }
 #endif // PV_USE_CUDA
+   mDataStructuresAllocatedFlag = true;
 }
 
 #ifdef PV_USE_CUDA
