@@ -6,6 +6,11 @@
  */
 
 #include "MomentumConnSimpleCheckpointerTestProbe.hpp"
+#include "components/ArborList.hpp"
+#include "components/PatchSize.hpp"
+#include "components/SharedWeights.hpp"
+#include "weightupdaters/MomentumUpdater.hpp"
+#include "utils/MapLookupByType.hpp"
 #include <cmath>
 #include <utils/BufferUtilsMPI.hpp>
 
@@ -86,23 +91,34 @@ PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::initConnection(
       return PV::Response::POSTPONE;
    }
 
+   auto *arborList = mConnection->getComponentByType<PV::ArborList>();
+   FatalIf(arborList == nullptr, "%s does not have an ArborList.\n", mConnection->getDescription_c());
    FatalIf(
-         mConnection->getNumAxonalArbors() != 1,
+         arborList->getNumAxonalArbors() != 1,
          "This test assumes that the connection has only 1 arbor.\n");
    FatalIf(
-         mConnection->getDelay(0) != 0.0,
+         arborList->getDelay(0) != 0.0,
          "This test assumes that the connection has zero delay.\n");
+
+   auto *sharedWeights = mConnection->getComponentByType<PV::SharedWeights>();
+   FatalIf(sharedWeights == nullptr, "%s does not have a SharedWeights component.\n", mConnection->getDescription_c());
    FatalIf(
-         !mConnection->getSharedWeights(),
+         !sharedWeights->getSharedWeights(),
          "This test assumes that the connection is using shared weights.\n");
+
+   auto *patchSize = mConnection->getComponentByType<PV::PatchSize>();
+   FatalIf(patchSize == nullptr, "%s does not have a PatchSize component.\n", mConnection->getDescription_c());
    FatalIf(
-         mConnection->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
+         patchSize->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
    FatalIf(
-         mConnection->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
+         patchSize->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(
-         mConnection->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
+         patchSize->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
+
+   auto *momentumUpdater = mConnection->getComponentByType<PV::MomentumUpdater>();
+   FatalIf(momentumUpdater == nullptr, "%s does not have a momentumUpdater.\n", mConnection->getDescription_c());
    FatalIf(
-         std::strcmp(mConnection->getMomentumMethod(), "simple"),
+         std::strcmp(momentumUpdater->getMomentumMethod(), "simple"),
          "This test assumes that the connection has momentumMethod=\"simple\".\n");
    return PV::Response::SUCCESS;
 }

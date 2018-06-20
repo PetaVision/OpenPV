@@ -19,8 +19,6 @@ class MomentumConn : public HyPerConn {
 
    virtual ~MomentumConn();
 
-   char const *getMomentumMethod() const;
-
   protected:
    MomentumConn();
 
