@@ -21,32 +21,42 @@ int PlasticConnTestProbe::initialize(const char *probename, HyPerCol *hc) {
 }
 
 Response::Status PlasticConnTestProbe::outputState(double timed) {
-   HyPerConn *c = getTargetHyPerConn();
-   FatalIf(c == nullptr, "%s has targetConnection set to null.\n");
    if (mOutputStreams.empty()) {
       return Response::NO_ACTION;
    }
-   output(0).printf("    Time %f, %s:\n", timed, c->getDescription_c());
-   const float *w  = c->getWeightsDataHead(getArbor(), getKernelIndex());
-   const float *dw = c->getDeltaWeightsDataHead(getArbor(), getKernelIndex());
-   if (getOutputPlasticIncr() && dw == NULL) {
+   output(0).printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
+
+   const int nxp       = getPatchSize()->getPatchSizeX();
+   const int nyp       = getPatchSize()->getPatchSizeY();
+   const int nfp       = getPatchSize()->getPatchSizeF();
+   const int patchSize = nxp * nyp * nfp;
+   float const *w      = getWeightData() + getKernelIndex() * patchSize;
+
+   if (getOutputPlasticIncr() && getDeltaWeightData() == nullptr) {
       Fatal().printf(
             "%s: %s has dKernelData(%d,%d) set to null.\n",
             getDescription_c(),
-            c->getDescription_c(),
+            getTargetConn()->getDescription_c(),
             getKernelIndex(),
             getArbor());
    }
-   int nxp    = c->getPatchSizeX();
-   int nyp    = c->getPatchSizeY();
-   int nfp    = c->getPatchSizeF();
+   float const *dw = getDeltaWeightData() + getKernelIndex() * patchSize;
+
    int status = PV_SUCCESS;
-   for (int k = 0; k < nxp * nyp * nfp; k++) {
+   for (int k = 0; k < patchSize; k++) {
       int x  = kxPos(k, nxp, nyp, nfp);
       int wx = (nxp - 1) / 2 - x; // assumes connection is one-to-one
       if (getOutputWeights()) {
          float wCorrect  = timed * wx;
          float wObserved = w[k];
+         if (k == 0) {
+            double q = fabs(((double)(wObserved - wCorrect)) / timed);
+            printf(
+                  "fabs(%f/%f) = %f\n",
+                  ((double)(wObserved - wCorrect)),
+                  timed,
+                  fabs(((double)(wObserved - wCorrect)) / timed));
+         }
          if (fabs(((double)(wObserved - wCorrect)) / timed) > 1e-4) {
             int y = kyPos(k, nxp, nyp, nfp);
             int f = featureIndex(k, nxp, nyp, nfp);
@@ -59,8 +69,9 @@ Response::Status PlasticConnTestProbe::outputState(double timed) {
                   (double)wObserved,
                   (double)wCorrect);
          }
+         // status = PV_FAILURE;
       }
-      if (timed > 0 && getOutputPlasticIncr() && dw != NULL) {
+      if (timed > 0 && getOutputPlasticIncr()) {
          float dwCorrect  = wx;
          float dwObserved = dw[k];
          if (dwObserved != dwCorrect) {
@@ -75,6 +86,7 @@ Response::Status PlasticConnTestProbe::outputState(double timed) {
                   (double)dwObserved,
                   (double)dwCorrect);
          }
+         // status = PV_FAILURE;
       }
    }
    FatalIf(status != PV_SUCCESS, "%s failed at t=%f.\n", getDescription_c(), timed);

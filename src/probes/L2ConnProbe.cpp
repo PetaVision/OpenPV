@@ -19,30 +19,27 @@ Response::Status L2ConnProbe::outputState(double timed) {
    if (mOutputStreams.empty()) {
       return Response::NO_ACTION;
    }
+   pvAssert(getTargetConn() != nullptr);
    Communicator *icComm = parent->getCommunicator();
    const int rank       = icComm->commRank();
-   assert(getTargetConn() != NULL);
-   int nxp       = getTargetHyPerConn()->getPatchSizeX();
-   int nyp       = getTargetHyPerConn()->getPatchSizeY();
-   int nfp       = getTargetHyPerConn()->getPatchSizeF();
-   int patchSize = nxp * nyp * nfp;
+   int nxp              = getPatchSize()->getPatchSizeX();
+   int nyp              = getPatchSize()->getPatchSizeY();
+   int nfp              = getPatchSize()->getPatchSizeF();
+   int patchSize        = nxp * nyp * nfp;
 
    int arborID = getArbor();
-   int numKern = getTargetHyPerConn()->getNumDataPatches();
+   int numKern = getWeights()->getNumDataPatches();
 
-   if (numKern != getTargetHyPerConn()->getPre()->getLayerLoc()->nf) {
+   if (numKern != getWeights()->getGeometry()->getPreLoc().nf) {
       Fatal().printf(
-            "L2ConnProbe %s: L2ConnProbe only works for 1-to-many or "
-            "1-to-1 weights.\n",
-            name);
+            "L2ConnProbe %s: L2ConnProbe only works for 1-to-many or 1-to-1 weights.\n", name);
    }
 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
    for (int kernelIndex = 0; kernelIndex < numKern; ++kernelIndex) {
-      const float *wdata =
-            getTargetHyPerConn()->getWeightsDataStart(arborID) + patchSize * kernelIndex;
+      const float *wdata = getWeightData() + patchSize * kernelIndex;
 
       float sumsq = 0;
 

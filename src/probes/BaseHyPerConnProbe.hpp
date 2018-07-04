@@ -8,8 +8,8 @@
 #ifndef BASEHYPERCONNPROBE_HPP_
 #define BASEHYPERCONNPROBE_HPP_
 
-#include "../connections/HyPerConn.hpp"
 #include "BaseConnectionProbe.hpp"
+#include "connections/HyPerConn.hpp"
 
 namespace PV {
 
@@ -21,8 +21,8 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   HyPerConn *getTargetHyPerConn() { return dynamic_cast<HyPerConn *>(mTargetConn); }
-   HyPerConn const *getTargetHyPerConn() const { return dynamic_cast<HyPerConn *>(mTargetConn); }
+   // should be const but Weights and PatchGeometry are not const-correct yet
+   Weights *getWeights() { return mWeights; }
 
   protected:
    BaseHyPerConnProbe();
@@ -35,6 +35,9 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
     * HyPerConn.
     */
    virtual double referenceUpdateTime() const override;
+
+  protected:
+   Weights *mWeights; // should be const but Weights and PatchGeometry are not const-correct yet
 };
 
 } /* namespace PV */

@@ -18,16 +18,15 @@ void MomentumTestConnProbe::initNumValues() { setNumValues(-1); }
 
 Response::Status MomentumTestConnProbe::outputState(double timed) {
    // Grab weights of probe and test for the value of .625/1.5, or .4166666
-   HyPerConn *conn = getTargetHyPerConn();
-   int numPreExt   = conn->getPre()->getNumExtended();
-   int syw         = conn->getPatchStrideY(); // stride in patch
+   int numPreExt = getWeights()->getGeometry()->getNumPatches();
+   int syw       = getWeights()->getPatchStrideY(); // stride in patch
 
    for (int kPre = 0; kPre < numPreExt; kPre++) {
-      Patch const *patch = conn->getPatch(kPre);
-      int nk             = conn->getPatchSizeF() * patch->nx;
+      Patch const &patch = getWeights()->getPatch(kPre);
+      int nk             = getWeights()->getPatchSizeF() * patch.nx;
 
-      float *data = conn->getWeightsData(0, kPre);
-      int ny      = patch->ny;
+      float *data = getWeights()->getDataFromPatchIndex(0, kPre) + patch.offset;
+      int ny      = patch.ny;
       float wCorrect;
       for (int y = 0; y < ny; y++) {
          float *dataYStart = data + y * syw;

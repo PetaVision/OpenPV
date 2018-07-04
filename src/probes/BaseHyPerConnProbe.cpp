@@ -23,28 +23,36 @@ BaseHyPerConnProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    if (!Response::completed(status)) {
       return status;
    }
-   pvAssert(getTargetConn());
-   if (getTargetHyPerConn() == nullptr) {
+   pvAssert(mTargetConn);
+
+   auto *weightsPair = mTargetConn->getComponentByType<WeightsPair>();
+   FatalIf(
+         weightsPair == nullptr,
+         "%s target connection \"%s\" does not have a WeightsPair component.\n",
+         getDescription_c(),
+         mTargetConn->getName());
+   if (!weightsPair->getInitInfoCommunicatedFlag()) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: targetConn \"%s\" must be a HyPerConn or "
-               "HyPerConn-derived class.\n",
+         InfoLog().printf(
+               "%s must wait until target connection \"%s\" has finished its CommunicateInitInfo "
+               "stage.\n",
                getDescription_c(),
                mTargetConn->getName());
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-      exit(EXIT_FAILURE);
+      return Response::POSTPONE;
    }
-   return status;
+   weightsPair->needPre();
+
+   mWeights = weightsPair->getPreWeights();
+   pvAssert(mWeights); // Created by needPre() call.
+   return Response::SUCCESS;
 }
 
 bool BaseHyPerConnProbe::needRecalc(double timevalue) {
-   return getLastUpdateTime() < getTargetHyPerConn()->getLastUpdateTime();
+   return getLastUpdateTime() < mWeights->getTimestamp();
 }
 
-double BaseHyPerConnProbe::referenceUpdateTime() const {
-   return getTargetHyPerConn()->getLastUpdateTime();
-}
+double BaseHyPerConnProbe::referenceUpdateTime() const { return mWeights->getTimestamp(); }
 
 BaseHyPerConnProbe::~BaseHyPerConnProbe() {}
 

@@ -23,6 +23,11 @@ class KernelProbe : public BaseHyPerConnProbe {
    virtual Response::Status allocateDataStructures() override;
    virtual Response::Status outputState(double timef) override;
 
+   PatchSize const *getPatchSize() const { return mPatchSize; }
+   Weights const *getWeights() const { return mWeights; }
+   float const *getWeightData() const { return mWeightData; }
+   float const *getDeltaWeightData() const { return mDeltaWeightData; }
+
   protected:
    KernelProbe(); // Default constructor, can only be called by derived classes
    int initialize(const char *probename, HyPerCol *hc);
@@ -59,7 +64,6 @@ class KernelProbe : public BaseHyPerConnProbe {
    // the given kernel index
 
    PatchSize const *mPatchSize;
-   Weights *mWeights; // should be const but Weights and PatchGeometry are not const-correct yet
    float const *mWeightData;
    float const *mDeltaWeightData;
 

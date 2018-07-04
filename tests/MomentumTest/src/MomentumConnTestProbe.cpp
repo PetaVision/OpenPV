@@ -31,15 +31,18 @@ void MomentumConnTestProbe::ioParam_isViscosity(enum ParamsIOFlag ioFlag) {
 }
 
 Response::Status MomentumConnTestProbe::outputState(double timed) {
-   HyPerConn *c = getTargetHyPerConn();
-   FatalIf(c == nullptr, "%s has targetConnection set to null.\n", getDescription_c());
    if (mOutputStreams.empty()) {
       return Response::NO_ACTION;
    }
    output(0).printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
-   const float *w  = c->getWeightsDataHead(getArbor(), getKernelIndex());
-   const float *dw = c->getDeltaWeightsDataHead(getArbor(), getKernelIndex());
-   if (getOutputPlasticIncr() && dw == NULL) {
+
+   const int nxp       = getPatchSize()->getPatchSizeX();
+   const int nyp       = getPatchSize()->getPatchSizeY();
+   const int nfp       = getPatchSize()->getPatchSizeF();
+   const int patchSize = nxp * nyp * nfp;
+   float const *w      = getWeightData() + getKernelIndex() * patchSize;
+
+   if (getOutputPlasticIncr() && getDeltaWeightData() == nullptr) {
       Fatal().printf(
             "%s: %s has dKernelData(%d,%d) set to null.\n",
             getDescription_c(),
@@ -47,11 +50,10 @@ Response::Status MomentumConnTestProbe::outputState(double timed) {
             getKernelIndex(),
             getArbor());
    }
-   int nxp    = c->getPatchSizeX();
-   int nyp    = c->getPatchSizeY();
-   int nfp    = c->getPatchSizeF();
+   float const *dw = getDeltaWeightData() + getKernelIndex() * patchSize;
+
    int status = PV_SUCCESS;
-   for (int k = 0; k < nxp * nyp * nfp; k++) {
+   for (int k = 0; k < patchSize; k++) {
       float wObserved = w[k];
       // Pulse happens at time 3
       float wCorrect;

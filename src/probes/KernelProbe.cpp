@@ -75,7 +75,7 @@ KernelProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
 
    auto *sharedWeights = mTargetConn->getComponentByType<SharedWeights>();
    FatalIf(
-         sharedWeights == nullptr, 
+         sharedWeights == nullptr,
          "%s target connection \"%s\" does not have a SharedWeights component.\n",
          getDescription_c(),
          mTargetConn->getName());
@@ -103,31 +103,10 @@ KernelProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
 
    mPatchSize = mTargetConn->getComponentByType<PatchSize>();
    FatalIf(
-         mPatchSize == nullptr, 
+         mPatchSize == nullptr,
          "%s target connection \"%s\" does not have a PatchSize component.\n",
          getDescription_c(),
          mTargetConn->getName());
-
-   auto *weightsPair = mTargetConn->getComponentByType<WeightsPair>();
-   FatalIf(
-         weightsPair == nullptr, 
-         "%s target connection \"%s\" does not have a WeightsPair component.\n",
-         getDescription_c(),
-         mTargetConn->getName());
-   if (!weightsPair->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         InfoLog().printf(
-               "%s must wait until target connection \"%s\" has finished its CommunicateInitInfo "
-               "stage.\n",
-               getDescription_c(),
-               mTargetConn->getName());
-      }
-      return Response::POSTPONE;
-   }
-   weightsPair->needPre();
-
-   mWeights = weightsPair->getPreWeights();
-   pvAssert(mWeights); // Created by needPre() call.
 
    return Response::SUCCESS;
 }
@@ -172,7 +151,7 @@ Response::Status KernelProbe::allocateDataStructures() {
    if (outputPlasticIncr) {
       auto *hebbianUpdater = mTargetConn->getComponentByType<HebbianUpdater>();
       FatalIf(
-            hebbianUpdater == nullptr, 
+            hebbianUpdater == nullptr,
             "%s target connection \"%s\" does not have a HebbianUpdater component.\n",
             getDescription_c(),
             mTargetConn->getName());
@@ -209,14 +188,14 @@ Response::Status KernelProbe::outputState(double timed) {
    if (mOutputStreams.empty()) {
       return Response::NO_ACTION;
    }
-   Communicator *icComm  = parent->getCommunicator();
-   const int rank        = icComm->commRank();
-   int nxp       = mPatchSize->getPatchSizeX();
-   int nyp       = mPatchSize->getPatchSizeY();
-   int nfp       = mPatchSize->getPatchSizeF();
-   int patchSize = nxp * nyp * nfp;
+   Communicator *icComm = parent->getCommunicator();
+   const int rank       = icComm->commRank();
+   int nxp              = getPatchSize()->getPatchSizeX();
+   int nyp              = getPatchSize()->getPatchSizeY();
+   int nfp              = getPatchSize()->getPatchSizeF();
+   int patchSize        = nxp * nyp * nfp;
 
-   const float *wdata = mWeightData + patchSize * kernelIndex;
+   const float *wdata  = mWeightData + patchSize * kernelIndex;
    const float *dwdata = outputPlasticIncr ? mDeltaWeightData + patchSize * kernelIndex : nullptr;
    output(0) << "Time " << timed << ", Conn \"" << getTargetConn()->getName() << ", nxp=" << nxp
              << ", nyp=" << nyp << ", nfp=" << nfp << "\n";
@@ -241,12 +220,12 @@ Response::Status KernelProbe::outputState(double timed) {
 
 int KernelProbe::patchIndices() {
    pvAssert(!mOutputStreams.empty());
-   int nxp     = mPatchSize->getPatchSizeX();
-   int nyp     = mPatchSize->getPatchSizeY();
-   int nfp     = mPatchSize->getPatchSizeF();
+   int nxp = getPatchSize()->getPatchSizeX();
+   int nyp = getPatchSize()->getPatchSizeY();
+   int nfp = getPatchSize()->getPatchSizeF();
 
-   auto geometry = mWeights->getGeometry();
-   int nPreExt = geometry->getNumPatches();
+   auto geometry         = mWeights->getGeometry();
+   int nPreExt           = geometry->getNumPatches();
    const PVLayerLoc *loc = &geometry->getPreLoc();
    int nxPre             = loc->nx;
    int nyPre             = loc->ny;
