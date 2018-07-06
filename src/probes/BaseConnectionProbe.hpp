@@ -8,7 +8,8 @@
 #ifndef BASECONNECTIONPROBE_HPP_
 #define BASECONNECTIONPROBE_HPP_
 
-#include "../connections/BaseConnection.hpp"
+#include "columns/ComponentBasedObject.hpp"
+#include "probes/BaseProbe.hpp"
 
 enum PatchIDMethod { INDEX_METHOD, COORDINATE_METHOD };
 
@@ -21,7 +22,7 @@ class BaseConnectionProbe : public BaseProbe {
    BaseConnectionProbe(const char *name, HyPerCol *hc);
    virtual ~BaseConnectionProbe();
 
-   BaseConnection *getTargetConn() { return mTargetConn; }
+   ComponentBasedObject *getTargetConn() { return mTargetConn; }
 
   protected:
    BaseConnectionProbe(); // Default constructor, can only be called by derived
@@ -50,8 +51,8 @@ class BaseConnectionProbe : public BaseProbe {
 
    // Member Variables
   protected:
-   BaseConnection *mTargetConn = nullptr; // The connection being probed.
-   Timer *mIOTimer             = nullptr;
+   ComponentBasedObject *mTargetConn = nullptr; // The connection being probed.
+   Timer *mIOTimer                   = nullptr;
 };
 
 } // end of namespace PV block

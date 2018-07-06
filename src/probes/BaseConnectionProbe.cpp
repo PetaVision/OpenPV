@@ -6,6 +6,7 @@
  */
 
 #include "BaseConnectionProbe.hpp"
+#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
@@ -66,7 +67,7 @@ Response::Status BaseConnectionProbe::communicateInitInfo(
    }
 
    bool failed = false;
-   mTargetConn = message->lookup<BaseConnection>(std::string(targetName));
+   mTargetConn = message->lookup<ComponentBasedObject>(std::string(targetName));
    if (mTargetConn == nullptr) {
       ErrorLog().printf(
             "%s, rank %d process: targetConnection \"%s\" is not a connection in the column.\n",
@@ -74,7 +75,6 @@ Response::Status BaseConnectionProbe::communicateInitInfo(
             parent->columnId(),
             targetName);
       failed = true;
-      ;
    }
    MPI_Barrier(parent->getCommunicator()->communicator());
    if (failed) {
