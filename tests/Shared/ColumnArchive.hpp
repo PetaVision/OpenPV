@@ -8,8 +8,8 @@
 #ifndef COLUMNARCHIVE_HPP_
 #define COLUMNARCHIVE_HPP_
 
+#include <columns/ComponentBasedObject.hpp>
 #include <columns/HyPerCol.hpp>
-#include <connections/HyPerConn.hpp>
 #include <include/PVLayerLoc.h>
 #include <layers/HyPerLayer.hpp>
 
@@ -59,7 +59,7 @@ class ColumnArchive {
    ColumnArchive() {}
    void addCol(PV::HyPerCol *hc, float layerTolerance, float connTolerance);
    void addLayer(PV::HyPerLayer *layer, float layerTolerance);
-   void addConn(PV::HyPerConn *conn, float connTolerance);
+   void addConn(PV::ComponentBasedObject *conn, float connTolerance);
 
   private:
    std::vector<LayerArchive> m_layerdata;

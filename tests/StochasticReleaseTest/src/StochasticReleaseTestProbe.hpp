@@ -8,14 +8,15 @@
 #ifndef STOCHASTICRELEASETESTPROBE_HPP_
 #define STOCHASTICRELEASETESTPROBE_HPP_
 
-#include "columns/HyPerCol.hpp"
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/buildandrun.hpp"
-#include "connections/HyPerConn.hpp"
 #include "probes/StatsProbe.hpp"
 #include <cmath>
 #include <stdlib.h>
 
 namespace PV {
+
+class HyPerCol;
 
 class StochasticReleaseTestProbe : public PV::StatsProbe {
   public:
@@ -39,7 +40,7 @@ class StochasticReleaseTestProbe : public PV::StatsProbe {
 
    // Member variables
   protected:
-   HyPerConn *conn = nullptr; // The connection for which targetLayer is the postsynaptic layer.
+   ComponentBasedObject *conn = nullptr; // The connection for which targetLayer is the post layer.
    // There must be exactly one such conn.
    std::vector<double> pvalues; // The two-tailed p-value of the nnz value of each timestep.
 }; // end class StochasticReleaseTestProbe

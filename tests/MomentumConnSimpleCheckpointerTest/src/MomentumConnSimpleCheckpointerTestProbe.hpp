@@ -80,7 +80,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    void initializeCorrectValues(double timevalue);
 
    bool verifyConnection(
-         PV::MomentumConn *connection,
+         PV::ComponentBasedObject *connection,
          CorrectState const *correctState,
          double timevalue);
    bool
@@ -89,13 +89,13 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
 
    // Data members
   protected:
-   int mStartingUpdateNumber     = 0;
-   bool mValuesSet               = false;
-   PV::InputLayer *mInputLayer   = nullptr;
-   PV::HyPerLayer *mOutputLayer  = nullptr;
-   PV::MomentumConn *mConnection = nullptr;
-   CorrectState *mCorrectState   = nullptr;
-   bool mTestFailed              = false;
+   int mStartingUpdateNumber             = 0;
+   bool mValuesSet                       = false;
+   PV::InputLayer *mInputLayer           = nullptr;
+   PV::HyPerLayer *mOutputLayer          = nullptr;
+   PV::ComponentBasedObject *mConnection = nullptr;
+   CorrectState *mCorrectState           = nullptr;
+   bool mTestFailed                      = false;
 };
 
 #endif // MOMENTUMCONNSIMPLECHECKPOINTERTESTPROBE_HPP_

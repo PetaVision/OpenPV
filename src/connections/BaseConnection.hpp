@@ -27,25 +27,18 @@ class BaseConnection : public ComponentBasedObject {
    template <typename S>
    void addComponent(S *observer);
 
-   /**
-    * The function that calls the DeliveryObject's deliver method
-    */
-   int deliver() {
-      mDeliveryObject->deliver();
-      return PV_SUCCESS;
-   }
-
-   void deliverUnitInput(float *recvBuffer) { mDeliveryObject->deliverUnitInput(recvBuffer); }
-
-   bool isAllInputReady() { return mDeliveryObject->isAllInputReady(); }
-
-   HyPerLayer *getPre() const { return mConnectionData->getPre(); }
-   HyPerLayer *getPost() const { return mConnectionData->getPost(); }
-   char const *getPreLayerName() const { return mConnectionData->getPreLayerName(); }
-   char const *getPostLayerName() const { return mConnectionData->getPostLayerName(); }
-
-   ChannelType getChannelCode() const { return mDeliveryObject->getChannelCode(); }
-   bool getReceiveGpu() const { return mDeliveryObject->getReceiveGpu(); }
+   // Jul 10, 2018: get-methods have been moved into the corresponding component classes.
+   // For example, the old HyPerConn::getPatchSizeX() has been moved into the PatchSize class.
+   // To get the PatchSizeX value from a HyPerConn conn , get the PatchSize component using
+   // "PatchSize *patchsize = conn->getComponentByType<PatchSize>()" and then call
+   // "patchSize->getPatchSizeX()"
+   //   HyPerLayer *getPre() const { return mConnectionData->getPre(); }
+   //   HyPerLayer *getPost() const { return mConnectionData->getPost(); }
+   //   char const *getPreLayerName() const { return mConnectionData->getPreLayerName(); }
+   //   char const *getPostLayerName() const { return mConnectionData->getPostLayerName(); }
+   //
+   //   ChannelType getChannelCode() const { return mDeliveryObject->getChannelCode(); }
+   //   bool getReceiveGpu() const { return mDeliveryObject->getReceiveGpu(); }
 
   protected:
    BaseConnection();
@@ -95,7 +88,7 @@ void BaseConnection::addComponent(S *observer) {
    auto addedObject = dynamic_cast<BaseObject *>(observer);
    FatalIf(
          addedObject == nullptr,
-         "%s cannot be a component of %s.\n",
+         "%s is not a BaseObject-derived class, and therefore cannot be a component of %s.\n",
          getDescription_c(),
          observer->getDescription_c());
    addUniqueComponent(observer->getDescription(), observer);

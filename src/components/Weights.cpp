@@ -207,6 +207,10 @@ float *Weights::getDataFromPatchIndex(int arbor, int patchIndex) {
    return getDataFromDataIndex(arbor, dataIndex);
 }
 
+float *Weights::getDataFromPatchIndexWithOffset(int arbor, int patchIndex) {
+   return getDataFromPatchIndex(arbor, patchIndex) + getPatch(patchIndex).offset;
+}
+
 int Weights::calcDataIndexFromPatchIndex(int patchIndex) const {
    if (getSharedFlag()) {
       int numPatchesX = mGeometry->getNumPatchesX();

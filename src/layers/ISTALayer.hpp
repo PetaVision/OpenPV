@@ -29,7 +29,7 @@ class ISTALayer : public PV::ANNLayer {
 
    /**
     * List of parameters needed from the ISTALayer class
-    * @name HyPerConn Parameters
+    * @name ISTALayer Parameters
     * @{
     */
 

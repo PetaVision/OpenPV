@@ -192,6 +192,12 @@ class Weights {
    float *getDataFromPatchIndex(int arbor, int patchIndex);
 
    /**
+    * Returns a pointer to the start of the active area of the patch data for
+    * the given patch index (that is, it includes the patch offset).
+    */
+   float *getDataFromPatchIndexWithOffset(int arbor, int patchIndex);
+
+   /**
     * Returns a modifiable pointer to the patch data for the given arbor, and sets the timestamp to
     * the given value
     */

@@ -12,8 +12,9 @@
 
 #include "TestImage.hpp"
 
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
-#include "connections/HyPerConn.hpp"
+#include "components/PatchSize.hpp"
 #include "io/io.hpp"
 #include "layers/Retina.hpp"
 
@@ -49,13 +50,14 @@ int main(int argc, char *argv[]) {
    HyPerLayer *retina = dynamic_cast<HyPerLayer *>(
          dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_constant_input_retina")));
 
-   HyPerConn *conn =
-         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_constant_input_connection"));
+   ComponentBasedObject *conn = dynamic_cast<ComponentBasedObject *>(
+         hc->getObjectFromName("test_constant_input_connection"));
 
    hc->allocateColumn();
 
-   const int nxp               = conn->getPatchSizeX();
-   const int nyp               = conn->getPatchSizeY();
+   auto *patchSize             = conn->getComponentByType<PatchSize>();
+   const int nxp               = patchSize->getPatchSizeX();
+   const int nyp               = patchSize->getPatchSizeY();
    const PVLayerLoc *imageLoc  = image->getLayerLoc();
    const PVLayerLoc *retinaLoc = retina->getLayerLoc();
    const int nfPre             = imageLoc->nf;

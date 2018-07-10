@@ -1178,8 +1178,16 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
 }
 
 void HyPerLayer::addRecvConn(BaseConnection *conn) {
+   auto *connData = conn->getComponentByType<ConnectionData>();
    FatalIf(
-         conn->getPost() != this,
+         connData == nullptr,
+         "addRecvConn was called to add %s to %s, but \"%s\" does not have a ConnectionData "
+         "component.\n",
+         conn->getDescription_c(),
+         getDescription_c(),
+         conn->getName());
+   FatalIf(
+         connData->getPost() != this,
          "%s called addRecvConn for %s, but \"%s\" is not the post-synaptic layer for \"%s\"\n.",
          conn->getDescription_c(),
          getDescription_c(),
@@ -1187,7 +1195,15 @@ void HyPerLayer::addRecvConn(BaseConnection *conn) {
          conn->getName());
 #ifdef PV_USE_CUDA
    // CPU connections must run first to avoid race conditions
-   if (!conn->getReceiveGpu()) {
+   auto *deliveryComponent = conn->getComponentByType<BaseDelivery>();
+   FatalIf(
+         connData == nullptr,
+         "addRecvConn was called to add %s to %s, but \"%s\" does not have a BaseDelivery "
+         "component.\n",
+         conn->getDescription_c(),
+         getDescription_c(),
+         conn->getName());
+   if (!deliveryComponent->getReceiveGpu()) {
       recvConns.insert(recvConns.begin(), conn);
    }
    // Otherwise, add to the back. If no gpus at all, just add to back
@@ -1807,7 +1823,9 @@ bool HyPerLayer::isExchangeFinished(int delay) { return publisher->isExchangeFin
 bool HyPerLayer::isAllInputReady() {
    bool isReady = true;
    for (auto &c : recvConns) {
-      isReady &= c->isAllInputReady();
+      auto *deliveryComponent = c->getComponentByType<BaseDelivery>();
+      pvAssert(deliveryComponent);
+      isReady &= deliveryComponent->isAllInputReady();
    }
    return isReady;
 }
@@ -1821,10 +1839,12 @@ int HyPerLayer::recvAllSynapticInput() {
       recvsyn_timer->start();
 
       for (auto &conn : recvConns) {
-         pvAssert(conn != NULL);
+         pvAssert(conn != nullptr);
+         auto *deliveryComponent = conn->getComponentByType<BaseDelivery>();
+         pvAssert(deliveryComponent != nullptr);
 #ifdef PV_USE_CUDA
          // Check if it's done with cpu connections
-         if (!switchGpu && conn->getReceiveGpu()) {
+         if (!switchGpu && deliveryComponent->getReceiveGpu()) {
             // Copy GSyn over to GPU
             copyAllGSynToDevice();
             // Start gpu timer
@@ -1832,7 +1852,7 @@ int HyPerLayer::recvAllSynapticInput() {
             switchGpu = true;
          }
 #endif
-         conn->deliver();
+         deliveryComponent->deliver();
       }
 #ifdef PV_USE_CUDA
       if (switchGpu) {

@@ -6,6 +6,9 @@
  */
 
 #include "ColumnArchive.hpp"
+#include "components/ArborList.hpp"
+#include "components/PatchSize.hpp"
+#include "components/WeightsPair.hpp"
 #include <cmath>
 // Definitions of constructor and destructor are both empty, defined in header
 
@@ -143,22 +146,27 @@ void ColumnArchive::addLayer(PV::HyPerLayer *layer, float layerTolerance) {
    latestLayer.tolerance     = layerTolerance;
 }
 
-void ColumnArchive::addConn(PV::HyPerConn *conn, float connTolerance) {
+void ColumnArchive::addConn(PV::ComponentBasedObject *conn, float connTolerance) {
    std::vector<ConnArchive>::size_type sz = m_conndata.size();
    m_conndata.resize(sz + 1);
    ConnArchive &latestConnection = m_conndata.at(sz);
    latestConnection.name         = conn->getName();
-   int const numArbors           = conn->getNumAxonalArbors();
 
+   auto *arborList            = conn->getComponentByType<PV::ArborList>();
+   int const numArbors        = arborList->getNumAxonalArbors();
    latestConnection.numArbors = numArbors;
-   latestConnection.nxp       = conn->getPatchSizeX();
-   latestConnection.nyp       = conn->getPatchSizeY();
-   latestConnection.nfp       = conn->getPatchSizeF();
+
+   auto *patchSize      = conn->getComponentByType<PV::PatchSize>();
+   latestConnection.nxp = patchSize->getPatchSizeX();
+   latestConnection.nyp = patchSize->getPatchSizeY();
+   latestConnection.nfp = patchSize->getPatchSizeF();
    latestConnection.data.resize(numArbors);
    int const datasize = latestConnection.nxp * latestConnection.nyp * latestConnection.nfp
                         * latestConnection.numDataPatches;
+   auto *weightsPair = conn->getComponentByType<PV::WeightsPair>();
+   auto *preWeights  = weightsPair->getPreWeights();
    for (int arbor = 0; arbor < numArbors; arbor++) {
-      float const *cdatastart         = conn->getWeightsDataStart(arbor);
+      float const *cdatastart         = preWeights->getData(arbor);
       float const *cdataend           = &cdatastart[datasize];
       latestConnection.data.at(arbor) = std::vector<float>(cdatastart, cdataend);
    }
@@ -172,8 +180,8 @@ void ColumnArchive::addCol(PV::HyPerCol *hc, float layerTolerance, float connTol
       if (layer != nullptr) {
          addLayer(layer, layerTolerance);
       }
-      PV::HyPerConn *conn = dynamic_cast<PV::HyPerConn *>(obj);
-      if (conn != nullptr) {
+      auto *conn = dynamic_cast<PV::ComponentBasedObject *>(obj);
+      if (conn->getComponentByType<PV::PatchSize>() != nullptr) {
          addConn(conn, connTolerance);
       }
    }

@@ -6,8 +6,12 @@
  */
 
 #include "HyPerConnCheckpointerTestProbe.hpp"
+#include "components/ArborList.hpp"
+#include "components/PatchSize.hpp"
+#include "components/SharedWeights.hpp"
+#include "components/WeightsPair.hpp"
+#include "utils/BufferUtilsMPI.hpp"
 #include <cmath>
-#include <utils/BufferUtilsMPI.hpp>
 
 HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe() { initialize_base(); }
 
@@ -76,27 +80,52 @@ PV::Response::Status HyPerConnCheckpointerTestProbe::initOutputLayer(
 
 PV::Response::Status HyPerConnCheckpointerTestProbe::initConnection(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   mConnection = message->lookup<PV::HyPerConn>(std::string("InputToOutput"));
-   FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
-   if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {
+   auto *connection = message->lookup<PV::HyPerConn>(std::string("InputToOutput"));
+   FatalIf(connection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
+
+   auto *patchSize = connection->getComponentByType<PV::PatchSize>();
+   FatalIf(
+         patchSize == nullptr,
+         "Connection \"InputToOutput\" does not have a PatchSize component.\n");
+   if (checkCommunicatedFlag(patchSize) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
+   FatalIf(patchSize->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
+   FatalIf(patchSize->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
+   FatalIf(patchSize->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
 
+   auto *arborList = connection->getComponentByType<PV::ArborList>();
    FatalIf(
-         mConnection->getNumAxonalArbors() != 1,
+         arborList == nullptr,
+         "Connection \"InputToOutput\" does not have an ArborList component.\n");
+   if (checkCommunicatedFlag(arborList) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
+   FatalIf(
+         arborList->getNumAxonalArbors() != 1,
          "This test assumes that the connection has only 1 arbor.\n");
    FatalIf(
-         mConnection->getDelay(0) != 0.0,
-         "This test assumes that the connection has zero delay.\n");
+         arborList->getDelay(0) != 0.0, "This test assumes that the connection has zero delay.\n");
+
+   auto *sharedWeights = connection->getComponentByType<PV::SharedWeights>();
    FatalIf(
-         !mConnection->getSharedWeights(),
+         sharedWeights == nullptr,
+         "Connection \"InputToOutput\" does not have a SharedWeights component.\n");
+   if (checkCommunicatedFlag(sharedWeights) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
+   FatalIf(
+         !sharedWeights->getSharedWeights(),
          "This test assumes that the connection is using shared weights.\n");
+
+   auto *weightsPair = connection->getComponentByType<PV::WeightsPair>();
    FatalIf(
-         mConnection->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
-   FatalIf(
-         mConnection->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
-   FatalIf(
-         mConnection->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
+         weightsPair == nullptr,
+         "Connection \"InputToOutput\" does not have a WeightsPair component.\n");
+   if (checkCommunicatedFlag(weightsPair) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
+   mPreWeights = weightsPair->getPreWeights();
    return PV::Response::SUCCESS;
 }
 
@@ -168,7 +197,7 @@ PV::Response::Status HyPerConnCheckpointerTestProbe::outputState(double timestam
 
    bool failed = false;
 
-   failed |= verifyConnection(mConnection, mCorrectState->getCorrectWeight(), timestamp);
+   failed |= verifyConnection(mPreWeights, mCorrectState->getCorrectWeight(), timestamp);
    failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), timestamp);
    failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), timestamp);
 
@@ -231,7 +260,7 @@ bool HyPerConnCheckpointerTestProbe::verifyLayer(
 }
 
 bool HyPerConnCheckpointerTestProbe::verifyConnection(
-      PV::HyPerConn *connection,
+      PV::Weights *preWeights,
       float correctValue,
       double timevalue) {
    bool failed = false;
@@ -241,7 +270,7 @@ bool HyPerConnCheckpointerTestProbe::verifyConnection(
             mOutputStreams.empty(),
             "%s has empty mOutputStreams in root process.\n",
             getDescription_c());
-      float observedWeightValue = connection->getWeightsDataStart(0)[0];
+      float observedWeightValue = preWeights->getData(0)[0];
       if (observedWeightValue != correctValue) {
          output(0).printf(
                "Time %f, weight is %f, instead of the expected %f.\n",

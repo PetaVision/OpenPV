@@ -9,6 +9,7 @@
 #include "components/ArborList.hpp"
 #include "components/PatchSize.hpp"
 #include "components/SharedWeights.hpp"
+#include "components/WeightsPair.hpp"
 #include "utils/MapLookupByType.hpp"
 #include "weightupdaters/MomentumUpdater.hpp"
 #include <cmath>
@@ -84,7 +85,7 @@ PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(
 
 PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::initConnection(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   mConnection = message->lookup<PV::MomentumConn>(std::string("InputToOutput"));
+   mConnection = message->lookup<PV::ComponentBasedObject>(std::string("InputToOutput"));
    FatalIf(
          mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {
@@ -224,17 +225,20 @@ PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::outputState(double
 }
 
 bool MomentumConnSimpleCheckpointerTestProbe::verifyConnection(
-      PV::MomentumConn *connection,
+      PV::ComponentBasedObject *connection,
       CorrectState const *correctState,
       double timevalue) {
    bool failed = false;
 
    if (parent->getCommunicator()->commRank() == 0) {
-      float observedWeightValue = connection->getWeightsDataStart(0)[0];
+      auto *weightsPair         = connection->getComponentByType<PV::WeightsPair>();
+      float observedWeightValue = weightsPair->getPreWeights()->getData(0)[0];
       float correctWeightValue  = correctState->getCorrectWeight();
       failed |= verifyConnValue(timevalue, observedWeightValue, correctWeightValue, "weight");
 
-      float observed_dwValue = connection->getDeltaWeightsDataStart(0)[0];
+      auto *updater = connection->getComponentByType<PV::MomentumUpdater>();
+      pvAssert(updater);
+      float observed_dwValue = updater->getDeltaWeightsDataStart(0)[0];
       float correct_dwValue  = correctState->getCorrect_dw();
       failed |= verifyConnValue(timevalue, observed_dwValue, correct_dwValue, "dw");
    }

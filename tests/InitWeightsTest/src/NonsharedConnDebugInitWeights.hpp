@@ -39,7 +39,7 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
 
    void initializeGaussian2DWeights(float *dataStart, int numPatches);
    void gauss2DCalcWeights(
-         Patch const *wp,
+         Patch const &wp,
          float *dataStart,
          int kPre,
          int noPost,
@@ -57,7 +57,7 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
          float bowtieAngle);
    void initializeCocircWeights(float *dataStart, int numPatches);
    void cocircCalcWeights(
-         Patch const *wp,
+         Patch const &wp,
          float *dataStart,
          int kPre,
          int noPre,
@@ -76,9 +76,9 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
          float r2Max,
          float strength);
    void initializeSmartWeights(float *dataStart, int numPatches);
-   void smartWeights(Patch const *wp, float *dataStart, int k);
+   void smartWeights(Patch const &wp, float *dataStart, int k);
    void gaborWeights(
-         Patch const *wp,
+         Patch const &wp,
          float *dataStart,
          int xScale,
          int yScale,

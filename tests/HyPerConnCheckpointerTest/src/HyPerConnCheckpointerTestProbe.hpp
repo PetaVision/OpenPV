@@ -80,7 +80,7 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
    void initializeCorrectValues(double timevalue);
 
    bool verifyLayer(PV::HyPerLayer *layer, float correctValue, double timevalue);
-   bool verifyConnection(PV::HyPerConn *connection, float correctValue, double timevalue);
+   bool verifyConnection(PV::Weights *preWeights, float correctValue, double timevalue);
 
    // Data members
   protected:
@@ -88,7 +88,7 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
    bool mValuesSet              = false;
    PV::InputLayer *mInputLayer  = nullptr;
    PV::HyPerLayer *mOutputLayer = nullptr;
-   PV::HyPerConn *mConnection   = nullptr;
+   PV::Weights *mPreWeights     = nullptr;
    CorrectState *mCorrectState  = nullptr;
    bool mTestFailed             = false;
 };

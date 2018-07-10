@@ -6,6 +6,12 @@
  */
 
 #include "StochasticReleaseTestProbe.hpp"
+#include "columns/HyPerCol.hpp"
+#include "components/ArborList.hpp"
+#include "components/ConnectionData.hpp"
+#include "components/PatchSize.hpp"
+#include "components/WeightsPair.hpp"
+#include "layers/HyPerLayer.hpp"
 #include <algorithm>
 #include <cmath>
 
@@ -31,38 +37,75 @@ void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 
 Response::Status StochasticReleaseTestProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto status = StatsProbe::communicateInitInfo(message);
-   if (!Response::completed(status)) {
-      return status;
-   }
-   FatalIf(!getTargetLayer(), ": %s did not set target layer.\n", getDescription_c());
-   FatalIf(
-         getTargetLayer()->getLayerLoc()->nbatch != 1,
-         "%s can only be used with nbatch = 1.\n",
-         getDescription_c());
-   FatalIf(
-         conn != nullptr,
-         ": %s, communicateInitInfo called with connection already set.\n",
-         getDescription_c());
-   for (auto &obj : message->mHierarchy) {
-      HyPerConn *hyperconn = dynamic_cast<HyPerConn *>(obj.second);
-      if (hyperconn == nullptr) {
-         continue;
+   if (conn == nullptr) {
+      auto status = StatsProbe::communicateInitInfo(message);
+      if (!Response::completed(status)) {
+         return status;
       }
-      if (!strcmp(hyperconn->getPostLayerName(), getTargetLayer()->getName())) {
-         FatalIf(
-               conn != nullptr,
-               ": %s cannot have more than one connnection going to target %s.\n",
-               getDescription_c(),
-               getTargetLayer()->getName());
-         conn = hyperconn;
+      FatalIf(!getTargetLayer(), ": %s did not set target layer.\n", getDescription_c());
+      FatalIf(
+            getTargetLayer()->getLayerLoc()->nbatch != 1,
+            "%s can only be used with nbatch = 1.\n",
+            getDescription_c());
+      FatalIf(
+            conn != nullptr,
+            ": %s, communicateInitInfo called with connection already set.\n",
+            getDescription_c());
+      for (auto &obj : message->mHierarchy) {
+         ComponentBasedObject *hyperconn = dynamic_cast<ComponentBasedObject *>(obj.second);
+         if (hyperconn == nullptr) {
+            continue;
+         }
+         auto *connectionData = hyperconn->getComponentByType<ConnectionData>();
+         if (connectionData == nullptr) {
+            continue;
+         }
+         if (!strcmp(connectionData->getPostLayerName(), getTargetLayer()->getName())) {
+            FatalIf(
+                  conn != nullptr,
+                  ": %s cannot have more than one connnection going to target %s.\n",
+                  getDescription_c(),
+                  getTargetLayer()->getName());
+            conn = hyperconn;
+         }
       }
+      FatalIf(
+            conn == nullptr,
+            ": %s requires a connection going to target %s.\n",
+            getDescription_c(),
+            getTargetLayer()->getName());
    }
+   if (!conn->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
+   auto *arborList = conn->getComponentByType<ArborList>();
    FatalIf(
-         !(conn != nullptr),
-         ": %s requires a connection going to target %s.\n",
+         arborList->getNumAxonalArbors() != 1,
+         ": %s connection %s has %d arbors; only one is allowed.\n",
          getDescription_c(),
-         getTargetLayer()->getName());
+         conn->getName(),
+         arborList->getNumAxonalArbors());
+   auto *patchSize = conn->getComponentByType<PatchSize>();
+   FatalIf(
+         patchSize->getPatchSizeX() != 1,
+         ": %s connection %s has nxp=%d, nxp=1 is required.\n",
+         getDescription_c(),
+         conn->getName(),
+         patchSize->getPatchSizeX());
+   FatalIf(
+         patchSize->getPatchSizeY() != 1,
+         ": %s connection %s has nyp=%d, nyp=1 is required.\n",
+         getDescription_c(),
+         conn->getName(),
+         patchSize->getPatchSizeY());
+   auto *weightsPair = conn->getComponentByType<WeightsPair>();
+   FatalIf(
+         weightsPair->getPreWeights()->getNumDataPatches() != patchSize->getPatchSizeF(),
+         ": %s connection %s must have number of data patches (%d) and nfp equal (%d).\n",
+         getDescription_c(),
+         conn->getName(),
+         weightsPair->getPreWeights()->getNumDataPatches(),
+         patchSize->getPatchSizeF());
    return Response::SUCCESS;
 }
 
@@ -81,31 +124,6 @@ bool compar(double const &a, double const &b) {
 }
 
 Response::Status StochasticReleaseTestProbe::outputState(double timed) {
-   FatalIf(
-         !(conn->getNumAxonalArbors() == 1),
-         ": %s connection %s has %d arbors; only one is allowed.\n",
-         getDescription_c(),
-         conn->getName(),
-         conn->getNumAxonalArbors());
-   FatalIf(
-         !(conn->getPatchSizeX() == 1),
-         ": %s connection %s has nxp=%d, nxp=1 is required.\n",
-         getDescription_c(),
-         conn->getName(),
-         conn->getPatchSizeX());
-   FatalIf(
-         !(conn->getPatchSizeY() == 1),
-         ": %s connection %s has nyp=%d, nyp=1 is required.\n",
-         getDescription_c(),
-         conn->getName(),
-         conn->getPatchSizeY());
-   FatalIf(
-         !(conn->getNumDataPatches() == conn->getPatchSizeF()),
-         ": %s connection %s must have number of data patches (%d) and nfp equal (%d).\n",
-         getDescription_c(),
-         conn->getName(),
-         conn->getNumDataPatches(),
-         conn->getPatchSizeF());
    auto status = StatsProbe::outputState(timed);
    FatalIf(
          status != Response::SUCCESS,
@@ -153,16 +171,16 @@ void StochasticReleaseTestProbe::computePValues() {
    int nf       = getTargetLayer()->getLayerLoc()->nf;
    auto oldsize = pvalues.size();
    pvalues.resize(oldsize + nf);
+   auto *preWeights = conn->getComponentByType<WeightsPair>()->getPreWeights();
+   auto *preLayer   = conn->getComponentByType<ConnectionData>()->getPre();
    for (int f = 0; f < nf; f++) {
       int nf = getTargetLayer()->getLayerLoc()->nf;
       FatalIf(!(f >= 0 && f < nf), "Test failed.\n");
-      float wgt =
-            conn->getWeightsDataStart(0)[f * (nf + 1)]; // weights should be one-to-one weights
+      float wgt = preWeights->getData(0)[f * (nf + 1)]; // weights should be one-to-one weights
 
-      HyPerLayer *pre          = conn->getPre();
-      const float *preactPtr   = pre->getLayerData();
-      const PVLayerLoc *preLoc = pre->getLayerLoc();
-      const int numPreNeurons  = pre->getNumNeurons();
+      const float *preactPtr   = preLayer->getLayerData();
+      const PVLayerLoc *preLoc = preLayer->getLayerLoc();
+      const int numPreNeurons  = preLayer->getNumNeurons();
       bool found               = false;
       float preact             = 0.0f;
       for (int n = f; n < numPreNeurons; n += nf) {

@@ -79,18 +79,44 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
    }
 
    // Connection should be a 3x3 kernel with values 0 through 8 in the weights
-   HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getObjectFromName("InputToOutput"));
+   auto *conn = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("InputToOutput"));
+   FatalIf(conn == nullptr, "Test failed. No object named \"InputToOutput\" in the hierarchy.\n");
+
+   auto *patchSize = conn->getComponentByType<PatchSize>();
    FatalIf(
-         !(conn->getPatchSizeX() == 3 && conn->getPatchSizeY() == 3 && conn->getPatchSizeF() == 1),
+         patchSize == nullptr,
+         "Test failed. %s does not have a PatchSize component.\n",
+         conn->getDescription_c());
+   FatalIf(
+         !(patchSize->getPatchSizeX() == 3 && patchSize->getPatchSizeY() == 3
+           && patchSize->getPatchSizeF() == 1),
          "Test failed. Connection \"InputToOutput\" must have patch size 3x3x1.\n");
-   int patchSize = conn->getPatchSizeX() * conn->getPatchSizeY() * conn->getPatchSizeF();
-   FatalIf(conn->getNumAxonalArbors() != 1, "Test failed.\n");
-   FatalIf(!(conn->getNumDataPatches() == 1), "Test failed.\n");
-   float *w = conn->getWeightsDataHead(0, 0);
+   int numItems =
+         patchSize->getPatchSizeX() * patchSize->getPatchSizeY() * patchSize->getPatchSizeF();
+
+   auto *arborList = conn->getComponentByType<ArborList>();
+   FatalIf(
+         arborList == nullptr,
+         "Test failed. %s does not have an ArborList component.\n",
+         conn->getDescription_c());
+   FatalIf(arborList->getNumAxonalArbors() != 1, "Test failed.\n");
+
+   auto *weightsPair = conn->getComponentByType<WeightsPair>();
+   FatalIf(
+         weightsPair == nullptr,
+         "Test failed. %s does not have a WeightsPair component.\n",
+         conn->getDescription_c());
+   auto *preWeights = weightsPair->getPreWeights();
+
+   FatalIf(
+         preWeights->getNumDataPatches() != 1,
+         "Test failed. Weights have %d patches instead of 1.\n",
+         preWeights->getNumDataPatches());
+   float *w = preWeights->getDataFromDataIndex(0, 0);
    for (int r = 0; r < hc->getCommunicator()->commSize(); r++) {
       if (r == hc->columnId()) {
          InfoLog().printf("Rank %d, Weight values\n", r);
-         for (int k = 0; k < patchSize; k++) {
+         for (int k = 0; k < numItems; k++) {
             InfoLog().printf("Rank %d, k=%2d, w=%f\n", r, k, (double)w[k]);
             if (w[k] != (float)k) {
                status = PV_FAILURE;
@@ -100,7 +126,7 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
       }
       MPI_Barrier(hc->getCommunicator()->communicator());
    }
-   for (int k = 0; k < patchSize; k++) {
+   for (int k = 0; k < numItems; k++) {
       FatalIf(!(w[k] == (float)k), "Test failed.\n");
    }
 

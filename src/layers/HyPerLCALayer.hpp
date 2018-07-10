@@ -30,7 +30,7 @@ class HyPerLCALayer : public PV::ANNLayer {
 
    /**
     * List of parameters needed from the HyPerLCALayer class
-    * @name HyPerConn Parameters
+    * @name HyPerLCALayer Parameters
     * @{
     */
 

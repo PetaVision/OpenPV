@@ -9,6 +9,7 @@
 #include "components/ArborList.hpp"
 #include "components/PatchSize.hpp"
 #include "components/SharedWeights.hpp"
+#include "components/WeightsPair.hpp"
 #include "utils/MapLookupByType.hpp"
 #include "weightupdaters/MomentumUpdater.hpp"
 #include <cmath>
@@ -230,11 +231,14 @@ bool MomentumConnViscosityCheckpointerTestProbe::verifyConnection(
    bool failed = false;
 
    if (parent->getCommunicator()->commRank() == 0) {
-      float observedWeightValue = connection->getWeightsDataStart(0)[0];
+      auto *weightsPair         = connection->getComponentByType<PV::WeightsPair>();
+      float observedWeightValue = weightsPair->getPreWeights()->getData(0)[0];
       float correctWeightValue  = correctState->getCorrectWeight();
       failed |= verifyConnValue(timevalue, observedWeightValue, correctWeightValue, "weight");
 
-      float observed_dwValue = connection->getDeltaWeightsDataStart(0)[0];
+      auto *updater = connection->getComponentByType<PV::MomentumUpdater>();
+      pvAssert(updater);
+      float observed_dwValue = updater->getDeltaWeightsDataStart(0)[0];
       float correct_dwValue  = correctState->getCorrect_dw();
       failed |= verifyConnValue(timevalue, observed_dwValue, correct_dwValue, "dw");
    }

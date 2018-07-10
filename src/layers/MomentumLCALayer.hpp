@@ -25,7 +25,7 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
 
    /**
     * List of parameters needed from the MomentumLCALayer class
-    * @name HyPerConn Parameters
+    * @name MomentumLCALayer Parameters
     * @{
     */
 

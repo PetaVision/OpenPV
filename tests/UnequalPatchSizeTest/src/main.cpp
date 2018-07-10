@@ -3,8 +3,9 @@
  *
  */
 
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/buildandrun.hpp"
-#include "connections/HyPerConn.hpp"
+#include "components/PatchSize.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "probes/RequireAllZeroActivityProbe.hpp"
 
@@ -31,16 +32,16 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(!(inlayer), "Test failed.\n");
    HyPerLayer *outlayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("output"));
    FatalIf(!(outlayer), "Test failed.\n");
-   HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getObjectFromName("input_to_output"));
+   auto *conn = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("input_to_output"));
 
-   FatalIf(!(conn), "Test failed.\n");
+   FatalIf(conn == nullptr, "Test failed.\n");
 
-   int nxp       = conn->getPatchSizeX();
+   int nxp       = conn->getComponentByType<PatchSize>()->getPatchSizeX();
    int nxPre     = inlayer->getLayerLoc()->nx;
    int nxPost    = outlayer->getLayerLoc()->nx;
    int xHaloSize = correctHaloSize(nxp, nxPre, nxPost);
 
-   int nyp       = conn->getPatchSizeY();
+   int nyp       = conn->getComponentByType<PatchSize>()->getPatchSizeY();
    int nyPre     = inlayer->getLayerLoc()->ny;
    int nyPost    = outlayer->getLayerLoc()->ny;
    int yHaloSize = correctHaloSize(nyp, nyPre, nyPost);

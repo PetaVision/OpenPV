@@ -14,8 +14,10 @@
  */
 
 #include <columns/Communicator.hpp>
+#include <columns/ComponentBasedObject.hpp>
 #include <columns/buildandrun.hpp>
-#include <connections/TransposeConn.hpp>
+#include <components/SharedWeights.hpp>
+#include <components/WeightsPair.hpp>
 #include <float.h>
 #include <layers/ANNLayer.hpp>
 
@@ -27,11 +29,11 @@ int testTransposeConn(
       char const *transposeName,
       char const *transposeOfTransposeName);
 int testTransposeOfTransposeWeights(
-      HyPerConn *originalMap,
-      TransposeConn *transpose,
-      TransposeConn *transposeOfTranspose,
+      ComponentBasedObject *originalMap,
+      ComponentBasedObject *transpose,
+      ComponentBasedObject *transposeOfTranspose,
       const char *message);
-int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2);
+int testWeightsEqual(ComponentBasedObject *conn1, ComponentBasedObject *conn2);
 int testPatchesEqual(
       Patch const *patch1,
       Patch const *patch2,
@@ -52,7 +54,7 @@ int testDataPatchEqual(
       const char *name1,
       const char *name2,
       int status_in);
-int dumpWeights(HyPerConn *conn);
+int dumpWeights(ComponentBasedObject *conn);
 
 int main(int argc, char *argv[]) {
    PV_Init *initObj     = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
@@ -105,18 +107,18 @@ int testTransposeConn(
       char const *originalName,
       char const *transposeName,
       char const *transposeOfTransposeName) {
-   HyPerConn *originalMap = dynamic_cast<HyPerConn *>(hc->getObjectFromName(originalName));
+   auto *originalMap = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName(originalName));
    FatalIf(!originalMap, "Connection \"%s\" does not exist.\n", originalName);
    FatalIf(
-         !originalMap->getSharedWeights(),
+         !originalMap->getComponentByType<SharedWeights>()->getSharedWeights(),
          "%s does not use shared weights, but this test requires shared weights to be on.\n",
          originalMap->getDescription_c());
 
-   TransposeConn *transpose = dynamic_cast<TransposeConn *>(hc->getObjectFromName(transposeName));
+   auto *transpose = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName(transposeName));
    FatalIf(!transpose, "Connection \"%s\" does not exist.\n", transposeName);
 
-   TransposeConn *transposeOfTranspose =
-         dynamic_cast<TransposeConn *>(hc->getObjectFromName(transposeOfTransposeName));
+   auto *transposeOfTranspose =
+         dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName(transposeOfTransposeName));
    FatalIf(!transposeOfTranspose, "Connection \"%s\" does not exist.\n", transposeOfTransposeName);
 
    int status = testTransposeOfTransposeWeights(
@@ -125,9 +127,9 @@ int testTransposeConn(
 }
 
 int testTransposeOfTransposeWeights(
-      HyPerConn *originalMap,
-      TransposeConn *transpose,
-      TransposeConn *transposeOfTranspose,
+      ComponentBasedObject *originalMap,
+      ComponentBasedObject *transpose,
+      ComponentBasedObject *transposeOfTranspose,
       const char *message) {
    int status = testWeightsEqual(originalMap, transposeOfTranspose);
    if (status == PV_SUCCESS) {
@@ -142,61 +144,73 @@ int testTransposeOfTransposeWeights(
    return status;
 }
 
-int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2) {
+int testWeightsEqual(ComponentBasedObject *conn1, ComponentBasedObject *conn2) {
    int status = PV_SUCCESS;
 
-   status = verifyEqual(
-         conn1->getPatchSizeX(),
-         conn2->getPatchSizeX(),
+   auto patchSize1 = conn1->getComponentByType<PatchSize>();
+   auto patchSize2 = conn2->getComponentByType<PatchSize>();
+   status          = verifyEqual(
+         patchSize1->getPatchSizeX(),
+         patchSize2->getPatchSizeX(),
          "nxp",
          conn1->getName(),
          conn2->getName(),
          status);
    status = verifyEqual(
-         conn1->getPatchSizeY(),
-         conn2->getPatchSizeY(),
+         patchSize1->getPatchSizeY(),
+         patchSize2->getPatchSizeY(),
          "nyp",
          conn1->getName(),
          conn2->getName(),
          status);
    status = verifyEqual(
-         conn1->getPatchSizeF(),
-         conn2->getPatchSizeF(),
+         patchSize1->getPatchSizeF(),
+         patchSize2->getPatchSizeF(),
          "nfp",
          conn1->getName(),
          conn2->getName(),
          status);
-   status = verifyEqual(
-         conn1->getNumAxonalArbors(),
-         conn2->getNumAxonalArbors(),
+   int numItems =
+         patchSize1->getPatchSizeX() * patchSize1->getPatchSizeY() * patchSize1->getPatchSizeF();
+
+   int numArbors = conn1->getComponentByType<ArborList>()->getNumAxonalArbors();
+   status        = verifyEqual(
+         numArbors,
+         conn2->getComponentByType<ArborList>()->getNumAxonalArbors(),
          "numAxonalArbors",
          conn1->getName(),
          conn2->getName(),
          status);
-   status = verifyEqual(
-         conn1->getNumGeometryPatches(),
-         conn2->getNumGeometryPatches(),
+
+   auto *preWeights1 = conn1->getComponentByType<WeightsPair>()->getPreWeights();
+   auto *preWeights2 = conn2->getComponentByType<WeightsPair>()->getPreWeights();
+
+   int numGeometryPatches = preWeights1->getGeometry()->getNumPatches();
+   status                 = verifyEqual(
+         numGeometryPatches,
+         preWeights2->getGeometry()->getNumPatches(),
          "numGeometryPatches",
          conn1->getName(),
          conn2->getName(),
          status);
-   status = verifyEqual(
-         conn1->getNumDataPatches(),
-         conn2->getNumDataPatches(),
+
+   int numDataPatches = preWeights1->getNumDataPatches();
+   status             = verifyEqual(
+         numDataPatches,
+         preWeights2->getNumDataPatches(),
          "numDataPatches",
          conn1->getName(),
          conn2->getName(),
          status);
 
-   if (status != PV_SUCCESS)
+   if (status != PV_SUCCESS) {
       return status;
+   }
 
-   int numGeometryPatches = conn1->getNumGeometryPatches();
-   FatalIf(!(numGeometryPatches == conn2->getNumGeometryPatches()), "Test failed.\n");
    for (int patchindex = 0; patchindex < numGeometryPatches; patchindex++) {
       int status1 = testPatchesEqual(
-            conn1->getPatch(patchindex),
-            conn2->getPatch(patchindex),
+            &preWeights1->getPatch(patchindex),
+            &preWeights2->getPatch(patchindex),
             patchindex,
             conn1->getName(),
             conn2->getName());
@@ -206,22 +220,15 @@ int testWeightsEqual(HyPerConn *conn1, HyPerConn *conn2) {
       }
    }
 
-   if (status != PV_SUCCESS)
+   if (status != PV_SUCCESS) {
       return status;
+   }
 
-   int numArbors = conn1->getNumAxonalArbors();
-   FatalIf(!(numArbors == conn2->getNumAxonalArbors()), "Test failed.\n");
-   int numDataPatches = conn1->getNumDataPatches();
-   FatalIf(!(numDataPatches == conn2->getNumDataPatches()), "Test failed.\n");
-   int patchSize = conn1->getPatchSizeX() * conn1->getPatchSizeY() * conn1->getPatchSizeF();
-   FatalIf(
-         !(patchSize == conn2->getPatchSizeX() * conn2->getPatchSizeY() * conn2->getPatchSizeF()),
-         "Test failed.\n");
    for (int arbor = 0; arbor < numArbors; arbor++) {
       for (int dataindex = 0; dataindex < numDataPatches; dataindex++) {
-         float *w1 = conn1->getWeightsDataStart(arbor) + patchSize * dataindex;
-         float *w2 = conn2->getWeightsDataStart(arbor) + patchSize * dataindex;
-         status = testDataPatchEqual(w1, w2, patchSize, conn1->getName(), conn2->getName(), status);
+         float *w1 = preWeights1->getData(arbor) + numItems * dataindex;
+         float *w2 = preWeights2->getData(arbor) + numItems * dataindex;
+         status = testDataPatchEqual(w1, w2, numItems, conn1->getName(), conn2->getName(), status);
          if (status != PV_SUCCESS)
             break;
       }
@@ -289,27 +296,30 @@ int testDataPatchEqual(
    return status_out;
 }
 
-int dumpWeights(HyPerConn *conn) {
+int dumpWeights(ComponentBasedObject *conn) {
    ErrorLog().printf("Dumping weights for connection %s\n", conn->getName());
-   int nxp       = conn->getPatchSizeX();
-   int nyp       = conn->getPatchSizeY();
-   int nfp       = conn->getPatchSizeF();
-   int numArbors = conn->getNumAxonalArbors();
+   auto *patchSize = conn->getComponentByType<PatchSize>();
+   int nxp         = patchSize->getPatchSizeX();
+   int nyp         = patchSize->getPatchSizeY();
+   int nfp         = patchSize->getPatchSizeF();
+   int numArbors   = conn->getComponentByType<ArborList>()->getNumAxonalArbors();
    ErrorLog().printf(
          "    nxp = %d, nyp = %d, nfp = %d, numAxonalArbors = %d\n", nxp, nyp, nfp, numArbors);
-   int numPatches = conn->getNumGeometryPatches();
+   auto *preWeights     = conn->getComponentByType<WeightsPair>()->getPreWeights();
+   int const numPatches = preWeights->getGeometry()->getNumPatches();
    for (int arbor = 0; arbor < numArbors; arbor++) {
       for (int kn = 0; kn < numPatches; kn++) {
-         Patch const *kp = conn->getPatch(kn);
-         int nx          = kp->nx;
-         int ny          = kp->ny;
-         int offset      = kp->offset;
+         Patch const &kp = preWeights->getPatch(kn);
+         int nx          = kp.nx;
+         int ny          = kp.ny;
+         int offset      = kp.offset;
          ErrorLog().printf("    Weight Patch %d: nx=%d, ny=%d, offset=%d\n", kn, nx, ny, offset);
       }
    }
-   int numDataPatches = conn->getNumDataPatches();
+   int const numDataPatches = preWeights->getNumDataPatches();
    for (int arbor = 0; arbor < numArbors; arbor++) {
       for (int n = 0; n < numDataPatches; n++) {
+         float *weightsData = preWeights->getDataFromDataIndex(arbor, n);
          for (int k = 0; k < nxp * nyp * nfp; k++) {
             ErrorLog().printf(
                   "    Arbor %d, Data Patch %d, Index %4d, (x=%3d, y=%3d, f=%3d): Value %g\n",
@@ -319,7 +329,7 @@ int dumpWeights(HyPerConn *conn) {
                   kxPos(k, nxp, nyp, nfp),
                   kyPos(k, nxp, nyp, nfp),
                   featureIndex(k, nxp, nyp, nfp),
-                  (double)conn->getWeightsData(arbor, n)[k]);
+                  (double)weightsData[k]);
          }
       }
    }

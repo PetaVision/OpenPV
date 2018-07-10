@@ -6,6 +6,9 @@
  */
 
 #include "WeightComparisonProbe.hpp"
+#include "components/ArborList.hpp"
+#include "components/PatchSize.hpp"
+#include "components/WeightsPair.hpp"
 #include <cstring>
 #include <delivery/HyPerDeliveryFacade.hpp>
 
@@ -26,10 +29,10 @@ int WeightComparisonProbe::initialize(char const *name, PV::HyPerCol *hc) {
 
 Response::Status WeightComparisonProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnA")));
-   mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnB")));
-   mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnC")));
-   mConnectionList.push_back(message->lookup<HyPerConn>(std::string("ConnD")));
+   mConnectionList.push_back(message->lookup<ComponentBasedObject>(std::string("ConnA")));
+   mConnectionList.push_back(message->lookup<ComponentBasedObject>(std::string("ConnB")));
+   mConnectionList.push_back(message->lookup<ComponentBasedObject>(std::string("ConnC")));
+   mConnectionList.push_back(message->lookup<ComponentBasedObject>(std::string("ConnD")));
 
    for (auto &c : mConnectionList) {
       if (!c->getInitInfoCommunicatedFlag()) {
@@ -55,40 +58,44 @@ Response::Status WeightComparisonProbe::allocateDataStructures() {
    int nxp, nyp, nfp, numPatches;
    bool initialized = false;
    for (auto &c : mConnectionList) {
+      int const numArbors = c->getComponentByType<ArborList>()->getNumAxonalArbors();
+      auto *preWeights    = c->getComponentByType<WeightsPair>()->getPreWeights();
+      auto *patchSize     = c->getComponentByType<PatchSize>();
       if (initialized) {
          FatalIf(
-               mNumArbors != c->getNumAxonalArbors(),
+               numArbors != mNumArbors,
                "%s and %s have different numbers of arbors.\n",
                firstConn.c_str(),
                c->getDescription_c());
          FatalIf(
-               numPatches != c->getNumDataPatches(),
+               numPatches != preWeights->getNumDataPatches(),
                "%s and %s have different numbers of data patches.\n",
                firstConn.c_str(),
                c->getDescription_c());
+         auto *patchSize = c->getComponentByType<PatchSize>();
          FatalIf(
-               nxp != c->getPatchSizeX(),
+               nxp != patchSize->getPatchSizeX(),
                "%s and %s have different nxp.\n",
                firstConn.c_str(),
                c->getDescription_c());
          FatalIf(
-               nyp != c->getPatchSizeY(),
+               nyp != patchSize->getPatchSizeY(),
                "%s and %s have different nyp.\n",
                firstConn.c_str(),
                c->getDescription_c());
          FatalIf(
-               nfp != c->getPatchSizeF(),
+               nfp != patchSize->getPatchSizeF(),
                "%s and %s have different nfp.\n",
                firstConn.c_str(),
                c->getDescription_c());
       }
       else {
          firstConn          = c->getDescription();
-         mNumArbors         = c->getNumAxonalArbors();
-         numPatches         = c->getNumDataPatches();
-         nxp                = c->getPatchSizeX();
-         nyp                = c->getPatchSizeY();
-         nfp                = c->getPatchSizeF();
+         mNumArbors         = numArbors;
+         numPatches         = preWeights->getNumDataPatches();
+         nxp                = patchSize->getPatchSizeX();
+         nyp                = patchSize->getPatchSizeY();
+         nfp                = patchSize->getPatchSizeF();
          mNumWeightsInArbor = (std::size_t)(nxp * nyp * nfp * numPatches);
          initialized        = true;
       }
@@ -97,12 +104,15 @@ Response::Status WeightComparisonProbe::allocateDataStructures() {
 }
 
 Response::Status WeightComparisonProbe::outputState(double timestamp) {
+   auto *firstConnWeights = mConnectionList[0]->getComponentByType<WeightsPair>()->getPreWeights();
    for (auto &c : mConnectionList) {
+      auto *thisConnWeights = c->getComponentByType<WeightsPair>()->getPreWeights();
       for (int a = 0; a < mNumArbors; a++) {
-         float *firstConn = mConnectionList[0]->getWeightsDataStart(a);
-         float *thisConn  = c->getWeightsDataStart(a);
+         float *firstConnWeightData = firstConnWeights->getData(a);
+         float *thisConnWeightData  = thisConnWeights->getData(a);
+         std::size_t memsize        = sizeof(float) * mNumWeightsInArbor;
          FatalIf(
-               memcmp(firstConn, thisConn, sizeof(float) * mNumWeightsInArbor) != 0,
+               memcmp(firstConnWeightData, thisConnWeightData, memsize) != 0,
                "%s and %s do not have the same weights.\n",
                c->getDescription_c(),
                mConnectionList[0]->getDescription_c());
@@ -110,5 +120,7 @@ Response::Status WeightComparisonProbe::outputState(double timestamp) {
    }
    return Response::SUCCESS;
 }
+
+double WeightComparisonProbe::referenceUpdateTime() const { return parent->simulationTime(); }
 
 } // end namespace PV

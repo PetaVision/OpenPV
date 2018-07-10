@@ -211,26 +211,4 @@ HyPerConn::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const>
    return status;
 }
 
-float const *HyPerConn::getDeltaWeightsDataStart(int arbor) const {
-   auto *hebbianUpdater = mapLookupByType<HebbianUpdater>(mObserverTable.getObjectMap());
-   pvAssert(hebbianUpdater);
-   if (hebbianUpdater) {
-      return hebbianUpdater->getDeltaWeightsDataStart(arbor);
-   }
-   else {
-      return nullptr;
-   }
-}
-
-float const *HyPerConn::getDeltaWeightsDataHead(int arbor, int dataIndex) const {
-   auto *hebbianUpdater = mapLookupByType<HebbianUpdater>(mObserverTable.getObjectMap());
-   pvAssert(hebbianUpdater);
-   if (hebbianUpdater) {
-      return hebbianUpdater->getDeltaWeightsDataHead(arbor, dataIndex);
-   }
-   else {
-      return nullptr;
-   }
-}
-
 } // namespace PV

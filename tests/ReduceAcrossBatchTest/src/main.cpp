@@ -5,9 +5,10 @@
  * working of the test is described there.
  */
 
+#include <columns/ComponentBasedObject.hpp>
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
-#include <connections/HyPerConn.hpp>
+#include <components/WeightsPair.hpp>
 
 int checkWeights(HyPerCol *hc, int argc, char *argv[]);
 
@@ -43,16 +44,22 @@ int main(int argc, char *argv[]) {
 }
 
 int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
-   HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getObjectFromName("InputToOutput"));
-   FatalIf(conn == nullptr, "No HyPerConn named \"InputToOutput\" in column.\n");
+   auto *conn = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("InputToOutput"));
+   FatalIf(conn == nullptr, "No connection named \"InputToOutput\" in column.\n");
    HyPerLayer *correctValuesLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("SumInputs"));
    FatalIf(correctValuesLayer == nullptr, "No layer named \"SumInputs\" in column.\n");
 
-   int const N = correctValuesLayer->getNumExtended();
+   int const N       = correctValuesLayer->getNumExtended();
+   auto *weightsPair = conn->getComponentByType<WeightsPair>();
    FatalIf(
-         conn->getNumDataPatches() != N,
+         weightsPair == nullptr,
+         "%s does not have a WeightsPair component.\n",
+         conn->getDescription_c());
+   auto *preWeights = weightsPair->getPreWeights();
+   FatalIf(
+         preWeights->getNumDataPatches() != N,
          "connection InputToOutput and layer SumInputs have different sizes.\n");
-   float const *weights       = conn->getWeightsDataStart(0);
+   float const *weights       = preWeights->getData(0);
    float const *correctValues = correctValuesLayer->getLayerData(0);
    int status                 = PV_SUCCESS;
    for (int k = 0; k < N; k++) {

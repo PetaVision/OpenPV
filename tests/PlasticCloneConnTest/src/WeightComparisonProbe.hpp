@@ -8,7 +8,7 @@
 #ifndef WEIGHTCOMPARISONPROBE_HPP_
 #define WEIGHTCOMPARISONPROBE_HPP_
 
-#include <connections/HyPerConn.hpp>
+#include <columns/ComponentBasedObject.hpp>
 #include <probes/ColProbe.hpp>
 
 #include <vector>
@@ -51,7 +51,7 @@ class WeightComparisonProbe : public PV::ColProbe {
    virtual Response::Status allocateDataStructures() override;
 
    virtual bool needRecalc(double timevalue) override { return true; }
-   virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
+   virtual double referenceUpdateTime() const override;
    virtual void calcValues(double timevalue) override {}
    /**
     * Exits with an error if any connections are found to be different
@@ -63,7 +63,7 @@ class WeightComparisonProbe : public PV::ColProbe {
    int initialize_base();
 
   private:
-   std::vector<PV::HyPerConn *> mConnectionList;
+   std::vector<PV::ComponentBasedObject *> mConnectionList;
    int mNumArbors;
    std::size_t mNumWeightsInArbor;
 }; // end class WeightComparisonProbe

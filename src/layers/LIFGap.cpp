@@ -6,11 +6,13 @@
  */
 
 #include "LIFGap.hpp"
-#include "../connections/HyPerConn.hpp"
-#include "../include/default_params.h"
-#include "../include/pv_common.h"
-#include "../io/fileio.hpp"
+#include "components/WeightsPair.hpp"
+#include "connections/BaseConnection.hpp"
+#include "include/default_params.h"
+#include "include/pv_common.h"
+#include "io/fileio.hpp"
 #include "utils/cl_random.h"
+#include "weightupdaters/BaseWeightUpdater.hpp"
 
 #include <assert.h>
 #include <cmath>
@@ -143,13 +145,19 @@ void LIFGap::calcGapStrength() {
    bool needsNewCalc = !gapStrengthInitialized;
    if (!needsNewCalc) {
       for (auto &c : recvConns) {
-         HyPerConn *conn = dynamic_cast<HyPerConn *>(c);
-         if (conn != nullptr) {
+         auto *deliveryComponent = c->getComponentByType<BaseDelivery>();
+         if (deliveryComponent != nullptr) {
             continue;
          }
-         if (conn->getChannelCode() == CHANNEL_GAP && mLastUpdateTime < conn->getLastUpdateTime()) {
-            needsNewCalc = true;
-            break;
+         if (deliveryComponent->getChannelCode() == CHANNEL_GAP) {
+            auto *weightsPair = c->getComponentByType<WeightsPair>();
+            if (weightsPair == nullptr) {
+               continue;
+            }
+            if (mLastUpdateTime < weightsPair->getPreWeights()->getTimestamp()) {
+               needsNewCalc = true;
+               break;
+            }
          }
       }
    }
@@ -161,10 +169,14 @@ void LIFGap::calcGapStrength() {
       gapStrength[k] = (float)0;
    }
    for (auto &c : recvConns) {
-      if (c == nullptr or c->getChannelCode() != CHANNEL_GAP) {
+      if (c == nullptr) {
          continue;
       }
-      pvAssert(c->getPost() == this);
+      auto *deliveryComponent = c->getComponentByType<BaseDelivery>();
+      if (deliveryComponent == nullptr or deliveryComponent->getChannelCode() != CHANNEL_GAP) {
+         continue;
+      }
+      pvAssert(c->getComponentByType<ConnectionData>()->getPost() == this);
       auto *weightUpdater = c->getComponentByType<BaseWeightUpdater>();
       if (weightUpdater and weightUpdater->getPlasticityFlag() and parent->columnId() == 0) {
          WarnLog().printf(
@@ -172,7 +184,7 @@ void LIFGap::calcGapStrength() {
                getDescription_c(),
                c->getDescription_c());
       }
-      c->deliverUnitInput(gapStrength);
+      deliveryComponent->deliverUnitInput(gapStrength);
    }
    gapStrengthInitialized = true;
 }

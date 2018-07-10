@@ -56,10 +56,11 @@ Response::Status NonsharedConnDebugInitWeights::initializeState() {
    FatalIf(
          mWeightInitTypeString == nullptr or mWeightInitTypeString[0] == '\0',
          "NonsharedConnDebugInitWeights did not set weightInitTypeString.\n");
-   int numPatches = getNumDataPatches();
-   int numArbors  = mWeightsPair->getPreWeights()->getNumArbors();
+   auto *preWeights = mWeightsPair->getPreWeights();
+   int numPatches   = preWeights->getNumDataPatches();
+   int numArbors    = preWeights->getNumArbors();
    for (int arbor = 0; arbor < numArbors; arbor++) {
-      float *arborStart = getWeightsDataStart(arbor);
+      float *arborStart = preWeights->getData(arbor);
       if (!strcmp(mWeightInitTypeString, "CoCircWeight")) {
          initializeCocircWeights(arborStart, numPatches);
       }
@@ -79,20 +80,22 @@ Response::Status NonsharedConnDebugInitWeights::initializeState() {
 void NonsharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, int numPatches) {
    int overallPatchSize = mWeightsPair->getPreWeights()->getPatchSizeOverall();
    for (int k = 0; k < numPatches; k++) {
-      smartWeights(getPatch(k), dataStart + k * overallPatchSize, dataIndexToUnitCellIndex(k));
+      auto &patch = mWeightsPair->getPreWeights()->getPatch(k);
+      smartWeights(patch, dataStart + k * overallPatchSize, dataIndexToUnitCellIndex(k));
    }
 }
 
-void NonsharedConnDebugInitWeights::smartWeights(Patch const *wp, float *dataStart, int k) {
+void NonsharedConnDebugInitWeights::smartWeights(Patch const &wp, float *dataStart, int k) {
    float *w = dataStart;
 
-   const int nxp = (int)wp->nx;
-   const int nyp = (int)wp->ny;
-   const int nfp = getPatchSizeF();
+   const int nxp = (int)wp.nx;
+   const int nyp = (int)wp.ny;
+   const int nfp = mPatchSize->getPatchSizeF();
 
-   const int sxp = getPatchStrideX();
-   const int syp = getPatchStrideY();
-   const int sfp = getPatchStrideF();
+   auto *preWeights = mWeightsPair->getPreWeights();
+   const int sxp    = preWeights->getPatchStrideX();
+   const int syp    = preWeights->getPatchStrideY();
+   const int sfp    = preWeights->getPatchStrideF();
 
    // loop over all post-synaptic cells in patch
    for (int y = 0; y < nyp; y++) {
@@ -126,15 +129,17 @@ void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, in
    shift     = params->value(name, "flankShift", shift);
    rotate    = params->value(name, "rotate", rotate);
 
-   int noPre = getPre()->getLayerLoc()->nf;
-   noPre     = (int)params->value(name, "noPre", noPre);
+   auto *preLayer  = getComponentByType<ConnectionData>()->getPre();
+   auto *postLayer = getComponentByType<ConnectionData>()->getPost();
+   int noPre       = preLayer->getLayerLoc()->nf;
+   noPre           = (int)params->value(name, "noPre", noPre);
    FatalIf(!(noPre > 0), "Test failed.\n");
-   FatalIf(!(noPre <= getPre()->getLayerLoc()->nf), "Test failed.\n");
+   FatalIf(!(noPre <= preLayer->getLayerLoc()->nf), "Test failed.\n");
 
-   int noPost = getPost()->getLayerLoc()->nf;
+   int noPost = postLayer->getLayerLoc()->nf;
    noPost     = (int)params->value(name, "noPost", noPost);
    FatalIf(!(noPost > 0), "Test failed.\n");
-   FatalIf(!(noPost <= getPost()->getLayerLoc()->nf), "Test failed.\n");
+   FatalIf(!(noPost <= postLayer->getLayerLoc()->nf), "Test failed.\n");
 
    float sigma_cocirc = PI / 2.0f;
    sigma_cocirc       = params->value(name, "sigmaCocirc", sigma_cocirc);
@@ -149,7 +154,7 @@ void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, in
    float delta_theta_max = PI / 2.0f;
    delta_theta_max       = params->value(name, "deltaThetaMax", delta_theta_max);
 
-   float cocirc_self = (getPre() != getPost());
+   float cocirc_self = (preLayer != postLayer);
    cocirc_self       = params->value(name, "cocircSelf", cocirc_self);
 
    // from pv_common.h
@@ -161,7 +166,7 @@ void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, in
    for (int patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
       float *patchDataStart = &dataStart[patchIndex * patchSizeOverall];
       cocircCalcWeights(
-            getPatch(patchIndex),
+            mWeightsPair->getPreWeights()->getPatch(patchIndex),
             patchDataStart,
             patchIndex,
             noPre,
@@ -183,7 +188,7 @@ void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, in
 }
 
 void NonsharedConnDebugInitWeights::cocircCalcWeights(
-      Patch const *wp,
+      Patch const &wp,
       float *dataStart,
       int dataPatchIndex,
       int noPre,
@@ -201,24 +206,23 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
       float sigma,
       float r2Max,
       float strength) {
-   // float * w = wp->data;
 
    const float min_weight    = 0.0f; // read in as param
    const float sigma2        = 2 * sigma * sigma;
    const float sigma_cocirc2 = 2 * sigma_cocirc * sigma_cocirc;
 
-   const int nxPatch = (int)wp->nx;
-   const int nyPatch = (int)wp->ny;
-   const int nfPatch = getPatchSizeF();
+   const int nxPatch = (int)wp.nx;
+   const int nyPatch = (int)wp.ny;
+   const int nfPatch = mPatchSize->getPatchSizeF();
    if (nxPatch * nyPatch * nfPatch == 0) {
       return; // reduced patch size is zero
    }
 
+   auto *preWeights = mWeightsPair->getPreWeights();
    // get strides of (potentially shrunken) patch
-   const int sx = getPatchStrideX();
-   FatalIf(!(sx == nfPatch), "Test failed.\n");
-   // const int sy = getPatchStrideY(); // no assert here because patch may be shrunken
-   const int sf = getPatchStrideF();
+   const int sx = preWeights->getPatchStrideX();
+   FatalIf(sx != nfPatch, "Test failed.\n");
+   const int sf = preWeights->getPatchStrideF();
    FatalIf(!(sf == 1), "Test failed.\n");
 
    // make full sized temporary patch, positioned around center of unit cell
@@ -228,9 +232,9 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
    float *w_tmp = dataStart;
 
    // get/check dimensions and strides of full sized temporary patch
-   const int nxPatch_tmp = getPatchSizeX();
-   const int nyPatch_tmp = getPatchSizeY();
-   const int nfPatch_tmp = getPatchSizeF();
+   const int nxPatch_tmp = mPatchSize->getPatchSizeX();
+   const int nyPatch_tmp = mPatchSize->getPatchSizeY();
+   const int nfPatch_tmp = mPatchSize->getPatchSizeF();
    // should nfPatch_tmp just be replaced with nfPatch throughout?
    int kxKernelIndex;
    int kyKerneIndex;
@@ -240,40 +244,43 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKerneIndex;
    //   const int kfPre_tmp = kfKernelIndex;
-   const int sx_tmp = getPatchStrideX();
-   FatalIf(!(sx_tmp == getPatchSizeF()), "Test failed.\n");
-   const int sy_tmp = getPatchStrideY();
-   FatalIf(!(sy_tmp == getPatchSizeF() * nxPatch_tmp), "Test failed.\n");
-   const int sf_tmp = getPatchStrideF();
+   const int sx_tmp = preWeights->getPatchStrideX();
+   FatalIf(!(sx_tmp == mPatchSize->getPatchSizeF()), "Test failed.\n");
+   const int sy_tmp = preWeights->getPatchStrideY();
+   FatalIf(!(sy_tmp == mPatchSize->getPatchSizeF() * nxPatch_tmp), "Test failed.\n");
+   const int sf_tmp = preWeights->getPatchStrideF();
    FatalIf(!(sf_tmp == 1), "Test failed.\n");
 
    // get distances to nearest neighbor in post synaptic layer
    float xDistNNPreUnits;
    float xDistNNPostUnits;
+
+   auto *preLayer  = getComponentByType<ConnectionData>()->getPre();
+   auto *postLayer = getComponentByType<ConnectionData>()->getPost();
    dist2NearestCell(
          kxPre_tmp,
-         getPost()->getXScale() - getPre()->getXScale(),
+         postLayer->getXScale() - preLayer->getXScale(),
          &xDistNNPreUnits,
          &xDistNNPostUnits);
    float yDistNNPreUnits;
    float yDistNNPostUnits;
    dist2NearestCell(
          kyPre_tmp,
-         getPost()->getYScale() - getPre()->getYScale(),
+         postLayer->getYScale() - preLayer->getYScale(),
          &yDistNNPreUnits,
          &yDistNNPostUnits);
 
    // get indices of nearest neighbor
    int kxNN;
    int kyNN;
-   kxNN = nearby_neighbor(kxPre_tmp, getPost()->getXScale() - getPre()->getXScale());
-   kyNN = nearby_neighbor(kyPre_tmp, getPost()->getYScale() - getPre()->getYScale());
+   kxNN = nearby_neighbor(kxPre_tmp, postLayer->getXScale() - preLayer->getXScale());
+   kyNN = nearby_neighbor(kyPre_tmp, postLayer->getYScale() - preLayer->getYScale());
 
    // get indices of patch head
    int kxHead;
    int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, getPost()->getXScale() - getPre()->getXScale());
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, getPost()->getYScale() - getPre()->getYScale());
+   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, postLayer->getXScale() - preLayer->getXScale());
+   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, postLayer->getYScale() - preLayer->getYScale());
 
    // get distance to patch head
    float xDistHeadPostUnits;
@@ -290,19 +297,19 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
    yDistHeadPreUnits = yDistHeadPostUnits * yRelativeScale;
 
    // sigma is in units of pre-synaptic layer
-   const float dxPost = powf(2, getPost()->getXScale());
-   const float dyPost = powf(2, getPost()->getYScale());
+   const float dxPost = powf(2, postLayer->getXScale());
+   const float dyPost = powf(2, postLayer->getYScale());
 
    const int kfPre = featureIndex(
          dataPatchIndex,
-         getPre()->getLayerLoc()->nx,
-         getPre()->getLayerLoc()->ny,
-         getPre()->getLayerLoc()->nf);
+         preLayer->getLayerLoc()->nx,
+         preLayer->getLayerLoc()->ny,
+         preLayer->getLayerLoc()->nf);
 
    bool POS_KURVE_FLAG  = false; //  handle pos and neg curvature separately
    bool SADDLE_FLAG     = false; // handle saddle points separately
-   const int nKurvePre  = getPre()->getLayerLoc()->nf / noPre;
-   const int nKurvePost = getPost()->getLayerLoc()->nf / noPost;
+   const int nKurvePre  = preLayer->getLayerLoc()->nf / noPre;
+   const int nKurvePost = postLayer->getLayerLoc()->nf / noPost;
    const float dThPre   = PI / noPre;
    const float dThPost  = PI / noPost;
    const float th0Pre   = rotate * dThPre / 2.0f;
@@ -552,7 +559,7 @@ void NonsharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart
    PVParams *params = parent->parameters();
 
    // default values (chosen for center on cell of one pixel)
-   int noPost          = getPatchSizeF();
+   int noPost          = mPatchSize->getPatchSizeF();
    float aspect        = 1.0f; // circular (not line oriented)
    float sigma         = 0.8f;
    float rMax          = 1.4f;
@@ -571,8 +578,8 @@ void NonsharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart
    rMax     = params->value(name, "rMax", rMax);
    rMin     = params->value(name, "rMin", rMin);
    strength = params->value(name, "strength", strength);
-   if (getPatchSizeF() > 1) {
-      noPost        = (int)params->value(getName(), "numOrientationsPost", getPatchSizeF());
+   if (mPatchSize->getPatchSizeF() > 1) {
+      noPost = (int)params->value(getName(), "numOrientationsPost", mPatchSize->getPatchSizeF());
       deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
       thetaMax      = params->value(name, "thetaMax", thetaMax);
       numFlanks     = (int)params->value(name, "numFlanks", (float)numFlanks);
@@ -590,7 +597,7 @@ void NonsharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart
    int patchSizeOverall = mWeightsPair->getPreWeights()->getPatchSizeOverall();
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       gauss2DCalcWeights(
-            getPatch(patchIndex),
+            mWeightsPair->getPreWeights()->getPatch(patchIndex),
             &dataStart[patchIndex * patchSizeOverall],
             patchIndex,
             noPost,
@@ -610,7 +617,7 @@ void NonsharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart
 }
 
 void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
-      Patch const *wp,
+      Patch const &wp,
       float *dataStart,
       int dataPatchIndex,
       int no,
@@ -627,31 +634,31 @@ void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
       float bowtieFlag,
       float bowtieAngle) {
 
-   bool self = (getPre() != getPost());
+   auto *preLayer  = getComponentByType<ConnectionData>()->getPre();
+   auto *postLayer = getComponentByType<ConnectionData>()->getPost();
+   bool self       = (preLayer != postLayer);
 
    // get dimensions of (potentially shrunken patch)
-   const int nxPatch = (int)wp->nx;
-   const int nyPatch = (int)wp->ny;
-   const int nfPatch = getPatchSizeF();
+   const int nxPatch = (int)wp.nx;
+   const int nyPatch = (int)wp.ny;
+   const int nfPatch = mPatchSize->getPatchSizeF();
    if (nxPatch * nyPatch * nfPatch == 0) {
       return; // reduced patch size is zero
    }
 
-   // float * w = wp->data;
-
+   auto *preWeights = mWeightsPair->getPreWeights();
    // get strides of (potentially shrunken) patch
-   const int sx = getPatchStrideX();
+   const int sx = preWeights->getPatchStrideX();
    FatalIf(!(sx == nfPatch), "Test failed.\n");
-   // const int sy = getPatchStrideY(); // no assert here because patch may be shrunken
-   const int sf = getPatchStrideF();
+   const int sf = preWeights->getPatchStrideF();
    FatalIf(!(sf == 1), "Test failed.\n");
 
    float *w_tmp = dataStart;
 
    // get/check dimensions and strides of full sized temporary patch
-   const int nxPatch_tmp = getPatchSizeX();
-   const int nyPatch_tmp = getPatchSizeY();
-   const int nfPatch_tmp = getPatchSizeF();
+   const int nxPatch_tmp = mPatchSize->getPatchSizeX();
+   const int nyPatch_tmp = mPatchSize->getPatchSizeY();
+   const int nfPatch_tmp = mPatchSize->getPatchSizeF();
    int kxKernelIndex;
    int kyKernelIndex;
    int kfKernelIndex;
@@ -660,11 +667,11 @@ void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKernelIndex;
    const int kfPre_tmp = kfKernelIndex;
-   const int sx_tmp    = getPatchStrideX();
-   FatalIf(!(sx_tmp == getPatchSizeF()), "Test failed.\n");
-   const int sy_tmp = getPatchStrideY();
-   FatalIf(!(sy_tmp == getPatchSizeF() * nxPatch_tmp), "Test failed.\n");
-   const int sf_tmp = getPatchStrideF();
+   const int sx_tmp    = preWeights->getPatchStrideX();
+   FatalIf(sx_tmp != mPatchSize->getPatchSizeF(), "Test failed.\n");
+   const int sy_tmp = preWeights->getPatchStrideY();
+   FatalIf(sy_tmp != mPatchSize->getPatchSizeF() * nxPatch_tmp, "Test failed.\n");
+   const int sf_tmp = preWeights->getPatchStrideF();
    FatalIf(!(sf_tmp == 1), "Test failed.\n");
 
    // get distances to nearest neighbor in post synaptic layer (measured relative to pre-synaptic
@@ -673,28 +680,28 @@ void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
    float xDistNNPostUnits;
    dist2NearestCell(
          kxPre_tmp,
-         getPost()->getXScale() - getPre()->getXScale(),
+         postLayer->getXScale() - preLayer->getXScale(),
          &xDistNNPreUnits,
          &xDistNNPostUnits);
    float yDistNNPreUnits;
    float yDistNNPostUnits;
    dist2NearestCell(
          kyPre_tmp,
-         getPost()->getYScale() - getPre()->getYScale(),
+         postLayer->getYScale() - preLayer->getYScale(),
          &yDistNNPreUnits,
          &yDistNNPostUnits);
 
    // get indices of nearest neighbor
    int kxNN;
    int kyNN;
-   kxNN = nearby_neighbor(kxPre_tmp, getPost()->getXScale() - getPre()->getXScale());
-   kyNN = nearby_neighbor(kyPre_tmp, getPost()->getYScale() - getPre()->getYScale());
+   kxNN = nearby_neighbor(kxPre_tmp, postLayer->getXScale() - preLayer->getXScale());
+   kyNN = nearby_neighbor(kyPre_tmp, postLayer->getYScale() - preLayer->getYScale());
 
    // get indices of patch head
    int kxHead;
    int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, getPost()->getXScale() - getPre()->getXScale());
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, getPost()->getYScale() - getPre()->getYScale());
+   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, postLayer->getXScale() - preLayer->getXScale());
+   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, postLayer->getYScale() - preLayer->getYScale());
 
    // get distance to patch head (measured relative to pre-synaptic cell)
    float xDistHeadPostUnits;
@@ -717,13 +724,13 @@ void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
    // TODO - the following assumes that if aspect > 1, # orientations = # features
    //   int noPost = no;
    // number of orientations only used if aspect != 1
-   const int noPost    = getPost()->getLayerLoc()->nf;
+   const int noPost    = postLayer->getLayerLoc()->nf;
    const float dthPost = PI * thetaMax / (float)noPost;
    const float th0Post = rotate * dthPost / 2.0f;
-   const int noPre     = getPre()->getLayerLoc()->nf;
+   const int noPre     = preLayer->getLayerLoc()->nf;
    const float dthPre  = PI * thetaMax / (float)noPre;
    const float th0Pre  = rotate * dthPre / 2.0f;
-   const int fPre      = dataPatchIndex % getPre()->getLayerLoc()->nf;
+   const int fPre      = dataPatchIndex % preLayer->getLayerLoc()->nf;
    FatalIf(!(fPre == kfPre_tmp), "Test failed.\n");
    const int iThPre  = dataPatchIndex % noPre;
    const float thPre = th0Pre + iThPre * dthPre;
@@ -783,8 +790,10 @@ void NonsharedConnDebugInitWeights::gauss2DCalcWeights(
 
 void NonsharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, int numPatches) {
 
-   const int xScale = getPost()->getXScale() - getPre()->getXScale();
-   const int yScale = getPost()->getYScale() - getPre()->getYScale();
+   auto *preLayer   = getComponentByType<ConnectionData>()->getPre();
+   auto *postLayer  = getComponentByType<ConnectionData>()->getPost();
+   const int xScale = postLayer->getXScale() - preLayer->getXScale();
+   const int yScale = postLayer->getYScale() - preLayer->getYScale();
 
    PVParams *params = parent->parameters();
 
@@ -808,7 +817,7 @@ void NonsharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, int
    for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
       // TODO - change parameters based on kernelIndex (i.e., change orientation)
       gaborWeights(
-            getPatch(kernelIndex),
+            mWeightsPair->getPreWeights()->getPatch(kernelIndex),
             &dataStart[kernelIndex * patchSizeOverall],
             xScale,
             yScale,
@@ -822,7 +831,7 @@ void NonsharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, int
 }
 
 void NonsharedConnDebugInitWeights::gaborWeights(
-      Patch const *wp,
+      Patch const &wp,
       float *dataStart,
       int xScale,
       int yScale,
@@ -841,17 +850,18 @@ void NonsharedConnDebugInitWeights::gaborWeights(
    if (params->present(name, "invert"))
       invert = params->value(name, "invert");
 
-   float *w = dataStart; // wp->data;
+   float *w = dataStart;
 
    // const float phi = 3.1416;  // phase
 
-   const int nx = (int)wp->nx;
-   const int ny = (int)wp->ny;
-   const int nf = getPatchSizeF();
+   const int nx = (int)wp.nx;
+   const int ny = (int)wp.ny;
+   const int nf = mPatchSize->getPatchSizeF();
 
-   const int sx = getPatchStrideX(); // FatalIf(!(sx == nf), "Test failed.\n");
-   const int sy = getPatchStrideY(); // FatalIf(!(sy == nf*nx), "Test failed.\n");
-   const int sf = getPatchStrideF(); // FatalIf(!(sf == 1), "Test failed.\n");
+   auto *preWeights = mWeightsPair->getPreWeights();
+   const int sx     = preWeights->getPatchStrideX(); // FatalIf(!(sx == nf), "Test failed.\n");
+   const int sy     = preWeights->getPatchStrideY(); // FatalIf(!(sy == nf*nx), "Test failed.\n");
+   const int sf     = preWeights->getPatchStrideF(); // FatalIf(!(sf == 1), "Test failed.\n");
 
    const float dx = powf(2, xScale);
    const float dy = powf(2, yScale);
