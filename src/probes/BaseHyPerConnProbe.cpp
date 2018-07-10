@@ -6,6 +6,7 @@
  */
 
 #include "BaseHyPerConnProbe.hpp"
+#include "components/WeightsPair.hpp"
 
 namespace PV {
 

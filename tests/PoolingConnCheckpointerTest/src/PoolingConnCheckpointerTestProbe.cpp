@@ -6,11 +6,12 @@
  */
 
 #include "PoolingConnCheckpointerTestProbe.hpp"
+#include "components/PatchSize.hpp"
+#include "connections/PoolingConn.hpp"
+#include "utils/BufferUtilsMPI.hpp"
 #include <algorithm>
 #include <climits>
 #include <cmath>
-#include <connections/PoolingConn.hpp>
-#include <utils/BufferUtilsMPI.hpp>
 
 PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe() { initialize_base(); }
 
@@ -91,12 +92,14 @@ PV::Response::Status PoolingConnCheckpointerTestProbe::initConnection(
       return PV::Response::POSTPONE;
    }
 
+   auto *patchSize = mConnection->getComponentByType<PV::PatchSize>();
    FatalIf(
-         mConnection->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
-   FatalIf(
-         mConnection->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
-   FatalIf(
-         mConnection->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
+         patchSize == nullptr,
+         "%s does not have a PatchSize component.\n",
+         mConnection->getDescription_c());
+   FatalIf(patchSize->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
+   FatalIf(patchSize->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
+   FatalIf(patchSize->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
    return PV::Response::SUCCESS;
 }
 

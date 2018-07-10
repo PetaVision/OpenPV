@@ -6,6 +6,7 @@
  */
 
 #include "L2ConnProbe.hpp"
+#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

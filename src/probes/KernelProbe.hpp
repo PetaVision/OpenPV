@@ -9,6 +9,7 @@
 #define KERNELPROBE_HPP_
 
 #include "BaseHyPerConnProbe.hpp"
+#include "components/PatchSize.hpp"
 
 namespace PV {
 

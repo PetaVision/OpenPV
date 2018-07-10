@@ -28,17 +28,10 @@ class BaseConnection : public ComponentBasedObject {
    void addComponent(S *observer);
 
    // Jul 10, 2018: get-methods have been moved into the corresponding component classes.
-   // For example, the old HyPerConn::getPatchSizeX() has been moved into the PatchSize class.
-   // To get the PatchSizeX value from a HyPerConn conn , get the PatchSize component using
-   // "PatchSize *patchsize = conn->getComponentByType<PatchSize>()" and then call
-   // "patchSize->getPatchSizeX()"
-   //   HyPerLayer *getPre() const { return mConnectionData->getPre(); }
-   //   HyPerLayer *getPost() const { return mConnectionData->getPost(); }
-   //   char const *getPreLayerName() const { return mConnectionData->getPreLayerName(); }
-   //   char const *getPostLayerName() const { return mConnectionData->getPostLayerName(); }
-   //
-   //   ChannelType getChannelCode() const { return mDeliveryObject->getChannelCode(); }
-   //   bool getReceiveGpu() const { return mDeliveryObject->getReceiveGpu(); }
+   // For example, the old BaseConnection::getPre() has been moved into the ConnectionData class.
+   // To get the presynaptic layer from a connection named "conn", get the PatchSize component using
+   // "ConnectionData *connectionData = conn->getComponentByType<ConnectionData>()" and then call
+   // "connectionData->getPre()"
 
   protected:
    BaseConnection();

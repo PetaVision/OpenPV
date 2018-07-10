@@ -9,7 +9,7 @@
 #define BASEHYPERCONNPROBE_HPP_
 
 #include "BaseConnectionProbe.hpp"
-#include "connections/HyPerConn.hpp"
+#include "components/Weights.hpp"
 
 namespace PV {
 
