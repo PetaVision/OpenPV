@@ -52,7 +52,7 @@ OriginalConnNameParam *CopyConn::createOriginalConnNameParam() {
 }
 
 Response::Status CopyConn::initializeState() {
-   auto *copyWeightsPair = dynamic_cast<CopyWeightsPair *>(mWeightsPair);
+   auto *copyWeightsPair = getComponentByType<CopyWeightsPair>();
    pvAssert(copyWeightsPair);
    if (!copyWeightsPair->getOriginalWeightsPair()->getInitialValuesSetFlag()) {
       return Response::POSTPONE;

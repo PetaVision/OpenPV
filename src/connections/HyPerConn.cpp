@@ -44,33 +44,33 @@ void HyPerConn::initMessageActionMap() {
 
 void HyPerConn::setObserverTable() {
    BaseConnection::setObserverTable();
-   mArborList = createArborList();
-   if (mArborList) {
-      addUniqueComponent(mArborList->getDescription(), mArborList);
+   auto *arborList = createArborList();
+   if (arborList) {
+      addUniqueComponent(arborList->getDescription(), arborList);
    }
-   mPatchSize = createPatchSize();
-   if (mPatchSize) {
-      addUniqueComponent(mPatchSize->getDescription(), mPatchSize);
+   auto *patchSize = createPatchSize();
+   if (patchSize) {
+      addUniqueComponent(patchSize->getDescription(), patchSize);
    }
-   mSharedWeights = createSharedWeights();
-   if (mSharedWeights) {
-      addUniqueComponent(mSharedWeights->getDescription(), mSharedWeights);
+   auto *sharedWeights = createSharedWeights();
+   if (sharedWeights) {
+      addUniqueComponent(sharedWeights->getDescription(), sharedWeights);
    }
-   mWeightsPair = createWeightsPair();
-   if (mWeightsPair) {
-      addUniqueComponent(mWeightsPair->getDescription(), mWeightsPair);
+   auto *weightsPair = createWeightsPair();
+   if (weightsPair) {
+      addUniqueComponent(weightsPair->getDescription(), weightsPair);
    }
-   mWeightInitializer = createWeightInitializer();
-   if (mWeightInitializer) {
-      addUniqueComponent(mWeightInitializer->getDescription(), mWeightInitializer);
+   auto *weightInitializer = createWeightInitializer();
+   if (weightInitializer) {
+      addUniqueComponent(weightInitializer->getDescription(), weightInitializer);
    }
-   mWeightNormalizer = createWeightNormalizer();
-   if (mWeightNormalizer) {
-      addUniqueComponent(mWeightNormalizer->getDescription(), mWeightNormalizer);
+   auto *weightNormalizer = createWeightNormalizer();
+   if (weightNormalizer) {
+      addUniqueComponent(weightNormalizer->getDescription(), weightNormalizer);
    }
-   mWeightUpdater = createWeightUpdater();
-   if (mWeightUpdater) {
-      addUniqueComponent(mWeightUpdater->getDescription(), mWeightUpdater);
+   auto *weightUpdater = createWeightUpdater();
+   if (weightUpdater) {
+      addUniqueComponent(weightUpdater->getDescription(), weightUpdater);
    }
 }
 
@@ -203,7 +203,7 @@ Response::Status
 HyPerConn::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto status = BaseConnection::registerData(message);
    if (Response::completed(status)) {
-      if (mWeightUpdater) {
+      if (getComponentByType<BaseWeightUpdater>()) {
          mUpdateTimer = new Timer(getName(), "conn", "update");
          message->mDataRegistry->registerTimer(mUpdateTimer);
       }

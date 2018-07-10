@@ -63,13 +63,13 @@ class HyPerConn : public BaseConnection {
    virtual Response::Status initializeState() override;
 
   protected:
-   ArborList *mArborList              = nullptr;
-   PatchSize *mPatchSize              = nullptr;
-   SharedWeights *mSharedWeights      = nullptr;
-   WeightsPairInterface *mWeightsPair = nullptr;
-   InitWeights *mWeightInitializer    = nullptr;
-   NormalizeBase *mWeightNormalizer   = nullptr;
-   BaseWeightUpdater *mWeightUpdater  = nullptr;
+   //   ArborList *mArborList              = nullptr;
+   //   PatchSize *mPatchSize              = nullptr;
+   //   SharedWeights *mSharedWeights      = nullptr;
+   //   WeightsPairInterface *mWeightsPair = nullptr;
+   //   InitWeights *mWeightInitializer    = nullptr;
+   //   NormalizeBase *mWeightNormalizer   = nullptr;
+   //   BaseWeightUpdater *mWeightUpdater  = nullptr;
 
    Timer *mUpdateTimer = nullptr;
 

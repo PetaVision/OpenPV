@@ -49,13 +49,13 @@ void BaseConnection::initMessageActionMap() {
 }
 
 void BaseConnection::setObserverTable() {
-   mConnectionData = createConnectionData();
-   if (mConnectionData) {
-      addUniqueComponent(mConnectionData->getDescription(), mConnectionData);
+   auto *connectionData = createConnectionData();
+   if (connectionData) {
+      addUniqueComponent(connectionData->getDescription(), connectionData);
    }
-   mDeliveryObject = createDeliveryObject();
-   if (mDeliveryObject) {
-      addUniqueComponent(mDeliveryObject->getDescription(), mDeliveryObject);
+   auto *deliveryObject = createDeliveryObject();
+   if (deliveryObject) {
+      addUniqueComponent(deliveryObject->getDescription(), deliveryObject);
    }
 }
 

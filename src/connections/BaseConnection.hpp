@@ -69,9 +69,6 @@ class BaseConnection : public ComponentBasedObject {
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
   private:
-   ConnectionData *mConnectionData = nullptr;
-   BaseDelivery *mDeliveryObject   = nullptr;
-
    Timer *mIOTimer = nullptr;
 
 }; // class BaseConnection

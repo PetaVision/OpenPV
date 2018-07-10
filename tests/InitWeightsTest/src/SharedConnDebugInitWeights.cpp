@@ -50,13 +50,13 @@ Response::Status SharedConnDebugInitWeights::communicateInitInfo(
 }
 
 Response::Status SharedConnDebugInitWeights::initializeState() {
-   FatalIf(
-         mWeightsPair->getPreWeights() == nullptr,
-         "SharedConnDebugInitWeights::initializeState called with no presynaptic weights.\n");
+   auto *weightsPair = getComponentByType<WeightsPair>();
+   FatalIf(weightsPair == nullptr, "%s has no WeightsPair component.\n", getDescription_c());
+   Weights *preWeights = weightsPair->getPreWeights();
+   FatalIf(preWeights == nullptr, "%s has no presynaptic weights.\n", getDescription_c());
    FatalIf(
          mWeightInitTypeString == nullptr or mWeightInitTypeString[0] == '\0',
-         "SharedConnDebugInitWeights did not set weightInitTypeString.\n");
-   auto *preWeights     = mWeightsPair->getPreWeights();
+         "NonsharedConnDebugInitWeights did not set weightInitTypeString.\n");
    int numKernelPatches = preWeights->getNumDataPatches();
    int numArbors        = preWeights->getNumArbors();
    for (int arbor = 0; arbor < numArbors; arbor++) {
@@ -78,7 +78,9 @@ Response::Status SharedConnDebugInitWeights::initializeState() {
 }
 
 void SharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, int numPatches) {
-   int overallPatchSize = mWeightsPair->getPreWeights()->getPatchSizeOverall();
+   auto *weightsPair    = getComponentByType<WeightsPair>();
+   Weights *preWeights  = weightsPair->getPreWeights();
+   int overallPatchSize = weightsPair->getPreWeights()->getPatchSizeOverall();
    for (int k = 0; k < numPatches; k++) {
       smartWeights(&dataStart[k * overallPatchSize], dataIndexToUnitCellIndex(k));
    }
@@ -87,11 +89,12 @@ void SharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, int nu
 void SharedConnDebugInitWeights::smartWeights(float *dataStart, int k) {
    float *w = dataStart;
 
-   const int nxp = mPatchSize->getPatchSizeX();
-   const int nyp = mPatchSize->getPatchSizeY();
-   const int nfp = mPatchSize->getPatchSizeF();
+   auto *patchSize = getComponentByType<PatchSize>();
+   const int nxp   = patchSize->getPatchSizeX();
+   const int nyp   = patchSize->getPatchSizeY();
+   const int nfp   = patchSize->getPatchSizeF();
 
-   auto *preWeights = mWeightsPair->getPreWeights();
+   auto *preWeights = getComponentByType<WeightsPair>()->getPreWeights();
    const int sxp    = preWeights->getPatchStrideX();
    const int syp    = preWeights->getPatchStrideY();
    const int sfp    = preWeights->getPatchStrideF();
@@ -161,7 +164,9 @@ void SharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, int n
    float delta_radius_curvature = 1.0f; // 1 = minimum radius of curvature
    delta_radius_curvature = params->value(name, "deltaRadiusCurvature", delta_radius_curvature);
 
-   int patchSizeOverall = mWeightsPair->getPreWeights()->getPatchSizeOverall();
+   auto *weightsPair    = getComponentByType<WeightsPair>();
+   Weights *preWeights  = weightsPair->getPreWeights();
+   int patchSizeOverall = preWeights->getPatchSizeOverall();
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       cocircCalcWeights(
             &dataStart[patchIndex * patchSizeOverall],
@@ -207,14 +212,16 @@ void SharedConnDebugInitWeights::cocircCalcWeights(
    const float sigma2        = 2 * sigma * sigma;
    const float sigma_cocirc2 = 2 * sigma_cocirc * sigma_cocirc;
 
-   const int nxPatch = mPatchSize->getPatchSizeX();
-   const int nyPatch = mPatchSize->getPatchSizeY();
-   const int nfPatch = mPatchSize->getPatchSizeF();
+   auto *patchSize   = getComponentByType<PatchSize>();
+   const int nxPatch = patchSize->getPatchSizeX();
+   const int nyPatch = patchSize->getPatchSizeY();
+   const int nfPatch = patchSize->getPatchSizeF();
    if (nxPatch * nyPatch * nfPatch == 0) {
       return; // reduced patch size is zero
    }
 
-   auto *preWeights = mWeightsPair->getPreWeights();
+   auto *weightsPair = getComponentByType<WeightsPair>();
+   auto *preWeights  = weightsPair->getPreWeights();
    // get strides of (potentially shrunken) patch
    const int sx = preWeights->getPatchStrideX();
    FatalIf(!(sx == nfPatch), "Test failed.\n");
@@ -224,9 +231,9 @@ void SharedConnDebugInitWeights::cocircCalcWeights(
    float *w_tmp = dataStart;
 
    // get/check dimensions and strides of full sized temporary patch
-   const int nxPatch_tmp = mPatchSize->getPatchSizeX();
-   const int nyPatch_tmp = mPatchSize->getPatchSizeY();
-   const int nfPatch_tmp = mPatchSize->getPatchSizeF();
+   const int nxPatch_tmp = patchSize->getPatchSizeX();
+   const int nyPatch_tmp = patchSize->getPatchSizeY();
+   const int nfPatch_tmp = patchSize->getPatchSizeF();
    int kxKernelIndex;
    int kyKerneIndex;
    int kfKernelIndex;
@@ -235,9 +242,9 @@ void SharedConnDebugInitWeights::cocircCalcWeights(
    const int kxPre_tmp = kxKernelIndex;
    const int kyPre_tmp = kyKerneIndex;
    const int sx_tmp    = preWeights->getPatchStrideX();
-   FatalIf(!(sx_tmp == mPatchSize->getPatchSizeF()), "Test failed.\n");
+   FatalIf(!(sx_tmp == patchSize->getPatchSizeF()), "Test failed.\n");
    const int sy_tmp = preWeights->getPatchStrideY();
-   FatalIf(!(sy_tmp == mPatchSize->getPatchSizeF() * nxPatch_tmp), "Test failed.\n");
+   FatalIf(!(sy_tmp == patchSize->getPatchSizeF() * nxPatch_tmp), "Test failed.\n");
    const int sf_tmp = preWeights->getPatchStrideF();
    FatalIf(!(sf_tmp == 1), "Test failed.\n");
 
@@ -549,7 +556,8 @@ void SharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, i
    PVParams *params = parent->parameters();
 
    // default values (chosen for center on cell of one pixel)
-   int noPost          = mPatchSize->getPatchSizeF();
+   auto *patchSize     = getComponentByType<PatchSize>();
+   int noPost          = patchSize->getPatchSizeF();
    float aspect        = 1.0f; // circular (not line oriented)
    float sigma         = 0.8f;
    float rMax          = 1.4f;
@@ -568,8 +576,8 @@ void SharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, i
    rMax     = params->value(name, "rMax", rMax);
    rMin     = params->value(name, "rMin", rMin);
    strength = params->value(name, "strength", strength);
-   if (mPatchSize->getPatchSizeF() > 1) {
-      noPost = (int)params->value(getName(), "numOrientationsPost", mPatchSize->getPatchSizeF());
+   if (patchSize->getPatchSizeF() > 1) {
+      noPost = (int)params->value(getName(), "numOrientationsPost", patchSize->getPatchSizeF());
       deltaThetaMax = params->value(name, "deltaThetaMax", deltaThetaMax);
       thetaMax      = params->value(name, "thetaMax", thetaMax);
       numFlanks     = (int)params->value(name, "numFlanks", (float)numFlanks);
@@ -584,7 +592,9 @@ void SharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, i
    float r2Max = rMax * rMax;
    float r2Min = rMin * rMin;
 
-   int patchSizeOverall = mWeightsPair->getPreWeights()->getPatchSizeOverall();
+   auto *weightsPair    = getComponentByType<WeightsPair>();
+   Weights *preWeights  = weightsPair->getPreWeights();
+   int patchSizeOverall = preWeights->getPatchSizeOverall();
    for (int patchIndex = 0; patchIndex < numPatches; patchIndex++) {
       gauss2DCalcWeights(
             &dataStart[patchIndex * patchSizeOverall],
@@ -627,14 +637,16 @@ void SharedConnDebugInitWeights::gauss2DCalcWeights(
    bool self       = (preLayer != postLayer);
 
    // get dimensions of (potentially shrunken patch)
-   const int nxPatch = mPatchSize->getPatchSizeX();
-   const int nyPatch = mPatchSize->getPatchSizeY();
-   const int nfPatch = mPatchSize->getPatchSizeF();
+   auto *patchSize   = getComponentByType<PatchSize>();
+   const int nxPatch = patchSize->getPatchSizeX();
+   const int nyPatch = patchSize->getPatchSizeY();
+   const int nfPatch = patchSize->getPatchSizeF();
    if (nxPatch * nyPatch * nfPatch == 0) {
       return; // reduced patch size is zero
    }
 
-   auto *preWeights = mWeightsPair->getPreWeights();
+   auto *weightsPair   = getComponentByType<WeightsPair>();
+   Weights *preWeights = weightsPair->getPreWeights();
    // get strides of (potentially shrunken) patch
    const int sx = preWeights->getPatchStrideX();
    FatalIf(!(sx == nfPatch), "Test failed.\n");
@@ -648,9 +660,9 @@ void SharedConnDebugInitWeights::gauss2DCalcWeights(
    float *w_tmp = dataStart; // wp_tmp->data;
 
    // get/check dimensions and strides of full sized temporary patch
-   const int nxPatch_tmp = mPatchSize->getPatchSizeX();
-   const int nyPatch_tmp = mPatchSize->getPatchSizeY();
-   const int nfPatch_tmp = mPatchSize->getPatchSizeF();
+   const int nxPatch_tmp = patchSize->getPatchSizeX();
+   const int nyPatch_tmp = patchSize->getPatchSizeY();
+   const int nfPatch_tmp = patchSize->getPatchSizeF();
    int kxKernelIndex;
    int kyKernelIndex;
    int kfKernelIndex;
@@ -660,9 +672,9 @@ void SharedConnDebugInitWeights::gauss2DCalcWeights(
    const int kyPre_tmp = kyKernelIndex;
    const int kfPre_tmp = kfKernelIndex;
    const int sx_tmp    = preWeights->getPatchStrideX();
-   FatalIf(!(sx_tmp == mPatchSize->getPatchSizeF()), "Test failed.\n");
+   FatalIf(!(sx_tmp == patchSize->getPatchSizeF()), "Test failed.\n");
    const int sy_tmp = preWeights->getPatchStrideY();
-   FatalIf(!(sy_tmp == mPatchSize->getPatchSizeF() * nxPatch_tmp), "Test failed.\n");
+   FatalIf(!(sy_tmp == patchSize->getPatchSizeF() * nxPatch_tmp), "Test failed.\n");
    const int sf_tmp = preWeights->getPatchStrideF();
    FatalIf(!(sf_tmp == 1), "Test failed.\n");
 
@@ -805,7 +817,9 @@ void SharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, int nu
 
    float r2Max = rMax * rMax;
 
-   int patchSizeOverall = mWeightsPair->getPreWeights()->getPatchSizeOverall();
+   auto *weightsPair    = getComponentByType<WeightsPair>();
+   Weights *preWeights  = weightsPair->getPreWeights();
+   int patchSizeOverall = preWeights->getPatchSizeOverall();
    for (int kernelIndex = 0; kernelIndex < numPatches; kernelIndex++) {
       // TODO - change parameters based on kernelIndex (i.e., change orientation)
       gaborWeights(
@@ -844,14 +858,16 @@ void SharedConnDebugInitWeights::gaborWeights(
 
    // const float phi = 3.1416;  // phase
 
-   const int nx = mPatchSize->getPatchSizeX(); //(int) wp->nx;
-   const int ny = mPatchSize->getPatchSizeY(); //(int) wp->ny;
-   const int nf = mPatchSize->getPatchSizeF();
+   auto *patchSize = getComponentByType<PatchSize>();
+   const int nx    = patchSize->getPatchSizeX(); //(int) wp->nx;
+   const int ny    = patchSize->getPatchSizeY(); //(int) wp->ny;
+   const int nf    = patchSize->getPatchSizeF();
 
-   auto *preWeights = mWeightsPair->getPreWeights();
-   const int sx     = preWeights->getPatchStrideX(); // FatalIf(!(sx == nf), "Test failed.\n");
-   const int sy     = preWeights->getPatchStrideY(); // FatalIf(!(sy == nf*nx), "Test failed.\n");
-   const int sf     = preWeights->getPatchStrideF(); // FatalIf(!(sf == 1), "Test failed.\n");
+   auto *weightsPair   = getComponentByType<WeightsPair>();
+   Weights *preWeights = weightsPair->getPreWeights();
+   const int sx        = preWeights->getPatchStrideX(); // FatalIf(!(sx == nf), "Test failed.\n");
+   const int sy = preWeights->getPatchStrideY(); // FatalIf(!(sy == nf*nx), "Test failed.\n");
+   const int sf = preWeights->getPatchStrideF(); // FatalIf(!(sf == 1), "Test failed.\n");
 
    const float dx = powf(2, xScale);
    const float dy = powf(2, yScale);
@@ -905,16 +921,17 @@ void SharedConnDebugInitWeights::gaborWeights(
 }
 
 int SharedConnDebugInitWeights::dataIndexToUnitCellIndex(int dataIndex, int *kx, int *ky, int *kf) {
-   Weights *weights          = mWeightsPair->getPreWeights();
-   PVLayerLoc const &preLoc  = weights->getGeometry()->getPreLoc();
-   PVLayerLoc const &postLoc = weights->getGeometry()->getPostLoc();
+   auto *weightsPair         = getComponentByType<WeightsPair>();
+   Weights *preWeights       = weightsPair->getPreWeights();
+   PVLayerLoc const &preLoc  = preWeights->getGeometry()->getPreLoc();
+   PVLayerLoc const &postLoc = preWeights->getGeometry()->getPostLoc();
 
    int xDataIndex, yDataIndex, fDataIndex;
-   if (weights->getSharedFlag()) {
+   if (preWeights->getSharedFlag()) {
 
-      int nxData = weights->getNumDataPatchesX();
-      int nyData = weights->getNumDataPatchesY();
-      int nfData = weights->getNumDataPatchesF();
+      int nxData = preWeights->getNumDataPatchesX();
+      int nyData = preWeights->getNumDataPatchesY();
+      int nfData = preWeights->getNumDataPatchesF();
       pvAssert(nfData == preLoc.nf);
 
       xDataIndex = kxPos(dataIndex, nxData, nyData, nfData);
