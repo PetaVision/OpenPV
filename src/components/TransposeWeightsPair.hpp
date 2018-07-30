@@ -55,8 +55,6 @@ class TransposeWeightsPair : public WeightsPair {
 
    virtual void finalizeUpdate(double timestamp, double deltaTime) override;
 
-   virtual void outputState(double timestamp) override;
-
   protected:
    HyPerConn *mOriginalConn          = nullptr;
    WeightsPair *mOriginalWeightsPair = nullptr;

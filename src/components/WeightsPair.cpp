@@ -42,7 +42,12 @@ void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (mWriteStep >= 0) {
       parent->parameters()->ioParamValue(
-            ioFlag, name, "initialWriteTime", &mInitialWriteTime, mInitialWriteTime, true /*warnifabsent*/);
+            ioFlag,
+            name,
+            "initialWriteTime",
+            &mInitialWriteTime,
+            mInitialWriteTime,
+            true /*warnifabsent*/);
       if (ioFlag == PARAMS_IO_READ) {
          if (mWriteStep > 0 && mInitialWriteTime < 0.0) {
             if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -242,7 +247,8 @@ Response::Status WeightsPair::registerData(Checkpointer *checkpointer) {
       return status;
    }
    needPre();
-   mPreWeights->checkpointWeightPvp(checkpointer, "W", mWriteCompressedCheckpoints);
+   allocatePreWeights();
+   mPreWeights->checkpointWeightPvp(checkpointer, getName(), "W", mWriteCompressedCheckpoints);
    if (mWriteStep >= 0) {
       checkpointer->registerCheckpointData(
             std::string(name),
