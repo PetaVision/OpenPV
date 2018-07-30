@@ -6,6 +6,7 @@
  */
 
 #include "InputRegionLayer.hpp"
+#include "components/DependentBoundaryConditions.hpp"
 #include "components/DependentPhaseParam.hpp"
 
 namespace PV {
@@ -40,22 +41,12 @@ void InputRegionLayer::setObserverTable() {
 
 PhaseParam *InputRegionLayer::createPhaseParam() { return new DependentPhaseParam(name, parent); }
 
+BoundaryConditions *InputRegionLayer::createBoundaryConditions() {
+   return new DependentBoundaryConditions(name, parent);
+}
+
 OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(name, parent);
-}
-
-void InputRegionLayer::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      // mirrorBCflag will be copied from original layer in CommunicateInitInfo stage.
-      parent->parameters()->handleUnnecessaryParameter(name, "mirrorBCflag");
-   }
-}
-
-void InputRegionLayer::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      // mirrorBCflag will be copied from original layer in CommunicateInitInfo stage.
-      parent->parameters()->handleUnnecessaryParameter(name, "valueBC");
-   }
 }
 
 void InputRegionLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
@@ -102,8 +93,6 @@ InputRegionLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       return Response::POSTPONE; // Make sure original layer has all the information we need to copy
    }
    mOriginalLayer->makeInputRegionsPointer();
-   mirrorBCflag = mOriginalLayer->useMirrorBCs();
-   valueBC      = mOriginalLayer->getValueBC();
    checkLayerDimensions();
    synchronizeMarginWidth(mOriginalLayer);
    mOriginalLayer->synchronizeMarginWidth(this);

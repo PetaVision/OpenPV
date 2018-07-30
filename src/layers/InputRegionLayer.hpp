@@ -33,9 +33,8 @@ class InputRegionLayer : public HyPerLayer {
    int initialize(const char *name, HyPerCol *hc);
    void setObserverTable();
    virtual PhaseParam *createPhaseParam() override;
+   virtual BoundaryConditions *createBoundaryConditions() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
-   virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag) override;

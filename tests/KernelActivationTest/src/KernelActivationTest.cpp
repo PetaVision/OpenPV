@@ -94,7 +94,7 @@ int dumponeweight(ComponentBasedObject *conn) {
    HyPerLayer *post     = connectionData->getPost();
    int nxpre            = pre->getLayerLoc()->nxGlobal;
    int nypre            = pre->getLayerLoc()->nyGlobal;
-   bool usingMirrorBCs  = pre->useMirrorBCs();
+   bool usingMirrorBCs  = pre->getComponentByType<BoundaryConditions>()->getMirrorBCflag();
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    // If xScaleDiff > 0, it's a many-to-one connection.

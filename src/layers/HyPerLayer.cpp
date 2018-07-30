@@ -47,7 +47,6 @@ HyPerLayer::HyPerLayer(const char *name, HyPerCol *hc) {
 int HyPerLayer::initialize_base() {
    name                         = NULL;
    probes                       = NULL;
-   mirrorBCflag                 = 0;
    numProbes                    = 0;
    numChannels                  = 2;
    clayer                       = NULL;
@@ -214,11 +213,19 @@ void HyPerLayer::setObserverTable() {
    if (mPhaseParam) {
       addUniqueComponent(mPhaseParam->getDescription(), mPhaseParam);
    }
+   mBoundaryConditions = createBoundaryConditions();
+   if (mBoundaryConditions) {
+      addUniqueComponent(mBoundaryConditions->getDescription(), mBoundaryConditions);
+   }
 }
 
 LayerGeometry *HyPerLayer::createLayerGeometry() { return new LayerGeometry(name, parent); }
 
 PhaseParam *HyPerLayer::createPhaseParam() { return new PhaseParam(name, parent); }
+
+BoundaryConditions *HyPerLayer::createBoundaryConditions() {
+   return new BoundaryConditions(name, parent);
+}
 
 int HyPerLayer::initClayer() {
    clayer     = (PVLayer *)calloc(1UL, sizeof(PVLayer));
@@ -621,8 +628,6 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       auto obj = dynamic_cast<BaseObject *>(c);
       obj->ioParams(ioFlag, false, false);
    }
-   ioParam_mirrorBCflag(ioFlag);
-   ioParam_valueBC(ioFlag);
    ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParam_InitVType(ioFlag);
    ioParam_triggerLayerName(ioFlag);
@@ -673,17 +678,6 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
             getDescription_c());
    }
 #endif // PV_USE_CUDA
-}
-
-void HyPerLayer::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "mirrorBCflag", &mirrorBCflag, mirrorBCflag);
-}
-
-void HyPerLayer::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "mirrorBCflag"));
-   if (!mirrorBCflag) {
-      parent->parameters()->ioParamValue(ioFlag, name, "valueBC", &valueBC, (float)0);
-   }
 }
 
 void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
@@ -1341,34 +1335,8 @@ Response::Status HyPerLayer::allocateDataStructures() {
    PVHalo const *halo    = &loc->halo;
 
    // If not mirroring, fill the boundaries with the value in the valueBC param
-   if (!useMirrorBCs() && getValueBC() != 0.0f) {
-      int idx = 0;
-      for (int batch = 0; batch < loc->nbatch; batch++) {
-         for (int b = 0; b < halo->up; b++) {
-            for (int k = 0; k < (nx + halo->lt + halo->rt) * nf; k++) {
-               clayer->activity->data[idx] = getValueBC();
-               idx++;
-            }
-         }
-         for (int y = 0; y < ny; y++) {
-            for (int k = 0; k < halo->lt * nf; k++) {
-               clayer->activity->data[idx] = getValueBC();
-               idx++;
-            }
-            idx += nx * nf;
-            for (int k = 0; k < halo->rt * nf; k++) {
-               clayer->activity->data[idx] = getValueBC();
-               idx++;
-            }
-         }
-         for (int b = 0; b < halo->dn; b++) {
-            for (int k = 0; k < (nx + halo->lt + halo->rt) * nf; k++) {
-               clayer->activity->data[idx] = getValueBC();
-               idx++;
-            }
-         }
-      }
-      assert(idx == getNumExtendedAllBatches());
+   if (!mBoundaryConditions->getMirrorBCflag() && mBoundaryConditions->getValueBC() != 0.0f) {
+      mBoundaryConditions->applyBoundaryConditions(clayer->activity->data, getLayerLoc());
    }
 
    // allocate storage for the input conductance arrays
@@ -1933,8 +1901,8 @@ int HyPerLayer::publish(Communicator *comm, double simTime) {
 
    int status = PV_SUCCESS;
    if (mNeedToPublish) {
-      if (useMirrorBCs()) {
-         mirrorInteriorToBorder(clayer->activity, clayer->activity);
+      if (mBoundaryConditions->getMirrorBCflag()) {
+         mBoundaryConditions->applyBoundaryConditions(clayer->activity->data, getLayerLoc());
       }
       status         = publisher->publish(mLastUpdateTime);
       mNeedToPublish = false;

@@ -4,10 +4,12 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/AdaptiveTimeScaleController.cpp
    ${SUBDIR}/ArborList.cpp
    ${SUBDIR}/BatchIndexer.cpp
+   ${SUBDIR}/BoundaryConditions.cpp
    ${SUBDIR}/CloneWeightsPair.cpp
    ${SUBDIR}/ConnectionData.cpp
    ${SUBDIR}/CopyWeightsPair.cpp
    ${SUBDIR}/DependentArborList.cpp
+   ${SUBDIR}/DependentBoundaryConditions.cpp
    ${SUBDIR}/DependentPatchSize.cpp
    ${SUBDIR}/DependentPhaseParam.cpp
    ${SUBDIR}/DependentSharedWeights.cpp
@@ -37,10 +39,12 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/AdaptiveTimeScaleController.hpp
    ${SUBDIR}/ArborList.hpp
    ${SUBDIR}/BatchIndexer.hpp
+   ${SUBDIR}/BoundaryConditions.hpp
    ${SUBDIR}/CloneWeightsPair.hpp
    ${SUBDIR}/ConnectionData.hpp
    ${SUBDIR}/CopyWeightsPair.hpp
    ${SUBDIR}/DependentArborList.hpp
+   ${SUBDIR}/DependentBoundaryConditions.hpp
    ${SUBDIR}/DependentPatchSize.hpp
    ${SUBDIR}/DependentPhaseParam.hpp
    ${SUBDIR}/DependentSharedWeights.hpp

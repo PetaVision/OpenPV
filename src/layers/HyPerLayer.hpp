@@ -18,6 +18,7 @@
 #include "columns/HyPerCol.hpp"
 #include "columns/Publisher.hpp"
 #include "columns/Random.hpp"
+#include "components/BoundaryConditions.hpp"
 #include "components/LayerGeometry.hpp"
 #include "components/PhaseParam.hpp"
 #include "include/pv_common.h"
@@ -82,16 +83,6 @@ class HyPerLayer : public ComponentBasedObject {
     * If PetaVision was compiled without GPU acceleration, it is an error to set this flag to true.
     */
    virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief mirrorBCflag: If set to true, the margin will mirror the data
-    */
-   virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief valueBC: If mirrorBC is set to true, Uses the specified value for the margin area
-    */
-   virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
@@ -190,6 +181,7 @@ class HyPerLayer : public ComponentBasedObject {
    virtual void setObserverTable() override;
    virtual LayerGeometry *createLayerGeometry();
    virtual PhaseParam *createPhaseParam();
+   virtual BoundaryConditions *createBoundaryConditions();
    virtual int initClayer();
 
    virtual int allocateClayerBuffers();
@@ -452,9 +444,6 @@ class HyPerLayer : public ComponentBasedObject {
    int getYScale() const { return mLayerGeometry->getYScale(); }
    PVLayerLoc const *getLayerLoc() const { return mLayerGeometry->getLayerLoc(); }
 
-   bool useMirrorBCs() { return this->mirrorBCflag; }
-   float getValueBC() { return this->valueBC; }
-
    bool getSparseFlag() { return this->sparseLayer; }
 
    int getPhase() { return mPhaseParam->getPhase(); }
@@ -507,11 +496,11 @@ class HyPerLayer : public ComponentBasedObject {
 
    // All layers with phase 0 get updated before any with phase 1, etc.
    PhaseParam *mPhaseParam = nullptr;
+
+   BoundaryConditions *mBoundaryConditions = nullptr;
+
    int numDelayLevels; // The number of timesteps in the datastore ring buffer to store older
    // timesteps for connections with delays
-
-   bool mirrorBCflag; // true when mirror BC are to be applied
-   float valueBC; // If mirrorBCflag is false, the value of A to fill extended cells with
 
    double initialWriteTime; // time of next output
    double writeTime; // time of next output
