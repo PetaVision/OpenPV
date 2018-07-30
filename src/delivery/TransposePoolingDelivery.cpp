@@ -317,7 +317,12 @@ void TransposePoolingDelivery::deliverPresynapticPerspective() {
       postIdxData      = cube.data;
    }
 
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   int const nbatch = preLoc->nbatch;
+   FatalIf(
+         postLoc->nbatch != nbatch,
+         "%s has different presynaptic and postsynaptic batch sizes.\n",
+         getDescription_c());
+   for (int b = 0; b < nbatch; b++) {
       float *activityBatch = activityCube.data
                              + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
                                      * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)

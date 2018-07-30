@@ -37,7 +37,7 @@ Response::Status ArborTestForOnesProbe::outputState(double timed) {
       return status;
    }
    if (timed > 1.0) {
-      for (int b = 0; b < parent->getNBatch(); b++) {
+      for (int b = 0; b < mLocalBatchWidth; b++) {
          FatalIf(!((fMin[b] > 0.99f) && (fMin[b] < 1.01f)), "Test failed.\n");
          FatalIf(!((fMax[b] > 0.99f) && (fMax[b] < 1.01f)), "Test failed.\n");
          FatalIf(!((avg[b] > 0.99f) && (avg[b] < 1.01f)), "Test failed.\n");

@@ -128,7 +128,7 @@ int MomentumLCALayer::allocateUpdateKernel() {
    PVCuda::CudaBuffer *d_GSyn     = getDeviceGSyn();
    PVCuda::CudaBuffer *d_activity = getDeviceActivity();
 
-   size_t size = parent->getNBatch() * sizeof(double);
+   size_t size = loc->nbatch * sizeof(double);
    d_dtAdapt   = device->createBuffer(size, &getDescription());
 
    size        = (size_t)numVertices * sizeof(*verticesV);

@@ -35,19 +35,19 @@ void L0NormProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
 }
 
 double L0NormProbe::getValueInternal(double timevalue, int index) {
-   if (index < 0 || index >= parent->getNBatch()) {
+   PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
+   if (index < 0 || index >= loc->nbatch) {
       return PV_FAILURE;
    }
-   PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
-   int const nx          = loc->nx;
-   int const ny          = loc->ny;
-   int const nf          = loc->nf;
-   PVHalo const *halo    = &loc->halo;
-   int const lt          = halo->lt;
-   int const rt          = halo->rt;
-   int const dn          = halo->dn;
-   int const up          = halo->up;
-   int sum               = 0;
+   int const nx       = loc->nx;
+   int const ny       = loc->ny;
+   int const nf       = loc->nf;
+   PVHalo const *halo = &loc->halo;
+   int const lt       = halo->lt;
+   int const rt       = halo->rt;
+   int const dn       = halo->dn;
+   int const up       = halo->up;
+   int sum            = 0;
    float const *aBuffer =
          getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
 

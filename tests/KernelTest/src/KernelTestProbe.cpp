@@ -35,7 +35,7 @@ Response::Status KernelTestProbe::outputState(double timestamp) {
    if (icComm->commRank() != rcvProc) {
       return status;
    }
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < mLocalBatchWidth; b++) {
       if (timestamp > 2.0) {
          FatalIf((fMin[b] <= 0.99f) or (fMin[b] >= 1.010f), "Test failed.\n");
          FatalIf((fMax[b] <= 0.99f) or (fMax[b] >= 1.010f), "Test failed.\n");

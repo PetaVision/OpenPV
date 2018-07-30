@@ -100,7 +100,7 @@ Retina::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> me
    if (!Response::completed(status)) {
       return status;
    }
-   if (parent->getNBatch() != 1) {
+   if (getLayerLoc()->nbatch != 1) {
       Fatal() << "Retina does not support batches yet, TODO\n";
    }
    return status;

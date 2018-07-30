@@ -51,7 +51,7 @@ Response::Status ParameterSweepTestProbe::outputState(double timed) {
    if (icComm->commRank() != rcvProc) {
       return status;
    }
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < mLocalBatchWidth; b++) {
       if (timed >= 3.0) {
          FatalIf(std::fabs(expectedSum - sum[b]) >= 1e-6, "Test failed.\n");
          FatalIf(std::fabs(expectedMin - fMin[b]) >= 1e-6f, "Test failed.\n");

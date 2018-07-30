@@ -29,7 +29,7 @@ Response::Status TestNotAlwaysAllZerosProbe::outputState(double timed) {
             timed,
             getTargetLayer()->getDescription_c());
    }
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < mLocalBatchWidth; b++) {
       if (nnz[b] != 0) {
          nonzeroValueOccurred = true;
       }

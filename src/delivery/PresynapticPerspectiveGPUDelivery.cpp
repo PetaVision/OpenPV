@@ -263,9 +263,10 @@ void PresynapticPerspectiveGPUDelivery::deliver() {
 
       // X direction is active neuron
       // Y direction is post patch size
-      long totActiveNeuron[parent->getNBatch()];
+      int const nbatch = preLoc->nbatch;
+      long totActiveNeuron[nbatch];
       long maxTotalActiveNeuron = 0;
-      for (int b = 0; b < parent->getNBatch(); b++) {
+      for (int b = 0; b < nbatch; b++) {
          if (activityCube.isSparse) {
             totActiveNeuron[b] = activityCube.numActive[b];
          }

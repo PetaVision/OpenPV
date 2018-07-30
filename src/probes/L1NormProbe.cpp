@@ -27,19 +27,19 @@ int L1NormProbe::initialize(const char *name, HyPerCol *hc) {
 }
 
 double L1NormProbe::getValueInternal(double timevalue, int index) {
-   if (index < 0 || index >= parent->getNBatch()) {
+   PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
+   if (index < 0 || index >= loc->nbatch) {
       return PV_FAILURE;
    }
-   PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
-   int const nx          = loc->nx;
-   int const ny          = loc->ny;
-   int const nf          = loc->nf;
-   PVHalo const *halo    = &loc->halo;
-   int const lt          = halo->lt;
-   int const rt          = halo->rt;
-   int const dn          = halo->dn;
-   int const up          = halo->up;
-   double sum            = 0.0;
+   int const nx       = loc->nx;
+   int const ny       = loc->ny;
+   int const nf       = loc->nf;
+   PVHalo const *halo = &loc->halo;
+   int const lt       = halo->lt;
+   int const rt       = halo->rt;
+   int const dn       = halo->dn;
+   int const up       = halo->up;
+   double sum         = 0.0;
    float const *aBuffer =
          getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
    if (getMaskLayer()) {

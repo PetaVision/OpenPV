@@ -54,7 +54,12 @@ void RescaleDelivery::deliver() {
    int numPostRestricted = nx * ny * nf;
 
    float *postChannel = mPostLayer->getChannel(mChannelCode);
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   int const nbatch   = preLoc.nbatch;
+   FatalIf(
+         postLoc.nbatch != nbatch,
+         "%s has different presynaptic and postsynaptic batch sizes.\n",
+         getDescription_c());
+   for (int b = 0; b < nbatch; b++) {
       float const *preActivityBuffer = preActivityCube.data + b * numPreExtended;
       float *postGSynBuffer          = postChannel + b * numPostRestricted;
       if (preActivityCube.isSparse) {

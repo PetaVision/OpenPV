@@ -1043,8 +1043,9 @@ int HyPerLayer::allocateDeviceBuffers() {
    }
 
    if (allocDeviceActiveIndices) {
-      d_numActive     = device->createBuffer(parent->getNBatch() * sizeof(long), &getDescription());
-      d_ActiveIndices = device->createBuffer(
+      int const nbatch = mLayerGeometry->getLayerLoc()->nbatch;
+      d_numActive      = device->createBuffer(nbatch * sizeof(long), &getDescription());
+      d_ActiveIndices  = device->createBuffer(
             getNumExtendedAllBatches() * sizeof(SparseList<float>::Entry), &getDescription());
       assert(d_ActiveIndices);
    }
@@ -1657,7 +1658,7 @@ void HyPerLayer::resetStateOnTrigger() {
       float const *resetA   = triggerResetLayer->getActivity();
       PVLayerLoc const *loc = triggerResetLayer->getLayerLoc();
       PVHalo const *halo    = &loc->halo;
-      for (int b = 0; b < parent->getNBatch(); b++) {
+      for (int b = 0; b < loc->nbatch; b++) {
          float const *resetABatch = resetA + (b * triggerResetLayer->getNumExtended());
          float *VBatch            = V + (b * triggerResetLayer->getNumNeurons());
 #ifdef PV_USE_OPENMP_THREADS
@@ -1692,7 +1693,7 @@ int HyPerLayer::resetGSynBuffers(double timef, double dt) {
    if (GSyn == NULL)
       return PV_SUCCESS;
    resetGSynBuffers_HyPerLayer(
-         parent->getNBatch(), this->getNumNeurons(), getNumChannels(), GSyn[0]);
+         getLayerLoc()->nbatch, this->getNumNeurons(), getNumChannels(), GSyn[0]);
    return status;
 }
 

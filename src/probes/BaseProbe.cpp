@@ -67,6 +67,7 @@ int BaseProbe::initialize(const char *name, HyPerCol *hc) {
       return status;
    }
    readParams();
+   mLocalBatchWidth = parent->getNBatch();
    initNumValues();
    return status;
 }
@@ -170,10 +171,9 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
    int blockColumnIndex     = mpiBlock->getColumnIndex();
    int blockRowIndex        = mpiBlock->getRowIndex();
    if (blockColumnIndex == 0 and blockRowIndex == 0) {
-      int localBatchWidth  = parent->getNBatch();
       int mpiBatchIndex    = mpiBlock->getStartBatch() + mpiBlock->getBatchIndex();
-      int localBatchOffset = localBatchWidth * mpiBatchIndex;
-      mOutputStreams.resize(localBatchWidth);
+      int localBatchOffset = mLocalBatchWidth * mpiBatchIndex;
+      mOutputStreams.resize(mLocalBatchWidth);
       char const *probeOutputFilename = getProbeOutputFilename();
       if (probeOutputFilename) {
          std::string path(probeOutputFilename);
@@ -187,7 +187,7 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
          if (!checkpointer->getCheckpointReadDirectory().empty()) {
             mode |= std::ios_base::app;
          }
-         for (int b = 0; b < localBatchWidth; b++) {
+         for (int b = 0; b < mLocalBatchWidth; b++) {
             int globalBatchIndex         = b + localBatchOffset;
             std::string batchPath        = path;
             std::string batchIndexString = std::to_string(globalBatchIndex);
@@ -200,7 +200,7 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
          }
       }
       else {
-         for (int b = 0; b < localBatchWidth; b++) {
+         for (int b = 0; b < mLocalBatchWidth; b++) {
             mOutputStreams[b] = new PrintStream(PV::getOutputStream());
          }
       }
@@ -210,7 +210,7 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
    }
 }
 
-void BaseProbe::initNumValues() { setNumValues(parent->getNBatch()); }
+void BaseProbe::initNumValues() { setNumValues(mLocalBatchWidth); }
 
 void BaseProbe::setNumValues(int n) {
    if (n > 0) {

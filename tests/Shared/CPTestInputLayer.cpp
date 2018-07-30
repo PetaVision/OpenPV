@@ -48,7 +48,7 @@ void CPTestInputLayer::initializeV() {
          !(parameters()->value(name, "restart", 0.0, false) == 0.0),
          "Test failed.\n"); // initializeV should only be called if restart is false
    const PVLayerLoc *loc = getLayerLoc();
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < loc->nbatch; b++) {
       float *VBatch = getV() + b * getNumNeurons();
       for (int k = 0; k < getNumNeurons(); k++) {
          int kx = kxPos(k, loc->nx, loc->nx, loc->nf);

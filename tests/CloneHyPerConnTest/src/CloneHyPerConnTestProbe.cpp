@@ -34,11 +34,12 @@ Response::Status CloneHyPerConnTestProbe::outputState(double timed) {
    if (rank != rcvProc) {
       return status;
    }
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   int const nbatch = getTargetLayer()->getLayerLoc()->nbatch;
+   for (int b = 0; b < nbatch; b++) {
       if (timed > 2.0) {
-         FatalIf(!(fabsf(fMin[b]) < 1e-6f), "Test failed.\n");
-         FatalIf(!(fabsf(fMax[b]) < 1e-6f), "Test failed.\n");
-         FatalIf(!(fabsf(avg[b]) < 1e-6f), "Test failed.\n");
+         FatalIf(fabsf(fMin[b]) >= 1e-6f, "Test failed.\n");
+         FatalIf(fabsf(fMax[b]) >= 1e-6f, "Test failed.\n");
+         FatalIf(fabsf(avg[b]) >= 1e-6f, "Test failed.\n");
       }
    }
 

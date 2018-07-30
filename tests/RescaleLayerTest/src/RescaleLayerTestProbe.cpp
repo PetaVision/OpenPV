@@ -73,7 +73,7 @@ Response::Status RescaleLayerTestProbe::outputState(double timed) {
       if (!isRoot) {
          return Response::SUCCESS;
       }
-      for (int b = 0; b < parent->getNBatch(); b++) {
+      for (int b = 0; b < mLocalBatchWidth; b++) {
          float targetMax = targetRescaleLayer->getTargetMax();
          if (fabsf(fMax[b] - targetMax) > tolerance) {
             ErrorLog().printf(
@@ -162,7 +162,7 @@ Response::Status RescaleLayerTestProbe::outputState(double timed) {
       if (!isRoot) {
          return Response::SUCCESS;
       }
-      for (int b = 0; b < parent->getNBatch(); b++) {
+      for (int b = 0; b < mLocalBatchWidth; b++) {
          float targetMean, targetStd;
          if (!strcmp(targetRescaleLayer->getRescaleMethod(), "meanstd")) {
             targetMean = targetRescaleLayer->getTargetMean();
@@ -259,7 +259,7 @@ Response::Status RescaleLayerTestProbe::outputState(double timed) {
       float targetMean   = targetRescaleLayer->getTargetMean();
       float targetStd    = targetRescaleLayer->getTargetStd();
       int numNeurons     = targetRescaleLayer->getNumNeurons();
-      for (int b = 0; b < parent->getNBatch(); b++) {
+      for (int b = 0; b < mLocalBatchWidth; b++) {
          float const *originalData =
                targetRescaleLayer->getV() + b * targetRescaleLayer->getNumNeurons();
          float const *rescaledData =
@@ -341,7 +341,7 @@ Response::Status RescaleLayerTestProbe::outputState(double timed) {
       PVHalo const *origHalo       = &origLoc->halo;
       FatalIf(!(origLoc->nf == nf), "Test failed.\n");
 
-      for (int b = 0; b < parent->getNBatch(); b++) {
+      for (int b = 0; b < mLocalBatchWidth; b++) {
          float const *rescaledData =
                targetRescaleLayer->getLayerData() + b * targetRescaleLayer->getNumExtended();
          float const *originalData =

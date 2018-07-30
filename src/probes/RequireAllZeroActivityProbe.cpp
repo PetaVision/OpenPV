@@ -6,6 +6,7 @@
  */
 
 #include "RequireAllZeroActivityProbe.hpp"
+#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
@@ -58,7 +59,8 @@ Response::Status RequireAllZeroActivityProbe::outputState(double timed) {
    if (!Response::completed(status)) {
       Fatal() << getDescription() << ": StatsProbe::outputState failed at time " << timed << ".\n";
    }
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   int const nbatch = targetLayer->getLayerLoc()->nbatch;
+   for (int b = 0; b < nbatch; b++) {
       if (nnz[b] != 0) {
          if (!nonzeroFound) {
             nonzeroTime = timed;

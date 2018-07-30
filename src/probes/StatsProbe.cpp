@@ -63,7 +63,7 @@ int StatsProbe::initialize(const char *name, HyPerCol *hc) {
 
    assert(status == PV_SUCCESS);
 
-   int nbatch = parent->getNBatch();
+   int const nbatch = mLocalBatchWidth;
 
    fMin  = (float *)malloc(sizeof(float) * nbatch);
    fMax  = (float *)malloc(sizeof(float) * nbatch);
@@ -78,7 +78,7 @@ int StatsProbe::initialize(const char *name, HyPerCol *hc) {
 }
 
 void StatsProbe::resetStats() {
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < mLocalBatchWidth; b++) {
       fMin[b]  = FLT_MAX;
       fMax[b]  = -FLT_MAX;
       sum[b]   = 0.0f;

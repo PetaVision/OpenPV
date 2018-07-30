@@ -47,7 +47,7 @@ Response::Status LayerPhaseTestProbe::outputState(double timed) {
    if (icComm->commRank() != rcvProc) {
       return status;
    }
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < mLocalBatchWidth; b++) {
       if (timed >= equilibriumTime) {
          float const tol = 1e-6f;
          // TODO: std::fabs is preferred to fabsf. But we implicitly include

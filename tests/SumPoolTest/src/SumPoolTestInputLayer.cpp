@@ -19,7 +19,7 @@ Response::Status SumPoolTestInputLayer::updateState(double timef, double dt) {
    int kx0               = loc->kx0;
    int ky0               = loc->ky0;
 
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < loc->nbatch; b++) {
       float *A = getActivity() + b * getNumExtended();
       // looping over ext
       for (int iY = 0; iY < ny + loc->halo.up + loc->halo.dn; iY++) {

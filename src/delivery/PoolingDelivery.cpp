@@ -349,7 +349,12 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
       resetVal = -INFINITY;
    }
 
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   int const nbatch = sourceLoc->nbatch;
+   FatalIf(
+         targetLoc->nbatch != nbatch,
+         "%s has different presynaptic and postsynaptic batch sizes.\n",
+         getDescription_c());
+   for (int b = 0; b < nbatch; b++) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif

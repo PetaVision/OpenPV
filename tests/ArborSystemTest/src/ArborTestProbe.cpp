@@ -63,7 +63,7 @@ Response::Status ArborTestProbe::outputState(double timed) {
    if (rank != rcvProc) {
       return status;
    }
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < mLocalBatchWidth; b++) {
       if (timed == 1.0) {
          FatalIf(!((avg[b] > 0.2499f) && (avg[b] < 0.2501f)), "Test failed.\n");
       }
