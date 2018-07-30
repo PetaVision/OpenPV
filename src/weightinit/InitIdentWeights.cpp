@@ -22,7 +22,7 @@ int InitIdentWeights::initialize(char const *name, HyPerCol *hc) {
 
 void InitIdentWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
    mWeightInit = 1.0f;
-   parent->parameters()->handleUnnecessaryParameter(name, "weightInit", 1.0f);
+   parameters()->handleUnnecessaryParameter(name, "weightInit", 1.0f);
 }
 
 } /* namespace PV */

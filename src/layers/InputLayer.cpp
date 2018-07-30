@@ -521,7 +521,7 @@ void InputLayer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_WRITE) {
       tempString = strdup(mInputPath.c_str());
    }
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "inputPath", &tempString);
+   parameters()->ioParamStringRequired(ioFlag, name, "inputPath", &tempString);
    if (ioFlag == PARAMS_IO_READ) {
       mInputPath = std::string(tempString);
    }
@@ -529,36 +529,35 @@ void InputLayer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
 }
 
 void InputLayer::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "useInputBCflag", &mUseInputBCflag, mUseInputBCflag);
+   parameters()->ioParamValue(ioFlag, name, "useInputBCflag", &mUseInputBCflag, mUseInputBCflag);
 }
 
 int InputLayer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "offsetX", &mOffsetX, mOffsetX);
-   parent->parameters()->ioParamValue(ioFlag, name, "offsetY", &mOffsetY, mOffsetY);
+   parameters()->ioParamValue(ioFlag, name, "offsetX", &mOffsetX, mOffsetX);
+   parameters()->ioParamValue(ioFlag, name, "offsetY", &mOffsetY, mOffsetY);
    return PV_SUCCESS;
 }
 
 int InputLayer::ioParam_maxShifts(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "maxShiftX", &mMaxShiftX, mMaxShiftX);
-   parent->parameters()->ioParamValue(ioFlag, name, "maxShiftY", &mMaxShiftY, mMaxShiftY);
+   parameters()->ioParamValue(ioFlag, name, "maxShiftX", &mMaxShiftX, mMaxShiftX);
+   parameters()->ioParamValue(ioFlag, name, "maxShiftY", &mMaxShiftY, mMaxShiftY);
    return PV_SUCCESS;
 }
 
 int InputLayer::ioParam_flipsEnabled(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "xFlipEnabled", &mXFlipEnabled, mXFlipEnabled);
-   parent->parameters()->ioParamValue(ioFlag, name, "yFlipEnabled", &mYFlipEnabled, mYFlipEnabled);
+   parameters()->ioParamValue(ioFlag, name, "xFlipEnabled", &mXFlipEnabled, mXFlipEnabled);
+   parameters()->ioParamValue(ioFlag, name, "yFlipEnabled", &mYFlipEnabled, mYFlipEnabled);
    return PV_SUCCESS;
 }
 
 int InputLayer::ioParam_flipsToggle(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "xFlipToggle", &mXFlipToggle, mXFlipToggle);
-   parent->parameters()->ioParamValue(ioFlag, name, "yFlipToggle", &mYFlipToggle, mYFlipToggle);
+   parameters()->ioParamValue(ioFlag, name, "xFlipToggle", &mXFlipToggle, mXFlipToggle);
+   parameters()->ioParamValue(ioFlag, name, "yFlipToggle", &mYFlipToggle, mYFlipToggle);
    return PV_SUCCESS;
 }
 
 int InputLayer::ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "jitterChangeInterval", &mJitterChangeInterval, mJitterChangeInterval);
    return PV_SUCCESS;
 }
@@ -566,7 +565,7 @@ int InputLayer::ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag) {
 void InputLayer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       char *offsetAnchor = nullptr;
-      parent->parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
+      parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
       if (checkValidAnchorString(offsetAnchor) == PV_FAILURE) {
          Fatal() << "Invalid value for offsetAnchor\n";
       }
@@ -636,18 +635,17 @@ void InputLayer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
          case Buffer<float>::NORTHWEST:
          case Buffer<float>::SOUTHWEST: offsetAnchor[1] = 'l'; break;
       }
-      parent->parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
+      parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
       free(offsetAnchor);
    }
 }
 
 void InputLayer::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "autoResizeFlag", &mAutoResizeFlag, mAutoResizeFlag);
+   parameters()->ioParamValue(ioFlag, name, "autoResizeFlag", &mAutoResizeFlag, mAutoResizeFlag);
 }
 
 void InputLayer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
+   assert(!parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
    if (mAutoResizeFlag) {
       char *aspectRatioAdjustment = nullptr;
       if (ioFlag == PARAMS_IO_WRITE) {
@@ -656,7 +654,7 @@ void InputLayer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
             case BufferUtils::PAD: aspectRatioAdjustment  = strdup("pad"); break;
          }
       }
-      parent->parameters()->ioParamString(
+      parameters()->ioParamString(
             ioFlag, name, "aspectRatioAdjustment", &aspectRatioAdjustment, "crop");
       if (ioFlag == PARAMS_IO_READ) {
          assert(aspectRatioAdjustment);
@@ -684,11 +682,11 @@ void InputLayer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
 }
 
 void InputLayer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
    if (mAutoResizeFlag) {
       char *interpolationMethodString = nullptr;
       if (ioFlag == PARAMS_IO_READ) {
-         parent->parameters()->ioParamString(
+         parameters()->ioParamString(
                ioFlag,
                name,
                "interpolationMethod",
@@ -722,7 +720,7 @@ void InputLayer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
             case BufferUtils::BICUBIC: interpolationMethodString = strdup("bicubic"); break;
             case BufferUtils::NEAREST: interpolationMethodString = strdup("nearestNeighbor"); break;
          }
-         parent->parameters()->ioParamString(
+         parameters()->ioParamString(
                ioFlag,
                name,
                "interpolationMethod",
@@ -735,23 +733,23 @@ void InputLayer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void InputLayer::ioParam_inverseFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "inverseFlag", &mInverseFlag, mInverseFlag);
+   parameters()->ioParamValue(ioFlag, name, "inverseFlag", &mInverseFlag, mInverseFlag);
 }
 
 void InputLayer::ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "normalizeLuminanceFlag", &mNormalizeLuminanceFlag, mNormalizeLuminanceFlag);
 }
 
 void InputLayer::ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "normalizeLuminanceFlag"));
+   assert(!parameters()->presentAndNotBeenRead(name, "normalizeLuminanceFlag"));
    if (mNormalizeLuminanceFlag) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag, name, "normalizeStdDev", &mNormalizeStdDev, mNormalizeStdDev);
    }
 }
 void InputLayer::ioParam_padValue(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "padValue", &mPadValue, mPadValue);
+   parameters()->ioParamValue(ioFlag, name, "padValue", &mPadValue, mPadValue);
 }
 
 void InputLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
@@ -763,14 +761,13 @@ void InputLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       triggerLayerName = NULL;
       triggerFlag      = false;
-      parent->parameters()->handleUnnecessaryStringParameter(
+      parameters()->handleUnnecessaryStringParameter(
             name, "triggerLayerName", NULL /*correct value*/);
    }
 }
 
 void InputLayer::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "displayPeriod", &mDisplayPeriod, mDisplayPeriod);
+   parameters()->ioParamValue(ioFlag, name, "displayPeriod", &mDisplayPeriod, mDisplayPeriod);
 }
 
 void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
@@ -783,7 +780,7 @@ void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
          case BatchIndexer::RANDOM: batchMethod      = strdup("random"); break;
       }
    }
-   parent->parameters()->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
+   parameters()->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
    if (strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
       mBatchMethod = BatchIndexer::BYFILE;
    }
@@ -805,7 +802,7 @@ void InputLayer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void InputLayer::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "randomSeed", &mRandomSeed, mRandomSeed);
+   parameters()->ioParamValue(ioFlag, name, "randomSeed", &mRandomSeed, mRandomSeed);
 }
 
 void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
@@ -818,7 +815,7 @@ void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
          paramsStartFrameIndex[i] = mStartFrameIndex.at(i);
       }
    }
-   this->parent->parameters()->ioParamArray(
+   this->parameters()->ioParamArray(
          ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
    FatalIf(
          length != 0 && length != parent->getNBatchGlobal(),
@@ -835,7 +832,7 @@ void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
 }
 
 void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "batchMethod"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "batchMethod"));
    if (mBatchMethod != BatchIndexer::BYSPECIFIED) {
       mSkipFrameIndex.resize(parent->getNBatchGlobal(), 0);
       // Earlier behavior made it a fatal error if skip_frame_index was used
@@ -852,7 +849,7 @@ void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
          paramsSkipFrameIndex[i] = mSkipFrameIndex.at(i);
       }
    }
-   this->parent->parameters()->ioParamArray(
+   this->parameters()->ioParamArray(
          ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
    FatalIf(
          length != parent->getNBatchGlobal(),
@@ -867,9 +864,9 @@ void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
 }
 
 void InputLayer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "batchMethod"));
+   assert(!parameters()->presentAndNotBeenRead(name, "batchMethod"));
    if (mBatchMethod == BatchIndexer::BYSPECIFIED) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag, name, "resetToStartOnLoop", &mResetToStartOnLoop, mResetToStartOnLoop);
    }
    else {
@@ -878,9 +875,9 @@ void InputLayer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
 }
 
 void InputLayer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "displayPeriod"));
+   assert(!parameters()->presentAndNotBeenRead(name, "displayPeriod"));
    if (mDisplayPeriod > 0) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag, name, "writeFrameToTimestamp", &mWriteFrameToTimestamp, mWriteFrameToTimestamp);
    }
    else {

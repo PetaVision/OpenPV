@@ -89,7 +89,7 @@ int Retina::initialize_base() {
 int Retina::initialize(const char *name, HyPerCol *hc) {
    int status = HyPerLayer::initialize(name, hc);
 
-   setRetinaParams(parent->parameters());
+   setRetinaParams(parameters());
 
    return status;
 }
@@ -112,7 +112,7 @@ Response::Status Retina::allocateDataStructures() {
       return status;
    }
 
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
+   assert(!parameters()->presentAndNotBeenRead(name, "spikingFlag"));
    if (spikingFlag) {
       // // a random state variable is needed for every neuron/clthread
       const PVLayerLoc *loc = getLayerLoc();
@@ -146,24 +146,24 @@ int Retina::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void Retina::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->handleUnnecessaryParameter(name, "InitVType");
+   parameters()->handleUnnecessaryParameter(name, "InitVType");
    return;
 }
 
 void Retina::ioParam_spikingFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "spikingFlag", &spikingFlag, true);
+   parameters()->ioParamValue(ioFlag, name, "spikingFlag", &spikingFlag, true);
 }
 
 void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
-   PVParams *params = parent->parameters();
-   parent->parameters()->ioParamValue(ioFlag, name, "foregroundRate", &probStimParam, 1.0f);
+   PVParams *params = parameters();
+   parameters()->ioParamValue(ioFlag, name, "foregroundRate", &probStimParam, 1.0f);
 }
 
 void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
-   PVParams *params = parent->parameters();
-   parent->parameters()->ioParamValue(ioFlag, name, "backgroundRate", &probBaseParam, 0.0f);
+   PVParams *params = parameters();
+   parameters()->ioParamValue(ioFlag, name, "backgroundRate", &probBaseParam, 0.0f);
    if (ioFlag == PARAMS_IO_READ) {
-      assert(!parent->parameters()->presentAndNotBeenRead(name, "foregroundRate"));
+      assert(!parameters()->presentAndNotBeenRead(name, "foregroundRate"));
       if (probBaseParam > probStimParam) {
          Fatal().printf(
                "%s: backgroundRate cannot be greater than foregroundRate.\n", getDescription_c());
@@ -173,36 +173,35 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
 }
 
 void Retina::ioParam_beginStim(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "beginStim", &rParams.beginStim, 0.0);
+   parameters()->ioParamValue(ioFlag, name, "beginStim", &rParams.beginStim, 0.0);
 }
 
 void Retina::ioParam_endStim(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "endStim", &rParams.endStim, (double)FLT_MAX);
+   parameters()->ioParamValue(ioFlag, name, "endStim", &rParams.endStim, (double)FLT_MAX);
    if (ioFlag == PARAMS_IO_READ && rParams.endStim < 0)
       rParams.endStim = FLT_MAX;
 }
 
 void Retina::ioParam_burstFreq(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "burstFreq", &rParams.burstFreq, 1.0f);
+   parameters()->ioParamValue(ioFlag, name, "burstFreq", &rParams.burstFreq, 1.0f);
 }
 
 void Retina::ioParam_burstDuration(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "burstDuration", &rParams.burstDuration, 1000.0f);
+   parameters()->ioParamValue(ioFlag, name, "burstDuration", &rParams.burstDuration, 1000.0f);
 }
 
 void Retina::ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
+   assert(!parameters()->presentAndNotBeenRead(name, "spikingFlag"));
    if (spikingFlag) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag, name, "refractoryPeriod", &rParams.refractory_period, (float)REFRACTORY_PERIOD);
    }
 }
 
 void Retina::ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "spikingFlag"));
+   assert(!parameters()->presentAndNotBeenRead(name, "spikingFlag"));
    if (spikingFlag) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag,
             name,
             "absRefractoryPeriod",

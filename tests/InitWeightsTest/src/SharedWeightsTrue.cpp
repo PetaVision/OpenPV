@@ -28,7 +28,7 @@ int SharedWeightsTrue::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void SharedWeightsTrue::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       mSharedWeights = true;
-      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
+      parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
    }
 }
 

@@ -28,7 +28,7 @@ int IndexLayer::initialize(char const *name, HyPerCol *hc) {
 void IndexLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    mInitVObject = nullptr;
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "InitVType");
+      parameters()->handleUnnecessaryParameter(name, "InitVType");
    }
 }
 

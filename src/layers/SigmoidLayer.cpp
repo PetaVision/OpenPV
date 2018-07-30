@@ -56,20 +56,19 @@ int SigmoidLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void SigmoidLayer::ioParam_Vrest(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "Vrest", &V0, (float)V_REST);
+   parameters()->ioParamValue(ioFlag, name, "Vrest", &V0, (float)V_REST);
 }
 void SigmoidLayer::ioParam_VthRest(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "VthRest", &Vth, (float)VTH_REST);
+   parameters()->ioParamValue(ioFlag, name, "VthRest", &Vth, (float)VTH_REST);
 }
 void SigmoidLayer::ioParam_InverseFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "InverseFlag", &InverseFlag, (bool)INVERSEFLAG);
+   parameters()->ioParamValue(ioFlag, name, "InverseFlag", &InverseFlag, (bool)INVERSEFLAG);
 }
 void SigmoidLayer::ioParam_SigmoidFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "SigmoidFlag", &SigmoidFlag, (bool)SIGMOIDFLAG);
+   parameters()->ioParamValue(ioFlag, name, "SigmoidFlag", &SigmoidFlag, (bool)SIGMOIDFLAG);
 }
 void SigmoidLayer::ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "SigmoidAlpha", &SigmoidAlpha, (float)SIGMOIDALPHA);
+   parameters()->ioParamValue(ioFlag, name, "SigmoidAlpha", &SigmoidAlpha, (float)SIGMOIDALPHA);
 }
 
 Response::Status

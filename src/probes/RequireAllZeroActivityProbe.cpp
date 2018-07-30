@@ -35,13 +35,13 @@ void RequireAllZeroActivityProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void RequireAllZeroActivityProbe::ioParam_exitOnFailure(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "exitOnFailure", &exitOnFailure, exitOnFailure);
+   parameters()->ioParamValue(ioFlag, name, "exitOnFailure", &exitOnFailure, exitOnFailure);
 }
 
 void RequireAllZeroActivityProbe::ioParam_immediateExitOnFailure(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "exitOnFailure"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "exitOnFailure"));
    if (exitOnFailure) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag,
             name,
             "immediateExitOnFailure",

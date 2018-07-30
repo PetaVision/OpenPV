@@ -43,7 +43,7 @@ int ColumnEnergyProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ColumnEnergyProbe::ioParam_reductionInterval(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "reductionInterval", &mSkipInterval, mSkipInterval, false /*warnIfAbsent*/);
 }
 

@@ -50,7 +50,7 @@ int MaskLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void MaskLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "maskMethod", &maskMethod);
+   parameters()->ioParamStringRequired(ioFlag, name, "maskMethod", &maskMethod);
    // Check valid methods
    if (strcmp(maskMethod, "layer") == 0) {
    }
@@ -73,17 +73,16 @@ void MaskLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void MaskLayer::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "maskMethod"));
+   assert(!parameters()->presentAndNotBeenRead(name, "maskMethod"));
    if (strcmp(maskMethod, "layer") == 0 || strcmp(maskMethod, "invertLayer") == 0) {
-      parent->parameters()->ioParamStringRequired(ioFlag, name, "maskLayerName", &maskLayerName);
+      parameters()->ioParamStringRequired(ioFlag, name, "maskLayerName", &maskLayerName);
    }
 }
 
 void MaskLayer::ioParam_featureIdxs(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "maskMethod"));
+   assert(!parameters()->presentAndNotBeenRead(name, "maskMethod"));
    if (strcmp(maskMethod, "maskFeatures") == 0 || strcmp(maskMethod, "noMaskFeatures") == 0) {
-      parent->parameters()->ioParamArray(
-            ioFlag, name, "featureIdxs", &features, &numSpecifiedFeatures);
+      parameters()->ioParamArray(ioFlag, name, "featureIdxs", &features, &numSpecifiedFeatures);
       if (numSpecifiedFeatures == 0) {
          if (parent->columnId() == 0) {
             ErrorLog().printf(

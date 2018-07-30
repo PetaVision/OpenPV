@@ -69,19 +69,19 @@ int ISTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ISTALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true /*warnIfAbsent*/);
 }
 
 void ISTALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
+   parameters()->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
    if (parent->columnId() == 0) {
       InfoLog() << "selfInteract = " << selfInteract << std::endl;
    }
 }
 
 void ISTALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag,
          name,
          "adaptiveTimeScaleProbe",

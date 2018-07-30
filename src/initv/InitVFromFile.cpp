@@ -34,7 +34,7 @@ int InitVFromFile::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "Vfilename", &mVfilename, nullptr, true /*warnIfAbsent*/);
    if (mVfilename == nullptr) {
       Fatal().printf(
@@ -46,7 +46,7 @@ void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
 }
 
 void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "frameNumber", &mFrameNumber, mFrameNumber, true /*warnIfAbsent*/);
 }
 

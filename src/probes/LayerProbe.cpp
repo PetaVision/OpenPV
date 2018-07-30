@@ -42,7 +42,7 @@ int LayerProbe::initialize(const char *name, HyPerCol *hc) {
 
 void LayerProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    // targetLayer is a legacy parameter, so here, it's not required
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "targetLayer", &targetName, NULL /*default*/, false /*warnIfAbsent*/);
    // But if it isn't defined, targetName must be, which BaseProbe checks for
    if (targetName == NULL) {

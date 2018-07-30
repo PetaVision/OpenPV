@@ -34,12 +34,12 @@ int ConnectionData::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ConnectionData::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {
-   this->parent->parameters()->ioParamString(
+   this->parameters()->ioParamString(
          ioFlag, this->getName(), "preLayerName", &mPreLayerName, NULL, false /*warnIfAbsent*/);
 }
 
 void ConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {
-   this->parent->parameters()->ioParamString(
+   this->parameters()->ioParamString(
          ioFlag, this->getName(), "postLayerName", &mPostLayerName, NULL, false /*warnIfAbsent*/);
 }
 

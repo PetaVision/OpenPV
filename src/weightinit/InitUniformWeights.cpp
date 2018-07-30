@@ -28,11 +28,11 @@ int InitUniformWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitUniformWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "weightInit", &mWeightInit, mWeightInit);
+   parameters()->ioParamValue(ioFlag, name, "weightInit", &mWeightInit, mWeightInit);
 }
 
 void InitUniformWeights::ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "connectOnlySameFeatures",

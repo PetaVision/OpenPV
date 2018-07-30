@@ -32,7 +32,7 @@ int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeSum::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "minSumTolerated",

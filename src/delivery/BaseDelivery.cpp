@@ -29,7 +29,7 @@ int BaseDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void BaseDelivery::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       int ch = 0;
-      this->parent->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
+      this->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
       switch (ch) {
          case CHANNEL_EXC: mChannelCode      = CHANNEL_EXC; break;
          case CHANNEL_INH: mChannelCode      = CHANNEL_INH; break;
@@ -49,7 +49,7 @@ void BaseDelivery::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    }
    else if (ioFlag == PARAMS_IO_WRITE) {
       int ch = (int)mChannelCode;
-      parent->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
+      parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
    }
    else {
       assert(0); // All possibilities of ioFlag are covered above.
@@ -58,7 +58,7 @@ void BaseDelivery::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
 
 void BaseDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "receiveGpu",
@@ -66,7 +66,7 @@ void BaseDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
          mReceiveGpu /*default*/,
          true /*warn if absent*/);
 #else
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "receiveGpu",

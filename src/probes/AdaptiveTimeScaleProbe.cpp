@@ -46,23 +46,23 @@ int AdaptiveTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void AdaptiveTimeScaleProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
+   parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_baseMax(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "baseMax", &mBaseMax, mBaseMax);
+   parameters()->ioParamValue(ioFlag, name, "baseMax", &mBaseMax, mBaseMax);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_baseMin(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "baseMin", &mBaseMin, mBaseMin);
+   parameters()->ioParamValue(ioFlag, name, "baseMin", &mBaseMin, mBaseMin);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_tauFactor(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "tauFactor", &tauFactor, tauFactor);
+   parameters()->ioParamValue(ioFlag, name, "tauFactor", &tauFactor, tauFactor);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_growthFactor(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
+   parameters()->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
 }
 
 // writeTimeScales was marked obsolete Jul 27, 2017. Use textOutputFlag instead.
@@ -70,14 +70,14 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScales(enum ParamsIOFlag ioFlag) {
    if (ioFlag != PARAMS_IO_READ) {
       return;
    }
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
-   if (parent->parameters()->present(name, "writeTimeScales")) {
-      bool writeTimeScales = (parent->parameters()->value(name, "writeTimeScales") != 0);
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   if (parameters()->present(name, "writeTimeScales")) {
+      bool writeTimeScales = (parameters()->value(name, "writeTimeScales") != 0);
       if (writeTimeScales == getTextOutputFlag()) {
          WarnLog() << getDescription()
                    << " sets writeTimeScales, which is obsolete. Use textOutputFlag instead.\n";
       }
-      else if (parent->parameters()->present(name, "textOutputFlag")) {
+      else if (parameters()->present(name, "textOutputFlag")) {
          Fatal() << "writeTimeScales is obsolete as it is redundant with textOutputFlag. "
                  << getDescription() << " sets these flags to opposite values.\n";
       }
@@ -93,9 +93,9 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScales(enum ParamsIOFlag ioFlag) {
 }
 
 void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
    if (getTextOutputFlag()) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag,
             name,
             "writeTimeScaleFieldnames",

@@ -41,25 +41,25 @@ int KernelProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void KernelProbe::ioParam_kernelIndex(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "kernelIndex", &kernelIndex, 0);
+   parameters()->ioParamValue(ioFlag, name, "kernelIndex", &kernelIndex, 0);
 }
 
 void KernelProbe::ioParam_arborId(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "arborId", &arborID, 0);
+   parameters()->ioParamValue(ioFlag, name, "arborId", &arborID, 0);
 }
 
 void KernelProbe::ioParam_outputWeights(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "outputWeights", &outputWeights, true /*default value*/);
 }
 
 void KernelProbe::ioParam_outputPlasticIncr(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "outputPlasticIncr", &outputPlasticIncr, false /*default value*/);
 }
 
 void KernelProbe::ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "outputPatchIndices", &outputPatchIndices, false /*default value*/);
 }
 

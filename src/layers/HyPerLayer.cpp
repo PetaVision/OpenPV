@@ -654,7 +654,7 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 // PoolingIndexLayer*, which is automatically PV_INT. So the dataType
 // check has become vacuous.
 void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ and parent->parameters()->stringPresent(getName(), "dataType")) {
+   if (ioFlag == PARAMS_IO_READ and parameters()->stringPresent(getName(), "dataType")) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          WarnLog().printf(
                "%s defines the dataType param, which is no longer used.\n, getDescription_c()");
@@ -664,12 +664,12 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
 
 void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, true /*warnIfAbsent*/);
    mUsingGPUFlag = mUpdateGpu;
 #else // PV_USE_CUDA
    bool mUpdateGpu = false;
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, false /*warnIfAbsent*/);
    if (parent->columnId() == 0) {
       FatalIf(
@@ -681,7 +681,7 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "initializeFromCheckpointFlag",
@@ -691,7 +691,7 @@ void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) 
 }
 
 void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag,
          name,
          "InitVType",
@@ -712,7 +712,7 @@ void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       if (triggerLayerName && !strcmp(name, triggerLayerName)) {
@@ -734,11 +734,10 @@ void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 // While triggerFlag is being deprecated, it is an error for triggerFlag to be false
 // and triggerLayerName to be a nonempty string.
 void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-   if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   if (ioFlag == PARAMS_IO_READ && parameters()->present(name, "triggerFlag")) {
       bool flagFromParams = false;
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
+      parameters()->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
       if (parent->columnId() == 0) {
          WarnLog(triggerFlagMessage);
          triggerFlagMessage.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
@@ -771,10 +770,9 @@ void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   assert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (triggerFlag) {
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
+      parameters()->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if (triggerOffset < 0) {
          if (parent->columnId() == 0) {
             Fatal().printf(
@@ -784,9 +782,9 @@ void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    }
 }
 void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   assert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (triggerFlag) {
-      parent->parameters()->ioParamString(
+      parameters()->ioParamString(
             ioFlag,
             name,
             "triggerBehavior",
@@ -824,25 +822,24 @@ void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   assert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (triggerFlag) {
-      assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerBehavior"));
+      assert(!parameters()->presentAndNotBeenRead(name, "triggerBehavior"));
       if (!strcmp(triggerBehavior, "resetStateOnTrigger")) {
-         parent->parameters()->ioParamStringRequired(
+         parameters()->ioParamStringRequired(
                ioFlag, name, "triggerResetLayerName", &triggerResetLayerName);
       }
    }
 }
 
 void HyPerLayer::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());
+   parameters()->ioParamValue(ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());
 }
 
 void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
+   assert(!parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (writeStep >= 0.0) {
-      parent->parameters()->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, 0.0);
+      parameters()->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, 0.0);
       if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < 0.0) {
          double storeInitialWriteTime = initialWriteTime;
          while (initialWriteTime < 0.0) {
@@ -862,7 +859,7 @@ void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "sparseLayer", &sparseLayer, false);
+   parameters()->ioParamValue(ioFlag, name, "sparseLayer", &sparseLayer, false);
 }
 
 Response::Status

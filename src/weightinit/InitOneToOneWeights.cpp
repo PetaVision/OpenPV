@@ -27,7 +27,7 @@ int InitOneToOneWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitOneToOneWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
+   parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
 }
 
 void InitOneToOneWeights::calcWeights(int patchIndex, int arborId) {

@@ -50,7 +50,7 @@ int Segmentify::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void Segmentify::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "inputMethod", &inputMethod);
+   parameters()->ioParamStringRequired(ioFlag, name, "inputMethod", &inputMethod);
    if (strcmp(inputMethod, "average") == 0) {
    }
    else if (strcmp(inputMethod, "sum") == 0) {
@@ -68,7 +68,7 @@ void Segmentify::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void Segmentify::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "outputMethod", &outputMethod);
+   parameters()->ioParamStringRequired(ioFlag, name, "outputMethod", &outputMethod);
    if (strcmp(outputMethod, "centroid") == 0) {
    }
    else if (strcmp(outputMethod, "fill") == 0) {
@@ -84,7 +84,7 @@ void Segmentify::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void Segmentify::ioParam_segmentLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "segmentLayerName", &segmentLayerName);
+   parameters()->ioParamStringRequired(ioFlag, name, "segmentLayerName", &segmentLayerName);
    assert(segmentLayerName);
    if (ioFlag == PARAMS_IO_READ && segmentLayerName[0] == '\0') {
       if (parent->columnId() == 0) {

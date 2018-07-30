@@ -36,7 +36,7 @@ int HyPerDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerDelivery::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          this->getName(),
          "convertRateToSpikeCount",

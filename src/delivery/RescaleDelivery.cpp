@@ -25,7 +25,7 @@ int RescaleDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void RescaleDelivery::ioParam_scale(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "scale", &mScale, mScale /*default*/, true /*warn if absent*/);
 }
 

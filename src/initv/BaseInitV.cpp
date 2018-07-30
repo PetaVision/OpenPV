@@ -26,7 +26,7 @@ int BaseInitV::initialize(char const *name, HyPerCol *hc) {
 }
 
 void BaseInitV::setObjectType() {
-   auto *params                = parent->parameters();
+   auto *params                = parameters();
    char const *initVTypeString = params->stringValue(name, "InitVType", false);
    mObjectType                 = initVTypeString ? std::string(initVTypeString) : mDefaultInitV;
 }

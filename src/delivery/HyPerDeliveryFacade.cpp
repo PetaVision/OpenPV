@@ -37,7 +37,7 @@ int HyPerDeliveryFacade::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerDeliveryFacade::ioParam_accumulateType(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "pvpatchAccumulateType", &mAccumulateTypeString, "convolve");
    if (ioFlag == PARAMS_IO_READ) {
       pvAssert(mAccumulateTypeString and mAccumulateTypeString[0]);
@@ -64,7 +64,7 @@ void HyPerDeliveryFacade::ioParam_accumulateType(enum ParamsIOFlag ioFlag) {
          exit(EXIT_FAILURE);
       }
    }
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    FatalIf(
          mReceiveGpu and mAccumulateType == HyPerDelivery::STOCHASTIC,
          "%s sets receiveGpu to true and pvpatchAccumulateType to stochastic, "
@@ -73,7 +73,7 @@ void HyPerDeliveryFacade::ioParam_accumulateType(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerDeliveryFacade::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "updateGSynFromPostPerspective",

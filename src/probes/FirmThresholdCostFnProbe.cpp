@@ -39,12 +39,12 @@ int FirmThresholdCostFnProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void FirmThresholdCostFnProbe::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "VThresh", &VThresh, VThresh /*default*/, false /*warnIfAbsent*/);
 }
 
 void FirmThresholdCostFnProbe::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "VWidth", &VWidth, VWidth /*default*/, false /*warnIfAbsent*/);
 }
 
@@ -60,19 +60,19 @@ Response::Status FirmThresholdCostFnProbe::communicateInitInfo(
    }
    ANNLayer *targetANNLayer = dynamic_cast<ANNLayer *>(getTargetLayer());
    if (targetANNLayer != nullptr) {
-      if (!parent->parameters()->present(getName(), "VThresh")) {
+      if (!parameters()->present(getName(), "VThresh")) {
          VThresh = targetANNLayer->getVThresh();
       }
-      if (!parent->parameters()->present(getName(), "VWidth")) {
+      if (!parameters()->present(getName(), "VWidth")) {
          VWidth = targetANNLayer->getVWidth();
       }
    }
    else {
       // Reread VThresh and VWidth commands, this time warning if they are not
       // absent.
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh /*default*/, true /*warnIfAbsent*/);
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh /*default*/, true /*warnIfAbsent*/);
    }
    return Response::SUCCESS;

@@ -29,7 +29,7 @@ int InitSpreadOverArborsWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitSpreadOverArborsWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "weightInit", &mWeightInit, mWeightInit);
+   parameters()->ioParamValue(ioFlag, name, "weightInit", &mWeightInit, mWeightInit);
 }
 
 void InitSpreadOverArborsWeights::calcWeights(int patchIndex, int arborId) {

@@ -29,21 +29,21 @@ int NormalizeContrastZeroMean::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeContrastZeroMean::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true /*warnIfAbsent*/);
 }
 
 void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      if (parent->parameters()->present(name, "normalizeFromPostPerspective")) {
+      if (parameters()->present(name, "normalizeFromPostPerspective")) {
          if (parent->columnId() == 0) {
             WarnLog().printf(
                   "%s \"%s\": normalizeMethod \"normalizeContrastZeroMean\" doesn't use "
                   "normalizeFromPostPerspective parameter.\n",
-                  parent->parameters()->groupKeywordFromName(name),
+                  parameters()->groupKeywordFromName(name),
                   name);
          }
-         parent->parameters()->value(
+         parameters()->value(
                name, "normalizeFromPostPerspective"); // marks param as having been read
       }
    }

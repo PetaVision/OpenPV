@@ -30,7 +30,7 @@ int NormalizeL3::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeL3::ioParam_minL3NormTolerated(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "minL3NormTolerated",

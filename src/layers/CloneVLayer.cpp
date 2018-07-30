@@ -43,7 +43,7 @@ OriginalLayerNameParam *CloneVLayer::createOriginalLayerNameParam() {
 
 void CloneVLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "InitVType");
+      parameters()->handleUnnecessaryParameter(name, "InitVType");
    }
 }
 

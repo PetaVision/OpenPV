@@ -35,7 +35,7 @@ int TransposeWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void TransposeWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       mWriteCompressedCheckpoints = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedCheckpoints");
+      parameters()->handleUnnecessaryParameter(name, "writeCompressedCheckpoints");
    }
    // TransposeWeightsPair never checkpoints, so we always set writeCompressedCheckpoints to false.
 }

@@ -52,7 +52,7 @@ OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
 void InputRegionLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       initVTypeString = nullptr;
-      parent->parameters()->handleUnnecessaryParameter(name, "InitVType");
+      parameters()->handleUnnecessaryParameter(name, "InitVType");
    }
 }
 
@@ -60,14 +60,14 @@ void InputRegionLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       triggerLayerName = nullptr;
       triggerFlag      = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "triggerLayerName");
+      parameters()->handleUnnecessaryParameter(name, "triggerLayerName");
    }
 }
 
 void InputRegionLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       sparseLayer = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "sparseLayer");
+      parameters()->handleUnnecessaryParameter(name, "sparseLayer");
    }
 }
 
@@ -75,7 +75,7 @@ void InputRegionLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
    if (ioFlag == PARAMS_IO_READ) {
       mUpdateGpu = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "updateGpu");
+      parameters()->handleUnnecessaryParameter(name, "updateGpu");
    }
 #endif // PV_USE_CUDA
 }

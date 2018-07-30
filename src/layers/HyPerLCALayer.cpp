@@ -81,12 +81,12 @@ int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLCALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true /*warnIfAbsent*/);
 }
 
 void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
+   parameters()->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
    if (ioFlag == PARAMS_IO_READ && parent->columnId() == 0) {
       InfoLog() << getDescription() << ": selfInteract flag is "
                 << (selfInteract ? "true" : "false") << std::endl;
@@ -94,7 +94,7 @@ void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLCALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag,
          name,
          "adaptiveTimeScaleProbe",

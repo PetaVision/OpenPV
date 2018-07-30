@@ -38,7 +38,7 @@ int TransposePoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void TransposePoolingDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // During the communication phase, receiveGpu will be copied from the original conn
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "receiveGpu");
+      parameters()->handleUnnecessaryParameter(name, "receiveGpu");
    }
 }
 
@@ -48,7 +48,7 @@ void TransposePoolingDelivery::ioParam_updateGSynFromPostPerspective(enum Params
    // copied from the original conn.
    if (ioFlag == PARAMS_IO_WRITE) {
       if (!mReceiveGpu) {
-         parent->parameters()->ioParamValue(
+         parameters()->ioParamValue(
                ioFlag,
                name,
                "updateGSynFromPostPerspective",
@@ -103,7 +103,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    // If receiveGpu is false, we need to read updateGSynFromPostPerspective.
    // If it is true, we use the CUDA routine, which always uses the post perspective.
    if (!mReceiveGpu) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             PARAMS_IO_READ,
             name,
             "updateGSynFromPostPerspective",
@@ -112,7 +112,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    }
    else {
       mUpdateGSynFromPostPerspective = true;
-      parent->parameters()->handleUnnecessaryParameter(
+      parameters()->handleUnnecessaryParameter(
             name, "updateGSynFromPostPerspective", mUpdateGSynFromPostPerspective);
    }
 

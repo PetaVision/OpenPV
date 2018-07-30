@@ -34,7 +34,7 @@ int CloneWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void CloneWeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "writeStep");
+      parameters()->handleUnnecessaryParameter(name, "writeStep");
       mWriteStep = -1;
    }
    // CloneWeightsPair never writes output: set writeStep to -1.
@@ -43,7 +43,7 @@ void CloneWeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 void CloneWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       mWriteCompressedCheckpoints = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedCheckpoints");
+      parameters()->handleUnnecessaryParameter(name, "writeCompressedCheckpoints");
    }
    // CloneConn never writes checkpoints: set writeCompressedCheckpoints to false.
 }

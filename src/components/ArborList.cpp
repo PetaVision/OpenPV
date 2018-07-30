@@ -32,7 +32,7 @@ int ArborList::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, this->getName(), "numAxonalArbors", &mNumAxonalArbors, mNumAxonalArbors);
    if (ioFlag == PARAMS_IO_READ) {
       if (getNumAxonalArbors() <= 0 && parent->getCommunicator()->globalCommRank() == 0) {
@@ -47,7 +47,7 @@ void ArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
 void ArborList::ioParam_delay(enum ParamsIOFlag ioFlag) {
    // Grab delays in ms and load into mDelaysParams.
    // initializeDelays() will convert the delays to timesteps store into delays.
-   parent->parameters()->ioParamArray(ioFlag, getName(), "delay", &mDelaysParams, &mNumDelays);
+   parameters()->ioParamArray(ioFlag, getName(), "delay", &mDelaysParams, &mNumDelays);
    if (ioFlag == PARAMS_IO_READ && mNumDelays == 0) {
       assert(mDelaysParams == nullptr);
       mDelaysParams = (double *)pvMallocError(
@@ -99,7 +99,7 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
 }
 
 void ArborList::initializeDelays() {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "numAxonalArbors"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "numAxonalArbors"));
    mDelay.resize(getNumAxonalArbors());
 
    // Initialize delays for each arbor

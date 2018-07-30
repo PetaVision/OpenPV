@@ -31,12 +31,12 @@ int TestImage::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void TestImage::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->handleUnnecessaryParameter(name, "InitVType");
+   parameters()->handleUnnecessaryParameter(name, "InitVType");
    return;
 }
 
 void TestImage::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (float)1);
+   parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (float)1);
 }
 
 void TestImage::allocateV() { FatalIf(!(getV() == nullptr), "Test failed.\n"); }

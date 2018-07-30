@@ -21,7 +21,7 @@ int IndexWeightConn::initialize(const char *name, HyPerCol *hc) {
 }
 
 InitWeights *IndexWeightConn::createWeightInitializer() {
-   parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", nullptr);
+   parameters()->handleUnnecessaryStringParameter(name, "weightInitType", nullptr);
    return nullptr;
 }
 

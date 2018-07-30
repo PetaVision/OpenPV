@@ -35,9 +35,9 @@ int PoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PoolingDelivery::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
-   PVParams *params = parent->parameters();
+   PVParams *params = parameters();
 
-   parent->parameters()->ioParamStringRequired(
+   parameters()->ioParamStringRequired(
          ioFlag, name, "pvpatchAccumulateType", &mPvpatchAccumulateTypeString);
    if (ioFlag == PARAMS_IO_READ) {
       mAccumulateType = parseAccumulateTypeString(mPvpatchAccumulateTypeString);
@@ -82,7 +82,7 @@ PoolingDelivery::parseAccumulateTypeString(char const *poolingTypeString) {
 }
 
 void PoolingDelivery::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   auto *params = parent->parameters();
+   auto *params = parameters();
    pvAssert(!params->presentAndNotBeenRead(name, "receiveGpu"));
    if (!mReceiveGpu) {
       params->ioParamValue(
@@ -99,15 +99,14 @@ void PoolingDelivery::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag io
 }
 
 void PoolingDelivery::ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "needPostIndexLayer", &mNeedPostIndexLayer, mNeedPostIndexLayer);
 }
 
 void PoolingDelivery::ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "needPostIndexLayer"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "needPostIndexLayer"));
    if (mNeedPostIndexLayer) {
-      parent->parameters()->ioParamStringRequired(
-            ioFlag, name, "postIndexLayerName", &mPostIndexLayerName);
+      parameters()->ioParamStringRequired(ioFlag, name, "postIndexLayerName", &mPostIndexLayerName);
    }
 }
 

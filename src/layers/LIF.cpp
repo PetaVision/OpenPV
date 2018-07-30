@@ -167,55 +167,53 @@ int LIF::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return 0;
 }
 void LIF::ioParam_Vrest(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "Vrest", &lParams.Vrest, (float)V_REST);
+   parameters()->ioParamValue(ioFlag, name, "Vrest", &lParams.Vrest, (float)V_REST);
 }
 void LIF::ioParam_Vexc(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "Vexc", &lParams.Vexc, (float)V_EXC);
+   parameters()->ioParamValue(ioFlag, name, "Vexc", &lParams.Vexc, (float)V_EXC);
 }
 void LIF::ioParam_Vinh(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "Vinh", &lParams.Vinh, (float)V_INH);
+   parameters()->ioParamValue(ioFlag, name, "Vinh", &lParams.Vinh, (float)V_INH);
 }
 void LIF::ioParam_VinhB(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "VinhB", &lParams.VinhB, (float)V_INHB);
+   parameters()->ioParamValue(ioFlag, name, "VinhB", &lParams.VinhB, (float)V_INHB);
 }
 void LIF::ioParam_VthRest(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "VthRest", &lParams.VthRest, (float)VTH_REST);
+   parameters()->ioParamValue(ioFlag, name, "VthRest", &lParams.VthRest, (float)VTH_REST);
 }
 void LIF::ioParam_tau(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "tau", &lParams.tau, (float)TAU_VMEM);
+   parameters()->ioParamValue(ioFlag, name, "tau", &lParams.tau, (float)TAU_VMEM);
 }
 void LIF::ioParam_tauE(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "tauE", &lParams.tauE, (float)TAU_EXC);
+   parameters()->ioParamValue(ioFlag, name, "tauE", &lParams.tauE, (float)TAU_EXC);
 }
 void LIF::ioParam_tauI(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "tauI", &lParams.tauI, (float)TAU_INH);
+   parameters()->ioParamValue(ioFlag, name, "tauI", &lParams.tauI, (float)TAU_INH);
 }
 void LIF::ioParam_tauIB(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "tauIB", &lParams.tauIB, (float)TAU_INHB);
+   parameters()->ioParamValue(ioFlag, name, "tauIB", &lParams.tauIB, (float)TAU_INHB);
 }
 void LIF::ioParam_tauVth(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "tauVth", &lParams.tauVth, (float)TAU_VTH);
+   parameters()->ioParamValue(ioFlag, name, "tauVth", &lParams.tauVth, (float)TAU_VTH);
 }
 void LIF::ioParam_deltaVth(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "deltaVth", &lParams.deltaVth, (float)DELTA_VTH);
+   parameters()->ioParamValue(ioFlag, name, "deltaVth", &lParams.deltaVth, (float)DELTA_VTH);
 }
 void LIF::ioParam_deltaGIB(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "deltaGIB", &lParams.deltaGIB, (float)DELTA_G_INHB);
+   parameters()->ioParamValue(ioFlag, name, "deltaGIB", &lParams.deltaGIB, (float)DELTA_G_INHB);
 }
 void LIF::ioParam_noiseAmpE(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "noiseAmpE", &lParams.noiseAmpE, 0.0f);
+   parameters()->ioParamValue(ioFlag, name, "noiseAmpE", &lParams.noiseAmpE, 0.0f);
 }
 void LIF::ioParam_noiseAmpI(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "noiseAmpI", &lParams.noiseAmpI, 0.0f);
+   parameters()->ioParamValue(ioFlag, name, "noiseAmpI", &lParams.noiseAmpI, 0.0f);
 }
 void LIF::ioParam_noiseAmpIB(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "noiseAmpIB", &lParams.noiseAmpIB, 0.0f);
+   parameters()->ioParamValue(ioFlag, name, "noiseAmpIB", &lParams.noiseAmpIB, 0.0f);
 }
 
 void LIF::ioParam_noiseFreqE(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "noiseFreqE", &lParams.noiseFreqE, 250.0f);
+   parameters()->ioParamValue(ioFlag, name, "noiseFreqE", &lParams.noiseFreqE, 250.0f);
    if (ioFlag == PARAMS_IO_READ) {
       float dt_sec = 0.001f * (float)parent->getDeltaTime(); // seconds
       if (dt_sec * lParams.noiseFreqE > 1.0f) {
@@ -225,7 +223,7 @@ void LIF::ioParam_noiseFreqE(enum ParamsIOFlag ioFlag) {
 }
 
 void LIF::ioParam_noiseFreqI(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "noiseFreqI", &lParams.noiseFreqI, 250.0f);
+   parameters()->ioParamValue(ioFlag, name, "noiseFreqI", &lParams.noiseFreqI, 250.0f);
    if (ioFlag == PARAMS_IO_READ) {
       float dt_sec = 0.001f * (float)parent->getDeltaTime(); // seconds
       if (dt_sec * lParams.noiseFreqI > 1.0f) {
@@ -235,7 +233,7 @@ void LIF::ioParam_noiseFreqI(enum ParamsIOFlag ioFlag) {
 }
 
 void LIF::ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "noiseFreqIB", &lParams.noiseFreqIB, 250.0f);
+   parameters()->ioParamValue(ioFlag, name, "noiseFreqIB", &lParams.noiseFreqIB, 250.0f);
    if (ioFlag == PARAMS_IO_READ) {
       float dt_sec = 0.001f * (float)parent->getDeltaTime(); // seconds
       if (dt_sec * lParams.noiseFreqIB > 1.0f) {
@@ -248,7 +246,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
    // Read the integration method: one of 'arma' (preferred), 'beginning' (deprecated), or
    // 'original' (deprecated).
    const char *default_method = "arma";
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "method", &methodString, default_method, true /*warnIfAbsent*/);
    if (ioFlag != PARAMS_IO_READ) {
       return;

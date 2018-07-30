@@ -29,7 +29,7 @@ int NormalizeMax::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeMax::ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "minMaxTolerated", &minMaxTolerated, 0.0f, true /*warnIfAbsent*/);
 }
 

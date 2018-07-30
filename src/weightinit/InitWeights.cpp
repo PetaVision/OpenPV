@@ -32,7 +32,7 @@ int InitWeights::initialize(char const *name, HyPerCol *hc) {
 
 void InitWeights::setObjectType() {
    char const *initType =
-         parent->parameters()->stringValue(name, "weightInitType", false /*do not warn if absent*/);
+         parameters()->stringValue(name, "weightInitType", false /*do not warn if absent*/);
    mObjectType = initType ? initType : "Initializer for";
 }
 
@@ -48,19 +48,18 @@ int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitWeights::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, "weightInitType", &mWeightInitTypeString);
+   parameters()->ioParamStringRequired(ioFlag, name, "weightInitType", &mWeightInitTypeString);
 }
 
 void InitWeights::ioParam_initWeightsFile(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "initWeightsFile", &mFilename, mFilename, false /*warnIfAbsent*/);
 }
 
 void InitWeights::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
    if (mFilename and mFilename[0]) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag,
             name,
             "frameNumber",
@@ -88,8 +87,8 @@ void InitWeights::ioParam_combineWeightFiles(enum ParamsIOFlag ioFlag) {
 }
 
 void InitWeights::handleObsoleteFlag(std::string const &flagName) {
-   if (parent->parameters()->present(name, flagName.c_str())) {
-      if (parent->parameters()->value(name, flagName.c_str())) {
+   if (parameters()->present(name, flagName.c_str())) {
+      if (parameters()->value(name, flagName.c_str())) {
          Fatal().printf(
                "%s sets the %s flag, which is obsolete.\n",
                getDescription().c_str(),

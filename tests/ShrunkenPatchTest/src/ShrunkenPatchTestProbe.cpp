@@ -42,12 +42,12 @@ int ShrunkenPatchTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ShrunkenPatchTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 void ShrunkenPatchTestProbe::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "nxpShrunken", &nxpShrunken);
+   parameters()->ioParamValueRequired(ioFlag, getName(), "nxpShrunken", &nxpShrunken);
    return;
 }
 
 void ShrunkenPatchTestProbe::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "nypShrunken", &nypShrunken);
+   parameters()->ioParamValueRequired(ioFlag, getName(), "nypShrunken", &nypShrunken);
    return;
 }
 

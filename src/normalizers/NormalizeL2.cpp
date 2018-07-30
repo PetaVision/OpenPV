@@ -29,7 +29,7 @@ int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeL2::ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "minL2NormTolerated", &minL2NormTolerated, 0.0f, true /*warnIfAbsent*/);
 }
 

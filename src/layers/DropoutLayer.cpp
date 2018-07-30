@@ -12,8 +12,7 @@ int DropoutLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void DropoutLayer::ioParam_probability(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "probability", &mProbability, mProbability, true);
+   parameters()->ioParamValue(ioFlag, name, "probability", &mProbability, mProbability, true);
    if (mProbability > 99) {
       WarnLog() << getName() << ": probability was set to >= 100%. Changing to 99%.\n";
       mProbability = 99;

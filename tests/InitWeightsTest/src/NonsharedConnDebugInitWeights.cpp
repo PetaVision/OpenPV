@@ -36,7 +36,7 @@ int NonsharedConnDebugInitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NonsharedConnDebugInitWeights::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "weightInitType", &mWeightInitTypeString, NULL, true /*warnIfAbsent*/);
    FatalIf(
          mWeightInitTypeString == nullptr or mWeightInitTypeString[0] == '\0',
@@ -110,7 +110,7 @@ void NonsharedConnDebugInitWeights::smartWeights(Patch const &wp, float *dataSta
 }
 
 void NonsharedConnDebugInitWeights::initializeCocircWeights(float *dataStart, int numDataPatches) {
-   PVParams *params = parent->parameters();
+   PVParams *params = parameters();
    float aspect     = 1.0f; // circular (not line oriented)
    float sigma      = 0.8f;
    float rMax       = 1.4f;
@@ -562,7 +562,7 @@ void NonsharedConnDebugInitWeights::cocircCalcWeights(
 }
 
 void NonsharedConnDebugInitWeights::initializeGaussian2DWeights(float *dataStart, int numPatches) {
-   PVParams *params = parent->parameters();
+   PVParams *params = parameters();
 
    // default values (chosen for center on cell of one pixel)
    auto *patchSize     = getComponentByType<PatchSize>();
@@ -806,7 +806,7 @@ void NonsharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, int
    const int xScale = postLayer->getXScale() - preLayer->getXScale();
    const int yScale = postLayer->getYScale() - preLayer->getYScale();
 
-   PVParams *params = parent->parameters();
+   PVParams *params = parameters();
 
    float aspect   = 4.0f;
    float sigma    = 2.0f;
@@ -854,7 +854,7 @@ void NonsharedConnDebugInitWeights::gaborWeights(
       float lambda,
       float strength,
       float phi) {
-   PVParams *params = parent->parameters();
+   PVParams *params = parameters();
 
    float rotate = 1.0f;
    float invert = 0.0f;

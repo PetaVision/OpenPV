@@ -35,7 +35,7 @@ int GapLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void GapLayer::ioParam_ampSpikelet(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "ampSpikelet", &ampSpikelet, ampSpikelet);
+   parameters()->ioParamValue(ioFlag, name, "ampSpikelet", &ampSpikelet, ampSpikelet);
 }
 
 Response::Status

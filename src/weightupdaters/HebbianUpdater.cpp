@@ -41,9 +41,9 @@ int HebbianUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamString(
+      parameters()->ioParamString(
             ioFlag, name, "triggerLayerName", &mTriggerLayerName, nullptr, false /*warnIfAbsent*/);
       if (ioFlag == PARAMS_IO_READ) {
          mTriggerFlag = (mTriggerLayerName != nullptr && mTriggerLayerName[0] != '\0');
@@ -52,12 +52,11 @@ void HebbianUpdater::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
       if (mTriggerFlag) {
-         parent->parameters()->ioParamValue(
-               ioFlag, name, "triggerOffset", &mTriggerOffset, mTriggerOffset);
+         parameters()->ioParamValue(ioFlag, name, "triggerOffset", &mTriggerOffset, mTriggerOffset);
          if (mTriggerOffset < 0) {
             Fatal().printf(
                   "%s error in rank %d process: TriggerOffset (%f) must be positive",
@@ -70,16 +69,16 @@ void HebbianUpdater::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
       if (!mTriggerLayerName) {
-         parent->parameters()->ioParamValueRequired(
+         parameters()->ioParamValueRequired(
                ioFlag, name, "weightUpdatePeriod", &mWeightUpdatePeriod);
       }
       else
          FatalIf(
-               parent->parameters()->present(name, "weightUpdatePeriod"),
+               parameters()->present(name, "weightUpdatePeriod"),
                "%s sets both triggerLayerName and weightUpdatePeriod; "
                "only one of these can be set.\n",
                getDescription_c());
@@ -87,11 +86,11 @@ void HebbianUpdater::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
       if (!mTriggerLayerName) {
-         parent->parameters()->ioParamValue(
+         parameters()->ioParamValue(
                ioFlag,
                name,
                "initialWeightUpdateTime",
@@ -106,9 +105,9 @@ void HebbianUpdater::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag,
             name,
             "immediateWeightUpdate",
@@ -119,18 +118,18 @@ void HebbianUpdater::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamValueRequired(ioFlag, name, "dWMax", &mDWMax);
+      parameters()->ioParamValueRequired(ioFlag, name, "dWMax", &mDWMax);
    }
 }
 
 void HebbianUpdater::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "dWMax"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "dWMax"));
       if (mDWMax > 0) {
-         parent->parameters()->ioParamValue(
+         parameters()->ioParamValue(
                ioFlag,
                name,
                "dWMaxDecayInterval",
@@ -142,10 +141,10 @@ void HebbianUpdater::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-      parent->parameters()->ioParamValue(
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+      parameters()->ioParamValue(
             ioFlag, name, "dWMaxDecayFactor", &mDWMaxDecayFactor, mDWMaxDecayFactor, false);
       FatalIf(
             mDWMaxDecayFactor < 0.0f || mDWMaxDecayFactor >= 1.0f,
@@ -155,19 +154,19 @@ void HebbianUpdater::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag, getName(), "normalizeDw", &mNormalizeDw, mNormalizeDw, false /*warnIfAbsent*/);
    }
 }
 
 void HebbianUpdater::ioParam_useMask(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
       if (mPlasticityFlag) {
          bool useMask = false;
-         parent->parameters()->ioParamValue(
+         parameters()->ioParamValue(
                ioFlag, getName(), "useMask", &useMask, useMask, false /*warnIfAbsent*/);
          if (useMask) {
             if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -181,9 +180,9 @@ void HebbianUpdater::ioParam_useMask(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag,
             name,
             "combine_dW_with_W_flag",

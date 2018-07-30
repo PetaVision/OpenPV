@@ -32,21 +32,21 @@ int DependentPatchSize::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void DependentPatchSize::ioParam_nxp(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "nxp");
+      parameters()->handleUnnecessaryParameter(name, "nxp");
    }
    // During the communication phase, nxp will be copied from originalConn
 }
 
 void DependentPatchSize::ioParam_nyp(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "nyp");
+      parameters()->handleUnnecessaryParameter(name, "nyp");
    }
    // During the communication phase, nyp will be copied from originalConn
 }
 
 void DependentPatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "nfp");
+      parameters()->handleUnnecessaryParameter(name, "nfp");
    }
    // During the communication phase, nfp will be copied from originalConn
 }
@@ -93,9 +93,9 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    }
 
    setPatchSize(originalPatchSize);
-   parent->parameters()->handleUnnecessaryParameter(name, "nxp", mPatchSizeX);
-   parent->parameters()->handleUnnecessaryParameter(name, "nyp", mPatchSizeY);
-   parent->parameters()->handleUnnecessaryParameter(name, "nfp", mPatchSizeF);
+   parameters()->handleUnnecessaryParameter(name, "nxp", mPatchSizeX);
+   parameters()->handleUnnecessaryParameter(name, "nyp", mPatchSizeY);
+   parameters()->handleUnnecessaryParameter(name, "nfp", mPatchSizeF);
 
    auto status = PatchSize::communicateInitInfo(message);
    return status;

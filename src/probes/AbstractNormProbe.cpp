@@ -51,7 +51,7 @@ int AbstractNormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void AbstractNormProbe::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "maskLayerName", &maskLayerName, NULL, false /*warnIfAbsent*/);
 }
 

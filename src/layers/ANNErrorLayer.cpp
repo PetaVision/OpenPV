@@ -60,8 +60,7 @@ int ANNErrorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ANNErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "errScale", &errScale, errScale, true /*warnIfAbsent*/);
+   parameters()->ioParamValue(ioFlag, name, "errScale", &errScale, errScale, true /*warnIfAbsent*/);
 }
 
 int ANNErrorLayer::setVertices() {

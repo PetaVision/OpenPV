@@ -33,7 +33,7 @@ void NormalizeBase::initMessageActionMap() {
 }
 
 void NormalizeBase::setObjectType() {
-   auto *params                = parent->parameters();
+   auto *params                = parameters();
    char const *normalizeMethod = params->stringValue(name, "normalizeMethod", false);
    mObjectType                 = normalizeMethod ? normalizeMethod : "Normalizer for";
 }
@@ -47,11 +47,11 @@ int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeBase::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "normalizeMethod", &mNormalizeMethod);
+   parameters()->ioParamStringRequired(ioFlag, name, "normalizeMethod", &mNormalizeMethod);
 }
 
 void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "normalizeArborsIndividually",
@@ -61,12 +61,12 @@ void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag
 }
 
 void NormalizeBase::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "normalizeOnInitialize", &mNormalizeOnInitialize, mNormalizeOnInitialize);
 }
 
 void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "normalizeOnWeightUpdate",

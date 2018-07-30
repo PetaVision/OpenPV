@@ -86,7 +86,7 @@ WeightsPairInterface *HyPerConn::createWeightsPair() { return new WeightsPair(na
 
 InitWeights *HyPerConn::createWeightInitializer() {
    char *weightInitTypeString = nullptr;
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          PARAMS_IO_READ,
          name,
          "weightInitType",
@@ -127,7 +127,7 @@ InitWeights *HyPerConn::createWeightInitializer() {
 NormalizeBase *HyPerConn::createWeightNormalizer() {
    NormalizeBase *normalizer = nullptr;
    char *normalizeMethod     = nullptr;
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          PARAMS_IO_READ, name, "normalizeMethod", &normalizeMethod, nullptr, true /*warnIfAbsent*/);
    // Note: The normalizeMethod string param gets read both here and by the
    // NormalizeBase::ioParam_weightInitType() method. It is read here because we need

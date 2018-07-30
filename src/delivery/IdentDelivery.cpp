@@ -24,7 +24,7 @@ void IdentDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // Never receive from gpu
    mReceiveGpu = false;
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "receiveGpu", false /*correctValue*/);
+      parameters()->handleUnnecessaryParameter(name, "receiveGpu", false /*correctValue*/);
    }
 }
 

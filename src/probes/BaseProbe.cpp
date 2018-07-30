@@ -85,45 +85,43 @@ int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
+   parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
 }
 
 void BaseProbe::ioParam_message(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
-         ioFlag, name, "message", &msgparams, NULL, false /*warnIfAbsent*/);
+   parameters()->ioParamString(ioFlag, name, "message", &msgparams, NULL, false /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       initMessage(msgparams);
    }
 }
 
 void BaseProbe::ioParam_energyProbe(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "energyProbe", &energyProbe, NULL, false /*warnIfAbsent*/);
 }
 
 void BaseProbe::ioParam_coefficient(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "energyProbe"));
+   assert(!parameters()->presentAndNotBeenRead(name, "energyProbe"));
    if (energyProbe && energyProbe[0]) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag, name, "coefficient", &coefficient, coefficient, true /*warnIfAbsent*/);
    }
 }
 
 void BaseProbe::ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "textOutputFlag", &textOutputFlag, textOutputFlag);
+   parameters()->ioParamValue(ioFlag, name, "textOutputFlag", &textOutputFlag, textOutputFlag);
 }
 
 void BaseProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   assert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
    if (textOutputFlag) {
-      parent->parameters()->ioParamString(
+      parameters()->ioParamString(
             ioFlag, name, "probeOutputFile", &probeOutputFilename, NULL, false /*warnIfAbsent*/);
    }
 }
 
 void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       triggerFlag = (triggerLayerName != NULL && triggerLayerName[0] != '\0');
@@ -135,11 +133,10 @@ void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 // setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
 // For a reasonable fade-out time, it is an error for triggerFlag to be defined in params.
 void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-   if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
+   assert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   if (ioFlag == PARAMS_IO_READ && parameters()->present(name, "triggerFlag")) {
       bool flagFromParams = false;
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
+      parameters()->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
       if (parent->columnId() == 0) {
          Fatal(triggerFlagDeprecated);
          triggerFlagDeprecated.printf(
@@ -153,15 +150,14 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+   assert(!parameters()->presentAndNotBeenRead(name, "triggerFlag"));
    if (triggerFlag) {
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
+      parameters()->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if (triggerOffset < 0) {
          Fatal().printf(
                "%s \"%s\" error in rank %d process: TriggerOffset (%f) "
                "must be positive\n",
-               parent->parameters()->groupKeywordFromName(name),
+               parameters()->groupKeywordFromName(name),
                name,
                parent->columnId(),
                triggerOffset);
@@ -243,7 +239,7 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
          if (parent->columnId() == 0) {
             ErrorLog().printf(
                   "%s \"%s\": triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
-                  parent->parameters()->groupKeywordFromName(name),
+                  parameters()->groupKeywordFromName(name),
                   name,
                   triggerLayerName);
          }
@@ -260,7 +256,7 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
             ErrorLog().printf(
                   "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the "
                   "column.\n",
-                  parent->parameters()->groupKeywordFromName(getName()),
+                  parameters()->groupKeywordFromName(getName()),
                   getName(),
                   energyProbe);
          }
@@ -300,7 +296,7 @@ int BaseProbe::initMessage(const char *msg) {
    if (!this->msgstring) {
       ErrorLog().printf(
             "%s \"%s\": Unable to allocate memory for probe's message.\n",
-            parent->parameters()->groupKeywordFromName(name),
+            parameters()->groupKeywordFromName(name),
             name);
       status = PV_FAILURE;
    }

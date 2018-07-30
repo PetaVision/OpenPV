@@ -54,7 +54,7 @@ int RunningAverageLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void RunningAverageLayer::ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "numImagesToAverage", &numImagesToAverage, numImagesToAverage);
 }
 

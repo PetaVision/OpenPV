@@ -37,7 +37,7 @@ int PhaseParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PhaseParam::ioParam_phase(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "phase", &mPhase, mPhase);
+   parameters()->ioParamValue(ioFlag, name, "phase", &mPhase, mPhase);
    if (mPhase < 0) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(

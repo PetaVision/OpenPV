@@ -97,7 +97,7 @@ int StatsProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void StatsProbe::requireType(PVBufType requiredType) {
-   PVParams *params = parent->parameters();
+   PVParams *params = parameters();
    if (params->stringPresent(getName(), "buffer")) {
       params->handleUnnecessaryStringParameter(getName(), "buffer");
       StatsProbe::ioParam_buffer(PARAMS_IO_READ);
@@ -131,7 +131,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          case BufActivity: buffer = strdup("Activity");
       }
    }
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, getName(), "buffer", &buffer, "Activity", true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       assert(buffer);
@@ -147,7 +147,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
       }
       else {
          if (parent->columnId() == 0) {
-            const char *bufnameinparams = parent->parameters()->stringValue(getName(), "buffer");
+            const char *bufnameinparams = parameters()->stringValue(getName(), "buffer");
             assert(bufnameinparams);
             ErrorLog().printf(
                   "%s: buffer \"%s\" is not recognized.\n", getDescription_c(), bufnameinparams);
@@ -161,7 +161,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, 0.0f);
+   parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, 0.0f);
 }
 
 void StatsProbe::initNumValues() { setNumValues(-1); }

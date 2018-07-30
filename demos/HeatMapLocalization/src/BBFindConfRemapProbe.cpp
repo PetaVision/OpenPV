@@ -46,15 +46,15 @@ int BBFindConfRemapProbe::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
 }
 
 void BBFindConfRemapProbe::ioParam_imageLayer(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "imageLayer", &imageLayerName);
+   parameters()->ioParamStringRequired(ioFlag, name, "imageLayer", &imageLayerName);
 }
 
 void BBFindConfRemapProbe::ioParam_reconLayer(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "reconLayer", &reconLayerName);
+   parameters()->ioParamStringRequired(ioFlag, name, "reconLayer", &reconLayerName);
 }
 
 void BBFindConfRemapProbe::ioParam_classNamesFile(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(ioFlag, name, "classNamesFile", &classNamesFile, "");
+   parameters()->ioParamString(ioFlag, name, "classNamesFile", &classNamesFile, "");
 }
 
 void BBFindConfRemapProbe::ioParam_minBoundingBoxWidth(enum PV::ParamsIOFlag ioFlag) {
@@ -83,7 +83,7 @@ void BBFindConfRemapProbe::ioParam_drawMontage(enum PV::ParamsIOFlag ioFlag) {
 }
 
 void BBFindConfRemapProbe::ioParam_heatMapMontageDir(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->parameters()->ioParamStringRequired(
             ioFlag, this->getName(), "heatMapMontageDir", &heatMapMontageDir);
@@ -91,23 +91,23 @@ void BBFindConfRemapProbe::ioParam_heatMapMontageDir(enum PV::ParamsIOFlag ioFla
 }
 
 void BBFindConfRemapProbe::ioParam_heatMapThreshold(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
-      parent->parameters()->ioParamArray(
+      parameters()->ioParamArray(
             ioFlag, name, "heatMapThreshold", &heatMapThreshold, &numHeatMapThresholds);
    }
 }
 
 void BBFindConfRemapProbe::ioParam_heatMapMaximum(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
-      parent->parameters()->ioParamArray(
+      parameters()->ioParamArray(
             ioFlag, name, "heatMapMaximum", &heatMapMaximum, &numHeatMapMaxima);
    }
 }
 
 void BBFindConfRemapProbe::ioParam_imageBlendCoeff(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->parameters()->ioParamValue(
             ioFlag,
@@ -120,7 +120,7 @@ void BBFindConfRemapProbe::ioParam_imageBlendCoeff(enum PV::ParamsIOFlag ioFlag)
 }
 
 void BBFindConfRemapProbe::ioParam_boundingBoxLineWidth(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->parameters()->ioParamValue(
             ioFlag,
@@ -133,7 +133,7 @@ void BBFindConfRemapProbe::ioParam_boundingBoxLineWidth(enum PV::ParamsIOFlag io
 }
 
 void BBFindConfRemapProbe::ioParam_displayCommand(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->parameters()->ioParamString(
             ioFlag,

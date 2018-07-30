@@ -89,7 +89,7 @@ int KmeansLayer::setActivity() {
 }
 
 void KmeansLayer::ioParam_TrainingFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "training", &trainingFlag, trainingFlag);
+   parameters()->ioParamValue(ioFlag, name, "training", &trainingFlag, trainingFlag);
 }
 
 int KmeansLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

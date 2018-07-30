@@ -28,11 +28,11 @@ int DependentBoundaryConditions::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void DependentBoundaryConditions::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->handleUnnecessaryStringParameter(name, "mirrorBCflag");
+   parameters()->handleUnnecessaryStringParameter(name, "mirrorBCflag");
 }
 
 void DependentBoundaryConditions::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->handleUnnecessaryStringParameter(name, "valueBC");
+   parameters()->handleUnnecessaryStringParameter(name, "valueBC");
 }
 
 Response::Status DependentBoundaryConditions::communicateInitInfo(
@@ -77,10 +77,10 @@ Response::Status DependentBoundaryConditions::communicateInitInfo(
    }
 
    mMirrorBCflag = originalBoundaryConditions->getMirrorBCflag();
-   parent->parameters()->handleUnnecessaryParameter(name, "mirrorBCflag", mMirrorBCflag);
+   parameters()->handleUnnecessaryParameter(name, "mirrorBCflag", mMirrorBCflag);
 
    mValueBC = originalBoundaryConditions->getValueBC();
-   parent->parameters()->handleUnnecessaryParameter(name, "valueBC", mValueBC);
+   parameters()->handleUnnecessaryParameter(name, "valueBC", mValueBC);
 
    auto status = BoundaryConditions::communicateInitInfo(message);
    if (!Response::completed(status)) {

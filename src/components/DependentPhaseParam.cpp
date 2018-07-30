@@ -26,7 +26,7 @@ int DependentPhaseParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void DependentPhaseParam::ioParam_phase(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->handleUnnecessaryStringParameter(name, "phase");
+   parameters()->handleUnnecessaryStringParameter(name, "phase");
 }
 
 Response::Status DependentPhaseParam::communicateInitInfo(
@@ -70,7 +70,7 @@ Response::Status DependentPhaseParam::communicateInitInfo(
       return Response::POSTPONE;
    }
    mPhase = originalPhaseParam->getPhase();
-   parent->parameters()->handleUnnecessaryParameter(name, "phase", mPhase);
+   parameters()->handleUnnecessaryParameter(name, "phase", mPhase);
 
    auto status = PhaseParam::communicateInitInfo(message);
    if (!Response::completed(status)) {

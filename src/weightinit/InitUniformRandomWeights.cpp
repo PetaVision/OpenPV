@@ -32,20 +32,19 @@ int InitUniformRandomWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitUniformRandomWeights::ioParam_wMinInit(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "wMinInit", &mWMin, mWMin);
+   parameters()->ioParamValue(ioFlag, name, "wMinInit", &mWMin, mWMin);
 }
 
 void InitUniformRandomWeights::ioParam_wMaxInit(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "wMaxInit", &mWMax, mWMax);
+   parameters()->ioParamValue(ioFlag, name, "wMaxInit", &mWMax, mWMax);
 }
 
 void InitUniformRandomWeights::ioParam_sparseFraction(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "sparseFraction", &mSparseFraction, mSparseFraction);
+   parameters()->ioParamValue(ioFlag, name, "sparseFraction", &mSparseFraction, mSparseFraction);
 }
 
 void InitUniformRandomWeights::ioParam_minNNZ(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "minNNZ", &mMinNNZ, mMinNNZ);
+   parameters()->ioParamValue(ioFlag, name, "minNNZ", &mMinNNZ, mMinNNZ);
 }
 
 /**

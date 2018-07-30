@@ -25,8 +25,7 @@ int LinkedObjectParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LinkedObjectParam::ioParam_linkedObjectName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, mParamName.c_str(), &mLinkedObjectName);
+   parameters()->ioParamStringRequired(ioFlag, name, mParamName.c_str(), &mLinkedObjectName);
 }
 
 ComponentBasedObject *

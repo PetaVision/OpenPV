@@ -28,7 +28,7 @@ int ZeroV::initialize(char const *name, HyPerCol *hc) {
 void ZeroV::ioParam_valueV(enum ParamsIOFlag ioFlag) {
    mValueV = 0.0f;
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "valueV", 0.0f /*correctValue*/);
+      parameters()->handleUnnecessaryParameter(name, "valueV", 0.0f /*correctValue*/);
    }
 }
 

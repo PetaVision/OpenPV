@@ -35,21 +35,19 @@ int FilenameParsingGroundTruthLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 }
 
 void FilenameParsingGroundTruthLayer::ioParam_gtClassTrueValue(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "gtClassTrueValue", &mGtClassTrueValue, 1.0f, false);
+   parameters()->ioParamValue(ioFlag, name, "gtClassTrueValue", &mGtClassTrueValue, 1.0f, false);
 }
 
 void FilenameParsingGroundTruthLayer::ioParam_gtClassFalseValue(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "gtClassFalseValue", &mGtClassFalseValue, -1.0f, false);
+   parameters()->ioParamValue(ioFlag, name, "gtClassFalseValue", &mGtClassFalseValue, -1.0f, false);
 }
 
 void FilenameParsingGroundTruthLayer::ioParam_inputLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "inputLayerName", &mInputLayerName);
+   parameters()->ioParamStringRequired(ioFlag, name, "inputLayerName", &mInputLayerName);
 }
 
 void FilenameParsingGroundTruthLayer::ioParam_classList(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "classList", &mClassListFileName, mClassListFileName, false);
    if (mClassListFileName == nullptr) {
       WarnLog() << getName()

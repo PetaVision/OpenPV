@@ -51,14 +51,14 @@ int WeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void WeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "writeStep", &mWriteStep, parent->getDeltaTime(), true /*warn if absent */);
 }
 
 void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (mWriteStep >= 0) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag,
             name,
             "initialWriteTime",
@@ -92,9 +92,9 @@ void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
 }
 
 void WeightsPair::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (mWriteStep >= 0) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag,
             name,
             "writeCompressedWeights",
@@ -105,7 +105,7 @@ void WeightsPair::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
 }
 
 void WeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "writeCompressedCheckpoints",
@@ -115,7 +115,7 @@ void WeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
 }
 
 void WeightsPair::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "initializeFromCheckpointFlag",

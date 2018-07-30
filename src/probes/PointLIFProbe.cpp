@@ -48,7 +48,7 @@ int PointLIFProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    writeStep = parent->getDeltaTime(); // Marian, don't change this default behavior
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, getName(), "writeStep", &writeStep, writeStep, true /*warnIfAbsent*/);
 }
 

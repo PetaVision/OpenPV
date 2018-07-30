@@ -45,7 +45,7 @@ Response::Status CPTestInputLayer::allocateDataStructures() {
 
 void CPTestInputLayer::initializeV() {
    FatalIf(
-         !(parent->parameters()->value(name, "restart", 0.0, false) == 0.0),
+         !(parameters()->value(name, "restart", 0.0, false) == 0.0),
          "Test failed.\n"); // initializeV should only be called if restart is false
    const PVLayerLoc *loc = getLayerLoc();
    for (int b = 0; b < parent->getNBatch(); b++) {

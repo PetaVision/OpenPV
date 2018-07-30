@@ -27,9 +27,9 @@ int MomentumUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &mMomentumMethod);
+      parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &mMomentumMethod);
       if (strcmp(mMomentumMethod, "simple") == 0) {
          mMethod = SIMPLE;
       }
@@ -47,9 +47,9 @@ void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "momentumMethod"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "momentumMethod"));
       float defaultVal = 0;
       switch (mMethod) {
          case SIMPLE: defaultVal    = 0.25f; break;
@@ -58,15 +58,14 @@ void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
          default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
       }
 
-      parent->parameters()->ioParamValue(ioFlag, name, "momentumTau", &mMomentumTau, defaultVal);
+      parameters()->ioParamValue(ioFlag, name, "momentumTau", &mMomentumTau, defaultVal);
    }
 }
 
 void MomentumUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "momentumDecay", &mMomentumDecay, mMomentumDecay);
+      parameters()->ioParamValue(ioFlag, name, "momentumDecay", &mMomentumDecay, mMomentumDecay);
       if (mMomentumDecay < 0.0f || mMomentumDecay > 1.0f) {
          Fatal() << "MomentumUpdater " << name
                  << ": momentumDecay must be between 0 and 1 inclusive\n";

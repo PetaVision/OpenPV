@@ -26,7 +26,7 @@ int StrengthParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void StrengthParam::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "strength", &mStrength, mStrength);
+   parameters()->ioParamValue(ioFlag, name, "strength", &mStrength, mStrength);
 }
 
 } // namespace PV

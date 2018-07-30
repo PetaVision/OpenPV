@@ -36,8 +36,7 @@ void NormalizeGroup::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {}
 void NormalizeGroup::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {}
 
 void NormalizeGroup::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, "normalizeGroupName", &mNormalizeGroupName);
+   parameters()->ioParamStringRequired(ioFlag, name, "normalizeGroupName", &mNormalizeGroupName);
 }
 
 Response::Status

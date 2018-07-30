@@ -33,8 +33,7 @@ PV::Response::Status FilenameParsingProbe::communicateInitInfo(
       return status;
    }
 
-   char const *inputLayerName =
-         parent->parameters()->stringValue(getTargetName(), "inputLayerName", false);
+   char const *inputLayerName = parameters()->stringValue(getTargetName(), "inputLayerName", false);
    pvAssert(inputLayerName);
    PV::InputLayer *inputLayer = message->lookup<PV::InputLayer>(std::string(inputLayerName));
    pvAssert(inputLayer);

@@ -19,7 +19,7 @@ int MaskTestLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void MaskTestLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "maskMethod", &maskMethod);
+   parameters()->ioParamStringRequired(ioFlag, name, "maskMethod", &maskMethod);
    // Check valid methods
    if (strcmp(maskMethod, "layer") == 0) {
    }

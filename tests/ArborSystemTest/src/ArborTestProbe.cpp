@@ -29,7 +29,7 @@ int ArborTestProbe::initialize(const char *name, HyPerCol *hc) {
 void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       type             = BufActivity;
-      PVParams *params = parent->parameters();
+      PVParams *params = parameters();
       if (params->present(name, "buffer")) {
          params->handleUnnecessaryStringParameter(name, "buffer");
          char const *buffer = params->stringValue(name, "buffer");

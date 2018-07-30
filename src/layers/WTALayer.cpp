@@ -118,8 +118,8 @@ int WTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
-   parent->parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
+   parameters()->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
+   parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
    if (ioFlag == PARAMS_IO_READ && binMax <= binMin) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(

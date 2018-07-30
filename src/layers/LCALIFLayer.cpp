@@ -116,25 +116,25 @@ int LCALIFLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LCALIFLayer::ioParam_tauTHR(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "tauTHR", &tauTHR, tauTHR);
+   parameters()->ioParamValue(ioFlag, name, "tauTHR", &tauTHR, tauTHR);
 }
 
 void LCALIFLayer::ioParam_targetRate(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "targetRate", &targetRateHz, targetRateHz);
+   parameters()->ioParamValue(ioFlag, name, "targetRate", &targetRateHz, targetRateHz);
 }
 
 void LCALIFLayer::ioParam_normalizeInput(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "normalizeInput", &normalizeInputFlag, normalizeInputFlag);
 }
 
 void LCALIFLayer::ioParam_Vscale(enum ParamsIOFlag ioFlag) {
-   PVParams *p = parent->parameters();
+   PVParams *p = parameters();
    assert(!p->presentAndNotBeenRead(name, "VthRest"));
    assert(!p->presentAndNotBeenRead(name, "Vrest"));
    float defaultDynVthScale = lParams.VthRest - lParams.Vrest;
    Vscale                   = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
-   parent->parameters()->ioParamValue(ioFlag, name, "Vscale", &Vscale, Vscale);
+   parameters()->ioParamValue(ioFlag, name, "Vscale", &Vscale, Vscale);
 }
 
 LCALIFLayer::~LCALIFLayer() {

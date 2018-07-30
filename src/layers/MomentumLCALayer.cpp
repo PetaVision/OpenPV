@@ -91,7 +91,7 @@ int MomentumLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumLCALayer::ioParam_LCAMomentumRate(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "LCAMomentumRate", &LCAMomentumRate, LCAMomentumRate, true /*warnIfAbsent*/);
 }
 

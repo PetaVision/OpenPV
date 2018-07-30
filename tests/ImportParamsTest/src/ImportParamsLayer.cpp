@@ -12,7 +12,7 @@ int ImportParamsLayer::initialize_base() { return PV_SUCCESS; }
 int ImportParamsLayer::initialize(const char *name, HyPerCol *hc) {
    ANNLayer::initialize(name, hc);
 
-   PVParams *params = parent->parameters();
+   PVParams *params = parameters();
    if (strcmp(name, "orig") == 0) {
       // Test grabbed value
       FatalIf(!(params->value(name, "nxScale") == 1), "Test failed.\n");

@@ -34,15 +34,15 @@ int LayerGeometry::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LayerGeometry::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "nxScale", &mNxScale, mNxScale);
+   parameters()->ioParamValue(ioFlag, name, "nxScale", &mNxScale, mNxScale);
 }
 
 void LayerGeometry::ioParam_nyScale(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "nyScale", &mNyScale, mNyScale);
+   parameters()->ioParamValue(ioFlag, name, "nyScale", &mNyScale, mNyScale);
 }
 
 void LayerGeometry::ioParam_nf(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "nf", &mNumFeatures, mNumFeatures);
+   parameters()->ioParamValue(ioFlag, name, "nf", &mNumFeatures, mNumFeatures);
 }
 
 Response::Status

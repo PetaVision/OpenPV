@@ -89,7 +89,7 @@ int ANNLayer::initialize(const char *name, HyPerCol *hc) {
 int ANNLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
 
-   if (parent->parameters()->arrayPresent(name, "verticesV")) {
+   if (parameters()->arrayPresent(name, "verticesV")) {
       verticesListInParams = true;
       ioParam_verticesV(ioFlag);
       ioParam_verticesA(ioFlag);
@@ -111,7 +111,7 @@ int ANNLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ANNLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
    pvAssert(verticesListInParams);
    int numVerticesTmp = numVertices;
-   this->parent->parameters()->ioParamArray(
+   this->parameters()->ioParamArray(
          ioFlag, this->getName(), "verticesV", &verticesV, &numVerticesTmp);
    if (ioFlag == PARAMS_IO_READ) {
       if (numVerticesTmp == 0) {
@@ -141,7 +141,7 @@ void ANNLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
 void ANNLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
    pvAssert(verticesListInParams);
    int numVerticesA = numVertices;
-   this->parent->parameters()->ioParamArray(
+   this->parameters()->ioParamArray(
          ioFlag, this->getName(), "verticesA", &verticesA, &numVerticesA);
    if (ioFlag == PARAMS_IO_READ) {
       if (numVerticesA == 0) {
@@ -170,25 +170,25 @@ void ANNLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
 
 void ANNLayer::ioParam_slopeNegInf(enum ParamsIOFlag ioFlag) {
    pvAssert(verticesListInParams);
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "slopeNegInf", &slopeNegInf, slopeNegInf /*default*/, true /*warnIfAbsent*/);
 }
 
 void ANNLayer::ioParam_slopePosInf(enum ParamsIOFlag ioFlag) {
    pvAssert(verticesListInParams);
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "slopePosInf", &slopePosInf, slopePosInf /*default*/, true /*warnIfAbsent*/);
 }
 
 void ANNLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
    pvAssert(!verticesListInParams);
-   parent->parameters()->ioParamValue(ioFlag, name, "VThresh", &VThresh, VThresh);
+   parameters()->ioParamValue(ioFlag, name, "VThresh", &VThresh, VThresh);
 }
 
 void ANNLayer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
    pvAssert(!verticesListInParams);
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "VThresh"));
-   parent->parameters()->ioParamValue(
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "VThresh"));
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "AMin",
@@ -198,17 +198,17 @@ void ANNLayer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
 
 void ANNLayer::ioParam_AMax(enum ParamsIOFlag ioFlag) {
    pvAssert(!verticesListInParams);
-   parent->parameters()->ioParamValue(ioFlag, name, "AMax", &AMax, AMax);
+   parameters()->ioParamValue(ioFlag, name, "AMax", &AMax, AMax);
 }
 
 void ANNLayer::ioParam_AShift(enum ParamsIOFlag ioFlag) {
    pvAssert(!verticesListInParams);
-   parent->parameters()->ioParamValue(ioFlag, name, "AShift", &AShift, AShift);
+   parameters()->ioParamValue(ioFlag, name, "AShift", &AShift, AShift);
 }
 
 void ANNLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
    pvAssert(!verticesListInParams);
-   parent->parameters()->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth);
+   parameters()->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth);
 }
 
 int ANNLayer::setVertices() {

@@ -39,7 +39,7 @@ void BaseConnectionProbe::initMessageActionMap() {
 }
 
 void BaseConnectionProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(ioFlag, name, "targetConnection", &targetName, NULL, false);
+   parameters()->ioParamString(ioFlag, name, "targetConnection", &targetName, NULL, false);
    if (targetName == NULL) {
       BaseProbe::ioParam_targetName(ioFlag);
    }
