@@ -65,7 +65,7 @@ AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    if (maskLayerName && maskLayerName[0]) {
       maskLayer = message->lookup<HyPerLayer>(std::string(maskLayerName));
       if (maskLayer == NULL) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
                   getDescription_c(),
@@ -79,7 +79,7 @@ AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
       const PVLayerLoc *loc     = targetLayer->getLayerLoc();
       assert(maskLoc != NULL && loc != NULL);
       if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog(maskLayerBadSize);
             maskLayerBadSize.printf(
                   "%s: maskLayerName \"%s\" does not have the "
@@ -100,7 +100,7 @@ AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
       }
 
       if (maskLoc->nf != 1 && maskLoc->nf != loc->nf) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog(maskLayerBadSize);
             maskLayerBadSize.printf(
                   "%s: maskLayerName \"%s\" must either have the "

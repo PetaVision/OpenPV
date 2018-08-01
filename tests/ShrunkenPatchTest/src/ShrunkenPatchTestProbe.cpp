@@ -146,7 +146,7 @@ Response::Status ShrunkenPatchTestProbe::outputState(double timed) {
                   l->getDescription_c(),
                   (double)buf[kex],
                   (double)correctValues[x],
-                  parent->columnId(),
+                  parent->getCommunicator()->globalCommRank(),
                   x,
                   y,
                   f);

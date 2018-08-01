@@ -105,7 +105,7 @@ void PointLIFProbe::calcValues(double timevalue) {
             kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       valuesBuffer[5] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
       // If not in root process, send to root process
-      if (parent->columnId() != 0) {
+      if (parent->getCommunicator()->commRank() != 0) {
          MPI_Send(
                valuesBuffer,
                NUMBER_OF_VALUES,
@@ -117,7 +117,7 @@ void PointLIFProbe::calcValues(double timevalue) {
    }
 
    // Root process
-   if (parent->columnId() == 0) {
+   if (parent->getCommunicator()->commRank() == 0) {
       // Calculate which rank target neuron is
       // TODO we need to calculate rank from batch as well
       int xRank = xLoc / nx;

@@ -138,7 +138,7 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && parameters()->present(name, "triggerFlag")) {
       bool flagFromParams = false;
       parameters()->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          Fatal(triggerFlagDeprecated);
          triggerFlagDeprecated.printf(
                "%s: triggerFlag is obsolete for probes.\n", getDescription_c());
@@ -160,7 +160,7 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
                "must be positive\n",
                parameters()->groupKeywordFromName(name),
                name,
-               parent->columnId(),
+               parent->getCommunicator()->globalCommRank(),
                triggerOffset);
       }
    }
@@ -236,7 +236,7 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    if (triggerFlag) {
       triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s \"%s\": triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                   parameters()->groupKeywordFromName(name),
@@ -252,7 +252,7 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    if (energyProbe && energyProbe[0]) {
       ColumnEnergyProbe *probe = message->lookup<ColumnEnergyProbe>(std::string(energyProbe));
       if (probe == NULL) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the "
                   "column.\n",

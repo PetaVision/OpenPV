@@ -115,14 +115,14 @@ void ANNLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
          ioFlag, this->getName(), "verticesV", &verticesV, &numVerticesTmp);
    if (ioFlag == PARAMS_IO_READ) {
       if (numVerticesTmp == 0) {
-         if (this->parent->columnId() == 0) {
+         if (this->parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf("%s: verticesV cannot be empty\n", getDescription_c());
          }
          MPI_Barrier(this->parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (numVertices != 0 && numVerticesTmp != numVertices) {
-         if (this->parent->columnId() == 0) {
+         if (this->parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s: verticesV (%d elements) and verticesA (%d elements) must have the same "
                   "lengths.\n",
@@ -145,14 +145,14 @@ void ANNLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
          ioFlag, this->getName(), "verticesA", &verticesA, &numVerticesA);
    if (ioFlag == PARAMS_IO_READ) {
       if (numVerticesA == 0) {
-         if (this->parent->columnId() == 0) {
+         if (this->parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf("%s: verticesA cannot be empty\n", getDescription_c());
          }
          MPI_Barrier(this->parent->getCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
       if (numVertices != 0 && numVerticesA != numVertices) {
-         if (this->parent->columnId() == 0) {
+         if (this->parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s: verticesV (%d elements) and verticesA (%d elements) must have the same "
                   "lengths.\n",
@@ -216,7 +216,7 @@ int ANNLayer::setVertices() {
    if (VWidth < 0) {
       VThresh += VWidth;
       VWidth = -VWidth;
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          WarnLog().printf(
                "%s: interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n",
                getDescription_c(),
@@ -230,7 +230,7 @@ int ANNLayer::setVertices() {
       limfromright = AMax;
 
    if (AMin > limfromright) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          if (VWidth == 0) {
             WarnLog().printf(
                   "%s: nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n",
@@ -388,7 +388,7 @@ int ANNLayer::checkVertices() const {
    for (int v = 1; v < numVertices; v++) {
       if (verticesV[v] < verticesV[v - 1]) {
          status = PV_FAILURE;
-         if (this->parent->columnId() == 0) {
+         if (this->parent->getCommunicator()->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: vertices %d and %d: V-coordinates decrease from %f to %f.\n",
                   getDescription_c(),
@@ -399,7 +399,7 @@ int ANNLayer::checkVertices() const {
          }
       }
       if (verticesA[v] < verticesA[v - 1]) {
-         if (this->parent->columnId() == 0) {
+         if (this->parent->getCommunicator()->globalCommRank() == 0) {
             WarnLog().printf(
                   "%s: vertices %d and %d: A-coordinates decrease from %f to %f.\n",
                   getDescription_c(),

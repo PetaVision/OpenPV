@@ -108,7 +108,7 @@ int ANNErrorLayer::checkVertices() const {
    if (VThresh < 0 && VThresh > -(float)0.999 * FLT_MAX) { // 0.999 is to allow for imprecision from
       // params files using 3.40282e+38 instead
       // of infinity
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: VThresh cannot be negative (value is %f).\n",
                getDescription_c(),

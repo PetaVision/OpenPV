@@ -131,7 +131,7 @@ void InputRegionLayer::checkLayerDimensions() {
    pvAssert(srcLoc != nullptr && loc != nullptr);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal
        || srcLoc->nf != loc->nf) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same dimensions.\n",
@@ -176,7 +176,7 @@ void InputRegionLayer::allocateActivity() {
 int InputRegionLayer::setActivity() { return PV_SUCCESS; }
 
 int InputRegionLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   if (parent->columnId() == 0) {
+   if (parent->getCommunicator()->globalCommRank() == 0) {
       ErrorLog().printf(
             "%s: layers derived from InputRegionLayer do not have GSyn channels (requireChannel "
             "called "

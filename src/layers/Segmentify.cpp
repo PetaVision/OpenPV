@@ -58,7 +58,7 @@ void Segmentify::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
    else if (strcmp(inputMethod, "max") == 0) {
    }
    else {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "%s: inputMethod must be \"average\", \"sum\", or \"max\".\n", getDescription_c());
       }
@@ -74,7 +74,7 @@ void Segmentify::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
    else if (strcmp(outputMethod, "fill") == 0) {
    }
    else {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "%s: outputMethod must be \"centriod\" or \"fill\".\n", getDescription_c());
       }
@@ -87,7 +87,7 @@ void Segmentify::ioParam_segmentLayerName(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamStringRequired(ioFlag, name, "segmentLayerName", &segmentLayerName);
    assert(segmentLayerName);
    if (ioFlag == PARAMS_IO_READ && segmentLayerName[0] == '\0') {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf("%s: segmentLayerName must be set.\n", getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
@@ -111,7 +111,7 @@ Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    // Get segment layer
    segmentLayer = message->lookup<SegmentLayer>(std::string(segmentLayerName));
    if (segmentLayer == NULL) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "%s: segmentLayerName \"%s\" is not a SegmentLayer.\n",
                getDescription_c(),
@@ -137,7 +137,7 @@ Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
 
    // Src layer must have the same number of features as this layer
    if (srcLoc->nf != thisLoc->nf) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayer \"%s\" does not have the same feature dimension as this layer.\n",
@@ -151,7 +151,7 @@ Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
 
    // Segment layer must have 1 feature
    if (segLoc->nf != 1) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "%s: segmentLayer \"%s\" can only have 1 feature.\n",
                getDescription_c(),

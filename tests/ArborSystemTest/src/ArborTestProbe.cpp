@@ -39,7 +39,7 @@ void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
             bufferlc[c] = tolower(bufferlc[c]);
          }
          if (strcmp(bufferlc, "a") != 0 && strcmp(bufferlc, "activity") != 0) {
-            if (parent->columnId() == 0) {
+            if (parent->getCommunicator()->commRank() == 0) {
                ErrorLog().printf(
                      "   Value \"%s\" is inconsistent with correct value \"a\" or \"activity\".  "
                      "Exiting.\n",

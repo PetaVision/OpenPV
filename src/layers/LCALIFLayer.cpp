@@ -94,13 +94,14 @@ int LCALIFLayer::initialize(const char *name, HyPerCol *hc, const char *kernel_n
    float defaultDynVthScale = lParams.VthRest - lParams.Vrest;
    Vscale                   = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
    if (Vscale <= 0) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n",
                name,
                (double)Vscale);
       }
-      abort();
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
 
    return PV_SUCCESS;

@@ -72,7 +72,7 @@ Response::Status BaseConnectionProbe::communicateInitInfo(
       ErrorLog().printf(
             "%s, rank %d process: targetConnection \"%s\" is not a connection in the column.\n",
             getDescription_c(),
-            parent->columnId(),
+            parent->getCommunicator()->globalCommRank(),
             targetName);
       failed = true;
    }

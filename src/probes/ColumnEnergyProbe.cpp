@@ -73,7 +73,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
       int newNumValues = probe->getNumValues();
       if (newNumValues < 0) {
          status = PV_FAILURE;
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s: %s cannot be used as a term of the energy "
                   "probe (getNumValue() returned a "
@@ -90,7 +90,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
    }
    else {
       if (probe->getNumValues() != this->getNumValues()) {
-         if (this->parent->columnId() == 0) {
+         if (this->parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "Failed to add terms to %s:  new probe \"%s\" "
                   "returns %d values, but previous "
@@ -107,7 +107,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
    assert(probe->getNumValues() == getNumValues());
    int newNumTerms = numTerms + (size_t)1;
    if (newNumTerms <= numTerms) {
-      if (this->parent->columnId() == 0) {
+      if (this->parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "How did you manage to add %zu terms to %s?  "
                "Unable to add any more!\n",

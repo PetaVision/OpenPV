@@ -45,7 +45,7 @@ BackgroundLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    const PVLayerLoc *loc    = getLayerLoc();
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same X/Y dimensions.\n",
@@ -64,7 +64,7 @@ BackgroundLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       exit(EXIT_FAILURE);
    }
    if ((srcLoc->nf + 1) * repFeatureNum != loc->nf) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: nf must have (n+1)*repFeatureNum (%d) features in BackgroundLayer \"%s\", "

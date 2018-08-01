@@ -61,7 +61,7 @@ CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal
        || srcLoc->nf != loc->nf) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same dimensions.\n",
@@ -130,12 +130,12 @@ void CloneVLayer::allocateV() {
             "%s: original layer \"%s\" has a null V buffer in rank %d process.\n",
             getDescription_c(),
             mOriginalLayer->getName(),
-            parent->columnId());
+            parent->getCommunicator()->globalCommRank());
    }
 }
 
 int CloneVLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   if (parent->columnId() == 0) {
+   if (parent->getCommunicator()->globalCommRank() == 0) {
       ErrorLog().printf(
             "%s: layers derived from CloneVLayer do not have GSyn channels (requireChannel called "
             "with channel %d)\n",

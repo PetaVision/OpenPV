@@ -234,7 +234,7 @@ int HyPerLayer::initClayer() {
       Fatal().printf(
             "HyPerLayer \"%s\" error in rank %d process: unable to allocate memory for Clayer.\n",
             name,
-            parent->columnId());
+            parent->getCommunicator()->globalCommRank());
    }
 
    // May 14, 2018: Setting of clayer->numNeurons, etc. has been moved to
@@ -372,7 +372,7 @@ void HyPerLayer::allocateBuffer(T **buf, int bufsize, const char *bufname) {
       Fatal().printf(
             "%s: rank %d process unable to allocate memory for %s: %s.\n",
             getDescription_c(),
-            parent->columnId(),
+            parent->getCommunicator()->globalCommRank(),
             bufname,
             strerror(errno));
    }
@@ -417,7 +417,7 @@ int HyPerLayer::setLayerLoc(
    float nxglobalfloat = nxScale * parent->getNxGlobal();
    layerLoc->nxGlobal  = (int)nearbyintf(nxglobalfloat);
    if (std::fabs(nxglobalfloat - layerLoc->nxGlobal) > 0.0001f) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "nxScale of layer \"%s\" is incompatible with size of column.\n", getName());
@@ -432,7 +432,7 @@ int HyPerLayer::setLayerLoc(
    float nyglobalfloat = nyScale * parent->getNyGlobal();
    layerLoc->nyGlobal  = (int)nearbyintf(nyglobalfloat);
    if (std::fabs(nyglobalfloat - layerLoc->nyGlobal) > 0.0001f) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "nyScale of layer \"%s\" is incompatible with size of column.\n", getName());
@@ -449,7 +449,7 @@ int HyPerLayer::setLayerLoc(
    //
 
    if (layerLoc->nxGlobal % icComm->numCommColumns() != 0) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
@@ -464,7 +464,7 @@ int HyPerLayer::setLayerLoc(
       status = PV_FAILURE;
    }
    if (layerLoc->nyGlobal % icComm->numCommRows() != 0) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
@@ -481,7 +481,7 @@ int HyPerLayer::setLayerLoc(
    MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the
    // run before process 0 reports the error.
    if (status != PV_SUCCESS) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf("setLayerLoc failed for %s.\n", getDescription_c());
       }
       exit(EXIT_FAILURE);
@@ -498,8 +498,8 @@ int HyPerLayer::setLayerLoc(
 
    layerLoc->nbatch = numBatches;
 
-   layerLoc->kb0          = parent->commBatch() * numBatches;
-   layerLoc->nbatchGlobal = parent->numCommBatches() * numBatches;
+   layerLoc->kb0          = parent->getCommunicator()->commBatch() * numBatches;
+   layerLoc->nbatchGlobal = parent->getCommunicator()->numCommBatches() * numBatches;
 
    // halo is set in calls to updateClayerMargin
    layerLoc->halo.lt = 0;
@@ -671,7 +671,7 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
    bool mUpdateGpu = false;
    parameters()->ioParamValue(
          ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, false /*warnIfAbsent*/);
-   if (parent->columnId() == 0) {
+   if (parent->getCommunicator()->globalCommRank() == 0) {
       FatalIf(
             mUpdateGpu,
             "%s: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
@@ -716,7 +716,7 @@ void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       if (triggerLayerName && !strcmp(name, triggerLayerName)) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s: triggerLayerName cannot be the same as the name of the layer itself.\n",
                   getDescription_c());
@@ -738,28 +738,26 @@ void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && parameters()->present(name, "triggerFlag")) {
       bool flagFromParams = false;
       parameters()->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          WarnLog(triggerFlagMessage);
          triggerFlagMessage.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
          triggerFlagMessage.printf(
                "   If triggerLayerName is a nonempty string, triggering will be on;\n");
          triggerFlagMessage.printf(
                "   if triggerLayerName is empty or null, triggering will be off.\n");
-         if (parent->columnId() == 0) {
-            if (flagFromParams != triggerFlag) {
-               ErrorLog(errorMessage);
-               errorMessage.printf("triggerLayerName=", name);
-               if (triggerLayerName) {
-                  errorMessage.printf("\"%s\"", triggerLayerName);
-               }
-               else {
-                  errorMessage.printf("NULL");
-               }
-               errorMessage.printf(
-                     " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
-                     triggerFlag ? "true" : "false",
-                     flagFromParams ? "true" : "false");
+         if (flagFromParams != triggerFlag) {
+            ErrorLog(errorMessage);
+            errorMessage.printf("triggerLayerName=", name);
+            if (triggerLayerName) {
+               errorMessage.printf("\"%s\"", triggerLayerName);
             }
+            else {
+               errorMessage.printf("NULL");
+            }
+            errorMessage.printf(
+                  " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
+                  triggerFlag ? "true" : "false",
+                  flagFromParams ? "true" : "false");
          }
       }
       if (flagFromParams != triggerFlag) {
@@ -774,7 +772,7 @@ void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    if (triggerFlag) {
       parameters()->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if (triggerOffset < 0) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
             Fatal().printf(
                   "%s: TriggerOffset (%f) must be positive\n", getDescription_c(), triggerOffset);
          }
@@ -806,7 +804,7 @@ void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
          triggerBehaviorType = NO_TRIGGER;
       }
       else {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s: triggerBehavior=\"%s\" is unrecognized.\n",
                   getDescription_c(),
@@ -845,7 +843,7 @@ void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
          while (initialWriteTime < 0.0) {
             initialWriteTime += writeStep;
          }
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
             WarnLog(warningMessage);
             warningMessage.printf(
                   "%s: initialWriteTime %f is negative.  Adjusting "
@@ -1094,7 +1092,7 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    if (triggerFlag) {
       triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s: triggerLayerName \"%s\" is not a layer in the HyPerCol.\n",
                   getDescription_c(),
@@ -1115,7 +1113,7 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
             resetLayerName    = triggerResetLayerName;
             triggerResetLayer = message->lookup<HyPerLayer>(std::string(triggerResetLayerName));
             if (triggerResetLayer == NULL) {
-               if (parent->columnId() == 0) {
+               if (parent->getCommunicator()->commRank() == 0) {
                   ErrorLog().printf(
                         "%s: triggerResetLayerName \"%s\" is not a layer in the HyPerCol.\n",
                         getDescription_c(),
@@ -1135,7 +1133,7 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
          if (triggerLoc->nxGlobal != localLoc->nxGlobal
              || triggerLoc->nyGlobal != localLoc->nyGlobal
              || triggerLoc->nf != localLoc->nf) {
-            if (parent->columnId() == 0) {
+            if (parent->getCommunicator()->commRank() == 0) {
                Fatal(errorMessage);
                errorMessage.printf(
                      "%s: triggerResetLayer \"%s\" has incompatible dimensions.\n",
@@ -1262,7 +1260,7 @@ int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
       Fatal().printf(
             "Error in rank %d process: unable to synchronize x-margin widths of layers \"%s\" and "
             "\"%s\" to %d\n",
-            layer1->parent->columnId(),
+            layer1->parent->getCommunicator()->globalCommRank(),
             layer1->getName(),
             layer2->getName(),
             maxborder);
@@ -1289,7 +1287,7 @@ int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
       Fatal().printf(
             "Error in rank %d process: unable to synchronize y-margin widths of layers \"%s\" and "
             "\"%s\" to %d\n",
-            layer1->parent->columnId(),
+            layer1->parent->getCommunicator()->globalCommRank(),
             layer1->getName(),
             layer2->getName(),
             maxborder);
@@ -1318,7 +1316,7 @@ Response::Status HyPerLayer::allocateDataStructures() {
                "%s error in rank %d process: TriggerOffset (%f) must be lower than the change in "
                "update time (%f) \n",
                getDescription_c(),
-               parent->columnId(),
+               parent->getCommunicator()->globalCommRank(),
                triggerOffset,
                deltaUpdateTime);
       }
@@ -1353,7 +1351,7 @@ Response::Status HyPerLayer::allocateDataStructures() {
                   "HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gSyn: "
                   "%s\n",
                   name,
-                  parent->columnId(),
+                  parent->getCommunicator()->globalCommRank(),
                   sizeof(float) * getNumNeuronsAllBatches(),
                   strerror(errno));
          }
@@ -1372,7 +1370,7 @@ Response::Status HyPerLayer::allocateDataStructures() {
       Fatal().printf(
             "%s unable to allocate device memory in rank %d process: %s\n",
             getDescription_c(),
-            parent->columnId(),
+            parent->getCommunicator()->globalCommRank(),
             strerror(errno));
    }
    if (mUpdateGpu) {
@@ -1636,7 +1634,7 @@ void HyPerLayer::resetStateOnTrigger() {
    assert(triggerResetLayer != NULL);
    float *V = getV();
    if (V == NULL) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "%s: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a membrane "
                "potential.\n",
@@ -1997,7 +1995,7 @@ Response::Status HyPerLayer::outputState(double timef) {
             writeStatus != PV_SUCCESS,
             "%s: outputState failed on rank %d process.\n",
             getDescription_c(),
-            parent->columnId());
+            parent->getCommunicator()->globalCommRank());
    }
 
    io_timer->stop();

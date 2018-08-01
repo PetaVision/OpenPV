@@ -34,7 +34,7 @@ Response::Status RescaleLayerTestProbe::communicateInitInfo(
    }
    RescaleLayer *targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
    if (targetRescaleLayer == NULL) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "RescaleLayerTestProbe: targetLayer \"%s\" is not a RescaleLayer.\n",
                this->getTargetName());
@@ -285,7 +285,7 @@ Response::Status RescaleLayerTestProbe::outputState(double timed) {
                      "starting at restricted neuron %d, has mean %f instead of target mean %f\n",
                      getName(),
                      targetRescaleLayer->getName(),
-                     parent->columnId(),
+                     parent->getCommunicator()->globalCommRank(),
                      k,
                      (double)pointmean,
                      (double)targetMean);
@@ -298,7 +298,7 @@ Response::Status RescaleLayerTestProbe::outputState(double timed) {
                      "%f\n",
                      getName(),
                      targetRescaleLayer->getName(),
-                     parent->columnId(),
+                     parent->getCommunicator()->globalCommRank(),
                      k,
                      (double)pointstd,
                      (double)targetStd);
@@ -321,7 +321,7 @@ Response::Status RescaleLayerTestProbe::outputState(double timed) {
                      "starting at restricted neuron %d, is not a linear rescaling.\n",
                      getName(),
                      targetRescaleLayer->getName(),
-                     parent->columnId(),
+                     parent->getCommunicator()->globalCommRank(),
                      k);
                failed = true;
             }
@@ -373,7 +373,7 @@ Response::Status RescaleLayerTestProbe::outputState(double timed) {
                      "neuron %d has value %f instead of expected %f\n.",
                      this->getName(),
                      targetRescaleLayer->getName(),
-                     parent->columnId(),
+                     parent->getCommunicator()->globalCommRank(),
                      k,
                      (double)observedval,
                      (double)correctval);

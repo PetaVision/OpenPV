@@ -207,13 +207,13 @@ void PointProbe::calcValues(double timevalue) {
          valuesBuffer[1] = 0.0;
       }
       // If not in root process, send to root process
-      if (parent->columnId() != 0) {
+      if (parent->getCommunicator()->commRank() != 0) {
          MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, parent->getCommunicator()->communicator());
       }
    }
 
    // Root process
-   if (parent->columnId() == 0) {
+   if (parent->getCommunicator()->commRank() == 0) {
       // Calculate which rank target neuron is
       // TODO we need to calculate rank from batch as well
       int xRank = xLoc / nx;

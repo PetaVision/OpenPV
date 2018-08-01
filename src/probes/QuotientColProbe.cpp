@@ -83,7 +83,7 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    bool failed = false;
    if (numerProbe == NULL || denomProbe == NULL) {
       failed = true;
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          if (numerProbe == NULL) {
             ErrorLog().printf(
                   "%s: numerator probe \"%s\" could not be found.\n",
@@ -103,7 +103,7 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       nNumValues = numerProbe->getNumValues();
       dNumValues = denomProbe->getNumValues();
       if (nNumValues != dNumValues) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
                   "%s: numerator probe \"%s\" and denominator "
                   "probe \"%s\" have differing numbers "

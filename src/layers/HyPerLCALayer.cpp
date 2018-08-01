@@ -87,7 +87,7 @@ void HyPerLCALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
 
 void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
-   if (ioFlag == PARAMS_IO_READ && parent->columnId() == 0) {
+   if (ioFlag == PARAMS_IO_READ && parent->getCommunicator()->globalCommRank() == 0) {
       InfoLog() << getDescription() << ": selfInteract flag is "
                 << (selfInteract ? "true" : "false") << std::endl;
    }
@@ -105,7 +105,7 @@ void HyPerLCALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
 
 int HyPerLCALayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    int status = HyPerLayer::requireChannel(channelNeeded, numChannelsResult);
-   if (channelNeeded >= 2 && parent->columnId() == 0) {
+   if (channelNeeded >= 2 && parent->getCommunicator()->globalCommRank() == 0) {
       WarnLog().printf(
             "HyPerLCALayer \"%s\": connection on channel %d, but HyPerLCA only uses channels 0 and "
             "1.\n",

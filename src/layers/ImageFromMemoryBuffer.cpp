@@ -27,7 +27,7 @@ int ImageFromMemoryBuffer::initialize_base() {
 
 int ImageFromMemoryBuffer::initialize(char const *name, HyPerCol *hc) {
    if (mUseInputBCflag && mAutoResizeFlag) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "%s: setting both useInputBCflag and autoResizeFlag has not yet been implemented.\n",
                getDescription_c());
@@ -57,7 +57,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(
       pixeltype zeroval,
       pixeltype oneval) {
    if (height <= 0 || width <= 0 || numbands <= 0) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
                "ImageFromMemoryBuffer::setMemoryBuffer: height, width, numbands "
                "arguments must be positive.\n");
@@ -67,7 +67,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(
 
    int newSize = height * width * numbands;
 
-   if (parent->columnId() == 0) {
+   if (parent->getCommunicator()->commRank() == 0) {
       std::vector<float> newData(newSize);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
@@ -114,7 +114,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(
    mOffsetY = offsetY;
    mAnchor  = Buffer<float>::CENTER;
    if (checkValidAnchorString(offsetAnchor) != PV_SUCCESS) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "%s: setMemoryBuffer called with invalid anchor string \"%s\"",
                getDescription_c(),

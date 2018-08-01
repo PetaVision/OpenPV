@@ -264,7 +264,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
    method = methodString ? methodString[0]
                          : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
    if (method != 'o' && method != 'b' && method != 'a') {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are "
                "\"arma\", \"beginning\" and \"original\".",
@@ -275,7 +275,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
       exit(EXIT_FAILURE);
    }
    if (method != 'a') {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          WarnLog().printf(
                "LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is "
                "preferred.\n",
@@ -324,7 +324,7 @@ void LIF::allocateBuffers() {
       Fatal().printf(
             "%s: rank %d process unable to allocate memory for Vth: %s\n",
             getDescription_c(),
-            parent->columnId(),
+            parent->getCommunicator()->globalCommRank(),
             strerror(errno));
    }
    HyPerLayer::allocateBuffers();
@@ -338,7 +338,7 @@ void LIF::allocateConductances(int num_channels) {
       Fatal().printf(
             "%s: rank %d process unable to allocate memory for %d conductances: %s\n",
             getDescription_c(),
-            parent->columnId(),
+            parent->getCommunicator()->globalCommRank(),
             num_channels,
             strerror(errno));
    }

@@ -139,7 +139,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    // in a loop, without knowing which component is which.
 
    if (normalizeMethod == nullptr) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          Fatal().printf(
                "%s: specifying a normalizeMethod string is required.\n", getDescription_c());
       }
@@ -154,7 +154,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    }
    BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, name, parent);
    if (baseObj == nullptr) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
                  << "\" is not recognized." << std::endl;
       }
@@ -164,7 +164,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    normalizer = dynamic_cast<NormalizeBase *>(baseObj);
    if (normalizer == nullptr) {
       pvAssert(baseObj);
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
                  << "\" is not a recognized normalization method." << std::endl;
       }

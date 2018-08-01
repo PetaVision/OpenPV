@@ -23,7 +23,7 @@ StatsProbe::StatsProbe() : LayerProbe() {
 }
 
 StatsProbe::~StatsProbe() {
-   int rank = parent->columnId();
+   int rank = parent->getCommunicator()->commRank();
    if (rank == 0 and !mOutputStreams.empty()) {
       iotimer->fprint_time(output(0));
       mpitimer->fprint_time(output(0));
@@ -109,7 +109,7 @@ void StatsProbe::requireType(PVBufType requiredType) {
             default: assert(0); break;
          }
          if (type != BufV) {
-            if (parent->columnId() == 0) {
+            if (parent->getCommunicator()->globalCommRank() == 0) {
                ErrorLog().printf(
                      "   Value \"%s\" is inconsistent with allowed values %s.\n",
                      params->stringValue(getName(), "buffer"),
@@ -146,7 +146,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          type = BufActivity;
       }
       else {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->commRank() == 0) {
             const char *bufnameinparams = parameters()->stringValue(getName(), "buffer");
             assert(bufnameinparams);
             ErrorLog().printf(

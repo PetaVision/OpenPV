@@ -36,7 +36,7 @@ void NormalizeContrastZeroMean::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag
 void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       if (parameters()->present(name, "normalizeFromPostPerspective")) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
             WarnLog().printf(
                   "%s \"%s\": normalizeMethod \"normalizeContrastZeroMean\" doesn't use "
                   "normalizeFromPostPerspective parameter.\n",
@@ -59,7 +59,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
    Weights *weights0 = mWeightsList[0];
    for (auto &weights : mWeightsList) {
       if (weights->getNumArbors() != weights0->getNumArbors()) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "arbors (%s has %d; %s has %d).\n",
@@ -72,7 +72,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
          status = PV_FAILURE;
       }
       if (weights->getNumDataPatches() != weights0->getNumDataPatches()) {
-         if (parent->columnId() == 0) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "data patches (%s has %d; %s has %d).\n",

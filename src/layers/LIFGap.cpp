@@ -136,7 +136,7 @@ void LIFGap::allocateConductances(int num_channels) {
       Fatal().printf(
             "%s: rank %d process unable to allocate memory for gapStrength: %s\n",
             getDescription_c(),
-            parent->columnId(),
+            parent->getCommunicator()->globalCommRank(),
             strerror(errno));
    }
 }
@@ -178,11 +178,13 @@ void LIFGap::calcGapStrength() {
       }
       pvAssert(c->getComponentByType<ConnectionData>()->getPost() == this);
       auto *weightUpdater = c->getComponentByType<BaseWeightUpdater>();
-      if (weightUpdater and weightUpdater->getPlasticityFlag() and parent->columnId() == 0) {
-         WarnLog().printf(
-               "%s: %s on CHANNEL_GAP has plasticity flag set to true\n",
-               getDescription_c(),
-               c->getDescription_c());
+      if (weightUpdater and weightUpdater->getPlasticityFlag()) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
+            WarnLog().printf(
+                  "%s: %s on CHANNEL_GAP has plasticity flag set to true\n",
+                  getDescription_c(),
+                  c->getDescription_c());
+         }
       }
       deliveryComponent->deliverUnitInput(gapStrength);
    }

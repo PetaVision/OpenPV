@@ -106,11 +106,13 @@ Response::Status FilenameParsingGroundTruthLayer::communicateInitInfo(
       return status;
    }
    mInputLayer = message->lookup<InputLayer>(std::string(mInputLayerName));
-   FatalIf(
-         mInputLayer == nullptr && parent->columnId() == 0,
-         "%s: inputLayerName \"%s\" is not a layer in the HyPerCol.\n",
-         getDescription_c(),
-         mInputLayerName);
+   if (parent->getCommunicator()->globalCommRank() == 0) {
+      FatalIf(
+            mInputLayer == nullptr,
+            "%s: inputLayerName \"%s\" is not a layer in the HyPerCol.\n",
+            getDescription_c(),
+            mInputLayerName);
+   }
    FatalIf(
          mInputLayer->getPhase() <= getPhase(),
          "%s: The phase of layer %s (%d) must be greater than the phase of the "

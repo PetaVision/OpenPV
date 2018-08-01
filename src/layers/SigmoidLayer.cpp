@@ -26,7 +26,7 @@ int SigmoidLayer::initialize_base() { return PV_SUCCESS; }
 int SigmoidLayer::initialize(const char *name, HyPerCol *hc) {
    int status_init = CloneVLayer::initialize(name, hc);
 
-   if (parent->columnId() == 0) {
+   if (parent->getCommunicator()->globalCommRank() == 0) {
       if (InverseFlag)
          InfoLog().printf("SigmoidLayer: Inverse flag is set\n");
       if (SigmoidFlag)
@@ -34,7 +34,7 @@ int SigmoidLayer::initialize(const char *name, HyPerCol *hc) {
    }
 
    if (SigmoidAlpha < 0.0f || SigmoidAlpha > 1.0f) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "%s: SigmoidAlpha cannot be negative or greater than 1.\n", getDescription_c());
       }

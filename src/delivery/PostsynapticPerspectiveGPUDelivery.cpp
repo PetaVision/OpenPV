@@ -178,7 +178,7 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    // See the size of buffer needed based on x and y
    // oNxp is the patch size from the post point of view
 
-   if (parent->columnId() == 0) {
+   if (parent->getCommunicator()->globalCommRank() == 0) {
       InfoLog() << "preToPostScale: (" << preToPostScaleX << "," << preToPostScaleY << ")\n";
    }
 
