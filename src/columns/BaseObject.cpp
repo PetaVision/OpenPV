@@ -134,13 +134,11 @@ Response::Status BaseObject::respondCleanup(std::shared_ptr<CleanupMessage const
 
 #ifdef PV_USE_CUDA
 Response::Status BaseObject::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
-   if (mUsingGPUFlag) {
-      mCudaDevice = message->mCudaDevice;
-      FatalIf(
-            mCudaDevice == nullptr,
-            "%s received SetCudaDevice with null device pointer.\n",
-            getDescription_c());
-   }
+   mCudaDevice = message->mCudaDevice;
+   FatalIf(
+         mCudaDevice == nullptr,
+         "%s received SetCudaDevice with null device pointer.\n",
+         getDescription_c());
    return Response::SUCCESS;
 }
 #endif // PV_USE_CUDA

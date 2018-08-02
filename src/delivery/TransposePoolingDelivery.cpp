@@ -162,11 +162,11 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
 #ifdef PV_USE_CUDA
 Response::Status
 TransposePoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   auto status = BaseDelivery::setCudaDevice(message);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    if (mUsingGPUFlag) {
-      auto status = BaseDelivery::setCudaDevice(message);
-      if (status != Response::SUCCESS) {
-         return status;
-      }
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
       weights->setCudaDevice(message->mCudaDevice);
@@ -191,7 +191,7 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
 
 #ifdef PV_USE_CUDA
 void TransposePoolingDelivery::initializeDeliverKernelArgs() {
-   PVCuda::CudaDevice *device                 = parent->getDevice();
+   PVCuda::CudaDevice *device                 = mCudaDevice;
    PVCuda::CudaBuffer *d_preDatastore         = mPreLayer->getDeviceDatastore();
    PVCuda::CudaBuffer *d_postGSyn             = mPostLayer->getDeviceGSyn();
    PVCuda::CudaBuffer *d_originalPreDatastore = mOriginalPreLayer->getDeviceDatastore();

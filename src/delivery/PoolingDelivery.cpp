@@ -173,11 +173,11 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 #ifdef PV_USE_CUDA
 Response::Status
 PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   auto status = BaseDelivery::setCudaDevice(message);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    if (mUsingGPUFlag) {
-      auto status = BaseDelivery::setCudaDevice(message);
-      if (status != Response::SUCCESS) {
-         return status;
-      }
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
       weights->setCudaDevice(message->mCudaDevice);
@@ -230,7 +230,7 @@ void PoolingDelivery::initializeDeliverKernelArgs() {
       default: pvAssert(0); break;
    }
 
-   mRecvKernel = new PVCuda::CudaPoolingDeliverKernel(parent->getDevice());
+   mRecvKernel = new PVCuda::CudaPoolingDeliverKernel(mCudaDevice);
    mRecvKernel->setArgs(
          getPreLayer()->getLayerLoc(),
          getPostLayer()->getLayerLoc(),

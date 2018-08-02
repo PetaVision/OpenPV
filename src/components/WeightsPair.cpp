@@ -215,9 +215,7 @@ void WeightsPair::allocatePreWeights() {
          mConnectionData->getPre()->getLayerLoc()->halo,
          mConnectionData->getPost()->getLayerLoc()->halo);
 #ifdef PV_USE_CUDA
-   if (mCudaDevice) {
-      mPreWeights->setCudaDevice(mCudaDevice);
-   }
+   mPreWeights->setCudaDevice(mCudaDevice);
 #endif // PV_USE_CUDA
    mPreWeights->allocateDataStructures();
 }
@@ -228,9 +226,7 @@ void WeightsPair::allocatePostWeights() {
          mConnectionData->getPost()->getLayerLoc()->halo,
          mConnectionData->getPre()->getLayerLoc()->halo);
 #ifdef PV_USE_CUDA
-   if (mCudaDevice) {
-      mPostWeights->setCudaDevice(mCudaDevice);
-   }
+   mPostWeights->setCudaDevice(mCudaDevice);
 #endif // PV_USE_CUDA
    mPostWeights->allocateDataStructures();
 }

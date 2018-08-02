@@ -97,7 +97,7 @@ void MomentumLCALayer::ioParam_LCAMomentumRate(enum ParamsIOFlag ioFlag) {
 
 #ifdef PV_USE_CUDA
 int MomentumLCALayer::allocateUpdateKernel() {
-   PVCuda::CudaDevice *device = parent->getDevice();
+   PVCuda::CudaDevice *device = mCudaDevice;
    d_prevDrive = device->createBuffer(getNumNeuronsAllBatches() * sizeof(float), &getDescription());
    // Set to temp pointer of the subclass
    PVCuda::CudaUpdateMomentumLCALayer *updateKernel =
@@ -248,7 +248,7 @@ Response::Status MomentumLCALayer::processCheckpointRead() {
    // Copy prevDrive onto GPU
    if (mUpdateGpu) {
       d_prevDrive->copyToDevice(prevDrive);
-      parent->getDevice()->syncDevice();
+      mCudaDevice->syncDevice();
       return Response::SUCCESS;
    }
    else {
@@ -264,7 +264,7 @@ Response::Status MomentumLCALayer::prepareCheckpointWrite() {
    // Copy prevDrive from GPU
    if (mUpdateGpu) {
       d_prevDrive->copyFromDevice(prevDrive);
-      parent->getDevice()->syncDevice();
+      mCudaDevice->syncDevice();
       return Response::SUCCESS;
    }
    else {

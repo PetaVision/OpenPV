@@ -95,7 +95,7 @@ Response::Status PresynapticPerspectiveGPUDelivery::allocateDataStructures() {
 }
 
 void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
-   PVCuda::CudaDevice *device = parent->getDevice();
+   PVCuda::CudaDevice *device = mCudaDevice;
    Weights *preWeights        = mWeightsPair->getPreWeights();
    mRecvKernel                = new PVCuda::CudaRecvPre(device);
 
@@ -280,7 +280,7 @@ void PresynapticPerspectiveGPUDelivery::deliver() {
 
       long totPatchSize   = (long)weights->getPatchSizeOverall();
       long totThreads     = maxTotalActiveNeuron * totPatchSize;
-      int maxThreads      = parent->getDevice()->get_max_threads();
+      int maxThreads      = mCudaDevice->get_max_threads();
       int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
 
       mRecvKernel->run_nocheck(totThreads, numLocalThreads);

@@ -103,7 +103,7 @@ int ISTALayer::requireChannel(int channelNeeded, int *numChannelsResult) {
 
 #ifdef PV_USE_CUDA
 int ISTALayer::allocateUpdateKernel() {
-   PVCuda::CudaDevice *device = parent->getDevice();
+   PVCuda::CudaDevice *device = mCudaDevice;
    // Set to temp pointer of the subclass
    PVCuda::CudaUpdateISTALayer *updateKernel = new PVCuda::CudaUpdateISTALayer(device);
    // Set arguments

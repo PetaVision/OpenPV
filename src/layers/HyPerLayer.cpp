@@ -1024,7 +1024,7 @@ int HyPerLayer::allocateDeviceBuffers() {
    const size_t size    = getNumNeuronsAllBatches() * sizeof(float);
    const size_t size_ex = getNumExtendedAllBatches() * sizeof(float);
 
-   PVCuda::CudaDevice *device = parent->getDevice();
+   PVCuda::CudaDevice *device = mCudaDevice;
 
    // Allocate based on which flags are set
    if (allocDeviceV) {
@@ -1509,7 +1509,7 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    recvsyn_timer = new Timer(getName(), "layer", "recvsyn");
    checkpointer->registerTimer(recvsyn_timer);
 #ifdef PV_USE_CUDA
-   auto cudaDevice = parent->getDevice();
+   auto cudaDevice = mCudaDevice;
    if (cudaDevice) {
       gpu_update_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
       gpu_update_timer->setStream(cudaDevice->getStream());
@@ -1697,8 +1697,6 @@ int HyPerLayer::resetGSynBuffers(double timef, double dt) {
 
 #ifdef PV_USE_CUDA
 int HyPerLayer::runUpdateKernel() {
-
-#ifdef PV_USE_CUDA
    assert(mUpdateGpu);
    if (updatedDeviceGSyn) {
       copyAllGSynToDevice();
@@ -1713,7 +1711,6 @@ int HyPerLayer::runUpdateKernel() {
 
    // Run kernel
    krUpdate->run();
-#endif
 
    return PV_SUCCESS;
 }
@@ -1844,7 +1841,7 @@ double HyPerLayer::addGpuTimers() {
 
 void HyPerLayer::syncGpu() {
    if (mRecvGpu || mUpdateGpu) {
-      parent->getDevice()->syncDevice();
+      mCudaDevice->syncDevice();
    }
 }
 

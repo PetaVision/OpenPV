@@ -73,7 +73,7 @@ Response::Status PostsynapticPerspectiveGPUDelivery::setCudaDevice(
    }
    mWeightsPair->getPostWeights()->setCudaDevice(message->mCudaDevice);
    // Increment number of postKernels for cuDNN workspace memory
-   parent->getDevice()->incrementConvKernels();
+   mCudaDevice->incrementConvKernels();
    return status;
 }
 
@@ -97,7 +97,7 @@ Response::Status PostsynapticPerspectiveGPUDelivery::allocateDataStructures() {
 }
 
 void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
-   PVCuda::CudaDevice *device = parent->getDevice();
+   PVCuda::CudaDevice *device = mCudaDevice;
    Weights *postWeights       = mWeightsPair->getPostWeights();
    mRecvKernel                = new PVCuda::CudaRecvPost(device);
 
@@ -162,7 +162,7 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    // has length post->getNumExtended().
    int const postNumRestricted = postNx * postNy * postNf;
    mDevicePostToPreActivity =
-         parent->getDevice()->createBuffer(postNumRestricted * sizeof(long), &getDescription());
+         mCudaDevice->createBuffer(postNumRestricted * sizeof(long), &getDescription());
    auto *h_PostToPreActivityVector = new vector<long>(postNumRestricted);
    auto *h_PostToPreActivity       = h_PostToPreActivityVector->data();
    auto postGeometry               = postWeights->getGeometry();

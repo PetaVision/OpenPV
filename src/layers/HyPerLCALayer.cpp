@@ -147,7 +147,7 @@ HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 
 #ifdef PV_USE_CUDA
 int HyPerLCALayer::allocateUpdateKernel() {
-   PVCuda::CudaDevice *device = parent->getDevice();
+   PVCuda::CudaDevice *device = mCudaDevice;
    // Set to temp pointer of the subclass
    PVCuda::CudaUpdateHyPerLCALayer *updateKernel = new PVCuda::CudaUpdateHyPerLCALayer(device);
    // Set arguments
