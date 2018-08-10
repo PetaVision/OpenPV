@@ -102,7 +102,6 @@ int HyPerLayer::initialize_base() {
    gpu_update_timer  = NULL;
 #endif
 
-   thread_gSyn = NULL;
    recvConns.clear();
 
    return PV_SUCCESS;
@@ -291,12 +290,6 @@ HyPerLayer::~HyPerLayer() {
    free(triggerResetLayerName);
    free(initVTypeString);
 
-   if (thread_gSyn) {
-      for (int i = 0; i < parent->getNumThreads(); i++) {
-         free(thread_gSyn[i]);
-      }
-      free(thread_gSyn);
-   }
    delete publisher;
 }
 
@@ -1339,23 +1332,10 @@ Response::Status HyPerLayer::allocateDataStructures() {
    allocateBuffers();
 
    // Allocate temp buffers if needed, 1 for each thread
-   if (parent->getNumThreads() > 1) {
-      thread_gSyn = (float **)malloc(sizeof(float *) * parent->getNumThreads());
-      assert(thread_gSyn);
-
-      // Assign thread_gSyn to different points of tempMem
-      for (int i = 0; i < parent->getNumThreads(); i++) {
-         float *tempMem = (float *)malloc(sizeof(float) * getNumNeuronsAllBatches());
-         if (!tempMem) {
-            Fatal().printf(
-                  "HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gSyn: "
-                  "%s\n",
-                  name,
-                  parent->getCommunicator()->globalCommRank(),
-                  sizeof(float) * getNumNeuronsAllBatches(),
-                  strerror(errno));
-         }
-         thread_gSyn[i] = tempMem;
+   if (mNumGSynThreads > 1) {
+      mThreadGSyn.resize(mNumGSynThreads);
+      for (auto &th : mThreadGSyn) {
+         th.resize(getNumNeuronsAllBatches());
       }
    }
 

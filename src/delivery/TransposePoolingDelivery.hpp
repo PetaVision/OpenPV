@@ -86,8 +86,6 @@ class TransposePoolingDelivery : public BaseDelivery {
    void initializeDeliverKernelArgs();
 #endif // PV_USE_CUDA
 
-   void allocateThreadGSyn();
-
    void deliverPostsynapticPerspective();
 
    void deliverPresynapticPerspective();
@@ -110,8 +108,6 @@ class TransposePoolingDelivery : public BaseDelivery {
 #ifdef PV_USE_CUDA
    PVCuda::CudaTransposePoolingDeliverKernel *mDeliverKernel = nullptr;
 #endif // PV_USE_CUDA
-
-   std::vector<std::vector<float>> mThreadGSyn;
 
 }; // end class TransposePoolingDelivery
 

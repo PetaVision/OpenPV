@@ -65,13 +65,10 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
 
    virtual Response::Status allocateDataStructures() override;
 
-   void allocateThreadGSyn();
-
    void allocateRandState();
 
    // Data members
   protected:
-   std::vector<std::vector<float>> mThreadGSyn;
    Random *mRandState = nullptr;
 }; // end class PresynapticPerspectiveStochasticDelivery
 

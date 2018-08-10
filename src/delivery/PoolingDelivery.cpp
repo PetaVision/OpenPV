@@ -152,6 +152,11 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       mWeightsPair->needPre();
    }
 
+   int const numThreads = parent->getNumThreads();
+   if (numThreads > 1) {
+      getPostLayer()->needThreadGSyn(numThreads);
+   }
+
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
@@ -206,7 +211,7 @@ Response::Status PoolingDelivery::allocateDataStructures() {
       initializeDeliverKernelArgs();
    }
 #endif // PV_USE_CUDA
-   allocateThreadGSyn();
+   allocateThreadGateIdxBuffer();
    return Response::SUCCESS;
 }
 
@@ -244,16 +249,14 @@ void PoolingDelivery::initializeDeliverKernelArgs() {
 }
 #endif // PV_USE_CUDA
 
-void PoolingDelivery::allocateThreadGSyn() {
+void PoolingDelivery::allocateThreadGateIdxBuffer() {
    // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.
-   int const numThreads = parent->getNumThreads();
+   int const numThreads = mPostLayer->getNumGSynThreads();
    if (numThreads > 1) {
-      mThreadGSyn.resize(numThreads);
       mThreadGateIdxBuffer.resize(numThreads);
-      // mThreadGSyn is only a buffer for one batch element. We're threading over presynaptic
-      // neuron index, not batch element; so batch elements will be processed serially.
+      // mThreadGateIdxBuffer is only a buffer for one batch element. We're threading over
+      // presynaptic neuron index, not batch element; so batch elements will be processed serially.
       for (int th = 0; th < numThreads; th++) {
-         mThreadGSyn[th].resize(mPostLayer->getNumNeurons());
          mThreadGateIdxBuffer[th].resize(mPostLayer->getNumNeurons());
       }
    }
@@ -511,28 +514,31 @@ void PoolingDelivery::deliverPresynapticPerspective() {
       }
       int numLoop = activityCube.isSparse ? activityCube.numActive[b] : mPreLayer->getNumExtended();
 
+      int const numThreads = mPostLayer->getNumGSynThreads();
       if (!mThreadGateIdxBuffer.empty()) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (int i = 0; i < parent->getNumThreads() * getPostLayer()->getNumNeurons(); i++) {
+         for (int i = 0; i < numThreads * getPostLayer()->getNumNeurons(); i++) {
             int ti                       = i / getPostLayer()->getNumNeurons();
             int ni                       = i % getPostLayer()->getNumNeurons();
-            mThreadGateIdxBuffer[ti][ni] = -1;
+            mThreadGateIdxBuffer[ti][ni] = -1.0f;
          }
       }
 
 #ifdef PV_USE_OPENMP_THREADS
       // Clear all gsyn buffers
-      if (!mThreadGSyn.empty()) {
+      if (mPostLayer->getNumGSynThreads() > 1) {
+         pvAssert(getPostLayer()->getNumGSynThreads() == mPostLayer->getNumGSynThreads());
          int numNeurons = getPostLayer()->getNumNeurons();
+         for (int ti = 0; ti < getPostLayer()->getNumGSynThreads(); ti++) {
+            float *threadData = getPostLayer()->getThreadGSyn(ti);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (int i = 0; i < parent->getNumThreads() * numNeurons; i++) {
-            int ti              = i / numNeurons;
-            int ni              = i % numNeurons;
-            mThreadGSyn[ti][ni] = resetVal;
+            for (int ni = 0; ni < numNeurons; ni++) {
+               threadData[ni] = resetVal;
+            }
          }
       }
 #endif // PV_USE_OPENMP_THREADS
@@ -553,13 +559,13 @@ void PoolingDelivery::deliverPresynapticPerspective() {
             a       = activityBatch[kPreExt];
          }
 
-         // If we're using mThreadGSyn, set this here
          float *gSynPatchHead;
          float *gatePatchHead = NULL;
+// If we're using GSyn threads, set this here
 #ifdef PV_USE_OPENMP_THREADS
-         if (!mThreadGSyn.empty()) {
+         if (getPostLayer()->getNumGSynThreads() > 1) {
             int ti        = omp_get_thread_num();
-            gSynPatchHead = mThreadGSyn[ti].data();
+            gSynPatchHead = getPostLayer()->getThreadGSyn(ti);
          }
          else {
             gSynPatchHead = gSynPatchHeadBatch;
@@ -626,10 +632,10 @@ void PoolingDelivery::deliverPresynapticPerspective() {
          }
       }
 #ifdef PV_USE_OPENMP_THREADS
-      // Accumulate back into gSyn // Should this be done in HyPerLayer where it
-      // can be done once,
+      // Accumulate back into gSyn
+      // Should this be done in HyPerLayer where it can be done once,
       // as opposed to once per connection?
-      if (!mThreadGSyn.empty()) {
+      if (getPostLayer()->getNumGSynThreads() > 1) {
          float *gSynPatchHead = gSynPatchHeadBatch;
          float *gateIdxBuffer = nullptr;
          if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
@@ -641,9 +647,10 @@ void PoolingDelivery::deliverPresynapticPerspective() {
          for (int ni = 0; ni < numNeurons; ni++) {
             // Different for maxpooling
             if (mAccumulateType == MAXPOOLING) {
-               for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-                  if (gSynPatchHead[ni] < mThreadGSyn[ti][ni]) {
-                     gSynPatchHead[ni] = mThreadGSyn[ti][ni];
+               for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
+                  float *threadData = getPostLayer()->getThreadGSyn(ti);
+                  if (gSynPatchHead[ni] < threadData[ni]) {
+                     gSynPatchHead[ni] = threadData[ni];
                      if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
                         gateIdxBuffer[ni] = mThreadGateIdxBuffer[ti][ni];
                      }
@@ -651,8 +658,9 @@ void PoolingDelivery::deliverPresynapticPerspective() {
                }
             }
             else {
-               for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-                  gSynPatchHead[ni] += mThreadGSyn[ti][ni];
+               for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
+                  float *threadData = getPostLayer()->getThreadGSyn(ti);
+                  gSynPatchHead[ni] += threadData[ni];
                }
             }
          }

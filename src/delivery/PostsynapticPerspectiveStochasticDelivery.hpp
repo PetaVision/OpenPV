@@ -65,8 +65,6 @@ class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
 
    virtual Response::Status allocateDataStructures() override;
 
-   void allocateThreadGSyn();
-
    // Data members
   protected:
    Random *mRandState = nullptr;

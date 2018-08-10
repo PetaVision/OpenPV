@@ -46,6 +46,12 @@ Response::Status PresynapticPerspectiveConvolveDelivery::communicateInitInfo(
    // HyPerDelivery::communicateInitInfo() postpones until mWeightsPair communicates.
    pvAssert(mWeightsPair and mWeightsPair->getInitInfoCommunicatedFlag());
    mWeightsPair->needPre();
+
+   int const numThreads = parent->getNumThreads();
+   if (numThreads > 1) {
+      getPostLayer()->needThreadGSyn(numThreads);
+   }
+
    return Response::SUCCESS;
 }
 
@@ -54,21 +60,7 @@ Response::Status PresynapticPerspectiveConvolveDelivery::allocateDataStructures(
    if (!Response::completed(status)) {
       return status;
    }
-   allocateThreadGSyn();
    return Response::SUCCESS;
-}
-
-void PresynapticPerspectiveConvolveDelivery::allocateThreadGSyn() {
-   // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.
-   int const numThreads = parent->getNumThreads();
-   if (numThreads > 1) {
-      mThreadGSyn.resize(numThreads);
-      // mThreadGSyn is only a buffer for one batch element. We're threading over presynaptic
-      // neuron index, not batch element; so batch elements will be processed serially.
-      for (auto &th : mThreadGSyn) {
-         th.resize(mPostLayer->getNumNeurons());
-      }
-   }
 }
 
 void PresynapticPerspectiveConvolveDelivery::deliver() {
@@ -117,11 +109,13 @@ void PresynapticPerspectiveConvolveDelivery::deliver() {
 
 #ifdef PV_USE_OPENMP_THREADS
          // Clear all thread gsyn buffer
-         if (!mThreadGSyn.empty()) {
+         int const numThreads = mPostLayer->getNumGSynThreads();
+         if (numThreads > 1) {
 #pragma omp parallel for schedule(static)
-            for (int ti = 0; ti < parent->getNumThreads(); ++ti) {
+            for (int ti = 0; ti < getPostLayer()->getNumGSynThreads(); ++ti) {
+               float *threadData = getPostLayer()->getThreadGSyn(ti);
                for (int ni = 0; ni < numPostRestricted; ++ni) {
-                  mThreadGSyn[ti][ni] = 0.0;
+                  threadData[ni] = 0.0f;
                }
             }
          }
@@ -154,8 +148,9 @@ void PresynapticPerspectiveConvolveDelivery::deliver() {
                   float *gSynPatchHead = gSynPatchHeadBatch;
 
 #ifdef PV_USE_OPENMP_THREADS
-                  if (!mThreadGSyn.empty()) {
-                     gSynPatchHead = mThreadGSyn[omp_get_thread_num()].data();
+                  if (mPostLayer->getNumGSynThreads() > 1) {
+                     int const threadIndex = omp_get_thread_num();
+                     gSynPatchHead         = mPostLayer->getThreadGSyn(omp_get_thread_num());
                   }
 #endif // PV_USE_OPENMP_THREADS
 
@@ -200,8 +195,8 @@ void PresynapticPerspectiveConvolveDelivery::deliver() {
                   float *gSynPatchHead = gSynPatchHeadBatch;
 
 #ifdef PV_USE_OPENMP_THREADS
-                  if (!mThreadGSyn.empty()) {
-                     gSynPatchHead = mThreadGSyn[omp_get_thread_num()].data();
+                  if (mPostLayer->getNumGSynThreads() > 1) {
+                     gSynPatchHead = mPostLayer->getThreadGSyn(omp_get_thread_num());
                   }
 #endif // PV_USE_OPENMP_THREADS
 
@@ -222,11 +217,11 @@ void PresynapticPerspectiveConvolveDelivery::deliver() {
 #ifdef PV_USE_OPENMP_THREADS
          // Accumulate back into gSyn. Should this be done in HyPerLayer where it can be done once,
          // as opposed to once per connection?
-         if (!mThreadGSyn.empty()) {
+         if (mPostLayer->getNumGSynThreads() > 1) {
             float *gSynPatchHead = gSynPatchHeadBatch;
             int numNeurons       = mPostLayer->getNumNeurons();
-            for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-               float *onethread = mThreadGSyn[ti].data();
+            for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
+               float *onethread = mPostLayer->getThreadGSyn(ti);
 // Looping over neurons is thread safe
 #pragma omp parallel for
                for (int ni = 0; ni < numNeurons; ni++) {
@@ -264,11 +259,12 @@ void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer)
 
 #ifdef PV_USE_OPENMP_THREADS
          // Clear all thread gsyn buffer
-         if (!mThreadGSyn.empty()) {
+         if (mPostLayer->getNumGSynThreads() > 1) {
 #pragma omp parallel for schedule(static)
-            for (int ti = 0; ti < parent->getNumThreads(); ++ti) {
+            for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ++ti) {
+               float *oneThread = mPostLayer->getThreadGSyn(ti);
                for (int ni = 0; ni < numPostRestricted; ++ni) {
-                  mThreadGSyn[ti][ni] = 0.0;
+                  oneThread[ni] = 0.0f;
                }
             }
          }
@@ -293,8 +289,8 @@ void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer)
                float *recvPatchHead = recvBatch;
 
 #ifdef PV_USE_OPENMP_THREADS
-               if (!mThreadGSyn.empty()) {
-                  recvPatchHead = mThreadGSyn[omp_get_thread_num()].data();
+               if (mPostLayer->getNumGSynThreads() > 1) {
+                  recvPatchHead = mPostLayer->getThreadGSyn(omp_get_thread_num());
                }
 #endif // PV_USE_OPENMP_THREADS
 
@@ -314,11 +310,11 @@ void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer)
 #ifdef PV_USE_OPENMP_THREADS
          // Accumulate back into gSyn. Should this be done in HyPerLayer where it can be done once,
          // as opposed to once per connection?
-         if (!mThreadGSyn.empty()) {
+         if (mPostLayer->getNumGSynThreads() > 1) {
             float *recvPatchHead = recvBatch;
             int numNeurons       = mPostLayer->getNumNeurons();
-            for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-               float *onethread = mThreadGSyn[ti].data();
+            for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
+               float *onethread = mPostLayer->getThreadGSyn(ti);
 // Looping over neurons is thread safe
 #pragma omp parallel for
                for (int ni = 0; ni < numNeurons; ni++) {

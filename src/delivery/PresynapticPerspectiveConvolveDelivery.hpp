@@ -69,7 +69,6 @@ class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
 
    // Data members
   protected:
-   std::vector<std::vector<float>> mThreadGSyn;
 }; // end class PresynapticPerspectiveConvolveDelivery
 
 } // end namespace PV

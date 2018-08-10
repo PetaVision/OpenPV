@@ -117,7 +117,7 @@ class PoolingDelivery : public BaseDelivery {
 
    void initializeDeliverKernelArgs();
 
-   void allocateThreadGSyn();
+   void allocateThreadGateIdxBuffer();
 
    void deliverPostsynapticPerspective();
 
@@ -142,7 +142,6 @@ class PoolingDelivery : public BaseDelivery {
    char *mPostIndexLayerName          = nullptr;
    PoolingIndexLayer *mPostIndexLayer = nullptr;
 
-   std::vector<std::vector<float>> mThreadGSyn;
    std::vector<std::vector<float>> mThreadGateIdxBuffer;
 #ifdef PV_USE_CUDA
    PVCuda::CudaPoolingDeliverKernel *mRecvKernel = nullptr; // Cuda kernel for updating GSyn

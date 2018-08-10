@@ -59,6 +59,11 @@ Response::Status PresynapticPerspectiveGPUDelivery::communicateInitInfo(
       getPreLayer()->setAllocDeviceActiveIndices();
    }
 
+   int const numThreads = parent->getNumThreads();
+   if (numThreads > 1) {
+      getPostLayer()->needThreadGSyn(numThreads);
+   }
+
    return status;
 }
 
@@ -90,7 +95,6 @@ Response::Status PresynapticPerspectiveGPUDelivery::allocateDataStructures() {
 
    initializeRecvKernelArgs();
 
-   allocateThreadGSyn(); // Needed for deliverUnitInput, because it doesn't use GPU yet.
    return Response::SUCCESS;
 }
 
@@ -180,19 +184,6 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
          isSparse,
          d_numActive,
          d_activeIndices);
-}
-
-void PresynapticPerspectiveGPUDelivery::allocateThreadGSyn() {
-   // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.
-   int const numThreads = parent->getNumThreads();
-   if (numThreads > 1) {
-      mThreadGSyn.resize(numThreads);
-      // mThreadGSyn is only a buffer for one batch element. We're threading over presynaptic
-      // neuron index, not batch element; so batch elements will be processed serially.
-      for (auto &th : mThreadGSyn) {
-         th.resize(mPostLayer->getNumNeurons());
-      }
-   }
 }
 
 void PresynapticPerspectiveGPUDelivery::deliver() {
@@ -313,11 +304,12 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
 
 #ifdef PV_USE_OPENMP_THREADS
          // Clear all thread gsyn buffer
-         if (!mThreadGSyn.empty()) {
+         if (mPostLayer->getNumGSynThreads() > 1) {
 #pragma omp parallel for schedule(static)
-            for (int ti = 0; ti < parent->getNumThreads(); ++ti) {
+            for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ++ti) {
+               float *oneThread = mPostLayer->getThreadGSyn(ti);
                for (int ni = 0; ni < numPostRestricted; ++ni) {
-                  mThreadGSyn[ti][ni] = 0.0;
+                  oneThread[ni] = 0.0f;
                }
             }
          }
@@ -342,8 +334,8 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
                float *recvPatchHead = recvBatch;
 
 #ifdef PV_USE_OPENMP_THREADS
-               if (!mThreadGSyn.empty()) {
-                  recvPatchHead = mThreadGSyn[omp_get_thread_num()].data();
+               if (mPostLayer->getNumGSynThreads() > 1) {
+                  recvPatchHead = mPostLayer->getThreadGSyn(omp_get_thread_num());
                }
 #endif // PV_USE_OPENMP_THREADS
 
@@ -363,11 +355,11 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
          // Accumulate back into gSyn. Should this be done in HyPerLayer where it can be done once,
          // as opposed to once per connection?
-         if (!mThreadGSyn.empty()) {
+         if (mPostLayer->getNumGSynThreads() > 1) {
             float *recvPatchHead = recvBatch;
             int numNeurons       = mPostLayer->getNumNeurons();
-            for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-               float *onethread = mThreadGSyn[ti].data();
+            for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
+               float *onethread = mPostLayer->getThreadGSyn(ti);
 // Looping over neurons is thread safe
 #pragma omp parallel for
                for (int ni = 0; ni < numNeurons; ni++) {

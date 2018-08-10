@@ -156,6 +156,12 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
       }
    }
 #endif // PV_USE_CUDA
+
+   int const numThreads = parent->getNumThreads();
+   if (numThreads > 1) {
+      getPostLayer()->needThreadGSyn(numThreads);
+   }
+
    return Response::SUCCESS;
 }
 
@@ -185,7 +191,6 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
       initializeDeliverKernelArgs();
    }
 #endif // PV_USE_CUDA
-   allocateThreadGSyn();
    return Response::SUCCESS;
 }
 
@@ -230,19 +235,6 @@ void TransposePoolingDelivery::initializeDeliverKernelArgs() {
          (int)mChannelCode);
 }
 #endif // PV_USE_CUDA
-
-void TransposePoolingDelivery::allocateThreadGSyn() {
-   // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.
-   int const numThreads = parent->getNumThreads();
-   if (numThreads > 1) {
-      mThreadGSyn.resize(numThreads);
-      // mThreadGSyn is only a buffer for one batch element. We're threading over presynaptic
-      // neuron index, not batch element; so batch elements will be processed serially.
-      for (auto &th : mThreadGSyn) {
-         th.resize(mPostLayer->getNumNeurons());
-      }
-   }
-}
 
 void TransposePoolingDelivery::deliver() {
    // Check if we need to update based on connection's channel
@@ -345,15 +337,16 @@ void TransposePoolingDelivery::deliverPresynapticPerspective() {
 
 #ifdef PV_USE_OPENMP_THREADS
       // Clear all thread gsyn buffer
-      if (!mThreadGSyn.empty()) {
+      if (mPostLayer->getNumGSynThreads() > 1) {
          int numNeurons = getPostLayer()->getNumNeurons();
+         for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
+            float *threadData = mPostLayer->getThreadGSyn(ti);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (int i = 0; i < parent->getNumThreads() * numNeurons; i++) {
-            int ti              = i / numNeurons;
-            int ni              = i % numNeurons;
-            mThreadGSyn[ti][ni] = 0;
+            for (int ni = 0; ni < numNeurons; ni++) {
+               threadData[ni] = 0.0f;
+            }
          }
       }
 #endif // PV_USE_OPENMP_THREADS
@@ -376,12 +369,12 @@ void TransposePoolingDelivery::deliverPresynapticPerspective() {
             continue;
          }
 
-         // If we're using mThreadGSyn, set this here
          float *gSynPatchHead;
+// If we're using threaded GSyn, set this here
 #ifdef PV_USE_OPENMP_THREADS
-         if (!mThreadGSyn.empty()) {
+         if (mPostLayer->getNumGSynThreads() > 1) {
             int ti        = omp_get_thread_num();
-            gSynPatchHead = mThreadGSyn[ti].data();
+            gSynPatchHead = mPostLayer->getThreadGSyn(ti);
          }
          else {
             gSynPatchHead = gSynPatchHeadBatch;
@@ -499,28 +492,29 @@ void TransposePoolingDelivery::deliverPresynapticPerspective() {
 
 #ifdef PV_USE_OPENMP_THREADS
       // Set back into gSyn
-      if (!mThreadGSyn.empty()) {
+      if (mPostLayer->getNumGSynThreads() > 1) {
          float *gSynPatchHead = gSynPatchHeadBatch;
          int numNeurons       = getPostLayer()->getNumNeurons();
 // Looping over neurons first to be thread safe
 #pragma omp parallel for
          for (int ni = 0; ni < numNeurons; ni++) {
             if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
-               // Grab maxumum magnitude of mThreadGSyn and set that value
+               // Grab maxumum magnitude of this thread's ThreadGSyn and set that value
                float maxMag  = -INFINITY;
                int maxMagIdx = -1;
-               for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-                  if (maxMag < fabsf(mThreadGSyn[ti][ni])) {
-                     maxMag    = fabsf(mThreadGSyn[ti][ni]);
+               for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
+                  float *threadData = mPostLayer->getThreadGSyn(ti);
+                  if (maxMag < fabsf(threadData[ni])) {
+                     maxMag    = fabsf(threadData[ni]);
                      maxMagIdx = ti;
                   }
                }
                assert(maxMagIdx >= 0);
-               gSynPatchHead[ni] = mThreadGSyn[maxMagIdx][ni];
+               gSynPatchHead[ni] = mPostLayer->getThreadGSyn(maxMagIdx)[ni];
             }
             else {
-               for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-                  gSynPatchHead[ni] += mThreadGSyn[ti][ni];
+               for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
+                  gSynPatchHead[ni] += mPostLayer->getThreadGSyn(ti)[ni];
                }
             }
          }
