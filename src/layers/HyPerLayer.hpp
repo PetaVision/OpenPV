@@ -185,7 +185,6 @@ class HyPerLayer : public ComponentBasedObject {
    virtual int initClayer();
 
    virtual int allocateClayerBuffers();
-   int setLayerLoc(PVLayerLoc *layerLoc, float nxScale, float nyScale, int nf, int numBatches);
    virtual void allocateBuffers();
    virtual void allocateGSyn();
    void addPublisher();
