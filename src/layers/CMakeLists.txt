@@ -2,7 +2,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ANNErrorLayer.cpp
    ${SUBDIR}/ANNLayer.cpp
    ${SUBDIR}/ANNSquaredLayer.cpp
-   ${SUBDIR}/ANNWhitenedLayer.cpp
    ${SUBDIR}/BackgroundLayer.cpp
    ${SUBDIR}/InputLayer.cpp
    ${SUBDIR}/BaseLayer.cpp
@@ -16,12 +15,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/HyPerLCALayer.cpp
    ${SUBDIR}/MomentumLCALayer.cpp
    ${SUBDIR}/ImageLayer.cpp
-   ${SUBDIR}/ImageFromMemoryBuffer.cpp
    ${SUBDIR}/InputRegionLayer.cpp
    ${SUBDIR}/ISTALayer.cpp
-   ${SUBDIR}/KmeansLayer.cpp
-   ${SUBDIR}/LabelErrorLayer.cpp
-   ${SUBDIR}/LCALIFLayer.cpp
    ${SUBDIR}/LeakyIntegrator.cpp
    ${SUBDIR}/LIF.cpp
    ${SUBDIR}/LIFGap.cpp
@@ -33,10 +28,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PvpLayer.cpp
    ${SUBDIR}/RescaleLayer.cpp
    ${SUBDIR}/Retina.cpp
-   ${SUBDIR}/RunningAverageLayer.cpp
    ${SUBDIR}/Segmentify.cpp
    ${SUBDIR}/SegmentLayer.cpp
-   ${SUBDIR}/ShuffleLayer.cpp
    ${SUBDIR}/SigmoidLayer.cpp
    ${SUBDIR}/WTALayer.cpp
 )
@@ -45,7 +38,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ANNErrorLayer.hpp
    ${SUBDIR}/ANNLayer.hpp
    ${SUBDIR}/ANNSquaredLayer.hpp
-   ${SUBDIR}/ANNWhitenedLayer.hpp
    ${SUBDIR}/BackgroundLayer.hpp
    ${SUBDIR}/InputLayer.hpp
    ${SUBDIR}/BaseLayer.hpp
@@ -58,12 +50,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp
    ${SUBDIR}/ImageLayer.hpp
-   ${SUBDIR}/ImageFromMemoryBuffer.hpp
    ${SUBDIR}/InputRegionLayer.cpp
    ${SUBDIR}/ISTALayer.hpp
-   ${SUBDIR}/KmeansLayer.hpp
-   ${SUBDIR}/LabelErrorLayer.hpp
-   ${SUBDIR}/LCALIFLayer.hpp
    ${SUBDIR}/LeakyIntegrator.hpp
    ${SUBDIR}/LIF.hpp
    ${SUBDIR}/LIFGap.hpp
@@ -74,10 +62,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PvpLayer.hpp
    ${SUBDIR}/RescaleLayer.hpp
    ${SUBDIR}/Retina.hpp
-   ${SUBDIR}/RunningAverageLayer.hpp
    ${SUBDIR}/Segmentify.hpp
    ${SUBDIR}/SegmentLayer.hpp
-   ${SUBDIR}/ShuffleLayer.hpp
    ${SUBDIR}/SigmoidLayer.hpp
    ${SUBDIR}/WTALayer.hpp
 )

@@ -8,7 +8,9 @@
 #ifndef ANNWHITENEDLAYER_HPP_
 #define ANNWHITENEDLAYER_HPP_
 
-#include "ANNLayer.hpp"
+// ANNWhitenedLayer was deprecated on Aug 15, 2018.
+
+#include "layers/ANNLayer.hpp"
 
 namespace PV {
 

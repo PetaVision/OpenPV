@@ -5,10 +5,12 @@
  *      Author: garkenyon
  */
 
+// LabelErrorLayer was deprecated on Aug 15, 2018.
+
 #ifndef LABELERRORLAYER_HPP_
 #define LABELERRORLAYER_HPP_
 
-#include "ANNLayer.hpp"
+#include "layers/ANNLayer.hpp"
 
 namespace PV {
 

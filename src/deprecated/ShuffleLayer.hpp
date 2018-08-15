@@ -7,10 +7,12 @@
  *   Author: Sheng Lundquist, Will Shainin
  */
 
+// ShuffleLayer was deprecated on Aug 15, 2018.
+
 #ifndef SHUFFLELAYER_HPP_
 #define SHUFFLELAYER_HPP_
 
-#include "CloneVLayer.hpp"
+#include "layers/CloneVLayer.hpp"
 
 namespace PV {
 

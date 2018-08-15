@@ -5,6 +5,8 @@
  *      Author: slundquist & dpaiton
  */
 
+// LCALIFLayer was deprecated on Aug 15, 2018.
+
 #include "LCALIFLayer.hpp"
 
 #include <cmath>
@@ -89,6 +91,7 @@ int LCALIFLayer::initialize_base() {
 }
 
 int LCALIFLayer::initialize(const char *name, HyPerCol *hc, const char *kernel_name) {
+   WarnLog() << "LCALIFLayer has been deprecated.\n";
    LIFGap::initialize(name, hc, kernel_name);
 
    float defaultDynVthScale = lParams.VthRest - lParams.Vrest;

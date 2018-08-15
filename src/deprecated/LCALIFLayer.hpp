@@ -5,11 +5,13 @@
  *      Author: slundquist
  */
 
+// LCALIFLayer was deprecated on Aug 15, 2018.
+
 #ifndef LCALIFLAYER_HPP_
 #define LCALIFLAYER_HPP_
 
-#include "HyPerLayer.hpp"
-#include "LIFGap.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "layers/LIFGap.hpp"
 
 #define DEFAULT_DYNVTHSCALE 1.0f
 

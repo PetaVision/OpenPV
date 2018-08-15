@@ -5,10 +5,11 @@
  *      Author: wchavez
  */
 
-#include "RunningAverageLayer.hpp"
-#include <stdio.h>
+// RunningAverageLayer was deprecated on Aug 15, 2018.
 
-#include "../include/default_params.h"
+#include "RunningAverageLayer.hpp"
+#include "include/default_params.h"
+#include <stdio.h>
 
 namespace PV {
 RunningAverageLayer::RunningAverageLayer() { initialize_base(); }
@@ -28,6 +29,7 @@ int RunningAverageLayer::initialize_base() {
 }
 
 int RunningAverageLayer::initialize(const char *name, HyPerCol *hc) {
+   WarnLog() << "RunningAverageLayer has been deprecated.\n";
    int status_init = CloneVLayer::initialize(name, hc);
    return status_init;
 }
