@@ -14,7 +14,6 @@
 #include "checkpointing/CheckpointableFileStream.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/ComponentBasedObject.hpp"
-#include "columns/DataStore.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/Publisher.hpp"
 #include "columns/Random.hpp"
