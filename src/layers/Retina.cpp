@@ -159,14 +159,6 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
 void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
    PVParams *params = parent->parameters();
    parent->parameters()->ioParamValue(ioFlag, name, "backgroundRate", &probBaseParam, 0.0f);
-   if (ioFlag == PARAMS_IO_READ) {
-      assert(!parent->parameters()->presentAndNotBeenRead(name, "foregroundRate"));
-      if (probBaseParam > probStimParam) {
-         Fatal().printf(
-               "%s: backgroundRate cannot be greater than foregroundRate.\n", getDescription_c());
-         exit(EXIT_FAILURE);
-      }
-   }
 }
 
 void Retina::ioParam_beginStim(enum ParamsIOFlag ioFlag) {
