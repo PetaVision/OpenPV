@@ -26,6 +26,11 @@ int WTALayer::initialize_base() {
    return PV_SUCCESS;
 }
 
+int WTALayer::initialize(const char *name, HyPerCol *hc) {
+   WarnLog() << "WTALayer has been deprecated. Use a WTAConn to a HyPerLayer instead.\n";
+   return HyPerLayer::initialize(name, hc);
+}
+
 Response::Status
 WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = HyPerLayer::communicateInitInfo(message);

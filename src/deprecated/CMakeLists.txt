@@ -6,6 +6,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LCALIFLayer.cpp
    ${SUBDIR}/RunningAverageLayer.cpp
    ${SUBDIR}/ShuffleLayer.cpp
+   ${SUBDIR}/WTALayer.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -16,6 +17,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LCALIFLayer.hpp
    ${SUBDIR}/RunningAverageLayer.hpp
    ${SUBDIR}/ShuffleLayer.hpp
+   ${SUBDIR}/WTALayer.hpp
 )
 
 set (PVLibSrcH ${PVLibSrcH}

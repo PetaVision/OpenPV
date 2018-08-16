@@ -31,7 +31,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/Segmentify.cpp
    ${SUBDIR}/SegmentLayer.cpp
    ${SUBDIR}/SigmoidLayer.cpp
-   ${SUBDIR}/WTALayer.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -65,7 +64,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Segmentify.hpp
    ${SUBDIR}/SegmentLayer.hpp
    ${SUBDIR}/SigmoidLayer.hpp
-   ${SUBDIR}/WTALayer.hpp
 )
 
 set (PVLibSrcH ${PVLibSrcH}

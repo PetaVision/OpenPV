@@ -1,0 +1,141 @@
+//
+// WTAConnTest.params
+//
+// created by peteschultz: Aug 15, 2018
+//
+
+// A params file to test WTAConn, which connects an x-by-y-by-f layer to an x-by-y-by-1 layer,
+// using winner-take-all at each location. That is, the postsynaptic GSyn at (x,y) is incremented
+// by the maximum over k=1,2,...,f of the presynaptic activity at (x,y,k).
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 16;
+   ny = 16;
+   nbatch = 1;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 10.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "WTAConnTest.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 1;
+
+    inputPath = "input/source.pvp";
+    nf = 3;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+HyPerLayer "WTA" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    phase = 1;
+    triggerLayerName = NULL;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};
+
+PvpLayer "Correct" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 1;
+
+    inputPath = "input/correctResult.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+HyPerLayer "Comparison" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    phase = 2;
+    triggerLayerName = NULL;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};
+
+WTAConn "InputToWTA" = {
+    preLayerName = "Input";
+    postLayerName = "WTA";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "WTAToComparison" = {
+    preLayerName = "WTA";
+    postLayerName = "Comparison";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "CorrectToComparison" = {
+    preLayerName = "Correct";
+    postLayerName = "Comparison";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonTest" = {
+    targetLayer                         = "Comparison";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ComparisonTest.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 0.0;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = false;
+};

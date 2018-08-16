@@ -5,7 +5,7 @@
 
 #ifndef WTALAYER_HPP_
 #define WTALAYER_HPP_
-#include "ANNLayer.hpp"
+#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
@@ -19,6 +19,7 @@ class WTALayer : public PV::HyPerLayer {
    virtual bool activityIsSpiking() override { return false; }
 
   protected:
+   int initialize(const char *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
