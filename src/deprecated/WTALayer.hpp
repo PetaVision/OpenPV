@@ -3,6 +3,8 @@
  * Author: slundquist
  */
 
+// WTALayer was deprecated on Aug 15, 2018, in favor of WTAConn.
+
 #ifndef WTALAYER_HPP_
 #define WTALAYER_HPP_
 #include "layers/HyPerLayer.hpp"

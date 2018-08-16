@@ -14,8 +14,14 @@
 namespace PV {
 
 /**
- * The delivery component for the IdentConn class.
- * Delivers the presynaptic activity unaltered to the postsynaptic GSyn channel.
+ * The delivery component for the WTAConn class.
+ * The pre- and post-synaptic layers must have the same nx and ny.
+ * The postsynaptic layer must have nf=1.
+ * The deliver method determines for each location (x,y) the maximum
+ * of the presynaptic activity at (x,y,f) over f=0,...,(nfPre-1). It then
+ * increments the postsynaptic GSyn at (x,y) by that maximum value.
+ * A connection that uses a WTADelivery component must use a SingleArbor
+ * as its ArborList component.
  */
 class WTADelivery : public BaseDelivery {
   protected:
@@ -52,6 +58,11 @@ class WTADelivery : public BaseDelivery {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   /**
+    * Verifies that pre- and post-synaptic nx values are equal,
+    * that pre-and post-synaptic ny values are equal, and that postsynaptic nf=1.
+    * It is a fatal error if these conditions are not met.
+    */
    void checkPreAndPostDimensions();
 
   protected:

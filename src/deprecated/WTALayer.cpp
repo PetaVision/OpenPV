@@ -3,6 +3,8 @@
  * Author: slundquist
  */
 
+// WTALayer was deprecated on Aug 15, 2018, in favor of WTAConn.
+
 #include "WTALayer.hpp"
 #include <assert.h>
 #include <fstream>
