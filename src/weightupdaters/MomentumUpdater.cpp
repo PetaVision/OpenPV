@@ -99,7 +99,8 @@ Response::Status MomentumUpdater::registerData(Checkpointer *checkpointer) {
    // Note: HebbianUpdater does not checkpoint dW if the mImmediateWeightUpdate flag is true.
    // Do we need to handle it here and in readStateFromCheckpoint? --pschultz, 2017-12-16
    if (mPlasticityFlag) {
-      mPrevDeltaWeights->checkpointWeightPvp(checkpointer, "prev_dW", mWriteCompressedCheckpoints);
+      mPrevDeltaWeights->checkpointWeightPvp(
+            checkpointer, name, "prev_dW", mWriteCompressedCheckpoints);
    }
    return Response::SUCCESS;
 }

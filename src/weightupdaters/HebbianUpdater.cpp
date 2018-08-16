@@ -339,7 +339,7 @@ Response::Status HebbianUpdater::registerData(Checkpointer *checkpointer) {
       return status;
    }
    if (mPlasticityFlag and !mImmediateWeightUpdate) {
-      mDeltaWeights->checkpointWeightPvp(checkpointer, "dW", mWriteCompressedCheckpoints);
+      mDeltaWeights->checkpointWeightPvp(checkpointer, name, "dW", mWriteCompressedCheckpoints);
       // Do we need to get PrepareCheckpointWrite messages, to call blockingNormalize_dW()?
    }
    std::string nameString = std::string(name);

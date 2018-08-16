@@ -160,10 +160,11 @@ void Weights::allocateCudaBuffers() {
 
 void Weights::checkpointWeightPvp(
       Checkpointer *checkpointer,
+      char const *objectName,
       char const *bufferName,
       bool compressFlag) {
    auto checkpointEntry = std::make_shared<CheckpointEntryWeightPvp>(
-         getName(), bufferName, checkpointer->getMPIBlock(), this, compressFlag);
+         std::string(objectName), bufferName, checkpointer->getMPIBlock(), this, compressFlag);
    bool registerSucceeded =
          checkpointer->registerCheckpointEntry(checkpointEntry, !mWeightsArePlastic);
    FatalIf(
