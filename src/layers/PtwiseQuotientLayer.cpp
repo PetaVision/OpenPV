@@ -1,12 +1,13 @@
 /*
  * PtwiseQuotientLayer.cpp
  *
- * The output V is the pointwise product of GSynExc and GSynInh
+ * The output V is the pointwise division of GSynExc by GSynInh
  *
  * "Exc" and "Inh" are really misnomers for this class, but the
  * terminology is inherited from the base class.
  *
- *  Created on: Apr 25, 2011
+ * created by gkenyon, 06/2016g
+ * based on PtwiseProductLayer Created on: Apr 25, 2011
  *      Author: peteschultz
  */
 
