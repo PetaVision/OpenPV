@@ -1225,14 +1225,6 @@ Response::Status HyPerLayer::allocateDataStructures() {
    // allocate storage for the input conductance arrays
    allocateBuffers();
 
-   // Allocate temp buffers if needed, 1 for each thread
-   if (mNumGSynThreads > 1) {
-      mThreadGSyn.resize(mNumGSynThreads);
-      for (auto &th : mThreadGSyn) {
-         th.resize(getNumNeuronsAllBatches());
-      }
-   }
-
 // Allocate cuda stuff on gpu if set
 #ifdef PV_USE_CUDA
    int deviceStatus = allocateDeviceBuffers();

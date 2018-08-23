@@ -152,11 +152,6 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       mWeightsPair->needPre();
    }
 
-   int const numThreads = parent->getNumThreads();
-   if (numThreads > 1) {
-      getPostLayer()->needThreadGSyn(numThreads);
-   }
-
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
@@ -211,7 +206,10 @@ Response::Status PoolingDelivery::allocateDataStructures() {
       initializeDeliverKernelArgs();
    }
 #endif // PV_USE_CUDA
+#ifdef PV_USE_OPENMP_THREADS
+   allocateThreadGSyn();
    allocateThreadGateIdxBuffer();
+#endif // PV_USE_OPENMP_THREADS
    return Response::SUCCESS;
 }
 
@@ -249,10 +247,11 @@ void PoolingDelivery::initializeDeliverKernelArgs() {
 }
 #endif // PV_USE_CUDA
 
+#ifdef PV_USE_OPENMP_THREADS
 void PoolingDelivery::allocateThreadGateIdxBuffer() {
    // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.
-   int const numThreads = mPostLayer->getNumGSynThreads();
-   if (numThreads > 1) {
+   int const numThreads = (int)mThreadGSyn.size();
+   if (numThreads > 0) {
       mThreadGateIdxBuffer.resize(numThreads);
       // mThreadGateIdxBuffer is only a buffer for one batch element. We're threading over
       // presynaptic neuron index, not batch element; so batch elements will be processed serially.
@@ -261,6 +260,7 @@ void PoolingDelivery::allocateThreadGateIdxBuffer() {
       }
    }
 }
+#endif // PV_USE_OPENMP_THREADS
 
 void PoolingDelivery::deliver() {
    // Check if we need to update based on connection's channel
@@ -514,25 +514,27 @@ void PoolingDelivery::deliverPresynapticPerspective() {
       }
       int numLoop = activityCube.isSparse ? activityCube.numActive[b] : mPreLayer->getNumExtended();
 
-      int const numThreads = mPostLayer->getNumGSynThreads();
-      if (!mThreadGateIdxBuffer.empty()) {
 #ifdef PV_USE_OPENMP_THREADS
+      int const numThreads = (int)mThreadGateIdxBuffer.size();
+      pvAssert((int)mThreadGSyn.size() == numThreads);
+      if (numThreads > 0) {
 #pragma omp parallel for
-#endif
          for (int i = 0; i < numThreads * getPostLayer()->getNumNeurons(); i++) {
             int ti                       = i / getPostLayer()->getNumNeurons();
             int ni                       = i % getPostLayer()->getNumNeurons();
             mThreadGateIdxBuffer[ti][ni] = -1.0f;
          }
       }
+#endif // PV_USE_OPENMP_THREADS
 
 #ifdef PV_USE_OPENMP_THREADS
-      // Clear all gsyn buffers
-      if (mPostLayer->getNumGSynThreads() > 1) {
-         pvAssert(getPostLayer()->getNumGSynThreads() == mPostLayer->getNumGSynThreads());
+      // Reset all thread gsyn buffer (note: the only difference from
+      // BaseDelivery::clearThreadGSyn() is that the former sets the values to zero, while this
+      // method sets them to resetVal (which is -infinity for maxpooling and zero for other types).
+      if (numThreads > 0) {
          int numNeurons = getPostLayer()->getNumNeurons();
-         for (int ti = 0; ti < getPostLayer()->getNumGSynThreads(); ti++) {
-            float *threadData = getPostLayer()->getThreadGSyn(ti);
+         for (int ti = 0; ti < numThreads; ti++) {
+            float *threadData = mThreadGSyn[ti].data();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -563,9 +565,9 @@ void PoolingDelivery::deliverPresynapticPerspective() {
          float *gatePatchHead = NULL;
 // If we're using GSyn threads, set this here
 #ifdef PV_USE_OPENMP_THREADS
-         if (getPostLayer()->getNumGSynThreads() > 1) {
+         if (numThreads > 1) {
             int ti        = omp_get_thread_num();
-            gSynPatchHead = getPostLayer()->getThreadGSyn(ti);
+            gSynPatchHead = mThreadGSyn[ti].data();
          }
          else {
             gSynPatchHead = gSynPatchHeadBatch;
@@ -635,7 +637,7 @@ void PoolingDelivery::deliverPresynapticPerspective() {
       // Accumulate back into gSyn
       // Should this be done in HyPerLayer where it can be done once,
       // as opposed to once per connection?
-      if (getPostLayer()->getNumGSynThreads() > 1) {
+      if (numThreads > 1) {
          float *gSynPatchHead = gSynPatchHeadBatch;
          float *gateIdxBuffer = nullptr;
          if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
@@ -647,8 +649,8 @@ void PoolingDelivery::deliverPresynapticPerspective() {
          for (int ni = 0; ni < numNeurons; ni++) {
             // Different for maxpooling
             if (mAccumulateType == MAXPOOLING) {
-               for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
-                  float *threadData = getPostLayer()->getThreadGSyn(ti);
+               for (int ti = 0; ti < numThreads; ti++) {
+                  float *threadData = mThreadGSyn[ti].data();
                   if (gSynPatchHead[ni] < threadData[ni]) {
                      gSynPatchHead[ni] = threadData[ni];
                      if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
@@ -658,8 +660,8 @@ void PoolingDelivery::deliverPresynapticPerspective() {
                }
             }
             else {
-               for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
-                  float *threadData = getPostLayer()->getThreadGSyn(ti);
+               for (int ti = 0; ti < numThreads; ti++) {
+                  float *threadData = mThreadGSyn[ti].data();
                   gSynPatchHead[ni] += threadData[ni];
                }
             }

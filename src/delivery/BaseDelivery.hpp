@@ -68,6 +68,20 @@ class BaseDelivery : public BaseObject {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+#ifdef PV_USE_OPENMP_THREADS
+   /**
+    * If called, allocates one buffer per openmp thread, where each buffer is the
+    * size of the restricted postsynaptic layer (not including batching).
+    * That is, the size of each openmp thread's buffer is mPostLayer->getNumNeurons().
+    */
+   void allocateThreadGSyn();
+
+   /**
+    * Sets all thread gsyn buffers to 0.
+    */
+   void clearThreadGSyn();
+#endif // PV_USE_OPENMP_THREADS
+
   protected:
    ChannelType mChannelCode = CHANNEL_EXC;
    bool mReceiveGpu         = false;
@@ -76,6 +90,10 @@ class BaseDelivery : public BaseObject {
    HyPerLayer *mPreLayer           = nullptr;
    HyPerLayer *mPostLayer          = nullptr;
    // Rather than the layers, should we store the buffers and the PVLayerLoc data?
+
+   // Accumulate buffer, used by some subclasses if numThreads > 1 to avoid
+   // parallelization collisions.
+   std::vector<std::vector<float>> mThreadGSyn;
 };
 
 } // namespace PV

@@ -157,11 +157,6 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    }
 #endif // PV_USE_CUDA
 
-   int const numThreads = parent->getNumThreads();
-   if (numThreads > 1) {
-      getPostLayer()->needThreadGSyn(numThreads);
-   }
-
    return Response::SUCCESS;
 }
 
@@ -191,6 +186,9 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
       initializeDeliverKernelArgs();
    }
 #endif // PV_USE_CUDA
+#ifdef PV_USE_OPENMP_THREADS
+   allocateThreadGSyn();
+#endif // PV_USE_OPENMP_THREADS
    return Response::SUCCESS;
 }
 
@@ -336,19 +334,10 @@ void TransposePoolingDelivery::deliverPresynapticPerspective() {
       int numLoop = activityCube.isSparse ? activityCube.numActive[b] : mPreLayer->getNumExtended();
 
 #ifdef PV_USE_OPENMP_THREADS
-      // Clear all thread gsyn buffer
-      if (mPostLayer->getNumGSynThreads() > 1) {
-         int numNeurons = getPostLayer()->getNumNeurons();
-         for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
-            float *threadData = mPostLayer->getThreadGSyn(ti);
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-            for (int ni = 0; ni < numNeurons; ni++) {
-               threadData[ni] = 0.0f;
-            }
-         }
-      }
+      // Note: before the clearThreadGSyn method was abstracted out, PoolingDelivery did an
+      // equivalent task here, but parallelized on the inner for-loop instead of parallelizing on
+      // the outer loop with the schedule(static) directive. Does this affect performance?
+      clearThreadGSyn();
 #endif // PV_USE_OPENMP_THREADS
       std::size_t const *gSynPatchStart = preWeights->getGeometry()->getGSynPatchStart().data();
 
@@ -372,9 +361,9 @@ void TransposePoolingDelivery::deliverPresynapticPerspective() {
          float *gSynPatchHead;
 // If we're using threaded GSyn, set this here
 #ifdef PV_USE_OPENMP_THREADS
-         if (mPostLayer->getNumGSynThreads() > 1) {
+         if (!mThreadGSyn.empty()) {
             int ti        = omp_get_thread_num();
-            gSynPatchHead = mPostLayer->getThreadGSyn(ti);
+            gSynPatchHead = mThreadGSyn[ti].data();
          }
          else {
             gSynPatchHead = gSynPatchHeadBatch;
@@ -492,7 +481,8 @@ void TransposePoolingDelivery::deliverPresynapticPerspective() {
 
 #ifdef PV_USE_OPENMP_THREADS
       // Set back into gSyn
-      if (mPostLayer->getNumGSynThreads() > 1) {
+      int const numThreads = (int)mThreadGSyn.size();
+      if (numThreads > 1) {
          float *gSynPatchHead = gSynPatchHeadBatch;
          int numNeurons       = getPostLayer()->getNumNeurons();
 // Looping over neurons first to be thread safe
@@ -502,19 +492,19 @@ void TransposePoolingDelivery::deliverPresynapticPerspective() {
                // Grab maxumum magnitude of this thread's ThreadGSyn and set that value
                float maxMag  = -INFINITY;
                int maxMagIdx = -1;
-               for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
-                  float *threadData = mPostLayer->getThreadGSyn(ti);
+               for (int ti = 0; ti < numThreads; ti++) {
+                  float *threadData = mThreadGSyn[ti].data();
                   if (maxMag < fabsf(threadData[ni])) {
                      maxMag    = fabsf(threadData[ni]);
                      maxMagIdx = ti;
                   }
                }
-               assert(maxMagIdx >= 0);
-               gSynPatchHead[ni] = mPostLayer->getThreadGSyn(maxMagIdx)[ni];
+               pvAssert(maxMagIdx >= 0);
+               gSynPatchHead[ni] = mThreadGSyn[maxMagIdx].data()[ni];
             }
             else {
-               for (int ti = 0; ti < mPostLayer->getNumGSynThreads(); ti++) {
-                  gSynPatchHead[ni] += mPostLayer->getThreadGSyn(ti)[ni];
+               for (int ti = 0; ti < numThreads; ti++) {
+                  gSynPatchHead[ni] += mThreadGSyn[ti].data()[ni];
                }
             }
          }

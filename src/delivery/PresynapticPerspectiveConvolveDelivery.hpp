@@ -65,8 +65,6 @@ class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
 
    virtual Response::Status allocateDataStructures() override;
 
-   void allocateThreadGSyn();
-
    // Data members
   protected:
 }; // end class PresynapticPerspectiveConvolveDelivery

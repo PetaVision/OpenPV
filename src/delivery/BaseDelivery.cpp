@@ -126,4 +126,33 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    return Response::SUCCESS;
 }
 
+#ifdef PV_USE_OPENMP_THREADS
+void BaseDelivery::allocateThreadGSyn() {
+   int const numThreads = parent->getNumThreads();
+   if (numThreads > 1) {
+      int const numNeuronsAllBatches = mPostLayer->getNumNeuronsAllBatches();
+      mThreadGSyn.resize(numThreads);
+      for (auto &th : mThreadGSyn) {
+         th.resize(numNeuronsAllBatches);
+      }
+   }
+}
+
+void BaseDelivery::clearThreadGSyn() {
+   int const numThreads = (int)mThreadGSyn.size();
+   if (numThreads > 1) {
+      int const numPostRestricted = mPostLayer->getNumNeurons();
+#pragma omp parallel for schedule(static)
+      for (int ti = 0; ti < numThreads; ++ti) {
+         float *threadData = mThreadGSyn[ti].data();
+         for (int ni = 0; ni < numPostRestricted; ++ni) {
+            threadData[ni] = 0.0f;
+         }
+      }
+   }
+   // Would it be better to have the pragma omp parallel on the inner loop? PoolingDelivery has
+   // it organized that way; and TransposePoolingDelivery used to, before it called this method.
+}
+#endif // PV_USE_OPENMP_THREADS
+
 } // namespace PV

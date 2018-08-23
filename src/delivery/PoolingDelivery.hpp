@@ -117,7 +117,9 @@ class PoolingDelivery : public BaseDelivery {
 
    void initializeDeliverKernelArgs();
 
+#ifdef PV_USE_OPENMP_THREADS
    void allocateThreadGateIdxBuffer();
+#endif // PV_USE_OPENMP_THREADS
 
    void deliverPostsynapticPerspective();
 
@@ -142,7 +144,10 @@ class PoolingDelivery : public BaseDelivery {
    char *mPostIndexLayerName          = nullptr;
    PoolingIndexLayer *mPostIndexLayer = nullptr;
 
+#ifdef PV_USE_OPENMP_THREADS
    std::vector<std::vector<float>> mThreadGateIdxBuffer;
+#endif // PV_USE_OPENMP_THREADS
+
 #ifdef PV_USE_CUDA
    PVCuda::CudaPoolingDeliverKernel *mRecvKernel = nullptr; // Cuda kernel for updating GSyn
 #endif // PV_USE_CUDA

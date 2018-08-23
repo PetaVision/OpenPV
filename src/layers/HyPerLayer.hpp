@@ -286,14 +286,6 @@ class HyPerLayer : public ComponentBasedObject {
    virtual double getTimeScale(int batchIdx) { return -1.0; };
    virtual bool activityIsSpiking() { return false; }
 
-   void needThreadGSyn(int threadsNeeded) {
-      if (mNumGSynThreads < threadsNeeded) {
-         mNumGSynThreads = threadsNeeded;
-      }
-   }
-   int getNumGSynThreads() const { return mNumGSynThreads; }
-   float *getThreadGSyn(int threadIndex) { return mThreadGSyn.at(threadIndex).data(); }
-
   protected:
    /**
     * The function that calls all ioParam functions
@@ -551,8 +543,6 @@ class HyPerLayer : public ComponentBasedObject {
    double mLastUpdateTime;
    double mLastTriggerTime;
 
-   int mNumGSynThreads = 0;
-   std::vector<std::vector<float>> mThreadGSyn; // Accumulate buffer, used if numThreads > 1
    std::vector<BaseConnection *> recvConns;
 
    bool mHasReceived = false;
