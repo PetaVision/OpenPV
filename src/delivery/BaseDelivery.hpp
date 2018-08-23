@@ -77,9 +77,18 @@ class BaseDelivery : public BaseObject {
    void allocateThreadGSyn();
 
    /**
-    * Sets all thread gsyn buffers to 0.
+    * Sets all ThreadGSyn buffers to 0.
     */
    void clearThreadGSyn();
+
+   /**
+    * Accumulates the buffers in ThreadGSyn into the given buffer of size
+    * mPostLayer->getNumNeurons().
+    * That is, if the value of buffer[k] is G on entry, its value is
+    * G + sum_n ThreadGSyn[n][k].
+    * If the ThreadedGSyn vector is empty, the routine has no effect.
+    */
+   void accumulateThreadGSyn(float *buffer);
 #endif // PV_USE_OPENMP_THREADS
 
   protected:
@@ -89,11 +98,13 @@ class BaseDelivery : public BaseObject {
    ConnectionData *mConnectionData = nullptr;
    HyPerLayer *mPreLayer           = nullptr;
    HyPerLayer *mPostLayer          = nullptr;
-   // Rather than the layers, should we store the buffers and the PVLayerLoc data?
+// Rather than the layers, should we store the buffers and the PVLayerLoc data?
 
+#ifdef PV_USE_OPENMP_THREADS
    // Accumulate buffer, used by some subclasses if numThreads > 1 to avoid
    // parallelization collisions.
    std::vector<std::vector<float>> mThreadGSyn;
+#endif // PV_USE_OPENMP_THREADS
 };
 
 } // namespace PV

@@ -635,37 +635,30 @@ void PoolingDelivery::deliverPresynapticPerspective() {
       }
 #ifdef PV_USE_OPENMP_THREADS
       // Accumulate back into gSyn
-      // Should this be done in HyPerLayer where it can be done once,
-      // as opposed to once per connection?
-      if (numThreads > 1) {
-         float *gSynPatchHead = gSynPatchHeadBatch;
-         float *gateIdxBuffer = nullptr;
-         if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
-            gateIdxBuffer = gatePatchHeadBatch;
-         }
-         int numNeurons = getPostLayer()->getNumNeurons();
+      if (mAccumulateType == MAXPOOLING) {
+         if (numThreads > 1) {
+            int numNeurons       = getPostLayer()->getNumNeurons();
+            float *gateIdxBuffer = nullptr;
+            if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
+               gateIdxBuffer = gatePatchHeadBatch;
+            }
 // Looping over neurons first to be thread safe
 #pragma omp parallel for
-         for (int ni = 0; ni < numNeurons; ni++) {
-            // Different for maxpooling
-            if (mAccumulateType == MAXPOOLING) {
+            for (int ni = 0; ni < numNeurons; ni++) {
                for (int ti = 0; ti < numThreads; ti++) {
                   float *threadData = mThreadGSyn[ti].data();
-                  if (gSynPatchHead[ni] < threadData[ni]) {
-                     gSynPatchHead[ni] = threadData[ni];
-                     if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
+                  if (gSynPatchHeadBatch[ni] < threadData[ni]) {
+                     gSynPatchHeadBatch[ni] = threadData[ni];
+                     if (gateIdxBuffer) {
                         gateIdxBuffer[ni] = mThreadGateIdxBuffer[ti][ni];
                      }
                   }
                }
             }
-            else {
-               for (int ti = 0; ti < numThreads; ti++) {
-                  float *threadData = mThreadGSyn[ti].data();
-                  gSynPatchHead[ni] += threadData[ni];
-               }
-            }
          }
+      }
+      else {
+         accumulateThreadGSyn(gSynPatchHeadBatch);
       }
 #endif
    }

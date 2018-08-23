@@ -220,21 +220,7 @@ void PresynapticPerspectiveStochasticDelivery::deliver() {
             }
          }
 #ifdef PV_USE_OPENMP_THREADS
-         // Accumulate back into gSyn. Should this be done in HyPerLayer where it can be done once,
-         // as opposed to once per connection?
-         int const numThreads = (int)mThreadGSyn.size();
-         if (numThreads > 0) {
-            float *gSynPatchHead = gSynPatchHeadBatch;
-            int numNeurons       = mPostLayer->getNumNeurons();
-            for (int ti = 0; ti < numThreads; ti++) {
-               float *onethread = mThreadGSyn[ti].data();
-// Looping over neurons is thread safe
-#pragma omp parallel for
-               for (int ni = 0; ni < numNeurons; ni++) {
-                  gSynPatchHead[ni] += onethread[ni];
-               }
-            }
-         }
+         accumulateThreadGSyn(gSynPatchHeadBatch);
 #endif // PV_USE_OPENMP_THREADS
       }
    }
@@ -313,21 +299,7 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
             }
          }
 #ifdef PV_USE_OPENMP_THREADS
-         // Accumulate back into gSyn. Should this be done in HyPerLayer where it can be done once,
-         // as opposed to once per connection?
-         int const numThreads = (int)mThreadGSyn.size();
-         if (numThreads > 0) {
-            float *recvPatchHead = recvBatch;
-            int numNeurons       = mPostLayer->getNumNeurons();
-            for (int ti = 0; ti < numThreads; ti++) {
-               float *onethread = mThreadGSyn[ti].data();
-// Looping over neurons is thread safe
-#pragma omp parallel for
-               for (int ni = 0; ni < numNeurons; ni++) {
-                  recvPatchHead[ni] += onethread[ni];
-               }
-            }
-         }
+         accumulateThreadGSyn(recvBatch);
 #endif // PV_USE_OPENMP_THREADS
       }
    }

@@ -150,8 +150,24 @@ void BaseDelivery::clearThreadGSyn() {
          }
       }
    }
-   // Would it be better to have the pragma omp parallel on the inner loop? PoolingDelivery has
-   // it organized that way; and TransposePoolingDelivery used to, before it called this method.
+   // Would it be better to have the pragma omp parallel on the inner loop? PoolingDelivery is
+   // organized that way; and TransposePoolingDelivery used to, before it called this method.
+}
+
+void BaseDelivery::accumulateThreadGSyn(float *buffer) {
+   int const numThreads = (int)mThreadGSyn.size();
+   if (numThreads > 0) {
+      float *postChannel = mPostLayer->getChannel(getChannelCode());
+      int numNeuronsPost = mPostLayer->getNumNeurons();
+      for (int ti = 0; ti < numThreads; ti++) {
+         float *threadData = mThreadGSyn[ti].data();
+// Looping over neurons is thread safe
+#pragma omp parallel for
+         for (int ni = 0; ni < numNeuronsPost; ni++) {
+            buffer[ni] += threadData[ni];
+         }
+      }
+   }
 }
 #endif // PV_USE_OPENMP_THREADS
 
