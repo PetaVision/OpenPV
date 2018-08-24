@@ -132,15 +132,7 @@ void PresynapticPerspectiveConvolveDelivery::deliver() {
                   }
                   a *= mDeltaTimeFactor;
 
-                  // gSyn
-                  float *gSynPatchHead = gSynPatchHeadBatch;
-
-#ifdef PV_USE_OPENMP_THREADS
-                  if (!mThreadGSyn.empty()) {
-                     int const threadIndex = omp_get_thread_num();
-                     gSynPatchHead         = mThreadGSyn[threadIndex].data();
-                  }
-#endif // PV_USE_OPENMP_THREADS
+                  float *gSynPatchHead = setWorkingGSynBuffer(gSynPatchHeadBatch);
 
                   float *postPatchStart = &gSynPatchHead[gSynPatchStart[kPreExt]];
 
@@ -179,15 +171,7 @@ void PresynapticPerspectiveConvolveDelivery::deliver() {
                   }
                   a *= mDeltaTimeFactor;
 
-                  // gSyn
-                  float *gSynPatchHead = gSynPatchHeadBatch;
-
-#ifdef PV_USE_OPENMP_THREADS
-                  if (!mThreadGSyn.empty()) {
-                     int const threadIndex = omp_get_thread_num();
-                     gSynPatchHead         = mThreadGSyn[threadIndex].data();
-                  }
-#endif // PV_USE_OPENMP_THREADS
+                  float *gSynPatchHead = setWorkingGSynBuffer(gSynPatchHeadBatch);
 
                   float *postPatchStart = &gSynPatchHead[gSynPatchStart[kPreExt]];
 
@@ -203,9 +187,7 @@ void PresynapticPerspectiveConvolveDelivery::deliver() {
                }
             }
          }
-#ifdef PV_USE_OPENMP_THREADS
          accumulateThreadGSyn(gSynPatchHeadBatch);
-#endif // PV_USE_OPENMP_THREADS
       } // Loop over batch elements
    } // Loop over arbors
 #ifdef PV_USE_CUDA
@@ -252,14 +234,7 @@ void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer)
                   continue;
                }
 
-               // gSyn
-               float *recvPatchHead = recvBatch;
-
-#ifdef PV_USE_OPENMP_THREADS
-               if (!mThreadGSyn.empty()) {
-                  recvPatchHead = mThreadGSyn[omp_get_thread_num()].data();
-               }
-#endif // PV_USE_OPENMP_THREADS
+               float *recvPatchHead = setWorkingGSynBuffer(recvBatch);
 
                float *postPatchStart = &recvPatchHead[gSynPatchStart[kPreExt]];
 
@@ -274,9 +249,7 @@ void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer)
                }
             }
          }
-#ifdef PV_USE_OPENMP_THREADS
          accumulateThreadGSyn(recvBatch);
-#endif // PV_USE_OPENMP_THREADS
       } // Loop over batch elements
    } // Loop over arbors
 }

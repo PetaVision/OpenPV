@@ -80,16 +80,31 @@ class BaseDelivery : public BaseObject {
     * Sets all ThreadGSyn buffers to 0.
     */
    void clearThreadGSyn();
+#endif // PV_USE_OPENMP_THREADS
 
    /**
     * Accumulates the buffers in ThreadGSyn into the given buffer of size
     * mPostLayer->getNumNeurons().
-    * That is, if the value of buffer[k] is G on entry, its value is
-    * G + sum_n ThreadGSyn[n][k].
-    * If the ThreadedGSyn vector is empty, the routine has no effect.
+    * That is, if the value of buffer[k] is G0 on entry, its value is
+    *      G0 + sum_n ThreadGSyn[n][k].
+    * If not using OpenMP, or if the ThreadGSyn vector is empty, the routine has no effect.
     */
-   void accumulateThreadGSyn(float *buffer);
-#endif // PV_USE_OPENMP_THREADS
+   void accumulateThreadGSyn(float *baseGSynBuffer);
+
+   /**
+    * If not using OpenMP or if there is only one OpenMP thread, returns the
+    * input argument baseGSynBuffer.
+    * If using more than one OpenMP thread, returns the pointer to the
+    * mThreadGSyn element corresponding to the current OpenMP thread.
+    * This way, threads can work in parallel on the GSyn delivery without worrying about
+    * collisions. After each thread has done its work, the accumulateThreadGSyn
+    * function member should be called, with the same argument baseGSynBuffer, to accumulate
+    * the mThreadGSyn elements into that buffer.
+    *
+    */
+   float *setWorkingGSynBuffer(float *baseGSynBuffer);
+   // Note: this gets called in a loop over neuron index. If this function is not inlined by the
+   // compiler, it should probably be unrolled.
 
   protected:
    ChannelType mChannelCode = CHANNEL_EXC;

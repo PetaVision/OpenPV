@@ -320,14 +320,7 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
                   continue;
                }
 
-               // gSyn
-               float *recvPatchHead = recvBatch;
-
-#ifdef PV_USE_OPENMP_THREADS
-               if (!mThreadGSyn.empty()) {
-                  recvPatchHead = mThreadGSyn[omp_get_thread_num()].data();
-               }
-#endif // PV_USE_OPENMP_THREADS
+               float *recvPatchHead = setWorkingGSynBuffer(recvBatch);
 
                float *postPatchStart = &recvPatchHead[gSynPatchStart[kPreExt]];
 
@@ -342,9 +335,7 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
                }
             }
          }
-#ifdef PV_USE_OPENMP_THREADS
          accumulateThreadGSyn(recvBatch);
-#endif // PV_USE_OPENMP_THREADS
       }
    }
 }
