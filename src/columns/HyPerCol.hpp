@@ -216,11 +216,9 @@ class HyPerCol : public Subject, public ParamsInterface {
    /**
     * Sets the mNumThreads member variable based on whether PV_USE_OPENMP is set
     * and the NumThreads argument in the ConfigFile (-t option if using the
-    * command line).  If printMessagesFlag is true, it may print to the output
-    * and/or error stream.
-    * If printMessagesFlag is false, these messages are suppressed.
+    * command line).
     */
-   int setNumThreads(bool printMessagesFlag);
+   int setNumThreads();
 
    // Private variables
 

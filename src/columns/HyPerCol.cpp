@@ -133,10 +133,6 @@ int HyPerCol::initialize(PV_Init *initObj) {
    char const *group0Name = mParams->groupNameFromIndex(0);
    ParamsInterface::initialize(group0Name, mParams);
 
-   // mNumThreads will not be set, or used until HyPerCol::run.
-   // This means that threading cannot happen in the initialization or
-   // communicateInitInfo stages,
-   // but that should not be a problem.
    char const *programName = mPVInitObj->getProgramName();
 
    std::string working_dir = mPVInitObj->getStringArgument("WorkingDirectory");
@@ -160,7 +156,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
    }
    MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, getCommunicator()->globalCommunicator());
 #else
-   int parsedStatus                         = this->mParams->getParseStatus();
+   int parsedStatus = this->mParams->getParseStatus();
 #endif
    if (parsedStatus != 0) {
       exit(parsedStatus);
@@ -181,6 +177,11 @@ int HyPerCol::initialize(PV_Init *initObj) {
    RandomSeed::instance()->initialize(mRandomSeed);
    if (getCommunicator()->globalCommRank() == 0) {
       InfoLog() << "RandomSeed initialized to " << mRandomSeed << ".\n";
+   }
+   int threadStatus = setNumThreads();
+   if (threadStatus != PV_SUCCESS) {
+      MPI_Barrier(mCommunicator->globalCommunicator());
+      exit(EXIT_FAILURE);
    }
 
    mRunTimer = new Timer(getName(), "column", "run    ");
@@ -338,14 +339,6 @@ void HyPerCol::allocateColumn() {
       return;
    }
 
-   setNumThreads(false);
-   // When we call processParams, the communicateInitInfo stage will run, which
-   // can put out a lot of messages.
-   // So if there's a problem with the -t option setting, the error message can
-   // be hard to find.
-   // Instead of printing the error messages here, we will call setNumThreads a
-   // second time after processParams(), and only then print messages.
-
    // processParams function does communicateInitInfo stage, sets up adaptive
    // time step, and prints params
    pvAssert(mPrintParamsFilename && mPrintParamsFilename[0]);
@@ -369,19 +362,6 @@ void HyPerCol::allocateColumn() {
    std::string const &gpu_devices = mPVInitObj->getStringArgument("GPUDevices");
    initializeCUDA(gpu_devices);
 #endif
-
-   int thread_status =
-         setNumThreads(true /*now, print messages related to setting number of threads*/);
-   MPI_Barrier(mCommunicator->globalCommunicator());
-   if (thread_status != PV_SUCCESS) {
-      exit(EXIT_FAILURE);
-   }
-
-#ifdef PV_USE_OPENMP_THREADS
-   pvAssert(mNumThreads > 0); // setNumThreads should fail if it sets
-   // mNumThreads less than or equal to zero
-   omp_set_num_threads(mNumThreads);
-#endif // PV_USE_OPENMP_THREADS
 
    notifyLoop(std::make_shared<AllocateDataStructuresMessage>());
 
@@ -450,6 +430,12 @@ int HyPerCol::run(double stopTime, double dt) {
    mStopTime  = stopTime;
    mDeltaTime = dt;
 
+   int const totalThreads = mNumThreads * numberOfGlobalColumns();
+   if (globalRank() == 0 and totalThreads > mPVInitObj->getMaxThreads()) {
+      WarnLog().printf(
+            "Warning: more MPI processes than available threads.  "
+            "Processors may be oversubscribed.\n");
+   }
    allocateColumn();
    getOutputStream().flush();
 
@@ -484,18 +470,15 @@ int HyPerCol::run(double stopTime, double dt) {
    return PV_SUCCESS;
 }
 
-// This routine sets the mNumThreads member variable.  It should only be called
-// by the run() method,
-// and only inside the !ready if-statement.
-// TODO: Instead of using the printMessagesFlag, why not use the same flag that
-int HyPerCol::setNumThreads(bool printMessagesFlag) {
-   bool printMsgs0   = printMessagesFlag && globalRank() == 0;
-   int thread_status = PV_SUCCESS;
-   int num_threads   = 0;
+// This routine sets the mNumThreads member variable. It is called by HyPerCol::initialize()
+int HyPerCol::setNumThreads() {
+   int threadStatus                         = PV_SUCCESS;
+   int numThreads                           = 0;
+   Configuration::IntOptional numThreadsArg = mPVInitObj->getIntOptionalArgument("NumThreads");
 #ifdef PV_USE_OPENMP_THREADS
    int max_threads = mPVInitObj->getMaxThreads();
    int comm_size   = mCommunicator->globalCommSize();
-   if (printMsgs0) {
+   if (globalRank() == 0) {
       InfoLog().printf(
             "Maximum number of OpenMP threads%s is %d\n"
             "Number of MPI processes is %d.\n",
@@ -503,73 +486,68 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
             max_threads,
             comm_size);
    }
-   Configuration::IntOptional numThreadsArg = mPVInitObj->getIntOptionalArgument("NumThreads");
    if (numThreadsArg.mUseDefault) {
-      num_threads = max_threads / comm_size; // integer arithmetic
-      if (num_threads == 0) {
-         num_threads = 1;
-         if (printMsgs0) {
-            WarnLog().printf(
-                  "Warning: more MPI processes than available threads.  "
-                  "Processors may be oversubscribed.\n");
-         }
+      numThreads = max_threads / comm_size; // integer arithmetic
+      if (numThreads == 0) {
+         numThreads = 1;
       }
    }
    else {
-      num_threads = numThreadsArg.mValue;
+      numThreads = numThreadsArg.mValue;
    }
-   if (num_threads > 0) {
-      if (printMsgs0) {
-         InfoLog().printf("Number of threads used is %d\n", num_threads);
+   if (numThreads > 0) {
+      if (globalRank() == 0) {
+         InfoLog().printf("Number of threads used is %d\n", numThreads);
       }
+      omp_set_num_threads(numThreads);
    }
-   else if (num_threads == 0) {
-      thread_status = PV_FAILURE;
-      if (printMsgs0) {
+   else if (numThreads == 0) {
+      threadStatus = PV_FAILURE;
+      if (globalRank() == 0) {
          ErrorLog().printf(
                "%s: number of threads must be positive (was set to zero)\n",
                mPVInitObj->getProgramName());
       }
    }
    else {
-      assert(num_threads < 0);
-      thread_status = PV_FAILURE;
-      if (printMsgs0) {
+      assert(numThreads < 0);
+      threadStatus = PV_FAILURE;
+      if (globalRank() == 0) {
          ErrorLog().printf(
                "%s was compiled with PV_USE_OPENMP_THREADS; "
-               "therefore the \"-t\" argument is "
-               "required.\n",
+               "therefore the \"-t\" argument is required.\n",
                mPVInitObj->getProgramName());
       }
    }
 #else // PV_USE_OPENMP_THREADS
-   Configuration::IntOptional numThreadsArg = mPVInitObj->getIntOptionalArgument("NumThreads");
    if (numThreadsArg.mUseDefault) {
-      num_threads = 1;
-      if (printMsgs0) {
+      numThreads = 1;
+      if (globalRank() == 0) {
          InfoLog().printf("Number of threads used is 1 (Compiled without OpenMP.\n");
       }
    }
    else {
-      num_threads = numThreadsArg.mValue;
-      if (num_threads < 0) {
-         num_threads = 1;
+      numThreads = numThreadsArg.mValue;
+      if (numThreads < 0) {
+         numThreads = 1;
       }
-      if (num_threads != 1) {
-         thread_status = PV_FAILURE;
+      if (numThreads != 1) {
+         threadStatus = PV_FAILURE;
       }
    }
-   if (printMsgs0) {
-      if (thread_status != PV_SUCCESS) {
+   if (globalRank() == 0) {
+      if (threadStatus != PV_SUCCESS) {
          ErrorLog().printf(
-               "%s error: PetaVision must be compiled with "
-               "OpenMP to run with threads.\n",
+               "%s error: PetaVision must be compiled with OpenMP to run with threads.\n",
                mPVInitObj->getProgramName());
       }
    }
 #endif // PV_USE_OPENMP_THREADS
-   mNumThreads = num_threads;
-   return thread_status;
+   if (threadStatus == PV_SUCCESS) {
+      mNumThreads = numThreads;
+   }
+
+   return threadStatus;
 }
 
 int HyPerCol::processParams(char const *path) {
@@ -578,8 +556,7 @@ int HyPerCol::processParams(char const *path) {
       notifyLoop(std::make_shared<CommunicateInitInfoMessage>(objectMap));
    }
 
-   // Print a cleaned up version of params to the file given by
-   // printParamsFilename
+   // Print a cleaned up version of params to the file given by printParamsFilename
    parameters()->warnUnread();
    if (path != nullptr && path[0] != '\0') {
       outputParams(path);
@@ -587,8 +564,7 @@ int HyPerCol::processParams(char const *path) {
    else {
       if (globalRank() == 0) {
          InfoLog().printf(
-               "HyPerCol \"%s\": path for printing parameters file was "
-               "empty or null.\n",
+               "HyPerCol \"%s\": path for printing parameters file was empty or null.\n",
                getName());
       }
    }
