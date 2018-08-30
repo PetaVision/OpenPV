@@ -58,7 +58,7 @@ class pvpOpen(object):
                 patchsizeoverall = self.header['nxp'] * self.header['nyp'] * self.header['nfp']
                 recordsize = self.header['numpatches'] * (8+4*patchsizeoverall)
                 framesize = recordsize * self.header['nbands'] + self.header['headersize']
-                self.numFrames = filesize/framesize
+                self.numFrames = filesize//framesize
             else:
                 self.numFrames = self.header['nbands']
             #Check filetypes
@@ -180,7 +180,9 @@ class pvpOpen(object):
         # KERNEL WEIGHT FILE
         elif self.header['filetype'] == 5:
             shape = (self.header['nyp'], self.header['nxp'], self.header['nfp'])
-            frameSize = self.header['recordsize'] * self.header['nbands'] + self.header['headersize']
+            patchsizeoverall = self.header['nxp'] * self.header['nyp'] * self.header['nfp']
+            recordsize = self.header['numpatches'] * (8+4*patchsizeoverall)
+            frameSize = recordsize * self.header['nbands'] + self.header['headersize']
             patchPattern = np.dtype([('nx', np.uint16),
                                      ('ny', np.uint16),
                                      ('offset', np.uint32),
