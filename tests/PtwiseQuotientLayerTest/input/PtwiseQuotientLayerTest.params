@@ -1,0 +1,182 @@
+//
+// PtwiseQuotientLayerTest.params
+//
+// created by peteschultz: Aug 16, 2018
+//
+
+// A params file to test PtwiseQuotientLayer.
+// The 16-by-16 input layers "Numerator" and "Denominator" are fed into a PtwiseQuotientLayer.
+// numerator is constant along each row and varies from 1 to 16 each column.
+// denominator is constant along each column and varies from 1 to 16 along each row.
+// The expected answer is in the "Correct" layer. It is compared to the quotient layer in
+// the "Comparison" layer. A RequireAllZeroActivityProbe checks that Comparison is
+// all zeros, which means that the quotient layer agrees with the correct result.
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 16;
+   ny = 16;
+   nbatch = 1;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 10.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+PvpLayer "Numerator" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 0;
+
+    inputPath = "input/numerator.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+PvpLayer "Denominator" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 0;
+
+    inputPath = "input/denominator.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+PvpLayer "Correct" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 0;
+
+    inputPath = "input/correct.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+PtwiseQuotientLayer "Quotient" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    phase = 1;
+    triggerLayerName = NULL;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;   
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+};
+
+HyPerLayer "Comparison" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    phase = 2;
+    triggerLayerName = NULL;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};
+
+IdentConn "NumeratorToQuotient" = {
+    preLayerName = "Numerator";
+    postLayerName = "Quotient";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "DenominatorToQuotient" = {
+    preLayerName = "Denominator";
+    postLayerName = "Quotient";
+    channelCode = 1;
+    delay = 0;
+};
+
+IdentConn "QuotientToComparison" = {
+    preLayerName = "Quotient";
+    postLayerName = "Comparison";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "CorrectToComparison" = {
+    preLayerName = "Correct";
+    postLayerName = "Comparison";
+    channelCode = 1;
+    delay = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonTest" = {
+    targetLayer                         = "Comparison";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ComparisonTest.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 0.0;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = false;
+};

@@ -1,13 +1,16 @@
 /*
- * LabelErrorLayer.cpp
+ * ANNWhitenedLayer.cpp
  *
- *  Created on: Nov 30, 2013
+ *  Created on: Feb 15, 2013
  *      Author: garkenyon
  */
 
-#include "LabelErrorLayer.hpp"
+// ANNWhitenedLayer was deprecated on Aug 15, 2018.
 
-void LabelErrorLayer_update_state(
+#include "ANNWhitenedLayer.hpp"
+#include "DeprecatedUpdateStateFunctions.h"
+
+void ANNWhitenedLayer_update_state(
       const int nbatch,
       const int numNeurons,
       const int nx,
@@ -24,50 +27,32 @@ void LabelErrorLayer_update_state(
       float *verticesA,
       float *slopes,
       float *GSynHead,
-      float *activity,
-      float errScale,
-      int isBinary);
+      float *activity);
 
 namespace PV {
 
-LabelErrorLayer::LabelErrorLayer() { initialize_base(); }
+ANNWhitenedLayer::ANNWhitenedLayer() { initialize_base(); }
 
-LabelErrorLayer::LabelErrorLayer(const char *name, HyPerCol *hc) {
+ANNWhitenedLayer::ANNWhitenedLayer(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
 
-LabelErrorLayer::~LabelErrorLayer() {}
+ANNWhitenedLayer::~ANNWhitenedLayer() {}
 
-int LabelErrorLayer::initialize_base() {
-   numChannels = 2;
-   errScale    = 1;
-   isBinary    = 1;
+int ANNWhitenedLayer::initialize_base() {
+   numChannels = 3; // applyGSyn_ANNWhitenedLayer uses 3 channels
    return PV_SUCCESS;
 }
 
-int LabelErrorLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = ANNLayer::initialize(name, hc);
-   assert(numChannels == 2);
-   return status;
+int ANNWhitenedLayer::initialize(const char *name, HyPerCol *hc) {
+   WarnLog() << "ANNWhitenedLayer has been deprecated.\n";
+   ANNLayer::initialize(name, hc);
+   assert(numChannels == 3);
+   return PV_SUCCESS;
 }
 
-int LabelErrorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ANNLayer::ioParamsFillGroup(ioFlag);
-   ioParam_errScale(ioFlag);
-   ioParam_isBinary(ioFlag);
-   return status;
-}
-
-void LabelErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "errScale", &errScale, errScale);
-}
-
-void LabelErrorLayer::ioParam_isBinary(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "isBinary", &isBinary, isBinary);
-}
-
-Response::Status LabelErrorLayer::updateState(double time, double dt) {
+Response::Status ANNWhitenedLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = clayer->activity->data;
    float *V              = getV();
@@ -78,7 +63,7 @@ Response::Status LabelErrorLayer::updateState(double time, double dt) {
    int nf                = loc->nf;
    int num_neurons       = nx * ny * nf;
    int nbatch            = loc->nbatch;
-   LabelErrorLayer_update_state(
+   ANNWhitenedLayer_update_state(
          nbatch,
          num_neurons,
          nx,
@@ -94,18 +79,14 @@ Response::Status LabelErrorLayer::updateState(double time, double dt) {
          verticesA,
          slopes,
          gSynHead,
-         A,
-         errScale,
-         isBinary);
+         A);
 
    return Response::SUCCESS;
 }
 
 } /* namespace PV */
 
-// Kernel
-
-void LabelErrorLayer_update_state(
+void ANNWhitenedLayer_update_state(
       const int nbatch,
       const int numNeurons,
       const int nx,
@@ -122,10 +103,8 @@ void LabelErrorLayer_update_state(
       float *verticesA,
       float *slopes,
       float *GSynHead,
-      float *activity,
-      const float errScale,
-      const int isBinary) {
-   updateV_LabelErrorLayer(
+      float *activity) {
+   updateV_ANNWhitenedLayer(
          nbatch,
          numNeurons,
          V,
@@ -141,7 +120,5 @@ void LabelErrorLayer_update_state(
          lt,
          rt,
          dn,
-         up,
-         errScale,
-         isBinary);
+         up);
 }

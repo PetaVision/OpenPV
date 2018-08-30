@@ -3,6 +3,8 @@
  * Author: slundquist
  */
 
+// WTALayer was deprecated on Aug 15, 2018, in favor of WTAConn.
+
 #include "WTALayer.hpp"
 #include <assert.h>
 #include <fstream>
@@ -24,6 +26,11 @@ int WTALayer::initialize_base() {
    binMax            = 1;
    binMin            = 0;
    return PV_SUCCESS;
+}
+
+int WTALayer::initialize(const char *name, HyPerCol *hc) {
+   WarnLog() << "WTALayer has been deprecated. Use a WTAConn to a HyPerLayer instead.\n";
+   return HyPerLayer::initialize(name, hc);
 }
 
 Response::Status

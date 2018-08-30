@@ -13,7 +13,6 @@
 #include "layers/ANNErrorLayer.hpp"
 #include "layers/ANNLayer.hpp"
 #include "layers/ANNSquaredLayer.hpp"
-#include "layers/ANNWhitenedLayer.hpp"
 #include "layers/BackgroundLayer.hpp"
 #include "layers/BinningLayer.hpp"
 #include "layers/CloneVLayer.hpp"
@@ -24,14 +23,10 @@
 #include "layers/HyPerLCALayer.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/ISTALayer.hpp"
-#include "layers/ImageFromMemoryBuffer.hpp"
 #include "layers/ImageLayer.hpp"
 #include "layers/InputRegionLayer.hpp"
-#include "layers/KmeansLayer.hpp"
-#include "layers/LCALIFLayer.hpp"
 #include "layers/LIF.hpp"
 #include "layers/LIFGap.hpp"
-#include "layers/LabelErrorLayer.hpp"
 #include "layers/LeakyIntegrator.hpp"
 #include "layers/MaskLayer.hpp"
 #include "layers/MomentumLCALayer.hpp"
@@ -41,10 +36,16 @@
 #include "layers/PvpLayer.hpp"
 #include "layers/RescaleLayer.hpp"
 #include "layers/Retina.hpp"
-#include "layers/RunningAverageLayer.hpp"
-#include "layers/ShuffleLayer.hpp"
 #include "layers/SigmoidLayer.hpp"
-#include "layers/WTALayer.hpp"
+
+#include "deprecated/ANNWhitenedLayer.hpp"
+#include "deprecated/ImageFromMemoryBuffer.hpp"
+#include "deprecated/KmeansLayer.hpp"
+#include "deprecated/LCALIFLayer.hpp"
+#include "deprecated/LabelErrorLayer.hpp"
+#include "deprecated/RunningAverageLayer.hpp"
+#include "deprecated/ShuffleLayer.hpp"
+#include "deprecated/WTALayer.hpp"
 
 #include "connections/CloneConn.hpp"
 #include "connections/CopyConn.hpp"
@@ -58,6 +59,7 @@
 #include "connections/RescaleConn.hpp"
 #include "connections/TransposeConn.hpp"
 #include "connections/TransposePoolingConn.hpp"
+#include "connections/WTAConn.hpp"
 
 #include "probes/AdaptiveTimeScaleProbe.hpp"
 #include "probes/ColumnEnergyProbe.hpp"
@@ -90,6 +92,7 @@
 #include "delivery/PresynapticPerspectiveConvolveDelivery.hpp"
 #include "delivery/PresynapticPerspectiveStochasticDelivery.hpp"
 #include "delivery/RescaleDelivery.hpp"
+#include "delivery/WTADelivery.hpp"
 
 #ifdef PV_USE_CUDA
 #include "delivery/PostsynapticPerspectiveGPUDelivery.hpp"
@@ -175,6 +178,8 @@ int Factory::registerCoreKeywords() {
    registerKeyword("RescaleConn", Factory::create<RescaleConn>);
    registerKeyword("TransposeConn", Factory::create<TransposeConn>);
    registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
+   registerKeyword("WTAConn", Factory::create<WTAConn>);
+
    registerKeyword("AdaptiveTimeScaleProbe", Factory::create<AdaptiveTimeScaleProbe>);
    registerKeyword("KneeTimeScaleProbe", Factory::create<KneeTimeScaleProbe>);
    registerKeyword("LogTimeScaleProbe", Factory::create<LogTimeScaleProbe>);
@@ -214,6 +219,7 @@ int Factory::registerCoreKeywords() {
          "PresynapticPerspectiveStochasticDelivery",
          Factory::create<PresynapticPerspectiveStochasticDelivery>);
    registerKeyword("RescaleDelivery", Factory::create<RescaleDelivery>);
+   registerKeyword("WTADelivery", Factory::create<WTADelivery>);
 #ifdef PV_USE_CUDA
    registerKeyword(
          "PostsynapticPerspectiveGPUDelivery", Factory::create<PostsynapticPerspectiveGPUDelivery>);

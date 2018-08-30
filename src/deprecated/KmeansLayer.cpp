@@ -5,8 +5,10 @@
  *      Author: Xinhua Zhang
  */
 
+// KmeansLayer was deprecated on Aug 15, 2018.
+
 #include "KmeansLayer.hpp"
-#include "../layers/updateStateFunctions.h"
+#include "DeprecatedUpdateStateFunctions.h"
 
 namespace PV {
 
@@ -20,6 +22,7 @@ KmeansLayer::~KmeansLayer() {}
 KmeansLayer::KmeansLayer() { initialize_base(); }
 
 int KmeansLayer::initialize(const char *name, HyPerCol *hc) {
+   WarnLog() << "KmeansLayer has been deprecated.\n";
    int status = HyPerLayer::initialize(name, hc);
    assert(status == PV_SUCCESS);
    return status;

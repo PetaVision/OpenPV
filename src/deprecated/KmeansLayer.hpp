@@ -5,10 +5,12 @@
  *      Author: Xinhua Zhang
  */
 
+// KmeansLayer was deprecated on Aug 15, 2018.
+
 #ifndef KMEANSLAYER_HPP_
 #define KMEANSLAYER_HPP_
 
-#include "HyPerLayer.hpp"
+#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 class KmeansLayer : public HyPerLayer {

@@ -12,6 +12,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/RescaleConn.cpp
    ${SUBDIR}/TransposeConn.cpp
    ${SUBDIR}/TransposePoolingConn.cpp
+   ${SUBDIR}/WTAConn.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -28,6 +29,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/RescaleConn.hpp
    ${SUBDIR}/TransposeConn.hpp
    ${SUBDIR}/TransposePoolingConn.hpp
+   ${SUBDIR}/WTAConn.hpp
    ${SUBDIR}/weight_conversions.hpp
 )
 

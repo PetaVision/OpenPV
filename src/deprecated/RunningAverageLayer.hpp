@@ -6,10 +6,12 @@
  *      Author: wchavez
  */
 
+// RunningAverageLayer was deprecated on Aug 15, 2018.
+
 #ifndef RUNNINGAVERAGELAYER_HPP_
 #define RUNNINGAVERAGELAYER_HPP_
 
-#include "CloneVLayer.hpp"
+#include "layers/CloneVLayer.hpp"
 
 namespace PV {
 
