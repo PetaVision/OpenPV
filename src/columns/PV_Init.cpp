@@ -8,7 +8,6 @@
 #include "cMakeHeader.h"
 #include "columns/CommandLineArguments.hpp"
 #include "columns/ConfigFileArguments.hpp"
-#include "columns/HyPerCol.hpp"
 #include "utils/PVLog.hpp"
 #include <csignal>
 #ifdef PV_USE_OPENMP_THREADS

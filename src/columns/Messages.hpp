@@ -29,12 +29,14 @@ class CommunicateInitInfoMessage : public BaseMessage {
          std::map<std::string, Observer *> const &hierarchy,
          int nxGlobal,
          int nyGlobal,
-         int nBatchGlobal) {
+         int nBatchGlobal,
+         int numThreads) {
       setMessageType("CommunicateInitInfo");
       mHierarchy    = hierarchy;
       mNxGlobal     = nxGlobal;
       mNyGlobal     = nyGlobal;
       mNBatchGlobal = nBatchGlobal;
+      mNumThreads   = numThreads;
    }
    template <typename T>
    T *lookup(std::string const &name) const {
@@ -51,6 +53,7 @@ class CommunicateInitInfoMessage : public BaseMessage {
    int mNxGlobal;
    int mNyGlobal;
    int mNBatchGlobal;
+   int mNumThreads;
 };
 
 #ifdef PV_USE_CUDA

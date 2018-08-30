@@ -123,12 +123,17 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    mUsingGPUFlag = mReceiveGpu;
 #endif // PV_USE_CUDA
 
+#ifdef PV_USE_OPENMP_THREADS
+   mNumThreads = message->mNumThreads;
+   InfoLog() << getDescription() << " setting mNumThreads to " << mNumThreads << ".\n";
+#endif // PV_USE_OPENMP_THREADS
+
    return Response::SUCCESS;
 }
 
 #ifdef PV_USE_OPENMP_THREADS
 void BaseDelivery::allocateThreadGSyn() {
-   int const numThreads = parent->getNumThreads();
+   int const numThreads = mNumThreads;
    if (numThreads > 1) {
       int const numNeuronsAllBatches = mPostLayer->getNumNeuronsAllBatches();
       mThreadGSyn.resize(numThreads);

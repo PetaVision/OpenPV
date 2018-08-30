@@ -156,7 +156,11 @@ void initGeometries(
       PV::LayerGeometry **geomC) {
    auto *objectMap            = hc->copyObjectMap();
    auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
-         *objectMap, hc->getNxGlobal(), hc->getNyGlobal(), hc->getNBatchGlobal());
+         *objectMap,
+         hc->getNxGlobal(),
+         hc->getNyGlobal(),
+         hc->getNBatchGlobal(),
+         hc->getNumThreads());
 
    *geomA = nullptr;
    *geomB = nullptr;

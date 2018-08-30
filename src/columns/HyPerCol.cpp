@@ -553,7 +553,7 @@ int HyPerCol::processParams(char const *path) {
       auto const &objectMap = mObserverTable.getObjectMap();
       notifyLoop(
             std::make_shared<CommunicateInitInfoMessage>(
-                  objectMap, mNumXGlobal, mNumYGlobal, mNumBatchGlobal));
+                  objectMap, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
    }
 
    // Print a cleaned up version of params to the file given by printParamsFilename

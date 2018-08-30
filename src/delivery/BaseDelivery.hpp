@@ -119,6 +119,7 @@ class BaseDelivery : public BaseObject {
    // Accumulate buffer, used by some subclasses if numThreads > 1 to avoid
    // parallelization collisions.
    std::vector<std::vector<float>> mThreadGSyn;
+   int mNumThreads = 1;
 #endif // PV_USE_OPENMP_THREADS
 };
 

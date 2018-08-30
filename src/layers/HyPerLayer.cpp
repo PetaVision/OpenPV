@@ -969,7 +969,8 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
          mObserverTable.getObjectMap(),
          message->mNxGlobal,
          message->mNyGlobal,
-         message->mNBatchGlobal);
+         message->mNBatchGlobal,
+         message->mNumThreads);
 
    Response::Status status =
          notify(communicateMessage, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
