@@ -38,6 +38,8 @@ class StatsProbe : public PV::LayerProbe {
     */
    virtual void initNumValues() override;
 
+   virtual Response::Status allocateDataStructures() override;
+
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 

@@ -61,18 +61,7 @@ int StatsProbe::initialize_base() {
 int StatsProbe::initialize(const char *name, HyPerCol *hc) {
    int status = LayerProbe::initialize(name, hc);
 
-   assert(status == PV_SUCCESS);
-
-   int const nbatch = mLocalBatchWidth;
-
-   fMin  = (float *)malloc(sizeof(float) * nbatch);
-   fMax  = (float *)malloc(sizeof(float) * nbatch);
-   sum   = (double *)malloc(sizeof(double) * nbatch);
-   sum2  = (double *)malloc(sizeof(double) * nbatch);
-   avg   = (float *)malloc(sizeof(float) * nbatch);
-   sigma = (float *)malloc(sizeof(float) * nbatch);
-   nnz   = (int *)malloc(sizeof(int) * nbatch);
-   resetStats();
+   pvAssert(status == PV_SUCCESS);
 
    return status;
 }
@@ -165,6 +154,26 @@ void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
 }
 
 void StatsProbe::initNumValues() { setNumValues(-1); }
+
+Response::Status StatsProbe::allocateDataStructures() {
+   auto status = LayerProbe::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
+
+   int const nbatch = mLocalBatchWidth;
+
+   fMin  = (float *)malloc(sizeof(float) * nbatch);
+   fMax  = (float *)malloc(sizeof(float) * nbatch);
+   sum   = (double *)malloc(sizeof(double) * nbatch);
+   sum2  = (double *)malloc(sizeof(double) * nbatch);
+   avg   = (float *)malloc(sizeof(float) * nbatch);
+   sigma = (float *)malloc(sizeof(float) * nbatch);
+   nnz   = (int *)malloc(sizeof(int) * nbatch);
+   resetStats();
+
+   return Response::SUCCESS;
+}
 
 Response::Status
 StatsProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {

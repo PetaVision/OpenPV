@@ -45,7 +45,8 @@ int main(int argc, char *argv[]) {
    lg->readParams();
 
    auto objectMap             = hc->copyObjectMap();
-   auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(*objectMap);
+   auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
+         *objectMap, hc->getNxGlobal(), hc->getNyGlobal(), hc->getNBatchGlobal());
    lg->respond(communicateMessagePtr);
 
    loc    = lg->getLayerLoc();
@@ -110,7 +111,8 @@ PVLayerLoc makeCorrectLoc(PV::HyPerCol *hc) {
 
 void communicateInitInfo(PV::HyPerCol *hc) {
    auto objectMap  = hc->copyObjectMap();
-   auto messagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(*objectMap);
+   auto messagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
+         *objectMap, hc->getNxGlobal(), hc->getNyGlobal(), hc->getNBatchGlobal());
 
    int maxcount = 0;
    PV::Response::Status status;

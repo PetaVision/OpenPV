@@ -108,8 +108,11 @@ BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
    pvAssert(objectMapComponent);
 
-   auto communicateMessage =
-         std::make_shared<CommunicateInitInfoMessage>(mObserverTable.getObjectMap());
+   auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
+         mObserverTable.getObjectMap(),
+         message->mNxGlobal,
+         message->mNyGlobal,
+         message->mNBatchGlobal);
 
    Response::Status status =
          notify(communicateMessage, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);

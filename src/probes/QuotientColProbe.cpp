@@ -98,6 +98,10 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
          }
       }
    }
+   if (!numerProbe->getInitInfoCommunicatedFlag() or !denomProbe->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
+
    int nNumValues, dNumValues;
    if (!failed) {
       nNumValues = numerProbe->getNumValues();

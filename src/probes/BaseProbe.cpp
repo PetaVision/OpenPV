@@ -67,8 +67,6 @@ int BaseProbe::initialize(const char *name, HyPerCol *hc) {
       return status;
    }
    readParams();
-   mLocalBatchWidth = parent->getNBatch();
-   initNumValues();
    return status;
 }
 
@@ -232,6 +230,12 @@ void BaseProbe::setNumValues(int n) {
 
 Response::Status
 BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   // Retrieve local batch width and set up number of values.
+   int const nBatchGlobal = message->mNBatchGlobal;
+   mLocalBatchWidth       = nBatchGlobal / parent->getCommunicator()->numCommBatches();
+   pvAssert(mLocalBatchWidth * parent->getCommunicator()->numCommBatches() == nBatchGlobal);
+   initNumValues();
+
    // Set up triggering.
    if (triggerFlag) {
       triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));

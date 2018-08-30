@@ -450,6 +450,40 @@ int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 Response::Status
+InputLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   Response::Status status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   bool sizeMismatch = false;
+   int startLength   = (int)mStartFrameIndex.size();
+   if (startLength == 0) {
+      mStartFrameIndex.resize(message->mNBatchGlobal);
+   }
+   else if (startLength != message->mNBatchGlobal) {
+      ErrorLog().printf(
+            "%s: start_frame_index requires either 0 or nbatch=%d values.\n",
+            getDescription_c(),
+            message->mNBatchGlobal);
+      sizeMismatch = true;
+   }
+   int skipLength = (int)mSkipFrameIndex.size();
+   if (skipLength == 0) {
+      mSkipFrameIndex.resize(message->mNBatchGlobal);
+   }
+   else if (skipLength != message->mNBatchGlobal) {
+      ErrorLog().printf(
+            "%s: start_frame_index requires either 0 or nbatch=%d values.\n",
+            getDescription_c(),
+            message->mNBatchGlobal);
+      sizeMismatch = true;
+   }
+   FatalIf(sizeMismatch, "Unable to initialize %s\n", getDescription_c());
+
+   return Response::SUCCESS;
+}
+
+Response::Status
 InputLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto status = HyPerLayer::registerData(message);
    if (!Response::completed(status)) {
@@ -817,13 +851,8 @@ void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
    }
    this->parameters()->ioParamArray(
          ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
-   FatalIf(
-         length != 0 && length != parent->getNBatchGlobal(),
-         "%s: start_frame_index requires either 0 or nbatch values.\n",
-         getName());
-   mStartFrameIndex.clear();
-   mStartFrameIndex.resize(parent->getNBatchGlobal());
-   if (length > 0) {
+   if (ioFlag == PARAMS_IO_READ) {
+      mStartFrameIndex.resize(length);
       for (int i = 0; i < length; ++i) {
          mStartFrameIndex.at(i) = paramsStartFrameIndex[i];
       }
@@ -834,14 +863,10 @@ void InputLayer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
 void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(name, "batchMethod"));
    if (mBatchMethod != BatchIndexer::BYSPECIFIED) {
-      mSkipFrameIndex.resize(parent->getNBatchGlobal(), 0);
-      // Earlier behavior made it a fatal error if skip_frame_index was used
-      // and batchMethod was not bySpecified. Now the parameter is skipped and
-      // a warning will be issued when params are scanned for unread values.
       return;
    }
-   int *paramsSkipFrameIndex = nullptr;
-   int length                = 0;
+   int *paramsSkipFrameIndex;
+   int length = 0;
    if (ioFlag == PARAMS_IO_WRITE) {
       length               = mSkipFrameIndex.size();
       paramsSkipFrameIndex = static_cast<int *>(calloc(length, sizeof(int)));
@@ -851,14 +876,11 @@ void InputLayer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
    }
    this->parameters()->ioParamArray(
          ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
-   FatalIf(
-         length != parent->getNBatchGlobal(),
-         "%s: skip_frame_index requires nbatch values.\n",
-         getName());
-   mSkipFrameIndex.clear();
-   mSkipFrameIndex.resize(length);
-   for (int i = 0; i < length; ++i) {
-      mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
+   if (ioFlag == PARAMS_IO_READ) {
+      mSkipFrameIndex.resize(length);
+      for (int i = 0; i < length; ++i) {
+         mSkipFrameIndex.at(i) = paramsSkipFrameIndex[i];
+      }
    }
    free(paramsSkipFrameIndex);
 }

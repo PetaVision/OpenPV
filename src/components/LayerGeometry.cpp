@@ -49,7 +49,7 @@ Response::Status
 LayerGeometry::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    communicateLayerGeometry(message);
    // At this point, nxScale, nyScale, and nfScale are known.
-   setLayerLoc(&mLayerLoc);
+   setLayerLoc(&mLayerLoc, message);
 
    mNumNeurons           = mLayerLoc.nx * mLayerLoc.ny * mLayerLoc.nf;
    mNumNeuronsAllBatches = mNumNeurons * mLayerLoc.nbatch;
@@ -75,12 +75,14 @@ void LayerGeometry::updateNumExtended() {
 void LayerGeometry::communicateLayerGeometry(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {}
 
-void LayerGeometry::setLayerLoc(PVLayerLoc *layerLoc) {
+void LayerGeometry::setLayerLoc(
+      PVLayerLoc *layerLoc,
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = PV_SUCCESS;
 
    Communicator *icComm = parent->getCommunicator();
 
-   float nxglobalfloat = mNxScale * parent->getNxGlobal();
+   float nxglobalfloat = mNxScale * message->mNxGlobal;
    layerLoc->nxGlobal  = (int)nearbyintf(nxglobalfloat);
    if (std::fabs(nxglobalfloat - layerLoc->nxGlobal) > 0.0001f) {
       if (icComm->globalCommRank() == 0) {
@@ -89,13 +91,13 @@ void LayerGeometry::setLayerLoc(PVLayerLoc *layerLoc) {
                "nxScale of layer \"%s\" is incompatible with size of column.\n", getName());
          errorMessage.printf(
                "Column nx %d multiplied by nxScale %f must be an integer.\n",
-               (double)parent->getNxGlobal(),
+               (double)message->mNxGlobal,
                (double)mNxScale);
       }
       status = PV_FAILURE;
    }
 
-   float nyglobalfloat = mNyScale * parent->getNyGlobal();
+   float nyglobalfloat = mNyScale * message->mNyGlobal;
    layerLoc->nyGlobal  = (int)nearbyintf(nyglobalfloat);
    if (std::fabs(nyglobalfloat - layerLoc->nyGlobal) > 0.0001f) {
       if (icComm->globalCommRank() == 0) {
@@ -104,7 +106,7 @@ void LayerGeometry::setLayerLoc(PVLayerLoc *layerLoc) {
                "nyScale of layer \"%s\" is incompatible with size of column.\n", getName());
          errorMessage.printf(
                "Column ny %d multiplied by nyScale %f must be an integer.\n",
-               (double)parent->getNyGlobal(),
+               (double)message->mNyGlobal,
                (double)mNyScale);
       }
       status = PV_FAILURE;
@@ -162,11 +164,12 @@ void LayerGeometry::setLayerLoc(PVLayerLoc *layerLoc) {
 
    layerLoc->nf = mNumFeatures;
 
-   int nBatch       = parent->getNBatch();
-   layerLoc->nbatch = nBatch;
+   layerLoc->nbatchGlobal = message->mNBatchGlobal;
 
-   layerLoc->kb0          = icComm->commBatch() * nBatch;
-   layerLoc->nbatchGlobal = icComm->numCommBatches() * nBatch;
+   int const nBatch = message->mNBatchGlobal / icComm->numCommBatches(); // integer arithmetic
+   pvAssert(nBatch * icComm->numCommBatches() == message->mNBatchGlobal); // checked in HyPerCol
+   layerLoc->nbatch = nBatch;
+   layerLoc->kb0    = icComm->commBatch() * nBatch;
    // halo is initialized to zero in constructor, and can be changed by calls
    // to requireMarginWidth. We don't change the values here.
 }

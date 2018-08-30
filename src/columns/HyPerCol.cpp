@@ -90,7 +90,6 @@ int HyPerCol::initialize_base() {
    mPrintParamsFilename      = nullptr;
    mNumXGlobal               = 0;
    mNumYGlobal               = 0;
-   mNumBatch                 = 1;
    mNumBatchGlobal           = 1;
    mOwnsCommunicator         = true;
    mParams                   = nullptr;
@@ -318,7 +317,7 @@ void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
-   // Make sure numCommBatches is a multiple of mNumBatch specified in the params
+   // Make sure numCommBatches is a divisor of nBatch specified in the params
    // file
    FatalIf(
          mNumBatchGlobal % mCommunicator->numCommBatches() != 0,
@@ -326,7 +325,6 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
          "width (%d)\n",
          mNumBatchGlobal,
          mCommunicator->numCommBatches());
-   mNumBatch = mNumBatchGlobal / mCommunicator->numCommBatches();
 }
 
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
@@ -553,7 +551,9 @@ int HyPerCol::setNumThreads() {
 int HyPerCol::processParams(char const *path) {
    if (!mParamsProcessedFlag) {
       auto const &objectMap = mObserverTable.getObjectMap();
-      notifyLoop(std::make_shared<CommunicateInitInfoMessage>(objectMap));
+      notifyLoop(
+            std::make_shared<CommunicateInitInfoMessage>(
+                  objectMap, mNumXGlobal, mNumYGlobal, mNumBatchGlobal));
    }
 
    // Print a cleaned up version of params to the file given by printParamsFilename

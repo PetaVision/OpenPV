@@ -30,14 +30,12 @@ class BaseProbe : public BaseObject {
    virtual ~BaseProbe();
 
    /**
-    * A pure virtual function called during HyPerCol::run, during the
-    * communicateInitInfo stage.
-    * BaseProbe::communicateInitInfo sets up the triggering layer and attaches to
-    * the energy probe,
+    * A virtual function called during HyPerCol::run, during the communicateInitInfo stage.
+    * BaseProbe::communicateInitInfo sets up the triggering layer and attaches to the energy probe,
     * if either triggerFlag or energyProbe are set.
     */
    virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override = 0;
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
     * Called during HyPerCol::run, during the allocateDataStructures stage.

@@ -82,7 +82,8 @@ int main(int argc, char *argv[]) {
 
    auto objectMap = hc->copyObjectMap();
 
-   auto communicateMessagePtr = std::make_shared<CommunicateInitInfoMessage>(*objectMap);
+   auto communicateMessagePtr = std::make_shared<CommunicateInitInfoMessage>(
+         *objectMap, hc->getNxGlobal(), hc->getNyGlobal(), hc->getNBatchGlobal());
    broadcastMessage(objectMap, communicateMessagePtr);
 
    auto allocateMessagePtr = std::make_shared<AllocateDataStructuresMessage>();

@@ -115,7 +115,8 @@ class LayerGeometry : public BaseObject {
     */
    virtual void communicateLayerGeometry(std::shared_ptr<CommunicateInitInfoMessage const> message);
 
-   void setLayerLoc(PVLayerLoc *layerLoc);
+   void
+   setLayerLoc(PVLayerLoc *layerLoc, std::shared_ptr<CommunicateInitInfoMessage const> message);
 
   protected:
    float mNxScale   = 1.0;

@@ -25,9 +25,16 @@ namespace PV {
 
 class CommunicateInitInfoMessage : public BaseMessage {
   public:
-   CommunicateInitInfoMessage(std::map<std::string, Observer *> const &hierarchy) {
+   CommunicateInitInfoMessage(
+         std::map<std::string, Observer *> const &hierarchy,
+         int nxGlobal,
+         int nyGlobal,
+         int nBatchGlobal) {
       setMessageType("CommunicateInitInfo");
-      mHierarchy = hierarchy;
+      mHierarchy    = hierarchy;
+      mNxGlobal     = nxGlobal;
+      mNyGlobal     = nyGlobal;
+      mNBatchGlobal = nBatchGlobal;
    }
    template <typename T>
    T *lookup(std::string const &name) const {
@@ -41,6 +48,9 @@ class CommunicateInitInfoMessage : public BaseMessage {
       }
    }
    std::map<std::string, Observer *> mHierarchy;
+   int mNxGlobal;
+   int mNyGlobal;
+   int mNBatchGlobal;
 };
 
 #ifdef PV_USE_CUDA

@@ -146,6 +146,8 @@ class InputLayer : public HyPerLayer {
    virtual void initializeActivity() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual double getDeltaUpdateTime() override;
