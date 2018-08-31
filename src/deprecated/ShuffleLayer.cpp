@@ -5,6 +5,8 @@
  *   Author: Sheng Lundquist, Will Shainin
  */
 
+// ShuffleLayer was deprecated on Aug 15, 2018.
+
 #include "ShuffleLayer.hpp"
 #include <stdio.h>
 
@@ -60,6 +62,7 @@ int ShuffleLayer::initialize_base() {
 }
 
 int ShuffleLayer::initialize(const char *name, HyPerCol *hc) {
+   WarnLog() << "ShuffleLayer has been deprecated.\n";
    int status_init = HyPerLayer::initialize(name, hc);
    // don't need conductance channels
    freeChannels(); // TODO: Does this need to be here?

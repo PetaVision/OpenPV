@@ -209,8 +209,10 @@ if plot_weights
          weights_hdr{i_weights} = readpvpheader(weights_fid);    
          fclose(weights_fid);
          weights_filedata = dir(weights_file);
-         weights_framesize = ...
-         weights_hdr{i_weights}.recordsize*weights_hdr{i_weights}.numrecords+weights_hdr{i_weights}.headersize;
+         patchsize = weights_hdr{i_weights}.additional(1)*weights_hdr{i_weights}.additional(2)*weights_hdr{i_weights}.additional(3);
+         numpatches = weights_hdr{i_weights}.additional(6);
+         datasize = weights_hdr{i_weights}.datasize;
+         weights_framesize = (patchsize * datasize + 8) * numpatches + weights_hdr{i_weights}.headersize;
          tot_weights_frames = weights_filedata(1).bytes/weights_framesize;
          num_weights = 1;
          progress_step = ceil(tot_weights_frames / 10);

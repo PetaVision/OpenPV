@@ -169,13 +169,15 @@ void TransposeWeightsPair::createPostWeights(std::string const &weightsName) {
 
 Response::Status TransposeWeightsPair::allocateDataStructures() { return Response::SUCCESS; }
 
-Response::Status TransposeWeightsPair::registerData(
-      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   return Response::NO_ACTION;
+Response::Status TransposeWeightsPair::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   if (mWriteStep >= 0) {
+      return WeightsPair::registerData(message);
+   }
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 void TransposeWeightsPair::finalizeUpdate(double timestamp, double deltaTime) {}
-
-void TransposeWeightsPair::outputState(double timestamp) { return; }
 
 } // namespace PV

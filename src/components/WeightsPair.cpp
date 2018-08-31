@@ -238,8 +238,9 @@ WeightsPair::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> cons
       return status;
    }
    needPre();
+   allocatePreWeights();
    auto *checkpointer = message->mDataRegistry;
-   mPreWeights->checkpointWeightPvp(checkpointer, "W", mWriteCompressedCheckpoints);
+   mPreWeights->checkpointWeightPvp(checkpointer, getName(), "W", mWriteCompressedCheckpoints);
    if (mWriteStep >= 0) {
       checkpointer->registerCheckpointData(
             std::string(name),

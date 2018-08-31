@@ -109,7 +109,11 @@ class Weights {
 
    bool getDataStructuresAllocatedFlag() const { return mDataStructuresAllocatedFlag; }
 
-   void checkpointWeightPvp(Checkpointer *checkpointer, char const *bufferName, bool compressFlag);
+   void checkpointWeightPvp(
+         Checkpointer *checkpointer,
+         char const *objectName,
+         char const *bufferName,
+         bool compressFlag);
 
    /** Calculates the minimum value of the patch data over all arbors. For nonshared weights, only
     * the active regions of the patches are considered when taking the minimum. */

@@ -100,7 +100,8 @@ MomentumUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
    // Do we need to handle it here and in readStateFromCheckpoint? --pschultz, 2017-12-16
    if (mPlasticityFlag) {
       auto *checkpointer = message->mDataRegistry;
-      mPrevDeltaWeights->checkpointWeightPvp(checkpointer, "prev_dW", mWriteCompressedCheckpoints);
+      mPrevDeltaWeights->checkpointWeightPvp(
+            checkpointer, name, "prev_dW", mWriteCompressedCheckpoints);
    }
    return Response::SUCCESS;
 }

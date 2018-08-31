@@ -6,6 +6,8 @@
  *  Description of the class is in ImageFromMemoryBuffer.hpp
  */
 
+// ImageFromMemoryBuffer was deprecated on Aug 15, 2015.
+
 #include "ImageFromMemoryBuffer.hpp"
 
 #include <vector>
@@ -26,6 +28,7 @@ int ImageFromMemoryBuffer::initialize_base() {
 }
 
 int ImageFromMemoryBuffer::initialize(char const *name, HyPerCol *hc) {
+   WarnLog() << "ImageFromMemoryBuffer has been deprecated.\n";
    if (mUseInputBCflag && mAutoResizeFlag) {
       if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(

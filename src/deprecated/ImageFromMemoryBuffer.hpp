@@ -11,10 +11,12 @@
  *  If using buildandrun, setMemoryBuffer() can be called using the custominit hook.
  */
 
+// ImageFromMemoryBuffer was deprecated on Aug 15, 2015.
+
 #ifndef IMAGEFROMMEMORYBUFFER_HPP_
 #define IMAGEFROMMEMORYBUFFER_HPP_
 
-#include "ImageLayer.hpp"
+#include "layers/ImageLayer.hpp"
 
 namespace PV {
 

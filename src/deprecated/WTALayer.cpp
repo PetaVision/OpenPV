@@ -3,6 +3,8 @@
  * Author: slundquist
  */
 
+// WTALayer was deprecated on Aug 15, 2018, in favor of WTAConn.
+
 #include "WTALayer.hpp"
 #include <assert.h>
 #include <fstream>
@@ -18,22 +20,17 @@ WTALayer::WTALayer(const char *name, HyPerCol *hc) {
 WTALayer::~WTALayer() {}
 
 int WTALayer::initialize_base() {
-   numChannels = 0;
-   binMax      = 1;
-   binMin      = 0;
+   numChannels       = 0;
+   originalLayerName = NULL;
+   originalLayer     = NULL;
+   binMax            = 1;
+   binMin            = 0;
    return PV_SUCCESS;
 }
 
-void WTALayer::setObserverTable() {
-   HyPerLayer::setObserverTable();
-   auto *originalLayerNameParam = createOriginalLayerNameParam();
-   if (originalLayerNameParam) {
-      addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);
-   }
-}
-
-OriginalLayerNameParam *WTALayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parent);
+int WTALayer::initialize(const char *name, HyPerCol *hc) {
+   WarnLog() << "WTALayer has been deprecated. Use a WTAConn to a HyPerLayer instead.\n";
+   return HyPerLayer::initialize(name, hc);
 }
 
 Response::Status
@@ -42,24 +39,32 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    if (!Response::completed(status)) {
       return status;
    }
-
-   setOriginalLayer();
-   pvAssert(mOriginalLayer);
-   if (mOriginalLayer->getInitInfoCommunicatedFlag() == false) {
+   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
+   if (originalLayer == NULL) {
+      if (parent->columnId() == 0) {
+         ErrorLog().printf(
+               "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
+               getDescription_c(),
+               originalLayerName);
+      }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   if (originalLayer->getInitInfoCommunicatedFlag() == false) {
       return Response::POSTPONE;
    }
-   mOriginalLayer->synchronizeMarginWidth(this);
-   this->synchronizeMarginWidth(mOriginalLayer);
-   const PVLayerLoc *srcLoc = mOriginalLayer->getLayerLoc();
+   originalLayer->synchronizeMarginWidth(this);
+   this->synchronizeMarginWidth(originalLayer);
+   const PVLayerLoc *srcLoc = originalLayer->getLayerLoc();
    const PVLayerLoc *loc    = getLayerLoc();
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (parent->columnId() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same dimensions.\n",
                getDescription_c(),
-               mOriginalLayer->getName());
+               originalLayerName);
          errorMessage.printf(
                "    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
                srcLoc->nxGlobal,
@@ -77,31 +82,6 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    return Response::SUCCESS;
 }
 
-void WTALayer::setOriginalLayer() {
-   auto *originalLayerNameParam = getComponentByType<OriginalLayerNameParam>();
-   pvAssert(originalLayerNameParam);
-
-   ComponentBasedObject *originalObject = nullptr;
-   try {
-      originalObject = originalLayerNameParam->findLinkedObject(mObserverTable.getObjectMap());
-   } catch (std::invalid_argument &e) {
-      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-   }
-   pvAssert(originalObject);
-
-   mOriginalLayer = dynamic_cast<HyPerLayer *>(originalObject);
-   if (mOriginalLayer == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-               getDescription_c(),
-               originalObject->getName());
-      }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-      exit(EXIT_FAILURE);
-   }
-}
-
 void WTALayer::allocateV() {
    // Allocate V does nothing since binning does not need a V layer
    clayer->V = NULL;
@@ -113,15 +93,28 @@ void WTALayer::initializeActivity() {}
 
 int WTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
+   ioParam_originalLayerName(ioFlag);
    ioParam_binMaxMin(ioFlag);
    return status;
 }
+void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamStringRequired(
+         ioFlag, name, "originalLayerName", &originalLayerName);
+   assert(originalLayerName);
+   if (ioFlag == PARAMS_IO_READ && originalLayerName[0] == '\0') {
+      if (parent->columnId() == 0) {
+         ErrorLog().printf("%s: originalLayerName must be set.\n", getDescription_c());
+      }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+}
 
 void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
-   parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
+   parent->parameters()->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
+   parent->parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
    if (ioFlag == PARAMS_IO_READ && binMax <= binMin) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (parent->columnId() == 0) {
          ErrorLog().printf(
                "%s: binMax (%f) must be greater than binMin (%f).\n",
                getDescription_c(),
@@ -135,10 +128,10 @@ void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
 
 Response::Status WTALayer::updateState(double timef, double dt) {
    float *currA = getCLayer()->activity->data;
-   float *srcA  = mOriginalLayer->getCLayer()->activity->data;
+   float *srcA  = originalLayer->getCLayer()->activity->data;
 
    const PVLayerLoc *loc    = getLayerLoc();
-   const PVLayerLoc *srcLoc = mOriginalLayer->getLayerLoc();
+   const PVLayerLoc *srcLoc = originalLayer->getLayerLoc();
 
    // NF must be one
    assert(loc->nf == 1);
@@ -146,7 +139,7 @@ Response::Status WTALayer::updateState(double timef, double dt) {
 
    for (int b = 0; b < srcLoc->nbatch; b++) {
       float *currABatch = currA + b * getNumExtended();
-      float *srcABatch  = srcA + b * mOriginalLayer->getNumExtended();
+      float *srcABatch  = srcA + b * originalLayer->getNumExtended();
       // Loop over x and y of the src layer
       for (int yi = 0; yi < srcLoc->ny; yi++) {
          for (int xi = 0; xi < srcLoc->nx; xi++) {

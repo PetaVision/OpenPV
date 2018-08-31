@@ -227,6 +227,16 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(componentMap);
       pvAssert(objectMapComponent);
       mTriggerLayer = objectMapComponent->lookup<HyPerLayer>(std::string(mTriggerLayerName));
+      if (mTriggerLayer == nullptr) {
+         if (parent->getCommunicator()->globalCommRank() == 0) {
+            ErrorLog().printf(
+                  "%s: triggerLayerName \"%s\" does not correspond to a layer in the column.\n",
+                  getDescription_c(),
+                  mTriggerLayerName);
+         }
+         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+         exit(PV_FAILURE);
+      }
 
       // Although weightUpdatePeriod and weightUpdateTime are being set here, if triggerLayerName
       // is set, they are not being used. Only updating for backwards compatibility
@@ -329,7 +339,7 @@ HebbianUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
    }
    auto *checkpointer = message->mDataRegistry;
    if (mPlasticityFlag and !mImmediateWeightUpdate) {
-      mDeltaWeights->checkpointWeightPvp(checkpointer, "dW", mWriteCompressedCheckpoints);
+      mDeltaWeights->checkpointWeightPvp(checkpointer, name, "dW", mWriteCompressedCheckpoints);
       // Do we need to get PrepareCheckpointWrite messages, to call blockingNormalize_dW()?
    }
    std::string nameString = std::string(name);
