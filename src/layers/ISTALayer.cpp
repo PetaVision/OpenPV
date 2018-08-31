@@ -187,7 +187,7 @@ Response::Status ISTALayer::updateState(double time, double dt) {
    int nbatch            = loc->nbatch;
    // Only update when the probe updates
 
-   if (triggerLayer != NULL && triggerLayer->needUpdate(time, parent->getDeltaTime())) {
+   if (triggerLayer != NULL && triggerLayer->needUpdate(time, dt)) {
       for (int i = 0; i < num_neurons * nbatch; i++) {
          V[i] = 0.0;
       }

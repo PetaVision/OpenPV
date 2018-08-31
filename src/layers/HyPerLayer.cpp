@@ -790,7 +790,7 @@ Response::Status HyPerLayer::respondLayerRecvSynapticInput(
    resetGSynBuffers(message->mTime, message->mDeltaT); // deltaTimeAdapt is not used
 
    message->mTimer->start();
-   recvAllSynapticInput();
+   recvAllSynapticInput(message->mTime, message->mDeltaT);
    mHasReceived                   = true;
    *(message->mSomeLayerHasActed) = true;
    message->mTimer->stop();
@@ -1661,10 +1661,10 @@ bool HyPerLayer::isAllInputReady() {
    return isReady;
 }
 
-int HyPerLayer::recvAllSynapticInput() {
+int HyPerLayer::recvAllSynapticInput(double simulationTime, double deltaTime) {
    int status = PV_SUCCESS;
    // Only recvAllSynapticInput if we need an update
-   if (needUpdate(parent->simulationTime(), parent->getDeltaTime())) {
+   if (needUpdate(simulationTime, deltaTime)) {
       bool switchGpu = false;
       // Start CPU timer here
       recvsyn_timer->start();
@@ -1698,12 +1698,11 @@ int HyPerLayer::recvAllSynapticInput() {
 
 #ifdef PV_USE_CUDA
 double HyPerLayer::addGpuTimers() {
-   double simTime    = 0;
-   bool updateNeeded = needUpdate(parent->simulationTime(), parent->getDeltaTime());
-   if (mRecvGpu && updateNeeded) {
+   double simTime = 0.0;
+   if (mRecvGpu) {
       simTime += gpu_recvsyn_timer->accumulateTime();
    }
-   if (mUpdateGpu && updateNeeded) {
+   if (mUpdateGpu) {
       simTime += gpu_update_timer->accumulateTime();
    }
    return simTime;

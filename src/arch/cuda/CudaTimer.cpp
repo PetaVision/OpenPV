@@ -49,16 +49,21 @@ double CudaTimer::start() {
 
 double CudaTimer::stop() {
    handleError(cudaEventRecord(stopEvent, stream), "Recording stop event");
+   mEventPending = true;
    return 0;
 }
 
 // Note this function is blocking
 double CudaTimer::accumulateTime() {
-   float curTime;
-   handleError(cudaEventSynchronize(stopEvent), "Synchronizing stop event");
-   handleError(cudaEventElapsedTime(&curTime, startEvent, stopEvent), "Calculating elapsed time");
-   // Roundoff errors?
-   time += curTime;
+   if (mEventPending) {
+      float curTime;
+      handleError(cudaEventSynchronize(stopEvent), "Synchronizing stop event");
+      handleError(
+            cudaEventElapsedTime(&curTime, startEvent, stopEvent), "Calculating elapsed time");
+      // Roundoff errors?
+      time += curTime;
+      mEventPending = false;
+   }
    return (double)time;
 }
 

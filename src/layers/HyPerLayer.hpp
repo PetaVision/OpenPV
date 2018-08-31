@@ -308,7 +308,11 @@ class HyPerLayer : public ComponentBasedObject {
    // interface for public methods for controlling HyPerLayer cellular and synaptic dynamics
    // (i.e. methods for receiving synaptic input, updating internal state, publishing output)
    // ************************************************************************************//
-   virtual int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
+
+   /**
+    * Calls deliver for each connection connecting to this layer.
+    */
+   virtual int recvAllSynapticInput(double simulationTime, double deltaTime);
 
    // An updateState wrapper that determines if updateState needs to be called
    Response::Status callUpdateState(double simTime, double dt);
@@ -552,6 +556,11 @@ class HyPerLayer : public ComponentBasedObject {
 #ifdef PV_USE_CUDA
   public:
    virtual void syncGpu();
+
+   /**
+    * Accumulates the times of the gpu_recvsyn_timer and gpu_update_timer.
+    * Returns the sum of the total elapsed times on those timers.
+    */
    virtual double addGpuTimers();
 
    void copyAllGSynToDevice();
