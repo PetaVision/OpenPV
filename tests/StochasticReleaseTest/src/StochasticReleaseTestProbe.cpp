@@ -133,18 +133,14 @@ Response::Status StochasticReleaseTestProbe::outputState(double timed) {
    bool failed = false;
    if (timed > 0.0) {
       computePValues();
-      if (parent->getCommunicator()->commRank() == 0
-          && timed + 0.5 * parent->getDeltaTime() >= parent->getStopTime()) {
-         // This is the last timestep
-         // sort the p-values and apply Holm-Bonferroni method since there is one for each timestep
-         // and each feature.
+      if (parent->getCommunicator()->commRank() == 0) {
          size_t N = pvalues.size();
          std::sort(pvalues.begin(), pvalues.end(), compar);
          while (N > 0 && std::isnan(pvalues.at(N - 1))) {
             N--;
          }
          pvalues.resize(N);
-         for (size_t k = 0; k < N; k++) {
+         for (std::size_t k = 0; k < N; k++) {
             double hbCorr = pvalues.at(k) * (double)(N - k);
             if (hbCorr < 0.05) {
                ErrorLog().printf(
@@ -230,14 +226,14 @@ void StochasticReleaseTestProbe::computePValues() {
       HyPerLayer *l = getTargetLayer();
       MPI_Allreduce(
             MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, parent->getCommunicator()->communicator());
+      const int neuronsPerFeature = l->getNumGlobalNeurons() / nf;
+      double mean                 = preact * neuronsPerFeature;
+      double stddev               = sqrt(neuronsPerFeature * preact * (1 - preact));
+      double numdevs              = (nnzf - mean) / stddev;
+      double pval                 = std::erfc(std::fabs(numdevs) / std::sqrt(2));
+      pvalues.at(oldsize + f)     = pval;
       if (!mOutputStreams.empty()) {
          pvAssert(mOutputStreams.size() == (std::size_t)1);
-         const int neuronsPerFeature = l->getNumGlobalNeurons() / nf;
-         double mean                 = preact * neuronsPerFeature;
-         double stddev               = sqrt(neuronsPerFeature * preact * (1 - preact));
-         double numdevs              = (nnzf - mean) / stddev;
-         double pval                 = std::erfc(std::fabs(numdevs) / std::sqrt(2));
-         pvalues.at(oldsize + f)     = pval;
          output(0).printf(
                "    Feature %d, nnz=%5d, expectation=%7.1f, std.dev.=%5.1f, discrepancy of %f "
                "deviations, p-value %f\n",
