@@ -21,7 +21,7 @@ class DatastoreDelayTestProbe : public StatsProbe {
   public:
    DatastoreDelayTestProbe(const char *name, HyPerCol *hc);
 
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
    virtual ~DatastoreDelayTestProbe();
 

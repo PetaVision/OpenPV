@@ -20,7 +20,7 @@ class PointProbe : public PV::LayerProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status outputState(double timef) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    int xLoc;

@@ -24,8 +24,8 @@ int GPUSystemTestProbe::initialize(const char *name, HyPerCol *hc) {
 void GPUSystemTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 // 2 tests: max difference can be 5e-4, max std is 5e-5
-Response::Status GPUSystemTestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status GPUSystemTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -41,7 +41,7 @@ Response::Status GPUSystemTestProbe::outputState(double timed) {
             getTargetLayer()->getDescription_c(),
             i,
             (double)A[i],
-            timed,
+            simTime,
             (double)tol);
    }
    for (int b = 0; b < loc->nbatch; b++) {
@@ -53,7 +53,7 @@ Response::Status GPUSystemTestProbe::outputState(double timed) {
             getTargetLayer()->getDescription_c(),
             b,
             (double)sigma[b],
-            timed,
+            simTime,
             (double)tol);
    }
 

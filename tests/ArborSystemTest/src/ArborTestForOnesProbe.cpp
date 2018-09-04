@@ -26,8 +26,8 @@ int ArborTestForOnesProbe::initialize(const char *name, HyPerCol *hc) {
    return StatsProbe::initialize(name, hc);
 }
 
-Response::Status ArborTestForOnesProbe::outputState(double timed) {
-   Response::Status status = StatsProbe::outputState(timed);
+Response::Status ArborTestForOnesProbe::outputState(double simTime, double deltaTime) {
+   Response::Status status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -36,7 +36,7 @@ Response::Status ArborTestForOnesProbe::outputState(double timed) {
    if (rank != rcvProc) {
       return status;
    }
-   if (timed > 1.0) {
+   if (simTime > 1.0) {
       for (int b = 0; b < mLocalBatchWidth; b++) {
          FatalIf(!((fMin[b] > 0.99f) && (fMin[b] < 1.01f)), "Test failed.\n");
          FatalIf(!((fMax[b] > 0.99f) && (fMax[b] < 1.01f)), "Test failed.\n");

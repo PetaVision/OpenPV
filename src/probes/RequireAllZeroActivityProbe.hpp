@@ -26,7 +26,7 @@ class RequireAllZeroActivityProbe : public PV::StatsProbe {
   public:
    RequireAllZeroActivityProbe(const char *name, HyPerCol *hc);
    virtual ~RequireAllZeroActivityProbe();
-   virtual Response::Status outputState(double timed) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
    bool getNonzeroFound() { return nonzeroFound; }
    double getNonzeroTime() { return nonzeroTime; }

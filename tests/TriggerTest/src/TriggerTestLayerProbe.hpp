@@ -12,8 +12,7 @@ namespace PV {
 class TriggerTestLayerProbe : public PV::LayerProbe {
   public:
    TriggerTestLayerProbe(const char *name, HyPerCol *hc);
-   virtual Response::Status outputStateWrapper(double time, double dt) override;
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputStateWrapper(double simTime, double dt) override;
 
   protected:
    /**
@@ -33,6 +32,12 @@ class TriggerTestLayerProbe : public PV::LayerProbe {
     * dt.
     */
    virtual void calcValues(double timevalue) override;
+
+   /**
+    * TriggerTestLayerProbe does not call outputState, but the routine is needed since
+    * LayerProbe::TriggerTestLayerProbe is pure virtual
+    */
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 }; // end TriggerTestLayer
 
 } // end namespacePV

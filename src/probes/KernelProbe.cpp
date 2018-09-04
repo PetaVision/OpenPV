@@ -184,7 +184,7 @@ Response::Status KernelProbe::allocateDataStructures() {
    return Response::SUCCESS;
 }
 
-Response::Status KernelProbe::outputState(double timed) {
+Response::Status KernelProbe::outputState(double simTime, double deltaTime) {
    if (mOutputStreams.empty()) {
       return Response::NO_ACTION;
    }
@@ -197,7 +197,7 @@ Response::Status KernelProbe::outputState(double timed) {
 
    const float *wdata  = mWeightData + patchSize * kernelIndex;
    const float *dwdata = outputPlasticIncr ? mDeltaWeightData + patchSize * kernelIndex : nullptr;
-   output(0) << "Time " << timed << ", Conn \"" << getTargetConn()->getName() << ", nxp=" << nxp
+   output(0) << "Time " << simTime << ", Conn \"" << getTargetConn()->getName() << ", nxp=" << nxp
              << ", nyp=" << nyp << ", nfp=" << nfp << "\n";
    for (int f = 0; f < nfp; f++) {
       for (int y = 0; y < nyp; y++) {

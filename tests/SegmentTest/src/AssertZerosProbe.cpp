@@ -24,8 +24,8 @@ int AssertZerosProbe::initialize(const char *name, HyPerCol *hc) {
 void AssertZerosProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 // 2 tests: max difference can be 5e-4, max std is 5e-5
-Response::Status AssertZerosProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status AssertZerosProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -42,7 +42,7 @@ Response::Status AssertZerosProbe::outputState(double timed) {
       FatalIf(!(fabsf(A[i]) < 5e-4f), "Test failed.\n");
    }
 
-   if (timed > 0) {
+   if (simTime > 0) {
       // Make sure gsyn_e and gsyn_i are not all 0's
       float sum_E = 0;
       float sum_I = 0;

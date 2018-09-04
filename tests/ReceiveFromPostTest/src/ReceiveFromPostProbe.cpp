@@ -36,8 +36,8 @@ void ReceiveFromPostProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
 }
 
-Response::Status ReceiveFromPostProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status ReceiveFromPostProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }

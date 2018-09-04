@@ -13,7 +13,7 @@ class AssertZerosProbe : public PV::StatsProbe {
   public:
    AssertZerosProbe(const char *name, HyPerCol *hc);
 
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);

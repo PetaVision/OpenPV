@@ -158,8 +158,8 @@ void ColumnEnergyProbe::calcValues(double timevalue) {
    }
 }
 
-Response::Status ColumnEnergyProbe::outputState(double timevalue) {
-   getValues(timevalue);
+Response::Status ColumnEnergyProbe::outputState(double simTime, double deltaTime) {
+   getValues(simTime);
    if (mOutputStreams.empty()) {
       return Response::SUCCESS;
    }
@@ -173,7 +173,7 @@ Response::Status ColumnEnergyProbe::outputState(double timevalue) {
       if (!isWritingToFile()) {
          stream << "\"" << name << "\","; // lack of \n is deliberate
       }
-      stream.printf("%10f, %d, %10.9f\n", timevalue, b, valuesBuffer[b]);
+      stream.printf("%10f, %d, %10.9f\n", simTime, b, valuesBuffer[b]);
       stream.flush();
    }
    return Response::SUCCESS;

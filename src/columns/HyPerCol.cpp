@@ -417,7 +417,7 @@ void HyPerCol::allocateColumn() {
    if (!mCheckpointReadFlag) {
       notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime, mDeltaTime));
       for (int phase = 0; phase < mNumPhases; phase++) {
-         notifyLoop(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
+         notifyLoop(std::make_shared<LayerOutputStateMessage>(phase, mSimTime, mDeltaTime));
       }
    }
    mReadyFlag = true;
@@ -721,7 +721,7 @@ int HyPerCol::advanceTime(double sim_time) {
       // copy activity buffer to DataStore, and do MPI exchange.
       notifyLoop(std::make_shared<LayerPublishMessage>(phase, mSimTime));
 
-      notifyLoop(std::make_shared<LayerOutputStateMessage>(phase, mSimTime));
+      notifyLoop(std::make_shared<LayerOutputStateMessage>(phase, mSimTime, mDeltaTime));
       if (mErrorOnNotANumber) {
          notifyLoop(std::make_shared<LayerCheckNotANumberMessage>(phase));
       }

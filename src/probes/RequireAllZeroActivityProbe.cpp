@@ -54,16 +54,17 @@ void RequireAllZeroActivityProbe::ioParam_immediateExitOnFailure(enum ParamsIOFl
    }
 }
 
-Response::Status RequireAllZeroActivityProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status RequireAllZeroActivityProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (!Response::completed(status)) {
-      Fatal() << getDescription() << ": StatsProbe::outputState failed at time " << timed << ".\n";
+      Fatal() << getDescription() << ": StatsProbe::outputState failed at time " << simTime
+              << ".\n";
    }
    int const nbatch = targetLayer->getLayerLoc()->nbatch;
    for (int b = 0; b < nbatch; b++) {
       if (nnz[b] != 0) {
          if (!nonzeroFound) {
-            nonzeroTime = timed;
+            nonzeroTime = simTime;
          }
          nonzeroFound = true;
          nonzeroFoundMessage(

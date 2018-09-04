@@ -201,7 +201,7 @@ StatsProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    return Response::SUCCESS;
 }
 
-Response::Status StatsProbe::outputState(double timed) {
+Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
 #ifdef PV_USE_MPI
    Communicator *icComm = parent->getCommunicator();
    MPI_Comm comm        = icComm->communicator();
@@ -322,7 +322,7 @@ Response::Status StatsProbe::outputState(double timed) {
             "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f%s "
             "Max==%f sigma==%f nnz==%d",
             getMessage(),
-            (double)timed,
+            (double)simTime,
             (int)b,
             (int)divisor,
             (double)sum[b],

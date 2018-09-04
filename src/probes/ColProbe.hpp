@@ -60,7 +60,9 @@ class ColProbe : public BaseProbe {
     * will fprintf to outputstream->fp, where stream is the BaseProbe member
     * variable.
     */
-   virtual Response::Status outputState(double timed) override { return Response::SUCCESS; }
+   virtual Response::Status outputState(double simTime, double deltaTime) override {
+      return Response::SUCCESS;
+   }
 
   protected:
    /**

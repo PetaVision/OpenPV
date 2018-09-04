@@ -67,8 +67,8 @@ void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    }
 }
 
-PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double timevalue) {
-   getValues(timevalue); // calls calcValues
+PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, double deltaTime) {
+   getValues(simTime); // calls calcValues
    if (mOutputStreams.empty()) {
       return PV::Response::SUCCESS;
    }
@@ -85,7 +85,7 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double timevalue)
                   .printf(
                         "%s t=%f, %d neuron%s the wrong value.\n",
                         getMessage(),
-                        timevalue,
+                        simTime,
                         nnz,
                         nnz == 1 ? " has" : "s have");
          }
@@ -95,7 +95,7 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double timevalue)
                   .printf(
                         "%s t=%f, batch element %d, %d neuron%s the wrong value.\n",
                         getMessage(),
-                        timevalue,
+                        simTime,
                         localBatchIndex,
                         nnz,
                         nnz == 1 ? " has" : "s have");

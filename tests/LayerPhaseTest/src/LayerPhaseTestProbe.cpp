@@ -37,8 +37,8 @@ void LayerPhaseTestProbe::ioParam_equilibriumTime(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "equilibriumTime", &equilibriumTime, 0.0, true);
 }
 
-Response::Status LayerPhaseTestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status LayerPhaseTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -48,7 +48,7 @@ Response::Status LayerPhaseTestProbe::outputState(double timed) {
       return status;
    }
    for (int b = 0; b < mLocalBatchWidth; b++) {
-      if (timed >= equilibriumTime) {
+      if (simTime >= equilibriumTime) {
          float const tol = 1e-6f;
          // TODO: std::fabs is preferred to fabsf. But we implicitly include
          // math.h because the header includes HyPerLayer.hpp, which eventually

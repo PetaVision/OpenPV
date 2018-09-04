@@ -15,7 +15,7 @@ namespace PV {
 class MomentumConnTestProbe : public KernelProbe {
   public:
    MomentumConnTestProbe(const char *probename, HyPerCol *hc);
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
    virtual void ioParam_isViscosity(enum ParamsIOFlag ioFlag);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

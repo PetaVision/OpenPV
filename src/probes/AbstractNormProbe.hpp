@@ -129,7 +129,7 @@ class AbstractNormProbe : public LayerProbe {
     * and norm value for
     * each batch element.
     */
-   virtual Response::Status outputState(double timevalue) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
    char const *getNormDescription() { return normDescription; }
 

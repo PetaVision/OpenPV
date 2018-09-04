@@ -25,8 +25,8 @@ int KernelTestProbe::initialize(const char *name, HyPerCol *hc) {
 
 void KernelTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
-Response::Status KernelTestProbe::outputState(double timestamp) {
-   auto status = StatsProbe::outputState(timestamp);
+Response::Status KernelTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -36,7 +36,7 @@ Response::Status KernelTestProbe::outputState(double timestamp) {
       return status;
    }
    for (int b = 0; b < mLocalBatchWidth; b++) {
-      if (timestamp > 2.0) {
+      if (simTime > 2.0) {
          FatalIf((fMin[b] <= 0.99f) or (fMin[b] >= 1.010f), "Test failed.\n");
          FatalIf((fMax[b] <= 0.99f) or (fMax[b] >= 1.010f), "Test failed.\n");
          FatalIf((avg[b] <= 0.99f) or (avg[b] >= 1.010f), "Test failed.\n");

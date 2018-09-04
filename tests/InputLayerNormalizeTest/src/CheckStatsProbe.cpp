@@ -68,10 +68,10 @@ int CheckStatsProbe::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
    return status;
 }
 
-PV::Response::Status CheckStatsProbe::outputState(double timestamp) {
+PV::Response::Status CheckStatsProbe::outputState(double simTime, double deltaTime) {
    int nbatch = getTargetLayer()->getLayerLoc()->nbatch;
    FatalIf(nbatch != 1, "%s is only written for nbatch = 1.\n", getDescription_c());
-   auto status = PV::StatsProbe::outputState(timestamp);
+   auto status = PV::StatsProbe::outputState(simTime, deltaTime);
    if (status != PV::Response::SUCCESS) {
       return status;
    }

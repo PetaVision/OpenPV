@@ -17,7 +17,7 @@ int TestConnProbe::initialize_base() { return PV_SUCCESS; }
 
 void TestConnProbe::initNumValues() { setNumValues(-1); }
 
-Response::Status TestConnProbe::outputState(double timed) {
+Response::Status TestConnProbe::outputState(double simTime, double deltaTime) {
    // Grab weights of probe and test for the value of .625/1.5, or .4166666
    int numPreExt = getWeights()->getGeometry()->getNumPatches();
    int syw       = getWeights()->getPatchStrideY(); // stride in patch
@@ -31,17 +31,17 @@ Response::Status TestConnProbe::outputState(double timed) {
       for (int y = 0; y < ny; y++) {
          float *dataYStart = data + y * syw;
          for (int k = 0; k < nk; k++) {
-            if (fabs(timed - 0) < (parent->getDeltaTime() / 2)) {
+            if (fabs(simTime - 0.0) < (deltaTime / 2)) {
                if (fabsf(dataYStart[k] - 1) > 0.01f) {
                   Fatal() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }
-               FatalIf(!(fabsf(dataYStart[k] - 1) <= 0.01f), "Test failed.\n");
+               FatalIf(fabsf(dataYStart[k] - 1) > 0.01f, "Test failed.\n");
             }
-            else if (fabs(timed - 1) < (parent->getDeltaTime() / 2)) {
+            else if (fabs(simTime - 1.0) < (deltaTime / 2)) {
                if (fabsf(dataYStart[k] - 1.375f) > 0.01f) {
                   Fatal() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }
-               FatalIf(!(fabsf(dataYStart[k] - 1.375f) <= 0.01f), "Test failed.\n");
+               FatalIf(fabsf(dataYStart[k] - 1.375f) > 0.01f, "Test failed.\n");
             }
          }
       }

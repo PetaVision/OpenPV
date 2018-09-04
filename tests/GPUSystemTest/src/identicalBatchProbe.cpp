@@ -24,8 +24,8 @@ int identicalBatchProbe::initidenticalBatchProbe(const char *name, HyPerCol *hc)
 void identicalBatchProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 // 2 tests: max difference can be 5e-4, max std is 5e-5
-Response::Status identicalBatchProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status identicalBatchProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }

@@ -17,7 +17,7 @@ class ArborTestProbe : public PV::StatsProbe {
    ArborTestProbe(const char *name, HyPerCol *hc);
    virtual ~ArborTestProbe();
 
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);

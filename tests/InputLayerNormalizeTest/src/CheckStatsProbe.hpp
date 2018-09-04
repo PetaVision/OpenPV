@@ -28,7 +28,7 @@ class CheckStatsProbe : public PV::StatsProbe {
    CheckStatsProbe();
    int initialize(char const *name, PV::HyPerCol *hc);
    virtual int ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) override;
-   virtual PV::Response::Status outputState(double timestamp) override;
+   virtual PV::Response::Status outputState(double simTime, double deltaTime) override;
 
   private:
    int initialize_base();

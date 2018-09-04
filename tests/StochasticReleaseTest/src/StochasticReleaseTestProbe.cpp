@@ -123,15 +123,15 @@ bool compar(double const &a, double const &b) {
    return a < b;
 }
 
-Response::Status StochasticReleaseTestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status StochasticReleaseTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    FatalIf(
          status != Response::SUCCESS,
          ": %s failed in StatsProbe::outputState at time %f.\n",
          getDescription_c(),
-         timed);
+         simTime);
    bool failed = false;
-   if (timed > 0.0) {
+   if (simTime > 0.0) {
       computePValues();
       if (parent->getCommunicator()->commRank() == 0) {
          size_t N = pvalues.size();
@@ -159,7 +159,7 @@ Response::Status StochasticReleaseTestProbe::outputState(double timed) {
          failed,
          ": %s failed in StochasticReleaseTestProbe::outputState at time %f.\n",
          getTargetLayer()->getName(),
-         timed);
+         simTime);
    return Response::SUCCESS;
 }
 

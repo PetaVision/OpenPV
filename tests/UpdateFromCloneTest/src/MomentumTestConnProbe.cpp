@@ -16,7 +16,7 @@ int MomentumTestConnProbe::initialize_base() { return PV_SUCCESS; }
 
 void MomentumTestConnProbe::initNumValues() { setNumValues(-1); }
 
-Response::Status MomentumTestConnProbe::outputState(double timed) {
+Response::Status MomentumTestConnProbe::outputState(double simTime, double deltaTime) {
    // Grab weights of probe and test for the value of .625/1.5, or .4166666
    int numPreExt = getWeights()->getGeometry()->getNumPatches();
    int syw       = getWeights()->getPatchStrideY(); // stride in patch
@@ -32,12 +32,12 @@ Response::Status MomentumTestConnProbe::outputState(double timed) {
          float *dataYStart = data + y * syw;
          for (int k = 0; k < nk; k++) {
             float wObserved = dataYStart[k];
-            if (timed < 3) {
+            if (simTime < 3) {
                wCorrect = 0;
             }
             else {
                wCorrect = 0.376471f;
-               for (int i = 0; i < (timed - 3); i++) {
+               for (int i = 0; i < (simTime - 3); i++) {
                   wCorrect += 0.376471f * expf(-(2 * (i + 1)));
                }
             }

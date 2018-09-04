@@ -185,24 +185,24 @@ void HyPerConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
    }
 }
 
-PV::Response::Status HyPerConnCheckpointerTestProbe::outputState(double timestamp) {
+PV::Response::Status HyPerConnCheckpointerTestProbe::outputState(double simTime, double deltaTime) {
    if (!mValuesSet) {
-      initializeCorrectValues(timestamp);
+      initializeCorrectValues(simTime);
       mValuesSet = true;
    }
-   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timestamp);
+   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(simTime);
    while (updateNumber > mCorrectState->getUpdateNumber()) {
       mCorrectState->update();
    }
 
    bool failed = false;
 
-   failed |= verifyConnection(mPreWeights, mCorrectState->getCorrectWeight(), timestamp);
-   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), timestamp);
-   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), timestamp);
+   failed |= verifyConnection(mPreWeights, mCorrectState->getCorrectWeight(), simTime);
+   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), simTime);
+   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), simTime);
 
    if (failed) {
-      std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timestamp) + "\n");
+      std::string errorMsg(getDescription() + " failed at t = " + std::to_string(simTime) + "\n");
       if (!mOutputStreams.empty()) {
          output(0).printf(errorMsg.c_str());
       }
@@ -213,8 +213,7 @@ PV::Response::Status HyPerConnCheckpointerTestProbe::outputState(double timestam
    }
    else {
       if (!mOutputStreams.empty()) {
-         output(0).printf(
-               "%s found all correct values at time %f\n", getDescription_c(), timestamp);
+         output(0).printf("%s found all correct values at time %f\n", getDescription_c(), simTime);
       }
    }
    // The test runs all timesteps and then checks the mTestFailed flag at the end.

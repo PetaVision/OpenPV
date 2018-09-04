@@ -161,9 +161,9 @@ void PointProbe::initOutputStreams(const char *filename, Checkpointer *checkpoin
  *     writeState is only called by the processor with (xLoc,yLoc) in its
  *     non-extended region.
  */
-Response::Status PointProbe::outputState(double timef) {
-   getValues(timef);
-   writeState(timef);
+Response::Status PointProbe::outputState(double simTime, double deltaTime) {
+   getValues(simTime);
+   writeState(simTime);
    return Response::SUCCESS;
 }
 

@@ -43,7 +43,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    virtual PV::Response::Status readStateFromCheckpoint(PV::Checkpointer *checkpointer) override;
    virtual bool needRecalc(double timevalue) override { return true; }
    virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
-   virtual PV::Response::Status outputState(double timestamp) override;
+   virtual PV::Response::Status outputState(double simTime, double deltaTime) override;
 
   private:
    MomentumConnSimpleCheckpointerTestProbe();

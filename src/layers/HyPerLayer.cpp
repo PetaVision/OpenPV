@@ -884,7 +884,7 @@ HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage cons
    if (message->mPhase != getPhase()) {
       return status;
    }
-   status = outputState(message->mTime); // also calls layer probes' outputState
+   status = outputState(message->mTime, message->mDeltaTime); // also calls probes' outputState
    return status;
 }
 
@@ -1841,21 +1841,21 @@ Response::Status HyPerLayer::outputProbeParams() {
    return Response::SUCCESS;
 }
 
-Response::Status HyPerLayer::outputState(double timef) {
+Response::Status HyPerLayer::outputState(double timestamp, double deltaTime) {
    io_timer->start();
 
    for (int i = 0; i < numProbes; i++) {
-      probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
+      probes[i]->outputStateWrapper(timestamp, deltaTime);
    }
 
-   if (timef >= (writeTime - (parent->getDeltaTime() / 2)) && writeStep >= 0) {
+   if (timestamp >= (writeTime - (deltaTime / 2)) && writeStep >= 0) {
       int writeStatus = PV_SUCCESS;
       writeTime += writeStep;
       if (sparseLayer) {
-         writeStatus = writeActivitySparse(timef);
+         writeStatus = writeActivitySparse(timestamp);
       }
       else {
-         writeStatus = writeActivity(timef);
+         writeStatus = writeActivity(timestamp);
       }
       FatalIf(
             writeStatus != PV_SUCCESS,

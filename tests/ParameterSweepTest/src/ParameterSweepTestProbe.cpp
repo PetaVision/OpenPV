@@ -41,8 +41,8 @@ void ParameterSweepTestProbe::ioParam_expectedMax(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "expectedMax", &expectedMax, 0.0f);
 }
 
-Response::Status ParameterSweepTestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status ParameterSweepTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -52,7 +52,7 @@ Response::Status ParameterSweepTestProbe::outputState(double timed) {
       return status;
    }
    for (int b = 0; b < mLocalBatchWidth; b++) {
-      if (timed >= 3.0) {
+      if (simTime >= 3.0) {
          FatalIf(std::fabs(expectedSum - sum[b]) >= 1e-6, "Test failed.\n");
          FatalIf(std::fabs(expectedMin - fMin[b]) >= 1e-6f, "Test failed.\n");
          FatalIf(std::fabs(expectedMax - fMax[b]) >= 1e-6f, "Test failed.\n");

@@ -20,7 +20,7 @@ class ParameterSweepTestProbe : public StatsProbe {
    ParameterSweepTestProbe(const char *name, HyPerCol *hc);
    virtual ~ParameterSweepTestProbe();
 
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);

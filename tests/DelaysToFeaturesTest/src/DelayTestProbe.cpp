@@ -26,8 +26,8 @@ int DelayTestProbe::initialize(const char *name, HyPerCol *hc) {
    return StatsProbe::initialize(name, hc);
 }
 
-Response::Status DelayTestProbe::outputState(double timestamp) {
-   auto status = StatsProbe::outputState(timestamp);
+Response::Status DelayTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -47,25 +47,25 @@ Response::Status DelayTestProbe::outputState(double timestamp) {
    for (int b = 0; b < loc->nbatch; b++) {
       float avgExpected;
       int nnzExpected;
-      if (timestamp == 0) {
+      if (simTime == 0) {
          avgExpected = 0.0f;
-         nnzExpected = (int)std::nearbyint(timestamp) * nx * rows * ny * cols;
+         nnzExpected = (int)std::nearbyint(simTime) * nx * rows * ny * cols;
       }
       else {
-         avgExpected = (float)((timestamp - 1.0) / nf);
-         nnzExpected = ((int)std::nearbyint(timestamp) - 1) * nx * rows * ny * cols;
+         avgExpected = (float)((simTime - 1.0) / nf);
+         nnzExpected = ((int)std::nearbyint(simTime) - 1) * nx * rows * ny * cols;
       }
       FatalIf(
             avg[b] != avgExpected,
             "t = %f: Average for batch element %d: expected %f, received %f\n",
-            timestamp,
+            simTime,
             b,
             (double)avgExpected,
             (double)avg[b]);
       FatalIf(
             nnz[b] != nnzExpected,
             "t = %f: number of nonzero elements for batch element %d: expected %d, received %d\n",
-            timestamp,
+            simTime,
             b,
             nnzExpected,
             nnz[b]);

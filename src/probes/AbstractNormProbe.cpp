@@ -147,14 +147,14 @@ void AbstractNormProbe::calcValues(double timeValue) {
          parent->getCommunicator()->communicator());
 }
 
-Response::Status AbstractNormProbe::outputState(double timevalue) {
-   getValues(timevalue);
+Response::Status AbstractNormProbe::outputState(double simTime, double deltaTime) {
+   getValues(simTime);
    double *valuesBuffer = this->getValuesBuffer();
    if (!mOutputStreams.empty()) {
       int nBatch = getNumValues();
       int nk     = getTargetLayer()->getNumGlobalNeurons();
       for (int b = 0; b < nBatch; b++) {
-         output(b).printf("%6.3f, %d, %8d, %f", timevalue, b, nk, valuesBuffer[b]);
+         output(b).printf("%6.3f, %d, %8d, %f", simTime, b, nk, valuesBuffer[b]);
          output(b) << std::endl;
       }
    }

@@ -18,7 +18,7 @@ class RescaleLayerTestProbe : public PV::StatsProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);

@@ -357,7 +357,7 @@ double BaseProbe::getValue(double timevalue, int index) {
 Response::Status BaseProbe::outputStateWrapper(double timef, double dt) {
    auto status = Response::NO_ACTION;
    if (textOutputFlag && needUpdate(timef, dt)) {
-      status = outputState(timef);
+      status = outputState(timef, dt);
    }
    return status;
 }

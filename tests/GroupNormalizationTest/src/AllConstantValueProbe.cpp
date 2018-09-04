@@ -35,12 +35,12 @@ void AllConstantValueProbe::ioParam_correctValue(enum ParamsIOFlag ioFlag) {
          ioFlag, getName(), "correctValue", &correctValue, correctValue /*default*/);
 }
 
-Response::Status AllConstantValueProbe::outputState(double timestamp) {
-   auto status = StatsProbe::outputState(timestamp);
+Response::Status AllConstantValueProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
-   if (timestamp <= 0) {
+   if (simTime <= 0) {
       return status;
    }
    if (!mOutputStreams.empty()) {
@@ -59,7 +59,7 @@ Response::Status AllConstantValueProbe::outputState(double timestamp) {
             ErrorLog().printf(
                   "t=%f: fMin=%f, fMax=%f; values more than nnzThreshold=%g away from correct "
                   "value %f\n",
-                  timestamp,
+                  simTime,
                   (double)fMin[b],
                   (double)fMax[b],
                   (double)nnzThreshold,

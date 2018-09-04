@@ -45,12 +45,12 @@ Response::Status RescaleLayerTestProbe::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-Response::Status RescaleLayerTestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status RescaleLayerTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
-   if (timed == 0.0) {
+   if (simTime == 0.0) {
       return status;
    }
    float tolerance      = 2.0e-5f;

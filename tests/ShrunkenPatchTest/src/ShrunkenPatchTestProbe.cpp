@@ -55,7 +55,7 @@ void ShrunkenPatchTestProbe::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
  * @time
  * @l
  */
-Response::Status ShrunkenPatchTestProbe::outputState(double timed) {
+Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double deltaTime) {
    HyPerLayer *l         = getTargetLayer();
    const PVLayerLoc *loc = l->getLayerLoc();
    int num_neurons       = l->getNumNeurons();
@@ -118,7 +118,7 @@ Response::Status ShrunkenPatchTestProbe::outputState(double timed) {
    }
    FatalIf(!(correctValues != NULL), "Test failed.\n");
 
-   auto status = StatsProbe::outputState(timed);
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (!Response::completed(status)) {
       return status;
    }
@@ -126,7 +126,7 @@ Response::Status ShrunkenPatchTestProbe::outputState(double timed) {
 
    const float *buf = getTargetLayer()->getLayerData();
 
-   if (timed >= 3.0) {
+   if (simTime >= 3.0) {
       for (int k = 0; k < num_neurons; k++) {
          int kex = kIndexExtended(
                k,

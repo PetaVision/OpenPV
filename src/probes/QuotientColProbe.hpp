@@ -94,7 +94,7 @@ class QuotientColProbe : public ColProbe {
     * from 0 to
     * getVectorSize()-1.
     */
-   virtual Response::Status outputState(double timevalue) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    /**

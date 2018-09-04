@@ -21,12 +21,12 @@ TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(const char *name, HyPerCo
    initialize(name, hc);
 }
 
-Response::Status TestNotAlwaysAllZerosProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status TestNotAlwaysAllZerosProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       Fatal().printf(
             "!!Time %f: TestNotAlwaysAllZerosProbe::outputState failed for %s\n",
-            timed,
+            simTime,
             getTargetLayer()->getDescription_c());
    }
    for (int b = 0; b < mLocalBatchWidth; b++) {

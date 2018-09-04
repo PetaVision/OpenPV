@@ -16,7 +16,7 @@ L2ConnProbe::L2ConnProbe(const char *probename, HyPerCol *hc) : KernelProbe(prob
 
 L2ConnProbe::~L2ConnProbe() {}
 
-Response::Status L2ConnProbe::outputState(double timed) {
+Response::Status L2ConnProbe::outputState(double simTime, double deltaTime) {
    if (mOutputStreams.empty()) {
       return Response::NO_ACTION;
    }
@@ -56,7 +56,7 @@ Response::Status L2ConnProbe::outputState(double timed) {
             }
          }
       }
-      output(0) << "t=" << timed << ", f=" << kernelIndex << ", squaredL2=" << sumsq << "\n";
+      output(0) << "t=" << simTime << ", f=" << kernelIndex << ", squaredL2=" << sumsq << "\n";
    }
 
    return Response::SUCCESS;

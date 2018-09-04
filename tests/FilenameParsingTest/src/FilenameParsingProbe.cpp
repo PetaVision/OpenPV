@@ -41,12 +41,12 @@ PV::Response::Status FilenameParsingProbe::communicateInitInfo(
    return PV::Response::SUCCESS;
 }
 
-PV::Response::Status FilenameParsingProbe::outputState(double timestamp) {
-   if (timestamp == 0.0) {
+PV::Response::Status FilenameParsingProbe::outputState(double simTime, double deltaTime) {
+   if (simTime == 0.0) {
       return PV::Response::NO_ACTION;
    } // FilenameParsingGroundTruthLayer hasn't updated.
 
-   double const displayTime = (timestamp - parent->getDeltaTime()) / mInputDisplayPeriod;
+   double const displayTime = (simTime - deltaTime) / mInputDisplayPeriod;
    int const displayNumber  = (int)std::floor(displayTime);
    // From t=0 to the first display flip, displayNumber is 0.
    // From then until the second display flip, displayNumber is 1, etc.
@@ -78,6 +78,6 @@ PV::Response::Status FilenameParsingProbe::outputState(double timestamp) {
          }
       }
    }
-   FatalIf(failed, "FilenameParsingProbe failed at t=%f\n", timestamp);
+   FatalIf(failed, "FilenameParsingProbe failed at t=%f\n", simTime);
    return PV::Response::SUCCESS;
 }

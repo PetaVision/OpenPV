@@ -20,11 +20,11 @@ int PlasticConnTestProbe::initialize(const char *probename, HyPerCol *hc) {
    return KernelProbe::initialize(probename, hc);
 }
 
-Response::Status PlasticConnTestProbe::outputState(double timed) {
+Response::Status PlasticConnTestProbe::outputState(double simTime, double deltaTime) {
    if (mOutputStreams.empty()) {
       return Response::NO_ACTION;
    }
-   output(0).printf("    Time %f, %s:\n", timed, getTargetConn()->getDescription_c());
+   output(0).printf("    Time %f, %s:\n", simTime, getTargetConn()->getDescription_c());
 
    const int nxp       = getPatchSize()->getPatchSizeX();
    const int nyp       = getPatchSize()->getPatchSizeY();
@@ -47,17 +47,17 @@ Response::Status PlasticConnTestProbe::outputState(double timed) {
       int x  = kxPos(k, nxp, nyp, nfp);
       int wx = (nxp - 1) / 2 - x; // assumes connection is one-to-one
       if (getOutputWeights()) {
-         float wCorrect  = timed * wx;
+         float wCorrect  = simTime * wx;
          float wObserved = w[k];
          if (k == 0) {
-            double q = fabs(((double)(wObserved - wCorrect)) / timed);
+            double q = fabs(((double)(wObserved - wCorrect)) / simTime);
             printf(
                   "fabs(%f/%f) = %f\n",
                   ((double)(wObserved - wCorrect)),
-                  timed,
-                  fabs(((double)(wObserved - wCorrect)) / timed));
+                  simTime,
+                  fabs(((double)(wObserved - wCorrect)) / simTime));
          }
-         if (fabs(((double)(wObserved - wCorrect)) / timed) > 1e-4) {
+         if (fabs(((double)(wObserved - wCorrect)) / simTime) > 1e-4) {
             int y = kyPos(k, nxp, nyp, nfp);
             int f = featureIndex(k, nxp, nyp, nfp);
             output(0).printf(
@@ -71,7 +71,7 @@ Response::Status PlasticConnTestProbe::outputState(double timed) {
          }
          // status = PV_FAILURE;
       }
-      if (timed > 0 && getOutputPlasticIncr()) {
+      if (simTime > 0 && getOutputPlasticIncr()) {
          float dwCorrect  = wx;
          float dwObserved = dw[k];
          if (dwObserved != dwCorrect) {
@@ -89,7 +89,7 @@ Response::Status PlasticConnTestProbe::outputState(double timed) {
          // status = PV_FAILURE;
       }
    }
-   FatalIf(status != PV_SUCCESS, "%s failed at t=%f.\n", getDescription_c(), timed);
+   FatalIf(status != PV_SUCCESS, "%s failed at t=%f.\n", getDescription_c(), simTime);
    if (status == PV_SUCCESS) {
       if (getOutputWeights()) {
          output(0).printf("        All weights are correct.\n");

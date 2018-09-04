@@ -103,7 +103,7 @@ Response::Status WeightComparisonProbe::allocateDataStructures() {
    return Response::SUCCESS;
 }
 
-Response::Status WeightComparisonProbe::outputState(double timestamp) {
+Response::Status WeightComparisonProbe::outputState(double simTime, double deltaTime) {
    auto *firstConnWeights = mConnectionList[0]->getComponentByType<WeightsPair>()->getPreWeights();
    for (auto &c : mConnectionList) {
       auto *thisConnWeights = c->getComponentByType<WeightsPair>()->getPreWeights();

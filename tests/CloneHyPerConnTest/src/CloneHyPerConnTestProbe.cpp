@@ -24,8 +24,8 @@ int CloneHyPerConnTestProbe::initialize(const char *name, HyPerCol *hc) {
    return StatsProbe::initialize(name, hc);
 }
 
-Response::Status CloneHyPerConnTestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status CloneHyPerConnTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -36,7 +36,7 @@ Response::Status CloneHyPerConnTestProbe::outputState(double timed) {
    }
    int const nbatch = getTargetLayer()->getLayerLoc()->nbatch;
    for (int b = 0; b < nbatch; b++) {
-      if (timed > 2.0) {
+      if (simTime > 2.0) {
          FatalIf(fabsf(fMin[b]) >= 1e-6f, "Test failed.\n");
          FatalIf(fabsf(fMax[b]) >= 1e-6f, "Test failed.\n");
          FatalIf(fabsf(avg[b]) >= 1e-6f, "Test failed.\n");

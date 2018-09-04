@@ -190,9 +190,9 @@ void AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    memcpy(getValuesBuffer(), timeSteps.data(), sizeof(double) * getNumValues());
 }
 
-Response::Status AdaptiveTimeScaleProbe::outputState(double timeValue) {
+Response::Status AdaptiveTimeScaleProbe::outputState(double simTime, double deltaTime) {
    if (!mOutputStreams.empty()) {
-      mAdaptiveTimeScaleController->writeTimestepInfo(timeValue, mOutputStreams);
+      mAdaptiveTimeScaleController->writeTimestepInfo(simTime, mOutputStreams);
    }
    return Response::SUCCESS;
 }

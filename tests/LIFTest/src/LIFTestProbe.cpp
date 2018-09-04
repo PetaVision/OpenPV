@@ -125,7 +125,7 @@ void LIFTestProbe::initOutputStreams(const char *filename, Checkpointer *checkpo
    }
 }
 
-Response::Status LIFTestProbe::outputState(double timed) {
+Response::Status LIFTestProbe::outputState(double simTime, double deltaTime) {
    bool failed = false;
 
    HyPerLayer *l         = getTargetLayer();
@@ -158,14 +158,14 @@ Response::Status LIFTestProbe::outputState(double timed) {
             root_proc,
             icComm->communicator());
       InfoLog(dumpRates);
-      dumpRates.printf("%s t=%f:", getMessage(), timed);
+      dumpRates.printf("%s t=%f:", getMessage(), simTime);
       for (int j = 0; j < LIFTESTPROBE_BINS; j++) {
-         rates[j] /= (double)counts[j] * timed / 1000.0;
+         rates[j] /= (double)counts[j] * simTime / 1000.0;
          dumpRates.printf(" %f", (double)rates[j]);
       }
       dumpRates.printf("\n");
-      if (timed >= endingTime) {
-         double stdfactor = sqrt(timed / 2000.0); // Since the values of std are based on t=2000.
+      if (simTime >= endingTime) {
+         double stdfactor = sqrt(simTime / 2000.0); // Since the values of std are based on t=2000.
          for (int j = 0; j < LIFTESTPROBE_BINS; j++) {
             double scaledstdev = stddevs[j] / stdfactor;
             double observed    = (rates[j] - targetrates[j]) / scaledstdev;
@@ -174,7 +174,7 @@ Response::Status LIFTestProbe::outputState(double timed) {
                      "Bin number %d failed at time %f: %f standard deviations off, with tolerance "
                      "%f.\n",
                      j,
-                     timed,
+                     simTime,
                      observed,
                      tolerance);
                failed = true;

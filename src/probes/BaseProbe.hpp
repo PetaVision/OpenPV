@@ -71,7 +71,7 @@ class BaseProbe : public BaseObject {
    /**
     * A pure virtual method for writing output to the output file.
     */
-   virtual Response::Status outputState(double timef) = 0;
+   virtual Response::Status outputState(double simTime, double deltaTime) = 0;
    virtual int writeTimer(PrintStream &stream) { return PV_SUCCESS; }
 
    /**

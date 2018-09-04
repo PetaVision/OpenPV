@@ -151,8 +151,8 @@ void QuotientColProbe::calcValues(double timeValue) {
 
 double QuotientColProbe::referenceUpdateTime() const { return parent->simulationTime(); }
 
-Response::Status QuotientColProbe::outputState(double timevalue) {
-   getValues(timevalue);
+Response::Status QuotientColProbe::outputState(double simTime, double deltaTime) {
+   getValues(simTime);
    if (mOutputStreams.empty()) {
       return Response::SUCCESS;
    }
@@ -162,7 +162,7 @@ Response::Status QuotientColProbe::outputState(double timevalue) {
       if (isWritingToFile()) {
          output(b) << "\"" << valueDescription << "\",";
       }
-      output(b) << timevalue << "," << b << "," << valuesBuffer[b] << std::endl;
+      output(b) << simTime << "," << b << "," << valuesBuffer[b] << std::endl;
    }
    return Response::SUCCESS;
 } // end QuotientColProbe::outputState(float, HyPerCol *)

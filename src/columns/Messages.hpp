@@ -273,13 +273,15 @@ class LayerPublishMessage : public BaseMessage {
 
 class LayerOutputStateMessage : public BaseMessage {
   public:
-   LayerOutputStateMessage(int phase, double simTime) {
+   LayerOutputStateMessage(int phase, double simTime, double deltaTime) {
       setMessageType("LayerOutputState");
-      mPhase = phase;
-      mTime  = simTime;
+      mPhase     = phase;
+      mTime      = simTime;
+      mDeltaTime = deltaTime;
    }
    int mPhase;
    double mTime;
+   double mDeltaTime;
 };
 
 class LayerCheckNotANumberMessage : public BaseMessage {

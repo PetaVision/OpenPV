@@ -13,7 +13,7 @@ class ReceiveFromPostProbe : public PV::StatsProbe {
   public:
    ReceiveFromPostProbe(const char *name, HyPerCol *hc);
 
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    int initialize(const char *name, HyPerCol *hc);

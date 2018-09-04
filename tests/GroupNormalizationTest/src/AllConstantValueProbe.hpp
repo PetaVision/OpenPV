@@ -18,7 +18,7 @@ class AllConstantValueProbe : public StatsProbe {
 
    float getCorrectValue() { return correctValue; }
 
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    AllConstantValueProbe();

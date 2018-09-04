@@ -25,8 +25,8 @@ int InitWeightTestProbe::initialize(const char *name, HyPerCol *hc) {
 
 void InitWeightTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
-Response::Status InitWeightTestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status InitWeightTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -36,7 +36,7 @@ Response::Status InitWeightTestProbe::outputState(double timed) {
       return status;
    }
    for (int b = 0; b < mLocalBatchWidth; b++) {
-      if (timed > 2.0) {
+      if (simTime > 2.0) {
          FatalIf(std::abs(fMin[b]) >= 0.001f, "Test failed.\n");
          FatalIf(std::abs(fMax[b]) >= 0.001f, "Test failed.\n");
          FatalIf(std::abs(avg[b]) >= 0.001f, "Test failed.\n");

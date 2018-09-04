@@ -188,24 +188,25 @@ void MomentumConnViscosityCheckpointerTestProbe::initializeCorrectValues(double 
    }
 }
 
-PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::outputState(double timevalue) {
+PV::Response::Status
+MomentumConnViscosityCheckpointerTestProbe::outputState(double simTime, double deltaTime) {
    if (!mValuesSet) {
-      initializeCorrectValues(timevalue);
+      initializeCorrectValues(simTime);
       mValuesSet = true;
    }
-   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
+   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(simTime);
    while (updateNumber > mCorrectState->getUpdateNumber()) {
       mCorrectState->update();
    }
 
    bool failed = false;
 
-   failed |= verifyConnection(mConnection, mCorrectState, timevalue);
-   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), timevalue);
-   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), timevalue);
+   failed |= verifyConnection(mConnection, mCorrectState, simTime);
+   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), simTime);
+   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), simTime);
 
    if (failed) {
-      std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timevalue) + "\n");
+      std::string errorMsg(getDescription() + " failed at t = " + std::to_string(simTime) + "\n");
       if (!mOutputStreams.empty()) {
          output(0).printf(errorMsg.c_str());
       }
@@ -216,8 +217,7 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::outputState(dou
    }
    else {
       if (!mOutputStreams.empty()) {
-         output(0).printf(
-               "%s found all correct values at time %f\n", getDescription_c(), timevalue);
+         output(0).printf("%s found all correct values at time %f\n", getDescription_c(), simTime);
       }
    }
    // Test runs all timesteps and then checks the mTestFailed flag at the end.
