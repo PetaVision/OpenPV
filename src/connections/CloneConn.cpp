@@ -53,6 +53,8 @@ OriginalConnNameParam *CloneConn::createOriginalConnNameParam() {
    return new OriginalConnNameParam(name, parent);
 }
 
-Response::Status CloneConn::initializeState() { return Response::NO_ACTION; }
+Response::Status CloneConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   return Response::NO_ACTION;
+}
 
 } // namespace PV

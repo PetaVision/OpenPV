@@ -32,8 +32,12 @@ void IndexLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    }
 }
 
-PV::Response::Status IndexLayer::initializeState() {
-   return updateState(0.0 /*timestamp*/, parent->getDeltaTime());
+PV::Response::Status
+IndexLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   double deltaTime = message->mDeltaTime;
+   mLastUpdateTime  = deltaTime;
+   mLastTriggerTime = deltaTime;
+   return updateState(0.0 /*timestamp*/, deltaTime);
 }
 
 Response::Status IndexLayer::updateState(double timef, double dt) {

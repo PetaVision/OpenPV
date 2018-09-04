@@ -416,10 +416,14 @@ int InputLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
 
 void InputLayer::allocateV() { clayer->V = nullptr; }
 
-void InputLayer::initializeV() { pvAssert(getV() == nullptr); }
-
-void InputLayer::initializeActivity() {
-   retrieveInput(parent->simulationTime(), parent->getDeltaTime());
+Response::Status
+InputLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   pvAssert(getV() == nullptr);
+   double deltaTime = message->mDeltaTime;
+   retrieveInput(0.0 /*simulationTime*/, deltaTime);
+   mLastUpdateTime  = deltaTime;
+   mLastTriggerTime = deltaTime;
+   return Response::SUCCESS;
 }
 
 int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

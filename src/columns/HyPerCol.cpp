@@ -387,7 +387,7 @@ void HyPerCol::allocateColumn() {
    // This needs to happen after initPublishers so that we can initialize
    // the values in the data stores, and before the layers' publish calls
    // so that the data in border regions gets copied correctly.
-   notifyLoop(std::make_shared<InitializeStateMessage>());
+   notifyLoop(std::make_shared<InitializeStateMessage>(mDeltaTime));
    if (mCheckpointReadFlag) {
       mCheckpointer->checkpointRead(&mSimTime, &mCurrentStep);
    }

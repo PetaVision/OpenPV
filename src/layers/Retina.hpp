@@ -40,9 +40,6 @@ class Retina : public PV::HyPerLayer {
 
    Retina(const char *name, HyPerCol *hc);
    virtual ~Retina();
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual Response::Status allocateDataStructures() override;
 
    int setRetinaParams(PVParams *p);
 
@@ -66,9 +63,11 @@ class Retina : public PV::HyPerLayer {
    virtual void ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual void allocateV() override;
    virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual Response::Status allocateDataStructures() override;
+   virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
-   virtual void initializeV() override;
-   virtual void initializeActivity() override;
+   virtual Response::Status initializeState(std::shared_ptr<InitializeStateMessage const> message);
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual void readRandStateFromCheckpoint(Checkpointer *checkpointer);
 

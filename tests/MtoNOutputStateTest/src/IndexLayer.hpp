@@ -29,7 +29,8 @@ class IndexLayer : public HyPerLayer {
   protected:
    IndexLayer();
    int initialize(char const *name, HyPerCol *hc);
-   virtual Response::Status initializeState() override;
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
    virtual Response::Status updateState(double timef, double dt) override;
 
   private:

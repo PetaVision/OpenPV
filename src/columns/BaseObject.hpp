@@ -96,7 +96,9 @@ class BaseObject : public ParamsInterface {
    virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
 #endif // PV_USE_CUDA
    virtual Response::Status allocateDataStructures() { return Response::NO_ACTION; }
-   virtual Response::Status initializeState() { return Response::NO_ACTION; }
+   virtual Response::Status initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+      return Response::NO_ACTION;
+   }
    virtual Response::Status copyInitialStateToGPU() { return Response::SUCCESS; }
    virtual Response::Status cleanup() { return Response::NO_ACTION; }
 

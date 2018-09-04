@@ -466,7 +466,17 @@ class HyPerLayer : public ComponentBasedObject {
    virtual Response::Status allocateDataStructures() override;
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
-   virtual Response::Status initializeState() override;
+
+   /**
+    * This routine calls the virtual methods initializeV() and initializeActivity() to
+    * initialize the membrane potential and activity buffers. It also sets the
+    * LastUpdateTime and LastTriggerTime data members to the DeltaTime argument of the
+    * message. (The reason for doing so is that if the layer updates every 10th timestep,
+    * it generally should update on timesteps 1, 11, 21, etc.; not timesteps 0, 10, 20, etc.
+    * InitializeState is the earliest message that passes the HyPerCol's DeltaTime argument.)
+    */
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
    int openOutputStateFile(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
 /* static methods called by updateState({long_argument_list})*/
@@ -544,8 +554,8 @@ class HyPerLayer : public ComponentBasedObject {
    HyPerLayer *triggerLayer;
    HyPerLayer *triggerResetLayer;
 
-   double mLastUpdateTime;
-   double mLastTriggerTime;
+   double mLastUpdateTime  = 0.0;
+   double mLastTriggerTime = 0.0;
 
    std::vector<BaseConnection *> recvConns;
 

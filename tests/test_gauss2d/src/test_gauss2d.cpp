@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
    auto allocateMessagePtr = std::make_shared<AllocateDataStructuresMessage>();
    broadcastMessage(objectMap, allocateMessagePtr);
 
-   auto initializeMessagePtr = std::make_shared<InitializeStateMessage>();
+   auto initializeMessagePtr = std::make_shared<InitializeStateMessage>(hc->getDeltaTime());
    broadcastMessage(objectMap, initializeMessagePtr);
 
    delete objectMap;

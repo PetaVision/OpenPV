@@ -37,7 +37,8 @@ class CopyConn : public HyPerConn {
    virtual BaseWeightUpdater *createWeightUpdater() override;
    virtual OriginalConnNameParam *createOriginalConnNameParam();
 
-   virtual Response::Status initializeState() override;
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
   protected:
    OriginalConnNameParam *mOriginalConnNameParam = nullptr;

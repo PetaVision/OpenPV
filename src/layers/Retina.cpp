@@ -126,9 +126,13 @@ Response::Status Retina::allocateDataStructures() {
 
 void Retina::allocateV() { clayer->V = NULL; }
 
-void Retina::initializeV() { assert(getV() == NULL); }
-
-void Retina::initializeActivity() { updateState(parent->simulationTime(), parent->getDeltaTime()); }
+Response::Status Retina::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   pvAssert(getV() == nullptr); // Retina does not use V.
+   updateState(0.0, message->mDeltaTime);
+   mLastUpdateTime  = message->mDeltaTime; // Retina ignores these values, since it updates every
+   mLastTriggerTime = message->mDeltaTime; // timestep, but this stays consistent with HyPerLayer.
+   return Response::SUCCESS;
+}
 
 int Retina::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);

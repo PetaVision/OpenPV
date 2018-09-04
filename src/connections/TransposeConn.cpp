@@ -54,6 +54,9 @@ OriginalConnNameParam *TransposeConn::createOriginalConnNameParam() {
    return new OriginalConnNameParam(name, parent);
 }
 
-Response::Status TransposeConn::initializeState() { return Response::NO_ACTION; }
+Response::Status
+TransposeConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   return Response::NO_ACTION;
+}
 
 } // namespace PV

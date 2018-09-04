@@ -35,7 +35,8 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status initializeState() override;
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
    void initializeGaussian2DWeights(float *dataStart, int numPatches);
    void gauss2DCalcWeights(

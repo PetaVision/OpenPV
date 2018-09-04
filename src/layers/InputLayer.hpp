@@ -142,8 +142,8 @@ class InputLayer : public HyPerLayer {
     */
    virtual void normalizePixels(int batchElement);
    virtual void allocateV() override;
-   virtual void initializeV() override;
-   virtual void initializeActivity() override;
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

@@ -64,9 +64,6 @@ int HyPerLayer::initialize_base() {
    triggerOffset                = 0;
    initializeFromCheckpointFlag = false;
 
-   mLastUpdateTime  = 0.0;
-   mLastTriggerTime = 0.0;
-
 #ifdef PV_USE_CUDA
    allocDeviceV             = false;
    allocDeviceGSyn          = false;
@@ -127,8 +124,8 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
 
    initClayer();
 
-   mLastUpdateTime  = parent->getDeltaTime();
-   mLastTriggerTime = parent->getDeltaTime();
+   mLastUpdateTime  = 0.0;
+   mLastTriggerTime = 0.0;
    return PV_SUCCESS;
 }
 
@@ -471,9 +468,12 @@ void HyPerLayer::checkpointRandState(
          bufferName);
 }
 
-Response::Status HyPerLayer::initializeState() {
+Response::Status
+HyPerLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    initializeV();
    initializeActivity();
+   mLastUpdateTime  = message->mDeltaTime;
+   mLastTriggerTime = message->mDeltaTime;
    return Response::SUCCESS;
 }
 

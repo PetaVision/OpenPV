@@ -8,11 +8,14 @@ FixedImageSequence::FixedImageSequence(char const *name, PV::HyPerCol *hc) {
 
 void FixedImageSequence::allocateV() { clayer->V = nullptr; }
 
-PV::Response::Status FixedImageSequence::initializeState() {
+PV::Response::Status
+FixedImageSequence::initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) {
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       clayer->activity->data[k] = 0.0f;
    }
    defineImageSequence();
+   mLastUpdateTime  = message->mDeltaTime;
+   mLastTriggerTime = message->mDeltaTime;
    return PV::Response::SUCCESS;
 }
 

@@ -124,7 +124,8 @@ InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    return Response::SUCCESS;
 }
 
-Response::Status InitWeights::initializeState() {
+Response::Status
+InitWeights::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    FatalIf(
          mWeights == nullptr,
          "initializeState was called for %s with a null Weights object.\n",

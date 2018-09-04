@@ -1,7 +1,7 @@
 #ifndef FIXEDIMAGESEQUENCE_HPP_
 #define FIXEDIMAGESEQUENCE_HPP_
 
-#include <layers/ImageLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 class FixedImageSequence : public PV::HyPerLayer {
   public:
@@ -21,7 +21,8 @@ class FixedImageSequence : public PV::HyPerLayer {
     * the pure virtual method initIndices to set the
     * mIndexStart and mIndexSkip data members.
     */
-   virtual PV::Response::Status initializeState() override;
+   virtual PV::Response::Status
+   initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) override;
 
    /**
     * A pure virtual method where derived classes should set the data members

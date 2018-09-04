@@ -49,7 +49,8 @@ Response::Status NonsharedConnDebugInitWeights::communicateInitInfo(
    return HyPerConn::communicateInitInfo(message);
 }
 
-Response::Status NonsharedConnDebugInitWeights::initializeState() {
+Response::Status NonsharedConnDebugInitWeights::initializeState(
+      std::shared_ptr<InitializeStateMessage const> message) {
    auto *weightsPair = getComponentByType<WeightsPair>();
    FatalIf(weightsPair == nullptr, "%s has no WeightsPair component.\n", getDescription_c());
    Weights *preWeights = weightsPair->getPreWeights();

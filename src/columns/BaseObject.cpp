@@ -116,7 +116,7 @@ BaseObject::respondInitializeState(std::shared_ptr<InitializeStateMessage const>
    if (getInitialValuesSetFlag()) {
       return Response::NO_ACTION;
    }
-   status = initializeState();
+   status = initializeState(message);
    if (Response::completed(status)) {
       setInitialValuesSetFlag();
    }

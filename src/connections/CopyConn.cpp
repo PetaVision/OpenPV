@@ -51,7 +51,7 @@ OriginalConnNameParam *CopyConn::createOriginalConnNameParam() {
    return new OriginalConnNameParam(name, parent);
 }
 
-Response::Status CopyConn::initializeState() {
+Response::Status CopyConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    auto *copyWeightsPair = getComponentByType<CopyWeightsPair>();
    pvAssert(copyWeightsPair);
    if (!copyWeightsPair->getOriginalWeightsPair()->getInitialValuesSetFlag()) {

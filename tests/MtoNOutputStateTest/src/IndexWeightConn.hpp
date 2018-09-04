@@ -28,7 +28,8 @@ class IndexWeightConn : public HyPerConn {
    int initialize(const char *name, HyPerCol *hc);
    virtual InitWeights *createWeightInitializer() override;
    virtual BaseWeightUpdater *createWeightUpdater() override;
-   virtual Response::Status initializeState() override;
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
 }; // end class IndexWeightConn
 

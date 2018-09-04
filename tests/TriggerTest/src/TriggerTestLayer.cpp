@@ -23,7 +23,7 @@ Response::Status TriggerTestLayer::updateState(double time, double dt) {
          triggerOffset);
    if (strcmp(name, "notrigger") == 0) {
       FatalIf(
-            !(needUpdate(time, dt) == true),
+            needUpdate(time, dt) == false,
             "Test failed at %s. Expected true, found false.\n",
             getName());
    }
@@ -31,13 +31,13 @@ Response::Status TriggerTestLayer::updateState(double time, double dt) {
    else if (strcmp(name, "trigger0") == 0) {
       if (((int)time - 1) % 5 == 0) {
          FatalIf(
-               !(needUpdate(time, dt) == true),
+               needUpdate(time, dt) == false,
                "Test failed at %s. Expected true, found false.\n",
                getName());
       }
       else {
          FatalIf(
-               !(needUpdate(time, dt) == false),
+               needUpdate(time, dt) == true,
                "Test failed at %s. Expected false, found true.\n",
                getName());
       }
@@ -46,13 +46,13 @@ Response::Status TriggerTestLayer::updateState(double time, double dt) {
    else if (strcmp(name, "trigger1") == 0) {
       if (((int)time) % 5 == 0) {
          FatalIf(
-               !(needUpdate(time, dt) == true),
+               needUpdate(time, dt) == false,
                "Test failed at %s. Expected true, found false.\n",
                getName());
       }
       else {
          FatalIf(
-               !(needUpdate(time, dt) == false),
+               needUpdate(time, dt) == true,
                "Test failed at %s. Expected false, found true.\n",
                getName());
       }
@@ -61,13 +61,13 @@ Response::Status TriggerTestLayer::updateState(double time, double dt) {
    else if (strcmp(name, "trigger2") == 0) {
       if (((int)time + 1) % 5 == 0) {
          FatalIf(
-               !(needUpdate(time, dt) == true),
+               needUpdate(time, dt) == false,
                "Test failed at %s. Expected true, found false.\n",
                getName());
       }
       else {
          FatalIf(
-               !(needUpdate(time, dt) == false),
+               needUpdate(time, dt) == true,
                "Test failed at %s. Expected false, found true.\n",
                getName());
       }

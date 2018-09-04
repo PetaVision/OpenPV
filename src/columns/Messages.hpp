@@ -105,7 +105,11 @@ class ConnectionProbeWriteParamsMessage : public BaseMessage {
 
 class InitializeStateMessage : public BaseMessage {
   public:
-   InitializeStateMessage() { setMessageType("InitializeState"); }
+   InitializeStateMessage(double deltaTime) {
+      setMessageType("InitializeState");
+      mDeltaTime = deltaTime;
+   }
+   double mDeltaTime;
 };
 
 class CopyInitialStateToGPUMessage : public BaseMessage {
