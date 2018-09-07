@@ -43,11 +43,6 @@ ConstantLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    return HyPerLayer::communicateInitInfo(message);
 }
 
-// bool ConstantLayer::checkIfUpdateNeeded() {
-bool ConstantLayer::needUpdate(double timestamp, double dt) {
-   // Only update on initialization
-   assert(timestamp >= 0.0);
-   return (timestamp == 0.0);
-}
+bool ConstantLayer::needUpdate(double simTime, double dt) { return false; }
 
 } /* namespace PV */

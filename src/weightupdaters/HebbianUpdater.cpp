@@ -324,9 +324,8 @@ Response::Status HebbianUpdater::allocateDataStructures() {
                   mWeightUpdateTime);
          }
       }
-      mLastUpdateTime = mWeightUpdateTime - parent->getDeltaTime();
+      mLastUpdateTime = mInitialWeightUpdateTime;
    }
-   mLastTimeUpdateCalled = parent->simulationTime();
 
    return Response::SUCCESS;
 }
@@ -392,7 +391,6 @@ void HebbianUpdater::updateState(double simTime, double dt) {
       computeNewWeightUpdateTime(simTime, mWeightUpdateTime);
       mNeedFinalize = true;
    }
-   mLastTimeUpdateCalled = simTime;
 }
 
 bool HebbianUpdater::needUpdate(double simTime, double dt) {
@@ -402,7 +400,12 @@ bool HebbianUpdater::needUpdate(double simTime, double dt) {
    if (mTriggerLayer) {
       return mTriggerLayer->needUpdate(simTime + mTriggerOffset, dt);
    }
-   return simTime >= mWeightUpdateTime;
+   else {
+      double numUpdates = (simTime - mLastUpdateTime) / mWeightUpdatePeriod;
+      double timeToClosest =
+            std::fabs(numUpdates - std::nearbyint(numUpdates)) * mWeightUpdatePeriod;
+      return timeToClosest < 0.5 * dt;
+   }
 }
 
 void HebbianUpdater::updateWeightsImmediate(double simTime, double dt) {

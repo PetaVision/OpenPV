@@ -1427,26 +1427,18 @@ double HyPerLayer::getDeltaTriggerTime() {
 }
 
 bool HyPerLayer::needUpdate(double simTime, double dt) {
-   if (getDeltaUpdateTime() <= 0) {
+   double deltaUpdateTime = getDeltaUpdateTime();
+   if (deltaUpdateTime <= 0) {
       return false;
    }
-   if (mLastUpdateTime == simTime + triggerOffset) {
-      return true;
+   else if (triggerLayer != nullptr && triggerBehaviorType == UPDATEONLY_TRIGGER) {
+      return triggerLayer->needUpdate(simTime + triggerOffset, dt);
    }
-   double timeToCheck = mLastUpdateTime;
-   if (triggerLayer != nullptr && triggerBehaviorType == UPDATEONLY_TRIGGER) {
-      timeToCheck = triggerLayer->getLastUpdateTime();
-
-      // If our target layer updates this tick, so do we
-      if (timeToCheck == simTime && triggerOffset == 0) {
-         return true;
-      }
+   else {
+      double numUpdates    = (simTime - mLastUpdateTime) / deltaUpdateTime;
+      double timeToClosest = std::fabs(numUpdates - std::nearbyint(numUpdates)) * deltaUpdateTime;
+      return timeToClosest < 0.5 * dt;
    }
-   if (simTime + triggerOffset >= timeToCheck + getDeltaUpdateTime()
-       && simTime + triggerOffset + dt <= timeToCheck + getDeltaUpdateTime() + dt) {
-      return true;
-   }
-   return false;
 }
 
 bool HyPerLayer::needReset(double simTime, double dt) {

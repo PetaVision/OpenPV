@@ -317,16 +317,13 @@ class HyPerLayer : public ComponentBasedObject {
    // An updateState wrapper that determines if updateState needs to be called
    Response::Status callUpdateState(double simTime, double dt);
    /**
-     * A virtual function to determine if callUpdateState method needs to be called
+     * A virtual function to determine if the layer will update on a given timestep.
      * Default behavior is dependent on the triggering method.
-     * If there is no triggering, always returns true.
-     * If there is triggering and the trigger behavior is updateOnlyOnTrigger, returns true only
-    * when there is a triggering event.
-     * If there is triggering and the trigger behavior is resetStateOnTrigger, returns true only
-    * when there is not a trigger event.
-     * @param time The current timestep of the run
-     * @param dt The current non-adaptive dt of the run
-     * @return Returns if the update needs to happen
+     * If there is triggering with trigger behavior updateOnlyOnTrigger, returns
+     * the trigger layer's needUpdate for the time simTime + triggerOffset.
+     * Otherwise, returns true if simTime is LastUpdateTime, LastUpdateTime + getDeltaUpdateTime(),
+     * LastUpdateTime + 2*getDeltaUpdateTime(), LastUpdateTime + 3*getDeltaUpdateTime(), etc.
+     * @return Returns true an update is needed on that timestep, false otherwise.
      */
    virtual bool needUpdate(double simTime, double dt);
 
@@ -456,7 +453,6 @@ class HyPerLayer : public ComponentBasedObject {
    bool isExtended() { return true; }
 
    double getLastUpdateTime() { return mLastUpdateTime; }
-   double getNextUpdateTime() { return mLastUpdateTime + getDeltaUpdateTime(); }
 
    Publisher *getPublisher() { return publisher; }
 
