@@ -322,7 +322,6 @@ int HyPerLayer::freeExtendedBuffer(float **buf) { return freeBuffer(buf); }
 int HyPerLayer::freeClayer() {
    pvcube_delete(clayer->activity);
 
-   freeBuffer(&clayer->prevActivity);
    free(clayer);
    clayer = NULL;
 
@@ -359,12 +358,6 @@ int HyPerLayer::allocateClayerBuffers() {
    assert(clayer);
    allocateV();
    allocateActivity();
-
-   // athresher 11-4-16 TODO: Should these be called on non-spiking layers?
-   allocatePrevActivity();
-   for (int k = 0; k < getNumExtendedAllBatches(); k++) {
-      clayer->prevActivity[k] = -10 * REFRACTORY_PERIOD; // allow neuron to fire at time t==0
-   }
    return PV_SUCCESS;
 }
 
@@ -404,10 +397,6 @@ void HyPerLayer::allocateActivity() {
    clayer->activity = pvcube_new(getLayerLoc(), getNumExtendedAllBatches());
    FatalIf(
          clayer->activity == nullptr, "%s failed to allocate activity cube.\n", getDescription_c());
-}
-
-void HyPerLayer::allocatePrevActivity() {
-   allocateExtendedBuffer(&clayer->prevActivity, "time of previous activity");
 }
 
 void HyPerLayer::allocateBuffers() {

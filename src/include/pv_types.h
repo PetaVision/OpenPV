@@ -75,9 +75,6 @@ typedef struct PVLayer_ {
    // PVLayerLoc loc, int xScale, and int yScale are now handled by the LayerGeometry class.
 
    PVLayerCube *activity;
-
-   // time of previous spike for each neuron
-   float *prevActivity;
 } PVLayer;
 
 typedef struct { unsigned int s1, s2, s3; } taus_state_t;

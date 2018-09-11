@@ -76,6 +76,10 @@ class Retina : public PV::HyPerLayer {
    float probStimParam;
    float probBaseParam;
 
+   // An extended buffer used by spiking retinas. Holds for each neuron the elapsed time
+   // since the last time that neuron spiked.
+   float *mSinceLastSpike = nullptr;
+
   private:
    int initialize_base();
 

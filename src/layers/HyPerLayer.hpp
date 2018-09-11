@@ -189,7 +189,6 @@ class HyPerLayer : public ComponentBasedObject {
 
    void allocateV();
    virtual void allocateActivity();
-   virtual void allocatePrevActivity();
 
    void checkpointPvpActivityFloat(
          Checkpointer *checkpointer,

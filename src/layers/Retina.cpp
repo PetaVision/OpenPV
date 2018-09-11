@@ -34,7 +34,7 @@ void Retina_spiking_update_state(
       taus_uint4 *rnd,
       float *GSynHead,
       float *activity,
-      float *prevTime);
+      float *timeSinceLast);
 
 void Retina_nonspiking_update_state(
       const int nbatch,
@@ -102,9 +102,6 @@ Retina::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> me
    if (!Response::completed(status)) {
       return status;
    }
-   if (getLayerLoc()->nbatch != 1) {
-      Fatal() << "Retina does not support batches yet, TODO\n";
-   }
    return status;
 }
 
@@ -120,7 +117,8 @@ Response::Status Retina::allocateDataStructures() {
       const PVLayerLoc *loc = getLayerLoc();
       // Allocate extended loc
       randState = new Random(loc, true);
-      status    = Response::SUCCESS;
+      allocateExtendedBuffer(&mSinceLastSpike, "SinceLastSpike");
+      status = Response::SUCCESS;
    }
 
    return status;
@@ -128,6 +126,11 @@ Response::Status Retina::allocateDataStructures() {
 
 Response::Status Retina::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    pvAssert(mInternalState == nullptr); // Retina does not use V.
+   if (spikingFlag) {
+      for (int k = 0; k < getNumExtendedAllBatches(); k++) {
+         mSinceLastSpike[k] = 10 * rParams.abs_refractory_period; // allow neuron to fire at t=0
+      }
+   }
    updateState(0.0, message->mDeltaTime);
    mLastUpdateTime  = message->mDeltaTime; // Retina ignores these values, since it updates every
    mLastTriggerTime = message->mDeltaTime; // timestep, but this stays consistent with HyPerLayer.
@@ -248,6 +251,7 @@ Retina::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> me
       pvAssert(randState != nullptr);
       auto *checkpointer = message->mDataRegistry;
       checkpointRandState(checkpointer, "rand_state", randState, true /*extended*/);
+      checkpointPvpActivityFloat(checkpointer, "SinceLastSpike", getActivity(), true /*extended*/);
    }
    return Response::SUCCESS;
 }
@@ -255,7 +259,7 @@ Retina::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> me
 //! Updates the state of the Retina
 /*!
  * REMARKS:
- *      - prevActivity[] buffer holds the time when a neuron last spiked.
+ *      - mSinceLastSpike[] buffer holds the time since a neuron last spiked.
  *      - not used if nonspiking
  *      - it sets the probStim and probBase.
  *              - probStim = noiseOnFreq * dt_sec * (phiExc - phiInh); the last ()  is V[k];
@@ -297,7 +301,7 @@ Response::Status Retina::updateState(double timed, double dt) {
             randState->getRNG(0),
             GSynHead,
             activity,
-            clayer->prevActivity);
+            mSinceLastSpike);
    }
    else {
       Retina_nonspiking_update_state(
@@ -386,7 +390,7 @@ static inline float calcBurstStatus(double timed, Retina_params *params) {
 static inline int
 spike(float timed,
       float dt,
-      float prev,
+      float timeSinceLast,
       float stimFactor,
       taus_uint4 *rnd_state,
       float burst_status,
@@ -400,11 +404,11 @@ spike(float timed,
 
    // see if neuron is in a refractory period
    //
-   if ((timed - prev) < params->abs_refractory_period) {
+   if (timeSinceLast < params->abs_refractory_period) {
       return 0;
    }
    else {
-      float delta   = timed - prev - params->abs_refractory_period;
+      float delta   = timeSinceLast - params->abs_refractory_period;
       float refract = 1.0f - expf(-delta / params->refractory_period);
       refract       = (refract < 0) ? 0 : refract;
       probBase *= refract;
@@ -445,16 +449,16 @@ void Retina_spiking_update_state(
       taus_uint4 *rnd,
       float *GSynHead,
       float *activity,
-      float *prevTime) {
+      float *timeSinceLast) {
 
    float *phiExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
    float *phiInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
    for (int b = 0; b < nbatch; b++) {
-      taus_uint4 *rndBatch = rnd + b * nx * ny * nf;
-      float *phiExcBatch   = phiExc + b * nx * ny * nf;
-      float *phiInhBatch   = phiInh + b * nx * ny * nf;
-      float *prevTimeBatch = prevTime + b * (nx + lt + rt) * (ny + up + dn) * nf;
-      float *activityBatch = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
+      taus_uint4 *rndBatch      = rnd + b * nx * ny * nf;
+      float *phiExcBatch        = phiExc + b * nx * ny * nf;
+      float *phiInhBatch        = phiInh + b * nx * ny * nf;
+      float *timeSinceLastBatch = timeSinceLast + b * (nx + lt + rt) * (ny + up + dn) * nf;
+      float *activityBatch      = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
       int k;
       float burst_status = calcBurstStatus(timed, params);
       for (k = 0; k < nx * ny * nf; k++) {
@@ -464,24 +468,24 @@ void Retina_spiking_update_state(
          //
          // load local variables from global memory
          //
-         taus_uint4 l_rnd = rndBatch[k];
-         float l_phiExc   = phiExcBatch[k];
-         float l_phiInh   = phiInhBatch[k];
-         float l_prev     = prevTimeBatch[kex];
+         taus_uint4 l_rnd      = rndBatch[k];
+         float l_phiExc        = phiExcBatch[k];
+         float l_phiInh        = phiInhBatch[k];
+         float l_timeSinceLast = timeSinceLastBatch[kex] + (float)dt;
          float l_activ;
          l_activ = (float)spike(
                (float)timed,
                (float)dt,
-               l_prev,
+               l_timeSinceLast,
                (l_phiExc - l_phiInh),
                &l_rnd,
                burst_status,
                params);
-         l_prev = (l_activ > 0.0f) ? (float)timed : l_prev;
+         l_timeSinceLast = (l_activ > 0.0f) ? 0.0f : l_timeSinceLast;
          // store local variables back to global memory
          //
          rndBatch[k]        = l_rnd;
-         prevTimeBatch[kex] = l_prev;
+         timeSinceLast[kex] = l_timeSinceLast;
          activityBatch[kex] = l_activ;
       }
    }
