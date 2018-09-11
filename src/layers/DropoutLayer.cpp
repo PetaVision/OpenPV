@@ -21,7 +21,7 @@ void DropoutLayer::ioParam_probability(enum ParamsIOFlag ioFlag) {
 
 Response::Status DropoutLayer::updateState(double timestamp, double dt) {
    ANNLayer::updateState(timestamp, dt);
-   float *A  = getCLayer()->activity->data;
+   float *A  = getActivity();
    int total = getNumExtendedAllBatches();
 
 #ifdef PV_USE_OPENMP_THREADS

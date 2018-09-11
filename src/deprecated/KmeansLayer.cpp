@@ -36,7 +36,7 @@ int KmeansLayer::initialize_base() {
 
 Response::Status KmeansLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = clayer->activity->data;
+   float *A              = mActivityCube->data;
    float *V              = getV();
    int num_channels      = getNumChannels();
 
@@ -78,7 +78,7 @@ int KmeansLayer::setActivity() {
    status = setActivity_HyPerLayer(
          nbatch,
          num_neurons,
-         getCLayer()->activity->data,
+         getActivity(),
          getV(),
          nx,
          ny,

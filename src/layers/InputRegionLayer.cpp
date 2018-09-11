@@ -157,11 +157,11 @@ void InputRegionLayer::allocateActivity() {
    int const numItems = getNumExtendedAllBatches();
    PVLayerCube *cube  = (PVLayerCube *)calloc(pvcube_size(numItems), sizeof(char));
    FatalIf(cube == nullptr, "Unable to allocate PVLayerCube for %s\n", getDescription_c());
-   cube->size       = pvcube_size(numItems);
-   cube->numItems   = numItems;
-   cube->loc        = *getLayerLoc();
-   cube->data       = mOriginalLayer->getInputRegionsAllBatchElements();
-   clayer->activity = cube;
+   cube->size     = pvcube_size(numItems);
+   cube->numItems = numItems;
+   cube->loc      = *getLayerLoc();
+   cube->data     = mOriginalLayer->getInputRegionsAllBatchElements();
+   mActivityCube  = cube;
 }
 
 int InputRegionLayer::setActivity() { return PV_SUCCESS; }

@@ -66,17 +66,6 @@ typedef struct PVLayerCube_ {
    void const *activeIndices;
 } PVLayerCube;
 
-/**
- * PVLayer is a collection of neurons of a specific class
- */
-typedef struct PVLayer_ {
-
-   // int numNeurons, int numExtended, int numNeuronsAllBatches, int numExtendedAllBatches,
-   // PVLayerLoc loc, int xScale, and int yScale are now handled by the LayerGeometry class.
-
-   PVLayerCube *activity;
-} PVLayer;
-
 typedef struct { unsigned int s1, s2, s3; } taus_state_t;
 
 typedef struct taus_uint4_ {

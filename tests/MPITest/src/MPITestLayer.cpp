@@ -64,7 +64,7 @@ int MPITestLayer::setActivitytoGlobalPos() {
 
          if ((x_in_global_boundary || x_in_local_interior)
              && (y_in_global_boundary || y_in_local_interior)) {
-            clayer->activity->data[kLocalExt + b * getNumExtended()] = x_global_pos;
+            mActivityCube->data[kLocalExt + b * getNumExtended()] = x_global_pos;
          }
       }
    }

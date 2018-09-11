@@ -1,5 +1,5 @@
 /*
- * PVLayer.h
+ * PVLayerCube.hpp
  *
  *  Created on: Jul 29, 2008
  *

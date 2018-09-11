@@ -52,7 +52,7 @@ Response::Status ANNSquaredLayer::updateState(double time, double dt) {
 
    float *GSynHead = GSyn[0];
    float *V        = getV();
-   float *activity = clayer->activity->data;
+   float *activity = mActivityCube->data;
 
    ANNSquaredLayer_update_state(
          nbatch,

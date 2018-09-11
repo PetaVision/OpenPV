@@ -118,7 +118,7 @@ void RescaleLayer::ioParam_patchSize(enum ParamsIOFlag ioFlag) {
 }
 
 int RescaleLayer::setActivity() {
-   float *activity = clayer->activity->data;
+   float *activity = mActivityCube->data;
    memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
    return 0;
 }
@@ -126,8 +126,8 @@ int RescaleLayer::setActivity() {
 // GTK: changed to rescale activity instead of V
 Response::Status RescaleLayer::updateState(double timef, double dt) {
    int numNeurons                = mOriginalLayer->getNumNeurons();
-   float *A                      = clayer->activity->data;
-   const float *originalA        = mOriginalLayer->getCLayer()->activity->data;
+   float *A                      = mActivityCube->data;
+   const float *originalA        = mOriginalLayer->getActivity();
    const PVLayerLoc *loc         = getLayerLoc();
    const PVLayerLoc *locOriginal = mOriginalLayer->getLayerLoc();
    int nbatch                    = loc->nbatch;

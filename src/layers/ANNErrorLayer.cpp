@@ -124,7 +124,7 @@ int ANNErrorLayer::checkVertices() const {
 
 Response::Status ANNErrorLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = clayer->activity->data;
+   float *A              = mActivityCube->data;
    float *V              = getV();
    int num_channels      = getNumChannels();
    float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];

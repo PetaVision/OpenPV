@@ -56,7 +56,7 @@ void RunningAverageLayer::ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag) {
 }
 
 int RunningAverageLayer::setActivity() {
-   float *activity = clayer->activity->data;
+   float *activity = mActivityCube->data;
    memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
    return 0;
 }
@@ -66,8 +66,8 @@ Response::Status RunningAverageLayer::updateState(double timef, double dt) {
    // Check if an update is needed
    // Done in cloneVLayer
    int numNeurons                = mOriginalLayer->getNumNeurons();
-   float *A                      = clayer->activity->data;
-   const float *originalA        = mOriginalLayer->getCLayer()->activity->data;
+   float *A                      = mActivityCube->data;
+   const float *originalA        = mOriginalLayer->getActivity();
    const PVLayerLoc *loc         = getLayerLoc();
    const PVLayerLoc *locOriginal = mOriginalLayer->getLayerLoc();
    int nbatch                    = loc->nbatch;

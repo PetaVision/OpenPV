@@ -180,7 +180,7 @@ int ConvertFromTable::loadConversionTable() {
 
 int ConvertFromTable::updateState(double timed, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = clayer->activity->data;
+   float *A              = mActivityCube->data;
    float *V              = getV();
    int num_channels      = getNumChannels();
    float *GSynHead       = GSyn == NULL ? NULL : GSyn[0];

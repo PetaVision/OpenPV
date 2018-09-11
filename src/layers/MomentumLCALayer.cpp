@@ -191,7 +191,7 @@ Response::Status MomentumLCALayer::updateStateGpu(double time, double dt) {
 
 Response::Status MomentumLCALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = clayer->activity->data;
+   float *A              = mActivityCube->data;
    float *V              = getV();
    int num_channels      = getNumChannels();
    float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];

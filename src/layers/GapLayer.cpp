@@ -50,13 +50,7 @@ Response::Status GapLayer::allocateDataStructures() {
 
 Response::Status GapLayer::updateState(double timef, double dt) {
    int status;
-   updateState(
-         timef,
-         dt,
-         getLayerLoc(),
-         getCLayer()->activity->data,
-         getV(),
-         mOriginalLayer->getCLayer()->activity->data);
+   updateState(timef, dt, getLayerLoc(), getActivity(), getV(), mOriginalLayer->getActivity());
    return Response::SUCCESS;
 }
 
@@ -98,7 +92,7 @@ int GapLayer::setActivity() {
    return setActivity_GapLayer(
          loc->nbatch,
          getNumNeurons(),
-         getCLayer()->activity->data,
+         getActivity(),
          getV(),
          loc->nx,
          loc->ny,
@@ -111,7 +105,7 @@ int GapLayer::setActivity() {
          mOriginalLayer->getLayerLoc()->halo.rt,
          mOriginalLayer->getLayerLoc()->halo.dn,
          mOriginalLayer->getLayerLoc()->halo.up,
-         getCLayer()->activity->data,
+         getActivity(),
          ampSpikelet);
 }
 

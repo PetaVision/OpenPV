@@ -377,7 +377,7 @@ int BBFindConfRemapLayer::updateState(double t, double dt) {
                icComm->communicator(),
                MPI_STATUS_IGNORE);
       }
-      float *A = clayer->activity->data + b * getNumExtended();
+      float *A = mActivityCube->data + b * getNumExtended();
       for (int y = 0; y < ny; y++) {
          int kRes = kIndex(0, y, 0, nx, ny, nf);
          int kExt = kIndex(

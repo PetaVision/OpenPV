@@ -100,7 +100,7 @@ int check_activity(HyPerLayer *l) {
    FatalIf(!(nk == nx * ny * nf), "Test failed.\n");
 
    for (int k = 0; k < nk; k++) {
-      int a = (int)l->clayer->activity->data[k];
+      int a = (int)l->getActivity()[k];
       if (a != UNIFORM_ACTIVITY_VALUE) {
          status = -1;
          ErrorLog().printf("test_border_activity: activity==%d != %d\n", a, UNIFORM_ACTIVITY_VALUE);

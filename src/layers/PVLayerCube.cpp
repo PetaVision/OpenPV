@@ -1,5 +1,5 @@
 /*
- * PVLayer.c
+ * PVLayerCube.cpp
  *
  *  Created on: Nov 18, 2008
  *      Author: Craig Rasmussen

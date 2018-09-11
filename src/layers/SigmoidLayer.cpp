@@ -85,7 +85,7 @@ Response::Status SigmoidLayer::allocateDataStructures() {
 }
 
 int SigmoidLayer::setActivity() {
-   float *activity = clayer->activity->data;
+   float *activity = mActivityCube->data;
    memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
    return 0;
 }
@@ -96,7 +96,7 @@ Response::Status SigmoidLayer::updateState(double timef, double dt) {
          timef,
          dt,
          getLayerLoc(),
-         getCLayer()->activity->data,
+         getActivity(),
          getV(),
          0,
          NULL,

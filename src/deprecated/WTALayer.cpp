@@ -122,8 +122,8 @@ void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
 }
 
 Response::Status WTALayer::updateState(double timef, double dt) {
-   float *currA = getCLayer()->activity->data;
-   float *srcA  = originalLayer->getCLayer()->activity->data;
+   float *currA = getActivity();
+   float *srcA  = originalLayer->getActivity();
 
    const PVLayerLoc *loc    = getLayerLoc();
    const PVLayerLoc *srcLoc = originalLayer->getLayerLoc();

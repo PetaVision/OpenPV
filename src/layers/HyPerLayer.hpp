@@ -162,9 +162,7 @@ class HyPerLayer : public ComponentBasedObject {
    virtual BoundaryConditions *createBoundaryConditions();
    virtual InitializeFromCheckpointFlag *createInitializeFromCheckpointFlag();
    virtual InternalStateBuffer *createInternalState();
-   virtual int initClayer();
 
-   virtual int allocateClayerBuffers();
    virtual void allocateBuffers();
    virtual void allocateGSyn();
    void addPublisher();
@@ -259,8 +257,8 @@ class HyPerLayer : public ComponentBasedObject {
   public:
    HyPerLayer(const char *name, HyPerCol *hc);
    float *getActivity() {
-      return clayer->activity->data;
-   } // TODO: access to clayer->activity->data should not be public
+      return mActivityCube->data;
+   } // TODO: access to mActivityCube->data should not be public
    virtual double getTimeScale(int batchIdx) { return -1.0; };
    virtual bool activityIsSpiking() { return false; }
 
@@ -272,15 +270,12 @@ class HyPerLayer : public ComponentBasedObject {
 
    static int equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2);
 
-   int freeClayer();
+   void freeActivityCube();
 
   public:
    virtual ~HyPerLayer();
 
    void synchronizeMarginWidth(HyPerLayer *layer);
-
-   // TODO - make protected
-   PVLayer *clayer;
 
    // ************************************************************************************//
    // interface for public methods for controlling HyPerLayer cellular and synaptic dynamics
@@ -407,7 +402,7 @@ class HyPerLayer : public ComponentBasedObject {
    void requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis);
    virtual int requireChannel(int channelNeeded, int *numChannelsResult);
 
-   PVLayer *getCLayer() { return clayer; }
+   PVLayerCube *getActivityCube() { return mActivityCube; }
    float *getV() { return mInternalState->getV(); } // TODO: should be const
    int getNumChannels() { return numChannels; }
    float *getChannel(ChannelType ch) { // name query
@@ -484,6 +479,8 @@ class HyPerLayer : public ComponentBasedObject {
    BoundaryConditions *mBoundaryConditions = nullptr;
 
    InternalStateBuffer *mInternalState = nullptr;
+
+   PVLayerCube *mActivityCube = nullptr;
 
    int numDelayLevels; // The number of timesteps in the datastore ring buffer to store older
    // timesteps for connections with delays

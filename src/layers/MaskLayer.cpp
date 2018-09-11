@@ -177,7 +177,7 @@ MaskLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
 Response::Status MaskLayer::updateState(double time, double dt) {
    ANNLayer::updateState(time, dt);
 
-   float *A              = getCLayer()->activity->data;
+   float *A              = getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
    float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];

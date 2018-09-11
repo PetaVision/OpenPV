@@ -16,7 +16,7 @@ PlasticConnTestLayer::PlasticConnTestLayer(const char *name, HyPerCol *hc) { ini
 int PlasticConnTestLayer::copyAtoV() {
    const PVLayerLoc *loc = getLayerLoc();
    float *V              = getV();
-   float *A              = clayer->activity->data;
+   float *A              = mActivityCube->data;
    for (int kLocal = 0; kLocal < getNumNeurons(); kLocal++) {
       int kExtended = kIndexExtended(
             kLocal,
@@ -45,9 +45,9 @@ int PlasticConnTestLayer::setActivitytoGlobalPos() {
                              loc->ny + loc->halo.dn + loc->halo.up,
                              loc->nf)
                        - loc->halo.lt;
-      int kxGlobalExt                   = kxLocalExt + loc->kx0;
-      float x_global_pos                = (x0 + dx * kxGlobalExt);
-      clayer->activity->data[kLocalExt] = x_global_pos;
+      int kxGlobalExt                = kxLocalExt + loc->kx0;
+      float x_global_pos             = (x0 + dx * kxGlobalExt);
+      mActivityCube->data[kLocalExt] = x_global_pos;
    }
    return PV_SUCCESS;
 }

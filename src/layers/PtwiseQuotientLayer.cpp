@@ -40,8 +40,7 @@ Response::Status PtwiseQuotientLayer::allocateDataStructures() {
 }
 
 Response::Status PtwiseQuotientLayer::updateState(double timef, double dt) {
-   doUpdateState(
-         timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0]);
+   doUpdateState(timef, dt, getLayerLoc(), getActivity(), getV(), getNumChannels(), GSyn[0]);
    return Response::SUCCESS;
 }
 

@@ -49,7 +49,6 @@ int HyPerLayer::initialize_base() {
    probes                = NULL;
    numProbes             = 0;
    numChannels           = 2;
-   clayer                = NULL;
    GSyn                  = NULL;
    marginIndices         = NULL;
    numMargin             = 0;
@@ -120,8 +119,6 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed,
    // numDelayLevels is increased when BaseConnection::communicateInitInfo calls
    // increaseDelayLevels
-
-   initClayer();
 
    mLastUpdateTime  = 0.0;
    mLastTriggerTime = 0.0;
@@ -239,23 +236,6 @@ InternalStateBuffer *HyPerLayer::createInternalState() {
    return new InternalStateBuffer(name, parent);
 }
 
-int HyPerLayer::initClayer() {
-   clayer     = (PVLayer *)calloc(1UL, sizeof(PVLayer));
-   int status = PV_SUCCESS;
-   if (clayer == NULL) {
-      Fatal().printf(
-            "HyPerLayer \"%s\" error in rank %d process: unable to allocate memory for Clayer.\n",
-            name,
-            parent->getCommunicator()->globalCommRank());
-   }
-
-   // May 14, 2018: Setting of clayer->numNeurons, etc. has been moved to
-   // LayerGeometry::communicateInitInfo, since loc->nx, loc->ny, loc->nf, etc.
-   // are handled by LayerGeometry and are not certain to be set until the
-   // CommunicateInitInfo stage.
-   return status;
-}
-
 HyPerLayer::~HyPerLayer() {
    delete recvsyn_timer;
    delete update_timer;
@@ -269,7 +249,7 @@ HyPerLayer::~HyPerLayer() {
 
    delete mOutputStateStream;
 
-   freeClayer();
+   freeActivityCube();
    freeChannels();
 
 #ifdef PV_USE_CUDA
@@ -319,13 +299,9 @@ int HyPerLayer::freeRestrictedBuffer(float **buf) { return freeBuffer(buf); }
 
 int HyPerLayer::freeExtendedBuffer(float **buf) { return freeBuffer(buf); }
 
-int HyPerLayer::freeClayer() {
-   pvcube_delete(clayer->activity);
-
-   free(clayer);
-   clayer = NULL;
-
-   return PV_SUCCESS;
+void HyPerLayer::freeActivityCube() {
+   pvcube_delete(mActivityCube);
+   mActivityCube = nullptr;
 }
 
 void HyPerLayer::freeChannels() {
@@ -350,15 +326,6 @@ void HyPerLayer::freeChannels() {
       GSyn        = NULL;
       numChannels = 0;
    }
-}
-
-int HyPerLayer::allocateClayerBuffers() {
-   // clayer fields numNeurons, numExtended, loc, xScale, yScale,
-   // dx, dy, xOrigin, yOrigin were set in initClayer().
-   assert(clayer);
-   allocateV();
-   allocateActivity();
-   return PV_SUCCESS;
 }
 
 template <typename T>
@@ -394,9 +361,8 @@ void HyPerLayer::allocateV() {
 }
 
 void HyPerLayer::allocateActivity() {
-   clayer->activity = pvcube_new(getLayerLoc(), getNumExtendedAllBatches());
-   FatalIf(
-         clayer->activity == nullptr, "%s failed to allocate activity cube.\n", getDescription_c());
+   mActivityCube = pvcube_new(getLayerLoc(), getNumExtendedAllBatches());
+   FatalIf(mActivityCube == nullptr, "%s failed to allocate activity cube.\n", getDescription_c());
 }
 
 void HyPerLayer::allocateBuffers() {
@@ -428,7 +394,7 @@ void HyPerLayer::allocateGSyn() {
 
 void HyPerLayer::addPublisher() {
    MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
-   publisher = new Publisher(*mpiBlock, clayer->activity, getNumDelayLevels(), getSparseFlag());
+   publisher = new Publisher(*mpiBlock, mActivityCube, getNumDelayLevels(), getSparseFlag());
 }
 
 void HyPerLayer::checkpointPvpActivityFloat(
@@ -496,7 +462,7 @@ Response::Status HyPerLayer::copyInitialStateToGPU() {
 
       PVCuda::CudaBuffer *d_activity = getDeviceActivity();
       assert(d_activity);
-      float *h_activity = getCLayer()->activity->data;
+      float *h_activity = getActivity();
       d_activity->copyToDevice(h_activity);
    }
    return Response::SUCCESS;
@@ -870,8 +836,7 @@ int HyPerLayer::allocateUpdateKernel() {
 }
 
 /**
- * Allocate GPU buffers.  This must be called after PVLayer data have
- * been allocated.
+ * Allocate GPU buffers.
  */
 int HyPerLayer::allocateDeviceBuffers() {
    int status = 0;
@@ -1185,7 +1150,8 @@ Response::Status HyPerLayer::allocateDataStructures() {
       }
    }
 
-   allocateClayerBuffers();
+   allocateV();
+   allocateActivity();
 
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -1195,7 +1161,7 @@ Response::Status HyPerLayer::allocateDataStructures() {
 
    // If not mirroring, fill the boundaries with the value in the valueBC param
    if (!mBoundaryConditions->getMirrorBCflag() && mBoundaryConditions->getValueBC() != 0.0f) {
-      mBoundaryConditions->applyBoundaryConditions(clayer->activity->data, getLayerLoc());
+      mBoundaryConditions->applyBoundaryConditions(mActivityCube->data, getLayerLoc());
    }
 
    // allocate storage for the input conductance arrays
@@ -1508,7 +1474,7 @@ void HyPerLayer::resetStateOnTrigger() {
       getDeviceV()->copyToDevice(V);
       // Right now, we're setting the activity on the CPU and memsetting the GPU memory
       // TODO calculate this on the GPU
-      getDeviceActivity()->copyToDevice(clayer->activity->data);
+      getDeviceActivity()->copyToDevice(mActivityCube->data);
       // We need to updateDeviceActivity and Datastore if we're resetting V
       updatedDeviceActivity  = true;
       updatedDeviceDatastore = true;
@@ -1556,7 +1522,7 @@ Response::Status HyPerLayer::updateState(double timef, double dt) {
    // and activity buffer (nonspiking)
 
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = getCLayer()->activity->data;
+   float *A              = getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
    float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
@@ -1593,7 +1559,7 @@ int HyPerLayer::setActivity() {
    return setActivity_HyPerLayer(
          loc->nbatch,
          getNumNeurons(),
-         clayer->activity->data,
+         mActivityCube->data,
          getV(),
          loc->nx,
          loc->ny,
@@ -1709,7 +1675,7 @@ void HyPerLayer::copyAllActivityFromDevice() {
    // Only copy if updating
    if (mUpdateGpu) {
       // Allocated as a big chunk, this should work
-      float *h_activity              = getCLayer()->activity->data;
+      float *h_activity              = getActivity();
       PVCuda::CudaBuffer *d_activity = this->getDeviceActivity();
       assert(d_activity);
       d_activity->copyFromDevice(h_activity);
@@ -1724,7 +1690,7 @@ int HyPerLayer::publish(Communicator *comm, double simTime) {
    int status = PV_SUCCESS;
    if (mNeedToPublish) {
       if (mBoundaryConditions->getMirrorBCflag()) {
-         mBoundaryConditions->applyBoundaryConditions(clayer->activity->data, getLayerLoc());
+         mBoundaryConditions->applyBoundaryConditions(mActivityCube->data, getLayerLoc());
       }
       status         = publisher->publish(mLastUpdateTime);
       mNeedToPublish = false;

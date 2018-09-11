@@ -291,7 +291,7 @@ class InputLayer : public HyPerLayer {
    // mInputRegion[b] is created as a buffer of the same size filled with ones.
    // As operations that translate or resize are applied to mInputData[b], the same operation is
    // applied to mInputRegion[b]. When normalizePixels() normalizes or scatterInput() copies to the
-   // clayer activity, only those pixels where mInputRegion[b] is nonzero are used.
+   // activity buffer, only those pixels where mInputRegion[b] is nonzero are used.
    std::vector<Buffer<float>> mInputRegion;
 
    bool mNeedInputRegionsPointer = false;

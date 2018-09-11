@@ -286,7 +286,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
 }
 
 int LIF::setActivity() {
-   float *activity = clayer->activity->data;
+   float *activity = mActivityCube->data;
    memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
    return 0;
 }
@@ -409,7 +409,7 @@ Response::Status LIF::updateState(double time, double dt) {
    const int nbatch = getLayerLoc()->nbatch;
 
    float *GSynHead = GSyn[0];
-   float *activity = clayer->activity->data;
+   float *activity = mActivityCube->data;
 
    switch (method) {
       case 'a':

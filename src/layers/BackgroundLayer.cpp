@@ -103,14 +103,14 @@ int BackgroundLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 int BackgroundLayer::setActivity() {
-   float *activity = clayer->activity->data;
+   float *activity = mActivityCube->data;
    memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
    return 0;
 }
 
 Response::Status BackgroundLayer::updateState(double timef, double dt) {
-   float *A                      = clayer->activity->data;
-   const float *originalA        = mOriginalLayer->getCLayer()->activity->data;
+   float *A                      = mActivityCube->data;
+   const float *originalA        = mOriginalLayer->getActivity();
    const PVLayerLoc *loc         = getLayerLoc();
    const PVLayerLoc *locOriginal = mOriginalLayer->getLayerLoc();
 

@@ -130,7 +130,7 @@ bool FilenameParsingGroundTruthLayer::needUpdate(double simTime, double dt) {
 
 Response::Status FilenameParsingGroundTruthLayer::updateState(double time, double dt) {
    update_timer->start();
-   float *A                  = getCLayer()->activity->data;
+   float *A                  = getActivity();
    const PVLayerLoc *loc     = getLayerLoc();
    int numNeurons            = getNumNeurons();
    int const localBatchWidth = getLayerLoc()->nbatch;
