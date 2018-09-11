@@ -9,16 +9,11 @@
 #define RETINA_HPP_
 
 #include "HyPerLayer.hpp"
-//#include "../kernels/Retina_params.h"
-#include "../include/pv_types.h"
-#include "../io/fileio.hpp"
 #include "columns/Random.hpp"
+#include "include/pv_types.h"
+#include "io/fileio.hpp"
 
-#define NUM_RETINA_CHANNELS 2
-#define NUM_RETINA_EVENTS 3
-//#define EV_R_PHI_E    0
-//#define EV_R_PHI_I    1
-//#define EV_R_ACTIVITY 2
+#define NUM_RETINA_CHANNELS 2 // excitatory and inhibitory
 
 struct Retina_params {
    float probStim;
@@ -36,7 +31,9 @@ namespace PV {
 
 class Retina : public PV::HyPerLayer {
   public:
-   friend int test_kernels(int argc, char *argv[]);
+   // default refractory periods for neurons
+   static constexpr float mDefaultAbsRefractoryPeriod = 3.0f;
+   static constexpr float mDefaultRefractoryPeriod    = 5.0f;
 
    Retina(const char *name, HyPerCol *hc);
    virtual ~Retina();

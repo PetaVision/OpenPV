@@ -186,7 +186,7 @@ void Retina::ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag) {
    assert(!parameters()->presentAndNotBeenRead(name, "spikingFlag"));
    if (spikingFlag) {
       parameters()->ioParamValue(
-            ioFlag, name, "refractoryPeriod", &rParams.refractory_period, (float)REFRACTORY_PERIOD);
+            ioFlag, name, "refractoryPeriod", &rParams.refractory_period, mDefaultRefractoryPeriod);
    }
 }
 
@@ -198,7 +198,7 @@ void Retina::ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag) {
             name,
             "absRefractoryPeriod",
             &rParams.abs_refractory_period,
-            (float)ABS_REFRACTORY_PERIOD);
+            mDefaultAbsRefractoryPeriod);
    }
 }
 
@@ -349,12 +349,12 @@ Response::Status Retina::updateState(double timed, double dt) {
  * Returns 1 if an event should occur, 0 otherwise. This is a stochastic model.
  *
  * REMARKS:
- *      - During ABS_REFRACTORY_PERIOD a neuron does not spike
+ *      - During abs_refractory_period a neuron does not spike
  *      - The neurons that correspond to stimuli (on Image pixels)
  *        spike with probability probStim.
  *      - The neurons that correspond to background image pixels
  *        spike with probability probBase.
- *      - After ABS_REFRACTORY_PERIOD the spiking probability
+ *      - After abs_refractory_period the spiking probability
  *        grows exponentially to probBase and probStim respectively.
  *      - The burst of the retina is periodic with period T set by
  *        T = 1000/burstFreq in milliseconds
