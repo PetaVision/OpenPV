@@ -33,6 +33,8 @@ int WTALayer::initialize(const char *name, HyPerCol *hc) {
    return HyPerLayer::initialize(name, hc);
 }
 
+InternalStateBuffer *WTALayer::createInternalState() { return nullptr; }
+
 Response::Status
 WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = HyPerLayer::communicateInitInfo(message);
@@ -81,13 +83,6 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    pvAssert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
    return Response::SUCCESS;
 }
-
-void WTALayer::allocateV() {
-   // Allocate V does nothing since binning does not need a V layer
-   clayer->V = NULL;
-}
-
-void WTALayer::initializeV() { assert(getV() == NULL); }
 
 void WTALayer::initializeActivity() {}
 

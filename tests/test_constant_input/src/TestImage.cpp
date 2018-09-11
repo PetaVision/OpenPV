@@ -30,16 +30,9 @@ int TestImage::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-void TestImage::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   parameters()->handleUnnecessaryParameter(name, "InitVType");
-   return;
-}
-
 void TestImage::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (float)1);
 }
-
-void TestImage::allocateV() { FatalIf(!(getV() == nullptr), "Test failed.\n"); }
 
 void TestImage::initializeActivity() {
    for (int k = 0; k < getNumNeurons(); k++) {

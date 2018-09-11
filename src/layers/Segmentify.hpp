@@ -27,8 +27,6 @@ class Segmentify : public PV::HyPerLayer {
    // Defines the way to fill the output segment with the
    // reduced scalar method. Options are "centroid" and "fill"
    void ioParam_outputMethod(enum ParamsIOFlag ioFlag);
-   virtual void allocateV() override;
-   virtual void initializeV() override;
    virtual void initializeActivity() override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

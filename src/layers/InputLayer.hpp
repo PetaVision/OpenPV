@@ -74,9 +74,6 @@ class InputLayer : public HyPerLayer {
    // padding
    virtual void ioParam_padValue(enum ParamsIOFlag ioFlag);
 
-   // initVType: InputLayers do not have a V, do not set
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
-
    // triggerLayerName: InputLayer and derived classes do not use triggering, and always set
    // triggerLayerName to NULL.
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
@@ -129,6 +126,8 @@ class InputLayer : public HyPerLayer {
    int scatterInput(int localBatchIndex, int mpiBatchIndex);
    int initialize(const char *name, HyPerCol *hc);
 
+   virtual InternalStateBuffer *createInternalState() override;
+
    // Returns PV_SUCCESS if offsetAnchor is a valid anchor string, PV_FAILURE otherwise.
    // (two characters long; first characters one of 't', 'c', or 'b'; second characters one of 'l',
    // 'c', or 'r')
@@ -141,7 +140,6 @@ class InputLayer : public HyPerLayer {
     * Pixels not occupied by the actual image (due to offsets, padding, etc.) are not changed.
     */
    virtual void normalizePixels(int batchElement);
-   virtual void allocateV() override;
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;

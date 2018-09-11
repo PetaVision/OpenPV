@@ -50,8 +50,8 @@ class Retina : public PV::HyPerLayer {
   protected:
    Retina();
    int initialize(const char *name, HyPerCol *hc);
+   virtual InternalStateBuffer *createInternalState() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_spikingFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_foregroundRate(enum ParamsIOFlag ioFlag);
    virtual void ioParam_backgroundRate(enum ParamsIOFlag ioFlag);
@@ -61,7 +61,6 @@ class Retina : public PV::HyPerLayer {
    virtual void ioParam_burstDuration(enum ParamsIOFlag ioFlag);
    virtual void ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag);
-   virtual void allocateV() override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;

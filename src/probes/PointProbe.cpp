@@ -6,7 +6,7 @@
  */
 
 #include "PointProbe.hpp"
-#include "../layers/HyPerLayer.hpp"
+#include "layers/HyPerLayer.hpp"
 #include <string.h>
 
 namespace PV {
@@ -188,16 +188,18 @@ void PointProbe::calcValues(double timevalue) {
    // if in bounds
    if (xLocLocal >= 0 && xLocLocal < nx && yLocLocal >= 0 && yLocLocal < ny && nbatchLocal >= 0
        && nbatchLocal < nbatch) {
-      const float *V        = getTargetLayer()->getV();
-      const float *activity = getTargetLayer()->getLayerData();
-      // Send V and A to root
-      const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
-      if (V) {
-         valuesBuffer[0] = V[k + nbatchLocal * getTargetLayer()->getNumNeurons()];
+      const int k         = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
+      auto *internalState = getTargetLayer()->getComponentByType<InternalStateBuffer>();
+      if (internalState != nullptr) {
+         float const *V  = internalState->getBufferData();
+         valuesBuffer[0] = V[k + nbatchLocal * internalState->getBufferSize()];
       }
       else {
-         valuesBuffer[0] = 0.0;
+         valuesBuffer[0] = 0.0f;
       }
+
+      const float *activity = getTargetLayer()->getLayerData();
+      // Send V and A to root
       if (activity) {
          const int kex = kIndexExtended(
                k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);

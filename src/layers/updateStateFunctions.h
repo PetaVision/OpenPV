@@ -356,7 +356,7 @@ int setActivity_HyPerLayer(
       int nbatch,
       int numNeurons,
       MEM_GLOBAL float *A,
-      MEM_GLOBAL float *V,
+      MEM_GLOBAL float const *V,
       int nx,
       int ny,
       int nf,
@@ -1605,7 +1605,7 @@ int setActivity_HyPerLayer(
       int nbatch,
       int numNeurons,
       MEM_GLOBAL float *A,
-      MEM_GLOBAL float *V,
+      MEM_GLOBAL float const *V,
       int nx,
       int ny,
       int nf,
@@ -1623,12 +1623,12 @@ int setActivity_HyPerLayer(
    kbatch = getIndex();
 #endif // PV_USE_CUDA
    {
-      int b                    = kbatch / numNeurons;
-      int k                    = kbatch % numNeurons;
-      MEM_GLOBAL float *ABatch = A + b * ((nx + lt + rt) * (ny + up + dn) * nf);
-      MEM_GLOBAL float *VBatch = V + b * numNeurons;
-      int kex                  = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      ABatch[kex]              = VBatch[k];
+      int b                          = kbatch / numNeurons;
+      int k                          = kbatch % numNeurons;
+      MEM_GLOBAL float *ABatch       = A + b * ((nx + lt + rt) * (ny + up + dn) * nf);
+      MEM_GLOBAL float const *VBatch = V + b * numNeurons;
+      int kex                        = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      ABatch[kex]                    = VBatch[k];
    }
    return PV_SUCCESS;
 }

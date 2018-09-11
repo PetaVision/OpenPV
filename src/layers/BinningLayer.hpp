@@ -17,6 +17,7 @@ class BinningLayer : public PV::HyPerLayer {
    BinningLayer();
    int initialize(const char *name, HyPerCol *hc);
    virtual void setObserverTable() override;
+   virtual InternalStateBuffer *createInternalState() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
@@ -28,8 +29,6 @@ class BinningLayer : public PV::HyPerLayer {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    void setOriginalLayer();
-   virtual void allocateV() override;
-   virtual void initializeV() override;
    virtual void initializeActivity() override;
    virtual Response::Status updateState(double timef, double dt) override;
    void doUpdateState(

@@ -45,24 +45,23 @@ HyPerLayer::HyPerLayer(const char *name, HyPerCol *hc) {
 // In general, initialize_base should be used only to initialize member variables
 // to safe values.
 int HyPerLayer::initialize_base() {
-   name                         = NULL;
-   probes                       = NULL;
-   numProbes                    = 0;
-   numChannels                  = 2;
-   clayer                       = NULL;
-   GSyn                         = NULL;
-   marginIndices                = NULL;
-   numMargin                    = 0;
-   writeTime                    = 0;
-   initialWriteTime             = 0;
-   triggerFlag                  = false; // Default to update every timestamp
-   triggerLayer                 = NULL;
-   triggerLayerName             = NULL;
-   triggerBehavior              = NULL;
-   triggerBehaviorType          = NO_TRIGGER;
-   triggerResetLayerName        = NULL;
-   triggerOffset                = 0;
-   initializeFromCheckpointFlag = false;
+   name                  = NULL;
+   probes                = NULL;
+   numProbes             = 0;
+   numChannels           = 2;
+   clayer                = NULL;
+   GSyn                  = NULL;
+   marginIndices         = NULL;
+   numMargin             = 0;
+   writeTime             = 0;
+   initialWriteTime      = 0;
+   triggerFlag           = false; // Default to update every timestamp
+   triggerLayer          = NULL;
+   triggerLayerName      = NULL;
+   triggerBehavior       = NULL;
+   triggerBehaviorType   = NO_TRIGGER;
+   triggerResetLayerName = NULL;
+   triggerOffset         = 0;
 
 #ifdef PV_USE_CUDA
    allocDeviceV             = false;
@@ -213,6 +212,15 @@ void HyPerLayer::setObserverTable() {
    if (mBoundaryConditions) {
       addUniqueComponent(mBoundaryConditions->getDescription(), mBoundaryConditions);
    }
+   auto *initializeFromCheckpointComponent = createInitializeFromCheckpointFlag();
+   if (initializeFromCheckpointComponent) {
+      addUniqueComponent(
+            initializeFromCheckpointComponent->getDescription(), initializeFromCheckpointComponent);
+   }
+   mInternalState = createInternalState();
+   if (mInternalState) {
+      addUniqueComponent(mInternalState->getDescription(), mInternalState);
+   }
 }
 
 LayerGeometry *HyPerLayer::createLayerGeometry() { return new LayerGeometry(name, parent); }
@@ -221,6 +229,14 @@ PhaseParam *HyPerLayer::createPhaseParam() { return new PhaseParam(name, parent)
 
 BoundaryConditions *HyPerLayer::createBoundaryConditions() {
    return new BoundaryConditions(name, parent);
+}
+
+InitializeFromCheckpointFlag *HyPerLayer::createInitializeFromCheckpointFlag() {
+   return new InitializeFromCheckpointFlag(name, parent);
+}
+
+InternalStateBuffer *HyPerLayer::createInternalState() {
+   return new InternalStateBuffer(name, parent);
 }
 
 int HyPerLayer::initClayer() {
@@ -253,7 +269,6 @@ HyPerLayer::~HyPerLayer() {
 
    delete mOutputStateStream;
 
-   delete mInitVObject;
    freeClayer();
    freeChannels();
 
@@ -285,7 +300,6 @@ HyPerLayer::~HyPerLayer() {
    free(triggerLayerName);
    free(triggerBehavior);
    free(triggerResetLayerName);
-   free(initVTypeString);
 
    delete publisher;
 }
@@ -309,7 +323,6 @@ int HyPerLayer::freeClayer() {
    pvcube_delete(clayer->activity);
 
    freeBuffer(&clayer->prevActivity);
-   freeBuffer(&clayer->V);
    free(clayer);
    clayer = NULL;
 
@@ -381,7 +394,10 @@ void HyPerLayer::allocateExtendedBuffer(float **buf, char const *bufname) {
 }
 
 void HyPerLayer::allocateV() {
-   return allocateRestrictedBuffer(&clayer->V, "membrane potential V");
+   if (mInternalState) {
+      auto allocateMessage = std::make_shared<AllocateDataStructuresMessage>();
+      mInternalState->respond(allocateMessage);
+   }
 }
 
 void HyPerLayer::allocateActivity() {
@@ -470,7 +486,9 @@ void HyPerLayer::checkpointRandState(
 
 Response::Status
 HyPerLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   initializeV();
+   if (mInternalState) {
+      mInternalState->respond(message);
+   }
    initializeActivity();
    mLastUpdateTime  = message->mDeltaTime;
    mLastTriggerTime = message->mDeltaTime;
@@ -497,12 +515,6 @@ Response::Status HyPerLayer::copyInitialStateToGPU() {
 
 #endif // PV_USE_CUDA
 
-void HyPerLayer::initializeV() {
-   if (getV() != nullptr && mInitVObject != nullptr) {
-      mInitVObject->calcV(getV(), getLayerLoc());
-   }
-}
-
 void HyPerLayer::initializeActivity() {
    int status = setActivity();
    FatalIf(status != PV_SUCCESS, "%s failed to initialize activity.\n", getDescription_c());
@@ -515,8 +527,6 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
       auto obj = dynamic_cast<BaseObject *>(c);
       obj->ioParams(ioFlag, false, false);
    }
-   ioParam_initializeFromCheckpointFlag(ioFlag);
-   ioParam_InitVType(ioFlag);
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerFlag(ioFlag);
    ioParam_triggerOffset(ioFlag);
@@ -565,37 +575,6 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
             getDescription_c());
    }
 #endif // PV_USE_CUDA
-}
-
-void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         name,
-         "initializeFromCheckpointFlag",
-         &initializeFromCheckpointFlag,
-         initializeFromCheckpointFlag,
-         true /*warnIfAbsent*/);
-}
-
-void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag,
-         name,
-         "InitVType",
-         &initVTypeString,
-         BaseInitV::mDefaultInitV.data(),
-         true /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
-      BaseObject *object = Factory::instance()->createByKeyword(initVTypeString, name, parent);
-      mInitVObject       = dynamic_cast<BaseInitV *>(object);
-      if (mInitVObject == nullptr) {
-         ErrorLog().printf("%s: unable to create InitV object\n", getDescription_c());
-         abort();
-      }
-   }
-   if (mInitVObject != nullptr) {
-      mInitVObject->ioParamsFillGroup(ioFlag);
-   }
 }
 
 void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
@@ -980,6 +959,10 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
 
    PVLayerLoc const *loc = getLayerLoc();
 
+   auto *initializeFromCheckpointComponent = getComponentByType<InitializeFromCheckpointFlag>();
+   mInitializeFromCheckpointFlag =
+         initializeFromCheckpointComponent->getInitializeFromCheckpointFlag();
+
    if (triggerFlag) {
       triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
@@ -1330,8 +1313,8 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    }
    auto *checkpointer = message->mDataRegistry;
    checkpointPvpActivityFloat(checkpointer, "A", getActivity(), true /*extended*/);
-   if (getV() != nullptr) {
-      checkpointPvpActivityFloat(checkpointer, "V", getV(), false /*not extended*/);
+   if (mInternalState) {
+      mInternalState->respond(message);
    }
    publisher->checkpointDataStore(checkpointer, getName(), "Delays");
    checkpointer->registerCheckpointData(
@@ -1399,11 +1382,6 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
 
    io_timer = new Timer(getName(), "layer", "io     ");
    checkpointer->registerTimer(io_timer);
-
-   if (mInitVObject) {
-      auto message = std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer);
-      mInitVObject->respond(message);
-   }
 
    return Response::SUCCESS;
 }
@@ -1505,8 +1483,9 @@ void HyPerLayer::resetStateOnTrigger() {
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   float const *resetV = triggerResetLayer->getV();
-   if (resetV != NULL) {
+   InternalStateBuffer *resetVBuffer = triggerResetLayer->getComponentByType<InternalStateBuffer>();
+   if (resetVBuffer != nullptr) {
+      float const *resetV = resetVBuffer->getBufferData();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
@@ -1861,9 +1840,8 @@ Response::Status HyPerLayer::outputState(double timestamp, double deltaTime) {
 }
 
 Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (initializeFromCheckpointFlag) {
+   if (mInitializeFromCheckpointFlag) {
       readActivityFromCheckpoint(checkpointer);
-      readVFromCheckpoint(checkpointer);
       readDelaysFromCheckpoint(checkpointer);
       updateAllActiveIndices();
       return Response::SUCCESS;
@@ -1875,12 +1853,6 @@ Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer)
 
 void HyPerLayer::readActivityFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), std::string("A"), false);
-}
-
-void HyPerLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
-   if (getV() != nullptr) {
-      checkpointer->readNamedCheckpointEntry(std::string(name), std::string("V"), false);
-   }
 }
 
 void HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {

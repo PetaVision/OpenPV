@@ -49,13 +49,6 @@ OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(name, parent);
 }
 
-void InputRegionLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      initVTypeString = nullptr;
-      parameters()->handleUnnecessaryParameter(name, "InitVType");
-   }
-}
-
 void InputRegionLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       triggerLayerName = nullptr;
@@ -159,8 +152,6 @@ Response::Status InputRegionLayer::allocateDataStructures() {
    }
    return HyPerLayer::allocateDataStructures();
 }
-
-void InputRegionLayer::allocateV() { clayer->V = nullptr; }
 
 void InputRegionLayer::allocateActivity() {
    int const numItems = getNumExtendedAllBatches();

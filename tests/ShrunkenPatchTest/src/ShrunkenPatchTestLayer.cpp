@@ -26,7 +26,7 @@ int ShrunkenPatchTestLayer::setVtoGlobalPos() {
       int kGlobal        = globalIndexFromLocal(kLocal, *loc);
       int kxGlobal       = kxPos(kGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf);
       float x_global_pos = (x0 + dx * kxGlobal);
-      clayer->V[kLocal]  = x_global_pos;
+      getV()[kLocal]     = x_global_pos;
    }
    return PV_SUCCESS;
 }

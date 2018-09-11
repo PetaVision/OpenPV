@@ -247,13 +247,6 @@ Response::Status SegmentLayer::allocateDataStructures() {
    return Response::SUCCESS;
 }
 
-void SegmentLayer::allocateV() {
-   // Allocate V does nothing since binning does not need a V layer
-   clayer->V = NULL;
-}
-
-void SegmentLayer::initializeV() { assert(getV() == NULL); }
-
 void SegmentLayer::initializeActivity() {}
 
 Response::Status SegmentLayer::updateState(double timef, double dt) {
@@ -478,7 +471,7 @@ Response::Status SegmentLayer::updateState(double timef, double dt) {
 }
 
 SegmentLayer::~SegmentLayer() {
-   clayer->V = NULL;
+   mInternalState = nullptr;
    maxX.clear();
    maxY.clear();
    minX.clear();

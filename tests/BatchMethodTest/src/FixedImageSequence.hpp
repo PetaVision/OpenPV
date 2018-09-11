@@ -12,11 +12,6 @@ class FixedImageSequence : public PV::HyPerLayer {
    FixedImageSequence() {}
 
    /**
-    * This layer type does not use the V buffer.
-    */
-   virtual void allocateV() override;
-
-   /**
     * Initializes the activity buffer to zero and calls
     * the pure virtual method initIndices to set the
     * mIndexStart and mIndexSkip data members.

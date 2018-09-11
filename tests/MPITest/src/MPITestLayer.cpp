@@ -27,7 +27,7 @@ int MPITestLayer::setVtoGlobalPos() {
          int kGlobal        = globalIndexFromLocal(kLocal, *loc);
          int kxGlobal       = kxPos(kGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf);
          float x_global_pos = (x0 + dx * kxGlobal);
-         clayer->V[kLocal + b * getNumNeurons()] = x_global_pos;
+         getV()[kLocal + b * getNumNeurons()] = x_global_pos;
       }
    }
    return PV_SUCCESS;

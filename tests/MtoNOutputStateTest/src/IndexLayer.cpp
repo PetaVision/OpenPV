@@ -25,13 +25,6 @@ int IndexLayer::initialize(char const *name, HyPerCol *hc) {
    return HyPerLayer::initialize(name, hc);
 }
 
-void IndexLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   mInitVObject = nullptr;
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "InitVType");
-   }
-}
-
 PV::Response::Status
 IndexLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    double deltaTime = message->mDeltaTime;
@@ -44,7 +37,7 @@ Response::Status IndexLayer::updateState(double timef, double dt) {
    PVLayerLoc const *loc = getLayerLoc();
    PVHalo const &halo    = loc->halo;
    for (int b = 0; b < loc->nbatch; b++) {
-      float *V = &clayer->V[b * getNumNeurons()];
+      float *V = &getV()[b * getNumNeurons()];
       float *A = &clayer->activity->data[b * getNumExtended()];
       for (int k = 0; k < getNumNeurons(); k++) {
          int kGlobal      = globalIndexFromLocal(k, *loc);

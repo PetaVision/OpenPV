@@ -348,7 +348,7 @@ void LIF::allocateConductances(int num_channels) {
 }
 
 Response::Status LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (initializeFromCheckpointFlag) {
+   if (mInitializeFromCheckpointFlag) {
       auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
       if (!Response::completed(status)) {
          return status;
@@ -427,7 +427,7 @@ Response::Status LIF::updateState(double time, double dt) {
                getLayerLoc()->halo.up,
                &lParams,
                randState->getRNG(0),
-               clayer->V,
+               getV(),
                Vth,
                G_E,
                G_I,
@@ -450,7 +450,7 @@ Response::Status LIF::updateState(double time, double dt) {
                getLayerLoc()->halo.up,
                &lParams,
                randState->getRNG(0),
-               clayer->V,
+               getV(),
                Vth,
                G_E,
                G_I,
@@ -473,7 +473,7 @@ Response::Status LIF::updateState(double time, double dt) {
                getLayerLoc()->halo.up,
                &lParams,
                randState->getRNG(0),
-               clayer->V,
+               getV(),
                Vth,
                G_E,
                G_I,

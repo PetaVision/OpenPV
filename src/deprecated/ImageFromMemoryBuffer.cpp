@@ -6,7 +6,7 @@
  *  Description of the class is in ImageFromMemoryBuffer.hpp
  */
 
-// ImageFromMemoryBuffer was deprecated on Aug 15, 2015.
+// ImageFromMemoryBuffer was deprecated on Aug 15, 2018.
 
 #include "ImageFromMemoryBuffer.hpp"
 

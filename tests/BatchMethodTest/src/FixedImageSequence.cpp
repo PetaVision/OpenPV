@@ -6,8 +6,6 @@ FixedImageSequence::FixedImageSequence(char const *name, PV::HyPerCol *hc) {
    PV::HyPerLayer::initialize(name, hc);
 }
 
-void FixedImageSequence::allocateV() { clayer->V = nullptr; }
-
 PV::Response::Status
 FixedImageSequence::initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) {
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {

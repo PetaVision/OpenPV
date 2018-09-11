@@ -23,6 +23,8 @@ int InputLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+InternalStateBuffer *InputLayer::createInternalState() { return nullptr; }
+
 Response::Status InputLayer::allocateDataStructures() {
    auto status = HyPerLayer::allocateDataStructures();
    if (!Response::completed(status)) {
@@ -53,7 +55,7 @@ void InputLayer::initializeBatchIndexer() {
                blockBatchCount,
                fileCount,
                mBatchMethod,
-               initializeFromCheckpointFlag));
+               mInitializeFromCheckpointFlag));
    for (int b = 0; b < blockBatchCount; ++b) {
       mBatchIndexer->specifyBatching(
             b, mStartFrameIndex.at(batchOffset + b), mSkipFrameIndex.at(batchOffset + b));
@@ -414,11 +416,9 @@ int InputLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    return PV_FAILURE;
 }
 
-void InputLayer::allocateV() { clayer->V = nullptr; }
-
 Response::Status
 InputLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   pvAssert(getV() == nullptr);
+   pvAssert(mInternalState == nullptr);
    double deltaTime = message->mDeltaTime;
    retrieveInput(0.0 /*simulationTime*/, deltaTime);
    mLastUpdateTime  = deltaTime;
@@ -524,7 +524,7 @@ InputLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
 
 Response::Status InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
    auto status = Response::NO_ACTION;
-   if (initializeFromCheckpointFlag) {
+   if (mInitializeFromCheckpointFlag) {
       status = HyPerLayer::readStateFromCheckpoint(checkpointer);
       if (!Response::completed(status)) {
          return status;
@@ -788,11 +788,6 @@ void InputLayer::ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag) {
 }
 void InputLayer::ioParam_padValue(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, name, "padValue", &mPadValue, mPadValue);
-}
-
-void InputLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   assert(mInitVObject == NULL);
-   return;
 }
 
 void InputLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {

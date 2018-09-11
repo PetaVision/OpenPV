@@ -78,9 +78,6 @@ typedef struct PVLayer_ {
 
    // time of previous spike for each neuron
    float *prevActivity;
-
-   // membrane potential
-   float *V;
 } PVLayer;
 
 typedef struct { unsigned int s1, s2, s3; } taus_state_t;

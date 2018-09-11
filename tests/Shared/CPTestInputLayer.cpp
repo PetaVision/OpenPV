@@ -34,8 +34,9 @@ int CPTestInputLayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-Response::Status CPTestInputLayer::allocateDataStructures() {
-   auto status = HyPerLayer::allocateDataStructures();
+Response::Status
+CPTestInputLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   auto status = HyPerLayer::initializeState(message);
    if (!Response::completed(status)) {
       return status;
    }

@@ -11,6 +11,7 @@
 #include "columns/BaseObject.hpp"
 #include "components/ConnectionData.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "observerpattern/BaseMessage.hpp"
 
 namespace PV {
 
@@ -38,6 +39,17 @@ class BaseDelivery : public BaseObject {
    /** @} */ // end of BaseDelivery parameters
 
   public:
+   class AddDeliveryObjectMessage : public BaseMessage {
+     public:
+      AddDeliveryObjectMessage(BaseDelivery *deliveryObject, int channelCode) {
+         setMessageType("CommunicateInitInfo");
+         mDeliveryObject = deliveryObject;
+         mChannelCode    = channelCode;
+      }
+      BaseDelivery *mDeliveryObject;
+      int mChannelCode;
+   };
+
    BaseDelivery(char const *name, HyPerCol *hc);
 
    virtual ~BaseDelivery() {}

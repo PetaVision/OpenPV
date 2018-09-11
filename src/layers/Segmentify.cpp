@@ -222,13 +222,6 @@ int Segmentify::checkLabelValBuf(int newSize) {
    return PV_SUCCESS;
 }
 
-void Segmentify::allocateV() {
-   // Allocate V does nothing since binning does not need a V layer
-   clayer->V = NULL;
-}
-
-void Segmentify::initializeV() { assert(getV() == NULL); }
-
 void Segmentify::initializeActivity() {}
 
 int Segmentify::buildLabelToIdx(int batchIdx) {
@@ -467,6 +460,6 @@ Response::Status Segmentify::updateState(double timef, double dt) {
    return Response::SUCCESS;
 }
 
-Segmentify::~Segmentify() { clayer->V = NULL; }
+Segmentify::~Segmentify() { mInternalState = nullptr; }
 
 } /* namespace PV */

@@ -237,7 +237,7 @@ Response::Status LCALIFLayer::updateState(double timed, double dt) {
          integratedSpikeCount,
          &lParams,
          randState->getRNG(0),
-         clayer->V,
+         getV(),
          Vth,
          G_E,
          G_I,
@@ -257,7 +257,7 @@ Response::Status LCALIFLayer::updateState(double timed, double dt) {
 }
 
 Response::Status LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (initializeFromCheckpointFlag) {
+   if (mInitializeFromCheckpointFlag) {
       auto status = LIFGap::readStateFromCheckpoint(checkpointer);
       if (status != Response::SUCCESS) {
          return status;

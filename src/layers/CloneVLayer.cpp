@@ -41,10 +41,10 @@ OriginalLayerNameParam *CloneVLayer::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(name, parent);
 }
 
-void CloneVLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "InitVType");
-   }
+InternalStateBuffer *CloneVLayer::createInternalState() {
+   return nullptr;
+   // CloneVLayer will set InternalState to the original layer's InternalState
+   // during CommunicateInitInfo
 }
 
 Response::Status
@@ -56,6 +56,9 @@ CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
 
    setOriginalLayer();
    pvAssert(mOriginalLayer);
+   if (!mOriginalLayer->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
    const PVLayerLoc *srcLoc = mOriginalLayer->getLayerLoc();
    const PVLayerLoc *loc    = getLayerLoc();
    assert(srcLoc != NULL && loc != NULL);
@@ -79,7 +82,10 @@ CloneVLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   assert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
+   pvAssert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
+
+   mInternalState = mOriginalLayer->getComponentByType<InternalStateBuffer>();
+
    return Response::SUCCESS;
 }
 
@@ -109,29 +115,11 @@ void CloneVLayer::setOriginalLayer() {
 }
 
 Response::Status CloneVLayer::allocateDataStructures() {
-   assert(mOriginalLayer);
-   auto status = Response::SUCCESS;
-   // Make sure mOriginalLayer has allocated its V buffer before copying its address to
-   // clone's V buffer
-   if (mOriginalLayer->getDataStructuresAllocatedFlag()) {
-      status = HyPerLayer::allocateDataStructures();
-   }
-   else {
-      status = Response::POSTPONE;
-   }
+   auto *internalState = mInternalState;
+   mInternalState      = nullptr;
+   auto status         = HyPerLayer::allocateDataStructures();
+   mInternalState      = internalState;
    return status;
-}
-
-void CloneVLayer::allocateV() {
-   assert(mOriginalLayer && mOriginalLayer->getCLayer());
-   clayer->V = mOriginalLayer->getV();
-   if (getV() == NULL) {
-      Fatal().printf(
-            "%s: original layer \"%s\" has a null V buffer in rank %d process.\n",
-            getDescription_c(),
-            mOriginalLayer->getName(),
-            parent->getCommunicator()->globalCommRank());
-   }
 }
 
 int CloneVLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
@@ -147,19 +135,12 @@ int CloneVLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
 
 void CloneVLayer::allocateGSyn() { pvAssert(GSyn == nullptr); }
 
-void CloneVLayer::initializeV() {}
-
-void CloneVLayer::readVFromCheckpoint(Checkpointer *checkpointer) {
-   // If we just inherit HyPerLayer::readVFromCheckpoint, we checkpoint V since it is non-null.
-   // This is redundant since V is a clone.
-}
-
 Response::Status
 CloneVLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   float *V    = clayer->V;
-   clayer->V   = nullptr;
-   auto status = HyPerLayer::registerData(message);
-   clayer->V   = V;
+   InternalStateBuffer *internalState = mInternalState;
+   mInternalState                     = nullptr;
+   auto status                        = HyPerLayer::registerData(message);
+   mInternalState                     = internalState;
    return status;
 }
 
@@ -189,6 +170,6 @@ Response::Status CloneVLayer::updateState(double timed, double dt) {
    return Response::SUCCESS;
 }
 
-CloneVLayer::~CloneVLayer() { clayer->V = NULL; }
+CloneVLayer::~CloneVLayer() { mInternalState = nullptr; }
 
 } /* namespace PV */

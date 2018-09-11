@@ -18,11 +18,12 @@
 #include "columns/Publisher.hpp"
 #include "columns/Random.hpp"
 #include "components/BoundaryConditions.hpp"
+#include "components/InitializeFromCheckpointFlag.hpp"
+#include "components/InternalStateBuffer.hpp"
 #include "components/LayerGeometry.hpp"
 #include "components/PhaseParam.hpp"
 #include "include/pv_common.h"
 #include "include/pv_types.h"
-#include "initv/BaseInitV.hpp"
 #include "io/fileio.hpp"
 #include "layers/PVLayerCube.hpp"
 #include "probes/LayerProbe.hpp"
@@ -82,28 +83,6 @@ class HyPerLayer : public ComponentBasedObject {
     * If PetaVision was compiled without GPU acceleration, it is an error to set this flag to true.
     */
    virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
-    * set in HyPerCol.
-    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
-    */
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief initVType: Specifies how to initialize the V buffer.
-    * @details Possible choices include
-    * - @link ConstantV::ioParamsFillGroup ConstantV@endlink: Sets V to a constant value
-    * - @link ZeroV::ioParamsFillGroup ZeroV@endlink: Sets V to zero
-    * - @link UniformRandomV::ioParamsFillGroup UniformRandomV@endlink: Sets V with a uniform
-    * distribution
-    * - @link GaussianRandomV::ioParamsFillGroup GaussianRandomV@endlink: Sets V with a gaussian
-    * distribution
-    * - @link InitVFromFile::ioparamsFillGroup InitVFromFile@endlink: Sets V to specified pvp file
-    *
-    * Further parameters are needed depending on initialization type.
-    */
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief triggerFlag: (Deprecated) Specifies if this layer is being triggered
@@ -181,6 +160,8 @@ class HyPerLayer : public ComponentBasedObject {
    virtual LayerGeometry *createLayerGeometry();
    virtual PhaseParam *createPhaseParam();
    virtual BoundaryConditions *createBoundaryConditions();
+   virtual InitializeFromCheckpointFlag *createInitializeFromCheckpointFlag();
+   virtual InternalStateBuffer *createInternalState();
    virtual int initClayer();
 
    virtual int allocateClayerBuffers();
@@ -206,7 +187,7 @@ class HyPerLayer : public ComponentBasedObject {
     */
    void allocateExtendedBuffer(float **buf, const char *bufname);
 
-   virtual void allocateV();
+   void allocateV();
    virtual void allocateActivity();
    virtual void allocatePrevActivity();
 
@@ -222,11 +203,9 @@ class HyPerLayer : public ComponentBasedObject {
          Random *randState,
          bool extendedFlag);
 
-   virtual void initializeV();
    virtual void initializeActivity();
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual void readActivityFromCheckpoint(Checkpointer *checkpointer);
-   virtual void readVFromCheckpoint(Checkpointer *checkpointer);
    virtual void readDelaysFromCheckpoint(Checkpointer *checkpointer);
 #ifdef PV_USE_CUDA
    virtual Response::Status copyInitialStateToGPU() override;
@@ -430,7 +409,7 @@ class HyPerLayer : public ComponentBasedObject {
    virtual int requireChannel(int channelNeeded, int *numChannelsResult);
 
    PVLayer *getCLayer() { return clayer; }
-   float *getV() { return clayer->V; } // name query
+   float *getV() { return mInternalState->getV(); } // TODO: should be const
    int getNumChannels() { return numChannels; }
    float *getChannel(ChannelType ch) { // name query
       return (ch < this->numChannels && ch >= 0) ? GSyn[ch] : NULL;
@@ -450,7 +429,6 @@ class HyPerLayer : public ComponentBasedObject {
    // implementation of LayerDataInterface interface
    //
    const float *getLayerData(int delay = 0);
-   bool isExtended() { return true; }
 
    double getLastUpdateTime() { return mLastUpdateTime; }
 
@@ -464,11 +442,10 @@ class HyPerLayer : public ComponentBasedObject {
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    /**
-    * This routine calls the virtual methods initializeV() and initializeActivity() to
-    * initialize the membrane potential and activity buffers. It also sets the
-    * LastUpdateTime and LastTriggerTime data members to the DeltaTime argument of the
-    * message. (The reason for doing so is that if the layer updates every 10th timestep,
-    * it generally should update on timesteps 1, 11, 21, etc.; not timesteps 0, 10, 20, etc.
+    * This routine initializes the InternalStateBuffer and ActivityBuffer components. It also sets
+    * the LastUpdateTime and LastTriggerTime data members to the DeltaTime argument of the message.
+    * (The reason for doing so is that if the layer updates every 10th timestep, it generally
+    * should update on timesteps 1, 11, 21, etc.; not timesteps 0, 10, 20, etc.
     * InitializeState is the earliest message that passes the HyPerCol's DeltaTime argument.)
     */
    virtual Response::Status
@@ -491,7 +468,7 @@ class HyPerLayer : public ComponentBasedObject {
    float **GSyn; // of dynamic length numChannels
    Publisher *publisher = nullptr;
 
-   bool initializeFromCheckpointFlag = true;
+   bool mInitializeFromCheckpointFlag = false;
    // If parent HyPerCol sets initializeFromCheckpointDir and this flag is set,
    // the initial state is loaded from the initializeFromCheckpointDir.
    // If the flag is false or the parent's initializeFromCheckpointDir is empty,
@@ -506,6 +483,8 @@ class HyPerLayer : public ComponentBasedObject {
    PhaseParam *mPhaseParam = nullptr;
 
    BoundaryConditions *mBoundaryConditions = nullptr;
+
+   InternalStateBuffer *mInternalState = nullptr;
 
    int numDelayLevels; // The number of timesteps in the datastore ring buffer to store older
    // timesteps for connections with delays
@@ -527,9 +506,6 @@ class HyPerLayer : public ComponentBasedObject {
    unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves
    // {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use
    // by this layer
-
-   char *initVTypeString   = nullptr;
-   BaseInitV *mInitVObject = nullptr;
 
    // Trigger-related parameters
    //  Although triggerFlag was deprecated as a params file parameter, it remains as a member

@@ -5,6 +5,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ArborList.cpp
    ${SUBDIR}/BatchIndexer.cpp
    ${SUBDIR}/BoundaryConditions.cpp
+   ${SUBDIR}/BufferComponent.cpp
    ${SUBDIR}/CloneWeightsPair.cpp
    ${SUBDIR}/ConnectionData.cpp
    ${SUBDIR}/CopyWeightsPair.cpp
@@ -16,6 +17,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FeedbackConnectionData.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/ImpliedWeightsPair.cpp
+   ${SUBDIR}/InitializeFromCheckpointFlag.cpp
+   ${SUBDIR}/InternalStateBuffer.cpp
    ${SUBDIR}/LayerGeometry.cpp
    ${SUBDIR}/LinkedObjectParam.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
@@ -40,6 +43,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ArborList.hpp
    ${SUBDIR}/BatchIndexer.hpp
    ${SUBDIR}/BoundaryConditions.hpp
+   ${SUBDIR}/BufferComponent.hpp
    ${SUBDIR}/CloneWeightsPair.hpp
    ${SUBDIR}/ConnectionData.hpp
    ${SUBDIR}/CopyWeightsPair.hpp
@@ -51,6 +55,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FeedbackConnectionData.hpp
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/ImpliedWeightsPair.hpp
+   ${SUBDIR}/InitializeFromCheckpointFlag.hpp
+   ${SUBDIR}/InternalStateBuffer.hpp
    ${SUBDIR}/LayerGeometry.hpp
    ${SUBDIR}/LinkedObjectParam.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp

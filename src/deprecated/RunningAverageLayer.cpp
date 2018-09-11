@@ -39,11 +39,6 @@ Response::Status RunningAverageLayer::communicateInitInfo(
    // CloneVLayer sets mOriginalLayer and errors out if originalLayerName is not valid
 }
 
-// RunningAverageLayer does not use the V buffer, so absolutely fine to clone off of an null V layer
-void RunningAverageLayer::allocateV() {
-   // Do nothing
-}
-
 int RunningAverageLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    CloneVLayer::ioParamsFillGroup(ioFlag);
    ioParam_numImagesToAverage(ioFlag);

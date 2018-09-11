@@ -88,11 +88,6 @@ BackgroundLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    return Response::SUCCESS;
 }
 
-// Background Layer does not use the V buffer, so absolutely fine to clone off of an null V layer
-void BackgroundLayer::allocateV() {
-   // Do nothing
-}
-
 void BackgroundLayer::ioParam_repFeatureNum(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, name, "repFeatureNum", &repFeatureNum, repFeatureNum);
    if (repFeatureNum <= 0) {

@@ -94,6 +94,8 @@ int Retina::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+InternalStateBuffer *Retina::createInternalState() { return nullptr; }
+
 Response::Status
 Retina::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = HyPerLayer::communicateInitInfo(message);
@@ -124,10 +126,8 @@ Response::Status Retina::allocateDataStructures() {
    return status;
 }
 
-void Retina::allocateV() { clayer->V = NULL; }
-
 Response::Status Retina::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   pvAssert(getV() == nullptr); // Retina does not use V.
+   pvAssert(mInternalState == nullptr); // Retina does not use V.
    updateState(0.0, message->mDeltaTime);
    mLastUpdateTime  = message->mDeltaTime; // Retina ignores these values, since it updates every
    mLastTriggerTime = message->mDeltaTime; // timestep, but this stays consistent with HyPerLayer.
@@ -147,11 +147,6 @@ int Retina::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_absRefractoryPeriod(ioFlag);
 
    return status;
-}
-
-void Retina::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   parameters()->handleUnnecessaryParameter(name, "InitVType");
-   return;
 }
 
 void Retina::ioParam_spikingFlag(enum ParamsIOFlag ioFlag) {
@@ -225,7 +220,7 @@ int Retina::setRetinaParams(PVParams *p) {
 }
 
 Response::Status Retina::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (initializeFromCheckpointFlag) {
+   if (mInitializeFromCheckpointFlag) {
       auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
       if (!Response::completed(status)) {
          return status;

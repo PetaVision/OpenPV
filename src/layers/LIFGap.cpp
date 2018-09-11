@@ -203,7 +203,7 @@ LIFGap::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> me
 }
 
 Response::Status LIFGap::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (initializeFromCheckpointFlag) {
+   if (mInitializeFromCheckpointFlag) {
       auto status = LIF::readStateFromCheckpoint(checkpointer);
       if (!Response::completed(status)) {
          return status;
@@ -248,7 +248,7 @@ Response::Status LIFGap::updateState(double time, double dt) {
                getLayerLoc()->halo.up,
                &lParams,
                randState->getRNG(0),
-               clayer->V,
+               getV(),
                Vth,
                G_E,
                G_I,
@@ -272,7 +272,7 @@ Response::Status LIFGap::updateState(double time, double dt) {
                getLayerLoc()->halo.up,
                &lParams,
                randState->getRNG(0),
-               clayer->V,
+               getV(),
                Vth,
                G_E,
                G_I,
@@ -296,7 +296,7 @@ Response::Status LIFGap::updateState(double time, double dt) {
                getLayerLoc()->halo.up,
                &lParams,
                randState->getRNG(0),
-               clayer->V,
+               getV(),
                Vth,
                G_E,
                G_I,

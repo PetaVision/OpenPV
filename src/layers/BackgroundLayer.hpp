@@ -21,7 +21,6 @@ class BackgroundLayer : public CloneVLayer {
    virtual ~BackgroundLayer();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual void allocateV() override;
    virtual Response::Status updateState(double timef, double dt) override;
    virtual int setActivity() override;
 

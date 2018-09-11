@@ -39,11 +39,6 @@ RescaleLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    // CloneVLayer sets mOriginalLayer and errors out if originalLayerName is not valid
 }
 
-// Rescale layer does not use the V buffer, so absolutely fine to clone off of an null V layer
-void RescaleLayer::allocateV() {
-   // Do nothing
-}
-
 int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    CloneVLayer::ioParamsFillGroup(ioFlag);
    ioParam_rescaleMethod(ioFlag);

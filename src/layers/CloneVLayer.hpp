@@ -27,16 +27,13 @@ class CloneVLayer : public PV::HyPerLayer {
    CloneVLayer();
    int initialize(const char *name, HyPerCol *hc);
    virtual void setObserverTable() override;
+   virtual InternalStateBuffer *createInternalState() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    void setOriginalLayer();
-   virtual void allocateV() override;
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
-   virtual void initializeV() override;
-   virtual void readVFromCheckpoint(Checkpointer *checkpointer) override;
    virtual Response::Status updateState(double timed, double dt) override;
 
   private:

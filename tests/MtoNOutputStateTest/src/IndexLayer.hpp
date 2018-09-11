@@ -15,13 +15,6 @@
 namespace PV {
 
 class IndexLayer : public HyPerLayer {
-  protected:
-   /**
-    * IndexLayer does not use InitVType. Instead, the layer is initialized
-    * so that global restricted index k is k*startTime.
-    */
-   void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
-
   public:
    IndexLayer(char const *name, HyPerCol *hc);
    ~IndexLayer();

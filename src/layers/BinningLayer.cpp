@@ -37,6 +37,8 @@ void BinningLayer::setObserverTable() {
    }
 }
 
+InternalStateBuffer *BinningLayer::createInternalState() { return nullptr; }
+
 OriginalLayerNameParam *BinningLayer::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(name, parent);
 }
@@ -163,13 +165,6 @@ void BinningLayer::setOriginalLayer() {
 Response::Status BinningLayer::allocateDataStructures() {
    return HyPerLayer::allocateDataStructures();
 }
-
-void BinningLayer::allocateV() {
-   // Allocate V does nothing since binning does not need a V layer
-   clayer->V = NULL;
-}
-
-void BinningLayer::initializeV() { assert(getV() == NULL); }
 
 void BinningLayer::initializeActivity() {}
 
@@ -326,6 +321,6 @@ float BinningLayer::calcNormDist(float xVal, float mean, float sigma) {
    }
 }
 
-BinningLayer::~BinningLayer() { clayer->V = nullptr; }
+BinningLayer::~BinningLayer() {}
 
 } /* namespace PV */
