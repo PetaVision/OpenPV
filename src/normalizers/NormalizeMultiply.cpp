@@ -25,7 +25,8 @@ int NormalizeMultiply::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_rMinX(ioFlag);
    ioParam_rMinY(ioFlag);
    ioParam_nonnegativeConstraintFlag(ioFlag);
-   ioParam_normalize_cutoff(ioFlag);
+   ioParam_normalize_cutoff
+     (ioFlag);
    ioParam_normalizeFromPostPerspective(ioFlag);
    return status;
 }

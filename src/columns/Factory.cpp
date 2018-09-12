@@ -44,6 +44,7 @@
 #include "layers/RunningAverageLayer.hpp"
 #include "layers/ShuffleLayer.hpp"
 #include "layers/SigmoidLayer.hpp"
+#include "layers/SpikingIntegrator.hpp"
 #include "layers/WTALayer.hpp"
 
 #include "connections/CloneConn.hpp"
@@ -160,6 +161,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("Retina", Factory::create<Retina>);
    registerKeyword("ShuffleLayer", Factory::create<ShuffleLayer>);
    registerKeyword("SigmoidLayer", Factory::create<SigmoidLayer>);
+   registerKeyword("SpikingIntegrator", Factory::create<SpikingIntegrator>);
    registerKeyword("WTALayer", Factory::create<WTALayer>);
 
    registerKeyword("HyPerConn", Factory::create<HyPerConn>);
