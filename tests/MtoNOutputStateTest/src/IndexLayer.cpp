@@ -38,7 +38,7 @@ Response::Status IndexLayer::updateState(double timef, double dt) {
    PVHalo const &halo    = loc->halo;
    for (int b = 0; b < loc->nbatch; b++) {
       float *V = &getV()[b * getNumNeurons()];
-      float *A = &mActivityCube->data[b * getNumExtended()];
+      float *A = &mActivity->getActivity()[b * getNumExtended()];
       for (int k = 0; k < getNumNeurons(); k++) {
          int kGlobal      = globalIndexFromLocal(k, *loc);
          int kGlobalBatch = kGlobal + (b + loc->kb0) * getNumGlobalNeurons();

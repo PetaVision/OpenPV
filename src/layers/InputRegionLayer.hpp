@@ -34,6 +34,7 @@ class InputRegionLayer : public HyPerLayer {
    void setObserverTable();
    virtual PhaseParam *createPhaseParam() override;
    virtual BoundaryConditions *createBoundaryConditions() override;
+   virtual InternalStateBuffer *createInternalState() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag) override;
@@ -44,7 +45,6 @@ class InputRegionLayer : public HyPerLayer {
    void checkLayerDimensions();
    virtual Response::Status allocateDataStructures() override;
    virtual void allocateGSyn() override;
-   virtual void allocateActivity() override;
    virtual int setActivity() override;
 
   private:

@@ -243,7 +243,7 @@ Response::Status LCALIFLayer::updateState(double timed, double dt) {
          G_I,
          G_IB,
          GSyn[0],
-         mActivityCube->data,
+         mActivity->getActivity(),
          getGapStrength(),
          Vattained,
          Vmeminf,

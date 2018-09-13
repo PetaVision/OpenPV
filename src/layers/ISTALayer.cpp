@@ -107,17 +107,17 @@ int ISTALayer::allocateUpdateKernel() {
    // Set to temp pointer of the subclass
    PVCuda::CudaUpdateISTALayer *updateKernel = new PVCuda::CudaUpdateISTALayer(device);
    // Set arguments
-   const PVLayerLoc *loc   = getLayerLoc();
-   const int nx            = loc->nx;
-   const int ny            = loc->ny;
-   const int nf            = loc->nf;
-   const int num_neurons   = nx * ny * nf;
-   const int nbatch        = loc->nbatch;
-   const int lt            = loc->halo.lt;
-   const int rt            = loc->halo.rt;
-   const int dn            = loc->halo.dn;
-   const int up            = loc->halo.up;
-   const int numChannels   = this->numChannels;
+   const PVLayerLoc *loc = getLayerLoc();
+   const int nx          = loc->nx;
+   const int ny          = loc->ny;
+   const int nf          = loc->nf;
+   const int num_neurons = nx * ny * nf;
+   const int nbatch      = loc->nbatch;
+   const int lt          = loc->halo.lt;
+   const int rt          = loc->halo.rt;
+   const int dn          = loc->halo.dn;
+   const int up          = loc->halo.up;
+   const int numChannels = this->numChannels;
    pvAssert(mInternalState);
    PVCuda::CudaBuffer *cudaBuffer = mInternalState->getCudaBuffer();
    pvAssert(cudaBuffer);
@@ -177,7 +177,7 @@ double ISTALayer::getDeltaUpdateTime() { return parent->getDeltaTime(); }
 
 Response::Status ISTALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = mActivityCube->data;
+   float *A              = mActivity->getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
    float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];

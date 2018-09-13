@@ -230,7 +230,7 @@ Response::Status LIFGap::updateState(double time, double dt) {
    const int nbatch = getLayerLoc()->nbatch;
 
    float *GSynHead = GSyn[0];
-   float *activity = mActivityCube->data;
+   float *activity = mActivity->getActivity();
 
    switch (method) {
       case 'a':

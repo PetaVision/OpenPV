@@ -282,7 +282,7 @@ Response::Status Retina::updateState(double timed, double dt) {
    const int nbatch = getLayerLoc()->nbatch;
 
    float *GSynHead = GSyn[0];
-   float *activity = mActivityCube->data;
+   float *activity = mActivity->getActivity();
 
    if (spikingFlag == 1) {
       Retina_spiking_update_state(

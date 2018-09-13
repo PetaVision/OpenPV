@@ -17,6 +17,7 @@
 #include "columns/HyPerCol.hpp"
 #include "columns/Publisher.hpp"
 #include "columns/Random.hpp"
+#include "components/ActivityBuffer.hpp"
 #include "components/BoundaryConditions.hpp"
 #include "components/InitializeFromCheckpointFlag.hpp"
 #include "components/InternalStateBuffer.hpp"
@@ -162,6 +163,7 @@ class HyPerLayer : public ComponentBasedObject {
    virtual BoundaryConditions *createBoundaryConditions();
    virtual InitializeFromCheckpointFlag *createInitializeFromCheckpointFlag();
    virtual InternalStateBuffer *createInternalState();
+   virtual ActivityBuffer *createActivity();
 
    virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
 
@@ -186,9 +188,6 @@ class HyPerLayer : public ComponentBasedObject {
     * Allocates an extended buffer (that is, buffer's length is getNumExtendedAllBatches()).
     */
    void allocateExtendedBuffer(float **buf, const char *bufname);
-
-   void allocateV();
-   virtual void allocateActivity();
 
    void checkpointPvpActivityFloat(
          Checkpointer *checkpointer,
@@ -259,8 +258,8 @@ class HyPerLayer : public ComponentBasedObject {
   public:
    HyPerLayer(const char *name, HyPerCol *hc);
    float *getActivity() {
-      return mActivityCube->data;
-   } // TODO: access to mActivityCube->data should not be public
+      return mActivity->getActivity();
+   } // TODO: access to mActivity->getActivity() should not be public
    virtual double getTimeScale(int batchIdx) { return -1.0; };
    virtual bool activityIsSpiking() { return false; }
 
@@ -404,7 +403,6 @@ class HyPerLayer : public ComponentBasedObject {
    void requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis);
    virtual int requireChannel(int channelNeeded, int *numChannelsResult);
 
-   PVLayerCube *getActivityCube() { return mActivityCube; }
    float *getV() { return mInternalState->getV(); } // TODO: should be const
    int getNumChannels() { return numChannels; }
    float *getChannel(ChannelType ch) { // name query
@@ -482,7 +480,7 @@ class HyPerLayer : public ComponentBasedObject {
 
    InternalStateBuffer *mInternalState = nullptr;
 
-   PVLayerCube *mActivityCube = nullptr;
+   ActivityBuffer *mActivity = nullptr;
 
    int numDelayLevels; // The number of timesteps in the datastore ring buffer to store older
    // timesteps for connections with delays

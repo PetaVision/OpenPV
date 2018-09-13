@@ -217,6 +217,10 @@ void HyPerLayer::setObserverTable() {
    if (mInternalState) {
       addUniqueComponent(mInternalState->getDescription(), mInternalState);
    }
+   mActivity = createActivity();
+   if (mActivity) {
+      addUniqueComponent(mActivity->getDescription(), mActivity);
+   }
 }
 
 LayerGeometry *HyPerLayer::createLayerGeometry() { return new LayerGeometry(name, parent); }
@@ -235,6 +239,8 @@ InternalStateBuffer *HyPerLayer::createInternalState() {
    return new InternalStateBuffer(name, parent);
 }
 
+ActivityBuffer *HyPerLayer::createActivity() { return new ActivityBuffer(name, parent); }
+
 HyPerLayer::~HyPerLayer() {
    delete recvsyn_timer;
    delete update_timer;
@@ -248,7 +254,6 @@ HyPerLayer::~HyPerLayer() {
 
    delete mOutputStateStream;
 
-   freeActivityCube();
    freeChannels();
 
 #ifdef PV_USE_CUDA
@@ -294,11 +299,6 @@ template int HyPerLayer::freeBuffer<int>(int **buf);
 int HyPerLayer::freeRestrictedBuffer(float **buf) { return freeBuffer(buf); }
 
 int HyPerLayer::freeExtendedBuffer(float **buf) { return freeBuffer(buf); }
-
-void HyPerLayer::freeActivityCube() {
-   pvcube_delete(mActivityCube);
-   mActivityCube = nullptr;
-}
 
 void HyPerLayer::freeChannels() {
 
@@ -349,18 +349,6 @@ void HyPerLayer::allocateExtendedBuffer(float **buf, char const *bufname) {
    allocateBuffer(buf, getNumExtendedAllBatches(), bufname);
 }
 
-void HyPerLayer::allocateV() {
-   if (mInternalState) {
-      auto allocateMessage = std::make_shared<AllocateDataStructuresMessage>();
-      mInternalState->respond(allocateMessage);
-   }
-}
-
-void HyPerLayer::allocateActivity() {
-   mActivityCube = pvcube_new(getLayerLoc(), getNumExtendedAllBatches());
-   FatalIf(mActivityCube == nullptr, "%s failed to allocate activity cube.\n", getDescription_c());
-}
-
 void HyPerLayer::allocateBuffers() {
    // allocate memory for input buffers.  For HyPerLayer, allocates GSyn
    // virtual so that subclasses can initialize additional buffers if needed.
@@ -389,8 +377,12 @@ void HyPerLayer::allocateGSyn() {
 }
 
 void HyPerLayer::addPublisher() {
-   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
-   publisher = new Publisher(*mpiBlock, mActivityCube, getNumDelayLevels(), getSparseFlag());
+   MPIBlock const *mpiBlock  = parent->getCommunicator()->getLocalMPIBlock();
+   PVLayerCube *activityCube = (PVLayerCube *)malloc(sizeof(PVLayerCube));
+   activityCube->numItems    = getNumExtendedAllBatches();
+   activityCube->data        = mActivity->getActivity();
+   activityCube->loc         = *getLayerLoc();
+   publisher = new Publisher(*mpiBlock, activityCube, getNumDelayLevels(), getSparseFlag());
 }
 
 void HyPerLayer::checkpointPvpActivityFloat(
@@ -764,7 +756,9 @@ HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage cons
    }
    message->mTimer->start();
    copyAllActivityFromDevice();
-   if (mInternalState and mInternalState->isUsingGPU()) { mInternalState->copyFromCuda(); }
+   if (mInternalState and mInternalState->isUsingGPU()) {
+      mInternalState->copyFromCuda();
+   }
    copyAllGSynFromDevice();
    addGpuTimers();
    message->mTimer->stop();
@@ -825,7 +819,6 @@ void HyPerLayer::clearProgressFlags() {
 Response::Status HyPerLayer::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
    Response::Status status = ComponentBasedObject::setCudaDevice(message);
    return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
-   
 }
 
 #ifdef PV_USE_CUDA
@@ -984,7 +977,9 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    if (mUpdateGpu) {
       this->setAllocDeviceGSyn();
       this->setAllocDeviceV();
-      if (mInternalState) { mInternalState->useCuda(); }
+      if (mInternalState) {
+         mInternalState->useCuda();
+      }
       this->setAllocDeviceActivity();
    }
 #endif
@@ -1147,8 +1142,13 @@ Response::Status HyPerLayer::allocateDataStructures() {
       }
    }
 
-   allocateV();
-   allocateActivity();
+   auto allocateMessage = std::make_shared<AllocateDataStructuresMessage>();
+   if (mInternalState) {
+      mInternalState->respond(allocateMessage);
+   }
+   if (mActivity) {
+      mActivity->respond(allocateMessage);
+   }
 
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -1158,7 +1158,7 @@ Response::Status HyPerLayer::allocateDataStructures() {
 
    // If not mirroring, fill the boundaries with the value in the valueBC param
    if (!mBoundaryConditions->getMirrorBCflag() && mBoundaryConditions->getValueBC() != 0.0f) {
-      mBoundaryConditions->applyBoundaryConditions(mActivityCube->data, getLayerLoc());
+      mBoundaryConditions->applyBoundaryConditions(mActivity->getActivity(), getLayerLoc());
    }
 
    // allocate storage for the input conductance arrays
@@ -1468,10 +1468,12 @@ void HyPerLayer::resetStateOnTrigger() {
 // Update V on GPU after CPU V gets set
 #ifdef PV_USE_CUDA
    if (mUpdateGpu) {
-      if (mInternalState) { mInternalState->copyToCuda(); }
+      if (mInternalState) {
+         mInternalState->copyToCuda();
+      }
       // Right now, we're setting the activity on the CPU and memsetting the GPU memory
       // TODO calculate this on the GPU
-      getDeviceActivity()->copyToDevice(mActivityCube->data);
+      getDeviceActivity()->copyToDevice(mActivity->getActivity());
       // We need to updateDeviceActivity and Datastore if we're resetting V
       updatedDeviceActivity  = true;
       updatedDeviceDatastore = true;
@@ -1556,7 +1558,7 @@ int HyPerLayer::setActivity() {
    return setActivity_HyPerLayer(
          loc->nbatch,
          getNumNeurons(),
-         mActivityCube->data,
+         mActivity->getActivity(),
          getV(),
          loc->nx,
          loc->ny,
@@ -1676,7 +1678,7 @@ int HyPerLayer::publish(Communicator *comm, double simTime) {
    int status = PV_SUCCESS;
    if (mNeedToPublish) {
       if (mBoundaryConditions->getMirrorBCflag()) {
-         mBoundaryConditions->applyBoundaryConditions(mActivityCube->data, getLayerLoc());
+         mBoundaryConditions->applyBoundaryConditions(mActivity->getActivity(), getLayerLoc());
       }
       status         = publisher->publish(mLastUpdateTime);
       mNeedToPublish = false;

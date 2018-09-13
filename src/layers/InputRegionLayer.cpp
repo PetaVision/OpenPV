@@ -45,6 +45,8 @@ BoundaryConditions *InputRegionLayer::createBoundaryConditions() {
    return new DependentBoundaryConditions(name, parent);
 }
 
+InternalStateBuffer *InputRegionLayer::createInternalState() { return nullptr; }
+
 OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(name, parent);
 }
@@ -150,21 +152,20 @@ Response::Status InputRegionLayer::allocateDataStructures() {
       // original layer needs to create InputRegionsAllBatchElements first
       return Response::POSTPONE;
    }
-   return HyPerLayer::allocateDataStructures();
+   // mActivity must be null when parent allocate is called, since original layer will allocate it.
+   Response::Status status = HyPerLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   return Response::SUCCESS;
 }
 
-void InputRegionLayer::allocateActivity() {
-   int const numItems = getNumExtendedAllBatches();
-   PVLayerCube *cube  = (PVLayerCube *)calloc(pvcube_size(numItems), sizeof(char));
-   FatalIf(cube == nullptr, "Unable to allocate PVLayerCube for %s\n", getDescription_c());
-   cube->size     = pvcube_size(numItems);
-   cube->numItems = numItems;
-   cube->loc      = *getLayerLoc();
-   cube->data     = mOriginalLayer->getInputRegionsAllBatchElements();
-   mActivityCube  = cube;
+int InputRegionLayer::setActivity() {
+   for (int k = 0; k < getNumExtendedAllBatches(); k++) {
+      getActivity()[k] = mOriginalLayer->getInputRegionsAllBatchElements()[k];
+   }
+   return PV_SUCCESS;
 }
-
-int InputRegionLayer::setActivity() { return PV_SUCCESS; }
 
 int InputRegionLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    if (parent->getCommunicator()->globalCommRank() == 0) {

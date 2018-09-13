@@ -50,9 +50,6 @@ typedef struct PV_Stream_ {
  *    plus location information
  */
 typedef struct PVLayerCube_ {
-   // size of entire cube in bytes
-   size_t size;
-
    // number of items in data buffer
    int numItems;
 

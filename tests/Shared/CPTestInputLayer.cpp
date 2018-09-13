@@ -69,7 +69,7 @@ Response::Status CPTestInputLayer::updateState(double timed, double dt) {
 
    float *GSynHead = GSyn[0];
    float *V        = getV();
-   float *activity = mActivityCube->data;
+   float *activity = mActivity->getActivity();
 
    CPTestInputLayer_update_state(
          nbatch,

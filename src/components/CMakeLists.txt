@@ -2,6 +2,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LogTimeScaleController.cpp
    ${SUBDIR}/KneeTimeScaleController.cpp
    ${SUBDIR}/AdaptiveTimeScaleController.cpp
+   ${SUBDIR}/ActivityBuffer.cpp
    ${SUBDIR}/ArborList.cpp
    ${SUBDIR}/BatchIndexer.cpp
    ${SUBDIR}/BoundaryConditions.cpp
@@ -40,6 +41,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LogTimeScaleController.hpp
    ${SUBDIR}/KneeTimeScaleController.hpp
    ${SUBDIR}/AdaptiveTimeScaleController.hpp
+   ${SUBDIR}/ActivityBuffer.hpp
    ${SUBDIR}/ArborList.hpp
    ${SUBDIR}/BatchIndexer.hpp
    ${SUBDIR}/BoundaryConditions.hpp

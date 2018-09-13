@@ -18,7 +18,6 @@
 namespace PV {
 
 PVLayerCube *pvcube_init(PVLayerCube *cube, const PVLayerLoc *loc, int numItems) {
-   cube->size     = pvcube_size(numItems);
    cube->numItems = numItems;
    cube->loc      = *loc;
    pvcube_setAddr(cube);

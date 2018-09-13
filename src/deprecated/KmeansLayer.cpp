@@ -36,7 +36,7 @@ int KmeansLayer::initialize_base() {
 
 Response::Status KmeansLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = mActivityCube->data;
+   float *A              = mActivity->getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
 

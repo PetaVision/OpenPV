@@ -146,7 +146,7 @@ CloneVLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> cons
 
 Response::Status CloneVLayer::updateState(double timed, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = mActivityCube->data;
+   float *A              = mActivity->getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
    float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];

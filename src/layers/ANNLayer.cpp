@@ -419,7 +419,7 @@ int ANNLayer::resetGSynBuffers(double timef, double dt) {
 
 Response::Status ANNLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = mActivityCube->data;
+   float *A              = mActivity->getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
    float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
