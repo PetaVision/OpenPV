@@ -68,7 +68,6 @@ int HyPerLayer::initialize_base() {
    allocDeviceActivity      = false;
    allocDeviceDatastore     = false;
    allocDeviceActiveIndices = false;
-   d_V                      = NULL;
    d_GSyn                   = NULL;
    d_Activity               = NULL;
    d_Datastore              = NULL;
@@ -255,9 +254,6 @@ HyPerLayer::~HyPerLayer() {
 #ifdef PV_USE_CUDA
    if (krUpdate) {
       delete krUpdate;
-   }
-   if (d_V) {
-      delete d_V;
    }
    if (d_Activity) {
       delete d_Activity;
@@ -454,10 +450,9 @@ HyPerLayer::initializeState(std::shared_ptr<InitializeStateMessage const> messag
 Response::Status HyPerLayer::copyInitialStateToGPU() {
    if (mUpdateGpu) {
       float *h_V = getV();
-      if (h_V != NULL) {
-         PVCuda::CudaBuffer *d_V = getDeviceV();
-         assert(d_V);
-         d_V->copyToDevice(h_V);
+      if (mInternalState != nullptr) {
+         pvAssert(mInternalState->isUsingGPU());
+         mInternalState->copyToCuda();
       }
 
       PVCuda::CudaBuffer *d_activity = getDeviceActivity();
@@ -769,7 +764,7 @@ HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage cons
    }
    message->mTimer->start();
    copyAllActivityFromDevice();
-   copyAllVFromDevice();
+   if (mInternalState and mInternalState->isUsingGPU()) { mInternalState->copyFromCuda(); }
    copyAllGSynFromDevice();
    addGpuTimers();
    message->mTimer->stop();
@@ -827,6 +822,12 @@ void HyPerLayer::clearProgressFlags() {
    mHasUpdated  = false;
 }
 
+Response::Status HyPerLayer::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   Response::Status status = ComponentBasedObject::setCudaDevice(message);
+   return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   
+}
+
 #ifdef PV_USE_CUDA
 
 int HyPerLayer::allocateUpdateKernel() {
@@ -845,11 +846,6 @@ int HyPerLayer::allocateDeviceBuffers() {
    const size_t size_ex = getNumExtendedAllBatches() * sizeof(float);
 
    PVCuda::CudaDevice *device = mCudaDevice;
-
-   // Allocate based on which flags are set
-   if (allocDeviceV) {
-      d_V = device->createBuffer(size, &getDescription());
-   }
 
    if (allocDeviceDatastore) {
       d_Datastore = device->createBuffer(size_ex, &getDescription());
@@ -988,6 +984,7 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    if (mUpdateGpu) {
       this->setAllocDeviceGSyn();
       this->setAllocDeviceV();
+      if (mInternalState) { mInternalState->useCuda(); }
       this->setAllocDeviceActivity();
    }
 #endif
@@ -1471,7 +1468,7 @@ void HyPerLayer::resetStateOnTrigger() {
 // Update V on GPU after CPU V gets set
 #ifdef PV_USE_CUDA
    if (mUpdateGpu) {
-      getDeviceV()->copyToDevice(V);
+      if (mInternalState) { mInternalState->copyToCuda(); }
       // Right now, we're setting the activity on the CPU and memsetting the GPU memory
       // TODO calculate this on the GPU
       getDeviceActivity()->copyToDevice(mActivityCube->data);
@@ -1657,17 +1654,6 @@ void HyPerLayer::copyAllGSynFromDevice() {
       PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
       assert(d_postGSyn);
       d_postGSyn->copyFromDevice(h_postGSyn);
-   }
-}
-
-void HyPerLayer::copyAllVFromDevice() {
-   // Only copy if updating
-   if (mUpdateGpu) {
-      // Allocated as a big chunk, this should work
-      float *h_V              = getV();
-      PVCuda::CudaBuffer *d_V = this->getDeviceV();
-      assert(d_V);
-      d_V->copyFromDevice(h_V);
    }
 }
 

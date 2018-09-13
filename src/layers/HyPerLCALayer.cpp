@@ -162,8 +162,9 @@ int HyPerLCALayer::allocateUpdateKernel() {
    const int dn            = loc->halo.dn;
    const int up            = loc->halo.up;
    const int numChannels   = this->numChannels;
-   PVCuda::CudaBuffer *d_V = getDeviceV();
-   assert(d_V);
+   pvAssert(mInternalState);
+   PVCuda::CudaBuffer *cudaBuffer = mInternalState->getCudaBuffer();
+   pvAssert(cudaBuffer);
    const float Vth         = this->VThresh;
    const float AMax        = this->AMax;
    const float AMin        = this->AMin;
@@ -199,7 +200,7 @@ int HyPerLCALayer::allocateUpdateKernel() {
          dn,
          up,
          numChannels,
-         d_V,
+         cudaBuffer,
          numVertices,
          d_verticesV,
          d_verticesA,
@@ -209,8 +210,6 @@ int HyPerLCALayer::allocateUpdateKernel() {
          tau,
          d_GSyn,
          d_activity);
-
-   // Update d_V for V initialization
 
    // set updateKernel to krUpdate
    krUpdate = updateKernel;

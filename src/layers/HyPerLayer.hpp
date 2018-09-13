@@ -163,6 +163,8 @@ class HyPerLayer : public ComponentBasedObject {
    virtual InitializeFromCheckpointFlag *createInitializeFromCheckpointFlag();
    virtual InternalStateBuffer *createInternalState();
 
+   virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
+
    virtual void allocateBuffers();
    virtual void allocateGSyn();
    void addPublisher();
@@ -543,9 +545,7 @@ class HyPerLayer : public ComponentBasedObject {
 
    void copyAllGSynToDevice();
    void copyAllGSynFromDevice();
-   void copyAllVFromDevice();
    void copyAllActivityFromDevice();
-   PVCuda::CudaBuffer *getDeviceV() { return d_V; }
    PVCuda::CudaBuffer *getDeviceGSyn() { return d_GSyn; }
 
 #ifdef PV_USE_CUDNN
@@ -601,7 +601,6 @@ class HyPerLayer : public ComponentBasedObject {
    bool mRecvGpu;
    bool mUpdateGpu;
 
-   PVCuda::CudaBuffer *d_V;
    PVCuda::CudaBuffer *d_GSyn;
    PVCuda::CudaBuffer *d_Activity;
    PVCuda::CudaBuffer *d_Datastore;

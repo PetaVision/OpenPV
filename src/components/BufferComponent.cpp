@@ -14,7 +14,11 @@ namespace PV {
 
 BufferComponent::BufferComponent(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-BufferComponent::~BufferComponent() {}
+BufferComponent::~BufferComponent() {
+#ifdef PV_USE_CUDA
+   delete mCudaBuffer;
+#endif // PV_USE_CUDA
+}
 
 int BufferComponent::initialize(char const *name, HyPerCol *hc) {
    return BaseObject::initialize(name, hc);
@@ -51,6 +55,16 @@ Response::Status BufferComponent::allocateDataStructures() {
    mBufferSize           = nx * ny * nf;
    int numNeurons        = mBufferSize * nb;
    mBufferData.resize(numNeurons);
+
+#ifdef PV_USE_CUDA
+   if (mUsingGPUFlag) {
+      FatalIf(mCudaDevice == nullptr, "%s did not receive a SetCudaDevice message.\n", getDescription_c());
+      std::size_t sizeInBytes = sizeof(float) * (std::size_t)getBufferSizeAcrossBatch();
+      mCudaBuffer = mCudaDevice->createBuffer(sizeInBytes, &getDescription());
+   }
+   // Should the BufferComponent set mUsingGPUFlag in response to SetCudaDevice,
+   // and eliminate the useCuda() function member?
+#endif // PV_USE_CUDA
    return Response::SUCCESS;
 }
 
@@ -90,5 +104,22 @@ Response::Status BufferComponent::readStateFromCheckpoint(Checkpointer *checkpoi
    }
    return Response::SUCCESS;
 }
+
+#ifdef PV_USE_CUDA
+void BufferComponent::useCuda() {
+   FatalIf(getDataStructuresAllocatedFlag(), "%s cannot set the UsingGPU flag after data allocation.\n", getDescription_c());
+   mUsingGPUFlag = true;
+}
+
+void BufferComponent::copyFromCuda() {
+   FatalIf(!mCudaBuffer, "%s did not allocate its CudaBuffer.\n", getDescription_c());
+   mCudaBuffer->copyFromDevice(mBufferData.data());
+}
+
+void BufferComponent::copyToCuda() {
+   FatalIf(!mCudaBuffer, "%s did not allocate its CudaBuffer.\n", getDescription_c());
+   mCudaBuffer->copyToDevice(mBufferData.data());
+}
+#endif // PV_USE_CUDA
 
 } // namespace PV

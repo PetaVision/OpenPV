@@ -32,6 +32,15 @@ class BufferComponent : public BaseObject {
    int getBufferSize() const { return mBufferSize; }
    int getBufferSizeAcrossBatch() const { return mBufferSize * getLayerLoc()->nbatch; }
 
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer *getCudaBuffer() { return mCudaBuffer; }
+   // TODO: eliminate need for nonconst public getCudaBuffer method
+
+   void useCuda();
+   void copyFromCuda();
+   void copyToCuda();
+#endif // PV_USE_CUDA
+
   protected:
    BufferComponent() {}
 
@@ -53,6 +62,10 @@ class BufferComponent : public BaseObject {
    int mBufferSize                     = 0;
    std::vector<float> mBufferData;
    bool mInitializeFromCheckpointFlag;
+
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer *mCudaBuffer = nullptr;
+#endif // PV_USE_CUDA
 };
 
 } // namespace PV

@@ -114,8 +114,9 @@ int MomentumLCALayer::allocateUpdateKernel() {
    const int dn            = loc->halo.dn;
    const int up            = loc->halo.up;
    const int numChannels   = this->numChannels;
-   PVCuda::CudaBuffer *d_V = getDeviceV();
-   assert(d_V);
+   pvAssert(mInternalState);
+   PVCuda::CudaBuffer *cudaBuffer = mInternalState->getCudaBuffer();
+   pvAssert(cudaBuffer);
    assert(d_prevDrive);
    const float Vth         = this->VThresh;
    const float AMax        = this->AMax;
@@ -152,7 +153,7 @@ int MomentumLCALayer::allocateUpdateKernel() {
          dn,
          up,
          numChannels,
-         d_V,
+         cudaBuffer,
          d_prevDrive,
          numVertices,
          d_verticesV,
@@ -164,8 +165,6 @@ int MomentumLCALayer::allocateUpdateKernel() {
          LCAMomentumRate,
          d_GSyn,
          d_activity);
-
-   // Update d_V for V initialization
 
    // set updateKernel to krUpdate
    krUpdate = updateKernel;
