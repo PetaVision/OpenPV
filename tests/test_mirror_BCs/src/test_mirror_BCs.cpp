@@ -14,41 +14,23 @@
 
 int main(int argc, char *argv[]) {
    PV::PV_Init *initObj = new PV::PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
-   PVLayerLoc sLoc, bLoc;
-   PVLayerCube *sCube, *bCube;
 
    PV::HyPerCol *hc = new PV::HyPerCol(initObj);
-   PV::HyPerLayer *l =
+   PV::HyPerLayer *layer =
          dynamic_cast<PV::HyPerLayer *>(hc->getObjectFromName("test_mirror_BCs_layer"));
-   int margin = 1;
-   l->requireMarginWidth(1, &margin, 'x');
-   l->requireMarginWidth(1, &margin, 'y');
-   hc->allocateColumn();
+   int margin = 2;
+   layer->requireMarginWidth(2, &margin, 'x');
+   layer->requireMarginWidth(2, &margin, 'y');
 
-   PVLayerLoc const *loc = l->getLayerLoc();
+   hc->processParams(hc->getPrintParamsFilename());
 
-   int nf          = loc->nf;
-   int const nxExt = loc->nx + loc->halo.lt + loc->halo.rt;
-   int const nyExt = loc->ny + loc->halo.dn + loc->halo.up;
-   int syex        = nxExt * nf;
-   int sy          = loc->nx * nf;
+   auto *boundaryConditions = layer->getComponentByType<PV::BoundaryConditions>();
 
-   sLoc.nbatch   = 1;
-   sLoc.nxGlobal = loc->nx; // shouldn't be used
-   sLoc.nyGlobal = loc->ny; // shouldn't be used
-   sLoc.kx0 = sLoc.ky0 = 0; // shouldn't be used
-   sLoc.nx             = loc->nx;
-   sLoc.ny             = loc->ny;
-   sLoc.nf             = nf;
-   sLoc.halo.lt        = loc->halo.lt;
-   sLoc.halo.rt        = loc->halo.rt;
-   sLoc.halo.dn        = loc->halo.dn;
-   sLoc.halo.up        = loc->halo.up;
+   FatalIf(boundaryConditions == nullptr, "%s does not have a BoundaryConditions component.\n");
+   FatalIf(!boundaryConditions->getMirrorBCflag(), "%s has mirrorBCflag set to false.\n");
 
-   bLoc = sLoc;
-
-   sCube = PV::pvcube_new(&sLoc, nxExt * nyExt * nf);
-   bCube = sCube;
+   std::vector<float> testBuffer(layer->getNumExtended(), 0.0f);
+   PVLayerLoc const *loc = layer->getLayerLoc();
 
    // fill interior with non-extended index of each neuron
    // leave border values at zero to start with
@@ -56,71 +38,42 @@ int main(int argc, char *argv[]) {
    int kxLast  = loc->nx + loc->halo.lt;
    int kyFirst = loc->halo.up;
    int kyLast  = loc->ny + loc->halo.up;
+   int nf      = loc->nf;
+   int sy      = loc->nx * nf;
+   int syex    = (loc->nx + loc->halo.lt + loc->halo.rt) * nf;
    for (int ky = kyFirst; ky < kyLast; ky++) {
       for (int kx = kxFirst; kx < kxLast; kx++) {
-         for (int kf = 0; kf < nf; kf++) {
-            int kex          = ky * syex + kx * nf + kf;
-            int k            = (ky - kyFirst) * sy + (kx - kxFirst) * nf + kf;
-            sCube->data[kex] = k;
-#ifdef DEBUG_PRINT
-            DebugLog().printf(
-                  "sCube val = %5i:, kex = %5i:, k = %5i\n", (int)sCube->data[kex], kex, k);
-#endif
+         for (int kf = 0; kf < loc->nf; kf++) {
+            int kex         = ky * syex + kx * nf + kf;
+            int kGlobal     = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
+            testBuffer[kex] = kGlobal;
          }
       }
    }
-
-#ifdef DEBUG_PRINT
-   // write out extended cube values
-   for (int kf = 0; kf < nf; kf++) {
-      for (int ky = 0; ky < ny; ky++) {
-         for (int kx = 0; kx < nx; kx++) {
-            int kex = ky * syex + kx * nf + kf;
-            DebugLog().printf("%5i ", (int)sCube->data[kex]);
-         }
-         DebugLog().printf("\n");
-      }
-      DebugLog().printf("\n");
-   }
-#endif
 
    // this is the function we're testing...
-   l->mirrorInteriorToBorder(sCube, bCube);
-
-#ifdef DEBUG_PRINT
-   // write out extended cube values
-   for (int kf = 0; kf < nf; kf++) {
-      for (int ky = 0; ky < ny; ky++) {
-         for (int kx = 0; kx < nx; kx++) {
-            int kex = ky * syex + kx * nf + kf;
-            DebugLog().printf("%5i ", (int)sCube->data[kex]);
-         }
-         DebugLog().printf("\n");
-      }
-      DebugLog().printf("\n");
-   }
-#endif
+   boundaryConditions->applyBoundaryConditions(testBuffer.data(), loc);
 
    // check values at mirror indices
    // uses a completely different algorithm than mirrorInteriorToBorder
 
    // northwest
-   for (int ky = kxFirst; ky < kyFirst + loc->halo.lt; ky++) {
+   for (int ky = kyFirst; ky < kyFirst + loc->halo.lt; ky++) {
       int kymirror = kyFirst - 1 - (ky - kyFirst);
       for (int kx = kxFirst; kx < kxFirst + loc->halo.lt; kx++) {
          int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
-            int k         = (ky - kyFirst) * sy + (kx - kxFirst) * nf + kf;
+            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = bCube->data[kmirror];
-            if (mirrorVal != k) {
+            int mirrorVal = testBuffer[kmirror];
+            if (mirrorVal != kGlobal) {
                Fatal().printf(
                      "ERROR:northwest mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
                      mirrorVal,
-                     k);
+                     kGlobal);
             }
          }
       }
@@ -133,16 +86,16 @@ int main(int argc, char *argv[]) {
          int kxmirror = kx;
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
-            int k         = (ky - kyFirst) * sy + (kx - kxFirst) * nf + kf;
+            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = bCube->data[kmirror];
-            if (mirrorVal != k) {
+            int mirrorVal = testBuffer[kmirror];
+            if (mirrorVal != kGlobal) {
                Fatal().printf(
                      "ERROR:north mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
                      mirrorVal,
-                     k);
+                     kGlobal);
             }
          }
       }
@@ -155,16 +108,16 @@ int main(int argc, char *argv[]) {
          int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
-            int k         = (ky - kxFirst) * sy + (kx - kxFirst) * nf + kf;
+            int kGlobal   = (ky + loc->ky0 - kxFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = bCube->data[kmirror];
-            if (mirrorVal != k) {
+            int mirrorVal = testBuffer[kmirror];
+            if (mirrorVal != kGlobal) {
                Fatal().printf(
                      "ERROR:northeast mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
                      mirrorVal,
-                     k);
+                     kGlobal);
             }
          }
       }
@@ -177,16 +130,16 @@ int main(int argc, char *argv[]) {
          int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
-            int k         = (ky - kyFirst) * sy + (kx - kxFirst) * nf + kf;
+            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = bCube->data[kmirror];
-            if (mirrorVal != k) {
+            int mirrorVal = testBuffer[kmirror];
+            if (mirrorVal != kGlobal) {
                Fatal().printf(
                      "ERROR:west mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
                      mirrorVal,
-                     k);
+                     kGlobal);
             }
          }
       }
@@ -199,16 +152,16 @@ int main(int argc, char *argv[]) {
          int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
-            int k         = (ky - kyFirst) * sy + (kx - kyFirst) * nf + kf;
+            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = bCube->data[kmirror];
-            if (mirrorVal != k) {
+            int mirrorVal = testBuffer[kmirror];
+            if (mirrorVal != kGlobal) {
                Fatal().printf(
                      "ERROR:east mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
                      mirrorVal,
-                     k);
+                     kGlobal);
             }
          }
       }
@@ -221,16 +174,16 @@ int main(int argc, char *argv[]) {
          int kxmirror = kxFirst - 1 - (kx - kxFirst);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
-            int k         = (ky - kyFirst) * sy + (kx - kxFirst) * nf + kf;
+            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = bCube->data[kmirror];
-            if (mirrorVal != k) {
+            int mirrorVal = testBuffer[kmirror];
+            if (mirrorVal != kGlobal) {
                Fatal().printf(
                      "ERROR:southwest mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
                      mirrorVal,
-                     k);
+                     kGlobal);
             }
          }
       }
@@ -243,16 +196,16 @@ int main(int argc, char *argv[]) {
          int kxmirror = kx;
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
-            int k         = (ky - kyFirst) * sy + (kx - kxFirst) * nf + kf;
+            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = bCube->data[kmirror];
-            if (mirrorVal != k) {
+            int mirrorVal = testBuffer[kmirror];
+            if (mirrorVal != kGlobal) {
                Fatal().printf(
                      "ERROR:south mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
                      mirrorVal,
-                     k);
+                     kGlobal);
             }
          }
       }
@@ -265,23 +218,20 @@ int main(int argc, char *argv[]) {
          int kxmirror = kxLast - 1 + (kxLast - kx);
          for (int kf = 0; kf < nf; kf++) {
             int kex       = ky * syex + kx * nf + kf;
-            int k         = (ky - kyFirst) * sy + (kx - kyFirst) * nf + kf;
+            int kGlobal   = (ky + loc->ky0 - kyFirst) * sy + (kx + loc->kx0 - kxFirst) * nf + kf;
             int kmirror   = kymirror * syex + kxmirror * nf + kf;
-            int mirrorVal = bCube->data[kmirror];
-            if (mirrorVal != k) {
+            int mirrorVal = testBuffer[kmirror];
+            if (mirrorVal != kGlobal) {
                Fatal().printf(
                      "ERROR:southeast mirror value at %i from %i = %i, should be %i\n",
                      kmirror,
                      kex,
                      mirrorVal,
-                     k);
+                     kGlobal);
             }
          }
       }
    }
-
-   PV::pvcube_delete(sCube);
-   sCube = bCube = NULL;
 
    delete hc;
    delete initObj;

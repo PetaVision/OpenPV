@@ -5,24 +5,33 @@
 debugParsing = false;
 
 HyPerCol "test_mirror_BCs_column" = {
-   dt = 1.0;
-   stopTime = 1.0;
-   outputPath = "output/";
-   nx = 8;
-   ny = 8;
-   checkpointWrite = false;
-   lastCheckpointDir = "output/Last";
+    dt                            = 1;
+    stopTime                      = 1;
+    progressInterval              = 1;
+    writeProgressToErr            = false;
+    outputPath                    = "output";
+    verifyWrites                  = true;
+    checkpointWrite               = false;
+    lastCheckpointDir             = "output/Last"; // Required param, but this test won't use it.
+    initializeFromCheckpointDir   = "";
+    printParamsFilename           = "test_mirror_BCs.params";
+    nx                            = 8;
+    ny                            = 8;
+    nbatch                        = 1;
+    errorOnNotANumber             = false;
 };
 
 HyPerLayer "test_mirror_BCs_layer" = {
-   restart = false;
-   nxScale = 1;
-   nyScale = 1;
-   nf = 2;
-   marginWidth = 4;
-   writeStep = -1;
-   spikingFlag = false;
-   writeNonspikingActivity = false;
-   mirrorBCflag = false; // will test by calling mirrorToInteriorBorder explicity
-   Vrest = -70;
+    nxScale                        = 1;
+    nyScale                        = 1;
+    nf                             = 2;
+    phase                          = 0;
+    mirrorBCflag                   = true;
+    initializeFromCheckpointFlag   = false;
+    InitVType                      = "ConstantV";
+    valueV                         = -70;
+    triggerLayerName               = NULL;
+    writeStep                      = -1;
+    sparseLayer                    = false;
+    updateGpu                      = false;
 };

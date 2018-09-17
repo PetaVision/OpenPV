@@ -49,6 +49,9 @@ void BoundaryConditions::applyBoundaryConditions(float *buffer, PVLayerLoc const
       mirrorInteriorToBorder(buffer, buffer, loc);
    }
    else {
+      // No need to do anything here; currently the only other boundary condition choice
+      // is to fill the border region with ValueBC; this is done during initialization, and nothing
+      // ever modifies the border region in that case.
    }
 }
 

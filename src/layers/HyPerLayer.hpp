@@ -344,7 +344,6 @@ class HyPerLayer : public ComponentBasedObject {
    int resetBuffer(float *buf, int numItems);
 
    static bool localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2);
-   int mirrorInteriorToBorder(PVLayerCube *cube, PVLayerCube *borderCube);
 
    virtual Response::Status outputState(double timestamp, double deltaTime);
    virtual int writeActivity(double timed);
@@ -363,16 +362,6 @@ class HyPerLayer : public ComponentBasedObject {
 
    int getNumProbes() { return numProbes; }
    LayerProbe *getProbe(int n) { return (n >= 0 && n < numProbes) ? probes[n] : NULL; }
-
-   // TODO: should the mirroring functions be static?  Why are they virtual?
-   virtual int mirrorToNorthWest(PVLayerCube *dest, PVLayerCube *src);
-   virtual int mirrorToNorth(PVLayerCube *dest, PVLayerCube *src);
-   virtual int mirrorToNorthEast(PVLayerCube *dest, PVLayerCube *src);
-   virtual int mirrorToWest(PVLayerCube *dest, PVLayerCube *src);
-   virtual int mirrorToEast(PVLayerCube *dest, PVLayerCube *src);
-   virtual int mirrorToSouthWest(PVLayerCube *dest, PVLayerCube *src);
-   virtual int mirrorToSouth(PVLayerCube *dest, PVLayerCube *src);
-   virtual int mirrorToSouthEast(PVLayerCube *dest, PVLayerCube *src);
 
    /**
     * Adds the given connection to the vector of connections to receive input from.
