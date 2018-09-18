@@ -79,7 +79,7 @@ ActivityBuffer::initializeState(std::shared_ptr<InitializeStateMessage const> me
    return Response::SUCCESS;
 }
 
-void ActivityBuffer::updateState(double simTime, double deltaTime) {
+void ActivityBuffer::updateBuffer(double simTime, double deltaTime) {
    //    mInternalState->updateState(simTime, deltaTime);
    //    setActivity();
 }

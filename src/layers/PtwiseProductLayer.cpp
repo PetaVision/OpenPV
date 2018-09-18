@@ -23,18 +23,18 @@ PtwiseProductLayer::PtwiseProductLayer(const char *name, HyPerCol *hc) {
 
 PtwiseProductLayer::~PtwiseProductLayer() {}
 
-int PtwiseProductLayer::initialize_base() {
-   numChannels = 2;
-   return PV_SUCCESS;
-}
+int PtwiseProductLayer::initialize_base() { return PV_SUCCESS; }
 
 int PtwiseProductLayer::initialize(const char *name, HyPerCol *hc) {
-   return ANNLayer::initialize(name, hc);
+   int status = ANNLayer::initialize(name, hc);
+   mLayerInput->requireChannel(0);
+   mLayerInput->requireChannel(1);
+   return status;
 }
 
 Response::Status PtwiseProductLayer::allocateDataStructures() {
    auto status = ANNLayer::allocateDataStructures();
-   pvAssert(numChannels >= 2);
+   pvAssert(mLayerInput->getNumChannels() >= 2);
    return status;
 }
 
@@ -43,7 +43,7 @@ Response::Status PtwiseProductLayer::updateState(double timef, double dt) {
    float *A              = mActivity->getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
-   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
+   float const *gSynHead = mLayerInput->getBufferData();
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

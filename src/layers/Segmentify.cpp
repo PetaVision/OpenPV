@@ -13,7 +13,6 @@ Segmentify::Segmentify() {
 }
 
 int Segmentify::initialize_base() {
-   numChannels      = 0;
    segmentLayerName = NULL;
    segmentLayer     = NULL;
    numLabelVals     = 0;
@@ -40,6 +39,8 @@ void Segmentify::setObserverTable() {
 OriginalLayerNameParam *Segmentify::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(name, parent);
 }
+
+LayerInputBuffer *Segmentify::createLayerInput() { return nullptr; }
 
 int Segmentify::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);

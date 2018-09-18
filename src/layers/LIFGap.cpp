@@ -43,7 +43,7 @@ void LIFGap_update_state_original(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity,
 
       const float *gapStrength);
@@ -70,7 +70,7 @@ void LIFGap_update_state_beginning(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity,
 
       const float *gapStrength);
@@ -97,7 +97,7 @@ void LIFGap_update_state_arma(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity,
 
       const float *gapStrength);
@@ -114,7 +114,6 @@ LIFGap::LIFGap(const char *name, HyPerCol *hc) {
 LIFGap::~LIFGap() { free(gapStrength); }
 
 int LIFGap::initialize_base() {
-   numChannels            = 4;
    gapStrength            = NULL;
    gapStrengthInitialized = false;
    return PV_SUCCESS;
@@ -126,6 +125,11 @@ int LIFGap::initialize_base() {
  */
 int LIFGap::initialize(const char *name, HyPerCol *hc, const char *kernel_name) {
    int status = LIF::initialize(name, hc, kernel_name);
+   mLayerInput->requireChannel(CHANNEL_EXC);
+   mLayerInput->requireChannel(CHANNEL_INH);
+   mLayerInput->requireChannel(CHANNEL_INHB);
+   mLayerInput->requireChannel(CHANNEL_GAP);
+   pvAssert(mLayerInput->getNumChannels() == 4);
    return status;
 }
 
@@ -229,8 +233,8 @@ Response::Status LIFGap::updateState(double time, double dt) {
    const int nf     = getLayerLoc()->nf;
    const int nbatch = getLayerLoc()->nbatch;
 
-   float *GSynHead = GSyn[0];
-   float *activity = mActivity->getActivity();
+   float const *GSynHead = mLayerInput->getBufferData();
+   float *activity       = mActivity->getActivity();
 
    switch (method) {
       case 'a':
@@ -367,7 +371,7 @@ void LIFGap_update_state_original(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity,
 
       const float *gapStrength) {
@@ -403,14 +407,14 @@ void LIFGap_update_state_original(
       float l_G_IB        = G_IB[k];
       float l_gapStrength = gapStrength[k];
 
-      float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-      float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-      float *GSynInhB  = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
-      float *GSynGap   = &GSynHead[CHANNEL_GAP * nbatch * numNeurons];
-      float l_GSynExc  = GSynExc[k];
-      float l_GSynInh  = GSynInh[k];
-      float l_GSynInhB = GSynInhB[k];
-      float l_GSynGap  = GSynGap[k];
+      float const *GSynExc  = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+      float const *GSynInh  = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+      float const *GSynInhB = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
+      float const *GSynGap  = &GSynHead[CHANNEL_GAP * nbatch * numNeurons];
+      float l_GSynExc       = GSynExc[k];
+      float l_GSynInh       = GSynInh[k];
+      float l_GSynInhB      = GSynInhB[k];
+      float l_GSynGap       = GSynGap[k];
 
       // define local param variables
       //
@@ -493,12 +497,6 @@ void LIFGap_update_state_original(
       G_IB[k] = l_G_IB; // G_IB_final;
       // gapStrength[k] doesn't change;
 
-      // We blank GSyn here in original, but not in beginning or arma.  Why?
-      GSynExc[k]  = 0.0f;
-      GSynInh[k]  = 0.0f;
-      GSynInhB[k] = 0.0f;
-      GSynGap[k]  = 0.0f;
-
    } // loop over k
 }
 
@@ -523,7 +521,7 @@ void LIFGap_update_state_beginning(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity,
 
       const float *gapStrength) {
@@ -562,14 +560,14 @@ void LIFGap_update_state_beginning(
       float l_G_IB        = G_IB[k];
       float l_gapStrength = gapStrength[k];
 
-      float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-      float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-      float *GSynInhB  = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
-      float *GSynGap   = &GSynHead[CHANNEL_GAP * nbatch * numNeurons];
-      float l_GSynExc  = GSynExc[k];
-      float l_GSynInh  = GSynInh[k];
-      float l_GSynInhB = GSynInhB[k];
-      float l_GSynGap  = GSynGap[k];
+      float const *GSynExc  = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+      float const *GSynInh  = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+      float const *GSynInhB = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
+      float const *GSynGap  = &GSynHead[CHANNEL_GAP * nbatch * numNeurons];
+      float l_GSynExc       = GSynExc[k];
+      float l_GSynInh       = GSynInh[k];
+      float l_GSynInhB      = GSynInhB[k];
+      float l_GSynGap       = GSynGap[k];
 
       // define local param variables
       //
@@ -709,7 +707,7 @@ void LIFGap_update_state_arma(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity,
 
       const float *gapStrength) {
@@ -750,14 +748,14 @@ void LIFGap_update_state_arma(
       float l_G_IB        = G_IB[k];
       float l_gapStrength = gapStrength[k];
 
-      float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-      float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-      float *GSynInhB  = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
-      float *GSynGap   = &GSynHead[CHANNEL_GAP * nbatch * numNeurons];
-      float l_GSynExc  = GSynExc[k];
-      float l_GSynInh  = GSynInh[k];
-      float l_GSynInhB = GSynInhB[k];
-      float l_GSynGap  = GSynGap[k];
+      float const *GSynExc  = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+      float const *GSynInh  = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+      float const *GSynInhB = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
+      float const *GSynGap  = &GSynHead[CHANNEL_GAP * nbatch * numNeurons];
+      float l_GSynExc       = GSynExc[k];
+      float l_GSynInh       = GSynInh[k];
+      float l_GSynInhB      = GSynInhB[k];
+      float l_GSynGap       = GSynGap[k];
 
       //
       // start of LIF2_update_exact_linear

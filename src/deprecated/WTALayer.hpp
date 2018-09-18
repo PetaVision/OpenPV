@@ -26,6 +26,7 @@ class WTALayer : public PV::HyPerLayer {
    void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
 
+   virtual LayerInputBuffer *createLayerInput() override;
    virtual InternalStateBuffer *createInternalState() override;
 
    virtual void initializeActivity() override;

@@ -90,7 +90,7 @@ InternalStateBuffer::initializeState(std::shared_ptr<InitializeStateMessage cons
    return Response::SUCCESS;
 }
 
-void InternalStateBuffer::updateState(double simTime, double deltaTime) {
+void InternalStateBuffer::updateBuffer(double simTime, double deltaTime) {
    // Compute V from GSyn
 }
 

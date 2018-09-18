@@ -23,6 +23,7 @@ int InputLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+LayerInputBuffer *InputLayer::createLayerInput() { return nullptr; }
 InternalStateBuffer *InputLayer::createInternalState() { return nullptr; }
 
 Response::Status InputLayer::allocateDataStructures() {

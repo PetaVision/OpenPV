@@ -34,6 +34,7 @@ class Retina : public PV::HyPerLayer {
    // default refractory periods for neurons
    static constexpr float mDefaultAbsRefractoryPeriod = 3.0f;
    static constexpr float mDefaultRefractoryPeriod    = 5.0f;
+   static const int mNumRetinaChannels                = 2; // excitatory and inhibitory
 
    Retina(const char *name, HyPerCol *hc);
    virtual ~Retina();

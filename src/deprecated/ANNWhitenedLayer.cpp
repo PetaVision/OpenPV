@@ -40,15 +40,13 @@ ANNWhitenedLayer::ANNWhitenedLayer(const char *name, HyPerCol *hc) {
 
 ANNWhitenedLayer::~ANNWhitenedLayer() {}
 
-int ANNWhitenedLayer::initialize_base() {
-   numChannels = 3; // applyGSyn_ANNWhitenedLayer uses 3 channels
-   return PV_SUCCESS;
-}
+int ANNWhitenedLayer::initialize_base() { return PV_SUCCESS; }
 
 int ANNWhitenedLayer::initialize(const char *name, HyPerCol *hc) {
    WarnLog() << "ANNWhitenedLayer has been deprecated.\n";
    ANNLayer::initialize(name, hc);
-   assert(numChannels == 3);
+   mLayerInput->requireChannel(2); // applyGSyn_ANNWhitenedLayer uses channels 0, 1, and 2
+   pvAssert(mLayerInput->getNumChannels() == 3);
    return PV_SUCCESS;
 }
 
@@ -57,7 +55,7 @@ Response::Status ANNWhitenedLayer::updateState(double time, double dt) {
    float *A              = mActivity->getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
-   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
+   float *gSynHead       = mLayerInput->getLayerInput();
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

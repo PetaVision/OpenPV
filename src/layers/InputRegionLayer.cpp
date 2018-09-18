@@ -21,10 +21,7 @@ InputRegionLayer::InputRegionLayer() {
    // initialize() gets called by subclass's initialize method
 }
 
-int InputRegionLayer::initialize_base() {
-   numChannels = 0;
-   return PV_SUCCESS;
-}
+int InputRegionLayer::initialize_base() { return PV_SUCCESS; }
 
 int InputRegionLayer::initialize(const char *name, HyPerCol *hc) {
    int status = HyPerLayer::initialize(name, hc);
@@ -44,6 +41,8 @@ PhaseParam *InputRegionLayer::createPhaseParam() { return new DependentPhasePara
 BoundaryConditions *InputRegionLayer::createBoundaryConditions() {
    return new DependentBoundaryConditions(name, parent);
 }
+
+LayerInputBuffer *InputRegionLayer::createLayerInput() { return nullptr; }
 
 InternalStateBuffer *InputRegionLayer::createInternalState() { return nullptr; }
 
@@ -178,8 +177,6 @@ int InputRegionLayer::requireChannel(int channelNeeded, int *numChannelsResult) 
    }
    return PV_FAILURE;
 }
-
-void InputRegionLayer::allocateGSyn() { pvAssert(GSyn == nullptr); }
 
 bool InputRegionLayer::needUpdate(double timed, double dt) { return false; }
 

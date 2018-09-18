@@ -14,7 +14,6 @@ SegmentLayer::SegmentLayer() {
 
 int SegmentLayer::initialize_base() {
    segmentMethod    = NULL;
-   numChannels      = 0;
    labelBufSize     = 0;
    labelBuf         = NULL;
    maxXBuf          = NULL;
@@ -44,6 +43,8 @@ void SegmentLayer::setObserverTable() {
 OriginalLayerNameParam *SegmentLayer::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(name, parent);
 }
+
+LayerInputBuffer *SegmentLayer::createLayerInput() { return nullptr; }
 
 int SegmentLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);

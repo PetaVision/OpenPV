@@ -65,7 +65,6 @@ int ShuffleLayer::initialize(const char *name, HyPerCol *hc) {
    WarnLog() << "ShuffleLayer has been deprecated.\n";
    int status_init = HyPerLayer::initialize(name, hc);
    // don't need conductance channels
-   freeChannels(); // TODO: Does this need to be here?
    return status_init;
 }
 

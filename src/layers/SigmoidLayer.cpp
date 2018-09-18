@@ -80,7 +80,7 @@ Response::Status SigmoidLayer::allocateDataStructures() {
    auto status = CloneVLayer::allocateDataStructures();
    // Should have been initialized with zero channels, so GSyn should be NULL and freeChannels()
    // call should be unnecessary
-   pvAssert(GSyn == nullptr);
+   pvAssert(mLayerInput == nullptr);
    return status;
 }
 

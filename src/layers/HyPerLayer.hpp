@@ -22,6 +22,7 @@
 #include "components/InitializeFromCheckpointFlag.hpp"
 #include "components/InternalStateBuffer.hpp"
 #include "components/LayerGeometry.hpp"
+#include "components/LayerInputBuffer.hpp"
 #include "components/PhaseParam.hpp"
 #include "include/pv_common.h"
 #include "include/pv_types.h"
@@ -162,13 +163,13 @@ class HyPerLayer : public ComponentBasedObject {
    virtual PhaseParam *createPhaseParam();
    virtual BoundaryConditions *createBoundaryConditions();
    virtual InitializeFromCheckpointFlag *createInitializeFromCheckpointFlag();
+   virtual LayerInputBuffer *createLayerInput();
    virtual InternalStateBuffer *createInternalState();
    virtual ActivityBuffer *createActivity();
 
    virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
 
    virtual void allocateBuffers();
-   virtual void allocateGSyn();
    void addPublisher();
 
    /*
@@ -393,9 +394,10 @@ class HyPerLayer : public ComponentBasedObject {
    virtual int requireChannel(int channelNeeded, int *numChannelsResult);
 
    float *getV() { return mInternalState->getV(); } // TODO: should be const
-   int getNumChannels() { return numChannels; }
-   float *getChannel(ChannelType ch) { // name query
-      return (ch < this->numChannels && ch >= 0) ? GSyn[ch] : NULL;
+   int getNumChannels() { return mLayerInput->getNumChannels(); }
+   float *getChannel(ChannelType ch) {
+      return (ch < mLayerInput->getNumChannels() && ch >= 0) ? mLayerInput->getLayerInput(ch)
+                                                             : nullptr;
    }
    virtual float getChannelTimeConst(enum ChannelType channel_type) { return 0.0f; }
 
@@ -443,12 +445,9 @@ class HyPerLayer : public ComponentBasedObject {
 #endif
    virtual Response::Status updateState(double timef, double dt);
    virtual int setActivity();
-   void freeChannels();
 
    bool mNeedToPublish = true;
 
-   int numChannels; // number of channels
-   float **GSyn; // of dynamic length numChannels
    Publisher *publisher = nullptr;
 
    bool mInitializeFromCheckpointFlag = false;
@@ -466,6 +465,8 @@ class HyPerLayer : public ComponentBasedObject {
    PhaseParam *mPhaseParam = nullptr;
 
    BoundaryConditions *mBoundaryConditions = nullptr;
+
+   LayerInputBuffer *mLayerInput = nullptr;
 
    InternalStateBuffer *mInternalState = nullptr;
 

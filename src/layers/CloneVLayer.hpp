@@ -18,7 +18,6 @@ class CloneVLayer : public PV::HyPerLayer {
    CloneVLayer(const char *name, HyPerCol *hc);
    virtual Response::Status allocateDataStructures() override;
    virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
-   virtual void allocateGSyn() override;
    virtual bool activityIsSpiking() override { return false; }
    HyPerLayer *getOriginalLayer() { return mOriginalLayer; }
    virtual ~CloneVLayer();
@@ -27,6 +26,7 @@ class CloneVLayer : public PV::HyPerLayer {
    CloneVLayer();
    int initialize(const char *name, HyPerCol *hc);
    virtual void setObserverTable() override;
+   virtual LayerInputBuffer *createLayerInput() override;
    virtual InternalStateBuffer *createInternalState() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    virtual Response::Status

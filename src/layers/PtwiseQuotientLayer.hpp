@@ -39,7 +39,7 @@ class PtwiseQuotientLayer : public ANNLayer {
          float *A,
          float *V,
          int num_channels,
-         float *gSynHead);
+         float const *gSynHead);
 
   private:
    int initialize_base();

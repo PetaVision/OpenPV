@@ -18,14 +18,12 @@ LeakyIntegrator::LeakyIntegrator(const char *name, HyPerCol *hc) {
 LeakyIntegrator::LeakyIntegrator() { initialize_base(); }
 
 int LeakyIntegrator::initialize_base() {
-   numChannels     = 1;
    integrationTime = FLT_MAX;
    return PV_SUCCESS;
 }
 
 int LeakyIntegrator::initialize(const char *name, HyPerCol *hc) {
    int status = ANNLayer::initialize(name, hc);
-   assert(numChannels == 1);
    return status;
 }
 
@@ -40,15 +38,18 @@ void LeakyIntegrator::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
 }
 
 Response::Status LeakyIntegrator::updateState(double timed, double dt) {
-   float *V    = getV();
-   float *gSyn = GSyn[0];
+   float *V          = getV();
+   float const *gSyn = mLayerInput->getBufferData(0 /*batch index*/, CHANNEL_EXC);
 
    float decayfactor = std::exp(-(float)dt / integrationTime);
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       V[k] *= decayfactor;
-      V[k] += GSyn[0][k];
-      if (numChannels > 1) {
-         V[k] -= GSyn[1][k];
+      V[k] += gSyn[k];
+   }
+   if (mLayerInput->getNumChannels() > 1) {
+      float const *gSynInh = mLayerInput->getBufferData(0 /*batch index*/, CHANNEL_INH);
+      for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
+         V[k] -= gSynInh[k];
       }
    }
    int nx     = getLayerLoc()->nx;

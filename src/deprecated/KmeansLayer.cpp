@@ -29,7 +29,6 @@ int KmeansLayer::initialize(const char *name, HyPerCol *hc) {
 }
 
 int KmeansLayer::initialize_base() {
-   numChannels  = 1;
    trainingFlag = false;
    return PV_SUCCESS;
 }
@@ -40,7 +39,7 @@ Response::Status KmeansLayer::updateState(double time, double dt) {
    float *V              = getV();
    int num_channels      = getNumChannels();
 
-   float *gSynHead = GSyn == NULL ? NULL : GSyn[0];
+   float *gSynHead = mLayerInput->getLayerInput();
    int nx          = loc->nx;
    int ny          = loc->ny;
    int nf          = loc->nf;

@@ -48,8 +48,6 @@ int HyPerLayer::initialize_base() {
    name                  = NULL;
    probes                = NULL;
    numProbes             = 0;
-   numChannels           = 2;
-   GSyn                  = NULL;
    marginIndices         = NULL;
    numMargin             = 0;
    writeTime             = 0;
@@ -213,6 +211,10 @@ void HyPerLayer::setObserverTable() {
       addUniqueComponent(
             initializeFromCheckpointComponent->getDescription(), initializeFromCheckpointComponent);
    }
+   mLayerInput = createLayerInput();
+   if (mLayerInput) {
+      addUniqueComponent(mLayerInput->getDescription(), mLayerInput);
+   }
    mInternalState = createInternalState();
    if (mInternalState) {
       addUniqueComponent(mInternalState->getDescription(), mInternalState);
@@ -235,6 +237,8 @@ InitializeFromCheckpointFlag *HyPerLayer::createInitializeFromCheckpointFlag() {
    return new InitializeFromCheckpointFlag(name, parent);
 }
 
+LayerInputBuffer *HyPerLayer::createLayerInput() { return new LayerInputBuffer(name, parent); }
+
 InternalStateBuffer *HyPerLayer::createInternalState() {
    return new InternalStateBuffer(name, parent);
 }
@@ -253,8 +257,6 @@ HyPerLayer::~HyPerLayer() {
 #endif
 
    delete mOutputStateStream;
-
-   freeChannels();
 
 #ifdef PV_USE_CUDA
    if (krUpdate) {
@@ -300,30 +302,6 @@ int HyPerLayer::freeRestrictedBuffer(float **buf) { return freeBuffer(buf); }
 
 int HyPerLayer::freeExtendedBuffer(float **buf) { return freeBuffer(buf); }
 
-void HyPerLayer::freeChannels() {
-
-#ifdef PV_USE_CUDA
-   if (d_GSyn != NULL) {
-      delete d_GSyn;
-      d_GSyn = NULL;
-   }
-#ifdef PV_USE_CUDNN
-   if (cudnn_GSyn != NULL) {
-      delete cudnn_GSyn;
-   }
-#endif // PV_USE_CUDNN
-#endif // PV_USE_CUDA
-
-   // GSyn gets allocated in allocateDataStructures, but only if numChannels>0.
-   if (GSyn) {
-      assert(numChannels > 0);
-      free(GSyn[0]); // conductances allocated contiguously so frees all buffer storage
-      free(GSyn); // this frees the array pointers to separate conductance channels
-      GSyn        = NULL;
-      numChannels = 0;
-   }
-}
-
 template <typename T>
 void HyPerLayer::allocateBuffer(T **buf, int bufsize, const char *bufname) {
    *buf = (T *)calloc(bufsize, sizeof(T));
@@ -350,30 +328,8 @@ void HyPerLayer::allocateExtendedBuffer(float **buf, char const *bufname) {
 }
 
 void HyPerLayer::allocateBuffers() {
-   // allocate memory for input buffers.  For HyPerLayer, allocates GSyn
-   // virtual so that subclasses can initialize additional buffers if needed.
-   // Typically an overriding allocateBuffers should call HyPerLayer::allocateBuffers
-   // Specialized subclasses that don't use GSyn (e.g. CloneVLayer) should override
-   // allocateGSyn to do nothing.
-
-   allocateGSyn();
-}
-
-void HyPerLayer::allocateGSyn() {
-   GSyn = nullptr;
-   if (numChannels > 0) {
-      GSyn = (float **)malloc(numChannels * sizeof(float *));
-      FatalIf(GSyn == nullptr, "%s unable to allocate GSyn pointers.\n", getDescription_c());
-
-      GSyn[0] = (float *)calloc(getNumNeuronsAllBatches() * numChannels, sizeof(float));
-      // All channels allocated at once and contiguously.  resetGSynBuffers_HyPerLayer() assumes
-      // this is true, to make it easier to port to GPU.
-      FatalIf(GSyn[0] == nullptr, "%s unable to allocate GSyn buffer.\n", getDescription_c());
-
-      for (int m = 1; m < numChannels; m++) {
-         GSyn[m] = GSyn[0] + m * getNumNeuronsAllBatches();
-      }
-   }
+   // Kept so that LIF, etc. can add additional buffers. Will go away as these buffers
+   // are converted to BufferComponent objects.
 }
 
 void HyPerLayer::addPublisher() {
@@ -863,7 +819,7 @@ int HyPerLayer::allocateDeviceBuffers() {
 
    // d_GSyn is the entire gsyn buffer. cudnn_GSyn is only one gsyn channel
    if (allocDeviceGSyn) {
-      d_GSyn = device->createBuffer(size * numChannels, &getDescription());
+      d_GSyn = device->createBuffer(size * mLayerInput->getNumChannels(), &getDescription());
       assert(d_GSyn);
 #ifdef PV_USE_CUDNN
       cudnn_GSyn = device->createBuffer(size, &getDescription());
@@ -1143,12 +1099,7 @@ Response::Status HyPerLayer::allocateDataStructures() {
    }
 
    auto allocateMessage = std::make_shared<AllocateDataStructuresMessage>();
-   if (mInternalState) {
-      mInternalState->respond(allocateMessage);
-   }
-   if (mActivity) {
-      mActivity->respond(allocateMessage);
-   }
+   notify(allocateMessage, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -1224,12 +1175,8 @@ void HyPerLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResul
 }
 
 int HyPerLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   if (channelNeeded >= numChannels) {
-      int numOldChannels = numChannels;
-      numChannels        = channelNeeded + 1;
-   }
-   *numChannelsResult = numChannels;
-
+   mLayerInput->requireChannel(channelNeeded);
+   *numChannelsResult = mLayerInput->getNumChannels();
    return PV_SUCCESS;
 }
 
@@ -1386,7 +1333,6 @@ Response::Status HyPerLayer::callUpdateState(double simTime, double dt) {
 #ifdef PV_USE_CUDA
       if (mUpdateGpu) {
          gpu_update_timer->start();
-         float *gSynHead = GSyn == NULL ? NULL : GSyn[0];
          assert(mUpdateGpu);
          status = updateStateGpu(simTime, dt);
          gpu_update_timer->stop();
@@ -1468,10 +1414,14 @@ void HyPerLayer::resetStateOnTrigger() {
 
 int HyPerLayer::resetGSynBuffers(double timef, double dt) {
    int status = PV_SUCCESS;
-   if (GSyn == NULL)
+   if (mLayerInput == nullptr or mLayerInput->getNumChannels() == 0) {
       return PV_SUCCESS;
+   }
    resetGSynBuffers_HyPerLayer(
-         getLayerLoc()->nbatch, this->getNumNeurons(), getNumChannels(), GSyn[0]);
+         getLayerLoc()->nbatch,
+         this->getNumNeurons(),
+         mLayerInput->getNumChannels(),
+         mLayerInput->getLayerInput());
    return status;
 }
 
@@ -1509,7 +1459,7 @@ Response::Status HyPerLayer::updateState(double timef, double dt) {
    float *A              = getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
-   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
+   float const *gSynHead = mLayerInput == nullptr ? nullptr : mLayerInput->getLayerInput();
 
    int nx          = loc->nx;
    int ny          = loc->ny;
@@ -1627,7 +1577,7 @@ void HyPerLayer::syncGpu() {
 void HyPerLayer::copyAllGSynToDevice() {
    if (mRecvGpu || mUpdateGpu) {
       // Copy it to device
-      float *h_postGSyn              = GSyn[0];
+      float const *h_postGSyn        = mLayerInput->getBufferData();
       PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
       assert(d_postGSyn);
       d_postGSyn->copyToDevice(h_postGSyn);
@@ -1637,7 +1587,7 @@ void HyPerLayer::copyAllGSynToDevice() {
 void HyPerLayer::copyAllGSynFromDevice() {
    // Only copy if recving
    if (mRecvGpu) {
-      float *h_postGSyn              = GSyn[0];
+      float *h_postGSyn              = mLayerInput->getLayerInput();
       PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
       assert(d_postGSyn);
       d_postGSyn->copyFromDevice(h_postGSyn);

@@ -23,7 +23,7 @@ void ANNErrorLayer_update_state(
       float *verticesV,
       float *verticesA,
       float *slopes,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity,
       const float errScale);
 
@@ -127,7 +127,7 @@ Response::Status ANNErrorLayer::updateState(double time, double dt) {
    float *A              = mActivity->getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
-   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
+   float const *gSynHead = mLayerInput->getBufferData();
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;
@@ -172,7 +172,7 @@ void ANNErrorLayer_update_state(
       float *verticesV,
       float *verticesA,
       float *slopes,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity,
       const float errScale) {
    updateV_ANNErrorLayer(

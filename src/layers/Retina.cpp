@@ -32,7 +32,7 @@ void Retina_spiking_update_state(
       const int up,
       Retina_params *params,
       taus_uint4 *rnd,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity,
       float *timeSinceLast);
 
@@ -49,7 +49,7 @@ void Retina_nonspiking_update_state(
       const int dn,
       const int up,
       Retina_params *params,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity);
 
 namespace PV {
@@ -72,7 +72,6 @@ Retina::Retina(const char *name, HyPerCol *hc) {
 Retina::~Retina() { delete randState; }
 
 int Retina::initialize_base() {
-   numChannels                   = NUM_RETINA_CHANNELS;
    randState                     = NULL;
    spikingFlag                   = true;
    rParams.abs_refractory_period = 0.0f;
@@ -88,7 +87,9 @@ int Retina::initialize_base() {
 
 int Retina::initialize(const char *name, HyPerCol *hc) {
    int status = HyPerLayer::initialize(name, hc);
-
+   mLayerInput->requireChannel(CHANNEL_EXC);
+   mLayerInput->requireChannel(CHANNEL_INH);
+   pvAssert(mLayerInput->getNumChannels() == mNumRetinaChannels);
    setRetinaParams(parameters());
 
    return status;
@@ -281,8 +282,8 @@ Response::Status Retina::updateState(double timed, double dt) {
    const int nf     = getLayerLoc()->nf;
    const int nbatch = getLayerLoc()->nbatch;
 
-   float *GSynHead = GSyn[0];
-   float *activity = mActivity->getActivity();
+   float const *GSynHead = mLayerInput->getBufferData();
+   float *activity       = mActivity->getActivity();
 
    if (spikingFlag == 1) {
       Retina_spiking_update_state(
@@ -447,16 +448,16 @@ void Retina_spiking_update_state(
 
       Retina_params *params,
       taus_uint4 *rnd,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity,
       float *timeSinceLast) {
 
-   float *phiExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-   float *phiInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+   float const *phiExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+   float const *phiInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
    for (int b = 0; b < nbatch; b++) {
       taus_uint4 *rndBatch      = rnd + b * nx * ny * nf;
-      float *phiExcBatch        = phiExc + b * nx * ny * nf;
-      float *phiInhBatch        = phiInh + b * nx * ny * nf;
+      float const *phiExcBatch  = phiExc + b * nx * ny * nf;
+      float const *phiInhBatch  = phiInh + b * nx * ny * nf;
       float *timeSinceLastBatch = timeSinceLast + b * (nx + lt + rt) * (ny + up + dn) * nf;
       float *activityBatch      = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
       int k;
@@ -511,18 +512,18 @@ void Retina_nonspiking_update_state(
       const int up,
 
       Retina_params *params,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity) {
    int k;
    float burstStatus = calcBurstStatus(timed, params);
 
-   float *phiExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-   float *phiInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+   float const *phiExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+   float const *phiInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
 
    for (int b = 0; b < nbatch; b++) {
-      float *phiExcBatch   = phiExc + b * nx * ny * nf;
-      float *phiInhBatch   = phiInh + b * nx * ny * nf;
-      float *activityBatch = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
+      float const *phiExcBatch = phiExc + b * nx * ny * nf;
+      float const *phiInhBatch = phiInh + b * nx * ny * nf;
+      float *activityBatch     = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
       for (k = 0; k < nx * ny * nf; k++) {
          int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          //

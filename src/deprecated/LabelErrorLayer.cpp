@@ -43,16 +43,16 @@ LabelErrorLayer::LabelErrorLayer(const char *name, HyPerCol *hc) {
 LabelErrorLayer::~LabelErrorLayer() {}
 
 int LabelErrorLayer::initialize_base() {
-   numChannels = 2;
-   errScale    = 1;
-   isBinary    = 1;
+   errScale = 1;
+   isBinary = 1;
    return PV_SUCCESS;
 }
 
 int LabelErrorLayer::initialize(const char *name, HyPerCol *hc) {
    WarnLog() << "LabelErrorLayer has been deprecated.\n";
    int status = ANNLayer::initialize(name, hc);
-   assert(numChannels == 2);
+   mLayerInput->requireChannel(1);
+   assert(mLayerInput->getNumChannels() == 2);
    return status;
 }
 
@@ -75,8 +75,8 @@ Response::Status LabelErrorLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = mActivity->getActivity();
    float *V              = getV();
-   int num_channels      = getNumChannels();
-   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
+   int num_channels      = mLayerInput->getNumChannels();
+   float *gSynHead       = mLayerInput->getLayerInput();
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

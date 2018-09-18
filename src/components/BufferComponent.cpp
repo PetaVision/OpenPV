@@ -53,17 +53,20 @@ Response::Status BufferComponent::allocateDataStructures() {
    int nf                = loc->nf;
    int nb                = loc->nbatch;
    mBufferSize           = nx * ny * nf;
-   int numNeurons        = mBufferSize * nb;
+   int numNeurons        = mBufferSize * nb * mNumChannels;
    mBufferData.resize(numNeurons);
 
 #ifdef PV_USE_CUDA
    if (mUsingGPUFlag) {
-      FatalIf(mCudaDevice == nullptr, "%s did not receive a SetCudaDevice message.\n", getDescription_c());
+      FatalIf(
+            mCudaDevice == nullptr,
+            "%s did not receive a SetCudaDevice message.\n",
+            getDescription_c());
       std::size_t sizeInBytes = sizeof(float) * (std::size_t)getBufferSizeAcrossBatch();
-      mCudaBuffer = mCudaDevice->createBuffer(sizeInBytes, &getDescription());
+      mCudaBuffer             = mCudaDevice->createBuffer(sizeInBytes, &getDescription());
    }
-   // Should the BufferComponent set mUsingGPUFlag in response to SetCudaDevice,
-   // and eliminate the useCuda() function member?
+// Should the BufferComponent set mUsingGPUFlag in response to SetCudaDevice,
+// and eliminate the useCuda() function member?
 #endif // PV_USE_CUDA
    return Response::SUCCESS;
 }
@@ -107,7 +110,10 @@ Response::Status BufferComponent::readStateFromCheckpoint(Checkpointer *checkpoi
 
 #ifdef PV_USE_CUDA
 void BufferComponent::useCuda() {
-   FatalIf(getDataStructuresAllocatedFlag(), "%s cannot set the UsingGPU flag after data allocation.\n", getDescription_c());
+   FatalIf(
+         getDataStructuresAllocatedFlag(),
+         "%s cannot set the UsingGPU flag after data allocation.\n",
+         getDescription_c());
    mUsingGPUFlag = true;
 }
 

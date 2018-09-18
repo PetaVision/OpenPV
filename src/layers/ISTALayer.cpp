@@ -45,8 +45,6 @@ ISTALayer::ISTALayer(const char *name, HyPerCol *hc) {
 ISTALayer::~ISTALayer() {}
 
 int ISTALayer::initialize_base() {
-   numChannels = 1; // If a connection connects to this layer on inhibitory channel,
-   // HyPerLayer::requireChannel will add necessary channel
    timeConstantTau = 1.0f;
    // Locality in conn
    selfInteract = true;
@@ -117,7 +115,7 @@ int ISTALayer::allocateUpdateKernel() {
    const int rt          = loc->halo.rt;
    const int dn          = loc->halo.dn;
    const int up          = loc->halo.up;
-   const int numChannels = this->numChannels;
+   const int numChannels = mLayerInput->getNumChannels();
    pvAssert(mInternalState);
    PVCuda::CudaBuffer *cudaBuffer = mInternalState->getCudaBuffer();
    pvAssert(cudaBuffer);
@@ -179,8 +177,8 @@ Response::Status ISTALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = mActivity->getActivity();
    float *V              = getV();
-   int num_channels      = getNumChannels();
-   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
+   int num_channels      = mLayerInput->getNumChannels();
+   float *gSynHead       = mLayerInput->getLayerInput();
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;
@@ -204,7 +202,7 @@ Response::Status ISTALayer::updateState(double time, double dt) {
          loc->halo.rt,
          loc->halo.dn,
          loc->halo.up,
-         numChannels,
+         num_channels,
          V,
          VThresh,
          deltaTimes(),

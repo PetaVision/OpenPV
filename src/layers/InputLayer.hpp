@@ -126,6 +126,7 @@ class InputLayer : public HyPerLayer {
    int scatterInput(int localBatchIndex, int mpiBatchIndex);
    int initialize(const char *name, HyPerCol *hc);
 
+   virtual LayerInputBuffer *createLayerInput() override;
    virtual InternalStateBuffer *createInternalState() override;
 
    // Returns PV_SUCCESS if offsetAnchor is a valid anchor string, PV_FAILURE otherwise.

@@ -66,7 +66,7 @@ class LIF : public PV::HyPerLayer {
 
    float *getVth() { return Vth; }
    virtual pvconductance_t *getConductance(ChannelType ch) {
-      return ch < this->numChannels ? G_E + ch * getNumNeurons() : NULL;
+      return ch < mLayerInput->getNumChannels() ? G_E + ch * getNumNeuronsAllBatches() : nullptr;
    }
 
    virtual float getChannelTimeConst(enum ChannelType channel_type) override;

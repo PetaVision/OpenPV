@@ -180,7 +180,7 @@ Response::Status MaskLayer::updateState(double time, double dt) {
    float *A              = getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
-   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
+   float const *gSynHead = mLayerInput == nullptr ? nullptr : mLayerInput->getBufferData();
    const PVLayerLoc *loc = getLayerLoc();
 
    int nx          = loc->nx;

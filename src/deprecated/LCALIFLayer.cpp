@@ -78,7 +78,6 @@ LCALIFLayer::LCALIFLayer(const char *name, HyPerCol *hc) {
 }
 
 int LCALIFLayer::initialize_base() {
-   numChannels          = 5;
    tauTHR               = 1000;
    targetRateHz         = 1;
    Vscale               = DEFAULT_DYNVTHSCALE;
@@ -106,6 +105,8 @@ int LCALIFLayer::initialize(const char *name, HyPerCol *hc, const char *kernel_n
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+   mLayerInput->requireChannel(4);
+   pvAssert(mLayerInput->getNumChannels() == 5);
 
    return PV_SUCCESS;
 }
@@ -214,9 +215,9 @@ LCALIFLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> cons
 Response::Status LCALIFLayer::updateState(double timed, double dt) {
    // Calculate_state kernel
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
-      G_Norm[k] = GSyn[CHANNEL_NORM][k]; // Copy GSyn buffer on normalizing channel for
-      // checkpointing, since LCALIF_update_state will blank the
-      // GSyn's
+      G_Norm[k] = mLayerInput->getLayerInput(CHANNEL_NORM)[k];
+      // Copy GSyn buffer on normalizing channel for checkpointing, since LCALIF_update_state will
+      // blank the GSyn buffers
    }
    LCALIF_update_state(
          getLayerLoc()->nbatch,
@@ -242,7 +243,7 @@ Response::Status LCALIFLayer::updateState(double timed, double dt) {
          G_E,
          G_I,
          G_IB,
-         GSyn[0],
+         mLayerInput->getLayerInput(),
          mActivity->getActivity(),
          getGapStrength(),
          Vattained,

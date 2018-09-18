@@ -21,6 +21,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/InitializeFromCheckpointFlag.cpp
    ${SUBDIR}/InternalStateBuffer.cpp
    ${SUBDIR}/LayerGeometry.cpp
+   ${SUBDIR}/LayerInputBuffer.cpp
    ${SUBDIR}/LinkedObjectParam.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
    ${SUBDIR}/OriginalLayerNameParam.cpp
@@ -60,6 +61,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/InitializeFromCheckpointFlag.hpp
    ${SUBDIR}/InternalStateBuffer.hpp
    ${SUBDIR}/LayerGeometry.hpp
+   ${SUBDIR}/LayerInputBuffer.hpp
    ${SUBDIR}/LinkedObjectParam.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
    ${SUBDIR}/OriginalLayerNameParam.hpp

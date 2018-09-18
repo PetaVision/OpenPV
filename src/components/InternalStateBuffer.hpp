@@ -47,10 +47,10 @@ class InternalStateBuffer : public BufferComponent {
 
    virtual ~InternalStateBuffer();
 
-   virtual void updateState(double simTime, double deltaTime) override;
+   virtual void updateBuffer(double simTime, double deltaTime) override;
 
    float *getV() { return mBufferData.data(); }
-   // TODO: remove. External access to mBufferData should be read-only, except through updateState
+   // TODO: remove. External access to mBufferData should be read-only, except through updateBuffer
 
   protected:
    InternalStateBuffer() {}

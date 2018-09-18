@@ -20,7 +20,6 @@ WTALayer::WTALayer(const char *name, HyPerCol *hc) {
 WTALayer::~WTALayer() {}
 
 int WTALayer::initialize_base() {
-   numChannels       = 0;
    originalLayerName = NULL;
    originalLayer     = NULL;
    binMax            = 1;
@@ -32,6 +31,8 @@ int WTALayer::initialize(const char *name, HyPerCol *hc) {
    WarnLog() << "WTALayer has been deprecated. Use a WTAConn to a HyPerLayer instead.\n";
    return HyPerLayer::initialize(name, hc);
 }
+
+LayerInputBuffer *WTALayer::createLayerInput() { return nullptr; }
 
 InternalStateBuffer *WTALayer::createInternalState() { return nullptr; }
 

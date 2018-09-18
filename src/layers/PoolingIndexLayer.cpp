@@ -19,15 +19,11 @@ PoolingIndexLayer::PoolingIndexLayer(const char *name, HyPerCol *hc) {
 
 PoolingIndexLayer::~PoolingIndexLayer() {}
 
-int PoolingIndexLayer::initialize_base() {
-   this->numChannels = 1;
-   return PV_SUCCESS;
-}
+int PoolingIndexLayer::initialize_base() { return PV_SUCCESS; }
 
 int PoolingIndexLayer::initialize(const char *name, HyPerCol *hc) {
    int status = HyPerLayer::initialize(name, hc);
-   // This layer is storing it's buffers as ints. This is a check to make sure the sizes are the
-   // same
+   // This layer is storing its buffers as ints. This is a check to make sure the sizes are the same
    assert(sizeof(int) == sizeof(float));
    assert(status == PV_SUCCESS);
    return status;

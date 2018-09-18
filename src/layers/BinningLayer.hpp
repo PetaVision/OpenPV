@@ -17,6 +17,7 @@ class BinningLayer : public PV::HyPerLayer {
    BinningLayer();
    int initialize(const char *name, HyPerCol *hc);
    virtual void setObserverTable() override;
+   virtual LayerInputBuffer *createLayerInput() override;
    virtual InternalStateBuffer *createInternalState() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;

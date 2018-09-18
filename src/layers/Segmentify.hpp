@@ -19,6 +19,7 @@ class Segmentify : public PV::HyPerLayer {
    int initialize(const char *name, HyPerCol *hc);
    virtual void setObserverTable() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
+   virtual LayerInputBuffer *createLayerInput();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    void ioParam_segmentLayerName(enum ParamsIOFlag ioFlag);
    // Defines the way to reduce values within a segment

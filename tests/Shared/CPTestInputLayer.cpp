@@ -20,7 +20,7 @@ void CPTestInputLayer_update_state(
       const int up,
 
       float *V,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity);
 
 namespace PV {
@@ -67,9 +67,9 @@ Response::Status CPTestInputLayer::updateState(double timed, double dt) {
    const int numNeurons = getNumNeurons();
    const int nbatch     = getLayerLoc()->nbatch;
 
-   float *GSynHead = GSyn[0];
-   float *V        = getV();
-   float *activity = mActivity->getActivity();
+   float const *GSynHead = mLayerInput->getBufferData();
+   float *V              = getV();
+   float *activity       = mActivity->getActivity();
 
    CPTestInputLayer_update_state(
          nbatch,
@@ -104,9 +104,8 @@ void CPTestInputLayer_update_state(
       const int up,
 
       float *V,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity) {
    updateV_CPTestInputLayer(nbatch, numNeurons, V);
    setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
-   resetGSynBuffers_HyPerLayer(nbatch, numNeurons, 2, GSynHead);
 }

@@ -19,10 +19,7 @@ CloneVLayer::CloneVLayer() {
    // initialize() gets called by subclass's initialize method
 }
 
-int CloneVLayer::initialize_base() {
-   numChannels = 0;
-   return PV_SUCCESS;
-}
+int CloneVLayer::initialize_base() { return PV_SUCCESS; }
 
 int CloneVLayer::initialize(const char *name, HyPerCol *hc) {
    int status = HyPerLayer::initialize(name, hc);
@@ -40,6 +37,8 @@ void CloneVLayer::setObserverTable() {
 OriginalLayerNameParam *CloneVLayer::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(name, parent);
 }
+
+LayerInputBuffer *CloneVLayer::createLayerInput() { return nullptr; }
 
 InternalStateBuffer *CloneVLayer::createInternalState() {
    return nullptr;
@@ -133,8 +132,6 @@ int CloneVLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    return PV_FAILURE;
 }
 
-void CloneVLayer::allocateGSyn() { pvAssert(GSyn == nullptr); }
-
 Response::Status
 CloneVLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    InternalStateBuffer *internalState = mInternalState;
@@ -148,8 +145,6 @@ Response::Status CloneVLayer::updateState(double timed, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = mActivity->getActivity();
    float *V              = getV();
-   int num_channels      = getNumChannels();
-   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

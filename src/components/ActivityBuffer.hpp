@@ -23,9 +23,10 @@ class ActivityBuffer : public BufferComponent {
 
    virtual ~ActivityBuffer();
 
-   virtual void updateState(double simTime, double deltaTime) override;
+   virtual void updateBuffer(double simTime, double deltaTime) override;
 
    float *getActivity() { return mBufferData.data(); }
+   // TODO: remove. External access to mBufferData should be read-only, except through updateBuffer
 
   protected:
    ActivityBuffer() {}

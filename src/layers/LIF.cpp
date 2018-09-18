@@ -44,7 +44,7 @@ void LIF_update_state_arma(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity);
 
 void LIF_update_state_beginning(
@@ -69,7 +69,7 @@ void LIF_update_state_beginning(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity);
 
 void LIF_update_state_original(
@@ -94,7 +94,7 @@ void LIF_update_state_original(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity);
 
 namespace PV {
@@ -107,17 +107,12 @@ LIF::LIF(const char *name, HyPerCol *hc) {
 }
 
 LIF::~LIF() {
-   if (numChannels > 0) {
-      // conductances allocated contiguously so this frees all
-      free(G_E);
-   }
    free(Vth);
    delete randState;
    free(methodString);
 }
 
 int LIF::initialize_base() {
-   numChannels  = 3;
    randState    = NULL;
    Vth          = NULL;
    G_E          = NULL;
@@ -130,6 +125,9 @@ int LIF::initialize_base() {
 
 int LIF::initialize(const char *name, HyPerCol *hc, const char *kernel_name) {
    HyPerLayer::initialize(name, hc);
+   mLayerInput->requireChannel(CHANNEL_EXC);
+   mLayerInput->requireChannel(CHANNEL_INH);
+   mLayerInput->requireChannel(CHANNEL_INHB);
    return PV_SUCCESS;
 }
 
@@ -318,7 +316,7 @@ Response::Status LIF::allocateDataStructures() {
 }
 
 void LIF::allocateBuffers() {
-   allocateConductances(numChannels);
+   allocateConductances(mLayerInput->getNumChannels());
    Vth = (float *)calloc((size_t)getNumNeuronsAllBatches(), sizeof(float));
    if (Vth == NULL) {
       Fatal().printf(
@@ -331,9 +329,9 @@ void LIF::allocateBuffers() {
 }
 
 void LIF::allocateConductances(int num_channels) {
-   assert(num_channels >= 3); // Need exc, inh, and inhb at a minimum.
+   pvAssert(num_channels >= 3); // Need exc, inh, and inhb at a minimum.
    const int numNeurons = getNumNeuronsAllBatches();
-   G_E = (float *)calloc((size_t)(getNumNeuronsAllBatches() * numChannels), sizeof(float));
+   G_E = (float *)calloc((size_t)(getNumNeuronsAllBatches() * num_channels), sizeof(float));
    if (G_E == NULL) {
       Fatal().printf(
             "%s: rank %d process unable to allocate memory for %d conductances: %s\n",
@@ -408,8 +406,8 @@ Response::Status LIF::updateState(double time, double dt) {
    const int nf     = getLayerLoc()->nf;
    const int nbatch = getLayerLoc()->nbatch;
 
-   float *GSynHead = GSyn[0];
-   float *activity = mActivity->getActivity();
+   float const *GSynHead = mLayerInput->getBufferData();
+   float *activity       = mActivity->getActivity();
 
    switch (method) {
       case 'a':
@@ -571,7 +569,7 @@ void LIF_update_state_original(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity) {
    int k;
 
@@ -606,12 +604,12 @@ void LIF_update_state_original(
       float l_G_I  = G_I[k];
       float l_G_IB = G_IB[k];
 
-      float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-      float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-      float *GSynInhB  = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
-      float l_GSynExc  = GSynExc[k];
-      float l_GSynInh  = GSynInh[k];
-      float l_GSynInhB = GSynInhB[k];
+      float const *GSynExc  = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+      float const *GSynInh  = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+      float const *GSynInhB = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
+      float l_GSynExc       = GSynExc[k];
+      float l_GSynInh       = GSynInh[k];
+      float l_GSynInhB      = GSynInhB[k];
 
       // temporary arrays
       float tauInf, VmemInf;
@@ -703,10 +701,6 @@ void LIF_update_state_original(
       G_I[k]  = l_G_I;
       G_IB[k] = l_G_IB;
 
-      GSynExc[k]  = 0.0f;
-      GSynInh[k]  = 0.0f;
-      GSynInhB[k] = 0.0f;
-
    } // loop over k
 }
 
@@ -731,10 +725,7 @@ void LIF_update_state_beginning(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
-      //    float * GSynExc,
-      //    float * GSynInh,
-      //    float * GSynInhB,
+      float const *GSynHead,
       float *activity) {
    int k;
 
@@ -773,12 +764,12 @@ void LIF_update_state_beginning(
       float l_G_I  = G_I[k];
       float l_G_IB = G_IB[k];
 
-      float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-      float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-      float *GSynInhB  = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
-      float l_GSynExc  = GSynExc[k];
-      float l_GSynInh  = GSynInh[k];
-      float l_GSynInhB = GSynInhB[k];
+      float const *GSynExc  = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+      float const *GSynInh  = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+      float const *GSynInhB = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
+      float l_GSynExc       = GSynExc[k];
+      float l_GSynInh       = GSynInh[k];
+      float l_GSynInhB      = GSynInhB[k];
 
       //
       // start of LIF2_update_exact_linear
@@ -901,7 +892,7 @@ void LIF_update_state_arma(
       float *G_E,
       float *G_I,
       float *G_IB,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity) {
    int k;
 
@@ -939,12 +930,12 @@ void LIF_update_state_arma(
       float l_G_I  = G_I[k];
       float l_G_IB = G_IB[k];
 
-      float *GSynExc   = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-      float *GSynInh   = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-      float *GSynInhB  = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
-      float l_GSynExc  = GSynExc[k];
-      float l_GSynInh  = GSynInh[k];
-      float l_GSynInhB = GSynInhB[k];
+      float const *GSynExc  = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
+      float const *GSynInh  = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
+      float const *GSynInhB = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
+      float l_GSynExc       = GSynExc[k];
+      float l_GSynInh       = GSynInh[k];
+      float l_GSynInhB      = GSynInhB[k];
 
       //
       // start of LIF2_update_exact_linear

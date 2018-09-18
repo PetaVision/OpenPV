@@ -26,7 +26,7 @@ void ANNLayer_vertices_update_state(
       float *verticesA,
       float *slopes,
       int num_channels,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity);
 
 void ANNLayer_threshminmax_update_state(
@@ -47,7 +47,7 @@ void ANNLayer_threshminmax_update_state(
       float AShift,
       float VWidth,
       int num_channels,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity);
 
 namespace PV {
@@ -422,7 +422,7 @@ Response::Status ANNLayer::updateState(double time, double dt) {
    float *A              = mActivity->getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
-   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
+   float const *gSynHead = mLayerInput->getBufferData();
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;
@@ -524,7 +524,7 @@ void ANNLayer_vertices_update_state(
       float *verticesA,
       float *slopes,
       int num_channels,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity) {
    updateV_ANNLayer_vertices(
          nbatch,
@@ -564,7 +564,7 @@ void ANNLayer_threshminmax_update_state(
       float AShift,
       float VWidth,
       int num_channels,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity) {
    updateV_ANNLayer_threshminmax(
          nbatch,

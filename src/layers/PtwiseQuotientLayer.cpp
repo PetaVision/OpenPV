@@ -24,23 +24,30 @@ PtwiseQuotientLayer::PtwiseQuotientLayer(const char *name, HyPerCol *hc) {
 
 PtwiseQuotientLayer::~PtwiseQuotientLayer() {}
 
-int PtwiseQuotientLayer::initialize_base() {
-   numChannels = 2;
-   return PV_SUCCESS;
-}
+int PtwiseQuotientLayer::initialize_base() { return PV_SUCCESS; }
 
 int PtwiseQuotientLayer::initialize(const char *name, HyPerCol *hc) {
-   return ANNLayer::initialize(name, hc);
+   int status = ANNLayer::initialize(name, hc);
+   mLayerInput->requireChannel(0);
+   mLayerInput->requireChannel(1);
+   return status;
 }
 
 Response::Status PtwiseQuotientLayer::allocateDataStructures() {
    auto status = ANNLayer::allocateDataStructures();
-   pvAssert(numChannels >= 2);
+   pvAssert(mLayerInput->getNumChannels() >= 2);
    return status;
 }
 
 Response::Status PtwiseQuotientLayer::updateState(double timef, double dt) {
-   doUpdateState(timef, dt, getLayerLoc(), getActivity(), getV(), getNumChannels(), GSyn[0]);
+   doUpdateState(
+         timef,
+         dt,
+         getLayerLoc(),
+         getActivity(),
+         getV(),
+         getNumChannels(),
+         mLayerInput->getBufferData());
    return Response::SUCCESS;
 }
 
@@ -51,7 +58,7 @@ void PtwiseQuotientLayer::doUpdateState(
       float *A,
       float *V,
       int num_channels,
-      float *gSynHead) {
+      float const *gSynHead) {
    int nx          = loc->nx;
    int ny          = loc->ny;
    int nf          = loc->nf;

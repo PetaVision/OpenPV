@@ -13,14 +13,13 @@ BinningLayer::BinningLayer() {
 }
 
 int BinningLayer::initialize_base() {
-   numChannels = 0;
-   delay       = 0;
-   binMax      = 1;
-   binMin      = 0;
-   binSigma    = 0;
-   zeroNeg     = true;
-   zeroDCR     = false;
-   normalDist  = true;
+   delay      = 0;
+   binMax     = 1;
+   binMin     = 0;
+   binSigma   = 0;
+   zeroNeg    = true;
+   zeroDCR    = false;
+   normalDist = true;
    return PV_SUCCESS;
 }
 
@@ -36,6 +35,8 @@ void BinningLayer::setObserverTable() {
       addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);
    }
 }
+
+LayerInputBuffer *BinningLayer::createLayerInput() { return nullptr; }
 
 InternalStateBuffer *BinningLayer::createInternalState() { return nullptr; }
 
@@ -169,8 +170,7 @@ Response::Status BinningLayer::allocateDataStructures() {
 void BinningLayer::initializeActivity() {}
 
 Response::Status BinningLayer::updateState(double timef, double dt) {
-   assert(GSyn == NULL);
-   float *gSynHead = NULL;
+   assert(mLayerInput == NULL);
 
    doUpdateState(
          timef,

@@ -19,7 +19,7 @@ void ANNSquaredLayer_update_state(
       const int up,
 
       float *V,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity);
 
 namespace PV {
@@ -33,14 +33,11 @@ ANNSquaredLayer::ANNSquaredLayer(const char *name, HyPerCol *hc) {
 
 ANNSquaredLayer::~ANNSquaredLayer() {}
 
-int ANNSquaredLayer::initialize_base() {
-   numChannels = 1; // ANNSquaredLayer only takes input on the excitatory channel
-   return PV_SUCCESS;
-}
+int ANNSquaredLayer::initialize_base() { return PV_SUCCESS; }
 
 int ANNSquaredLayer::initialize(const char *name, HyPerCol *hc) {
    int status = ANNLayer::initialize(name, hc);
-   assert(numChannels == 1);
+   pvAssert(mLayerInput->getNumChannels() == 1);
    return status;
 }
 
@@ -50,9 +47,9 @@ Response::Status ANNSquaredLayer::updateState(double time, double dt) {
    const int nf     = getLayerLoc()->nf;
    const int nbatch = getLayerLoc()->nbatch;
 
-   float *GSynHead = GSyn[0];
-   float *V        = getV();
-   float *activity = mActivity->getActivity();
+   float const *GSynHead = mLayerInput->getBufferData();
+   float *V              = getV();
+   float *activity       = mActivity->getActivity();
 
    ANNSquaredLayer_update_state(
          nbatch,
@@ -88,7 +85,7 @@ void ANNSquaredLayer_update_state(
       const int up,
 
       float *V,
-      float *GSynHead,
+      float const *GSynHead,
       float *activity) {
 
    updateV_ANNSquaredLayer(nbatch, numNeurons, V, GSynHead);

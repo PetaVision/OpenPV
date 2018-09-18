@@ -23,11 +23,15 @@ class BufferComponent : public BaseObject {
 
    virtual ~BufferComponent();
 
-   virtual void updateState(double simTime, double deltaTime) {}
+   virtual void updateBuffer(double simTime, double deltaTime) {}
 
    bool getExtendedFlag() const { return mExtendedFlag; }
+   int getNumChannels() const { return mNumChannels; }
    float const *getBufferData() const { return mBufferData.data(); }
    float const *getBufferData(int kBatch) const { return &mBufferData.at(kBatch * mBufferSize); }
+   float const *getBufferData(int kBatch, int channel) const {
+      return &mBufferData.at(channel * getBufferSizeAcrossBatch() + kBatch * mBufferSize);
+   }
    PVLayerLoc const *getLayerLoc() const { return mLayerGeometry->getLayerLoc(); }
    int getBufferSize() const { return mBufferSize; }
    int getBufferSizeAcrossBatch() const { return mBufferSize * getLayerLoc()->nbatch; }
@@ -57,6 +61,7 @@ class BufferComponent : public BaseObject {
 
   protected:
    bool mExtendedFlag = false;
+   int mNumChannels   = 1;
    std::string mBufferLabel; // used in checkpointing to create the file name.
    LayerGeometry const *mLayerGeometry = nullptr;
    int mBufferSize                     = 0;
