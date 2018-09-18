@@ -533,14 +533,11 @@ class HyPerLayer : public ComponentBasedObject {
 
    void copyAllGSynToDevice();
    void copyAllGSynFromDevice();
-   void copyAllActivityFromDevice();
    PVCuda::CudaBuffer *getDeviceGSyn() { return d_GSyn; }
 
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer *getCudnnGSyn() { return cudnn_GSyn; }
 #endif // PV_USE_CUDNN
-   PVCuda::CudaBuffer *getDeviceActivity() { return d_Activity; }
-
    PVCuda::CudaBuffer *getDeviceDatastore() { return d_Datastore; }
 
    PVCuda::CudaBuffer *getDeviceActiveIndices() { return d_ActiveIndices; }
@@ -551,7 +548,6 @@ class HyPerLayer : public ComponentBasedObject {
    PVCuda::CudaBuffer *getCudnnDatastore() { return cudnn_Datastore; }
 #endif // PV_USE_CUDNN
 
-   void setAllocDeviceV() { allocDeviceV = true; }
    void setAllocDeviceGSyn() { allocDeviceGSyn = true; }
 
    void setAllocDeviceActivity() { allocDeviceActivity = true; }
@@ -578,7 +574,6 @@ class HyPerLayer : public ComponentBasedObject {
    // OpenCL buffers and their corresponding flags
    //
 
-   bool allocDeviceV;
    bool allocDeviceGSyn; // array of channels to allocate
    bool allocDeviceActivity;
    bool allocDeviceDatastore;
@@ -590,7 +585,6 @@ class HyPerLayer : public ComponentBasedObject {
    bool mUpdateGpu;
 
    PVCuda::CudaBuffer *d_GSyn;
-   PVCuda::CudaBuffer *d_Activity;
    PVCuda::CudaBuffer *d_Datastore;
    PVCuda::CudaBuffer *d_numActive;
    PVCuda::CudaBuffer *d_ActiveIndices;

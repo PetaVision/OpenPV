@@ -61,13 +61,11 @@ int HyPerLayer::initialize_base() {
    triggerOffset         = 0;
 
 #ifdef PV_USE_CUDA
-   allocDeviceV             = false;
    allocDeviceGSyn          = false;
    allocDeviceActivity      = false;
    allocDeviceDatastore     = false;
    allocDeviceActiveIndices = false;
    d_GSyn                   = NULL;
-   d_Activity               = NULL;
    d_Datastore              = NULL;
    d_ActiveIndices          = NULL;
    d_numActive              = NULL;
@@ -262,9 +260,6 @@ HyPerLayer::~HyPerLayer() {
    if (krUpdate) {
       delete krUpdate;
    }
-   if (d_Activity) {
-      delete d_Activity;
-   }
    if (d_Datastore) {
       delete d_Datastore;
    }
@@ -402,11 +397,8 @@ Response::Status HyPerLayer::copyInitialStateToGPU() {
          pvAssert(mInternalState->isUsingGPU());
          mInternalState->copyToCuda();
       }
-
-      PVCuda::CudaBuffer *d_activity = getDeviceActivity();
-      assert(d_activity);
-      float *h_activity = getActivity();
-      d_activity->copyToDevice(h_activity);
+      pvAssert(mActivity->isUsingGPU());
+      mActivity->copyToCuda();
    }
    return Response::SUCCESS;
 }
@@ -711,7 +703,9 @@ HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage cons
       return status;
    }
    message->mTimer->start();
-   copyAllActivityFromDevice();
+   if (mActivity and mActivity->isUsingGPU()) {
+      mActivity->copyFromCuda();
+   }
    if (mInternalState and mInternalState->isUsingGPU()) {
       mInternalState->copyFromCuda();
    }
@@ -811,10 +805,6 @@ int HyPerLayer::allocateDeviceBuffers() {
       d_ActiveIndices  = device->createBuffer(
             getNumExtendedAllBatches() * sizeof(SparseList<float>::Entry), &getDescription());
       assert(d_ActiveIndices);
-   }
-
-   if (allocDeviceActivity) {
-      d_Activity = device->createBuffer(size_ex, &getDescription());
    }
 
    // d_GSyn is the entire gsyn buffer. cudnn_GSyn is only one gsyn channel
@@ -932,11 +922,12 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    // if receive from gpu is set. These buffers should be set in allocate
    if (mUpdateGpu) {
       this->setAllocDeviceGSyn();
-      this->setAllocDeviceV();
       if (mInternalState) {
          mInternalState->useCuda();
       }
-      this->setAllocDeviceActivity();
+      if (mActivity) {
+         mActivity->useCuda();
+      }
    }
 #endif
 
@@ -1404,7 +1395,7 @@ void HyPerLayer::resetStateOnTrigger() {
       }
       // Right now, we're setting the activity on the CPU and memsetting the GPU memory
       // TODO calculate this on the GPU
-      getDeviceActivity()->copyToDevice(mActivity->getActivity());
+      mActivity->copyToCuda();
       // We need to updateDeviceActivity and Datastore if we're resetting V
       updatedDeviceActivity  = true;
       updatedDeviceDatastore = true;
@@ -1591,17 +1582,6 @@ void HyPerLayer::copyAllGSynFromDevice() {
       PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
       assert(d_postGSyn);
       d_postGSyn->copyFromDevice(h_postGSyn);
-   }
-}
-
-void HyPerLayer::copyAllActivityFromDevice() {
-   // Only copy if updating
-   if (mUpdateGpu) {
-      // Allocated as a big chunk, this should work
-      float *h_activity              = getActivity();
-      PVCuda::CudaBuffer *d_activity = this->getDeviceActivity();
-      assert(d_activity);
-      d_activity->copyFromDevice(h_activity);
    }
 }
 

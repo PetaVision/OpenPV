@@ -128,7 +128,7 @@ int ISTALayer::allocateUpdateKernel() {
    const float tau         = timeConstantTau
                      / (float)parent->getDeltaTime(); // TODO: eliminate need to call parent method
    PVCuda::CudaBuffer *d_GSyn     = getDeviceGSyn();
-   PVCuda::CudaBuffer *d_activity = getDeviceActivity();
+   PVCuda::CudaBuffer *d_activity = mActivity->getCudaBuffer();
 
    size_t size = nbatch * sizeof(double);
    d_dtAdapt   = device->createBuffer(size, &getDescription());
