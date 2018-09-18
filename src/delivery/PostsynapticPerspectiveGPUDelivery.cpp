@@ -55,7 +55,7 @@ Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
    // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
    getPreLayer()->setAllocDeviceDatastore();
    mWeightsPair->getPostWeights()->useGPU();
-   getPostLayer()->setAllocDeviceGSyn();
+   getPostLayer()->getComponentByType<LayerInputBuffer>()->useCuda();
 
    // If recv from pre and pre layer is sparse, allocate activeIndices
    if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
@@ -104,8 +104,9 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
    PVLayerLoc const *postLoc = getPostLayer()->getLayerLoc();
 
-   PVCuda::CudaBuffer *d_PreData           = getPreLayer()->getDeviceDatastore();
-   PVCuda::CudaBuffer *d_PostGSyn          = getPostLayer()->getDeviceGSyn();
+   PVCuda::CudaBuffer *d_PreData = getPreLayer()->getDeviceDatastore();
+   PVCuda::CudaBuffer *d_PostGSyn =
+         getPostLayer()->getComponentByType<LayerInputBuffer>()->getCudaBuffer();
    PVCuda::CudaBuffer *d_PatchToDataLookup = postWeights->getDevicePatchToDataLookup();
    PVCuda::CudaBuffer *d_WData             = postWeights->getDeviceData();
 

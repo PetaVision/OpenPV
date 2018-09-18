@@ -145,7 +145,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
       getPreLayer()->setAllocDeviceDatastore();
-      getPostLayer()->setAllocDeviceGSyn();
+      getPostLayer()->getComponentByType<LayerInputBuffer>()->useCuda();
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
       weights->useGPU();
@@ -194,12 +194,14 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
 
 #ifdef PV_USE_CUDA
 void TransposePoolingDelivery::initializeDeliverKernelArgs() {
-   PVCuda::CudaDevice *device                 = mCudaDevice;
-   PVCuda::CudaBuffer *d_preDatastore         = mPreLayer->getDeviceDatastore();
-   PVCuda::CudaBuffer *d_postGSyn             = mPostLayer->getDeviceGSyn();
+   PVCuda::CudaDevice *device         = mCudaDevice;
+   PVCuda::CudaBuffer *d_preDatastore = mPreLayer->getDeviceDatastore();
+   PVCuda::CudaBuffer *d_postGSyn =
+         mPostLayer->getComponentByType<LayerInputBuffer>()->getCudaBuffer();
    PVCuda::CudaBuffer *d_originalPreDatastore = mOriginalPreLayer->getDeviceDatastore();
-   PVCuda::CudaBuffer *d_originalPostGSyn     = mOriginalPostLayer->getDeviceGSyn();
-   Weights *weights                           = mWeightsPair->getPostWeights();
+   PVCuda::CudaBuffer *d_originalPostGSyn =
+         mOriginalPostLayer->getComponentByType<LayerInputBuffer>()->getCudaBuffer();
+   Weights *weights = mWeightsPair->getPostWeights();
    pvAssert(weights);
    int const nxpPost = weights->getPatchSizeX();
    int const nypPost = weights->getPatchSizeY();

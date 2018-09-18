@@ -156,7 +156,7 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
       getPreLayer()->setAllocDeviceDatastore();
-      getPostLayer()->setAllocDeviceGSyn();
+      getPostLayer()->getComponentByType<LayerInputBuffer>()->useCuda();
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
       weights->useGPU();
@@ -216,8 +216,9 @@ Response::Status PoolingDelivery::allocateDataStructures() {
 #ifdef PV_USE_CUDA
 void PoolingDelivery::initializeDeliverKernelArgs() {
    PVCuda::CudaBuffer *d_preDatastore = getPreLayer()->getDeviceDatastore();
-   PVCuda::CudaBuffer *d_postGSyn     = getPostLayer()->getDeviceGSyn();
-   Weights *weights                   = mWeightsPair->getPostWeights();
+   PVCuda::CudaBuffer *d_postGSyn =
+         getPostLayer()->getComponentByType<LayerInputBuffer>()->getCudaBuffer();
+   Weights *weights = mWeightsPair->getPostWeights();
    pvAssert(weights);
    int const nxpPost = weights->getPatchSizeX();
    int const nypPost = weights->getPatchSizeY();

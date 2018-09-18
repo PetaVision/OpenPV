@@ -61,11 +61,8 @@ int HyPerLayer::initialize_base() {
    triggerOffset         = 0;
 
 #ifdef PV_USE_CUDA
-   allocDeviceGSyn          = false;
-   allocDeviceActivity      = false;
    allocDeviceDatastore     = false;
    allocDeviceActiveIndices = false;
-   d_GSyn                   = NULL;
    d_Datastore              = NULL;
    d_ActiveIndices          = NULL;
    d_numActive              = NULL;
@@ -807,14 +804,12 @@ int HyPerLayer::allocateDeviceBuffers() {
       assert(d_ActiveIndices);
    }
 
-   // d_GSyn is the entire gsyn buffer. cudnn_GSyn is only one gsyn channel
-   if (allocDeviceGSyn) {
-      d_GSyn = device->createBuffer(size * mLayerInput->getNumChannels(), &getDescription());
-      assert(d_GSyn);
 #ifdef PV_USE_CUDNN
+   // mLayerInput's CudaBuffer is the entire GSyn buffer. cudnn_GSyn is only one gsyn channel
+   if (mLayerInput and mLayerInput->isUsingGPU()) {
       cudnn_GSyn = device->createBuffer(size, &getDescription());
-#endif
    }
+#endif
 
    return status;
 }
@@ -921,7 +916,9 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    // Here, the connection tells all participating recv layers to allocate memory on gpu
    // if receive from gpu is set. These buffers should be set in allocate
    if (mUpdateGpu) {
-      this->setAllocDeviceGSyn();
+      if (mLayerInput) {
+         mLayerInput->useCuda();
+      }
       if (mInternalState) {
          mInternalState->useCuda();
       }
@@ -1569,7 +1566,7 @@ void HyPerLayer::copyAllGSynToDevice() {
    if (mRecvGpu || mUpdateGpu) {
       // Copy it to device
       float const *h_postGSyn        = mLayerInput->getBufferData();
-      PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
+      PVCuda::CudaBuffer *d_postGSyn = mLayerInput->getCudaBuffer();
       assert(d_postGSyn);
       d_postGSyn->copyToDevice(h_postGSyn);
    }
@@ -1579,7 +1576,7 @@ void HyPerLayer::copyAllGSynFromDevice() {
    // Only copy if recving
    if (mRecvGpu) {
       float *h_postGSyn              = mLayerInput->getLayerInput();
-      PVCuda::CudaBuffer *d_postGSyn = this->getDeviceGSyn();
+      PVCuda::CudaBuffer *d_postGSyn = mLayerInput->getCudaBuffer();
       assert(d_postGSyn);
       d_postGSyn->copyFromDevice(h_postGSyn);
    }

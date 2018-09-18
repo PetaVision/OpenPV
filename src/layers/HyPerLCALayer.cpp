@@ -171,8 +171,8 @@ int HyPerLCALayer::allocateUpdateKernel() {
    const bool selfInteract = this->selfInteract;
    const float tau         = timeConstantTau
                      / (float)parent->getDeltaTime(); // TODO: eliminate need to call parent method
-   PVCuda::CudaBuffer *d_GSyn     = getDeviceGSyn();
-   PVCuda::CudaBuffer *d_activity = mActivity->getCudaBuffer();
+   PVCuda::CudaBuffer *layerInputCudaBuffer = mLayerInput->getCudaBuffer();
+   PVCuda::CudaBuffer *activityCudaBuffer   = mActivity->getCudaBuffer();
 
    size_t size = loc->nbatch * sizeof(double);
    d_dtAdapt   = device->createBuffer(size, &getDescription());
@@ -206,8 +206,8 @@ int HyPerLCALayer::allocateUpdateKernel() {
          selfInteract,
          d_dtAdapt,
          tau,
-         d_GSyn,
-         d_activity);
+         layerInputCudaBuffer,
+         activityCudaBuffer);
 
    // set updateKernel to krUpdate
    krUpdate = updateKernel;
