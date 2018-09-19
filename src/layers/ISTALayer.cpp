@@ -171,7 +171,7 @@ Response::Status ISTALayer::updateStateGpu(double time, double dt) {
 }
 #endif
 
-double ISTALayer::getDeltaUpdateTime() { return parent->getDeltaTime(); }
+double ISTALayer::getDeltaUpdateTime() const { return parent->getDeltaTime(); }
 
 Response::Status ISTALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();

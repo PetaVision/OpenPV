@@ -17,7 +17,7 @@ int AlwaysFailsLayer::initialize(char const *name, HyPerCol *hc) {
    return HyPerLayer::initialize(name, hc);
 }
 
-bool AlwaysFailsLayer::needUpdate(double simTime, double dt) {
+bool AlwaysFailsLayer::needUpdate(double simTime, double dt) const {
    // The params file should be run with the -n flag, which causes HyPerCol::run() to exit before
    // entering the advanceTime loop.
    // Therefore neither updateState, nor updateStateGpu, should ever be called.

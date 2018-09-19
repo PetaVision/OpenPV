@@ -7,7 +7,7 @@ namespace PV {
 class ImageOffsetTestLayer : public PV::ImageLayer {
   public:
    ImageOffsetTestLayer(const char *name, HyPerCol *hc);
-   virtual double getDeltaUpdateTime() override;
+   virtual double getDeltaUpdateTime() const override;
 
   protected:
    Response::Status updateState(double timef, double dt) override;

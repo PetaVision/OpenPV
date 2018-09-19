@@ -16,7 +16,7 @@ class ConstantLayer : public PV::HyPerLayer {
   public:
    ConstantLayer(const char *name, HyPerCol *hc);
    virtual ~ConstantLayer();
-   virtual bool needUpdate(double simTime, double dt) override;
+   virtual bool needUpdate(double simTime, double dt) const override;
 
   protected:
    ConstantLayer();

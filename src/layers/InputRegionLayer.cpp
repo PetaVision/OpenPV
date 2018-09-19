@@ -178,7 +178,7 @@ int InputRegionLayer::requireChannel(int channelNeeded, int *numChannelsResult) 
    return PV_FAILURE;
 }
 
-bool InputRegionLayer::needUpdate(double timed, double dt) { return false; }
+bool InputRegionLayer::needUpdate(double timed, double dt) const { return false; }
 
 InputRegionLayer::~InputRegionLayer() {}
 

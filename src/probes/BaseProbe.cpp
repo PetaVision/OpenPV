@@ -308,7 +308,7 @@ int BaseProbe::initMessage(const char *msg) {
    return status;
 }
 
-bool BaseProbe::needUpdate(double simTime, double dt) {
+bool BaseProbe::needUpdate(double simTime, double dt) const {
    if (triggerFlag) {
       return triggerLayer->needUpdate(simTime + triggerOffset, dt);
    }

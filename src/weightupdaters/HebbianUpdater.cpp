@@ -393,7 +393,7 @@ void HebbianUpdater::updateState(double simTime, double dt) {
    }
 }
 
-bool HebbianUpdater::needUpdate(double simTime, double dt) {
+bool HebbianUpdater::needUpdate(double simTime, double dt) const {
    if (!mPlasticityFlag) {
       return false;
    }

@@ -1258,7 +1258,7 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    return Response::SUCCESS;
 }
 
-double HyPerLayer::getDeltaUpdateTime() {
+double HyPerLayer::getDeltaUpdateTime() const {
    if (triggerLayer != NULL && triggerBehaviorType == UPDATEONLY_TRIGGER) {
       return getDeltaTriggerTime();
    }
@@ -1267,16 +1267,16 @@ double HyPerLayer::getDeltaUpdateTime() {
    }
 }
 
-double HyPerLayer::getDeltaTriggerTime() {
-   if (triggerLayer != NULL) {
+double HyPerLayer::getDeltaTriggerTime() const {
+   if (triggerLayer != nullptr) {
       return triggerLayer->getDeltaUpdateTime();
    }
    else {
-      return -1;
+      return -1.0;
    }
 }
 
-bool HyPerLayer::needUpdate(double simTime, double dt) {
+bool HyPerLayer::needUpdate(double simTime, double dt) const {
    double deltaUpdateTime = getDeltaUpdateTime();
    if (deltaUpdateTime <= 0) {
       return false;

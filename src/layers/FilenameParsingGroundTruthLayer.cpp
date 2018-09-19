@@ -124,7 +124,7 @@ Response::Status FilenameParsingGroundTruthLayer::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-bool FilenameParsingGroundTruthLayer::needUpdate(double simTime, double dt) {
+bool FilenameParsingGroundTruthLayer::needUpdate(double simTime, double dt) const {
    return mInputLayer->needUpdate(simTime, dt);
 }
 

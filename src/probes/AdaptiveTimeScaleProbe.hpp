@@ -97,7 +97,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    }
    double referenceUpdateTime() const override { return parent->simulationTime(); }
    virtual void calcValues(double timeValue) override;
-   virtual bool needUpdate(double timeValue, double dt) override { return true; }
+   virtual bool needUpdate(double timeValue, double dt) const override { return true; }
    virtual void allocateTimeScaleController();
 
   protected:

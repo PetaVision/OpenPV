@@ -300,19 +300,19 @@ class HyPerLayer : public ComponentBasedObject {
      * LastUpdateTime + 2*getDeltaUpdateTime(), LastUpdateTime + 3*getDeltaUpdateTime(), etc.
      * @return Returns true an update is needed on that timestep, false otherwise.
      */
-   virtual bool needUpdate(double simTime, double dt);
+   virtual bool needUpdate(double simTime, double dt) const;
 
    /**
     * A function to return the interval between times when updateState is needed.
     */
-   virtual double getDeltaUpdateTime();
+   virtual double getDeltaUpdateTime() const;
 
    /**
     * A function to return the interval between triggering times.  A negative value means that the
     * layer never triggers
     * (either there is no triggerLayer or the triggerLayer never updates).
     */
-   virtual double getDeltaTriggerTime();
+   double getDeltaTriggerTime() const;
 
    Response::Status respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message);
    Response::Status respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);

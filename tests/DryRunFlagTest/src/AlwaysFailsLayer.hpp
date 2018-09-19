@@ -14,7 +14,7 @@ class AlwaysFailsLayer : public HyPerLayer {
   public:
    AlwaysFailsLayer(char const *name, HyPerCol *hc);
    virtual ~AlwaysFailsLayer();
-   virtual bool needUpdate(double simTime, double dt) override;
+   virtual bool needUpdate(double simTime, double dt) const override;
 
   protected:
    AlwaysFailsLayer();

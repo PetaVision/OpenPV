@@ -228,7 +228,7 @@ Response::Status HyPerLCALayer::updateStateGpu(double time, double dt) {
 }
 #endif
 
-double HyPerLCALayer::getDeltaUpdateTime() { return parent->getDeltaTime(); }
+double HyPerLCALayer::getDeltaUpdateTime() const { return parent->getDeltaTime(); }
 
 Response::Status HyPerLCALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();

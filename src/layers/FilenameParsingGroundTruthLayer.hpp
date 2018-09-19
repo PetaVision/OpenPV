@@ -21,7 +21,7 @@ class FilenameParsingGroundTruthLayer : public HyPerLayer {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status updateState(double timef, double dt) override;
-   virtual bool needUpdate(double simTime, double dt) override;
+   virtual bool needUpdate(double simTime, double dt) const override;
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   private:

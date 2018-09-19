@@ -407,7 +407,9 @@ void InputLayer::cropToMPIBlock(Buffer<float> &buffer) {
    buffer.crop(blockWidth, blockHeight, Buffer<float>::NORTHWEST);
 }
 
-double InputLayer::getDeltaUpdateTime() { return mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX; }
+double InputLayer::getDeltaUpdateTime() const {
+   return mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX;
+}
 
 int InputLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
    if (parent->getCommunicator()->commRank() == 0) {

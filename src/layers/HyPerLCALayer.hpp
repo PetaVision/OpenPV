@@ -17,7 +17,7 @@ class HyPerLCALayer : public PV::ANNLayer {
   public:
    HyPerLCALayer(const char *name, HyPerCol *hc);
    virtual ~HyPerLCALayer();
-   virtual double getDeltaUpdateTime() override;
+   virtual double getDeltaUpdateTime() const override;
    virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
 
   protected:

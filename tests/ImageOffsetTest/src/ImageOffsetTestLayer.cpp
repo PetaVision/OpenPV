@@ -4,7 +4,7 @@ namespace PV {
 
 ImageOffsetTestLayer::ImageOffsetTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-double ImageOffsetTestLayer::getDeltaUpdateTime() { return 1; }
+double ImageOffsetTestLayer::getDeltaUpdateTime() const { return 1; }
 
 bool ImageOffsetTestLayer::readyForNextFile() { return false; }
 

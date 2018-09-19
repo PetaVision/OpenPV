@@ -18,7 +18,7 @@ class ISTALayer : public PV::ANNLayer {
   public:
    ISTALayer(const char *name, HyPerCol *hc);
    virtual ~ISTALayer();
-   virtual double getDeltaUpdateTime() override;
+   virtual double getDeltaUpdateTime() const override;
    virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
 
   protected:

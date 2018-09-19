@@ -73,7 +73,7 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    virtual void updateState(double timestamp, double dt) override;
 
-   virtual bool needUpdate(double time, double dt);
+   virtual bool needUpdate(double time, double dt) const;
 
    void updateWeightsImmediate(double simTime, double dt);
    void updateWeightsDelayed(double simTime, double dt);

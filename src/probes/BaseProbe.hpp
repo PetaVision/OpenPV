@@ -336,7 +336,7 @@ class BaseProbe : public BaseObject {
     * triggering
     * to choose when output its state.
     */
-   virtual bool needUpdate(double time, double dt);
+   virtual bool needUpdate(double time, double dt) const;
 
   private:
    int initialize_base();

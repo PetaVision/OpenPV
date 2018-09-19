@@ -85,13 +85,13 @@ class ImageFromMemoryBuffer : public ImageLayer {
     * activity buffer by a call to copyBuffer() (which is called by either updateState or
     * initializeActivity)
     */
-   virtual bool needUpdate(double time, double dt) override { return hasNewImageFlag; }
+   virtual bool needUpdate(double time, double dt) const override { return hasNewImageFlag; }
 
    /**
     * For ImageFromMemoryBuffer, the updateTime is the parent->getStopTime().
     * Implemented to allow triggering off of an ImageFromMemoryBuffer layer.
     */
-   virtual double getDeltaUpdateTime() override;
+   virtual double getDeltaUpdateTime() const override;
 
    /**
        * Overrides updateState
