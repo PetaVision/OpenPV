@@ -50,6 +50,8 @@ int ANNErrorLayer::initialize_base() {
 
 int ANNErrorLayer::initialize(const char *name, HyPerCol *hc) {
    int status = ANNLayer::initialize(name, hc);
+   mLayerInput->requireChannel(CHANNEL_EXC);
+   mLayerInput->requireChannel(CHANNEL_INH);
    return status;
 }
 

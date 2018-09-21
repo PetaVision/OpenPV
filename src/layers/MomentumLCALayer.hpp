@@ -41,6 +41,8 @@ class MomentumLCALayer : public PV::HyPerLCALayer {
    virtual Response::Status updateState(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
+   virtual Response::Status copyInitialStateToGPU() override;
+
    virtual Response::Status updateStateGpu(double time, double dt) override;
    virtual int allocateUpdateKernel() override;
 #endif

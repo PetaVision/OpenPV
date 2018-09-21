@@ -17,13 +17,12 @@ class PoolingIndexLayer : public HyPerLayer {
    PoolingIndexLayer(const char *name, HyPerCol *hc);
    virtual ~PoolingIndexLayer();
    bool activityIsSpiking() override { return false; }
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
 
   protected:
    PoolingIndexLayer();
    int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual int resetGSynBuffers(double timef, double dt) override;
+   LayerInputBuffer *createLayerInput() override;
 
   private:
    int initialize_base();

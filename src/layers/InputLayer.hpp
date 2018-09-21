@@ -186,7 +186,6 @@ class InputLayer : public HyPerLayer {
    InputLayer(const char *name, HyPerCol *hc);
    virtual ~InputLayer();
 
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
    void makeInputRegionsPointer() { mNeedInputRegionsPointer = true; }
    virtual Response::Status allocateDataStructures() override;
    virtual Response::Status updateState(double time, double dt) override;

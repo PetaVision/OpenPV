@@ -166,18 +166,6 @@ int InputRegionLayer::setActivity() {
    return PV_SUCCESS;
 }
 
-int InputRegionLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   if (parent->getCommunicator()->globalCommRank() == 0) {
-      ErrorLog().printf(
-            "%s: layers derived from InputRegionLayer do not have GSyn channels (requireChannel "
-            "called "
-            "with channel %d)\n",
-            getDescription_c(),
-            channelNeeded);
-   }
-   return PV_FAILURE;
-}
-
 bool InputRegionLayer::needUpdate(double timed, double dt) const { return false; }
 
 InputRegionLayer::~InputRegionLayer() {}

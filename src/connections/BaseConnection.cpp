@@ -119,12 +119,6 @@ BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
          notify(communicateMessage, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 
    if (Response::completed(status)) {
-      auto *deliveryObject = getComponentByType<BaseDelivery>();
-      pvAssert(deliveryObject);
-      HyPerLayer *postLayer = deliveryObject->getPostLayer();
-      if (postLayer != nullptr) {
-         postLayer->addRecvConn(this);
-      }
 #ifdef PV_USE_CUDA
       for (auto &c : mObserverTable) {
          auto *baseObject = dynamic_cast<BaseObject *>(c);

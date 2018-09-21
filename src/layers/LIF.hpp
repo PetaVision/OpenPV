@@ -69,8 +69,6 @@ class LIF : public PV::HyPerLayer {
       return ch < mLayerInput->getNumChannels() ? G_E + ch * getNumNeuronsAllBatches() : nullptr;
    }
 
-   virtual float getChannelTimeConst(enum ChannelType channel_type) override;
-
    virtual LIF_params *getLIFParams() { return &lParams; };
 
    virtual bool activityIsSpiking() override { return true; }
@@ -96,9 +94,6 @@ class LIF : public PV::HyPerLayer {
    virtual void ioParam_VinhB(enum ParamsIOFlag ioFlag);
    virtual void ioParam_VthRest(enum ParamsIOFlag ioFlag);
    virtual void ioParam_tau(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_tauE(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_tauI(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_tauIB(enum ParamsIOFlag ioFlag);
    virtual void ioParam_tauVth(enum ParamsIOFlag ioFlag);
    virtual void ioParam_deltaVth(enum ParamsIOFlag ioFlag);
    virtual void ioParam_deltaGIB(enum ParamsIOFlag ioFlag);
@@ -109,6 +104,7 @@ class LIF : public PV::HyPerLayer {
    virtual void ioParam_noiseFreqI(enum ParamsIOFlag ioFlag);
    virtual void ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag);
    virtual void ioParam_method(enum ParamsIOFlag ioFlag);
+   virtual LayerInputBuffer *createLayerInput() override;
    virtual void allocateBuffers() override;
    virtual void allocateConductances(int num_channels);
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;

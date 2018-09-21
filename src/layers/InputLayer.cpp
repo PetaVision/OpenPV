@@ -411,14 +411,6 @@ double InputLayer::getDeltaUpdateTime() const {
    return mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX;
 }
 
-int InputLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   if (parent->getCommunicator()->commRank() == 0) {
-      ErrorLog().printf("%s cannot be a post-synaptic layer.\n", getDescription_c());
-   }
-   *numChannelsResult = 0;
-   return PV_FAILURE;
-}
-
 Response::Status
 InputLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    pvAssert(mInternalState == nullptr);

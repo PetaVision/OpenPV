@@ -6,6 +6,7 @@
  */
 
 #include "LIFGap.hpp"
+#include "components/LIFLayerInputBuffer.hpp"
 #include "components/WeightsPair.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/default_params.h"
@@ -113,11 +114,7 @@ LIFGap::LIFGap(const char *name, HyPerCol *hc) {
 
 LIFGap::~LIFGap() { free(gapStrength); }
 
-int LIFGap::initialize_base() {
-   gapStrength            = NULL;
-   gapStrengthInitialized = false;
-   return PV_SUCCESS;
-}
+int LIFGap::initialize_base() { return PV_SUCCESS; }
 
 // Initialize this class
 /*
@@ -146,53 +143,12 @@ void LIFGap::allocateConductances(int num_channels) {
 }
 
 void LIFGap::calcGapStrength() {
-   bool needsNewCalc = !gapStrengthInitialized;
-   if (!needsNewCalc) {
-      for (auto &c : recvConns) {
-         auto *deliveryComponent = c->getComponentByType<BaseDelivery>();
-         if (deliveryComponent != nullptr) {
-            continue;
-         }
-         if (deliveryComponent->getChannelCode() == CHANNEL_GAP) {
-            auto *weightsPair = c->getComponentByType<WeightsPair>();
-            if (weightsPair == nullptr) {
-               continue;
-            }
-            if (mLastUpdateTime < weightsPair->getPreWeights()->getTimestamp()) {
-               needsNewCalc = true;
-               break;
-            }
-         }
-      }
-   }
-   if (!needsNewCalc) {
-      return;
-   }
-
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
-      gapStrength[k] = (float)0;
+      gapStrength[k] = 0.0f;
    }
-   for (auto &c : recvConns) {
-      if (c == nullptr) {
-         continue;
-      }
-      auto *deliveryComponent = c->getComponentByType<BaseDelivery>();
-      if (deliveryComponent == nullptr or deliveryComponent->getChannelCode() != CHANNEL_GAP) {
-         continue;
-      }
-      pvAssert(c->getComponentByType<ConnectionData>()->getPost() == this);
-      auto *weightUpdater = c->getComponentByType<BaseWeightUpdater>();
-      if (weightUpdater and weightUpdater->getPlasticityFlag()) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
-            WarnLog().printf(
-                  "%s: %s on CHANNEL_GAP has plasticity flag set to true\n",
-                  getDescription_c(),
-                  c->getDescription_c());
-         }
-      }
-      deliveryComponent->deliverUnitInput(gapStrength);
-   }
-   gapStrengthInitialized = true;
+   auto *lifLayerInput = getComponentByType<LIFLayerInputBuffer>();
+   pvAssert(lifLayerInput);
+   lifLayerInput->recvUnitInput(gapStrength);
 }
 
 Response::Status
@@ -203,6 +159,14 @@ LIFGap::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> me
    }
    auto *checkpointer = message->mDataRegistry;
    checkpointPvpActivityFloat(checkpointer, "gapStrength", gapStrength, false /*not extended*/);
+   return Response::SUCCESS;
+}
+
+Response::Status LIFGap::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   auto status = LIF::initializeState(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    return Response::SUCCESS;
 }
 
@@ -226,8 +190,10 @@ void LIFGap::readGapStrengthFromCheckpoint(Checkpointer *checkpointer) {
 }
 
 Response::Status LIFGap::updateState(double time, double dt) {
-   calcGapStrength();
-
+   if (!gapStrengthInitialized) {
+      calcGapStrength();
+      gapStrengthInitialized = true;
+   }
    const int nx     = getLayerLoc()->nx;
    const int ny     = getLayerLoc()->ny;
    const int nf     = getLayerLoc()->nf;

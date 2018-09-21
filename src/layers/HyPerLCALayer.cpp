@@ -10,6 +10,7 @@
 
 #ifdef PV_USE_CUDA
 
+#include "components/TauLayerInputBuffer.hpp"
 #include "cudakernels/CudaUpdateStateFunctions.hpp"
 
 #endif
@@ -48,8 +49,7 @@ HyPerLCALayer::HyPerLCALayer(const char *name, HyPerCol *hc) {
 HyPerLCALayer::~HyPerLCALayer() { free(mAdaptiveTimeScaleProbeName); }
 
 int HyPerLCALayer::initialize_base() {
-   timeConstantTau = 1.0;
-   selfInteract    = true;
+   selfInteract = true;
    return PV_SUCCESS;
 }
 
@@ -67,20 +67,18 @@ Response::Status HyPerLCALayer::allocateDataStructures() {
          mAdaptiveTimeScaleProbe == nullptr
          || getLayerLoc()->nbatch == mAdaptiveTimeScaleProbe->getNumValues());
    mDeltaTimes.resize(getLayerLoc()->nbatch);
+
+   auto *layerInputBuffer = getComponentByType<LayerInputBuffer>();
+   pvAssert(layerInputBuffer and layerInputBuffer->getDataStructuresAllocatedFlag());
+   timeConstantTau = (float)layerInputBuffer->getChannelTimeConstant(CHANNEL_EXC);
    return Response::SUCCESS;
 }
 
 int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
-   ioParam_timeConstantTau(ioFlag);
    ioParam_selfInteract(ioFlag);
    ioParam_adaptiveTimeScaleProbe(ioFlag);
    return status;
-}
-
-void HyPerLCALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true /*warnIfAbsent*/);
 }
 
 void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
@@ -101,16 +99,8 @@ void HyPerLCALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
          true /*warn if absent*/);
 }
 
-int HyPerLCALayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   int status = HyPerLayer::requireChannel(channelNeeded, numChannelsResult);
-   if (channelNeeded >= 2 && parent->getCommunicator()->globalCommRank() == 0) {
-      WarnLog().printf(
-            "HyPerLCALayer \"%s\": connection on channel %d, but HyPerLCA only uses channels 0 and "
-            "1.\n",
-            name,
-            channelNeeded);
-   }
-   return status;
+LayerInputBuffer *HyPerLCALayer::createLayerInput() {
+   return new TauLayerInputBuffer(name, parent);
 }
 
 Response::Status
@@ -146,9 +136,30 @@ HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 #ifdef PV_USE_CUDA
 int HyPerLCALayer::allocateUpdateKernel() {
    PVCuda::CudaDevice *device = mCudaDevice;
-   // Set to temp pointer of the subclass
-   PVCuda::CudaUpdateHyPerLCALayer *updateKernel = new PVCuda::CudaUpdateHyPerLCALayer(device);
-   // Set arguments
+
+   size_t size = getLayerLoc()->nbatch * sizeof(double);
+   d_dtAdapt   = device->createBuffer(size, &getDescription());
+
+   size        = (size_t)numVertices * sizeof(*verticesV);
+   d_verticesV = device->createBuffer(size, &getDescription());
+   d_verticesA = device->createBuffer(size, &getDescription());
+   d_slopes    = device->createBuffer(size + sizeof(*slopes), &getDescription());
+
+   krUpdate = new PVCuda::CudaUpdateHyPerLCALayer(device);
+
+   return PV_SUCCESS;
+}
+
+Response::Status HyPerLCALayer::copyInitialStateToGPU() {
+   Response::Status status = ANNLayer::copyInitialStateToGPU();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   if (!mUpdateGpu) {
+      return status;
+   }
+
+   // Set arguments of update kernel
    const PVLayerLoc *loc = getLayerLoc();
    const int nx          = loc->nx;
    const int ny          = loc->ny;
@@ -174,18 +185,12 @@ int HyPerLCALayer::allocateUpdateKernel() {
    PVCuda::CudaBuffer *layerInputCudaBuffer = mLayerInput->getCudaBuffer();
    PVCuda::CudaBuffer *activityCudaBuffer   = mActivity->getCudaBuffer();
 
-   size_t size = loc->nbatch * sizeof(double);
-   d_dtAdapt   = device->createBuffer(size, &getDescription());
-
-   size        = (size_t)numVertices * sizeof(*verticesV);
-   d_verticesV = device->createBuffer(size, &getDescription());
-   d_verticesA = device->createBuffer(size, &getDescription());
-   d_slopes    = device->createBuffer(size + sizeof(*slopes), &getDescription());
-
    d_verticesV->copyToDevice(verticesV);
    d_verticesA->copyToDevice(verticesA);
    d_slopes->copyToDevice(slopes);
 
+   auto *updateKernel = dynamic_cast<PVCuda::CudaUpdateHyPerLCALayer *>(krUpdate);
+   pvAssert(updateKernel);
    // Set arguments to kernel
    updateKernel->setArgs(
          nbatch,
@@ -208,14 +213,9 @@ int HyPerLCALayer::allocateUpdateKernel() {
          tau,
          layerInputCudaBuffer,
          activityCudaBuffer);
-
-   // set updateKernel to krUpdate
-   krUpdate = updateKernel;
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
-#endif
 
-#ifdef PV_USE_CUDA
 Response::Status HyPerLCALayer::updateStateGpu(double time, double dt) {
    // Copy over d_dtAdapt
    d_dtAdapt->copyToDevice(deltaTimes());

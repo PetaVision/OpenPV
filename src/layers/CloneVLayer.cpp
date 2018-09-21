@@ -121,17 +121,6 @@ Response::Status CloneVLayer::allocateDataStructures() {
    return status;
 }
 
-int CloneVLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   if (parent->getCommunicator()->globalCommRank() == 0) {
-      ErrorLog().printf(
-            "%s: layers derived from CloneVLayer do not have GSyn channels (requireChannel called "
-            "with channel %d)\n",
-            getDescription_c(),
-            channelNeeded);
-   }
-   return PV_FAILURE;
-}
-
 Response::Status
 CloneVLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    InternalStateBuffer *internalState = mInternalState;

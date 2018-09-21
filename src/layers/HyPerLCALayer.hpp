@@ -18,7 +18,6 @@ class HyPerLCALayer : public PV::ANNLayer {
    HyPerLCALayer(const char *name, HyPerCol *hc);
    virtual ~HyPerLCALayer();
    virtual double getDeltaUpdateTime() const override;
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
 
   protected:
    HyPerLCALayer();
@@ -35,13 +34,7 @@ class HyPerLCALayer : public PV::ANNLayer {
     */
 
    /**
-    * @brief timeConstantTau: the time constant tau for the LCA dynamics, which models the equation
-    * dV/dt = 1/tau*(-V+s*A+GSyn)
-    */
-   virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief timeConstantTau: the self-interaction coefficient s for the LCA dynamics, which models
+    * @brief selfInteract: the self-interaction coefficient s for the LCA dynamics, which models
     * the equation dV/dt = 1/tau*(-V+s*A+GSyn)
     */
    virtual void ioParam_selfInteract(enum ParamsIOFlag ioFlag);
@@ -55,15 +48,13 @@ class HyPerLCALayer : public PV::ANNLayer {
 
    virtual Response::Status updateState(double time, double dt) override;
 
+   virtual LayerInputBuffer *createLayerInput() override;
+
 #ifdef PV_USE_CUDA
+   virtual Response::Status copyInitialStateToGPU() override;
+
    virtual Response::Status updateStateGpu(double time, double dt) override;
-#endif
 
-   virtual float getChannelTimeConst(enum ChannelType channel_type) override {
-      return timeConstantTau;
-   };
-
-#ifdef PV_USE_CUDA
    virtual int allocateUpdateKernel() override;
 #endif
 
@@ -75,7 +66,7 @@ class HyPerLCALayer : public PV::ANNLayer {
 
    // Data members
   protected:
-   float timeConstantTau;
+   float timeConstantTau = 1.0f;
    bool selfInteract;
    char *mAdaptiveTimeScaleProbeName               = nullptr;
    AdaptiveTimeScaleProbe *mAdaptiveTimeScaleProbe = nullptr;

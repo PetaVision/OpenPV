@@ -52,6 +52,9 @@ class HyPerConn : public BaseConnection {
    virtual NormalizeBase *createWeightNormalizer();
    virtual BaseWeightUpdater *createWeightUpdater();
 
+   Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
    Response::Status respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message);
 
    Response::Status

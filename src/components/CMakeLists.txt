@@ -22,15 +22,18 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/InternalStateBuffer.cpp
    ${SUBDIR}/LayerGeometry.cpp
    ${SUBDIR}/LayerInputBuffer.cpp
+   ${SUBDIR}/LIFLayerInputBuffer.cpp
    ${SUBDIR}/LinkedObjectParam.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
    ${SUBDIR}/OriginalLayerNameParam.cpp
    ${SUBDIR}/PatchGeometry.cpp
    ${SUBDIR}/PatchSize.cpp
    ${SUBDIR}/PhaseParam.cpp
+   ${SUBDIR}/PoolingIndexLayerInputBuffer.cpp
    ${SUBDIR}/SharedWeights.cpp
    ${SUBDIR}/SingleArbor.cpp
    ${SUBDIR}/StrengthParam.cpp
+   ${SUBDIR}/TauLayerInputBuffer.cpp
    ${SUBDIR}/TransposePatchSize.cpp
    ${SUBDIR}/TransposeWeightsPair.cpp
    ${SUBDIR}/Weights.cpp
@@ -62,6 +65,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/InternalStateBuffer.hpp
    ${SUBDIR}/LayerGeometry.hpp
    ${SUBDIR}/LayerInputBuffer.hpp
+   ${SUBDIR}/LIFLayerInputBuffer.hpp
    ${SUBDIR}/LinkedObjectParam.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
    ${SUBDIR}/OriginalLayerNameParam.hpp
@@ -69,9 +73,11 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PatchGeometry.hpp
    ${SUBDIR}/PatchSize.hpp
    ${SUBDIR}/PhaseParam.hpp
+   ${SUBDIR}/PoolingIndexLayerInputBuffer.hpp
    ${SUBDIR}/SharedWeights.hpp
    ${SUBDIR}/SingleArbor.hpp
    ${SUBDIR}/StrengthParam.hpp
+   ${SUBDIR}/TauLayerInputBuffer.hpp
    ${SUBDIR}/TransposePatchSize.hpp
    ${SUBDIR}/TransposeWeightsPair.hpp
    ${SUBDIR}/Weights.hpp

@@ -17,7 +17,6 @@ class CloneVLayer : public PV::HyPerLayer {
   public:
    CloneVLayer(const char *name, HyPerCol *hc);
    virtual Response::Status allocateDataStructures() override;
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
    virtual bool activityIsSpiking() override { return false; }
    HyPerLayer *getOriginalLayer() { return mOriginalLayer; }
    virtual ~CloneVLayer();

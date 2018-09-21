@@ -10,6 +10,7 @@
 
 #ifdef PV_USE_CUDA
 
+#include "components/TauLayerInputBuffer.hpp"
 #include "cudakernels/CudaUpdateStateFunctions.hpp"
 
 #endif
@@ -56,19 +57,27 @@ int ISTALayer::initialize(const char *name, HyPerCol *hc) {
    return PV_SUCCESS;
 }
 
-Response::Status ISTALayer::allocateDataStructures() { return ANNLayer::allocateDataStructures(); }
+Response::Status ISTALayer::allocateDataStructures() {
+   auto status = ANNLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   pvAssert(
+         mAdaptiveTimeScaleProbe == nullptr
+         || getLayerLoc()->nbatch == mAdaptiveTimeScaleProbe->getNumValues());
+   mDeltaTimes.resize(getLayerLoc()->nbatch);
+
+   auto *layerInputBuffer = getComponentByType<LayerInputBuffer>();
+   pvAssert(layerInputBuffer and layerInputBuffer->getDataStructuresAllocatedFlag());
+   timeConstantTau = (float)layerInputBuffer->getChannelTimeConstant(CHANNEL_EXC);
+   return Response::SUCCESS;
+}
 
 int ISTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
-   ioParam_timeConstantTau(ioFlag);
 
    ioParam_selfInteract(ioFlag);
    return status;
-}
-
-void ISTALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true /*warnIfAbsent*/);
 }
 
 void ISTALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
@@ -88,15 +97,36 @@ void ISTALayer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
          true /*warn if absent*/);
 }
 
-int ISTALayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   int status = HyPerLayer::requireChannel(channelNeeded, numChannelsResult);
-   if (channelNeeded >= 2 && parent->getCommunicator()->globalCommRank() == 0) {
-      WarnLog().printf(
-            "ISTALayer \"%s\": connection on channel %d, but ISTA only uses channels 0 and 1.\n",
-            name,
-            channelNeeded);
+LayerInputBuffer *ISTALayer::createLayerInput() { return new TauLayerInputBuffer(name, parent); }
+
+Response::Status
+ISTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   if (mAdaptiveTimeScaleProbeName) {
+      mAdaptiveTimeScaleProbe =
+            message->lookup<AdaptiveTimeScaleProbe>(std::string(mAdaptiveTimeScaleProbeName));
+      if (mAdaptiveTimeScaleProbe == nullptr) {
+         if (parent->getCommunicator()->commRank() == 0) {
+            auto isBadType = message->lookup<BaseObject>(std::string(mAdaptiveTimeScaleProbeName));
+            if (isBadType != nullptr) {
+               ErrorLog() << getDescription() << ": adaptiveTimeScaleProbe parameter \""
+                          << mAdaptiveTimeScaleProbeName
+                          << "\" must be an AdaptiveTimeScaleProbe.\n";
+            }
+            else {
+               ErrorLog() << getDescription() << ": adaptiveTimeScaleProbe parameter \""
+                          << mAdaptiveTimeScaleProbeName
+                          << "\" is not an AdaptiveTimeScaleProbe in the column.\n";
+            }
+         }
+         MPI_Barrier(parent->getCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
    }
-   return status;
+   auto status = ANNLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   return Response::SUCCESS;
 }
 
 #ifdef PV_USE_CUDA

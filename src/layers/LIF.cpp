@@ -9,6 +9,7 @@
 #include "HyPerLayer.hpp"
 
 #include "checkpointing/CheckpointEntryRandState.hpp"
+#include "components/LIFLayerInputBuffer.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
 #include "io/fileio.hpp"
@@ -140,9 +141,6 @@ int LIF::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_VinhB(ioFlag);
    ioParam_VthRest(ioFlag);
    ioParam_tau(ioFlag);
-   ioParam_tauE(ioFlag);
-   ioParam_tauI(ioFlag);
-   ioParam_tauIB(ioFlag);
    ioParam_tauVth(ioFlag);
    ioParam_deltaVth(ioFlag);
    ioParam_deltaGIB(ioFlag);
@@ -181,15 +179,6 @@ void LIF::ioParam_VthRest(enum ParamsIOFlag ioFlag) {
 }
 void LIF::ioParam_tau(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, name, "tau", &lParams.tau, (float)TAU_VMEM);
-}
-void LIF::ioParam_tauE(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "tauE", &lParams.tauE, (float)TAU_EXC);
-}
-void LIF::ioParam_tauI(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "tauI", &lParams.tauI, (float)TAU_INH);
-}
-void LIF::ioParam_tauIB(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "tauIB", &lParams.tauIB, (float)TAU_INHB);
 }
 void LIF::ioParam_tauVth(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, name, "tauVth", &lParams.tauVth, (float)TAU_VTH);
@@ -283,6 +272,8 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
    }
 }
 
+LayerInputBuffer *LIF::createLayerInput() { return new LIFLayerInputBuffer(name, parent); }
+
 int LIF::setActivity() {
    float *activity = mActivity->getActivity();
    memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
@@ -291,7 +282,11 @@ int LIF::setActivity() {
 
 Response::Status
 LIF::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   return HyPerLayer::communicateInitInfo(message);
+   auto status = HyPerLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   return Response::SUCCESS;
 }
 
 Response::Status LIF::allocateDataStructures() {
@@ -312,6 +307,12 @@ Response::Status LIF::allocateDataStructures() {
    for (size_t k = 0; k < numNeurons; k++) {
       Vth[k] = lParams.VthRest; // lParams.VthRest is set in setLIFParams
    }
+   auto *lifLayerInput = getComponentByType<LIFLayerInputBuffer>();
+   FatalIf(lifLayerInput == nullptr, "%s could not find a LIFLayerInput component.\n");
+   pvAssert(lifLayerInput->getDataStructuresAllocatedFlag());
+   lParams.tauE  = lifLayerInput->getChannelTimeConstant(CHANNEL_EXC);
+   lParams.tauI  = lifLayerInput->getChannelTimeConstant(CHANNEL_INH);
+   lParams.tauIB = lifLayerInput->getChannelTimeConstant(CHANNEL_INHB);
    return Response::SUCCESS;
 }
 
@@ -483,17 +484,6 @@ Response::Status LIF::updateState(double time, double dt) {
    }
    update_timer->stop();
    return Response::SUCCESS;
-}
-
-float LIF::getChannelTimeConst(enum ChannelType channel_type) {
-   float channel_time_const = 0.0f;
-   switch (channel_type) {
-      case CHANNEL_EXC: channel_time_const  = lParams.tauE; break;
-      case CHANNEL_INH: channel_time_const  = lParams.tauI; break;
-      case CHANNEL_INHB: channel_time_const = lParams.tauIB; break;
-      default: channel_time_const           = 0.0f; break;
-   }
-   return channel_time_const;
 }
 
 int LIF::findPostSynaptic(

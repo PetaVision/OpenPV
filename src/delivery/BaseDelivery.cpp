@@ -44,22 +44,25 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    mPostLayer = mConnectionData->getPost();
    pvAssert(mPreLayer != nullptr and mPostLayer != nullptr);
 
-   int numChannelsCheck = 0;
-   int channelAsInt     = (int)getChannelCode();
+   int channelAsInt = (int)getChannelCode();
    if (channelAsInt >= 0) {
-      int status = getPostLayer()->requireChannel(channelAsInt, &numChannelsCheck);
-      if (status != PV_SUCCESS) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
-            ErrorLog().printf(
-                  "%s: postsynaptic layer \"%s\" failed to add channel %d\n",
-                  getDescription_c(),
-                  getPostLayer()->getName(),
-                  channelAsInt);
-         }
-         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-         exit(EXIT_FAILURE);
-      }
+      auto *postLayerInputBuffer = mPostLayer->getComponentByType<LayerInputBuffer>();
+      FatalIf(
+            postLayerInputBuffer == nullptr,
+            "%s post layer \"%s\" does not have a LayerInputBuffer component.\n",
+            getDescription_c(),
+            mPostLayer->getName());
+      postLayerInputBuffer->requireChannel(channelAsInt);
+      int numChannelsCheck = postLayerInputBuffer->getNumChannels();
+      FatalIf(
+            numChannelsCheck <= channelAsInt,
+            "%s post layer input buffer \"%s\" failed to add channel %d\n",
+            getDescription_c(),
+            postLayerInputBuffer->getName(),
+            channelAsInt);
+      postLayerInputBuffer->addDeliverySource(this);
    }
+
 #ifdef PV_USE_CUDA
    mUsingGPUFlag = mReceiveGpu;
 #endif // PV_USE_CUDA

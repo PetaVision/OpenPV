@@ -23,7 +23,6 @@ class InputRegionLayer : public HyPerLayer {
   public:
    InputRegionLayer(const char *name, HyPerCol *hc);
    virtual ~InputRegionLayer();
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
    virtual bool needUpdate(double simTime, double dt) const override;
    virtual bool activityIsSpiking() override { return false; }
    InputLayer *getOriginalLayer() { return mOriginalLayer; }

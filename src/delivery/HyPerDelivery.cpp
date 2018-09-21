@@ -65,7 +65,8 @@ HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 }
 
 Response::Status HyPerDelivery::allocateDataStructures() {
-   auto status = BaseDelivery::allocateDataStructures();
+   auto status      = BaseDelivery::allocateDataStructures();
+   mDeltaTimeFactor = 1.0f; // Default value
    if (!Response::completed(status)) {
       return status;
    }
@@ -73,11 +74,14 @@ Response::Status HyPerDelivery::allocateDataStructures() {
       mDeltaTimeFactor = (float)parent->getDeltaTime();
    }
    else if (mConvertRateToSpikeCount and !mPreLayer->activityIsSpiking()) {
-      mDeltaTimeFactor =
-            (float)convertToRateDeltaTimeFactor(mPostLayer->getChannelTimeConst(mChannelCode));
-   }
-   else {
-      mDeltaTimeFactor = 1.0f;
+      auto layerInputBuffer = mPostLayer->getComponentByType<LayerInputBuffer>();
+      if (layerInputBuffer) {
+         if (!layerInputBuffer->getDataStructuresAllocatedFlag()) {
+            return status + Response::POSTPONE;
+         }
+         double timeConstant = layerInputBuffer->getChannelTimeConstant(mChannelCode);
+         mDeltaTimeFactor    = (float)convertToRateDeltaTimeFactor(timeConstant);
+      }
    }
    return Response::SUCCESS;
 }

@@ -95,12 +95,28 @@ void MomentumLCALayer::ioParam_LCAMomentumRate(enum ParamsIOFlag ioFlag) {
 
 #ifdef PV_USE_CUDA
 int MomentumLCALayer::allocateUpdateKernel() {
-   PVCuda::CudaDevice *device = mCudaDevice;
-   d_prevDrive = device->createBuffer(getNumNeuronsAllBatches() * sizeof(float), &getDescription());
-   // Set to temp pointer of the subclass
-   PVCuda::CudaUpdateMomentumLCALayer *updateKernel =
-         new PVCuda::CudaUpdateMomentumLCALayer(device);
-   // Set arguments
+   pvAssert(mUpdateGpu);
+   int status = HyPerLCALayer::allocateUpdateKernel();
+   if (status != PV_SUCCESS) {
+      return status;
+   }
+
+   std::size_t bufferSize = sizeof(float) * (std::size_t)getNumNeuronsAllBatches();
+   d_prevDrive            = mCudaDevice->createBuffer(bufferSize, &getDescription());
+
+   return PV_SUCCESS;
+}
+
+Response::Status MomentumLCALayer::copyInitialStateToGPU() {
+   Response::Status status = ANNLayer::copyInitialStateToGPU();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   if (!mUpdateGpu) {
+      return status;
+   }
+
+   // Set arguments of update kernel
    const PVLayerLoc *loc = getLayerLoc();
    const int nx          = loc->nx;
    const int ny          = loc->ny;
@@ -115,7 +131,6 @@ int MomentumLCALayer::allocateUpdateKernel() {
    pvAssert(mInternalState);
    PVCuda::CudaBuffer *cudaBuffer = mInternalState->getCudaBuffer();
    pvAssert(cudaBuffer);
-   assert(d_prevDrive);
    const float Vth         = this->VThresh;
    const float AMax        = this->AMax;
    const float AMin        = this->AMin;
@@ -127,18 +142,11 @@ int MomentumLCALayer::allocateUpdateKernel() {
    PVCuda::CudaBuffer *layerInputCudaBuffer = mLayerInput->getCudaBuffer();
    PVCuda::CudaBuffer *activityCudaBuffer   = mActivity->getCudaBuffer();
 
-   size_t size = loc->nbatch * sizeof(double);
-   d_dtAdapt   = device->createBuffer(size, &getDescription());
-
-   size        = (size_t)numVertices * sizeof(*verticesV);
-   d_verticesV = device->createBuffer(size, &getDescription());
-   d_verticesA = device->createBuffer(size, &getDescription());
-   d_slopes    = device->createBuffer(size + sizeof(*slopes), &getDescription());
-
    d_verticesV->copyToDevice(verticesV);
    d_verticesA->copyToDevice(verticesA);
    d_slopes->copyToDevice(slopes);
 
+   auto *updateKernel = dynamic_cast<PVCuda::CudaUpdateMomentumLCALayer *>(krUpdate);
    // Set arguments to kernel
    updateKernel->setArgs(
          nbatch,
@@ -163,10 +171,7 @@ int MomentumLCALayer::allocateUpdateKernel() {
          LCAMomentumRate,
          layerInputCudaBuffer,
          activityCudaBuffer);
-
-   // set updateKernel to krUpdate
-   krUpdate = updateKernel;
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 Response::Status MomentumLCALayer::updateStateGpu(double time, double dt) {

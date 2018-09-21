@@ -19,11 +19,12 @@ class ISTALayer : public PV::ANNLayer {
    ISTALayer(const char *name, HyPerCol *hc);
    virtual ~ISTALayer();
    virtual double getDeltaUpdateTime() const override;
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
 
   protected:
    ISTALayer();
    int initialize(const char *name, HyPerCol *hc);
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
@@ -34,12 +35,7 @@ class ISTALayer : public PV::ANNLayer {
     */
 
    /**
-    * timeConstantTau: the time constant tau for the LCA dynamics, which models the equation dV/dt =
-    * 1/tau*(-V+s*A+GSyn)
-    */
-   virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
-   /**
-    * timeConstantTau: the self-interaction coefficient s for the LCA dynamics, which models the
+    * selfInteract: the self-interaction coefficient s for the LCA dynamics, which models the
     * equation dV/dt = 1/tau*(-V+s*A+GSyn)
     */
    virtual void ioParam_selfInteract(enum ParamsIOFlag ioFlag);
@@ -51,17 +47,13 @@ class ISTALayer : public PV::ANNLayer {
    virtual void ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag);
    /** @} */
 
+   virtual LayerInputBuffer *createLayerInput() override;
+
    virtual Response::Status updateState(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
    virtual Response::Status updateStateGpu(double time, double dt) override;
-#endif
 
-   virtual float getChannelTimeConst(enum ChannelType channel_type) override {
-      return timeConstantTau;
-   }
-
-#ifdef PV_USE_CUDA
    virtual int allocateUpdateKernel() override;
 #endif
 
@@ -76,7 +68,7 @@ class ISTALayer : public PV::ANNLayer {
 
    // Data members
   protected:
-   float timeConstantTau;
+   float timeConstantTau = 1.0f;
    bool selfInteract;
    char *mAdaptiveTimeScaleProbeName               = nullptr;
    AdaptiveTimeScaleProbe *mAdaptiveTimeScaleProbe = nullptr;

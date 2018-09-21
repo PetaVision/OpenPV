@@ -34,13 +34,16 @@ class LIFGap : public PV::LIF {
    virtual void allocateConductances(int num_channels) override;
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
    virtual void readGapStrengthFromCheckpoint(Checkpointer *checkpointer);
 
   private:
    int initialize_base();
-   float *gapStrength;
-   bool gapStrengthInitialized;
    void calcGapStrength();
+
+   float *gapStrength          = nullptr;
+   bool gapStrengthInitialized = false;
 
 }; // class LIFGap
 

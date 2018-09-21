@@ -6,7 +6,7 @@
  */
 
 #include "PoolingIndexLayer.hpp"
-#include "../layers/updateStateFunctions.h"
+#include "components/PoolingIndexLayerInputBuffer.hpp"
 
 namespace PV {
 
@@ -34,17 +34,8 @@ int PoolingIndexLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-// This function should never be called, since this layer should never be a post layer and only
-// accessed from PoolingConn.
-int PoolingIndexLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   Fatal() << "PoolingIndexLayer cannot be a post layer\n";
-   return PV_SUCCESS;
-}
-
-// This is a function that's overwriting HyPerCol
-int PoolingIndexLayer::resetGSynBuffers(double timef, double dt) {
-   // Reset GSynBuffers does nothing, as the orig pooling connection deals with clearing this buffer
-   return PV_SUCCESS;
+LayerInputBuffer *PoolingIndexLayer::createLayerInput() {
+   return new PoolingIndexLayerInputBuffer(name, parent);
 }
 
 } // end namespace PV

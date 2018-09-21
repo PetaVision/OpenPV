@@ -284,11 +284,6 @@ class HyPerLayer : public ComponentBasedObject {
    // (i.e. methods for receiving synaptic input, updating internal state, publishing output)
    // ************************************************************************************//
 
-   /**
-    * Calls deliver for each connection connecting to this layer.
-    */
-   virtual int recvAllSynapticInput(double simulationTime, double deltaTime);
-
    // An updateState wrapper that determines if updateState needs to be called
    Response::Status callUpdateState(double simTime, double dt);
    /**
@@ -359,17 +354,8 @@ class HyPerLayer : public ComponentBasedObject {
     */
    bool isExchangeFinished(int delay = 0);
 
-   void clearProgressFlags();
-
    int getNumProbes() { return numProbes; }
    LayerProbe *getProbe(int n) { return (n >= 0 && n < numProbes) ? probes[n] : NULL; }
-
-   /**
-    * Adds the given connection to the vector of connections to receive input from.
-    * The connection's post-synaptic layer must be the layer for which this
-    * member function is called.
-    */
-   void addRecvConn(BaseConnection *conn);
 
    // Public access functions:
 
@@ -391,7 +377,6 @@ class HyPerLayer : public ComponentBasedObject {
 
    int increaseDelayLevels(int neededDelay);
    void requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis);
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult);
 
    float *getV() { return mInternalState->getV(); } // TODO: should be const
    int getNumChannels() { return mLayerInput->getNumChannels(); }
@@ -399,7 +384,6 @@ class HyPerLayer : public ComponentBasedObject {
       return (ch < mLayerInput->getNumChannels() && ch >= 0) ? mLayerInput->getLayerInput(ch)
                                                              : nullptr;
    }
-   virtual float getChannelTimeConst(enum ChannelType channel_type) { return 0.0f; }
 
    // Eventually, anything that calls one of getXScale, getYScale, or getLayerLoc should retrieve
    // the LayerGeometry component, and these get-methods can be removed from HyPerLayer.
@@ -517,22 +501,12 @@ class HyPerLayer : public ComponentBasedObject {
 
    std::vector<BaseConnection *> recvConns;
 
-   bool mHasReceived = false;
-   bool mHasUpdated  = false;
+   bool mHasUpdated = false;
 
 // GPU variables
 #ifdef PV_USE_CUDA
   public:
    virtual void syncGpu();
-
-   /**
-    * Accumulates the times of the gpu_recvsyn_timer and gpu_update_timer.
-    * Returns the sum of the total elapsed times on those timers.
-    */
-   virtual double addGpuTimers();
-
-   void copyAllGSynToDevice();
-   void copyAllGSynFromDevice();
 
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer *getCudnnGSyn() { return cudnn_GSyn; }
@@ -574,7 +548,6 @@ class HyPerLayer : public ComponentBasedObject {
    bool updatedDeviceActivity;
    bool updatedDeviceDatastore;
    bool updatedDeviceGSyn;
-   bool mRecvGpu;
    bool mUpdateGpu;
 
    PVCuda::CudaBuffer *d_Datastore;
@@ -589,13 +562,11 @@ class HyPerLayer : public ComponentBasedObject {
 
   protected:
    Timer *update_timer;
-   Timer *recvsyn_timer;
    Timer *publish_timer;
    Timer *timescale_timer;
    Timer *io_timer;
 
 #ifdef PV_USE_CUDA
-   PVCuda::CudaTimer *gpu_recvsyn_timer;
    PVCuda::CudaTimer *gpu_update_timer;
 #endif
 };

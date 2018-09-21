@@ -69,7 +69,6 @@ int HyPerLayer::initialize_base() {
    updatedDeviceActivity    = true; // Start off always updating activity
    updatedDeviceDatastore   = true;
    updatedDeviceGSyn        = true;
-   mRecvGpu                 = false;
    mUpdateGpu               = false;
    krUpdate                 = NULL;
 #ifdef PV_USE_CUDNN
@@ -79,14 +78,12 @@ int HyPerLayer::initialize_base() {
 #endif // PV_USE_CUDA
 
    update_timer    = NULL;
-   recvsyn_timer   = NULL;
    publish_timer   = NULL;
    timescale_timer = NULL;
    io_timer        = NULL;
 
 #ifdef PV_USE_CUDA
-   gpu_recvsyn_timer = NULL;
-   gpu_update_timer  = NULL;
+   gpu_update_timer = NULL;
 #endif
 
    recvConns.clear();
@@ -241,13 +238,11 @@ InternalStateBuffer *HyPerLayer::createInternalState() {
 ActivityBuffer *HyPerLayer::createActivity() { return new ActivityBuffer(name, parent); }
 
 HyPerLayer::~HyPerLayer() {
-   delete recvsyn_timer;
    delete update_timer;
    delete publish_timer;
    delete timescale_timer;
    delete io_timer;
 #ifdef PV_USE_CUDA
-   delete gpu_recvsyn_timer;
    delete gpu_update_timer;
 #endif
 
@@ -631,7 +626,10 @@ Response::Status HyPerLayer::respondLayerProbeWriteParams(
 
 Response::Status HyPerLayer::respondLayerClearProgressFlags(
       std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
-   clearProgressFlags();
+   if (mLayerInput) {
+      mLayerInput->respond(message);
+   }
+   mHasUpdated = false;
    return Response::SUCCESS;
 }
 
@@ -641,24 +639,13 @@ Response::Status HyPerLayer::respondLayerRecvSynapticInput(
    if (message->mPhase != getPhase()) {
       return status;
    }
-#ifdef PV_USE_CUDA
-   if (message->mRecvOnGpuFlag != mRecvGpu) {
-      return status;
-   }
-#endif // PV_USE_CUDA
-   if (mHasReceived) {
-      return status;
-   }
-   if (*(message->mSomeLayerHasActed) or !isAllInputReady()) {
-      *(message->mSomeLayerIsPending) = true;
-      return status;
-   }
-   resetGSynBuffers(message->mTime, message->mDeltaT); // deltaTimeAdapt is not used
-
    message->mTimer->start();
-   recvAllSynapticInput(message->mTime, message->mDeltaT);
-   mHasReceived                   = true;
-   *(message->mSomeLayerHasActed) = true;
+   if (needUpdate(message->mTime, message->mDeltaT)) {
+      auto *layerInputBuffer = getComponentByType<LayerInputBuffer>();
+      if (layerInputBuffer) {
+         layerInputBuffer->respond(message);
+      }
+   }
    message->mTimer->stop();
 
    return status;
@@ -671,20 +658,28 @@ HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage cons
       return status;
    }
 #ifdef PV_USE_CUDA
-   if (message->mRecvOnGpuFlag != mRecvGpu) {
+   if (mLayerInput and message->mRecvOnGpuFlag != mLayerInput->isUsingGPU()) {
+      return status;
+   }
+   if (!mLayerInput and message->mRecvOnGpuFlag != mUpdateGpu) {
       return status;
    }
    if (message->mUpdateOnGpuFlag != mUpdateGpu) {
       return status;
    }
 #endif // PV_USE_CUDA
-   if (mHasUpdated) {
+   if (mHasUpdated or !needUpdate(message->mTime, message->mDeltaT)) {
       return status;
    }
-   if (*(message->mSomeLayerHasActed) or !mHasReceived) {
+   if (*(message->mSomeLayerHasActed)) {
       *(message->mSomeLayerIsPending) = true;
       return status;
    }
+   if (mLayerInput and !mLayerInput->getHasReceived()) {
+      *(message->mSomeLayerIsPending) = true;
+      return status;
+   }
+   // If we're here, layer has not done UpdateState this timestep, but is ready to do so.
    status = callUpdateState(message->mTime, message->mDeltaT);
 
    mHasUpdated                    = true;
@@ -706,8 +701,12 @@ HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage cons
    if (mInternalState and mInternalState->isUsingGPU()) {
       mInternalState->copyFromCuda();
    }
-   copyAllGSynFromDevice();
-   addGpuTimers();
+   if (mLayerInput and mLayerInput->isUsingGPU()) {
+      mLayerInput->respond(message);
+   }
+   if (mUpdateGpu) {
+      gpu_update_timer->accumulateTime();
+   }
    message->mTimer->stop();
    return status;
 }
@@ -756,11 +755,6 @@ HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage cons
    }
    status = outputState(message->mTime, message->mDeltaTime); // also calls probes' outputState
    return status;
-}
-
-void HyPerLayer::clearProgressFlags() {
-   mHasReceived = false;
-   mHasUpdated  = false;
 }
 
 Response::Status HyPerLayer::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
@@ -929,47 +923,6 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
 #endif
 
    return Response::SUCCESS;
-}
-
-void HyPerLayer::addRecvConn(BaseConnection *conn) {
-   auto *connData = conn->getComponentByType<ConnectionData>();
-   FatalIf(
-         connData == nullptr,
-         "addRecvConn was called to add %s to %s, but \"%s\" does not have a ConnectionData "
-         "component.\n",
-         conn->getDescription_c(),
-         getDescription_c(),
-         conn->getName());
-   FatalIf(
-         connData->getPost() != this,
-         "%s called addRecvConn for %s, but \"%s\" is not the post-synaptic layer for \"%s\"\n.",
-         conn->getDescription_c(),
-         getDescription_c(),
-         getName(),
-         conn->getName());
-#ifdef PV_USE_CUDA
-   // CPU connections must run first to avoid race conditions
-   auto *deliveryComponent = conn->getComponentByType<BaseDelivery>();
-   FatalIf(
-         connData == nullptr,
-         "addRecvConn was called to add %s to %s, but \"%s\" does not have a BaseDelivery "
-         "component.\n",
-         conn->getDescription_c(),
-         getDescription_c(),
-         conn->getName());
-   if (!deliveryComponent->getReceiveGpu()) {
-      recvConns.insert(recvConns.begin(), conn);
-   }
-   // Otherwise, add to the back. If no gpus at all, just add to back
-   else
-#endif
-   {
-      recvConns.push_back(conn);
-#ifdef PV_USE_CUDA
-      // If it is receiving from gpu, set layer flag as such
-      mRecvGpu = true;
-#endif
-   }
 }
 
 int HyPerLayer::openOutputStateFile(
@@ -1162,12 +1115,6 @@ void HyPerLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResul
    pvAssert(*marginWidthResult >= marginWidthNeeded);
 }
 
-int HyPerLayer::requireChannel(int channelNeeded, int *numChannelsResult) {
-   mLayerInput->requireChannel(channelNeeded);
-   *numChannelsResult = mLayerInput->getNumChannels();
-   return PV_SUCCESS;
-}
-
 /**
  * Returns the activity data for the layer.  This data is in the
  * extended space (with margins).
@@ -1184,9 +1131,14 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
       return status;
    }
    auto *checkpointer = message->mDataRegistry;
-   checkpointPvpActivityFloat(checkpointer, "A", getActivity(), true /*extended*/);
+   if (mLayerInput) {
+      mLayerInput->respond(message);
+   }
    if (mInternalState) {
       mInternalState->respond(message);
+   }
+   if (mActivity) {
+      mActivity->respond(message);
    }
    publisher->checkpointDataStore(checkpointer, getName(), "Delays");
    checkpointer->registerCheckpointData(
@@ -1231,18 +1183,12 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    update_timer = new Timer(getName(), "layer", "update ");
    checkpointer->registerTimer(update_timer);
 
-   recvsyn_timer = new Timer(getName(), "layer", "recvsyn");
-   checkpointer->registerTimer(recvsyn_timer);
 #ifdef PV_USE_CUDA
    auto cudaDevice = mCudaDevice;
    if (cudaDevice) {
       gpu_update_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
       gpu_update_timer->setStream(cudaDevice->getStream());
       checkpointer->registerTimer(gpu_update_timer);
-
-      gpu_recvsyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpurecvsyn");
-      gpu_recvsyn_timer->setStream(cudaDevice->getStream());
-      checkpointer->registerTimer(gpu_recvsyn_timer);
    }
 #endif // PV_USE_CUDA
 
@@ -1311,33 +1257,31 @@ bool HyPerLayer::needReset(double simTime, double dt) {
 
 Response::Status HyPerLayer::callUpdateState(double simTime, double dt) {
    auto status = Response::NO_ACTION;
-   if (needUpdate(simTime, dt)) {
-      if (needReset(simTime, dt)) {
-         resetStateOnTrigger();
-         mLastTriggerTime = simTime;
-      }
-
-      update_timer->start();
-#ifdef PV_USE_CUDA
-      if (mUpdateGpu) {
-         gpu_update_timer->start();
-         assert(mUpdateGpu);
-         status = updateStateGpu(simTime, dt);
-         gpu_update_timer->stop();
-      }
-      else {
-#endif
-         status = updateState(simTime, dt);
-#ifdef PV_USE_CUDA
-      }
-      // Activity updated, set flag to true
-      updatedDeviceActivity  = true;
-      updatedDeviceDatastore = true;
-#endif
-      update_timer->stop();
-      mNeedToPublish  = true;
-      mLastUpdateTime = simTime;
+   if (needReset(simTime, dt)) {
+      resetStateOnTrigger();
+      mLastTriggerTime = simTime;
    }
+
+   update_timer->start();
+#ifdef PV_USE_CUDA
+   if (mUpdateGpu) {
+      gpu_update_timer->start();
+      assert(mUpdateGpu);
+      status = updateStateGpu(simTime, dt);
+      gpu_update_timer->stop();
+   }
+   else {
+#endif
+      status = updateState(simTime, dt);
+#ifdef PV_USE_CUDA
+   }
+   // Activity updated, set flag to true
+   updatedDeviceActivity  = true;
+   updatedDeviceDatastore = true;
+#endif
+   update_timer->stop();
+   mNeedToPublish  = true;
+   mLastUpdateTime = simTime;
    return status;
 }
 
@@ -1417,7 +1361,9 @@ int HyPerLayer::resetGSynBuffers(double timef, double dt) {
 int HyPerLayer::runUpdateKernel() {
    assert(mUpdateGpu);
    if (updatedDeviceGSyn) {
-      copyAllGSynToDevice();
+      if (mLayerInput->isUsingGPU()) { // (mLayerInput->isUsingGPU() || mUpdateGpu) {
+         mLayerInput->copyToCuda();
+      }
       updatedDeviceGSyn = false;
    }
 
@@ -1509,79 +1455,12 @@ bool HyPerLayer::isAllInputReady() {
    return isReady;
 }
 
-int HyPerLayer::recvAllSynapticInput(double simulationTime, double deltaTime) {
-   int status = PV_SUCCESS;
-   // Only recvAllSynapticInput if we need an update
-   if (needUpdate(simulationTime, deltaTime)) {
-      bool switchGpu = false;
-      // Start CPU timer here
-      recvsyn_timer->start();
-
-      for (auto &conn : recvConns) {
-         pvAssert(conn != nullptr);
-         auto *deliveryComponent = conn->getComponentByType<BaseDelivery>();
-         pvAssert(deliveryComponent != nullptr);
 #ifdef PV_USE_CUDA
-         // Check if it's done with cpu connections
-         if (!switchGpu && deliveryComponent->getReceiveGpu()) {
-            // Copy GSyn over to GPU
-            copyAllGSynToDevice();
-            // Start gpu timer
-            gpu_recvsyn_timer->start();
-            switchGpu = true;
-         }
-#endif
-         deliveryComponent->deliver();
-      }
-#ifdef PV_USE_CUDA
-      if (switchGpu) {
-         // Stop timer
-         gpu_recvsyn_timer->stop();
-      }
-#endif
-      recvsyn_timer->stop();
-   }
-   return status;
-}
-
-#ifdef PV_USE_CUDA
-double HyPerLayer::addGpuTimers() {
-   double simTime = 0.0;
-   if (mRecvGpu) {
-      simTime += gpu_recvsyn_timer->accumulateTime();
-   }
-   if (mUpdateGpu) {
-      simTime += gpu_update_timer->accumulateTime();
-   }
-   return simTime;
-}
-
 void HyPerLayer::syncGpu() {
-   if (mRecvGpu || mUpdateGpu) {
+   if (mLayerInput->isUsingGPU() || mUpdateGpu) {
       mCudaDevice->syncDevice();
    }
 }
-
-void HyPerLayer::copyAllGSynToDevice() {
-   if (mRecvGpu || mUpdateGpu) {
-      // Copy it to device
-      float const *h_postGSyn        = mLayerInput->getBufferData();
-      PVCuda::CudaBuffer *d_postGSyn = mLayerInput->getCudaBuffer();
-      assert(d_postGSyn);
-      d_postGSyn->copyToDevice(h_postGSyn);
-   }
-}
-
-void HyPerLayer::copyAllGSynFromDevice() {
-   // Only copy if recving
-   if (mRecvGpu) {
-      float *h_postGSyn              = mLayerInput->getLayerInput();
-      PVCuda::CudaBuffer *d_postGSyn = mLayerInput->getCudaBuffer();
-      assert(d_postGSyn);
-      d_postGSyn->copyFromDevice(h_postGSyn);
-   }
-}
-
 #endif
 
 int HyPerLayer::publish(Communicator *comm, double simTime) {

@@ -178,6 +178,25 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
 BaseWeightUpdater *HyPerConn::createWeightUpdater() { return new HebbianUpdater(name, parent); }
 
 Response::Status
+HyPerConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseConnection::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto updater = getComponentByType<BaseWeightUpdater>();
+   if (updater and updater->getPlasticityFlag()) {
+      auto delivery = getComponentByType<BaseDelivery>();
+      if (delivery and delivery->getChannelCode() == CHANNEL_GAP) {
+         WarnLog() << getDescription() << " is a gap connection but has plasticity set to true.\n"
+                   << "The gap strength is calculated only once, during initialization, "
+                   << "and will not change if the connection weights are updated.\n";
+         // Perhaps GapConn should be resurrected to handle this warning and only this warning?
+      }
+   }
+   return Response::SUCCESS;
+}
+
+Response::Status
 HyPerConn::respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const> message) {
    auto *weightUpdater = getComponentByType<BaseWeightUpdater>();
    if (weightUpdater) {

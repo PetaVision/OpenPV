@@ -180,15 +180,15 @@ Response::Status HyPerDeliveryFacade::allocateDataStructures() {
 }
 
 void HyPerDeliveryFacade::deliver() {
-   if (mDeliveryIntern) {
-      mDeliveryIntern->deliver();
-   }
+   // The internal delivery object mDeliveryIntern added itself to the post layer during
+   // communicate; the post layer will call that delivery object as well.
+   // Therefore nothing needs to be done here.
 }
 
 void HyPerDeliveryFacade::deliverUnitInput(float *recvBuffer) {
-   if (mDeliveryIntern) {
-      mDeliveryIntern->deliverUnitInput(recvBuffer);
-   }
+   // The internal delivery object mDeliveryIntern added itself to the post layer during
+   // communicate; the post layer will call that delivery object as well.
+   // Therefore nothing needs to be done here.
 }
 
 bool HyPerDeliveryFacade::isAllInputReady() {
