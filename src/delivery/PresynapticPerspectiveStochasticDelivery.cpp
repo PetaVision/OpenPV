@@ -71,12 +71,12 @@ void PresynapticPerspectiveStochasticDelivery::allocateRandState() {
    mRandState = new Random(mPreLayer->getLayerLoc(), true /*need RNGs in the extended buffer*/);
 }
 
-void PresynapticPerspectiveStochasticDelivery::deliver() {
+void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
-   float *postChannel = mPostLayer->getChannel(getChannelCode());
+   float *postChannel = destBuffer;
    pvAssert(postChannel);
 
    PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();

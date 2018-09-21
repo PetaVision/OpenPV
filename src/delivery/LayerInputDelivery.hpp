@@ -47,7 +47,7 @@ class LayerInputDelivery : public BaseObject {
 
    virtual ~LayerInputDelivery() {}
 
-   virtual void deliver() {}
+   virtual void deliver(float *destBuffer) {}
 
    virtual void deliverUnitInput(float *recvBuffer) {}
 

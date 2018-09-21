@@ -186,12 +186,12 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
          d_activeIndices);
 }
 
-void PresynapticPerspectiveGPUDelivery::deliver() {
+void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
-   float *postChannel = mPostLayer->getChannel(getChannelCode());
+   float *postChannel = destBuffer;
    pvAssert(postChannel);
 
    pvAssert(mRecvKernel);

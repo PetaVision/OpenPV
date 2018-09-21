@@ -96,7 +96,7 @@ void WTADelivery::checkPreAndPostDimensions() {
          postLoc->nf);
 }
 
-void WTADelivery::deliver() {
+void WTADelivery::deliver(float *destBuffer) {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }
@@ -114,7 +114,7 @@ void WTADelivery::deliver() {
    pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
    int numPostRestricted = nx * ny * nf;
 
-   float *postChannel = mPostLayer->getChannel(mChannelCode);
+   float *postChannel = destBuffer;
    int const nbatch   = preLoc.nbatch;
    pvAssert(nbatch == mPostLayer->getLayerLoc()->nbatch);
    for (int b = 0; b < nbatch; b++) {

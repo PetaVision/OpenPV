@@ -48,7 +48,7 @@ class HyPerDelivery : public BaseDelivery {
 
    void setConnectionData(ConnectionData *connectionData);
 
-   virtual void deliver() override = 0;
+   virtual void deliver(float *destBuffer) override = 0;
 
    virtual bool isAllInputReady() override;
 

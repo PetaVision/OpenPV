@@ -38,7 +38,7 @@ class RescaleDelivery : public IdentDelivery {
 
    virtual ~RescaleDelivery() {}
 
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 

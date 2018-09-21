@@ -42,7 +42,7 @@ class WTADelivery : public BaseDelivery {
 
    virtual ~WTADelivery() {}
 
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 

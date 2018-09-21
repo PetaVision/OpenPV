@@ -236,7 +236,7 @@ void TransposePoolingDelivery::initializeDeliverKernelArgs() {
 }
 #endif // PV_USE_CUDA
 
-void TransposePoolingDelivery::deliver() {
+void TransposePoolingDelivery::deliver(float *destBuffer) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
@@ -244,25 +244,25 @@ void TransposePoolingDelivery::deliver() {
 
    if (mReceiveGpu) {
 #ifdef PV_USE_CUDA
-      deliverGPU();
+      deliverGPU(destBuffer);
 #endif // PV_USE_CUDA
    }
    else {
       if (mUpdateGSynFromPostPerspective) {
-         deliverPostsynapticPerspective();
+         deliverPostsynapticPerspective(destBuffer);
       }
       else {
-         deliverPresynapticPerspective();
+         deliverPresynapticPerspective(destBuffer);
       }
    }
 }
 
-void TransposePoolingDelivery::deliverPostsynapticPerspective() {
+void TransposePoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
    Fatal() << "Delivering from PostSynapticPerspective for TransposePoolingDelivery has not been "
               "implemented yet.\n";
 }
 
-void TransposePoolingDelivery::deliverPresynapticPerspective() {
+void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
    PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
    PVLayerLoc const *postLoc = getPostLayer()->getLayerLoc();
    Weights *preWeights       = mWeightsPair->getPreWeights();
@@ -298,7 +298,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective() {
 
    PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(0 /*delay*/);
 
-   float *gSyn = getPostLayer()->getChannel(getChannelCode());
+   float *gSyn = destBuffer;
    pvAssert(gSyn);
 
    // Grab postIdxLayer's data
@@ -524,8 +524,8 @@ bool TransposePoolingDelivery::isAllInputReady() {
 }
 
 #ifdef PV_USE_CUDA
-void TransposePoolingDelivery::deliverGPU() {
-   pvAssert(mPostLayer->getChannel(getChannelCode()));
+void TransposePoolingDelivery::deliverGPU(float *destBuffer) {
+   pvAssert(destBuffer);
 
    if (mPreLayer->getUpdatedDeviceDatastoreFlag()) {
       PVLayerCube activityCube           = mPreLayer->getPublisher()->createCube(0 /*delay*/);

@@ -14,8 +14,8 @@ Response::Status ComparisonLayer::updateState(double timef, double dt) {
    int kx0               = loc->kx0;
    int ky0               = loc->ky0;
 
-   float *GSynExt = getChannel(CHANNEL_EXC); // gated
-   float *GSynInh = getChannel(CHANNEL_INH); // gt
+   float const *GSynExt = mLayerInput->getChannelData(CHANNEL_EXC); // gated
+   float const *GSynInh = mLayerInput->getChannelData(CHANNEL_INH); // gt
 
    bool isCorrect = true;
    // Grab the activity layer of current layer

@@ -94,7 +94,7 @@ void IdentDelivery::checkPreAndPostDimensions() {
          postLoc->nf);
 }
 
-void IdentDelivery::deliver() {
+void IdentDelivery::deliver(float *destBuffer) {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }
@@ -113,7 +113,7 @@ void IdentDelivery::deliver() {
    pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
    int numPostRestricted = nx * ny * nf;
 
-   float *postChannel = mPostLayer->getChannel(mChannelCode);
+   float *postChannel = destBuffer;
    int const nbatch   = preLoc.nbatch;
    FatalIf(
          postLoc.nbatch != nbatch,

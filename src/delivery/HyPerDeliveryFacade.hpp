@@ -56,7 +56,7 @@ class HyPerDeliveryFacade : public BaseDelivery {
 
    virtual ~HyPerDeliveryFacade();
 
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 

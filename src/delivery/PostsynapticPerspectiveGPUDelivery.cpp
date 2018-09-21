@@ -227,12 +227,12 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
          d_PatchToDataLookup);
 }
 
-void PostsynapticPerspectiveGPUDelivery::deliver() {
+void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
-   float *postChannel = mPostLayer->getChannel(getChannelCode());
+   float *postChannel = destBuffer;
    pvAssert(postChannel);
 
    pvAssert(mRecvKernel);

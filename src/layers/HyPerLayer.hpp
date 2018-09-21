@@ -380,10 +380,6 @@ class HyPerLayer : public ComponentBasedObject {
 
    float *getV() { return mInternalState->getV(); } // TODO: should be const
    int getNumChannels() { return mLayerInput->getNumChannels(); }
-   float *getChannel(ChannelType ch) {
-      return (ch < mLayerInput->getNumChannels() && ch >= 0) ? mLayerInput->getLayerInput(ch)
-                                                             : nullptr;
-   }
 
    // Eventually, anything that calls one of getXScale, getYScale, or getLayerLoc should retrieve
    // the LayerGeometry component, and these get-methods can be removed from HyPerLayer.

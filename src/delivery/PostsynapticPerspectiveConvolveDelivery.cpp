@@ -57,12 +57,12 @@ Response::Status PostsynapticPerspectiveConvolveDelivery::allocateDataStructures
    return status;
 }
 
-void PostsynapticPerspectiveConvolveDelivery::deliver() {
+void PostsynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
-   float *postChannel = mPostLayer->getChannel(getChannelCode());
+   float *postChannel = destBuffer;
    pvAssert(postChannel);
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
@@ -91,7 +91,7 @@ void PostsynapticPerspectiveConvolveDelivery::deliver() {
       int sy = (sourceNx + sourceHalo->lt + sourceHalo->rt) * sourceNf;
 
       // The start of the gsyn buffer
-      float *gSynPatchHead = mPostLayer->getChannel(getChannelCode());
+      float *gSynPatchHead = destBuffer;
 
       // Get source layer's patch y stride
       Weights *postWeights  = mWeightsPair->getPostWeights();

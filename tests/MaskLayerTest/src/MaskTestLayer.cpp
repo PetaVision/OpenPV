@@ -52,17 +52,15 @@ Response::Status MaskTestLayer::updateState(double timef, double dt) {
 
    bool isCorrect = true;
    for (int b = 0; b < loc->nbatch; b++) {
-      float *GSynExt  = getChannel(CHANNEL_EXC) + b * getNumNeurons(); // gated
-      float *GSynInh  = getChannel(CHANNEL_INH) + b * getNumNeurons(); // gt
-      float *GSynInhB = getChannel(CHANNEL_INHB) + b * getNumNeurons(); // mask
+      float const *GSynExt  = mLayerInput->getBufferData(b, CHANNEL_EXC); // gated
+      float const *GSynInh  = mLayerInput->getBufferData(b, CHANNEL_INH); // gt
+      float const *GSynInhB = mLayerInput->getBufferData(b, CHANNEL_INHB); // mask
 
       // Grab the activity layer of current layer
       // We only care about restricted space
 
       for (int k = 0; k < getNumNeurons(); k++) {
          if (strcmp(maskMethod, "layer") == 0) {
-            // ErrorLog() << "Connection " << name << " Mismatch at " << k << ": actual value:
-            // " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
             if (GSynInhB[k]) {
                if (GSynExt[k] != GSynInh[k]) {
                   ErrorLog() << "Connection " << name << " Mismatch at " << k

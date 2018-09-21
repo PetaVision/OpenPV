@@ -36,7 +36,7 @@ class IdentDelivery : public BaseDelivery {
 
    virtual ~IdentDelivery() {}
 
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 

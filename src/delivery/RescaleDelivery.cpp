@@ -34,7 +34,7 @@ void RescaleDelivery::ioParam_scale(enum ParamsIOFlag ioFlag) {
 // for two lines inside for-loops with large numbers of iterations.
 // We're discussing ways to eliminate code duplication like this without
 // incurring added computational costs.
-void RescaleDelivery::deliver() {
+void RescaleDelivery::deliver(float *destBuffer) {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }
@@ -53,7 +53,7 @@ void RescaleDelivery::deliver() {
    pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
    int numPostRestricted = nx * ny * nf;
 
-   float *postChannel = mPostLayer->getChannel(mChannelCode);
+   float *postChannel = destBuffer;
    int const nbatch   = preLoc.nbatch;
    FatalIf(
          postLoc.nbatch != nbatch,

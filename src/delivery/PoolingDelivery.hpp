@@ -78,7 +78,7 @@ class PoolingDelivery : public BaseDelivery {
 
    void setConnectionData(ConnectionData *connectionData);
 
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual bool isAllInputReady() override;
 
@@ -121,14 +121,14 @@ class PoolingDelivery : public BaseDelivery {
    void allocateThreadGateIdxBuffer();
 #endif // PV_USE_OPENMP_THREADS
 
-   void deliverPostsynapticPerspective();
+   void deliverPostsynapticPerspective(float *destBuffer);
 
-   void deliverPresynapticPerspective();
+   void deliverPresynapticPerspective(float *destBuffer);
 
    void clearGateIdxBuffer();
 
 #ifdef PV_USE_CUDA
-   void deliverGPU();
+   void deliverGPU(float *destBuffer);
 #endif // PV_USE_CUDA
 
    // Data members

@@ -21,6 +21,8 @@ class PoolingIndexLayerInputBuffer : public LayerInputBuffer {
 
    virtual ~PoolingIndexLayerInputBuffer();
 
+   float *getIndexBuffer(int b) { return &mBufferData[b * getBufferSize()]; }
+
   protected:
    PoolingIndexLayerInputBuffer() {}
 

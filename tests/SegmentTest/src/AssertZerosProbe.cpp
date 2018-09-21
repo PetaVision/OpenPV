@@ -29,12 +29,13 @@ Response::Status AssertZerosProbe::outputState(double simTime, double deltaTime)
    if (status != Response::SUCCESS) {
       return status;
    }
-   const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   int numExtNeurons     = getTargetLayer()->getNumExtendedAllBatches();
-   int numResNeurons     = getTargetLayer()->getNumNeuronsAllBatches();
-   const float *A        = getTargetLayer()->getLayerData();
-   const float *GSyn_E   = getTargetLayer()->getChannel(CHANNEL_EXC);
-   const float *GSyn_I   = getTargetLayer()->getChannel(CHANNEL_INH);
+   const PVLayerLoc *loc        = getTargetLayer()->getLayerLoc();
+   int numExtNeurons            = getTargetLayer()->getNumExtendedAllBatches();
+   int numResNeurons            = getTargetLayer()->getNumNeuronsAllBatches();
+   const float *A               = getTargetLayer()->getLayerData();
+   auto *targetLayerInputBuffer = getTargetLayer()->getComponentByType<LayerInputBuffer>();
+   const float *GSyn_E          = targetLayerInputBuffer->getChannelData(CHANNEL_EXC);
+   const float *GSyn_I          = targetLayerInputBuffer->getChannelData(CHANNEL_INH);
 
    // getOutputStream().precision(15);
    float sumsq = 0;

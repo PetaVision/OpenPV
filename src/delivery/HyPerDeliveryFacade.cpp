@@ -179,7 +179,7 @@ Response::Status HyPerDeliveryFacade::allocateDataStructures() {
    return status;
 }
 
-void HyPerDeliveryFacade::deliver() {
+void HyPerDeliveryFacade::deliver(float *destBuffer) {
    // The internal delivery object mDeliveryIntern added itself to the post layer during
    // communicate; the post layer will call that delivery object as well.
    // Therefore nothing needs to be done here.

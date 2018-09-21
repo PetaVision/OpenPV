@@ -190,7 +190,9 @@ void LayerInputBuffer::recvAllSynapticInput(double simulationTime, double deltaT
          switchGpu = true;
       }
 #endif
-      d->deliver();
+      std::ptrdiff_t channelOffset = getChannelData(d->getChannelCode()) - getBufferData();
+      float *channelBuffer         = &mBufferData[channelOffset];
+      d->deliver(channelBuffer);
    }
 #ifdef PV_USE_CUDA
    if (switchGpu) {

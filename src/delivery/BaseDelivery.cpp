@@ -108,7 +108,6 @@ void BaseDelivery::accumulateThreadGSyn(float *baseGSynBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
    int const numThreads = (int)mThreadGSyn.size();
    if (numThreads > 0) {
-      float *postChannel = mPostLayer->getChannel(getChannelCode());
       int numNeuronsPost = mPostLayer->getNumNeurons();
       for (int ti = 0; ti < numThreads; ti++) {
          float *threadData = mThreadGSyn[ti].data();

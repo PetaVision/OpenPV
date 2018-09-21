@@ -59,7 +59,7 @@ class TransposePoolingDelivery : public BaseDelivery {
 
    void setConnectionData(ConnectionData *connectionData);
 
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual bool isAllInputReady() override;
 
@@ -86,12 +86,12 @@ class TransposePoolingDelivery : public BaseDelivery {
    void initializeDeliverKernelArgs();
 #endif // PV_USE_CUDA
 
-   void deliverPostsynapticPerspective();
+   void deliverPostsynapticPerspective(float *destBuffer);
 
-   void deliverPresynapticPerspective();
+   void deliverPresynapticPerspective(float *destBuffer);
 
 #ifdef PV_USE_CUDA
-   void deliverGPU();
+   void deliverGPU(float *destBuffer);
 #endif // PV_USE_CUDA
 
    // Data members

@@ -61,12 +61,12 @@ Response::Status PresynapticPerspectiveConvolveDelivery::allocateDataStructures(
    return Response::SUCCESS;
 }
 
-void PresynapticPerspectiveConvolveDelivery::deliver() {
+void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
-   float *postChannel = mPostLayer->getChannel(getChannelCode());
+   float *postChannel = destBuffer;
    pvAssert(postChannel);
 
    PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();

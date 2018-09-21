@@ -110,8 +110,9 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
+      auto *layerInputBuffer     = postLayer->getComponentByType<PV::LayerInputBuffer>();
+      float const observedExcSum = layerInputBuffer->getBufferData()[k];
       float const correctExcSum  = correctExc0Value + correctExc1Value;
-      float const observedExcSum = postLayer->getChannel(CHANNEL_EXC)[k];
       if (observedExcSum != correctExcSum) {
          ErrorLog().printf(
                "Rank %d, restricted neuron %d: expected %f but observed %f\n",
@@ -148,8 +149,8 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
+      float const observedInhSum = layerInputBuffer->getChannelData(CHANNEL_INH)[k];
       float const correctInhSum  = correctInh0Value + correctInh1Value;
-      float const observedInhSum = postLayer->getChannel(CHANNEL_INH)[k];
       if (observedInhSum != correctInhSum) {
          ErrorLog().printf(
                "Rank %d, restricted neuron %d: expected %f but observed %f\n",

@@ -18,8 +18,8 @@ Response::Status GateMaxPoolTestLayer::updateState(double timef, double dt) {
 
    bool isCorrect = true;
    for (int b = 0; b < loc->nbatch; b++) {
-      float *GSynExt = getChannel(CHANNEL_EXC) + b * getNumNeurons(); // gated
-      float *GSynInh = getChannel(CHANNEL_INH) + b * getNumNeurons(); // gt
+      float const *GSynExt = mLayerInput->getBufferData(b, CHANNEL_EXC); // gated
+      float const *GSynInh = mLayerInput->getBufferData(b, CHANNEL_INH); // gt
 
       // Grab the activity layer of current layer
       // We only care about restricted space

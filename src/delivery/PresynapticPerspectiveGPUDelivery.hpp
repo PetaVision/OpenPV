@@ -45,7 +45,7 @@ class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
     * (to take advantage of sparsity). Each neuron then modifies the region of the post channel
     * that the weights argument specifies for that pre-synaptic neuron.
     */
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 

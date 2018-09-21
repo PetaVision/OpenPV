@@ -39,7 +39,7 @@ void LeakyIntegrator::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
 
 Response::Status LeakyIntegrator::updateState(double timed, double dt) {
    float *V          = getV();
-   float const *gSyn = mLayerInput->getBufferData(0 /*batch index*/, CHANNEL_EXC);
+   float const *gSyn = mLayerInput->getChannelData(CHANNEL_EXC);
 
    float decayfactor = std::exp(-(float)dt / integrationTime);
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
@@ -47,7 +47,7 @@ Response::Status LeakyIntegrator::updateState(double timed, double dt) {
       V[k] += gSyn[k];
    }
    if (mLayerInput->getNumChannels() > 1) {
-      float const *gSynInh = mLayerInput->getBufferData(0 /*batch index*/, CHANNEL_INH);
+      float const *gSynInh = mLayerInput->getChannelData(CHANNEL_INH);
       for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
          V[k] -= gSynInh[k];
       }

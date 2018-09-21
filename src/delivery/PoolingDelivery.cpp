@@ -8,6 +8,7 @@
 #include "PoolingDelivery.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/ObjectMapComponent.hpp"
+#include "components/PoolingIndexLayerInputBuffer.hpp"
 #include "delivery/accumulate_functions.hpp"
 #include "utils/MapLookupByType.hpp"
 
@@ -263,7 +264,7 @@ void PoolingDelivery::allocateThreadGateIdxBuffer() {
 }
 #endif // PV_USE_OPENMP_THREADS
 
-void PoolingDelivery::deliver() {
+void PoolingDelivery::deliver(float *destBuffer) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
@@ -271,15 +272,15 @@ void PoolingDelivery::deliver() {
 
    if (mReceiveGpu) {
 #ifdef PV_USE_CUDA
-      deliverGPU();
+      deliverGPU(destBuffer);
 #endif // PV_USE_CUDA
    }
    else {
       if (mUpdateGSynFromPostPerspective) {
-         deliverPostsynapticPerspective();
+         deliverPostsynapticPerspective(destBuffer);
       }
       else {
-         deliverPresynapticPerspective();
+         deliverPresynapticPerspective(destBuffer);
       }
    }
 #ifdef PV_USE_CUDA
@@ -287,7 +288,7 @@ void PoolingDelivery::deliver() {
 #endif // PV_USE_CUDA
 }
 
-void PoolingDelivery::deliverPostsynapticPerspective() {
+void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
    PVLayerLoc const *sourceLoc = mPreLayer->getLayerLoc();
    PVLayerLoc const *targetLoc = mPostLayer->getLayerLoc();
    Weights *postWeights        = mWeightsPair->getPostWeights();
@@ -323,7 +324,7 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
 
    PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(0 /*delay*/);
 
-   float *gSyn = getPostLayer()->getChannel(getChannelCode());
+   float *gSyn = destBuffer;
    pvAssert(gSyn);
 
    // Get number of neurons restricted target
@@ -345,7 +346,8 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
    clearGateIdxBuffer();
    float *gatePatchHead = nullptr;
    if (mNeedPostIndexLayer) {
-      gatePatchHead = mPostIndexLayer->getChannel(CHANNEL_EXC);
+      auto *indexLayerInput = mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
+      gatePatchHead         = indexLayerInput->getIndexBuffer(0);
    }
 
    float resetVal = 0.0f;
@@ -442,7 +444,7 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
    }
 }
 
-void PoolingDelivery::deliverPresynapticPerspective() {
+void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
    PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
    PVLayerLoc const *postLoc = getPostLayer()->getLayerLoc();
    Weights *preWeights       = mWeightsPair->getPreWeights();
@@ -478,7 +480,7 @@ void PoolingDelivery::deliverPresynapticPerspective() {
 
    PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(0 /*delay*/);
 
-   float *gSyn = getPostLayer()->getChannel(getChannelCode());
+   float *gSyn = destBuffer;
    pvAssert(gSyn);
 
    float resetVal = 0;
@@ -502,8 +504,9 @@ void PoolingDelivery::deliverPresynapticPerspective() {
       float *gSynPatchHeadBatch = gSyn + b * postLoc->nx * postLoc->ny * postLoc->nf;
       float *gatePatchHeadBatch = NULL;
       if (mNeedPostIndexLayer) {
-         gatePatchHeadBatch =
-               mPostIndexLayer->getChannel(CHANNEL_EXC) + b * mPostIndexLayer->getNumNeurons();
+         auto *indexLayerInput =
+               mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
+         gatePatchHeadBatch = indexLayerInput->getIndexBuffer(b);
       }
 
       SparseList<float>::Entry const *activeIndicesBatch = NULL;
@@ -674,12 +677,13 @@ void PoolingDelivery::deliverPresynapticPerspective() {
 
 void PoolingDelivery::clearGateIdxBuffer() {
    if (mNeedPostIndexLayer) {
+      auto *indexLayerInput = mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
       // Reset mPostIndexLayer's gsyn
       resetGSynBuffers_PoolingIndexLayer(
-            mPostIndexLayer->getLayerLoc()->nbatch,
-            mPostIndexLayer->getNumNeurons(),
-            mPostIndexLayer->getNumChannels(),
-            mPostIndexLayer->getChannel(CHANNEL_EXC));
+            indexLayerInput->getLayerLoc()->nbatch,
+            indexLayerInput->getBufferSize(),
+            indexLayerInput->getNumChannels(),
+            indexLayerInput->getIndexBuffer(0));
    }
 }
 
@@ -692,10 +696,10 @@ bool PoolingDelivery::isAllInputReady() {
 }
 
 #ifdef PV_USE_CUDA
-void PoolingDelivery::deliverGPU() {
+void PoolingDelivery::deliverGPU(float *destBuffer) {
    pvAssert(
          getChannelCode() != CHANNEL_NOUPDATE); // Only called by deliver(), which already checked.
-   pvAssert(mPostLayer->getChannel(getChannelCode()));
+   pvAssert(destBuffer);
 
    if (mPreLayer->getUpdatedDeviceDatastoreFlag()) {
       PVLayerCube activityCube           = mPreLayer->getPublisher()->createCube(0 /*delay*/);

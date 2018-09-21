@@ -27,10 +27,13 @@ class BufferComponent : public BaseObject {
 
    bool getExtendedFlag() const { return mExtendedFlag; }
    int getNumChannels() const { return mNumChannels; }
-   float const *getBufferData() const { return mBufferData.data(); }
-   float const *getBufferData(int kBatch) const { return &mBufferData.at(kBatch * mBufferSize); }
+   float const *getBufferData() const { return dataPointer(0); }
+   float const *getBufferData(int kBatch) const { return dataPointer(kBatch * mBufferSize); }
    float const *getBufferData(int kBatch, int channel) const {
-      return &mBufferData.at(channel * getBufferSizeAcrossBatch() + kBatch * mBufferSize);
+      return dataPointer(channel * getBufferSizeAcrossBatch() + kBatch * mBufferSize);
+   }
+   float const *getChannelData(int channel) const {
+      return dataPointer(channel * getBufferSizeAcrossBatch());
    }
    PVLayerLoc const *getLayerLoc() const { return mLayerGeometry->getLayerLoc(); }
    int getBufferSize() const { return mBufferSize; }
@@ -58,6 +61,11 @@ class BufferComponent : public BaseObject {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
+
+  private:
+   float const *dataPointer(int offset) const {
+      return (offset >= 0 and offset < (int)mBufferData.size()) ? &mBufferData[offset] : nullptr;
+   }
 
   protected:
    bool mExtendedFlag = false;
