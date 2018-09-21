@@ -90,7 +90,6 @@ int Retina::initialize(const char *name, HyPerCol *hc) {
    mLayerInput->requireChannel(CHANNEL_EXC);
    mLayerInput->requireChannel(CHANNEL_INH);
    pvAssert(mLayerInput->getNumChannels() == mNumRetinaChannels);
-   setRetinaParams(parameters());
 
    return status;
 }
@@ -127,6 +126,7 @@ Response::Status Retina::allocateDataStructures() {
 
 Response::Status Retina::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    pvAssert(mInternalState == nullptr); // Retina does not use V.
+   setRetinaParams(message->mDeltaTime);
    if (spikingFlag) {
       for (int k = 0; k < getNumExtendedAllBatches(); k++) {
          mSinceLastSpike[k] = 10 * rParams.abs_refractory_period; // allow neuron to fire at t=0
@@ -203,9 +203,9 @@ void Retina::ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int Retina::setRetinaParams(PVParams *p) {
+int Retina::setRetinaParams(double deltaTime) {
 
-   float dt_sec   = (float)parent->getDeltaTime() * 0.001f; // seconds
+   float dt_sec   = (float)deltaTime * 0.001f; // convert millisectonds to seconds
    float probStim = probStimParam * dt_sec;
    if (probStim > 1.0f) {
       probStim = 1.0f;

@@ -39,7 +39,7 @@ class Retina : public PV::HyPerLayer {
    Retina(const char *name, HyPerCol *hc);
    virtual ~Retina();
 
-   int setRetinaParams(PVParams *p);
+   int setRetinaParams(double deltaTime);
 
    virtual Response::Status updateState(double time, double dt) override;
 
