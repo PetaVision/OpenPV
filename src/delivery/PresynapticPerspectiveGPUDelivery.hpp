@@ -66,6 +66,8 @@ class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
 
    virtual Response::Status allocateDataStructures() override;
 
+   virtual Response::Status copyInitialStateToGPU() override;
+
    void initializeRecvKernelArgs();
 
    // Data members

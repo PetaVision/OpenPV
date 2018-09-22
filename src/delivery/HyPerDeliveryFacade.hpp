@@ -89,6 +89,11 @@ class HyPerDeliveryFacade : public BaseDelivery {
 
    virtual Response::Status allocateDataStructures() override;
 
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
+   virtual Response::Status copyInitialStateToGPU() override;
+
    // Data members
   protected:
    HyPerDelivery::AccumulateType mAccumulateType = HyPerDelivery::CONVOLVE;

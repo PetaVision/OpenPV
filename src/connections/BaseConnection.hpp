@@ -68,6 +68,11 @@ class BaseConnection : public ComponentBasedObject {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
+   virtual Response::Status copyInitialStateToGPU() override;
+
   private:
    Timer *mIOTimer = nullptr;
 

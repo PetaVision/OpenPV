@@ -91,8 +91,16 @@ Response::Status PostsynapticPerspectiveGPUDelivery::allocateDataStructures() {
       return status;
    }
 
-   initializeRecvKernelArgs();
+   auto *postInputBuffer       = getPostLayer()->getComponentByType<LayerInputBuffer>();
+   int const numPostRestricted = postInputBuffer->getBufferSize();
+   mDevicePostToPreActivity =
+         mCudaDevice->createBuffer(numPostRestricted * sizeof(long), &getDescription());
 
+   return Response::SUCCESS;
+}
+
+Response::Status PostsynapticPerspectiveGPUDelivery::copyInitialStateToGPU() {
+   initializeRecvKernelArgs();
    return Response::SUCCESS;
 }
 
@@ -161,9 +169,7 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    //
    // The relevant information is in the PatchGeometry's mUnshrunkenStart buffer, but this
    // has length post->getNumExtended().
-   int const postNumRestricted = postNx * postNy * postNf;
-   mDevicePostToPreActivity =
-         mCudaDevice->createBuffer(postNumRestricted * sizeof(long), &getDescription());
+   int const postNumRestricted     = postNx * postNy * postNf;
    auto *h_PostToPreActivityVector = new vector<long>(postNumRestricted);
    auto *h_PostToPreActivity       = h_PostToPreActivityVector->data();
    auto postGeometry               = postWeights->getGeometry();

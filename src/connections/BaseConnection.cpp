@@ -163,4 +163,19 @@ BaseConnection::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
    return status;
 }
 
+Response::Status
+BaseConnection::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+}
+
+Response::Status BaseConnection::copyInitialStateToGPU() {
+   auto status = ComponentBasedObject::copyInitialStateToGPU();
+   if (status != Response::SUCCESS) {
+      return status;
+   }
+   auto message = std::make_shared<CopyInitialStateToGPUMessage>();
+   status       = notify(message, parent->getCommunicator()->globalCommunicator() /*printFlag*/);
+   return status;
+}
+
 } // namespace PV

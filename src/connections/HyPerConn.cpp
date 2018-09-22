@@ -212,10 +212,6 @@ HyPerConn::respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage
    return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 }
 
-Response::Status HyPerConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
-}
-
 Response::Status
 HyPerConn::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto status = BaseConnection::registerData(message);

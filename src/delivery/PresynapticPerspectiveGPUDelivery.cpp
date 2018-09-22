@@ -88,12 +88,31 @@ Response::Status PresynapticPerspectiveGPUDelivery::allocateDataStructures() {
       return status;
    }
 
-   initializeRecvKernelArgs();
+   // We create mDevicePatches and mDeviceGSynPatchStart here, as opposed to creating them in
+   // the Weights object, because they are only needed by presynaptic-perspective delivery.
+   auto preGeometry             = mWeightsPair->getPreWeights()->getGeometry();
+   std::size_t const numPatches = (std::size_t)preGeometry->getNumPatches();
+   std::size_t cudaBufferSize;
+
+   auto const *hostPatches = &preGeometry->getPatch(0); // Only used to get size for allocation
+   cudaBufferSize          = (std::size_t)numPatches * sizeof(*hostPatches);
+   mDevicePatches          = mCudaDevice->createBuffer(cudaBufferSize, &getDescription());
+   pvAssert(mDevicePatches);
+
+   auto const *hostGSynPatchStart = preGeometry->getGSynPatchStart().data();
+   cudaBufferSize                 = (std::size_t)numPatches * sizeof(*hostGSynPatchStart);
+   mDeviceGSynPatchStart          = mCudaDevice->createBuffer(cudaBufferSize, &getDescription());
+   pvAssert(mDeviceGSynPatchStart);
 
 #ifdef PV_USE_OPENMP_THREADS
    allocateThreadGSyn();
 #endif // PV_USE_OPENMP_THREADS
 
+   return Response::SUCCESS;
+}
+
+Response::Status PresynapticPerspectiveGPUDelivery::copyInitialStateToGPU() {
+   initializeRecvKernelArgs();
    return Response::SUCCESS;
 }
 
@@ -118,24 +137,12 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    pvAssert(d_PatchToDataLookup);
    pvAssert(d_WData);
 
-   // We create mDevicePatches and mDeviceGSynPatchStart here, as opposed to creating them in
-   // the Weights object, because they are only needed by presynaptic-perspective delivery.
-   auto preGeometry             = preWeights->getGeometry();
-   std::size_t const numPatches = (std::size_t)preGeometry->getNumPatches();
-   std::size_t size;
-
-   Patch const *hostPatches = &preGeometry->getPatch(0); // Patches allocated as one vector
-   size                     = (std::size_t)numPatches * sizeof(*hostPatches);
-   mDevicePatches           = mCudaDevice->createBuffer(size, &getDescription());
-   pvAssert(mDevicePatches);
-   // Copy patch geometry information onto CUDA device because it never changes.
+   // Copy patch geometry and GSynPatchStart information onto CUDA device
+   auto preGeometry         = preWeights->getGeometry();
+   Patch const *hostPatches = &preGeometry->getPatch(0); // Patches were allocated as one vector
    mDevicePatches->copyToDevice(hostPatches);
 
    auto const *hostGSynPatchStart = preGeometry->getGSynPatchStart().data();
-   size                           = (std::size_t)numPatches * sizeof(*hostGSynPatchStart);
-   mDeviceGSynPatchStart          = mCudaDevice->createBuffer(size, &getDescription());
-   // Copy GSynPatchStart array onto CUDA device because it never changes.
-   pvAssert(mDeviceGSynPatchStart);
    mDeviceGSynPatchStart->copyToDevice(hostGSynPatchStart);
 
    int nxp = mWeightsPair->getPreWeights()->getPatchSizeX();

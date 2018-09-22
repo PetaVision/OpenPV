@@ -64,9 +64,10 @@ class HyPerDelivery : public BaseDelivery {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status allocateDataStructures() override;
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
-   double convertToRateDeltaTimeFactor(double timeConstantTau) const;
+   double convertToRateDeltaTimeFactor(double timeConstantTau, double deltaTime) const;
 
    // Data members
   protected:

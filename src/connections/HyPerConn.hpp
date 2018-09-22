@@ -63,9 +63,6 @@ class HyPerConn : public BaseConnection {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-   virtual Response::Status
-   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
-
   protected:
    //   ArborList *mArborList              = nullptr;
    //   PatchSize *mPatchSize              = nullptr;

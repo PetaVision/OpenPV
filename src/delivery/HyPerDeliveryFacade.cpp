@@ -179,6 +179,24 @@ Response::Status HyPerDeliveryFacade::allocateDataStructures() {
    return status;
 }
 
+Response::Status
+HyPerDeliveryFacade::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   auto status = BaseDelivery::initializeState(message);
+   if (Response::completed(status) and mDeliveryIntern != nullptr) {
+      status = mDeliveryIntern->respond(message);
+   }
+   return status;
+}
+
+Response::Status HyPerDeliveryFacade::copyInitialStateToGPU() {
+   auto status = Response::SUCCESS;
+   if (mDeliveryIntern) {
+      auto copyMessage = std::make_shared<CopyInitialStateToGPUMessage>();
+      status           = mDeliveryIntern->respond(copyMessage);
+   }
+   return status;
+}
+
 void HyPerDeliveryFacade::deliver(float *destBuffer) {
    // The internal delivery object mDeliveryIntern added itself to the post layer during
    // communicate; the post layer will call that delivery object as well.

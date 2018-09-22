@@ -64,14 +64,15 @@ HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    return Response::SUCCESS;
 }
 
-Response::Status HyPerDelivery::allocateDataStructures() {
+Response::Status
+HyPerDelivery::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    auto status      = BaseDelivery::allocateDataStructures();
    mDeltaTimeFactor = 1.0f; // Default value
    if (!Response::completed(status)) {
       return status;
    }
    if (mAccumulateType == STOCHASTIC) {
-      mDeltaTimeFactor = (float)parent->getDeltaTime();
+      mDeltaTimeFactor = (float)message->mDeltaTime;
    }
    else if (mConvertRateToSpikeCount and !mPreLayer->activityIsSpiking()) {
       auto layerInputBuffer = mPostLayer->getComponentByType<LayerInputBuffer>();
@@ -80,24 +81,22 @@ Response::Status HyPerDelivery::allocateDataStructures() {
             return status + Response::POSTPONE;
          }
          double timeConstant = layerInputBuffer->getChannelTimeConstant(mChannelCode);
-         mDeltaTimeFactor    = (float)convertToRateDeltaTimeFactor(timeConstant);
+         if (timeConstant > 0) {
+            double deltaTime = message->mDeltaTime;
+            mDeltaTimeFactor = (float)convertToRateDeltaTimeFactor(timeConstant, deltaTime);
+         }
+         else {
+            mDeltaTimeFactor = (float)message->mDeltaTime;
+         }
       }
    }
    return Response::SUCCESS;
 }
 
-double HyPerDelivery::convertToRateDeltaTimeFactor(double timeConstantTau) const {
-   double dt = parent->getDeltaTime();
-   double dtFactor;
-   if (timeConstantTau > 0) {
-      dtFactor = std::exp(dt / timeConstantTau) - 1.0;
-      // the above factor was chosen so that for a constant input of G_SYN to an excitatory
-      // conductance G_EXC, then G_EXC -> G_SYN as t -> inf
-   }
-   else {
-      dtFactor = dt;
-   }
-   return dtFactor;
+double HyPerDelivery::convertToRateDeltaTimeFactor(double timeConstantTau, double deltaTime) const {
+   return std::exp(deltaTime / timeConstantTau) - 1.0;
+   // the above factor was chosen so that for a constant input of G_SYN to an excitatory
+   // conductance G_EXC, then G_EXC -> G_SYN as t -> inf
 }
 
 bool HyPerDelivery::isAllInputReady() {
