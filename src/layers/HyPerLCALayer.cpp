@@ -68,9 +68,6 @@ Response::Status HyPerLCALayer::allocateDataStructures() {
          || getLayerLoc()->nbatch == mAdaptiveTimeScaleProbe->getNumValues());
    mDeltaTimes.resize(getLayerLoc()->nbatch);
 
-   auto *layerInputBuffer = getComponentByType<LayerInputBuffer>();
-   pvAssert(layerInputBuffer and layerInputBuffer->getDataStructuresAllocatedFlag());
-   timeConstantTau = (float)layerInputBuffer->getChannelTimeConstant(CHANNEL_EXC);
    return Response::SUCCESS;
 }
 
@@ -133,6 +130,19 @@ HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    return Response::SUCCESS;
 }
 
+Response::Status
+HyPerLCALayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   auto status = ANNLayer::initializeState(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *layerInputBuffer = getComponentByType<LayerInputBuffer>();
+   pvAssert(layerInputBuffer and layerInputBuffer->getDataStructuresAllocatedFlag());
+   double timeConstantTau = layerInputBuffer->getChannelTimeConstant(CHANNEL_EXC);
+   scaledTimeConstantTau  = (float)(timeConstantTau / message->mDeltaTime);
+   return Response::SUCCESS;
+}
+
 #ifdef PV_USE_CUDA
 int HyPerLCALayer::allocateUpdateKernel() {
    PVCuda::CudaDevice *device = mCudaDevice;
@@ -174,14 +184,13 @@ Response::Status HyPerLCALayer::copyInitialStateToGPU() {
    pvAssert(mInternalState);
    PVCuda::CudaBuffer *cudaBuffer = mInternalState->getCudaBuffer();
    pvAssert(cudaBuffer);
-   const float Vth         = this->VThresh;
-   const float AMax        = this->AMax;
-   const float AMin        = this->AMin;
-   const float AShift      = this->AShift;
-   const float VWidth      = this->VWidth;
-   const bool selfInteract = this->selfInteract;
-   const float tau         = timeConstantTau
-                     / (float)parent->getDeltaTime(); // TODO: eliminate need to call parent method
+   const float Vth                          = this->VThresh;
+   const float AMax                         = this->AMax;
+   const float AMin                         = this->AMin;
+   const float AShift                       = this->AShift;
+   const float VWidth                       = this->VWidth;
+   const bool selfInteract                  = this->selfInteract;
+   const float tau                          = scaledTimeConstantTau;
    PVCuda::CudaBuffer *layerInputCudaBuffer = mLayerInput->getCudaBuffer();
    PVCuda::CudaBuffer *activityCudaBuffer   = mActivity->getCudaBuffer();
 
@@ -226,7 +235,7 @@ Response::Status HyPerLCALayer::updateStateGpu(double time, double dt) {
    runUpdateKernel();
    return Response::SUCCESS;
 }
-#endif
+#endif // PV_USE_CUDA
 
 double HyPerLCALayer::getDeltaUpdateTime() const { return parent->getDeltaTime(); }
 
@@ -262,7 +271,7 @@ Response::Status HyPerLCALayer::updateState(double time, double dt) {
             slopes,
             selfInteract,
             deltaTimes(),
-            timeConstantTau / (float)dt,
+            scaledTimeConstantTau,
             gSynHead,
             A);
    }

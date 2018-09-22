@@ -46,7 +46,6 @@ ISTALayer::ISTALayer(const char *name, HyPerCol *hc) {
 ISTALayer::~ISTALayer() {}
 
 int ISTALayer::initialize_base() {
-   timeConstantTau = 1.0f;
    // Locality in conn
    selfInteract = true;
    return PV_SUCCESS;
@@ -67,9 +66,6 @@ Response::Status ISTALayer::allocateDataStructures() {
          || getLayerLoc()->nbatch == mAdaptiveTimeScaleProbe->getNumValues());
    mDeltaTimes.resize(getLayerLoc()->nbatch);
 
-   auto *layerInputBuffer = getComponentByType<LayerInputBuffer>();
-   pvAssert(layerInputBuffer and layerInputBuffer->getDataStructuresAllocatedFlag());
-   timeConstantTau = (float)layerInputBuffer->getChannelTimeConstant(CHANNEL_EXC);
    return Response::SUCCESS;
 }
 
@@ -129,12 +125,40 @@ ISTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    return Response::SUCCESS;
 }
 
+Response::Status ISTALayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   auto status = ANNLayer::initializeState(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *layerInputBuffer = getComponentByType<LayerInputBuffer>();
+   pvAssert(layerInputBuffer and layerInputBuffer->getDataStructuresAllocatedFlag());
+   double timeConstantTau = layerInputBuffer->getChannelTimeConstant(CHANNEL_EXC);
+   scaledTimeConstantTau  = (float)(timeConstantTau / message->mDeltaTime);
+   return Response::SUCCESS;
+}
+
 #ifdef PV_USE_CUDA
 int ISTALayer::allocateUpdateKernel() {
    PVCuda::CudaDevice *device = mCudaDevice;
-   // Set to temp pointer of the subclass
-   PVCuda::CudaUpdateISTALayer *updateKernel = new PVCuda::CudaUpdateISTALayer(device);
-   // Set arguments
+
+   size_t size = getLayerLoc()->nbatch * sizeof(double);
+   d_dtAdapt   = device->createBuffer(size, &getDescription());
+
+   krUpdate = new PVCuda::CudaUpdateISTALayer(device);
+
+   return PV_SUCCESS;
+}
+
+Response::Status ISTALayer::copyInitialStateToGPU() {
+   Response::Status status = ANNLayer::copyInitialStateToGPU();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   if (!mUpdateGpu) {
+      return status;
+   }
+
+   // Set arguments of update kernel
    const PVLayerLoc *loc = getLayerLoc();
    const int nx          = loc->nx;
    const int ny          = loc->ny;
@@ -149,20 +173,18 @@ int ISTALayer::allocateUpdateKernel() {
    pvAssert(mInternalState);
    PVCuda::CudaBuffer *cudaBuffer = mInternalState->getCudaBuffer();
    pvAssert(cudaBuffer);
-   const float Vth         = this->VThresh;
-   const float AMax        = this->AMax;
-   const float AMin        = this->AMin;
-   const float AShift      = this->AShift;
-   const float VWidth      = this->VWidth;
-   const bool selfInteract = this->selfInteract;
-   const float tau         = timeConstantTau
-                     / (float)parent->getDeltaTime(); // TODO: eliminate need to call parent method
+   const float Vth                          = this->VThresh;
+   const float AMax                         = this->AMax;
+   const float AMin                         = this->AMin;
+   const float AShift                       = this->AShift;
+   const float VWidth                       = this->VWidth;
+   const bool selfInteract                  = this->selfInteract;
+   const float tau                          = scaledTimeConstantTau;
    PVCuda::CudaBuffer *layerInputCudaBuffer = mLayerInput->getCudaBuffer();
    PVCuda::CudaBuffer *activityCudaBuffer   = mActivity->getCudaBuffer();
 
-   size_t size = nbatch * sizeof(double);
-   d_dtAdapt   = device->createBuffer(size, &getDescription());
-
+   auto *updateKernel = dynamic_cast<PVCuda::CudaUpdateISTALayer *>(krUpdate);
+   pvAssert(updateKernel);
    // Set arguments to kernel
    updateKernel->setArgs(
          nbatch,
@@ -181,9 +203,7 @@ int ISTALayer::allocateUpdateKernel() {
          tau,
          layerInputCudaBuffer,
          activityCudaBuffer);
-
-   krUpdate = updateKernel;
-   return PV_SUCCESS;
+   return Response::SUCCESS;
 }
 
 Response::Status ISTALayer::updateStateGpu(double time, double dt) {
@@ -236,7 +256,7 @@ Response::Status ISTALayer::updateState(double time, double dt) {
          V,
          VThresh,
          deltaTimes(),
-         timeConstantTau / (float)dt,
+         scaledTimeConstantTau,
          gSynHead,
          A);
    return Response::SUCCESS;

@@ -49,9 +49,14 @@ class ISTALayer : public PV::ANNLayer {
 
    virtual LayerInputBuffer *createLayerInput() override;
 
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
    virtual Response::Status updateState(double time, double dt) override;
 
 #ifdef PV_USE_CUDA
+   virtual Response::Status copyInitialStateToGPU() override;
+
    virtual Response::Status updateStateGpu(double time, double dt) override;
 
    virtual int allocateUpdateKernel() override;
@@ -68,7 +73,7 @@ class ISTALayer : public PV::ANNLayer {
 
    // Data members
   protected:
-   float timeConstantTau = 1.0f;
+   float scaledTimeConstantTau = 1.0f; // The tau from the TauLayerInputBuffer, divided by dt
    bool selfInteract;
    char *mAdaptiveTimeScaleProbeName               = nullptr;
    AdaptiveTimeScaleProbe *mAdaptiveTimeScaleProbe = nullptr;

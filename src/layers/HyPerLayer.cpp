@@ -394,7 +394,6 @@ Response::Status HyPerLayer::copyInitialStateToGPU() {
    }
    return Response::SUCCESS;
 }
-
 #endif // PV_USE_CUDA
 
 void HyPerLayer::initializeActivity() {

@@ -50,7 +50,6 @@ MomentumLCALayer::MomentumLCALayer(const char *name, HyPerCol *hc) {
 MomentumLCALayer::~MomentumLCALayer() {}
 
 int MomentumLCALayer::initialize_base() {
-   timeConstantTau = 1.0;
    LCAMomentumRate = 0;
    // Locality in conn
    selfInteract = true;
@@ -131,14 +130,13 @@ Response::Status MomentumLCALayer::copyInitialStateToGPU() {
    pvAssert(mInternalState);
    PVCuda::CudaBuffer *cudaBuffer = mInternalState->getCudaBuffer();
    pvAssert(cudaBuffer);
-   const float Vth         = this->VThresh;
-   const float AMax        = this->AMax;
-   const float AMin        = this->AMin;
-   const float AShift      = this->AShift;
-   const float VWidth      = this->VWidth;
-   const bool selfInteract = this->selfInteract;
-   const float tau         = timeConstantTau
-                     / (float)parent->getDeltaTime(); // TODO: eliminate need to call parent method
+   const float Vth                          = this->VThresh;
+   const float AMax                         = this->AMax;
+   const float AMin                         = this->AMin;
+   const float AShift                       = this->AShift;
+   const float VWidth                       = this->VWidth;
+   const bool selfInteract                  = this->selfInteract;
+   const float tau                          = scaledTimeConstantTau;
    PVCuda::CudaBuffer *layerInputCudaBuffer = mLayerInput->getCudaBuffer();
    PVCuda::CudaBuffer *activityCudaBuffer   = mActivity->getCudaBuffer();
 
@@ -222,7 +220,7 @@ Response::Status MomentumLCALayer::updateState(double time, double dt) {
          slopes,
          selfInteract,
          deltaTimes(),
-         timeConstantTau / (float)dt,
+         scaledTimeConstantTau,
          LCAMomentumRate,
          gSynHead,
          A,
