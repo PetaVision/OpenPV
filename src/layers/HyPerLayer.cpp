@@ -1387,24 +1387,17 @@ Response::Status HyPerLayer::updateStateGpu(double timef, double dt) {
 Response::Status HyPerLayer::updateState(double timef, double dt) {
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
-
+   mInternalState->updateBuffer(timef, dt);
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
-   float const *gSynHead = mLayerInput == nullptr ? nullptr : mLayerInput->getLayerInput();
 
    int nx          = loc->nx;
    int ny          = loc->ny;
    int nf          = loc->nf;
    int nbatch      = loc->nbatch;
    int num_neurons = nx * ny * nf;
-   if (num_channels == 1) {
-      applyGSyn_HyPerLayer1Channel(nbatch, num_neurons, V, gSynHead);
-   }
-   else {
-      applyGSyn_HyPerLayer(nbatch, num_neurons, V, gSynHead);
-   }
    setActivity_HyPerLayer(
          nbatch,
          num_neurons,

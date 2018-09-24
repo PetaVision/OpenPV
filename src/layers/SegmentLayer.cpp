@@ -46,6 +46,8 @@ OriginalLayerNameParam *SegmentLayer::createOriginalLayerNameParam() {
 
 LayerInputBuffer *SegmentLayer::createLayerInput() { return nullptr; }
 
+InternalStateBuffer *SegmentLayer::createInternalState() { return nullptr; }
+
 int SegmentLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
    ioParam_segmentMethod(ioFlag);

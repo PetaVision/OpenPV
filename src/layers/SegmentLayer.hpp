@@ -21,6 +21,7 @@ class SegmentLayer : public PV::HyPerLayer {
    virtual void setObserverTable() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    virtual LayerInputBuffer *createLayerInput();
+   virtual InternalStateBuffer *createInternalState();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    void ioParam_segmentMethod(enum ParamsIOFlag ioFlag);
    virtual Response::Status

@@ -9,8 +9,7 @@
 #define INTERNALSTATEBUFFER_HPP_
 
 #include "components/BufferComponent.hpp"
-#include "components/InternalStateBuffer.hpp"
-// #include "components/LayerReceiveComponent.hpp"
+#include "components/LayerInputBuffer.hpp"
 #include "initv/BaseInitV.hpp"
 
 namespace PV {
@@ -64,6 +63,9 @@ class InternalStateBuffer : public BufferComponent {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   void checkDimensions(PVLayerLoc const *inLoc, PVLayerLoc const *outLoc) const;
+   void checkDimension(int gSynSize, int internalStateSize, char const *fieldname) const;
+
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
@@ -74,9 +76,9 @@ class InternalStateBuffer : public BufferComponent {
    // void checkDimensions(int gSynSize, int internalStateSize, char const *fieldname);
 
   protected:
-   BaseInitV *mInitVObject = nullptr;
-   char *mInitVTypeString  = nullptr;
-   // GSyn component
+   BaseInitV *mInitVObject        = nullptr;
+   char *mInitVTypeString         = nullptr;
+   LayerInputBuffer *mInputBuffer = nullptr;
 };
 
 } // namespace PV

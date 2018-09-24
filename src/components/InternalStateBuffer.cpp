@@ -55,20 +55,33 @@ Response::Status InternalStateBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   // Get GSyn component
+   mInputBuffer = mapLookupByType<LayerInputBuffer>(message->mHierarchy);
+   FatalIf(
+         mInputBuffer == nullptr,
+         "%s could not find a LayerInputBuffer component.\n",
+         getDescription_c());
+   checkDimensions(mInputBuffer->getLayerLoc(), getLayerLoc());
    return Response::SUCCESS;
 }
 
-// void checkDimensions(int gSynSize, int internalStateSize, char const *fieldname) {
-//    FatalIf(
-//          gSynSize != internalStateSize,
-//          "%s and %s do not have the same %s (%d versus %d)\n",
-//          mGSyn->getDescription(),
-//          getDescription(),
-//          fieldname,
-//          internalStateSize,
-//          activitySize);
-// }
+void InternalStateBuffer::checkDimensions(PVLayerLoc const *inLoc, PVLayerLoc const *outLoc) const {
+   checkDimension(inLoc->nx, outLoc->nx, "nx");
+   checkDimension(inLoc->ny, outLoc->ny, "ny");
+   checkDimension(inLoc->nf, outLoc->nf, "nf");
+   checkDimension(inLoc->nbatch, outLoc->nbatch, "nbatch");
+}
+
+void InternalStateBuffer::checkDimension(int gSynSize, int internalStateSize, char const *fieldname)
+      const {
+   FatalIf(
+         gSynSize != internalStateSize,
+         "%s and %s do not have the same %s (%d versus %d)\n",
+         mInputBuffer->getDescription(),
+         getDescription(),
+         fieldname,
+         gSynSize,
+         internalStateSize);
+}
 
 Response::Status InternalStateBuffer::registerData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
@@ -91,7 +104,29 @@ InternalStateBuffer::initializeState(std::shared_ptr<InitializeStateMessage cons
 }
 
 void InternalStateBuffer::updateBuffer(double simTime, double deltaTime) {
-   // Compute V from GSyn
+   float const *gSynHead = mInputBuffer->getBufferData();
+   float *V              = mBufferData.data();
+
+   int numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
+   if (mInputBuffer->getNumChannels() == 1) {
+      float const *gSynExc = mInputBuffer->getChannelData(CHANNEL_EXC);
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(static)
+#endif
+      for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+         V[k] = gSynExc[k];
+      }
+   }
+   else {
+      float const *gSynExc = mInputBuffer->getChannelData(CHANNEL_EXC);
+      float const *gSynInh = mInputBuffer->getChannelData(CHANNEL_INH);
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(static)
+#endif
+      for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+         V[k] = gSynExc[k] - gSynInh[k];
+      }
+   }
 }
 
 } // namespace PV
