@@ -1343,19 +1343,6 @@ void HyPerLayer::resetStateOnTrigger() {
 #endif
 }
 
-int HyPerLayer::resetGSynBuffers(double timef, double dt) {
-   int status = PV_SUCCESS;
-   if (mLayerInput == nullptr or mLayerInput->getNumChannels() == 0) {
-      return PV_SUCCESS;
-   }
-   resetGSynBuffers_HyPerLayer(
-         getLayerLoc()->nbatch,
-         this->getNumNeurons(),
-         mLayerInput->getNumChannels(),
-         mLayerInput->getLayerInput());
-   return status;
-}
-
 #ifdef PV_USE_CUDA
 int HyPerLayer::runUpdateKernel() {
    assert(mUpdateGpu);

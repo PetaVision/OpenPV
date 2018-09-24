@@ -677,13 +677,19 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
 
 void PoolingDelivery::clearGateIdxBuffer() {
    if (mNeedPostIndexLayer) {
-      auto *indexLayerInput = mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
       // Reset mPostIndexLayer's gsyn
-      resetGSynBuffers_PoolingIndexLayer(
-            indexLayerInput->getLayerLoc()->nbatch,
-            indexLayerInput->getBufferSize(),
-            indexLayerInput->getNumChannels(),
-            indexLayerInput->getIndexBuffer(0));
+      auto *indexLayerInput = mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
+
+      int const numNeuronsAcrossBatch = indexLayerInput->getBufferSizeAcrossBatch();
+      int const numNeuronsAllChannels = numNeuronsAcrossBatch * indexLayerInput->getNumChannels();
+      float *gSynHead                 = indexLayerInput->getIndexBuffer(0);
+
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(static)
+#endif
+      for (int k = 0; k < numNeuronsAllChannels; k++) {
+         gSynHead[k] = -1.0f;
+      }
    }
 }
 

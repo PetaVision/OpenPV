@@ -328,7 +328,6 @@ class HyPerLayer : public ComponentBasedObject {
    respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
    Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
    virtual int publish(Communicator *comm, double simTime);
-   virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
 
    // mpi public wait method to ensure all targets have received synaptic input before proceeding to

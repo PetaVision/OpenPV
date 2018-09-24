@@ -430,21 +430,6 @@ int setActivity_GapLayer(
       MEM_GLOBAL float *active,
       float ampSpiklet);
 
-KERNEL
-int resetGSynBuffers_HyPerLayer(
-      int nbatch,
-      int numNeurons,
-      int num_channels,
-      MEM_GLOBAL float *GSynHead);
-KERNEL
-int resetGSynBuffers_PoolingIndexLayer(
-      int nbatch,
-      int numNeurons,
-      int num_channels,
-      MEM_GLOBAL float *GSynHead);
-KERNEL
-int resetGSynBuffers_SigmoidLayer();
-
 // Definitions
 KERNEL
 int applyGSyn_HyPerLayer1Channel(
@@ -1833,60 +1818,6 @@ int setActivity_SigmoidLayer(
       }
    }
    return PV_SUCCESS;
-}
-
-KERNEL
-int resetGSynBuffers_HyPerLayer(
-      int nbatch,
-      int numNeurons,
-      int num_channels,
-      MEM_GLOBAL float *GSynHead) {
-   for (int ch = 0; ch < num_channels; ch++) {
-      MEM_GLOBAL float *channelStart = &GSynHead[ch * nbatch * numNeurons];
-      int k;
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-      for (k = 0; k < numNeurons * nbatch; k++)
-#else
-      k   = getIndex();
-#endif // PV_USE_CUDA
-      {
-         channelStart[k] = 0.0f;
-      }
-   }
-   return PV_SUCCESS;
-}
-
-// TODO merge this with resetGSynBuffers_HyPerLayer with a template
-KERNEL
-int resetGSynBuffers_PoolingIndexLayer(
-      int nbatch,
-      int numNeurons,
-      int num_channels,
-      MEM_GLOBAL float *GSynHead) {
-   for (int ch = 0; ch < num_channels; ch++) {
-      MEM_GLOBAL float *channelStart = &GSynHead[ch * nbatch * numNeurons];
-      int k;
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-      for (k = 0; k < numNeurons * nbatch; k++)
-#else
-      k   = getIndex();
-#endif // PV_USE_CUDA
-      {
-         channelStart[k] = -1.0f;
-      }
-   }
-   return PV_SUCCESS;
-}
-
-KERNEL
-int resetGSynBuffers_SigmoidLayer() {
-   return PV_SUCCESS; // V is cloned from sourcelayer, so Sigmoid Layer doesn't use the GSynBuffers
 }
 
 KERNEL

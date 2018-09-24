@@ -413,10 +413,6 @@ int ANNLayer::checkVertices() const {
    return status;
 }
 
-int ANNLayer::resetGSynBuffers(double timef, double dt) {
-   return HyPerLayer::resetGSynBuffers(timef, dt);
-}
-
 Response::Status ANNLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = mActivity->getActivity();

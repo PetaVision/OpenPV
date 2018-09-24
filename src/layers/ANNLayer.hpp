@@ -184,8 +184,6 @@ class ANNLayer : public HyPerLayer {
     */
    void setSlopes();
 
-   virtual int resetGSynBuffers(double timef, double dt) override;
-
    // Data members, initialized to default values.
    bool verticesListInParams =
          false; // True if verticesV/verticesA were specified in params explicitly; false otherwise
