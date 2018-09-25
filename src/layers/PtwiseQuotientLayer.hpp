@@ -26,20 +26,11 @@ class PtwiseQuotientLayer : public ANNLayer {
    virtual ~PtwiseQuotientLayer();
 
    virtual Response::Status allocateDataStructures() override;
-   virtual Response::Status updateState(double timef, double dt) override;
 
   protected:
    PtwiseQuotientLayer();
    int initialize(const char *name, HyPerCol *hc);
-
-   /* static */ void doUpdateState(
-         double timef,
-         double dt,
-         const PVLayerLoc *loc,
-         float *A,
-         float *V,
-         int num_channels,
-         float const *gSynHead);
+   InternalStateBuffer *createInternalState() override;
 
   private:
    int initialize_base();

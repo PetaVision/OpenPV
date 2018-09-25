@@ -73,8 +73,6 @@ class InternalStateBuffer : public BufferComponent {
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
   private:
-   // void checkDimensions(int gSynSize, int internalStateSize, char const *fieldname);
-
   protected:
    BaseInitV *mInitVObject        = nullptr;
    char *mInitVTypeString         = nullptr;

@@ -12,6 +12,7 @@
  */
 
 #include "PtwiseQuotientLayer.hpp"
+#include "components/PtwiseQuotientInternalStateBuffer.hpp"
 
 namespace PV {
 
@@ -33,50 +34,14 @@ int PtwiseQuotientLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+InternalStateBuffer *PtwiseQuotientLayer::createInternalState() {
+   return new PtwiseQuotientInternalStateBuffer(getName(), parent);
+}
+
 Response::Status PtwiseQuotientLayer::allocateDataStructures() {
    auto status = ANNLayer::allocateDataStructures();
    pvAssert(mLayerInput->getNumChannels() >= 2);
    return status;
-}
-
-Response::Status PtwiseQuotientLayer::updateState(double timef, double dt) {
-   doUpdateState(
-         timef,
-         dt,
-         getLayerLoc(),
-         getActivity(),
-         getV(),
-         getNumChannels(),
-         mLayerInput->getBufferData());
-   return Response::SUCCESS;
-}
-
-void PtwiseQuotientLayer::doUpdateState(
-      double timef,
-      double dt,
-      const PVLayerLoc *loc,
-      float *A,
-      float *V,
-      int num_channels,
-      float const *gSynHead) {
-   int nx          = loc->nx;
-   int ny          = loc->ny;
-   int nf          = loc->nf;
-   int num_neurons = nx * ny * nf;
-   int nbatch      = loc->nbatch;
-   updateV_PtwiseQuotientLayer(nbatch, num_neurons, V, gSynHead);
-   setActivity_HyPerLayer(
-         nbatch,
-         num_neurons,
-         A,
-         V,
-         nx,
-         ny,
-         nf,
-         loc->halo.lt,
-         loc->halo.rt,
-         loc->halo.dn,
-         loc->halo.up);
 }
 
 } // end namespace PV

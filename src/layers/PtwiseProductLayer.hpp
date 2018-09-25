@@ -23,20 +23,11 @@ class PtwiseProductLayer : public ANNLayer {
    virtual ~PtwiseProductLayer();
 
    virtual Response::Status allocateDataStructures() override;
-   virtual Response::Status updateState(double timef, double dt) override;
 
   protected:
    PtwiseProductLayer();
    int initialize(const char *name, HyPerCol *hc);
-
-   int updateState(
-         double timef,
-         double dt,
-         const PVLayerLoc *loc,
-         float *A,
-         float *V,
-         int num_channels,
-         float *gSynHead);
+   InternalStateBuffer *createInternalState() override;
 
   private:
    int initialize_base();

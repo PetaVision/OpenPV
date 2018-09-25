@@ -9,47 +9,6 @@
 #include "layers/updateStateFunctions.h"
 #include <limits>
 
-void ANNLayer_vertices_update_state(
-      const int nbatch,
-      const int numNeurons,
-      const int nx,
-      const int ny,
-      const int nf,
-      const int lt,
-      const int rt,
-      const int dn,
-      const int up,
-
-      float *V,
-      int numVertices,
-      float *verticesV,
-      float *verticesA,
-      float *slopes,
-      int num_channels,
-      float const *GSynHead,
-      float *activity);
-
-void ANNLayer_threshminmax_update_state(
-      const int nbatch,
-      const int numNeurons,
-      const int nx,
-      const int ny,
-      const int nf,
-      const int lt,
-      const int rt,
-      const int dn,
-      const int up,
-
-      float *V,
-      float VThresh,
-      float AMin,
-      float AMax,
-      float AShift,
-      float VWidth,
-      int num_channels,
-      float const *GSynHead,
-      float *activity);
-
 namespace PV {
 
 ANNLayer::ANNLayer() { initialize_base(); }
@@ -414,56 +373,54 @@ int ANNLayer::checkVertices() const {
 }
 
 Response::Status ANNLayer::updateState(double time, double dt) {
+   mInternalState->updateBuffer(time, dt);
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = mActivity->getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
-   float const *gSynHead = mLayerInput->getBufferData();
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;
    int num_neurons       = nx * ny * nf;
    int nbatch            = loc->nbatch;
    if (layerListsVerticesInParams()) {
-      ANNLayer_vertices_update_state(
+      setActivity_ANNLayer_vertices(
             nbatch,
             num_neurons,
-            nx,
-            ny,
-            nf,
-            loc->halo.lt,
-            loc->halo.rt,
-            loc->halo.dn,
-            loc->halo.up,
             V,
+            num_channels,
+            A,
             numVertices,
             verticesV,
             verticesA,
             slopes,
-            num_channels,
-            gSynHead,
-            A);
-   }
-   else {
-      ANNLayer_threshminmax_update_state(
-            nbatch,
-            num_neurons,
             nx,
             ny,
             nf,
             loc->halo.lt,
             loc->halo.rt,
             loc->halo.dn,
-            loc->halo.up,
+            loc->halo.up);
+   }
+   else {
+      setActivity_ANNLayer_threshminmax(
+            nbatch,
+            num_neurons,
             V,
+            num_channels,
+            A,
             VThresh,
             AMin,
             AMax,
             AShift,
             VWidth,
-            num_channels,
-            gSynHead,
-            A);
+            nx,
+            ny,
+            nf,
+            loc->halo.lt,
+            loc->halo.rt,
+            loc->halo.dn,
+            loc->halo.up);
    }
    return Response::SUCCESS;
 }
@@ -497,88 +454,3 @@ int ANNLayer::setActivity() {
 }
 
 } // end namespace PV
-
-///////////////////////////////////////////////////////
-//
-// implementation of ANNLayer kernels
-//
-
-void ANNLayer_vertices_update_state(
-      const int nbatch,
-      const int numNeurons,
-      const int nx,
-      const int ny,
-      const int nf,
-      const int lt,
-      const int rt,
-      const int dn,
-      const int up,
-
-      float *V,
-      int numVertices,
-      float *verticesV,
-      float *verticesA,
-      float *slopes,
-      int num_channels,
-      float const *GSynHead,
-      float *activity) {
-   updateV_ANNLayer_vertices(
-         nbatch,
-         numNeurons,
-         V,
-         num_channels,
-         GSynHead,
-         activity,
-         numVertices,
-         verticesV,
-         verticesA,
-         slopes,
-         nx,
-         ny,
-         nf,
-         lt,
-         rt,
-         dn,
-         up);
-}
-
-void ANNLayer_threshminmax_update_state(
-      const int nbatch,
-      const int numNeurons,
-      const int nx,
-      const int ny,
-      const int nf,
-      const int lt,
-      const int rt,
-      const int dn,
-      const int up,
-
-      float *V,
-      float VThresh,
-      float AMin,
-      float AMax,
-      float AShift,
-      float VWidth,
-      int num_channels,
-      float const *GSynHead,
-      float *activity) {
-   updateV_ANNLayer_threshminmax(
-         nbatch,
-         numNeurons,
-         V,
-         num_channels,
-         GSynHead,
-         activity,
-         VThresh,
-         AMin,
-         AMax,
-         AShift,
-         VWidth,
-         nx,
-         ny,
-         nf,
-         lt,
-         rt,
-         dn,
-         up);
-}

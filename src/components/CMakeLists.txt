@@ -15,6 +15,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/DependentPatchSize.cpp
    ${SUBDIR}/DependentPhaseParam.cpp
    ${SUBDIR}/DependentSharedWeights.cpp
+   ${SUBDIR}/ErrScaleInternalStateBuffer.cpp
    ${SUBDIR}/FeedbackConnectionData.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/ImpliedWeightsPair.cpp
@@ -22,6 +23,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/InternalStateBuffer.cpp
    ${SUBDIR}/LayerGeometry.cpp
    ${SUBDIR}/LayerInputBuffer.cpp
+   ${SUBDIR}/LeakyInternalStateBuffer.cpp
    ${SUBDIR}/LIFLayerInputBuffer.cpp
    ${SUBDIR}/LinkedObjectParam.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
@@ -30,8 +32,11 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PatchSize.cpp
    ${SUBDIR}/PhaseParam.cpp
    ${SUBDIR}/PoolingIndexLayerInputBuffer.cpp
+   ${SUBDIR}/PtwiseProductInternalStateBuffer.cpp
+   ${SUBDIR}/PtwiseQuotientInternalStateBuffer.cpp
    ${SUBDIR}/SharedWeights.cpp
    ${SUBDIR}/SingleArbor.cpp
+   ${SUBDIR}/SquaredInternalStateBuffer.cpp
    ${SUBDIR}/StrengthParam.cpp
    ${SUBDIR}/TauLayerInputBuffer.cpp
    ${SUBDIR}/TransposePatchSize.cpp
@@ -58,6 +63,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/DependentPatchSize.hpp
    ${SUBDIR}/DependentPhaseParam.hpp
    ${SUBDIR}/DependentSharedWeights.hpp
+   ${SUBDIR}/ErrScaleInternalStateBuffer.hpp
    ${SUBDIR}/FeedbackConnectionData.hpp
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/ImpliedWeightsPair.hpp
@@ -65,6 +71,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/InternalStateBuffer.hpp
    ${SUBDIR}/LayerGeometry.hpp
    ${SUBDIR}/LayerInputBuffer.hpp
+   ${SUBDIR}/LeakyInternalStateBuffer.hpp
    ${SUBDIR}/LIFLayerInputBuffer.hpp
    ${SUBDIR}/LinkedObjectParam.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
@@ -74,8 +81,11 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PatchSize.hpp
    ${SUBDIR}/PhaseParam.hpp
    ${SUBDIR}/PoolingIndexLayerInputBuffer.hpp
+   ${SUBDIR}/PtwiseProductInternalStateBuffer.hpp
+   ${SUBDIR}/PtwiseQuotientInternalStateBuffer.hpp
    ${SUBDIR}/SharedWeights.hpp
    ${SUBDIR}/SingleArbor.hpp
+   ${SUBDIR}/SquaredInternalStateBuffer.hpp
    ${SUBDIR}/StrengthParam.hpp
    ${SUBDIR}/TauLayerInputBuffer.hpp
    ${SUBDIR}/TransposePatchSize.hpp

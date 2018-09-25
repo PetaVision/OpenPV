@@ -21,9 +21,7 @@ class LeakyIntegrator : public PV::ANNLayer {
   protected:
    LeakyIntegrator();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_integrationTime(enum ParamsIOFlag ioFlag);
-   virtual Response::Status updateState(double timed, double dt) override;
+   virtual InternalStateBuffer *createInternalState() override;
 
   private:
    int initialize_base();

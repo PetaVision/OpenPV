@@ -6,6 +6,7 @@
  */
 
 #include "LeakyIntegrator.hpp"
+#include "components/LeakyInternalStateBuffer.hpp"
 #include <cmath>
 
 namespace PV {
@@ -27,55 +28,8 @@ int LeakyIntegrator::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int LeakyIntegrator::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ANNLayer::ioParamsFillGroup(ioFlag);
-   ioParam_integrationTime(ioFlag);
-   return status;
-}
-
-void LeakyIntegrator::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "integrationTime", &integrationTime, integrationTime);
-}
-
-Response::Status LeakyIntegrator::updateState(double timed, double dt) {
-   float *V          = getV();
-   float const *gSyn = mLayerInput->getChannelData(CHANNEL_EXC);
-
-   float decayfactor = std::exp(-(float)dt / integrationTime);
-   for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
-      V[k] *= decayfactor;
-      V[k] += gSyn[k];
-   }
-   if (mLayerInput->getNumChannels() > 1) {
-      float const *gSynInh = mLayerInput->getChannelData(CHANNEL_INH);
-      for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
-         V[k] -= gSynInh[k];
-      }
-   }
-   int nx     = getLayerLoc()->nx;
-   int ny     = getLayerLoc()->ny;
-   int nf     = getLayerLoc()->nf;
-   int nbatch = getLayerLoc()->nbatch;
-
-   PVHalo const *halo = &getLayerLoc()->halo;
-   float *A           = getActivity();
-   setActivity_PtwiseLinearTransferLayer(
-         nbatch,
-         getNumNeurons(),
-         A,
-         V,
-         nx,
-         ny,
-         nf,
-         halo->lt,
-         halo->rt,
-         halo->dn,
-         halo->up,
-         numVertices,
-         verticesV,
-         verticesA,
-         slopes);
-   return Response::SUCCESS;
+InternalStateBuffer *LeakyIntegrator::createInternalState() {
+   return new LeakyInternalStateBuffer(getName(), parent);
 }
 
 LeakyIntegrator::~LeakyIntegrator() {}

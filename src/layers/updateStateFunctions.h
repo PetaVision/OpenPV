@@ -64,12 +64,11 @@ int applyGSyn_LabelErrorLayer(
       int isBinary);
 
 KERNEL
-int updateV_ANNLayer_vertices(
+int setActivity_ANNLayer_vertices(
       int nbatch,
       int numNeurons,
       MEM_GLOBAL float *V,
       int num_channels,
-      MEM_GLOBAL float const *GSynHead,
       MEM_GLOBAL float *activity,
       int numVertices,
       float *verticesV,
@@ -84,12 +83,11 @@ int updateV_ANNLayer_vertices(
       int up);
 
 KERNEL
-int updateV_ANNLayer_threshminmax(
+int setActivity_ANNLayer_threshminmax(
       int nbatch,
       int numNeurons,
       MEM_GLOBAL float *V,
       int num_channels,
-      MEM_GLOBAL float *GSynHead,
       MEM_GLOBAL float *activity,
       float VThresh,
       float AMin,
@@ -104,11 +102,10 @@ int updateV_ANNLayer_threshminmax(
       int dn,
       int up);
 KERNEL
-int updateV_ANNErrorLayer(
+int setActivity_ANNErrorLayer(
       int nbatch,
       int numNeurons,
       MEM_GLOBAL float *V,
-      MEM_GLOBAL float const *GSynHead,
       MEM_GLOBAL float *activity,
       int numVertices,
       float *verticesV,
@@ -278,12 +275,6 @@ int updateV_PoolingANNLayer(
       MEM_GLOBAL float *GSynHead,
       float biasa,
       float biasb);
-KERNEL
-int updateV_PtwiseProductLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float const *GSynHead);
 KERNEL
 int updateV_PtwiseQuotientLayer(
       int nbatch,
@@ -893,12 +884,11 @@ int applyGSyn_ANNWhitenedLayer(
 }
 
 KERNEL
-int updateV_ANNLayer_vertices(
+int setActivity_ANNLayer_vertices(
       int nbatch,
       int numNeurons,
       MEM_GLOBAL float *V,
       int num_channels,
-      MEM_GLOBAL float const *GSynHead,
       MEM_GLOBAL float *activity,
       int numVertices,
       float *verticesV,
@@ -911,41 +901,31 @@ int updateV_ANNLayer_vertices(
       int rt,
       int dn,
       int up) {
-   int status = PV_SUCCESS;
-   if (num_channels == 1) {
-      status = applyGSyn_HyPerLayer1Channel(nbatch, numNeurons, V, GSynHead);
-   }
-   else {
-      status = applyGSyn_HyPerLayer(nbatch, numNeurons, V, GSynHead);
-   }
-   if (status == PV_SUCCESS) {
-      status = setActivity_PtwiseLinearTransferLayer(
-            nbatch,
-            numNeurons,
-            activity,
-            V,
-            nx,
-            ny,
-            nf,
-            lt,
-            rt,
-            dn,
-            up,
-            numVertices,
-            verticesV,
-            verticesA,
-            slopes);
-   }
+   int status = setActivity_PtwiseLinearTransferLayer(
+         nbatch,
+         numNeurons,
+         activity,
+         V,
+         nx,
+         ny,
+         nf,
+         lt,
+         rt,
+         dn,
+         up,
+         numVertices,
+         verticesV,
+         verticesA,
+         slopes);
    return status;
 }
 
 KERNEL
-int updateV_ANNLayer_threshminmax(
+int setActivity_ANNLayer_threshminmax(
       int nbatch,
       int numNeurons,
       MEM_GLOBAL float *V,
       int num_channels,
-      MEM_GLOBAL float const *GSynHead,
       MEM_GLOBAL float *activity,
       float VThresh,
       float AMin,
@@ -959,12 +939,6 @@ int updateV_ANNLayer_threshminmax(
       int rt,
       int dn,
       int up) {
-   if (num_channels == 1) {
-      applyGSyn_HyPerLayer1Channel(nbatch, numNeurons, V, GSynHead);
-   }
-   else {
-      applyGSyn_HyPerLayer(nbatch, numNeurons, V, GSynHead);
-   }
    setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
    applyVThresh_ANNLayer_threshminmax(
          nbatch,
@@ -1222,11 +1196,10 @@ int updateV_ISTALayer(
 }
 
 KERNEL
-int updateV_ANNErrorLayer(
+int setActivity_ANNErrorLayer(
       int nbatch,
       int numNeurons,
       MEM_GLOBAL float *V,
-      MEM_GLOBAL float const *GSynHead,
       MEM_GLOBAL float *activity,
       int numVertices,
       float *verticesV,
@@ -1240,35 +1213,22 @@ int updateV_ANNErrorLayer(
       int dn,
       int up,
       float errScale) {
-   int status;
-   status = applyGSyn_HyPerLayer(nbatch, numNeurons, V, GSynHead);
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (int i = 0; i < numNeurons * nbatch; i++) {
-      V[i] *= errScale;
-   }
-   if (status == PV_SUCCESS) {
-      status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
-   }
-   if (status == PV_SUCCESS) {
-      status = setActivity_PtwiseLinearTransferLayer(
-            nbatch,
-            numNeurons,
-            activity,
-            V,
-            nx,
-            ny,
-            nf,
-            lt,
-            rt,
-            dn,
-            up,
-            numVertices,
-            verticesV,
-            verticesA,
-            slopes);
-   }
+   int status = setActivity_PtwiseLinearTransferLayer(
+         nbatch,
+         numNeurons,
+         activity,
+         V,
+         nx,
+         ny,
+         nf,
+         lt,
+         rt,
+         dn,
+         up,
+         numVertices,
+         verticesV,
+         verticesA,
+         slopes);
    return status;
 }
 
@@ -1327,29 +1287,6 @@ int updateV_PoolingANNLayer(
 #endif // PV_USE_CUDA
    {
       V[k] = GSynExc[k] * GSynInh[k] * (biasa * GSynExc[k] + biasb * GSynInh[k]);
-   }
-   return PV_SUCCESS;
-}
-
-KERNEL
-int updateV_PtwiseProductLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float const *GSynHead) {
-   int k;
-   MEM_GLOBAL float const *GSynExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-   MEM_GLOBAL float const *GSynInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (k = 0; k < numNeurons * nbatch; k++)
-#else
-   k         = getIndex();
-#endif // PV_USE_CUDA
-   {
-      V[k] = GSynExc[k] * GSynInh[k];
    }
    return PV_SUCCESS;
 }

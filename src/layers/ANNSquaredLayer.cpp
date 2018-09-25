@@ -6,21 +6,7 @@
  */
 
 #include "ANNSquaredLayer.hpp"
-
-void ANNSquaredLayer_update_state(
-      const int nbatch,
-      const int numNeurons,
-      const int nx,
-      const int ny,
-      const int nf,
-      const int lt,
-      const int rt,
-      const int dn,
-      const int up,
-
-      float *V,
-      float const *GSynHead,
-      float *activity);
+#include "components/SquaredInternalStateBuffer.hpp"
 
 namespace PV {
 
@@ -37,57 +23,27 @@ int ANNSquaredLayer::initialize_base() { return PV_SUCCESS; }
 
 int ANNSquaredLayer::initialize(const char *name, HyPerCol *hc) {
    int status = ANNLayer::initialize(name, hc);
-   pvAssert(mLayerInput->getNumChannels() == 1);
    return status;
 }
 
-Response::Status ANNSquaredLayer::updateState(double time, double dt) {
-   const int nx     = getLayerLoc()->nx;
-   const int ny     = getLayerLoc()->ny;
-   const int nf     = getLayerLoc()->nf;
-   const int nbatch = getLayerLoc()->nbatch;
+InternalStateBuffer *ANNSquaredLayer::createInternalState() {
+   return new SquaredInternalStateBuffer(getName(), parent);
+}
 
-   float const *GSynHead = mLayerInput->getBufferData();
-   float *V              = getV();
-   float *activity       = mActivity->getActivity();
-
-   ANNSquaredLayer_update_state(
-         nbatch,
-         getNumNeurons(),
-         nx,
-         ny,
-         nf,
-         getLayerLoc()->halo.lt,
-         getLayerLoc()->halo.rt,
-         getLayerLoc()->halo.dn,
-         getLayerLoc()->halo.up,
-         V,
-         GSynHead,
-         activity);
-   return Response::SUCCESS;
+Response::Status ANNSquaredLayer::allocateDataStructures() {
+   auto status = ANNLayer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   FatalIf(
+         mLayerInput == nullptr or mLayerInput->getNumChannels() == 0,
+         "%s requires a LayerInputBuffer component excitatory channel.\n",
+         getDescription_c());
+   if (mLayerInput->getNumChannels() != 1) {
+      WarnLog() << getDescription()
+                << " has more than one channel; only the excitatory channel will be used.\n";
+   }
+   return status;
 }
 
 } /* namespace PV */
-
-///////////////////////////////////////////////////////
-//
-// implementation of ANNLayer kernels
-
-void ANNSquaredLayer_update_state(
-      const int nbatch,
-      const int numNeurons,
-      const int nx,
-      const int ny,
-      const int nf,
-      const int lt,
-      const int rt,
-      const int dn,
-      const int up,
-
-      float *V,
-      float const *GSynHead,
-      float *activity) {
-
-   updateV_ANNSquaredLayer(nbatch, numNeurons, V, GSynHead);
-   setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
-}

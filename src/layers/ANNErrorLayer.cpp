@@ -6,26 +6,7 @@
  */
 
 #include "ANNErrorLayer.hpp"
-
-void ANNErrorLayer_update_state(
-      const int nbatch,
-      const int numNeurons,
-      const int nx,
-      const int ny,
-      const int nf,
-      const int lt,
-      const int rt,
-      const int dn,
-      const int up,
-
-      float *V,
-      int numVertices,
-      float *verticesV,
-      float *verticesA,
-      float *slopes,
-      float const *GSynHead,
-      float *activity,
-      const float errScale);
+#include "components/ErrScaleInternalStateBuffer.hpp"
 
 namespace PV {
 
@@ -55,14 +36,8 @@ int ANNErrorLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-int ANNErrorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ANNLayer::ioParamsFillGroup(ioFlag);
-   ioParam_errScale(ioFlag);
-   return status;
-}
-
-void ANNErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "errScale", &errScale, errScale, true /*warnIfAbsent*/);
+InternalStateBuffer *ANNErrorLayer::createInternalState() {
+   return new ErrScaleInternalStateBuffer(getName(), parent);
 }
 
 int ANNErrorLayer::setVertices() {
@@ -124,75 +99,4 @@ int ANNErrorLayer::checkVertices() const {
    return status;
 }
 
-Response::Status ANNErrorLayer::updateState(double time, double dt) {
-   const PVLayerLoc *loc = getLayerLoc();
-   float *A              = mActivity->getActivity();
-   float *V              = getV();
-   int num_channels      = getNumChannels();
-   float const *gSynHead = mLayerInput->getBufferData();
-   int nx                = loc->nx;
-   int ny                = loc->ny;
-   int nf                = loc->nf;
-   int num_neurons       = nx * ny * nf;
-   int nbatch            = loc->nbatch;
-   ANNErrorLayer_update_state(
-         nbatch,
-         num_neurons,
-         nx,
-         ny,
-         nf,
-         loc->halo.lt,
-         loc->halo.rt,
-         loc->halo.dn,
-         loc->halo.up,
-         V,
-         numVertices,
-         verticesV,
-         verticesA,
-         slopes,
-         gSynHead,
-         A,
-         errScale);
-   return Response::SUCCESS;
-}
-
 } /* namespace PV */
-
-void ANNErrorLayer_update_state(
-      const int nbatch,
-      const int numNeurons,
-      const int nx,
-      const int ny,
-      const int nf,
-      const int lt,
-      const int rt,
-      const int dn,
-      const int up,
-
-      float *V,
-      int numVertices,
-      float *verticesV,
-      float *verticesA,
-      float *slopes,
-      float const *GSynHead,
-      float *activity,
-      const float errScale) {
-   updateV_ANNErrorLayer(
-         nbatch,
-         numNeurons,
-         V,
-         GSynHead,
-         activity,
-         numVertices,
-         verticesV,
-         verticesA,
-         slopes,
-         nx,
-         ny,
-         nf,
-         lt,
-         rt,
-         dn,
-         up,
-         errScale);
-}

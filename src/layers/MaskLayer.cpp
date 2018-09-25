@@ -178,9 +178,6 @@ Response::Status MaskLayer::updateState(double time, double dt) {
    ANNLayer::updateState(time, dt);
 
    float *A              = getActivity();
-   float *V              = getV();
-   int num_channels      = getNumChannels();
-   float const *gSynHead = mLayerInput == nullptr ? nullptr : mLayerInput->getBufferData();
    const PVLayerLoc *loc = getLayerLoc();
 
    int nx          = loc->nx;

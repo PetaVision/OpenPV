@@ -18,11 +18,12 @@ class ANNSquaredLayer : public PV::ANNLayer {
   public:
    ANNSquaredLayer(const char *name, HyPerCol *hc);
    virtual ~ANNSquaredLayer();
-   virtual Response::Status updateState(double time, double dt) override;
 
   protected:
    ANNSquaredLayer();
    int initialize(const char *name, HyPerCol *hc);
+   virtual InternalStateBuffer *createInternalState() override;
+   virtual Response::Status allocateDataStructures() override;
 
   private:
    int initialize_base();

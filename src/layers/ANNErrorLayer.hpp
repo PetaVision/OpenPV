@@ -20,19 +20,12 @@ class ANNErrorLayer : public PV::ANNLayer {
   protected:
    ANNErrorLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    /**
     * List of parameters used by the ANNErrorLayer class
     * @name ANNErrorLayer Parameters
     * @{
     */
-
-   /**
-    * @brief: errScale: The input to the error layer is multiplied by errScale before applying the
-    * threshold.
-    */
-   virtual void ioParam_errScale(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief VThresh: Errors whose absolute value is below VThresh are truncated to zero.
@@ -65,9 +58,10 @@ class ANNErrorLayer : public PV::ANNLayer {
    virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag) override {}
    /** @} */
 
+   virtual InternalStateBuffer *createInternalState() override;
+
    virtual int setVertices() override;
    virtual int checkVertices() const override;
-   virtual Response::Status updateState(double time, double dt) override;
 
   private:
    int initialize_base();

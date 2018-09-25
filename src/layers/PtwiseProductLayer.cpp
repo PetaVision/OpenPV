@@ -11,6 +11,7 @@
  */
 
 #include "PtwiseProductLayer.hpp"
+#include "components/PtwiseProductInternalStateBuffer.hpp"
 
 namespace PV {
 
@@ -32,37 +33,14 @@ int PtwiseProductLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
+InternalStateBuffer *PtwiseProductLayer::createInternalState() {
+   return new PtwiseProductInternalStateBuffer(getName(), parent);
+}
+
 Response::Status PtwiseProductLayer::allocateDataStructures() {
    auto status = ANNLayer::allocateDataStructures();
    pvAssert(mLayerInput->getNumChannels() >= 2);
    return status;
-}
-
-Response::Status PtwiseProductLayer::updateState(double timef, double dt) {
-   const PVLayerLoc *loc = getLayerLoc();
-   float *A              = mActivity->getActivity();
-   float *V              = getV();
-   int num_channels      = getNumChannels();
-   float const *gSynHead = mLayerInput->getBufferData();
-   int nx                = loc->nx;
-   int ny                = loc->ny;
-   int nf                = loc->nf;
-   int num_neurons       = nx * ny * nf;
-   int nbatch            = loc->nbatch;
-   updateV_PtwiseProductLayer(nbatch, num_neurons, V, gSynHead);
-   setActivity_HyPerLayer(
-         nbatch,
-         num_neurons,
-         A,
-         V,
-         nx,
-         ny,
-         nf,
-         loc->halo.lt,
-         loc->halo.rt,
-         loc->halo.dn,
-         loc->halo.up);
-   return Response::SUCCESS;
 }
 
 } // end namespace PV
