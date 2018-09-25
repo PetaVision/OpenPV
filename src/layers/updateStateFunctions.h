@@ -37,18 +37,6 @@
 
 // Prototypes
 KERNEL
-int applyGSyn_HyPerLayer1Channel(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float const *GSynHead);
-KERNEL
-int applyGSyn_HyPerLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float const *GSynHead);
-KERNEL
 int applyGSyn_LabelErrorLayer(
       int nbatch,
       int numNeurons,
@@ -262,26 +250,6 @@ int updateV_ISTALayer(
 KERNEL
 int updateV_ANNDivInh(int nbatch, int numNeurons, MEM_GLOBAL float *V, MEM_GLOBAL float *GSynHead);
 KERNEL
-int updateV_ANNSquaredLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float *GSynHead);
-KERNEL
-int updateV_PoolingANNLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float *GSynHead,
-      float biasa,
-      float biasb);
-KERNEL
-int updateV_PtwiseQuotientLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float const *GSynHead);
-KERNEL
 int updateV_SigmoidLayer();
 KERNEL
 int applyVMax_ANNLayer_threshminmax(
@@ -375,33 +343,6 @@ int setActivity_PtwiseLinearTransferLayer(
       float *slopes);
 
 KERNEL
-int setActivity_AccumulateLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *A,
-      MEM_GLOBAL float *V,
-      int nx,
-      int ny,
-      int nf,
-      int lt,
-      int rt,
-      int dn,
-      int up);
-KERNEL
-int setActivity_IncrementLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *A,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float *Vprev,
-      int nx,
-      int ny,
-      int nf,
-      int lt,
-      int rt,
-      int dn,
-      int up);
-KERNEL
 int setActivity_GapLayer(
       int nbatch,
       int numNeurons,
@@ -422,62 +363,6 @@ int setActivity_GapLayer(
       float ampSpiklet);
 
 // Definitions
-KERNEL
-int applyGSyn_HyPerLayer1Channel(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float const *GSynHead) {
-   int kbatch;
-   // gSyn spins from slowest to fastest: [channel, batch, ny, nx, nf]
-   MEM_GLOBAL float const *GSynExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (kbatch = 0; kbatch < numNeurons * nbatch; kbatch++)
-#else
-   kbatch    = getIndex();
-#endif // PV_USE_CUDA
-   {
-      int b                                = kbatch / numNeurons;
-      int k                                = kbatch % numNeurons;
-      MEM_GLOBAL float *VBatch             = V + b * numNeurons;
-      MEM_GLOBAL float const *GSynExcBatch = GSynExc + b * numNeurons;
-      VBatch[k]                            = GSynExcBatch[k];
-   }
-   return PV_SUCCESS;
-}
-
-KERNEL
-int applyGSyn_HyPerLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float const *GSynHead) {
-   int kbatch;
-   MEM_GLOBAL float const *GSynExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-   MEM_GLOBAL float const *GSynInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (kbatch = 0; kbatch < numNeurons * nbatch; kbatch++)
-#else
-   kbatch    = getIndex();
-#endif // PV_USE_CUDA
-   {
-      int b                                = kbatch / numNeurons;
-      int k                                = kbatch % numNeurons;
-      MEM_GLOBAL float *VBatch             = V + b * numNeurons;
-      MEM_GLOBAL float const *GSynExcBatch = GSynExc + b * numNeurons;
-      MEM_GLOBAL float const *GSynInhBatch = GSynInh + b * numNeurons;
-
-      VBatch[k] = GSynExcBatch[k] - GSynInhBatch[k];
-   }
-   return PV_SUCCESS;
-}
-
 KERNEL
 int applyGSyn_LabelErrorLayer(
       int nbatch,
@@ -1254,67 +1139,6 @@ int updateV_ANNDivInh(int nbatch, int numNeurons, MEM_GLOBAL float *V, MEM_GLOBA
 }
 
 KERNEL
-int updateV_ANNSquaredLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float const *GSynHead) {
-   int status;
-   status = applyGSyn_HyPerLayer1Channel(nbatch, numNeurons, V, GSynHead);
-   if (status == PV_SUCCESS)
-      status = squareV_ANNSquaredLayer(nbatch, numNeurons, V);
-   return status;
-}
-
-KERNEL
-int updateV_PoolingANNLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float *GSynHead,
-      float biasa,
-      float biasb) {
-   int k;
-   MEM_GLOBAL float *GSynExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-   MEM_GLOBAL float *GSynInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (k = 0; k < numNeurons * nbatch; k++)
-#else
-   k         = getIndex();
-#endif // PV_USE_CUDA
-   {
-      V[k] = GSynExc[k] * GSynInh[k] * (biasa * GSynExc[k] + biasb * GSynInh[k]);
-   }
-   return PV_SUCCESS;
-}
-
-KERNEL
-int updateV_PtwiseQuotientLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float const *GSynHead) {
-   int k;
-   MEM_GLOBAL float const *GSynExc = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-   MEM_GLOBAL float const *GSynInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (k = 0; k < numNeurons * nbatch; k++)
-#else
-   k         = getIndex();
-#endif // PV_USE_CUDA
-   {
-      V[k] = GSynExc[k] / GSynInh[k];
-   }
-   return PV_SUCCESS;
-}
-
-KERNEL
 int updateV_SigmoidLayer() {
    return PV_SUCCESS; // sourcelayer is responsible for updating V.
 }
@@ -1613,41 +1437,6 @@ int setActivity_PtwiseLinearTransferLayer(
          }
       }
       ABatch[kex] = activity;
-   }
-   return PV_SUCCESS;
-}
-
-KERNEL
-int setActivity_AccumulateLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *A,
-      MEM_GLOBAL float *V,
-      int nx,
-      int ny,
-      int nf,
-      int lt,
-      int rt,
-      int dn,
-      int up) {
-   // static inline int setActivity_HyPerLayer(int numNeurons, float * A, float * V, int nx,
-   // int ny, int nf, int lt, int rt, int dn, int up) {
-   int kbatch;
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (kbatch = 0; kbatch < numNeurons * nbatch; kbatch++)
-#else
-   kbatch = getIndex();
-#endif // PV_USE_CUDA
-   {
-      int b                    = kbatch / numNeurons;
-      int k                    = kbatch % numNeurons;
-      MEM_GLOBAL float *ABatch = A + b * ((nx + lt + rt) * (ny + up + dn) * nf);
-      MEM_GLOBAL float *VBatch = V + b * numNeurons;
-      int kex                  = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      ABatch[kex] += VBatch[k];
    }
    return PV_SUCCESS;
 }
