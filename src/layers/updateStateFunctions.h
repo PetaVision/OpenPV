@@ -90,24 +90,6 @@ int setActivity_ANNLayer_threshminmax(
       int dn,
       int up);
 KERNEL
-int setActivity_ANNErrorLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float *activity,
-      int numVertices,
-      float *verticesV,
-      float *verticesA,
-      float *slopes,
-      int nx,
-      int ny,
-      int nf,
-      int lt,
-      int rt,
-      int dn,
-      int up,
-      float errScale);
-KERNEL
 int applyGSyn_HyPerLCALayer(
       int nbatch,
       int numNeurons,
@@ -248,8 +230,6 @@ int updateV_ISTALayer(
       int up,
       int numChannels);
 KERNEL
-int updateV_ANNDivInh(int nbatch, int numNeurons, MEM_GLOBAL float *V, MEM_GLOBAL float *GSynHead);
-KERNEL
 int updateV_SigmoidLayer();
 KERNEL
 int applyVMax_ANNLayer_threshminmax(
@@ -282,34 +262,6 @@ int applyVThresh_ANNLayer_threshminmax(
       int rt,
       int dn,
       int up);
-KERNEL
-int applyVThresh_ANNErrorLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      float AMin,
-      float VThresh,
-      float AShift,
-      MEM_GLOBAL float *activity,
-      int nx,
-      int ny,
-      int nf,
-      int lt,
-      int rt,
-      int dn,
-      int up);
-KERNEL
-int squareV_ANNSquaredLayer(int nbatch, int numNeurons, MEM_GLOBAL float *V);
-KERNEL
-int updateSparsityTermDeriv_LogLatWTAGenLayer(
-      int nbatch,
-      int numNeurons,
-      int num_features,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float *sparsitytermderivative);
-KERNEL
-float lateralCompetitionPenalty(MEM_GLOBAL float *V, int num_features);
-
 KERNEL
 int setActivity_HyPerLayer(
       int nbatch,
@@ -1081,64 +1033,6 @@ int updateV_ISTALayer(
 }
 
 KERNEL
-int setActivity_ANNErrorLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float *activity,
-      int numVertices,
-      float *verticesV,
-      float *verticesA,
-      float *slopes,
-      int nx,
-      int ny,
-      int nf,
-      int lt,
-      int rt,
-      int dn,
-      int up,
-      float errScale) {
-   int status = setActivity_PtwiseLinearTransferLayer(
-         nbatch,
-         numNeurons,
-         activity,
-         V,
-         nx,
-         ny,
-         nf,
-         lt,
-         rt,
-         dn,
-         up,
-         numVertices,
-         verticesV,
-         verticesA,
-         slopes);
-   return status;
-}
-
-KERNEL
-int updateV_ANNDivInh(int nbatch, int numNeurons, MEM_GLOBAL float *V, MEM_GLOBAL float *GSynHead) {
-   int k;
-   MEM_GLOBAL float *GSynExc    = &GSynHead[CHANNEL_EXC * nbatch * numNeurons];
-   MEM_GLOBAL float *GSynInh    = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
-   MEM_GLOBAL float *GSynDivInh = &GSynHead[CHANNEL_INHB * nbatch * numNeurons];
-
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (k = 0; k < numNeurons * nbatch; k++)
-#else
-   k         = getIndex();
-#endif // PV_USE_CUDA
-   {
-      V[k] = (GSynExc[k] - GSynInh[k]) / (GSynDivInh[k] + 0.04f);
-   }
-   return PV_SUCCESS;
-}
-
-KERNEL
 int updateV_SigmoidLayer() {
    return PV_SUCCESS; // sourcelayer is responsible for updating V.
 }
@@ -1227,123 +1121,6 @@ int applyVThresh_ANNLayer_threshminmax(
       }
    }
    return PV_SUCCESS;
-}
-
-KERNEL
-int applyVThresh_ANNErrorLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *V,
-      float AMin,
-      float VThresh,
-      float AShift,
-      MEM_GLOBAL float *activity,
-      int nx,
-      int ny,
-      int nf,
-      int lt,
-      int rt,
-      int dn,
-      int up) {
-   if (VThresh > -FLT_MAX) {
-      int kbatch = 0;
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-      for (kbatch = 0; kbatch < numNeurons * nbatch; kbatch++)
-#else
-      kbatch = getIndex();
-#endif // PV_USE_CUDA
-      {
-         int b                           = kbatch / numNeurons;
-         int k                           = kbatch % numNeurons;
-         MEM_GLOBAL float *VBatch        = V + b * numNeurons;
-         MEM_GLOBAL float *activityBatch = activity + b * (nx + lt + rt) * (ny + up + dn) * nf;
-         int kex                         = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         if (fabsf(VBatch[k]) < VThresh)
-            activityBatch[kex] = AMin;
-         else
-            activityBatch[kex] -= AShift;
-      }
-   }
-   return PV_SUCCESS;
-}
-
-KERNEL
-int squareV_ANNSquaredLayer(int nbatch, int numNeurons, MEM_GLOBAL float *V) {
-   int k;
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (k = 0; k < numNeurons * nbatch; k++)
-#else
-   k         = getIndex();
-#endif // PV_USE_CUDA
-   {
-      V[k] *= V[k];
-   }
-   return PV_SUCCESS;
-}
-
-KERNEL
-int updateSparsityTermDeriv_LogLatWTAGenLayer(
-      int nbatch,
-      int numNeurons,
-      int num_features,
-      MEM_GLOBAL float *V,
-      MEM_GLOBAL float *sparsitytermderivative) {
-#ifndef PV_USE_CUDA
-   int k;
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-   for (k = 0; k < numNeurons / num_features; k++) {
-      int feature_start         = k * num_features;
-      float sum_across_features = 0.0f;
-      int f;
-      for (f = 0; f < num_features; f++) {
-         sum_across_features += V[feature_start + f];
-      }
-      float lat_wta_expr = lateralCompetitionPenalty(&V[feature_start], num_features);
-      for (f = 0; f < num_features; f++) {
-         sparsitytermderivative[k * num_features + f] =
-               2.0f * (sum_across_features - V[k * num_features + f]) / (1.0f + lat_wta_expr);
-      }
-   }
-#else // PV_USE_CUDA
-   int k     = getIndex();
-   {
-      int feature_start         = k - (k % num_features);
-      float sum_across_features = 0.0f;
-      for (int f = 0; f < num_features; f++) {
-         sum_across_features += V[feature_start + f];
-      }
-      float lat_wta_expr = lateralCompetitionPenalty(&V[feature_start], num_features);
-      // Each block of num_features neurons will have the same sum_across_features and latWTAexpr.
-      // Can we eliminate redundant calculations?
-      sparsitytermderivative[k] = 2.0f * (sum_across_features - V[k]) / (1.0f + lat_wta_expr);
-   }
-#endif // PV_USE_CUDA
-
-   return PV_SUCCESS;
-}
-
-KERNEL
-float lateralCompetitionPenalty(MEM_GLOBAL float *V, int num_features) {
-   float z = 0.0f;
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-   for (int p = 0; p < num_features; p++) {
-      for (int q = 0; q < num_features; q++) {
-         if (p != q) {
-            z += V[p] * V[q];
-         }
-      }
-   }
-   return z;
 }
 
 KERNEL
@@ -1542,47 +1319,6 @@ int setActivity_SigmoidLayer(
       if (inverse_flag) {
          ABatch[kex] = 1.0f - ABatch[kex];
       }
-   }
-   return PV_SUCCESS;
-}
-
-KERNEL
-int setActivity_MLPSigmoidLayer(
-      int nbatch,
-      int numNeurons,
-      MEM_GLOBAL float *A,
-      MEM_GLOBAL float *V,
-      float linear_alpha,
-      bool *dropout_buf,
-      int nx,
-      int ny,
-      int nf,
-      int lt,
-      int rt,
-      int dn,
-      int up,
-      float dt) {
-   int kbatch;
-
-#ifndef PV_USE_CUDA
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-   for (kbatch = 0; kbatch < numNeurons * nbatch; kbatch++)
-#else
-   kbatch = getIndex();
-#endif // !PV_USE_CUDA
-   {
-      int b              = kbatch / numNeurons;
-      int k              = kbatch % numNeurons;
-      float *VBatch      = V + b * nx * ny * nf;
-      float *ABatch      = A + b * (nx + lt + rt) * (ny + up + dn) * nf;
-      bool *dropoutBatch = dropout_buf + b * nx * ny * nf;
-
-      int kex        = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      float activity = 1.7159f * tanhf(2.0f / 3.0f * VBatch[k]) + linear_alpha * VBatch[k];
-      // Set explicitly to 0 if that neuron was dropped out
-      ABatch[kex] = dropoutBatch[k] ? 0.0f : activity;
    }
    return PV_SUCCESS;
 }
