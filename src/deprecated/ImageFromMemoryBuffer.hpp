@@ -91,7 +91,7 @@ class ImageFromMemoryBuffer : public ImageLayer {
     * For ImageFromMemoryBuffer, the updateTime is the parent->getStopTime().
     * Implemented to allow triggering off of an ImageFromMemoryBuffer layer.
     */
-   virtual double getDeltaUpdateTime() const override;
+   virtual void setNontriggerDeltaUpdateTime(double dt) override;
 
    /**
        * Overrides updateState

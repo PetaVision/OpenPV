@@ -168,7 +168,9 @@ Response::Status ImageFromMemoryBuffer::updateState(double time, double dt) {
    return Response::SUCCESS;
 }
 
-double ImageFromMemoryBuffer::getDeltaUpdateTime() const { return parent->getStopTime(); }
+void ImageFromMemoryBuffer::setNontriggerDeltaUpdateTime(double dt) {
+   mDeltaUpdateTime = parent->getStopTime();
+}
 
 ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {}
 

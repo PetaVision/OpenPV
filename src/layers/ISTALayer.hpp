@@ -18,7 +18,6 @@ class ISTALayer : public PV::ANNLayer {
   public:
    ISTALayer(const char *name, HyPerCol *hc);
    virtual ~ISTALayer();
-   virtual double getDeltaUpdateTime() const override;
 
   protected:
    ISTALayer();
@@ -51,6 +50,8 @@ class ISTALayer : public PV::ANNLayer {
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
+   virtual void setNontriggerDeltaUpdateTime(double dt) override;
 
    virtual Response::Status updateState(double time, double dt) override;
 

@@ -300,7 +300,7 @@ class HyPerLayer : public ComponentBasedObject {
    /**
     * A function to return the interval between times when updateState is needed.
     */
-   virtual double getDeltaUpdateTime() const;
+   double getDeltaUpdateTime() const { return mDeltaUpdateTime; }
 
    /**
     * A function to return the interval between triggering times.  A negative value means that the
@@ -415,6 +415,14 @@ class HyPerLayer : public ComponentBasedObject {
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
+   /**
+    * A virtual method, called by initializeState() to set the interval between times when
+    * updateState is needed, if the layer does not have a trigger layer. If the layer does have
+    * a trigger layer, this method will not be called and the period is set (during InitializeState)
+    * to the that layer's DeltaUpdateTime.
+    */
+   virtual void setNontriggerDeltaUpdateTime(double dt);
+
    int openOutputStateFile(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
 /* static methods called by updateState({long_argument_list})*/
 
@@ -497,6 +505,8 @@ class HyPerLayer : public ComponentBasedObject {
    std::vector<BaseConnection *> recvConns;
 
    bool mHasUpdated = false;
+
+   double mDeltaUpdateTime = 1.0;
 
 // GPU variables
 #ifdef PV_USE_CUDA

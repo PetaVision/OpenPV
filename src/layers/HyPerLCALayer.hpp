@@ -17,7 +17,6 @@ class HyPerLCALayer : public PV::ANNLayer {
   public:
    HyPerLCALayer(const char *name, HyPerCol *hc);
    virtual ~HyPerLCALayer();
-   virtual double getDeltaUpdateTime() const override;
 
   protected:
    HyPerLCALayer();
@@ -50,6 +49,7 @@ class HyPerLCALayer : public PV::ANNLayer {
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+   virtual void setNontriggerDeltaUpdateTime(double dt) override;
 
    virtual Response::Status updateState(double time, double dt) override;
 

@@ -13,11 +13,10 @@ class FixedImageSequence : public PV::HyPerLayer {
 
    /**
     * Initializes the activity buffer to zero and calls
-    * the pure virtual method initIndices to set the
+    * the pure virtual method defineImageSequence to set the
     * mIndexStart and mIndexSkip data members.
     */
-   virtual PV::Response::Status
-   initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) override;
+   virtual void initializeActivity();
 
    /**
     * A pure virtual method where derived classes should set the data members

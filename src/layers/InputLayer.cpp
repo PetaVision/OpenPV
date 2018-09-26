@@ -407,18 +407,27 @@ void InputLayer::cropToMPIBlock(Buffer<float> &buffer) {
    buffer.crop(blockWidth, blockHeight, Buffer<float>::NORTHWEST);
 }
 
-double InputLayer::getDeltaUpdateTime() const {
-   return mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX;
-}
-
 Response::Status
 InputLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    pvAssert(mInternalState == nullptr);
    double deltaTime = message->mDeltaTime;
+   if (triggerLayer and triggerBehaviorType == UPDATEONLY_TRIGGER) {
+      if (!triggerLayer->getInitialValuesSetFlag()) {
+         return Response::POSTPONE;
+      }
+      mDeltaUpdateTime = triggerLayer->getDeltaUpdateTime();
+   }
+   else {
+      setNontriggerDeltaUpdateTime(message->mDeltaTime);
+   }
    retrieveInput(0.0 /*simulationTime*/, deltaTime);
    mLastUpdateTime  = deltaTime;
    mLastTriggerTime = deltaTime;
    return Response::SUCCESS;
+}
+
+void InputLayer::setNontriggerDeltaUpdateTime(double dt) {
+   mDeltaUpdateTime = mDisplayPeriod > 0 ? mDisplayPeriod : DBL_MAX;
 }
 
 int InputLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

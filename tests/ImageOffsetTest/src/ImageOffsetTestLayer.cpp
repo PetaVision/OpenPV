@@ -4,7 +4,7 @@ namespace PV {
 
 ImageOffsetTestLayer::ImageOffsetTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-double ImageOffsetTestLayer::getDeltaUpdateTime() const { return 1; }
+void ImageOffsetTestLayer::setNontriggerDeltaUpdateTime(double dt) { mDeltaUpdateTime = 1.0; }
 
 bool ImageOffsetTestLayer::readyForNextFile() { return false; }
 

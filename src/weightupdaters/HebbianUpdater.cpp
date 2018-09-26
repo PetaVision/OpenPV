@@ -237,27 +237,6 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
          MPI_Barrier(parent->getCommunicator()->globalCommunicator());
          exit(PV_FAILURE);
       }
-
-      // Although weightUpdatePeriod and weightUpdateTime are being set here, if triggerLayerName
-      // is set, they are not being used. Only updating for backwards compatibility
-      mWeightUpdatePeriod = mTriggerLayer->getDeltaUpdateTime();
-      if (mWeightUpdatePeriod <= 0) {
-         if (mPlasticityFlag == true) {
-            WarnLog() << "Connection " << name << "triggered layer " << mTriggerLayerName
-                      << " never updates, turning plasticity flag off\n";
-            mPlasticityFlag = false;
-         }
-      }
-      if (mWeightUpdatePeriod != -1 && mTriggerOffset >= mWeightUpdatePeriod) {
-         Fatal().printf(
-               "%s, rank %d process: TriggerOffset (%f) must be lower than the change in update "
-               "time (%f) of the attached trigger layer\n",
-               getDescription_c(),
-               parent->getCommunicator()->globalCommRank(),
-               mTriggerOffset,
-               mWeightUpdatePeriod);
-      }
-      mWeightUpdateTime = parent->getDeltaTime();
    }
 
    return Response::SUCCESS;
@@ -312,8 +291,8 @@ Response::Status HebbianUpdater::allocateDataStructures() {
    }
 
    if (mPlasticityFlag && !mTriggerLayer) {
-      if (mWeightUpdateTime < parent->simulationTime()) {
-         while (mWeightUpdateTime <= parent->simulationTime()) {
+      if (mWeightUpdateTime < 0.0) {
+         while (mWeightUpdateTime <= 0.0) {
             mWeightUpdateTime += mWeightUpdatePeriod;
          }
          if (parent->getCommunicator()->globalCommRank() == 0) {

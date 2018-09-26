@@ -137,6 +137,8 @@ Response::Status ISTALayer::initializeState(std::shared_ptr<InitializeStateMessa
    return Response::SUCCESS;
 }
 
+void ISTALayer::setNontriggerDeltaUpdateTime(double dt) { mDeltaUpdateTime = dt; }
+
 #ifdef PV_USE_CUDA
 int ISTALayer::allocateUpdateKernel() {
    PVCuda::CudaDevice *device = mCudaDevice;
@@ -220,8 +222,6 @@ Response::Status ISTALayer::updateStateGpu(double time, double dt) {
    return Response::SUCCESS;
 }
 #endif
-
-double ISTALayer::getDeltaUpdateTime() const { return parent->getDeltaTime(); }
 
 Response::Status ISTALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();

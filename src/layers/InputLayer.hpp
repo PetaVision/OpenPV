@@ -149,7 +149,7 @@ class InputLayer : public HyPerLayer {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
-   virtual double getDeltaUpdateTime() const override;
+   virtual void setNontriggerDeltaUpdateTime(double dt) override;
 
    // Method that signals when to load the next file.
    // Can be overridden for different file list logic in subclasses.

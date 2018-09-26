@@ -143,6 +143,8 @@ HyPerLCALayer::initializeState(std::shared_ptr<InitializeStateMessage const> mes
    return Response::SUCCESS;
 }
 
+void HyPerLCALayer::setNontriggerDeltaUpdateTime(double dt) { mDeltaUpdateTime = dt; }
+
 #ifdef PV_USE_CUDA
 int HyPerLCALayer::allocateUpdateKernel() {
    PVCuda::CudaDevice *device = mCudaDevice;
@@ -236,8 +238,6 @@ Response::Status HyPerLCALayer::updateStateGpu(double time, double dt) {
    return Response::SUCCESS;
 }
 #endif // PV_USE_CUDA
-
-double HyPerLCALayer::getDeltaUpdateTime() const { return parent->getDeltaTime(); }
 
 Response::Status HyPerLCALayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();

@@ -6,15 +6,11 @@ FixedImageSequence::FixedImageSequence(char const *name, PV::HyPerCol *hc) {
    PV::HyPerLayer::initialize(name, hc);
 }
 
-PV::Response::Status
-FixedImageSequence::initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) {
+void FixedImageSequence::initializeActivity() {
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
       mActivity->getActivity()[k] = 0.0f;
    }
    defineImageSequence();
-   mLastUpdateTime  = message->mDeltaTime;
-   mLastTriggerTime = message->mDeltaTime;
-   return PV::Response::SUCCESS;
 }
 
 PV::Response::Status FixedImageSequence::updateState(double timestamp, double dt) {

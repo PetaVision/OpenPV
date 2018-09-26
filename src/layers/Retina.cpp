@@ -126,6 +126,15 @@ Response::Status Retina::allocateDataStructures() {
 
 Response::Status Retina::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    pvAssert(mInternalState == nullptr); // Retina does not use V.
+   if (triggerLayer and triggerBehaviorType == UPDATEONLY_TRIGGER) {
+      if (!triggerLayer->getInitialValuesSetFlag()) {
+         return Response::POSTPONE;
+      }
+      mDeltaUpdateTime = triggerLayer->getDeltaUpdateTime();
+   }
+   else {
+      setNontriggerDeltaUpdateTime(message->mDeltaTime);
+   }
    setRetinaParams(message->mDeltaTime);
    if (spikingFlag) {
       for (int k = 0; k < getNumExtendedAllBatches(); k++) {

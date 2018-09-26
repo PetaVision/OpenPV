@@ -375,11 +375,22 @@ HyPerLayer::initializeState(std::shared_ptr<InitializeStateMessage const> messag
    if (mInternalState) {
       mInternalState->respond(message);
    }
+   if (triggerLayer and triggerBehaviorType == UPDATEONLY_TRIGGER) {
+      if (!triggerLayer->getInitialValuesSetFlag()) {
+         return Response::POSTPONE;
+      }
+      mDeltaUpdateTime = triggerLayer->getDeltaUpdateTime();
+   }
+   else {
+      setNontriggerDeltaUpdateTime(message->mDeltaTime);
+   }
    initializeActivity();
    mLastUpdateTime  = message->mDeltaTime;
    mLastTriggerTime = message->mDeltaTime;
    return Response::SUCCESS;
 }
+
+void HyPerLayer::setNontriggerDeltaUpdateTime(double dt) { mDeltaUpdateTime = dt; }
 
 #ifdef PV_USE_CUDA
 Response::Status HyPerLayer::copyInitialStateToGPU() {
@@ -435,7 +446,7 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ and parameters()->stringPresent(getName(), "dataType")) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          WarnLog().printf(
-               "%s defines the dataType param, which is no longer used.\n, getDescription_c()");
+               "%s defines the dataType param, which is no longer used.\n", getDescription_c());
       }
    }
 }
@@ -1023,21 +1034,6 @@ Response::Status HyPerLayer::allocateDataStructures() {
    // activity buffer activity->data, and the data store.
    auto status = Response::SUCCESS;
 
-   // Doing this check here, since trigger layers are being set up in communicateInitInfo
-   // If the magnitude of the trigger offset is bigger than the delta update time, then error
-   if (triggerFlag) {
-      double deltaUpdateTime = getDeltaUpdateTime();
-      if (deltaUpdateTime != -1 && triggerOffset >= deltaUpdateTime) {
-         Fatal().printf(
-               "%s error in rank %d process: TriggerOffset (%f) must be lower than the change in "
-               "update time (%f) \n",
-               getDescription_c(),
-               parent->getCommunicator()->globalCommRank(),
-               triggerOffset,
-               deltaUpdateTime);
-      }
-   }
-
    auto allocateMessage = std::make_shared<AllocateDataStructuresMessage>();
    notify(allocateMessage, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 
@@ -1201,15 +1197,6 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    checkpointer->registerTimer(io_timer);
 
    return Response::SUCCESS;
-}
-
-double HyPerLayer::getDeltaUpdateTime() const {
-   if (triggerLayer != NULL && triggerBehaviorType == UPDATEONLY_TRIGGER) {
-      return getDeltaTriggerTime();
-   }
-   else {
-      return parent->getDeltaTime();
-   }
 }
 
 double HyPerLayer::getDeltaTriggerTime() const {

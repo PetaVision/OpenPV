@@ -27,10 +27,15 @@ int IndexLayer::initialize(char const *name, HyPerCol *hc) {
 
 PV::Response::Status
 IndexLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   double deltaTime = message->mDeltaTime;
-   mLastUpdateTime  = deltaTime;
-   mLastTriggerTime = deltaTime;
-   return updateState(0.0 /*timestamp*/, deltaTime);
+   auto status = HyPerLayer::initializeState(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   return updateState(0.0 /*timestamp*/, message->mDeltaTime);
+}
+
+void IndexLayer::initializeActivity() {
+   // initializeState also calls updateState, so initializeActivity does not need to do anything
 }
 
 Response::Status IndexLayer::updateState(double timef, double dt) {

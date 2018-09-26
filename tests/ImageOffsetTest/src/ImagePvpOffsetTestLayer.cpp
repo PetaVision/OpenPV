@@ -6,7 +6,7 @@ ImagePvpOffsetTestLayer::ImagePvpOffsetTestLayer(const char *name, HyPerCol *hc)
    PvpLayer::initialize(name, hc);
 }
 
-double ImagePvpOffsetTestLayer::getDeltaUpdateTime() const { return 1; }
+void ImagePvpOffsetTestLayer::setNontriggerDeltaUpdateTime(double dt) { mDeltaUpdateTime = 1.0; }
 
 bool ImagePvpOffsetTestLayer::readyForNextFile() { return false; }
 
