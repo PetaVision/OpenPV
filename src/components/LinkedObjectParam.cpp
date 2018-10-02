@@ -7,8 +7,8 @@
 
 #include "LinkedObjectParam.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "columns/ObserverTableComponent.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
@@ -28,16 +28,15 @@ void LinkedObjectParam::ioParam_linkedObjectName(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamStringRequired(ioFlag, name, mParamName.c_str(), &mLinkedObjectName);
 }
 
-ComponentBasedObject *
-LinkedObjectParam::findLinkedObject(std::map<std::string, Observer *> const &hierarchy) {
-   ObjectMapComponent *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
+ComponentBasedObject *LinkedObjectParam::findLinkedObject(ObserverTable const &hierarchy) {
+   ObserverTableComponent *tableComponent = hierarchy.lookupByType<ObserverTableComponent>();
    FatalIf(
-         objectMapComponent == nullptr,
-         "%s: CommunicateInitInfoMessage has no ObjectMapComponent.\n",
+         tableComponent == nullptr,
+         "%s: CommunicateInitInfoMessage has no ObserverTableComponent.\n",
          getDescription_c());
-   ComponentBasedObject *originalObject = nullptr;
-   originalObject =
-         objectMapComponent->lookup<ComponentBasedObject>(std::string(mLinkedObjectName));
+   auto &observerTable = tableComponent->getObserverTable();
+   ComponentBasedObject *originalObject =
+         observerTable.lookup<ComponentBasedObject>(std::string(mLinkedObjectName));
    if (originalObject == nullptr) {
       std::string invArgMessage(mParamName);
       invArgMessage.append(" \"").append(mLinkedObjectName).append(" \"");

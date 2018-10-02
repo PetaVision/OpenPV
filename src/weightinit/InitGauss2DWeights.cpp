@@ -6,10 +6,9 @@
  */
 
 #include "InitGauss2DWeights.hpp"
-#include "columns/ObjectMapComponent.hpp"
+#include "columns/ObserverTableComponent.hpp"
 #include "components/StrengthParam.hpp"
 #include "connections/BaseConnection.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -122,7 +121,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    }
 
    auto hierarchy      = message->mHierarchy;
-   auto *strengthParam = mapLookupByType<StrengthParam>(hierarchy);
+   auto *strengthParam = hierarchy.lookupByType<StrengthParam>();
    if (strengthParam) {
       if (strengthParam->getInitInfoCommunicatedFlag()) {
          mStrength = strengthParam->getStrength();
@@ -133,16 +132,17 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       }
    }
    else {
-      strengthParam           = new StrengthParam(name, parent);
-      auto objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
+      strengthParam       = new StrengthParam(name, parent);
+      auto tableComponent = hierarchy.lookupByType<ObserverTableComponent>();
       FatalIf(
-            objectMapComponent == nullptr,
+            tableComponent == nullptr,
             "%s unable to add strength component.\n",
             getDescription_c());
-      BaseConnection *parentConn = objectMapComponent->lookup<BaseConnection>(std::string(name));
+      auto &observerTable        = tableComponent->getObserverTable();
+      BaseConnection *parentConn = observerTable.lookup<BaseConnection>(std::string(name));
       FatalIf(
             parentConn == nullptr,
-            "%s objectMapComponent is missing an object called \"%s\".\n",
+            "%s tableComponent is missing an object called \"%s\".\n",
             getDescription_c(),
             name);
       parentConn->addObserver(strengthParam->getDescription(), strengthParam);

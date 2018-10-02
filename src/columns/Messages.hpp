@@ -12,9 +12,8 @@
 
 #include "cMakeHeader.h"
 #include "observerpattern/BaseMessage.hpp"
-#include "observerpattern/Observer.hpp"
+#include "observerpattern/ObserverTable.hpp"
 #include "utils/Timer.hpp"
-#include <map>
 #include <string>
 
 #ifdef PV_USE_CUDA
@@ -26,7 +25,7 @@ namespace PV {
 class CommunicateInitInfoMessage : public BaseMessage {
   public:
    CommunicateInitInfoMessage(
-         std::map<std::string, Observer *> const &hierarchy,
+         ObserverTable const &hierarchy,
          int nxGlobal,
          int nyGlobal,
          int nBatchGlobal,
@@ -40,16 +39,11 @@ class CommunicateInitInfoMessage : public BaseMessage {
    }
    template <typename T>
    T *lookup(std::string const &name) const {
-      auto search = mHierarchy.find(name);
-      if (search == mHierarchy.end()) {
-         return nullptr;
-      }
-      else {
-         T *result = dynamic_cast<T *>(search->second);
-         return result;
-      }
+      Observer *searchResult = mHierarchy.getObject(name);
+      T *castResult          = dynamic_cast<T *>(searchResult);
+      return castResult;
    }
-   std::map<std::string, Observer *> mHierarchy;
+   ObserverTable mHierarchy;
    int mNxGlobal;
    int mNyGlobal;
    int mNBatchGlobal;

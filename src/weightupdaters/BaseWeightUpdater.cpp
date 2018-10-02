@@ -7,7 +7,6 @@
 
 #include "BaseWeightUpdater.hpp"
 #include "columns/HyPerCol.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 

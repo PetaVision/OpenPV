@@ -7,7 +7,6 @@
 
 #include "HyPerDelivery.hpp"
 #include "columns/HyPerCol.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -50,13 +49,13 @@ HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    if (!Response::completed(status)) {
       return status;
    }
-   mWeightsPair = mapLookupByType<WeightsPair>(message->mHierarchy);
+   mWeightsPair = message->mHierarchy.lookupByType<WeightsPair>();
    pvAssert(mWeightsPair);
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
 
-   mArborList = mapLookupByType<ArborList>(message->mHierarchy);
+   mArborList = message->mHierarchy.lookupByType<ArborList>();
    pvAssert(mArborList);
    if (!mArborList->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;

@@ -7,8 +7,7 @@
 
 #include "SingleArbor.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "columns/ObserverTableComponent.hpp"
 
 namespace PV {
 

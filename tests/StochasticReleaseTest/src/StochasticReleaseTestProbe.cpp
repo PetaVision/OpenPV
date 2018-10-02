@@ -52,7 +52,7 @@ Response::Status StochasticReleaseTestProbe::communicateInitInfo(
             ": %s, communicateInitInfo called with connection already set.\n",
             getDescription_c());
       for (auto &obj : message->mHierarchy) {
-         ComponentBasedObject *hyperconn = dynamic_cast<ComponentBasedObject *>(obj.second);
+         ComponentBasedObject *hyperconn = dynamic_cast<ComponentBasedObject *>(obj);
          if (hyperconn == nullptr) {
             continue;
          }

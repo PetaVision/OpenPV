@@ -8,9 +8,8 @@
 #include "TransposeWeightsPair.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
+#include "columns/ObserverTableComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -44,7 +43,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    ConnectionData *originalConnData = nullptr;
    if (mOriginalWeightsPair == nullptr) {
-      auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(message->mHierarchy);
+      auto *originalConnNameParam = message->mHierarchy.lookupByType<OriginalConnNameParam>();
       pvAssert(originalConnNameParam);
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
@@ -169,7 +168,8 @@ void TransposeWeightsPair::createPostWeights(std::string const &weightsName) {
 
 Response::Status TransposeWeightsPair::allocateDataStructures() { return Response::SUCCESS; }
 
-Response::Status TransposeWeightsPair::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+Response::Status TransposeWeightsPair::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    if (mWriteStep >= 0) {
       return WeightsPair::registerData(message);
    }

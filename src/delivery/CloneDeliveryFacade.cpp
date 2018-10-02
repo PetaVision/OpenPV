@@ -8,7 +8,6 @@
 #include "CloneDeliveryFacade.hpp"
 #include "columns/HyPerCol.hpp"
 #include "components/CloneWeightsPair.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -31,7 +30,7 @@ Response::Status CloneDeliveryFacade::communicateInitInfo(
       return status;
    }
    if (mUpdateGSynFromPostPerspective) {
-      auto *cloneWeightsPair = mapLookupByType<CloneWeightsPair>(message->mHierarchy);
+      auto *cloneWeightsPair = message->mHierarchy.lookupByType<CloneWeightsPair>();
       pvAssert(cloneWeightsPair);
       cloneWeightsPair->synchronizeMarginsPost();
    }

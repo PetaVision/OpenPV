@@ -8,9 +8,8 @@
 #include "DependentArborList.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
+#include "columns/ObserverTableComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -39,7 +38,7 @@ void DependentArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(message->mHierarchy);
+   auto *originalConnNameParam = message->mHierarchy.lookupByType<OriginalConnNameParam>();
    pvAssert(originalConnNameParam);
 
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {

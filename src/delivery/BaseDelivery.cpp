@@ -8,7 +8,6 @@
 #include "BaseDelivery.hpp"
 #include "columns/HyPerCol.hpp"
 #include "layers/HyPerLayer.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -27,7 +26,7 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
       return status;
    }
    if (mConnectionData == nullptr) {
-      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy);
+      mConnectionData = message->mHierarchy.lookupByType<ConnectionData>();
    }
    FatalIf(mConnectionData == nullptr, "%s could not find a ConnectionData component.\n");
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {

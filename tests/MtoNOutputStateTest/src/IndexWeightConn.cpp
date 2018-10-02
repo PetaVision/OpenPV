@@ -31,7 +31,7 @@ BaseWeightUpdater *IndexWeightConn::createWeightUpdater() {
 
 Response::Status
 IndexWeightConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   auto *weightUpdater = mapLookupByType<IndexWeightUpdater>(mObserverTable.getObjectMap());
+   auto *weightUpdater = mObserverTable.lookupByType<IndexWeightUpdater>();
    pvAssert(weightUpdater);
    weightUpdater->initializeWeights();
    return Response::SUCCESS;

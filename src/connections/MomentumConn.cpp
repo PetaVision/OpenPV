@@ -6,7 +6,6 @@
 
 #include "MomentumConn.hpp"
 #include "columns/HyPerCol.hpp"
-#include "utils/MapLookupByType.hpp"
 #include "weightupdaters/MomentumUpdater.hpp"
 
 namespace PV {

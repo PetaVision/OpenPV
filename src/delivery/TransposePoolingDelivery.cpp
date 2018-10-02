@@ -7,11 +7,10 @@
 
 #include "TransposePoolingDelivery.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
+#include "columns/ObserverTableComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
 #include "connections/PoolingConn.hpp"
 #include "delivery/accumulate_functions.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -67,18 +66,18 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
 
    auto hierarchy = message->mHierarchy;
 
-   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
+   auto *originalConnNameParam = hierarchy.lookupByType<OriginalConnNameParam>();
    pvAssert(originalConnNameParam);
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
    const char *originalConnName = originalConnNameParam->getLinkedObjectName();
 
-   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
+   auto *tableComponent = hierarchy.lookupByType<ObserverTableComponent>();
    FatalIf(
-         objectMapComponent == nullptr, "%s requires an ObjectMapComponent.\n", getDescription_c());
-   PoolingConn *originalConn =
-         objectMapComponent->lookup<PoolingConn>(std::string(originalConnName));
+         tableComponent == nullptr, "%s requires an ObserverTableComponent.\n", getDescription_c());
+   auto &observerTable       = tableComponent->getObserverTable();
+   PoolingConn *originalConn = observerTable.lookup<PoolingConn>(std::string(originalConnName));
    if (originalConn == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -116,7 +115,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
             name, "updateGSynFromPostPerspective", mUpdateGSynFromPostPerspective);
    }
 
-   mPatchSize = mapLookupByType<DependentPatchSize>(hierarchy);
+   mPatchSize = hierarchy.lookupByType<DependentPatchSize>();
    FatalIf(
          mPatchSize == nullptr,
          "%s requires a DependentPatchSize component.\n",
@@ -125,7 +124,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   mWeightsPair = mapLookupByType<ImpliedWeightsPair>(hierarchy);
+   mWeightsPair = hierarchy.lookupByType<ImpliedWeightsPair>();
    FatalIf(
          mWeightsPair == nullptr,
          "%s requires an ImpliedWeightsPair component.\n",

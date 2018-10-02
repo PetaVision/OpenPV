@@ -8,7 +8,6 @@
 #include "InitWeights.hpp"
 #include "components/WeightsPair.hpp"
 #include "io/WeightsFileIO.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -105,7 +104,7 @@ void InitWeights::handleObsoleteFlag(std::string const &flagName) {
 
 Response::Status
 InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy);
+   auto *weightsPair = message->mHierarchy.lookupByType<WeightsPair>();
    pvAssert(weightsPair);
    auto status = BaseObject::communicateInitInfo(message);
    if (!Response::completed(status)) {

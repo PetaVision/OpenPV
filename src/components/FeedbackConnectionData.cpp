@@ -8,9 +8,8 @@
 #include "FeedbackConnectionData.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
+#include "columns/ObserverTableComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -40,15 +39,15 @@ void FeedbackConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {}
 Response::Status FeedbackConnectionData::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto hierarchy              = message->mHierarchy;
-   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(hierarchy);
+   auto *originalConnNameParam = hierarchy.lookupByType<OriginalConnNameParam>();
    pvAssert(originalConnNameParam);
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
 
-   ObjectMapComponent *objectMapComponent;
-   objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
-   pvAssert(objectMapComponent);
+   ObserverTableComponent *tableComponent = hierarchy.lookupByType<ObserverTableComponent>();
+   pvAssert(tableComponent);
+   auto &observerTable = tableComponent->getObserverTable();
    ComponentBasedObject *originalConn =
-         objectMapComponent->lookup<ComponentBasedObject>(std::string(originalConnName));
+         observerTable.lookup<ComponentBasedObject>(std::string(originalConnName));
    if (originalConn == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(

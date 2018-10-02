@@ -10,7 +10,6 @@
 
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/ObserverTable.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -53,6 +52,10 @@ class Subject {
    // A hack to allow test_cocirc, test_gauss2d, and test_post_weights to send a
    // CommunicateInitInfoMessage. A better way would be to write a method that
    // passes a message to the notify function.
+   ObserverTable copyObserverTable() {
+      ObserverTable observerTable = mObserverTable;
+      return observerTable;
+   }
    std::map<std::string, Observer *> *copyObjectMap() {
       auto objectMap = new std::map<std::string, Observer *>;
       *objectMap     = mObserverTable.getObjectMap();
@@ -150,7 +153,7 @@ class Subject {
 
 template <typename S>
 S *Subject::getComponentByType() {
-   return mapLookupByType<S>(mObserverTable.getObjectMap());
+   return mObserverTable.lookupByType<S>();
 }
 
 template <typename S>

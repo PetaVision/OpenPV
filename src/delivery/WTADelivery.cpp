@@ -7,7 +7,6 @@
 
 #include "WTADelivery.hpp"
 #include "columns/HyPerCol.hpp"
-#include "utils/MapLookupByType.hpp"
 #include <cstring>
 
 namespace PV {
@@ -35,7 +34,7 @@ WTADelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
       return status;
    }
 
-   auto *singleArbor = mapLookupByType<SingleArbor>(message->mHierarchy);
+   auto *singleArbor = message->mHierarchy.lookupByType<SingleArbor>();
    FatalIf(!singleArbor, "%s requires a SingleArbor component.\n", getDescription_c());
    if (!singleArbor->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;

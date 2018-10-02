@@ -10,7 +10,6 @@
 #include "components/PatchSize.hpp"
 #include "components/SharedWeights.hpp"
 #include "components/WeightsPair.hpp"
-#include "utils/MapLookupByType.hpp"
 #include "weightupdaters/MomentumUpdater.hpp"
 #include <cmath>
 #include <utils/BufferUtilsMPI.hpp>

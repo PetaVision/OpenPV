@@ -9,7 +9,6 @@
 #include "columns/HyPerCol.hpp"
 #include "io/WeightsFileIO.hpp"
 #include "layers/HyPerLayer.hpp"
-#include "utils/MapLookupByType.hpp"
 #include "utils/TransposeWeights.hpp"
 
 namespace PV {
@@ -144,7 +143,7 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
    pvAssert(mConnectionData); // set during WeightsPairInterface::communicateInitInfo()
 
-   mArborList = mapLookupByType<ArborList>(message->mHierarchy);
+   mArborList = message->mHierarchy.lookupByType<ArborList>();
    pvAssert(mArborList);
 
    if (!mArborList->getInitInfoCommunicatedFlag()) {
@@ -158,7 +157,7 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
 
    if (mSharedWeights == nullptr) {
-      mSharedWeights = mapLookupByType<SharedWeights>(message->mHierarchy);
+      mSharedWeights = message->mHierarchy.lookupByType<SharedWeights>();
       pvAssert(mSharedWeights);
    }
 

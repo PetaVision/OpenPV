@@ -7,7 +7,6 @@
 
 #include "WeightsPairInterface.hpp"
 #include "columns/HyPerCol.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -31,7 +30,7 @@ Response::Status WeightsPairInterface::communicateInitInfo(
       return status;
    }
    if (mConnectionData == nullptr) {
-      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy);
+      mConnectionData = message->mHierarchy.lookupByType<ConnectionData>();
       pvAssert(mConnectionData);
    }
 
@@ -46,7 +45,7 @@ Response::Status WeightsPairInterface::communicateInitInfo(
    }
 
    if (mPatchSize == nullptr) {
-      mPatchSize = mapLookupByType<PatchSize>(message->mHierarchy);
+      mPatchSize = message->mHierarchy.lookupByType<PatchSize>();
       FatalIf(
             mPatchSize == nullptr,
             "Communicate message to %s has no PatchSize component.\n",

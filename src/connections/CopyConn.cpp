@@ -11,7 +11,6 @@
 #include "components/DependentArborList.hpp"
 #include "components/DependentPatchSize.hpp"
 #include "components/DependentSharedWeights.hpp"
-#include "utils/MapLookupByType.hpp"
 #include "weightupdaters/CopyUpdater.hpp"
 
 namespace PV {

@@ -9,7 +9,6 @@
 #include "columns/HyPerCol.hpp"
 #include "components/ConnectionData.hpp"
 #include "layers/HyPerLayer.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -65,7 +64,7 @@ void ArborList::ioParam_delay(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *connectionData = mapLookupByType<ConnectionData>(message->mHierarchy);
+   auto *connectionData = message->mHierarchy.lookupByType<ConnectionData>();
    pvAssert(connectionData);
 
    if (!connectionData->getInitInfoCommunicatedFlag()) {

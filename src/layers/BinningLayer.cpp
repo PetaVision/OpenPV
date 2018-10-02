@@ -144,7 +144,7 @@ void BinningLayer::setOriginalLayer() {
 
    ComponentBasedObject *originalObject = nullptr;
    try {
-      originalObject = originalLayerNameParam->findLinkedObject(mObserverTable.getObjectMap());
+      originalObject = originalLayerNameParam->findLinkedObject(mObserverTable);
    } catch (std::invalid_argument &e) {
       Fatal().printf("%s: %s\n", getDescription_c(), e.what());
    }

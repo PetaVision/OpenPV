@@ -16,7 +16,7 @@
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
+#include "columns/ObserverTableComponent.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
@@ -822,18 +822,18 @@ int HyPerLayer::allocateDeviceBuffers() {
 
 Response::Status
 HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *objectMapComponent = getComponentByType<ObjectMapComponent>();
-   if (!objectMapComponent) {
-      objectMapComponent = new ObjectMapComponent(name, parent);
-      objectMapComponent->setObjectMap(message->mHierarchy);
-      addUniqueComponent(objectMapComponent->getDescription(), objectMapComponent);
-      // ObserverTable takes ownership; objectMapComponent will be deleted by
+   auto *tableComponent = getComponentByType<ObserverTableComponent>();
+   if (!tableComponent) {
+      tableComponent = new ObserverTableComponent(name, parent);
+      tableComponent->setObserverTable(message->mHierarchy);
+      addUniqueComponent(tableComponent->getDescription(), tableComponent);
+      // ObserverTable takes ownership; tableComponent will be deleted by
       // Subject::deleteObserverTable() method during destructor.
    }
-   pvAssert(objectMapComponent);
+   pvAssert(tableComponent);
 
    auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
-         mObserverTable.getObjectMap(),
+         mObserverTable,
          message->mNxGlobal,
          message->mNyGlobal,
          message->mNBatchGlobal,

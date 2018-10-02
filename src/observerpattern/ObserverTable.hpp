@@ -60,6 +60,21 @@ class ObserverTable {
       return lookupResult;
    }
 
+   template <typename S>
+   S *lookupByType() const {
+      S *lookupResult = nullptr;
+      for (auto *obs : mObjectVector) {
+         auto castObject = dynamic_cast<S *>(obs);
+         if (castObject) {
+            FatalIf(
+                  lookupResult,
+                  "ObserverTable::lookupByType called with multiple objects of the given type.\n");
+            lookupResult = castObject;
+         }
+      }
+      return lookupResult;
+   }
+
    // To iterate over ObserverTable:
    typedef std::vector<Observer *>::iterator iterator;
    typedef std::vector<Observer *>::const_iterator const_iterator;

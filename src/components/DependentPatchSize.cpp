@@ -8,9 +8,8 @@
 #include "DependentPatchSize.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
+#include "columns/ObserverTableComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -53,7 +52,7 @@ void DependentPatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(message->mHierarchy);
+   auto *originalConnNameParam = message->mHierarchy.lookupByType<OriginalConnNameParam>();
    pvAssert(originalConnNameParam);
 
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {

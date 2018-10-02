@@ -7,7 +7,6 @@
 
 #include "PatchSize.hpp"
 #include "columns/HyPerCol.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -51,7 +50,7 @@ PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    if (!Response::completed(status)) {
       return status;
    }
-   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy);
+   mConnectionData = message->mHierarchy.lookupByType<ConnectionData>();
    pvAssert(mConnectionData);
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {

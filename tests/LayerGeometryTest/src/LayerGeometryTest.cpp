@@ -44,9 +44,9 @@ int main(int argc, char *argv[]) {
    lg = new PV::LayerGeometry("Layer", hc);
    lg->readParams();
 
-   auto objectMap             = hc->copyObjectMap();
+   auto observerTable         = hc->copyObserverTable();
    auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
-         *objectMap,
+         observerTable,
          hc->getNxGlobal(),
          hc->getNyGlobal(),
          hc->getNBatchGlobal(),
@@ -114,9 +114,9 @@ PVLayerLoc makeCorrectLoc(PV::HyPerCol *hc) {
 }
 
 void communicateInitInfo(PV::HyPerCol *hc) {
-   auto objectMap  = hc->copyObjectMap();
-   auto messagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
-         *objectMap,
+   auto observerTable = hc->copyObserverTable();
+   auto messagePtr    = std::make_shared<PV::CommunicateInitInfoMessage>(
+         observerTable,
          hc->getNxGlobal(),
          hc->getNyGlobal(),
          hc->getNBatchGlobal(),
@@ -126,9 +126,8 @@ void communicateInitInfo(PV::HyPerCol *hc) {
    PV::Response::Status status;
    do {
       status = PV::Response::SUCCESS;
-      for (auto &p : *objectMap) {
-         auto *obj = p.second;
-         status    = status + obj->respond(messagePtr);
+      for (auto &obj : observerTable) {
+         status = status + obj->respond(messagePtr);
       }
       maxcount++;
    } while (status != PV::Response::SUCCESS and maxcount < 10);
@@ -136,7 +135,6 @@ void communicateInitInfo(PV::HyPerCol *hc) {
          status != PV::Response::SUCCESS,
          "communicateInitInfo(\"%s\") failed.\n",
          messagePtr->getMessageType().c_str());
-   delete objectMap;
 }
 
 int checkLayerLoc(PVLayerLoc const *loc, PVLayerLoc const *correct) {

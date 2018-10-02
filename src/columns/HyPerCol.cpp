@@ -550,10 +550,9 @@ int HyPerCol::setNumThreads() {
 
 int HyPerCol::processParams(char const *path) {
    if (!mParamsProcessedFlag) {
-      auto const &objectMap = mObserverTable.getObjectMap();
       notifyLoop(
             std::make_shared<CommunicateInitInfoMessage>(
-                  objectMap, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
+                  mObserverTable, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
    }
 
    // Print a cleaned up version of params to the file given by printParamsFilename

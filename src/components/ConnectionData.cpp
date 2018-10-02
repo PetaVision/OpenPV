@@ -7,8 +7,7 @@
 
 #include "ConnectionData.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "columns/ObserverTableComponent.hpp"
 
 namespace PV {
 
@@ -64,12 +63,12 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       exit(EXIT_FAILURE);
    }
 
-   auto hierarchy           = message->mHierarchy;
-   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
-   pvAssert(objectMapComponent);
+   auto hierarchy = message->mHierarchy;
+   auto *table    = hierarchy.lookupByType<ObserverTableComponent>();
+   pvAssert(table);
 
    bool failed = false;
-   mPre        = objectMapComponent->lookup<HyPerLayer>(std::string(getPreLayerName()));
+   mPre        = table->getObserverTable().lookup<HyPerLayer>(std::string(getPreLayerName()));
    if (getPre() == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -80,7 +79,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       failed = true;
    }
 
-   mPost = objectMapComponent->lookup<HyPerLayer>(std::string(getPostLayerName()));
+   mPost = table->getObserverTable().lookup<HyPerLayer>(std::string(getPostLayerName()));
    if (getPost() == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(

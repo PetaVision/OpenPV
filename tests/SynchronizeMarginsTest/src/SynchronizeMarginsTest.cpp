@@ -154,9 +154,9 @@ void initGeometries(
       PV::LayerGeometry **geomA,
       PV::LayerGeometry **geomB,
       PV::LayerGeometry **geomC) {
-   auto *objectMap            = hc->copyObjectMap();
+   auto observerTable         = hc->copyObserverTable();
    auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
-         *objectMap,
+         observerTable,
          hc->getNxGlobal(),
          hc->getNyGlobal(),
          hc->getNBatchGlobal(),
@@ -177,8 +177,6 @@ void initGeometries(
    *geomC = new PV::LayerGeometry("C", hc);
    (*geomC)->readParams();
    (*geomC)->respond(communicateMessagePtr);
-
-   delete objectMap;
 }
 
 void checkHalo(PVHalo const *halo, int xmargin, int ymargin, char const *name) {

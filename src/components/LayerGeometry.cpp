@@ -7,8 +7,7 @@
 
 #include "LayerGeometry.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "columns/ObserverTableComponent.hpp"
 #include <cstring>
 
 namespace PV {

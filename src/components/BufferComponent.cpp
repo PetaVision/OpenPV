@@ -33,10 +33,9 @@ BufferComponent::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       return status;
    }
    auto hierarchy = message->mHierarchy;
-   mLayerGeometry = mapLookupByType<LayerGeometry>(hierarchy);
+   mLayerGeometry = hierarchy.lookupByType<LayerGeometry>();
    FatalIf(!mLayerGeometry, "%s requires a LayerGeometry component.\n", getDescription_c());
-   auto *initializeFromCheckpointComponent =
-         mapLookupByType<InitializeFromCheckpointFlag>(hierarchy);
+   auto *initializeFromCheckpointComponent = hierarchy.lookupByType<InitializeFromCheckpointFlag>();
    mInitializeFromCheckpointFlag =
          initializeFromCheckpointComponent->getInitializeFromCheckpointFlag();
    return Response::SUCCESS;

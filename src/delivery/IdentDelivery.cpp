@@ -7,7 +7,6 @@
 
 #include "IdentDelivery.hpp"
 #include "columns/HyPerCol.hpp"
-#include "utils/MapLookupByType.hpp"
 #include <cstring>
 
 namespace PV {
@@ -35,7 +34,7 @@ IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
       return status;
    }
 
-   mSingleArbor = mapLookupByType<SingleArbor>(message->mHierarchy);
+   mSingleArbor = message->mHierarchy.lookupByType<SingleArbor>();
    pvAssert(mSingleArbor);
 
    checkPreAndPostDimensions();

@@ -53,7 +53,7 @@ class LinkedObjectParam : public BaseObject {
     * an invalid argument exception is thrown, with the message
     * <ParamName> "<LinkedObjectName>" does not correspond to an object in the column.
     */
-   ComponentBasedObject *findLinkedObject(std::map<std::string, Observer *> const &hierarchy);
+   ComponentBasedObject *findLinkedObject(ObserverTable const &hierarchy);
 
   protected:
    LinkedObjectParam() {}

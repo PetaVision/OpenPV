@@ -7,10 +7,9 @@
 
 #include "PoolingDelivery.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
+#include "columns/ObserverTableComponent.hpp"
 #include "components/PoolingIndexLayerInputBuffer.hpp"
 #include "delivery/accumulate_functions.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -120,13 +119,13 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
    auto &hierarchy = message->mHierarchy;
 
-   mPatchSize = mapLookupByType<PatchSize>(hierarchy);
+   mPatchSize = hierarchy.lookupByType<PatchSize>();
    FatalIf(mPatchSize == nullptr, "%s requires a PatchSize component.\n", getDescription_c());
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
 
-   mWeightsPair = mapLookupByType<ImpliedWeightsPair>(hierarchy);
+   mWeightsPair = hierarchy.lookupByType<ImpliedWeightsPair>();
    FatalIf(
          mWeightsPair == nullptr,
          "%s requires an ImpliedWeightsPair component.\n",
@@ -137,13 +136,13 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
    if (mNeedPostIndexLayer) {
       pvAssert(mPostIndexLayerName);
-      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
+      auto *tableComponent = hierarchy.lookupByType<ObserverTableComponent>();
       FatalIf(
-            objectMapComponent == nullptr,
-            "%s requires an ObjectMapComponent.\n",
+            tableComponent == nullptr,
+            "%s requires an ObserverTableComponent.\n",
             getDescription_c());
-      mPostIndexLayer =
-            objectMapComponent->lookup<PoolingIndexLayer>(std::string(mPostIndexLayerName));
+      auto &observerTable = tableComponent->getObserverTable();
+      mPostIndexLayer = observerTable.lookup<PoolingIndexLayer>(std::string(mPostIndexLayerName));
    }
 
    if (mUpdateGSynFromPostPerspective) {

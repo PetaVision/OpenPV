@@ -7,10 +7,9 @@
 
 #include "CopyUpdater.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
+#include "columns/ObserverTableComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
 #include "connections/HyPerConn.hpp"
-#include "utils/MapLookupByType.hpp"
 #include "utils/TransposeWeights.hpp"
 
 namespace PV {
@@ -32,7 +31,7 @@ Response::Status
 CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto componentMap = message->mHierarchy;
 
-   mCopyWeightsPair = mapLookupByType<CopyWeightsPair>(componentMap);
+   mCopyWeightsPair = componentMap.lookupByType<CopyWeightsPair>();
    FatalIf(
          mCopyWeightsPair == nullptr,
          "%s requires a CopyWeightsPair component.\n",
@@ -42,7 +41,7 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
    mCopyWeightsPair->needPre();
 
-   auto *originalConnNameParam = mapLookupByType<OriginalConnNameParam>(componentMap);
+   auto *originalConnNameParam = componentMap.lookupByType<OriginalConnNameParam>();
    FatalIf(
          originalConnNameParam == nullptr,
          "%s requires a OriginalConnNameParam component.\n",
@@ -54,10 +53,11 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
    pvAssert(originalConnName != nullptr and originalConnName[0] != '\0');
 
-   auto hierarchy           = message->mHierarchy;
-   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy);
-   pvAssert(objectMapComponent);
-   HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
+   auto hierarchy       = message->mHierarchy;
+   auto *tableComponent = hierarchy.lookupByType<ObserverTableComponent>();
+   pvAssert(tableComponent);
+   auto &observerTable     = tableComponent->getObserverTable();
+   HyPerConn *originalConn = observerTable.lookup<HyPerConn>(std::string(originalConnName));
    pvAssert(originalConn);
    auto *originalWeightUpdater = originalConn->getComponentByType<BaseWeightUpdater>();
    if (originalWeightUpdater and !originalWeightUpdater->getInitInfoCommunicatedFlag()) {

@@ -8,7 +8,6 @@
 #include "SharedWeightsTrue.hpp"
 #include "columns/HyPerCol.hpp"
 #include "components/ConnectionData.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 

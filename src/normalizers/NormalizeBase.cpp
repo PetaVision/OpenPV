@@ -10,7 +10,6 @@
 #include "components/StrengthParam.hpp"
 #include "components/WeightsPair.hpp"
 #include "layers/HyPerLayer.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
@@ -100,13 +99,13 @@ Response::Status NormalizeBase::respondConnectionNormalize(
 
 Response::Status
 NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy);
+   auto *weightsPair = message->mHierarchy.lookupByType<WeightsPair>();
    pvAssert(weightsPair);
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
 
-   auto *strengthParam = mapLookupByType<StrengthParam>(message->mHierarchy);
+   auto *strengthParam = message->mHierarchy.lookupByType<StrengthParam>();
    pvAssert(strengthParam);
    if (!strengthParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;

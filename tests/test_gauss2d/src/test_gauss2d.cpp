@@ -16,9 +16,7 @@
 
 using namespace PV;
 
-void broadcastMessage(
-      std::map<std::string, Observer *> *objectMap,
-      std::shared_ptr<BaseMessage const> messagePtr);
+void broadcastMessage(ObserverTable &observerTable, std::shared_ptr<BaseMessage const> messagePtr);
 
 int check_kernel_vs_hyper(
       ComponentBasedObject *cHyPer,
@@ -80,23 +78,21 @@ int main(int argc, char *argv[]) {
 
    ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
-   auto objectMap = hc->copyObjectMap();
+   auto observerTable = hc->copyObserverTable();
 
    auto communicateMessagePtr = std::make_shared<CommunicateInitInfoMessage>(
-         *objectMap,
+         observerTable,
          hc->getNxGlobal(),
          hc->getNyGlobal(),
          hc->getNBatchGlobal(),
          hc->getNumThreads());
-   broadcastMessage(objectMap, communicateMessagePtr);
+   broadcastMessage(observerTable, communicateMessagePtr);
 
    auto allocateMessagePtr = std::make_shared<AllocateDataStructuresMessage>();
-   broadcastMessage(objectMap, allocateMessagePtr);
+   broadcastMessage(observerTable, allocateMessagePtr);
 
    auto initializeMessagePtr = std::make_shared<InitializeStateMessage>(hc->getDeltaTime());
-   broadcastMessage(objectMap, initializeMessagePtr);
-
-   delete objectMap;
+   broadcastMessage(observerTable, initializeMessagePtr);
 
    const int axonID      = 0;
    int numPreExtended    = pre->getNumExtended();
@@ -117,16 +113,13 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
-void broadcastMessage(
-      std::map<std::string, Observer *> *objectMap,
-      std::shared_ptr<BaseMessage const> messagePtr) {
+void broadcastMessage(ObserverTable &observerTable, std::shared_ptr<BaseMessage const> messagePtr) {
    int maxcount = 0;
    Response::Status status;
    do {
       status = Response::SUCCESS;
-      for (auto &p : *objectMap) {
-         Observer *obj = p.second;
-         status        = status + obj->respond(messagePtr);
+      for (auto &obj : observerTable) {
+         status = status + obj->respond(messagePtr);
       }
       maxcount++;
    } while (status != Response::SUCCESS and maxcount < 10);

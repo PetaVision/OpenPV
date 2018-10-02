@@ -9,7 +9,6 @@
 #include "columns/HyPerCol.hpp"
 #include "components/StrengthParam.hpp"
 #include "delivery/HyPerDeliveryFacade.hpp"
-#include "utils/MapLookupByType.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
 
 namespace PV {

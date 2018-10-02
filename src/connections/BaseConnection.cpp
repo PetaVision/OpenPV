@@ -7,8 +7,7 @@
 
 #include "BaseConnection.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "columns/ObserverTableComponent.hpp"
 
 namespace PV {
 
@@ -97,19 +96,19 @@ BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    // to the HyPerCol's components themselves. This is needed by, for example, CloneWeightsPair,
    // to find the original weights pair.
    // Since communicateInitInfo can be called more than once, we must ensure that the
-   // ObjectMapComponent is only added once.
-   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(mObserverTable.getObjectMap());
-   if (!objectMapComponent) {
-      objectMapComponent = new ObjectMapComponent(name, parent);
-      objectMapComponent->setObjectMap(message->mHierarchy);
-      addUniqueComponent(objectMapComponent->getDescription(), objectMapComponent);
-      // ObserverTable takes ownership; objectMapComponent will be deleted by
+   // ObserverTableComponent is only added once.
+   auto *tableComponent = mObserverTable.lookupByType<ObserverTableComponent>();
+   if (!tableComponent) {
+      tableComponent = new ObserverTableComponent(name, parent);
+      tableComponent->setObserverTable(message->mHierarchy);
+      addUniqueComponent(tableComponent->getDescription(), tableComponent);
+      // ObserverTable takes ownership; tableComponent will be deleted by
       // Subject::deleteObserverTable() method during destructor.
    }
-   pvAssert(objectMapComponent);
+   pvAssert(tableComponent);
 
    auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
-         mObserverTable.getObjectMap(),
+         mObserverTable,
          message->mNxGlobal,
          message->mNyGlobal,
          message->mNBatchGlobal,
