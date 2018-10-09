@@ -18,7 +18,7 @@ class SegmentLayer : public PV::HyPerLayer {
   protected:
    SegmentLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual void setObserverTable() override;
+   virtual void createComponentTable(char const *description) override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    virtual LayerInputBuffer *createLayerInput();
    virtual InternalStateBuffer *createInternalState();

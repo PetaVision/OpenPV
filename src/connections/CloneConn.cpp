@@ -25,8 +25,8 @@ int CloneConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-void CloneConn::setObserverTable() {
-   HyPerConn::setObserverTable();
+void CloneConn::createComponentTable(char const *description) {
+   HyPerConn::createComponentTable(description);
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
       addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);

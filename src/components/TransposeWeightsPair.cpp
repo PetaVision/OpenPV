@@ -8,8 +8,8 @@
 #include "TransposeWeightsPair.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObserverTableComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
@@ -43,7 +43,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    ConnectionData *originalConnData = nullptr;
    if (mOriginalWeightsPair == nullptr) {
-      auto *originalConnNameParam = message->mHierarchy.lookupByType<OriginalConnNameParam>();
+      auto *originalConnNameParam = message->mHierarchy->lookupByType<OriginalConnNameParam>();
       pvAssert(originalConnNameParam);
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {

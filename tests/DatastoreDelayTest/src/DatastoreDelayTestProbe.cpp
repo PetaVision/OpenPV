@@ -33,7 +33,7 @@ Response::Status DatastoreDelayTestProbe::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   HyPerLayer *inputLayer = message->lookup<HyPerLayer>(std::string("input"));
+   HyPerLayer *inputLayer = message->mHierarchy->lookupByName<HyPerLayer>(std::string("input"));
    FatalIf(inputLayer == nullptr, "Unable to find layer \"input\".\n");
    mNumDelayLevels = inputLayer->getNumDelayLevels();
 

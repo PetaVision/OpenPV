@@ -7,8 +7,8 @@
 
 #include "CopyWeightsPair.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObserverTableComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
@@ -32,7 +32,7 @@ CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    if (mOriginalWeightsPair == nullptr) {
       pvAssert(mOriginalConnData == nullptr);
       auto hierarchy              = message->mHierarchy;
-      auto *originalConnNameParam = hierarchy.lookupByType<OriginalConnNameParam>();
+      auto *originalConnNameParam = hierarchy->lookupByType<OriginalConnNameParam>();
       pvAssert(originalConnNameParam);
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {

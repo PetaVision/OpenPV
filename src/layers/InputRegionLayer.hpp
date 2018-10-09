@@ -30,7 +30,7 @@ class InputRegionLayer : public HyPerLayer {
   protected:
    InputRegionLayer();
    int initialize(const char *name, HyPerCol *hc);
-   void setObserverTable();
+   void createComponentTable(char const *description);
    virtual PhaseParam *createPhaseParam() override;
    virtual BoundaryConditions *createBoundaryConditions() override;
    virtual LayerInputBuffer *createLayerInput() override;

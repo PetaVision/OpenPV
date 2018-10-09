@@ -42,8 +42,8 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    if (!Response::completed(status)) {
       return status;
    }
-   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
-   if (originalLayer == NULL) {
+   originalLayer = message->mHierarchy->lookupByName<HyPerLayer>(std::string(originalLayerName));
+   if (originalLayer == nullptr) {
       if (parent->columnId() == 0) {
          ErrorLog().printf(
                "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",

@@ -24,7 +24,7 @@ class CloneVLayer : public PV::HyPerLayer {
   protected:
    CloneVLayer();
    int initialize(const char *name, HyPerCol *hc);
-   virtual void setObserverTable() override;
+   virtual void createComponentTable(char const *description) override;
    virtual LayerInputBuffer *createLayerInput() override;
    virtual InternalStateBuffer *createInternalState() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();

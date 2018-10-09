@@ -26,8 +26,8 @@ BaseDelivery *WTAConn::createDeliveryObject() {
    return deliveryObject;
 }
 
-void WTAConn::setObserverTable() {
-   BaseConnection::setObserverTable();
+void WTAConn::createComponentTable(char const *description) {
+   BaseConnection::createComponentTable(description);
    auto *singleArbor = createSingleArbor();
    if (singleArbor) {
       addUniqueComponent(singleArbor->getDescription(), singleArbor);

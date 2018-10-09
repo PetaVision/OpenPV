@@ -6,9 +6,9 @@
  */
 
 #include "InitGauss2DWeights.hpp"
-#include "columns/ObserverTableComponent.hpp"
 #include "components/StrengthParam.hpp"
 #include "connections/BaseConnection.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
@@ -121,7 +121,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    }
 
    auto hierarchy      = message->mHierarchy;
-   auto *strengthParam = hierarchy.lookupByType<StrengthParam>();
+   auto *strengthParam = hierarchy->lookupByType<StrengthParam>();
    if (strengthParam) {
       if (strengthParam->getInitInfoCommunicatedFlag()) {
          mStrength = strengthParam->getStrength();
@@ -133,13 +133,12 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    }
    else {
       strengthParam       = new StrengthParam(name, parent);
-      auto tableComponent = hierarchy.lookupByType<ObserverTableComponent>();
+      auto tableComponent = hierarchy->lookupByType<ObserverTable>();
       FatalIf(
             tableComponent == nullptr,
             "%s unable to add strength component.\n",
             getDescription_c());
-      auto &observerTable        = tableComponent->getObserverTable();
-      BaseConnection *parentConn = observerTable.lookup<BaseConnection>(std::string(name));
+      BaseConnection *parentConn = tableComponent->lookupByName<BaseConnection>(std::string(name));
       FatalIf(
             parentConn == nullptr,
             "%s tableComponent is missing an object called \"%s\".\n",

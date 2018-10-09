@@ -23,8 +23,8 @@ int PoolingConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-void PoolingConn::setObserverTable() {
-   BaseConnection::setObserverTable();
+void PoolingConn::createComponentTable(char const *description) {
+   BaseConnection::createComponentTable(description);
    mPatchSize = createPatchSize();
    if (mPatchSize) {
       addUniqueComponent(mPatchSize->getDescription(), mPatchSize);

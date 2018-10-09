@@ -7,7 +7,6 @@
 
 #include "LinkedObjectParam.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObserverTableComponent.hpp"
 #include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
@@ -28,19 +27,18 @@ void LinkedObjectParam::ioParam_linkedObjectName(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamStringRequired(ioFlag, name, mParamName.c_str(), &mLinkedObjectName);
 }
 
-ComponentBasedObject *LinkedObjectParam::findLinkedObject(ObserverTable const &hierarchy) {
-   ObserverTableComponent *tableComponent = hierarchy.lookupByType<ObserverTableComponent>();
+ComponentBasedObject *LinkedObjectParam::findLinkedObject(ObserverTable const *hierarchy) {
+   ObserverTable *tableComponent = hierarchy->lookupByType<ObserverTable>();
    FatalIf(
          tableComponent == nullptr,
-         "%s: CommunicateInitInfoMessage has no ObserverTableComponent.\n",
+         "%s: CommunicateInitInfoMessage has no ObserverTable.\n",
          getDescription_c());
-   auto &observerTable = tableComponent->getObserverTable();
-   ComponentBasedObject *originalObject =
-         observerTable.lookup<ComponentBasedObject>(std::string(mLinkedObjectName));
+   std::string linkedName(mLinkedObjectName);
+   auto *originalObject = tableComponent->lookupByName<ComponentBasedObject>(linkedName);
    if (originalObject == nullptr) {
       std::string invArgMessage(mParamName);
-      invArgMessage.append(" \"").append(mLinkedObjectName).append(" \"");
-      invArgMessage.append(" does not correspond to an object in the column.");
+      invArgMessage.append("No object named \"").append(mLinkedObjectName).append(" \"");
+      invArgMessage.append(" in the hierarchy");
       throw std::invalid_argument(invArgMessage);
    }
    return originalObject;

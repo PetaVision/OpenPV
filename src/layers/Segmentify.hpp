@@ -17,7 +17,7 @@ class Segmentify : public PV::HyPerLayer {
   protected:
    Segmentify();
    int initialize(const char *name, HyPerCol *hc);
-   virtual void setObserverTable() override;
+   virtual void createComponentTable(char const *description) override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    virtual LayerInputBuffer *createLayerInput();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;

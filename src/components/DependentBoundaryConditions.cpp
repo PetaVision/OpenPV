@@ -37,7 +37,7 @@ void DependentBoundaryConditions::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
 
 Response::Status DependentBoundaryConditions::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *originalLayerNameParam = message->mHierarchy.lookupByType<OriginalLayerNameParam>();
+   auto *originalLayerNameParam = message->mHierarchy->lookupByType<OriginalLayerNameParam>();
    pvAssert(originalLayerNameParam);
 
    if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {

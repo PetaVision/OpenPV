@@ -7,7 +7,7 @@
 
 #include "ConnectionData.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObserverTableComponent.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
@@ -64,11 +64,11 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
 
    auto hierarchy = message->mHierarchy;
-   auto *table    = hierarchy.lookupByType<ObserverTableComponent>();
+   auto *table    = hierarchy->lookupByType<ObserverTable>();
    pvAssert(table);
 
    bool failed = false;
-   mPre        = table->getObserverTable().lookup<HyPerLayer>(std::string(getPreLayerName()));
+   mPre        = table->lookupByName<HyPerLayer>(std::string(getPreLayerName()));
    if (getPre() == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -79,7 +79,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       failed = true;
    }
 
-   mPost = table->getObserverTable().lookup<HyPerLayer>(std::string(getPostLayerName()));
+   mPost = table->lookupByName<HyPerLayer>(std::string(getPostLayerName()));
    if (getPost() == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(

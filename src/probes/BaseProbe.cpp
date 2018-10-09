@@ -235,10 +235,11 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    mLocalBatchWidth       = nBatchGlobal / parent->getCommunicator()->numCommBatches();
    pvAssert(mLocalBatchWidth * parent->getCommunicator()->numCommBatches() == nBatchGlobal);
    initNumValues();
+   auto *hierarchy = message->mHierarchy;
 
    // Set up triggering.
    if (triggerFlag) {
-      triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
+      triggerLayer = hierarchy->lookupByName<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
          if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
@@ -254,7 +255,7 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
 
    // Add the probe to the ColumnEnergyProbe, if there is one.
    if (energyProbe && energyProbe[0]) {
-      ColumnEnergyProbe *probe = message->lookup<ColumnEnergyProbe>(std::string(energyProbe));
+      auto *probe = hierarchy->lookupByName<ColumnEnergyProbe>(std::string(energyProbe));
       if (probe == NULL) {
          if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(

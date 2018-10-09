@@ -16,12 +16,12 @@
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObserverTableComponent.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
 #include "io/FileStream.hpp"
 #include "io/io.hpp"
+#include "observerpattern/ObserverTable.hpp"
 #include <assert.h>
 #include <iostream>
 #include <sstream>
@@ -185,7 +185,10 @@ void HyPerLayer::initMessageActionMap() {
    mMessageActionMap.emplace("LayerOutputState", action);
 }
 
-void HyPerLayer::setObserverTable() {
+void HyPerLayer::createComponentTable(char const *description) {
+   pvAssert(mTable == nullptr);
+   Subject::createComponentTable(description);
+   pvAssert(mTable != nullptr);
    mLayerGeometry = createLayerGeometry();
    if (mLayerGeometry) {
       addUniqueComponent(mLayerGeometry->getDescription(), mLayerGeometry);
@@ -415,9 +418,11 @@ void HyPerLayer::initializeActivity() {
 int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // Derived classes with new params behavior should override ioParamsFillGroup
    // and the overriding method should call the base class's ioParamsFillGroup.
-   for (auto &c : mObserverTable) {
+   for (auto &c : *mTable) {
       auto obj = dynamic_cast<BaseObject *>(c);
-      obj->ioParams(ioFlag, false, false);
+      if (obj) {
+         obj->ioParams(ioFlag, false, false);
+      }
    }
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerFlag(ioFlag);
@@ -463,7 +468,8 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
    if (parent->getCommunicator()->globalCommRank() == 0) {
       FatalIf(
             mUpdateGpu,
-            "%s: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
+            "%s: updateGpu is set to true, but PetaVision was compiled without GPU "
+            "acceleration.\n",
             getDescription_c());
    }
 #endif // PV_USE_CUDA
@@ -822,18 +828,20 @@ int HyPerLayer::allocateDeviceBuffers() {
 
 Response::Status
 HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *tableComponent = getComponentByType<ObserverTableComponent>();
+   auto *hierarchy      = message->mHierarchy;
+   auto *tableComponent = mTable->lookupByType<ObserverTable>();
    if (!tableComponent) {
-      tableComponent = new ObserverTableComponent(name, parent);
-      tableComponent->setObserverTable(message->mHierarchy);
+      std::string tableDescription = std::string("ObserverTable \"") + getName() + "\"";
+      tableComponent               = new ObserverTable(tableDescription.c_str());
+      tableComponent->copyTable(hierarchy);
       addUniqueComponent(tableComponent->getDescription(), tableComponent);
-      // ObserverTable takes ownership; tableComponent will be deleted by
+      // mTable takes ownership of tableComponent, which will therefore be deleted by the
       // Subject::deleteObserverTable() method during destructor.
    }
    pvAssert(tableComponent);
 
    auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
-         mObserverTable,
+         mTable,
          message->mNxGlobal,
          message->mNyGlobal,
          message->mNBatchGlobal,
@@ -852,7 +860,7 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
          initializeFromCheckpointComponent->getInitializeFromCheckpointFlag();
 
    if (triggerFlag) {
-      triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
+      triggerLayer = hierarchy->lookupByName<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
          if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(
@@ -872,8 +880,9 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
             triggerResetLayer = triggerLayer;
          }
          else {
-            resetLayerName    = triggerResetLayerName;
-            triggerResetLayer = message->lookup<HyPerLayer>(std::string(triggerResetLayerName));
+            resetLayerName               = triggerResetLayerName;
+            std::string resetLayerString = std::string(resetLayerName);
+            triggerResetLayer            = hierarchy->lookupByName<HyPerLayer>(resetLayerString);
             if (triggerResetLayer == NULL) {
                if (parent->getCommunicator()->commRank() == 0) {
                   ErrorLog().printf(
@@ -985,7 +994,8 @@ int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
    }
    if (status != PV_SUCCESS) {
       Fatal().printf(
-            "Error in rank %d process: unable to synchronize x-margin widths of layers \"%s\" and "
+            "Error in rank %d process: unable to synchronize x-margin widths of layers \"%s\" "
+            "and "
             "\"%s\" to %d\n",
             layer1->parent->getCommunicator()->globalCommRank(),
             layer1->getName(),
@@ -1012,7 +1022,8 @@ int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
    }
    if (status != PV_SUCCESS) {
       Fatal().printf(
-            "Error in rank %d process: unable to synchronize y-margin widths of layers \"%s\" and "
+            "Error in rank %d process: unable to synchronize y-margin widths of layers \"%s\" "
+            "and "
             "\"%s\" to %d\n",
             layer1->parent->getCommunicator()->globalCommRank(),
             layer1->getName(),
@@ -1277,7 +1288,8 @@ void HyPerLayer::resetStateOnTrigger() {
    if (V == NULL) {
       if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
-               "%s: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a membrane "
+               "%s: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a "
+               "membrane "
                "potential.\n",
                getDescription_c());
       }

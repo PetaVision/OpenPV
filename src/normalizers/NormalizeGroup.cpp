@@ -6,9 +6,9 @@
  */
 
 #include "normalizers/NormalizeGroup.hpp"
-#include "columns/ObserverTableComponent.hpp"
 #include "components/WeightsPair.hpp"
 #include "connections/HyPerConn.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
@@ -45,12 +45,11 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       return status;
    }
 
-   ObserverTableComponent *tableComponent =
-         message->mHierarchy.lookupByType<ObserverTableComponent>();
+   auto *tableComponent = message->mHierarchy->lookupByType<ObserverTable>();
    pvAssert(tableComponent);
-   auto &observerTable      = tableComponent->getObserverTable();
-   HyPerConn *groupHeadConn = observerTable.lookup<HyPerConn>(std::string(mNormalizeGroupName));
-   mGroupHead               = groupHeadConn->getComponentByType<NormalizeBase>();
+   std::string groupNameString = std::string(mNormalizeGroupName);
+   HyPerConn *groupHeadConn    = tableComponent->lookupByName<HyPerConn>(groupNameString);
+   mGroupHead                  = groupHeadConn->getComponentByType<NormalizeBase>();
 
    if (mGroupHead == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -64,7 +63,7 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
 
    auto hierarchy           = message->mHierarchy;
-   WeightsPair *weightsPair = hierarchy.lookupByType<WeightsPair>();
+   WeightsPair *weightsPair = hierarchy->lookupByType<WeightsPair>();
    Weights *preWeights      = weightsPair->getPreWeights();
    pvAssert(preWeights); // NormalizeBase::communicateInitInfo should have called needPre.
    mGroupHead->addWeightsToList(preWeights);

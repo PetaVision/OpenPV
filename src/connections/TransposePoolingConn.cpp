@@ -23,8 +23,8 @@ int TransposePoolingConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-void TransposePoolingConn::setObserverTable() {
-   PoolingConn::setObserverTable();
+void TransposePoolingConn::createComponentTable(char const *description) {
+   PoolingConn::createComponentTable(description);
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
       addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);

@@ -110,7 +110,7 @@ Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mTargetProbe = message->lookup<BaseProbe>(std::string(targetName));
+   mTargetProbe = message->mHierarchy->lookupByName<BaseProbe>(std::string(targetName));
    if (mTargetProbe == nullptr) {
       if (parent->getCommunicator()->commRank() == 0) {
          Fatal() << getDescription() << ": targetName \"" << targetName

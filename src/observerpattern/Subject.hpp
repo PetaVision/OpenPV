@@ -27,7 +27,7 @@ namespace PV {
  */
 class Subject {
   public:
-   Subject() {}
+   Subject();
    virtual ~Subject();
 
    /**
@@ -49,24 +49,13 @@ class Subject {
    template <typename S>
    S *getComponentByType();
 
-   // A hack to allow test_cocirc, test_gauss2d, and test_post_weights to send a
-   // CommunicateInitInfoMessage. A better way would be to write a method that
-   // passes a message to the notify function.
-   ObserverTable copyObserverTable() {
-      ObserverTable observerTable = mObserverTable;
-      return observerTable;
-   }
-   std::map<std::string, Observer *> *copyObjectMap() {
-      auto objectMap = new std::map<std::string, Observer *>;
-      *objectMap     = mObserverTable.getObjectMap();
-      return objectMap;
-   }
+   ObserverTable const *getObserverComponentTable() { return mTable; }
 
   protected:
    /**
     * The virtual method for populating the ObserverTable data member.
     */
-   virtual void setObserverTable() {}
+   virtual void createComponentTable(char const *tableDescription);
 
    /**
     * This method calls the respond() method of each object in the given table, using the given
@@ -145,15 +134,15 @@ class Subject {
       notifyLoop(std::vector<std::shared_ptr<BaseMessage const>>{message}, printFlag, description);
    }
 
-   virtual void deleteObserverTable();
+   virtual void deleteTable();
 
   protected:
-   ObserverTable mObserverTable;
+   ObserverTable *mTable = nullptr;
 };
 
 template <typename S>
 S *Subject::getComponentByType() {
-   return mObserverTable.lookupByType<S>();
+   return mTable->lookupByType<S>();
 }
 
 template <typename S>

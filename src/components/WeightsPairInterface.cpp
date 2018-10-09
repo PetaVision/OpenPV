@@ -30,7 +30,7 @@ Response::Status WeightsPairInterface::communicateInitInfo(
       return status;
    }
    if (mConnectionData == nullptr) {
-      mConnectionData = message->mHierarchy.lookupByType<ConnectionData>();
+      mConnectionData = message->mHierarchy->lookupByType<ConnectionData>();
       pvAssert(mConnectionData);
    }
 
@@ -45,7 +45,7 @@ Response::Status WeightsPairInterface::communicateInitInfo(
    }
 
    if (mPatchSize == nullptr) {
-      mPatchSize = message->mHierarchy.lookupByType<PatchSize>();
+      mPatchSize = message->mHierarchy->lookupByType<PatchSize>();
       FatalIf(
             mPatchSize == nullptr,
             "Communicate message to %s has no PatchSize component.\n",

@@ -24,8 +24,8 @@ int TransposeConn::initialize(char const *name, HyPerCol *hc) {
    return status;
 }
 
-void TransposeConn::setObserverTable() {
-   HyPerConn::setObserverTable();
+void TransposeConn::createComponentTable(char const *description) {
+   HyPerConn::createComponentTable(description);
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
       addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);

@@ -29,10 +29,11 @@ int WeightComparisonProbe::initialize(char const *name, PV::HyPerCol *hc) {
 
 Response::Status WeightComparisonProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   mConnectionList.push_back(message->lookup<ComponentBasedObject>(std::string("ConnA")));
-   mConnectionList.push_back(message->lookup<ComponentBasedObject>(std::string("ConnB")));
-   mConnectionList.push_back(message->lookup<ComponentBasedObject>(std::string("ConnC")));
-   mConnectionList.push_back(message->lookup<ComponentBasedObject>(std::string("ConnD")));
+   auto *hierarchy = message->mHierarchy;
+   mConnectionList.push_back(hierarchy->lookupByName<ComponentBasedObject>(std::string("ConnA")));
+   mConnectionList.push_back(hierarchy->lookupByName<ComponentBasedObject>(std::string("ConnB")));
+   mConnectionList.push_back(hierarchy->lookupByName<ComponentBasedObject>(std::string("ConnC")));
+   mConnectionList.push_back(hierarchy->lookupByName<ComponentBasedObject>(std::string("ConnD")));
 
    for (auto &c : mConnectionList) {
       if (!c->getInitInfoCommunicatedFlag()) {

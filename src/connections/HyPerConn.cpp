@@ -41,8 +41,8 @@ void HyPerConn::initMessageActionMap() {
    mMessageActionMap.emplace("ConnectionNormalize", action);
 }
 
-void HyPerConn::setObserverTable() {
-   BaseConnection::setObserverTable();
+void HyPerConn::createComponentTable(char const *description) {
+   BaseConnection::createComponentTable(description);
    auto *arborList = createArborList();
    if (arborList) {
       addUniqueComponent(arborList->getDescription(), arborList);

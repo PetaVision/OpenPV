@@ -30,7 +30,7 @@ Response::Status CloneDeliveryFacade::communicateInitInfo(
       return status;
    }
    if (mUpdateGSynFromPostPerspective) {
-      auto *cloneWeightsPair = message->mHierarchy.lookupByType<CloneWeightsPair>();
+      auto *cloneWeightsPair = message->mHierarchy->lookupByType<CloneWeightsPair>();
       pvAssert(cloneWeightsPair);
       cloneWeightsPair->synchronizeMarginsPost();
    }

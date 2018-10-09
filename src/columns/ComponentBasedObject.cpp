@@ -20,8 +20,9 @@ ComponentBasedObject::ComponentBasedObject() {
 int ComponentBasedObject::initialize_base() { return PV_SUCCESS; }
 
 int ComponentBasedObject::initialize(const char *name, HyPerCol *hc) {
-   int status = BaseObject::initialize(name, hc);
-   setObserverTable();
+   int status                     = BaseObject::initialize(name, hc);
+   std::string componentTableName = std::string("ObserverTable \"") + name + "\"";
+   createComponentTable(componentTableName.c_str());
    readParams();
    return status;
 }

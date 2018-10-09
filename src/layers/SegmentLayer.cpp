@@ -32,8 +32,8 @@ int SegmentLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-void SegmentLayer::setObserverTable() {
-   HyPerLayer::setObserverTable();
+void SegmentLayer::createComponentTable(char const *description) {
+   HyPerLayer::createComponentTable(description);
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);
@@ -145,7 +145,7 @@ void SegmentLayer::setOriginalLayer() {
 
    ComponentBasedObject *originalObject = nullptr;
    try {
-      originalObject = originalLayerNameParam->findLinkedObject(mObserverTable);
+      originalObject = originalLayerNameParam->findLinkedObject(mTable);
    } catch (std::invalid_argument &e) {
       Fatal().printf("%s: %s\n", getDescription_c(), e.what());
    }

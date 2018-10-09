@@ -28,8 +28,8 @@ int InputRegionLayer::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-void InputRegionLayer::setObserverTable() {
-   HyPerLayer::setObserverTable();
+void InputRegionLayer::createComponentTable(char const *description) {
+   HyPerLayer::createComponentTable(description);
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);
@@ -99,7 +99,7 @@ void InputRegionLayer::setOriginalLayer() {
 
    ComponentBasedObject *originalObject = nullptr;
    try {
-      originalObject = originalLayerNameParam->findLinkedObject(mObserverTable);
+      originalObject = originalLayerNameParam->findLinkedObject(mTable);
    } catch (std::invalid_argument &e) {
       Fatal().printf("%s: %s\n", getDescription_c(), e.what());
    }

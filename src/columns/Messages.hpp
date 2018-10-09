@@ -25,7 +25,7 @@ namespace PV {
 class CommunicateInitInfoMessage : public BaseMessage {
   public:
    CommunicateInitInfoMessage(
-         ObserverTable const &hierarchy,
+         ObserverTable const *hierarchy,
          int nxGlobal,
          int nyGlobal,
          int nBatchGlobal,
@@ -37,13 +37,8 @@ class CommunicateInitInfoMessage : public BaseMessage {
       mNBatchGlobal = nBatchGlobal;
       mNumThreads   = numThreads;
    }
-   template <typename T>
-   T *lookup(std::string const &name) const {
-      Observer *searchResult = mHierarchy.getObject(name);
-      T *castResult          = dynamic_cast<T *>(searchResult);
-      return castResult;
-   }
-   ObserverTable mHierarchy;
+   // For lookup, use the ObserverTable function members.
+   ObserverTable const *mHierarchy;
    int mNxGlobal;
    int mNyGlobal;
    int mNBatchGlobal;

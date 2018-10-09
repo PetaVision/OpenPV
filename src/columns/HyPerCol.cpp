@@ -47,7 +47,8 @@ namespace PV {
 
 HyPerCol::HyPerCol(PV_Init *initObj) {
    initialize_base();
-   initialize(initObj);
+   int status = initialize(initObj);
+   FatalIf(status != PV_SUCCESS, "Initializing HyPerCol failed.\n");
 }
 
 HyPerCol::~HyPerCol() {
@@ -67,7 +68,6 @@ HyPerCol::~HyPerCol() {
    delete mRunTimer;
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
-   mObserverTable.clear(true); // delete the layers, connections, etc.
 }
 
 int HyPerCol::initialize_base() {
@@ -196,6 +196,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
    mCheckpointReadFlag = !mCheckpointer->getCheckpointReadDirectory().empty();
 
    // Add layers, connections, etc.
+   Subject::createComponentTable(group0Name);
    for (int k = 1; k < numGroups; k++) { // k = 0 is the HyPerCol itself.
       const char *kw   = mParams->groupKeywordFromIndex(k);
       const char *name = mParams->groupNameFromIndex(k);
@@ -552,7 +553,7 @@ int HyPerCol::processParams(char const *path) {
    if (!mParamsProcessedFlag) {
       notifyLoop(
             std::make_shared<CommunicateInitInfoMessage>(
-                  mObserverTable, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
+                  mTable, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
    }
 
    // Print a cleaned up version of params to the file given by printParamsFilename
@@ -1095,13 +1096,10 @@ int HyPerCol::getAutoGPUDevice() {
 #ifdef PV_USE_CUDA
 void HyPerCol::initializeCUDA(std::string const &in_device) {
    // Don't do anything unless some object needs CUDA.
-   bool needGPU    = false;
-   auto &objectMap = mObserverTable.getObjectMap();
-   for (auto &obj : objectMap) {
-      Observer *observer = obj.second;
-      BaseObject *object = dynamic_cast<BaseObject *>(observer);
-      pvAssert(object); // Only addObject(BaseObject*) can change the hierarchy.
-      if (object->isUsingGPU()) {
+   bool needGPU = false;
+   for (auto *c : *mTable) {
+      BaseObject *object = dynamic_cast<BaseObject *>(c);
+      if (object and object->isUsingGPU()) {
          needGPU = true;
          break;
       }
@@ -1189,11 +1187,11 @@ int HyPerCol::finalizeCUDA() {
 void HyPerCol::addComponent(BaseObject *component) { addObserver(component->getName(), component); }
 
 Observer *HyPerCol::getObjectFromName(std::string const &objectName) const {
-   return mObserverTable.getObject(objectName);
+   return mTable->lookupByName<Observer>(objectName);
 }
 
 Observer *HyPerCol::getNextObject(Observer const *currentObject) const {
-   if (mObserverTable.getObjectVector().empty()) {
+   if (mTable->begin() == mTable->end()) {
       if (currentObject != nullptr) {
          throw std::domain_error("HyPerCol::getNextObject called with empty hierarchy");
       }
@@ -1202,16 +1200,15 @@ Observer *HyPerCol::getNextObject(Observer const *currentObject) const {
       }
    }
    else {
-      auto objectVector = mObserverTable.getObjectVector();
       if (currentObject == nullptr) {
-         return objectVector[0];
+         return *(mTable->begin());
       }
       else {
-         for (auto iterator = objectVector.begin(); iterator != objectVector.end(); iterator++) {
+         for (auto iterator = mTable->begin(); iterator != mTable->end(); iterator++) {
             Observer *object = *iterator;
             if (object == currentObject) {
                iterator++;
-               return iterator == objectVector.end() ? nullptr : *iterator;
+               return iterator == mTable->end() ? nullptr : *iterator;
             }
          }
          throw std::domain_error("HyPerCol::getNextObject argument not in hierarchy");

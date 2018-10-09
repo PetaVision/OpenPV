@@ -7,8 +7,8 @@
 
 #include "HebbianUpdater.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObserverTableComponent.hpp"
 #include "components/WeightsPair.hpp"
+#include "observerpattern/ObserverTable.hpp"
 #include "utils/TransposeWeights.hpp"
 
 namespace PV {
@@ -193,8 +193,8 @@ void HebbianUpdater::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto componentMap = message->mHierarchy;
-   auto *weightsPair = componentMap.lookupByType<WeightsPair>();
+   auto *hierarchy   = message->mHierarchy;
+   auto *weightsPair = hierarchy->lookupByType<WeightsPair>();
    pvAssert(weightsPair);
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
@@ -213,20 +213,19 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    mWriteCompressedCheckpoints   = weightsPair->getWriteCompressedCheckpoints();
    mInitializeFromCheckpointFlag = weightsPair->getInitializeFromCheckpointFlag();
 
-   mConnectionData = message->mHierarchy.lookupByType<ConnectionData>();
+   mConnectionData = hierarchy->lookupByType<ConnectionData>();
    FatalIf(
          mConnectionData == nullptr,
          "%s requires a ConnectionData component.\n",
          getDescription_c());
 
-   mArborList = message->mHierarchy.lookupByType<ArborList>();
+   mArborList = message->mHierarchy->lookupByType<ArborList>();
    FatalIf(mArborList == nullptr, "%s requires a ArborList component.\n", getDescription_c());
 
    if (mTriggerFlag) {
-      auto *tableComponent = componentMap.lookupByType<ObserverTableComponent>();
+      auto *tableComponent = hierarchy->lookupByType<ObserverTable>();
       pvAssert(tableComponent);
-      auto &observerTable = tableComponent->getObserverTable();
-      mTriggerLayer       = observerTable.lookup<HyPerLayer>(std::string(mTriggerLayerName));
+      mTriggerLayer = tableComponent->lookupByName<HyPerLayer>(std::string(mTriggerLayerName));
       if (mTriggerLayer == nullptr) {
          if (parent->getCommunicator()->globalCommRank() == 0) {
             ErrorLog().printf(

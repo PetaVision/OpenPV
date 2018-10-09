@@ -57,7 +57,7 @@ LayerProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
       return status;
    }
    // Set target layer
-   targetLayer = message->lookup<HyPerLayer>(std::string(targetName));
+   targetLayer = message->mHierarchy->lookupByName<HyPerLayer>(std::string(targetName));
    if (targetLayer == NULL) {
       if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(

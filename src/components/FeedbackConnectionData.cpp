@@ -8,8 +8,8 @@
 #include "FeedbackConnectionData.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObserverTableComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
@@ -39,15 +39,14 @@ void FeedbackConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {}
 Response::Status FeedbackConnectionData::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto hierarchy              = message->mHierarchy;
-   auto *originalConnNameParam = hierarchy.lookupByType<OriginalConnNameParam>();
+   auto *originalConnNameParam = hierarchy->lookupByType<OriginalConnNameParam>();
    pvAssert(originalConnNameParam);
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
 
-   ObserverTableComponent *tableComponent = hierarchy.lookupByType<ObserverTableComponent>();
+   ObserverTable *tableComponent = hierarchy->lookupByType<ObserverTable>();
    pvAssert(tableComponent);
-   auto &observerTable = tableComponent->getObserverTable();
    ComponentBasedObject *originalConn =
-         observerTable.lookup<ComponentBasedObject>(std::string(originalConnName));
+         tableComponent->lookupByName<ComponentBasedObject>(std::string(originalConnName));
    if (originalConn == nullptr) {
       if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(

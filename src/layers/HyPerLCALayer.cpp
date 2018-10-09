@@ -103,11 +103,12 @@ LayerInputBuffer *HyPerLCALayer::createLayerInput() {
 Response::Status
 HyPerLCALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mAdaptiveTimeScaleProbeName) {
-      mAdaptiveTimeScaleProbe =
-            message->lookup<AdaptiveTimeScaleProbe>(std::string(mAdaptiveTimeScaleProbeName));
+      auto *hierarchy             = message->mHierarchy;
+      std::string probeNameString = std::string(mAdaptiveTimeScaleProbeName);
+      mAdaptiveTimeScaleProbe = hierarchy->lookupByName<AdaptiveTimeScaleProbe>(probeNameString);
       if (mAdaptiveTimeScaleProbe == nullptr) {
          if (parent->getCommunicator()->commRank() == 0) {
-            auto isBadType = message->lookup<BaseObject>(std::string(mAdaptiveTimeScaleProbeName));
+            auto isBadType = hierarchy->lookupByName<BaseObject>(probeNameString);
             if (isBadType != nullptr) {
                ErrorLog() << getDescription() << ": adaptiveTimeScaleProbe parameter \""
                           << mAdaptiveTimeScaleProbeName

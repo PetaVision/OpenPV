@@ -7,9 +7,9 @@
 
 #include "CopyUpdater.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObserverTableComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
 #include "connections/HyPerConn.hpp"
+#include "observerpattern/ObserverTable.hpp"
 #include "utils/TransposeWeights.hpp"
 
 namespace PV {
@@ -29,9 +29,9 @@ void CopyUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto componentMap = message->mHierarchy;
+   auto *hierarchy = message->mHierarchy;
 
-   mCopyWeightsPair = componentMap.lookupByType<CopyWeightsPair>();
+   mCopyWeightsPair = hierarchy->lookupByType<CopyWeightsPair>();
    FatalIf(
          mCopyWeightsPair == nullptr,
          "%s requires a CopyWeightsPair component.\n",
@@ -41,7 +41,7 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
    mCopyWeightsPair->needPre();
 
-   auto *originalConnNameParam = componentMap.lookupByType<OriginalConnNameParam>();
+   auto *originalConnNameParam = hierarchy->lookupByType<OriginalConnNameParam>();
    FatalIf(
          originalConnNameParam == nullptr,
          "%s requires a OriginalConnNameParam component.\n",
@@ -53,11 +53,9 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
    pvAssert(originalConnName != nullptr and originalConnName[0] != '\0');
 
-   auto hierarchy       = message->mHierarchy;
-   auto *tableComponent = hierarchy.lookupByType<ObserverTableComponent>();
+   auto *tableComponent = hierarchy->lookupByType<ObserverTable>();
    pvAssert(tableComponent);
-   auto &observerTable     = tableComponent->getObserverTable();
-   HyPerConn *originalConn = observerTable.lookup<HyPerConn>(std::string(originalConnName));
+   HyPerConn *originalConn = tableComponent->lookupByName<HyPerConn>(std::string(originalConnName));
    pvAssert(originalConn);
    auto *originalWeightUpdater = originalConn->getComponentByType<BaseWeightUpdater>();
    if (originalWeightUpdater and !originalWeightUpdater->getInitInfoCommunicatedFlag()) {

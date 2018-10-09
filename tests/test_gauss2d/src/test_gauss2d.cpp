@@ -16,7 +16,9 @@
 
 using namespace PV;
 
-void broadcastMessage(ObserverTable &observerTable, std::shared_ptr<BaseMessage const> messagePtr);
+void broadcastMessage(
+      ObserverTable const *observerTable,
+      std::shared_ptr<BaseMessage const> messagePtr);
 
 int check_kernel_vs_hyper(
       ComponentBasedObject *cHyPer,
@@ -78,7 +80,7 @@ int main(int argc, char *argv[]) {
 
    ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
-   auto observerTable = hc->copyObserverTable();
+   auto observerTable = hc->getObserverComponentTable();
 
    auto communicateMessagePtr = std::make_shared<CommunicateInitInfoMessage>(
          observerTable,
@@ -113,12 +115,14 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
-void broadcastMessage(ObserverTable &observerTable, std::shared_ptr<BaseMessage const> messagePtr) {
+void broadcastMessage(
+      ObserverTable const *observerTable,
+      std::shared_ptr<BaseMessage const> messagePtr) {
    int maxcount = 0;
    Response::Status status;
    do {
       status = Response::SUCCESS;
-      for (auto &obj : observerTable) {
+      for (auto *obj : *observerTable) {
          status = status + obj->respond(messagePtr);
       }
       maxcount++;

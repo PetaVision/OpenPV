@@ -64,7 +64,7 @@ void ArborList::ioParam_delay(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *connectionData = message->mHierarchy.lookupByType<ConnectionData>();
+   auto *connectionData = message->mHierarchy->lookupByType<ConnectionData>();
    pvAssert(connectionData);
 
    if (!connectionData->getInitInfoCommunicatedFlag()) {

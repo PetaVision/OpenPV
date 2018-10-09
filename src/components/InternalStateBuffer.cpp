@@ -55,7 +55,7 @@ Response::Status InternalStateBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mInputBuffer = message->mHierarchy.lookupByType<LayerInputBuffer>();
+   mInputBuffer = message->mHierarchy->lookupByType<LayerInputBuffer>();
    FatalIf(
          mInputBuffer == nullptr,
          "%s could not find a LayerInputBuffer component.\n",

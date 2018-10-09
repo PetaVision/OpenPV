@@ -53,22 +53,19 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
     * Sets the input layer data member, and checks that the input layer's parameters are
     * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
     */
-   PV::Response::Status
-   initInputLayer(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
+   PV::Response::Status initInputLayer(PV::ObserverTable const *componentTable);
 
    /**
     * Sets the output layer data member, and checks that the output layer's parameters are
     * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
     */
-   PV::Response::Status
-   initOutputLayer(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
+   PV::Response::Status initOutputLayer(PV::ObserverTable const *componentTable);
 
    /**
     * Sets the connection data member, and checks that the connection's parameters are
     * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
     */
-   PV::Response::Status
-   initConnection(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
+   PV::Response::Status initConnection(PV::ObserverTable const *componentTable);
 
    /**
     * Checks whether the given object has finished its communicateInitInfo stage, and

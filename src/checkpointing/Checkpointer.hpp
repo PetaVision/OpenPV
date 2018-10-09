@@ -22,6 +22,9 @@
 
 namespace PV {
 
+/**
+ * A class to handle checkpointing tasks.
+ */
 class Checkpointer : public Subject {
   private:
    /**

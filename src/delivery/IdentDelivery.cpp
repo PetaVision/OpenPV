@@ -34,7 +34,7 @@ IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
       return status;
    }
 
-   mSingleArbor = message->mHierarchy.lookupByType<SingleArbor>();
+   mSingleArbor = message->mHierarchy->lookupByType<SingleArbor>();
    pvAssert(mSingleArbor);
 
    checkPreAndPostDimensions();

@@ -105,7 +105,7 @@ Response::Status FilenameParsingGroundTruthLayer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mInputLayer = message->lookup<InputLayer>(std::string(mInputLayerName));
+   mInputLayer = message->mHierarchy->lookupByName<InputLayer>(std::string(mInputLayerName));
    if (parent->getCommunicator()->globalCommRank() == 0) {
       FatalIf(
             mInputLayer == nullptr,

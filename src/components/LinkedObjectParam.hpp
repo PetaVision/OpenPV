@@ -20,9 +20,8 @@ namespace PV {
  *     OriginalLayerNameParam, used by CloneVLayer, RescaleLayer, etc.
  *     OriginalConnNameParam, used by CloneConn, TransposeConn, etc.
  * The object name (the param's value) is retrieved using the getLinkedObjectName() method.
- * The object itself is retrieved (as a pointer to a ComponentBasedObject) using the
- * findLinkedObject() method. The argument to this method is the same type as
- * the ObserverTable class's mObjectMap data member.
+ * The object itself is retrieved from an ObserverTable (as a pointer to a
+ * ComponentBasedObject) using the findLinkedObject function member.
  */
 class LinkedObjectParam : public BaseObject {
   protected:
@@ -53,7 +52,7 @@ class LinkedObjectParam : public BaseObject {
     * an invalid argument exception is thrown, with the message
     * <ParamName> "<LinkedObjectName>" does not correspond to an object in the column.
     */
-   ComponentBasedObject *findLinkedObject(ObserverTable const &hierarchy);
+   ComponentBasedObject *findLinkedObject(ObserverTable const *hierarchy);
 
   protected:
    LinkedObjectParam() {}

@@ -26,6 +26,7 @@ Checkpointer::Checkpointer(
       MPIBlock const *globalMPIBlock,
       Arguments const *arguments)
       : mName(name) {
+   createComponentTable(name.c_str());
    initMPIBlock(globalMPIBlock, arguments);
    initBlockDirectoryName();
 
@@ -49,6 +50,9 @@ Checkpointer::~Checkpointer() {
    free(mCheckpointWriteWallclockUnit);
    free(mLastCheckpointDir);
    free(mInitializeFromCheckpointDir);
+
+   // Don't delete the objects in the ObserverComponentTable; Checkpointer doesn't own them.
+   mTable->clear();
    delete mCheckpointTimer;
    delete mMPIBlock;
 }

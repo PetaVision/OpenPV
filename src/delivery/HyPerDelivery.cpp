@@ -49,13 +49,13 @@ HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    if (!Response::completed(status)) {
       return status;
    }
-   mWeightsPair = message->mHierarchy.lookupByType<WeightsPair>();
+   mWeightsPair = message->mHierarchy->lookupByType<WeightsPair>();
    pvAssert(mWeightsPair);
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
 
-   mArborList = message->mHierarchy.lookupByType<ArborList>();
+   mArborList = message->mHierarchy->lookupByType<ArborList>();
    pvAssert(mArborList);
    if (!mArborList->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;

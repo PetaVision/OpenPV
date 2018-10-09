@@ -52,15 +52,16 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::communicateInit
    FatalIf(
          status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
 
-   status = status + initInputLayer(message);
-   status = status + initOutputLayer(message);
-   status = status + initConnection(message);
+   auto *componentTable = message->mHierarchy;
+   status               = status + initInputLayer(componentTable);
+   status               = status + initOutputLayer(componentTable);
+   status               = status + initConnection(componentTable);
    return status;
 }
 
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initInputLayer(
-      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
+      PV::ObserverTable const *componentTable) {
+   mInputLayer = componentTable->lookupByName<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(mInputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
@@ -73,8 +74,8 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initInputLayer(
 }
 
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initOutputLayer(
-      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
+      PV::ObserverTable const *componentTable) {
+   mOutputLayer = componentTable->lookupByName<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(mOutputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
@@ -83,8 +84,8 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initOutputLayer
 }
 
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initConnection(
-      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   mConnection = message->lookup<PV::MomentumConn>(std::string("InputToOutput"));
+      PV::ObserverTable const *componentTable) {
+   mConnection = componentTable->lookupByName<PV::MomentumConn>(std::string("InputToOutput"));
    FatalIf(
          mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {

@@ -50,7 +50,7 @@ PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    if (!Response::completed(status)) {
       return status;
    }
-   mConnectionData = message->mHierarchy.lookupByType<ConnectionData>();
+   mConnectionData = message->mHierarchy->lookupByType<ConnectionData>();
    pvAssert(mConnectionData);
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {

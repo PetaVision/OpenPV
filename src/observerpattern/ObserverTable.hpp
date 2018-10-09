@@ -1,79 +1,61 @@
 /*
  * ObserverTable.hpp
  *
- *  Created on: Jul 22, 2016
+ *  Created on: Nov 20, 2017
  *      Author: pschultz
  */
 
-#ifndef OBSERVERTABLE_HPP_
-#define OBSERVERTABLE_HPP_
+#ifndef OBSERVERTABLECOMPONENT_HPP_
+#define OBSERVERTABLECOMPONENT_HPP_
 
 #include "observerpattern/Observer.hpp"
 #include <map>
-#include <string>
 #include <vector>
 
 namespace PV {
 
 /**
- * An encapsulation of a map of name-object pairs and a vector of objects.
- * The map has the object names as the keys, and pointers to objects as the
- * values.
- * The vector has the same set of objects as the map's values.
- * By keeping the vector, we can guarantee the order in which we iterate through
- * the objects.
- * By keeping the map, we have an easy way to look up the object from the name.
+ * An Observer subclass containing a table of Observer objects. map as its main data member
+ * Objects can be added with the addObserver method.
+ * The table can be searched by name using the lookupByName or lookupByType templates.
+ * The lookup tables also have recursive forms: if an object is not found in the table
+ * itself, but the table has an ObserverTable as one of its Observer objects,
+ * that ObserverTable is then searched, and so on.
+ *
+ * The motivation is that components within a layer or connection may need to find other
+ * objects in the HyPerCol. The HyPerCol creates an ObserverTable containing its
+ * rest of its hierarchy, and then adds it to the hierarchy. The layers and connections
+ * then have access to the ObserverTable and its contents during the
+ * CommunicateInitInfo stage.
  */
-class ObserverTable {
+class ObserverTable : public Observer {
   public:
-   ObserverTable() {}
-   virtual ~ObserverTable() {}
+   ObserverTable(char const *description);
 
-   std::vector<Observer *> const &getObjectVector() const { return mObjectVector; }
-   std::map<std::string, Observer *> const &getObjectMap() const { return mObjectMap; }
-   Observer *getObject(std::string const &name) const {
-      auto lookupResult = mObjectMap.find(name);
-      return lookupResult == mObjectMap.end() ? nullptr : lookupResult->second;
-   }
-   Observer *getObject(char *name) const { return getObject(std::string(name)); };
-   std::vector<Observer *>::size_type size() const;
+   virtual ~ObserverTable();
+
+   /**
+    * Adds an Observer object to the table. Internally, the table is stored in
+    * two forms, as a vector and as a map with strings as the search index.
+    * When searching for an object by name, the map is used for efficient lookup.
+    * When iterating in a for loop, the vector is used, to preserve the order
+    * in which the objects are called.
+    */
    bool addObject(std::string const &name, Observer *entry);
-   void deleteObject(std::string const &name, bool deallocateFlag);
-   void deleteObject(char const *name, bool deallocateFlag) {
-      deleteObject(std::string(name), deallocateFlag);
-   }
-   void clear(bool deallocateFlag);
+
+   void copyTable(ObserverTable const *origTable);
 
    template <typename S>
-   S *lookup(std::string const &name) const {
-      return lookup<S>(name.c_str());
-   }
+   S *lookupByName(std::string const &name) const;
 
    template <typename S>
-   S *lookup(char const *name) const {
-      S *lookupResult = nullptr;
-      auto findResult = mObjectMap.find(name);
-      if (findResult != mObjectMap.end()) {
-         auto observerPtr = findResult->second;
-         lookupResult     = dynamic_cast<S *>(observerPtr);
-      }
-      return lookupResult;
-   }
+   S *lookupByType() const;
 
    template <typename S>
-   S *lookupByType() const {
-      S *lookupResult = nullptr;
-      for (auto *obs : mObjectVector) {
-         auto castObject = dynamic_cast<S *>(obs);
-         if (castObject) {
-            FatalIf(
-                  lookupResult,
-                  "ObserverTable::lookupByType called with multiple objects of the given type.\n");
-            lookupResult = castObject;
-         }
-      }
-      return lookupResult;
-   }
+   S *lookupByNameRecursive(char const *name, int maxIterations) const;
+
+   template <typename S>
+   S *lookupByTypeRecursive(int maxIterations) const;
 
    // To iterate over ObserverTable:
    typedef std::vector<Observer *>::iterator iterator;
@@ -81,18 +63,33 @@ class ObserverTable {
    typedef std::vector<Observer *>::reverse_iterator reverse_iterator;
    typedef std::vector<Observer *>::const_reverse_iterator const_reverse_iterator;
 
-   iterator begin() { return mObjectVector.begin(); }
-   const_iterator begin() const { return mObjectVector.begin(); }
-   const_iterator cbegin() const { return mObjectVector.cbegin(); }
-   iterator end() { return mObjectVector.end(); }
-   const_iterator end() const { return mObjectVector.end(); }
-   const_iterator cend() const { return mObjectVector.cend(); }
+   iterator begin() { return mTableAsVector.begin(); }
+   const_iterator begin() const { return mTableAsVector.begin(); }
+   const_iterator cbegin() const { return mTableAsVector.cbegin(); }
+   iterator end() { return mTableAsVector.end(); }
+   const_iterator end() const { return mTableAsVector.end(); }
+   const_iterator cend() const { return mTableAsVector.cend(); }
 
-  private:
-   std::vector<Observer *> mObjectVector;
-   std::map<std::string, Observer *> mObjectMap;
-};
+   /**
+    * Empties the table of components. It does not delete or free the individual components
+    * in the table; it only drops the pointers to them.
+    */
+   void clear();
 
-} /* namespace PV */
+  protected:
+   ObserverTable();
 
-#endif /* OBSERVERTABLE_HPP_ */
+   void initialize(char const *description);
+
+  protected:
+   std::vector<Observer *> mTableAsVector;
+   std::map<std::string, Observer *> mTableAsMap;
+
+}; // class ObserverTable
+
+} // namespace PV
+
+// Template method implementations
+#include "ObserverTable.tpp"
+
+#endif // OBSERVERTABLECOMPONENT_HPP_

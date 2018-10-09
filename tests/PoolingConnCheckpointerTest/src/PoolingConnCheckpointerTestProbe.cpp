@@ -50,15 +50,16 @@ PV::Response::Status PoolingConnCheckpointerTestProbe::communicateInitInfo(
       return status;
    }
 
-   status = status + initInputLayer(message);
-   status = status + initOutputLayer(message);
-   status = status + initConnection(message);
+   auto *componentTable = message->mHierarchy;
+   status               = status + initInputLayer(componentTable);
+   status               = status + initOutputLayer(componentTable);
+   status               = status + initConnection(componentTable);
    return status;
 }
 
-PV::Response::Status PoolingConnCheckpointerTestProbe::initInputLayer(
-      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
+PV::Response::Status
+PoolingConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *componentTable) {
+   mInputLayer = componentTable->lookupByName<PV::InputLayer>(std::string("Input"));
    FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(mInputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
@@ -74,9 +75,9 @@ PV::Response::Status PoolingConnCheckpointerTestProbe::initInputLayer(
    return PV::Response::SUCCESS;
 }
 
-PV::Response::Status PoolingConnCheckpointerTestProbe::initOutputLayer(
-      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
+PV::Response::Status
+PoolingConnCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *componentTable) {
+   mOutputLayer = componentTable->lookupByName<PV::HyPerLayer>(std::string("Output"));
    FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(mOutputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
@@ -84,9 +85,9 @@ PV::Response::Status PoolingConnCheckpointerTestProbe::initOutputLayer(
    return PV::Response::SUCCESS;
 }
 
-PV::Response::Status PoolingConnCheckpointerTestProbe::initConnection(
-      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   mConnection = message->lookup<PV::PoolingConn>(std::string("InputToOutput"));
+PV::Response::Status
+PoolingConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *componentTable) {
+   mConnection = componentTable->lookupByName<PV::PoolingConn>(std::string("InputToOutput"));
    FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
    if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;

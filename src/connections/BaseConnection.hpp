@@ -24,9 +24,6 @@ class BaseConnection : public ComponentBasedObject {
 
    virtual ~BaseConnection();
 
-   template <typename S>
-   void addComponent(S *observer);
-
    // Jul 10, 2018: get-methods have been moved into the corresponding component classes.
    // For example, the old BaseConnection::getPre() has been moved into the ConnectionData class.
    // To get the presynaptic layer from a connection named "conn", get the PatchSize component using
@@ -40,7 +37,7 @@ class BaseConnection : public ComponentBasedObject {
 
    virtual void initMessageActionMap() override;
 
-   virtual void setObserverTable() override;
+   virtual void createComponentTable(char const *description) override;
 
    virtual ConnectionData *createConnectionData();
    virtual BaseDelivery *createDeliveryObject();
@@ -77,17 +74,6 @@ class BaseConnection : public ComponentBasedObject {
    Timer *mIOTimer = nullptr;
 
 }; // class BaseConnection
-
-template <typename S>
-void BaseConnection::addComponent(S *observer) {
-   auto addedObject = dynamic_cast<BaseObject *>(observer);
-   FatalIf(
-         addedObject == nullptr,
-         "%s is not a BaseObject-derived class, and therefore cannot be a component of %s.\n",
-         getDescription_c(),
-         observer->getDescription_c());
-   addUniqueComponent(observer->getDescription(), observer);
-}
 
 } // namespace PV
 

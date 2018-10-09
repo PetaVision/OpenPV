@@ -7,7 +7,7 @@
 
 #include "BaseConnection.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObserverTableComponent.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
@@ -15,10 +15,7 @@ BaseConnection::BaseConnection(char const *name, HyPerCol *hc) { initialize(name
 
 BaseConnection::BaseConnection() {}
 
-BaseConnection::~BaseConnection() {
-   delete mIOTimer;
-   mObserverTable.clear(true); // deletes the components.
-}
+BaseConnection::~BaseConnection() {}
 
 int BaseConnection::initialize(char const *name, HyPerCol *hc) {
    return ComponentBasedObject::initialize(name, hc);
@@ -47,7 +44,8 @@ void BaseConnection::initMessageActionMap() {
    mMessageActionMap.emplace("ConnectionOutput", action);
 }
 
-void BaseConnection::setObserverTable() {
+void BaseConnection::createComponentTable(char const *description) {
+   ComponentBasedObject::createComponentTable(description);
    auto *connectionData = createConnectionData();
    if (connectionData) {
       addUniqueComponent(connectionData->getDescription(), connectionData);
@@ -63,9 +61,11 @@ ConnectionData *BaseConnection::createConnectionData() { return new ConnectionDa
 BaseDelivery *BaseConnection::createDeliveryObject() { return new BaseDelivery(name, parent); }
 
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   for (auto &c : mObserverTable) {
+   for (auto &c : *mTable) {
       auto obj = dynamic_cast<BaseObject *>(c);
-      obj->ioParams(ioFlag, false, false);
+      if (obj) {
+         obj->ioParams(ioFlag, false, false);
+      }
    }
    return PV_SUCCESS;
 }
@@ -96,19 +96,20 @@ BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    // to the HyPerCol's components themselves. This is needed by, for example, CloneWeightsPair,
    // to find the original weights pair.
    // Since communicateInitInfo can be called more than once, we must ensure that the
-   // ObserverTableComponent is only added once.
-   auto *tableComponent = mObserverTable.lookupByType<ObserverTableComponent>();
+   // ObserverTable is only added once.
+   auto *tableComponent = mTable->lookupByType<ObserverTable>();
    if (!tableComponent) {
-      tableComponent = new ObserverTableComponent(name, parent);
-      tableComponent->setObserverTable(message->mHierarchy);
+      std::string tableDescription = std::string("ObserverTable \"") + getName() + "\"";
+      tableComponent               = new ObserverTable(tableDescription.c_str());
+      tableComponent->copyTable(message->mHierarchy);
       addUniqueComponent(tableComponent->getDescription(), tableComponent);
-      // ObserverTable takes ownership; tableComponent will be deleted by
+      // mTable takes ownership of tableComponent, which will therefore be deleted by the
       // Subject::deleteObserverTable() method during destructor.
    }
    pvAssert(tableComponent);
 
    auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
-         mObserverTable,
+         mTable,
          message->mNxGlobal,
          message->mNyGlobal,
          message->mNBatchGlobal,
@@ -119,7 +120,7 @@ BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
 
    if (Response::completed(status)) {
 #ifdef PV_USE_CUDA
-      for (auto &c : mObserverTable) {
+      for (auto &c : *mTable) {
          auto *baseObject = dynamic_cast<BaseObject *>(c);
          if (baseObject) {
             mUsingGPUFlag |= baseObject->isUsingGPU();

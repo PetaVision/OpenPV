@@ -32,7 +32,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/HyPerCol.hpp
    ${SUBDIR}/KeywordHandler.hpp
    ${SUBDIR}/Messages.hpp
-   ${SUBDIR}/ObserverTableComponent.hpp
    ${SUBDIR}/ParamsInterface.hpp
    ${SUBDIR}/Publisher.hpp
    ${SUBDIR}/PV_Init.hpp

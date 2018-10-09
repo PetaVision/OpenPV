@@ -12,10 +12,19 @@
 
 namespace PV {
 
-Subject::~Subject() { deleteObserverTable(); }
+Subject::Subject() {}
+
+Subject::~Subject() { deleteTable(); }
+
+void Subject::createComponentTable(char const *tableDescription) {
+   FatalIf(
+         mTable != nullptr,
+         "createComponentTable has been called, but the table has already been created.\n");
+   mTable = new ObserverTable(tableDescription);
+}
 
 void Subject::addObserver(std::string const &tag, Observer *observer) {
-   bool succeeded = mObserverTable.addObject(tag, observer);
+   bool succeeded = mTable->addObject(tag, observer);
    FatalIf(
          !succeeded, "Adding %s with tag %s failed.\n", tag.c_str(), observer->getDescription_c());
 }
@@ -23,9 +32,8 @@ void Subject::addObserver(std::string const &tag, Observer *observer) {
 Response::Status
 Subject::notify(std::vector<std::shared_ptr<BaseMessage const>> messages, bool printFlag) {
    Response::Status returnStatus = Response::NO_ACTION;
-   auto &objectVector            = mObserverTable.getObjectVector();
    std::vector<int> numPostponed(messages.size());
-   for (auto &obj : objectVector) {
+   for (auto *obj : *mTable) {
       for (int msgIdx = 0; msgIdx < messages.size(); msgIdx++) {
          auto &msg               = messages[msgIdx];
          Response::Status status = obj->respond(msg);
@@ -76,6 +84,11 @@ void Subject::notifyLoop(
    pvAssert(Response::completed(status));
 }
 
-void Subject::deleteObserverTable() { mObserverTable.clear(false); }
+void Subject::deleteTable() {
+   for (auto *c : *mTable) {
+      delete c;
+   }
+   mTable->clear();
+}
 
 } /* namespace PV */

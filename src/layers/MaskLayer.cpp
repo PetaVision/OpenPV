@@ -102,7 +102,7 @@ MaskLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
       return status;
    }
    if (strcmp(maskMethod, "layer") == 0 || strcmp(maskMethod, "invertLayer") == 0) {
-      maskLayer = message->lookup<HyPerLayer>(std::string(maskLayerName));
+      maskLayer = message->mHierarchy->lookupByName<HyPerLayer>(std::string(maskLayerName));
       if (maskLayer == NULL) {
          if (parent->getCommunicator()->commRank() == 0) {
             ErrorLog().printf(

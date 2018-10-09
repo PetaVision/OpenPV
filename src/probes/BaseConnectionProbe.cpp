@@ -67,7 +67,7 @@ Response::Status BaseConnectionProbe::communicateInitInfo(
    }
 
    bool failed = false;
-   mTargetConn = message->lookup<ComponentBasedObject>(std::string(targetName));
+   mTargetConn = message->mHierarchy->lookupByName<ComponentBasedObject>(std::string(targetName));
    if (mTargetConn == nullptr) {
       ErrorLog().printf(
             "%s, rank %d process: targetConnection \"%s\" is not a connection in the column.\n",

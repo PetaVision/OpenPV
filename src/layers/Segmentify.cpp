@@ -28,8 +28,8 @@ int Segmentify::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-void Segmentify::setObserverTable() {
-   HyPerLayer::setObserverTable();
+void Segmentify::createComponentTable(char const *description) {
+   HyPerLayer::createComponentTable(description);
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);
@@ -110,7 +110,7 @@ Segmentify::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    }
 
    // Get segment layer
-   segmentLayer = message->lookup<SegmentLayer>(std::string(segmentLayerName));
+   segmentLayer = message->mHierarchy->lookupByName<SegmentLayer>(std::string(segmentLayerName));
    if (segmentLayer == NULL) {
       if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
@@ -171,7 +171,7 @@ void Segmentify::setOriginalLayer() {
 
    ComponentBasedObject *originalObject = nullptr;
    try {
-      originalObject = originalLayerNameParam->findLinkedObject(mObserverTable);
+      originalObject = originalLayerNameParam->findLinkedObject(mTable);
    } catch (std::invalid_argument &e) {
       Fatal().printf("%s: %s\n", getDescription_c(), e.what());
    }

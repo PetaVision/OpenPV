@@ -8,8 +8,8 @@
 #include "CloneWeightsPair.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
-#include "columns/ObserverTableComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
@@ -51,7 +51,7 @@ Response::Status
 CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mOriginalWeightsPair == nullptr) {
       pvAssert(mOriginalConnData == nullptr);
-      auto *originalConnNameParam = message->mHierarchy.lookupByType<OriginalConnNameParam>();
+      auto *originalConnNameParam = message->mHierarchy->lookupByType<OriginalConnNameParam>();
       pvAssert(originalConnNameParam);
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {

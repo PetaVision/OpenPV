@@ -158,7 +158,7 @@ class HyPerLayer : public ComponentBasedObject {
    HyPerLayer();
    int initialize(const char *name, HyPerCol *hc);
    virtual void initMessageActionMap() override;
-   virtual void setObserverTable() override;
+   virtual void createComponentTable(char const *description) override;
    virtual LayerGeometry *createLayerGeometry();
    virtual PhaseParam *createPhaseParam();
    virtual BoundaryConditions *createBoundaryConditions();

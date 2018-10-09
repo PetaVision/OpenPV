@@ -37,7 +37,7 @@ ActivityBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    if (!Response::completed(status)) {
       return status;
    }
-   //    mInternalState = message->mHierarchy.lookupByType<InternalStateBuffer>();
+   //    mInternalState = message->mHierarchy->lookupByType<InternalStateBuffer>();
    //    FatalIf(!mInternalState, "%s requires an InternalStateBuffer component.\n",
    //    getDescription_c());
    //    if (!mInternalState->getInitInfoCommunicatedFlag()) {
