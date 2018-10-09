@@ -19,7 +19,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FeedbackConnectionData.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/ImpliedWeightsPair.cpp
-   ${SUBDIR}/InitializeFromCheckpointFlag.cpp
    ${SUBDIR}/InternalStateBuffer.cpp
    ${SUBDIR}/LayerGeometry.cpp
    ${SUBDIR}/LayerInputBuffer.cpp
@@ -67,7 +66,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FeedbackConnectionData.hpp
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/ImpliedWeightsPair.hpp
-   ${SUBDIR}/InitializeFromCheckpointFlag.hpp
    ${SUBDIR}/InternalStateBuffer.hpp
    ${SUBDIR}/LayerGeometry.hpp
    ${SUBDIR}/LayerInputBuffer.hpp

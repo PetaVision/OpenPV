@@ -139,14 +139,10 @@ Response::Status BatchIndexer::processCheckpointRead() {
 }
 
 Response::Status BatchIndexer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mInitializeFromCheckpointFlag) {
-      checkpointer->readNamedCheckpointEntry(mObjName, "FrameNumbers", false /*not constant*/);
-      checkIndices();
-      return Response::SUCCESS;
-   }
-   else {
-      return Response::NO_ACTION;
-   }
+   pvAssert(mInitializeFromCheckpointFlag);
+   checkpointer->readNamedCheckpointEntry(mObjName, "FrameNumbers", false /*not constant*/);
+   checkIndices();
+   return Response::SUCCESS;
 }
 
 void BatchIndexer::checkIndices() {

@@ -19,6 +19,19 @@ namespace PV {
  */
 class ParamsInterface : public CheckpointerDataInterface {
    // Function members
+  protected:
+   /**
+    * @brief initializeFromCheckpointFlag: If set to true, initialize using the checkpoint directory
+    * set in HyPerCol.
+    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
+    * Unlike most params file params, this flag is read by every ParamsInterface object, including
+    * components within an object with the same ParameterGroup. The flag will be written to the
+    * output params file only if the Boolean data member mWriteInitializeFromCheckpointFlag is true.
+    * Derived classes should be written so that initializeFromCheckpointFlag is only written once
+    * per parameter group. Currently, only HyPerLayer and BaseConnection set the flag.
+    */
+   void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
+
   public:
    virtual ~ParamsInterface();
 
@@ -65,22 +78,28 @@ class ParamsInterface : public CheckpointerDataInterface {
     * The virtual method for reading parameters from the PVParams database, and writing
     * to the output params file.
     *
+    * The base class ioParamsFillGroup handles the Boolean parameter initializeFromCheckpointFlag.
+    *
     * Derived classes with additional parameters typically override ioParamsFillGroup to call the
     * base class's ioParamsFillGroup
     * method and then call ioParam_[parametername] for each of their parameters.
     * The ioParam_[parametername] methods usually calls the PVParams object's ioParamValue() and
     * related methods, to ensure that all parameters that get read also get written to the
     * outputParams-generated file.
+    *
     */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SUCCESS; }
+
    void ioParamsFinishGroup(enum ParamsIOFlag);
 
-  private:
    // Data members
   protected:
    char *name        = nullptr; // TODO: change to mName
    PVParams *mParams = nullptr;
    std::string mObjectType;
+
+   // A flag for whether ioParams() writes initializeFromCheckpointFlag to the output params file.
+   bool mWriteInitializeFromCheckpointFlag = false;
 
   private:
 }; // end class ParamsInterface

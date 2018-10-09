@@ -347,21 +347,17 @@ void LIF::allocateConductances(int num_channels) {
 }
 
 Response::Status LIF::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mInitializeFromCheckpointFlag) {
-      auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
-      if (!Response::completed(status)) {
-         return status;
-      }
-      readVthFromCheckpoint(checkpointer);
-      readG_EFromCheckpoint(checkpointer);
-      readG_IFromCheckpoint(checkpointer);
-      readG_IBFromCheckpoint(checkpointer);
-      readRandStateFromCheckpoint(checkpointer);
-      return Response::SUCCESS;
+   pvAssert(mInitializeFromCheckpointFlag);
+   auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
    }
-   else {
-      return Response::NO_ACTION;
-   }
+   readVthFromCheckpoint(checkpointer);
+   readG_EFromCheckpoint(checkpointer);
+   readG_IFromCheckpoint(checkpointer);
+   readG_IBFromCheckpoint(checkpointer);
+   readRandStateFromCheckpoint(checkpointer);
+   return Response::SUCCESS;
 }
 
 void LIF::readVthFromCheckpoint(Checkpointer *checkpointer) {

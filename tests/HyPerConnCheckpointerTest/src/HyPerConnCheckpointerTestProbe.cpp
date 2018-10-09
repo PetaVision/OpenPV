@@ -52,6 +52,18 @@ PV::Response::Status HyPerConnCheckpointerTestProbe::communicateInitInfo(
    status               = status + initInputLayer(componentTable);
    status               = status + initOutputLayer(componentTable);
    status               = status + initConnection(componentTable);
+
+   if (PV::Response::completed(status)) {
+      FatalIf(
+            mInputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
+            "%s has a different initializeFromCheckpointFlag value from the connection.\n",
+            mInputLayer->getDescription());
+      FatalIf(
+            mOutputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
+            "%s has a different initializeFromCheckpointFlag value from the connection.\n",
+            mOutputLayer->getDescription());
+   }
+
    return status;
 }
 
@@ -126,7 +138,8 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *componen
    if (checkCommunicatedFlag(weightsPair) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
-   mPreWeights = weightsPair->getPreWeights();
+   mPreWeights                   = weightsPair->getPreWeights();
+   mInitializeFromCheckpointFlag = weightsPair->getInitializeFromCheckpointFlag();
    return PV::Response::SUCCESS;
 }
 

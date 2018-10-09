@@ -55,12 +55,6 @@ class BatchIndexer : public CheckpointerDataInterface {
    std::vector<int> mStartIndices;
    std::vector<int> mSkipAmounts;
    BatchMethod mBatchMethod;
-   bool mInitializeFromCheckpointFlag = false;
-   // mInitializeFromCheckpointFlag is a hack.
-   // BatchIndexer should load the indices from checkpoint when the InputLayer's
-   // initializeFromCheckpointFlag is true, and not when it's false.
-   // The problem is that BatchIndexer can't see the InputLayer, where the
-   // initializeFromCheckpointFlag is read.
 };
 }
 

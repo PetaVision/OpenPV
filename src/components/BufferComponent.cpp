@@ -8,7 +8,6 @@
 #include "BufferComponent.hpp"
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "columns/HyPerCol.hpp"
-#include "components/InitializeFromCheckpointFlag.hpp"
 
 namespace PV {
 
@@ -35,10 +34,6 @@ BufferComponent::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    auto hierarchy = message->mHierarchy;
    mLayerGeometry = hierarchy->lookupByType<LayerGeometry>();
    FatalIf(!mLayerGeometry, "%s requires a LayerGeometry component.\n", getDescription_c());
-   auto *initializeFromCheckpointComponent =
-         hierarchy->lookupByType<InitializeFromCheckpointFlag>();
-   mInitializeFromCheckpointFlag =
-         initializeFromCheckpointComponent->getInitializeFromCheckpointFlag();
    return Response::SUCCESS;
 }
 
@@ -102,7 +97,7 @@ Response::Status BufferComponent::readStateFromCheckpoint(Checkpointer *checkpoi
    if (!Response::completed(status)) {
       return status;
    }
-   if (!mBufferLabel.empty() and mInitializeFromCheckpointFlag) {
+   if (!mBufferLabel.empty()) {
       checkpointer->readNamedCheckpointEntry(std::string(name), mBufferLabel, false);
    }
    return Response::SUCCESS;

@@ -44,6 +44,7 @@ namespace PV {
  */
 class CheckpointerDataInterface : public Observer {
   public:
+   bool getInitializeFromCheckpointFlag() const { return mInitializeFromCheckpointFlag; }
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
 
   protected:
@@ -70,6 +71,13 @@ class CheckpointerDataInterface : public Observer {
    }
    virtual Response::Status processCheckpointRead() { return Response::NO_ACTION; }
    virtual Response::Status prepareCheckpointWrite() { return Response::NO_ACTION; }
+
+  protected:
+   // If parent HyPerCol sets initializeFromCheckpointDir and this flag is set,
+   // the initial state is loaded from the initializeFromCheckpointDir.
+   // If the flag is false or the parent's initializeFromCheckpointDir is empty,
+   // the initial siate is calculated using setInitialValues().
+   bool mInitializeFromCheckpointFlag = false;
 
   private:
    MPIBlock const *mMPIBlock = nullptr;

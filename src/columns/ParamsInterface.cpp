@@ -35,9 +35,25 @@ void ParamsInterface::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool 
    if (printHeader) {
       ioParamsStartGroup(ioFlag);
    }
+   ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParamsFillGroup(ioFlag);
    if (printFooter) {
       ioParamsFinishGroup(ioFlag);
+   }
+}
+/**
+ * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
+ * set in HyPerCol.
+ * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
+ */
+void ParamsInterface::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ or mWriteInitializeFromCheckpointFlag) {
+      parameters()->ioParamValue(
+            ioFlag,
+            this->name,
+            "initializeFromCheckpointFlag",
+            &mInitializeFromCheckpointFlag,
+            mInitializeFromCheckpointFlag);
    }
 }
 

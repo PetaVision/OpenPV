@@ -52,7 +52,12 @@ Response::Status CheckpointerDataInterface::respondRegisterData(
 
 Response::Status CheckpointerDataInterface::respondReadStateFromCheckpoint(
       std::shared_ptr<ReadStateFromCheckpointMessage<Checkpointer> const> message) {
-   return readStateFromCheckpoint(message->mDataRegistry);
+   if (mInitializeFromCheckpointFlag) {
+      return readStateFromCheckpoint(message->mDataRegistry);
+   }
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 Response::Status CheckpointerDataInterface::respondProcessCheckpointRead(

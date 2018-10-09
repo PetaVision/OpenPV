@@ -56,6 +56,21 @@ PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::communicateInitInf
    status               = status + initInputLayer(componentTable);
    status               = status + initOutputLayer(componentTable);
    status               = status + initConnection(componentTable);
+
+   if (PV::Response::completed(status)) {
+      mInitializeFromCheckpointFlag = mConnection->getInitializeFromCheckpointFlag();
+      FatalIf(
+            mInputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
+            "%s has a different initializeFromCheckpointFlag value from the connection %s.\n",
+            mInputLayer->getDescription(),
+            mConnection->getDescription());
+      FatalIf(
+            mOutputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
+            "%s has a different initializeFromCheckpointFlag value from the connection %s.\n",
+            mOutputLayer->getDescription(),
+            mConnection->getDescription());
+   }
+
    return status;
 }
 

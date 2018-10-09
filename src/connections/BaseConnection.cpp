@@ -18,7 +18,13 @@ BaseConnection::BaseConnection() {}
 BaseConnection::~BaseConnection() {}
 
 int BaseConnection::initialize(char const *name, HyPerCol *hc) {
-   return ComponentBasedObject::initialize(name, hc);
+   int status = ComponentBasedObject::initialize(name, hc);
+
+   // The WeightsPair writes this flag to output params file. Other ParamsInterface-derived
+   // components of the connection will automatically read InitializeFromCheckpointFlag, but
+   // shouldn't also write it.
+   mWriteInitializeFromCheckpointFlag = true;
+   return status;
 }
 
 void BaseConnection::initMessageActionMap() {

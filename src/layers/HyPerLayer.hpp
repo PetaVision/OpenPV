@@ -19,7 +19,6 @@
 #include "columns/Random.hpp"
 #include "components/ActivityBuffer.hpp"
 #include "components/BoundaryConditions.hpp"
-#include "components/InitializeFromCheckpointFlag.hpp"
 #include "components/InternalStateBuffer.hpp"
 #include "components/LayerGeometry.hpp"
 #include "components/LayerInputBuffer.hpp"
@@ -162,7 +161,6 @@ class HyPerLayer : public ComponentBasedObject {
    virtual LayerGeometry *createLayerGeometry();
    virtual PhaseParam *createPhaseParam();
    virtual BoundaryConditions *createBoundaryConditions();
-   virtual InitializeFromCheckpointFlag *createInitializeFromCheckpointFlag();
    virtual LayerInputBuffer *createLayerInput();
    virtual InternalStateBuffer *createInternalState();
    virtual ActivityBuffer *createActivity();
@@ -436,12 +434,6 @@ class HyPerLayer : public ComponentBasedObject {
    bool mNeedToPublish = true;
 
    Publisher *publisher = nullptr;
-
-   bool mInitializeFromCheckpointFlag = false;
-   // If parent HyPerCol sets initializeFromCheckpointDir and this flag is set,
-   // the initial state is loaded from the initializeFromCheckpointDir.
-   // If the flag is false or the parent's initializeFromCheckpointDir is empty,
-   // the initial siate is calculated using setInitialValues().
 
    int numProbes;
    LayerProbe **probes;

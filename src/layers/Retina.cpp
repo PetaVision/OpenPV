@@ -233,17 +233,13 @@ int Retina::setRetinaParams(double deltaTime) {
 }
 
 Response::Status Retina::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mInitializeFromCheckpointFlag) {
-      auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
-      if (!Response::completed(status)) {
-         return status;
-      }
-      readRandStateFromCheckpoint(checkpointer);
-      return Response::SUCCESS;
+   pvAssert(mInitializeFromCheckpointFlag);
+   auto status = HyPerLayer::readStateFromCheckpoint(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
    }
-   else {
-      return Response::NO_ACTION;
-   }
+   readRandStateFromCheckpoint(checkpointer);
+   return Response::SUCCESS;
 }
 
 void Retina::readRandStateFromCheckpoint(Checkpointer *checkpointer) {

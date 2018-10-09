@@ -18,7 +18,8 @@ WeightsPair::WeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc);
 WeightsPair::~WeightsPair() { delete mOutputStateStream; }
 
 int WeightsPair::initialize(char const *name, HyPerCol *hc) {
-   return WeightsPairInterface::initialize(name, hc);
+   int status = WeightsPairInterface::initialize(name, hc);
+   return status;
 }
 
 void WeightsPair::initMessageActionMap() {
@@ -45,7 +46,6 @@ int WeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_initialWriteTime(ioFlag);
    ioParam_writeCompressedWeights(ioFlag);
    ioParam_writeCompressedCheckpoints(ioFlag);
-   ioParam_initializeFromCheckpointFlag(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -111,16 +111,6 @@ void WeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
          &mWriteCompressedCheckpoints,
          mWriteCompressedCheckpoints,
          true /*warnifabsent*/);
-}
-
-void WeightsPair::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag,
-         name,
-         "initializeFromCheckpointFlag",
-         &mInitializeFromCheckpointFlag,
-         mInitializeFromCheckpointFlag,
-         true /*warnIfAbsent*/);
 }
 
 Response::Status WeightsPair::respondConnectionFinalizeUpdate(

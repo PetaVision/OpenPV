@@ -527,15 +527,14 @@ InputLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
 }
 
 Response::Status InputLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   pvAssert(mInitializeFromCheckpointFlag);
    auto status = Response::NO_ACTION;
-   if (mInitializeFromCheckpointFlag) {
-      status = HyPerLayer::readStateFromCheckpoint(checkpointer);
-      if (!Response::completed(status)) {
-         return status;
-      }
-      if (mBatchIndexer) {
-         pvAssert(getMPIBlock()->getRank() == 0);
-      }
+   status      = HyPerLayer::readStateFromCheckpoint(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   if (mBatchIndexer) {
+      pvAssert(getMPIBlock()->getRank() == 0);
    }
    return status;
 }

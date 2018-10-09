@@ -107,18 +107,14 @@ MomentumUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
 }
 
 Response::Status MomentumUpdater::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mInitializeFromCheckpointFlag) {
-      // Note: HebbianUpdater does not checkpoint dW if the mImmediateWeightUpdate flag is true.
-      // Do we need to handle it here and in registerData? --pschultz, 2017-12-16
-      if (mPlasticityFlag) {
-         checkpointer->readNamedCheckpointEntry(
-               std::string(name), std::string("prev_dW"), false /*not constant*/);
-      }
-      return Response::SUCCESS;
+   pvAssert(mInitializeFromCheckpointFlag);
+   // Note: HebbianUpdater does not checkpoint dW if the mImmediateWeightUpdate flag is true.
+   // Do we need to handle it here and in registerData? --pschultz, 2017-12-16
+   if (mPlasticityFlag) {
+      checkpointer->readNamedCheckpointEntry(
+            std::string(name), std::string("prev_dW"), false /*not constant*/);
    }
-   else {
-      return Response::NO_ACTION;
-   }
+   return Response::SUCCESS;
 }
 
 int MomentumUpdater::updateWeights(int arborId) {

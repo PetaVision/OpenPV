@@ -199,6 +199,7 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
+   pvAssert(mInitializeFromCheckpointFlag == weightsPair->getInitializeFromCheckpointFlag());
 
    auto status = BaseWeightUpdater::communicateInitInfo(message);
    if (!Response::completed(status)) {
@@ -210,8 +211,7 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    if (mPlasticityFlag) {
       mWeights->setWeightsArePlastic();
    }
-   mWriteCompressedCheckpoints   = weightsPair->getWriteCompressedCheckpoints();
-   mInitializeFromCheckpointFlag = weightsPair->getInitializeFromCheckpointFlag();
+   mWriteCompressedCheckpoints = weightsPair->getWriteCompressedCheckpoints();
 
    mConnectionData = hierarchy->lookupByType<ConnectionData>();
    FatalIf(
@@ -340,16 +340,12 @@ HebbianUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
 }
 
 Response::Status HebbianUpdater::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mInitializeFromCheckpointFlag) {
-      if (mPlasticityFlag and !mImmediateWeightUpdate) {
-         checkpointer->readNamedCheckpointEntry(
-               std::string(name), std::string("dW"), false /*not constant*/);
-      }
-      return Response::SUCCESS;
+   pvAssert(mInitializeFromCheckpointFlag);
+   if (mPlasticityFlag and !mImmediateWeightUpdate) {
+      checkpointer->readNamedCheckpointEntry(
+            std::string(name), std::string("dW"), false /*not constant*/);
    }
-   else {
-      return Response::NO_ACTION;
-   }
+   return Response::SUCCESS;
 }
 
 void HebbianUpdater::updateState(double simTime, double dt) {

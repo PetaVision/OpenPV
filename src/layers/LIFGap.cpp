@@ -171,17 +171,13 @@ Response::Status LIFGap::initializeState(std::shared_ptr<InitializeStateMessage 
 }
 
 Response::Status LIFGap::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mInitializeFromCheckpointFlag) {
-      auto status = LIF::readStateFromCheckpoint(checkpointer);
-      if (!Response::completed(status)) {
-         return status;
-      }
-      readGapStrengthFromCheckpoint(checkpointer);
-      return Response::SUCCESS;
+   pvAssert(mInitializeFromCheckpointFlag);
+   auto status = LIF::readStateFromCheckpoint(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
    }
-   else {
-      return Response::NO_ACTION;
-   }
+   readGapStrengthFromCheckpoint(checkpointer);
+   return Response::SUCCESS;
 }
 
 void LIFGap::readGapStrengthFromCheckpoint(Checkpointer *checkpointer) {

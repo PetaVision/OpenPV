@@ -101,6 +101,9 @@ int HyPerLayer::initialize(const char *name, HyPerCol *hc) {
    if (status != PV_SUCCESS) {
       return status;
    }
+   // The layer writes this flag to output params file. ParamsInterface-derived components of the
+   // layer will automatically read InitializeFromCheckpointFlag, but shouldn't also write it.
+   mWriteInitializeFromCheckpointFlag = true;
 
    writeTime                = initialWriteTime;
    writeActivityCalls       = 0;
@@ -201,11 +204,6 @@ void HyPerLayer::createComponentTable(char const *description) {
    if (mBoundaryConditions) {
       addUniqueComponent(mBoundaryConditions->getDescription(), mBoundaryConditions);
    }
-   auto *initializeFromCheckpointComponent = createInitializeFromCheckpointFlag();
-   if (initializeFromCheckpointComponent) {
-      addUniqueComponent(
-            initializeFromCheckpointComponent->getDescription(), initializeFromCheckpointComponent);
-   }
    mLayerInput = createLayerInput();
    if (mLayerInput) {
       addUniqueComponent(mLayerInput->getDescription(), mLayerInput);
@@ -226,10 +224,6 @@ PhaseParam *HyPerLayer::createPhaseParam() { return new PhaseParam(name, parent)
 
 BoundaryConditions *HyPerLayer::createBoundaryConditions() {
    return new BoundaryConditions(name, parent);
-}
-
-InitializeFromCheckpointFlag *HyPerLayer::createInitializeFromCheckpointFlag() {
-   return new InitializeFromCheckpointFlag(name, parent);
 }
 
 LayerInputBuffer *HyPerLayer::createLayerInput() { return new LayerInputBuffer(name, parent); }
@@ -854,10 +848,6 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    }
 
    PVLayerLoc const *loc = getLayerLoc();
-
-   auto *initializeFromCheckpointComponent = getComponentByType<InitializeFromCheckpointFlag>();
-   mInitializeFromCheckpointFlag =
-         initializeFromCheckpointComponent->getInitializeFromCheckpointFlag();
 
    if (triggerFlag) {
       triggerLayer = hierarchy->lookupByName<HyPerLayer>(std::string(triggerLayerName));
@@ -1552,15 +1542,16 @@ Response::Status HyPerLayer::outputState(double timestamp, double deltaTime) {
 }
 
 Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mInitializeFromCheckpointFlag) {
-      readActivityFromCheckpoint(checkpointer);
-      readDelaysFromCheckpoint(checkpointer);
-      updateAllActiveIndices();
-      return Response::SUCCESS;
+   pvAssert(mInitializeFromCheckpointFlag);
+   auto status = Response::NO_ACTION;
+   status      = ComponentBasedObject::readStateFromCheckpoint(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
    }
-   else {
-      return Response::NO_ACTION;
-   }
+   readActivityFromCheckpoint(checkpointer);
+   readDelaysFromCheckpoint(checkpointer);
+   updateAllActiveIndices();
+   return Response::SUCCESS;
 }
 
 void HyPerLayer::readActivityFromCheckpoint(Checkpointer *checkpointer) {

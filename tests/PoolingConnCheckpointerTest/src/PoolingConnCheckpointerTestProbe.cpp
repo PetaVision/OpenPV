@@ -54,6 +54,16 @@ PV::Response::Status PoolingConnCheckpointerTestProbe::communicateInitInfo(
    status               = status + initInputLayer(componentTable);
    status               = status + initOutputLayer(componentTable);
    status               = status + initConnection(componentTable);
+
+   if (PV::Response::completed(status)) {
+      mInitializeFromCheckpointFlag = mInputLayer->getInitializeFromCheckpointFlag();
+      FatalIf(
+            mOutputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
+            "%s and %s have different initializeFromCheckpointFlag values.\n",
+            mInputLayer->getDescription(),
+            mOutputLayer->getDescription());
+   }
+
    return status;
 }
 

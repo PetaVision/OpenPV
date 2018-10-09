@@ -74,7 +74,6 @@ class BufferComponent : public BaseObject {
    LayerGeometry const *mLayerGeometry = nullptr;
    int mBufferSize                     = 0;
    std::vector<float> mBufferData;
-   bool mInitializeFromCheckpointFlag;
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer *mCudaBuffer = nullptr;

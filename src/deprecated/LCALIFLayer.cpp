@@ -258,18 +258,14 @@ Response::Status LCALIFLayer::updateState(double timed, double dt) {
 }
 
 Response::Status LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mInitializeFromCheckpointFlag) {
-      auto status = LIFGap::readStateFromCheckpoint(checkpointer);
-      if (status != Response::SUCCESS) {
-         return status;
-      }
-      read_integratedSpikeCountFromCheckpoint(checkpointer);
-      readVadptFromCheckpoint(checkpointer);
-      return Response::SUCCESS;
+   pvAssert(mInitializeFromCheckpointFlag);
+   auto status = LIFGap::readStateFromCheckpoint(checkpointer);
+   if (status != Response::SUCCESS) {
+      return status;
    }
-   else {
-      return Response::NO_ACTION;
-   }
+   read_integratedSpikeCountFromCheckpoint(checkpointer);
+   readVadptFromCheckpoint(checkpointer);
+   return Response::SUCCESS;
 }
 
 void LCALIFLayer::read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer) {

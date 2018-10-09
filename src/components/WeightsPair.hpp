@@ -27,13 +27,6 @@ class WeightsPair : public WeightsPairInterface {
    virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
-    * set in HyPerCol.
-    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
-    */
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-
    /** @} */ // end of WeightsPair parameters
 
   public:
@@ -43,8 +36,6 @@ class WeightsPair : public WeightsPairInterface {
 
    Weights *getPreWeights() { return mPreWeights; }
    Weights *getPostWeights() { return mPostWeights; }
-
-   bool getInitializeFromCheckpointFlag() const { return mInitializeFromCheckpointFlag; }
 
    bool getWriteCompressedCheckpoints() const { return mWriteCompressedCheckpoints; }
 
@@ -92,10 +83,6 @@ class WeightsPair : public WeightsPairInterface {
    double mInitialWriteTime         = 0.0;
    bool mWriteCompressedWeights     = false;
    bool mWriteCompressedCheckpoints = false;
-
-   // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initial state from
-   // the initializeFromCheckpointDir directory.
-   bool mInitializeFromCheckpointFlag = false;
 
    ArborList *mArborList         = nullptr;
    SharedWeights *mSharedWeights = nullptr;
