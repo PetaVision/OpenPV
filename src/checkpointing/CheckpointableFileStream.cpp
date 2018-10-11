@@ -63,8 +63,8 @@ void CheckpointableFileStream::initialize(
 
    mObjName = objName;
    setDescription(std::string("CheckpointableFileStream \"") + objName + "\"");
-   setOutStream(mFStream);
-   openFile(fullPath.c_str(), std::ios_base::in | std::ios_base::out, verifyWrites);
+   FileStream::initialize(fullPath.c_str(), std::ios_base::in | std::ios_base::out, verifyWrites);
+   CheckpointerDataInterface::initialize();
    updateFilePos();
 }
 

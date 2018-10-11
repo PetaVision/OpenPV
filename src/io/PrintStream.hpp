@@ -17,7 +17,7 @@ namespace PV {
 
 class PrintStream {
   public:
-   PrintStream(std::ostream &stream) { setOutStream(stream); }
+   PrintStream(std::ostream &stream) { initialize(stream); }
    virtual ~PrintStream() {}
 
    int printf(const char *fmt, ...) {
@@ -59,7 +59,7 @@ class PrintStream {
 
   protected:
    PrintStream() {}
-   void setOutStream(std::ostream &stream) { mOutStream = &stream; }
+   void initialize(std::ostream &stream) { mOutStream = &stream; }
 
   private:
    std::ostream *mOutStream = nullptr;
