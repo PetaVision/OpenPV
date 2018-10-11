@@ -94,7 +94,7 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
 
       for (int b = 0; b < nbatch; b++) {
          size_t batchOffset                                 = b * numPreExtended;
-         float *activityBatch                               = activityCube.data + batchOffset;
+         float const *activityBatch                         = activityCube.data + batchOffset;
          float *gSynPatchHeadBatch                          = postChannel + b * numPostRestricted;
          SparseList<float>::Entry const *activeIndicesBatch = NULL;
          if (preLayerIsSparse) {

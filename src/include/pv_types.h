@@ -54,7 +54,7 @@ typedef struct PVLayerCube_ {
    int numItems;
 
    // pointer to data (may follow header)
-   float *data;
+   float const *data;
 
    // location of cube in global layer
    PVLayerLoc loc;

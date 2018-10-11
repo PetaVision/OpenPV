@@ -276,7 +276,7 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       // Update pre activity, post gsyn, and conn weights
       // Only if they're updated
       if (mPreLayer->getUpdatedDeviceDatastoreFlag()) {
-         float *h_preDatastore              = activityCube.data;
+         float const *h_preDatastore        = activityCube.data;
          PVCuda::CudaBuffer *d_preDatastore = mPreLayer->getDeviceDatastore();
          pvAssert(d_preDatastore);
          d_preDatastore->copyToDevice(h_preDatastore);

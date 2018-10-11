@@ -1648,7 +1648,7 @@ int HyPerLayer::writeActivity(double timed) {
       int const mpiBatchIndex   = frame / loc->nbatch; // Integer division
       pvAssert(mpiBatchIndex * loc->nbatch + localBatchIndex == frame);
 
-      float *data = &cube.data[localBatchIndex * getNumExtended()];
+      float const *data = &cube.data[localBatchIndex * getNumExtended()];
       Buffer<float> localBuffer(data, nxExtLocal, nyExtLocal, nf);
       localBuffer.crop(loc->nx, loc->ny, Buffer<float>::CENTER);
       Buffer<float> blockBuffer = BufferUtils::gather<float>(

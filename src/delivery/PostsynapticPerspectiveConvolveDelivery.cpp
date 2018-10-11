@@ -105,8 +105,8 @@ void PostsynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
          int sourceNyExt       = sourceNy + sourceHalo->dn + sourceHalo->up;
          int sourceNumExtended = sourceNxExt * sourceNyExt * sourceNf;
 
-         float *activityBatch      = activityCube.data + b * sourceNumExtended;
-         float *gSynPatchHeadBatch = gSynPatchHead + b * numPostRestricted;
+         float const *activityBatch = activityCube.data + b * sourceNumExtended;
+         float *gSynPatchHeadBatch  = gSynPatchHead + b * numPostRestricted;
 
          // Iterate over each line in the y axis, the goal is to keep weights in the cache
          for (int ky = 0; ky < yPatchSize; ky++) {
@@ -129,7 +129,7 @@ void PostsynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
                         targetHalo->dn,
                         targetHalo->up);
                   int startSourceExt = postWeights->getGeometry()->getUnshrunkenStart(idxExtended);
-                  float *a           = activityBatch + startSourceExt + ky * sy;
+                  float const *a     = activityBatch + startSourceExt + ky * sy;
 
                   int kTargetExt = kIndexExtended(
                         idx,

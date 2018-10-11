@@ -293,7 +293,8 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
    // but the real inefficiency is calling the function pointer in a tight for-loop.
    // TODO: Use templating instead of function pointer.
    void (*accumulateFunctionPointer)(
-         int kPreRes, int nk, float *v, float *a, float *w, void *auxPtr, int sf) = nullptr;
+         int kPreRes, int nk, float *v, float const *a, float const *w, void *auxPtr, int sf) =
+         nullptr;
    switch (mAccumulateType) {
       case MAXPOOLING: accumulateFunctionPointer = pvpatch_max_pooling_from_post; break;
       case SUMPOOLING: accumulateFunctionPointer = pvpatch_sum_pooling_from_post; break;
@@ -361,9 +362,10 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
 #pragma omp parallel for
 #endif
       for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++) {
-         float *activityBatch = activityCube.data
-                                + b * (sourceNx + sourceHalo->rt + sourceHalo->lt)
-                                        * (sourceNy + sourceHalo->up + sourceHalo->dn) * sourceNf;
+         float const *activityBatch = activityCube.data
+                                      + b * (sourceNx + sourceHalo->rt + sourceHalo->lt)
+                                              * (sourceNy + sourceHalo->up + sourceHalo->dn)
+                                              * sourceNf;
          float *gSynBatchHead = gSyn + b * targetNx * targetNy * targetNf;
 
          // Change restricted to extended post neuron
@@ -390,7 +392,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
             *gatePatchPos = (float)-1;
          }
 
-         float *activityStartBuf = &(activityBatch[startSourceExt]);
+         float const *activityStartBuf = &(activityBatch[startSourceExt]);
 
          int sf           = postWeights->getPatchSizeF();
          int yPatchSize   = postWeights->getPatchSizeY();
@@ -431,7 +433,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
                   sourceLoc->nyGlobal + sourceLoc->halo.up + sourceLoc->halo.dn,
                   sourceLoc->nf);
 
-            float *activityY = &(activityStartBuf[ky * sy + offset]);
+            float const *activityY = &(activityStartBuf[ky * sy + offset]);
 
             (accumulateFunctionPointer)(
                   kPreGlobalExt, numPerStride, gSynPatchPos, activityY, &w, gatePatchPos, sf);
@@ -449,7 +451,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
    // but the real inefficiency is calling the function pointer in a tight for-loop.
    // TODO: Use templating instead of function pointer.
    void (*accumulateFunctionPointer)(
-         int kPreRes, int nk, float *v, float a, float *w, void *auxPtr, int sf) = nullptr;
+         int kPreRes, int nk, float *v, float a, float const *w, void *auxPtr, int sf) = nullptr;
    switch (mAccumulateType) {
       case MAXPOOLING: accumulateFunctionPointer = pvpatch_max_pooling; break;
       case SUMPOOLING: accumulateFunctionPointer = pvpatch_sum_pooling; break;
@@ -493,10 +495,10 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
    clearGateIdxBuffer();
 
    for (int b = 0; b < mPreLayer->getLayerLoc()->nbatch; b++) {
-      float *activityBatch = activityCube.data
-                             + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                                     * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
-                                     * preLoc->nf;
+      float const *activityBatch = activityCube.data
+                                   + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
+                                           * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
+                                           * preLoc->nf;
       float *gSynPatchHeadBatch = gSyn + b * postLoc->nx * postLoc->ny * postLoc->nf;
       float *gatePatchHeadBatch = NULL;
       if (mNeedPostIndexLayer) {
@@ -705,7 +707,7 @@ void PoolingDelivery::deliverGPU(float *destBuffer) {
 
    if (mPreLayer->getUpdatedDeviceDatastoreFlag()) {
       PVLayerCube activityCube           = mPreLayer->getPublisher()->createCube(0 /*delay*/);
-      float *h_preDatastore              = activityCube.data;
+      float const *h_preDatastore        = activityCube.data;
       PVCuda::CudaBuffer *d_preDatastore = mPreLayer->getDeviceDatastore();
       pvAssert(d_preDatastore);
       d_preDatastore->copyToDevice(h_preDatastore);

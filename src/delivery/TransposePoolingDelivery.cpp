@@ -269,7 +269,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
    // but the real inefficiency is calling the function pointer in a tight for-loop.
    // TODO: Use templating instead of function pointer.
    void (*accumulateFunctionPointer)(
-         int kPreRes, int nk, float *v, float a, float *w, void *auxPtr, int sf) = nullptr;
+         int kPreRes, int nk, float *v, float a, float const *w, void *auxPtr, int sf) = nullptr;
    switch (mAccumulateType) {
       case PoolingDelivery::MAXPOOLING: accumulateFunctionPointer = pvpatch_max_pooling; break;
       case PoolingDelivery::SUMPOOLING: accumulateFunctionPointer = pvpatch_sum_pooling; break;
@@ -300,7 +300,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
    pvAssert(gSyn);
 
    // Grab postIdxLayer's data
-   float *postIdxData = nullptr;
+   float const *postIdxData = nullptr;
    if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
       pvAssert(dynamic_cast<PoolingIndexLayer *>(mOriginalPostIndexLayer));
       PVLayerCube cube = mOriginalPostIndexLayer->getPublisher()->createCube(0 /*delay*/);
@@ -313,12 +313,12 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
          "%s has different presynaptic and postsynaptic batch sizes.\n",
          getDescription_c());
    for (int b = 0; b < nbatch; b++) {
-      float *activityBatch = activityCube.data
-                             + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                                     * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
-                                     * preLoc->nf;
-      float *gSynPatchHeadBatch = gSyn + b * postLoc->nx * postLoc->ny * postLoc->nf;
-      float *postIdxDataBatch   = nullptr;
+      float const *activityBatch = activityCube.data
+                                   + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
+                                           * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
+                                           * preLoc->nf;
+      float *gSynPatchHeadBatch     = gSyn + b * postLoc->nx * postLoc->ny * postLoc->nf;
+      float const *postIdxDataBatch = nullptr;
       if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
          postIdxDataBatch = postIdxData + b * mOriginalPostIndexLayer->getNumExtended();
       }
@@ -527,7 +527,7 @@ void TransposePoolingDelivery::deliverGPU(float *destBuffer) {
 
    if (mPreLayer->getUpdatedDeviceDatastoreFlag()) {
       PVLayerCube activityCube           = mPreLayer->getPublisher()->createCube(0 /*delay*/);
-      float *h_preDatastore              = activityCube.data;
+      float const *h_preDatastore        = activityCube.data;
       PVCuda::CudaBuffer *d_preDatastore = mPreLayer->getDeviceDatastore();
       pvAssert(d_preDatastore);
       d_preDatastore->copyToDevice(h_preDatastore);
