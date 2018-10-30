@@ -32,6 +32,7 @@ class HebbianUpdater : public BaseWeightUpdater {
    virtual void ioParam_normalizeDw(enum ParamsIOFlag ioFlag);
    virtual void ioParam_useMask(enum ParamsIOFlag ioFlag);
    virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_dWMaxLimit(enum ParamsIOFlag ioFlag);
 
    /** @} */ // end of HebbianUpdater parameters
 
@@ -148,6 +149,7 @@ class HebbianUpdater : public BaseWeightUpdater {
    bool mCombine_dWWithWFlag          = false;
    bool mWriteCompressedCheckpoints   = false;
    bool mInitializeFromCheckpointFlag = false;
+   float mDWMaxLimit                  = 0.0f;
 
    Weights *mWeights            = nullptr;
    Weights *mDeltaWeights       = nullptr;

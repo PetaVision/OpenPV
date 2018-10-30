@@ -11,6 +11,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PresynapticPerspectiveConvolveDelivery.cpp
    ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.cpp
    ${SUBDIR}/RescaleDelivery.cpp
+   ${SUBDIR}/TopDownDelivery.cpp
    ${SUBDIR}/TransposePoolingDelivery.cpp
    ${SUBDIR}/WTADelivery.cpp
 )
@@ -28,6 +29,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PresynapticPerspectiveConvolveDelivery.hpp
    ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.hpp
    ${SUBDIR}/RescaleDelivery.hpp
+   ${SUBDIR}/TopDownDelivery.hpp
    ${SUBDIR}/TransposePoolingDelivery.hpp
    ${SUBDIR}/WTADelivery.hpp
 )

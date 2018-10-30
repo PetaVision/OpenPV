@@ -37,6 +37,7 @@ int HebbianUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_normalizeDw(ioFlag);
    ioParam_useMask(ioFlag);
    ioParam_combine_dW_with_W_flag(ioFlag);
+   ioParam_dWMaxLimit(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -153,6 +154,14 @@ void HebbianUpdater::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
             getName());
    }
 }
+
+void HebbianUpdater::ioParam_dWMaxLimit(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (mPlasticityFlag) {
+      parent->parameters()->ioParamValueRequired(ioFlag, name, "dWMaxLimit", &mDWMaxLimit);
+   }
+}
+
 
 void HebbianUpdater::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
@@ -846,10 +855,33 @@ int HebbianUpdater::updateWeights(int arborId) {
    // add dw to w
    int const numArbors       = mArborList->getNumAxonalArbors();
    int const weightsPerArbor = mWeights->getNumDataPatches() * mWeights->getPatchSizeOverall();
+   float deltaL2Norm         = 1.0f;
+
+   if (mDWMaxLimit > 0.0f) {
+      deltaL2Norm = 0.0f;
+      for (int kArbor = 0; kArbor < numArbors; kArbor++) {
+         for (long int k = 0; k < weightsPerArbor; k++) {
+            deltaL2Norm += mDeltaWeights->getData(kArbor)[k] * mDeltaWeights->getData(kArbor)[k];
+         }
+      }
+   
+      if (deltaL2Norm == 0.0f) {
+         deltaL2Norm = 1.0f;
+      }
+      else {
+         deltaL2Norm = mDWMaxLimit / sqrtf(deltaL2Norm);
+      }
+   
+      // Only reduce weight updates, don't increase dw
+      if (deltaL2Norm > 1.0f) {
+         deltaL2Norm = 1.0f;
+      }
+   }
+   
    for (int kArbor = 0; kArbor < numArbors; kArbor++) {
       float *w_data_start = mWeights->getData(kArbor);
       for (long int k = 0; k < weightsPerArbor; k++) {
-         w_data_start[k] += mDeltaWeights->getData(kArbor)[k];
+         w_data_start[k] += mDeltaWeights->getData(kArbor)[k] * deltaL2Norm;
       }
    }
    return PV_BREAK;

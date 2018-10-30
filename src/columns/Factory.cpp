@@ -57,6 +57,7 @@
 #include "connections/PlasticCloneConn.hpp"
 #include "connections/PoolingConn.hpp"
 #include "connections/RescaleConn.hpp"
+#include "connections/TopDownConn.hpp"
 #include "connections/TransposeConn.hpp"
 #include "connections/TransposePoolingConn.hpp"
 #include "connections/WTAConn.hpp"
@@ -92,6 +93,7 @@
 #include "delivery/PresynapticPerspectiveConvolveDelivery.hpp"
 #include "delivery/PresynapticPerspectiveStochasticDelivery.hpp"
 #include "delivery/RescaleDelivery.hpp"
+#include "delivery/TopDownDelivery.hpp"
 #include "delivery/WTADelivery.hpp"
 
 #ifdef PV_USE_CUDA
@@ -176,6 +178,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("PlasticCloneConn", Factory::create<PlasticCloneConn>);
    registerKeyword("PoolingConn", Factory::create<PoolingConn>);
    registerKeyword("RescaleConn", Factory::create<RescaleConn>);
+   registerKeyword("TopDownConn", Factory::create<TopDownConn>);
    registerKeyword("TransposeConn", Factory::create<TransposeConn>);
    registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
    registerKeyword("WTAConn", Factory::create<WTAConn>);
@@ -219,6 +222,7 @@ int Factory::registerCoreKeywords() {
          "PresynapticPerspectiveStochasticDelivery",
          Factory::create<PresynapticPerspectiveStochasticDelivery>);
    registerKeyword("RescaleDelivery", Factory::create<RescaleDelivery>);
+   registerKeyword("TopDownDelivery", Factory::create<TopDownDelivery>);
    registerKeyword("WTADelivery", Factory::create<WTADelivery>);
 #ifdef PV_USE_CUDA
    registerKeyword(
