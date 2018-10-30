@@ -27,6 +27,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/MomentumConn.hpp
    ${SUBDIR}/PlasticCloneConn.hpp
    ${SUBDIR}/PoolingConn.hpp
+   ${SUBDIR}/RescaleConn.hpp
    ${SUBDIR}/TopDownConn.hpp
    ${SUBDIR}/TransposeConn.hpp
    ${SUBDIR}/TransposePoolingConn.hpp
