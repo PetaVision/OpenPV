@@ -40,6 +40,8 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    virtual void ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) override;
    virtual PV::Response::Status
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;
+   virtual PV::Response::Status
+   initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) override;
    virtual PV::Response::Status readStateFromCheckpoint(PV::Checkpointer *checkpointer) override;
    virtual bool needRecalc(double timevalue) override { return true; }
    virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
@@ -47,7 +49,6 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
 
   private:
    MomentumConnSimpleCheckpointerTestProbe();
-   int initialize_base();
 
    /**
     * Sets the input layer data member, and checks that the input layer's parameters are

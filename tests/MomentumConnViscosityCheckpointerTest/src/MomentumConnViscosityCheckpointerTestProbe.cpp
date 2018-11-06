@@ -15,25 +15,18 @@
 #include <cmath>
 #include <utils/BufferUtilsMPI.hpp>
 
-MomentumConnViscosityCheckpointerTestProbe::MomentumConnViscosityCheckpointerTestProbe() {
-   initialize_base();
-}
+MomentumConnViscosityCheckpointerTestProbe::MomentumConnViscosityCheckpointerTestProbe() {}
 
 MomentumConnViscosityCheckpointerTestProbe::MomentumConnViscosityCheckpointerTestProbe(
       const char *name,
       PV::HyPerCol *hc) {
-   initialize_base();
    initialize(name, hc);
 }
 
 MomentumConnViscosityCheckpointerTestProbe::~MomentumConnViscosityCheckpointerTestProbe() {}
 
-int MomentumConnViscosityCheckpointerTestProbe::initialize_base() { return PV_SUCCESS; }
-
 int MomentumConnViscosityCheckpointerTestProbe::initialize(const char *name, PV::HyPerCol *hc) {
-   int status = PV::ColProbe::initialize(name, hc);
-   FatalIf(parent->getDeltaTime() != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
-   return status;
+   return PV::ColProbe::initialize(name, hc);
 }
 
 void MomentumConnViscosityCheckpointerTestProbe::ioParam_textOutputFlag(
@@ -162,6 +155,12 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::checkCommunicat
    else {
       return PV::Response::SUCCESS;
    }
+}
+
+PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initializeState(
+      std::shared_ptr<PV::InitializeStateMessage const> message) {
+   FatalIf(message->mDeltaTime != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
+   return PV::Response::SUCCESS;
 }
 
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::readStateFromCheckpoint(

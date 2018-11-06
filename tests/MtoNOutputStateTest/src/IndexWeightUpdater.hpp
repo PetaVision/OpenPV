@@ -19,14 +19,14 @@ class IndexWeightUpdater : public HebbianUpdater {
 
    virtual ~IndexWeightUpdater() {}
 
-   void initializeWeights();
+   virtual void updateState(double timestamp, double dt) override;
 
   protected:
    IndexWeightUpdater() {}
 
    int initialize(char const *name, HyPerCol *hc);
 
-   virtual int updateWeights(int arborId) override;
+   Response::Status initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 };
 
 } // namespace PV

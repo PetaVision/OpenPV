@@ -33,7 +33,7 @@ Response::Status
 IndexWeightConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    auto *weightUpdater = mTable->lookupByType<IndexWeightUpdater>();
    pvAssert(weightUpdater);
-   weightUpdater->initializeWeights();
+   weightUpdater->respond(message);
    return Response::SUCCESS;
 }
 

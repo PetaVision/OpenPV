@@ -406,7 +406,7 @@ void HyPerCol::allocateColumn() {
 
    // Initial normalization moved here to facilitate normalizations of groups
    // of HyPerConns
-   notifyLoop(std::make_shared<ConnectionNormalizeMessage>());
+   notifyLoop(std::make_shared<ConnectionNormalizeMessage>(mSimTime));
    notifyLoop(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
 
    // publish initial conditions
@@ -623,7 +623,7 @@ int HyPerCol::advanceTime(double sim_time) {
    // update the connections (weights)
    //
    notifyLoop(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
-   notifyLoop(std::make_shared<ConnectionNormalizeMessage>());
+   notifyLoop(std::make_shared<ConnectionNormalizeMessage>(mSimTime));
    notifyLoop(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
    notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime, mDeltaTime));
 

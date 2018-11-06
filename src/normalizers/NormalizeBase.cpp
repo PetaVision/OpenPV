@@ -76,7 +76,7 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
 Response::Status NormalizeBase::respondConnectionNormalize(
       std::shared_ptr<ConnectionNormalizeMessage const> message) {
    bool needUpdate = false;
-   double simTime  = parent->simulationTime();
+   double simTime  = message->mTime;
    if (mNormalizeOnInitialize && simTime == 0.0) {
       needUpdate = true;
    }

@@ -119,13 +119,16 @@ class ConnectionUpdateMessage : public BaseMessage {
       mDeltaT = deltaTime;
    }
    double mTime;
-   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
-   // timesteps
+   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
 };
 
 class ConnectionNormalizeMessage : public BaseMessage {
   public:
-   ConnectionNormalizeMessage() { setMessageType("ConnectionNormalize"); }
+   ConnectionNormalizeMessage(double simTime) {
+      setMessageType("ConnectionNormalize");
+      mTime = simTime;
+   }
+   double mTime;
 };
 
 class ConnectionFinalizeUpdateMessage : public BaseMessage {

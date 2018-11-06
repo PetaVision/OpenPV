@@ -92,9 +92,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    Response::Status respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message);
-   bool needRecalc(double timeValue) override {
-      return parent->simulationTime() > getLastUpdateTime();
-   }
+   bool needRecalc(double timeValue) override { return timeValue > getLastUpdateTime(); }
    double referenceUpdateTime() const override { return parent->simulationTime(); }
    virtual void calcValues(double timeValue) override;
    virtual bool needUpdate(double timeValue, double dt) const override { return true; }

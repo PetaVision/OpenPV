@@ -29,4 +29,4 @@ class ISTALayer : public HyPerLayer {
 
 } // end namespace PV
 
-#endif
+#endif /* ISTALAYER_HPP_ */

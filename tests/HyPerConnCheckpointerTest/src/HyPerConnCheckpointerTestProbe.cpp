@@ -15,21 +15,16 @@
 #include "utils/BufferUtilsMPI.hpp"
 #include <cmath>
 
-HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe() { initialize_base(); }
+HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe() {}
 
 HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe(const char *name, PV::HyPerCol *hc) {
-   initialize_base();
    initialize(name, hc);
 }
 
 HyPerConnCheckpointerTestProbe::~HyPerConnCheckpointerTestProbe() {}
 
-int HyPerConnCheckpointerTestProbe::initialize_base() { return PV_SUCCESS; }
-
 int HyPerConnCheckpointerTestProbe::initialize(const char *name, PV::HyPerCol *hc) {
-   int status = PV::ColProbe::initialize(name, hc);
-   FatalIf(parent->getDeltaTime() != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
-   return status;
+   return PV::ColProbe::initialize(name, hc);
 }
 
 void HyPerConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) {
@@ -161,6 +156,12 @@ HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependency
    else {
       return PV::Response::SUCCESS;
    }
+}
+
+PV::Response::Status HyPerConnCheckpointerTestProbe::initializeState(
+      std::shared_ptr<PV::InitializeStateMessage const> message) {
+   FatalIf(message->mDeltaTime != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
+   return PV::Response::SUCCESS;
 }
 
 PV::Response::Status
