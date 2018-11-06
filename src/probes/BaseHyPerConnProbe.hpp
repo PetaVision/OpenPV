@@ -34,7 +34,7 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
     * the target
     * HyPerConn.
     */
-   virtual double referenceUpdateTime() const override;
+   virtual double referenceUpdateTime(double simTime) const override;
 
   protected:
    Weights *mWeights; // should be const but Weights and PatchGeometry are not const-correct yet

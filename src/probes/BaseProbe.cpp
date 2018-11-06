@@ -329,7 +329,7 @@ BaseProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const>
 void BaseProbe::getValues(double timevalue) {
    if (needRecalc(timevalue)) {
       calcValues(timevalue);
-      lastUpdateTime = referenceUpdateTime();
+      lastUpdateTime = referenceUpdateTime(timevalue);
    }
 }
 

@@ -150,7 +150,7 @@ void QuotientColProbe::calcValues(double timeValue) {
    }
 }
 
-double QuotientColProbe::referenceUpdateTime() const { return parent->simulationTime(); }
+double QuotientColProbe::referenceUpdateTime(double simTime) const { return simTime; }
 
 Response::Status QuotientColProbe::outputState(double simTime, double deltaTime) {
    getValues(simTime);

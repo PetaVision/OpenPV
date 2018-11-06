@@ -136,7 +136,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
 
 bool ColumnEnergyProbe::needRecalc(double timevalue) { return true; }
 
-double ColumnEnergyProbe::referenceUpdateTime() const { return parent->simulationTime(); }
+double ColumnEnergyProbe::referenceUpdateTime(double simTime) const { return simTime; }
 
 void ColumnEnergyProbe::calcValues(double timevalue) {
    if (mLastTimeValue == timevalue || --mSkipTimer > 0) {

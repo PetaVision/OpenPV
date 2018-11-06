@@ -53,7 +53,9 @@ bool BaseHyPerConnProbe::needRecalc(double timevalue) {
    return getLastUpdateTime() < mWeights->getTimestamp();
 }
 
-double BaseHyPerConnProbe::referenceUpdateTime() const { return mWeights->getTimestamp(); }
+double BaseHyPerConnProbe::referenceUpdateTime(double simTime) const {
+   return mWeights->getTimestamp();
+}
 
 BaseHyPerConnProbe::~BaseHyPerConnProbe() {}
 

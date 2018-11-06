@@ -72,7 +72,7 @@ class LayerProbe : public BaseProbe {
     * Implements the referenceUpdateTime method.  Returns the last update time of
     * the target layer.
     */
-   virtual double referenceUpdateTime() const override;
+   virtual double referenceUpdateTime(double simTime) const override;
 
   private:
    int initialize_base();

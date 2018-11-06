@@ -111,7 +111,7 @@ class QuotientColProbe : public ColProbe {
 
    virtual bool needRecalc(double timevalue) override { return true; }
 
-   virtual double referenceUpdateTime() const override;
+   virtual double referenceUpdateTime(double simTime) const override;
 
    /**
     * Implements the needRecalc method.  Always returns true, in the expectation

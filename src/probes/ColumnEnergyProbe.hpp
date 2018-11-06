@@ -96,7 +96,7 @@ class ColumnEnergyProbe : public ColProbe {
     * Implementation of referenceUpdateTime().  Since ColumnEnergyProbe updates
     * every timestep, it uses current simulation time.
     */
-   virtual double referenceUpdateTime() const override;
+   virtual double referenceUpdateTime(double simTime) const override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_reductionInterval(enum ParamsIOFlag ioFlag);

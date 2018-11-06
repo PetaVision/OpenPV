@@ -122,6 +122,6 @@ Response::Status WeightComparisonProbe::outputState(double simTime, double delta
    return Response::SUCCESS;
 }
 
-double WeightComparisonProbe::referenceUpdateTime() const { return parent->simulationTime(); }
+double WeightComparisonProbe::referenceUpdateTime(double simTime) const { return simTime; }
 
 } // end namespace PV

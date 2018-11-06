@@ -254,7 +254,7 @@ class BaseProbe : public BaseObject {
     * the implementation of needRecalc() will return true if lastUpdateTime is
     * less than the value returned by referenceUpdateTime, and false otherwise.
     */
-   virtual double referenceUpdateTime() const = 0;
+   virtual double referenceUpdateTime(double simTime) const = 0;
 
    /**
     * A pure virtual method to calculate the values of the probe.  calcValues()
