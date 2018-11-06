@@ -12,8 +12,14 @@ TriggerTestLayerProbe::TriggerTestLayerProbe(const char *name, HyPerCol *hc) {
    LayerProbe::initialize(name, hc);
 }
 
+Response::Status
+TriggerTestLayerProbe::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   mDeltaTime = message->mDeltaTime;
+   return Response::SUCCESS;
+}
+
 void TriggerTestLayerProbe::calcValues(double timevalue) {
-   double v             = needUpdate(timevalue, parent->getDeltaTime()) ? 1.0 : 0.0;
+   double v             = needUpdate(timevalue, mDeltaTime) ? 1.0 : 0.0;
    double *valuesBuffer = this->getValuesBuffer();
    for (int n = 0; n < this->getNumValues(); n++) {
       valuesBuffer[n] = v;

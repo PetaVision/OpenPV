@@ -21,6 +21,9 @@ class TriggerTestLayerProbe : public PV::LayerProbe {
     */
    virtual void ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) override {}
 
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
    /**
     * TriggerTestLayerProbe::needRecalc(double) always returns true so that we can always
     * investigate the value of needUpdate()
@@ -38,6 +41,9 @@ class TriggerTestLayerProbe : public PV::LayerProbe {
     * LayerProbe::TriggerTestLayerProbe is pure virtual
     */
    virtual Response::Status outputState(double simTime, double deltaTime) override;
+
+  protected:
+   double mDeltaTime = 1.0; // Set during InitializeState, and used in calcValues.
 }; // end TriggerTestLayer
 
 } // end namespacePV
