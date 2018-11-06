@@ -8,7 +8,6 @@
 #include "InputActivityBuffer.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/RandomSeed.hpp"
-#include "observerpattern/ObserverTable.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 
 namespace PV {
@@ -351,16 +350,10 @@ void InputActivityBuffer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
    }
    this->parameters()->ioParamArray(
          ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &length);
-   FatalIf(
-         length != 0 && length != parent->getNBatchGlobal(),
-         "%s: start_frame_index requires either 0 or nbatch values.\n",
-         getName());
    mStartFrameIndex.clear();
-   mStartFrameIndex.resize(parent->getNBatchGlobal());
-   if (length > 0) {
-      for (int i = 0; i < length; ++i) {
-         mStartFrameIndex.at(i) = paramsStartFrameIndex[i];
-      }
+   mStartFrameIndex.resize(length);
+   for (int i = 0; i < length; ++i) {
+      mStartFrameIndex.at(i) = paramsStartFrameIndex[i];
    }
    free(paramsStartFrameIndex);
 }
@@ -368,10 +361,7 @@ void InputActivityBuffer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
 void InputActivityBuffer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(name, "batchMethod"));
    if (mBatchMethod != BatchIndexer::BYSPECIFIED) {
-      mSkipFrameIndex.resize(parent->getNBatchGlobal(), 0);
-      // Earlier behavior made it a fatal error if skip_frame_index was used
-      // and batchMethod was not bySpecified. Now the parameter is skipped and
-      // a warning will be issued when params are scanned for unread values.
+      // bySpecified is the only batchMethod that uses skip_frame_index.
       return;
    }
    int *paramsSkipFrameIndex = nullptr;
@@ -385,10 +375,6 @@ void InputActivityBuffer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
    }
    this->parameters()->ioParamArray(
          ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &length);
-   FatalIf(
-         length != parent->getNBatchGlobal(),
-         "%s: skip_frame_index requires nbatch values.\n",
-         getName());
    mSkipFrameIndex.clear();
    mSkipFrameIndex.resize(length);
    for (int i = 0; i < length; ++i) {
@@ -449,9 +435,6 @@ Response::Status InputActivityBuffer::communicateInitInfo(
       sizeMismatch = true;
    }
    FatalIf(sizeMismatch, "Unable to initialize %s\n", getDescription_c());
-
-   auto *table = message->mHierarchy->lookupByType<ObserverTable>();
-   FatalIf(!table, "%s requires an ObserverTable.\n", getDescription_c());
 
    return Response::SUCCESS;
 }
