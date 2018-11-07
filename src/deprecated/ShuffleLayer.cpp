@@ -241,7 +241,7 @@ void ShuffleLayer::collectFreq(const float *sourceData) {
    }
 }
 
-void ShuffleLayer::rejectionShuffle(const float *sourceData, float *activity) {
+void ShuffleLayer::rejectionShuffle(const float *sourceData, float *activity, double simTime) {
    const PVLayerLoc *loc  = getLayerLoc();
    PVHalo const *haloOrig = &mOriginalLayer->getLayerLoc()->halo;
    PVHalo const *halo     = &loc->halo;
@@ -251,7 +251,7 @@ void ShuffleLayer::rejectionShuffle(const float *sourceData, float *activity) {
    int numextended        = getNumExtended();
    int nbatch             = loc->nbatch;
    int rndIdx, rndIdxOrig;
-   if (!readFreqFromFile && parent->simulationTime() <= freqCollectTime) {
+   if (!readFreqFromFile && simTime <= freqCollectTime) {
       // Collect maxVActivity and featureFreq
       collectFreq(sourceData);
    }
@@ -387,7 +387,7 @@ Response::Status ShuffleLayer::updateState(double timef, double dt) {
       randomShuffle(sourceData, A);
    }
    else if (strcmp(shuffleMethod, "rejection") == 0) {
-      rejectionShuffle(sourceData, A);
+      rejectionShuffle(sourceData, A, timef);
    }
 
    return Response::SUCCESS;

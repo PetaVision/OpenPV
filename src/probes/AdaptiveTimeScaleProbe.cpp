@@ -164,7 +164,7 @@ Response::Status AdaptiveTimeScaleProbe::registerData(
 
 Response::Status
 AdaptiveTimeScaleProbe::respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message) {
-   getValues(parent->simulationTime());
+   getValues(message->mTime);
    return Response::SUCCESS;
 }
 

@@ -108,7 +108,11 @@ class CopyInitialStateToGPUMessage : public BaseMessage {
 
 class AdaptTimestepMessage : public BaseMessage {
   public:
-   AdaptTimestepMessage() { setMessageType("AdaptTimestep"); }
+   AdaptTimestepMessage(double simTime) {
+      setMessageType("AdaptTimestep");
+      mTime = simTime;
+   }
+   double mTime;
 };
 
 class ConnectionUpdateMessage : public BaseMessage {

@@ -612,13 +612,11 @@ int HyPerCol::advanceTime(double sim_time) {
    // bypassing trigger event
    mSimTime = sim_time + mDeltaTime;
 
-   notifyLoop(std::make_shared<AdaptTimestepMessage>());
+   notifyLoop(std::make_shared<AdaptTimestepMessage>(mSimTime));
 
    // At this point all activity from the previous time step has
    // been delivered to the data store.
    //
-
-   int status = PV_SUCCESS;
 
    // update the connections (weights)
    //
@@ -731,7 +729,7 @@ int HyPerCol::advanceTime(double sim_time) {
 
    notifyLoop(std::make_shared<ColProbeOutputStateMessage>(mSimTime, mDeltaTime));
 
-   return status;
+   return PV_SUCCESS;
 }
 
 void HyPerCol::nonblockingLayerUpdate(

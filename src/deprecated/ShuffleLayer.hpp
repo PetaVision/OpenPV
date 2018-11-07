@@ -36,7 +36,7 @@ class ShuffleLayer : public CloneVLayer {
    virtual void ioParam_freqCollectTime(enum ParamsIOFlag ioFlag);
 
    void randomShuffle(const float *sourceData, float *activity);
-   void rejectionShuffle(const float *sourceData, float *activity);
+   void rejectionShuffle(const float *sourceData, float *activity, double simTime);
    void collectFreq(const float *sourceData);
    void readFreq();
 
