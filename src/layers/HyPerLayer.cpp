@@ -545,7 +545,10 @@ void HyPerLayer::ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());
+   bool warnIfAbsent = false; // If not in params, will be set in CommunicateInitInfo stage
+   // If writing a derived class that overrides ioParam_writeStep, check if the setDefaultWriteStep
+   // method also needs to be overridden.
+   parameters()->ioParamValue(ioFlag, name, "writeStep", &writeStep, writeStep, warnIfAbsent);
 }
 
 void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
@@ -801,8 +804,6 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
       }
    }
 
-   PVLayerLoc const *loc = getLayerLoc();
-
    if (triggerFlag) {
       triggerLayer = hierarchy->lookupByName<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
@@ -882,7 +883,17 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    }
 #endif
 
+   if (!parameters()->present(getName(), "writeStep")) {
+      setDefaultWriteStep(message);
+   }
+
    return Response::SUCCESS;
+}
+
+void HyPerLayer::setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   writeStep = message->mDeltaTime;
+   // Call ioParamValue to generate the warnIfAbsent warning.
+   parameters()->ioParamValue(PARAMS_IO_READ, name, "writeStep", &writeStep, writeStep, true);
 }
 
 int HyPerLayer::openOutputStateFile(

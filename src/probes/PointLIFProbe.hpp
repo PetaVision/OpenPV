@@ -27,6 +27,10 @@ class PointLIFProbe : public PointProbe {
     */
    virtual void initNumValues() override;
 
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual void setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message);
+
    /**
     * Overrides PointProbe::calcValues to report the conductances and threshold V
     * as well as V and
@@ -41,8 +45,6 @@ class PointLIFProbe : public PointProbe {
    virtual void writeState(double timevalue) override;
 
   private:
-   int initialize_base();
-
    /**
     * Used by calcValues to get the buffer data for the components in the
     * target LIF layer's activity component.
@@ -50,8 +52,8 @@ class PointLIFProbe : public PointProbe {
    float const *getBufferData(ObserverTable const *table, char const *label);
 
   protected:
-   double writeTime; // time of next output
-   double writeStep; // output time interval
+   double writeTime = 0.0; // time of next output
+   double writeStep = 0.0; // output time interval
 
 }; // end class PointLIFProbe
 }

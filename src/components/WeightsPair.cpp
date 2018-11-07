@@ -50,8 +50,10 @@ int WeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void WeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
-         ioFlag, name, "writeStep", &mWriteStep, parent->getDeltaTime(), true /*warn if absent */);
+   bool warnIfAbsent = false; // If not in params, will be set in CommunicateInitInfo stage
+   // If writing a derived class that overrides ioParam_writeStep, check if the setDefaultWriteStep
+   // method also needs to be overridden.
+   parameters()->ioParamValue(ioFlag, name, "writeStep", &mWriteStep, mWriteStep, warnIfAbsent);
 }
 
 void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
@@ -161,6 +163,10 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
       return status + Response::POSTPONE;
    }
 
+   if (!parameters()->present(getName(), "writeStep")) {
+      setDefaultWriteStep(message);
+   }
+
    return status;
 }
 
@@ -196,6 +202,12 @@ void WeightsPair::createPostWeights(std::string const &weightsName) {
          mArborList->getNumAxonalArbors(),
          mSharedWeights->getSharedWeights(),
          -std::numeric_limits<double>::infinity() /*timestamp*/);
+}
+
+void WeightsPair::setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   mWriteStep = message->mDeltaTime;
+   // Call ioParamValue to generate the warnIfAbsent warning.
+   parameters()->ioParamValue(PARAMS_IO_READ, name, "writeStep", &mWriteStep, mWriteStep, true);
 }
 
 void WeightsPair::allocatePreWeights() {

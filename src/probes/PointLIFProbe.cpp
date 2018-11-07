@@ -18,21 +18,12 @@
 namespace PV {
 
 PointLIFProbe::PointLIFProbe() : PointProbe() {
-   initialize_base();
    // Derived classes of PointLIFProbe should use this PointLIFProbe constructor,
-   // and call
-   // PointLIFProbe::initialize during their initialization.
+   // and call PointLIFProbe::initialize during their initialization.
 }
 
 PointLIFProbe::PointLIFProbe(const char *name, HyPerCol *hc) : PointProbe() {
-   initialize_base();
    initialize(name, hc);
-}
-
-int PointLIFProbe::initialize_base() {
-   writeTime = 0.0;
-   writeStep = 0.0;
-   return PV_SUCCESS;
 }
 
 int PointLIFProbe::initialize(const char *name, HyPerCol *hc) {
@@ -48,12 +39,35 @@ int PointLIFProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   writeStep = parent->getDeltaTime(); // Marian, don't change this default behavior
-   parameters()->ioParamValue(
-         ioFlag, getName(), "writeStep", &writeStep, writeStep, true /*warnIfAbsent*/);
+   // If writeStep is not set in params, we initialize it to zero here; in the
+   // CommunicateInitInfo state, we set it to the parent's DeltaTime.
+   // If writing a derived class that overrides ioParam_writeStep, check if the
+   // setDefaultWriteStep method also needs to be overridden.
+   writeStep         = 0.0;
+   bool warnIfAbsent = false;
+   parameters()->ioParamValue(ioFlag, name, "writeStep", &writeStep, writeStep, warnIfAbsent);
 }
 
 void PointLIFProbe::initNumValues() { setNumValues(NUMBER_OF_VALUES); }
+
+Response::Status
+PointLIFProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = PointProbe::communicateInitInfo(message);
+   if (!Response::completed) {
+      return status;
+   }
+
+   if (!parameters()->present(getName(), "writeStep")) {
+      setDefaultWriteStep(message);
+   }
+   return Response::SUCCESS;
+}
+
+void PointLIFProbe::setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   writeStep = message->mDeltaTime;
+   // Call ioParamValue to generate the warnIfAbsent warning.
+   parameters()->ioParamValue(PARAMS_IO_READ, name, "writeStep", &writeStep, writeStep, true);
+}
 
 float const *PointLIFProbe::getBufferData(ObserverTable const *table, char const *label) {
    std::string lookupString = std::string(label) + " \"" + getTargetLayer()->getName() + "\"";
