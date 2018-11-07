@@ -44,7 +44,7 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    }
    originalLayer = message->mHierarchy->lookupByName<HyPerLayer>(std::string(originalLayerName));
    if (originalLayer == nullptr) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(),
@@ -62,7 +62,7 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    const PVLayerLoc *loc    = getLayerLoc();
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same dimensions.\n",
@@ -97,7 +97,7 @@ void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
    assert(originalLayerName);
    if (ioFlag == PARAMS_IO_READ && originalLayerName[0] == '\0') {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf("%s: originalLayerName must be set.\n", getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
@@ -106,10 +106,10 @@ void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
-   parent->parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
+   parameters()->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
+   parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
    if (ioFlag == PARAMS_IO_READ && binMax <= binMin) {
-      if (parent->columnId() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "%s: binMax (%f) must be greater than binMin (%f).\n",
                getDescription_c(),
