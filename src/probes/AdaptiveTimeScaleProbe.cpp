@@ -163,6 +163,12 @@ Response::Status AdaptiveTimeScaleProbe::registerData(
 }
 
 Response::Status
+AdaptiveTimeScaleProbe::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   mBaseDeltaTime = message->mDeltaTime;
+   return Response::SUCCESS;
+}
+
+Response::Status
 AdaptiveTimeScaleProbe::respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message) {
    getValues(message->mTime);
    return Response::SUCCESS;
@@ -177,7 +183,7 @@ AdaptiveTimeScaleProbe::respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessag
 void AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    std::vector<double> rawProbeValues;
    if (triggerLayer != nullptr
-       && triggerLayer->needUpdate(timeValue + triggerOffset, parent->getDeltaTime())) {
+       && triggerLayer->needUpdate(timeValue + triggerOffset, mBaseDeltaTime)) {
       rawProbeValues.assign(getNumValues(), -1.0);
    }
    else {

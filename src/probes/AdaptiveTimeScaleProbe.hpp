@@ -91,6 +91,8 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
    Response::Status respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message);
    bool needRecalc(double timeValue) override { return timeValue > getLastUpdateTime(); }
    double referenceUpdateTime(double timevalue) const override { return timevalue; }
@@ -107,6 +109,8 @@ class AdaptiveTimeScaleProbe : public ColProbe {
 
    BaseProbe *mTargetProbe                                   = nullptr;
    AdaptiveTimeScaleController *mAdaptiveTimeScaleController = nullptr;
+
+   double mBaseDeltaTime = 1.0; // The parent's DeltaTime, set during InitializeState.
 };
 
 } /* namespace PV */
