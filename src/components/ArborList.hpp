@@ -63,9 +63,13 @@ class ArborList : public BaseObject {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   void initializeDelays();
+   void initializeDelays(double deltaTime);
 
-   void setDelay(int arborId, double delay);
+   /**
+    * Converts the given delay, in physical time units, to an integer number of timesteps.
+    * Issues a warning if dely / deltaTime is not exactly an integer.
+    */
+   int convertDelay(double delay, double deltaTime);
 
    int maxDelaySteps();
 

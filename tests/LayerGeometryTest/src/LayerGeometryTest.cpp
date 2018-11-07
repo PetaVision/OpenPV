@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
    auto *observerTable        = hc->getTable();
    auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
          observerTable,
+         hc->getDeltaTime(),
          hc->getNxGlobal(),
          hc->getNyGlobal(),
          hc->getNBatchGlobal(),
@@ -117,6 +118,7 @@ void communicateInitInfo(PV::HyPerCol *hc) {
    auto *observerTable = hc->getTable();
    auto messagePtr     = std::make_shared<PV::CommunicateInitInfoMessage>(
          observerTable,
+         hc->getDeltaTime(),
          hc->getNxGlobal(),
          hc->getNyGlobal(),
          hc->getNBatchGlobal(),

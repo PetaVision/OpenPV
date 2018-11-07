@@ -783,6 +783,7 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
 
    auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
          mTable,
+         message->mDeltaTime,
          message->mNxGlobal,
          message->mNyGlobal,
          message->mNBatchGlobal,

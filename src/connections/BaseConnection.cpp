@@ -116,6 +116,7 @@ BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
 
    auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
          mTable,
+         message->mDeltaTime,
          message->mNxGlobal,
          message->mNyGlobal,
          message->mNBatchGlobal,

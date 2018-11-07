@@ -553,7 +553,7 @@ int HyPerCol::processParams(char const *path) {
    if (!mParamsProcessedFlag) {
       notifyLoop(
             std::make_shared<CommunicateInitInfoMessage>(
-                  mTable, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
+                  mTable, mDeltaTime, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
    }
 
    // Print a cleaned up version of params to the file given by printParamsFilename

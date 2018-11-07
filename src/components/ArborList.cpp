@@ -78,7 +78,7 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    }
    HyPerLayer *preLayer = connectionData->getPre();
 
-   initializeDelays();
+   initializeDelays(message->mDeltaTime);
    int maxDelay     = maxDelaySteps();
    int allowedDelay = preLayer->increaseDelayLevels(maxDelay);
    if (allowedDelay < maxDelay) {
@@ -97,40 +97,28 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    return Response::SUCCESS;
 }
 
-void ArborList::initializeDelays() {
+void ArborList::initializeDelays(double deltaTime) {
    assert(!parameters()->presentAndNotBeenRead(this->getName(), "numAxonalArbors"));
    mDelay.resize(getNumAxonalArbors());
 
-   // Initialize delays for each arbor
-   // Using setDelay to convert ms to timesteps
+   FatalIf(
+         mNumDelays != 1 and mNumDelays != getNumAxonalArbors(),
+         "%s Delay must be either a single value or the same length as the number of arbors\n",
+         getDescription());
    for (int arborId = 0; arborId < (int)mDelay.size(); arborId++) {
-      if (mNumDelays == 0) {
-         // No delay
-         setDelay(arborId, 0.0);
-      }
-      else if (mNumDelays == 1) {
-         setDelay(arborId, mDelaysParams[0]);
-      }
-      else if (mNumDelays == getNumAxonalArbors()) {
-         setDelay(arborId, mDelaysParams[arborId]);
-      }
-      else {
-         Fatal().printf(
-               "Delay must be either a single value or the same length "
-               "as the number of arbors\n");
-      }
+      int delayIndex  = (mNumDelays == getNumAxonalArbors()) ? arborId : 0;
+      mDelay[arborId] = convertDelay(mDelaysParams[delayIndex], deltaTime);
    }
 }
 
-void ArborList::setDelay(int arborId, double delay) {
-   assert(arborId >= 0 && arborId < getNumAxonalArbors());
-   int intDelay = (int)std::nearbyint(delay / parent->getDeltaTime());
-   if (std::fmod(delay, parent->getDeltaTime()) != 0) {
-      double actualDelay = intDelay * parent->getDeltaTime();
+int ArborList::convertDelay(double delay, double deltaTime) {
+   int intDelay = (int)std::nearbyint(delay / deltaTime);
+   if (std::fmod(delay, deltaTime) != 0) {
+      double actualDelay = intDelay * deltaTime;
       WarnLog() << getName() << ": A delay of " << delay << " will be rounded to " << actualDelay
                 << "\n";
    }
-   mDelay[arborId] = intDelay;
+   return intDelay;
 }
 
 int ArborList::maxDelaySteps() {

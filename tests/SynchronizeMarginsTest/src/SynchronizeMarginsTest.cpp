@@ -157,6 +157,7 @@ void initGeometries(
    auto *observerTable        = hc->getTable();
    auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
          observerTable,
+         hc->getDeltaTime(),
          hc->getNxGlobal(),
          hc->getNyGlobal(),
          hc->getNBatchGlobal(),

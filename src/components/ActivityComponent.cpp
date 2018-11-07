@@ -88,6 +88,7 @@ ActivityComponent::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    auto &hierarchy         = message->mHierarchy;
    auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
          mTable,
+         message->mDeltaTime,
          message->mNxGlobal,
          message->mNyGlobal,
          message->mNBatchGlobal,

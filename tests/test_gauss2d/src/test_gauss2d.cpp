@@ -84,6 +84,7 @@ int main(int argc, char *argv[]) {
 
    auto communicateMessagePtr = std::make_shared<CommunicateInitInfoMessage>(
          observerTable,
+         hc->getDeltaTime(),
          hc->getNxGlobal(),
          hc->getNyGlobal(),
          hc->getNBatchGlobal(),
