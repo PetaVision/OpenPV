@@ -24,6 +24,9 @@ class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
    ResetStateOnTriggerTestProbe();
    int initialize(char const *name, PV::HyPerCol *hc);
 
+   virtual PV::Response::Status
+   initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) override;
+
    /**
     * Returns the number of neurons in the target layer that differ from the expected value.
     */
@@ -36,6 +39,7 @@ class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
 
    // Member variables
   protected:
+   double mDeltaTime = 1.0; // Set during InitializeState, and used in calcValues.
    int probeStatus;
    double firstFailureTime;
 };

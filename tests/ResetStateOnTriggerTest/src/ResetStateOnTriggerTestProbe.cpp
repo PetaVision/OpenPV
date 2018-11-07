@@ -20,6 +20,12 @@ int ResetStateOnTriggerTestProbe::initialize(char const *name, PV::HyPerCol *hc)
    return status;
 }
 
+PV::Response::Status ResetStateOnTriggerTestProbe::initializeState(
+      std::shared_ptr<PV::InitializeStateMessage const> message) {
+   mDeltaTime = message->mDeltaTime;
+   return PV::Response::SUCCESS;
+}
+
 void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    int nBatch = getNumValues();
    if (timevalue > 0.0) {
@@ -27,7 +33,7 @@ void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
       int NGlobal           = targetLayer->getNumGlobalNeurons();
       PVLayerLoc const *loc = targetLayer->getLayerLoc();
       PVHalo const *halo    = &loc->halo;
-      int inttime           = (int)nearbyintf(timevalue / parent->getDeltaTime());
+      int inttime           = (int)nearbyintf(timevalue / mDeltaTime);
       for (int b = 0; b < nBatch; b++) {
          int numDiscreps       = 0;
          float const *activity = targetLayer->getLayerData() + b * targetLayer->getNumExtended();
