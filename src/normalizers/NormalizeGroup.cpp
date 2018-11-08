@@ -12,15 +12,16 @@
 
 namespace PV {
 
-NormalizeGroup::NormalizeGroup(char const *name, HyPerCol *hc) { initialize(name, hc); }
+NormalizeGroup::NormalizeGroup(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 NormalizeGroup::NormalizeGroup() {}
 
 NormalizeGroup::~NormalizeGroup() { free(mNormalizeGroupName); }
 
-int NormalizeGroup::initialize(char const *name, HyPerCol *hc) {
-   int status = NormalizeBase::initialize(name, hc);
-   return status;
+void NormalizeGroup::initialize(char const *name, PVParams *params, Communicator *comm) {
+   NormalizeBase::initialize(name, params, comm);
 }
 
 int NormalizeGroup::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -52,13 +53,13 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    mGroupHead                  = groupHeadConn->getComponentByType<NormalizeBase>();
 
    if (mGroupHead == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
                getDescription_c(),
                mNormalizeGroupName);
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }
 

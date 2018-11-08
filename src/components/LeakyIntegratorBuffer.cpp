@@ -10,15 +10,17 @@
 
 namespace PV {
 
-LeakyIntegratorBuffer::LeakyIntegratorBuffer(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+LeakyIntegratorBuffer::LeakyIntegratorBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 LeakyIntegratorBuffer::~LeakyIntegratorBuffer() {}
 
-int LeakyIntegratorBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = GSynInternalStateBuffer::initialize(name, hc);
-   return status;
+void LeakyIntegratorBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   GSynInternalStateBuffer::initialize(name, params, comm);
 }
 
 void LeakyIntegratorBuffer::setObjectType() { mObjectType = "LeakyIntegratorBuffer"; }

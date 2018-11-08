@@ -12,15 +12,16 @@
 
 namespace PV {
 
-InitGauss2DWeights::InitGauss2DWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
+InitGauss2DWeights::InitGauss2DWeights(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 InitGauss2DWeights::InitGauss2DWeights() {}
 
 InitGauss2DWeights::~InitGauss2DWeights() {}
 
-int InitGauss2DWeights::initialize(char const *name, HyPerCol *hc) {
-   int status = InitWeights::initialize(name, hc);
-   return status;
+void InitGauss2DWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InitWeights::initialize(name, params, comm);
 }
 
 int InitGauss2DWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -132,7 +133,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       }
    }
    else {
-      strengthParam       = new StrengthParam(name, parent);
+      strengthParam       = new StrengthParam(name, parameters(), mCommunicator);
       auto tableComponent = hierarchy->lookupByType<ObserverTable>();
       FatalIf(
             tableComponent == nullptr,

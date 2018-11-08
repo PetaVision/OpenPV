@@ -13,17 +13,18 @@
 
 namespace PV {
 
-ArborTestForOnesProbe::ArborTestForOnesProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+ArborTestForOnesProbe::ArborTestForOnesProbe(const char *name, PVParams *params, Communicator *comm)
+      : StatsProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 ArborTestForOnesProbe::~ArborTestForOnesProbe() {}
 
 int ArborTestForOnesProbe::initialize_base() { return PV_SUCCESS; }
 
-int ArborTestForOnesProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void ArborTestForOnesProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 Response::Status ArborTestForOnesProbe::outputState(double simTime, double deltaTime) {
@@ -31,7 +32,7 @@ Response::Status ArborTestForOnesProbe::outputState(double simTime, double delta
    if (status != Response::SUCCESS) {
       return status;
    }
-   int const rank    = parent->getCommunicator()->commRank();
+   int const rank    = mCommunicator->commRank();
    const int rcvProc = 0;
    if (rank != rcvProc) {
       return status;

@@ -42,7 +42,7 @@ class BaseObject;
  * PV_Init pv_init(&argc, &argv, false);
  * HyPerCol * hc = new HyPerCol("column", &pv_init);
  * pv_init.registerKeyword("CustomType", Factory::create<CustomType>);
- * CustomType customObject = *Factory::instance()->create("CustomType", hc);
+ * CustomType customObject = *Factory::instance()->create("CustomType", params, comm);
  * ...
  * Note that buildandrun() automates the task of calling the create() method;
  * in practice, you only need to specify the instantiator function, and
@@ -56,8 +56,8 @@ class BaseObject;
  *
  * For example:
  * ...
- * BaseObject * createCustomLayerType(char const * name, HyPerCol * hc) {
- *    return new CustomLayerType(name, hc);
+ * BaseObject * createCustomLayerType(char const *name, PVParams *params, Communicator *comm) {
+ *    return new CustomLayerType(name, params, comm);
  * }
  * ...
  * pv_init.registerKeyword("CustomLayerType", createCustomLayerType);
@@ -77,8 +77,8 @@ class Factory {
     * with two arguments, the name and a pointer to the HyPerCol.
     */
    template <typename T>
-   static BaseObject *create(char const *name, HyPerCol *hc) {
-      return hc == nullptr ? nullptr : new T(name, hc);
+   static BaseObject *create(char const *name, PVParams *params, Communicator *comm) {
+      return new T(name, params, comm);
    }
 
    /**
@@ -101,7 +101,9 @@ class Factory {
     * the
     * registerKeyword pointer.
     */
-   BaseObject *createByKeyword(char const *keyword, char const *name, HyPerCol *hc) const;
+   BaseObject *
+   createByKeyword(char const *keyword, char const *name, PVParams *params, Communicator *comm)
+         const;
 
   private:
    /**

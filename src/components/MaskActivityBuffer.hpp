@@ -21,7 +21,7 @@ class MaskActivityBuffer : public ANNActivityBuffer {
   public:
    enum Method { UNDEFINED, LAYER, INVERT_LAYER, FEATURES, INVERT_FEATURES };
 
-   MaskActivityBuffer(const char *name, HyPerCol *hc);
+   MaskActivityBuffer(const char *name, PVParams *params, Communicator *comm);
    MaskActivityBuffer();
    virtual ~MaskActivityBuffer();
    virtual Response::Status

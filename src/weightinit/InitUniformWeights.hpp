@@ -38,7 +38,7 @@ class InitUniformWeights : public InitWeights {
    /** @} */
 
   public:
-   InitUniformWeights(const char *name, HyPerCol *hc);
+   InitUniformWeights(const char *name, PVParams *params, Communicator *comm);
    virtual ~InitUniformWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -48,7 +48,7 @@ class InitUniformWeights : public InitWeights {
 
   protected:
    InitUniformWeights();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual void calcWeights(int patchIndex, int arborId) override;
 
   private:

@@ -11,19 +11,21 @@
 
 namespace PV {
 
-Retina::Retina(const char *name, HyPerCol *hc) { initialize(name, hc); }
+Retina::Retina(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 Retina::Retina() {}
 
 Retina::~Retina() {}
 
-int Retina::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void Retina::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *Retina::createActivityComponent() {
-   return new ActivityComponentActivityOnly<RetinaActivityBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<RetinaActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // namespace PV

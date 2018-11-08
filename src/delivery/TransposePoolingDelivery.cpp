@@ -14,16 +14,19 @@
 
 namespace PV {
 
-TransposePoolingDelivery::TransposePoolingDelivery(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+TransposePoolingDelivery::TransposePoolingDelivery(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 TransposePoolingDelivery::TransposePoolingDelivery() {}
 
 TransposePoolingDelivery::~TransposePoolingDelivery() {}
 
-int TransposePoolingDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseDelivery::initialize(name, hc);
+void TransposePoolingDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseDelivery::initialize(name, params, comm);
 }
 
 void TransposePoolingDelivery::setObjectType() { mObjectType = "TransposePoolingDelivery"; }
@@ -78,13 +81,13 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    std::string originalConnString = std::string(originalConnName);
    PoolingConn *originalConn      = tableComponent->lookupByName<PoolingConn>(originalConnString);
    if (originalConn == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: originalConnName \"%s\" does not correspond to a PoolingConn in the column.\n",
                getDescription_c(),
                originalConnName);
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }
    auto *originalPoolingDelivery = originalConn->getComponentByType<PoolingDelivery>();

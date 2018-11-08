@@ -10,14 +10,16 @@
 
 namespace PV {
 
-HyPerDelivery::HyPerDelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
+HyPerDelivery::HyPerDelivery(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 HyPerDelivery::HyPerDelivery() {}
 
 HyPerDelivery::~HyPerDelivery() {}
 
-int HyPerDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseDelivery::initialize(name, hc);
+void HyPerDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseDelivery::initialize(name, params, comm);
 }
 
 void HyPerDelivery::setObjectType() { mObjectType = "HyPerDelivery"; }

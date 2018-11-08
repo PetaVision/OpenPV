@@ -12,15 +12,17 @@ namespace PV {
 
 IdentConn::IdentConn() {}
 
-IdentConn::IdentConn(const char *name, HyPerCol *hc) { initialize(name, hc); }
+IdentConn::IdentConn(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int IdentConn::initialize(const char *name, HyPerCol *hc) {
-   int status = BaseConnection::initialize(name, hc);
-   return status;
+void IdentConn::initialize(const char *name, PVParams *params, Communicator *comm) {
+   BaseConnection::initialize(name, params, comm);
 }
 
 BaseDelivery *IdentConn::createDeliveryObject() {
-   BaseObject *baseObject = Factory::instance()->createByKeyword("IdentDelivery", name, parent);
+   BaseObject *baseObject =
+         Factory::instance()->createByKeyword("IdentDelivery", name, parameters(), mCommunicator);
    IdentDelivery *deliveryObject = dynamic_cast<IdentDelivery *>(baseObject);
    pvAssert(deliveryObject);
    return deliveryObject;
@@ -34,6 +36,8 @@ void IdentConn::createComponentTable(char const *description) {
    }
 }
 
-SingleArbor *IdentConn::createSingleArbor() { return new SingleArbor(name, parent); }
+SingleArbor *IdentConn::createSingleArbor() {
+   return new SingleArbor(name, parameters(), mCommunicator);
+}
 
 } // end of namespace PV block

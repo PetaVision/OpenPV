@@ -10,15 +10,17 @@
 
 namespace PV {
 
-SigmoidActivityBuffer::SigmoidActivityBuffer(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+SigmoidActivityBuffer::SigmoidActivityBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 SigmoidActivityBuffer::~SigmoidActivityBuffer() {}
 
-int SigmoidActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = VInputActivityBuffer::initialize(name, hc);
-   return status;
+void SigmoidActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   VInputActivityBuffer::initialize(name, params, comm);
 }
 
 void SigmoidActivityBuffer::setObjectType() { mObjectType = "SigmoidActivityBuffer"; }
@@ -57,7 +59,7 @@ Response::Status SigmoidActivityBuffer::communicateInitInfo(
       return status;
    }
 
-   if (parent->getCommunicator()->globalCommRank() == 0) {
+   if (mCommunicator->globalCommRank() == 0) {
       if (mInverseFlag)
          InfoLog().printf("%s Inverse flag is set\n", getDescription_c());
       if (mSigmoidFlag)
@@ -65,13 +67,13 @@ Response::Status SigmoidActivityBuffer::communicateInitInfo(
    }
 
    if (mSigmoidAlpha < 0.0f || mSigmoidAlpha > 1.0f) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s SigmoidAlpha cannot be negative or greater than 1 (value is %f).\n",
                getDescription_c(),
                (double)mSigmoidAlpha);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    return Response::SUCCESS;

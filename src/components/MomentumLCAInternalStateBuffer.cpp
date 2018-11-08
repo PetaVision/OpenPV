@@ -12,14 +12,20 @@ namespace PV {
 
 MomentumLCAInternalStateBuffer::MomentumLCAInternalStateBuffer() {}
 
-MomentumLCAInternalStateBuffer::MomentumLCAInternalStateBuffer(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+MomentumLCAInternalStateBuffer::MomentumLCAInternalStateBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 MomentumLCAInternalStateBuffer::~MomentumLCAInternalStateBuffer() {}
 
-int MomentumLCAInternalStateBuffer::initialize(const char *name, HyPerCol *hc) {
-   HyPerLCAInternalStateBuffer::initialize(name, hc);
+int MomentumLCAInternalStateBuffer::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   HyPerLCAInternalStateBuffer::initialize(name, params, comm);
    return PV_SUCCESS;
 }
 
@@ -30,7 +36,7 @@ int MomentumLCAInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) 
 }
 
 void MomentumLCAInternalStateBuffer::ioParam_LCAMomentumRate(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "LCAMomentumRate",

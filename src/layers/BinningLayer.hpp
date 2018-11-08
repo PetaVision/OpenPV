@@ -28,12 +28,12 @@ namespace PV {
 
 class BinningLayer : public HyPerLayer {
   public:
-   BinningLayer(const char *name, HyPerCol *hc);
+   BinningLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~BinningLayer();
 
   protected:
    BinningLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual void createComponentTable(char const *description) override;
    virtual LayerInputBuffer *createLayerInput() override;

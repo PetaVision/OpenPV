@@ -20,7 +20,7 @@ class HyPerCol;
 
 class StochasticReleaseTestProbe : public PV::StatsProbe {
   public:
-   StochasticReleaseTestProbe(const char *name, HyPerCol *hc);
+   StochasticReleaseTestProbe(const char *name, PVParams *params, Communicator *comm);
    virtual ~StochasticReleaseTestProbe();
 
    virtual Response::Status
@@ -30,7 +30,7 @@ class StochasticReleaseTestProbe : public PV::StatsProbe {
 
   protected:
    StochasticReleaseTestProbe();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    void computePValues();
    void computePValues(int step, int f);

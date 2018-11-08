@@ -12,18 +12,19 @@
 
 namespace PV {
 
-GapLayer::GapLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+GapLayer::GapLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 GapLayer::~GapLayer() {}
 
-int GapLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = CloneVLayer::initialize(name, hc);
-   return status;
+void GapLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   CloneVLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *GapLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<CloneInternalStateBuffer, GapActivityBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

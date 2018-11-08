@@ -16,21 +16,17 @@ ColProbe::ColProbe() { // Default constructor to be called by derived classes.
    initialize_base();
 }
 
-ColProbe::ColProbe(const char *name, HyPerCol *hc) {
+ColProbe::ColProbe(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 ColProbe::~ColProbe() {}
 
-int ColProbe::initialize_base() {
-   parent = NULL;
-   return PV_SUCCESS;
-}
+int ColProbe::initialize_base() { return PV_SUCCESS; }
 
-int ColProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = BaseProbe::initialize(name, hc);
-   return status;
+void ColProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   BaseProbe::initialize(name, params, comm);
 }
 
 void ColProbe::initMessageActionMap() {

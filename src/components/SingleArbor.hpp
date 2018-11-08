@@ -33,7 +33,7 @@ class SingleArbor : public ArborList {
    /** @} */ // end of SingleArbor parameters
 
   public:
-   SingleArbor(char const *name, HyPerCol *hc);
+   SingleArbor(char const *name, PVParams *params, Communicator *comm);
    virtual ~SingleArbor();
 
    virtual void setObjectType() override;
@@ -41,7 +41,7 @@ class SingleArbor : public ArborList {
   protected:
    SingleArbor();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

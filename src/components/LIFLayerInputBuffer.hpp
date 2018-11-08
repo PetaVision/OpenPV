@@ -35,7 +35,7 @@ class LIFLayerInputBuffer : public LayerInputBuffer {
 
    /** @} */
   public:
-   LIFLayerInputBuffer(char const *name, HyPerCol *hc);
+   LIFLayerInputBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~LIFLayerInputBuffer();
 
@@ -44,7 +44,7 @@ class LIFLayerInputBuffer : public LayerInputBuffer {
   protected:
    LIFLayerInputBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
    virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;

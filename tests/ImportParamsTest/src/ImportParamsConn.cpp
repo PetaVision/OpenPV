@@ -2,17 +2,16 @@
 
 namespace PV {
 
-ImportParamsConn::ImportParamsConn(const char *name, HyPerCol *hc) {
+ImportParamsConn::ImportParamsConn(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int ImportParamsConn::initialize_base() { return PV_SUCCESS; }
 
-int ImportParamsConn::initialize(const char *name, HyPerCol *hc) {
-   HyPerConn::initialize(name, hc);
+void ImportParamsConn::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerConn::initialize(name, params, comm);
 
-   PVParams *params = parameters();
    // Test grabbed array value
    int size;
    const float *delayVals = params->arrayValues(name, "delay", &size);
@@ -30,8 +29,6 @@ int ImportParamsConn::initialize(const char *name, HyPerCol *hc) {
       FatalIf(delayVals[2] != 5, "Test failed.\n");
       FatalIf(strcmp(preLayerName, "copy") != 0, "Test failed.\n");
    }
-
-   return PV_SUCCESS;
 }
 
 Response::Status

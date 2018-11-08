@@ -31,14 +31,14 @@ class GaussianRandomV : public BaseInitV {
    virtual void ioParam_sigmaV(enum ParamsIOFlag ioFlag);
    /** @} */
   public:
-   GaussianRandomV(char const *name, HyPerCol *hc);
+   GaussianRandomV(char const *name, PVParams *params, Communicator *comm);
    virtual ~GaussianRandomV();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    GaussianRandomV();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
   private:
    int initialize_base();

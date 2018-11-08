@@ -12,12 +12,14 @@
 
 namespace PV {
 
-CopyWeightsPair::CopyWeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
+CopyWeightsPair::CopyWeightsPair(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 CopyWeightsPair::~CopyWeightsPair() {}
 
-int CopyWeightsPair::initialize(char const *name, HyPerCol *hc) {
-   return WeightsPair::initialize(name, hc);
+void CopyWeightsPair::initialize(char const *name, PVParams *params, Communicator *comm) {
+   WeightsPair::initialize(name, params, comm);
 }
 
 void CopyWeightsPair::setObjectType() { mObjectType = "CopyWeightsPair"; }
@@ -36,7 +38,7 @@ CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       pvAssert(originalConnNameParam);
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             InfoLog().printf(
                   "%s must wait until the OriginalConnNameParam component has finished its "
                   "communicateInitInfo stage.\n",
@@ -54,7 +56,7 @@ CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       pvAssert(originalConn); // findLinkedObject() throws instead of returns nullptr
 
       if (!originalConn->getInitInfoCommunicatedFlag()) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             InfoLog().printf(
                   "%s must wait until original connection \"%s\" has finished its "
                   "communicateInitInfo stage.\n",
@@ -73,7 +75,7 @@ CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    }
 
    if (!mOriginalWeightsPair->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",

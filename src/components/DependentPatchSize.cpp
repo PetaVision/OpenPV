@@ -13,14 +13,16 @@
 
 namespace PV {
 
-DependentPatchSize::DependentPatchSize(char const *name, HyPerCol *hc) { initialize(name, hc); }
+DependentPatchSize::DependentPatchSize(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 DependentPatchSize::DependentPatchSize() {}
 
 DependentPatchSize::~DependentPatchSize() {}
 
-int DependentPatchSize::initialize(char const *name, HyPerCol *hc) {
-   return PatchSize::initialize(name, hc);
+void DependentPatchSize::initialize(char const *name, PVParams *params, Communicator *comm) {
+   PatchSize::initialize(name, params, comm);
 }
 
 void DependentPatchSize::setObjectType() { mObjectType = "DependentPatchSize"; }
@@ -56,7 +58,7 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    pvAssert(originalConnNameParam);
 
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the OriginalConnNameParam component has finished its "
                "communicateInitInfo stage.\n",
@@ -81,7 +83,7 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
          originalConn->getName());
 
    if (!originalPatchSize->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",

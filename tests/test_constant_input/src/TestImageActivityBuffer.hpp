@@ -32,7 +32,7 @@ class TestImageActivityBuffer : public ActivityBuffer {
 
    /** @} */
   public:
-   TestImageActivityBuffer(char const *name, HyPerCol *hc);
+   TestImageActivityBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~TestImageActivityBuffer();
 
@@ -41,7 +41,7 @@ class TestImageActivityBuffer : public ActivityBuffer {
   protected:
    TestImageActivityBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

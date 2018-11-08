@@ -169,7 +169,7 @@ class InputActivityBuffer : public ActivityBuffer {
    /** @} */
 
   public:
-   InputActivityBuffer(char const *name, HyPerCol *hc);
+   InputActivityBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~InputActivityBuffer();
 
@@ -188,7 +188,7 @@ class InputActivityBuffer : public ActivityBuffer {
   protected:
    InputActivityBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

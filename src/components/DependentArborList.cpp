@@ -13,14 +13,16 @@
 
 namespace PV {
 
-DependentArborList::DependentArborList(char const *name, HyPerCol *hc) { initialize(name, hc); }
+DependentArborList::DependentArborList(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 DependentArborList::DependentArborList() {}
 
 DependentArborList::~DependentArborList() {}
 
-int DependentArborList::initialize(char const *name, HyPerCol *hc) {
-   return ArborList::initialize(name, hc);
+void DependentArborList::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ArborList::initialize(name, params, comm);
 }
 
 void DependentArborList::setObjectType() { mObjectType = "DependentArborList"; }
@@ -42,7 +44,7 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    pvAssert(originalConnNameParam);
 
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the OriginalConnNameParam component has finished its "
                "communicateInitInfo stage.\n",
@@ -67,7 +69,7 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
          originalConn->getName());
 
    if (!originalArborList->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",

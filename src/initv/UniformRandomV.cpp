@@ -14,18 +14,17 @@ namespace PV {
 
 UniformRandomV::UniformRandomV() { initialize_base(); }
 
-UniformRandomV::UniformRandomV(char const *name, HyPerCol *hc) {
+UniformRandomV::UniformRandomV(char const *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 UniformRandomV::~UniformRandomV() {}
 
 int UniformRandomV::initialize_base() { return PV_SUCCESS; }
 
-int UniformRandomV::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseInitV::initialize(name, hc);
-   return status;
+void UniformRandomV::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseInitV::initialize(name, params, comm);
 }
 
 int UniformRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

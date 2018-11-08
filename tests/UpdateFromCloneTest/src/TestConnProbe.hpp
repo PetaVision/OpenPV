@@ -14,7 +14,7 @@ class TestConnProbe : public BaseHyPerConnProbe {
 
    // Methods
   public:
-   TestConnProbe(const char *probename, HyPerCol *hc);
+   TestConnProbe(const char *probename, PVParams *params, Communicator *comm);
    virtual ~TestConnProbe();
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 

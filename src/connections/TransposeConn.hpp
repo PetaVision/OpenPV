@@ -14,7 +14,7 @@ namespace PV {
 
 class TransposeConn : public HyPerConn {
   public:
-   TransposeConn(char const *name, HyPerCol *hc);
+   TransposeConn(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~TransposeConn();
 
@@ -23,7 +23,7 @@ class TransposeConn : public HyPerConn {
 
    virtual void createComponentTable(char const *description) override;
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual ArborList *createArborList() override;
    virtual PatchSize *createPatchSize() override;

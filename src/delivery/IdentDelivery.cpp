@@ -11,10 +11,12 @@
 
 namespace PV {
 
-IdentDelivery::IdentDelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
+IdentDelivery::IdentDelivery(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int IdentDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseDelivery::initialize(name, hc);
+void IdentDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseDelivery::initialize(name, params, comm);
 }
 
 void IdentDelivery::setObjectType() { mObjectType = "IdentDelivery"; }

@@ -14,14 +14,14 @@ namespace PV {
 
 class InitSmartWeights : public InitWeights {
   public:
-   InitSmartWeights(char const *name, HyPerCol *hc);
+   InitSmartWeights(char const *name, PVParams *params, Communicator *comm);
    InitSmartWeights();
    virtual ~InitSmartWeights();
 
    virtual void calcWeights(int patchIndex, int arborId) override;
 
   protected:
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
   private:
    void smartWeights(float *dataStart, int k);

@@ -10,9 +10,10 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-ReceiveFromPostProbe::ReceiveFromPostProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+ReceiveFromPostProbe::ReceiveFromPostProbe(const char *name, PVParams *params, Communicator *comm)
+      : StatsProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int ReceiveFromPostProbe::initialize_base() {
@@ -20,8 +21,8 @@ int ReceiveFromPostProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ReceiveFromPostProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void ReceiveFromPostProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 int ReceiveFromPostProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

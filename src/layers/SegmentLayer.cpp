@@ -5,15 +5,16 @@
 
 namespace PV {
 
-SegmentLayer::SegmentLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+SegmentLayer::SegmentLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 SegmentLayer::SegmentLayer() {}
 
 SegmentLayer::~SegmentLayer() {}
 
-int SegmentLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void SegmentLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 void SegmentLayer::createComponentTable(char const *description) {
@@ -25,13 +26,13 @@ void SegmentLayer::createComponentTable(char const *description) {
 }
 
 OriginalLayerNameParam *SegmentLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parent);
+   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
 }
 
 LayerInputBuffer *SegmentLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *SegmentLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<SegmentBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<SegmentBuffer>(getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

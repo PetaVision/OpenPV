@@ -28,7 +28,7 @@ class QuotientColProbe : public ColProbe {
    /**
     * Public constructor for the QuotientColProbe class.
     */
-   QuotientColProbe(const char *probename, HyPerCol *hc);
+   QuotientColProbe(const char *probename, PVParams *params, Communicator *comm);
 
    /**
     * Destructor for the QuotientColProbe class.
@@ -107,7 +107,7 @@ class QuotientColProbe : public ColProbe {
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   int initializeQuotientColProbe(const char *probename, HyPerCol *hc);
+   void initialize(const char *probename, PVParams *params, Communicator *comm);
 
    virtual bool needRecalc(double timevalue) override { return true; }
 

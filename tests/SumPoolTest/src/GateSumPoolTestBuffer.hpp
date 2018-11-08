@@ -7,7 +7,7 @@ namespace PV {
 
 class GateSumPoolTestBuffer : public ANNActivityBuffer {
   public:
-   GateSumPoolTestBuffer(const char *name, HyPerCol *hc);
+   GateSumPoolTestBuffer(const char *name, PVParams *params, Communicator *comm);
 
    void updateBufferCPU(double simTime, double deltaTime) override;
 }; // end class GateSumPoolTestBuffer

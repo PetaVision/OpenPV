@@ -6,13 +6,13 @@
 
 namespace PV {
 
-GateAvgPoolTestLayer::GateAvgPoolTestLayer(const char *name, HyPerCol *hc) {
-   HyPerLayer::initialize(name, hc);
+GateAvgPoolTestLayer::GateAvgPoolTestLayer(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *GateAvgPoolTestLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<HyPerInternalStateBuffer, GateAvgPoolTestBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

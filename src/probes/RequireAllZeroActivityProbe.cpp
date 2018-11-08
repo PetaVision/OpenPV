@@ -10,18 +10,23 @@
 
 namespace PV {
 
-RequireAllZeroActivityProbe::RequireAllZeroActivityProbe(const char *name, HyPerCol *hc) {
+RequireAllZeroActivityProbe::RequireAllZeroActivityProbe(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 RequireAllZeroActivityProbe::RequireAllZeroActivityProbe() { initialize_base(); }
 
 int RequireAllZeroActivityProbe::initialize_base() { return PV_SUCCESS; }
 
-int RequireAllZeroActivityProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = StatsProbe::initialize(name, hc);
-   return status;
+void RequireAllZeroActivityProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 int RequireAllZeroActivityProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -68,9 +73,7 @@ Response::Status RequireAllZeroActivityProbe::outputState(double simTime, double
          }
          nonzeroFound = true;
          nonzeroFoundMessage(
-               nonzeroTime,
-               parent->getCommunicator()->globalCommRank() == 0,
-               immediateExitOnFailure);
+               nonzeroTime, mCommunicator->globalCommRank() == 0, immediateExitOnFailure);
       }
    }
    return Response::SUCCESS;
@@ -91,7 +94,7 @@ void RequireAllZeroActivityProbe::nonzeroFoundMessage(
       }
    }
    if (fatalError) {
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -99,8 +102,7 @@ void RequireAllZeroActivityProbe::nonzeroFoundMessage(
 RequireAllZeroActivityProbe::~RequireAllZeroActivityProbe() {
    // We check for exits on failure in destructor
    if (exitOnFailure && getNonzeroFound()) {
-      nonzeroFoundMessage(
-            nonzeroTime, parent->getCommunicator()->globalCommRank() == 0, true /*fatalError*/);
+      nonzeroFoundMessage(nonzeroTime, mCommunicator->globalCommRank() == 0, true /*fatalError*/);
    }
 }
 

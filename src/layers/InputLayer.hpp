@@ -24,13 +24,13 @@ class InputLayer : public HyPerLayer {
    /** @} */
 
   public:
-   InputLayer(const char *name, HyPerCol *hc);
+   InputLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~InputLayer();
 
   protected:
    InputLayer() {}
 
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual LayerInputBuffer *createLayerInput() override;
 

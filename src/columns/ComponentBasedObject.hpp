@@ -31,7 +31,7 @@ class ComponentBasedObject : public BaseObject, public Subject {
 
   protected:
    ComponentBasedObject();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
   private:
    int initialize_base();

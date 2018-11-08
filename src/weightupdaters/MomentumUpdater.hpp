@@ -34,7 +34,7 @@ class MomentumUpdater : public HebbianUpdater {
    /** @} */ // end of MomentumUpdater parameters
 
   public:
-   MomentumUpdater(char const *name, HyPerCol *hc);
+   MomentumUpdater(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~MomentumUpdater() {}
 
@@ -43,7 +43,7 @@ class MomentumUpdater : public HebbianUpdater {
   protected:
    MomentumUpdater() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

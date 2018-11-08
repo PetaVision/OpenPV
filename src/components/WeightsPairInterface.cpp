@@ -10,15 +10,17 @@
 
 namespace PV {
 
-WeightsPairInterface::WeightsPairInterface(char const *name, HyPerCol *hc) { initialize(name, hc); }
+WeightsPairInterface::WeightsPairInterface(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 WeightsPairInterface::~WeightsPairInterface() {
    delete mPreWeights;
    delete mPostWeights;
 }
 
-int WeightsPairInterface::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void WeightsPairInterface::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void WeightsPairInterface::setObjectType() { mObjectType = "WeightsPairInterface"; }
@@ -35,7 +37,7 @@ Response::Status WeightsPairInterface::communicateInitInfo(
    }
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the ConnectionData component has finished its "
                "communicateInitInfo stage.\n",
@@ -54,7 +56,7 @@ Response::Status WeightsPairInterface::communicateInitInfo(
    pvAssert(mPatchSize);
 
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the PatchSize component has finished its "
                "communicateInitInfo stage.\n",

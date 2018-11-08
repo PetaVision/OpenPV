@@ -13,15 +13,17 @@
 
 namespace PV {
 
-InputRegionActivityBuffer::InputRegionActivityBuffer(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+InputRegionActivityBuffer::InputRegionActivityBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 InputRegionActivityBuffer::~InputRegionActivityBuffer() {}
 
-int InputRegionActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = ActivityBuffer::initialize(name, hc);
-   return status;
+void InputRegionActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ActivityBuffer::initialize(name, params, comm);
 }
 
 void InputRegionActivityBuffer::setObjectType() { mObjectType = "InputRegionActivityBuffer"; }

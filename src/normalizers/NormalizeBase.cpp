@@ -13,11 +13,12 @@
 
 namespace PV {
 
-NormalizeBase::NormalizeBase(char const *name, HyPerCol *hc) { initialize(name, hc); }
+NormalizeBase::NormalizeBase(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int NormalizeBase::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseObject::initialize(name, hc);
-   return status;
+void NormalizeBase::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void NormalizeBase::initMessageActionMap() {
@@ -127,7 +128,7 @@ NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 
 void NormalizeBase::addWeightsToList(Weights *weights) {
    mWeightsList.push_back(weights);
-   if (parent->getCommunicator()->globalCommRank() == 0) {
+   if (mCommunicator->globalCommRank() == 0) {
       InfoLog().printf(
             "Adding %s to normalizer group \"%s\".\n", weights->getName().c_str(), this->getName());
    }

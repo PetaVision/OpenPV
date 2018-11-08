@@ -22,14 +22,14 @@ namespace PV {
 class VInputActivityBuffer : public ActivityBuffer {
 
   public:
-   VInputActivityBuffer(char const *name, HyPerCol *hc);
+   VInputActivityBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~VInputActivityBuffer();
 
   protected:
    VInputActivityBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

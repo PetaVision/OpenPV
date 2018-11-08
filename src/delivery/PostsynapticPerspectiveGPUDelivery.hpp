@@ -35,7 +35,7 @@ class PostsynapticPerspectiveGPUDelivery : public HyPerDelivery {
    /** @} */ // End of list of BaseDelivery parameters.
 
   public:
-   PostsynapticPerspectiveGPUDelivery(char const *name, HyPerCol *hc);
+   PostsynapticPerspectiveGPUDelivery(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~PostsynapticPerspectiveGPUDelivery();
 
@@ -57,7 +57,7 @@ class PostsynapticPerspectiveGPUDelivery : public HyPerDelivery {
   protected:
    PostsynapticPerspectiveGPUDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

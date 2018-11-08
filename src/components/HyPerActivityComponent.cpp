@@ -13,14 +13,17 @@
 
 namespace PV {
 
-HyPerActivityComponent::HyPerActivityComponent(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+HyPerActivityComponent::HyPerActivityComponent(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 HyPerActivityComponent::~HyPerActivityComponent() {}
 
-int HyPerActivityComponent::initialize(char const *name, HyPerCol *hc) {
-   return ActivityComponent::initialize(name, hc);
+void HyPerActivityComponent::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ActivityComponent::initialize(name, params, comm);
 }
 
 void HyPerActivityComponent::setObjectType() { mObjectType = "HyPerActivityComponent"; }
@@ -34,11 +37,11 @@ void HyPerActivityComponent::createComponentTable(char const *tableDescription) 
 }
 
 ActivityBuffer *HyPerActivityComponent::createActivity() {
-   return new HyPerActivityBuffer(getName(), parent);
+   return new HyPerActivityBuffer(getName(), parameters(), mCommunicator);
 }
 
 InternalStateBuffer *HyPerActivityComponent::createInternalState() {
-   return new HyPerInternalStateBuffer(getName(), parent);
+   return new HyPerInternalStateBuffer(getName(), parameters(), mCommunicator);
 }
 
 Response::Status

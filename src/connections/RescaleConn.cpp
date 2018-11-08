@@ -12,15 +12,17 @@ namespace PV {
 
 RescaleConn::RescaleConn() {}
 
-RescaleConn::RescaleConn(const char *name, HyPerCol *hc) { initialize(name, hc); }
+RescaleConn::RescaleConn(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int RescaleConn::initialize(const char *name, HyPerCol *hc) {
-   int status = IdentConn::initialize(name, hc);
-   return status;
+void RescaleConn::initialize(const char *name, PVParams *params, Communicator *comm) {
+   IdentConn::initialize(name, params, comm);
 }
 
 BaseDelivery *RescaleConn::createDeliveryObject() {
-   BaseObject *baseObject = Factory::instance()->createByKeyword("RescaleDelivery", name, parent);
+   BaseObject *baseObject =
+         Factory::instance()->createByKeyword("RescaleDelivery", name, parameters(), mCommunicator);
    RescaleDelivery *deliveryObject = dynamic_cast<RescaleDelivery *>(baseObject);
    pvAssert(deliveryObject);
    return deliveryObject;

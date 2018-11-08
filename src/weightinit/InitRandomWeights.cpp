@@ -16,9 +16,8 @@ InitRandomWeights::~InitRandomWeights() {
    mRandState = nullptr;
 }
 
-int InitRandomWeights::initialize(char const *name, HyPerCol *hc) {
-   int status = InitWeights::initialize(name, hc);
-   return status;
+void InitRandomWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InitWeights::initialize(name, params, comm);
 }
 
 void InitRandomWeights::calcWeights(int dataPatchIndex, int arborId) {
@@ -50,7 +49,7 @@ int InitRandomWeights::initRNGs(bool isKernel) {
       Fatal().printf(
             "InitRandomWeights error in rank %d process: unable to create object of class "
             "Random.\n",
-            parent->getCommunicator()->globalCommRank());
+            mCommunicator->globalCommRank());
    }
    return status;
 }

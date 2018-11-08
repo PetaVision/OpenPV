@@ -10,13 +10,14 @@
 
 namespace PV {
 
-HyPerActivityBuffer::HyPerActivityBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+HyPerActivityBuffer::HyPerActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 HyPerActivityBuffer::~HyPerActivityBuffer() {}
 
-int HyPerActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = VInputActivityBuffer::initialize(name, hc);
-   return status;
+void HyPerActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   VInputActivityBuffer::initialize(name, params, comm);
 }
 
 void HyPerActivityBuffer::setObjectType() { mObjectType = "HyPerActivityBuffer"; }

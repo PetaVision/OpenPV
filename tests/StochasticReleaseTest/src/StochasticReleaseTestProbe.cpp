@@ -17,18 +17,23 @@
 
 namespace PV {
 
-StochasticReleaseTestProbe::StochasticReleaseTestProbe(const char *name, HyPerCol *hc) {
+StochasticReleaseTestProbe::StochasticReleaseTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 StochasticReleaseTestProbe::StochasticReleaseTestProbe() { initialize_base(); }
 
 int StochasticReleaseTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int StochasticReleaseTestProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = StatsProbe::initialize(name, hc);
-   return status;
+void StochasticReleaseTestProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
@@ -133,7 +138,7 @@ Response::Status StochasticReleaseTestProbe::outputState(double simTime, double 
    bool failed = false;
    if (simTime > 0.0) {
       computePValues();
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          size_t N = pvalues.size();
          std::sort(pvalues.begin(), pvalues.end(), compar);
          while (N > 0 && std::isnan(pvalues.at(N - 1))) {
@@ -224,8 +229,7 @@ void StochasticReleaseTestProbe::computePValues() {
             nnzf++;
       }
       HyPerLayer *l = getTargetLayer();
-      MPI_Allreduce(
-            MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, parent->getCommunicator()->communicator());
+      MPI_Allreduce(MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, mCommunicator->communicator());
       const int neuronsPerFeature = l->getNumGlobalNeurons() / nf;
       double mean                 = preact * neuronsPerFeature;
       double stddev               = sqrt(neuronsPerFeature * preact * (1 - preact));

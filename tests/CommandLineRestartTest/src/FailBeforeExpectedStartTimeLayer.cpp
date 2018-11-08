@@ -3,17 +3,21 @@
 
 FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer(
       char const *name,
-      PV::HyPerCol *hc) {
+      PV::PVParams *params,
+      PV::Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer() { initialize_base(); }
 
 int FailBeforeExpectedStartTimeLayer::initialize_base() { return PV_SUCCESS; }
 
-int FailBeforeExpectedStartTimeLayer::initialize(char const *name, PV::HyPerCol *hc) {
-   return PV::HyPerLayer::initialize(name, hc);
+void FailBeforeExpectedStartTimeLayer::initialize(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   return PV::HyPerLayer::initialize(name, params, comm);
 }
 
 PV::Response::Status FailBeforeExpectedStartTimeLayer::updateState(double simTime, double dt) {

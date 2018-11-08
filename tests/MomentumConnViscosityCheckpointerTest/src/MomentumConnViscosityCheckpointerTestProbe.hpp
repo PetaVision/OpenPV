@@ -20,7 +20,10 @@ class MomentumConnViscosityCheckpointerTestProbe : public PV::ColProbe {
    /**
     * Public constructor for the MomentumConnViscosityCheckpointerTestProbe class.
     */
-   MomentumConnViscosityCheckpointerTestProbe(const char *name, PV::HyPerCol *hc);
+   MomentumConnViscosityCheckpointerTestProbe(
+         const char *name,
+         PV::PVParams *params,
+         PV::Communicator *comm);
 
    /**
     * Destructor for the MomentumConnViscosityCheckpointerTestProbe class.
@@ -36,7 +39,7 @@ class MomentumConnViscosityCheckpointerTestProbe : public PV::ColProbe {
    bool getTestFailed() const { return mTestFailed; }
 
   protected:
-   int initialize(const char *name, PV::HyPerCol *hc);
+   void initialize(const char *name, PV::PVParams *params, PV::Communicator *comm);
    virtual void ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) override;
    virtual PV::Response::Status
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;

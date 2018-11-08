@@ -10,14 +10,15 @@
 
 namespace PV {
 
-InternalStateBuffer::InternalStateBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+InternalStateBuffer::InternalStateBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 InternalStateBuffer::~InternalStateBuffer() { free(mInitVTypeString); }
 
-int InternalStateBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = RestrictedBuffer::initialize(name, hc);
+void InternalStateBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   RestrictedBuffer::initialize(name, params, comm);
    setBufferLabel("V");
-   return status;
 }
 
 void InternalStateBuffer::setObjectType() { mObjectType = "InternalStateBuffer"; }
@@ -36,8 +37,9 @@ void InternalStateBuffer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
          BaseInitV::mDefaultInitV.data(),
          true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
-      BaseObject *object = Factory::instance()->createByKeyword(mInitVTypeString, name, parent);
-      mInitVObject       = dynamic_cast<BaseInitV *>(object);
+      BaseObject *object = Factory::instance()->createByKeyword(
+            mInitVTypeString, name, parameters(), mCommunicator);
+      mInitVObject = dynamic_cast<BaseInitV *>(object);
       if (mInitVObject == nullptr) {
          ErrorLog().printf("%s: unable to create InitV object\n", getDescription_c());
          abort();

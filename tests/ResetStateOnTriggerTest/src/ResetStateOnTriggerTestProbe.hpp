@@ -5,7 +5,7 @@
 
 class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
   public:
-   ResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc);
+   ResetStateOnTriggerTestProbe(char const *name, PV::PVParams *params, PV::Communicator *comm);
    virtual ~ResetStateOnTriggerTestProbe();
 
    /**
@@ -22,7 +22,7 @@ class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
 
   protected:
    ResetStateOnTriggerTestProbe();
-   int initialize(char const *name, PV::HyPerCol *hc);
+   void initialize(char const *name, PV::PVParams *params, PV::Communicator *comm);
 
    virtual PV::Response::Status
    initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) override;
@@ -44,6 +44,7 @@ class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
    double firstFailureTime;
 };
 
-PV::BaseObject *createResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc);
+PV::BaseObject *
+createResetStateOnTriggerTestProbe(char const *name, PV::PVParams *params, PV::Communicator *comm);
 
 #endif // RESETSTATEONTRIGGERTESTPROBE_HPP_

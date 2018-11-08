@@ -11,12 +11,14 @@
 
 namespace PV {
 
-ActivityComponent::ActivityComponent(char const *name, HyPerCol *hc) { initialize(name, hc); }
+ActivityComponent::ActivityComponent(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 ActivityComponent::~ActivityComponent() {}
 
-int ActivityComponent::initialize(char const *name, HyPerCol *hc) {
-   return ComponentBasedObject::initialize(name, hc);
+void ActivityComponent::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ComponentBasedObject::initialize(name, params, comm);
 }
 
 void ActivityComponent::setObjectType() { mObjectType = "ActivityComponent"; }
@@ -47,7 +49,7 @@ void ActivityComponent::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
    bool mUpdateGpu = false;
    parameters()->ioParamValue(
          ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, false /*warnIfAbsent*/);
-   if (parent->getCommunicator()->globalCommRank() == 0) {
+   if (mCommunicator->globalCommRank() == 0) {
       FatalIf(
             mUpdateGpu,
             "%s: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
@@ -65,7 +67,7 @@ void ActivityComponent::createComponentTable(char const *tableDescription) {
 }
 
 ActivityBuffer *ActivityComponent::createActivity() {
-   return new ActivityBuffer(getName(), parent);
+   return new ActivityBuffer(getName(), parameters(), mCommunicator);
 }
 
 Response::Status
@@ -94,9 +96,7 @@ ActivityComponent::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
          message->mNBatchGlobal,
          message->mNumThreads);
 
-   status = status + notify(
-                           communicateMessage,
-                           parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   status = status + notify(communicateMessage, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 
    return status;
 }
@@ -104,7 +104,7 @@ ActivityComponent::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
 Response::Status
 ActivityComponent::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
    Response::Status status = ComponentBasedObject::setCudaDevice(message);
-   return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 }
 
 Response::Status ActivityComponent::allocateDataStructures() {
@@ -113,7 +113,7 @@ Response::Status ActivityComponent::allocateDataStructures() {
       return status;
    }
    auto message = std::make_shared<AllocateDataStructuresMessage>();
-   return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
    return Response::SUCCESS;
 }
 
@@ -123,7 +123,7 @@ ActivityComponent::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer
    if (!Response::completed(status)) {
       return status;
    }
-   return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 }
 
 Response::Status
@@ -137,7 +137,7 @@ Response::Status ActivityComponent::readStateFromCheckpoint(Checkpointer *checkp
       return status;
    }
    auto message = std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(checkpointer);
-   return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 }
 
 #ifdef PV_USE_CUDA

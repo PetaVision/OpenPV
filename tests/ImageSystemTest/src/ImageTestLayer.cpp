@@ -2,7 +2,9 @@
 
 namespace PV {
 
-ImageTestLayer::ImageTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+ImageTestLayer::ImageTestLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 Response::Status ImageTestLayer::updateState(double time, double dt) {
    ImageLayer::updateState(time, dt);

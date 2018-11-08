@@ -47,14 +47,14 @@ class InitGauss2DWeights : public InitWeights {
    /** @} */
 
   public:
-   InitGauss2DWeights(char const *name, HyPerCol *hc);
+   InitGauss2DWeights(char const *name, PVParams *params, Communicator *comm);
    virtual ~InitGauss2DWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
    InitGauss2DWeights();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

@@ -10,10 +10,12 @@
 
 namespace PV {
 
-RescaleDelivery::RescaleDelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
+RescaleDelivery::RescaleDelivery(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int RescaleDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseDelivery::initialize(name, hc);
+void RescaleDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseDelivery::initialize(name, params, comm);
 }
 
 void RescaleDelivery::setObjectType() { mObjectType = "RescaleDelivery"; }

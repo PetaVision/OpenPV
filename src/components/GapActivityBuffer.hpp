@@ -33,12 +33,12 @@ class GapActivityBuffer : public HyPerActivityBuffer {
    /** @} */
 
   public:
-   GapActivityBuffer(const char *name, HyPerCol *hc);
+   GapActivityBuffer(const char *name, PVParams *params, Communicator *comm);
    virtual ~GapActivityBuffer();
 
   protected:
    GapActivityBuffer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status

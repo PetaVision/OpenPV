@@ -19,14 +19,14 @@ namespace PV {
 class InputRegionActivityBuffer : public ActivityBuffer {
 
   public:
-   InputRegionActivityBuffer(char const *name, HyPerCol *hc);
+   InputRegionActivityBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~InputRegionActivityBuffer();
 
   protected:
    InputRegionActivityBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

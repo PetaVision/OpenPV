@@ -18,8 +18,11 @@
 #include <vector>
 
 namespace PV {
-FilenameParsingActivityBuffer::FilenameParsingActivityBuffer(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+FilenameParsingActivityBuffer::FilenameParsingActivityBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 FilenameParsingActivityBuffer::~FilenameParsingActivityBuffer() {

@@ -4,16 +4,19 @@
 
 namespace PV {
 
-PvpLayer::PvpLayer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+PvpLayer::PvpLayer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 PvpLayer::~PvpLayer() {}
 
-int PvpLayer::initialize(char const *name, HyPerCol *hc) {
-   return InputLayer::initialize(name, hc);
+void PvpLayer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InputLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *PvpLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<PvpActivityBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<PvpActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

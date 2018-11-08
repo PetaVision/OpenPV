@@ -53,7 +53,7 @@ class TransposePoolingDelivery : public BaseDelivery {
    virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);
 
   public:
-   TransposePoolingDelivery(char const *name, HyPerCol *hc);
+   TransposePoolingDelivery(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~TransposePoolingDelivery();
 
@@ -66,7 +66,7 @@ class TransposePoolingDelivery : public BaseDelivery {
   protected:
    TransposePoolingDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

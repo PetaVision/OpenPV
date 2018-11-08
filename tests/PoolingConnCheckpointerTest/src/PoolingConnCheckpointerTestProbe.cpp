@@ -18,20 +18,24 @@ PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe() {}
 
 PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe(
       const char *name,
-      PV::HyPerCol *hc) {
-   initialize(name, hc);
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 PoolingConnCheckpointerTestProbe::~PoolingConnCheckpointerTestProbe() {}
 
-int PoolingConnCheckpointerTestProbe::initialize(const char *name, PV::HyPerCol *hc) {
-   return PV::ColProbe::initialize(name, hc);
+void PoolingConnCheckpointerTestProbe::initialize(
+      const char *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   return PV::ColProbe::initialize(name, params, comm);
 }
 
 void PoolingConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) {
    ColProbe::ioParam_textOutputFlag(ioFlag);
    if (ioFlag == PV::PARAMS_IO_READ && !getTextOutputFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog()
                << getDescription()
                << ": PoolingConnCheckpointerTestProbe requires textOutputFlag to be set to true.\n";
@@ -116,7 +120,7 @@ PoolingConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *compon
 PV::Response::Status
 PoolingConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
    if (!dependencyObject->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          InfoLog().printf(
                "%s must wait until \"%s\" has finished its communicateInitInfo stage.\n",
                getDescription_c(),
@@ -140,7 +144,7 @@ PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *chec
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
-         parent->getCommunicator()->getLocalMPIBlock(),
+         mCommunicator->getLocalMPIBlock(),
          &timeInfo,
          (size_t)1,
          true /*broadcast*/);
@@ -226,7 +230,7 @@ bool PoolingConnCheckpointerTestProbe::verifyLayer(
          failed            = 1;
       }
    }
-   PV::Communicator *comm = parent->getCommunicator();
+   PV::Communicator *comm = mCommunicator;
    std::vector<int> badIndicesGlobal;
    if (comm->commRank() == 0) {
       badIndicesGlobal.resize(layer->getNumGlobalNeurons());

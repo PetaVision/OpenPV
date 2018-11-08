@@ -12,13 +12,14 @@ namespace PV {
 
 BaseConnectionProbe::BaseConnectionProbe() {}
 
-BaseConnectionProbe::BaseConnectionProbe(const char *name, HyPerCol *hc) { initialize(name, hc); }
+BaseConnectionProbe::BaseConnectionProbe(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 BaseConnectionProbe::~BaseConnectionProbe() { delete mIOTimer; }
 
-int BaseConnectionProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = BaseProbe::initialize(name, hc);
-   return status;
+void BaseConnectionProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   BaseProbe::initialize(name, params, comm);
 }
 
 void BaseConnectionProbe::initMessageActionMap() {
@@ -72,11 +73,11 @@ Response::Status BaseConnectionProbe::communicateInitInfo(
       ErrorLog().printf(
             "%s, rank %d process: targetConnection \"%s\" is not a connection in the column.\n",
             getDescription_c(),
-            parent->getCommunicator()->globalCommRank(),
+            mCommunicator->globalCommRank(),
             targetName);
       failed = true;
    }
-   MPI_Barrier(parent->getCommunicator()->communicator());
+   MPI_Barrier(mCommunicator->communicator());
    if (failed) {
       exit(EXIT_FAILURE);
    }

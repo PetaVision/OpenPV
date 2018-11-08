@@ -10,15 +10,13 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-identicalBatchProbe::identicalBatchProbe(const char *name, HyPerCol *hc) : StatsProbe() {
-   initidenticalBatchProbe_base();
-   initidenticalBatchProbe(name, hc);
+identicalBatchProbe::identicalBatchProbe(const char *name, PVParams *params, Communicator *comm)
+      : StatsProbe() {
+   initialize(name, params, comm);
 }
 
-int identicalBatchProbe::initidenticalBatchProbe_base() { return PV_SUCCESS; }
-
-int identicalBatchProbe::initidenticalBatchProbe(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void identicalBatchProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 void identicalBatchProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }

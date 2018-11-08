@@ -15,12 +15,12 @@ namespace PV {
 class LeakyIntegrator : public ANNLayer {
    // Member functions
   public:
-   LeakyIntegrator(const char *name, HyPerCol *hc);
+   LeakyIntegrator(const char *name, PVParams *params, Communicator *comm);
    virtual ~LeakyIntegrator();
 
   protected:
    LeakyIntegrator();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual ActivityComponent *createActivityComponent() override;
 
   private:

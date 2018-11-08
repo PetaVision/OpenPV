@@ -20,7 +20,7 @@ class InitCocircWeights : public InitGauss2DWeights {
    virtual void ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag);
 
   public:
-   InitCocircWeights(char const *name, HyPerCol *hc);
+   InitCocircWeights(char const *name, PVParams *params, Communicator *comm);
    virtual ~InitCocircWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -29,7 +29,7 @@ class InitCocircWeights : public InitGauss2DWeights {
 
   protected:
    InitCocircWeights();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
   private:
    float calcKurvePostAndSigmaKurvePost(int kfPost);

@@ -4,12 +4,16 @@
 #include <structures/Image.hpp>
 #include <utils/BufferUtilsMPI.hpp>
 
-FixedImageSequence::FixedImageSequence(char const *name, PV::HyPerCol *hc) {
-   PV::HyPerLayer::initialize(name, hc);
+FixedImageSequence::FixedImageSequence(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   PV::HyPerLayer::initialize(name, params, comm);
 }
 
 PV::ActivityComponent *FixedImageSequence::createActivityComponent() {
-   return new PV::ActivityComponentActivityOnly<PV::ActivityBuffer>(name, parent);
+   return new PV::ActivityComponentActivityOnly<PV::ActivityBuffer>(
+         name, parameters(), mCommunicator);
 }
 
 void FixedImageSequence::ioParam_triggerLayerName(enum PV::ParamsIOFlag ioFlag) {

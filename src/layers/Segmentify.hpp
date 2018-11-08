@@ -8,12 +8,12 @@ namespace PV {
 
 class Segmentify : public HyPerLayer {
   public:
-   Segmentify(const char *name, HyPerCol *hc);
+   Segmentify(const char *name, PVParams *params, Communicator *comm);
    virtual ~Segmentify();
 
   protected:
    Segmentify();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual void createComponentTable(char const *description) override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    virtual LayerInputBuffer *createLayerInput() override;

@@ -18,14 +18,14 @@ namespace PV {
  */
 class PtwiseProductInternalStateBuffer : public GSynInternalStateBuffer {
   public:
-   PtwiseProductInternalStateBuffer(char const *name, HyPerCol *hc);
+   PtwiseProductInternalStateBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~PtwiseProductInternalStateBuffer();
 
   protected:
    PtwiseProductInternalStateBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

@@ -10,14 +10,15 @@
 
 namespace PV {
 
-RestrictedBuffer::RestrictedBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+RestrictedBuffer::RestrictedBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 RestrictedBuffer::~RestrictedBuffer() {}
 
-int RestrictedBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status    = ComponentBuffer::initialize(name, hc);
+void RestrictedBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ComponentBuffer::initialize(name, params, comm);
    mExtendedFlag = false;
-   return status;
 }
 
 void RestrictedBuffer::setObjectType() { mObjectType = "RestrictedBuffer"; }

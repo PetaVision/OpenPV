@@ -16,11 +16,11 @@ namespace PV {
 class DatastoreDelayTestBuffer : public InternalStateBuffer {
 
   public:
-   DatastoreDelayTestBuffer(const char *name, HyPerCol *hc);
+   DatastoreDelayTestBuffer(const char *name, PVParams *params, Communicator *comm);
    virtual ~DatastoreDelayTestBuffer();
 
   protected:
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

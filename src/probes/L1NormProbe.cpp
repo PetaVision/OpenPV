@@ -15,15 +15,16 @@ namespace PV {
 
 L1NormProbe::L1NormProbe() : AbstractNormProbe() { initialize_base(); }
 
-L1NormProbe::L1NormProbe(const char *name, HyPerCol *hc) : AbstractNormProbe() {
+L1NormProbe::L1NormProbe(const char *name, PVParams *params, Communicator *comm)
+      : AbstractNormProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 L1NormProbe::~L1NormProbe() {}
 
-int L1NormProbe::initialize(const char *name, HyPerCol *hc) {
-   return AbstractNormProbe::initialize(name, hc);
+void L1NormProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   AbstractNormProbe::initialize(name, params, comm);
 }
 
 double L1NormProbe::getValueInternal(double timevalue, int index) {

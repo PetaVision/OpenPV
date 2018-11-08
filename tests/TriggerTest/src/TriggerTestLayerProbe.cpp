@@ -8,8 +8,11 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-TriggerTestLayerProbe::TriggerTestLayerProbe(const char *name, HyPerCol *hc) {
-   LayerProbe::initialize(name, hc);
+TriggerTestLayerProbe::TriggerTestLayerProbe(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   LayerProbe::initialize(name, params, comm);
 }
 
 Response::Status

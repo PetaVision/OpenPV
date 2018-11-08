@@ -15,12 +15,13 @@
 
 namespace PV {
 
-RescaleLayerTestProbe::RescaleLayerTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
-   initialize(name, hc);
+RescaleLayerTestProbe::RescaleLayerTestProbe(const char *name, PVParams *params, Communicator *comm)
+      : StatsProbe() {
+   initialize(name, params, comm);
 }
 
-int RescaleLayerTestProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void RescaleLayerTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 void RescaleLayerTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
@@ -33,33 +34,33 @@ Response::Status RescaleLayerTestProbe::communicateInitInfo(
    }
    RescaleLayer *targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
    if (targetRescaleLayer == nullptr) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "RescaleLayerTestProbe: targetLayer \"%s\" is not a RescaleLayer.\n",
                this->getTargetName());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    auto *targetActivityComponent = targetRescaleLayer->getComponentByType<ActivityComponent>();
    if (targetActivityComponent == nullptr) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "RescaleLayerTestProbe: targetLayer \"%s\" does not have an ActivityComponent.\n",
                this->getTargetName());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 
    mRescaleBuffer = targetActivityComponent->getComponentByType<RescaleActivityBuffer>();
    if (mRescaleBuffer == nullptr) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "RescaleLayerTestProbe: targetLayer \"%s\" does not have a RescaleActivityBuffer.\n",
                this->getTargetName());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    return Response::SUCCESS;
@@ -74,7 +75,7 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
       return status;
    }
    float tolerance      = 2.0e-5f;
-   Communicator *icComm = parent->getCommunicator();
+   Communicator *icComm = mCommunicator;
    bool isRoot          = icComm->commRank() == 0;
 
    pvAssert(mRescaleBuffer);
@@ -300,7 +301,7 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                      "starting at restricted neuron %d, has mean %f instead of target mean %f\n",
                      getName(),
                      mRescaleBuffer->getName(),
-                     parent->getCommunicator()->globalCommRank(),
+                     mCommunicator->globalCommRank(),
                      k,
                      (double)pointmean,
                      (double)targetMean);
@@ -313,7 +314,7 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                      "%f\n",
                      getName(),
                      mRescaleBuffer->getName(),
-                     parent->getCommunicator()->globalCommRank(),
+                     mCommunicator->globalCommRank(),
                      k,
                      (double)pointstd,
                      (double)targetStd);
@@ -336,7 +337,7 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                      "starting at restricted neuron %d, is not a linear rescaling.\n",
                      getName(),
                      mRescaleBuffer->getName(),
-                     parent->getCommunicator()->globalCommRank(),
+                     mCommunicator->globalCommRank(),
                      k);
                failed = true;
             }
@@ -383,7 +384,7 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                      "neuron %d has value %f instead of expected %f\n.",
                      this->getName(),
                      mRescaleBuffer->getName(),
-                     parent->getCommunicator()->globalCommRank(),
+                     mCommunicator->globalCommRank(),
                      k,
                      (double)observedval,
                      (double)correctval);

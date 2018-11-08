@@ -139,7 +139,7 @@ class BaseProbe : public BaseObject {
 
   protected:
    BaseProbe();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

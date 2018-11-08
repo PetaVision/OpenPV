@@ -5,16 +5,19 @@
 
 namespace PV {
 
-ImageOffsetTestLayer::ImageOffsetTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+ImageOffsetTestLayer::ImageOffsetTestLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 ImageOffsetTestLayer::~ImageOffsetTestLayer() {}
 
-int ImageOffsetTestLayer::initialize(char const *name, HyPerCol *hc) {
-   return ImageLayer::initialize(name, hc);
+void ImageOffsetTestLayer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ImageLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *ImageOffsetTestLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<ImageOffsetTestActivityBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<ImageOffsetTestActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 void ImageOffsetTestLayer::setNontriggerDeltaUpdateTime(double dt) { mDeltaUpdateTime = 1.0; }

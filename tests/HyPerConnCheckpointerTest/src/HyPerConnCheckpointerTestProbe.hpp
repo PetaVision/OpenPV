@@ -20,7 +20,7 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
    /**
     * Public constructor for the HyPerConnCheckpointerTestProbe class.
     */
-   HyPerConnCheckpointerTestProbe(const char *name, PV::HyPerCol *hc);
+   HyPerConnCheckpointerTestProbe(const char *name, PV::PVParams *params, PV::Communicator *comm);
 
    /**
     * Destructor for the HyPerConnCheckpointerTestProbe class.
@@ -36,7 +36,7 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
    bool getTestFailed() const { return mTestFailed; }
 
   protected:
-   int initialize(const char *name, PV::HyPerCol *hc);
+   void initialize(const char *name, PV::PVParams *params, PV::Communicator *comm);
    virtual void ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) override;
    virtual PV::Response::Status
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;

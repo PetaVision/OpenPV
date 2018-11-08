@@ -19,20 +19,24 @@ MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe
 
 MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe(
       const char *name,
-      PV::HyPerCol *hc) {
-   initialize(name, hc);
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 MomentumConnSimpleCheckpointerTestProbe::~MomentumConnSimpleCheckpointerTestProbe() {}
 
-int MomentumConnSimpleCheckpointerTestProbe::initialize(const char *name, PV::HyPerCol *hc) {
-   return PV::ColProbe::initialize(name, hc);
+void MomentumConnSimpleCheckpointerTestProbe::initialize(
+      const char *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   return PV::ColProbe::initialize(name, params, comm);
 }
 
 void MomentumConnSimpleCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) {
    ColProbe::ioParam_textOutputFlag(ioFlag);
    if (ioFlag == PV::PARAMS_IO_READ && !getTextOutputFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog() << getDescription() << ": MomentumConnSimpleCheckpointerTestProbe requires "
                                            "textOutputFlag to be set to true.\n";
       }
@@ -145,7 +149,7 @@ MomentumConnSimpleCheckpointerTestProbe::initConnection(PV::ObserverTable const 
 PV::Response::Status
 MomentumConnSimpleCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
    if (!dependencyObject->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          InfoLog().printf(
                "%s must wait until \"%s\" has finished its communicateInitInfo stage.\n",
                getDescription_c(),
@@ -169,7 +173,7 @@ MomentumConnSimpleCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointe
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
-         parent->getCommunicator()->getLocalMPIBlock(),
+         mCommunicator->getLocalMPIBlock(),
          &timeInfo,
          (size_t)1,
          true /*broadcast*/);
@@ -248,7 +252,7 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyConnection(
       double timevalue) {
    bool failed = false;
 
-   if (parent->getCommunicator()->commRank() == 0) {
+   if (mCommunicator->commRank() == 0) {
       auto *weightsPair         = connection->getComponentByType<PV::WeightsPair>();
       float observedWeightValue = weightsPair->getPreWeights()->getData(0)[0];
       float correctWeightValue  = correctState->getCorrectWeight();
@@ -269,7 +273,7 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyConnValue(
       float correct,
       char const *valueDescription) {
    FatalIf(
-         parent->getCommunicator()->commRank() != 0,
+         mCommunicator->commRank() != 0,
          "%s called verifyConnValue from nonroot process.\n",
          getDescription_c());
    FatalIf(
@@ -303,7 +307,7 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyLayer(
    int const inputNxExt       = inputLoc->nx + inputHalo->lt + inputHalo->rt;
    int const inputNyExt       = inputLoc->ny + inputHalo->dn + inputHalo->up;
    PV::Buffer<float> localBuffer(layer->getLayerData(0), inputNxExt, inputNyExt, inputLoc->nf);
-   PV::Communicator *comm         = parent->getCommunicator();
+   PV::Communicator *comm         = mCommunicator;
    PV::Buffer<float> globalBuffer = PV::BufferUtils::gather(
          comm->getLocalMPIBlock(), localBuffer, inputLoc->nx, inputLoc->ny, 0, 0);
    if (comm->commRank() == 0) {

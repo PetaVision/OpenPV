@@ -9,17 +9,22 @@
 
 namespace PV {
 
-InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 InitSpreadOverArborsWeights::InitSpreadOverArborsWeights() {}
 
 InitSpreadOverArborsWeights::~InitSpreadOverArborsWeights() {}
 
-int InitSpreadOverArborsWeights::initialize(char const *name, HyPerCol *hc) {
-   int status = InitGauss2DWeights::initialize(name, hc);
-   return status;
+void InitSpreadOverArborsWeights::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   InitGauss2DWeights::initialize(name, params, comm);
 }
 
 int InitSpreadOverArborsWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

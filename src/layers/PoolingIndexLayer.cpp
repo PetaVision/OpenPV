@@ -10,18 +10,18 @@
 
 namespace PV {
 
-PoolingIndexLayer::PoolingIndexLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+PoolingIndexLayer::PoolingIndexLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 PoolingIndexLayer::PoolingIndexLayer() {}
 
 PoolingIndexLayer::~PoolingIndexLayer() {}
 
-int PoolingIndexLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
+void PoolingIndexLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
    // This layer is storing its buffers as ints. This is a check to make sure the sizes are the same
    assert(sizeof(int) == sizeof(float));
-   assert(status == PV_SUCCESS);
-   return status;
 }
 
 int PoolingIndexLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -30,7 +30,7 @@ int PoolingIndexLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 LayerInputBuffer *PoolingIndexLayer::createLayerInput() {
-   return new PoolingIndexLayerInputBuffer(name, parent);
+   return new PoolingIndexLayerInputBuffer(name, parameters(), mCommunicator);
 }
 
 } // end namespace PV

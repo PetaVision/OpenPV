@@ -7,7 +7,7 @@ namespace PV {
 
 class MaskTestLayer : public PV::ANNLayer {
   public:
-   MaskTestLayer(const char *name, HyPerCol *hc);
+   MaskTestLayer(const char *name, PVParams *params, Communicator *comm);
    ~MaskTestLayer();
 
   protected:

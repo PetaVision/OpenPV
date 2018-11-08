@@ -2,10 +2,12 @@
 
 namespace PV {
 
-MomentumTestConnProbe::MomentumTestConnProbe(const char *probename, HyPerCol *hc) {
+MomentumTestConnProbe::MomentumTestConnProbe(
+      const char *probename,
+      PVParams *params,
+      Communicator *comm) {
    initialize_base();
-   int status = initialize(probename, hc);
-   FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
+   initialize(probename, params, comm);
 }
 
 MomentumTestConnProbe::MomentumTestConnProbe() { initialize_base(); }

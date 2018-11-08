@@ -18,14 +18,14 @@ namespace PV {
  */
 class SquaredInternalStateBuffer : public GSynInternalStateBuffer {
   public:
-   SquaredInternalStateBuffer(char const *name, HyPerCol *hc);
+   SquaredInternalStateBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~SquaredInternalStateBuffer();
 
   protected:
    SquaredInternalStateBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

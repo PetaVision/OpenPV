@@ -11,13 +11,14 @@
 
 namespace PV {
 
-ImageActivityBuffer::ImageActivityBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+ImageActivityBuffer::ImageActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 ImageActivityBuffer::~ImageActivityBuffer() {}
 
-int ImageActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = InputActivityBuffer::initialize(name, hc);
-   return status;
+void ImageActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InputActivityBuffer::initialize(name, params, comm);
 }
 
 void ImageActivityBuffer::setObjectType() { mObjectType = "ImageActivityBuffer"; }

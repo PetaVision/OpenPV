@@ -19,14 +19,14 @@ namespace PV {
  */
 class GSynInternalStateBuffer : public InternalStateBuffer {
   public:
-   GSynInternalStateBuffer(char const *name, HyPerCol *hc);
+   GSynInternalStateBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~GSynInternalStateBuffer();
 
   protected:
    GSynInternalStateBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

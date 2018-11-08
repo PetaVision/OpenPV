@@ -7,7 +7,7 @@ namespace PV {
 
 class MaskTestInputLayer : public PV::HyPerLayer {
   public:
-   MaskTestInputLayer(const char *name, HyPerCol *hc);
+   MaskTestInputLayer(const char *name, PVParams *params, Communicator *comm);
 
   protected:
    virtual ActivityComponent *createActivityComponent() override;

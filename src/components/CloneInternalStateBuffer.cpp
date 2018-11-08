@@ -13,16 +13,18 @@
 
 namespace PV {
 
-CloneInternalStateBuffer::CloneInternalStateBuffer(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+CloneInternalStateBuffer::CloneInternalStateBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 CloneInternalStateBuffer::~CloneInternalStateBuffer() {}
 
-int CloneInternalStateBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status   = InternalStateBuffer::initialize(name, hc);
+void CloneInternalStateBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InternalStateBuffer::initialize(name, params, comm);
    mBufferLabel = ""; // Turns off checkpointing
-   return status;
 }
 
 void CloneInternalStateBuffer::setObjectType() { mObjectType = "CloneInternalStateBuffer"; }

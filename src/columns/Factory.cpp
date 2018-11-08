@@ -267,7 +267,11 @@ int Factory::registerKeyword(char const *keyword, ObjectCreateFn creator) {
    return PV_SUCCESS;
 }
 
-BaseObject *Factory::createByKeyword(char const *keyword, char const *name, HyPerCol *hc) const {
+BaseObject *Factory::createByKeyword(
+      char const *keyword,
+      char const *name,
+      PVParams *params,
+      Communicator *comm) const {
    if (keyword == nullptr) {
       return nullptr;
    }
@@ -277,7 +281,7 @@ BaseObject *Factory::createByKeyword(char const *keyword, char const *name, HyPe
       errorString.append("keyword \"").append(keyword).append("\" is unrecognized.");
       throw std::invalid_argument(errorString);
    }
-   return keywordHandler ? keywordHandler->create(name, hc) : nullptr;
+   return keywordHandler ? keywordHandler->create(name, params, comm) : nullptr;
 }
 
 KeywordHandler const *Factory::getKeywordHandler(char const *keyword) const {

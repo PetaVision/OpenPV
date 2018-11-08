@@ -14,9 +14,10 @@ namespace PV {
 
 AbstractNormProbe::AbstractNormProbe() : LayerProbe() { initialize_base(); }
 
-AbstractNormProbe::AbstractNormProbe(const char *name, HyPerCol *hc) : LayerProbe() {
+AbstractNormProbe::AbstractNormProbe(const char *name, PVParams *params, Communicator *comm)
+      : LayerProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 AbstractNormProbe::~AbstractNormProbe() {
@@ -36,12 +37,9 @@ int AbstractNormProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int AbstractNormProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = LayerProbe::initialize(name, hc);
-   if (status == PV_SUCCESS) {
-      status = setNormDescription();
-   }
-   return status;
+void AbstractNormProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   LayerProbe::initialize(name, params, comm);
+   setNormDescription();
 }
 
 int AbstractNormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -65,13 +63,13 @@ AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    if (maskLayerName && maskLayerName[0]) {
       maskLayer = message->mHierarchy->lookupByName<HyPerLayer>(std::string(maskLayerName));
       if (maskLayer == NULL) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
                   getDescription_c(),
                   maskLayerName);
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
 
@@ -79,7 +77,7 @@ AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
       const PVLayerLoc *loc     = targetLayer->getLayerLoc();
       assert(maskLoc != NULL && loc != NULL);
       if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog(maskLayerBadSize);
             maskLayerBadSize.printf(
                   "%s: maskLayerName \"%s\" does not have the "
@@ -95,12 +93,12 @@ AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
                   loc->nyGlobal,
                   loc->nf);
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
 
       if (maskLoc->nf != 1 && maskLoc->nf != loc->nf) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog(maskLayerBadSize);
             maskLayerBadSize.printf(
                   "%s: maskLayerName \"%s\" must either have the "
@@ -117,7 +115,7 @@ AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
                   loc->nyGlobal,
                   loc->nf);
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       assert(maskLoc->nx == loc->nx && maskLoc->ny == loc->ny);
@@ -144,7 +142,7 @@ void AbstractNormProbe::calcValues(double timeValue) {
          getNumValues(),
          MPI_DOUBLE,
          MPI_SUM,
-         parent->getCommunicator()->communicator());
+         mCommunicator->communicator());
 }
 
 Response::Status AbstractNormProbe::outputState(double simTime, double deltaTime) {

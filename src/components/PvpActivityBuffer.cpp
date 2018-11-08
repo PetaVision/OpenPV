@@ -10,13 +10,14 @@
 
 namespace PV {
 
-PvpActivityBuffer::PvpActivityBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+PvpActivityBuffer::PvpActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 PvpActivityBuffer::~PvpActivityBuffer() {}
 
-int PvpActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = InputActivityBuffer::initialize(name, hc);
-   return status;
+void PvpActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InputActivityBuffer::initialize(name, params, comm);
 }
 
 void PvpActivityBuffer::setObjectType() { mObjectType = "PvpActivityBuffer"; }

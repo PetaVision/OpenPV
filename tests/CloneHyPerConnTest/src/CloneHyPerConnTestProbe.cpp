@@ -13,15 +13,19 @@
 
 namespace PV {
 
-CloneHyPerConnTestProbe::CloneHyPerConnTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+CloneHyPerConnTestProbe::CloneHyPerConnTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator *comm)
+      : StatsProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int CloneHyPerConnTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int CloneHyPerConnTestProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void CloneHyPerConnTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 Response::Status CloneHyPerConnTestProbe::outputState(double simTime, double deltaTime) {
@@ -29,7 +33,7 @@ Response::Status CloneHyPerConnTestProbe::outputState(double simTime, double del
    if (status != Response::SUCCESS) {
       return status;
    }
-   int const rank    = parent->getCommunicator()->commRank();
+   int const rank    = mCommunicator->commRank();
    int const rcvProc = 0;
    if (rank != rcvProc) {
       return status;

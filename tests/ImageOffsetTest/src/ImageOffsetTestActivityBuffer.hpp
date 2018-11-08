@@ -7,7 +7,7 @@ namespace PV {
 
 class ImageOffsetTestActivityBuffer : public ImageActivityBuffer {
   public:
-   ImageOffsetTestActivityBuffer(const char *name, HyPerCol *hc);
+   ImageOffsetTestActivityBuffer(const char *name, PVParams *params, Communicator *comm);
 
   protected:
    void updateBufferCPU(double simTime, double deltaTime) override;

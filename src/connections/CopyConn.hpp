@@ -18,14 +18,14 @@ class HyPerCol;
 
 class CopyConn : public HyPerConn {
   public:
-   CopyConn(char const *name, HyPerCol *hc);
+   CopyConn(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~CopyConn();
 
   protected:
    CopyConn();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void createComponentTable(char const *description) override;
 

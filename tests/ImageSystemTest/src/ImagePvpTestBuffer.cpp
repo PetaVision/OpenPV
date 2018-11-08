@@ -2,7 +2,9 @@
 
 namespace PV {
 
-ImagePvpTestBuffer::ImagePvpTestBuffer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+ImagePvpTestBuffer::ImagePvpTestBuffer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 Response::Status
 ImagePvpTestBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {

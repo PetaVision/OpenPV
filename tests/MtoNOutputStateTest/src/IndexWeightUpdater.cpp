@@ -10,10 +10,12 @@
 
 namespace PV {
 
-IndexWeightUpdater::IndexWeightUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
+IndexWeightUpdater::IndexWeightUpdater(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int IndexWeightUpdater::initialize(char const *name, HyPerCol *hc) {
-   return HebbianUpdater::initialize(name, hc);
+void IndexWeightUpdater::initialize(char const *name, PVParams *params, Communicator *comm) {
+   HebbianUpdater::initialize(name, params, comm);
 }
 
 Response::Status

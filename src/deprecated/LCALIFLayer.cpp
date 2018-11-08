@@ -72,7 +72,7 @@ LCALIFLayer::LCALIFLayer() {
    // initialize(arguments) should *not* be called by the protected constructor.
 }
 
-LCALIFLayer::LCALIFLayer(const char *name, HyPerCol *hc) {
+LCALIFLayer::LCALIFLayer(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
    initialize(name, hc, "LCALIF_update_state");
 }
@@ -89,20 +89,20 @@ int LCALIFLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LCALIFLayer::initialize(const char *name, HyPerCol *hc, const char *kernel_name) {
+void LCALIFLayer::initialize(const char *name, HyPerCol *hc, const char *kernel_name) {
    WarnLog() << "LCALIFLayer has been deprecated.\n";
    LIFGap::initialize(name, hc, kernel_name);
 
    float defaultDynVthScale = lParams.VthRest - lParams.Vrest;
    Vscale                   = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
    if (Vscale <= 0) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n",
                name,
                (double)Vscale);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    mLayerInput->requireChannel(4);

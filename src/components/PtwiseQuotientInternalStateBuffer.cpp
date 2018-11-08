@@ -13,15 +13,18 @@ namespace PV {
 
 PtwiseQuotientInternalStateBuffer::PtwiseQuotientInternalStateBuffer(
       char const *name,
-      HyPerCol *hc) {
-   initialize(name, hc);
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 PtwiseQuotientInternalStateBuffer::~PtwiseQuotientInternalStateBuffer() {}
 
-int PtwiseQuotientInternalStateBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = GSynInternalStateBuffer::initialize(name, hc);
-   return status;
+void PtwiseQuotientInternalStateBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   GSynInternalStateBuffer::initialize(name, params, comm);
 }
 
 void PtwiseQuotientInternalStateBuffer::setObjectType() {

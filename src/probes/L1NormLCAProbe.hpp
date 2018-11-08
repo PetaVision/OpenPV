@@ -21,14 +21,16 @@ namespace PV {
  */
 class L1NormLCAProbe : public L1NormProbe {
   public:
-   L1NormLCAProbe(const char *name, HyPerCol *hc);
+   L1NormLCAProbe(const char *name, PVParams *params, Communicator *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual ~L1NormLCAProbe() {}
 
   protected:
    L1NormLCAProbe();
-   int initialize(const char *name, HyPerCol *hc) { return L1NormProbe::initialize(name, hc); }
+   void initialize(const char *name, PVParams *params, Communicator *comm) {
+      L1NormProbe::initialize(name, params, comm);
+   }
 
    /**
     * L1NormLCAProbe does not read coefficient from its own params group,

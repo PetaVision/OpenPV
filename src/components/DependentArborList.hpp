@@ -34,7 +34,7 @@ class DependentArborList : public ArborList {
    /** @} */ // end of DependentArborList parameters
 
   public:
-   DependentArborList(char const *name, HyPerCol *hc);
+   DependentArborList(char const *name, PVParams *params, Communicator *comm);
    virtual ~DependentArborList();
 
    virtual void setObjectType() override;
@@ -42,7 +42,7 @@ class DependentArborList : public ArborList {
   protected:
    DependentArborList();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

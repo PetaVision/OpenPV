@@ -9,15 +9,16 @@
 
 namespace PV {
 
-InitUniformWeights::InitUniformWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
+InitUniformWeights::InitUniformWeights(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 InitUniformWeights::InitUniformWeights() {}
 
 InitUniformWeights::~InitUniformWeights() {}
 
-int InitUniformWeights::initialize(char const *name, HyPerCol *hc) {
-   int status = InitWeights::initialize(name, hc);
-   return status;
+void InitUniformWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InitWeights::initialize(name, params, comm);
 }
 
 int InitUniformWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

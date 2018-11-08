@@ -18,14 +18,14 @@ namespace PV {
 class BackgroundActivityComponent : public ActivityComponent {
 
   public:
-   BackgroundActivityComponent(char const *name, HyPerCol *hc);
+   BackgroundActivityComponent(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~BackgroundActivityComponent();
 
   protected:
    BackgroundActivityComponent() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType();
 

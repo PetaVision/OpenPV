@@ -10,9 +10,13 @@
 
 namespace PV {
 
-ShrunkenPatchTestLayer::ShrunkenPatchTestLayer(const char *name, HyPerCol *hc) : ANNLayer() {
+ShrunkenPatchTestLayer::ShrunkenPatchTestLayer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm)
+      : ANNLayer() {
    // ShrunkenPatchTestLayer has no member variables to initialize in initialize_base()
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 // set V to global x/y/f position
@@ -70,10 +74,8 @@ int ShrunkenPatchTestLayer::setActivitytoGlobalPos() {
    return PV_SUCCESS;
 }
 
-int ShrunkenPatchTestLayer::initialize(const char *name, HyPerCol *hc) {
-   ANNLayer::initialize(name, hc);
-
-   return PV_SUCCESS;
+void ShrunkenPatchTestLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   ANNLayer::initialize(name, params, comm);
 }
 
 Response::Status ShrunkenPatchTestLayer::allocateDataStructures() {

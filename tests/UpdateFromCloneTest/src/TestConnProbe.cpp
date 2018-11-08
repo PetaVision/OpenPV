@@ -3,10 +3,9 @@
 
 namespace PV {
 
-TestConnProbe::TestConnProbe(const char *probename, HyPerCol *hc) {
+TestConnProbe::TestConnProbe(const char *probename, PVParams *params, Communicator *comm) {
    initialize_base();
-   int status = initialize(probename, hc);
-   FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
+   initialize(probename, params, comm);
 }
 
 TestConnProbe::TestConnProbe() { initialize_base(); }

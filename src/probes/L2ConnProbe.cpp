@@ -12,7 +12,8 @@ namespace PV {
 
 L2ConnProbe::L2ConnProbe() {}
 
-L2ConnProbe::L2ConnProbe(const char *probename, HyPerCol *hc) : KernelProbe(probename, hc) {}
+L2ConnProbe::L2ConnProbe(const char *probename, PVParams *params, Communicator *comm)
+      : KernelProbe(probename, params, comm) {}
 
 L2ConnProbe::~L2ConnProbe() {}
 
@@ -21,7 +22,7 @@ Response::Status L2ConnProbe::outputState(double simTime, double deltaTime) {
       return Response::NO_ACTION;
    }
    pvAssert(getTargetConn() != nullptr);
-   Communicator *icComm = parent->getCommunicator();
+   Communicator *icComm = mCommunicator;
    const int rank       = icComm->commRank();
    int nxp              = getPatchSize()->getPatchSizeX();
    int nyp              = getPatchSize()->getPatchSizeY();

@@ -10,8 +10,8 @@
 
 namespace PV {
 
-BinningTestProbe::BinningTestProbe(const char *name, HyPerCol *hc) {
-   LayerProbe::initialize(name, hc);
+BinningTestProbe::BinningTestProbe(const char *name, PVParams *params, Communicator *comm) {
+   LayerProbe::initialize(name, params, comm);
 }
 
 Response::Status

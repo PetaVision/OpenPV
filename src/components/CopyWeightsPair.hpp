@@ -23,7 +23,7 @@ namespace PV {
  */
 class CopyWeightsPair : public WeightsPair {
   public:
-   CopyWeightsPair(char const *name, HyPerCol *hc);
+   CopyWeightsPair(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~CopyWeightsPair();
 
@@ -51,7 +51,7 @@ class CopyWeightsPair : public WeightsPair {
   protected:
    CopyWeightsPair() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

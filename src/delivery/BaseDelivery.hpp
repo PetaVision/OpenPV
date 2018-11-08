@@ -21,7 +21,7 @@ namespace PV {
  */
 class BaseDelivery : public LayerInputDelivery {
   public:
-   BaseDelivery(char const *name, HyPerCol *hc);
+   BaseDelivery(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~BaseDelivery() {}
 
@@ -31,7 +31,7 @@ class BaseDelivery : public LayerInputDelivery {
   protected:
    BaseDelivery() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

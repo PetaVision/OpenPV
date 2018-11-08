@@ -6,13 +6,13 @@
 
 namespace PV {
 
-GateMaxPoolTestLayer::GateMaxPoolTestLayer(const char *name, HyPerCol *hc) {
-   HyPerLayer::initialize(name, hc);
+GateMaxPoolTestLayer::GateMaxPoolTestLayer(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *GateMaxPoolTestLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<GateMaxPoolTestBuffer, ANNActivityBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

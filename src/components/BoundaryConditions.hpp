@@ -36,7 +36,7 @@ class BoundaryConditions : public BaseObject {
    /** @} */ // end of BoundaryConditions parameters
 
   public:
-   BoundaryConditions(char const *name, HyPerCol *hc);
+   BoundaryConditions(char const *name, PVParams *params, Communicator *comm);
    virtual ~BoundaryConditions();
 
    virtual void setObjectType() override;
@@ -54,7 +54,7 @@ class BoundaryConditions : public BaseObject {
   protected:
    BoundaryConditions();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

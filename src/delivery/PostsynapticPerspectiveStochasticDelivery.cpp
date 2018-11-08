@@ -12,8 +12,9 @@ namespace PV {
 
 PostsynapticPerspectiveStochasticDelivery::PostsynapticPerspectiveStochasticDelivery(
       char const *name,
-      HyPerCol *hc) {
-   initialize(name, hc);
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 PostsynapticPerspectiveStochasticDelivery::PostsynapticPerspectiveStochasticDelivery() {}
@@ -22,8 +23,11 @@ PostsynapticPerspectiveStochasticDelivery::~PostsynapticPerspectiveStochasticDel
    delete mRandState;
 }
 
-int PostsynapticPerspectiveStochasticDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void PostsynapticPerspectiveStochasticDelivery::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void PostsynapticPerspectiveStochasticDelivery::setObjectType() {

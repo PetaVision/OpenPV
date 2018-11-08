@@ -14,15 +14,16 @@
 
 namespace PV {
 
-CloneConn::CloneConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
+CloneConn::CloneConn(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 CloneConn::CloneConn() {}
 
 CloneConn::~CloneConn() {}
 
-int CloneConn::initialize(char const *name, HyPerCol *hc) {
-   int status = HyPerConn::initialize(name, hc);
-   return status;
+void CloneConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+   HyPerConn::initialize(name, params, comm);
 }
 
 void CloneConn::createComponentTable(char const *description) {
@@ -33,15 +34,25 @@ void CloneConn::createComponentTable(char const *description) {
    }
 }
 
-BaseDelivery *CloneConn::createDeliveryObject() { return new CloneDeliveryFacade(name, parent); }
+BaseDelivery *CloneConn::createDeliveryObject() {
+   return new CloneDeliveryFacade(name, parameters(), mCommunicator);
+}
 
-ArborList *CloneConn::createArborList() { return new DependentArborList(name, parent); }
+ArborList *CloneConn::createArborList() {
+   return new DependentArborList(name, parameters(), mCommunicator);
+}
 
-PatchSize *CloneConn::createPatchSize() { return new DependentPatchSize(name, parent); }
+PatchSize *CloneConn::createPatchSize() {
+   return new DependentPatchSize(name, parameters(), mCommunicator);
+}
 
-SharedWeights *CloneConn::createSharedWeights() { return new DependentSharedWeights(name, parent); }
+SharedWeights *CloneConn::createSharedWeights() {
+   return new DependentSharedWeights(name, parameters(), mCommunicator);
+}
 
-WeightsPairInterface *CloneConn::createWeightsPair() { return new CloneWeightsPair(name, parent); }
+WeightsPairInterface *CloneConn::createWeightsPair() {
+   return new CloneWeightsPair(name, parameters(), mCommunicator);
+}
 
 InitWeights *CloneConn::createWeightInitializer() { return nullptr; }
 
@@ -50,7 +61,7 @@ NormalizeBase *CloneConn::createWeightNormalizer() { return nullptr; }
 BaseWeightUpdater *CloneConn::createWeightUpdater() { return nullptr; }
 
 OriginalConnNameParam *CloneConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(name, parent);
+   return new OriginalConnNameParam(name, parameters(), mCommunicator);
 }
 
 Response::Status CloneConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {

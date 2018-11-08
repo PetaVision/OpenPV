@@ -9,15 +9,16 @@
 
 namespace PV {
 
-LayerPhaseTestProbe::LayerPhaseTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+LayerPhaseTestProbe::LayerPhaseTestProbe(const char *name, PVParams *params, Communicator *comm)
+      : StatsProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int LayerPhaseTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int LayerPhaseTestProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void LayerPhaseTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 int LayerPhaseTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -42,7 +43,7 @@ Response::Status LayerPhaseTestProbe::outputState(double simTime, double deltaTi
    if (status != Response::SUCCESS) {
       return status;
    }
-   Communicator *icComm = parent->getCommunicator();
+   Communicator *icComm = mCommunicator;
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return status;

@@ -12,15 +12,20 @@ namespace PV {
 
 HyPerLCAInternalStateBuffer::HyPerLCAInternalStateBuffer() {}
 
-HyPerLCAInternalStateBuffer::HyPerLCAInternalStateBuffer(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+HyPerLCAInternalStateBuffer::HyPerLCAInternalStateBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 HyPerLCAInternalStateBuffer::~HyPerLCAInternalStateBuffer() { free(mAdaptiveTimeScaleProbeName); }
 
-int HyPerLCAInternalStateBuffer::initialize(const char *name, HyPerCol *hc) {
-   HyPerInternalStateBuffer::initialize(name, hc);
-   return PV_SUCCESS;
+void HyPerLCAInternalStateBuffer::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   HyPerInternalStateBuffer::initialize(name, params, comm);
 }
 
 int HyPerLCAInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -32,7 +37,7 @@ int HyPerLCAInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void HyPerLCAInternalStateBuffer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, name, "selfInteract", &mSelfInteract, mSelfInteract);
-   if (ioFlag == PARAMS_IO_READ && parent->getCommunicator()->globalCommRank() == 0) {
+   if (ioFlag == PARAMS_IO_READ && mCommunicator->globalCommRank() == 0) {
       InfoLog() << getDescription() << ": selfInteract flag is "
                 << (mSelfInteract ? "true" : "false") << std::endl;
    }

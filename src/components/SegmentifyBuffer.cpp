@@ -13,7 +13,9 @@
 
 namespace PV {
 
-SegmentifyBuffer::SegmentifyBuffer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+SegmentifyBuffer::SegmentifyBuffer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 SegmentifyBuffer::SegmentifyBuffer() {
    // initialize() gets called by subclass's initialize method
@@ -21,9 +23,8 @@ SegmentifyBuffer::SegmentifyBuffer() {
 
 SegmentifyBuffer::~SegmentifyBuffer() {}
 
-int SegmentifyBuffer::initialize(const char *name, HyPerCol *hc) {
-   int status = ActivityBuffer::initialize(name, hc);
-   return status;
+void SegmentifyBuffer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   ActivityBuffer::initialize(name, params, comm);
 }
 
 int SegmentifyBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -43,11 +44,11 @@ void SegmentifyBuffer::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
    else if (strcmp(mInputMethod, "max") == 0) {
    }
    else {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s: inputMethod must be \"average\", \"sum\", or \"max\".\n", getDescription_c());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -59,11 +60,11 @@ void SegmentifyBuffer::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
    else if (strcmp(mOutputMethod, "fill") == 0) {
    }
    else {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s: outputMethod must be \"centriod\" or \"fill\".\n", getDescription_c());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -72,10 +73,10 @@ void SegmentifyBuffer::ioParam_segmentLayerName(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamStringRequired(ioFlag, name, "segmentLayerName", &mSegmentLayerName);
    assert(mSegmentLayerName);
    if (ioFlag == PARAMS_IO_READ && mSegmentLayerName[0] == '\0') {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf("%s: segmentLayerName must be set.\n", getDescription_c());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -129,26 +130,26 @@ void SegmentifyBuffer::setOriginalActivity(ObserverTable const *hierarchy) {
    // Find original layer's activity component
    auto *origActivityComponent = origObject->getComponentByType<ActivityComponent>();
    if (origActivityComponent == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: originalLayerName \"%s\" does not have an ActivityComponent.\n",
                getDescription_c(),
                origObject->getName());
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }
 
    // Get original layer's activity buffer
    mOriginalActivity = origActivityComponent->getComponentByType<ActivityBuffer>();
    if (mOriginalActivity == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: originalLayerName \"%s\" does not have an ActivityBuffer.\n",
                getDescription_c(),
                origObject->getName());
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -159,13 +160,13 @@ void SegmentifyBuffer::setSegmentBuffer(ObserverTable const *hierarchy) {
    auto *segmentLayer = hierarchy->lookupByNameRecursive<ComponentBasedObject>(
          std::string(mSegmentLayerName), maxIterations);
    if (segmentLayer == nullptr) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s: segmentLayerName \"%s\" is not a SegmentLayer.\n",
                getDescription_c(),
                mSegmentLayerName);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -195,7 +196,7 @@ void SegmentifyBuffer::checkDimensions() {
    // Original layer must have the same number of features as this layer
    // The x- and y- dimensions can differ.
    if (origLoc->nf != thisLoc->nf) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayer \"%s\" does not have the same feature dimension as this layer.\n",
@@ -203,7 +204,7 @@ void SegmentifyBuffer::checkDimensions() {
                mOriginalActivity->getName());
          errorMessage.printf("    original (nf=%d) versus (nf=%d)\n", origLoc->nf, thisLoc->nf);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -255,7 +256,7 @@ void SegmentifyBuffer::checkLabelValBuf(int newSize) {
 }
 
 void SegmentifyBuffer::buildLabelToIdx(int batchIdx) {
-   Communicator *icComm = parent->getCommunicator();
+   Communicator *icComm = mCommunicator;
    int numMpi           = icComm->commSize();
    int rank             = icComm->commRank();
 
@@ -306,7 +307,7 @@ void SegmentifyBuffer::buildLabelToIdx(int batchIdx) {
 }
 
 void SegmentifyBuffer::calculateLabelVals(int batchIdx) {
-   Communicator *icComm = parent->getCommunicator();
+   Communicator *icComm = mCommunicator;
 
    const PVLayerLoc *srcLoc = mOriginalActivity->getLayerLoc();
    const PVLayerLoc *segLoc = mSegmentBuffer->getLayerLoc();

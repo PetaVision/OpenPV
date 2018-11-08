@@ -18,7 +18,10 @@
 namespace PV {
 class LCALIFLayer : public LIFGap {
   public:
-   LCALIFLayer(const char *name, HyPerCol *hc); // The constructor called by other methods
+   LCALIFLayer(
+         const char *name,
+         PVParams *params,
+         Communicator *comm); // The constructor called by other methods
    virtual ~LCALIFLayer();
    virtual Response::Status allocateDataStructures() override;
    virtual Response::Status updateState(double timef, double dt) override;

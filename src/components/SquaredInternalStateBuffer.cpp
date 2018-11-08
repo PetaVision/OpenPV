@@ -10,15 +10,20 @@
 
 namespace PV {
 
-SquaredInternalStateBuffer::SquaredInternalStateBuffer(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+SquaredInternalStateBuffer::SquaredInternalStateBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 SquaredInternalStateBuffer::~SquaredInternalStateBuffer() {}
 
-int SquaredInternalStateBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = GSynInternalStateBuffer::initialize(name, hc);
-   return status;
+void SquaredInternalStateBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   GSynInternalStateBuffer::initialize(name, params, comm);
 }
 
 void SquaredInternalStateBuffer::setObjectType() { mObjectType = "SquaredInternalStateBuffer"; }

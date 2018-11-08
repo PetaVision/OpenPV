@@ -13,12 +13,14 @@
 
 namespace PV {
 
-HebbianUpdater::HebbianUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
+HebbianUpdater::HebbianUpdater(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 HebbianUpdater::~HebbianUpdater() { cleanup(); }
 
-int HebbianUpdater::initialize(char const *name, HyPerCol *hc) {
-   return BaseWeightUpdater::initialize(name, hc);
+void HebbianUpdater::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseWeightUpdater::initialize(name, params, comm);
 }
 
 void HebbianUpdater::setObjectType() { mObjectType = "HebbianUpdater"; }
@@ -60,7 +62,7 @@ void HebbianUpdater::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
             Fatal().printf(
                   "%s error in rank %d process: TriggerOffset (%f) must be positive",
                   getDescription_c(),
-                  parent->getCommunicator()->globalCommRank(),
+                  mCommunicator->globalCommRank(),
                   mTriggerOffset);
          }
       }
@@ -168,10 +170,10 @@ void HebbianUpdater::ioParam_useMask(enum ParamsIOFlag ioFlag) {
          parameters()->ioParamValue(
                ioFlag, getName(), "useMask", &useMask, useMask, false /*warnIfAbsent*/);
          if (useMask) {
-            if (parent->getCommunicator()->globalCommRank() == 0) {
+            if (mCommunicator->globalCommRank() == 0) {
                ErrorLog().printf("%s has useMask set to true. This parameter is obsolete.\n");
             }
-            MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+            MPI_Barrier(mCommunicator->globalCommunicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -227,13 +229,13 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       pvAssert(tableComponent);
       mTriggerLayer = tableComponent->lookupByName<HyPerLayer>(std::string(mTriggerLayerName));
       if (mTriggerLayer == nullptr) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: triggerLayerName \"%s\" does not correspond to a layer in the column.\n",
                   getDescription_c(),
                   mTriggerLayerName);
          }
-         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+         MPI_Barrier(mCommunicator->globalCommunicator());
          exit(PV_FAILURE);
       }
    }
@@ -294,7 +296,7 @@ Response::Status HebbianUpdater::allocateDataStructures() {
          while (mWeightUpdateTime <= 0.0) {
             mWeightUpdateTime += mWeightUpdatePeriod;
          }
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             WarnLog().printf(
                   "initialWeightUpdateTime of %s less than simulation start time.  Adjusting "
                   "weightUpdateTime to %f\n",
@@ -662,7 +664,7 @@ int HebbianUpdater::reduce_dW(int arborId) {
 
 int HebbianUpdater::reduceKernels(int arborID) {
    pvAssert(mWeights->getSharedFlag() && mPlasticityFlag);
-   Communicator *comm = parent->getCommunicator();
+   Communicator *comm = mCommunicator;
    const int nxProcs  = comm->numCommColumns();
    const int nyProcs  = comm->numCommRows();
    const int nbProcs  = comm->numCommBatches();
@@ -691,7 +693,7 @@ int HebbianUpdater::reduceKernels(int arborID) {
 
 int HebbianUpdater::reduceActivations(int arborID) {
    pvAssert(mWeights->getSharedFlag() && mPlasticityFlag);
-   Communicator *comm = parent->getCommunicator();
+   Communicator *comm = mCommunicator;
    const int nxProcs  = comm->numCommColumns();
    const int nyProcs  = comm->numCommRows();
    const int nbProcs  = comm->numCommBatches();
@@ -720,12 +722,12 @@ int HebbianUpdater::reduceActivations(int arborID) {
 
 void HebbianUpdater::reduceAcrossBatch(int arborID) {
    pvAssert(!mWeights->getSharedFlag() && mPlasticityFlag);
-   if (parent->getCommunicator()->numCommBatches() != 1) {
+   if (mCommunicator->numCommBatches() != 1) {
       const int numPatches     = mWeights->getNumDataPatches();
       const size_t patchSize   = (size_t)mWeights->getPatchSizeOverall();
       size_t const localSize   = (size_t)numPatches * (size_t)patchSize;
       size_t const arborSize   = localSize * (size_t)mArborList->getNumAxonalArbors();
-      MPI_Comm const batchComm = parent->getCommunicator()->batchCommunicator();
+      MPI_Comm const batchComm = mCommunicator->batchCommunicator();
 
       auto sz = mDeltaWeightsReduceRequests.size();
       mDeltaWeightsReduceRequests.resize(sz + 1);

@@ -10,14 +10,14 @@
 namespace PV {
 BinningLayer::BinningLayer() {}
 
-BinningLayer::BinningLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+BinningLayer::BinningLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 BinningLayer::~BinningLayer() {}
 
-int BinningLayer::initialize(const char *name, HyPerCol *hc) {
-   int status_init = HyPerLayer::initialize(name, hc);
-
-   return status_init;
+void BinningLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 void BinningLayer::createComponentTable(char const *description) {
@@ -31,11 +31,12 @@ void BinningLayer::createComponentTable(char const *description) {
 LayerInputBuffer *BinningLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *BinningLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<BinningActivityBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<BinningActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 OriginalLayerNameParam *BinningLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parent);
+   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
 }
 
 } /* namespace PV */

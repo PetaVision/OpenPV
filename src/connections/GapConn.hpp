@@ -14,7 +14,7 @@ namespace PV {
 
 class GapConn : public HyPerConn {
   public:
-   GapConn(const char *name, HyPerCol *hc);
+   GapConn(const char *name, PVParams *params, Communicator *comm);
    virtual ~GapConn();
 }; // end class GapConn
 

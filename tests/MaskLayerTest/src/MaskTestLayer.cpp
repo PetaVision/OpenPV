@@ -2,9 +2,9 @@
 
 namespace PV {
 
-MaskTestLayer::MaskTestLayer(const char *name, HyPerCol *hc) {
+MaskTestLayer::MaskTestLayer(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   ANNLayer::initialize(name, hc);
+   ANNLayer::initialize(name, params, comm);
 }
 
 MaskTestLayer::~MaskTestLayer() {
@@ -30,7 +30,7 @@ void MaskTestLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
    else if (strcmp(maskMethod, "noMaskFeatures") == 0) {
    }
    else {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: \"%s\" is not a valid maskMethod. Options are \"invertLayer\", "
                "\"maskFeatures\", or \"noMaskFeatures\".\n",

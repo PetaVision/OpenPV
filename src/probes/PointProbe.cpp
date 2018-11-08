@@ -17,9 +17,9 @@ PointProbe::PointProbe() {
    // PointProbe::initialize from their init-method.
 }
 
-PointProbe::PointProbe(const char *name, HyPerCol *hc) : LayerProbe() {
+PointProbe::PointProbe(const char *name, PVParams *params, Communicator *comm) : LayerProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 PointProbe::~PointProbe() {}
@@ -32,9 +32,8 @@ int PointProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int PointProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = LayerProbe::initialize(name, hc);
-   return status;
+void PointProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   LayerProbe::initialize(name, params, comm);
 }
 
 int PointProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -72,7 +71,7 @@ PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    }
    assert(getTargetLayer());
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   bool isRoot           = parent->getCommunicator()->commRank() == 0;
+   bool isRoot           = mCommunicator->commRank() == 0;
    bool failed           = false;
    if ((xLoc < 0 || xLoc > loc->nxGlobal) && isRoot) {
       ErrorLog().printf(
@@ -209,23 +208,20 @@ void PointProbe::calcValues(double timevalue) {
          valuesBuffer[1] = 0.0;
       }
       // If not in root process, send to root process
-      if (parent->getCommunicator()->commRank() != 0) {
-         MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, parent->getCommunicator()->communicator());
+      if (mCommunicator->commRank() != 0) {
+         MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, mCommunicator->communicator());
       }
    }
 
    // Root process
-   if (parent->getCommunicator()->commRank() == 0) {
+   if (mCommunicator->commRank() == 0) {
       // Calculate which rank target neuron is
       // TODO we need to calculate rank from batch as well
       int xRank = xLoc / nx;
       int yRank = yLoc / ny;
 
       int srcRank = rankFromRowAndColumn(
-            yRank,
-            xRank,
-            parent->getCommunicator()->numCommRows(),
-            parent->getCommunicator()->numCommColumns());
+            yRank, xRank, mCommunicator->numCommRows(), mCommunicator->numCommColumns());
 
       // If srcRank is not root process, MPI_Recv from that rank
       if (srcRank != 0) {
@@ -235,7 +231,7 @@ void PointProbe::calcValues(double timevalue) {
                MPI_DOUBLE,
                srcRank,
                0,
-               parent->getCommunicator()->communicator(),
+               mCommunicator->communicator(),
                MPI_STATUS_IGNORE);
       }
    }

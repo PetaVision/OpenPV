@@ -24,14 +24,14 @@ class InputRegionActivityComponent : public ActivityComponent {
    virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag) override;
 
   public:
-   InputRegionActivityComponent(const char *name, HyPerCol *hc);
+   InputRegionActivityComponent(const char *name, PVParams *params, Communicator *comm);
    virtual ~InputRegionActivityComponent();
 
    virtual Response::Status updateActivity(double simTime, double deltaTime) override;
 
   protected:
    InputRegionActivityComponent();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType();
 

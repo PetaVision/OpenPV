@@ -7,13 +7,13 @@
 
 namespace PV {
 
-MaxPoolTestLayer::MaxPoolTestLayer(const char *name, HyPerCol *hc) {
-   HyPerLayer::initialize(name, hc);
+MaxPoolTestLayer::MaxPoolTestLayer(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *MaxPoolTestLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<HyPerInternalStateBuffer, MaxPoolTestBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

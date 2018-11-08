@@ -12,15 +12,16 @@
 
 namespace PV {
 
-PoolingConn::PoolingConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
+PoolingConn::PoolingConn(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 PoolingConn::PoolingConn() {}
 
 PoolingConn::~PoolingConn() {}
 
-int PoolingConn::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseConnection::initialize(name, hc);
-   return status;
+void PoolingConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseConnection::initialize(name, params, comm);
 }
 
 void PoolingConn::createComponentTable(char const *description) {
@@ -35,12 +36,16 @@ void PoolingConn::createComponentTable(char const *description) {
    }
 }
 
-BaseDelivery *PoolingConn::createDeliveryObject() { return new PoolingDelivery(name, parent); }
+BaseDelivery *PoolingConn::createDeliveryObject() {
+   return new PoolingDelivery(name, parameters(), mCommunicator);
+}
 
-PatchSize *PoolingConn::createPatchSize() { return new PatchSize(name, parent); }
+PatchSize *PoolingConn::createPatchSize() {
+   return new PatchSize(name, parameters(), mCommunicator);
+}
 
 WeightsPairInterface *PoolingConn::createWeightsPair() {
-   return new ImpliedWeightsPair(name, parent);
+   return new ImpliedWeightsPair(name, parameters(), mCommunicator);
 }
 
 } // namespace PV

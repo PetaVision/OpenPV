@@ -35,9 +35,9 @@ namespace PV {
 
 LabelErrorLayer::LabelErrorLayer() { initialize_base(); }
 
-LabelErrorLayer::LabelErrorLayer(const char *name, HyPerCol *hc) {
+LabelErrorLayer::LabelErrorLayer(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 LabelErrorLayer::~LabelErrorLayer() {}
@@ -48,9 +48,9 @@ int LabelErrorLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LabelErrorLayer::initialize(const char *name, HyPerCol *hc) {
+void LabelErrorLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
    WarnLog() << "LabelErrorLayer has been deprecated.\n";
-   int status = ANNLayer::initialize(name, hc);
+   int status = ANNLayer::initialize(name, params, comm);
    mLayerInput->requireChannel(1);
    assert(mLayerInput->getNumChannels() == 2);
    return status;

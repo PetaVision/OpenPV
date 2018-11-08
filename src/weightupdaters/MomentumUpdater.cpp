@@ -10,10 +10,12 @@
 
 namespace PV {
 
-MomentumUpdater::MomentumUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
+MomentumUpdater::MomentumUpdater(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int MomentumUpdater::initialize(char const *name, HyPerCol *hc) {
-   return HebbianUpdater::initialize(name, hc);
+void MomentumUpdater::initialize(char const *name, PVParams *params, Communicator *comm) {
+   HebbianUpdater::initialize(name, params, comm);
 }
 
 void MomentumUpdater::setObjectType() { mObjectType = "MomentumUpdater"; }

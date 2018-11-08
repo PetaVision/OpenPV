@@ -11,12 +11,14 @@
 
 namespace PV {
 
-DependentPhaseParam::DependentPhaseParam(char const *name, HyPerCol *hc) { initialize(name, hc); }
+DependentPhaseParam::DependentPhaseParam(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 DependentPhaseParam::~DependentPhaseParam() {}
 
-int DependentPhaseParam::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void DependentPhaseParam::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void DependentPhaseParam::setObjectType() { mObjectType = "DependentPhaseParam"; }
@@ -35,7 +37,7 @@ Response::Status DependentPhaseParam::communicateInitInfo(
    pvAssert(originalLayerNameParam);
 
    if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the OriginalLayerNameParam component has finished its "
                "communicateInitInfo stage.\n",
@@ -60,7 +62,7 @@ Response::Status DependentPhaseParam::communicateInitInfo(
          originalObject->getName());
 
    if (!originalPhaseParam->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original layer \"%s\" has finished its communicateInitInfo "
                "stage.\n",

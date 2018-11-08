@@ -25,14 +25,14 @@ namespace PV {
 class MomentumLCAActivityComponent : public HyPerActivityComponent {
 
   public:
-   MomentumLCAActivityComponent(char const *name, HyPerCol *hc);
+   MomentumLCAActivityComponent(char const *name, PVParams *parameters, Communicator *comm);
 
    virtual ~MomentumLCAActivityComponent();
 
   protected:
    MomentumLCAActivityComponent() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *parameters, Communicator *comm);
 
    virtual void setObjectType();
 

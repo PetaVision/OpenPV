@@ -9,15 +9,17 @@
 
 namespace PV {
 
-ParameterSweepTestProbe::ParameterSweepTestProbe(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+ParameterSweepTestProbe::ParameterSweepTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 ParameterSweepTestProbe::~ParameterSweepTestProbe() {}
 
-int ParameterSweepTestProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = StatsProbe::initialize(name, hc);
-   return status;
+void ParameterSweepTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 int ParameterSweepTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -46,7 +48,7 @@ Response::Status ParameterSweepTestProbe::outputState(double simTime, double del
    if (status != Response::SUCCESS) {
       return status;
    }
-   Communicator *icComm = parent->getCommunicator();
+   Communicator *icComm = mCommunicator;
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return status;

@@ -3,7 +3,9 @@
 
 namespace PV {
 
-KneeTimeScaleProbe::KneeTimeScaleProbe(char const *name, HyPerCol *hc) { initialize(name, hc); }
+KneeTimeScaleProbe::KneeTimeScaleProbe(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 int KneeTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = AdaptiveTimeScaleProbe::ioParamsFillGroup(ioFlag);
@@ -29,7 +31,7 @@ void KneeTimeScaleProbe::allocateTimeScaleController() {
          tauFactor,
          mGrowthFactor,
          mWriteTimeScaleFieldnames,
-         parent->getCommunicator(),
+         mCommunicator,
          mKneeThresh,
          mKneeSlope);
 }

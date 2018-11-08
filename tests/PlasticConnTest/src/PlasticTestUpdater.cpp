@@ -10,8 +10,9 @@
 
 namespace PV {
 
-PlasticTestUpdater::PlasticTestUpdater(const char *name, HyPerCol *hc) : HebbianUpdater() {
-   HebbianUpdater::initialize(name, hc);
+PlasticTestUpdater::PlasticTestUpdater(const char *name, PVParams *params, Communicator *comm)
+      : HebbianUpdater() {
+   HebbianUpdater::initialize(name, params, comm);
 }
 
 float PlasticTestUpdater::updateRule_dW(float pre, float post) { return pre - post; }

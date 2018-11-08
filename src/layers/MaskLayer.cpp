@@ -13,18 +13,19 @@
 
 namespace PV {
 
-MaskLayer::MaskLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+MaskLayer::MaskLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 MaskLayer::~MaskLayer() {}
 
-int MaskLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void MaskLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *MaskLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<HyPerInternalStateBuffer, MaskActivityBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

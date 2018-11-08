@@ -2,8 +2,11 @@
 
 namespace PV {
 
-ImageOffsetTestActivityBuffer::ImageOffsetTestActivityBuffer(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+ImageOffsetTestActivityBuffer::ImageOffsetTestActivityBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 void ImageOffsetTestActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {

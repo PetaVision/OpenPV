@@ -14,17 +14,23 @@
 
 namespace PV {
 
-WeightComparisonProbe::WeightComparisonProbe(char const *name, PV::HyPerCol *hc) {
+WeightComparisonProbe::WeightComparisonProbe(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 WeightComparisonProbe::~WeightComparisonProbe() {}
 
 int WeightComparisonProbe::initialize_base() { return PV_SUCCESS; }
 
-int WeightComparisonProbe::initialize(char const *name, PV::HyPerCol *hc) {
-   return ColProbe::initialize(name, hc);
+void WeightComparisonProbe::initialize(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   ColProbe::initialize(name, params, comm);
 }
 
 Response::Status WeightComparisonProbe::communicateInitInfo(

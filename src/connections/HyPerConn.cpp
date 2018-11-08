@@ -13,15 +13,16 @@
 
 namespace PV {
 
-HyPerConn::HyPerConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
+HyPerConn::HyPerConn(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 HyPerConn::HyPerConn() {}
 
 HyPerConn::~HyPerConn() { delete mUpdateTimer; }
 
-int HyPerConn::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseConnection::initialize(name, hc);
-   return status;
+void HyPerConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseConnection::initialize(name, params, comm);
 }
 
 void HyPerConn::initMessageActionMap() {
@@ -73,15 +74,21 @@ void HyPerConn::createComponentTable(char const *description) {
    }
 }
 
-BaseDelivery *HyPerConn::createDeliveryObject() { return new HyPerDeliveryFacade(name, parent); }
+BaseDelivery *HyPerConn::createDeliveryObject() {
+   return new HyPerDeliveryFacade(name, parameters(), mCommunicator);
+}
 
-ArborList *HyPerConn::createArborList() { return new ArborList(name, parent); }
+ArborList *HyPerConn::createArborList() { return new ArborList(name, parameters(), mCommunicator); }
 
-PatchSize *HyPerConn::createPatchSize() { return new PatchSize(name, parent); }
+PatchSize *HyPerConn::createPatchSize() { return new PatchSize(name, parameters(), mCommunicator); }
 
-SharedWeights *HyPerConn::createSharedWeights() { return new SharedWeights(name, parent); }
+SharedWeights *HyPerConn::createSharedWeights() {
+   return new SharedWeights(name, parameters(), mCommunicator);
+}
 
-WeightsPairInterface *HyPerConn::createWeightsPair() { return new WeightsPair(name, parent); }
+WeightsPairInterface *HyPerConn::createWeightsPair() {
+   return new WeightsPair(name, parameters(), mCommunicator);
+}
 
 InitWeights *HyPerConn::createWeightInitializer() {
    char *weightInitTypeString = nullptr;
@@ -107,7 +114,8 @@ InitWeights *HyPerConn::createWeightInitializer() {
          getDescription_c());
    BaseObject *baseObject = nullptr;
    try {
-      baseObject = Factory::instance()->createByKeyword(weightInitTypeString, name, parent);
+      baseObject = Factory::instance()->createByKeyword(
+            weightInitTypeString, name, parameters(), mCommunicator);
    } catch (const std::exception &e) {
       Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
    }
@@ -138,7 +146,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    // in a loop, without knowing which component is which.
 
    if (normalizeMethod == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          Fatal().printf(
                "%s: specifying a normalizeMethod string is required.\n", getDescription_c());
       }
@@ -148,33 +156,36 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
       normalizeMethod = strdup("none");
    }
    if (strcmp(normalizeMethod, "none")) {
-      auto strengthParam = new StrengthParam(name, parent);
+      auto strengthParam = new StrengthParam(name, parameters(), mCommunicator);
       addUniqueComponent(strengthParam->getDescription(), strengthParam);
    }
-   BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, name, parent);
+   BaseObject *baseObj =
+         Factory::instance()->createByKeyword(normalizeMethod, name, parameters(), mCommunicator);
    if (baseObj == nullptr) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
                  << "\" is not recognized." << std::endl;
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    normalizer = dynamic_cast<NormalizeBase *>(baseObj);
    if (normalizer == nullptr) {
       pvAssert(baseObj);
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
                  << "\" is not a recognized normalization method." << std::endl;
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    free(normalizeMethod);
    return normalizer;
 }
 
-BaseWeightUpdater *HyPerConn::createWeightUpdater() { return new HebbianUpdater(name, parent); }
+BaseWeightUpdater *HyPerConn::createWeightUpdater() {
+   return new HebbianUpdater(name, parameters(), mCommunicator);
+}
 
 Response::Status
 HyPerConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
@@ -208,7 +219,7 @@ HyPerConn::respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const
 
 Response::Status
 HyPerConn::respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message) {
-   return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 }
 
 Response::Status

@@ -14,10 +14,12 @@
 
 namespace PV {
 
-CopyUpdater::CopyUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
+CopyUpdater::CopyUpdater(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int CopyUpdater::initialize(char const *name, HyPerCol *hc) {
-   return BaseWeightUpdater::initialize(name, hc);
+void CopyUpdater::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseWeightUpdater::initialize(name, params, comm);
 }
 
 void CopyUpdater::setObjectType() { mObjectType = "CopyUpdater"; }

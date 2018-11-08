@@ -19,14 +19,14 @@ namespace PV {
 template <typename V, typename A>
 class ActivityComponentWithInternalState : public HyPerActivityComponent {
   public:
-   ActivityComponentWithInternalState(char const *name, HyPerCol *hc);
+   ActivityComponentWithInternalState(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~ActivityComponentWithInternalState();
 
   protected:
    ActivityComponentWithInternalState() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType();
 

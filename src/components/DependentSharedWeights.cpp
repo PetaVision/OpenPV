@@ -13,16 +13,19 @@
 
 namespace PV {
 
-DependentSharedWeights::DependentSharedWeights(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+DependentSharedWeights::DependentSharedWeights(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 DependentSharedWeights::DependentSharedWeights() {}
 
 DependentSharedWeights::~DependentSharedWeights() {}
 
-int DependentSharedWeights::initialize(char const *name, HyPerCol *hc) {
-   return SharedWeights::initialize(name, hc);
+void DependentSharedWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+   SharedWeights::initialize(name, params, comm);
 }
 
 void DependentSharedWeights::setObjectType() { mObjectType = "DependentSharedWeights"; }
@@ -44,7 +47,7 @@ Response::Status DependentSharedWeights::communicateInitInfo(
    pvAssert(originalConnNameParam);
 
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the OriginalConnNameParam component has finished its "
                "communicateInitInfo stage.\n",
@@ -69,7 +72,7 @@ Response::Status DependentSharedWeights::communicateInitInfo(
          originalConn->getName());
 
    if (!originalSharedWeights->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",

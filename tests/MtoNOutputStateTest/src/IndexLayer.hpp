@@ -16,13 +16,13 @@ namespace PV {
 
 class IndexLayer : public HyPerLayer {
   public:
-   IndexLayer(const char *name, HyPerCol *hc);
+   IndexLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~IndexLayer();
 
   protected:
    IndexLayer() {}
 
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

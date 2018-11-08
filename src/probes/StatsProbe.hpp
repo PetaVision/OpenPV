@@ -14,7 +14,7 @@ namespace PV {
 
 class StatsProbe : public LayerProbe {
   public:
-   StatsProbe(const char *name, HyPerCol *hc);
+   StatsProbe(const char *name, PVParams *params, Communicator *comm);
    virtual ~StatsProbe();
 
    virtual Response::Status outputState(double simTime, double deltaTime) override;
@@ -22,7 +22,7 @@ class StatsProbe : public LayerProbe {
 
   protected:
    StatsProbe();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);

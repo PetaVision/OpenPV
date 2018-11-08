@@ -13,18 +13,23 @@ FilenameParsingProbe::FilenameParsingProbe() { initialize_base(); }
 /**
  * @filename
  */
-FilenameParsingProbe::FilenameParsingProbe(const char *name, PV::HyPerCol *hc) {
+FilenameParsingProbe::FilenameParsingProbe(
+      const char *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 FilenameParsingProbe::~FilenameParsingProbe() {}
 
 int FilenameParsingProbe::initialize_base() { return PV_SUCCESS; }
 
-int FilenameParsingProbe::initialize(const char *name, PV::HyPerCol *hc) {
-   int status = LayerProbe::initialize(name, hc);
-   return status;
+void FilenameParsingProbe::initialize(
+      const char *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   LayerProbe::initialize(name, params, comm);
 }
 
 PV::Response::Status FilenameParsingProbe::communicateInitInfo(

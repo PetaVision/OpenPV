@@ -5,12 +5,15 @@
 
 namespace PV {
 
-MoviePvpTestLayer::MoviePvpTestLayer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+MoviePvpTestLayer::MoviePvpTestLayer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 MoviePvpTestLayer::~MoviePvpTestLayer() {}
 
 ActivityComponent *MoviePvpTestLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<MoviePvpTestBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<MoviePvpTestBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

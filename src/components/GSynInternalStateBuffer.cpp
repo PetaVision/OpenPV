@@ -10,15 +10,17 @@
 
 namespace PV {
 
-GSynInternalStateBuffer::GSynInternalStateBuffer(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+GSynInternalStateBuffer::GSynInternalStateBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 GSynInternalStateBuffer::~GSynInternalStateBuffer() {}
 
-int GSynInternalStateBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = InternalStateBuffer::initialize(name, hc);
-   return status;
+void GSynInternalStateBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InternalStateBuffer::initialize(name, params, comm);
 }
 
 void GSynInternalStateBuffer::setObjectType() { mObjectType = "GSynInternalStateBuffer"; }

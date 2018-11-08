@@ -10,12 +10,14 @@
 
 namespace PV {
 
-LIFLayerInputBuffer::LIFLayerInputBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+LIFLayerInputBuffer::LIFLayerInputBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 LIFLayerInputBuffer::~LIFLayerInputBuffer() {}
 
-int LIFLayerInputBuffer::initialize(char const *name, HyPerCol *hc) {
-   return LayerInputBuffer::initialize(name, hc);
+void LIFLayerInputBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   LayerInputBuffer::initialize(name, params, comm);
 }
 
 int LIFLayerInputBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

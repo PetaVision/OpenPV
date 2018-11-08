@@ -10,16 +10,20 @@
 
 namespace PV {
 
-MomentumConn::MomentumConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
+MomentumConn::MomentumConn(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 MomentumConn::MomentumConn() {}
 
 MomentumConn::~MomentumConn() {}
 
-int MomentumConn::initialize(char const *name, HyPerCol *hc) {
-   return HyPerConn::initialize(name, hc);
+void MomentumConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+   HyPerConn::initialize(name, params, comm);
 }
 
-BaseWeightUpdater *MomentumConn::createWeightUpdater() { return new MomentumUpdater(name, parent); }
+BaseWeightUpdater *MomentumConn::createWeightUpdater() {
+   return new MomentumUpdater(name, parameters(), mCommunicator);
+}
 
 } // namespace PV

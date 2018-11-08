@@ -16,20 +16,21 @@ TestPointProbe::TestPointProbe() {
    // their init-method.
 }
 
-TestPointProbe::TestPointProbe(const char *name, HyPerCol *hc) : PointProbe() {
-   initialize(name, hc);
+TestPointProbe::TestPointProbe(const char *name, PVParams *params, Communicator *comm)
+      : PointProbe() {
+   initialize(name, params, comm);
 }
 
 TestPointProbe::~TestPointProbe() {}
 
 int TestPointProbe::point_writeState(double timef, float outVVal, float outAVal) {
-   if (parent->getCommunicator()->commRank() == 0) {
+   if (mCommunicator->commRank() == 0) {
       // Input pvp layer's spinning order is nf, nx, ny
       float expectedVal = fLoc * 64 + xLoc * 8 + yLoc;
       if (outAVal != expectedVal) {
          ErrorLog() << "Connection " << name << " Mismatch: actual value: " << outAVal
                     << " Expected value: " << expectedVal << ".\n";
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(PV_FAILURE);
       }
    }

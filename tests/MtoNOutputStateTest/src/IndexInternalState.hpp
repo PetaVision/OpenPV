@@ -18,12 +18,12 @@ class IndexInternalState : public InternalStateBuffer {
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
 
   public:
-   IndexInternalState(char const *name, HyPerCol *hc);
+   IndexInternalState(char const *name, PVParams *params, Communicator *comm);
    ~IndexInternalState();
 
   protected:
    IndexInternalState();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
    virtual void updateBufferCPU(double simTime, double deltaTime) override;

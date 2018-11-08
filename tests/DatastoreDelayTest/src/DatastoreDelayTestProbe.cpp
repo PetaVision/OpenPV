@@ -12,13 +12,16 @@
 
 namespace PV {
 
-DatastoreDelayTestProbe::DatastoreDelayTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
-   initialize(name, hc);
+DatastoreDelayTestProbe::DatastoreDelayTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator *comm)
+      : StatsProbe() {
+   initialize(name, params, comm);
 }
 
-int DatastoreDelayTestProbe::initialize(const char *name, HyPerCol *hc) {
-   StatsProbe::initialize(name, hc);
-   return PV_SUCCESS;
+void DatastoreDelayTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 void DatastoreDelayTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {

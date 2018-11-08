@@ -10,16 +10,20 @@
 
 namespace PV {
 
-LIFGap::LIFGap(const char *name, HyPerCol *hc) { initialize(name, hc); }
+LIFGap::LIFGap(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 LIFGap::LIFGap() {}
 
 LIFGap::~LIFGap() {}
 
-int LIFGap::initialize(const char *name, HyPerCol *hc) { return LIF::initialize(name, hc); }
+void LIFGap::initialize(const char *name, PVParams *params, Communicator *comm) {
+   LIF::initialize(name, params, comm);
+}
 
 ActivityComponent *LIFGap::createActivityComponent() {
-   return new LIFGapActivityComponent(getName(), parent);
+   return new LIFGapActivityComponent(getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

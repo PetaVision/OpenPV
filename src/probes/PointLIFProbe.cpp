@@ -22,14 +22,14 @@ PointLIFProbe::PointLIFProbe() : PointProbe() {
    // and call PointLIFProbe::initialize during their initialization.
 }
 
-PointLIFProbe::PointLIFProbe(const char *name, HyPerCol *hc) : PointProbe() {
-   initialize(name, hc);
+PointLIFProbe::PointLIFProbe(const char *name, PVParams *params, Communicator *comm)
+      : PointProbe() {
+   initialize(name, params, comm);
 }
 
-int PointLIFProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = PointProbe::initialize(name, hc);
-   writeTime  = 0.0;
-   return status;
+void PointLIFProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   PointProbe::initialize(name, params, comm);
+   writeTime = 0.0;
 }
 
 int PointLIFProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -125,29 +125,20 @@ void PointLIFProbe::calcValues(double timevalue) {
             kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       valuesBuffer[5] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
       // If not in root process, send to root process
-      if (parent->getCommunicator()->commRank() != 0) {
-         MPI_Send(
-               valuesBuffer,
-               NUMBER_OF_VALUES,
-               MPI_DOUBLE,
-               0,
-               0,
-               parent->getCommunicator()->communicator());
+      if (mCommunicator->commRank() != 0) {
+         MPI_Send(valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, 0, 0, mCommunicator->communicator());
       }
    }
 
    // Root process
-   if (parent->getCommunicator()->commRank() == 0) {
+   if (mCommunicator->commRank() == 0) {
       // Calculate which rank target neuron is
       // TODO we need to calculate rank from batch as well
       int xRank = xLoc / nx;
       int yRank = yLoc / ny;
 
       int srcRank = rankFromRowAndColumn(
-            yRank,
-            xRank,
-            parent->getCommunicator()->numCommRows(),
-            parent->getCommunicator()->numCommColumns());
+            yRank, xRank, mCommunicator->numCommRows(), mCommunicator->numCommColumns());
 
       // If srcRank is not root process, MPI_Recv from that rank
       if (srcRank != 0) {
@@ -157,7 +148,7 @@ void PointLIFProbe::calcValues(double timevalue) {
                MPI_DOUBLE,
                srcRank,
                0,
-               parent->getCommunicator()->communicator(),
+               mCommunicator->communicator(),
                MPI_STATUS_IGNORE);
       }
    }

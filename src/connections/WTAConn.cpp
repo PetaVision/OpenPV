@@ -12,15 +12,17 @@ namespace PV {
 
 WTAConn::WTAConn() {}
 
-WTAConn::WTAConn(const char *name, HyPerCol *hc) { initialize(name, hc); }
+WTAConn::WTAConn(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int WTAConn::initialize(const char *name, HyPerCol *hc) {
-   int status = BaseConnection::initialize(name, hc);
-   return status;
+void WTAConn::initialize(const char *name, PVParams *params, Communicator *comm) {
+   BaseConnection::initialize(name, params, comm);
 }
 
 BaseDelivery *WTAConn::createDeliveryObject() {
-   BaseObject *baseObject      = Factory::instance()->createByKeyword("WTADelivery", name, parent);
+   BaseObject *baseObject =
+         Factory::instance()->createByKeyword("WTADelivery", name, parameters(), mCommunicator);
    WTADelivery *deliveryObject = dynamic_cast<WTADelivery *>(baseObject);
    pvAssert(deliveryObject);
    return deliveryObject;
@@ -34,6 +36,8 @@ void WTAConn::createComponentTable(char const *description) {
    }
 }
 
-SingleArbor *WTAConn::createSingleArbor() { return new SingleArbor(name, parent); }
+SingleArbor *WTAConn::createSingleArbor() {
+   return new SingleArbor(name, parameters(), mCommunicator);
+}
 
 } // end of namespace PV block

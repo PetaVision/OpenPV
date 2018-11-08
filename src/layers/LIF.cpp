@@ -11,18 +11,22 @@
 
 namespace PV {
 
-LIF::LIF(const char *name, HyPerCol *hc) { initialize(name, hc); }
+LIF::LIF(const char *name, PVParams *params, Communicator *comm) { initialize(name, params, comm); }
 
 LIF::LIF() {}
 
 LIF::~LIF() {}
 
-int LIF::initialize(const char *name, HyPerCol *hc) { return HyPerLayer::initialize(name, hc); }
+void LIF::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
+}
 
-LayerInputBuffer *LIF::createLayerInput() { return new LIFLayerInputBuffer(getName(), parent); }
+LayerInputBuffer *LIF::createLayerInput() {
+   return new LIFLayerInputBuffer(getName(), parameters(), mCommunicator);
+}
 
 ActivityComponent *LIF::createActivityComponent() {
-   return new LIFActivityComponent(getName(), parent);
+   return new LIFActivityComponent(getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

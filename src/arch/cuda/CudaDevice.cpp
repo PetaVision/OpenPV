@@ -91,9 +91,7 @@ int CudaDevice::initialize(int device) {
    return status;
 }
 
-void CudaDevice::syncDevice() {
-   handleError(cudaDeviceSynchronize(), "Synchronizing device");
-}
+void CudaDevice::syncDevice() { handleError(cudaDeviceSynchronize(), "Synchronizing device"); }
 
 int CudaDevice::query_device_info() {
    // query and print information about the devices found

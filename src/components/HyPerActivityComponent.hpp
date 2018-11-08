@@ -18,7 +18,7 @@ namespace PV {
  */
 class HyPerActivityComponent : public ActivityComponent {
   public:
-   HyPerActivityComponent(char const *name, HyPerCol *hc);
+   HyPerActivityComponent(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~HyPerActivityComponent();
 
@@ -27,7 +27,7 @@ class HyPerActivityComponent : public ActivityComponent {
   protected:
    HyPerActivityComponent() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType();
 

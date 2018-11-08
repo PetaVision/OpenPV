@@ -36,7 +36,7 @@ class BinningActivityBuffer : public ActivityBuffer {
 
    /** @} */
   public:
-   BinningActivityBuffer(char const *name, HyPerCol *hc);
+   BinningActivityBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~BinningActivityBuffer();
 
@@ -45,7 +45,7 @@ class BinningActivityBuffer : public ActivityBuffer {
   protected:
    BinningActivityBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

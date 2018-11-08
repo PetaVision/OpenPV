@@ -13,15 +13,17 @@
 
 namespace PV {
 
-TransposeWeightsPair::TransposeWeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
+TransposeWeightsPair::TransposeWeightsPair(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 TransposeWeightsPair::~TransposeWeightsPair() {
    mPreWeights  = nullptr;
    mPostWeights = nullptr;
 }
 
-int TransposeWeightsPair::initialize(char const *name, HyPerCol *hc) {
-   return WeightsPair::initialize(name, hc);
+void TransposeWeightsPair::initialize(char const *name, PVParams *params, Communicator *comm) {
+   WeightsPair::initialize(name, params, comm);
 }
 
 void TransposeWeightsPair::setObjectType() { mObjectType = "TransposeWeightsPair"; }
@@ -47,7 +49,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
       pvAssert(originalConnNameParam);
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             InfoLog().printf(
                   "%s must wait until the OriginalConnNameParam component has finished its "
                   "communicateInitInfo stage.\n",
@@ -65,7 +67,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
       pvAssert(originalConn); // findLinkedObject() throws instead of returns nullptr
 
       if (!originalConn->getInitInfoCommunicatedFlag()) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             InfoLog().printf(
                   "%s must wait until original connection \"%s\" has finished its "
                   "communicateInitInfo stage.\n",
@@ -91,7 +93,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
    int numArbors     = getArborList()->getNumAxonalArbors();
    int origNumArbors = mOriginalWeightsPair->getArborList()->getNumAxonalArbors();
    if (numArbors != origNumArbors) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          Fatal().printf(
                "%s has %d arbors but original connection %s has %d arbors.\n",
                mConnectionData->getDescription_c(),
@@ -99,7 +101,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
                mOriginalWeightsPair->getConnectionData()->getDescription_c(),
                origNumArbors);
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }
 
@@ -107,7 +109,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
    const PVLayerLoc *origPostLoc = originalConnData->getPost()->getLayerLoc();
    if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny
        || preLoc->nf != origPostLoc->nf) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: transpose's pre layer and original connection's post layer must have the same "
@@ -122,7 +124,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
                origPostLoc->ny,
                origPostLoc->nf);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    originalConnData->getPre()->synchronizeMarginWidth(mConnectionData->getPost());
@@ -132,7 +134,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
    const PVLayerLoc *origPreLoc = originalConnData->getPre()->getLayerLoc();
    if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny
        || postLoc->nf != origPreLoc->nf) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: transpose's post layer and original connection's pre layer must have the same "
@@ -147,7 +149,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
                origPreLoc->ny,
                origPreLoc->nf);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    originalConnData->getPost()->synchronizeMarginWidth(mConnectionData->getPre());

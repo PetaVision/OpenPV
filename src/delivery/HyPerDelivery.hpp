@@ -42,7 +42,7 @@ class HyPerDelivery : public BaseDelivery {
   public:
    enum AccumulateType { UNDEFINED, CONVOLVE, STOCHASTIC };
 
-   HyPerDelivery(char const *name, HyPerCol *hc);
+   HyPerDelivery(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~HyPerDelivery();
 
@@ -55,7 +55,7 @@ class HyPerDelivery : public BaseDelivery {
   protected:
    HyPerDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

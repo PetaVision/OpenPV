@@ -21,9 +21,9 @@ using namespace std;
 namespace PV {
 ShuffleLayer::ShuffleLayer() { initialize_base(); }
 
-ShuffleLayer::ShuffleLayer(const char *name, HyPerCol *hc) {
+ShuffleLayer::ShuffleLayer(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 ShuffleLayer::~ShuffleLayer() {
@@ -61,9 +61,9 @@ int ShuffleLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ShuffleLayer::initialize(const char *name, HyPerCol *hc) {
+void ShuffleLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
    WarnLog() << "ShuffleLayer has been deprecated.\n";
-   int status_init = HyPerLayer::initialize(name, hc);
+   int status_init = HyPerLayer::initialize(name, params, comm);
    // don't need conductance channels
    return status_init;
 }
@@ -230,7 +230,7 @@ void ShuffleLayer::collectFreq(const float *sourceData) {
             nf,
             MPI_LONG,
             MPI_SUM,
-            parent->getCommunicator()->communicator());
+            mCommunicator->communicator());
 
       for (int kf = 0; kf < nf; kf++) {
          featureFreqCount[b][kf] += currFeatureFreqCount[b][kf];

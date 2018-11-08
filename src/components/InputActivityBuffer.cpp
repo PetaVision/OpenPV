@@ -12,13 +12,14 @@
 
 namespace PV {
 
-InputActivityBuffer::InputActivityBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+InputActivityBuffer::InputActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 InputActivityBuffer::~InputActivityBuffer() { delete mTimestampStream; }
 
-int InputActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = ActivityBuffer::initialize(name, hc);
-   return status;
+void InputActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ActivityBuffer::initialize(name, params, comm);
 }
 
 void InputActivityBuffer::setObjectType() { mObjectType = "InputActivityBuffer"; }
@@ -130,14 +131,14 @@ void InputActivityBuffer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
          mAnchor = Buffer<float>::SOUTHEAST;
       }
       else {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: offsetAnchor must be a two-letter string.  The first character must be "
                   "\"t\", \"c\", or \"b\" (for top, center or bottom); and the second character "
                   "must be \"l\", \"c\", or \"r\" (for left, center or right).\n",
                   getDescription_c());
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       free(offsetAnchor);
@@ -220,12 +221,12 @@ void InputActivityBuffer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag
          mRescaleMethod = BufferUtils::PAD;
       }
       else {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
                   getDescription_c());
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       free(aspectRatioAdjustment);
@@ -256,12 +257,12 @@ void InputActivityBuffer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) 
             mInterpolationMethod = BufferUtils::NEAREST;
          }
          else {
-            if (parent->getCommunicator()->commRank() == 0) {
+            if (mCommunicator->commRank() == 0) {
                ErrorLog().printf(
                      "%s: interpolationMethod must be either \"bicubic\" or \"nearestNeighbor\".\n",
                      getDescription_c());
             }
-            MPI_Barrier(parent->getCommunicator()->communicator());
+            MPI_Barrier(mCommunicator->communicator());
             exit(EXIT_FAILURE);
          }
       }

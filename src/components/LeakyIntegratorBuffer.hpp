@@ -33,14 +33,14 @@ class LeakyIntegratorBuffer : public GSynInternalStateBuffer {
    virtual void ioParam_integrationTime(enum ParamsIOFlag ioFlag);
 
   public:
-   LeakyIntegratorBuffer(char const *name, HyPerCol *hc);
+   LeakyIntegratorBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~LeakyIntegratorBuffer();
 
   protected:
    LeakyIntegratorBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

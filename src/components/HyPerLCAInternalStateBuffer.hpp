@@ -40,12 +40,12 @@ class HyPerLCAInternalStateBuffer : public HyPerInternalStateBuffer {
    /** @} */
 
   public:
-   HyPerLCAInternalStateBuffer(const char *name, HyPerCol *hc);
+   HyPerLCAInternalStateBuffer(const char *name, PVParams *params, Communicator *comm);
    virtual ~HyPerLCAInternalStateBuffer();
 
   protected:
    HyPerLCAInternalStateBuffer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;

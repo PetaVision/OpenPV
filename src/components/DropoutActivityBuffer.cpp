@@ -10,15 +10,17 @@
 
 namespace PV {
 
-DropoutActivityBuffer::DropoutActivityBuffer(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+DropoutActivityBuffer::DropoutActivityBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 DropoutActivityBuffer::~DropoutActivityBuffer() {}
 
-int DropoutActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = ANNActivityBuffer::initialize(name, hc);
-   return status;
+void DropoutActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ANNActivityBuffer::initialize(name, params, comm);
 }
 
 void DropoutActivityBuffer::setObjectType() { mObjectType = "DropoutActivityBuffer"; }

@@ -10,14 +10,16 @@
 
 namespace PV {
 
-IndexInternalState::IndexInternalState(char const *name, HyPerCol *hc) { initialize(name, hc); }
+IndexInternalState::IndexInternalState(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 IndexInternalState::IndexInternalState() {}
 
 IndexInternalState::~IndexInternalState() {}
 
-int IndexInternalState::initialize(char const *name, HyPerCol *hc) {
-   return InternalStateBuffer::initialize(name, hc);
+void IndexInternalState::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InternalStateBuffer::initialize(name, params, comm);
 }
 
 void IndexInternalState::ioParam_InitVType(enum ParamsIOFlag ioFlag) {

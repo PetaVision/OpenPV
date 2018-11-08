@@ -9,19 +9,20 @@
 
 namespace PV {
 
-ConstantLayer::ConstantLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+ConstantLayer::ConstantLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 ConstantLayer::ConstantLayer() {}
 
 ConstantLayer::~ConstantLayer() {}
 
-int ConstantLayer::initialize(const char *name, HyPerCol *hc) {
+void ConstantLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
    // HyPerLayer default for writeStep is 1.0, but
    // writeStep = -1 (never write) is a better default for ConstantLayer.
    writeStep = -1;
 
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+   HyPerLayer::initialize(name, params, comm);
 }
 
 void ConstantLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {

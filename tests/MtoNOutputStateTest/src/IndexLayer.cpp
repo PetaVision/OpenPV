@@ -14,18 +14,19 @@
 
 namespace PV {
 
-IndexLayer::IndexLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+IndexLayer::IndexLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 IndexLayer::~IndexLayer() {}
 
-int IndexLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void IndexLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *IndexLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<IndexInternalState, HyPerActivityBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

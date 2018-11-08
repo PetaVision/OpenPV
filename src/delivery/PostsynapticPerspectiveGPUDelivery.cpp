@@ -12,8 +12,9 @@ namespace PV {
 
 PostsynapticPerspectiveGPUDelivery::PostsynapticPerspectiveGPUDelivery(
       char const *name,
-      HyPerCol *hc) {
-   initialize(name, hc);
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 PostsynapticPerspectiveGPUDelivery::PostsynapticPerspectiveGPUDelivery() {}
@@ -23,8 +24,11 @@ PostsynapticPerspectiveGPUDelivery::~PostsynapticPerspectiveGPUDelivery() {
    delete mDevicePostToPreActivity;
 }
 
-int PostsynapticPerspectiveGPUDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void PostsynapticPerspectiveGPUDelivery::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void PostsynapticPerspectiveGPUDelivery::setObjectType() {
@@ -185,7 +189,7 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    // See the size of buffer needed based on x and y
    // oNxp is the patch size from the post point of view
 
-   if (parent->getCommunicator()->globalCommRank() == 0) {
+   if (mCommunicator->globalCommRank() == 0) {
       InfoLog() << "preToPostScale: (" << preToPostScaleX << "," << preToPostScaleY << ")\n";
    }
 

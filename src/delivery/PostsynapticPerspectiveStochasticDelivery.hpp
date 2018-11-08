@@ -32,7 +32,10 @@ class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
    /** @} */ // End of list of BaseDelivery parameters.
 
   public:
-   PostsynapticPerspectiveStochasticDelivery(char const *name, HyPerCol *hc);
+   PostsynapticPerspectiveStochasticDelivery(
+         char const *name,
+         PVParams *params,
+         Communicator *comm);
 
    virtual ~PostsynapticPerspectiveStochasticDelivery();
 
@@ -54,7 +57,7 @@ class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
   protected:
    PostsynapticPerspectiveStochasticDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

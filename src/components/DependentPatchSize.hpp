@@ -45,7 +45,7 @@ class DependentPatchSize : public PatchSize {
    /** @} */ // end of DependentPatchSize parameters
 
   public:
-   DependentPatchSize(char const *name, HyPerCol *hc);
+   DependentPatchSize(char const *name, PVParams *params, Communicator *comm);
    virtual ~DependentPatchSize();
 
    virtual void setObjectType() override;
@@ -53,7 +53,7 @@ class DependentPatchSize : public PatchSize {
   protected:
    DependentPatchSize();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

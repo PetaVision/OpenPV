@@ -14,14 +14,20 @@
 
 namespace PV {
 
-MomentumLCAActivityComponent::MomentumLCAActivityComponent(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+MomentumLCAActivityComponent::MomentumLCAActivityComponent(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 MomentumLCAActivityComponent::~MomentumLCAActivityComponent() {}
 
-int MomentumLCAActivityComponent::initialize(char const *name, HyPerCol *hc) {
-   return HyPerActivityComponent::initialize(name, hc);
+void MomentumLCAActivityComponent::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   HyPerActivityComponent::initialize(name, params, comm);
 }
 
 void MomentumLCAActivityComponent::setObjectType() { mObjectType = "MomentumLCAActivityComponent"; }
@@ -35,15 +41,15 @@ void MomentumLCAActivityComponent::createComponentTable(char const *tableDescrip
 }
 
 ActivityBuffer *MomentumLCAActivityComponent::createActivity() {
-   return new ANNActivityBuffer(getName(), parent);
+   return new ANNActivityBuffer(getName(), parameters(), mCommunicator);
 }
 
 InternalStateBuffer *MomentumLCAActivityComponent::createInternalState() {
-   return new MomentumLCAInternalStateBuffer(getName(), parent);
+   return new MomentumLCAInternalStateBuffer(getName(), parameters(), mCommunicator);
 }
 
 RestrictedBuffer *MomentumLCAActivityComponent::createPrevDrive() {
-   RestrictedBuffer *buffer = new RestrictedBuffer(getName(), parent);
+   RestrictedBuffer *buffer = new RestrictedBuffer(getName(), parameters(), mCommunicator);
    buffer->setBufferLabel("prevDrive");
    return buffer;
 }

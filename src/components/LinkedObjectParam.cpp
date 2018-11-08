@@ -13,9 +13,13 @@ namespace PV {
 
 LinkedObjectParam::~LinkedObjectParam() {}
 
-int LinkedObjectParam::initialize(char const *name, HyPerCol *hc, std::string const &paramName) {
+void LinkedObjectParam::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm,
+      std::string const &paramName) {
    mParamName = paramName;
-   return BaseObject::initialize(name, hc);
+   BaseObject::initialize(name, params, comm);
 }
 
 int LinkedObjectParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

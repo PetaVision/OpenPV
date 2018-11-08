@@ -15,13 +15,13 @@
 namespace PV {
 class KmeansLayer : public HyPerLayer {
   public:
-   KmeansLayer(const char *name, HyPerCol *hc);
+   KmeansLayer(const char *name, PVParams *params, Communicator *comm);
    virtual bool activityIsSpiking() override { return false; }
    virtual ~KmeansLayer();
 
   protected:
    KmeansLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual Response::Status updateState(double time, double dt) override;
    virtual int setActivity() override;
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;

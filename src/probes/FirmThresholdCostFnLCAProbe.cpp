@@ -11,9 +11,12 @@
 
 namespace PV {
 
-FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(const char *name, HyPerCol *hc) {
+FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe() { initialize_base(); }

@@ -10,15 +10,15 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-GPUSystemTestProbe::GPUSystemTestProbe(const char *name, HyPerCol *hc) {
+GPUSystemTestProbe::GPUSystemTestProbe(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int GPUSystemTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int GPUSystemTestProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void GPUSystemTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 void GPUSystemTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
@@ -41,7 +41,7 @@ Response::Status GPUSystemTestProbe::outputState(double simTime, double deltaTim
             nonzeroTime = simTime;
          }
          nonzeroFound = true;
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             std::stringstream message("");
             message << getDescription_c() << ": Nonzero standard deviation " << simTime
                     << " at time " << nonzeroTime << "; tolerance is " << tolSigma << "\n";

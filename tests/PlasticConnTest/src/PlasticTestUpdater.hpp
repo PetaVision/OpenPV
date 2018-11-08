@@ -14,7 +14,7 @@ namespace PV {
 
 class PlasticTestUpdater : public HebbianUpdater {
   public:
-   PlasticTestUpdater(const char *name, HyPerCol *hc);
+   PlasticTestUpdater(const char *name, PVParams *params, Communicator *comm);
    virtual ~PlasticTestUpdater();
 
   protected:

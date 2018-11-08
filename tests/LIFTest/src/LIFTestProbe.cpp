@@ -13,9 +13,9 @@
 #define LIFTESTPROBE_BINS 5
 
 namespace PV {
-LIFTestProbe::LIFTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+LIFTestProbe::LIFTestProbe(const char *name, PVParams *params, Communicator *comm) : StatsProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 LIFTestProbe::LIFTestProbe() : StatsProbe() { initialize_base(); }
@@ -28,9 +28,9 @@ int LIFTestProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LIFTestProbe::initialize(const char *name, HyPerCol *hc) {
+void LIFTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
 
-   int status = StatsProbe::initialize(name, hc);
+   StatsProbe::initialize(name, params, comm);
 
    radii       = (double *)calloc(LIFTESTPROBE_BINS, sizeof(double));
    rates       = (double *)calloc(LIFTESTPROBE_BINS, sizeof(double));
@@ -76,7 +76,6 @@ int LIFTestProbe::initialize(const char *name, HyPerCol *hc) {
       stddevs[k]     = s[k];
       counts[k]      = c[k];
    }
-   return status;
 }
 
 int LIFTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -147,7 +146,7 @@ Response::Status LIFTestProbe::outputState(double simTime, double deltaTime) {
       }
    }
    int root_proc        = 0;
-   Communicator *icComm = parent->getCommunicator();
+   Communicator *icComm = mCommunicator;
    if (icComm->commRank() == root_proc) {
       MPI_Reduce(
             MPI_IN_PLACE,

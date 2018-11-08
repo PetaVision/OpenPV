@@ -11,10 +11,12 @@
 
 namespace PV {
 
-BaseDelivery::BaseDelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
+BaseDelivery::BaseDelivery(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int BaseDelivery::initialize(char const *name, HyPerCol *hc) {
-   return LayerInputDelivery::initialize(name, hc);
+void BaseDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+   LayerInputDelivery::initialize(name, params, comm);
 }
 
 void BaseDelivery::setObjectType() { mObjectType = "BaseDelivery"; }
@@ -30,7 +32,7 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    }
    FatalIf(mConnectionData == nullptr, "%s could not find a ConnectionData component.\n");
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the ConnectionData component has finished its "
                "communicateInitInfo stage.\n",

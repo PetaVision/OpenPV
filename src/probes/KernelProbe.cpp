@@ -13,21 +13,17 @@ namespace PV {
 
 KernelProbe::KernelProbe() { initialize_base(); }
 
-KernelProbe::KernelProbe(const char *probename, HyPerCol *hc) {
+KernelProbe::KernelProbe(const char *probename, PVParams *params, Communicator *comm) {
    initialize_base();
-   int status = initialize(probename, hc);
-   assert(status == PV_SUCCESS);
+   initialize(probename, params, comm);
 }
 
 KernelProbe::~KernelProbe() {}
 
 int KernelProbe::initialize_base() { return PV_SUCCESS; }
 
-int KernelProbe::initialize(const char *probename, HyPerCol *hc) {
-   int status = BaseConnectionProbe::initialize(probename, hc);
-   assert(name && parent);
-
-   return status;
+void KernelProbe::initialize(const char *probename, PVParams *params, Communicator *comm) {
+   BaseConnectionProbe::initialize(probename, params, comm);
 }
 
 int KernelProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -81,7 +77,7 @@ KernelProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
          mTargetConn->getName());
 
    if (!sharedWeights->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until target connection \"%s\" has finished its CommunicateInitInfo "
                "stage.\n",
@@ -91,13 +87,13 @@ KernelProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
       return Response::POSTPONE;
    }
    if (sharedWeights->getSharedWeights() == false) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: %s is not using shared weights.\n",
                getDescription_c(),
                mTargetConn->getDescription_c());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 
@@ -137,7 +133,7 @@ Response::Status KernelProbe::allocateDataStructures() {
 
    pvAssert(mWeights); // Was set in CommunicateInitInfo stage
    if (!mWeights->getDataStructuresAllocatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until target connection \"%s\" has finished its "
                "AllocateDataStructures stage.\n",
@@ -161,7 +157,7 @@ Response::Status KernelProbe::allocateDataStructures() {
             getDescription_c(),
             mTargetConn->getName());
       if (!hebbianUpdater->getDataStructuresAllocatedFlag()) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             InfoLog().printf(
                   "%s must wait until target connection \"%s\" has finished its "
                   "AllocateDataStructures stage.\n",
@@ -188,7 +184,7 @@ Response::Status KernelProbe::outputState(double simTime, double deltaTime) {
    if (mOutputStreams.empty()) {
       return Response::NO_ACTION;
    }
-   Communicator *icComm = parent->getCommunicator();
+   Communicator *icComm = mCommunicator;
    const int rank       = icComm->commRank();
    int nxp              = getPatchSize()->getPatchSizeX();
    int nyp              = getPatchSize()->getPatchSizeY();

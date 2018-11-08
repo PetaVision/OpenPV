@@ -14,13 +14,13 @@ namespace PV {
 
 class DelayTestProbe : public PV::StatsProbe {
   public:
-   DelayTestProbe(const char *name, HyPerCol *hc);
+   DelayTestProbe(const char *name, PVParams *params, Communicator *comm);
    virtual ~DelayTestProbe();
 
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
   private:
    int initialize_base();

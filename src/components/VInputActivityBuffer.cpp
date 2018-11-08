@@ -10,13 +10,14 @@
 
 namespace PV {
 
-VInputActivityBuffer::VInputActivityBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+VInputActivityBuffer::VInputActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 VInputActivityBuffer::~VInputActivityBuffer() {}
 
-int VInputActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = ActivityBuffer::initialize(name, hc);
-   return status;
+void VInputActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ActivityBuffer::initialize(name, params, comm);
 }
 
 void VInputActivityBuffer::setObjectType() { mObjectType = "VInputActivityBuffer"; }

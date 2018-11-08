@@ -56,14 +56,14 @@ class SigmoidActivityBuffer : public VInputActivityBuffer {
    virtual void ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag);
    /** @} */
   public:
-   SigmoidActivityBuffer(char const *name, HyPerCol *hc);
+   SigmoidActivityBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~SigmoidActivityBuffer();
 
   protected:
    SigmoidActivityBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

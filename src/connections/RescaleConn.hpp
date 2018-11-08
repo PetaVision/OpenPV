@@ -16,11 +16,11 @@ namespace PV {
 
 class RescaleConn : public IdentConn {
   public:
-   RescaleConn(const char *name, HyPerCol *hc);
+   RescaleConn(const char *name, PVParams *params, Communicator *comm);
 
   protected:
    RescaleConn();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual BaseDelivery *createDeliveryObject() override;
 }; // class RescaleConn

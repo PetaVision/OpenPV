@@ -12,7 +12,9 @@
 
 namespace PV {
 
-MaskActivityBuffer::MaskActivityBuffer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+MaskActivityBuffer::MaskActivityBuffer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 MaskActivityBuffer::MaskActivityBuffer() {}
 
@@ -45,7 +47,7 @@ void MaskActivityBuffer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
    else if (strcmp(mMaskMethod, "noMaskFeatures") == 0) {
       mMaskMethodCode = INVERT_FEATURES;
    }
-   if (parent->getCommunicator()->commRank() == 0) {
+   if (mCommunicator->commRank() == 0) {
       FatalIf(
             mMaskMethodCode == UNDEFINED,
             "%s: \"%s\" is not a valid maskMethod. Options are \"layer\", \"invertLayer\", "
@@ -67,7 +69,7 @@ void MaskActivityBuffer::ioParam_featureIdxs(enum ParamsIOFlag ioFlag) {
    if (mMaskMethodCode == FEATURES or mMaskMethodCode == INVERT_FEATURES) {
       parameters()->ioParamArray(ioFlag, name, "featureIdxs", &mFeatures, &mNumSpecifiedFeatures);
       if (mNumSpecifiedFeatures == 0) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: MaskLayer must specify at least one feature for maskMethod \"%s\".\n",
                   getDescription_c(),
@@ -89,35 +91,35 @@ MaskActivityBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       auto *maskObject  = message->mHierarchy->lookupByNameRecursive<ComponentBasedObject>(
             std::string(maskLayerName), maxIterations);
       if (maskObject == nullptr) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
                   getDescription_c(),
                   maskLayerName);
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       auto *maskActivityComponent = maskObject->getComponentByType<ActivityComponent>();
       if (maskActivityComponent == nullptr) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: maskLayerName points to %s, but it does not have an ActivityComponent.\n",
                   getDescription_c(),
                   maskObject->getDescription());
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       mMaskBuffer = maskActivityComponent->getComponentByType<ActivityBuffer>();
       if (mMaskBuffer == nullptr) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: maskLayerName points to %s, but it does not have an ActivityBuffer.\n",
                   getDescription_c(),
                   maskObject->getDescription());
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -148,7 +150,7 @@ Response::Status MaskActivityBuffer::allocateDataStructures() {
       PVLayerLoc const *loc     = getLayerLoc();
       pvAssert(maskLoc != nullptr && loc != nullptr);
       if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog(errorMessage);
             errorMessage.printf(
                   "%s: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
@@ -163,12 +165,12 @@ Response::Status MaskActivityBuffer::allocateDataStructures() {
                   loc->nyGlobal,
                   loc->nf);
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
 
       if (maskLoc->nf != 1 && maskLoc->nf != loc->nf) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog(errorMessage);
             errorMessage.printf(
                   "%s: maskLayerName \"%s\" must either have the same number of features as this "
@@ -184,7 +186,7 @@ Response::Status MaskActivityBuffer::allocateDataStructures() {
                   loc->nyGlobal,
                   loc->nf);
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
    }

@@ -38,7 +38,7 @@ class WTADelivery : public BaseDelivery {
    /** @} */ // End of list of WTADelivery parameters.
 
   public:
-   WTADelivery(char const *name, HyPerCol *hc);
+   WTADelivery(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~WTADelivery() {}
 
@@ -51,7 +51,7 @@ class WTADelivery : public BaseDelivery {
   protected:
    WTADelivery() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

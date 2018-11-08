@@ -19,14 +19,14 @@ class InitGaussianRandomWeights : public InitRandomWeights {
    void ioParam_wGaussStdev(enum ParamsIOFlag ioFlag);
 
   public:
-   InitGaussianRandomWeights(char const *name, HyPerCol *hc);
+   InitGaussianRandomWeights(char const *name, PVParams *params, Communicator *comm);
    virtual ~InitGaussianRandomWeights();
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
    InitGaussianRandomWeights();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
    virtual int initRNGs(bool isKernel) override;
    virtual void randomWeights(float *patchDataStart, int patchIndex) override;
 

@@ -5,7 +5,9 @@
 
 namespace PV {
 
-Segmentify::Segmentify(const char *name, HyPerCol *hc) { initialize(name, hc); }
+Segmentify::Segmentify(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 Segmentify::Segmentify() {
    // initialize() gets called by subclass's initialize method
@@ -13,9 +15,8 @@ Segmentify::Segmentify() {
 
 Segmentify::~Segmentify() {}
 
-int Segmentify::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void Segmentify::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 void Segmentify::createComponentTable(char const *description) {
@@ -27,13 +28,14 @@ void Segmentify::createComponentTable(char const *description) {
 }
 
 OriginalLayerNameParam *Segmentify::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parent);
+   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
 }
 
 LayerInputBuffer *Segmentify::createLayerInput() { return nullptr; }
 
 ActivityComponent *Segmentify::createActivityComponent() {
-   return new ActivityComponentActivityOnly<SegmentifyBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<SegmentifyBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

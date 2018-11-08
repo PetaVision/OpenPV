@@ -11,14 +11,20 @@
 
 namespace PV {
 
-BackgroundActivityComponent::BackgroundActivityComponent(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+BackgroundActivityComponent::BackgroundActivityComponent(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 BackgroundActivityComponent::~BackgroundActivityComponent() {}
 
-int BackgroundActivityComponent::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void BackgroundActivityComponent::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void BackgroundActivityComponent::setObjectType() { mObjectType = "BackgroundActivityComponent"; }
@@ -28,7 +34,7 @@ InternalStateBuffer *BackgroundActivityComponent::createInternalStateBuffer() { 
 InternalStateUpdater *BackgroundActivityComponent::createInternalStateUpdater() { return nullptr; }
 
 ActivityUpdater *BackgroundActivityComponent::createActivityUpdater() {
-   return new BackgroundActivityUpdater(name, parent);
+   return new BackgroundActivityUpdater(name, parameters(), mCommunicator);
 }
 
 } // namespace PV

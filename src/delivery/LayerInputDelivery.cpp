@@ -11,10 +11,12 @@
 
 namespace PV {
 
-LayerInputDelivery::LayerInputDelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
+LayerInputDelivery::LayerInputDelivery(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int LayerInputDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void LayerInputDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void LayerInputDelivery::setObjectType() { mObjectType = "LayerInputDelivery"; }
@@ -37,11 +39,11 @@ void LayerInputDelivery::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
          case CHANNEL_NORM: mChannelCode     = CHANNEL_NORM; break;
          case CHANNEL_NOUPDATE: mChannelCode = CHANNEL_NOUPDATE; break;
          default:
-            if (parent->getCommunicator()->globalCommRank() == 0) {
+            if (mCommunicator->globalCommRank() == 0) {
                ErrorLog().printf(
                      "%s: channelCode %d is not a valid channel.\n", this->getDescription_c(), ch);
             }
-            MPI_Barrier(this->parent->getCommunicator()->globalCommunicator());
+            MPI_Barrier(this->mCommunicator->globalCommunicator());
             exit(EXIT_FAILURE);
             break;
       }
@@ -72,7 +74,7 @@ void LayerInputDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
          &mReceiveGpu,
          mReceiveGpu /*default*/,
          false /*warn if absent*/);
-   if (parent->getCommunicator()->globalCommRank() == 0) {
+   if (mCommunicator->globalCommRank() == 0) {
       FatalIf(
             mReceiveGpu,
             "%s: receiveGpu is set to true in params, but PetaVision was compiled without GPU "

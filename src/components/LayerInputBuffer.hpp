@@ -30,7 +30,7 @@ class LayerInputBuffer : public ComponentBuffer {
 
    /** @} */
   public:
-   LayerInputBuffer(char const *name, HyPerCol *hc);
+   LayerInputBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~LayerInputBuffer();
 
@@ -51,7 +51,7 @@ class LayerInputBuffer : public ComponentBuffer {
   protected:
    LayerInputBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
    virtual void initMessageActionMap() override;
    virtual void setObjectType() override;
 

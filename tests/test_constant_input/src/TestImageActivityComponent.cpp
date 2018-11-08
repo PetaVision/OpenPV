@@ -10,20 +10,26 @@
 
 namespace PV {
 
-TestImageActivityComponent::TestImageActivityComponent(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+TestImageActivityComponent::TestImageActivityComponent(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 TestImageActivityComponent::~TestImageActivityComponent() {}
 
-int TestImageActivityComponent::initialize(char const *name, HyPerCol *hc) {
-   return ActivityComponent::initialize(name, hc);
+void TestImageActivityComponent::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   ActivityComponent::initialize(name, params, comm);
 }
 
 void TestImageActivityComponent::setObjectType() { mObjectType = "TestImageActivityComponent"; }
 
 ActivityBuffer *TestImageActivityComponent::createActivity() {
-   return new TestImageActivityBuffer(getName(), parent);
+   return new TestImageActivityBuffer(getName(), parameters(), mCommunicator);
 }
 
 } // namespace PV

@@ -13,9 +13,10 @@ namespace PV {
 
 L2NormProbe::L2NormProbe() : AbstractNormProbe() { initialize_base(); }
 
-L2NormProbe::L2NormProbe(const char *name, HyPerCol *hc) : AbstractNormProbe() {
+L2NormProbe::L2NormProbe(const char *name, PVParams *params, Communicator *comm)
+      : AbstractNormProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 L2NormProbe::~L2NormProbe() {}
@@ -25,8 +26,8 @@ int L2NormProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int L2NormProbe::initialize(const char *name, HyPerCol *hc) {
-   return AbstractNormProbe::initialize(name, hc);
+void L2NormProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   AbstractNormProbe::initialize(name, params, comm);
 }
 
 int L2NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

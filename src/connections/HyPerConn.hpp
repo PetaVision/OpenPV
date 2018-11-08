@@ -24,7 +24,7 @@ class HyPerCol;
 
 class HyPerConn : public BaseConnection {
   public:
-   HyPerConn(char const *name, HyPerCol *hc);
+   HyPerConn(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~HyPerConn();
 
@@ -37,7 +37,7 @@ class HyPerConn : public BaseConnection {
   protected:
    HyPerConn();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void initMessageActionMap() override;
 

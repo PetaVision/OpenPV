@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
    int status            = PV_SUCCESS;
 
    // Test direct construction of the LayerGeometry component.
-   lg = new PV::LayerGeometry("Layer", hc);
+   lg = new PV::LayerGeometry("Layer", hc->parameters(), hc->getCommunicator());
    lg->readParams();
 
    auto *observerTable        = hc->getTable();

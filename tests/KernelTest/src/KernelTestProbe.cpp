@@ -13,14 +13,15 @@
 
 namespace PV {
 
-KernelTestProbe::KernelTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
-   initialize(name, hc);
+KernelTestProbe::KernelTestProbe(const char *name, PVParams *params, Communicator *comm)
+      : StatsProbe() {
+   initialize(name, params, comm);
 }
 
 int KernelTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int KernelTestProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void KernelTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 void KernelTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
@@ -30,7 +31,7 @@ Response::Status KernelTestProbe::outputState(double simTime, double deltaTime) 
    if (status != Response::SUCCESS) {
       return status;
    }
-   Communicator *icComm = parent->getCommunicator();
+   Communicator *icComm = mCommunicator;
    const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return status;

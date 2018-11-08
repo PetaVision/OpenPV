@@ -14,13 +14,13 @@ namespace PV {
 
 class MomentumConnTestProbe : public KernelProbe {
   public:
-   MomentumConnTestProbe(const char *probename, HyPerCol *hc);
+   MomentumConnTestProbe(const char *probename, PVParams *params, Communicator *comm);
    virtual Response::Status outputState(double simTime, double deltaTime) override;
    virtual void ioParam_isViscosity(enum ParamsIOFlag ioFlag);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
-   int initialize(const char *probename, HyPerCol *hc);
+   void initialize(const char *probename, PVParams *params, Communicator *comm);
    int isViscosity;
 }; // end class MomentumConnTestProbe
 

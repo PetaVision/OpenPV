@@ -10,16 +10,17 @@
 namespace PV {
 RescaleActivityBuffer::RescaleActivityBuffer() {}
 
-RescaleActivityBuffer::RescaleActivityBuffer(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+RescaleActivityBuffer::RescaleActivityBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 RescaleActivityBuffer::~RescaleActivityBuffer() { free(mRescaleMethod); }
 
-int RescaleActivityBuffer::initialize(const char *name, HyPerCol *hc) {
-   int status_init = ActivityBuffer::initialize(name, hc);
-
-   return status_init;
+void RescaleActivityBuffer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   ActivityBuffer::initialize(name, params, comm);
 }
 
 // This is almost exactly duplicate of CloneInternalStateBuffer::communicateInitInfo; a separate
@@ -208,20 +209,8 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
             }
          }
 
-         MPI_Allreduce(
-               MPI_IN_PLACE,
-               &maxA,
-               1,
-               MPI_FLOAT,
-               MPI_MAX,
-               parent->getCommunicator()->communicator());
-         MPI_Allreduce(
-               MPI_IN_PLACE,
-               &minA,
-               1,
-               MPI_FLOAT,
-               MPI_MIN,
-               parent->getCommunicator()->communicator());
+         MPI_Allreduce(MPI_IN_PLACE, &maxA, 1, MPI_FLOAT, MPI_MAX, mCommunicator->communicator());
+         MPI_Allreduce(MPI_IN_PLACE, &minA, 1, MPI_FLOAT, MPI_MIN, mCommunicator->communicator());
 
          float rangeA = maxA - minA;
          if (rangeA != 0) {
@@ -290,13 +279,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
             sum += originalABatch[kextOriginal];
          }
 
-         MPI_Allreduce(
-               MPI_IN_PLACE,
-               &sum,
-               1,
-               MPI_FLOAT,
-               MPI_SUM,
-               parent->getCommunicator()->communicator());
+         MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
 
          float mean = sum / numGlobalNeurons;
 
@@ -317,13 +300,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
             sumsq += (originalABatch[kextOriginal] - mean) * (originalABatch[kextOriginal] - mean);
          }
 
-         MPI_Allreduce(
-               MPI_IN_PLACE,
-               &sumsq,
-               1,
-               MPI_FLOAT,
-               MPI_SUM,
-               parent->getCommunicator()->communicator());
+         MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
          float std = sqrtf(sumsq / numGlobalNeurons);
          // The difference between the if and the else clauses is only in the computation of
          // A[kext], but this
@@ -403,13 +380,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
             sum += originalABatch[kextOriginal];
          }
 
-         MPI_Allreduce(
-               MPI_IN_PLACE,
-               &sum,
-               1,
-               MPI_FLOAT,
-               MPI_SUM,
-               parent->getCommunicator()->communicator());
+         MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
 
          float mean = sum / numGlobalNeurons;
 
@@ -430,13 +401,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
             sumsq += (originalABatch[kextOriginal] - mean) * (originalABatch[kextOriginal] - mean);
          }
 
-         MPI_Allreduce(
-               MPI_IN_PLACE,
-               &sumsq,
-               1,
-               MPI_FLOAT,
-               MPI_SUM,
-               parent->getCommunicator()->communicator());
+         MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
          float std = sqrtf(sumsq / numGlobalNeurons);
          // The difference between the if and the else clauses is only in the computation of
          // A[kext], but this
@@ -518,13 +483,7 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          }
 
 #ifdef PV_USE_MPI
-         MPI_Allreduce(
-               MPI_IN_PLACE,
-               &sumsq,
-               1,
-               MPI_FLOAT,
-               MPI_SUM,
-               parent->getCommunicator()->communicator());
+         MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, mCommunicator->communicator());
 #endif // PV_USE_MPI
 
          float std = sqrt(sumsq / numGlobalNeurons);

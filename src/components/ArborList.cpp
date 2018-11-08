@@ -12,14 +12,16 @@
 
 namespace PV {
 
-ArborList::ArborList(char const *name, HyPerCol *hc) { initialize(name, hc); }
+ArborList::ArborList(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 ArborList::ArborList() {}
 
 ArborList::~ArborList() { free(mDelaysParams); }
 
-int ArborList::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void ArborList::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void ArborList::setObjectType() { mObjectType = "ArborList"; }
@@ -34,7 +36,7 @@ void ArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag, this->getName(), "numAxonalArbors", &mNumAxonalArbors, mNumAxonalArbors);
    if (ioFlag == PARAMS_IO_READ) {
-      if (getNumAxonalArbors() <= 0 && parent->getCommunicator()->globalCommRank() == 0) {
+      if (getNumAxonalArbors() <= 0 && mCommunicator->globalCommRank() == 0) {
          WarnLog().printf(
                "Connection %s: Variable numAxonalArbors is set to 0. "
                "No connections will be made.\n",
@@ -56,7 +58,7 @@ void ArborList::ioParam_delay(enum ParamsIOFlag ioFlag) {
             strerror(errno));
       *mDelaysParams = 0.0f; // Default delay
       mNumDelays     = 1;
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf("%s: Using default value of zero for delay.\n", this->getDescription_c());
       }
    }
@@ -68,7 +70,7 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    pvAssert(connectionData);
 
    if (!connectionData->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the ConnectionData component has finished its "
                "communicateInitInfo stage.\n",
@@ -82,7 +84,7 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    int maxDelay     = maxDelaySteps();
    int allowedDelay = preLayer->increaseDelayLevels(maxDelay);
    if (allowedDelay < maxDelay) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: attempt to set delay to %d, but the maximum "
                "allowed delay is %d.  Exiting\n",
@@ -90,7 +92,7 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
                maxDelay,
                allowedDelay);
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }
 

@@ -32,7 +32,7 @@ class IdentDelivery : public BaseDelivery {
    /** @} */ // End of list of IdentDelivery parameters.
 
   public:
-   IdentDelivery(char const *name, HyPerCol *hc);
+   IdentDelivery(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~IdentDelivery() {}
 
@@ -45,7 +45,7 @@ class IdentDelivery : public BaseDelivery {
   protected:
    IdentDelivery() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

@@ -10,15 +10,16 @@
 
 namespace PV {
 
-InitGaborWeights::InitGaborWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
+InitGaborWeights::InitGaborWeights(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 InitGaborWeights::InitGaborWeights() {}
 
 InitGaborWeights::~InitGaborWeights() {}
 
-int InitGaborWeights::initialize(char const *name, HyPerCol *hc) {
-   int status = InitGauss2DWeights::initialize(name, hc);
-   return status;
+void InitGaborWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InitGauss2DWeights::initialize(name, params, comm);
 }
 
 int InitGaborWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

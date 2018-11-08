@@ -32,14 +32,14 @@ class TauLayerInputBuffer : public LayerInputBuffer {
 
    /** @} */
   public:
-   TauLayerInputBuffer(char const *name, HyPerCol *hc);
+   TauLayerInputBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~TauLayerInputBuffer();
 
   protected:
    TauLayerInputBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
    virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;

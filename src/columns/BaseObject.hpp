@@ -27,8 +27,6 @@
 
 namespace PV {
 
-class HyPerCol;
-
 /**
  * The base class for layers, connections, probes, and components of those
  * objects. Provides common interfaces for CommunicateInitInfo, AllocateDataStructures,
@@ -36,9 +34,6 @@ class HyPerCol;
  */
 class BaseObject : public ParamsInterface {
   public:
-   // No getParent method because we are refactoring away from having objects
-   // having access to their containing HyPerCol.
-
    virtual ~BaseObject();
 
    /**
@@ -72,8 +67,8 @@ class BaseObject : public ParamsInterface {
 
   protected:
    BaseObject();
-   int initialize(char const *name, HyPerCol *hc);
-   void setParent(HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void setCommunicator(Communicator *comm);
    virtual void initMessageActionMap() override;
 
    Response::Status
@@ -119,8 +114,7 @@ class BaseObject : public ParamsInterface {
 
    // Data members
   protected:
-   // TODO: eliminate HyPerCol argument to constructor in favor of PVParams argument
-   HyPerCol *parent                  = nullptr;
+   Communicator *mCommunicator       = nullptr;
    bool mInitInfoCommunicatedFlag    = false;
    bool mDataStructuresAllocatedFlag = false;
    bool mInitialValuesSetFlag        = false;
@@ -128,9 +122,6 @@ class BaseObject : public ParamsInterface {
    bool mUsingGPUFlag              = false;
    PVCuda::CudaDevice *mCudaDevice = nullptr;
 #endif // PV_USE_CUDA
-
-  private:
-   int initialize_base();
 }; // class BaseObject
 
 } // namespace PV

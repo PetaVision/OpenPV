@@ -2,7 +2,9 @@
 
 namespace PV {
 
-ComparisonLayer::ComparisonLayer(const char *name, HyPerCol *hc) { ANNLayer::initialize(name, hc); }
+ComparisonLayer::ComparisonLayer(const char *name, PVParams *params, Communicator *comm) {
+   ANNLayer::initialize(name, params, comm);
+}
 
 Response::Status ComparisonLayer::updateState(double timef, double dt) {
 

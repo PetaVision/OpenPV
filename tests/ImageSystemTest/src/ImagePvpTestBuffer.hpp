@@ -11,7 +11,7 @@ namespace PV {
 
 class ImagePvpTestBuffer : public PvpActivityBuffer {
   public:
-   ImagePvpTestBuffer(const char *name, HyPerCol *hc);
+   ImagePvpTestBuffer(const char *name, PVParams *params, Communicator *comm);
 
   protected:
    /**

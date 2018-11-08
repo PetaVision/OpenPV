@@ -2,8 +2,11 @@
 
 namespace PV {
 
-SumPoolTestInputBuffer::SumPoolTestInputBuffer(const char *name, HyPerCol *hc) {
-   ActivityBuffer::initialize(name, hc);
+SumPoolTestInputBuffer::SumPoolTestInputBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   ActivityBuffer::initialize(name, params, comm);
 }
 
 // Makes a layer such that the restricted space is the index, but with spinning order be [x, y, f]

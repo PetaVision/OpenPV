@@ -15,7 +15,7 @@ namespace PV {
 
 class LIFTestProbe : public StatsProbe {
   public:
-   LIFTestProbe(const char *name, HyPerCol *hc);
+   LIFTestProbe(const char *name, PVParams *params, Communicator *comm);
    virtual ~LIFTestProbe();
 
    virtual Response::Status
@@ -25,7 +25,7 @@ class LIFTestProbe : public StatsProbe {
 
   protected:
    LIFTestProbe();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_endingTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_tolerance(enum ParamsIOFlag ioFlag);

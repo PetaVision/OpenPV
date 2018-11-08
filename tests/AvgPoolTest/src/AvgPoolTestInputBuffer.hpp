@@ -7,7 +7,7 @@ namespace PV {
 
 class AvgPoolTestInputBuffer : public ActivityBuffer {
   public:
-   AvgPoolTestInputBuffer(const char *name, HyPerCol *hc);
+   AvgPoolTestInputBuffer(const char *name, PVParams *params, Communicator *comm);
 
   protected:
    void updateBufferCPU(double timef, double dt) override;

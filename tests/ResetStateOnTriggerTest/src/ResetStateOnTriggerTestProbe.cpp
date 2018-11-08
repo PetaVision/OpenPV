@@ -1,9 +1,12 @@
 #include "ResetStateOnTriggerTestProbe.hpp"
 #include <layers/HyPerLayer.hpp>
 
-ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc) {
+ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe() { initialize_base(); }
@@ -14,10 +17,12 @@ int ResetStateOnTriggerTestProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ResetStateOnTriggerTestProbe::initialize(char const *name, PV::HyPerCol *hc) {
+void ResetStateOnTriggerTestProbe::initialize(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
    int status = PV_SUCCESS;
-   status     = PV::LayerProbe::initialize(name, hc);
-   return status;
+   PV::LayerProbe::initialize(name, params, comm);
 }
 
 PV::Response::Status ResetStateOnTriggerTestProbe::initializeState(
@@ -56,7 +61,7 @@ void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
             nBatch,
             MPI_DOUBLE,
             MPI_SUM,
-            parent->getCommunicator()->communicator());
+            mCommunicator->communicator());
       if (probeStatus == 0) {
          for (int k = 0; k < nBatch; k++) {
             if (getValuesBuffer()[k]) {
@@ -113,6 +118,7 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, d
 
 ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {}
 
-PV::BaseObject *createResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc) {
-   return hc ? new ResetStateOnTriggerTestProbe(name, hc) : NULL;
+PV::BaseObject *
+createResetStateOnTriggerTestProbe(char const *name, PV::PVParams *params, PV::Communicator *comm) {
+   return new ResetStateOnTriggerTestProbe(name, params, comm);
 }

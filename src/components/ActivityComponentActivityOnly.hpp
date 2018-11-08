@@ -19,14 +19,14 @@ namespace PV {
 template <typename A>
 class ActivityComponentActivityOnly : public ActivityComponent {
   public:
-   ActivityComponentActivityOnly(char const *name, HyPerCol *hc);
+   ActivityComponentActivityOnly(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~ActivityComponentActivityOnly();
 
   protected:
    ActivityComponentActivityOnly() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType();
 

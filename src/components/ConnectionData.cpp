@@ -11,7 +11,9 @@
 
 namespace PV {
 
-ConnectionData::ConnectionData(char const *name, HyPerCol *hc) { initialize(name, hc); }
+ConnectionData::ConnectionData(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 ConnectionData::ConnectionData() {}
 
@@ -20,8 +22,8 @@ ConnectionData::~ConnectionData() {
    free(mPostLayerName);
 }
 
-int ConnectionData::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void ConnectionData::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void ConnectionData::setObjectType() { mObjectType = "ConnectionData"; }
@@ -47,16 +49,13 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    if (getPreLayerName() == nullptr and getPostLayerName() == nullptr) {
       std::string preLayerNameString, postLayerNameString;
       inferPreAndPostFromConnName(
-            getName(),
-            parent->getCommunicator()->globalCommRank(),
-            preLayerNameString,
-            postLayerNameString);
+            getName(), mCommunicator->globalCommRank(), preLayerNameString, postLayerNameString);
       mPreLayerName  = strdup(preLayerNameString.c_str());
       mPostLayerName = strdup(postLayerNameString.c_str());
    }
-   MPI_Barrier(this->parent->getCommunicator()->globalCommunicator());
+   MPI_Barrier(this->mCommunicator->globalCommunicator());
    if (getPreLayerName() == nullptr or getPostLayerName() == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: Unable to determine pre- and post-layer names. Exiting.\n", getDescription_c());
       }
@@ -70,7 +69,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    bool failed = false;
    mPre        = table->lookupByName<HyPerLayer>(std::string(getPreLayerName()));
    if (getPre() == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: preLayerName \"%s\" does not correspond to a layer in the column.\n",
                getDescription_c(),
@@ -81,7 +80,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
 
    mPost = table->lookupByName<HyPerLayer>(std::string(getPostLayerName()));
    if (getPost() == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: postLayerName \"%s\" does not correspond to a layer in the column.\n",
                getDescription_c(),
@@ -89,7 +88,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       }
       failed = true;
    }
-   MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+   MPI_Barrier(mCommunicator->globalCommunicator());
    if (failed) {
       exit(EXIT_FAILURE);
    }

@@ -11,15 +11,15 @@ namespace PV {
 
 NormalizeL2::NormalizeL2() { initialize_base(); }
 
-NormalizeL2::NormalizeL2(const char *name, HyPerCol *hc) {
+NormalizeL2::NormalizeL2(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int NormalizeL2::initialize_base() { return PV_SUCCESS; }
 
-int NormalizeL2::initialize(const char *name, HyPerCol *hc) {
-   return NormalizeMultiply::initialize(name, hc);
+void NormalizeL2::initialize(const char *name, PVParams *params, Communicator *comm) {
+   NormalizeMultiply::initialize(name, params, comm);
 }
 
 int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

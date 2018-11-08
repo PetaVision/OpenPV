@@ -1,11 +1,17 @@
 #include "FixedImageSequenceByList.hpp"
 
-FixedImageSequenceByList::FixedImageSequenceByList(char const *name, PV::HyPerCol *hc) {
-   initialize(name, hc);
+FixedImageSequenceByList::FixedImageSequenceByList(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   initialize(name, params, comm);
 }
 
-int FixedImageSequenceByList::initialize(char const *name, PV::HyPerCol *hc) {
-   return FixedImageSequence::initialize(name, hc);
+void FixedImageSequenceByList::initialize(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   FixedImageSequence::initialize(name, params, comm);
 }
 
 void FixedImageSequenceByList::defineImageSequence() {

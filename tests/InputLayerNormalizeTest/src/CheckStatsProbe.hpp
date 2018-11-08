@@ -21,12 +21,12 @@ class CheckStatsProbe : public PV::StatsProbe {
    virtual void ioParam_tolerance(enum PV::ParamsIOFlag ioFlag);
 
   public:
-   CheckStatsProbe(char const *name, PV::HyPerCol *hc);
+   CheckStatsProbe(char const *name, PV::PVParams *params, PV::Communicator *comm);
    virtual ~CheckStatsProbe();
 
   protected:
    CheckStatsProbe();
-   int initialize(char const *name, PV::HyPerCol *hc);
+   void initialize(char const *name, PV::PVParams *params, PV::Communicator *comm);
    virtual int ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) override;
    virtual PV::Response::Status outputState(double simTime, double deltaTime) override;
 

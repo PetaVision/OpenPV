@@ -5,12 +5,16 @@
 
 namespace PV {
 
-AvgPoolTestInputLayer::AvgPoolTestInputLayer(const char *name, HyPerCol *hc) {
-   HyPerLayer::initialize(name, hc);
+AvgPoolTestInputLayer::AvgPoolTestInputLayer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *AvgPoolTestInputLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<AvgPoolTestInputBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<AvgPoolTestInputBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

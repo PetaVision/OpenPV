@@ -4,8 +4,8 @@
 
 namespace PV {
 
-AvgPoolTestBuffer::AvgPoolTestBuffer(const char *name, HyPerCol *hc) {
-   HyPerActivityBuffer::initialize(name, hc);
+AvgPoolTestBuffer::AvgPoolTestBuffer(const char *name, PVParams *params, Communicator *comm) {
+   HyPerActivityBuffer::initialize(name, params, comm);
 }
 
 void AvgPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
@@ -70,7 +70,7 @@ void AvgPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
          }
       }
       if (!isCorrect) {
-         Communicator *icComm = parent->getCommunicator();
+         Communicator *icComm = mCommunicator;
          MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't
          // kill the run before process 0 reports the error.
          exit(EXIT_FAILURE);

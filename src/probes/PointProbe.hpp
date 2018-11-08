@@ -14,7 +14,7 @@ namespace PV {
 
 class PointProbe : public LayerProbe {
   public:
-   PointProbe(const char *name, HyPerCol *hc);
+   PointProbe(const char *name, PVParams *params, Communicator *comm);
    virtual ~PointProbe();
 
    virtual Response::Status
@@ -29,7 +29,7 @@ class PointProbe : public LayerProbe {
    int batchLoc;
 
    PointProbe();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_xLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);

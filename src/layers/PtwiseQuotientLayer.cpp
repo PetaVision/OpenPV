@@ -20,23 +20,23 @@ namespace PV {
 
 PtwiseQuotientLayer::PtwiseQuotientLayer() { initialize_base(); }
 
-PtwiseQuotientLayer::PtwiseQuotientLayer(const char *name, HyPerCol *hc) {
+PtwiseQuotientLayer::PtwiseQuotientLayer(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 } // end PtwiseQuotientLayer::PtwiseQuotientLayer(const char *, HyPerCol *)
 
 PtwiseQuotientLayer::~PtwiseQuotientLayer() {}
 
 int PtwiseQuotientLayer::initialize_base() { return PV_SUCCESS; }
 
-int PtwiseQuotientLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void PtwiseQuotientLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *PtwiseQuotientLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<PtwiseQuotientInternalStateBuffer,
-                                                 HyPerActivityBuffer>(getName(), parent);
+                                                 HyPerActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 Response::Status PtwiseQuotientLayer::allocateDataStructures() {

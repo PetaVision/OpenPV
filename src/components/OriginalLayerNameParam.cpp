@@ -11,14 +11,17 @@
 
 namespace PV {
 
-OriginalLayerNameParam::OriginalLayerNameParam(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+OriginalLayerNameParam::OriginalLayerNameParam(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 OriginalLayerNameParam::~OriginalLayerNameParam() {}
 
-int OriginalLayerNameParam::initialize(char const *name, HyPerCol *hc) {
-   return LinkedObjectParam::initialize(name, hc, std::string("originalLayerName"));
+void OriginalLayerNameParam::initialize(char const *name, PVParams *params, Communicator *comm) {
+   LinkedObjectParam::initialize(name, params, comm, std::string("originalLayerName"));
 }
 
 void OriginalLayerNameParam::setObjectType() { mObjectType = "OriginalLayerNameParam"; }

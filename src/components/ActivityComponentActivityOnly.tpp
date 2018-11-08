@@ -14,16 +14,22 @@
 namespace PV {
 
 template <typename A>
-ActivityComponentActivityOnly<A>::ActivityComponentActivityOnly(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+ActivityComponentActivityOnly<A>::ActivityComponentActivityOnly(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 template <typename A>
 ActivityComponentActivityOnly<A>::~ActivityComponentActivityOnly() {}
 
 template <typename A>
-int ActivityComponentActivityOnly<A>::initialize(char const *name, HyPerCol *hc) {
-   return ActivityComponent::initialize(name, hc);
+void ActivityComponentActivityOnly<A>::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   ActivityComponent::initialize(name, params, comm);
 }
 
 template <typename A>
@@ -33,7 +39,7 @@ void ActivityComponentActivityOnly<A>::setObjectType() {
 
 template <typename A>
 ActivityBuffer *ActivityComponentActivityOnly<A>::createActivity() {
-   return new A(getName(), parent);
+   return new A(getName(), parameters(), mCommunicator);
 }
 
 } // namespace PV

@@ -211,7 +211,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
       else {
          BaseObject *addedObject = nullptr;
          try {
-            addedObject = Factory::instance()->createByKeyword(kw, name, this);
+            addedObject = Factory::instance()->createByKeyword(kw, name, mParams, mCommunicator);
          } catch (std::exception const &e) {
             Fatal() << e.what() << std::endl;
          }

@@ -13,15 +13,17 @@
 
 namespace PV {
 
-CloneWeightsPair::CloneWeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
+CloneWeightsPair::CloneWeightsPair(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 CloneWeightsPair::~CloneWeightsPair() {
    mPreWeights  = nullptr;
    mPostWeights = nullptr;
 }
 
-int CloneWeightsPair::initialize(char const *name, HyPerCol *hc) {
-   return WeightsPair::initialize(name, hc);
+void CloneWeightsPair::initialize(char const *name, PVParams *params, Communicator *comm) {
+   WeightsPair::initialize(name, params, comm);
 }
 
 void CloneWeightsPair::setObjectType() { mObjectType = "CloneWeightsPair"; }
@@ -55,7 +57,7 @@ CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       pvAssert(originalConnNameParam);
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             InfoLog().printf(
                   "%s must wait until the OriginalConnNameParam component has finished its "
                   "communicateInitInfo stage.\n",
@@ -73,7 +75,7 @@ CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       pvAssert(originalConn); // findLinkedObject() throws instead of returning nullptr
 
       if (!originalConn->getInitInfoCommunicatedFlag()) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             InfoLog().printf(
                   "%s must wait until original connection \"%s\" has finished its "
                   "communicateInitInfo stage.\n",

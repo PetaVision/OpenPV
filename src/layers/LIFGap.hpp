@@ -14,13 +14,13 @@ namespace PV {
 
 class LIFGap : public LIF {
   public:
-   LIFGap(const char *name, HyPerCol *hc);
+   LIFGap(const char *name, PVParams *params, Communicator *comm);
    virtual ~LIFGap();
 
   protected:
    LIFGap();
 
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

@@ -10,12 +10,14 @@
 
 namespace PV {
 
-BaseHyPerConnProbe::BaseHyPerConnProbe(const char *name, HyPerCol *hc) { initialize(name, hc); }
+BaseHyPerConnProbe::BaseHyPerConnProbe(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 BaseHyPerConnProbe::BaseHyPerConnProbe() {}
 
-int BaseHyPerConnProbe::initialize(const char *name, HyPerCol *hc) {
-   return BaseConnectionProbe::initialize(name, hc);
+void BaseHyPerConnProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   BaseConnectionProbe::initialize(name, params, comm);
 }
 
 Response::Status
@@ -33,7 +35,7 @@ BaseHyPerConnProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
          getDescription_c(),
          mTargetConn->getName());
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until target connection \"%s\" has finished its CommunicateInitInfo "
                "stage.\n",

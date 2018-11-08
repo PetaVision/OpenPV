@@ -10,15 +10,16 @@
 
 namespace PV {
 
-ActivityBuffer::ActivityBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+ActivityBuffer::ActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 ActivityBuffer::~ActivityBuffer() {}
 
-int ActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status    = ComponentBuffer::initialize(name, hc);
+void ActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ComponentBuffer::initialize(name, params, comm);
    mExtendedFlag = true;
    setBufferLabel("A");
-   return status;
 }
 
 void ActivityBuffer::setObjectType() { mObjectType = "ActivityBuffer"; }

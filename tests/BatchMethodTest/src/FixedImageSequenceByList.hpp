@@ -5,12 +5,12 @@
 
 class FixedImageSequenceByList : public FixedImageSequence {
   public:
-   FixedImageSequenceByList(char const *name, PV::HyPerCol *hc);
+   FixedImageSequenceByList(char const *name, PV::PVParams *params, PV::Communicator *comm);
    virtual ~FixedImageSequenceByList() {}
 
   protected:
    FixedImageSequenceByList() {}
-   int initialize(char const *name, PV::HyPerCol *hc);
+   void initialize(char const *name, PV::PVParams *params, PV::Communicator *comm);
    virtual void defineImageSequence() override;
 }; // end class FixedImageSequenceByList
 

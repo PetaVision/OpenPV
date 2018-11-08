@@ -39,7 +39,7 @@ class RescaleActivityBuffer : public ActivityBuffer {
       LOGREG
    };
 
-   RescaleActivityBuffer(const char *name, HyPerCol *hc);
+   RescaleActivityBuffer(const char *name, PVParams *params, Communicator *comm);
    virtual ~RescaleActivityBuffer();
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
@@ -55,7 +55,7 @@ class RescaleActivityBuffer : public ActivityBuffer {
 
   protected:
    RescaleActivityBuffer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status

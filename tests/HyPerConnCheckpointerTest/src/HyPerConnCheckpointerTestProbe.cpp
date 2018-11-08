@@ -17,20 +17,26 @@
 
 HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe() {}
 
-HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe(const char *name, PV::HyPerCol *hc) {
-   initialize(name, hc);
+HyPerConnCheckpointerTestProbe::HyPerConnCheckpointerTestProbe(
+      const char *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 HyPerConnCheckpointerTestProbe::~HyPerConnCheckpointerTestProbe() {}
 
-int HyPerConnCheckpointerTestProbe::initialize(const char *name, PV::HyPerCol *hc) {
-   return PV::ColProbe::initialize(name, hc);
+void HyPerConnCheckpointerTestProbe::initialize(
+      const char *name,
+      PV::PVParams *params,
+      PV::Communicator *comm) {
+   return PV::ColProbe::initialize(name, params, comm);
 }
 
 void HyPerConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) {
    ColProbe::ioParam_textOutputFlag(ioFlag);
    if (ioFlag == PV::PARAMS_IO_READ && !getTextOutputFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog()
                << getDescription()
                << ": HyPerConnCheckpointerTestProbe requires textOutputFlag to be set to true.\n";
@@ -145,7 +151,7 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *componen
 PV::Response::Status
 HyPerConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
    if (!dependencyObject->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          InfoLog().printf(
                "%s must wait until \"%s\" has finished its communicateInitInfo stage.\n",
                getDescription_c(),
@@ -169,7 +175,7 @@ HyPerConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkp
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
-         parent->getCommunicator()->getLocalMPIBlock(),
+         mCommunicator->getLocalMPIBlock(),
          &timeInfo,
          (size_t)1,
          true /*broadcast*/);
@@ -250,7 +256,7 @@ bool HyPerConnCheckpointerTestProbe::verifyLayer(
    int const inputNxExt       = inputLoc->nx + inputHalo->lt + inputHalo->rt;
    int const inputNyExt       = inputLoc->ny + inputHalo->dn + inputHalo->up;
    PV::Buffer<float> localBuffer(layer->getLayerData(0), inputNxExt, inputNyExt, inputLoc->nf);
-   PV::Communicator *comm         = parent->getCommunicator();
+   PV::Communicator *comm         = mCommunicator;
    PV::Buffer<float> globalBuffer = PV::BufferUtils::gather(
          comm->getLocalMPIBlock(), localBuffer, inputLoc->nx, inputLoc->ny, 0, 0);
    if (comm->commRank() == 0) {
@@ -283,7 +289,7 @@ bool HyPerConnCheckpointerTestProbe::verifyConnection(
       double timevalue) {
    bool failed = false;
 
-   if (parent->getCommunicator()->commRank() == 0) {
+   if (mCommunicator->commRank() == 0) {
       FatalIf(
             mOutputStreams.empty(),
             "%s has empty mOutputStreams in root process.\n",

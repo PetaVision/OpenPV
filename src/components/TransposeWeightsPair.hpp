@@ -29,14 +29,14 @@ class TransposeWeightsPair : public WeightsPair {
    /** @} */ // end of TransposeWeightsPair parameters
 
   public:
-   TransposeWeightsPair(char const *name, HyPerCol *hc);
+   TransposeWeightsPair(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~TransposeWeightsPair();
 
   protected:
    TransposeWeightsPair() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

@@ -10,17 +10,19 @@
 
 namespace PV {
 
-DatastoreDelayTestBuffer::DatastoreDelayTestBuffer(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+DatastoreDelayTestBuffer::DatastoreDelayTestBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 DatastoreDelayTestBuffer::~DatastoreDelayTestBuffer() {}
 
-int DatastoreDelayTestBuffer::initialize(const char *name, HyPerCol *hc) {
-   InternalStateBuffer::initialize(name, hc);
+void DatastoreDelayTestBuffer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   InternalStateBuffer::initialize(name, params, comm);
    inited = false; // The first call to updateV sets this to true, so that the class knows whether
    // to initialize or not.
-   return PV_SUCCESS;
 }
 
 Response::Status DatastoreDelayTestBuffer::communicateInitInfo(

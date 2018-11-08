@@ -10,7 +10,9 @@
 
 namespace PV {
 
-ANNActivityBuffer::ANNActivityBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+ANNActivityBuffer::ANNActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 ANNActivityBuffer::~ANNActivityBuffer() {
    free(mVerticesV);
@@ -18,9 +20,8 @@ ANNActivityBuffer::~ANNActivityBuffer() {
    free(mSlopes);
 }
 
-int ANNActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = HyPerActivityBuffer::initialize(name, hc);
-   return status;
+void ANNActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   HyPerActivityBuffer::initialize(name, params, comm);
 }
 
 void ANNActivityBuffer::setObjectType() { mObjectType = "ANNActivityBuffer"; }
@@ -54,14 +55,14 @@ void ANNActivityBuffer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
          ioFlag, this->getName(), "verticesV", &mVerticesV, &numVerticesTmp);
    if (ioFlag == PARAMS_IO_READ) {
       if (numVerticesTmp == 0) {
-         if (this->parent->getCommunicator()->commRank() == 0) {
+         if (this->mCommunicator->commRank() == 0) {
             ErrorLog().printf("%s: verticesV cannot be empty\n", getDescription_c());
          }
-         MPI_Barrier(this->parent->getCommunicator()->communicator());
+         MPI_Barrier(this->mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       if (mNumVertices != 0 && numVerticesTmp != mNumVertices) {
-         if (this->parent->getCommunicator()->commRank() == 0) {
+         if (this->mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: verticesV (%d elements) and verticesA (%d elements) must have the same "
                   "lengths.\n",
@@ -69,7 +70,7 @@ void ANNActivityBuffer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
                   numVerticesTmp,
                   mNumVertices);
          }
-         MPI_Barrier(this->parent->getCommunicator()->communicator());
+         MPI_Barrier(this->mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       assert(mNumVertices == 0 || mNumVertices == numVerticesTmp);
@@ -84,14 +85,14 @@ void ANNActivityBuffer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
          ioFlag, this->getName(), "verticesA", &mVerticesA, &numVerticesA);
    if (ioFlag == PARAMS_IO_READ) {
       if (numVerticesA == 0) {
-         if (this->parent->getCommunicator()->commRank() == 0) {
+         if (this->mCommunicator->commRank() == 0) {
             ErrorLog().printf("%s: verticesA cannot be empty\n", getDescription_c());
          }
-         MPI_Barrier(this->parent->getCommunicator()->communicator());
+         MPI_Barrier(this->mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       if (mNumVertices != 0 && numVerticesA != mNumVertices) {
-         if (this->parent->getCommunicator()->commRank() == 0) {
+         if (this->mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: verticesV (%d elements) and verticesA (%d elements) must have the same "
                   "lengths.\n",
@@ -99,7 +100,7 @@ void ANNActivityBuffer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
                   mNumVertices,
                   numVerticesA);
          }
-         MPI_Barrier(this->parent->getCommunicator()->communicator());
+         MPI_Barrier(this->mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       assert(mNumVertices == 0 || mNumVertices == numVerticesA);
@@ -266,7 +267,7 @@ void ANNActivityBuffer::setVertices() {
    if (mVWidth < 0) {
       mVThresh += mVWidth;
       mVWidth = -mVWidth;
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          WarnLog().printf(
                "%s: interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n",
                getDescription_c(),
@@ -280,7 +281,7 @@ void ANNActivityBuffer::setVertices() {
       limfromright = mAMax;
 
    if (mAMin > limfromright) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          if (mVWidth == 0) {
             WarnLog().printf(
                   "%s: nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n",
@@ -437,7 +438,7 @@ void ANNActivityBuffer::checkVertices() const {
    for (int v = 1; v < mNumVertices; v++) {
       if (mVerticesV[v] < mVerticesV[v - 1]) {
          status = PV_FAILURE;
-         if (this->parent->getCommunicator()->globalCommRank() == 0) {
+         if (this->mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: vertices %d and %d: V-coordinates decrease from %f to %f.\n",
                   getDescription_c(),
@@ -448,7 +449,7 @@ void ANNActivityBuffer::checkVertices() const {
          }
       }
       if (mVerticesA[v] < mVerticesA[v - 1]) {
-         if (this->parent->getCommunicator()->globalCommRank() == 0) {
+         if (this->mCommunicator->globalCommRank() == 0) {
             WarnLog().printf(
                   "%s: vertices %d and %d: A-coordinates decrease from %f to %f.\n",
                   getDescription_c(),

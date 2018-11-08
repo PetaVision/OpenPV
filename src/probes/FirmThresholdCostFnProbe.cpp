@@ -15,10 +15,13 @@ namespace PV {
 
 FirmThresholdCostFnProbe::FirmThresholdCostFnProbe() : AbstractNormProbe() { initialize_base(); }
 
-FirmThresholdCostFnProbe::FirmThresholdCostFnProbe(const char *name, HyPerCol *hc)
+FirmThresholdCostFnProbe::FirmThresholdCostFnProbe(
+      const char *name,
+      PVParams *params,
+      Communicator *comm)
       : AbstractNormProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int FirmThresholdCostFnProbe::initialize_base() {
@@ -29,8 +32,8 @@ int FirmThresholdCostFnProbe::initialize_base() {
 
 FirmThresholdCostFnProbe::~FirmThresholdCostFnProbe() {}
 
-int FirmThresholdCostFnProbe::initialize(const char *name, HyPerCol *hc) {
-   return AbstractNormProbe::initialize(name, hc);
+void FirmThresholdCostFnProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   AbstractNormProbe::initialize(name, params, comm);
 }
 
 int FirmThresholdCostFnProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

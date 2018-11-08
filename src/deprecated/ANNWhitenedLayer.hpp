@@ -16,12 +16,12 @@ namespace PV {
 
 class ANNWhitenedLayer : public ANNLayer {
   public:
-   ANNWhitenedLayer(const char *name, HyPerCol *hc);
+   ANNWhitenedLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~ANNWhitenedLayer();
 
   protected:
    ANNWhitenedLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual Response::Status updateState(double time, double dt) override;
 
   private:

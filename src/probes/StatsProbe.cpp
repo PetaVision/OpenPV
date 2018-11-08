@@ -12,9 +12,9 @@
 
 namespace PV {
 
-StatsProbe::StatsProbe(const char *name, HyPerCol *hc) {
+StatsProbe::StatsProbe(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 StatsProbe::StatsProbe() : LayerProbe() {
@@ -23,7 +23,7 @@ StatsProbe::StatsProbe() : LayerProbe() {
 }
 
 StatsProbe::~StatsProbe() {
-   int rank = parent->getCommunicator()->commRank();
+   int rank = mCommunicator->commRank();
    if (rank == 0 and !mOutputStreams.empty()) {
       iotimer->fprint_time(output(0));
       mpitimer->fprint_time(output(0));
@@ -58,12 +58,8 @@ int StatsProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int StatsProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = LayerProbe::initialize(name, hc);
-
-   pvAssert(status == PV_SUCCESS);
-
-   return status;
+void StatsProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   LayerProbe::initialize(name, params, comm);
 }
 
 void StatsProbe::resetStats() {
@@ -98,7 +94,7 @@ void StatsProbe::requireType(PVBufType requiredType) {
             default: assert(0); break;
          }
          if (type != BufV) {
-            if (parent->getCommunicator()->globalCommRank() == 0) {
+            if (mCommunicator->globalCommRank() == 0) {
                ErrorLog().printf(
                      "   Value \"%s\" is inconsistent with allowed values %s.\n",
                      params->stringValue(getName(), "buffer"),
@@ -135,13 +131,13 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          type = BufActivity;
       }
       else {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             const char *bufnameinparams = parameters()->stringValue(getName(), "buffer");
             assert(bufnameinparams);
             ErrorLog().printf(
                   "%s: buffer \"%s\" is not recognized.\n", getDescription_c(), bufnameinparams);
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -203,7 +199,7 @@ StatsProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
 
 Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
 #ifdef PV_USE_MPI
-   Communicator *icComm = parent->getCommunicator();
+   Communicator *icComm = mCommunicator;
    MPI_Comm comm        = icComm->communicator();
    int rank             = icComm->commRank();
    const int rcvProc    = 0;

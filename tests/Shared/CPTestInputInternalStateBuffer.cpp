@@ -10,15 +10,20 @@
 
 namespace PV {
 
-CPTestInputInternalStateBuffer::CPTestInputInternalStateBuffer(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+CPTestInputInternalStateBuffer::CPTestInputInternalStateBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 CPTestInputInternalStateBuffer::~CPTestInputInternalStateBuffer() {}
 
-int CPTestInputInternalStateBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = GSynInternalStateBuffer::initialize(name, hc);
-   return status;
+void CPTestInputInternalStateBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   GSynInternalStateBuffer::initialize(name, params, comm);
 }
 
 void CPTestInputInternalStateBuffer::setObjectType() {

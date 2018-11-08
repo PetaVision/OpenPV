@@ -32,7 +32,7 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
    /** @} */ // End of list of BaseDelivery parameters.
 
   public:
-   PresynapticPerspectiveStochasticDelivery(char const *name, HyPerCol *hc);
+   PresynapticPerspectiveStochasticDelivery(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~PresynapticPerspectiveStochasticDelivery();
 
@@ -57,7 +57,7 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
   protected:
    PresynapticPerspectiveStochasticDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

@@ -13,18 +13,17 @@ namespace PV {
 
 ConstantV::ConstantV() { initialize_base(); }
 
-ConstantV::ConstantV(char const *name, HyPerCol *hc) {
+ConstantV::ConstantV(char const *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 ConstantV::~ConstantV() {}
 
 int ConstantV::initialize_base() { return PV_SUCCESS; }
 
-int ConstantV::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseInitV::initialize(name, hc);
-   return status;
+void ConstantV::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseInitV::initialize(name, params, comm);
 }
 
 int ConstantV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

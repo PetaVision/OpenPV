@@ -15,11 +15,11 @@ namespace PV {
 class DatastoreDelayTestLayer : public HyPerLayer {
 
   public:
-   DatastoreDelayTestLayer(const char *name, HyPerCol *hc);
+   DatastoreDelayTestLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~DatastoreDelayTestLayer();
 
   protected:
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual LayerInputBuffer *createLayerInput();
 

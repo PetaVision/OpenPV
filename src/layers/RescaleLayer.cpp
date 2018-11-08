@@ -8,19 +8,21 @@
 
 namespace PV {
 
-RescaleLayer::RescaleLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+RescaleLayer::RescaleLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 RescaleLayer::RescaleLayer() {}
 
 RescaleLayer::~RescaleLayer() {}
 
-int RescaleLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = CloneVLayer::initialize(name, hc);
-   return status;
+void RescaleLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   CloneVLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *RescaleLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<RescaleActivityBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<RescaleActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

@@ -19,14 +19,14 @@ class DatastoreDelayTestProbe : public StatsProbe {
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   public:
-   DatastoreDelayTestProbe(const char *name, HyPerCol *hc);
+   DatastoreDelayTestProbe(const char *name, PVParams *params, Communicator *comm);
 
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
    virtual ~DatastoreDelayTestProbe();
 
   protected:
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 

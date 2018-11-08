@@ -6,13 +6,13 @@
 
 namespace PV {
 
-SumPoolTestLayer::SumPoolTestLayer(const char *name, HyPerCol *hc) {
-   HyPerLayer::initialize(name, hc);
+SumPoolTestLayer::SumPoolTestLayer(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *SumPoolTestLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<HyPerInternalStateBuffer, SumPoolTestBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

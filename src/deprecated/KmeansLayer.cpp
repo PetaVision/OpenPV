@@ -12,18 +12,18 @@
 
 namespace PV {
 
-KmeansLayer::KmeansLayer(const char *name, HyPerCol *hc) {
+KmeansLayer::KmeansLayer(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 KmeansLayer::~KmeansLayer() {}
 
 KmeansLayer::KmeansLayer() { initialize_base(); }
 
-int KmeansLayer::initialize(const char *name, HyPerCol *hc) {
+void KmeansLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
    WarnLog() << "KmeansLayer has been deprecated.\n";
-   int status = HyPerLayer::initialize(name, hc);
+   int status = HyPerLayer::initialize(name, params, comm);
    assert(status == PV_SUCCESS);
    return status;
 }

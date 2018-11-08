@@ -24,7 +24,7 @@ namespace PV {
 class ImageFromMemoryBuffer : public ImageLayer {
 
   public:
-   ImageFromMemoryBuffer(char const *name, HyPerCol *hc);
+   ImageFromMemoryBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~ImageFromMemoryBuffer();
 }; // class ImageFromMemoryBuffer

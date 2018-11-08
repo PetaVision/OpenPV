@@ -19,9 +19,10 @@ QuotientColProbe::QuotientColProbe()
    initialize_base();
 } // end QuotientColProbe::QuotientColProbe(const char *)
 
-QuotientColProbe::QuotientColProbe(const char *probename, HyPerCol *hc) : ColProbe() {
+QuotientColProbe::QuotientColProbe(const char *probename, PVParams *params, Communicator *comm)
+      : ColProbe() {
    initialize_base();
-   initializeQuotientColProbe(probename, hc);
+   initialize(probename, params, comm);
 }
 
 QuotientColProbe::~QuotientColProbe() {
@@ -41,8 +42,8 @@ int QuotientColProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int QuotientColProbe::initializeQuotientColProbe(const char *probename, HyPerCol *hc) {
-   return ColProbe::initialize(probename, hc);
+void QuotientColProbe::initialize(const char *probename, PVParams *params, Communicator *comm) {
+   ColProbe::initialize(probename, params, comm);
 }
 
 void QuotientColProbe::outputHeader() {
@@ -84,7 +85,7 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    bool failed     = false;
    if (numerProbe == NULL || denomProbe == NULL) {
       failed = true;
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          if (numerProbe == NULL) {
             ErrorLog().printf(
                   "%s: numerator probe \"%s\" could not be found.\n",
@@ -108,7 +109,7 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       nNumValues = numerProbe->getNumValues();
       dNumValues = denomProbe->getNumValues();
       if (nNumValues != dNumValues) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: numerator probe \"%s\" and denominator "
                   "probe \"%s\" have differing numbers "
@@ -126,7 +127,7 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       setNumValues(nNumValues);
    }
    if (failed) {
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    return Response::SUCCESS;

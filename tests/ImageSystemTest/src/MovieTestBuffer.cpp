@@ -3,7 +3,9 @@
 
 namespace PV {
 
-MovieTestBuffer::MovieTestBuffer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+MovieTestBuffer::MovieTestBuffer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
    ImageActivityBuffer::updateBufferCPU(simTime, deltaTime);

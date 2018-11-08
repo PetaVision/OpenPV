@@ -13,12 +13,14 @@
 
 namespace PV {
 
-LIFActivityComponent::LIFActivityComponent(char const *name, HyPerCol *hc) { initialize(name, hc); }
+LIFActivityComponent::LIFActivityComponent(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 LIFActivityComponent::~LIFActivityComponent() { delete mRandState; }
 
-int LIFActivityComponent::initialize(char const *name, HyPerCol *hc) {
-   return ActivityComponent::initialize(name, hc);
+void LIFActivityComponent::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ActivityComponent::initialize(name, params, comm);
 }
 
 void LIFActivityComponent::setObjectType() { mObjectType = "LIFActivityComponent"; }
@@ -162,18 +164,18 @@ void LIFActivityComponent::checkMethodString() {
    pvAssert(mMethodString);
    mMethod = mMethodString[0];
    if (mMethod != 'o' && mMethod != 'b' && mMethod != 'a') {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "LIFActivityComponent::ioParam_method error.  Layer \"%s\" has method \"%s\".  "
                "Allowable values are \"arma\", \"beginning\" and \"original\".\n",
                name,
                mMethodString);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    if (mMethod != 'a') {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          WarnLog().printf(
                "LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is "
                "preferred.\n",
@@ -184,13 +186,13 @@ void LIFActivityComponent::checkMethodString() {
 }
 
 RestrictedBuffer *LIFActivityComponent::createRestrictedBuffer(char const *label) {
-   RestrictedBuffer *buffer = new RestrictedBuffer(getName(), parent);
+   RestrictedBuffer *buffer = new RestrictedBuffer(getName(), parameters(), mCommunicator);
    buffer->setBufferLabel(label);
    return buffer;
 }
 
 InternalStateBuffer *LIFActivityComponent::createInternalState() {
-   return new InternalStateBuffer(getName(), parent);
+   return new InternalStateBuffer(getName(), parameters(), mCommunicator);
 }
 
 Response::Status LIFActivityComponent::communicateInitInfo(

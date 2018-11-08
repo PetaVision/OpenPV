@@ -13,17 +13,18 @@
 
 namespace PV {
 
-ArborTestProbe::ArborTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+ArborTestProbe::ArborTestProbe(const char *name, PVParams *params, Communicator *comm)
+      : StatsProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 ArborTestProbe::~ArborTestProbe() {}
 
 int ArborTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int ArborTestProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void ArborTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
@@ -39,13 +40,13 @@ void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
             bufferlc[c] = tolower(bufferlc[c]);
          }
          if (strcmp(bufferlc, "a") != 0 && strcmp(bufferlc, "activity") != 0) {
-            if (parent->getCommunicator()->commRank() == 0) {
+            if (mCommunicator->commRank() == 0) {
                ErrorLog().printf(
                      "   Value \"%s\" is inconsistent with correct value \"a\" or \"activity\".  "
                      "Exiting.\n",
                      buffer);
             }
-            MPI_Barrier(parent->getCommunicator()->communicator());
+            MPI_Barrier(mCommunicator->communicator());
             exit(EXIT_FAILURE);
          }
          free(bufferlc);
@@ -58,7 +59,7 @@ Response::Status ArborTestProbe::outputState(double simTime, double deltaTime) {
    if (status != Response::SUCCESS) {
       return status;
    }
-   int const rank    = parent->getCommunicator()->commRank();
+   int const rank    = mCommunicator->commRank();
    int const rcvProc = 0;
    if (rank != rcvProc) {
       return status;

@@ -61,13 +61,9 @@ int BaseProbe::initialize_base() {
  * @filename
  * @layer
  */
-int BaseProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = BaseObject::initialize(name, hc);
-   if (status != PV_SUCCESS) {
-      return status;
-   }
+void BaseProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
    readParams();
-   return status;
 }
 
 int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -136,7 +132,7 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ && parameters()->present(name, "triggerFlag")) {
       bool flagFromParams = false;
       parameters()->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          Fatal(triggerFlagDeprecated);
          triggerFlagDeprecated.printf(
                "%s: triggerFlag is obsolete for probes.\n", getDescription_c());
@@ -158,7 +154,7 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
                "must be positive\n",
                parameters()->groupKeywordFromName(name),
                name,
-               parent->getCommunicator()->globalCommRank(),
+               mCommunicator->globalCommRank(),
                triggerOffset);
       }
    }
@@ -232,8 +228,8 @@ Response::Status
 BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    // Retrieve local batch width and set up number of values.
    int const nBatchGlobal = message->mNBatchGlobal;
-   mLocalBatchWidth       = nBatchGlobal / parent->getCommunicator()->numCommBatches();
-   pvAssert(mLocalBatchWidth * parent->getCommunicator()->numCommBatches() == nBatchGlobal);
+   mLocalBatchWidth       = nBatchGlobal / mCommunicator->numCommBatches();
+   pvAssert(mLocalBatchWidth * mCommunicator->numCommBatches() == nBatchGlobal);
    initNumValues();
    auto *hierarchy = message->mHierarchy;
 
@@ -241,14 +237,14 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    if (triggerFlag) {
       triggerLayer = hierarchy->lookupByName<HyPerLayer>(std::string(triggerLayerName));
       if (triggerLayer == NULL) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s \"%s\": triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                   parameters()->groupKeywordFromName(name),
                   name,
                   triggerLayerName);
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -257,7 +253,7 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    if (energyProbe && energyProbe[0]) {
       auto *probe = hierarchy->lookupByName<ColumnEnergyProbe>(std::string(energyProbe));
       if (probe == NULL) {
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the "
                   "column.\n",
@@ -265,7 +261,7 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
                   getName(),
                   energyProbe);
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       int termAdded = probe->addTerm(this);

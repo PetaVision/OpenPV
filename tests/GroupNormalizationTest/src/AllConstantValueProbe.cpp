@@ -8,9 +8,12 @@
 
 namespace PV {
 
-AllConstantValueProbe::AllConstantValueProbe(char const *name, HyPerCol *hc) {
+AllConstantValueProbe::AllConstantValueProbe(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 AllConstantValueProbe::AllConstantValueProbe() { initialize_base(); }
@@ -20,8 +23,8 @@ int AllConstantValueProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int AllConstantValueProbe::initialize(char const *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void AllConstantValueProbe::initialize(char const *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 int AllConstantValueProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

@@ -11,14 +11,17 @@
 
 namespace PV {
 
-OriginalConnNameParam::OriginalConnNameParam(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+OriginalConnNameParam::OriginalConnNameParam(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 OriginalConnNameParam::~OriginalConnNameParam() {}
 
-int OriginalConnNameParam::initialize(char const *name, HyPerCol *hc) {
-   return LinkedObjectParam::initialize(name, hc, std::string("originalConnName"));
+void OriginalConnNameParam::initialize(char const *name, PVParams *params, Communicator *comm) {
+   LinkedObjectParam::initialize(name, params, comm, std::string("originalConnName"));
 }
 
 void OriginalConnNameParam::setObjectType() { mObjectType = "OriginalConnNameParam"; }

@@ -13,14 +13,16 @@
 
 namespace PV {
 
-PoolingDelivery::PoolingDelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
+PoolingDelivery::PoolingDelivery(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 PoolingDelivery::PoolingDelivery() {}
 
 PoolingDelivery::~PoolingDelivery() {}
 
-int PoolingDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseDelivery::initialize(name, hc);
+void PoolingDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseDelivery::initialize(name, params, comm);
 }
 
 void PoolingDelivery::setObjectType() { mObjectType = "PoolingDelivery"; }
@@ -185,7 +187,7 @@ PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messa
 
 Response::Status PoolingDelivery::allocateDataStructures() {
    if (mPostIndexLayer and !mPostIndexLayer->getDataStructuresAllocatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until postIndexLayer \"%s\" has finished its "
                "allocateDataStructures stage.\n",

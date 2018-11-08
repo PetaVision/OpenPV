@@ -13,22 +13,24 @@
 
 namespace PV {
 
-DatastoreDelayTestLayer::DatastoreDelayTestLayer(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+DatastoreDelayTestLayer::DatastoreDelayTestLayer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 DatastoreDelayTestLayer::~DatastoreDelayTestLayer() {}
 
-int DatastoreDelayTestLayer::initialize(const char *name, HyPerCol *hc) {
-   HyPerLayer::initialize(name, hc);
-   return PV_SUCCESS;
+void DatastoreDelayTestLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 LayerInputBuffer *DatastoreDelayTestLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *DatastoreDelayTestLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<DatastoreDelayTestBuffer, HyPerActivityBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 } // end of namespace PV block

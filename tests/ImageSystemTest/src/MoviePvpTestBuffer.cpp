@@ -4,7 +4,9 @@
 
 namespace PV {
 
-MoviePvpTestBuffer::MoviePvpTestBuffer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+MoviePvpTestBuffer::MoviePvpTestBuffer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 void MoviePvpTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
    PvpActivityBuffer::updateBufferCPU(simTime, deltaTime);
@@ -14,8 +16,8 @@ void MoviePvpTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
    int nf                = loc->nf;
    int nbatch            = loc->nbatch;
    int nbatchGlobal      = loc->nbatchGlobal;
-   int commBatch         = parent->getCommunicator()->commBatch();
-   int numBatchPerProc   = parent->getCommunicator()->numCommBatches();
+   int commBatch         = mCommunicator->commBatch();
+   int numBatchPerProc   = mCommunicator->numCommBatches();
    int numNeurons        = nx * ny * nf;
 
    for (int b = 0; b < nbatch; b++) {

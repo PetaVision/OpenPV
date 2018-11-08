@@ -15,14 +15,14 @@ namespace PV {
 
 class CloneVLayer : public HyPerLayer {
   public:
-   CloneVLayer(const char *name, HyPerCol *hc);
+   CloneVLayer(const char *name, PVParams *params, Communicator *comm);
    virtual bool activityIsSpiking() override { return false; }
    HyPerLayer *getOriginalLayer() { return mOriginalLayer; }
    virtual ~CloneVLayer();
 
   protected:
    CloneVLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual void createComponentTable(char const *description) override;
    virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;

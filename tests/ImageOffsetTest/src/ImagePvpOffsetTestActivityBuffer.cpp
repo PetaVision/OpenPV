@@ -2,8 +2,11 @@
 
 namespace PV {
 
-ImagePvpOffsetTestActivityBuffer::ImagePvpOffsetTestActivityBuffer(const char *name, HyPerCol *hc) {
-   PvpActivityBuffer::initialize(name, hc);
+ImagePvpOffsetTestActivityBuffer::ImagePvpOffsetTestActivityBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   PvpActivityBuffer::initialize(name, params, comm);
 }
 
 void ImagePvpOffsetTestActivityBuffer::ioParam_displayPeriod(enum ParamsIOFlag) {

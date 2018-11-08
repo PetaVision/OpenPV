@@ -13,20 +13,25 @@ namespace PV {
 
 NonsharedConnDebugInitWeights::NonsharedConnDebugInitWeights() {}
 
-NonsharedConnDebugInitWeights::NonsharedConnDebugInitWeights(const char *name, HyPerCol *hc)
+NonsharedConnDebugInitWeights::NonsharedConnDebugInitWeights(
+      const char *name,
+      PVParams *params,
+      Communicator *comm)
       : HyPerConn() {
-   NonsharedConnDebugInitWeights::initialize(name, hc);
+   NonsharedConnDebugInitWeights::initialize(name, params, comm);
 }
 
 NonsharedConnDebugInitWeights::~NonsharedConnDebugInitWeights() {}
 
-int NonsharedConnDebugInitWeights::initialize(const char *name, HyPerCol *hc) {
-   HyPerConn::initialize(name, hc);
-   return PV_SUCCESS;
+void NonsharedConnDebugInitWeights::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   HyPerConn::initialize(name, params, comm);
 }
 
 SharedWeights *NonsharedConnDebugInitWeights::createSharedWeights() {
-   return new SharedWeightsFalse(name, parent);
+   return new SharedWeightsFalse(name, parameters(), mCommunicator);
 }
 
 int NonsharedConnDebugInitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

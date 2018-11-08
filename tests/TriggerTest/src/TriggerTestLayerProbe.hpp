@@ -11,7 +11,7 @@ namespace PV {
 
 class TriggerTestLayerProbe : public PV::LayerProbe {
   public:
-   TriggerTestLayerProbe(const char *name, HyPerCol *hc);
+   TriggerTestLayerProbe(const char *name, PVParams *params, Communicator *comm);
    virtual Response::Status outputStateWrapper(double simTime, double dt) override;
 
   protected:

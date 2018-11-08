@@ -13,14 +13,14 @@
  */
 class FailBeforeExpectedStartTimeLayer : public PV::HyPerLayer {
   public:
-   FailBeforeExpectedStartTimeLayer(char const *name, PV::HyPerCol *hc);
+   FailBeforeExpectedStartTimeLayer(char const *name, PV::PVParams *params, PV::Communicator *comm);
    ~FailBeforeExpectedStartTimeLayer() {}
 
    void setExpectedStartTime(double expectedStartTime) { mExpectedStartTime = expectedStartTime; }
 
   protected:
    FailBeforeExpectedStartTimeLayer();
-   int initialize(char const *name, PV::HyPerCol *hc);
+   void initialize(char const *name, PV::PVParams *params, PV::Communicator *comm);
    virtual PV::Response::Status updateState(double simTime, double dt) override;
 
   private:

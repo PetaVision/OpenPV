@@ -5,13 +5,13 @@
 
 namespace PV {
 
-MaskTestInputLayer::MaskTestInputLayer(const char *name, HyPerCol *hc) {
-   HyPerLayer::initialize(name, hc);
+MaskTestInputLayer::MaskTestInputLayer(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *MaskTestInputLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<HyPerInternalStateBuffer, ActivityBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 // Makes a layer such that the restricted space is the index, but with spinning order be [x, y, f]

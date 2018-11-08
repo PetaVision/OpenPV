@@ -20,14 +20,14 @@ class InitUniformRandomWeights : public InitRandomWeights {
    void ioParam_minNNZ(enum ParamsIOFlag ioFlag);
 
   public:
-   InitUniformRandomWeights(char const *name, HyPerCol *hc);
+   InitUniformRandomWeights(char const *name, PVParams *params, Communicator *comm);
    virtual ~InitUniformRandomWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
    InitUniformRandomWeights();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
    void randomWeights(float *patchDataStart, int patchIndex) override;
 
    // Data members

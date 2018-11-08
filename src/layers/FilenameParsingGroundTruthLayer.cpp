@@ -12,8 +12,11 @@
 #include "components/InputLayerNameParam.hpp"
 
 namespace PV {
-FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 FilenameParsingGroundTruthLayer::~FilenameParsingGroundTruthLayer() {}
@@ -29,11 +32,12 @@ void FilenameParsingGroundTruthLayer::createComponentTable(char const *descripti
 LayerInputBuffer *FilenameParsingGroundTruthLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *FilenameParsingGroundTruthLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<FilenameParsingActivityBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<FilenameParsingActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 InputLayerNameParam *FilenameParsingGroundTruthLayer::createInputLayerNameParam() {
-   return new InputLayerNameParam(getName(), parent);
+   return new InputLayerNameParam(getName(), parameters(), mCommunicator);
 }
 
 Response::Status FilenameParsingGroundTruthLayer::communicateInitInfo(

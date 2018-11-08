@@ -17,13 +17,13 @@ namespace PV {
  */
 class ANNLayer : public HyPerLayer {
   public:
-   ANNLayer(const char *name, HyPerCol *hc);
+   ANNLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~ANNLayer();
 
   protected:
    ANNLayer() {}
 
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

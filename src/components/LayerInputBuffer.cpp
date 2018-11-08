@@ -10,18 +10,19 @@
 
 namespace PV {
 
-LayerInputBuffer::LayerInputBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+LayerInputBuffer::LayerInputBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 LayerInputBuffer::~LayerInputBuffer() {
    delete mReceiveInputTimer;
    delete mReceiveInputCudaTimer;
 }
 
-int LayerInputBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status    = ComponentBuffer::initialize(name, hc);
+void LayerInputBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ComponentBuffer::initialize(name, params, comm);
    mExtendedFlag = false;
    mBufferLabel  = ""; // GSyn doesn't get checkpointed
-   return status;
 }
 
 void LayerInputBuffer::initMessageActionMap() {

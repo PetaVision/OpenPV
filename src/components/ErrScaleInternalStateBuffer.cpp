@@ -10,15 +10,20 @@
 
 namespace PV {
 
-ErrScaleInternalStateBuffer::ErrScaleInternalStateBuffer(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+ErrScaleInternalStateBuffer::ErrScaleInternalStateBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 ErrScaleInternalStateBuffer::~ErrScaleInternalStateBuffer() {}
 
-int ErrScaleInternalStateBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = HyPerInternalStateBuffer::initialize(name, hc);
-   return status;
+void ErrScaleInternalStateBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   HyPerInternalStateBuffer::initialize(name, params, comm);
 }
 
 void ErrScaleInternalStateBuffer::setObjectType() { mObjectType = "ErrScaleInternalStateBuffer"; }

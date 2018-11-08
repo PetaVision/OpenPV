@@ -39,14 +39,14 @@ class InitVFromFile : public BaseInitV {
    virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
    /** @} */
   public:
-   InitVFromFile(char const *name, HyPerCol *hc);
+   InitVFromFile(char const *name, PVParams *params, Communicator *comm);
    virtual ~InitVFromFile();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    InitVFromFile();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
    void readDenseActivityPvp(
          float *V,
          PVLayerLoc const *loc,

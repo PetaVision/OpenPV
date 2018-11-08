@@ -71,14 +71,14 @@ class InitWeights : public BaseObject {
    /** @} */
 
   public:
-   InitWeights(char const *name, HyPerCol *hc);
+   InitWeights(char const *name, PVParams *params, Communicator *comm);
    virtual ~InitWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
    InitWeights();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    void handleObsoleteFlag(std::string const &flagName);
 
    virtual void setObjectType() override;

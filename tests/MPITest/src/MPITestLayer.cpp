@@ -10,9 +10,9 @@
 
 namespace PV {
 
-MPITestLayer::MPITestLayer(const char *name, HyPerCol *hc) : ANNLayer() {
+MPITestLayer::MPITestLayer(const char *name, PVParams *params, Communicator *comm) : ANNLayer() {
    // MPITestLayer has no member variables to initialize in initialize_base()
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 // set V to global x/y/f position
@@ -73,10 +73,8 @@ int MPITestLayer::setActivitytoGlobalPos() {
    return PV_SUCCESS;
 }
 
-int MPITestLayer::initialize(const char *name, HyPerCol *hc) {
-   ANNLayer::initialize(name, hc);
-
-   return PV_SUCCESS;
+void MPITestLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   ANNLayer::initialize(name, params, comm);
 }
 
 Response::Status MPITestLayer::allocateDataStructures() {

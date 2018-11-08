@@ -3,8 +3,8 @@
 
 namespace PV {
 
-SegmentTestLayer::SegmentTestLayer(const char *name, HyPerCol *hc) {
-   SegmentLayer::initialize(name, hc);
+SegmentTestLayer::SegmentTestLayer(const char *name, PVParams *params, Communicator *comm) {
+   SegmentLayer::initialize(name, params, comm);
 
    FatalIf(
          mActivityComponent == nullptr,

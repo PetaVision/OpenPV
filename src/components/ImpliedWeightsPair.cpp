@@ -11,12 +11,14 @@
 
 namespace PV {
 
-ImpliedWeightsPair::ImpliedWeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
+ImpliedWeightsPair::ImpliedWeightsPair(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 ImpliedWeightsPair::~ImpliedWeightsPair() {}
 
-int ImpliedWeightsPair::initialize(char const *name, HyPerCol *hc) {
-   return WeightsPairInterface::initialize(name, hc);
+void ImpliedWeightsPair::initialize(char const *name, PVParams *params, Communicator *comm) {
+   WeightsPairInterface::initialize(name, params, comm);
 }
 
 void ImpliedWeightsPair::setObjectType() { mObjectType = "ImpliedWeightsPair"; }

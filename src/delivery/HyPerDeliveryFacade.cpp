@@ -10,14 +10,16 @@
 
 namespace PV {
 
-HyPerDeliveryFacade::HyPerDeliveryFacade(char const *name, HyPerCol *hc) { initialize(name, hc); }
+HyPerDeliveryFacade::HyPerDeliveryFacade(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 HyPerDeliveryFacade::HyPerDeliveryFacade() {}
 
 HyPerDeliveryFacade::~HyPerDeliveryFacade() {}
 
-int HyPerDeliveryFacade::initialize(char const *name, HyPerCol *hc) {
-   return BaseDelivery::initialize(name, hc);
+void HyPerDeliveryFacade::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseDelivery::initialize(name, params, comm);
 }
 
 void HyPerDeliveryFacade::setObjectType() { mObjectType = "HyPerDeliveryFacade"; }
@@ -52,14 +54,14 @@ void HyPerDeliveryFacade::ioParam_accumulateType(enum ParamsIOFlag ioFlag) {
          mAccumulateType = HyPerDelivery::STOCHASTIC;
       }
       else {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s error: pvpatchAccumulateType \"%s\" is unrecognized.\n",
                   getDescription_c(),
                   mAccumulateTypeString);
             ErrorLog().printf("  Allowed values are \"convolve\" or \"stochastic\".\n");
          }
-         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+         MPI_Barrier(mCommunicator->globalCommunicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -91,11 +93,11 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
 #ifdef PV_USE_CUDA
       if (getUpdateGSynFromPostPerspective()) {
          baseObject = Factory::instance()->createByKeyword(
-               "PostsynapticPerspectiveGPUDelivery", name, parent);
+               "PostsynapticPerspectiveGPUDelivery", name, parameters(), mCommunicator);
       }
       else {
          baseObject = Factory::instance()->createByKeyword(
-               "PresynapticPerspectiveGPUDelivery", name, parent);
+               "PresynapticPerspectiveGPUDelivery", name, parameters(), mCommunicator);
       }
 #else //
       pvAssert(0); // If PV_USE_CUDA is off, receiveGpu should always be false.
@@ -106,21 +108,24 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
          case HyPerDelivery::CONVOLVE:
             if (getUpdateGSynFromPostPerspective()) {
                baseObject = Factory::instance()->createByKeyword(
-                     "PostsynapticPerspectiveConvolveDelivery", name, parent);
+                     "PostsynapticPerspectiveConvolveDelivery", name, parameters(), mCommunicator);
             }
             else {
                baseObject = Factory::instance()->createByKeyword(
-                     "PresynapticPerspectiveConvolveDelivery", name, parent);
+                     "PresynapticPerspectiveConvolveDelivery", name, parameters(), mCommunicator);
             }
             break;
          case HyPerDelivery::STOCHASTIC:
             if (getUpdateGSynFromPostPerspective()) {
                baseObject = Factory::instance()->createByKeyword(
-                     "PostsynapticPerspectiveStochasticDelivery", name, parent);
+                     "PostsynapticPerspectiveStochasticDelivery",
+                     name,
+                     parameters(),
+                     mCommunicator);
             }
             else {
                baseObject = Factory::instance()->createByKeyword(
-                     "PresynapticPerspectiveStochasticDelivery", name, parent);
+                     "PresynapticPerspectiveStochasticDelivery", name, parameters(), mCommunicator);
             }
             break;
          default:

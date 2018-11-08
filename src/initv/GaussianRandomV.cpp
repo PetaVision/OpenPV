@@ -13,18 +13,17 @@ namespace PV {
 
 GaussianRandomV::GaussianRandomV() { initialize_base(); }
 
-GaussianRandomV::GaussianRandomV(char const *name, HyPerCol *hc) {
+GaussianRandomV::GaussianRandomV(char const *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 GaussianRandomV::~GaussianRandomV() {}
 
 int GaussianRandomV::initialize_base() { return PV_SUCCESS; }
 
-int GaussianRandomV::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseInitV::initialize(name, hc);
-   return status;
+void GaussianRandomV::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseInitV::initialize(name, params, comm);
 }
 
 int GaussianRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

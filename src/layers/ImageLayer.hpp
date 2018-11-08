@@ -8,13 +8,13 @@ namespace PV {
 class ImageLayer : public InputLayer {
 
   public:
-   ImageLayer(char const *name, HyPerCol *hc);
+   ImageLayer(char const *name, PVParams *params, Communicator *comm);
    virtual ~ImageLayer();
 
   protected:
    ImageLayer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

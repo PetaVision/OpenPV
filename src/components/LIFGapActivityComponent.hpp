@@ -14,7 +14,7 @@ namespace PV {
 
 class LIFGapActivityComponent : public LIFActivityComponent {
   public:
-   LIFGapActivityComponent(const char *name, HyPerCol *hc);
+   LIFGapActivityComponent(const char *name, PVParams *params, Communicator *comm);
    virtual ~LIFGapActivityComponent();
 
    virtual Response::Status updateActivity(double simTime, double deltaTime) override;
@@ -23,7 +23,7 @@ class LIFGapActivityComponent : public LIFActivityComponent {
 
   protected:
    LIFGapActivityComponent();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual void createComponentTable(char const *tableDescription) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

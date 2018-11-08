@@ -12,16 +12,20 @@ namespace PV {
 
 PresynapticPerspectiveGPUDelivery::PresynapticPerspectiveGPUDelivery(
       char const *name,
-      HyPerCol *hc) {
-   initialize(name, hc);
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 PresynapticPerspectiveGPUDelivery::PresynapticPerspectiveGPUDelivery() {}
 
 PresynapticPerspectiveGPUDelivery::~PresynapticPerspectiveGPUDelivery() {}
 
-int PresynapticPerspectiveGPUDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void PresynapticPerspectiveGPUDelivery::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void PresynapticPerspectiveGPUDelivery::setObjectType() {

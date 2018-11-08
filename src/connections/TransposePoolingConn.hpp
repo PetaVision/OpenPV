@@ -14,14 +14,14 @@ namespace PV {
 
 class TransposePoolingConn : public PoolingConn {
   public:
-   TransposePoolingConn(char const *name, HyPerCol *hc);
+   TransposePoolingConn(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~TransposePoolingConn();
 
   protected:
    TransposePoolingConn();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void createComponentTable(char const *description) override;
 

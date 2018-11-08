@@ -15,13 +15,13 @@ namespace PV {
 
 class LIF : public HyPerLayer {
   public:
-   LIF(const char *name, HyPerCol *hc);
+   LIF(const char *name, PVParams *params, Communicator *comm);
    virtual ~LIF();
 
   protected:
    LIF();
 
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual LayerInputBuffer *createLayerInput() override;
 

@@ -13,22 +13,23 @@
 
 namespace PV {
 
-HyPerLCALayer::HyPerLCALayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+HyPerLCALayer::HyPerLCALayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 HyPerLCALayer::~HyPerLCALayer() {}
 
-int HyPerLCALayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void HyPerLCALayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 LayerInputBuffer *HyPerLCALayer::createLayerInput() {
-   return new TauLayerInputBuffer(name, parent);
+   return new TauLayerInputBuffer(name, parameters(), mCommunicator);
 }
 
 ActivityComponent *HyPerLCALayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<HyPerLCAInternalStateBuffer, ANNActivityBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

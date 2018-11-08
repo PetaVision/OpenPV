@@ -6,7 +6,7 @@
  */
 
 #include "BaseObject.hpp"
-#include "columns/HyPerCol.hpp"
+#include "columns/Communicator.hpp"
 #include <cassert>
 #include <cerrno>
 #include <cstdio>
@@ -16,22 +16,19 @@
 namespace PV {
 
 BaseObject::BaseObject() {
-   initialize_base();
    // Note that initialize() is not called in the constructor.
    // Instead, derived classes should call BaseObject::initialize in their own
    // constructor.
 }
 
-int BaseObject::initialize_base() { return PV_SUCCESS; }
-
-int BaseObject::initialize(const char *name, HyPerCol *hc) {
-   setParent(hc);
-   return ParamsInterface::initialize(name, hc->parameters());
+void BaseObject::initialize(const char *name, PVParams *params, Communicator *comm) {
+   setCommunicator(comm);
+   ParamsInterface::initialize(name, params);
 }
 
-void BaseObject::setParent(HyPerCol *hc) {
-   pvAssert(parent == nullptr);
-   parent = hc;
+void BaseObject::setCommunicator(Communicator *comm) {
+   pvAssert(mCommunicator == nullptr);
+   mCommunicator = comm;
 }
 
 void BaseObject::initMessageActionMap() {

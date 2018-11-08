@@ -9,18 +9,20 @@
 
 namespace PV {
 
-CPTestInputLayer::CPTestInputLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+CPTestInputLayer::CPTestInputLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 CPTestInputLayer::~CPTestInputLayer() {}
 
-int CPTestInputLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void CPTestInputLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *CPTestInputLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<CPTestInputInternalStateBuffer,
-                                                 HyPerActivityBuffer>(getName(), parent);
+                                                 HyPerActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

@@ -12,9 +12,9 @@
 
 namespace PV {
 
-CloneVLayer::CloneVLayer(const char *name, HyPerCol *hc) {
+CloneVLayer::CloneVLayer(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 CloneVLayer::CloneVLayer() {
@@ -26,9 +26,8 @@ CloneVLayer::~CloneVLayer() {}
 
 int CloneVLayer::initialize_base() { return PV_SUCCESS; }
 
-int CloneVLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void CloneVLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 void CloneVLayer::createComponentTable(char const *description) {
@@ -40,14 +39,14 @@ void CloneVLayer::createComponentTable(char const *description) {
 }
 
 OriginalLayerNameParam *CloneVLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parent);
+   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
 }
 
 LayerInputBuffer *CloneVLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *CloneVLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<CloneInternalStateBuffer, HyPerActivityBuffer>(
-         name, parent);
+         name, parameters(), mCommunicator);
 }
 
 } /* namespace PV */

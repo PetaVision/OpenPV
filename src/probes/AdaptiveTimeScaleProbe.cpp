@@ -10,17 +10,19 @@
 
 namespace PV {
 
-AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe() {}
 
 AdaptiveTimeScaleProbe::~AdaptiveTimeScaleProbe() { delete mAdaptiveTimeScaleController; }
 
-int AdaptiveTimeScaleProbe::initialize(char const *name, HyPerCol *hc) {
-   int status = ColProbe::initialize(name, hc);
-   return status;
+void AdaptiveTimeScaleProbe::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ColProbe::initialize(name, params, comm);
 }
 
 void AdaptiveTimeScaleProbe::initMessageActionMap() {
@@ -112,11 +114,11 @@ Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(
    }
    mTargetProbe = message->mHierarchy->lookupByName<BaseProbe>(std::string(targetName));
    if (mTargetProbe == nullptr) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          Fatal() << getDescription() << ": targetName \"" << targetName
                  << "\" is not a probe in the HyPerCol.\n";
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    return Response::SUCCESS;
@@ -128,12 +130,12 @@ Response::Status AdaptiveTimeScaleProbe::allocateDataStructures() {
       return status;
    }
    if (mTargetProbe->getNumValues() != getNumValues()) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          Fatal() << getDescription() << ": target probe \"" << mTargetProbe->getDescription()
                  << "\" does not have the correct numValues (" << mTargetProbe->getNumValues()
                  << " instead of " << getNumValues() << ").\n";
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    allocateTimeScaleController();
@@ -149,7 +151,7 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
          tauFactor,
          mGrowthFactor,
          mWriteTimeScaleFieldnames,
-         parent->getCommunicator());
+         mCommunicator);
 }
 
 Response::Status AdaptiveTimeScaleProbe::registerData(

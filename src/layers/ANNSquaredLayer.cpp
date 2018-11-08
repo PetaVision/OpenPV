@@ -12,18 +12,19 @@
 
 namespace PV {
 
-ANNSquaredLayer::ANNSquaredLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+ANNSquaredLayer::ANNSquaredLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 ANNSquaredLayer::~ANNSquaredLayer() {}
 
-int ANNSquaredLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void ANNSquaredLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *ANNSquaredLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<SquaredInternalStateBuffer, ANNActivityBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 Response::Status ANNSquaredLayer::allocateDataStructures() {

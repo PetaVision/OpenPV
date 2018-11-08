@@ -11,18 +11,17 @@
 namespace PV {
 ZeroV::ZeroV() { initialize_base(); }
 
-ZeroV::ZeroV(char const *name, HyPerCol *hc) {
+ZeroV::ZeroV(char const *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 ZeroV::~ZeroV() {}
 
 int ZeroV::initialize_base() { return PV_SUCCESS; }
 
-int ZeroV::initialize(char const *name, HyPerCol *hc) {
-   int status = ConstantV::initialize(name, hc);
-   return status;
+void ZeroV::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ConstantV::initialize(name, params, comm);
 }
 
 void ZeroV::ioParam_valueV(enum ParamsIOFlag ioFlag) {

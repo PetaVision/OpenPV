@@ -34,14 +34,14 @@ class BackgroundActivityBuffer : public ActivityBuffer {
    void ioParam_repFeatureNum(enum ParamsIOFlag ioFlag);
    /** @} */
   public:
-   BackgroundActivityBuffer(char const *name, HyPerCol *hc);
+   BackgroundActivityBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~BackgroundActivityBuffer();
 
   protected:
    BackgroundActivityBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

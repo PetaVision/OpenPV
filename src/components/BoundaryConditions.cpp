@@ -10,14 +10,16 @@
 
 namespace PV {
 
-BoundaryConditions::BoundaryConditions(char const *name, HyPerCol *hc) { initialize(name, hc); }
+BoundaryConditions::BoundaryConditions(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 BoundaryConditions::BoundaryConditions() {}
 
 BoundaryConditions::~BoundaryConditions() {}
 
-int BoundaryConditions::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void BoundaryConditions::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void BoundaryConditions::setObjectType() { mObjectType = "BoundaryConditions"; }

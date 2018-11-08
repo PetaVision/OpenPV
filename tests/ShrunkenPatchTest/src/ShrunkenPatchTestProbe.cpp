@@ -19,17 +19,20 @@ namespace PV {
  * @type
  * @msg
  */
-ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator *comm)
+      : StatsProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int ShrunkenPatchTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int ShrunkenPatchTestProbe::initialize(const char *name, HyPerCol *hc) {
+void ShrunkenPatchTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
    correctValues = NULL;
-   int status    = StatsProbe::initialize(name, hc);
-   return status;
+   StatsProbe::initialize(name, params, comm);
 }
 
 int ShrunkenPatchTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -146,7 +149,7 @@ Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double delt
                   l->getDescription_c(),
                   (double)buf[kex],
                   (double)correctValues[x],
-                  parent->getCommunicator()->globalCommRank(),
+                  mCommunicator->globalCommRank(),
                   x,
                   y,
                   f);

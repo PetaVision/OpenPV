@@ -11,15 +11,15 @@ namespace PV {
 
 NormalizeMax::NormalizeMax() { initialize_base(); }
 
-NormalizeMax::NormalizeMax(const char *name, HyPerCol *hc) {
+NormalizeMax::NormalizeMax(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int NormalizeMax::initialize_base() { return PV_SUCCESS; }
 
-int NormalizeMax::initialize(const char *name, HyPerCol *hc) {
-   return NormalizeMultiply::initialize(name, hc);
+void NormalizeMax::initialize(const char *name, PVParams *params, Communicator *comm) {
+   NormalizeMultiply::initialize(name, params, comm);
 }
 
 int NormalizeMax::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

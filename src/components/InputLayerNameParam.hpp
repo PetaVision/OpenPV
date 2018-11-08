@@ -17,14 +17,14 @@ namespace PV {
  */
 class InputLayerNameParam : public LinkedObjectParam {
   public:
-   InputLayerNameParam(char const *name, HyPerCol *hc);
+   InputLayerNameParam(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~InputLayerNameParam();
 
   protected:
    InputLayerNameParam() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 };

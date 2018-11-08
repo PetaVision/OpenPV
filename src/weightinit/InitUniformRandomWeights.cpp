@@ -9,17 +9,19 @@
 
 namespace PV {
 
-InitUniformRandomWeights::InitUniformRandomWeights(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+InitUniformRandomWeights::InitUniformRandomWeights(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 InitUniformRandomWeights::InitUniformRandomWeights() {}
 
 InitUniformRandomWeights::~InitUniformRandomWeights() {}
 
-int InitUniformRandomWeights::initialize(char const *name, HyPerCol *hc) {
-   int status = InitRandomWeights::initialize(name, hc);
-   return status;
+void InitUniformRandomWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InitRandomWeights::initialize(name, params, comm);
 }
 
 int InitUniformRandomWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

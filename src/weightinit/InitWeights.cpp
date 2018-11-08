@@ -11,22 +11,16 @@
 
 namespace PV {
 
-InitWeights::InitWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
+InitWeights::InitWeights(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 InitWeights::InitWeights() {}
 
 InitWeights::~InitWeights() {}
 
-int InitWeights::initialize(char const *name, HyPerCol *hc) {
-   if (name == nullptr) {
-      Fatal().printf("InitWeights::initialize called with a name argument of null.\n");
-   }
-   if (hc == nullptr) {
-      Fatal().printf("InitWeights::initialize called with a HyPerCol argument of null.\n");
-   }
-   int status = BaseObject::initialize(name, hc);
-
-   return status;
+void InitWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void InitWeights::setObjectType() {
@@ -159,7 +153,7 @@ int InitWeights::readWeights(
       int frameNumber,
       double *timestampPtr /*default=nullptr*/) {
    double timestamp;
-   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
+   MPIBlock const *mpiBlock = mCommunicator->getLocalMPIBlock();
 
    FileStream *fileStream = nullptr;
    if (mpiBlock->getRank() == 0) {

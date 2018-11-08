@@ -9,15 +9,16 @@
 
 namespace PV {
 
-InitOneToOneWeights::InitOneToOneWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
+InitOneToOneWeights::InitOneToOneWeights(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 InitOneToOneWeights::InitOneToOneWeights() {}
 
 InitOneToOneWeights::~InitOneToOneWeights() {}
 
-int InitOneToOneWeights::initialize(char const *name, HyPerCol *hc) {
-   int status = InitWeights::initialize(name, hc);
-   return status;
+void InitOneToOneWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InitWeights::initialize(name, params, comm);
 }
 
 int InitOneToOneWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

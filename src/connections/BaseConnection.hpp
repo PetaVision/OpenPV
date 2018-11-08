@@ -20,7 +20,7 @@ class HyPerCol;
 
 class BaseConnection : public ComponentBasedObject {
   public:
-   BaseConnection(char const *name, HyPerCol *hc);
+   BaseConnection(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~BaseConnection();
 
@@ -33,7 +33,7 @@ class BaseConnection : public ComponentBasedObject {
   protected:
    BaseConnection();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void initMessageActionMap() override;
 

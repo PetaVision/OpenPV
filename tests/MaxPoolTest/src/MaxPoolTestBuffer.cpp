@@ -2,8 +2,8 @@
 
 namespace PV {
 
-MaxPoolTestBuffer::MaxPoolTestBuffer(const char *name, HyPerCol *hc) {
-   ANNActivityBuffer::initialize(name, hc);
+MaxPoolTestBuffer::MaxPoolTestBuffer(const char *name, PVParams *params, Communicator *comm) {
+   ANNActivityBuffer::initialize(name, params, comm);
 }
 
 void MaxPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {

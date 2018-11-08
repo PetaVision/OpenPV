@@ -12,14 +12,17 @@ namespace PV {
 
 ISTAInternalStateBuffer::ISTAInternalStateBuffer() {}
 
-ISTAInternalStateBuffer::ISTAInternalStateBuffer(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+ISTAInternalStateBuffer::ISTAInternalStateBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 ISTAInternalStateBuffer::~ISTAInternalStateBuffer() { free(mAdaptiveTimeScaleProbeName); }
 
-int ISTAInternalStateBuffer::initialize(const char *name, HyPerCol *hc) {
-   HyPerInternalStateBuffer::initialize(name, hc);
+int ISTAInternalStateBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   HyPerInternalStateBuffer::initialize(name, params, comm);
    return PV_SUCCESS;
 }
 

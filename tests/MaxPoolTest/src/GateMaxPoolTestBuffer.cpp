@@ -2,8 +2,11 @@
 
 namespace PV {
 
-GateMaxPoolTestBuffer::GateMaxPoolTestBuffer(const char *name, HyPerCol *hc) {
-   HyPerInternalStateBuffer::initialize(name, hc);
+GateMaxPoolTestBuffer::GateMaxPoolTestBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   HyPerInternalStateBuffer::initialize(name, params, comm);
 }
 
 void GateMaxPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {

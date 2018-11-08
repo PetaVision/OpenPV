@@ -13,12 +13,14 @@
 
 namespace PV {
 
-MPITestProbe::MPITestProbe(const char *name, HyPerCol *hc) : StatsProbe() { initialize(name, hc); }
+MPITestProbe::MPITestProbe(const char *name, PVParams *params, Communicator *comm) : StatsProbe() {
+   initialize(name, params, comm);
+}
 
 int MPITestProbe::initialize_base() { return PV_SUCCESS; }
 
-int MPITestProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void MPITestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 Response::Status MPITestProbe::outputState(double simTime, double deltaTime) {

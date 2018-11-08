@@ -13,13 +13,14 @@
 
 namespace PV {
 
-WeightsPair::WeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
+WeightsPair::WeightsPair(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 WeightsPair::~WeightsPair() { delete mOutputStateStream; }
 
-int WeightsPair::initialize(char const *name, HyPerCol *hc) {
-   int status = WeightsPairInterface::initialize(name, hc);
-   return status;
+void WeightsPair::initialize(char const *name, PVParams *params, Communicator *comm) {
+   WeightsPairInterface::initialize(name, params, comm);
 }
 
 void WeightsPair::initMessageActionMap() {
@@ -68,7 +69,7 @@ void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
             true /*warnifabsent*/);
       if (ioFlag == PARAMS_IO_READ) {
          if (mWriteStep > 0 && mInitialWriteTime < 0.0) {
-            if (parent->getCommunicator()->globalCommRank() == 0) {
+            if (mCommunicator->globalCommRank() == 0) {
                WarnLog(adjustInitialWriteTime);
                adjustInitialWriteTime.printf(
                      "%s: initialWriteTime %f earlier than starting time 0.0.  Adjusting "
@@ -80,7 +81,7 @@ void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
             while (mInitialWriteTime < 0.0) {
                mInitialWriteTime += mWriteStep; // TODO: this hangs if writeStep is zero.
             }
-            if (parent->getCommunicator()->globalCommRank() == 0) {
+            if (mCommunicator->globalCommRank() == 0) {
                InfoLog().printf(
                      "%s: initialWriteTime adjusted to %f\n",
                      getDescription_c(),
@@ -139,7 +140,7 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    pvAssert(mArborList);
 
    if (!mArborList->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the ArborList component has finished its "
                "communicateInitInfo stage.\n",
@@ -154,7 +155,7 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
 
    if (!mSharedWeights->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the SharedWeights component has finished its "
                "communicateInitInfo stage.\n",
@@ -266,7 +267,7 @@ void WeightsPair::finalizeUpdate(double timestamp, double deltaTime) {
       double const timestampPre  = mPreWeights->getTimestamp();
       double const timestampPost = mPostWeights->getTimestamp();
       if (timestampPre > timestampPost) {
-         TransposeWeights::transpose(mPreWeights, mPostWeights, parent->getCommunicator());
+         TransposeWeights::transpose(mPreWeights, mPostWeights, mCommunicator);
          mPostWeights->setTimestamp(timestampPre);
       }
 #ifdef PV_USE_CUDA

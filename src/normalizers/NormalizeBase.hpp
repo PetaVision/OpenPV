@@ -37,7 +37,7 @@ class NormalizeBase : public BaseObject {
    /** @} */ // end of NormalizeBase parameters
 
   public:
-   NormalizeBase(char const *name, HyPerCol *hc);
+   NormalizeBase(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~NormalizeBase() {}
 
@@ -51,7 +51,7 @@ class NormalizeBase : public BaseObject {
   protected:
    NormalizeBase() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void initMessageActionMap() override;
 

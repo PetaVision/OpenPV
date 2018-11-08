@@ -10,14 +10,15 @@
 
 namespace PV {
 
-IndexWeightConn::IndexWeightConn(const char *name, HyPerCol *hc) : HyPerConn() {
-   initialize(name, hc);
+IndexWeightConn::IndexWeightConn(const char *name, PVParams *params, Communicator *comm)
+      : HyPerConn() {
+   initialize(name, params, comm);
 }
 
 IndexWeightConn::~IndexWeightConn() {}
 
-int IndexWeightConn::initialize(const char *name, HyPerCol *hc) {
-   return HyPerConn::initialize(name, hc);
+void IndexWeightConn::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerConn::initialize(name, params, comm);
 }
 
 InitWeights *IndexWeightConn::createWeightInitializer() {
@@ -26,7 +27,7 @@ InitWeights *IndexWeightConn::createWeightInitializer() {
 }
 
 BaseWeightUpdater *IndexWeightConn::createWeightUpdater() {
-   return new IndexWeightUpdater(name, parent);
+   return new IndexWeightUpdater(name, parameters(), mCommunicator);
 }
 
 Response::Status

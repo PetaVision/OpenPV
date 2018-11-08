@@ -105,7 +105,7 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
 
    /** @} */
   public:
-   ANNActivityBuffer(char const *name, HyPerCol *hc);
+   ANNActivityBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~ANNActivityBuffer();
 
@@ -120,7 +120,7 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
   protected:
    ANNActivityBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

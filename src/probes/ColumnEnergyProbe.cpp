@@ -19,9 +19,10 @@ ColumnEnergyProbe::ColumnEnergyProbe()
    initialize_base();
 } // end ColumnEnergyProbe::ColumnEnergyProbe(const char *)
 
-ColumnEnergyProbe::ColumnEnergyProbe(const char *probename, HyPerCol *hc) : ColProbe() {
+ColumnEnergyProbe::ColumnEnergyProbe(const char *probename, PVParams *params, Communicator *comm)
+      : ColProbe() {
    initialize_base();
-   initializeColumnEnergyProbe(probename, hc);
+   initialize(probename, params, comm);
 } // end ColumnEnergyProbe::ColumnEnergyProbe(const char *, HyPerCol *)
 
 ColumnEnergyProbe::~ColumnEnergyProbe() {
@@ -47,8 +48,8 @@ void ColumnEnergyProbe::ioParam_reductionInterval(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "reductionInterval", &mSkipInterval, mSkipInterval, false /*warnIfAbsent*/);
 }
 
-int ColumnEnergyProbe::initializeColumnEnergyProbe(const char *probename, HyPerCol *hc) {
-   return ColProbe::initialize(probename, hc);
+void ColumnEnergyProbe::initialize(const char *probename, PVParams *params, Communicator *comm) {
+   ColProbe::initialize(probename, params, comm);
 }
 
 void ColumnEnergyProbe::outputHeader() {
@@ -73,7 +74,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
       int newNumValues = probe->getNumValues();
       if (newNumValues < 0) {
          status = PV_FAILURE;
-         if (parent->getCommunicator()->commRank() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: %s cannot be used as a term of the energy "
                   "probe (getNumValue() returned a "
@@ -81,7 +82,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
                   getDescription_c(),
                   probe->getDescription_c());
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       if (newNumValues != this->getNumValues()) {
@@ -90,7 +91,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
    }
    else {
       if (probe->getNumValues() != this->getNumValues()) {
-         if (this->parent->getCommunicator()->commRank() == 0) {
+         if (this->mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "Failed to add terms to %s:  new probe \"%s\" "
                   "returns %d values, but previous "
@@ -100,21 +101,21 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
                   probe->getNumValues(),
                   this->getNumValues());
          }
-         MPI_Barrier(this->parent->getCommunicator()->communicator());
+         MPI_Barrier(this->mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
    }
    assert(probe->getNumValues() == getNumValues());
    int newNumTerms = numTerms + (size_t)1;
    if (newNumTerms <= numTerms) {
-      if (this->parent->getCommunicator()->commRank() == 0) {
+      if (this->mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "How did you manage to add %zu terms to %s?  "
                "Unable to add any more!\n",
                numTerms,
                getDescription_c());
       }
-      MPI_Barrier(this->parent->getCommunicator()->communicator());
+      MPI_Barrier(this->mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    BaseProbe **newTermsArray =

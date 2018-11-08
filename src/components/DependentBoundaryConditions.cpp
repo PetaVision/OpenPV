@@ -11,14 +11,20 @@
 
 namespace PV {
 
-DependentBoundaryConditions::DependentBoundaryConditions(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+DependentBoundaryConditions::DependentBoundaryConditions(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 DependentBoundaryConditions::~DependentBoundaryConditions() {}
 
-int DependentBoundaryConditions::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void DependentBoundaryConditions::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void DependentBoundaryConditions::setObjectType() { mObjectType = "DependentBoundaryConditions"; }
@@ -41,7 +47,7 @@ Response::Status DependentBoundaryConditions::communicateInitInfo(
    pvAssert(originalLayerNameParam);
 
    if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the OriginalLayerNameParam component has finished its "
                "communicateInitInfo stage.\n",
@@ -66,7 +72,7 @@ Response::Status DependentBoundaryConditions::communicateInitInfo(
          originalObject->getName());
 
    if (!originalBoundaryConditions->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original layer \"%s\" has finished its communicateInitInfo "
                "stage.\n",

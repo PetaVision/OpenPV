@@ -7,7 +7,7 @@ namespace PV {
 
 class GateMaxPoolTestBuffer : public HyPerInternalStateBuffer {
   public:
-   GateMaxPoolTestBuffer(const char *name, HyPerCol *hc);
+   GateMaxPoolTestBuffer(const char *name, PVParams *params, Communicator *comm);
 
   protected:
    void updateBufferCPU(double simTime, double deltaTime) override;

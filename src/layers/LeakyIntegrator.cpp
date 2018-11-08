@@ -12,9 +12,9 @@
 
 namespace PV {
 
-LeakyIntegrator::LeakyIntegrator(const char *name, HyPerCol *hc) {
+LeakyIntegrator::LeakyIntegrator(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 LeakyIntegrator::LeakyIntegrator() { initialize_base(); }
@@ -24,14 +24,13 @@ int LeakyIntegrator::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LeakyIntegrator::initialize(const char *name, HyPerCol *hc) {
-   int status = ANNLayer::initialize(name, hc);
-   return status;
+void LeakyIntegrator::initialize(const char *name, PVParams *params, Communicator *comm) {
+   ANNLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *LeakyIntegrator::createActivityComponent() {
    return new ActivityComponentWithInternalState<LeakyIntegratorBuffer, ANNActivityBuffer>(
-         getName(), parent);
+         getName(), parameters(), mCommunicator);
 }
 
 LeakyIntegrator::~LeakyIntegrator() {}

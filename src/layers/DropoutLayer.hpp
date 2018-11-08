@@ -10,13 +10,13 @@ namespace PV {
  */
 class DropoutLayer : public HyPerLayer {
   public:
-   DropoutLayer(const char *name, HyPerCol *hc);
+   DropoutLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~DropoutLayer();
 
   protected:
    DropoutLayer() {}
 
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

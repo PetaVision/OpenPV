@@ -21,14 +21,14 @@ namespace PV {
  */
 class InputRegionLayer : public HyPerLayer {
   public:
-   InputRegionLayer(const char *name, HyPerCol *hc);
+   InputRegionLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~InputRegionLayer();
    virtual bool needUpdate(double simTime, double dt) const override;
    virtual bool activityIsSpiking() override { return false; }
 
   protected:
    InputRegionLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    void createComponentTable(char const *description);
    virtual PhaseParam *createPhaseParam() override;
    virtual BoundaryConditions *createBoundaryConditions() override;

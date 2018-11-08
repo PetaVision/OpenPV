@@ -11,12 +11,12 @@ namespace PV {
 
 class GPUSystemTestProbe : public PV::RequireAllZeroActivityProbe {
   public:
-   GPUSystemTestProbe(const char *name, HyPerCol *hc);
+   GPUSystemTestProbe(const char *name, PVParams *params, Communicator *comm);
 
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:

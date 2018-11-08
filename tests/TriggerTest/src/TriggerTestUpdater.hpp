@@ -11,7 +11,7 @@ namespace PV {
 
 class TriggerTestUpdater : public HebbianUpdater {
   public:
-   TriggerTestUpdater(const char *name, HyPerCol *hc);
+   TriggerTestUpdater(const char *name, PVParams *params, Communicator *comm);
 
   protected:
    void virtual updateState(double time, double dt) override;

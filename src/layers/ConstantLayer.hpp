@@ -27,13 +27,13 @@ class ConstantLayer : public HyPerLayer {
    /** @} */ // End list of ConstantLayer parameters
 
   public:
-   ConstantLayer(const char *name, HyPerCol *hc);
+   ConstantLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~ConstantLayer();
    virtual bool needUpdate(double simTime, double dt) const override;
 
   protected:
    ConstantLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
 }; // class ConstantLayer
 

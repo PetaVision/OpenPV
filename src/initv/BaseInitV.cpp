@@ -12,17 +12,17 @@ namespace PV {
 
 BaseInitV::BaseInitV() { initialize_base(); }
 
-BaseInitV::BaseInitV(char const *name, HyPerCol *hc) {
+BaseInitV::BaseInitV(char const *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 BaseInitV::~BaseInitV() {}
 
 int BaseInitV::initialize_base() { return PV_SUCCESS; }
 
-int BaseInitV::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void BaseInitV::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void BaseInitV::setObjectType() {

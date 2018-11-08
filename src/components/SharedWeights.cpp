@@ -10,12 +10,14 @@
 
 namespace PV {
 
-SharedWeights::SharedWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
+SharedWeights::SharedWeights(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 SharedWeights::~SharedWeights() {}
 
-int SharedWeights::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void SharedWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void SharedWeights::setObjectType() { mObjectType = "SharedWeights"; }

@@ -26,15 +26,17 @@ namespace PV {
 
 LIFGapActivityComponent::LIFGapActivityComponent() {}
 
-LIFGapActivityComponent::LIFGapActivityComponent(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+LIFGapActivityComponent::LIFGapActivityComponent(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 LIFGapActivityComponent::~LIFGapActivityComponent() {}
 
-int LIFGapActivityComponent::initialize(const char *name, HyPerCol *hc) {
-   int status = LIFActivityComponent::initialize(name, hc);
-   return status;
+void LIFGapActivityComponent::initialize(const char *name, PVParams *params, Communicator *comm) {
+   LIFActivityComponent::initialize(name, params, comm);
 }
 
 void LIFGapActivityComponent::createComponentTable(char const *tableDescription) {

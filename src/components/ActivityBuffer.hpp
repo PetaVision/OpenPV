@@ -20,14 +20,14 @@ namespace PV {
 class ActivityBuffer : public ComponentBuffer {
 
   public:
-   ActivityBuffer(char const *name, HyPerCol *hc);
+   ActivityBuffer(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~ActivityBuffer();
 
   protected:
    ActivityBuffer() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 };

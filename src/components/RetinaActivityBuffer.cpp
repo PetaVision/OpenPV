@@ -12,13 +12,14 @@
 
 namespace PV {
 
-RetinaActivityBuffer::RetinaActivityBuffer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+RetinaActivityBuffer::RetinaActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 RetinaActivityBuffer::~RetinaActivityBuffer() { delete mRandState; }
 
-int RetinaActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = ActivityBuffer::initialize(name, hc);
-   return status;
+void RetinaActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ActivityBuffer::initialize(name, params, comm);
 }
 
 void RetinaActivityBuffer::setObjectType() { mObjectType = "RetinaActivityBuffer"; }

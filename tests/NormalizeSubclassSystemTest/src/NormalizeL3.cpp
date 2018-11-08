@@ -7,9 +7,9 @@
 
 namespace PV {
 
-NormalizeL3::NormalizeL3(char const *name, HyPerCol *hc) {
+NormalizeL3::NormalizeL3(char const *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 NormalizeL3::NormalizeL3() { initialize_base(); }
@@ -19,8 +19,8 @@ int NormalizeL3::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeL3::initialize(char const *name, HyPerCol *hc) {
-   return NormalizeMultiply::initialize(name, hc);
+void NormalizeL3::initialize(char const *name, PVParams *params, Communicator *comm) {
+   NormalizeMultiply::initialize(name, params, comm);
 }
 
 int NormalizeL3::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

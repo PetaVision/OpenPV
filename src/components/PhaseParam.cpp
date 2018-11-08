@@ -10,12 +10,14 @@
 
 namespace PV {
 
-PhaseParam::PhaseParam(char const *name, HyPerCol *hc) { initialize(name, hc); }
+PhaseParam::PhaseParam(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 PhaseParam::~PhaseParam() {}
 
-int PhaseParam::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void PhaseParam::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void PhaseParam::setObjectType() { mObjectType = "PhaseParam"; }
@@ -39,11 +41,11 @@ int PhaseParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void PhaseParam::ioParam_phase(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, name, "phase", &mPhase, mPhase);
    if (mPhase < 0) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: phase must be >= 0 (given value was %d).\n", getDescription_c(), mPhase);
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }
 }

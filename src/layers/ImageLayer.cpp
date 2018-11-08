@@ -4,16 +4,19 @@
 
 namespace PV {
 
-ImageLayer::ImageLayer(char const *name, HyPerCol *hc) { initialize(name, hc); }
+ImageLayer::ImageLayer(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 ImageLayer::~ImageLayer() {}
 
-int ImageLayer::initialize(char const *name, HyPerCol *hc) {
-   return InputLayer::initialize(name, hc);
+void ImageLayer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   InputLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *ImageLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<ImageActivityBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<ImageActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

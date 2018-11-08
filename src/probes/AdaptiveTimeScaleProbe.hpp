@@ -77,7 +77,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    /** @} */
 
   public:
-   AdaptiveTimeScaleProbe(char const *name, HyPerCol *hc);
+   AdaptiveTimeScaleProbe(char const *name, PVParams *params, Communicator *comm);
    virtual ~AdaptiveTimeScaleProbe();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -86,7 +86,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
 
   protected:
    AdaptiveTimeScaleProbe();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
    virtual void initMessageActionMap() override;
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual Response::Status

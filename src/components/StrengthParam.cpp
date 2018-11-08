@@ -10,12 +10,14 @@
 
 namespace PV {
 
-StrengthParam::StrengthParam(char const *name, HyPerCol *hc) { initialize(name, hc); }
+StrengthParam::StrengthParam(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 StrengthParam::~StrengthParam() {}
 
-int StrengthParam::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void StrengthParam::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void StrengthParam::setObjectType() { mObjectType = "StrengthParam"; }

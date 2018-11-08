@@ -11,12 +11,18 @@
 
 namespace PV {
 
-MomentumConnTestProbe::MomentumConnTestProbe(const char *probename, HyPerCol *hc) {
-   initialize(probename, hc);
+MomentumConnTestProbe::MomentumConnTestProbe(
+      const char *probename,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(probename, params, comm);
 }
 
-int MomentumConnTestProbe::initialize(const char *probename, HyPerCol *hc) {
-   return KernelProbe::initialize(probename, hc);
+void MomentumConnTestProbe::initialize(
+      const char *probename,
+      PVParams *params,
+      Communicator *comm) {
+   KernelProbe::initialize(probename, params, comm);
 }
 
 int MomentumConnTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

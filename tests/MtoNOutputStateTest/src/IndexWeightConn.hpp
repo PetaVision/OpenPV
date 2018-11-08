@@ -21,11 +21,11 @@ namespace PV {
 
 class IndexWeightConn : public HyPerConn {
   public:
-   IndexWeightConn(const char *name, HyPerCol *hc);
+   IndexWeightConn(const char *name, PVParams *params, Communicator *comm);
    virtual ~IndexWeightConn();
 
   protected:
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual InitWeights *createWeightInitializer() override;
    virtual BaseWeightUpdater *createWeightUpdater() override;
    virtual Response::Status

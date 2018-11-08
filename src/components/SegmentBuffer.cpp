@@ -13,13 +13,14 @@
 
 namespace PV {
 
-SegmentBuffer::SegmentBuffer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+SegmentBuffer::SegmentBuffer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 SegmentBuffer::SegmentBuffer() {}
 
-int SegmentBuffer::initialize(const char *name, HyPerCol *hc) {
-   int status = ActivityBuffer::initialize(name, hc);
-   return status;
+void SegmentBuffer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   ActivityBuffer::initialize(name, params, comm);
 }
 
 int SegmentBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -38,13 +39,13 @@ void SegmentBuffer::ioParam_segmentMethod(enum ParamsIOFlag ioFlag) {
    // TODO add in other segmentation methods
    // How do we segment across MPI margins?
    else {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s: segmentMethod %s not recognized. Current options are \"none\".\n",
                getDescription_c(),
                segmentMethod);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -90,26 +91,26 @@ void SegmentBuffer::setOriginalActivity(ObserverTable const *hierarchy) {
    // Find original layer's activity component
    auto *origActivityComponent = origObject->getComponentByType<ActivityComponent>();
    if (origActivityComponent == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: originalLayerName \"%s\" does not have an ActivityComponent.\n",
                getDescription_c(),
                origObject->getName());
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }
 
    // Get original layer's activity buffer
    mOriginalActivity = origActivityComponent->getComponentByType<ActivityBuffer>();
    if (mOriginalActivity == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: originalLayerName \"%s\" does not have an ActivityBuffer.\n",
                getDescription_c(),
                origObject->getName());
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -120,21 +121,21 @@ void SegmentBuffer::checkDimensions() {
 
    // SegmentBuffer must have nf == 1
    if (getLayerLoc()->nf != 1) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf("%s: SegmentLayer must have 1 feature.\n", getDescription_c());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 
    // If segmentMethod is none, we also need to make sure the srcLayer also has nf == 1
    if (strcmp(segmentMethod, "none") == 0 && mOriginalActivity->getLayerLoc()->nf != 1) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s: Source layer must have 1 feature with segmentation method \"none\".\n",
                getDescription_c());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -305,7 +306,7 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
       }
 
       // We need to mpi across processors in case a segment crosses an mpi boundary
-      Communicator *icComm = parent->getCommunicator();
+      Communicator *icComm = mCommunicator;
       int numMpi           = icComm->commSize();
       int rank             = icComm->commRank();
 

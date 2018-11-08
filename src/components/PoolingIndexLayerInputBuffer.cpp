@@ -10,15 +10,20 @@
 
 namespace PV {
 
-PoolingIndexLayerInputBuffer::PoolingIndexLayerInputBuffer(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+PoolingIndexLayerInputBuffer::PoolingIndexLayerInputBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 PoolingIndexLayerInputBuffer::~PoolingIndexLayerInputBuffer() {}
 
-int PoolingIndexLayerInputBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = LayerInputBuffer::initialize(name, hc);
-   return status;
+void PoolingIndexLayerInputBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   LayerInputBuffer::initialize(name, params, comm);
 }
 
 void PoolingIndexLayerInputBuffer::setObjectType() { mObjectType = "PoolingIndexLayerInputBuffer"; }

@@ -2,7 +2,9 @@
 
 namespace PV {
 
-SegmentifyTest::SegmentifyTest(const char *name, HyPerCol *hc) { Segmentify::initialize(name, hc); }
+SegmentifyTest::SegmentifyTest(const char *name, PVParams *params, Communicator *comm) {
+   Segmentify::initialize(name, params, comm);
+}
 
 void SegmentifyTest::createComponentTable(char const *description) {
    Segmentify::createComponentTable(description);

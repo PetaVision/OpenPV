@@ -10,19 +10,20 @@
 
 namespace PV {
 
-TestImage::TestImage(const char *name, HyPerCol *hc) { initialize(name, hc); }
+TestImage::TestImage(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 TestImage::TestImage() {}
 
 TestImage::~TestImage() {}
 
-int TestImage::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void TestImage::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *TestImage::createActivityComponent() {
-   return new TestImageActivityComponent(getName(), parent);
+   return new TestImageActivityComponent(getName(), parameters(), mCommunicator);
 }
 
 float TestImage::getConstantVal() const {

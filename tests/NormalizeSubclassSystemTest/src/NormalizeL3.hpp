@@ -13,14 +13,14 @@ namespace PV {
 
 class NormalizeL3 : public NormalizeMultiply {
   public:
-   NormalizeL3(const char *name, HyPerCol *hc);
+   NormalizeL3(const char *name, PVParams *params, Communicator *comm);
    ~NormalizeL3();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual int normalizeWeights() override;
 
   protected:
    NormalizeL3();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual void ioParam_minL3NormTolerated(enum ParamsIOFlag ioFlag);
 
   private:

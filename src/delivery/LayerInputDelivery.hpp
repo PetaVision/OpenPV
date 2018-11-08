@@ -43,7 +43,7 @@ class LayerInputDelivery : public BaseObject {
    /** @} */ // end of LayerInputDelivery parameters
 
   public:
-   LayerInputDelivery(char const *name, HyPerCol *hc);
+   LayerInputDelivery(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~LayerInputDelivery() {}
 
@@ -62,7 +62,7 @@ class LayerInputDelivery : public BaseObject {
   protected:
    LayerInputDelivery() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator *comm);
 
    virtual void setObjectType() override;
 

@@ -21,12 +21,12 @@ namespace PV {
  */
 class BackgroundLayer : public HyPerLayer {
   public:
-   BackgroundLayer(const char *name, HyPerCol *hc);
+   BackgroundLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~BackgroundLayer();
 
   protected:
    BackgroundLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual void createComponentTable(char const *description) override;
    virtual LayerInputBuffer *createLayerInput() override;

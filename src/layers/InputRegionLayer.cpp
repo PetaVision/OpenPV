@@ -12,15 +12,16 @@
 
 namespace PV {
 
-InputRegionLayer::InputRegionLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+InputRegionLayer::InputRegionLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 InputRegionLayer::InputRegionLayer() {}
 
 InputRegionLayer::~InputRegionLayer() {}
 
-int InputRegionLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void InputRegionLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 void InputRegionLayer::createComponentTable(char const *description) {
@@ -31,20 +32,22 @@ void InputRegionLayer::createComponentTable(char const *description) {
    }
 }
 
-PhaseParam *InputRegionLayer::createPhaseParam() { return new DependentPhaseParam(name, parent); }
+PhaseParam *InputRegionLayer::createPhaseParam() {
+   return new DependentPhaseParam(name, parameters(), mCommunicator);
+}
 
 BoundaryConditions *InputRegionLayer::createBoundaryConditions() {
-   return new DependentBoundaryConditions(name, parent);
+   return new DependentBoundaryConditions(name, parameters(), mCommunicator);
 }
 
 LayerInputBuffer *InputRegionLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *InputRegionLayer::createActivityComponent() {
-   return new InputRegionActivityComponent(getName(), parent);
+   return new InputRegionActivityComponent(getName(), parameters(), mCommunicator);
 }
 
 OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parent);
+   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
 }
 
 void InputRegionLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {

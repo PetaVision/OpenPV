@@ -140,7 +140,7 @@ class HyPerLayer : public ComponentBasedObject {
   protected:
    // only subclasses can be constructed directly
    HyPerLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual void initMessageActionMap() override;
    virtual void createComponentTable(char const *description) override;
    virtual LayerGeometry *createLayerGeometry();
@@ -238,7 +238,7 @@ class HyPerLayer : public ComponentBasedObject {
    bool isAllInputReady();
 
   public:
-   HyPerLayer(const char *name, HyPerCol *hc);
+   HyPerLayer(const char *name, PVParams *params, Communicator *comm);
    virtual double getTimeScale(int batchIdx) { return -1.0; };
    virtual bool activityIsSpiking() { return false; }
 

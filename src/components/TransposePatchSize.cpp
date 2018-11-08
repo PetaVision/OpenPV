@@ -10,14 +10,16 @@
 
 namespace PV {
 
-TransposePatchSize::TransposePatchSize(char const *name, HyPerCol *hc) { initialize(name, hc); }
+TransposePatchSize::TransposePatchSize(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 TransposePatchSize::TransposePatchSize() {}
 
 TransposePatchSize::~TransposePatchSize() {}
 
-int TransposePatchSize::initialize(char const *name, HyPerCol *hc) {
-   return PatchSize::initialize(name, hc);
+void TransposePatchSize::initialize(char const *name, PVParams *params, Communicator *comm) {
+   PatchSize::initialize(name, params, comm);
 }
 
 void TransposePatchSize::setObjectType() { mObjectType = "TransposePatchSize"; }

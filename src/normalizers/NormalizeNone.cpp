@@ -9,14 +9,16 @@
 
 namespace PV {
 
-NormalizeNone::NormalizeNone(const char *name, HyPerCol *hc) { initialize(name, hc); }
+NormalizeNone::NormalizeNone(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 NormalizeNone::NormalizeNone() {}
 
 NormalizeNone::~NormalizeNone() {}
 
-int NormalizeNone::initialize(const char *name, HyPerCol *hc) {
-   return NormalizeBase::initialize(name, hc);
+void NormalizeNone::initialize(const char *name, PVParams *params, Communicator *comm) {
+   NormalizeBase::initialize(name, params, comm);
 }
 
 Response::Status

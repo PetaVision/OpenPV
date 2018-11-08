@@ -11,14 +11,16 @@
 
 namespace PV {
 
-SingleArbor::SingleArbor(char const *name, HyPerCol *hc) { initialize(name, hc); }
+SingleArbor::SingleArbor(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 SingleArbor::SingleArbor() {}
 
 SingleArbor::~SingleArbor() {}
 
-int SingleArbor::initialize(char const *name, HyPerCol *hc) {
-   return ArborList::initialize(name, hc);
+void SingleArbor::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ArborList::initialize(name, params, comm);
 }
 
 void SingleArbor::setObjectType() { mObjectType = "SingleArbor"; }

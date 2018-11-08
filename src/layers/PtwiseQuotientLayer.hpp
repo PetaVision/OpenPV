@@ -24,14 +24,14 @@ namespace PV {
  */
 class PtwiseQuotientLayer : public HyPerLayer {
   public:
-   PtwiseQuotientLayer(const char *name, HyPerCol *hc);
+   PtwiseQuotientLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~PtwiseQuotientLayer();
 
    virtual Response::Status allocateDataStructures() override;
 
   protected:
    PtwiseQuotientLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    ActivityComponent *createActivityComponent() override;
 
   private:

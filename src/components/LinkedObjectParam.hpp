@@ -57,7 +57,8 @@ class LinkedObjectParam : public BaseObject {
   protected:
    LinkedObjectParam() {}
 
-   int initialize(char const *name, HyPerCol *hc, std::string const &paramName);
+   void
+   initialize(char const *name, PVParams *params, Communicator *comm, std::string const &paramName);
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

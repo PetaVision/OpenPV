@@ -62,7 +62,7 @@ class NormalizeMultiply : public NormalizeBase {
    /** @} */ // end of NormalizeMultiply parameters
 
   public:
-   NormalizeMultiply(const char *name, HyPerCol *hc);
+   NormalizeMultiply(const char *name, PVParams *params, Communicator *comm);
    virtual ~NormalizeMultiply();
 
    float getRMinX() { return mRMinX; }
@@ -74,7 +74,7 @@ class NormalizeMultiply : public NormalizeBase {
 
   protected:
    NormalizeMultiply();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

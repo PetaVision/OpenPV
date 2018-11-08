@@ -7,13 +7,14 @@
 
 namespace PV {
 
-InputLayer::InputLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+InputLayer::InputLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 InputLayer::~InputLayer() {}
 
-int InputLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void InputLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 LayerInputBuffer *InputLayer::createLayerInput() { return nullptr; }

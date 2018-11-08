@@ -19,23 +19,23 @@ namespace PV {
 
 PtwiseProductLayer::PtwiseProductLayer() { initialize_base(); }
 
-PtwiseProductLayer::PtwiseProductLayer(const char *name, HyPerCol *hc) {
+PtwiseProductLayer::PtwiseProductLayer(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 } // end PtwiseProductLayer::PtwiseProductLayer(const char *, HyPerCol *)
 
 PtwiseProductLayer::~PtwiseProductLayer() {}
 
 int PtwiseProductLayer::initialize_base() { return PV_SUCCESS; }
 
-int PtwiseProductLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void PtwiseProductLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *PtwiseProductLayer::createActivityComponent() {
    return new ActivityComponentWithInternalState<PtwiseProductInternalStateBuffer,
-                                                 ANNActivityBuffer>(getName(), parent);
+                                                 ANNActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 Response::Status PtwiseProductLayer::allocateDataStructures() {

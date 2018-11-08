@@ -11,17 +11,18 @@
 
 namespace PV {
 
-MomentumLCALayer::MomentumLCALayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+MomentumLCALayer::MomentumLCALayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 MomentumLCALayer::~MomentumLCALayer() {}
 
-int MomentumLCALayer::initialize(const char *name, HyPerCol *hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   return status;
+void MomentumLCALayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLCALayer::initialize(name, params, comm);
 }
 
 ActivityComponent *MomentumLCALayer::createActivityComponent() {
-   return new MomentumLCAActivityComponent(getName(), parent);
+   return new MomentumLCAActivityComponent(getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

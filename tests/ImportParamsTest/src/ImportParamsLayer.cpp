@@ -2,17 +2,16 @@
 
 namespace PV {
 
-ImportParamsLayer::ImportParamsLayer(const char *name, HyPerCol *hc) {
+ImportParamsLayer::ImportParamsLayer(const char *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int ImportParamsLayer::initialize_base() { return PV_SUCCESS; }
 
-int ImportParamsLayer::initialize(const char *name, HyPerCol *hc) {
-   ANNLayer::initialize(name, hc);
+void ImportParamsLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   ANNLayer::initialize(name, params, comm);
 
-   PVParams *params = parameters();
    if (strcmp(name, "orig") == 0) {
       // Test grabbed value
       FatalIf(!(params->value(name, "nxScale") == 1), "Test failed.\n");
@@ -29,8 +28,6 @@ int ImportParamsLayer::initialize(const char *name, HyPerCol *hc) {
             !(strcmp(params->stringValue(name, "Vfilename"), "input/a1.pvp") == 0),
             "Test failed.\n");
    }
-
-   return PV_SUCCESS;
 }
 
 Response::Status

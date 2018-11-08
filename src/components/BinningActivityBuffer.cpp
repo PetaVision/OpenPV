@@ -11,15 +11,17 @@
 
 namespace PV {
 
-BinningActivityBuffer::BinningActivityBuffer(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+BinningActivityBuffer::BinningActivityBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 BinningActivityBuffer::~BinningActivityBuffer() {}
 
-int BinningActivityBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = ActivityBuffer::initialize(name, hc);
-   return status;
+void BinningActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ActivityBuffer::initialize(name, params, comm);
 }
 
 void BinningActivityBuffer::setObjectType() { mObjectType = "BinningActivityBuffer"; }
@@ -44,14 +46,14 @@ void BinningActivityBuffer::ioParam_binMax(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(name, "binMin"));
    parameters()->ioParamValue(ioFlag, name, "binMax", &mBinMax, mBinMax);
    if (ioFlag == PARAMS_IO_READ && mBinMax <= mBinMin) {
-      if (parent->getCommunicator()->commRank() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s: binMax (%f) must be greater than binMin (%f).\n",
                getDescription_c(),
                (double)mBinMax,
                (double)mBinMin);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 }

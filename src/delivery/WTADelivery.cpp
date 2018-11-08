@@ -11,10 +11,12 @@
 
 namespace PV {
 
-WTADelivery::WTADelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
+WTADelivery::WTADelivery(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int WTADelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseDelivery::initialize(name, hc);
+void WTADelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseDelivery::initialize(name, params, comm);
 }
 
 void WTADelivery::setObjectType() { mObjectType = "WTADelivery"; }

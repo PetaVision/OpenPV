@@ -10,10 +10,12 @@
 
 namespace PV {
 
-BaseWeightUpdater::BaseWeightUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
+BaseWeightUpdater::BaseWeightUpdater(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
-int BaseWeightUpdater::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void BaseWeightUpdater::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void BaseWeightUpdater::setObjectType() { mObjectType = "Updater for "; }

@@ -13,16 +13,19 @@
 
 namespace PV {
 
-FeedbackConnectionData::FeedbackConnectionData(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+FeedbackConnectionData::FeedbackConnectionData(
+      char const *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 FeedbackConnectionData::FeedbackConnectionData() {}
 
 FeedbackConnectionData::~FeedbackConnectionData() {}
 
-int FeedbackConnectionData::initialize(char const *name, HyPerCol *hc) {
-   return ConnectionData::initialize(name, hc);
+void FeedbackConnectionData::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ConnectionData::initialize(name, params, comm);
 }
 
 void FeedbackConnectionData::setObjectType() { mObjectType = "FeedbackConnectionData"; }
@@ -48,13 +51,13 @@ Response::Status FeedbackConnectionData::communicateInitInfo(
    ComponentBasedObject *originalConn =
          tableComponent->lookupByName<ComponentBasedObject>(std::string(originalConnName));
    if (originalConn == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: originalConnName \"%s\" does not correspond to an object in the column.\n",
                getDescription_c(),
                originalConnName);
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       exit(PV_FAILURE);
    }
    auto *originalConnectionData = originalConn->getComponentByType<ConnectionData>();

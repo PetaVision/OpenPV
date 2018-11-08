@@ -5,12 +5,16 @@
 
 namespace PV {
 
-SumPoolTestInputLayer::SumPoolTestInputLayer(const char *name, HyPerCol *hc) {
-   HyPerLayer::initialize(name, hc);
+SumPoolTestInputLayer::SumPoolTestInputLayer(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 ActivityComponent *SumPoolTestInputLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<SumPoolTestInputBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<SumPoolTestInputBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

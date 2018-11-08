@@ -14,21 +14,26 @@
 namespace PV {
 InputRegionActivityComponent::InputRegionActivityComponent() {}
 
-InputRegionActivityComponent::InputRegionActivityComponent(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+InputRegionActivityComponent::InputRegionActivityComponent(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   initialize(name, params, comm);
 }
 
 InputRegionActivityComponent::~InputRegionActivityComponent() {}
 
-int InputRegionActivityComponent::initialize(const char *name, HyPerCol *hc) {
-   int status_init = ActivityComponent::initialize(name, hc);
-   return status_init;
+void InputRegionActivityComponent::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator *comm) {
+   ActivityComponent::initialize(name, params, comm);
 }
 
 void InputRegionActivityComponent::setObjectType() { mObjectType = "InputRegionActivityComponent"; }
 
 ActivityBuffer *InputRegionActivityComponent::createActivity() {
-   return new InputRegionActivityBuffer(getName(), parent);
+   return new InputRegionActivityBuffer(getName(), parameters(), mCommunicator);
 }
 
 Response::Status InputRegionActivityComponent::updateActivity(double simTime, double deltaTime) {

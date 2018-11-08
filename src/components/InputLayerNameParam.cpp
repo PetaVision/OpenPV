@@ -11,12 +11,14 @@
 
 namespace PV {
 
-InputLayerNameParam::InputLayerNameParam(char const *name, HyPerCol *hc) { initialize(name, hc); }
+InputLayerNameParam::InputLayerNameParam(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 InputLayerNameParam::~InputLayerNameParam() {}
 
-int InputLayerNameParam::initialize(char const *name, HyPerCol *hc) {
-   return LinkedObjectParam::initialize(name, hc, std::string("inputLayerName"));
+void InputLayerNameParam::initialize(char const *name, PVParams *params, Communicator *comm) {
+   LinkedObjectParam::initialize(name, params, comm, std::string("inputLayerName"));
 }
 
 void InputLayerNameParam::setObjectType() { mObjectType = "InputLayerNameParam"; }

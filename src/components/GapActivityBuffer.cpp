@@ -12,12 +12,14 @@
 namespace PV {
 GapActivityBuffer::GapActivityBuffer() {}
 
-GapActivityBuffer::GapActivityBuffer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+GapActivityBuffer::GapActivityBuffer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 GapActivityBuffer::~GapActivityBuffer() {}
 
-int GapActivityBuffer::initialize(const char *name, HyPerCol *hc) {
-   return HyPerActivityBuffer::initialize(name, hc);
+void GapActivityBuffer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerActivityBuffer::initialize(name, params, comm);
 }
 
 int GapActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

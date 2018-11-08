@@ -11,7 +11,7 @@ namespace PV {
 
 class MovieTestLayer : public PV::ImageLayer {
   public:
-   MovieTestLayer(const char *name, HyPerCol *hc);
+   MovieTestLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~MovieTestLayer();
    virtual ActivityComponent *createActivityComponent() override;
 };

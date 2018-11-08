@@ -12,14 +12,14 @@
 namespace PV {
 BackgroundLayer::BackgroundLayer() {}
 
-BackgroundLayer::BackgroundLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+BackgroundLayer::BackgroundLayer(const char *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 BackgroundLayer::~BackgroundLayer() {}
 
-int BackgroundLayer::initialize(const char *name, HyPerCol *hc) {
-   int status_init = HyPerLayer::initialize(name, hc);
-
-   return status_init;
+void BackgroundLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 void BackgroundLayer::createComponentTable(char const *description) {
@@ -33,11 +33,12 @@ void BackgroundLayer::createComponentTable(char const *description) {
 LayerInputBuffer *BackgroundLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *BackgroundLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<BackgroundActivityBuffer>(getName(), parent);
+   return new ActivityComponentActivityOnly<BackgroundActivityBuffer>(
+         getName(), parameters(), mCommunicator);
 }
 
 OriginalLayerNameParam *BackgroundLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parent);
+   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
 }
 
 } // end namespace PV

@@ -7,7 +7,7 @@ namespace PV {
 
 class SumPoolTestInputLayer : public HyPerLayer {
   public:
-   SumPoolTestInputLayer(const char *name, HyPerCol *hc);
+   SumPoolTestInputLayer(const char *name, PVParams *params, Communicator *comm);
 
   protected:
    ActivityComponent *createActivityComponent() override;

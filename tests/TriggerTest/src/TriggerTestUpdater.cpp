@@ -10,8 +10,8 @@
 
 namespace PV {
 
-TriggerTestUpdater::TriggerTestUpdater(char const *name, HyPerCol *hc) {
-   HebbianUpdater::initialize(name, hc);
+TriggerTestUpdater::TriggerTestUpdater(char const *name, PVParams *params, Communicator *comm) {
+   HebbianUpdater::initialize(name, params, comm);
 }
 
 void TriggerTestUpdater::updateState(double time, double dt) {

@@ -7,8 +7,8 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-TriggerTestLayer::TriggerTestLayer(const char *name, HyPerCol *hc) {
-   HyPerLayer::initialize(name, hc);
+TriggerTestLayer::TriggerTestLayer(const char *name, PVParams *params, Communicator *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
 Response::Status TriggerTestLayer::updateState(double time, double dt) {

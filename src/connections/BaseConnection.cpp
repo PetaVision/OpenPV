@@ -11,20 +11,21 @@
 
 namespace PV {
 
-BaseConnection::BaseConnection(char const *name, HyPerCol *hc) { initialize(name, hc); }
+BaseConnection::BaseConnection(char const *name, PVParams *params, Communicator *comm) {
+   initialize(name, params, comm);
+}
 
 BaseConnection::BaseConnection() {}
 
 BaseConnection::~BaseConnection() {}
 
-int BaseConnection::initialize(char const *name, HyPerCol *hc) {
-   int status = ComponentBasedObject::initialize(name, hc);
+void BaseConnection::initialize(char const *name, PVParams *params, Communicator *comm) {
+   ComponentBasedObject::initialize(name, params, comm);
 
    // The WeightsPair writes this flag to output params file. Other ParamsInterface-derived
    // components of the connection will automatically read InitializeFromCheckpointFlag, but
    // shouldn't also write it.
    mWriteInitializeFromCheckpointFlag = true;
-   return status;
 }
 
 void BaseConnection::initMessageActionMap() {
@@ -62,9 +63,13 @@ void BaseConnection::createComponentTable(char const *description) {
    }
 }
 
-ConnectionData *BaseConnection::createConnectionData() { return new ConnectionData(name, parent); }
+ConnectionData *BaseConnection::createConnectionData() {
+   return new ConnectionData(name, parameters(), mCommunicator);
+}
 
-BaseDelivery *BaseConnection::createDeliveryObject() { return new BaseDelivery(name, parent); }
+BaseDelivery *BaseConnection::createDeliveryObject() {
+   return new BaseDelivery(name, parameters(), mCommunicator);
+}
 
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    for (auto &c : *mTable) {
@@ -84,14 +89,14 @@ Response::Status BaseConnection::respondConnectionWriteParams(
 
 Response::Status BaseConnection::respondConnectionFinalizeUpdate(
       std::shared_ptr<ConnectionFinalizeUpdateMessage const> message) {
-   auto status = notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   auto status = notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
    return status;
 }
 
 Response::Status
 BaseConnection::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
    mIOTimer->start();
-   auto status = notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   auto status = notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
    mIOTimer->stop();
    return status;
 }
@@ -123,7 +128,7 @@ BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
          message->mNumThreads);
 
    Response::Status status =
-         notify(communicateMessage, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+         notify(communicateMessage, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 
    if (Response::completed(status)) {
 #ifdef PV_USE_CUDA
@@ -147,7 +152,7 @@ BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messag
    if (status != Response::SUCCESS) {
       return status;
    }
-   status = notify(message, parent->getCommunicator()->globalCommunicator() /*printFlag*/);
+   status = notify(message, mCommunicator->globalCommunicator() /*printFlag*/);
    return status;
 }
 #endif // PV_USE_CUDA
@@ -155,7 +160,7 @@ BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messag
 Response::Status BaseConnection::allocateDataStructures() {
    Response::Status status = notify(
          std::make_shared<AllocateDataStructuresMessage>(),
-         parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+         mCommunicator->globalCommRank() == 0 /*printFlag*/);
    return status;
 }
 
@@ -164,7 +169,7 @@ BaseConnection::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
    auto *checkpointer = message->mDataRegistry;
    auto status        = notify(
          std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer),
-         parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+         mCommunicator->globalCommRank() == 0 /*printFlag*/);
    mIOTimer = new Timer(getName(), "conn", "io");
    checkpointer->registerTimer(mIOTimer);
    return status;
@@ -172,7 +177,7 @@ BaseConnection::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
 
 Response::Status
 BaseConnection::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   return notify(message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 }
 
 Response::Status BaseConnection::copyInitialStateToGPU() {
@@ -181,7 +186,7 @@ Response::Status BaseConnection::copyInitialStateToGPU() {
       return status;
    }
    auto message = std::make_shared<CopyInitialStateToGPUMessage>();
-   status       = notify(message, parent->getCommunicator()->globalCommunicator() /*printFlag*/);
+   status       = notify(message, mCommunicator->globalCommunicator() /*printFlag*/);
    return status;
 }
 

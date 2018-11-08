@@ -12,18 +12,17 @@
 namespace PV {
 InitVFromFile::InitVFromFile() { initialize_base(); }
 
-InitVFromFile::InitVFromFile(char const *name, HyPerCol *hc) {
+InitVFromFile::InitVFromFile(char const *name, PVParams *params, Communicator *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 InitVFromFile::~InitVFromFile() { free(mVfilename); }
 
 int InitVFromFile::initialize_base() { return PV_SUCCESS; }
 
-int InitVFromFile::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseInitV::initialize(name, hc);
-   return status;
+void InitVFromFile::initialize(char const *name, PVParams *params, Communicator *comm) {
+   BaseInitV::initialize(name, params, comm);
 }
 
 int InitVFromFile::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

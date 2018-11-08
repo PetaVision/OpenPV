@@ -14,12 +14,12 @@ namespace PV {
 
 class MPITestProbe : public PV::StatsProbe {
   public:
-   MPITestProbe(const char *name, HyPerCol *hc);
+   MPITestProbe(const char *name, PVParams *params, Communicator *comm);
 
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
 
   private:
    int initialize_base();
