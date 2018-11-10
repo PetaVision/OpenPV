@@ -40,6 +40,8 @@ int MPITestLayer::setActivitytoGlobalPos() {
    float xScaleLog2          = layerGeometry->getXScale();
    float x0                  = xOriginGlobal(xScaleLog2);
    float dx                  = deltaX(xScaleLog2);
+
+   float *A = mActivityComponent->getComponentByType<ActivityBuffer>()->getReadWritePointer();
    for (int b = 0; b < loc->nbatch; b++) {
       for (int kLocalExt = 0; kLocalExt < getNumExtended(); kLocalExt++) {
          int kxLocalExt = kxPos(kLocalExt,
@@ -64,7 +66,7 @@ int MPITestLayer::setActivitytoGlobalPos() {
 
          if ((x_in_global_boundary || x_in_local_interior)
              && (y_in_global_boundary || y_in_local_interior)) {
-            mActivity->getActivity()[kLocalExt + b * getNumExtended()] = x_global_pos;
+            A[kLocalExt + b * getNumExtended()] = x_global_pos;
          }
       }
    }

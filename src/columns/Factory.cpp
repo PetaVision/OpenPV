@@ -38,14 +38,13 @@
 #include "layers/Retina.hpp"
 #include "layers/SigmoidLayer.hpp"
 
-#include "deprecated/ANNWhitenedLayer.hpp"
-#include "deprecated/ImageFromMemoryBuffer.hpp"
-#include "deprecated/KmeansLayer.hpp"
-#include "deprecated/LCALIFLayer.hpp"
-#include "deprecated/LabelErrorLayer.hpp"
-#include "deprecated/RunningAverageLayer.hpp"
-#include "deprecated/ShuffleLayer.hpp"
-#include "deprecated/WTALayer.hpp"
+// #include "deprecated/ANNWhitenedLayer.hpp"
+// #include "deprecated/KmeansLayer.hpp"
+// #include "deprecated/LCALIFLayer.hpp"
+// #include "deprecated/LabelErrorLayer.hpp"
+// #include "deprecated/RunningAverageLayer.hpp"
+// #include "deprecated/ShuffleLayer.hpp"
+// #include "deprecated/WTALayer.hpp"
 
 #include "connections/CloneConn.hpp"
 #include "connections/CopyConn.hpp"
@@ -130,7 +129,6 @@ int Factory::registerCoreKeywords() {
    registerKeyword("ANNErrorLayer", Factory::create<ANNErrorLayer>);
    registerKeyword("ANNLayer", Factory::create<ANNLayer>);
    registerKeyword("ANNSquaredLayer", Factory::create<ANNSquaredLayer>);
-   registerKeyword("ANNWhitenedLayer", Factory::create<ANNWhitenedLayer>);
    registerKeyword("BackgroundLayer", Factory::create<BackgroundLayer>);
    registerKeyword("BinningLayer", Factory::create<BinningLayer>);
    registerKeyword("CloneVLayer", Factory::create<CloneVLayer>);
@@ -145,29 +143,30 @@ int Factory::registerCoreKeywords() {
 
    registerKeyword("ImageLayer", Factory::create<ImageLayer>);
    registerKeyword("InputRegionLayer", Factory::create<InputRegionLayer>);
-   registerKeyword("PvpLayer", Factory::create<PvpLayer>);
-   registerKeyword("ImageFromMemoryBuffer", Factory::create<ImageFromMemoryBuffer>);
-   registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
-   registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
    registerKeyword("LIF", Factory::create<LIF>);
    registerKeyword("LIFGap", Factory::create<LIFGap>);
-   registerKeyword("LabelErrorLayer", Factory::create<LabelErrorLayer>);
    registerKeyword("LeakyIntegrator", Factory::create<LeakyIntegrator>);
    registerKeyword("MaskLayer", Factory::create<MaskLayer>);
    registerKeyword("MomentumLCALayer", Factory::create<MomentumLCALayer>);
    registerKeyword("PoolingIndexLayer", Factory::create<PoolingIndexLayer>);
+   registerKeyword("PvpLayer", Factory::create<PvpLayer>);
    registerKeyword("PtwiseProductLayer", Factory::create<PtwiseProductLayer>);
    registerKeyword("PtwiseQuotientLayer", Factory::create<PtwiseQuotientLayer>);
    registerKeyword("RescaleLayer", Factory::create<RescaleLayer>);
-   registerKeyword("RunningAverageLayer", Factory::create<RunningAverageLayer>);
    registerKeyword("Retina", Factory::create<Retina>);
-   registerKeyword("ShuffleLayer", Factory::create<ShuffleLayer>);
    registerKeyword("SigmoidLayer", Factory::create<SigmoidLayer>);
-   registerKeyword("WTALayer", Factory::create<WTALayer>);
+
+   // Deprecated layers
+   // registerKeyword("ANNWhitenedLayer", Factory::create<ANNWhitenedLayer>);
+   // registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
+   // registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
+   // registerKeyword("LabelErrorLayer", Factory::create<LabelErrorLayer>);
+   // registerKeyword("RunningAverageLayer", Factory::create<RunningAverageLayer>);
+   // registerKeyword("ShuffleLayer", Factory::create<ShuffleLayer>);
+   // registerKeyword("WTALayer", Factory::create<WTALayer>);
 
    registerKeyword("HyPerConn", Factory::create<HyPerConn>);
    registerKeyword("CloneConn", Factory::create<CloneConn>);
-   // registerKeyword("ComponentsConn", Factory::create<ComponentsConn>);
    registerKeyword("CopyConn", Factory::create<CopyConn>);
    registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
    registerKeyword("GapConn", Factory::create<GapConn>);

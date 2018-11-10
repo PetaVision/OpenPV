@@ -76,9 +76,15 @@ HyPerDelivery::initializeState(std::shared_ptr<InitializeStateMessage const> mes
    else if (mConvertRateToSpikeCount and !mPreLayer->activityIsSpiking()) {
       auto layerInputBuffer = mPostLayer->getComponentByType<LayerInputBuffer>();
       if (layerInputBuffer) {
-         if (!layerInputBuffer->getDataStructuresAllocatedFlag()) {
-            return status + Response::POSTPONE;
-         }
+         FatalIf(
+               !layerInputBuffer->getDataStructuresAllocatedFlag(),
+               "%s has a spiking pre-layer and ConvertRateToSpikeCount set to true.\n"
+               "The post-layer \"%s\" must allocate its data structures, to set the\n"
+               "ChannelTimeConstant, before the connection \"%s\" can initialize its state,\n"
+               "to set the conversion factor.\n",
+               getDescription(),
+               mPostLayer->getDescription(),
+               getDescription());
          double timeConstant = layerInputBuffer->getChannelTimeConstant(mChannelCode);
          if (timeConstant > 0) {
             double deltaTime = message->mDeltaTime;

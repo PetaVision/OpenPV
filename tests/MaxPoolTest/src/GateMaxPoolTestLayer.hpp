@@ -1,19 +1,17 @@
 #ifndef GATEMAXPOOLTESTLAYER_HPP_
 #define GATEMAXPOOLTESTLAYER_HPP_
 
-#include <layers/ANNLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
-class GateMaxPoolTestLayer : public PV::ANNLayer {
+class GateMaxPoolTestLayer : public HyPerLayer {
   public:
    GateMaxPoolTestLayer(const char *name, HyPerCol *hc);
 
   protected:
-   Response::Status updateState(double timef, double dt) override;
-
-  private:
-};
+   ActivityComponent *createActivityComponent() override;
+}; // end class GateMaxPoolTestLayer
 
 } /* namespace PV */
 #endif // GATEMAXPOOLTESTLAYER_HPP_

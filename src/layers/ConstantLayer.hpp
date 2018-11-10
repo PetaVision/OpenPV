@@ -12,16 +12,8 @@
 
 namespace PV {
 
-class ConstantLayer : public PV::HyPerLayer {
-  public:
-   ConstantLayer(const char *name, HyPerCol *hc);
-   virtual ~ConstantLayer();
-   virtual bool needUpdate(double simTime, double dt) const override;
-
+class ConstantLayer : public HyPerLayer {
   protected:
-   ConstantLayer();
-   int initialize(const char *name, HyPerCol *hc);
-
    /**
     * List of parameters needed from the ConstantLayer class
     * @name HyPerLayer Parameters
@@ -34,11 +26,15 @@ class ConstantLayer : public PV::HyPerLayer {
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
    /** @} */ // End list of ConstantLayer parameters
 
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+  public:
+   ConstantLayer(const char *name, HyPerCol *hc);
+   virtual ~ConstantLayer();
+   virtual bool needUpdate(double simTime, double dt) const override;
 
-  private:
-   int initialize_base();
+  protected:
+   ConstantLayer();
+   int initialize(const char *name, HyPerCol *hc);
+
 }; // class ConstantLayer
 
 } /* namespace PV */

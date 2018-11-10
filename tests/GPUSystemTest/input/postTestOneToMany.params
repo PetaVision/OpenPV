@@ -182,4 +182,7 @@ IdentConn "RecvTest" = {
 GPUSystemTestProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
+   nnzThreshold = 5.0e-4;
+   exitOnFailure = true;
+   immediateExitOnFailure = false;
 };

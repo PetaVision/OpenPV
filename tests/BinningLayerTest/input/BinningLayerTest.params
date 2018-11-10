@@ -1,19 +1,19 @@
 //
-// BasicSystemTest.params
+// BinningLayerTest.params
 //
-// created by peteschultz: Nov 10, 2011
+// created by slundquist: Jan 15, 2014
 //
 
-//  A params file for a simple simulation: two layers, one connection.
-//  It serves as the basic template for systems tests, and tests the
-//  basic functionality
+//  A params file to test BinningLayer.
+//  An input image with values ranging from 0 to 255 is passed to an binning layer with 32 bins,
+//  once with binSigma = 0 and once with binSigma = 2.
 //
 
 debugParsing = true;    // Debug the reading of this parameter file.
 
 HyPerCol "column" = {
-   nx = 32;   //size of the whole networks
-   ny = 50;
+   nx = 16;   //size of the whole networks
+   ny = 16;
    nbatch = 1;
    dt = 1.0;  //time step in ms.	     
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
@@ -54,11 +54,11 @@ PvpLayer "input" = {
 };
 
 //Binning layer to test
-BinningTestLayer "binLayer" = {
+BinningLayer "binLayer" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
-    nf = 32; // 8 outputs 
+    nf = 32; // 32 bins
     phase = 1;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -66,17 +66,17 @@ BinningTestLayer "binLayer" = {
     sparseLayer = false;
     binMax = 1;
     binMin = 0;
-    sigma = 0;
+    binSigma = 0;
     delay = 0;
     originalLayerName = "input";
 };
 
 //Binning layer to test
-BinningTestLayer "binLayerSigma" = {
+BinningLayer "binLayerSigma" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
-    nf = 32; // 8 outputs 
+    nf = 32; // 32 bins
     phase = 1;
     writeStep = 1.0;
     initialWriteTime = 0.0;
@@ -84,7 +84,25 @@ BinningTestLayer "binLayerSigma" = {
     sparseLayer = false;
     binMax = 1;
     binMin = 0;
-    sigma = 2;
+    binSigma = 2;
     delay = 0;
     originalLayerName = "input";
+};
+
+BinningTestProbe "binLayerProbe" = {
+    targetName = "binLayer";
+    message = NULL;
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    triggerLayerName = NULL;
+    energyProbe = NULL;
+};
+
+BinningTestProbe "binLayerSigmaProbe" = {
+    targetName = "binLayerSigma";
+    message = NULL;
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    triggerLayerName = NULL;
+    energyProbe = NULL;
 };

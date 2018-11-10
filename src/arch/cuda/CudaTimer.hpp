@@ -63,7 +63,7 @@ class CudaTimer : public PV::Timer {
    cudaEvent_t stopEvent;
    float time; // TODO maybe use Timer's member variables to store the time?
    cudaStream_t stream;
-   bool mEventPending; // A flag that is set by stop(). If true, accumulateTime() will add
+   bool mEventPending = false; // A flag that is set by stop(). If true, accumulateTime() will add
 };
 
 } // namespace PV

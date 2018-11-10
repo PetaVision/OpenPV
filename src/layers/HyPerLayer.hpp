@@ -18,6 +18,7 @@
 #include "columns/Publisher.hpp"
 #include "columns/Random.hpp"
 #include "components/ActivityBuffer.hpp"
+#include "components/ActivityComponent.hpp"
 #include "components/BoundaryConditions.hpp"
 #include "components/InternalStateBuffer.hpp"
 #include "components/LayerGeometry.hpp"
@@ -26,17 +27,8 @@
 #include "include/pv_common.h"
 #include "include/pv_types.h"
 #include "io/fileio.hpp"
-#include "layers/PVLayerCube.hpp"
 #include "probes/LayerProbe.hpp"
 #include "utils/Timer.hpp"
-
-#ifdef PV_USE_CUDA
-#undef PV_USE_CUDA
-#include <layers/updateStateFunctions.h>
-#define PV_USE_CUDA
-#else
-#include <layers/updateStateFunctions.h>
-#endif // PV_USE_CUDA
 
 #ifdef PV_USE_OPENMP_THREADS
 #include <omp.h>
@@ -79,13 +71,6 @@ class HyPerLayer : public ComponentBasedObject {
    virtual void ioParam_dataType(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief updateGpu: When compiled using CUDA or OpenCL GPU acceleration, this flag tells whether
-    * this layer's updateState method should use the GPU.
-    * If PetaVision was compiled without GPU acceleration, it is an error to set this flag to true.
-    */
-   virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief triggerFlag: (Deprecated) Specifies if this layer is being triggered
     * @details Defaults to false.
     * This flag is deprecated.  To turn triggering off,
@@ -115,11 +100,11 @@ class HyPerLayer : public ComponentBasedObject {
     * @brief triggerBehavior: If triggerLayerName is set, this parameter specifies how the trigger
     * is handled.
     * @details The possible values of triggerBehavior are:
-    * - "updateOnlyOnTrigger": updateState is called (computing activity buffer from GSyn)
+    * - "updateOnlyOnTrigger": updateActivity is called (computing activity buffer from GSyn)
     * only on triggering timesteps.  On other timesteps the layer's state remains unchanged.
     * - "resetStateOnTrigger": On timesteps where the trigger occurs, the membrane potential
     * is copied from the layer specified in triggerResetLayerName and setActivity is called.
-    * On nontriggering timesteps, updateState is called.
+    * On nontriggering timesteps, updateActivity is called.
     * For backward compatibility, this parameter defaults to updateOnlyOnTrigger.
     */
    virtual void ioParam_triggerBehavior(enum ParamsIOFlag ioFlag);
@@ -162,8 +147,7 @@ class HyPerLayer : public ComponentBasedObject {
    virtual PhaseParam *createPhaseParam();
    virtual BoundaryConditions *createBoundaryConditions();
    virtual LayerInputBuffer *createLayerInput();
-   virtual InternalStateBuffer *createInternalState();
-   virtual ActivityBuffer *createActivity();
+   virtual ActivityComponent *createActivityComponent();
 
    virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
 
@@ -200,7 +184,6 @@ class HyPerLayer : public ComponentBasedObject {
          Random *randState,
          bool extendedFlag);
 
-   virtual void initializeActivity();
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual void readActivityFromCheckpoint(Checkpointer *checkpointer);
    virtual void readDelaysFromCheckpoint(Checkpointer *checkpointer);
@@ -218,11 +201,11 @@ class HyPerLayer : public ComponentBasedObject {
    virtual bool needReset(double timed, double dt);
 
    /**
-    * Called instead of updateState when triggerBehavior is "resetStateOnTrigger" and a triggering
-    * event occurs.
+    * Called instead of updateActivity when triggerBehavior is "resetStateOnTrigger" and a
+    * triggering event occurs.
     * Copies the membrane potential V from triggerResetLayer and then calls setActivity to update A.
     */
-   virtual void resetStateOnTrigger();
+   void resetStateOnTrigger(double simTime, double deltaTime);
 
    /*
     * Frees a buffer created by allocateBuffer().  Note that the address to the buffer
@@ -256,9 +239,6 @@ class HyPerLayer : public ComponentBasedObject {
 
   public:
    HyPerLayer(const char *name, HyPerCol *hc);
-   float *getActivity() {
-      return mActivity->getActivity();
-   } // TODO: access to mActivity->getActivity() should not be public
    virtual double getTimeScale(int batchIdx) { return -1.0; };
    virtual bool activityIsSpiking() { return false; }
 
@@ -282,7 +262,8 @@ class HyPerLayer : public ComponentBasedObject {
    // (i.e. methods for receiving synaptic input, updating internal state, publishing output)
    // ************************************************************************************//
 
-   // An updateState wrapper that determines if updateState needs to be called
+   // The method called by respondLayerUpdateState, that determines if resetStateOnTrigger needs
+   // to be called, and then calls the ActivityComponent's updateActivity method.
    Response::Status callUpdateState(double simTime, double dt);
    /**
      * A virtual function to determine if the layer will update on a given timestep.
@@ -296,7 +277,7 @@ class HyPerLayer : public ComponentBasedObject {
    virtual bool needUpdate(double simTime, double dt) const;
 
    /**
-    * A function to return the interval between times when updateState is needed.
+    * A function to return the interval between times when updateActivity is needed.
     */
    double getDeltaUpdateTime() const { return mDeltaUpdateTime; }
 
@@ -375,7 +356,12 @@ class HyPerLayer : public ComponentBasedObject {
    int increaseDelayLevels(int neededDelay);
    void requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis);
 
-   float *getV() { return mInternalState->getV(); } // TODO: should be const
+   float const *getV() const {
+      return mActivityComponent->getComponentByType<InternalStateBuffer>()->getBufferData();
+   }
+   float *getV() {
+      return mActivityComponent->getComponentByType<InternalStateBuffer>()->getReadWritePointer();
+   }
    int getNumChannels() { return mLayerInput->getNumChannels(); }
 
    // Eventually, anything that calls one of getXScale, getYScale, or getLayerLoc should retrieve
@@ -415,21 +401,23 @@ class HyPerLayer : public ComponentBasedObject {
 
    /**
     * A virtual method, called by initializeState() to set the interval between times when
-    * updateState is needed, if the layer does not have a trigger layer. If the layer does have
+    * updateActivity is needed, if the layer does not have a trigger layer. If the layer does have
     * a trigger layer, this method will not be called and the period is set (during InitializeState)
     * to the that layer's DeltaUpdateTime.
     */
    virtual void setNontriggerDeltaUpdateTime(double dt);
 
    int openOutputStateFile(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
-/* static methods called by updateState({long_argument_list})*/
 
 #ifdef PV_USE_CUDA
    virtual int runUpdateKernel();
-   virtual Response::Status updateStateGpu(double timef, double dt);
 #endif
-   virtual Response::Status updateState(double timef, double dt);
-   virtual int setActivity();
+
+   /**
+    * The function, called by callUpdateState, that updates the ActivityComponent's
+    * activity buffer.
+    */
+   virtual Response::Status updateState(double simTime, double deltaTime);
 
    bool mNeedToPublish = true;
 
@@ -447,9 +435,7 @@ class HyPerLayer : public ComponentBasedObject {
 
    LayerInputBuffer *mLayerInput = nullptr;
 
-   InternalStateBuffer *mInternalState = nullptr;
-
-   ActivityBuffer *mActivity = nullptr;
+   ActivityComponent *mActivityComponent = nullptr;
 
    int numDelayLevels; // The number of timesteps in the datastore ring buffer to store older
    // timesteps for connections with delays
@@ -535,7 +521,6 @@ class HyPerLayer : public ComponentBasedObject {
    void setUpdatedDeviceGSynFlag(bool in) { updatedDeviceGSyn = in; }
 
   protected:
-   virtual int allocateUpdateKernel();
    virtual int allocateDeviceBuffers();
    // OpenCL buffers and their corresponding flags
    //
@@ -545,7 +530,6 @@ class HyPerLayer : public ComponentBasedObject {
    bool updatedDeviceActivity;
    bool updatedDeviceDatastore;
    bool updatedDeviceGSyn;
-   bool mUpdateGpu;
 
    PVCuda::CudaBuffer *d_Datastore;
    PVCuda::CudaBuffer *d_numActive;

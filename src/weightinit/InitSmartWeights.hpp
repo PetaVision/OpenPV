@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class InitSmartWeights : public PV::InitWeights {
+class InitSmartWeights : public InitWeights {
   public:
    InitSmartWeights(char const *name, HyPerCol *hc);
    InitSmartWeights();

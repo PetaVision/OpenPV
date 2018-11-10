@@ -1,7 +1,7 @@
 /*
  * LayerInputBuffer.cpp
  *
- *  Created on: Sep 13, 2018
+ *  Created on: Sep 13, 2018 from the original HyPerLayer
  *      Author: Pete Schultz
  */
 
@@ -18,14 +18,14 @@ LayerInputBuffer::~LayerInputBuffer() {
 }
 
 int LayerInputBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status    = BufferComponent::initialize(name, hc);
+   int status    = ComponentBuffer::initialize(name, hc);
    mExtendedFlag = false;
    mBufferLabel  = ""; // GSyn doesn't get checkpointed
    return status;
 }
 
 void LayerInputBuffer::initMessageActionMap() {
-   BufferComponent::initMessageActionMap();
+   ComponentBuffer::initMessageActionMap();
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
@@ -53,7 +53,7 @@ int LayerInputBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SU
 
 Response::Status
 LayerInputBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   Response::Status status = BufferComponent::communicateInitInfo(message);
+   Response::Status status = ComponentBuffer::communicateInitInfo(message);
    if (!Response::completed(status)) {
       return status;
    }
@@ -73,29 +73,38 @@ void LayerInputBuffer::addDeliverySource(LayerInputDelivery *deliverySource) {
          return;
       }
    }
-#ifdef PV_USE_CUDA
-   // CPU connections must run first to avoid race conditions
-   if (!deliverySource->getReceiveGpu()) {
-      mDeliverySources.insert(mDeliverySources.begin(), deliverySource);
-   }
-   // Otherwise, add to the back. If no gpus at all, just add to back
-   else {
-      mDeliverySources.push_back(deliverySource);
-      // If it is receiving from gpu, set layer flag as such
-      useCuda();
-   }
-#else
-   mDeliverySources.push_back(deliverySource);
-#endif
+   mDeliverySources.insert(mDeliverySources.begin(), deliverySource);
+   // insert() is done for backward compatibility; push_back should work just as well.
 }
 
 Response::Status LayerInputBuffer::allocateDataStructures() {
-   auto status = BufferComponent::allocateDataStructures();
+   auto status = ComponentBuffer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
+
    if (mNumChannels >= 0) {
       mChannelTimeConstants.resize(mNumChannels);
    }
    initChannelTimeConstants();
-   return status;
+
+#ifdef PV_USE_CUDA
+   // Separating GPU and CPU delivery sources has to wait until allocateDataStructures
+   // because it depends on the delivery source's ReceiveGpu flag, which might not get
+   // set until communicate, and postponing could create a postponement loop.
+   auto iter = mDeliverySources.end();
+   while (iter != mDeliverySources.begin()) {
+      iter--;
+      auto *deliverySource = *iter;
+      if (deliverySource->getReceiveGpu()) {
+         mGPUDeliverySources.insert(mGPUDeliverySources.begin(), deliverySource);
+         mDeliverySources.erase(iter);
+         useCuda();
+      }
+   }
+#endif // PV_USE_CUDA
+
+   return Response::SUCCESS;
 }
 
 void LayerInputBuffer::initChannelTimeConstants() {
@@ -106,7 +115,7 @@ void LayerInputBuffer::initChannelTimeConstants() {
 
 Response::Status
 LayerInputBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = BufferComponent::registerData(message);
+   auto status = ComponentBuffer::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
@@ -147,8 +156,8 @@ Response::Status LayerInputBuffer::respondLayerRecvSynapticInput(
       *(message->mSomeLayerIsPending) = true;
       return status;
    }
+
    updateBuffer(message->mTime, message->mDeltaT);
-   mHasReceived                   = true;
    *(message->mSomeLayerHasActed) = true;
    return status;
 }
@@ -159,10 +168,30 @@ bool LayerInputBuffer::isAllInputReady() {
       pvAssert(d);
       isReady &= d->isAllInputReady();
    }
+#ifdef PV_USE_CUDA
+   for (auto &d : mGPUDeliverySources) {
+      pvAssert(d);
+      isReady &= d->isAllInputReady();
+   }
+#endif // PV_USE_CUDA
    return isReady;
 }
 
-void LayerInputBuffer::resetGSynBuffers(double simulationTime, double deltaTime) {
+void LayerInputBuffer::updateBufferCPU(double simTime, double deltaTime) {
+   resetGSynBuffers(simTime, deltaTime);
+   recvAllSynapticInput(simTime, deltaTime);
+   mHasReceived = true;
+}
+
+#ifdef PV_USE_CUDA
+void LayerInputBuffer::updateBufferGPU(double simTime, double deltaTime) {
+   // The difference between GPU and CPU is handled inside the recvAllSynapticInput() method;
+   // updateBufferGPU and updateBufferCPU both need to call the same functions.
+   updateBufferCPU(simTime, deltaTime);
+}
+#endif // PV_USE_CUDA
+
+void LayerInputBuffer::resetGSynBuffers(double simTime, double deltaTime) {
    int const sizeAcrossChannels = getBufferSizeAcrossBatch() * getNumChannels();
    float *bufferData            = mBufferData.data();
 #ifdef PV_USE_OPENMP_THREADS
@@ -173,33 +202,34 @@ void LayerInputBuffer::resetGSynBuffers(double simulationTime, double deltaTime)
    }
 }
 
-void LayerInputBuffer::recvAllSynapticInput(double simulationTime, double deltaTime) {
-   bool switchGpu = false;
+void LayerInputBuffer::recvAllSynapticInput(double simTime, double deltaTime) {
    // Start CPU timer here
    mReceiveInputTimer->start();
 
+   // non-GPU sources must go before GPU sources to avoid a race condition.
    for (auto &d : mDeliverySources) {
       pvAssert(d != nullptr);
-#ifdef PV_USE_CUDA
-      // Check if it's done with cpu connections
-      if (!switchGpu && d->getReceiveGpu()) {
-         // Copy GSyn over to GPU
-         copyToCuda();
-         // Start gpu timer
-         mReceiveInputCudaTimer->start();
-         switchGpu = true;
-      }
-#endif
       std::ptrdiff_t channelOffset = getChannelData(d->getChannelCode()) - getBufferData();
       float *channelBuffer         = &mBufferData[channelOffset];
       d->deliver(channelBuffer);
    }
+
 #ifdef PV_USE_CUDA
-   if (switchGpu) {
-      // Stop timer
+   if (isUsingGPU()) {
+      copyToCuda();
+      mReceiveInputCudaTimer->start();
+
+      for (auto &d : mGPUDeliverySources) {
+         pvAssert(d != nullptr);
+         std::ptrdiff_t channelOffset = getChannelData(d->getChannelCode()) - getBufferData();
+         float *channelBuffer         = &mBufferData[channelOffset];
+         d->deliver(channelBuffer);
+      }
+
       mReceiveInputCudaTimer->stop();
    }
-#endif
+#endif // PV_USE_CUDA
+
    mReceiveInputTimer->stop();
 }
 
@@ -208,11 +238,6 @@ LayerInputBuffer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessag
    copyFromCuda();
    mReceiveInputCudaTimer->accumulateTime();
    return Response::SUCCESS;
-}
-
-void LayerInputBuffer::updateBuffer(double simTime, double deltaTime) {
-   resetGSynBuffers(simTime, deltaTime);
-   recvAllSynapticInput(simTime, deltaTime);
 }
 
 } // namespace PV

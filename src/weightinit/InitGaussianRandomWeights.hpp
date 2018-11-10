@@ -13,7 +13,7 @@
 
 namespace PV {
 
-class InitGaussianRandomWeights : public PV::InitRandomWeights {
+class InitGaussianRandomWeights : public InitRandomWeights {
   protected:
    void ioParam_wGaussMean(enum ParamsIOFlag ioFlag);
    void ioParam_wGaussStdev(enum ParamsIOFlag ioFlag);

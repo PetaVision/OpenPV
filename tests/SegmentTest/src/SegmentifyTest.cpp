@@ -4,6 +4,20 @@ namespace PV {
 
 SegmentifyTest::SegmentifyTest(const char *name, HyPerCol *hc) { Segmentify::initialize(name, hc); }
 
+void SegmentifyTest::createComponentTable(char const *description) {
+   Segmentify::createComponentTable(description);
+   FatalIf(
+         mActivityComponent == nullptr,
+         "%s failed to create an ActivityComponent.\n",
+         getDescription_c());
+
+   mSegmentifyBuffer = mActivityComponent->getComponentByType<SegmentifyBuffer>();
+   FatalIf(
+         mSegmentifyBuffer == nullptr,
+         "%s failed to create a SegmentifyBuffer.\n",
+         getDescription_c());
+}
+
 /*
  * Segment values are such:
  * 1 1 1 2 2 2 3 3
@@ -18,10 +32,11 @@ SegmentifyTest::SegmentifyTest(const char *name, HyPerCol *hc) { Segmentify::ini
 float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
    const PVLayerLoc *loc = getLayerLoc();
    // We can convert yi and xi to an index between 0 and 2
-   int newYi        = yi / 3;
-   int newXi        = xi / 3;
-   int segmentLabel = newYi * 3 + newXi + 1;
-   int returnLabel  = -1;
+   int newYi               = yi / 3;
+   int newXi               = xi / 3;
+   int segmentLabel        = newYi * 3 + newXi + 1;
+   int returnLabel         = -1;
+   char const *inputMethod = mSegmentifyBuffer->getInputMethod();
    if (strcmp(inputMethod, "sum") == 0) {
       // Account for edge cases
       if (segmentLabel == 3 || segmentLabel == 6 || segmentLabel == 7 || segmentLabel == 8) {
@@ -47,9 +62,10 @@ float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
 int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, float actualVal) {
    const PVLayerLoc *loc = getLayerLoc();
    // We can convert yi and xi to an index between 0 and 2
-   int newYi        = yi / 3;
-   int newXi        = xi / 3;
-   int segmentLabel = newYi * 3 + newXi + 1;
+   int newYi                = yi / 3;
+   int newXi                = xi / 3;
+   int segmentLabel         = newYi * 3 + newXi + 1;
+   char const *outputMethod = mSegmentifyBuffer->getOutputMethod();
 
    if (strcmp(outputMethod, "centroid") == 0) {
       int centX, centY;
@@ -88,12 +104,22 @@ int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, flo
 Response::Status SegmentifyTest::updateState(double timef, double dt) {
    // Do update state first
    Segmentify::updateState(timef, dt);
-   const PVLayerLoc *loc = getLayerLoc();
-   float *A              = getActivity();
-   FatalIf(!(A), "Test failed.\n");
+   PVLayerLoc const *loc = getLayerLoc();
+
+   ActivityComponent *activityComponent = getComponentByType<ActivityComponent>();
+   FatalIf(
+         activityComponent == nullptr,
+         "%s does not contain an ActivityComponent.\n",
+         getDescription_c());
+   ActivityBuffer *activityBuffer = activityComponent->getComponentByType<ActivityBuffer>();
+   FatalIf(
+         activityBuffer == nullptr, "%s does not contain an ActivityBuffer.\n", getDescription_c());
 
    for (int bi = 0; bi < loc->nbatch; bi++) {
-      float *batchA = A + bi * getNumExtended();
+      float const *batchA = activityBuffer->getBufferData(bi);
+      FatalIf(
+            batchA == nullptr, "%s ActivityBuffer->getBufferData() failed.\n", getDescription_c());
+
       for (int yi = 0; yi < loc->ny; yi++) {
          for (int xi = 0; xi < loc->nx; xi++) {
             for (int fi = 0; fi < loc->nf; fi++) {

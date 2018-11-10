@@ -3,11 +3,16 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/KneeTimeScaleController.cpp
    ${SUBDIR}/AdaptiveTimeScaleController.cpp
    ${SUBDIR}/ActivityBuffer.cpp
+   ${SUBDIR}/ActivityComponent.cpp
+   ${SUBDIR}/ANNActivityBuffer.cpp
    ${SUBDIR}/ArborList.cpp
+   ${SUBDIR}/BackgroundActivityBuffer.cpp
    ${SUBDIR}/BatchIndexer.cpp
+   ${SUBDIR}/BinningActivityBuffer.cpp
    ${SUBDIR}/BoundaryConditions.cpp
-   ${SUBDIR}/BufferComponent.cpp
+   ${SUBDIR}/CloneInternalStateBuffer.cpp
    ${SUBDIR}/CloneWeightsPair.cpp
+   ${SUBDIR}/ComponentBuffer.cpp
    ${SUBDIR}/ConnectionData.cpp
    ${SUBDIR}/CopyWeightsPair.cpp
    ${SUBDIR}/DependentArborList.cpp
@@ -15,16 +20,35 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/DependentPatchSize.cpp
    ${SUBDIR}/DependentPhaseParam.cpp
    ${SUBDIR}/DependentSharedWeights.cpp
+   ${SUBDIR}/DropoutActivityBuffer.cpp
    ${SUBDIR}/ErrScaleInternalStateBuffer.cpp
    ${SUBDIR}/FeedbackConnectionData.cpp
+   ${SUBDIR}/FilenameParsingActivityBuffer.cpp
+   ${SUBDIR}/GapActivityBuffer.cpp
+   ${SUBDIR}/GSynInternalStateBuffer.cpp
+   ${SUBDIR}/HyPerActivityBuffer.cpp
+   ${SUBDIR}/HyPerActivityComponent.cpp
+   ${SUBDIR}/HyPerInternalStateBuffer.cpp
+   ${SUBDIR}/HyPerLCAInternalStateBuffer.cpp
+   ${SUBDIR}/ImageActivityBuffer.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/ImpliedWeightsPair.cpp
+   ${SUBDIR}/InputActivityBuffer.cpp
+   ${SUBDIR}/InputLayerNameParam.cpp
+   ${SUBDIR}/InputRegionActivityBuffer.cpp
+   ${SUBDIR}/InputRegionActivityComponent.cpp
    ${SUBDIR}/InternalStateBuffer.cpp
+   ${SUBDIR}/ISTAInternalStateBuffer.cpp
    ${SUBDIR}/LayerGeometry.cpp
    ${SUBDIR}/LayerInputBuffer.cpp
-   ${SUBDIR}/LeakyInternalStateBuffer.cpp
+   ${SUBDIR}/LeakyIntegratorBuffer.cpp
+   ${SUBDIR}/LIFActivityComponent.cpp
+   ${SUBDIR}/LIFGapActivityComponent.cpp
    ${SUBDIR}/LIFLayerInputBuffer.cpp
    ${SUBDIR}/LinkedObjectParam.cpp
+   ${SUBDIR}/MaskActivityBuffer.cpp
+   ${SUBDIR}/MomentumLCAActivityComponent.cpp
+   ${SUBDIR}/MomentumLCAInternalStateBuffer.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
    ${SUBDIR}/OriginalLayerNameParam.cpp
    ${SUBDIR}/PatchGeometry.cpp
@@ -33,13 +57,21 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PoolingIndexLayerInputBuffer.cpp
    ${SUBDIR}/PtwiseProductInternalStateBuffer.cpp
    ${SUBDIR}/PtwiseQuotientInternalStateBuffer.cpp
+   ${SUBDIR}/PvpActivityBuffer.cpp
+   ${SUBDIR}/RescaleActivityBuffer.cpp
+   ${SUBDIR}/RestrictedBuffer.cpp
+   ${SUBDIR}/RetinaActivityBuffer.cpp
+   ${SUBDIR}/SegmentBuffer.cpp
+   ${SUBDIR}/SegmentifyBuffer.cpp
    ${SUBDIR}/SharedWeights.cpp
+   ${SUBDIR}/SigmoidActivityBuffer.cpp
    ${SUBDIR}/SingleArbor.cpp
    ${SUBDIR}/SquaredInternalStateBuffer.cpp
    ${SUBDIR}/StrengthParam.cpp
    ${SUBDIR}/TauLayerInputBuffer.cpp
    ${SUBDIR}/TransposePatchSize.cpp
    ${SUBDIR}/TransposeWeightsPair.cpp
+   ${SUBDIR}/VInputActivityBuffer.cpp
    ${SUBDIR}/Weights.cpp
    ${SUBDIR}/WeightsPair.cpp
    ${SUBDIR}/WeightsPairInterface.cpp
@@ -50,11 +82,18 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/KneeTimeScaleController.hpp
    ${SUBDIR}/AdaptiveTimeScaleController.hpp
    ${SUBDIR}/ActivityBuffer.hpp
+   ${SUBDIR}/ActivityComponent.hpp
+   ${SUBDIR}/ActivityComponentActivityOnly.hpp
+   ${SUBDIR}/ActivityComponentWithInternalState.hpp
+   ${SUBDIR}/ANNActivityBuffer.hpp
    ${SUBDIR}/ArborList.hpp
+   ${SUBDIR}/BackgroundActivityBuffer.hpp
    ${SUBDIR}/BatchIndexer.hpp
+   ${SUBDIR}/BinningActivityBuffer.hpp
    ${SUBDIR}/BoundaryConditions.hpp
-   ${SUBDIR}/BufferComponent.hpp
+   ${SUBDIR}/CloneInternalStateBuffer.hpp
    ${SUBDIR}/CloneWeightsPair.hpp
+   ${SUBDIR}/ComponentBuffer.hpp
    ${SUBDIR}/ConnectionData.hpp
    ${SUBDIR}/CopyWeightsPair.hpp
    ${SUBDIR}/DependentArborList.hpp
@@ -62,16 +101,35 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/DependentPatchSize.hpp
    ${SUBDIR}/DependentPhaseParam.hpp
    ${SUBDIR}/DependentSharedWeights.hpp
+   ${SUBDIR}/DropoutActivityBuffer.hpp
    ${SUBDIR}/ErrScaleInternalStateBuffer.hpp
    ${SUBDIR}/FeedbackConnectionData.hpp
+   ${SUBDIR}/FilenameParsingActivityBuffer.hpp
+   ${SUBDIR}/GapActivityBuffer.hpp
+   ${SUBDIR}/GSynInternalStateBuffer.hpp
+   ${SUBDIR}/HyPerActivityBuffer.hpp
+   ${SUBDIR}/HyPerActivityComponent.hpp
+   ${SUBDIR}/HyPerInternalStateBuffer.hpp
+   ${SUBDIR}/HyPerLCAInternalStateBuffer.hpp
+   ${SUBDIR}/ImageActivityBuffer.hpp
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/ImpliedWeightsPair.hpp
+   ${SUBDIR}/InputActivityBuffer.hpp
+   ${SUBDIR}/InputLayerNameParam.hpp
+   ${SUBDIR}/InputRegionActivityBuffer.hpp
+   ${SUBDIR}/InputRegionActivityComponent.hpp
    ${SUBDIR}/InternalStateBuffer.hpp
+   ${SUBDIR}/ISTAInternalStateBuffer.hpp
    ${SUBDIR}/LayerGeometry.hpp
    ${SUBDIR}/LayerInputBuffer.hpp
-   ${SUBDIR}/LeakyInternalStateBuffer.hpp
+   ${SUBDIR}/LeakyIntegratorBuffer.hpp
+   ${SUBDIR}/LIFActivityComponent.hpp
+   ${SUBDIR}/LIFGapActivityComponent.hpp
    ${SUBDIR}/LIFLayerInputBuffer.hpp
    ${SUBDIR}/LinkedObjectParam.hpp
+   ${SUBDIR}/MaskActivityBuffer.hpp
+   ${SUBDIR}/MomentumLCAActivityComponent.hpp
+   ${SUBDIR}/MomentumLCAInternalStateBuffer.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
    ${SUBDIR}/OriginalLayerNameParam.hpp
    ${SUBDIR}/Patch.hpp
@@ -81,14 +139,27 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PoolingIndexLayerInputBuffer.hpp
    ${SUBDIR}/PtwiseProductInternalStateBuffer.hpp
    ${SUBDIR}/PtwiseQuotientInternalStateBuffer.hpp
+   ${SUBDIR}/PvpActivityBuffer.hpp
+   ${SUBDIR}/RescaleActivityBuffer.hpp
+   ${SUBDIR}/RestrictedBuffer.hpp
+   ${SUBDIR}/RetinaActivityBuffer.hpp
+   ${SUBDIR}/SegmentBuffer.hpp
+   ${SUBDIR}/SegmentifyBuffer.hpp
    ${SUBDIR}/SharedWeights.hpp
+   ${SUBDIR}/SigmoidActivityBuffer.hpp
    ${SUBDIR}/SingleArbor.hpp
    ${SUBDIR}/SquaredInternalStateBuffer.hpp
    ${SUBDIR}/StrengthParam.hpp
    ${SUBDIR}/TauLayerInputBuffer.hpp
    ${SUBDIR}/TransposePatchSize.hpp
    ${SUBDIR}/TransposeWeightsPair.hpp
+   ${SUBDIR}/VInputActivityBuffer.hpp
    ${SUBDIR}/Weights.hpp
    ${SUBDIR}/WeightsPair.hpp
    ${SUBDIR}/WeightsPairInterface.hpp
+)
+
+set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/ActivityComponentActivityOnly.tpp
+   ${SUBDIR}/ActivityComponentWithInternalState.tpp
 )

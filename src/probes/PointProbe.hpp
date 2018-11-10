@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class PointProbe : public PV::LayerProbe {
+class PointProbe : public LayerProbe {
   public:
    PointProbe(const char *name, HyPerCol *hc);
    virtual ~PointProbe();

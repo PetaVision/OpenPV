@@ -170,7 +170,7 @@ macro(pv_add_test)
             set(TEST_LOG "${TEST_LOG_DIR}/${TEST_NAME}.log")
             set(TEST_PARAMS "input/${PARAM}.params")
             add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-              COMMAND ${MPIEXEC} -np ${COPIES} ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -p ${TEST_PARAMS} -l ${TEST_LOG})
+              COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${COPIES} ${MPIEXEC_PREFLAGS} ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -p ${TEST_PARAMS} -l ${TEST_LOG})
 
             if (NOT FIRST_TEST)
               set_tests_properties(${TEST_NAME} PROPERTIES DEPENDS ${PREV_TEST_NAME})
@@ -208,7 +208,7 @@ macro(pv_add_test)
           set(TEST_LOG "${TEST_LOG_DIR}/${TEST_NAME}.log")
           
           add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMAND ${MPIEXEC} -np ${COPIES} ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -l ${TEST_LOG})
+            COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${COPIES} ${MPIEXEC_PREFLAGS} ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} l ${TEST_LOG})
           
           if (NOT FIRST_TEST)
             set_tests_properties(${TEST_NAME} PROPERTIES DEPENDS ${PREV_TEST_NAME})

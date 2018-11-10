@@ -1,8 +1,8 @@
 /*
  * ErrScaleInternalStateBuffer.cpp
  *
- *  Created on: Sep 6, 2018
- *      Author: Pete Schultz
+ *  Created on: Jun 21, 2013
+ *      Author: gkenyon
  */
 
 #include "ErrScaleInternalStateBuffer.hpp"
@@ -17,14 +17,14 @@ ErrScaleInternalStateBuffer::ErrScaleInternalStateBuffer(char const *name, HyPer
 ErrScaleInternalStateBuffer::~ErrScaleInternalStateBuffer() {}
 
 int ErrScaleInternalStateBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = InternalStateBuffer::initialize(name, hc);
+   int status = HyPerInternalStateBuffer::initialize(name, hc);
    return status;
 }
 
 void ErrScaleInternalStateBuffer::setObjectType() { mObjectType = "ErrScaleInternalStateBuffer"; }
 
 int ErrScaleInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = InternalStateBuffer::ioParamsFillGroup(ioFlag);
+   int status = HyPerInternalStateBuffer::ioParamsFillGroup(ioFlag);
    ioParam_errScale(ioFlag);
    return status;
 }
@@ -34,13 +34,11 @@ void ErrScaleInternalStateBuffer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "errScale", &mErrScale, mErrScale, true /*warnIfAbsent*/);
 }
 
-void ErrScaleInternalStateBuffer::updateBuffer(double simTime, double deltaTime) {
-   InternalStateBuffer::updateBuffer(simTime, deltaTime);
+void ErrScaleInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) {
+   HyPerInternalStateBuffer::updateBufferCPU(simTime, deltaTime);
 
-   float const *gSynHead     = mInputBuffer->getBufferData();
    float *V                  = mBufferData.data();
    int numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
-   float const *gSynExc      = mInputBuffer->getChannelData(CHANNEL_EXC);
    float const errScale      = mErrScale;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)

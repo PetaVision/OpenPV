@@ -1,14 +1,15 @@
 /*
  * PtwiseQuotientInternalStateBuffer.hpp
  *
- *  Created on: Sep 6, 2018
- *      Author: Pete Schultz
+ * created by gkenyon, 06/2016g
+ * based on PtwiseProductLayer Created on: Apr 25, 2011
+ *      Author: peteschultz
  */
 
 #ifndef PTWISEQUOTIENTINTERNALSTATEBUFFER_HPP_
 #define PTWISEQUOTIENTINTERNALSTATEBUFFER_HPP_
 
-#include "components/InternalStateBuffer.hpp"
+#include "components/GSynInternalStateBuffer.hpp"
 
 namespace PV {
 
@@ -16,13 +17,11 @@ namespace PV {
  * A membrane potential component that computes the pointwise quotient GSynExc / GSynInh.
  * Used by PtwiseQuotientLayer.
  */
-class PtwiseQuotientInternalStateBuffer : public InternalStateBuffer {
+class PtwiseQuotientInternalStateBuffer : public GSynInternalStateBuffer {
   public:
    PtwiseQuotientInternalStateBuffer(char const *name, HyPerCol *hc);
 
    virtual ~PtwiseQuotientInternalStateBuffer();
-
-   virtual void updateBuffer(double simTime, double deltaTime) override;
 
   protected:
    PtwiseQuotientInternalStateBuffer() {}
@@ -30,6 +29,10 @@ class PtwiseQuotientInternalStateBuffer : public InternalStateBuffer {
    int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
+
+   virtual void requireInputChannels() override;
+
+   virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
   protected:
 };

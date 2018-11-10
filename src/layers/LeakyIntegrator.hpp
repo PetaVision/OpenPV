@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class LeakyIntegrator : public PV::ANNLayer {
+class LeakyIntegrator : public ANNLayer {
    // Member functions
   public:
    LeakyIntegrator(const char *name, HyPerCol *hc);
@@ -21,7 +21,7 @@ class LeakyIntegrator : public PV::ANNLayer {
   protected:
    LeakyIntegrator();
    int initialize(const char *name, HyPerCol *hc);
-   virtual InternalStateBuffer *createInternalState() override;
+   virtual ActivityComponent *createActivityComponent() override;
 
   private:
    int initialize_base();

@@ -8,7 +8,9 @@
 #ifndef RESCALELAYERTESTPROBE_HPP_
 #define RESCALELAYERTESTPROBE_HPP_
 
-#include "probes/StatsProbe.hpp"
+#include <probes/StatsProbe.hpp>
+
+#include <components/RescaleActivityBuffer.hpp>
 
 namespace PV {
 
@@ -35,8 +37,8 @@ class RescaleLayerTestProbe : public PV::StatsProbe {
          double *stdA,
          double *stdB);
 
-  private:
-   int initialize_base();
+  protected:
+   RescaleActivityBuffer *mRescaleBuffer = nullptr;
 
 }; // end class RescaleLayerTestProbe
 

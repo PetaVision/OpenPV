@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class NormalizeContrastZeroMean : public PV::NormalizeBase {
+class NormalizeContrastZeroMean : public NormalizeBase {
    // Member functions
   public:
    NormalizeContrastZeroMean(const char *name, HyPerCol *hc);

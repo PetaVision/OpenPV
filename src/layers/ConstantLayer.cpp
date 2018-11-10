@@ -9,22 +9,17 @@
 
 namespace PV {
 
-ConstantLayer::ConstantLayer() { initialize_base(); }
+ConstantLayer::ConstantLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-ConstantLayer::ConstantLayer(const char *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+ConstantLayer::ConstantLayer() {}
 
 ConstantLayer::~ConstantLayer() {}
 
-int ConstantLayer::initialize_base() {
-   writeStep = -1; // HyPerLayer default for writeStep is 1.0, but -1 (never write) is a better
-   // default for ConstantLayer
-   return PV_SUCCESS;
-}
-
 int ConstantLayer::initialize(const char *name, HyPerCol *hc) {
+   // HyPerLayer default for writeStep is 1.0, but
+   // writeStep = -1 (never write) is a better default for ConstantLayer.
+   writeStep = -1;
+
    int status = HyPerLayer::initialize(name, hc);
    return status;
 }
@@ -36,11 +31,6 @@ void ConstantLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
       triggerFlag      = false;
       parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName", nullptr);
    }
-}
-
-Response::Status
-ConstantLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   return HyPerLayer::communicateInitInfo(message);
 }
 
 bool ConstantLayer::needUpdate(double simTime, double dt) const { return false; }

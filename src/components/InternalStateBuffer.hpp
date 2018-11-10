@@ -1,15 +1,14 @@
 /*
  * InternalStateBuffer.hpp
  *
- *  Created on: Sep 6, 2018
+ *  Created on: Sep 11, 2018
  *      Author: Pete Schultz
  */
 
 #ifndef INTERNALSTATEBUFFER_HPP_
 #define INTERNALSTATEBUFFER_HPP_
 
-#include "components/BufferComponent.hpp"
-#include "components/LayerInputBuffer.hpp"
+#include "components/RestrictedBuffer.hpp"
 #include "initv/BaseInitV.hpp"
 
 namespace PV {
@@ -17,7 +16,7 @@ namespace PV {
 /**
  * A component to contain the internal state (membrane potential) of a HyPerLayer.
  */
-class InternalStateBuffer : public BufferComponent {
+class InternalStateBuffer : public RestrictedBuffer {
   protected:
    /**
     * List of parameters needed from the InternalStateBuffer class
@@ -46,11 +45,6 @@ class InternalStateBuffer : public BufferComponent {
 
    virtual ~InternalStateBuffer();
 
-   virtual void updateBuffer(double simTime, double deltaTime) override;
-
-   float *getV() { return mBufferData.data(); }
-   // TODO: remove. External access to mBufferData should be read-only, except through updateBuffer
-
   protected:
    InternalStateBuffer() {}
 
@@ -61,12 +55,6 @@ class InternalStateBuffer : public BufferComponent {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
-   void checkDimensions(PVLayerLoc const *inLoc, PVLayerLoc const *outLoc) const;
-   void checkDimension(int gSynSize, int internalStateSize, char const *fieldname) const;
-
-   virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    virtual Response::Status
@@ -74,9 +62,8 @@ class InternalStateBuffer : public BufferComponent {
 
   private:
   protected:
-   BaseInitV *mInitVObject        = nullptr;
-   char *mInitVTypeString         = nullptr;
-   LayerInputBuffer *mInputBuffer = nullptr;
+   BaseInitV *mInitVObject = nullptr;
+   char *mInitVTypeString  = nullptr;
 };
 
 } // namespace PV

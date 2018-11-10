@@ -39,16 +39,16 @@ S *ObserverTable::lookupByType() const {
 }
 
 template <typename S>
-S *ObserverTable::lookupByNameRecursive(char const *name, int maxIterations) const {
-   int n                         = maxIterations;
-   ObserverTable *tableComponent = this;
-   S *lookupResult               = lookupByName<S>(name);
+S *ObserverTable::lookupByNameRecursive(std::string const &name, int maxIterations) const {
+   int n                               = maxIterations;
+   ObserverTable const *tableComponent = this;
+   S *lookupResult                     = lookupByName<S>(name);
    while (lookupResult == nullptr and n != 0) {
       tableComponent = tableComponent->lookupByType<ObserverTable>();
       if (tableComponent == nullptr) {
          break;
       }
-      lookupResult = tableComponent->lookupByType<S>(name);
+      lookupResult = tableComponent->lookupByName<S>(name);
       n--;
    }
    return lookupResult;
@@ -56,9 +56,9 @@ S *ObserverTable::lookupByNameRecursive(char const *name, int maxIterations) con
 
 template <typename S>
 S *ObserverTable::lookupByTypeRecursive(int maxIterations) const {
-   int n                         = maxIterations;
-   ObserverTable *tableComponent = this;
-   S *lookupResult               = lookupByType<S>();
+   int n                               = maxIterations;
+   ObserverTable const *tableComponent = this;
+   S *lookupResult                     = lookupByType<S>();
    while (lookupResult == nullptr and n != 0) {
       tableComponent = tableComponent->lookupByType<ObserverTable>();
       if (tableComponent == nullptr) {

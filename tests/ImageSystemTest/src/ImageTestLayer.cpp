@@ -11,8 +11,11 @@ Response::Status ImageTestLayer::updateState(double time, double dt) {
    int ny                = loc->ny;
    int nf                = loc->nf;
    int nbatch            = loc->nbatch;
+
+   std::string const lookupString = std::string("A \"") + getName() + "\"";
+   ActivityBuffer *A = mActivityComponent->getTable()->lookupByName<ActivityBuffer>(lookupString);
    for (int b = 0; b < nbatch; b++) {
-      float *dataBatch = getActivity() + b * getNumExtended();
+      float const *dataBatch = A->getBufferData(b);
       for (int nkRes = 0; nkRes < getNumNeurons(); nkRes++) {
          // Calculate extended index
          int nkExt = kIndexExtended(
@@ -33,4 +36,5 @@ Response::Status ImageTestLayer::updateState(double time, double dt) {
    }
    return Response::SUCCESS;
 }
-}
+
+} // end namespace PV

@@ -1,3 +1,8 @@
+/*
+ *  Created on: Jan 15, 2014
+ *      Author: Sheng Lundquist
+ */
+
 #ifndef BINNINGLAYER_HPP_
 #define BINNINGLAYER_HPP_
 
@@ -6,58 +11,36 @@
 
 namespace PV {
 
-class BinningLayer : public PV::HyPerLayer {
+/**
+ * A layer class to sort another layer's output activity into bins.
+ * The number of features of the BinningLayer is the number of bins.
+ * The number of features of the other layer must be equal to 1.
+ * In the simplest case, with binSigma==0, the region [binMin, binMax] is divided into nf equal
+ * intervals, labeled 0, 1, ..., nf-1.
+ * If the input activity at the location (x,y) falls into the bin labeled k, then the BinningLayer
+ * has A(x,y,k) = 1 and A(x,y,k') = 0 if k != k'. If any input activity is less than the binMin
+ * parameter, it is put in the bin labeled 0; similarly, input activity greater than binMax is put
+ * in the bin labeled nf-1.
+ *
+ * Other parameters can modify the behavior of the BinningLayer, as described
+ * in the documentation for those parameters.
+ */
+
+class BinningLayer : public HyPerLayer {
   public:
    BinningLayer(const char *name, HyPerCol *hc);
-   virtual Response::Status allocateDataStructures() override;
-   virtual bool activityIsSpiking() override { return false; }
    virtual ~BinningLayer();
 
   protected:
    BinningLayer();
    int initialize(const char *name, HyPerCol *hc);
+
    virtual void createComponentTable(char const *description) override;
    virtual LayerInputBuffer *createLayerInput() override;
-   virtual InternalStateBuffer *createInternalState() override;
+   virtual ActivityComponent *createActivityComponent() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
-   void ioParam_delay(enum ParamsIOFlag ioFlag);
-   void ioParam_binSigma(enum ParamsIOFlag ioFlag);
-   void ioParam_zeroNeg(enum ParamsIOFlag ioFlag);
-   void ioParam_zeroDCR(enum ParamsIOFlag ioFlag);
-   void ioParam_normalDist(enum ParamsIOFlag ioFlag);
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   void setOriginalLayer();
-   virtual void initializeActivity() override;
-   virtual Response::Status updateState(double timef, double dt) override;
-   void doUpdateState(
-         double timed,
-         double dt,
-         const PVLayerLoc *origLoc,
-         const PVLayerLoc *currLoc,
-         const float *origData,
-         float *currV,
-         float binMax,
-         float binMin);
-
-   float getSigma() { return binSigma; }
-   float calcNormDist(float xVal, float mean, float binSigma);
-
-  private:
-   int initialize_base();
-   int delay;
-   float binMax;
-   float binMin;
-   float binSigma;
-   bool zeroNeg;
-   bool zeroDCR;
-   bool normalDist;
-
-  protected:
-   HyPerLayer *mOriginalLayer = nullptr;
 }; // class BinningLayer
 
-} /* namespace PV */
-#endif
+} // namespace PV
+
+#endif /* CLONELAYER_HPP_ */

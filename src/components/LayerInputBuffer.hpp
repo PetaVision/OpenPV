@@ -1,14 +1,14 @@
 /*
  * LayerInputBuffer.hpp
  *
- *  Created on: Sep 6, 2018
+ *  Created on: Sep 13, 2018 from the original HyPerLayer
  *      Author: Pete Schultz
  */
 
 #ifndef LAYERINPUTBUFFER_HPP_
 #define LAYERINPUTBUFFER_HPP_
 
-#include "components/BufferComponent.hpp"
+#include "components/ComponentBuffer.hpp"
 #include "delivery/LayerInputDelivery.hpp"
 
 #ifdef PV_USE_CUDA
@@ -20,7 +20,7 @@ namespace PV {
 /**
  * A component to contain the internal state (membrane potential) of a HyPerLayer.
  */
-class LayerInputBuffer : public BufferComponent {
+class LayerInputBuffer : public ComponentBuffer {
   protected:
    /**
     * List of parameters needed from the LayerInputBuffer class
@@ -45,12 +45,6 @@ class LayerInputBuffer : public BufferComponent {
     * is not checked.
     */
    void addDeliverySource(LayerInputDelivery *delivery);
-
-   virtual void updateBuffer(double simTime, double deltaTime) override;
-
-   float *getLayerInput() { return mBufferData.data(); }
-   float *getLayerInput(int ch) { return &mBufferData.data()[ch * getBufferSizeAcrossBatch()]; }
-   // TODO: remove. External access to mBufferData should be read-only, except through updateBuffer
 
    bool getHasReceived() const { return mHasReceived; }
 
@@ -79,7 +73,9 @@ class LayerInputBuffer : public BufferComponent {
    Response::Status
    respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
 
+#ifdef PV_USE_CUDA
    Response::Status respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message);
+#endif // PV_USE_CUDA
 
    /**
     * Returns true if each layer that delivers input to this layer
@@ -88,12 +84,17 @@ class LayerInputBuffer : public BufferComponent {
     */
    bool isAllInputReady();
 
-   virtual void resetGSynBuffers(double simulationTime, double dt);
+   virtual void resetGSynBuffers(double simTime, double dt);
 
    /**
     * Calls deliver for each DeliverySource connecting to this buffer.
     */
-   virtual void recvAllSynapticInput(double simulationTime, double deltaTime);
+   virtual void recvAllSynapticInput(double simTime, double deltaTime);
+
+   virtual void updateBufferCPU(double simTime, double deltaTime) override;
+#ifdef PV_USE_CUDA
+   virtual void updateBufferGPU(double simTime, double deltaTime) override;
+#endif // PV_USE_CUDA
 
   protected:
    std::vector<double> mChannelTimeConstants;
@@ -102,6 +103,7 @@ class LayerInputBuffer : public BufferComponent {
 
    Timer *mReceiveInputTimer = nullptr;
 #ifdef PV_USE_CUDA
+   std::vector<LayerInputDelivery *> mGPUDeliverySources; // delivery sources that set recvGpu
    PVCuda::CudaTimer *mReceiveInputCudaTimer = nullptr;
 #endif
 };

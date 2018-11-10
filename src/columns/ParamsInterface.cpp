@@ -53,7 +53,8 @@ void ParamsInterface::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioF
             this->name,
             "initializeFromCheckpointFlag",
             &mInitializeFromCheckpointFlag,
-            mInitializeFromCheckpointFlag);
+            mInitializeFromCheckpointFlag /*default value*/,
+            false /*no warnings if param is absent*/);
    }
 }
 

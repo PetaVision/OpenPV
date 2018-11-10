@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class InitIdentWeights : public PV::InitOneToOneWeights {
+class InitIdentWeights : public InitOneToOneWeights {
   protected:
    virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag) override;
 

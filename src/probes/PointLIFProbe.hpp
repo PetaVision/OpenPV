@@ -43,6 +43,12 @@ class PointLIFProbe : public PointProbe {
   private:
    int initialize_base();
 
+   /**
+    * Used by calcValues to get the buffer data for the components in the
+    * target LIF layer's activity component.
+    */
+   float const *getBufferData(ObserverTable const *table, char const *label);
+
   protected:
    double writeTime; // time of next output
    double writeStep; // output time interval

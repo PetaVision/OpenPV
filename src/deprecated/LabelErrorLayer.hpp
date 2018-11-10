@@ -14,7 +14,7 @@
 
 namespace PV {
 
-class LabelErrorLayer : public PV::ANNLayer {
+class LabelErrorLayer : public ANNLayer {
   public:
    LabelErrorLayer(const char *name, HyPerCol *hc);
    virtual ~LabelErrorLayer();

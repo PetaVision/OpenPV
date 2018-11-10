@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class GapConn : public PV::HyPerConn {
+class GapConn : public HyPerConn {
   public:
    GapConn(const char *name, HyPerCol *hc);
    virtual ~GapConn();

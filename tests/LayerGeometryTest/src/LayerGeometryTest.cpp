@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
    lg = new PV::LayerGeometry("Layer", hc);
    lg->readParams();
 
-   auto *observerTable        = hc->getObserverComponentTable();
+   auto *observerTable        = hc->getTable();
    auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
          observerTable,
          hc->getNxGlobal(),
@@ -114,7 +114,7 @@ PVLayerLoc makeCorrectLoc(PV::HyPerCol *hc) {
 }
 
 void communicateInitInfo(PV::HyPerCol *hc) {
-   auto *observerTable = hc->getObserverComponentTable();
+   auto *observerTable = hc->getTable();
    auto messagePtr     = std::make_shared<PV::CommunicateInitInfoMessage>(
          observerTable,
          hc->getNxGlobal(),

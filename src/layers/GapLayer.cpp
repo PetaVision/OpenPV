@@ -6,107 +6,24 @@
  */
 
 #include "GapLayer.hpp"
-#include "HyPerLayer.hpp"
+#include "components/ActivityComponentWithInternalState.hpp"
+#include "components/CloneInternalStateBuffer.hpp"
+#include "components/GapActivityBuffer.hpp"
 
-// GapLayer can be used to implement gap junctions
 namespace PV {
-GapLayer::GapLayer() { initialize_base(); }
 
-GapLayer::GapLayer(const char *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+GapLayer::GapLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
 GapLayer::~GapLayer() {}
 
-int GapLayer::initialize_base() {
-   ampSpikelet = 50;
-   return PV_SUCCESS;
-}
-
 int GapLayer::initialize(const char *name, HyPerCol *hc) {
-   return CloneVLayer::initialize(name, hc);
-}
-
-int GapLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = CloneVLayer::ioParamsFillGroup(ioFlag);
-   ioParam_ampSpikelet(ioFlag);
+   int status = CloneVLayer::initialize(name, hc);
    return status;
 }
 
-void GapLayer::ioParam_ampSpikelet(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "ampSpikelet", &ampSpikelet, ampSpikelet);
-}
-
-Response::Status
-GapLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   return CloneVLayer::communicateInitInfo(message);
-   // Handled by CloneVLayer
-}
-
-Response::Status GapLayer::allocateDataStructures() {
-   return CloneVLayer::allocateDataStructures();
-}
-
-Response::Status GapLayer::updateState(double timef, double dt) {
-   int status;
-   updateState(timef, dt, getLayerLoc(), getActivity(), getV(), mOriginalLayer->getActivity());
-   return Response::SUCCESS;
-}
-
-void GapLayer::updateState(
-      double timef,
-      double dt,
-      const PVLayerLoc *loc,
-      float *A,
-      float *V,
-      float *checkActive) {
-   int nx          = loc->nx;
-   int ny          = loc->ny;
-   int nf          = loc->nf;
-   int num_neurons = nx * ny * nf;
-   int nbatch      = loc->nbatch;
-   // No need to update V since GapLayer is a CloneVLayer.
-   setActivity_GapLayer(
-         nbatch,
-         num_neurons,
-         A,
-         V,
-         nx,
-         ny,
-         nf,
-         loc->halo.lt,
-         loc->halo.rt,
-         loc->halo.dn,
-         loc->halo.up,
-         mOriginalLayer->getLayerLoc()->halo.lt,
-         mOriginalLayer->getLayerLoc()->halo.rt,
-         mOriginalLayer->getLayerLoc()->halo.dn,
-         mOriginalLayer->getLayerLoc()->halo.up,
-         checkActive,
-         ampSpikelet);
-}
-
-int GapLayer::setActivity() {
-   const PVLayerLoc *loc = getLayerLoc();
-   return setActivity_GapLayer(
-         loc->nbatch,
-         getNumNeurons(),
-         getActivity(),
-         getV(),
-         loc->nx,
-         loc->ny,
-         loc->nf,
-         loc->halo.lt,
-         loc->halo.rt,
-         loc->halo.dn,
-         loc->halo.up,
-         mOriginalLayer->getLayerLoc()->halo.lt,
-         mOriginalLayer->getLayerLoc()->halo.rt,
-         mOriginalLayer->getLayerLoc()->halo.dn,
-         mOriginalLayer->getLayerLoc()->halo.up,
-         getActivity(),
-         ampSpikelet);
+ActivityComponent *GapLayer::createActivityComponent() {
+   return new ActivityComponentWithInternalState<CloneInternalStateBuffer, GapActivityBuffer>(
+         getName(), parent);
 }
 
 } // end namespace PV

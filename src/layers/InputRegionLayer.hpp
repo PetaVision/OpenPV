@@ -25,7 +25,6 @@ class InputRegionLayer : public HyPerLayer {
    virtual ~InputRegionLayer();
    virtual bool needUpdate(double simTime, double dt) const override;
    virtual bool activityIsSpiking() override { return false; }
-   InputLayer *getOriginalLayer() { return mOriginalLayer; }
 
   protected:
    InputRegionLayer();
@@ -34,23 +33,10 @@ class InputRegionLayer : public HyPerLayer {
    virtual PhaseParam *createPhaseParam() override;
    virtual BoundaryConditions *createBoundaryConditions() override;
    virtual LayerInputBuffer *createLayerInput() override;
-   virtual InternalStateBuffer *createInternalState() override;
+   virtual ActivityComponent *createActivityComponent() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag) override;
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   void setOriginalLayer();
-   void checkLayerDimensions();
-   virtual Response::Status allocateDataStructures() override;
-   virtual int setActivity() override;
-
-  private:
-   int initialize_base();
-
-  protected:
-   InputLayer *mOriginalLayer = nullptr;
 }; // class InputRegionLayer
 
 } /* namespace PV */

@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class InitCocircWeights : public PV::InitGauss2DWeights {
+class InitCocircWeights : public InitGauss2DWeights {
   protected:
    virtual void ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sigmaKurve(enum ParamsIOFlag ioFlag);

@@ -16,19 +16,15 @@ namespace PV {
 
 class IndexLayer : public HyPerLayer {
   public:
-   IndexLayer(char const *name, HyPerCol *hc);
-   ~IndexLayer();
+   IndexLayer(const char *name, HyPerCol *hc);
+   virtual ~IndexLayer();
 
   protected:
-   IndexLayer();
-   int initialize(char const *name, HyPerCol *hc);
-   virtual Response::Status
-   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
-   virtual void initializeActivity();
-   virtual Response::Status updateState(double timef, double dt) override;
+   IndexLayer() {}
 
-  private:
-   int initialize_base();
+   int initialize(const char *name, HyPerCol *hc);
+
+   virtual ActivityComponent *createActivityComponent() override;
 };
 
 } // end namespace PV

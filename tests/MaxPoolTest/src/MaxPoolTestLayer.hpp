@@ -1,18 +1,16 @@
 #ifndef MAXPOOLTESTLAYER_HPP_
 #define MAXPOOLTESTLAYER_HPP_
 
-#include <layers/ANNLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
-class MaxPoolTestLayer : public PV::ANNLayer {
+class MaxPoolTestLayer : public HyPerLayer {
   public:
    MaxPoolTestLayer(const char *name, HyPerCol *hc);
 
   protected:
-   Response::Status updateState(double timef, double dt) override;
-
-  private:
+   ActivityComponent *createActivityComponent() override;
 };
 
 } /* namespace PV */

@@ -6,7 +6,7 @@
  */
 
 #include "observerpattern/ObserverTable.hpp"
-#include "columns/HyPerCol.hpp"
+#include "utils/PVLog.hpp"
 
 namespace PV {
 

@@ -10,9 +10,8 @@ HyPerCol "column" = {
     //Change this
     outputPath = "output/HyPerLCAGpuTest";
     checkpointWrite = true;
-    checkpointWriteDir = "output/checkpoints/";
+    checkpointWriteDir = "output/HyPerLCAGpuTest/checkpoints/";
     checkpointWriteStepInterval = 1;
-    lastCheckpointDir = "output/HyPerLCAGpuTest/Last";
     writeProgressToErr = true;
     nbatch = 2;
 };
@@ -264,22 +263,10 @@ IdentConn "RecvPreTest" = {
     writeStep = -1;
 };
 
-//GPUSystemTestProbe "gpuProbe" = {
-//   targetLayer = "outputRecvGpu";
-//   message = "gpuProbe ";
-//};
-//
-//GPUSystemTestProbe "regProbe" = {
-//   targetLayer = "outputRecv";
-//   message = "regProbe ";
-//};
-
 GPUSystemTestProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
+   nnzThreshold = 5.0e-4;
+   exitOnFailure = true;
+   immediateExitOnFailure = false;
 };
-
-//RequireAllZeroActivityProbe "testProbe" = {
-//    targetLayer = "outputTest";
-//    nnzThreshold = 1e-6;
-//};

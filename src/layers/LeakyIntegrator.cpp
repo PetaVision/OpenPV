@@ -6,8 +6,9 @@
  */
 
 #include "LeakyIntegrator.hpp"
-#include "components/LeakyInternalStateBuffer.hpp"
-#include <cmath>
+#include "components/ANNActivityBuffer.hpp"
+#include "components/ActivityComponentWithInternalState.hpp"
+#include "components/LeakyIntegratorBuffer.hpp"
 
 namespace PV {
 
@@ -28,8 +29,9 @@ int LeakyIntegrator::initialize(const char *name, HyPerCol *hc) {
    return status;
 }
 
-InternalStateBuffer *LeakyIntegrator::createInternalState() {
-   return new LeakyInternalStateBuffer(getName(), parent);
+ActivityComponent *LeakyIntegrator::createActivityComponent() {
+   return new ActivityComponentWithInternalState<LeakyIntegratorBuffer, ANNActivityBuffer>(
+         getName(), parent);
 }
 
 LeakyIntegrator::~LeakyIntegrator() {}

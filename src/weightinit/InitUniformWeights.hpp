@@ -15,7 +15,7 @@ namespace PV {
 /**
  * A weight initializer that sets each weight to the same value.
  */
-class InitUniformWeights : public PV::InitWeights {
+class InitUniformWeights : public InitWeights {
   protected:
    /**
     * List of parameters needed by InitUniformWeights class

@@ -70,7 +70,7 @@ CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       } catch (std::invalid_argument &e) {
          Fatal().printf("%s: %s\n", getDescription_c(), e.what());
       }
-      pvAssert(originalConn); // findLinkedObject() throws instead of returns nullptr
+      pvAssert(originalConn); // findLinkedObject() throws instead of returning nullptr
 
       if (!originalConn->getInitInfoCommunicatedFlag()) {
          if (parent->getCommunicator()->globalCommRank() == 0) {
@@ -78,7 +78,7 @@ CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
                   "%s must wait until original connection \"%s\" has finished its "
                   "communicateInitInfo stage.\n",
                   getDescription_c(),
-                  mOriginalWeightsPair->getName());
+                  originalConn->getName());
          }
          return Response::POSTPONE;
       }

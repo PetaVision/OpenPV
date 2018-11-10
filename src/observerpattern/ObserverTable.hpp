@@ -52,7 +52,7 @@ class ObserverTable : public Observer {
    S *lookupByType() const;
 
    template <typename S>
-   S *lookupByNameRecursive(char const *name, int maxIterations) const;
+   S *lookupByNameRecursive(std::string const &name, int maxIterations) const;
 
    template <typename S>
    S *lookupByTypeRecursive(int maxIterations) const;

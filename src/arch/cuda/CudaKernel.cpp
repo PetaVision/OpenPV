@@ -18,21 +18,21 @@ CudaKernel::CudaKernel(CudaDevice *inDevice) {
    argsSet      = false;
    dimsSet      = false;
    this->device = inDevice;
-   kernelName   = nullptr;
+   mKernelName  = nullptr;
 }
 
 CudaKernel::CudaKernel() {
-   argsSet    = false;
-   dimsSet    = false;
-   device     = NULL;
-   kernelName = nullptr;
+   argsSet     = false;
+   dimsSet     = false;
+   device      = NULL;
+   mKernelName = nullptr;
 }
 
 CudaKernel::~CudaKernel() {}
 
 int CudaKernel::run() {
    int runResult = do_run();
-   handleCallError(kernelName);
+   handleCallError(mKernelName);
    return runResult;
 }
 
@@ -40,35 +40,35 @@ int CudaKernel::run() {
 int CudaKernel::run(long global_work_size) {
    setDims(global_work_size, 1, 1, 1, 1, 1);
    int runResult = do_run();
-   handleCallError(kernelName);
+   handleCallError(mKernelName);
    return runResult;
 }
 
 int CudaKernel::run(long global_work_size, long local_work_size) {
    setDims(global_work_size, 1, 1, local_work_size, 1, 1);
    int runResult = do_run();
-   handleCallError(kernelName);
+   handleCallError(mKernelName);
    return runResult;
 }
 
 int CudaKernel::run_nocheck(long global_work_size, long local_work_size) {
    setDims(global_work_size, 1, 1, local_work_size, 1, 1, false);
    int runResult = do_run();
-   handleCallError(kernelName);
+   handleCallError(mKernelName);
    return runResult;
 }
 
 int CudaKernel::run(long gWorkSizeX, long gWorkSizeY, long lWorkSizeX, long lWorkSizeY) {
    setDims(gWorkSizeX, gWorkSizeY, 1, lWorkSizeX, lWorkSizeY, 1);
    int runResult = do_run();
-   handleCallError(kernelName);
+   handleCallError(mKernelName);
    return runResult;
 }
 
 int CudaKernel::run_nocheck(long gWorkSizeX, long gWorkSizeY, long lWorkSizeX, long lWorkSizeY) {
    setDims(gWorkSizeX, gWorkSizeY, 1, lWorkSizeX, lWorkSizeY, 1, false);
    int runResult = do_run();
-   handleCallError(kernelName);
+   handleCallError(mKernelName);
    return runResult;
 }
 
@@ -81,7 +81,7 @@ int CudaKernel::run(
       long lWorkSizeF) {
    setDims(gWorkSizeF, gWorkSizeX, gWorkSizeY, lWorkSizeF, lWorkSizeX, lWorkSizeY);
    int runResult = do_run();
-   handleCallError(kernelName);
+   handleCallError(mKernelName);
    return runResult;
 }
 

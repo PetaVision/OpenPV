@@ -10,16 +10,11 @@
 
 namespace PV {
 
-PoolingIndexLayer::PoolingIndexLayer() { initialize_base(); }
+PoolingIndexLayer::PoolingIndexLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-PoolingIndexLayer::PoolingIndexLayer(const char *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+PoolingIndexLayer::PoolingIndexLayer() {}
 
 PoolingIndexLayer::~PoolingIndexLayer() {}
-
-int PoolingIndexLayer::initialize_base() { return PV_SUCCESS; }
 
 int PoolingIndexLayer::initialize(const char *name, HyPerCol *hc) {
    int status = HyPerLayer::initialize(name, hc);

@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class StatsProbe : public PV::LayerProbe {
+class StatsProbe : public LayerProbe {
   public:
    StatsProbe(const char *name, HyPerCol *hc);
    virtual ~StatsProbe();

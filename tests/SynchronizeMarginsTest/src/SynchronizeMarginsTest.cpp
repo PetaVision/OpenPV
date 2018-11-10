@@ -154,7 +154,7 @@ void initGeometries(
       PV::LayerGeometry **geomA,
       PV::LayerGeometry **geomB,
       PV::LayerGeometry **geomC) {
-   auto *observerTable        = hc->getObserverComponentTable();
+   auto *observerTable        = hc->getTable();
    auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
          observerTable,
          hc->getNxGlobal(),

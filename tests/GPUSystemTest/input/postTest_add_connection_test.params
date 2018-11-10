@@ -291,32 +291,26 @@ IdentConn "RecvTest3_2" = {
     writeStep = -1;
 };
 
-//GPUSystemTestProbe "probe1_1" = {
-//   targetLayer = "outputRecv1_1";
-//   message = "VAL 1_1 ";
-//};
-//
-//GPUSystemTestProbe "probe1_2" = {
-//   targetLayer = "outputRecv1_2";
-//   message = "VAL 1_2 ";
-//};
-//
-//GPUSystemTestProbe "probe2_1" = {
-//   targetLayer = "outputRecv2_1";
-//   message = "VAL 2_1 ";
-//};
-
 GPUSystemTestProbe "testProbe1_1And1_2" = {
    targetLayer = "Test1_1AndTest1_2";
    message = "DIFF 1_1And1_2 ";
+   nnzThreshold = 5.0e-4;
+   exitOnFailure = true;
+   immediateExitOnFailure = false;
 };
 
 GPUSystemTestProbe "testProbe1_1And2_1" = {
    targetLayer = "Test1_1AndTest2_1";
    message = "DIFF 1_1And2_1 ";
+   nnzThreshold = 5.0e-4;
+   exitOnFailure = true;
+   immediateExitOnFailure = false;
 };
 
 GPUSystemTestProbe "testProbe1_2And2_1" = {
    targetLayer = "Test1_2AndTest2_1";
    message = "DIFF 1_2And2_1 ";
+   nnzThreshold = 5.0e-4;
+   exitOnFailure = true;
+   immediateExitOnFailure = false;
 };

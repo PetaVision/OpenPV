@@ -16,12 +16,6 @@ int FailBeforeExpectedStartTimeLayer::initialize(char const *name, PV::HyPerCol 
    return PV::HyPerLayer::initialize(name, hc);
 }
 
-#ifdef PV_USE_CUDA
-PV::Response::Status FailBeforeExpectedStartTimeLayer::updateStateGpu(double simTime, double dt) {
-   return updateState(simTime, dt);
-}
-#endif // PV_USE_CUDA
-
 PV::Response::Status FailBeforeExpectedStartTimeLayer::updateState(double simTime, double dt) {
    FatalIf(
          simTime < mExpectedStartTime,

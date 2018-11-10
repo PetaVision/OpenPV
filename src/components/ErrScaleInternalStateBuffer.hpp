@@ -1,14 +1,14 @@
 /*
  * ErrScaleInternalStateBuffer.hpp
  *
- *  Created on: Sep 6, 2018
- *      Author: Pete Schultz
+ *  Created on: Jun 21, 2013
+ *      Author: gkenyon
  */
 
 #ifndef ERRSCALEINTERNALSTATEBUFFER_HPP_
 #define ERRSCALEINTERNALSTATEBUFFER_HPP_
 
-#include "components/InternalStateBuffer.hpp"
+#include "components/HyPerInternalStateBuffer.hpp"
 
 namespace PV {
 
@@ -16,7 +16,7 @@ namespace PV {
  * A membrane potential component that reads the excitatory channel of a LayerInputBuffer and
  * computes V = GSynExc * GSynExc. Used by ANNSquaredLayer.
  */
-class ErrScaleInternalStateBuffer : public InternalStateBuffer {
+class ErrScaleInternalStateBuffer : public HyPerInternalStateBuffer {
   protected:
    /**
     * List of parameters used by the ANNErrorLayer class
@@ -35,8 +35,6 @@ class ErrScaleInternalStateBuffer : public InternalStateBuffer {
 
    virtual ~ErrScaleInternalStateBuffer();
 
-   virtual void updateBuffer(double simTime, double deltaTime) override;
-
   protected:
    ErrScaleInternalStateBuffer() {}
 
@@ -45,6 +43,8 @@ class ErrScaleInternalStateBuffer : public InternalStateBuffer {
    virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
   protected:
    float mErrScale = 1.0f;

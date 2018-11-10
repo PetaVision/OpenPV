@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class InitGauss2DWeights : public PV::InitWeights {
+class InitGauss2DWeights : public InitWeights {
   protected:
    /**
     * List of parameters needed from the InitGauss2DWeight class

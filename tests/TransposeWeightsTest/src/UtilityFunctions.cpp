@@ -1,5 +1,5 @@
 #include "UtilityFunctions.hpp"
-#include <components/Weights.cpp>
+#include <components/Weights.hpp>
 #include <utils/PVAssert.hpp>
 #include <utils/PVLog.hpp>
 #include <utils/TransposeWeights.hpp>

@@ -8,53 +8,24 @@
 
 #include "IndexLayer.hpp"
 
+#include "IndexInternalState.hpp"
+#include <components/ActivityComponentWithInternalState.hpp>
+#include <components/HyPerActivityBuffer.hpp>
+
 namespace PV {
 
-IndexLayer::IndexLayer(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
-
-IndexLayer::IndexLayer() { initialize_base(); }
+IndexLayer::IndexLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
 IndexLayer::~IndexLayer() {}
 
-int IndexLayer::initialize_base() { return PV_SUCCESS; }
-
-int IndexLayer::initialize(char const *name, HyPerCol *hc) {
-   return HyPerLayer::initialize(name, hc);
+int IndexLayer::initialize(const char *name, HyPerCol *hc) {
+   int status = HyPerLayer::initialize(name, hc);
+   return status;
 }
 
-PV::Response::Status
-IndexLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   auto status = HyPerLayer::initializeState(message);
-   if (!Response::completed(status)) {
-      return status;
-   }
-   return updateState(0.0 /*timestamp*/, message->mDeltaTime);
-}
-
-void IndexLayer::initializeActivity() {
-   // initializeState also calls updateState, so initializeActivity does not need to do anything
-}
-
-Response::Status IndexLayer::updateState(double timef, double dt) {
-   PVLayerLoc const *loc = getLayerLoc();
-   PVHalo const &halo    = loc->halo;
-   for (int b = 0; b < loc->nbatch; b++) {
-      float *V = &getV()[b * getNumNeurons()];
-      float *A = &mActivity->getActivity()[b * getNumExtended()];
-      for (int k = 0; k < getNumNeurons(); k++) {
-         int kGlobal      = globalIndexFromLocal(k, *loc);
-         int kGlobalBatch = kGlobal + (b + loc->kb0) * getNumGlobalNeurons();
-         float value      = (float)kGlobalBatch * (float)timef;
-         V[k]             = value;
-         int kExt =
-               kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo.lt, halo.rt, halo.dn, halo.up);
-         A[kExt] = value;
-      }
-   }
-   return Response::SUCCESS;
+ActivityComponent *IndexLayer::createActivityComponent() {
+   return new ActivityComponentWithInternalState<IndexInternalState, HyPerActivityBuffer>(
+         getName(), parent);
 }
 
 } // end namespace PV

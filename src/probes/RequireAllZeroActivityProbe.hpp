@@ -22,7 +22,7 @@
 
 namespace PV {
 
-class RequireAllZeroActivityProbe : public PV::StatsProbe {
+class RequireAllZeroActivityProbe : public StatsProbe {
   public:
    RequireAllZeroActivityProbe(const char *name, HyPerCol *hc);
    virtual ~RequireAllZeroActivityProbe();

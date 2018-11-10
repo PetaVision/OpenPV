@@ -1,9 +1,17 @@
 #include "MaskTestInputLayer.hpp"
+#include <components/ActivityBuffer.hpp>
+#include <components/ActivityComponentWithInternalState.hpp>
+#include <components/HyPerInternalStateBuffer.hpp>
 
 namespace PV {
 
 MaskTestInputLayer::MaskTestInputLayer(const char *name, HyPerCol *hc) {
-   ANNLayer::initialize(name, hc);
+   HyPerLayer::initialize(name, hc);
+}
+
+ActivityComponent *MaskTestInputLayer::createActivityComponent() {
+   return new ActivityComponentWithInternalState<HyPerInternalStateBuffer, ActivityBuffer>(
+         getName(), parent);
 }
 
 // Makes a layer such that the restricted space is the index, but with spinning order be [x, y, f]
@@ -19,7 +27,7 @@ Response::Status MaskTestInputLayer::updateState(double timef, double dt) {
    int kx0               = loc->kx0;
    int ky0               = loc->ky0;
 
-   float *A = getActivity();
+   float *A = mActivityComponent->getComponentByType<ActivityBuffer>()->getReadWritePointer();
    // looping over ext
    for (int iY = 0; iY < ny + loc->halo.up + loc->halo.dn; iY++) {
       for (int iX = 0; iX < nx + loc->halo.lt + loc->halo.rt; iX++) {

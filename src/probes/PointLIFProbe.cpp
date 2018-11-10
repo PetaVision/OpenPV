@@ -6,8 +6,9 @@
  */
 
 #include "PointLIFProbe.hpp"
-#include "../layers/HyPerLayer.hpp"
-#include "../layers/LIF.hpp"
+#include "columns/HyPerCol.hpp"
+#include "components/LIFActivityComponent.hpp"
+#include "layers/HyPerLayer.hpp"
 #include <assert.h>
 #include <string.h>
 
@@ -54,23 +55,28 @@ void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 
 void PointLIFProbe::initNumValues() { setNumValues(NUMBER_OF_VALUES); }
 
+float const *PointLIFProbe::getBufferData(ObserverTable const *table, char const *label) {
+   std::string lookupString = std::string(label) + " \"" + getTargetLayer()->getName() + "\"";
+   ComponentBuffer *buffer  = table->lookupByName<ComponentBuffer>(lookupString);
+   float const *bufferData  = buffer->getBufferData();
+   pvAssert(bufferData);
+   return bufferData;
+}
+
 void PointLIFProbe::calcValues(double timevalue) {
    // TODO: Reduce duplicated code between PointProbe::calcValues and
    // PointLIFProbe::calcValues.
    assert(this->getNumValues() == NUMBER_OF_VALUES);
-   LIF *LIF_layer = dynamic_cast<LIF *>(getTargetLayer());
-   assert(LIF_layer != NULL);
-   pvconductance_t const *G_E =
-         LIF_layer->getConductance(CHANNEL_EXC) + batchLoc * LIF_layer->getNumNeurons();
-   pvconductance_t const *G_I =
-         LIF_layer->getConductance(CHANNEL_INH) + batchLoc * LIF_layer->getNumNeurons();
-   pvconductance_t const *G_IB =
-         LIF_layer->getConductance(CHANNEL_INHB) + batchLoc * LIF_layer->getNumNeurons();
-   float const *V        = getTargetLayer()->getV();
-   float const *Vth      = LIF_layer->getVth();
-   float const *activity = getTargetLayer()->getLayerData();
-   assert(V && activity && G_E && G_I && G_IB && Vth);
-   double *valuesBuffer = this->getValuesBuffer();
+   LIFActivityComponent *lifActivity = getTargetLayer()->getComponentByType<LIFActivityComponent>();
+   pvAssert(lifActivity != nullptr);
+   ObserverTable const *activityComponents = lifActivity->getTable();
+   float const *V                          = getBufferData(activityComponents, "V");
+   float const *A                          = getBufferData(activityComponents, "A");
+   float const *G_E                        = getBufferData(activityComponents, "G_E");
+   float const *G_I                        = getBufferData(activityComponents, "G_I");
+   float const *G_IB                       = getBufferData(activityComponents, "G_IB");
+   float const *Vth                        = getBufferData(activityComponents, "Vth");
+   double *valuesBuffer                    = this->getValuesBuffer();
    // We need to calculate which mpi process contains the target point, and send
    // that info to the
    // root process

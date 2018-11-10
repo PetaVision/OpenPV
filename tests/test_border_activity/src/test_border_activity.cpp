@@ -99,8 +99,11 @@ int check_activity(HyPerLayer *l) {
    const int nk = l->getNumNeurons();
    FatalIf(!(nk == nx * ny * nf), "Test failed.\n");
 
+   auto *activityComponent = l->getComponentByType<ActivityComponent>();
+   auto *activityBuffer    = activityComponent->getComponentByType<ActivityBuffer>();
+   float const *activity   = activityBuffer->getBufferData();
    for (int k = 0; k < nk; k++) {
-      int a = (int)l->getActivity()[k];
+      int a = (int)activity[k];
       if (a != UNIFORM_ACTIVITY_VALUE) {
          status = -1;
          ErrorLog().printf("test_border_activity: activity==%d != %d\n", a, UNIFORM_ACTIVITY_VALUE);

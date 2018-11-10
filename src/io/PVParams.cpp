@@ -957,7 +957,7 @@ void PVParams::loadParamBuffer(char const *filename, std::string &paramsFileStri
       if (result != LUA_OK) {
          char const *errorMessage = lua_tostring(lua_state, -1);
          lua_pop(lua_state, 1);
-         Fatal() << errorMessage;
+         Fatal() << errorMessage << "\n";
       }
       lua_getglobal(lua_state, "paramsFileString");
       size_t llength;

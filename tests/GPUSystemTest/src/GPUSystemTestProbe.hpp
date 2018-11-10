@@ -5,11 +5,11 @@
 
 #ifndef GPUSYSTEMTESTPROBE_HPP_
 #define GPUSYSTEMTESTPROBE_HPP_
-#include "probes/StatsProbe.hpp"
+#include "probes/RequireAllZeroActivityProbe.hpp"
 
 namespace PV {
 
-class GPUSystemTestProbe : public PV::StatsProbe {
+class GPUSystemTestProbe : public PV::RequireAllZeroActivityProbe {
   public:
    GPUSystemTestProbe(const char *name, HyPerCol *hc);
 

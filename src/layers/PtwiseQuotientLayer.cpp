@@ -12,6 +12,8 @@
  */
 
 #include "PtwiseQuotientLayer.hpp"
+#include "components/ANNActivityBuffer.hpp"
+#include "components/ActivityComponentWithInternalState.hpp"
 #include "components/PtwiseQuotientInternalStateBuffer.hpp"
 
 namespace PV {
@@ -28,19 +30,17 @@ PtwiseQuotientLayer::~PtwiseQuotientLayer() {}
 int PtwiseQuotientLayer::initialize_base() { return PV_SUCCESS; }
 
 int PtwiseQuotientLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = ANNLayer::initialize(name, hc);
-   mLayerInput->requireChannel(0);
-   mLayerInput->requireChannel(1);
+   int status = HyPerLayer::initialize(name, hc);
    return status;
 }
 
-InternalStateBuffer *PtwiseQuotientLayer::createInternalState() {
-   return new PtwiseQuotientInternalStateBuffer(getName(), parent);
+ActivityComponent *PtwiseQuotientLayer::createActivityComponent() {
+   return new ActivityComponentWithInternalState<PtwiseQuotientInternalStateBuffer,
+                                                 HyPerActivityBuffer>(getName(), parent);
 }
 
 Response::Status PtwiseQuotientLayer::allocateDataStructures() {
-   auto status = ANNLayer::allocateDataStructures();
-   pvAssert(mLayerInput->getNumChannels() >= 2);
+   auto status = HyPerLayer::allocateDataStructures();
    return status;
 }
 

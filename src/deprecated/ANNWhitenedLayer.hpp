@@ -14,7 +14,7 @@
 
 namespace PV {
 
-class ANNWhitenedLayer : public PV::ANNLayer {
+class ANNWhitenedLayer : public ANNLayer {
   public:
    ANNWhitenedLayer(const char *name, HyPerCol *hc);
    virtual ~ANNWhitenedLayer();

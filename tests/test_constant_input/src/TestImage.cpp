@@ -1,48 +1,34 @@
 /*
  * TestImage.cpp
  *
- *  Created on: Mar 19, 2010
- *      Author: Craig Rasmussen
+ *  Created on: Jul 29, 2008
+ *
  */
 
 #include "TestImage.hpp"
+#include "TestImageActivityComponent.hpp"
 
 namespace PV {
 
-TestImage::TestImage() { initialize_base(); }
+TestImage::TestImage(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-TestImage::TestImage(const char *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+TestImage::TestImage() {}
 
 TestImage::~TestImage() {}
 
-int TestImage::initialize_base() { return PV_SUCCESS; }
-
 int TestImage::initialize(const char *name, HyPerCol *hc) {
-   return HyPerLayer::initialize(name, hc);
-}
-
-int TestImage::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
-   ioParam_constantVal(ioFlag);
+   int status = HyPerLayer::initialize(name, hc);
    return status;
 }
 
-void TestImage::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (float)1);
+ActivityComponent *TestImage::createActivityComponent() {
+   return new TestImageActivityComponent(getName(), parent);
 }
 
-void TestImage::initializeActivity() {
-   for (int k = 0; k < getNumNeurons(); k++) {
-      const PVLayerLoc *loc = getLayerLoc();
-      int kExt              = kIndexExtended(
-            k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-      getActivity()[kExt] = val;
-   }
+float TestImage::getConstantVal() const {
+   auto *buffer = mActivityComponent->getComponentByType<TestImageActivityBuffer>();
+   pvAssert(buffer);
+   return buffer->getConstantVal();
 }
-
-Response::Status TestImage::updateState(double timed, double dt) { return Response::SUCCESS; }
 
 } // namespace PV

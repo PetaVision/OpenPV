@@ -16,6 +16,7 @@
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
 #include "columns/HyPerCol.hpp"
+#include "components/HyPerActivityComponent.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
@@ -69,7 +70,6 @@ int HyPerLayer::initialize_base() {
    updatedDeviceActivity    = true; // Start off always updating activity
    updatedDeviceDatastore   = true;
    updatedDeviceGSyn        = true;
-   mUpdateGpu               = false;
    krUpdate                 = NULL;
 #ifdef PV_USE_CUDNN
    cudnn_GSyn      = NULL;
@@ -208,13 +208,9 @@ void HyPerLayer::createComponentTable(char const *description) {
    if (mLayerInput) {
       addUniqueComponent(mLayerInput->getDescription(), mLayerInput);
    }
-   mInternalState = createInternalState();
-   if (mInternalState) {
-      addUniqueComponent(mInternalState->getDescription(), mInternalState);
-   }
-   mActivity = createActivity();
-   if (mActivity) {
-      addUniqueComponent(mActivity->getDescription(), mActivity);
+   mActivityComponent = createActivityComponent();
+   if (mActivityComponent) {
+      addUniqueComponent(mActivityComponent->getDescription(), mActivityComponent);
    }
 }
 
@@ -228,11 +224,9 @@ BoundaryConditions *HyPerLayer::createBoundaryConditions() {
 
 LayerInputBuffer *HyPerLayer::createLayerInput() { return new LayerInputBuffer(name, parent); }
 
-InternalStateBuffer *HyPerLayer::createInternalState() {
-   return new InternalStateBuffer(name, parent);
+ActivityComponent *HyPerLayer::createActivityComponent() {
+   return new HyPerActivityComponent(name, parent);
 }
-
-ActivityBuffer *HyPerLayer::createActivity() { return new ActivityBuffer(name, parent); }
 
 HyPerLayer::~HyPerLayer() {
    delete update_timer;
@@ -313,14 +307,15 @@ void HyPerLayer::allocateExtendedBuffer(float **buf, char const *bufname) {
 
 void HyPerLayer::allocateBuffers() {
    // Kept so that LIF, etc. can add additional buffers. Will go away as these buffers
-   // are converted to BufferComponent objects.
+   // are converted to ComponentBuffer objects.
 }
 
 void HyPerLayer::addPublisher() {
    MPIBlock const *mpiBlock  = parent->getCommunicator()->getLocalMPIBlock();
    PVLayerCube *activityCube = (PVLayerCube *)malloc(sizeof(PVLayerCube));
    activityCube->numItems    = getNumExtendedAllBatches();
-   activityCube->data        = mActivity->getActivity();
+   auto *activityBuffer      = mActivityComponent->getComponentByType<ActivityBuffer>();
+   activityCube->data        = activityBuffer->getBufferData();
    activityCube->loc         = *getLayerLoc();
    publisher = new Publisher(*mpiBlock, activityCube, getNumDelayLevels(), getSparseFlag());
 }
@@ -369,8 +364,8 @@ void HyPerLayer::checkpointRandState(
 
 Response::Status
 HyPerLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   if (mInternalState) {
-      mInternalState->respond(message);
+   if (mActivityComponent) {
+      mActivityComponent->respond(message);
    }
    if (triggerLayer and triggerBehaviorType == UPDATEONLY_TRIGGER) {
       if (!triggerLayer->getInitialValuesSetFlag()) {
@@ -381,7 +376,6 @@ HyPerLayer::initializeState(std::shared_ptr<InitializeStateMessage const> messag
    else {
       setNontriggerDeltaUpdateTime(message->mDeltaTime);
    }
-   initializeActivity();
    mLastUpdateTime  = message->mDeltaTime;
    mLastTriggerTime = message->mDeltaTime;
    return Response::SUCCESS;
@@ -391,28 +385,14 @@ void HyPerLayer::setNontriggerDeltaUpdateTime(double dt) { mDeltaUpdateTime = dt
 
 #ifdef PV_USE_CUDA
 Response::Status HyPerLayer::copyInitialStateToGPU() {
-   if (mUpdateGpu) {
-      float *h_V = getV();
-      if (mInternalState != nullptr) {
-         pvAssert(mInternalState->isUsingGPU());
-         mInternalState->copyToCuda();
-      }
-      pvAssert(mActivity->isUsingGPU());
-      mActivity->copyToCuda();
-   }
-   return Response::SUCCESS;
+   return mActivityComponent->respond(std::make_shared<CopyInitialStateToGPUMessage>());
 }
 #endif // PV_USE_CUDA
-
-void HyPerLayer::initializeActivity() {
-   int status = setActivity();
-   FatalIf(status != PV_SUCCESS, "%s failed to initialize activity.\n", getDescription_c());
-}
 
 int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // Derived classes with new params behavior should override ioParamsFillGroup
    // and the overriding method should call the base class's ioParamsFillGroup.
-   for (auto &c : *mTable) {
+   for (auto *c : *mTable) {
       auto obj = dynamic_cast<BaseObject *>(c);
       if (obj) {
          obj->ioParams(ioFlag, false, false);
@@ -426,11 +406,6 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_writeStep(ioFlag);
    ioParam_initialWriteTime(ioFlag);
    ioParam_sparseLayer(ioFlag);
-
-   // GPU-specific parameter.  If not using GPUs, this flag
-   // can be set to false or left out, but it is an error
-   // to set updateGpu to true if compiling without GPUs.
-   ioParam_updateGpu(ioFlag);
 
    ioParam_dataType(ioFlag);
    return PV_SUCCESS;
@@ -448,25 +423,6 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
                "%s defines the dataType param, which is no longer used.\n", getDescription_c());
       }
    }
-}
-
-void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
-#ifdef PV_USE_CUDA
-   parameters()->ioParamValue(
-         ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, true /*warnIfAbsent*/);
-   mUsingGPUFlag = mUpdateGpu;
-#else // PV_USE_CUDA
-   bool mUpdateGpu = false;
-   parameters()->ioParamValue(
-         ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, false /*warnIfAbsent*/);
-   if (parent->getCommunicator()->globalCommRank() == 0) {
-      FatalIf(
-            mUpdateGpu,
-            "%s: updateGpu is set to true, but PetaVision was compiled without GPU "
-            "acceleration.\n",
-            getDescription_c());
-   }
-#endif // PV_USE_CUDA
 }
 
 void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
@@ -671,10 +627,10 @@ HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage cons
    if (mLayerInput and message->mRecvOnGpuFlag != mLayerInput->isUsingGPU()) {
       return status;
    }
-   if (!mLayerInput and message->mRecvOnGpuFlag != mUpdateGpu) {
+   if (!mLayerInput and message->mRecvOnGpuFlag != mActivityComponent->getUpdateGpu()) {
       return status;
    }
-   if (message->mUpdateOnGpuFlag != mUpdateGpu) {
+   if (message->mUpdateOnGpuFlag != mActivityComponent->getUpdateGpu()) {
       return status;
    }
 #endif // PV_USE_CUDA
@@ -705,16 +661,13 @@ HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage cons
       return status;
    }
    message->mTimer->start();
-   if (mActivity and mActivity->isUsingGPU()) {
-      mActivity->copyFromCuda();
-   }
-   if (mInternalState and mInternalState->isUsingGPU()) {
-      mInternalState->copyFromCuda();
+   if (mActivityComponent and mActivityComponent->isUsingGPU()) {
+      mActivityComponent->copyFromCuda();
    }
    if (mLayerInput and mLayerInput->isUsingGPU()) {
       mLayerInput->respond(message);
    }
-   if (mUpdateGpu) {
+   if (mActivityComponent->getUpdateGpu()) {
       gpu_update_timer->accumulateTime();
    }
    message->mTimer->stop();
@@ -773,12 +726,6 @@ Response::Status HyPerLayer::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage 
 }
 
 #ifdef PV_USE_CUDA
-
-int HyPerLayer::allocateUpdateKernel() {
-   Fatal() << "Layer \"" << name << "\" of type " << mObjectType
-           << " does not support updating on gpus yet\n";
-   return PV_FAILURE;
-}
 
 /**
  * Allocate GPU buffers.
@@ -845,6 +792,12 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
          notify(communicateMessage, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
    if (!Response::completed(status)) {
       return status;
+   }
+   for (auto *c : *mTable) {
+      auto obj = dynamic_cast<BaseObject *>(c);
+      if (obj) {
+         mUsingGPUFlag |= obj->isUsingGPU();
+      }
    }
 
    PVLayerLoc const *loc = getLayerLoc();
@@ -918,15 +871,12 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
 #ifdef PV_USE_CUDA
    // Here, the connection tells all participating recv layers to allocate memory on gpu
    // if receive from gpu is set. These buffers should be set in allocate
-   if (mUpdateGpu) {
+   if (mActivityComponent->getUpdateGpu()) {
       if (mLayerInput) {
          mLayerInput->useCuda();
       }
-      if (mInternalState) {
-         mInternalState->useCuda();
-      }
-      if (mActivity) {
-         mActivity->useCuda();
+      if (mActivityComponent) {
+         mActivityComponent->useCuda();
       }
    }
 #endif
@@ -1046,7 +996,9 @@ Response::Status HyPerLayer::allocateDataStructures() {
 
    // If not mirroring, fill the boundaries with the value in the valueBC param
    if (!mBoundaryConditions->getMirrorBCflag() && mBoundaryConditions->getValueBC() != 0.0f) {
-      mBoundaryConditions->applyBoundaryConditions(mActivity->getActivity(), getLayerLoc());
+      auto *activityBuffer = mActivityComponent->getComponentByType<ActivityBuffer>();
+      auto *activityData   = activityBuffer->getReadWritePointer();
+      mBoundaryConditions->applyBoundaryConditions(activityData, getLayerLoc());
    }
 
    // allocate storage for the input conductance arrays
@@ -1065,13 +1017,6 @@ Response::Status HyPerLayer::allocateDataStructures() {
             getDescription_c(),
             parent->getCommunicator()->globalCommRank(),
             strerror(errno));
-   }
-   if (mUpdateGpu) {
-      // This function needs to be overwritten as needed on a subclass basis
-      deviceStatus = allocateUpdateKernel();
-      if (deviceStatus == 0) {
-         status = Response::SUCCESS;
-      }
    }
 #endif
 
@@ -1130,11 +1075,8 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    if (mLayerInput) {
       mLayerInput->respond(message);
    }
-   if (mInternalState) {
-      mInternalState->respond(message);
-   }
-   if (mActivity) {
-      mActivity->respond(message);
+   if (mActivityComponent) {
+      mActivityComponent->respond(message);
    }
    publisher->checkpointDataStore(checkpointer, getName(), "Delays");
    checkpointer->registerCheckpointData(
@@ -1242,51 +1184,57 @@ bool HyPerLayer::needReset(double simTime, double dt) {
    return false;
 }
 
-Response::Status HyPerLayer::callUpdateState(double simTime, double dt) {
+Response::Status HyPerLayer::callUpdateState(double simTime, double deltaTime) {
    auto status = Response::NO_ACTION;
-   if (needReset(simTime, dt)) {
-      resetStateOnTrigger();
+   if (needReset(simTime, deltaTime)) {
+      resetStateOnTrigger(simTime, deltaTime);
       mLastTriggerTime = simTime;
    }
 
    update_timer->start();
 #ifdef PV_USE_CUDA
-   if (mUpdateGpu) {
+   if (mActivityComponent->getUpdateGpu()) {
       gpu_update_timer->start();
-      assert(mUpdateGpu);
-      status = updateStateGpu(simTime, dt);
-      gpu_update_timer->stop();
    }
-   else {
-#endif
-      status = updateState(simTime, dt);
+#endif // PV_USE_CUDA
+   updateState(simTime, deltaTime);
 #ifdef PV_USE_CUDA
+   if (mActivityComponent->getUpdateGpu()) {
+      gpu_update_timer->stop();
    }
    // Activity updated, set flag to true
    updatedDeviceActivity  = true;
    updatedDeviceDatastore = true;
-#endif
+#endif // PV_USE_CUDA
    update_timer->stop();
    mNeedToPublish  = true;
    mLastUpdateTime = simTime;
    return status;
 }
 
-void HyPerLayer::resetStateOnTrigger() {
-   assert(triggerResetLayer != NULL);
-   float *V = getV();
-   if (V == NULL) {
+Response::Status HyPerLayer::updateState(double simTime, double deltaTime) {
+   mActivityComponent->updateActivity(simTime, deltaTime);
+   return Response::SUCCESS;
+}
+
+void HyPerLayer::resetStateOnTrigger(double simTime, double deltaTime) {
+   assert(triggerResetLayer != nullptr);
+   InternalStateBuffer *VBuffer = mActivityComponent->getComponentByType<InternalStateBuffer>();
+   if (VBuffer == nullptr) {
       if (parent->getCommunicator()->commRank() == 0) {
          ErrorLog().printf(
                "%s: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a "
-               "membrane "
-               "potential.\n",
+               "membrane potential.\n",
                getDescription_c());
       }
       MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   InternalStateBuffer *resetVBuffer = triggerResetLayer->getComponentByType<InternalStateBuffer>();
+   float *V = VBuffer->getReadWritePointer();
+   pvAssert(V); // Subclasses that don't own their own V shouldn't call this method.
+
+   auto *resetActivityComponent = triggerResetLayer->getComponentByType<ActivityComponent>();
+   auto *resetVBuffer           = resetActivityComponent->getComponentByType<InternalStateBuffer>();
    if (resetVBuffer != nullptr) {
       float const *resetV = resetVBuffer->getBufferData();
 #ifdef PV_USE_OPENMP_THREADS
@@ -1297,12 +1245,13 @@ void HyPerLayer::resetStateOnTrigger() {
       }
    }
    else {
-      float const *resetA   = triggerResetLayer->getActivity();
-      PVLayerLoc const *loc = triggerResetLayer->getLayerLoc();
-      PVHalo const *halo    = &loc->halo;
+      auto *resetActivityBuffer = resetActivityComponent->getComponentByType<ActivityBuffer>();
+      float const *resetA       = resetActivityBuffer->getBufferData();
+      PVLayerLoc const *loc     = triggerResetLayer->getLayerLoc();
+      PVHalo const *halo        = &loc->halo;
       for (int b = 0; b < loc->nbatch; b++) {
-         float const *resetABatch = resetA + (b * triggerResetLayer->getNumExtended());
-         float *VBatch            = V + (b * triggerResetLayer->getNumNeurons());
+         float const *resetABatch = resetA + (b * resetActivityComponent->getNumExtended());
+         float *VBatch            = V + (b * VBuffer->getBufferSize());
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
@@ -1314,18 +1263,15 @@ void HyPerLayer::resetStateOnTrigger() {
       }
    }
 
-   setActivity();
+   ActivityBuffer *activityBuffer = mActivityComponent->getComponentByType<ActivityBuffer>();
+   activityBuffer->updateBuffer(simTime, deltaTime);
 
 // Update V on GPU after CPU V gets set
 #ifdef PV_USE_CUDA
-   if (mUpdateGpu) {
-      if (mInternalState) {
-         mInternalState->copyToCuda();
+   if (mActivityComponent->getUpdateGpu()) {
+      if (mActivityComponent) {
+         mActivityComponent->copyToCuda();
       }
-      // Right now, we're setting the activity on the CPU and memsetting the GPU memory
-      // TODO calculate this on the GPU
-      mActivity->copyToCuda();
-      // We need to updateDeviceActivity and Datastore if we're resetting V
       updatedDeviceActivity  = true;
       updatedDeviceDatastore = true;
    }
@@ -1334,9 +1280,9 @@ void HyPerLayer::resetStateOnTrigger() {
 
 #ifdef PV_USE_CUDA
 int HyPerLayer::runUpdateKernel() {
-   assert(mUpdateGpu);
+   assert(mActivityComponent->getUpdateGpu());
    if (updatedDeviceGSyn) {
-      if (mLayerInput->isUsingGPU()) { // (mLayerInput->isUsingGPU() || mUpdateGpu) {
+      if (mLayerInput->isUsingGPU()) {
          mLayerInput->copyToCuda();
       }
       updatedDeviceGSyn = false;
@@ -1353,58 +1299,7 @@ int HyPerLayer::runUpdateKernel() {
 
    return PV_SUCCESS;
 }
-
-Response::Status HyPerLayer::updateStateGpu(double timef, double dt) {
-   Fatal() << "Update state for layer " << name << " is not implemented\n";
-   return Response::NO_ACTION; // never reached; added to prevent compiler warnings.
-}
 #endif
-
-Response::Status HyPerLayer::updateState(double timef, double dt) {
-   // just copy accumulation buffer to membrane potential
-   // and activity buffer (nonspiking)
-   mInternalState->updateBuffer(timef, dt);
-   const PVLayerLoc *loc = getLayerLoc();
-   float *A              = getActivity();
-   float *V              = getV();
-   int num_channels      = getNumChannels();
-
-   int nx          = loc->nx;
-   int ny          = loc->ny;
-   int nf          = loc->nf;
-   int nbatch      = loc->nbatch;
-   int num_neurons = nx * ny * nf;
-   setActivity_HyPerLayer(
-         nbatch,
-         num_neurons,
-         A,
-         V,
-         nx,
-         ny,
-         nf,
-         loc->halo.lt,
-         loc->halo.rt,
-         loc->halo.dn,
-         loc->halo.up);
-
-   return Response::SUCCESS;
-}
-
-int HyPerLayer::setActivity() {
-   const PVLayerLoc *loc = getLayerLoc();
-   return setActivity_HyPerLayer(
-         loc->nbatch,
-         getNumNeurons(),
-         mActivity->getActivity(),
-         getV(),
-         loc->nx,
-         loc->ny,
-         loc->nf,
-         loc->halo.lt,
-         loc->halo.rt,
-         loc->halo.dn,
-         loc->halo.up);
-}
 
 // Updates active indices for all levels (delays) here
 void HyPerLayer::updateAllActiveIndices() { publisher->updateAllActiveIndices(); }
@@ -1425,7 +1320,7 @@ bool HyPerLayer::isAllInputReady() {
 
 #ifdef PV_USE_CUDA
 void HyPerLayer::syncGpu() {
-   if (mLayerInput->isUsingGPU() || mUpdateGpu) {
+   if (mLayerInput->isUsingGPU() || mActivityComponent->getUpdateGpu()) {
       mCudaDevice->syncDevice();
    }
 }
@@ -1437,7 +1332,9 @@ int HyPerLayer::publish(Communicator *comm, double simTime) {
    int status = PV_SUCCESS;
    if (mNeedToPublish) {
       if (mBoundaryConditions->getMirrorBCflag()) {
-         mBoundaryConditions->applyBoundaryConditions(mActivity->getActivity(), getLayerLoc());
+         auto *activityBuffer = mActivityComponent->getComponentByType<ActivityBuffer>();
+         auto *activityData   = activityBuffer->getReadWritePointer();
+         mBoundaryConditions->applyBoundaryConditions(activityData, getLayerLoc());
       }
       status         = publisher->publish(mLastUpdateTime);
       mNeedToPublish = false;

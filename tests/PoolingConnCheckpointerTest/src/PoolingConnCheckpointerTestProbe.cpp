@@ -6,6 +6,7 @@
  */
 
 #include "PoolingConnCheckpointerTestProbe.hpp"
+#include "components/InputActivityBuffer.hpp"
 #include "components/PatchSize.hpp"
 #include "connections/PoolingConn.hpp"
 #include "utils/BufferUtilsMPI.hpp"
@@ -79,8 +80,11 @@ PoolingConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *compon
    FatalIf(
          halo->lt != 0 || halo->rt != 0 || halo->dn != 0 || halo->up != 0,
          "This test assumes that the input layer has no border region.\n");
+
+   auto *activityComponent = mInputLayer->getComponentByType<PV::ActivityComponent>();
+   auto *inputBuffer       = activityComponent->getComponentByType<PV::InputActivityBuffer>();
    FatalIf(
-         mInputLayer->getDisplayPeriod() != 4.0,
+         inputBuffer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
    return PV::Response::SUCCESS;
 }

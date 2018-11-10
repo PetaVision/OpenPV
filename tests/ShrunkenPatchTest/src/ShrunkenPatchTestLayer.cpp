@@ -38,6 +38,9 @@ int ShrunkenPatchTestLayer::setActivitytoGlobalPos() {
    float xScaleLog2      = layerGeometry->getXScale();
    float x0              = xOriginGlobal(xScaleLog2);
    float dx              = deltaX(xScaleLog2);
+   auto *activityBuffer  = mActivityComponent->getComponentByType<ActivityBuffer>();
+   pvAssert(activityBuffer);
+   float *A = activityBuffer->getReadWritePointer();
    for (int kLocalExt = 0; kLocalExt < getNumExtended(); kLocalExt++) {
       int kxLocalExt = kxPos(kLocalExt,
                              loc->nx + loc->halo.lt + loc->halo.rt,
@@ -61,7 +64,7 @@ int ShrunkenPatchTestLayer::setActivitytoGlobalPos() {
 
       if ((x_in_global_boundary || x_in_local_interior)
           && (y_in_global_boundary || y_in_local_interior)) {
-         mActivity->getActivity()[kLocalExt] = x_global_pos;
+         A[kLocalExt] = x_global_pos;
       }
    }
    return PV_SUCCESS;

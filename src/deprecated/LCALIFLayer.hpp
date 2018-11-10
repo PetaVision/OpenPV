@@ -16,7 +16,7 @@
 #define DEFAULT_DYNVTHSCALE 1.0f
 
 namespace PV {
-class LCALIFLayer : public PV::LIFGap {
+class LCALIFLayer : public LIFGap {
   public:
    LCALIFLayer(const char *name, HyPerCol *hc); // The constructor called by other methods
    virtual ~LCALIFLayer();

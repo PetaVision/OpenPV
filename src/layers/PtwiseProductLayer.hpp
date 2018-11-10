@@ -17,7 +17,15 @@
 
 namespace PV {
 
-class PtwiseProductLayer : public ANNLayer {
+/**
+ * The output V is the pointwise product of GSynExc and GSynInh
+ *
+ * "Exc" and "Inh" are really misnomers for this class, but the
+ * terminology is inherited from the base class.
+ *
+ * The activity buffer is an ANNActivityBuffer.
+ */
+class PtwiseProductLayer : public HyPerLayer {
   public:
    PtwiseProductLayer(const char *name, HyPerCol *hc);
    virtual ~PtwiseProductLayer();
@@ -27,7 +35,7 @@ class PtwiseProductLayer : public ANNLayer {
   protected:
    PtwiseProductLayer();
    int initialize(const char *name, HyPerCol *hc);
-   InternalStateBuffer *createInternalState() override;
+   ActivityComponent *createActivityComponent() override;
 
   private:
    int initialize_base();

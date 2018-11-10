@@ -6,32 +6,28 @@
  */
 
 #include "ANNSquaredLayer.hpp"
+#include "components/ANNActivityBuffer.hpp"
+#include "components/ActivityComponentWithInternalState.hpp"
 #include "components/SquaredInternalStateBuffer.hpp"
 
 namespace PV {
 
-ANNSquaredLayer::ANNSquaredLayer() { initialize_base(); }
-
-ANNSquaredLayer::ANNSquaredLayer(const char *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
-}
+ANNSquaredLayer::ANNSquaredLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
 ANNSquaredLayer::~ANNSquaredLayer() {}
 
-int ANNSquaredLayer::initialize_base() { return PV_SUCCESS; }
-
 int ANNSquaredLayer::initialize(const char *name, HyPerCol *hc) {
-   int status = ANNLayer::initialize(name, hc);
+   int status = HyPerLayer::initialize(name, hc);
    return status;
 }
 
-InternalStateBuffer *ANNSquaredLayer::createInternalState() {
-   return new SquaredInternalStateBuffer(getName(), parent);
+ActivityComponent *ANNSquaredLayer::createActivityComponent() {
+   return new ActivityComponentWithInternalState<SquaredInternalStateBuffer, ANNActivityBuffer>(
+         getName(), parent);
 }
 
 Response::Status ANNSquaredLayer::allocateDataStructures() {
-   auto status = ANNLayer::allocateDataStructures();
+   auto status = HyPerLayer::allocateDataStructures();
    if (!Response::completed(status)) {
       return status;
    }
@@ -46,4 +42,4 @@ Response::Status ANNSquaredLayer::allocateDataStructures() {
    return status;
 }
 
-} /* namespace PV */
+} // end namespace PV

@@ -11,7 +11,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/GapLayer.cpp
    ${SUBDIR}/HyPerLayer.cpp
    ${SUBDIR}/HyPerLCALayer.cpp
-   ${SUBDIR}/MomentumLCALayer.cpp
    ${SUBDIR}/ImageLayer.cpp
    ${SUBDIR}/InputLayer.cpp
    ${SUBDIR}/InputRegionLayer.cpp
@@ -20,10 +19,10 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LIF.cpp
    ${SUBDIR}/LIFGap.cpp
    ${SUBDIR}/MaskLayer.cpp
+   ${SUBDIR}/MomentumLCALayer.cpp
    ${SUBDIR}/PoolingIndexLayer.cpp
    ${SUBDIR}/PtwiseProductLayer.cpp
    ${SUBDIR}/PtwiseQuotientLayer.cpp
-   ${SUBDIR}/PVLayerCube.cpp
    ${SUBDIR}/PvpLayer.cpp
    ${SUBDIR}/RescaleLayer.cpp
    ${SUBDIR}/Retina.cpp
@@ -53,9 +52,10 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LIF.hpp
    ${SUBDIR}/LIFGap.hpp
    ${SUBDIR}/MaskLayer.hpp
+   ${SUBDIR}/MomentumLCALayer.hpp
    ${SUBDIR}/PoolingIndexLayer.hpp
    ${SUBDIR}/PtwiseProductLayer.hpp
-   ${SUBDIR}/PVLayerCube.hpp
+   ${SUBDIR}/PtwiseQuotientLayer.hpp
    ${SUBDIR}/PvpLayer.hpp
    ${SUBDIR}/RescaleLayer.hpp
    ${SUBDIR}/Retina.hpp
@@ -63,8 +63,3 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/SegmentLayer.hpp
    ${SUBDIR}/SigmoidLayer.hpp
 )
-
-set (PVLibSrcH ${PVLibSrcH}
-   ${SUBDIR}/updateStateFunctions.h
-)
-

@@ -13,10 +13,9 @@
 
 namespace PV {
 
-class CloneVLayer : public PV::HyPerLayer {
+class CloneVLayer : public HyPerLayer {
   public:
    CloneVLayer(const char *name, HyPerCol *hc);
-   virtual Response::Status allocateDataStructures() override;
    virtual bool activityIsSpiking() override { return false; }
    HyPerLayer *getOriginalLayer() { return mOriginalLayer; }
    virtual ~CloneVLayer();
@@ -26,14 +25,8 @@ class CloneVLayer : public PV::HyPerLayer {
    int initialize(const char *name, HyPerCol *hc);
    virtual void createComponentTable(char const *description) override;
    virtual LayerInputBuffer *createLayerInput() override;
-   virtual InternalStateBuffer *createInternalState() override;
+   virtual ActivityComponent *createActivityComponent() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   void setOriginalLayer();
-   virtual Response::Status
-   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
-   virtual Response::Status updateState(double timed, double dt) override;
 
   private:
    int initialize_base();

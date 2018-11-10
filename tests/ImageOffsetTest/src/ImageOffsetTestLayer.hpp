@@ -4,14 +4,19 @@
 #include <layers/ImageLayer.hpp>
 
 namespace PV {
-class ImageOffsetTestLayer : public PV::ImageLayer {
+class ImageOffsetTestLayer : public ImageLayer {
   public:
-   ImageOffsetTestLayer(const char *name, HyPerCol *hc);
-   virtual void setNontriggerDeltaUpdateTime(double dt) override;
+   ImageOffsetTestLayer(char const *name, HyPerCol *hc);
+   virtual ~ImageOffsetTestLayer();
 
   protected:
-   Response::Status updateState(double timef, double dt) override;
-   bool readyForNextFile() override;
+   ImageOffsetTestLayer() {}
+
+   int initialize(char const *name, HyPerCol *hc);
+
+   virtual ActivityComponent *createActivityComponent() override;
+
+   virtual void setNontriggerDeltaUpdateTime(double dt) override;
 };
 
 } /* namespace PV */

@@ -1,14 +1,14 @@
 /*
  * SquaredInternalStateBuffer.hpp
  *
- *  Created on: Sep 6, 2018
- *      Author: Pete Schultz
+ *  Created on: Sep 21, 2011
+ *      Author: kpeterson
  */
 
 #ifndef SQUAREDINTERNALSTATEBUFFER_HPP_
 #define SQUAREDINTERNALSTATEBUFFER_HPP_
 
-#include "components/InternalStateBuffer.hpp"
+#include "components/GSynInternalStateBuffer.hpp"
 
 namespace PV {
 
@@ -16,13 +16,11 @@ namespace PV {
  * A membrane potential component that reads the excitatory channel of a LayerInputBuffer and
  * computes V = GSynExc * GSynExc. Used by ANNSquaredLayer.
  */
-class SquaredInternalStateBuffer : public InternalStateBuffer {
+class SquaredInternalStateBuffer : public GSynInternalStateBuffer {
   public:
    SquaredInternalStateBuffer(char const *name, HyPerCol *hc);
 
    virtual ~SquaredInternalStateBuffer();
-
-   virtual void updateBuffer(double simTime, double deltaTime) override;
 
   protected:
    SquaredInternalStateBuffer() {}
@@ -31,8 +29,9 @@ class SquaredInternalStateBuffer : public InternalStateBuffer {
 
    virtual void setObjectType() override;
 
-  private:
-  protected:
+   virtual void requireInputChannels() override;
+
+   virtual void updateBufferCPU(double simTime, double deltaTime) override;
 };
 
 } // namespace PV

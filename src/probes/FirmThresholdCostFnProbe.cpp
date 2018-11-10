@@ -7,7 +7,9 @@
 
 #include "FirmThresholdCostFnProbe.hpp"
 #include "columns/HyPerCol.hpp"
-#include "layers/ANNLayer.hpp" // To get VThresh and VWidth from targetLayer if it's an ANNLayer
+#include "components/ANNActivityBuffer.hpp" // To get VThresh and VWidth from targetLayer if it's an ANNLayer
+#include "components/ActivityComponent.hpp"
+#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
@@ -38,6 +40,8 @@ int FirmThresholdCostFnProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+// We do not warn if VThresh and VWidth are absent, because if they are, we
+// try to get the values from the targetLayer.
 void FirmThresholdCostFnProbe::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag, name, "VThresh", &VThresh, VThresh /*default*/, false /*warnIfAbsent*/);
@@ -58,13 +62,15 @@ Response::Status FirmThresholdCostFnProbe::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   ANNLayer *targetANNLayer = dynamic_cast<ANNLayer *>(getTargetLayer());
-   if (targetANNLayer != nullptr) {
+   auto *activityComponent = getTargetLayer()->getComponentByType<ActivityComponent>();
+   pvAssert(activityComponent);
+   ANNActivityBuffer *activityBuffer = activityComponent->getComponentByType<ANNActivityBuffer>();
+   if (activityBuffer != nullptr) {
       if (!parameters()->present(getName(), "VThresh")) {
-         VThresh = targetANNLayer->getVThresh();
+         VThresh = activityBuffer->getVThresh();
       }
       if (!parameters()->present(getName(), "VWidth")) {
-         VWidth = targetANNLayer->getVWidth();
+         VWidth = activityBuffer->getVWidth();
       }
    }
    else {

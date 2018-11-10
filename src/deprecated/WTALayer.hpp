@@ -11,7 +11,7 @@
 
 namespace PV {
 
-class WTALayer : public PV::HyPerLayer {
+class WTALayer : public HyPerLayer {
   public:
    WTALayer(const char *name, HyPerCol *hc);
    virtual ~WTALayer();

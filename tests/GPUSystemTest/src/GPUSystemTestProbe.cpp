@@ -10,7 +10,7 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-GPUSystemTestProbe::GPUSystemTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+GPUSystemTestProbe::GPUSystemTestProbe(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc);
 }
@@ -25,7 +25,7 @@ void GPUSystemTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(
 
 // 2 tests: max difference can be 5e-4, max std is 5e-5
 Response::Status GPUSystemTestProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
+   auto status = RequireAllZeroActivityProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -33,28 +33,26 @@ Response::Status GPUSystemTestProbe::outputState(double simTime, double deltaTim
    int numExtNeurons     = getTargetLayer()->getNumExtendedAllBatches();
    const float *A        = getTargetLayer()->getLayerData();
    float sumsq           = 0;
-   for (int i = 0; i < numExtNeurons; i++) {
-      float tol = 5.0e-4;
-      FatalIf(
-            fabsf(A[i]) >= 5e-4f,
-            "%s neuron index %d has value %f at time %f; tolerance is %f.\n",
-            getTargetLayer()->getDescription_c(),
-            i,
-            (double)A[i],
-            simTime,
-            (double)tol);
-   }
+   float tolSigma        = 5e-5;
    for (int b = 0; b < loc->nbatch; b++) {
       // For max std of 5.0fe-5
-      float tol = 5e-5;
-      FatalIf(
-            sigma[b] > tol,
-            "%s batch element %d has standard deviation %f at time %f; tolerance is %f.\n",
-            getTargetLayer()->getDescription_c(),
-            b,
-            (double)sigma[b],
-            simTime,
-            (double)tol);
+      if (sigma[b] > tolSigma) {
+         if (!nonzeroFound) {
+            nonzeroTime = simTime;
+         }
+         nonzeroFound = true;
+         if (parent->getCommunicator()->commRank() == 0) {
+            std::stringstream message("");
+            message << getDescription_c() << ": Nonzero standard deviation " << simTime
+                    << " at time " << nonzeroTime << "; tolerance is " << tolSigma << "\n";
+            if (immediateExitOnFailure) {
+               Fatal() << message.str();
+            }
+            else {
+               WarnLog() << message.str();
+            }
+         }
+      }
    }
 
    return status;

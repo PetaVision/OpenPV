@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class InitUniformRandomWeights : public PV::InitRandomWeights {
+class InitUniformRandomWeights : public InitRandomWeights {
   protected:
    void ioParam_wMinInit(enum ParamsIOFlag ioFlag);
    void ioParam_wMaxInit(enum ParamsIOFlag ioFlag);

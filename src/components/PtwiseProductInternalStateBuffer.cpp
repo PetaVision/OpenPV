@@ -1,8 +1,8 @@
 /*
  * PtwiseProductInternalStateBuffer.cpp
  *
- *  Created on: Sep 6, 2018
- *      Author: Pete Schultz
+ *  Created on: Apr 25, 2011
+ *      Author: peteschultz
  */
 
 #include "PtwiseProductInternalStateBuffer.hpp"
@@ -17,7 +17,7 @@ PtwiseProductInternalStateBuffer::PtwiseProductInternalStateBuffer(char const *n
 PtwiseProductInternalStateBuffer::~PtwiseProductInternalStateBuffer() {}
 
 int PtwiseProductInternalStateBuffer::initialize(char const *name, HyPerCol *hc) {
-   int status = InternalStateBuffer::initialize(name, hc);
+   int status = GSynInternalStateBuffer::initialize(name, hc);
    return status;
 }
 
@@ -25,9 +25,14 @@ void PtwiseProductInternalStateBuffer::setObjectType() {
    mObjectType = "PtwiseProductInternalStateBuffer";
 }
 
-void PtwiseProductInternalStateBuffer::updateBuffer(double simTime, double deltaTime) {
-   float const *gSynExc      = mInputBuffer->getChannelData(CHANNEL_EXC);
-   float const *gSynInh      = mInputBuffer->getChannelData(CHANNEL_INH);
+void PtwiseProductInternalStateBuffer::requireInputChannels() {
+   mLayerInput->requireChannel(CHANNEL_EXC);
+   mLayerInput->requireChannel(CHANNEL_INH);
+}
+
+void PtwiseProductInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) {
+   float const *gSynExc      = mLayerInput->getChannelData(CHANNEL_EXC);
+   float const *gSynInh      = mLayerInput->getChannelData(CHANNEL_INH);
    float *V                  = mBufferData.data();
    int numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS

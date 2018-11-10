@@ -35,8 +35,6 @@
 #define SIGMA_DIST_FEEDBACK 2.0
 #define EXCITE_DELAY 0
 #define INHIB_DELAY 0
-//#define EXCITE_VEL 2.0 // 2*RMAX
-//#define INHIB_VEL 1.0
 #define EXCITE_VEL 999999.0 // 2*RMAX
 #define INHIB_VEL 999999.0
 

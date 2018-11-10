@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class NormalizeMax : public PV::NormalizeMultiply {
+class NormalizeMax : public NormalizeMultiply {
    // Member functions
   public:
    NormalizeMax(const char *name, HyPerCol *hc);

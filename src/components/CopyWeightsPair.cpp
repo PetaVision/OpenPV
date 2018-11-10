@@ -59,7 +59,7 @@ CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
                   "%s must wait until original connection \"%s\" has finished its "
                   "communicateInitInfo stage.\n",
                   getDescription_c(),
-                  mOriginalWeightsPair->getName());
+                  originalConn->getName());
          }
          return Response::POSTPONE;
       }

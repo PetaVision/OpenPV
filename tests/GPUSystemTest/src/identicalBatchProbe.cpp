@@ -29,9 +29,11 @@ Response::Status identicalBatchProbe::outputState(double simTime, double deltaTi
    if (status != Response::SUCCESS) {
       return status;
    }
-   const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   const float *A        = getTargetLayer()->getActivity();
-   int numExtNeurons     = getTargetLayer()->getNumExtended();
+   const PVLayerLoc *loc   = getTargetLayer()->getLayerLoc();
+   auto *activityComponent = getTargetLayer()->getComponentByType<ActivityComponent>();
+   pvAssert(activityComponent);
+   float const *A    = activityComponent->getActivity();
+   int numExtNeurons = getTargetLayer()->getNumExtended();
    for (int i = 0; i < numExtNeurons; i++) {
       float checkVal = A[i];
       for (int b = 0; b < loc->nbatch; b++) {

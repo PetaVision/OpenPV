@@ -19,8 +19,10 @@ namespace PV {
  *
  * "Exc" and "Inh" are really misnomers for this class, but the
  * terminology is inherited from the base class.
+ *
+ * The activity buffer is an ANNActivityBuffer.
  */
-class PtwiseQuotientLayer : public ANNLayer {
+class PtwiseQuotientLayer : public HyPerLayer {
   public:
    PtwiseQuotientLayer(const char *name, HyPerCol *hc);
    virtual ~PtwiseQuotientLayer();
@@ -30,7 +32,7 @@ class PtwiseQuotientLayer : public ANNLayer {
   protected:
    PtwiseQuotientLayer();
    int initialize(const char *name, HyPerCol *hc);
-   InternalStateBuffer *createInternalState() override;
+   ActivityComponent *createActivityComponent() override;
 
   private:
    int initialize_base();

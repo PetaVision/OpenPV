@@ -7,6 +7,7 @@
 
 #include "MomentumConnSimpleCheckpointerTestProbe.hpp"
 #include "components/ArborList.hpp"
+#include "components/InputActivityBuffer.hpp"
 #include "components/PatchSize.hpp"
 #include "components/SharedWeights.hpp"
 #include "components/WeightsPair.hpp"
@@ -82,8 +83,10 @@ MomentumConnSimpleCheckpointerTestProbe::initInputLayer(PV::ObserverTable const 
       return PV::Response::POSTPONE;
    }
 
+   auto *activityComponent = mInputLayer->getComponentByType<PV::ActivityComponent>();
+   auto *inputBuffer       = activityComponent->getComponentByType<PV::InputActivityBuffer>();
    FatalIf(
-         mInputLayer->getDisplayPeriod() != 4.0,
+         inputBuffer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
    return PV::Response::SUCCESS;
 }

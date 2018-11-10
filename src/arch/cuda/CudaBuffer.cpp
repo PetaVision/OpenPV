@@ -49,7 +49,7 @@ int CudaBuffer::copyToDevice(const void *h_ptr, size_t in_size, size_t offset) {
    void *d_ptr_offset = (void *)&((char *)d_ptr)[offset];
    handleError(
          cudaMemcpyAsync(d_ptr_offset, h_ptr, this->size, cudaMemcpyHostToDevice, stream),
-         "Copying buffer to device");
+         "Copying buffer with offset to device");
    return 0;
 }
 

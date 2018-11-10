@@ -1,22 +1,30 @@
 if(PV_USE_CUDA)
-  set (PVLibSrcHpp ${PVLibSrcHpp}
-     ${SUBDIR}/CudaPoolingDeliverKernel.hpp
-     ${SUBDIR}/CudaRecvPost.hpp
-     ${SUBDIR}/CudaRecvPre.hpp
-     ${SUBDIR}/CudaTransposePoolingDeliverKernel.hpp
-     ${SUBDIR}/CudaUpdateStateFunctions.hpp
-  )
-  
   set (PVLibSrcCpp ${PVLibSrcCpp}
      ${SUBDIR}/CudaPoolingDeliverKernel.cpp
      ${SUBDIR}/CudaRecvPost.cpp
      ${SUBDIR}/CudaRecvPre.cpp
      ${SUBDIR}/CudaTransposePoolingDeliverKernel.cpp
-     ${SUBDIR}/CudaUpdateStateFunctions.cpp
+     ${SUBDIR}/CudaUpdateANNActivity.cpp
+     ${SUBDIR}/CudaUpdateHyPerLCAInternalState.cpp
+     ${SUBDIR}/CudaUpdateISTAInternalState.cpp
+     ${SUBDIR}/CudaUpdateMomentumLCAInternalState.cpp
+  )
+  
+  set (PVLibSrcHpp ${PVLibSrcHpp}
+     ${SUBDIR}/CudaPoolingDeliverKernel.hpp
+     ${SUBDIR}/CudaRecvPost.hpp
+     ${SUBDIR}/CudaRecvPre.hpp
+     ${SUBDIR}/CudaTransposePoolingDeliverKernel.hpp
+     ${SUBDIR}/CudaUpdateHyPerLCAInternalState.hpp
+     ${SUBDIR}/CudaUpdateISTAInternalState.hpp
+     ${SUBDIR}/CudaUpdateMomentumLCAInternalState.hpp
   )
   
   set (PVLibSrcCu ${PVLibSrcCu}
      ${SUBDIR}/CudaRecvPre.cu
-     ${SUBDIR}/CudaUpdateStateFunctions.cu
+     ${SUBDIR}/CudaUpdateANNActivity.cu
+     ${SUBDIR}/CudaUpdateHyPerLCAInternalState.cu
+     ${SUBDIR}/CudaUpdateISTAInternalState.cu
+     ${SUBDIR}/CudaUpdateMomentumLCAInternalState.cu
   )
 endif(PV_USE_CUDA)

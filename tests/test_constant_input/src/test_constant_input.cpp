@@ -94,14 +94,16 @@ int main(int argc, char *argv[]) {
       Fatal().printf("[%d]: test_constant_input: ERROR in retina loc\n", rank);
    }
 
-   status = checkInput(image->getLayerLoc(), image->getActivity(), image->getConstantVal(), true);
+   float const *imageActivity = image->getComponentByType<ActivityComponent>()->getActivity();
+   status = checkInput(image->getLayerLoc(), imageActivity, image->getConstantVal(), true);
    if (status != PV_SUCCESS) {
       Fatal().printf("[%d]: test_constant_input: ERROR in image data\n", rank);
    }
 
-   float retinaVal = sumOfWeights * image->getConstantVal();
+   float const *retinaActivity = retina->getComponentByType<ActivityComponent>()->getActivity();
+   float retinaVal             = sumOfWeights * image->getConstantVal();
 
-   status = checkInput(retina->getLayerLoc(), retina->getActivity(), retinaVal, false);
+   status = checkInput(retina->getLayerLoc(), retinaActivity, retinaVal, false);
    if (status != 0) {
       Fatal().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
@@ -117,7 +119,7 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
-int checkInput(const PVLayerLoc *loc, const float *data, float val, bool extended) {
+int checkInput(PVLayerLoc const *loc, const float *data, float val, bool extended) {
    int status = 0;
 
    const PVHalo *halo = &loc->halo;

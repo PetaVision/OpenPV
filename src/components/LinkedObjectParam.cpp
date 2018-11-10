@@ -28,13 +28,11 @@ void LinkedObjectParam::ioParam_linkedObjectName(enum ParamsIOFlag ioFlag) {
 }
 
 ComponentBasedObject *LinkedObjectParam::findLinkedObject(ObserverTable const *hierarchy) {
-   ObserverTable *tableComponent = hierarchy->lookupByType<ObserverTable>();
-   FatalIf(
-         tableComponent == nullptr,
-         "%s: CommunicateInitInfoMessage has no ObserverTable.\n",
-         getDescription_c());
+   ObserverTable const *tableComponent = hierarchy;
    std::string linkedName(mLinkedObjectName);
-   auto *originalObject = tableComponent->lookupByName<ComponentBasedObject>(linkedName);
+   int maxIterations = 2; // Limits the depth of the recursion when searching for dependencies.
+   auto *originalObject =
+         tableComponent->lookupByNameRecursive<ComponentBasedObject>(linkedName, maxIterations);
    if (originalObject == nullptr) {
       std::string invArgMessage(mParamName);
       invArgMessage.append("No object named \"").append(mLinkedObjectName).append(" \"");

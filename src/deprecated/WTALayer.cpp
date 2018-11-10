@@ -94,8 +94,7 @@ int WTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, "originalLayerName", &originalLayerName);
+   parameters()->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
    assert(originalLayerName);
    if (ioFlag == PARAMS_IO_READ && originalLayerName[0] == '\0') {
       if (parent->columnId() == 0) {

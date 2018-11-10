@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
    ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
-   auto *observerTable = hc->getObserverComponentTable();
+   auto *observerTable = hc->getTable();
 
    auto communicateMessagePtr = std::make_shared<CommunicateInitInfoMessage>(
          observerTable,

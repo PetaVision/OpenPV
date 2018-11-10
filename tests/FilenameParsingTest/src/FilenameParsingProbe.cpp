@@ -6,6 +6,7 @@
  */
 
 #include "FilenameParsingProbe.hpp"
+#include <components/InputActivityBuffer.hpp>
 
 FilenameParsingProbe::FilenameParsingProbe() { initialize_base(); }
 
@@ -38,7 +39,11 @@ PV::Response::Status FilenameParsingProbe::communicateInitInfo(
    std::string inputLayerString(inputLayerName);
    PV::InputLayer *inputLayer = message->mHierarchy->lookupByName<PV::InputLayer>(inputLayerString);
    pvAssert(inputLayer);
-   mInputDisplayPeriod = inputLayer->getDisplayPeriod();
+   auto *activityComponent = inputLayer->getComponentByType<PV::ActivityComponent>();
+   pvAssert(activityComponent);
+   auto *inputBuffer = activityComponent->getComponentByType<PV::InputActivityBuffer>();
+   pvAssert(inputBuffer);
+   mInputDisplayPeriod = inputBuffer->getDisplayPeriod();
    return PV::Response::SUCCESS;
 }
 

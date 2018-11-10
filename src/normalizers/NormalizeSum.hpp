@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class NormalizeSum : public PV::NormalizeMultiply {
+class NormalizeSum : public NormalizeMultiply {
    // Member functions
   public:
    NormalizeSum(const char *name, HyPerCol *hc);

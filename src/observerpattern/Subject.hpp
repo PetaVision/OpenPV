@@ -49,7 +49,7 @@ class Subject {
    template <typename S>
    S *getComponentByType();
 
-   ObserverTable const *getObserverComponentTable() { return mTable; }
+   ObserverTable const *getTable() { return mTable; }
 
   protected:
    /**

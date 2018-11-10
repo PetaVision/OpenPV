@@ -6,7 +6,7 @@
  */
 
 #include "TriggerTestUpdater.hpp"
-#include <columns/HyPerCol.cpp>
+#include <columns/HyPerCol.hpp>
 
 namespace PV {
 

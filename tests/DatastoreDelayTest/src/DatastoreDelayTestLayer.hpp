@@ -5,46 +5,28 @@
  *      Author: pschultz
  */
 
-#ifndef DATASTOREDELAYTEST_HPP_
-#define DATASTOREDELAYTEST_HPP_
+#ifndef DATASTOREDELAYTESTLAYER_HPP_
+#define DATASTOREDELAYTESTLAYER_HPP_
 
-#include <layers/ANNLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
-class DatastoreDelayTestLayer : public ANNLayer {
+class DatastoreDelayTestLayer : public HyPerLayer {
 
   public:
    DatastoreDelayTestLayer(const char *name, HyPerCol *hc);
    virtual ~DatastoreDelayTestLayer();
 
-   virtual Response::Status updateState(double timed, double dt) override;
-
   protected:
    int initialize(const char *name, HyPerCol *hc);
-   void updateState(
-         double timed,
-         double dt,
-         int numNeurons,
-         float *V,
-         float *A,
-         int nx,
-         int ny,
-         int nf,
-         int lt,
-         int rt,
-         int dn,
-         int up);
 
-   static int
-   updateV_DatastoreDelayTestLayer(const PVLayerLoc *loc, bool *inited, float *V, int period);
+   virtual LayerInputBuffer *createLayerInput();
 
-  protected:
-   bool inited;
-   int period; // The periodicity of the V buffer, in pixels.
+   virtual ActivityComponent *createActivityComponent() override;
 
-}; // end of class DatastoreDelayTestLayer block
+}; // end class DatastoreDelayTestLayer
 
-} // end of namespace PV block
+} // end namespace PV
 
-#endif /* DATASTOREDELAYTEST_HPP_ */
+#endif /* DATASTOREDELAYTESTLAYER_HPP_ */

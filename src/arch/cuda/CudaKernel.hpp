@@ -102,7 +102,7 @@ class CudaKernel {
    // argsSet must be set to true before being called
    bool argsSet;
    bool dimsSet;
-   char const *kernelName;
+   char const *mKernelName;
 
 #ifdef PV_USE_CUDNN
    void callPermuteDatastorePVToCudnnKernel(
