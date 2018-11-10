@@ -6,7 +6,6 @@
  */
 
 #include "ANNActivityBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

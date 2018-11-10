@@ -11,7 +11,6 @@
 
 namespace PV {
 
-class HyPerCol;
 
 class MomentumConn : public HyPerConn {
   public:

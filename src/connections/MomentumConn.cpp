@@ -5,7 +5,6 @@
  */
 
 #include "MomentumConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "weightupdaters/MomentumUpdater.hpp"
 
 namespace PV {

@@ -6,7 +6,6 @@
  */
 
 #include "UniformRandomV.hpp"
-#include "columns/HyPerCol.hpp"
 #include "columns/Random.hpp"
 #include "utils/PVLog.hpp"
 

@@ -6,7 +6,6 @@
  */
 
 #include "InputRegionActivityComponent.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/InputRegionActivityBuffer.hpp"
 
 // InputRegionActivityComponent clones an InputLayer's InputRegion buffer

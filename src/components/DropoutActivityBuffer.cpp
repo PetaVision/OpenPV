@@ -6,7 +6,6 @@
  */
 
 #include "DropoutActivityBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

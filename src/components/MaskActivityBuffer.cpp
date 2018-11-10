@@ -7,7 +7,6 @@
 
 #include "MaskActivityBuffer.hpp"
 #include "columns/ComponentBasedObject.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ActivityComponent.hpp"
 
 namespace PV {

@@ -7,6 +7,8 @@
 #undef DEBUG_PRINT
 
 #include "columns/ComponentBasedObject.hpp"
+#include "columns/HyPerCol.hpp"
+#include "columns/PV_Init.hpp"
 #include "io/io.hpp"
 #include "layers/HyPerLayer.hpp"
 #include <components/PatchSize.hpp>

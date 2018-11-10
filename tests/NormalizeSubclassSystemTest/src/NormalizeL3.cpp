@@ -3,7 +3,6 @@
  */
 
 #include "NormalizeL3.hpp"
-#include <columns/HyPerCol.hpp>
 
 namespace PV {
 

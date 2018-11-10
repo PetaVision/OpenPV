@@ -6,7 +6,6 @@
  */
 
 #include "InputRegionActivityBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ActivityComponent.hpp"
 #include "components/OriginalLayerNameParam.hpp"
 #include "observerpattern/ObserverTable.hpp"

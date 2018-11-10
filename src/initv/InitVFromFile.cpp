@@ -6,7 +6,6 @@
  */
 
 #include "InitVFromFile.hpp"
-#include "columns/HyPerCol.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 
 namespace PV {

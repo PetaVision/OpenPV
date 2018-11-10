@@ -6,7 +6,6 @@
  */
 
 #include "BaseInitV.hpp"
-#include "columns/HyPerCol.hpp" // To get params for setObjectType
 
 namespace PV {
 

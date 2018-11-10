@@ -6,7 +6,6 @@
  */
 
 #include "ImageActivityBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 #include <algorithm>
 
 namespace PV {

@@ -6,7 +6,6 @@
  */
 
 #include "PvpActivityBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

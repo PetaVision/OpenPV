@@ -16,7 +16,6 @@
 
 namespace PV {
 
-class HyPerCol;
 
 class BaseConnection : public ComponentBasedObject {
   public:

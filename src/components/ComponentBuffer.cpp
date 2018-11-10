@@ -7,7 +7,6 @@
 
 #include "ComponentBuffer.hpp"
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 #include "observerpattern/ObserverTable.hpp"
 
 namespace PV {

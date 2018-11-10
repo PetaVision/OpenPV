@@ -6,7 +6,6 @@
  */
 
 #include "BoundaryConditions.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

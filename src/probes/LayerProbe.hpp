@@ -14,7 +14,6 @@
 
 namespace PV {
 
-class HyPerCol;
 class HyPerLayer;
 
 typedef enum { BufV, BufActivity } PVBufType;

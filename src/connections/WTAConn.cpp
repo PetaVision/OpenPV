@@ -6,6 +6,7 @@
  */
 
 #include "WTAConn.hpp"
+#include "columns/Factory.hpp"
 #include "delivery/WTADelivery.hpp"
 
 namespace PV {

@@ -6,7 +6,6 @@
  */
 
 #include "HebbianUpdater.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/WeightsPair.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "utils/TransposeWeights.hpp"

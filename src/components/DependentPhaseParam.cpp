@@ -6,7 +6,6 @@
  */
 
 #include "DependentPhaseParam.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/OriginalLayerNameParam.hpp"
 
 namespace PV {

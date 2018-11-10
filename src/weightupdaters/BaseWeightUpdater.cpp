@@ -6,7 +6,6 @@
  */
 
 #include "BaseWeightUpdater.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

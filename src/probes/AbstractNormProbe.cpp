@@ -6,7 +6,6 @@
  */
 
 #include "AbstractNormProbe.hpp"
-#include "columns/HyPerCol.hpp"
 #include "layers/HyPerLayer.hpp"
 #include <limits>
 

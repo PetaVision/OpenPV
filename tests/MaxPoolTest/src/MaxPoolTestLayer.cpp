@@ -1,7 +1,6 @@
 #include "MaxPoolTestLayer.hpp"
 
 #include "MaxPoolTestBuffer.hpp"
-#include <columns/HyPerCol.hpp>
 #include <components/ActivityComponentWithInternalState.hpp>
 #include <components/HyPerInternalStateBuffer.hpp>
 

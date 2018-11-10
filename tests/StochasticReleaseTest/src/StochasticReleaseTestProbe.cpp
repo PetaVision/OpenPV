@@ -6,7 +6,6 @@
  */
 
 #include "StochasticReleaseTestProbe.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ArborList.hpp"
 #include "components/ConnectionData.hpp"
 #include "components/PatchSize.hpp"

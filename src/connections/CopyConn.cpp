@@ -6,7 +6,6 @@
  */
 
 #include "CopyConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/CopyWeightsPair.hpp"
 #include "components/DependentArborList.hpp"
 #include "components/DependentPatchSize.hpp"

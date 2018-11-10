@@ -8,7 +8,6 @@
 #include <cmath>
 
 #include "L1NormProbe.hpp"
-#include "columns/HyPerCol.hpp"
 #include "layers/HyPerLayer.hpp"
 
 namespace PV {

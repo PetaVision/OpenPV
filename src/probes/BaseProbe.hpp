@@ -16,7 +16,6 @@
 
 namespace PV {
 
-class HyPerCol;
 class HyPerLayer;
 
 /**

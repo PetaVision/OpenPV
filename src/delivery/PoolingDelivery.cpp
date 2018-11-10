@@ -6,7 +6,6 @@
  */
 
 #include "PoolingDelivery.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/PoolingIndexLayerInputBuffer.hpp"
 #include "delivery/accumulate_functions.hpp"
 #include "observerpattern/ObserverTable.hpp"

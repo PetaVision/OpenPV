@@ -8,6 +8,8 @@
 #undef DEBUG_PRINT
 
 #include <columns/ComponentBasedObject.hpp>
+#include <columns/HyPerCol.hpp>
+#include <columns/PV_Init.hpp>
 #include <components/PatchSize.hpp>
 #include <components/SharedWeights.hpp>
 #include <components/WeightsPair.hpp>

@@ -6,7 +6,6 @@
  */
 
 #include "ZeroV.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 ZeroV::ZeroV() { initialize_base(); }

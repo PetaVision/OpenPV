@@ -1,5 +1,4 @@
 #include "MoviePvpTestBuffer.hpp"
-#include <columns/HyPerCol.hpp>
 #include <components/BatchIndexer.hpp>
 
 namespace PV {

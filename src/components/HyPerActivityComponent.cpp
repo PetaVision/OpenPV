@@ -6,7 +6,6 @@
  */
 
 #include "HyPerActivityComponent.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/HyPerActivityBuffer.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 #include "observerpattern/ObserverTable.hpp"

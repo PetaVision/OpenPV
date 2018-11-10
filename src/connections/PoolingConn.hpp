@@ -14,7 +14,6 @@
 
 namespace PV {
 
-class HyPerCol;
 
 class PoolingConn : public BaseConnection {
   public:

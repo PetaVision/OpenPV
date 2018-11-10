@@ -18,7 +18,6 @@
 
 namespace PV {
 
-class HyPerCol;
 
 /**
  * The base class for layers, connections, probes, and components of those

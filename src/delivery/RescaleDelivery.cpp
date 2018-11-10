@@ -6,7 +6,6 @@
  */
 
 #include "RescaleDelivery.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

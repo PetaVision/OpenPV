@@ -6,6 +6,7 @@
 
 #undef DEBUG_PRINT
 
+#include "columns/HyPerCol.hpp"
 #include "columns/PV_Init.hpp"
 #include "io/io.hpp"
 #include "layers/HyPerLayer.hpp"

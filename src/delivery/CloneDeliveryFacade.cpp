@@ -6,7 +6,6 @@
  */
 
 #include "CloneDeliveryFacade.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/CloneWeightsPair.hpp"
 
 namespace PV {

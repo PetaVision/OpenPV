@@ -5,7 +5,6 @@
  */
 
 #include "TransposePoolingConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ImpliedWeightsPair.hpp"
 #include "components/TransposePatchSize.hpp"
 #include "delivery/TransposePoolingDelivery.hpp"

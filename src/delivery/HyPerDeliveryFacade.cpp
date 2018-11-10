@@ -6,7 +6,7 @@
  */
 
 #include "HyPerDeliveryFacade.hpp"
-#include "columns/HyPerCol.hpp"
+#include "columns/Factory.hpp"
 
 namespace PV {
 

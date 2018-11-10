@@ -12,7 +12,6 @@
 
 namespace PV {
 
-class HyPerCol;
 
 class CloneConn : public HyPerConn {
   public:

@@ -6,7 +6,6 @@
  */
 
 #include "LayerInputBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

@@ -5,7 +5,6 @@
  */
 
 #include "TransposeConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/DependentArborList.hpp"
 #include "components/DependentSharedWeights.hpp"
 #include "components/TransposePatchSize.hpp"

@@ -6,7 +6,6 @@
  */
 
 #include "BackgroundActivityComponent.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/BackgroundActivityUpdater.hpp"
 
 namespace PV {

@@ -6,7 +6,6 @@
  */
 
 #include "TestPointProbe.hpp"
-#include <columns/HyPerCol.hpp>
 #include <string.h>
 
 namespace PV {

@@ -7,7 +7,6 @@
 
 #include "DependentPatchSize.hpp"
 #include "columns/ComponentBasedObject.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/OriginalConnNameParam.hpp"
 #include "observerpattern/ObserverTable.hpp"
 

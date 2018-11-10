@@ -6,7 +6,6 @@
  */
 
 #include "DependentBoundaryConditions.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/OriginalLayerNameParam.hpp"
 
 namespace PV {

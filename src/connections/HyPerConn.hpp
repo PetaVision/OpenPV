@@ -20,7 +20,6 @@
 
 namespace PV {
 
-class HyPerCol;
 
 class HyPerConn : public BaseConnection {
   public:

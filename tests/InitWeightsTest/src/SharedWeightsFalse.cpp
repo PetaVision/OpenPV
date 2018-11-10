@@ -6,7 +6,6 @@
  */
 
 #include "SharedWeightsFalse.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ConnectionData.hpp"
 
 namespace PV {

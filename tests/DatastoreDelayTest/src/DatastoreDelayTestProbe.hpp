@@ -8,7 +8,6 @@
 #ifndef DATASTOREDELAYTESTPROBE_HPP_
 #define DATASTOREDELAYTESTPROBE_HPP_
 
-#include "columns/HyPerCol.hpp"
 #include "include/pv_common.h"
 #include "probes/StatsProbe.hpp"
 

@@ -6,7 +6,6 @@
  */
 
 #include "FirmThresholdCostFnProbe.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ANNActivityBuffer.hpp" // To get VThresh and VWidth from targetLayer if it's an ANNLayer
 #include "components/ActivityComponent.hpp"
 #include "layers/HyPerLayer.hpp"

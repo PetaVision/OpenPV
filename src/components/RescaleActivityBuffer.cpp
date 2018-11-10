@@ -3,7 +3,6 @@
  */
 
 #include "RescaleActivityBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/OriginalLayerNameParam.hpp"
 #include <stdio.h>
 

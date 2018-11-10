@@ -6,7 +6,6 @@
  */
 
 #include "PtwiseProductInternalStateBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

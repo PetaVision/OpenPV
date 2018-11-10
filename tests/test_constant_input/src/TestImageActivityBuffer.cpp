@@ -6,7 +6,6 @@
  */
 
 #include "TestImageActivityBuffer.hpp"
-#include <columns/HyPerCol.hpp>
 
 namespace PV {
 

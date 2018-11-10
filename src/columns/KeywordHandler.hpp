@@ -14,7 +14,6 @@ namespace PV {
 
 typedef BaseObject *(*ObjectCreateFn)(char const *name, PVParams *params, Communicator *comm);
 
-class HyPerCol;
 
 /**
  * KeywordHandler is a class that associates a string, the keyword,

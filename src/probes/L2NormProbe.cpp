@@ -6,7 +6,6 @@
  */
 
 #include "L2NormProbe.hpp"
-#include "columns/HyPerCol.hpp"
 #include "layers/HyPerLayer.hpp"
 
 namespace PV {

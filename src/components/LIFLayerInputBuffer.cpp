@@ -6,7 +6,6 @@
  */
 
 #include "LIFLayerInputBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

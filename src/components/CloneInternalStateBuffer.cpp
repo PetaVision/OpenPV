@@ -7,7 +7,6 @@
 
 #include "CloneInternalStateBuffer.hpp"
 #include "columns/ComponentBasedObject.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/OriginalLayerNameParam.hpp"
 #include "observerpattern/ObserverTable.hpp"
 

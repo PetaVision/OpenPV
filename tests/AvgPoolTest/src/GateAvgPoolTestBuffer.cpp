@@ -1,5 +1,4 @@
 #include "GateAvgPoolTestBuffer.hpp"
-#include <columns/HyPerCol.hpp>
 
 #include <cmath>
 

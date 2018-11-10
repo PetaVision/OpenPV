@@ -7,7 +7,6 @@
 
 #include "MomentumLCAActivityComponent.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ANNActivityBuffer.hpp"
 #include "components/MomentumLCAInternalStateBuffer.hpp"
 #include "observerpattern/ObserverTable.hpp"

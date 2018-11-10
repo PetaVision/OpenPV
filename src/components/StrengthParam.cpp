@@ -6,7 +6,6 @@
  */
 
 #include "StrengthParam.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

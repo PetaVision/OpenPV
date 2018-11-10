@@ -6,7 +6,6 @@
  */
 
 #include "ColProbe.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

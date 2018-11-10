@@ -6,7 +6,6 @@
  */
 
 #include "MomentumUpdater.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

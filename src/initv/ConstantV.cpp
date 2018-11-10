@@ -6,7 +6,6 @@
  */
 
 #include "ConstantV.hpp"
-#include "columns/HyPerCol.hpp"
 #include "include/default_params.h"
 
 namespace PV {

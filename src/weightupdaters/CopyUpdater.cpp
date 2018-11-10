@@ -6,7 +6,6 @@
  */
 
 #include "CopyUpdater.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/OriginalConnNameParam.hpp"
 #include "connections/HyPerConn.hpp"
 #include "observerpattern/ObserverTable.hpp"

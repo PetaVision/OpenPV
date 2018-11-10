@@ -6,7 +6,6 @@
  */
 
 #include "IdentDelivery.hpp"
-#include "columns/HyPerCol.hpp"
 #include <cstring>
 
 namespace PV {

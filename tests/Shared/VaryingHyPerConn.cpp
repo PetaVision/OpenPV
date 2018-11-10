@@ -7,7 +7,6 @@
 
 #include "VaryingHyPerConn.hpp"
 #include "IncrementingWeightUpdater.hpp"
-#include <columns/HyPerCol.hpp>
 
 namespace PV {
 

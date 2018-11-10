@@ -6,7 +6,6 @@
  */
 
 #include "InputActivityBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 #include "columns/RandomSeed.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 

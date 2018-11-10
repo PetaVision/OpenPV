@@ -6,6 +6,7 @@
  */
 
 #include "RescaleConn.hpp"
+#include "columns/Factory.hpp"
 #include "delivery/RescaleDelivery.hpp"
 
 namespace PV {

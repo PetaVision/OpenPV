@@ -7,7 +7,6 @@
 
 #include "SegmentBuffer.hpp"
 
-#include "columns/HyPerCol.hpp"
 #include "components/ActivityBuffer.hpp"
 #include "components/ActivityComponent.hpp"
 

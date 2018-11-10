@@ -5,7 +5,6 @@
  */
 
 #include "PlasticCloneConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/OriginalConnNameParam.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
 

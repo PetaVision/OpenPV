@@ -5,7 +5,6 @@
  */
 
 #include "FeedbackConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/FeedbackConnectionData.hpp"
 
 namespace PV {

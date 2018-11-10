@@ -6,7 +6,6 @@
  */
 
 #include "PoolingConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/PatchSize.hpp"
 #include "delivery/PoolingDelivery.hpp"
 

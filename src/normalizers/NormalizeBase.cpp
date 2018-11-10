@@ -6,7 +6,6 @@
  */
 
 #include "NormalizeBase.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/StrengthParam.hpp"
 #include "components/WeightsPair.hpp"
 #include "layers/HyPerLayer.hpp"

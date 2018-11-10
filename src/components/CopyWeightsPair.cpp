@@ -6,7 +6,6 @@
  */
 
 #include "CopyWeightsPair.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/OriginalConnNameParam.hpp"
 #include "observerpattern/ObserverTable.hpp"
 

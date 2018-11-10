@@ -6,7 +6,6 @@
  */
 
 #include "BaseDelivery.hpp"
-#include "columns/HyPerCol.hpp"
 #include "layers/HyPerLayer.hpp"
 
 namespace PV {

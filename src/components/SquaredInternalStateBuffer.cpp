@@ -6,7 +6,6 @@
  */
 
 #include "SquaredInternalStateBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

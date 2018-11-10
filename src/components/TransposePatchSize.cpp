@@ -6,7 +6,6 @@
  */
 
 #include "TransposePatchSize.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

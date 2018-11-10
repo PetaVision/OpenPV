@@ -6,7 +6,6 @@
  */
 
 #include "PresynapticPerspectiveConvolveDelivery.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

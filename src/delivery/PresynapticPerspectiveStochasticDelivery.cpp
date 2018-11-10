@@ -6,7 +6,6 @@
  */
 
 #include "PresynapticPerspectiveStochasticDelivery.hpp"
-#include "columns/HyPerCol.hpp"
 
 // Note: there is a lot of code duplication between PresynapticPerspectiveConvolveDelivery
 // and PresynapticPerspectiveStochasticDelivery.

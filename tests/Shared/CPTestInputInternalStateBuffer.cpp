@@ -6,7 +6,6 @@
  */
 
 #include "CPTestInputInternalStateBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

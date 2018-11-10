@@ -6,7 +6,6 @@
  */
 
 #include "PostsynapticPerspectiveGPUDelivery.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

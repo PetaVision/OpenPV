@@ -16,7 +16,6 @@
 
 namespace PV {
 
-class HyPerCol;
 
 class StochasticReleaseTestProbe : public PV::StatsProbe {
   public:

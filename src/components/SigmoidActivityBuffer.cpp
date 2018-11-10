@@ -6,7 +6,6 @@
  */
 
 #include "SigmoidActivityBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

@@ -6,7 +6,6 @@
  */
 
 #include "WeightsPair.hpp"
-#include "columns/HyPerCol.hpp"
 #include "io/WeightsFileIO.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "utils/TransposeWeights.hpp"

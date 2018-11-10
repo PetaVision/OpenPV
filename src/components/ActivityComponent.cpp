@@ -6,7 +6,6 @@
  */
 
 #include "ActivityComponent.hpp"
-#include "columns/HyPerCol.hpp"
 #include "observerpattern/ObserverTable.hpp"
 
 namespace PV {

@@ -6,7 +6,6 @@
  */
 
 #include "PointLIFProbe.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/LIFActivityComponent.hpp"
 #include "layers/HyPerLayer.hpp"
 #include <assert.h>

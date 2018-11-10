@@ -6,7 +6,6 @@
  */
 
 #include "ImpliedWeightsPair.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ImpliedWeights.hpp"
 
 namespace PV {

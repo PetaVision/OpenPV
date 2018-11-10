@@ -7,7 +7,6 @@
 
 #include "SharedConnDebugInitWeights.hpp"
 #include "SharedWeightsTrue.hpp"
-#include <columns/HyPerCol.hpp>
 
 namespace PV {
 

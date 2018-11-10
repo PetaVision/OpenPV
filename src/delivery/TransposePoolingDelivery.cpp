@@ -6,7 +6,6 @@
  */
 
 #include "TransposePoolingDelivery.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/OriginalConnNameParam.hpp"
 #include "connections/PoolingConn.hpp"
 #include "delivery/accumulate_functions.hpp"

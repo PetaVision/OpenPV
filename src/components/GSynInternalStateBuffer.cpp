@@ -6,7 +6,6 @@
  */
 
 #include "GSynInternalStateBuffer.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

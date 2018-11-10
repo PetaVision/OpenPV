@@ -6,7 +6,6 @@
  */
 
 #include "PostsynapticPerspectiveConvolveDelivery.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

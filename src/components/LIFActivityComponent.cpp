@@ -7,7 +7,6 @@
 
 #include "LIFActivityComponent.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/InternalStateBuffer.hpp"
 #include "observerpattern/ObserverTable.hpp"
 

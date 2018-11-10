@@ -8,8 +8,6 @@
 #include "Factory.hpp"
 #include "include/pv_common.h"
 
-#include "columns/HyPerCol.hpp"
-
 #include "layers/ANNErrorLayer.hpp"
 #include "layers/ANNLayer.hpp"
 #include "layers/ANNSquaredLayer.hpp"

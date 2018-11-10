@@ -1,7 +1,5 @@
 #include "AvgPoolTestBuffer.hpp"
 
-#include <columns/HyPerCol.hpp>
-
 namespace PV {
 
 AvgPoolTestBuffer::AvgPoolTestBuffer(const char *name, PVParams *params, Communicator *comm) {

@@ -6,7 +6,6 @@
  */
 
 #include "ArborList.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ConnectionData.hpp"
 #include "layers/HyPerLayer.hpp"
 

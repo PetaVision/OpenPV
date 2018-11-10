@@ -6,7 +6,6 @@
  */
 
 #include "BaseConnectionProbe.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

@@ -7,7 +7,6 @@
 #include "RetinaActivityBuffer.hpp"
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
-#include "columns/HyPerCol.hpp"
 #include "observerpattern/ObserverTable.hpp"
 
 namespace PV {

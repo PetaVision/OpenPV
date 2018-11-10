@@ -6,7 +6,6 @@
  */
 
 #include "ColumnEnergyProbe.hpp"
-#include "columns/HyPerCol.hpp"
 #include <limits>
 
 namespace PV {

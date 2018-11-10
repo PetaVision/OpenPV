@@ -7,7 +7,6 @@
 
 #include "GaussianRandomV.hpp"
 #include "columns/GaussianRandom.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 

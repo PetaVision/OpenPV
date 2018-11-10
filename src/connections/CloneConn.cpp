@@ -5,7 +5,6 @@
  */
 
 #include "CloneConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/CloneWeightsPair.hpp"
 #include "components/DependentArborList.hpp"
 #include "components/DependentPatchSize.hpp"
