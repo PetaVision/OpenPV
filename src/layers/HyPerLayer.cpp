@@ -267,51 +267,6 @@ HyPerLayer::~HyPerLayer() {
    delete publisher;
 }
 
-template <typename T>
-int HyPerLayer::freeBuffer(T **buf) {
-   free(*buf);
-   *buf = NULL;
-   return PV_SUCCESS;
-}
-// Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may
-// get linker errors.
-template int HyPerLayer::freeBuffer<float>(float **buf);
-template int HyPerLayer::freeBuffer<int>(int **buf);
-
-int HyPerLayer::freeRestrictedBuffer(float **buf) { return freeBuffer(buf); }
-
-int HyPerLayer::freeExtendedBuffer(float **buf) { return freeBuffer(buf); }
-
-template <typename T>
-void HyPerLayer::allocateBuffer(T **buf, int bufsize, const char *bufname) {
-   *buf = (T *)calloc(bufsize, sizeof(T));
-   if (*buf == NULL) {
-      Fatal().printf(
-            "%s: rank %d process unable to allocate memory for %s: %s.\n",
-            getDescription_c(),
-            mCommunicator->globalCommRank(),
-            bufname,
-            strerror(errno));
-   }
-}
-// Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may
-// get linker errors.
-template void HyPerLayer::allocateBuffer<float>(float **buf, int bufsize, const char *bufname);
-template void HyPerLayer::allocateBuffer<int>(int **buf, int bufsize, const char *bufname);
-
-void HyPerLayer::allocateRestrictedBuffer(float **buf, char const *bufname) {
-   allocateBuffer(buf, getNumNeuronsAllBatches(), bufname);
-}
-
-void HyPerLayer::allocateExtendedBuffer(float **buf, char const *bufname) {
-   allocateBuffer(buf, getNumExtendedAllBatches(), bufname);
-}
-
-void HyPerLayer::allocateBuffers() {
-   // Kept so that LIF, etc. can add additional buffers. Will go away as these buffers
-   // are converted to ComponentBuffer objects.
-}
-
 void HyPerLayer::addPublisher() {
    MPIBlock const *mpiBlock  = mCommunicator->getLocalMPIBlock();
    PVLayerCube *activityCube = (PVLayerCube *)malloc(sizeof(PVLayerCube));
@@ -320,48 +275,6 @@ void HyPerLayer::addPublisher() {
    activityCube->data        = activityBuffer->getBufferData();
    activityCube->loc         = *getLayerLoc();
    publisher = new Publisher(*mpiBlock, activityCube, getNumDelayLevels(), getSparseFlag());
-}
-
-void HyPerLayer::checkpointPvpActivityFloat(
-      Checkpointer *checkpointer,
-      char const *bufferName,
-      float *pvpBuffer,
-      bool extended) {
-   bool registerSucceeded = checkpointer->registerCheckpointEntry(
-         std::make_shared<CheckpointEntryPvpBuffer<float>>(
-               getName(),
-               bufferName,
-               checkpointer->getMPIBlock(),
-               pvpBuffer,
-               getLayerLoc(),
-               extended),
-         false /*not constant*/);
-   FatalIf(
-         !registerSucceeded,
-         "%s failed to register %s for checkpointing.\n",
-         getDescription_c(),
-         bufferName);
-}
-
-void HyPerLayer::checkpointRandState(
-      Checkpointer *checkpointer,
-      char const *bufferName,
-      Random *randState,
-      bool extendedFlag) {
-   bool registerSucceeded = checkpointer->registerCheckpointEntry(
-         std::make_shared<CheckpointEntryRandState>(
-               getName(),
-               bufferName,
-               checkpointer->getMPIBlock(),
-               randState->getRNG(0),
-               getLayerLoc(),
-               extendedFlag),
-         false /*not constant*/);
-   FatalIf(
-         !registerSucceeded,
-         "%s failed to register %s for checkpointing.\n",
-         getDescription_c(),
-         bufferName);
 }
 
 Response::Status
@@ -879,9 +792,6 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
       if (mLayerInput) {
          mLayerInput->useCuda();
       }
-      if (mActivityComponent) {
-         mActivityComponent->useCuda();
-      }
    }
 #endif
 
@@ -1014,9 +924,6 @@ Response::Status HyPerLayer::allocateDataStructures() {
       auto *activityData   = activityBuffer->getReadWritePointer();
       mBoundaryConditions->applyBoundaryConditions(activityData, getLayerLoc());
    }
-
-   // allocate storage for the input conductance arrays
-   allocateBuffers();
 
 // Allocate cuda stuff on gpu if set
 #ifdef PV_USE_CUDA
@@ -1292,29 +1199,6 @@ void HyPerLayer::resetStateOnTrigger(double simTime, double deltaTime) {
 #endif
 }
 
-#ifdef PV_USE_CUDA
-int HyPerLayer::runUpdateKernel() {
-   assert(mActivityComponent->getUpdateGpu());
-   if (updatedDeviceGSyn) {
-      if (mLayerInput->isUsingGPU()) {
-         mLayerInput->copyToCuda();
-      }
-      updatedDeviceGSyn = false;
-   }
-
-   // V and Activity are write only buffers, so we don't need to do anything with them
-   assert(krUpdate);
-
-   // Sync all buffers before running
-   syncGpu();
-
-   // Run kernel
-   krUpdate->run();
-
-   return PV_SUCCESS;
-}
-#endif
-
 // Updates active indices for all levels (delays) here
 void HyPerLayer::updateAllActiveIndices() { publisher->updateAllActiveIndices(); }
 
@@ -1331,14 +1215,6 @@ bool HyPerLayer::isAllInputReady() {
    }
    return isReady;
 }
-
-#ifdef PV_USE_CUDA
-void HyPerLayer::syncGpu() {
-   if (mLayerInput->isUsingGPU() || mActivityComponent->getUpdateGpu()) {
-      mCudaDevice->syncDevice();
-   }
-}
-#endif
 
 int HyPerLayer::publish(Communicator *comm, double simTime) {
    publish_timer->start();
@@ -1459,14 +1335,9 @@ Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer)
    if (!Response::completed(status)) {
       return status;
    }
-   readActivityFromCheckpoint(checkpointer);
    readDelaysFromCheckpoint(checkpointer);
    updateAllActiveIndices();
    return Response::SUCCESS;
-}
-
-void HyPerLayer::readActivityFromCheckpoint(Checkpointer *checkpointer) {
-   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("A"), false);
 }
 
 void HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
@@ -1595,13 +1466,6 @@ void HyPerLayer::updateNBands(int const numCalls) {
       mOutputStateStream->write(&numCalls, (long)sizeof(numCalls));
       mOutputStateStream->setOutPos(fpos, true /*fromBeginning*/);
    }
-}
-
-bool HyPerLayer::localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2) {
-   return loc1->nbatch == loc2->nbatch && loc1->nx == loc2->nx && loc1->ny == loc2->ny
-          && loc1->nf == loc2->nf && loc1->halo.lt == loc2->halo.lt
-          && loc1->halo.rt == loc2->halo.rt && loc1->halo.dn == loc2->halo.dn
-          && loc1->halo.up == loc2->halo.up;
 }
 
 } // end of PV namespace

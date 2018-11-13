@@ -150,41 +150,9 @@ class HyPerLayer : public ComponentBasedObject {
 
    virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
 
-   virtual void allocateBuffers();
    void addPublisher();
 
-   /*
-    * Allocates a buffer of the given length.  The membrane potential and activity buffer, among
-    * others, are created using allocateBuffer.
-    * To free a buffer created with this method, call freeBuffer().
-    */
-   template <typename T>
-   void allocateBuffer(T **buf, int bufsize, const char *bufname);
-
-   /**
-    * Allocates a restricted buffer (that is, buffer's length is getNumNeuronsAllBatches()).
-    */
-   void allocateRestrictedBuffer(float **buf, const char *bufname);
-
-   /**
-    * Allocates an extended buffer (that is, buffer's length is getNumExtendedAllBatches()).
-    */
-   void allocateExtendedBuffer(float **buf, const char *bufname);
-
-   void checkpointPvpActivityFloat(
-         Checkpointer *checkpointer,
-         char const *bufferName,
-         float *pvpBuffer,
-         bool extended);
-
-   void checkpointRandState(
-         Checkpointer *checkpointer,
-         char const *bufferName,
-         Random *randState,
-         bool extendedFlag);
-
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
-   virtual void readActivityFromCheckpoint(Checkpointer *checkpointer);
    virtual void readDelaysFromCheckpoint(Checkpointer *checkpointer);
 #ifdef PV_USE_CUDA
    virtual Response::Status copyInitialStateToGPU() override;
@@ -205,29 +173,6 @@ class HyPerLayer : public ComponentBasedObject {
     * Copies the membrane potential V from triggerResetLayer and then calls setActivity to update A.
     */
    void resetStateOnTrigger(double simTime, double deltaTime);
-
-   /*
-    * Frees a buffer created by allocateBuffer().  Note that the address to the buffer
-    * is passed as the argument; on return, the address contains NULL.
-    * Note that there is no checking whether the buffer was created by allocateBuffer(),
-    * or any other allocateBuffer()-related method.
-    */
-   template <typename T>
-   int freeBuffer(T **buf);
-
-   /**
-    * Frees a buffer created by allocateRestrictedBuffer().
-    * Note that there is no checking whether the buffer was created by allocateRestrictedBuffer(),
-    * or any other allocateBuffer()-related method.
-    */
-   int freeRestrictedBuffer(float **buf);
-
-   /**
-    * Frees a buffer created by allocateRestrictedBuffer().
-    * Note that there is no checking whether the buffer was created by allocateExtendedBuffer(),
-    * or any other allocateBuffer()-related method.
-    */
-   int freeExtendedBuffer(float **buf);
 
    /**
     * Returns true if each layer that delivers input to this layer
@@ -315,8 +260,6 @@ class HyPerLayer : public ComponentBasedObject {
    virtual void updateAllActiveIndices();
    void updateActiveIndices();
    int resetBuffer(float *buf, int numItems);
-
-   static bool localDimensionsEqual(PVLayerLoc const *loc1, PVLayerLoc const *loc2);
 
    virtual Response::Status outputState(double timestamp, double deltaTime);
    virtual int writeActivity(double timed);
@@ -410,10 +353,6 @@ class HyPerLayer : public ComponentBasedObject {
 
    int openOutputStateFile(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
 
-#ifdef PV_USE_CUDA
-   virtual int runUpdateKernel();
-#endif
-
    /**
     * The function, called by callUpdateState, that updates the ActivityComponent's
     * activity buffer.
@@ -490,8 +429,6 @@ class HyPerLayer : public ComponentBasedObject {
 // GPU variables
 #ifdef PV_USE_CUDA
   public:
-   virtual void syncGpu();
-
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer *getCudnnGSyn() { return cudnn_GSyn; }
 #endif // PV_USE_CUDNN

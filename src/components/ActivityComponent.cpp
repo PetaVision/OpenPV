@@ -43,7 +43,6 @@ void ActivityComponent::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
    parameters()->ioParamValue(
          ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, true /*warnIfAbsent*/);
-   mUsingGPUFlag = mUpdateGpu;
 #else // PV_USE_CUDA
    bool mUpdateGpu = false;
    parameters()->ioParamValue(
@@ -85,6 +84,12 @@ ActivityComponent::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
       // Subject::deleteObserverTable() method during destructor.
    }
    pvAssert(observerTableComponent);
+
+#ifdef PV_USE_CUDA
+   if (mUpdateGpu) {
+      useCuda();
+   }
+#endif // PV_USE_CUDA
 
    auto &hierarchy         = message->mHierarchy;
    auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
@@ -170,6 +175,7 @@ Response::Status ActivityComponent::updateActivity(double simTime, double deltaT
 
 #ifdef PV_USE_CUDA
 void ActivityComponent::useCuda() {
+   mUsingGPUFlag = mUpdateGpu;
    for (auto *obj : *mTable) {
       auto *buffer = dynamic_cast<ComponentBuffer *>(obj);
       if (buffer) {
