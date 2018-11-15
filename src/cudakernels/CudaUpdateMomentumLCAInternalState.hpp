@@ -28,7 +28,6 @@ class CudaUpdateMomentumLCAInternalState : public CudaKernel {
       int rt;
       int dn;
       int up;
-      int numChannels;
 
       float *V;
       float *prevDrive;
@@ -36,7 +35,7 @@ class CudaUpdateMomentumLCAInternalState : public CudaKernel {
       double *dtAdapt;
       float tau;
       float LCAMomentumRate;
-      float const *GSynHead;
+      float const *accumulatedGSyn;
       float const *activity;
    };
 
@@ -54,7 +53,6 @@ class CudaUpdateMomentumLCAInternalState : public CudaKernel {
          int const rt,
          int const dn,
          int const up,
-         int const numChannels,
 
          CudaBuffer *V /* float* */,
          CudaBuffer *prevDrive /* float* */,

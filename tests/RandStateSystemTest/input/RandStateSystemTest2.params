@@ -183,7 +183,6 @@ HyPerConn "InputToDownsampled" = {
    plasticityFlag               = false;
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
-   convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -218,7 +217,6 @@ HyPerConn "CenterOn" = {
    plasticityFlag               = false;
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
-   convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -251,7 +249,6 @@ HyPerConn "SurroundOn" = {
    plasticityFlag               = false;
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
-   convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -285,7 +282,6 @@ HyPerConn "CenterOff" = {
    plasticityFlag               = false;
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
-   convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -318,7 +314,6 @@ HyPerConn "SurroundOff" = {
    plasticityFlag               = false;
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints   = false;
-   convertRateToSpikeCount         = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -340,7 +335,6 @@ HyPerConn "RetinaOnToLIFLayer" = {
    plasticityFlag              = false;
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints  = false;
-   convertRateToSpikeCount        = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -362,6 +356,5 @@ HyPerConn "RetinaOffToLIFLayer" = {
    plasticityFlag              = false;
    pvpatchAccumulateType        = "convolve";
    writeCompressedCheckpoints  = false;
-   convertRateToSpikeCount        = false;
    updateGSynFromPostPerspective = false;
 };

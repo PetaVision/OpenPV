@@ -93,7 +93,6 @@ HyPerConn "InputToOutput" = {
 
     delay = 0;
 
-    convertRateToSpikeCount = false;
     sharedWeights = true;
     pvpatchAccumulateType = "Stochastic"; // "Convolve" or "Stochastic" (case-insensitive)
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)

@@ -151,7 +151,6 @@ HyPerConn "delayArbor" = {
     pvpatchAccumulateType  = "convolve";
     writeCompressedCheckpoints = true;
     updateGSynFromPostPerspective = false;
-    convertRateToSpikeCount   = false;
 };
 
 DatastoreDelayTestProbe "probe" = {

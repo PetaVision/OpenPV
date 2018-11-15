@@ -7,7 +7,8 @@
  */
 
 #include "MaskLayer.hpp"
-#include "components/ActivityComponentWithInternalState.hpp"
+#include "components/GSynAccumulator.hpp"
+#include "components/HyPerActivityComponent.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 #include "components/MaskActivityBuffer.hpp"
 
@@ -24,7 +25,7 @@ void MaskLayer::initialize(const char *name, PVParams *params, Communicator *com
 }
 
 ActivityComponent *MaskLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<HyPerInternalStateBuffer, MaskActivityBuffer>(
+   return new HyPerActivityComponent<GSynAccumulator, HyPerInternalStateBuffer, MaskActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

@@ -133,7 +133,6 @@ HyPerConn "input_to_output" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
-    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;
 };
 

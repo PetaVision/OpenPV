@@ -7,7 +7,6 @@
 
 #include "MomentumLCALayer.hpp"
 #include "components/MomentumLCAActivityComponent.hpp"
-#include "components/TauLayerInputBuffer.hpp"
 
 namespace PV {
 

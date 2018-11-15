@@ -7,7 +7,8 @@
 
 #include "LeakyIntegrator.hpp"
 #include "components/ANNActivityBuffer.hpp"
-#include "components/ActivityComponentWithInternalState.hpp"
+#include "components/GSynAccumulator.hpp"
+#include "components/HyPerActivityComponent.hpp"
 #include "components/LeakyIntegratorBuffer.hpp"
 
 namespace PV {
@@ -29,7 +30,7 @@ void LeakyIntegrator::initialize(const char *name, PVParams *params, Communicato
 }
 
 ActivityComponent *LeakyIntegrator::createActivityComponent() {
-   return new ActivityComponentWithInternalState<LeakyIntegratorBuffer, ANNActivityBuffer>(
+   return new HyPerActivityComponent<GSynAccumulator, LeakyIntegratorBuffer, ANNActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

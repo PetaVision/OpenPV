@@ -2,7 +2,8 @@
 
 #include "GateMaxPoolTestBuffer.hpp"
 #include <components/ANNActivityBuffer.hpp>
-#include <components/ActivityComponentWithInternalState.hpp>
+#include <components/HyPerActivityComponent.hpp>
+#include <components/HyPerInternalStateBuffer.hpp>
 
 namespace PV {
 
@@ -11,8 +12,9 @@ GateMaxPoolTestLayer::GateMaxPoolTestLayer(const char *name, PVParams *params, C
 }
 
 ActivityComponent *GateMaxPoolTestLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<GateMaxPoolTestBuffer, ANNActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<GateMaxPoolTestBuffer,
+                                     HyPerInternalStateBuffer,
+                                     ANNActivityBuffer>(getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

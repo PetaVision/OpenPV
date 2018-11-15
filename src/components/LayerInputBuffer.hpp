@@ -34,7 +34,7 @@ class LayerInputBuffer : public ComponentBuffer {
 
    virtual ~LayerInputBuffer();
 
-   virtual void requireChannel(int channelNeeded);
+   void requireChannel(int channelNeeded);
 
    double getChannelTimeConstant(int channelCode) { return mChannelTimeConstants[channelCode]; }
 

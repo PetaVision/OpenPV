@@ -10,19 +10,20 @@
 
 #include "components/HyPerActivityComponent.hpp"
 
-#include "columns/Random.hpp"
-#include "components/ActivityBuffer.hpp"
-#include "components/InternalStateBuffer.hpp"
-#include "components/LIFLayerInputBuffer.hpp"
+#include "components/ANNActivityBuffer.hpp"
+#include "components/GSynAccumulator.hpp"
+#include "components/MomentumLCAInternalStateBuffer.hpp"
 #include "components/RestrictedBuffer.hpp"
-#include "include/default_params.h"
 
 namespace PV {
+
+typedef HyPerActivityComponent<GSynAccumulator, MomentumLCAInternalStateBuffer, ANNActivityBuffer>
+      BaseMomentumActivityComponent;
 
 /**
  * The activity component for LCA layers with momentum.
  */
-class MomentumLCAActivityComponent : public HyPerActivityComponent {
+class MomentumLCAActivityComponent : public BaseMomentumActivityComponent {
 
   public:
    MomentumLCAActivityComponent(char const *name, PVParams *parameters, Communicator *comm);
@@ -37,10 +38,6 @@ class MomentumLCAActivityComponent : public HyPerActivityComponent {
    virtual void setObjectType();
 
    virtual void createComponentTable(char const *tableDescription) override;
-
-   virtual ActivityBuffer *createActivity() override;
-
-   virtual InternalStateBuffer *createInternalState() override;
 
    virtual RestrictedBuffer *createPrevDrive();
 

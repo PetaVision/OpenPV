@@ -6,7 +6,7 @@
  */
 
 #include "CloneVLayer.hpp"
-#include "components/ActivityComponentWithInternalState.hpp"
+#include "components/CloneActivityComponent.hpp"
 #include "components/CloneInternalStateBuffer.hpp"
 #include "components/HyPerActivityBuffer.hpp"
 
@@ -45,7 +45,7 @@ OriginalLayerNameParam *CloneVLayer::createOriginalLayerNameParam() {
 LayerInputBuffer *CloneVLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *CloneVLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<CloneInternalStateBuffer, HyPerActivityBuffer>(
+   return new CloneActivityComponent<CloneInternalStateBuffer, HyPerActivityBuffer>(
          name, parameters(), mCommunicator);
 }
 

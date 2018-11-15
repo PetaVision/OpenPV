@@ -6,7 +6,7 @@
  */
 
 #include "SigmoidLayer.hpp"
-#include "components/ActivityComponentWithInternalState.hpp"
+#include "components/CloneActivityComponent.hpp"
 #include "components/CloneInternalStateBuffer.hpp"
 #include "components/SigmoidActivityBuffer.hpp"
 
@@ -25,7 +25,7 @@ void SigmoidLayer::initialize(const char *name, PVParams *params, Communicator *
 }
 
 ActivityComponent *SigmoidLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<CloneInternalStateBuffer, SigmoidActivityBuffer>(
+   return new CloneActivityComponent<CloneInternalStateBuffer, SigmoidActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

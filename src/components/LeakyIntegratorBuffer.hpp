@@ -8,7 +8,7 @@
 #ifndef LEAKYINTEGRATORBUFFER_HPP_
 #define LEAKYINTEGRATORBUFFER_HPP_
 
-#include "components/GSynInternalStateBuffer.hpp"
+#include "components/HyPerInternalStateBuffer.hpp"
 
 namespace PV {
 
@@ -18,7 +18,7 @@ namespace PV {
  * where tau is given by the integrationTime parameter.
  * tau is in the same units that the HyPerCol dt parameter is in.
  */
-class LeakyIntegratorBuffer : public GSynInternalStateBuffer {
+class LeakyIntegratorBuffer : public HyPerInternalStateBuffer {
   protected:
    /**
     * List of parameters used by the ANNErrorLayer class
@@ -45,8 +45,6 @@ class LeakyIntegratorBuffer : public GSynInternalStateBuffer {
    virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-
-   virtual void requireInputChannels() override;
 
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 

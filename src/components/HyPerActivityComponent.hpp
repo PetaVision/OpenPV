@@ -9,19 +9,27 @@
 #define HYPERACTIVITYCOMPONENT_HPP_
 
 #include "components/ActivityComponent.hpp"
+#include "components/GSynAccumulator.hpp"
 #include "components/InternalStateBuffer.hpp"
 
 namespace PV {
 
 /**
- * The base class for layer buffers such as GSyn, membrane potential, activity, etc.
+ * The class template for ActivityComponent classes that use an accumulated-GSyn component,
+ * V component, and A component (derived from GSynAccumulator, InternalStateBuffer,
+ * and ActivityBuffer, respectively).
  */
+template <typename G, typename V, typename A>
 class HyPerActivityComponent : public ActivityComponent {
   public:
    HyPerActivityComponent(char const *name, PVParams *params, Communicator *comm);
 
    virtual ~HyPerActivityComponent();
 
+   /**
+    * Calls the updateBuffer methods of AccumulatedGSyn, InternalState, and Activity,
+    * in that order.
+    */
    virtual Response::Status updateActivity(double simTime, double deltaTime) override;
 
   protected:
@@ -37,13 +45,22 @@ class HyPerActivityComponent : public ActivityComponent {
 
    virtual InternalStateBuffer *createInternalState();
 
+   virtual GSynAccumulator *createAccumulatedGSyn();
+
+   /**
+    * Calls the initializeState methods of AccumulatedGSyn, InternalState, and Activity,
+    * in that order.
+    */
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
   protected:
    InternalStateBuffer *mInternalState = nullptr;
+   GSynAccumulator *mAccumulatedGSyn   = nullptr;
 };
 
 } // namespace PV
+
+#include "HyPerActivityComponent.tpp"
 
 #endif // HYPERACTIVITYCOMPONENT_HPP_

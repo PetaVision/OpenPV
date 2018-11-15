@@ -13,47 +13,27 @@ __global__ void HyPerLCAInternalState_update_state(
       int const rt,
       int const dn,
       int const up,
-      int const numChannels,
       float *V,
       bool const selfInteract,
       double *dtAdapt,
       float const tau,
-      float const *GSynHead,
+      float const *accumulatedGSyn,
       float const *A) {
 
    int kIndex = (blockIdx.x * blockDim.x) + threadIdx.x;
    if (kIndex < numNeurons * nbatch) {
-      float const *GSynExc = GSynHead + 0 * numNeurons * nbatch;
-      if (numChannels == 1) {
-         int b = kIndex / numNeurons;
-         int k = kIndex % numNeurons;
+      int b = kIndex / numNeurons;
+      int k = kIndex % numNeurons;
 
-         float exp_tau             = (float)std::exp(-dtAdapt[b] / (double)tau);
-         float *VBatch             = V + b * numNeurons;
-         float const *GSynExcBatch = GSynExc + b * numNeurons;
-         // Activity is an extended buffer.
-         float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
+      float exp_tau                     = (float)std::exp(-dtAdapt[b] / (double)tau);
+      float *VBatch                     = V + b * numNeurons;
+      float const *accumulatedGSynBatch = accumulatedGSyn + b * numNeurons;
+      float const gSyn                  = accumulatedGSynBatch[k];
+      // Activity is an extended buffer.
+      float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
 
-         float const gSyn = GSynExcBatch[k]; // only one channel
-         int kex          = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (gSyn + selfInteract * ABatch[kex]);
-      }
-      else {
-         float const *GSynInh = GSynHead + 1 * numNeurons * nbatch;
-         int b                = kIndex / numNeurons;
-         int k                = kIndex % numNeurons;
-
-         float exp_tau             = (float)std::exp(-dtAdapt[b] / (double)tau);
-         float *VBatch             = V + b * numNeurons;
-         float const *GSynExcBatch = GSynExc + b * numNeurons;
-         float const *GSynInhBatch = GSynInh + b * numNeurons;
-         // Activity is an extended buffer.
-         float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
-
-         float const gSyn = GSynExcBatch[k] - GSynInhBatch[k];
-         int kex          = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (gSyn + selfInteract * ABatch[kex]);
-      }
+      int kex   = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (gSyn + selfInteract * ABatch[kex]);
    }
 }
 
@@ -72,12 +52,11 @@ int CudaUpdateHyPerLCAInternalState::do_run() {
          params.rt,
          params.dn,
          params.up,
-         params.numChannels,
          params.V,
          params.selfInteract,
          params.dtAdapt,
          params.tau,
-         params.GSynHead,
+         params.accumulatedGSyn,
          params.activity);
    return 0;
 }

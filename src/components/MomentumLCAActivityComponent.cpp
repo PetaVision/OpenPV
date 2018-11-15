@@ -26,25 +26,18 @@ void MomentumLCAActivityComponent::initialize(
       char const *name,
       PVParams *params,
       Communicator *comm) {
-   HyPerActivityComponent::initialize(name, params, comm);
+   BaseMomentumActivityComponent::initialize(name, params, comm);
 }
 
 void MomentumLCAActivityComponent::setObjectType() { mObjectType = "MomentumLCAActivityComponent"; }
 
 void MomentumLCAActivityComponent::createComponentTable(char const *tableDescription) {
-   HyPerActivityComponent::createComponentTable(tableDescription); // creates A and V buffers
+   BaseMomentumActivityComponent::createComponentTable(tableDescription);
+   // creates A, V, and accumulated-GSyn buffers.
    mPrevDrive = createPrevDrive();
    if (mPrevDrive) {
       addObserver(mPrevDrive->getDescription(), mPrevDrive);
    }
-}
-
-ActivityBuffer *MomentumLCAActivityComponent::createActivity() {
-   return new ANNActivityBuffer(getName(), parameters(), mCommunicator);
-}
-
-InternalStateBuffer *MomentumLCAActivityComponent::createInternalState() {
-   return new MomentumLCAInternalStateBuffer(getName(), parameters(), mCommunicator);
 }
 
 RestrictedBuffer *MomentumLCAActivityComponent::createPrevDrive() {
@@ -55,11 +48,11 @@ RestrictedBuffer *MomentumLCAActivityComponent::createPrevDrive() {
 
 Response::Status MomentumLCAActivityComponent::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   return HyPerActivityComponent::communicateInitInfo(message);
+   return BaseMomentumActivityComponent::communicateInitInfo(message);
 }
 
 Response::Status MomentumLCAActivityComponent::allocateDataStructures() {
-   auto status = HyPerActivityComponent::allocateDataStructures();
+   auto status = BaseMomentumActivityComponent::allocateDataStructures();
    if (!Response::completed(status)) {
       return status;
    }
@@ -68,12 +61,12 @@ Response::Status MomentumLCAActivityComponent::allocateDataStructures() {
 }
 Response::Status MomentumLCAActivityComponent::registerData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   return HyPerActivityComponent::registerData(message);
+   return BaseMomentumActivityComponent::registerData(message);
 }
 
 Response::Status MomentumLCAActivityComponent::initializeState(
       std::shared_ptr<InitializeStateMessage const> message) {
-   auto status = HyPerActivityComponent::initializeState(message);
+   auto status = BaseMomentumActivityComponent::initializeState(message);
    if (!Response::completed(status)) {
       return status;
    }

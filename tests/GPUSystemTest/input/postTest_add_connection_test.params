@@ -193,7 +193,6 @@ HyPerConn "origConn_1" = {
      
     delay = 0;
      
-    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -204,7 +203,6 @@ TransposeConn "TransposeConn1_1" = {
     postLayerName = "outputRecv1_1";
     channelCode = 0; 
     originalConnName = "origConn_1";
-    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -217,7 +215,6 @@ TransposeConn "TransposeConn1_2" = {
     postLayerName = "outputRecv1_2";
     channelCode = 0;
     originalConnName = "origConn_1";
-    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -235,7 +232,6 @@ TransposeConn "TransposeConn2_1" = {
     postLayerName = "outputRecv2_1";
     channelCode = 0; 
     originalConnName = "origConn_2";
-    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";

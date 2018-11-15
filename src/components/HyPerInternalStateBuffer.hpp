@@ -8,7 +8,9 @@
 #ifndef HYPERINTERNALSTATEBUFFER_HPP_
 #define HYPERINTERNALSTATEBUFFER_HPP_
 
-#include "components/GSynInternalStateBuffer.hpp"
+#include "components/InternalStateBuffer.hpp"
+
+#include "components/GSynAccumulator.hpp"
 #include "components/LayerInputBuffer.hpp"
 
 namespace PV {
@@ -16,7 +18,7 @@ namespace PV {
 /**
  * A component to contain the internal state (membrane potential) of a HyPerLayer.
  */
-class HyPerInternalStateBuffer : public GSynInternalStateBuffer {
+class HyPerInternalStateBuffer : public InternalStateBuffer {
   public:
    HyPerInternalStateBuffer(char const *name, PVParams *params, Communicator *comm);
 
@@ -29,13 +31,17 @@ class HyPerInternalStateBuffer : public GSynInternalStateBuffer {
 
    virtual void setObjectType() override;
 
-   virtual void requireInputChannels() override;
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
     * Computes the buffer as excitatory input minus inhibitory input from the LayerInput buffer.
     * The previous internal state has no effect on the new internal state.
     */
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
+
+  protected:
+   GSynAccumulator *mAccumulatedGSyn = nullptr;
 };
 
 } // namespace PV

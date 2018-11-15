@@ -19,12 +19,25 @@ HyPerInternalStateBuffer::HyPerInternalStateBuffer(
 HyPerInternalStateBuffer::~HyPerInternalStateBuffer() {}
 
 void HyPerInternalStateBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
-   GSynInternalStateBuffer::initialize(name, params, comm);
+   InternalStateBuffer::initialize(name, params, comm);
 }
 
 void HyPerInternalStateBuffer::setObjectType() { mObjectType = "HyPerInternalStateBuffer"; }
 
-void HyPerInternalStateBuffer::requireInputChannels() { mLayerInput->requireChannel(CHANNEL_EXC); }
+Response::Status HyPerInternalStateBuffer::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   Response::Status status = InternalStateBuffer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   mAccumulatedGSyn = message->mHierarchy->lookupByType<GSynAccumulator>();
+   FatalIf(
+         mAccumulatedGSyn == nullptr,
+         "%s could not find a GSynAccumulator component.\n",
+         getDescription_c());
+
+   return Response::SUCCESS;
+}
 
 void HyPerInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) {
    float *V = getReadWritePointer();
@@ -37,28 +50,14 @@ void HyPerInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime)
       return;
    }
    int const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
-   pvAssert(numNeuronsAcrossBatch == mLayerInput->getBufferSizeAcrossBatch());
+   pvAssert(numNeuronsAcrossBatch == mAccumulatedGSyn->getBufferSizeAcrossBatch());
 
-   int const numChannels = mLayerInput->getNumChannels();
-   pvAssert(numChannels >= 1); // communicateInitInfo called requireChannel with channel 0.
-   if (numChannels == 1) {
-      float const *excitatoryInput = mLayerInput->getChannelData(CHANNEL_EXC);
+   float const *gSyn = mAccumulatedGSyn->getBufferData();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int k = 0; k < numNeuronsAcrossBatch; k++) {
-         V[k] = excitatoryInput[k];
-      }
-   }
-   else {
-      float const *excitatoryInput = mLayerInput->getChannelData(CHANNEL_EXC);
-      float const *inhibitoryInput = mLayerInput->getChannelData(CHANNEL_INH);
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-      for (int k = 0; k < numNeuronsAcrossBatch; k++) {
-         V[k] = excitatoryInput[k] - inhibitoryInput[k];
-      }
+   for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+      V[k] = gSyn[k];
    }
 }
 

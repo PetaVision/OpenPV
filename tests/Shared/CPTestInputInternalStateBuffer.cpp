@@ -22,7 +22,7 @@ void CPTestInputInternalStateBuffer::initialize(
       char const *name,
       PVParams *params,
       Communicator *comm) {
-   GSynInternalStateBuffer::initialize(name, params, comm);
+   HyPerInternalStateBuffer::initialize(name, params, comm);
 }
 
 void CPTestInputInternalStateBuffer::setObjectType() {
@@ -31,7 +31,7 @@ void CPTestInputInternalStateBuffer::setObjectType() {
 
 Response::Status CPTestInputInternalStateBuffer::initializeState(
       std::shared_ptr<InitializeStateMessage const> message) {
-   auto status = GSynInternalStateBuffer::initializeState(message);
+   auto status = HyPerInternalStateBuffer::initializeState(message);
    if (!Response::completed(status)) {
       return status;
    }

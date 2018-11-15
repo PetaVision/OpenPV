@@ -8,7 +8,7 @@
 #include "DatastoreDelayTestLayer.hpp"
 
 #include "DatastoreDelayTestBuffer.hpp"
-#include <components/ActivityComponentWithInternalState.hpp>
+#include <components/CloneActivityComponent.hpp>
 #include <components/HyPerActivityBuffer.hpp>
 
 namespace PV {
@@ -29,7 +29,7 @@ void DatastoreDelayTestLayer::initialize(const char *name, PVParams *params, Com
 LayerInputBuffer *DatastoreDelayTestLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *DatastoreDelayTestLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<DatastoreDelayTestBuffer, HyPerActivityBuffer>(
+   return new CloneActivityComponent<DatastoreDelayTestBuffer, HyPerActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

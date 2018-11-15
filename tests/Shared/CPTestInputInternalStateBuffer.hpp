@@ -8,15 +8,16 @@
 #ifndef CPTESTINPUTINTERNALSTATEBUFFER_HPP_
 #define CPTESTINPUTINTERNALSTATEBUFFER_HPP_
 
-#include "components/GSynInternalStateBuffer.hpp"
+#include "components/HyPerInternalStateBuffer.hpp"
 
 namespace PV {
 
 /**
- * A membrane potential component that reads the excitatory channel of a LayerInputBuffer and
- * computes V = GSynExc * GSynExc. Used by ANNSquaredLayer.
+ * A membrane potential component that initializes each neuron to its global index,
+ * and then increases each neuron by one each time updateBuffer is called.
+ * Used by several checkpoint system tests.
  */
-class CPTestInputInternalStateBuffer : public GSynInternalStateBuffer {
+class CPTestInputInternalStateBuffer : public HyPerInternalStateBuffer {
   public:
    CPTestInputInternalStateBuffer(char const *name, PVParams *params, Communicator *comm);
 

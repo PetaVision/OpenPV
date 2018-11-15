@@ -19,33 +19,31 @@ void CudaUpdateHyPerLCAInternalState::setArgs(
       int const rt,
       int const dn,
       int const up,
-      int const numChannels,
 
       CudaBuffer *V /*float*/,
       bool const selfInteract,
       CudaBuffer *dtAdapt /*double*/,
       float const tau,
 
-      CudaBuffer *GSynHead /*float*/,
+      CudaBuffer *accumulatedGSyn /*float*/,
       CudaBuffer *activity /*float*/) {
-   params.nbatch      = nbatch;
-   params.numNeurons  = numNeurons;
-   params.nx          = nx;
-   params.ny          = ny;
-   params.nf          = nf;
-   params.lt          = lt;
-   params.rt          = rt;
-   params.dn          = dn;
-   params.up          = up;
-   params.numChannels = numChannels;
+   params.nbatch     = nbatch;
+   params.numNeurons = numNeurons;
+   params.nx         = nx;
+   params.ny         = ny;
+   params.nf         = nf;
+   params.lt         = lt;
+   params.rt         = rt;
+   params.dn         = dn;
+   params.up         = up;
 
-   params.V = (float *)V->getPointer();
+   params.V            = (float *)V->getPointer();
    params.selfInteract = selfInteract;
-   params.dtAdapt = (double *)dtAdapt->getPointer();
-   params.tau     = tau;
+   params.dtAdapt      = (double *)dtAdapt->getPointer();
+   params.tau          = tau;
 
-   params.GSynHead = (float const *)GSynHead->getPointer();
-   params.activity = (float const *)activity->getPointer();
+   params.accumulatedGSyn = (float const *)accumulatedGSyn->getPointer();
+   params.activity        = (float const *)activity->getPointer();
 
    setArgsFlag();
 }

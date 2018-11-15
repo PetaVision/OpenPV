@@ -28,13 +28,12 @@ class CudaUpdateISTAInternalState : public CudaKernel {
       int rt;
       int dn;
       int up;
-      int numChannels;
 
       float *V;
       float VThresh;
       double *dtAdapt;
       float tau;
-      float const *GSynHead;
+      float const *accumulatedGSyn;
       float const *activity;
    };
 
@@ -52,14 +51,13 @@ class CudaUpdateISTAInternalState : public CudaKernel {
          int const rt,
          int const dn,
          int const up,
-         int const numChannels,
 
          CudaBuffer *V /* float* */,
          float const VThresh,
          CudaBuffer *dtAdapt /* double* */,
          float const tau,
 
-         CudaBuffer *GSynHead /* float const* */,
+         CudaBuffer *accumulatedGSyn /* float const* */,
          CudaBuffer *activity /* float const* */);
 
   protected:

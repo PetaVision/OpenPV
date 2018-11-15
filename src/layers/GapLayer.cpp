@@ -6,7 +6,7 @@
  */
 
 #include "GapLayer.hpp"
-#include "components/ActivityComponentWithInternalState.hpp"
+#include "components/CloneActivityComponent.hpp"
 #include "components/CloneInternalStateBuffer.hpp"
 #include "components/GapActivityBuffer.hpp"
 
@@ -23,7 +23,7 @@ void GapLayer::initialize(const char *name, PVParams *params, Communicator *comm
 }
 
 ActivityComponent *GapLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<CloneInternalStateBuffer, GapActivityBuffer>(
+   return new CloneActivityComponent<CloneInternalStateBuffer, GapActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

@@ -4,8 +4,9 @@
 
 #include "CPTestInputLayer.hpp"
 #include "CPTestInputInternalStateBuffer.hpp"
-#include <components/ActivityComponentWithInternalState.hpp>
+#include <components/GSynAccumulator.hpp>
 #include <components/HyPerActivityBuffer.hpp>
+#include <components/HyPerActivityComponent.hpp>
 
 namespace PV {
 
@@ -20,9 +21,9 @@ void CPTestInputLayer::initialize(const char *name, PVParams *params, Communicat
 }
 
 ActivityComponent *CPTestInputLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<CPTestInputInternalStateBuffer,
-                                                 HyPerActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<GSynAccumulator,
+                                     CPTestInputInternalStateBuffer,
+                                     HyPerActivityBuffer>(getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

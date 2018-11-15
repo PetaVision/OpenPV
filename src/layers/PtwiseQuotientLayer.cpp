@@ -13,8 +13,9 @@
 
 #include "PtwiseQuotientLayer.hpp"
 #include "components/ANNActivityBuffer.hpp"
-#include "components/ActivityComponentWithInternalState.hpp"
-#include "components/PtwiseQuotientInternalStateBuffer.hpp"
+#include "components/HyPerActivityComponent.hpp"
+#include "components/HyPerInternalStateBuffer.hpp"
+#include "components/PtwiseQuotientGSynAccumulator.hpp"
 
 namespace PV {
 
@@ -34,9 +35,9 @@ void PtwiseQuotientLayer::initialize(const char *name, PVParams *params, Communi
 }
 
 ActivityComponent *PtwiseQuotientLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<PtwiseQuotientInternalStateBuffer,
-                                                 HyPerActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+   return new HyPerActivityComponent<PtwiseQuotientGSynAccumulator,
+                                     HyPerInternalStateBuffer,
+                                     HyPerActivityBuffer>(getName(), parameters(), mCommunicator);
 }
 
 Response::Status PtwiseQuotientLayer::allocateDataStructures() {

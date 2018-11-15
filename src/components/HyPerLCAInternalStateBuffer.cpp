@@ -30,9 +30,14 @@ void HyPerLCAInternalStateBuffer::initialize(
 
 int HyPerLCAInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerInternalStateBuffer::ioParamsFillGroup(ioFlag);
+   ioParam_timeConstantTau(ioFlag);
    ioParam_selfInteract(ioFlag);
    ioParam_adaptiveTimeScaleProbe(ioFlag);
    return status;
+}
+
+void HyPerLCAInternalStateBuffer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValue(ioFlag, name, "timeConstantTau", &mTimeConstantTau, mTimeConstantTau);
 }
 
 void HyPerLCAInternalStateBuffer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
@@ -106,9 +111,7 @@ Response::Status HyPerLCAInternalStateBuffer::initializeState(
    if (!Response::completed(status)) {
       return status;
    }
-   pvAssert(mLayerInput and mLayerInput->getDataStructuresAllocatedFlag());
-   double timeConstantTau = mLayerInput->getChannelTimeConstant(CHANNEL_EXC);
-   mScaledTimeConstantTau = (float)(timeConstantTau / message->mDeltaTime);
+   mScaledTimeConstantTau = (float)(mTimeConstantTau / message->mDeltaTime);
    return Response::SUCCESS;
 }
 
@@ -142,13 +145,12 @@ Response::Status HyPerLCAInternalStateBuffer::copyInitialStateToGPU() {
    int const rt          = loc->halo.rt;
    int const dn          = loc->halo.dn;
    int const up          = loc->halo.up;
-   int const numChannels = mLayerInput->getNumChannels();
    pvAssert(getCudaBuffer());
-   float const selfInteract                 = (float)this->mSelfInteract;
-   float const tau                          = mScaledTimeConstantTau;
-   PVCuda::CudaBuffer *layerInputCudaBuffer = mLayerInput->getCudaBuffer();
-   PVCuda::CudaBuffer *activityCudaBuffer   = mActivity->getCudaBuffer();
-   pvAssert(layerInputCudaBuffer);
+   float const selfInteract                      = (float)this->mSelfInteract;
+   float const tau                               = mScaledTimeConstantTau;
+   PVCuda::CudaBuffer *accumulatedGSynCudaBuffer = mAccumulatedGSyn->getCudaBuffer();
+   PVCuda::CudaBuffer *activityCudaBuffer        = mActivity->getCudaBuffer();
+   pvAssert(accumulatedGSynCudaBuffer);
 
    auto *cudaKernel = dynamic_cast<PVCuda::CudaUpdateHyPerLCAInternalState *>(mCudaUpdateKernel);
    pvAssert(cudaKernel);
@@ -163,20 +165,19 @@ Response::Status HyPerLCAInternalStateBuffer::copyInitialStateToGPU() {
          rt,
          dn,
          up,
-         numChannels,
          getCudaBuffer(),
          selfInteract,
          mCudaDtAdapt,
          tau,
-         layerInputCudaBuffer,
+         accumulatedGSynCudaBuffer,
          activityCudaBuffer);
    return Response::SUCCESS;
 }
 
 void HyPerLCAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTime) {
    pvAssert(isUsingGPU()); // or should be in updateBufferCPU() method.
-   if (!mLayerInput->isUsingGPU()) {
-      mLayerInput->copyToCuda();
+   if (!mAccumulatedGSyn->isUsingGPU()) {
+      mAccumulatedGSyn->copyToCuda();
    }
 
    // Copy over mCudaDtAdapt
@@ -192,16 +193,15 @@ void HyPerLCAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTi
 
 void HyPerLCAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #ifdef PV_USE_CUDA
-   pvAssert(!isUsingGPU()); // or should be in updateBufferGPU() method.
-   if (mLayerInput->isUsingGPU()) {
-      mLayerInput->copyFromCuda();
+   pvAssert(!isUsingGPU()); // if using GPU, should be in updateBufferGPU() method instead.
+   if (mAccumulatedGSyn->isUsingGPU()) {
+      mAccumulatedGSyn->copyFromCuda();
    }
 #endif // PV_USE_CUDA
 
    const PVLayerLoc *loc = getLayerLoc();
    float const *A        = mActivity->getBufferData();
    float *V              = mBufferData.data();
-   int numChannels       = mLayerInput->getNumChannels();
 
    int nx            = loc->nx;
    int ny            = loc->ny;
@@ -215,49 +215,25 @@ void HyPerLCAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTi
    float tau         = mScaledTimeConstantTau;
    bool selfInteract = mSelfInteract;
 
-   float const *GSynExc  = mLayerInput->getChannelData(CHANNEL_EXC);
+   float const *gSyn     = mAccumulatedGSyn->getBufferData();
    double const *dtAdapt = deltaTimes(simTime, deltaTime);
 
-   if (numChannels == 1) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int kIndex = 0; kIndex < numNeurons * nbatch; kIndex++) {
-         int b = kIndex / numNeurons;
-         int k = kIndex % numNeurons;
+   for (int kIndex = 0; kIndex < numNeurons * nbatch; kIndex++) {
+      int b = kIndex / numNeurons;
+      int k = kIndex % numNeurons;
 
-         float exp_tau             = (float)std::exp(-dtAdapt[b] / (double)tau);
-         float *VBatch             = V + b * numNeurons;
-         float const *GSynExcBatch = GSynExc + b * numNeurons;
-         // Activity is an extended buffer.
-         float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
+      float exp_tau          = (float)std::exp(-dtAdapt[b] / (double)tau);
+      float *VBatch          = V + b * numNeurons;
+      float const *gSynBatch = gSyn + b * numNeurons;
+      // Activity is an extended buffer.
+      float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
 
-         float const gSyn = GSynExcBatch[k]; // only one channel
-         int kex          = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (gSyn + selfInteract * ABatch[kex]);
-      }
-   }
-   else {
-      pvAssert(numChannels > 1);
-      float const *GSynInh = mLayerInput->getChannelData(CHANNEL_INH);
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-      for (int kIndex = 0; kIndex < numNeurons * nbatch; kIndex++) {
-         int b = kIndex / numNeurons;
-         int k = kIndex % numNeurons;
-
-         float exp_tau             = (float)std::exp(-dtAdapt[b] / (double)tau);
-         float *VBatch             = V + b * numNeurons;
-         float const *GSynExcBatch = GSynExc + b * numNeurons;
-         float const *GSynInhBatch = GSynInh + b * numNeurons;
-         // Activity is an extended buffer.
-         float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
-
-         float const gSyn = GSynExcBatch[k] - GSynInhBatch[k];
-         int kex          = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (gSyn + selfInteract * ABatch[kex]);
-      }
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      VBatch[k] =
+            exp_tau * VBatch[k] + (1.0f - exp_tau) * (gSynBatch[k] + selfInteract * ABatch[kex]);
    }
 }
 

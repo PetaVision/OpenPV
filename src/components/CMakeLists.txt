@@ -25,9 +25,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FeedbackConnectionData.cpp
    ${SUBDIR}/FilenameParsingActivityBuffer.cpp
    ${SUBDIR}/GapActivityBuffer.cpp
-   ${SUBDIR}/GSynInternalStateBuffer.cpp
+   ${SUBDIR}/GSynAccumulator.cpp
    ${SUBDIR}/HyPerActivityBuffer.cpp
-   ${SUBDIR}/HyPerActivityComponent.cpp
    ${SUBDIR}/HyPerInternalStateBuffer.cpp
    ${SUBDIR}/HyPerLCAInternalStateBuffer.cpp
    ${SUBDIR}/ImageActivityBuffer.cpp
@@ -55,8 +54,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PatchSize.cpp
    ${SUBDIR}/PhaseParam.cpp
    ${SUBDIR}/PoolingIndexLayerInputBuffer.cpp
-   ${SUBDIR}/PtwiseProductInternalStateBuffer.cpp
-   ${SUBDIR}/PtwiseQuotientInternalStateBuffer.cpp
+   ${SUBDIR}/PtwiseProductGSynAccumulator.cpp
+   ${SUBDIR}/PtwiseQuotientGSynAccumulator.cpp
    ${SUBDIR}/PvpActivityBuffer.cpp
    ${SUBDIR}/RescaleActivityBuffer.cpp
    ${SUBDIR}/RestrictedBuffer.cpp
@@ -66,9 +65,9 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/SharedWeights.cpp
    ${SUBDIR}/SigmoidActivityBuffer.cpp
    ${SUBDIR}/SingleArbor.cpp
-   ${SUBDIR}/SquaredInternalStateBuffer.cpp
+   ${SUBDIR}/SingleChannelGSynAccumulator.cpp
+   ${SUBDIR}/SquaredGSynAccumulator.cpp
    ${SUBDIR}/StrengthParam.cpp
-   ${SUBDIR}/TauLayerInputBuffer.cpp
    ${SUBDIR}/TransposePatchSize.cpp
    ${SUBDIR}/TransposeWeightsPair.cpp
    ${SUBDIR}/VInputActivityBuffer.cpp
@@ -84,13 +83,13 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ActivityBuffer.hpp
    ${SUBDIR}/ActivityComponent.hpp
    ${SUBDIR}/ActivityComponentActivityOnly.hpp
-   ${SUBDIR}/ActivityComponentWithInternalState.hpp
    ${SUBDIR}/ANNActivityBuffer.hpp
    ${SUBDIR}/ArborList.hpp
    ${SUBDIR}/BackgroundActivityBuffer.hpp
    ${SUBDIR}/BatchIndexer.hpp
    ${SUBDIR}/BinningActivityBuffer.hpp
    ${SUBDIR}/BoundaryConditions.hpp
+   ${SUBDIR}/CloneActivityComponent.hpp
    ${SUBDIR}/CloneInternalStateBuffer.hpp
    ${SUBDIR}/CloneWeightsPair.hpp
    ${SUBDIR}/ComponentBuffer.hpp
@@ -106,7 +105,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FeedbackConnectionData.hpp
    ${SUBDIR}/FilenameParsingActivityBuffer.hpp
    ${SUBDIR}/GapActivityBuffer.hpp
-   ${SUBDIR}/GSynInternalStateBuffer.hpp
+   ${SUBDIR}/GSynAccumulator.hpp
    ${SUBDIR}/HyPerActivityBuffer.hpp
    ${SUBDIR}/HyPerActivityComponent.hpp
    ${SUBDIR}/HyPerInternalStateBuffer.hpp
@@ -137,8 +136,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PatchSize.hpp
    ${SUBDIR}/PhaseParam.hpp
    ${SUBDIR}/PoolingIndexLayerInputBuffer.hpp
-   ${SUBDIR}/PtwiseProductInternalStateBuffer.hpp
-   ${SUBDIR}/PtwiseQuotientInternalStateBuffer.hpp
+   ${SUBDIR}/PtwiseProductGSynAccumulator.hpp
+   ${SUBDIR}/PtwiseQuotientGSynAccumulator.hpp
    ${SUBDIR}/PvpActivityBuffer.hpp
    ${SUBDIR}/RescaleActivityBuffer.hpp
    ${SUBDIR}/RestrictedBuffer.hpp
@@ -148,9 +147,9 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/SharedWeights.hpp
    ${SUBDIR}/SigmoidActivityBuffer.hpp
    ${SUBDIR}/SingleArbor.hpp
-   ${SUBDIR}/SquaredInternalStateBuffer.hpp
+   ${SUBDIR}/SingleChannelGSynAccumulator.hpp
+   ${SUBDIR}/SquaredGSynAccumulator.hpp
    ${SUBDIR}/StrengthParam.hpp
-   ${SUBDIR}/TauLayerInputBuffer.hpp
    ${SUBDIR}/TransposePatchSize.hpp
    ${SUBDIR}/TransposeWeightsPair.hpp
    ${SUBDIR}/VInputActivityBuffer.hpp
@@ -161,5 +160,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ActivityComponentActivityOnly.tpp
-   ${SUBDIR}/ActivityComponentWithInternalState.tpp
+   ${SUBDIR}/CloneActivityComponent.tpp
+   ${SUBDIR}/HyPerActivityComponent.tpp
 )

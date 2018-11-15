@@ -129,7 +129,6 @@ HyPerConn "preConn" = {
      
     delay = 0;
      
-    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -172,7 +171,6 @@ HyPerConn "preConn" = {
 //     
 //    delay = 0;
 //     
-//    convertRateToSpikeCount = false;
 //
 //    updateGSynFromPostPerspective = true;
 //
@@ -184,7 +182,6 @@ CloneConn "postConn" = {
     channelCode = 0;
     originalConnName = "preConn";
     delay = 0;
-    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = true;
     pvpatchAccumulateType = "convolve";
 };
@@ -194,7 +191,6 @@ CloneConn "postConn" = {
 //    postLayerName = "outputRecvPre";
 //    channelCode = 0; //Does nothing to the input layer
 //    originalConnName = "origConn";
-//    convertRateToSpikeCount = false;
 //    writeStep = -1;
 //    delay = 0;
 //    pvpatchAccumulateType = "convolve";
@@ -206,7 +202,6 @@ CloneConn "postConn" = {
 //    postLayerName = "outputRecvPost";
 //    channelCode = 0;
 //    originalConnName = "origConn";
-//    convertRateToSpikeCount = false;
 //    writeStep = -1.0;
 //    delay = 0;
 //    pvpatchAccumulateType = "convolve";

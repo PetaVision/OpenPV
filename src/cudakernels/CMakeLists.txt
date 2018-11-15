@@ -5,6 +5,7 @@ if(PV_USE_CUDA)
      ${SUBDIR}/CudaRecvPre.cpp
      ${SUBDIR}/CudaTransposePoolingDeliverKernel.cpp
      ${SUBDIR}/CudaUpdateANNActivity.cpp
+     ${SUBDIR}/CudaUpdateGSynAccumulator.cpp
      ${SUBDIR}/CudaUpdateHyPerLCAInternalState.cpp
      ${SUBDIR}/CudaUpdateISTAInternalState.cpp
      ${SUBDIR}/CudaUpdateMomentumLCAInternalState.cpp
@@ -15,6 +16,8 @@ if(PV_USE_CUDA)
      ${SUBDIR}/CudaRecvPost.hpp
      ${SUBDIR}/CudaRecvPre.hpp
      ${SUBDIR}/CudaTransposePoolingDeliverKernel.hpp
+     ${SUBDIR}/CudaUpdateANNActivity.hpp
+     ${SUBDIR}/CudaUpdateGSynAccumulator.hpp
      ${SUBDIR}/CudaUpdateHyPerLCAInternalState.hpp
      ${SUBDIR}/CudaUpdateISTAInternalState.hpp
      ${SUBDIR}/CudaUpdateMomentumLCAInternalState.hpp
@@ -23,6 +26,7 @@ if(PV_USE_CUDA)
   set (PVLibSrcCu ${PVLibSrcCu}
      ${SUBDIR}/CudaRecvPre.cu
      ${SUBDIR}/CudaUpdateANNActivity.cu
+     ${SUBDIR}/CudaUpdateGSynAccumulator.cu
      ${SUBDIR}/CudaUpdateHyPerLCAInternalState.cu
      ${SUBDIR}/CudaUpdateISTAInternalState.cu
      ${SUBDIR}/CudaUpdateMomentumLCAInternalState.cu

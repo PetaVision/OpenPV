@@ -116,7 +116,6 @@ HyPerConn "input to output" = {
     normalizeArborsIndividually = false;
     normalize_cutoff = 0;
     symmetrizeWeights = 0;
-    convertRateToSpikeCount = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
     rMinX = 0.0;

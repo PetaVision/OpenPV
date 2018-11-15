@@ -8,8 +8,6 @@
  *  the .tpp file does not include the .hpp file.
  */
 
-#include "ActivityComponentActivityOnly.hpp"
-
 namespace PV {
 
 template <typename A>

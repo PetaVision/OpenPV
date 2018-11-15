@@ -6,7 +6,11 @@
  */
 
 #include "PoolingIndexLayer.hpp"
+#include "components/HyPerActivityBuffer.hpp"
+#include "components/HyPerActivityComponent.hpp"
+#include "components/HyPerInternalStateBuffer.hpp"
 #include "components/PoolingIndexLayerInputBuffer.hpp"
+#include "components/SingleChannelGSynAccumulator.hpp"
 
 namespace PV {
 
@@ -31,6 +35,12 @@ int PoolingIndexLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 LayerInputBuffer *PoolingIndexLayer::createLayerInput() {
    return new PoolingIndexLayerInputBuffer(name, parameters(), mCommunicator);
+}
+
+ActivityComponent *PoolingIndexLayer::createActivityComponent() {
+   return new HyPerActivityComponent<SingleChannelGSynAccumulator,
+                                     HyPerInternalStateBuffer,
+                                     HyPerActivityBuffer>(name, parameters(), mCommunicator);
 }
 
 } // end namespace PV

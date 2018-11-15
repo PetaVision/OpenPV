@@ -9,7 +9,8 @@
 #include "IndexLayer.hpp"
 
 #include "IndexInternalState.hpp"
-#include <components/ActivityComponentWithInternalState.hpp>
+#include <components/CloneActivityComponent.hpp>
+#include <components/GSynAccumulator.hpp>
 #include <components/HyPerActivityBuffer.hpp>
 
 namespace PV {
@@ -25,7 +26,9 @@ void IndexLayer::initialize(const char *name, PVParams *params, Communicator *co
 }
 
 ActivityComponent *IndexLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<IndexInternalState, HyPerActivityBuffer>(
+   // IndexInternalState isn't a CloneV-type InternalState, but it doesn't use GSyn,
+   // so the CloneActivityComponent class template does what we need.
+   return new CloneActivityComponent<IndexInternalState, HyPerActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

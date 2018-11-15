@@ -92,7 +92,6 @@ MomentumConn "InputToOutput" = {
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
     plasticityFlag                      = true;
-    convertRateToSpikeCount             = false;
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "IdentWeight";

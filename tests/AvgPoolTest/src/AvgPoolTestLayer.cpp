@@ -1,7 +1,8 @@
 #include "AvgPoolTestLayer.hpp"
 
 #include "AvgPoolTestBuffer.hpp"
-#include <components/ActivityComponentWithInternalState.hpp>
+#include <components/GSynAccumulator.hpp>
+#include <components/HyPerActivityComponent.hpp>
 #include <components/HyPerInternalStateBuffer.hpp>
 
 namespace PV {
@@ -11,7 +12,7 @@ AvgPoolTestLayer::AvgPoolTestLayer(const char *name, PVParams *params, Communica
 }
 
 ActivityComponent *AvgPoolTestLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<HyPerInternalStateBuffer, AvgPoolTestBuffer>(
+   return new HyPerActivityComponent<GSynAccumulator, HyPerInternalStateBuffer, AvgPoolTestBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

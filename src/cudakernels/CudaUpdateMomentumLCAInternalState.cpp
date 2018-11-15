@@ -19,7 +19,6 @@ void CudaUpdateMomentumLCAInternalState::setArgs(
       const int rt,
       const int dn,
       const int up,
-      const int numChannels,
 
       CudaBuffer *V /* float* */,
       CudaBuffer *prevDrive /* float* */,
@@ -28,18 +27,17 @@ void CudaUpdateMomentumLCAInternalState::setArgs(
       const float tau,
       const float LCAMomentumRate,
 
-      CudaBuffer *GSynHead /*float*/,
+      CudaBuffer *accumulatedGSyn /*float*/,
       CudaBuffer *activity /*float*/) {
-   params.nbatch      = nbatch;
-   params.numNeurons  = numNeurons;
-   params.nx          = nx;
-   params.ny          = ny;
-   params.nf          = nf;
-   params.lt          = lt;
-   params.rt          = rt;
-   params.dn          = dn;
-   params.up          = up;
-   params.numChannels = numChannels;
+   params.nbatch     = nbatch;
+   params.numNeurons = numNeurons;
+   params.nx         = nx;
+   params.ny         = ny;
+   params.nf         = nf;
+   params.lt         = lt;
+   params.rt         = rt;
+   params.dn         = dn;
+   params.up         = up;
 
    params.V               = (float *)V->getPointer();
    params.prevDrive       = (float *)prevDrive->getPointer();
@@ -48,8 +46,8 @@ void CudaUpdateMomentumLCAInternalState::setArgs(
    params.tau             = tau;
    params.LCAMomentumRate = LCAMomentumRate;
 
-   params.GSynHead = (float *)GSynHead->getPointer();
-   params.activity = (float *)activity->getPointer();
+   params.accumulatedGSyn = (float *)accumulatedGSyn->getPointer();
+   params.activity        = (float *)activity->getPointer();
 
    setArgsFlag();
 }

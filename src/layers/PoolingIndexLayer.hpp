@@ -23,6 +23,7 @@ class PoolingIndexLayer : public HyPerLayer {
    void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    LayerInputBuffer *createLayerInput() override;
+   virtual ActivityComponent *createActivityComponent();
 }; // end of class PoolingIndexLayer
 
 } // end namespace PV

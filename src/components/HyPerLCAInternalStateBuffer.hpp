@@ -27,6 +27,12 @@ class HyPerLCAInternalStateBuffer : public HyPerInternalStateBuffer {
     */
 
    /**
+    * @brief timeConstantTau: the time constant tau,
+    * used in solving the differential equation dV/dt = 1/tau * (-V + A + GSyn).
+    */
+   virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief selfInteract: the self-interaction coefficient s for the LCA dynamics, which models
     * the equation dV/dt = 1/tau*(-V+s*A+GSyn)
     */
@@ -70,7 +76,8 @@ class HyPerLCAInternalStateBuffer : public HyPerInternalStateBuffer {
 
    // Data members
   protected:
-   float mScaledTimeConstantTau = 1.0f; // The tau from the LayerInputBuffer, divided by dt
+   double mTimeConstantTau = 1.0; // The time constant tau in the equation dV/dt=1/tau*(-V+A+GSyn).
+   float mScaledTimeConstantTau = 1.0f; // tau/dt, used in numerical integration.
    bool mSelfInteract;
    char *mAdaptiveTimeScaleProbeName               = nullptr;
    AdaptiveTimeScaleProbe *mAdaptiveTimeScaleProbe = nullptr;

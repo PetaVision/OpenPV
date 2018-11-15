@@ -7,9 +7,10 @@
 
 #include "ISTALayer.hpp"
 #include "components/ANNActivityBuffer.hpp"
-#include "components/ActivityComponentWithInternalState.hpp"
+#include "components/GSynAccumulator.hpp"
+#include "components/HyPerActivityComponent.hpp"
 #include "components/ISTAInternalStateBuffer.hpp"
-#include "components/TauLayerInputBuffer.hpp"
+#include "components/LayerInputBuffer.hpp"
 
 namespace PV {
 
@@ -24,11 +25,11 @@ void ISTALayer::initialize(const char *name, PVParams *params, Communicator *com
 }
 
 LayerInputBuffer *ISTALayer::createLayerInput() {
-   return new TauLayerInputBuffer(name, parameters(), mCommunicator);
+   return new LayerInputBuffer(name, parameters(), mCommunicator);
 }
 
 ActivityComponent *ISTALayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<ISTAInternalStateBuffer, ANNActivityBuffer>(
+   return new HyPerActivityComponent<GSynAccumulator, ISTAInternalStateBuffer, ANNActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

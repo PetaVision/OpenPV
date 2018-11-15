@@ -96,7 +96,6 @@ PlasticTestConn "PreToPost" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
-    convertRateToSpikeCount = false;
     combine_dW_with_W_flag = false;
     dWMax = 1.0;
     updateGSynFromPostPerspective = false;

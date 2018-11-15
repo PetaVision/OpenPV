@@ -28,6 +28,11 @@ class ISTAInternalStateBuffer : public HyPerInternalStateBuffer {
     */
 
    /**
+    * @brief timeConstantTau: the time constant tau,
+    * used in solving the differential equation dV/dt = 1/tau * (-V + A + GSyn).
+    */
+   virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
+   /**
     * @brief adaptiveTimeScaleProbe: If using adaptive timesteps, the name of the
     * AdaptiveTimeScaleProbe that will compute the dt values.
     */
@@ -40,7 +45,7 @@ class ISTAInternalStateBuffer : public HyPerInternalStateBuffer {
 
   protected:
    ISTAInternalStateBuffer();
-   int initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
@@ -65,8 +70,9 @@ class ISTAInternalStateBuffer : public HyPerInternalStateBuffer {
 
    // Data members
   protected:
-   float mScaledTimeConstantTau      = 1.0f; // The tau from the LayerInputBuffer, divided by dt
-   char *mAdaptiveTimeScaleProbeName = nullptr;
+   double mTimeConstantTau = 1.0; // The time constant tau in the equation dV/dt=1/tau*(-V+A+GSyn).
+   float mScaledTimeConstantTau                    = 1.0f; // tau/dt, used in numerical integration.
+   char *mAdaptiveTimeScaleProbeName               = nullptr;
    AdaptiveTimeScaleProbe *mAdaptiveTimeScaleProbe = nullptr;
    std::vector<double> mDeltaTimes;
    ANNActivityBuffer *mActivity = nullptr;

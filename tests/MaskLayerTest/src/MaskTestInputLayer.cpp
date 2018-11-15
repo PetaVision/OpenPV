@@ -1,6 +1,7 @@
 #include "MaskTestInputLayer.hpp"
 #include <components/ActivityBuffer.hpp>
-#include <components/ActivityComponentWithInternalState.hpp>
+#include <components/GSynAccumulator.hpp>
+#include <components/HyPerActivityComponent.hpp>
 #include <components/HyPerInternalStateBuffer.hpp>
 
 namespace PV {
@@ -10,7 +11,7 @@ MaskTestInputLayer::MaskTestInputLayer(const char *name, PVParams *params, Commu
 }
 
 ActivityComponent *MaskTestInputLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<HyPerInternalStateBuffer, ActivityBuffer>(
+   return new HyPerActivityComponent<GSynAccumulator, HyPerInternalStateBuffer, ActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

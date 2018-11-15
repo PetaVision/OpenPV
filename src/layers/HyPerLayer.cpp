@@ -15,7 +15,9 @@
 #include "HyPerLayer.hpp"
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "checkpointing/CheckpointEntryRandState.hpp"
+#include "components/HyPerActivityBuffer.hpp"
 #include "components/HyPerActivityComponent.hpp"
+#include "components/HyPerInternalStateBuffer.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/default_params.h"
 #include "include/pv_common.h"
@@ -227,7 +229,9 @@ LayerInputBuffer *HyPerLayer::createLayerInput() {
 }
 
 ActivityComponent *HyPerLayer::createActivityComponent() {
-   return new HyPerActivityComponent(name, parameters(), mCommunicator);
+   return new HyPerActivityComponent<GSynAccumulator,
+                                     HyPerInternalStateBuffer,
+                                     HyPerActivityBuffer>(name, parameters(), mCommunicator);
 }
 
 HyPerLayer::~HyPerLayer() {

@@ -1,7 +1,8 @@
 #include "MaxPoolTestLayer.hpp"
 
+#include "GateMaxPoolTestBuffer.hpp"
 #include "MaxPoolTestBuffer.hpp"
-#include <components/ActivityComponentWithInternalState.hpp>
+#include <components/HyPerActivityComponent.hpp>
 #include <components/HyPerInternalStateBuffer.hpp>
 
 namespace PV {
@@ -11,7 +12,7 @@ MaxPoolTestLayer::MaxPoolTestLayer(const char *name, PVParams *params, Communica
 }
 
 ActivityComponent *MaxPoolTestLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<HyPerInternalStateBuffer, MaxPoolTestBuffer>(
+   return new HyPerActivityComponent<GSynAccumulator, HyPerInternalStateBuffer, MaxPoolTestBuffer>(
          getName(), parameters(), mCommunicator);
 }
 

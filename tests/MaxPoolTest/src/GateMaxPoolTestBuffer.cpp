@@ -6,7 +6,11 @@ GateMaxPoolTestBuffer::GateMaxPoolTestBuffer(
       const char *name,
       PVParams *params,
       Communicator *comm) {
-   HyPerInternalStateBuffer::initialize(name, params, comm);
+   initialize(name, params, comm);
+}
+
+void GateMaxPoolTestBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+   GSynAccumulator::initialize(name, params, comm);
 }
 
 void GateMaxPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {

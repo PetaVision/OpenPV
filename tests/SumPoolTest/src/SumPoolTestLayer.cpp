@@ -1,7 +1,8 @@
 #include "SumPoolTestLayer.hpp"
 
 #include "SumPoolTestBuffer.hpp"
-#include <components/ActivityComponentWithInternalState.hpp>
+#include <components/GSynAccumulator.hpp>
+#include <components/HyPerActivityComponent.hpp>
 #include <components/HyPerInternalStateBuffer.hpp>
 
 namespace PV {
@@ -11,7 +12,7 @@ SumPoolTestLayer::SumPoolTestLayer(const char *name, PVParams *params, Communica
 }
 
 ActivityComponent *SumPoolTestLayer::createActivityComponent() {
-   return new ActivityComponentWithInternalState<HyPerInternalStateBuffer, SumPoolTestBuffer>(
+   return new HyPerActivityComponent<GSynAccumulator, HyPerInternalStateBuffer, SumPoolTestBuffer>(
          getName(), parameters(), mCommunicator);
 }
 
