@@ -83,11 +83,6 @@ Response::Status LayerInputBuffer::allocateDataStructures() {
       return status;
    }
 
-   if (mNumChannels >= 0) {
-      mChannelTimeConstants.resize(mNumChannels);
-   }
-   initChannelTimeConstants();
-
 #ifdef PV_USE_CUDA
    // Separating GPU and CPU delivery sources has to wait until allocateDataStructures
    // because it depends on the delivery source's ReceiveGpu flag, which might not get
@@ -105,12 +100,6 @@ Response::Status LayerInputBuffer::allocateDataStructures() {
 #endif // PV_USE_CUDA
 
    return Response::SUCCESS;
-}
-
-void LayerInputBuffer::initChannelTimeConstants() {
-   for (auto &c : mChannelTimeConstants) {
-      c = 0.0f;
-   }
 }
 
 Response::Status
@@ -231,6 +220,14 @@ void LayerInputBuffer::recvAllSynapticInput(double simTime, double deltaTime) {
 #endif // PV_USE_CUDA
 
    mReceiveInputTimer->stop();
+}
+
+void LayerInputBuffer::recvUnitInput(float *recvBuffer, int channelCode) {
+   for (auto &d : mDeliverySources) {
+      if (d != nullptr and d->getChannelCode() == channelCode) {
+         d->deliverUnitInput(recvBuffer);
+      }
+   }
 }
 
 Response::Status

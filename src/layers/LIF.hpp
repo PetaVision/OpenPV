@@ -23,8 +23,6 @@ class LIF : public HyPerLayer {
 
    void initialize(const char *name, PVParams *params, Communicator *comm);
 
-   virtual LayerInputBuffer *createLayerInput() override;
-
    virtual ActivityComponent *createActivityComponent() override;
 };
 

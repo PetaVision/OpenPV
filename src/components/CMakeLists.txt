@@ -43,7 +43,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LeakyIntegratorBuffer.cpp
    ${SUBDIR}/LIFActivityComponent.cpp
    ${SUBDIR}/LIFGapActivityComponent.cpp
-   ${SUBDIR}/LIFLayerInputBuffer.cpp
    ${SUBDIR}/LinkedObjectParam.cpp
    ${SUBDIR}/MaskActivityBuffer.cpp
    ${SUBDIR}/MomentumLCAActivityComponent.cpp
@@ -124,7 +123,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LeakyIntegratorBuffer.hpp
    ${SUBDIR}/LIFActivityComponent.hpp
    ${SUBDIR}/LIFGapActivityComponent.hpp
-   ${SUBDIR}/LIFLayerInputBuffer.hpp
    ${SUBDIR}/LinkedObjectParam.hpp
    ${SUBDIR}/MaskActivityBuffer.hpp
    ${SUBDIR}/MomentumLCAActivityComponent.hpp

@@ -66,6 +66,9 @@ int LIFActivityComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_noiseFreqE(ioFlag);
    ioParam_noiseFreqI(ioFlag);
    ioParam_noiseFreqIB(ioFlag);
+   ioParam_tauE(ioFlag);
+   ioParam_tauI(ioFlag);
+   ioParam_tauIB(ioFlag);
    ioParam_method(ioFlag);
    return PV_SUCCESS;
 }
@@ -139,6 +142,18 @@ void LIFActivityComponent::ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag) {
    // Truncation to 1/(0.001*dt) has been moved to initializeState() method.
 }
 
+void LIFActivityComponent::ioParam_tauE(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValue(ioFlag, name, "tauE", &mLIFParams.tauE, mLIFParams.tauE);
+}
+
+void LIFActivityComponent::ioParam_tauI(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValue(ioFlag, name, "tauI", &mLIFParams.tauI, mLIFParams.tauI);
+}
+
+void LIFActivityComponent::ioParam_tauIB(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValue(ioFlag, name, "tauIB", &mLIFParams.tauIB, mLIFParams.tauIB);
+}
+
 void LIFActivityComponent::ioParam_method(enum ParamsIOFlag ioFlag) {
    // Read the integration method: one of 'arma' (preferred), 'beginning' (deprecated), or
    // 'original' (deprecated).
@@ -200,14 +215,14 @@ Response::Status LIFActivityComponent::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mLIFLayerInput = message->mHierarchy->lookupByType<LIFLayerInputBuffer>();
+   mLayerInput = message->mHierarchy->lookupByType<LayerInputBuffer>();
    FatalIf(
-         mLIFLayerInput == nullptr,
-         "%s could not find a LIFLayerInputBuffer component.\n",
+         mLayerInput == nullptr,
+         "%s could not find a LayerInputBuffer component.\n",
          getDescription_c());
-   mLIFLayerInput->requireChannel(CHANNEL_EXC);
-   mLIFLayerInput->requireChannel(CHANNEL_INH);
-   mLIFLayerInput->requireChannel(CHANNEL_INHB);
+   mLayerInput->requireChannel(CHANNEL_EXC);
+   mLayerInput->requireChannel(CHANNEL_INH);
+   mLayerInput->requireChannel(CHANNEL_INHB);
 
    return Response::SUCCESS;
 }
@@ -217,16 +232,12 @@ Response::Status LIFActivityComponent::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
-   ComponentBuffer::checkDimensionsEqual(mLIFLayerInput, mConductanceE);
-   ComponentBuffer::checkDimensionsEqual(mLIFLayerInput, mConductanceI);
-   ComponentBuffer::checkDimensionsEqual(mLIFLayerInput, mConductanceIB);
-   ComponentBuffer::checkDimensionsEqual(mLIFLayerInput, mInternalState);
+   ComponentBuffer::checkDimensionsEqual(mLayerInput, mConductanceE);
+   ComponentBuffer::checkDimensionsEqual(mLayerInput, mConductanceI);
+   ComponentBuffer::checkDimensionsEqual(mLayerInput, mConductanceIB);
+   ComponentBuffer::checkDimensionsEqual(mLayerInput, mInternalState);
    ComponentBuffer::checkDimensionsEqual(mInternalState, mVth);
    ComponentBuffer::checkDimensionsEqual(mInternalState, mActivity);
-
-   mLIFParams.tauE  = mLIFLayerInput->getChannelTimeConstant(CHANNEL_EXC);
-   mLIFParams.tauI  = mLIFLayerInput->getChannelTimeConstant(CHANNEL_INH);
-   mLIFParams.tauIB = mLIFLayerInput->getChannelTimeConstant(CHANNEL_INHB);
 
    PVLayerLoc const *loc = getLayerLoc();
    mRandState            = new Random(getLayerLoc(), false /*restricted*/);
@@ -320,7 +331,7 @@ Response::Status LIFActivityComponent::updateActivity(double simTime, double del
    const int nf     = getLayerLoc()->nf;
    const int nbatch = getLayerLoc()->nbatch;
 
-   float const *GSynHead = mLIFLayerInput->getBufferData();
+   float const *GSynHead = mLayerInput->getBufferData();
    float *G_E            = mConductanceE->getReadWritePointer();
    float *G_I            = mConductanceI->getReadWritePointer();
    float *G_IB           = mConductanceIB->getReadWritePointer();

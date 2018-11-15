@@ -13,7 +13,7 @@
 #include "columns/Random.hpp"
 #include "components/ActivityBuffer.hpp"
 #include "components/InternalStateBuffer.hpp"
-#include "components/LIFLayerInputBuffer.hpp"
+#include "components/LayerInputBuffer.hpp"
 #include "components/RestrictedBuffer.hpp"
 #include "include/default_params.h"
 
@@ -39,7 +39,6 @@ struct LIFParams {
    float noiseFreqI  = 250.0f;
    float noiseFreqIB = 250.0f;
 
-   // tauE, tauI, tauIB are read by LIFLayerInput, not LIFActivityComponent
    float tauE  = (float)TAU_EXC;
    float tauI  = (float)TAU_INH;
    float tauIB = (float)TAU_INHB;
@@ -65,6 +64,15 @@ class LIFActivityComponent : public ActivityComponent {
    virtual void ioParam_noiseFreqE(enum ParamsIOFlag ioFlag);
    virtual void ioParam_noiseFreqI(enum ParamsIOFlag ioFlag);
    virtual void ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag);
+
+   /** @brief tauE: the time constant for the excitatory channel. */
+   virtual void ioParam_tauE(enum ParamsIOFlag ioFlag);
+
+   /** @brief tauI: the time constant for the inhibitory channel. */
+   virtual void ioParam_tauI(enum ParamsIOFlag ioFlag);
+
+   /** @brief tauIB: the time constant for the after-hyperpolarization. */
+   virtual void ioParam_tauIB(enum ParamsIOFlag ioFlag);
    virtual void ioParam_method(enum ParamsIOFlag ioFlag);
 
   public:
@@ -194,7 +202,7 @@ class LIFActivityComponent : public ActivityComponent {
    RestrictedBuffer *mConductanceI     = nullptr;
    RestrictedBuffer *mConductanceIB    = nullptr;
    InternalStateBuffer *mInternalState = nullptr;
-   LIFLayerInputBuffer *mLIFLayerInput = nullptr;
+   LayerInputBuffer *mLayerInput       = nullptr;
    Random *mRandState                  = nullptr;
    RestrictedBuffer *mVth              = nullptr;
 };

@@ -6,7 +6,6 @@
  */
 
 #include "LIFGapActivityComponent.hpp"
-#include "components/LIFLayerInputBuffer.hpp"
 #include "components/WeightsPair.hpp"
 #include "connections/BaseConnection.hpp"
 #include "include/default_params.h"
@@ -53,8 +52,8 @@ Response::Status LIFGapActivityComponent::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mLIFLayerInput->requireChannel(CHANNEL_GAP);
-   pvAssert(mLIFLayerInput->getNumChannels() == 4); // LIF added EXC, INH, and INHB
+   mLayerInput->requireChannel(CHANNEL_GAP);
+   pvAssert(mLayerInput->getNumChannels() == 4); // LIF added EXC, INH, and INHB
 
    return Response::SUCCESS;
 }
@@ -82,7 +81,7 @@ void LIFGapActivityComponent::calcGapStrength() {
    for (int k = 0; k < numNeuronsAcrossBatch; k++) {
       gapStrength[k] = 0.0f;
    }
-   mLIFLayerInput->recvUnitInput(gapStrength);
+   mLayerInput->recvUnitInput(gapStrength, CHANNEL_GAP);
    mGapStrengthInitialized = true;
 }
 
@@ -96,7 +95,7 @@ Response::Status LIFGapActivityComponent::updateActivity(double simTime, double 
    const int nf     = getLayerLoc()->nf;
    const int nbatch = getLayerLoc()->nbatch;
 
-   float const *GSynHead    = mLIFLayerInput->getBufferData();
+   float const *GSynHead    = mLayerInput->getBufferData();
    float const *gapStrength = mGapStrength->getBufferData();
 
    float *G_E  = mConductanceE->getReadWritePointer();

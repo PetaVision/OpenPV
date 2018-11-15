@@ -36,8 +36,6 @@ class LayerInputBuffer : public ComponentBuffer {
 
    void requireChannel(int channelNeeded);
 
-   double getChannelTimeConstant(int channelCode) { return mChannelTimeConstants[channelCode]; }
-
    /**
     * Adds the given delivery object to the vector of delivery sources to receive input from.
     * The delivery object's post-synaptic layer should be the layer for which this member function
@@ -45,6 +43,8 @@ class LayerInputBuffer : public ComponentBuffer {
     * is not checked.
     */
    void addDeliverySource(LayerInputDelivery *delivery);
+
+   void recvUnitInput(float *recvBuffer, int channelCode);
 
    bool getHasReceived() const { return mHasReceived; }
 
@@ -61,8 +61,6 @@ class LayerInputBuffer : public ComponentBuffer {
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual Response::Status allocateDataStructures() override;
-
-   virtual void initChannelTimeConstants();
 
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
