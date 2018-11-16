@@ -463,14 +463,9 @@ class HyPerLayer : public ComponentBasedObject {
 #endif // PV_USE_CUDA
 
   protected:
-   Timer *update_timer;
    Timer *publish_timer;
    Timer *timescale_timer;
    Timer *io_timer;
-
-#ifdef PV_USE_CUDA
-   PVCuda::CudaTimer *gpu_update_timer;
-#endif
 };
 
 } // namespace PV

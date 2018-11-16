@@ -26,12 +26,6 @@ class HyPerActivityComponent : public ActivityComponent {
 
    virtual ~HyPerActivityComponent();
 
-   /**
-    * Calls the updateBuffer methods of AccumulatedGSyn, InternalState, and Activity,
-    * in that order.
-    */
-   virtual Response::Status updateActivity(double simTime, double deltaTime) override;
-
   protected:
    HyPerActivityComponent() {}
 
@@ -53,6 +47,12 @@ class HyPerActivityComponent : public ActivityComponent {
     */
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
+   /**
+    * Calls the updateBuffer methods of AccumulatedGSyn, InternalState, and Activity,
+    * in that order.
+    */
+   virtual Response::Status updateActivity(double simTime, double deltaTime) override;
 
   protected:
    InternalStateBuffer *mInternalState = nullptr;

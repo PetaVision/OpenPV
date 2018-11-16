@@ -10,6 +10,11 @@
 
 #include "columns/ComponentBasedObject.hpp"
 #include "components/ActivityBuffer.hpp"
+#include "utils/Timer.hpp"
+
+#ifdef PV_USE_CUDA
+#include <arch/cuda/CudaTimer.hpp>
+#endif // PV_USE_CUDA
 
 namespace PV {
 
@@ -37,7 +42,7 @@ class ActivityComponent : public ComponentBasedObject {
 
    virtual ~ActivityComponent();
 
-   virtual Response::Status updateActivity(double simTime, double deltaTime);
+   Response::Status updateState(double simTime, double deltaTime);
 
    bool getUpdateGpu() { return mUpdateGpu; }
 
@@ -87,10 +92,17 @@ class ActivityComponent : public ComponentBasedObject {
    virtual Response::Status copyInitialStateToGPU() override;
 #endif // PV_USE_CUDA
 
+   virtual Response::Status updateActivity(double simTime, double deltaTime);
+
   protected:
    bool mUpdateGpu = false;
 
    ActivityBuffer *mActivity = nullptr;
+
+   Timer *mUpdateTimer = nullptr;
+#ifdef PV_USE_CUDA
+   PVCuda::CudaTimer *mUpdateCudaTimer = nullptr;
+#endif // PV_USE_CUA
 };
 
 } // namespace PV

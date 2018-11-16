@@ -14,7 +14,12 @@ ActivityComponent::ActivityComponent(char const *name, PVParams *params, Communi
    initialize(name, params, comm);
 }
 
-ActivityComponent::~ActivityComponent() {}
+ActivityComponent::~ActivityComponent() {
+   delete mUpdateTimer;
+#ifdef PV_USE_CUDA
+   delete mUpdateCudaTimer;
+#endif // PV_USE_CUDA
+}
 
 void ActivityComponent::initialize(char const *name, PVParams *params, Communicator *comm) {
    ComponentBasedObject::initialize(name, params, comm);
@@ -127,7 +132,28 @@ ActivityComponent::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer
    if (!Response::completed(status)) {
       return status;
    }
-   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+
+   status = notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   if (!Response::completed(status)) {
+      return status;
+   }
+
+   // Timers
+
+   auto *checkpointer = message->mDataRegistry;
+   mUpdateTimer       = new Timer(getName(), "layer", "update ");
+   checkpointer->registerTimer(mUpdateTimer);
+
+#ifdef PV_USE_CUDA
+   auto cudaDevice = mCudaDevice;
+   if (cudaDevice) {
+      mUpdateCudaTimer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
+      mUpdateCudaTimer->setStream(cudaDevice->getStream());
+      checkpointer->registerTimer(mUpdateCudaTimer);
+   }
+#endif // PV_USE_CUDA
+
+   return Response::SUCCESS;
 }
 
 Response::Status
@@ -168,6 +194,24 @@ Response::Status ActivityComponent::copyInitialStateToGPU() {
 }
 #endif // PV_USE_CUDA
 
+Response::Status ActivityComponent::updateState(double simTime, double deltaTime) {
+   // Move update timers and gpu update timers here.
+   mUpdateTimer->start();
+#ifdef PV_USE_CUDA
+   if (getUpdateGpu()) {
+      mUpdateCudaTimer->start();
+   }
+#endif // PV_USE_CUDA
+   auto status = updateActivity(simTime, deltaTime);
+#ifdef PV_USE_CUDA
+   if (getUpdateGpu()) {
+      mUpdateCudaTimer->stop();
+   }
+#endif // PV_USE_CUDA
+   mUpdateTimer->stop();
+   return status;
+}
+
 Response::Status ActivityComponent::updateActivity(double simTime, double deltaTime) {
    mActivity->updateBuffer(simTime, deltaTime);
    return Response::SUCCESS;
@@ -199,6 +243,9 @@ void ActivityComponent::copyFromCuda() {
       if (buffer) {
          buffer->copyFromCuda();
       }
+   }
+   if (getUpdateGpu()) {
+      mUpdateCudaTimer->accumulateTime();
    }
 }
 #endif // PV_USE_CUDA

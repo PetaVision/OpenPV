@@ -73,14 +73,9 @@ int HyPerLayer::initialize_base() {
 #endif // PV_USE_CUDNN
 #endif // PV_USE_CUDA
 
-   update_timer    = NULL;
    publish_timer   = NULL;
    timescale_timer = NULL;
    io_timer        = NULL;
-
-#ifdef PV_USE_CUDA
-   gpu_update_timer = NULL;
-#endif
 
    recvConns.clear();
 
@@ -230,13 +225,9 @@ ActivityComponent *HyPerLayer::createActivityComponent() {
 }
 
 HyPerLayer::~HyPerLayer() {
-   delete update_timer;
    delete publish_timer;
    delete timescale_timer;
    delete io_timer;
-#ifdef PV_USE_CUDA
-   delete gpu_update_timer;
-#endif
 
    delete mOutputStateStream;
 
@@ -579,9 +570,6 @@ HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage cons
    }
    if (mLayerInput and mLayerInput->isUsingGPU()) {
       mLayerInput->respond(message);
-   }
-   if (mActivityComponent->getUpdateGpu()) {
-      gpu_update_timer->accumulateTime();
    }
    message->mTimer->stop();
    return status;
@@ -954,18 +942,6 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
 
    // Timers
 
-   update_timer = new Timer(getName(), "layer", "update ");
-   checkpointer->registerTimer(update_timer);
-
-#ifdef PV_USE_CUDA
-   auto cudaDevice = mCudaDevice;
-   if (cudaDevice) {
-      gpu_update_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
-      gpu_update_timer->setStream(cudaDevice->getStream());
-      checkpointer->registerTimer(gpu_update_timer);
-   }
-#endif // PV_USE_CUDA
-
    publish_timer = new Timer(getName(), "layer", "publish");
    checkpointer->registerTimer(publish_timer);
 
@@ -1027,29 +1003,17 @@ Response::Status HyPerLayer::callUpdateState(double simTime, double deltaTime) {
       mLastTriggerTime = simTime;
    }
 
-   update_timer->start();
-#ifdef PV_USE_CUDA
-   if (mActivityComponent->getUpdateGpu()) {
-      gpu_update_timer->start();
-   }
-#endif // PV_USE_CUDA
    updateState(simTime, deltaTime);
 #ifdef PV_USE_CUDA
-   if (mActivityComponent->getUpdateGpu()) {
-      gpu_update_timer->stop();
-   }
-   // Activity updated, set flag to true
-   updatedDeviceDatastore = true;
+   updatedDeviceDatastore = true; // Activity updated, set flag to true
 #endif // PV_USE_CUDA
-   update_timer->stop();
    mNeedToPublish  = true;
    mLastUpdateTime = simTime;
    return status;
 }
 
 Response::Status HyPerLayer::updateState(double simTime, double deltaTime) {
-   mActivityComponent->updateActivity(simTime, deltaTime);
-   return Response::SUCCESS;
+   return mActivityComponent->updateState(simTime, deltaTime);
 }
 
 void HyPerLayer::resetStateOnTrigger(double simTime, double deltaTime) {

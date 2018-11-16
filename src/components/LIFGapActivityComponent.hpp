@@ -17,8 +17,6 @@ class LIFGapActivityComponent : public LIFActivityComponent {
    LIFGapActivityComponent(const char *name, PVParams *params, Communicator *comm);
    virtual ~LIFGapActivityComponent();
 
-   virtual Response::Status updateActivity(double simTime, double deltaTime) override;
-
    float const *getGapStrength() { return mGapStrength->getBufferData(); }
 
   protected:
@@ -29,6 +27,8 @@ class LIFGapActivityComponent : public LIFActivityComponent {
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
+   virtual Response::Status updateActivity(double simTime, double deltaTime) override;
 
    void updateActivityOriginal(
          int const nbatch,

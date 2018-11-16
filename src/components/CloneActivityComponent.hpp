@@ -27,12 +27,6 @@ class CloneActivityComponent : public ActivityComponent {
 
    virtual ~CloneActivityComponent();
 
-   /**
-    * Calls the updateBuffer methods of AccumulatedGSyn, InternalState, and Activity,
-    * in that order.
-    */
-   virtual Response::Status updateActivity(double simTime, double deltaTime) override;
-
   protected:
    CloneActivityComponent() {}
 
@@ -52,6 +46,12 @@ class CloneActivityComponent : public ActivityComponent {
     */
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
+   /**
+    * Calls the updateBuffer methods of AccumulatedGSyn, InternalState, and Activity,
+    * in that order.
+    */
+   virtual Response::Status updateActivity(double simTime, double deltaTime) override;
 
   protected:
    InternalStateBuffer *mInternalState = nullptr;

@@ -80,8 +80,6 @@ class LIFActivityComponent : public ActivityComponent {
 
    virtual ~LIFActivityComponent();
 
-   virtual Response::Status updateActivity(double simTime, double deltaTime) override;
-
   protected:
    LIFActivityComponent() {}
 
@@ -117,6 +115,8 @@ class LIFActivityComponent : public ActivityComponent {
 
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
+   virtual Response::Status updateActivity(double simTime, double deltaTime) override;
 
    void updateActivityArma(
          int const nbatch,

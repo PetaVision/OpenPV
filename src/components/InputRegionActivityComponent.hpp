@@ -27,8 +27,6 @@ class InputRegionActivityComponent : public ActivityComponent {
    InputRegionActivityComponent(const char *name, PVParams *params, Communicator *comm);
    virtual ~InputRegionActivityComponent();
 
-   virtual Response::Status updateActivity(double simTime, double deltaTime) override;
-
   protected:
    InputRegionActivityComponent();
    void initialize(const char *name, PVParams *params, Communicator *comm);
@@ -36,6 +34,8 @@ class InputRegionActivityComponent : public ActivityComponent {
    virtual void setObjectType();
 
    virtual ActivityBuffer *createActivity() override;
+
+   virtual Response::Status updateActivity(double simTime, double deltaTime) override;
 
 }; // class InputRegionActivityComponent
 
