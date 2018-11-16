@@ -193,10 +193,6 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
          accumulateThreadGSyn(gSynPatchHeadBatch);
       } // Loop over batch elements
    } // Loop over arbors
-#ifdef PV_USE_CUDA
-   // CPU updated GSyn, now need to update GSyn on GPU
-   mPostLayer->setUpdatedDeviceGSynFlag(true);
-#endif // PV_USE_CUDA
 }
 
 void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer) {

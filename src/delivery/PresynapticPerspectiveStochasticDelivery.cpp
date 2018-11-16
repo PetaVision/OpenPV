@@ -209,10 +209,6 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
          accumulateThreadGSyn(gSynPatchHeadBatch);
       }
    }
-#ifdef PV_USE_CUDA
-   // CPU updated GSyn, now need to update GSyn on GPU
-   mPostLayer->setUpdatedDeviceGSynFlag(true);
-#endif // PV_USE_CUDA
 }
 
 void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffer) {

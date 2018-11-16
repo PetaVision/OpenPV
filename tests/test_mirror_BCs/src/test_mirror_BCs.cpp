@@ -19,14 +19,16 @@ int main(int argc, char *argv[]) {
    PV::HyPerCol *hc = new PV::HyPerCol(initObj);
    PV::HyPerLayer *layer =
          dynamic_cast<PV::HyPerLayer *>(hc->getObjectFromName("test_mirror_BCs_layer"));
+
+   auto *layerGeometry = layer->getComponentByType<PV::LayerGeometry>();
+   FatalIf(layerGeometry == nullptr, "%s does not have a LayerGeometry component.\n");
    int margin = 2;
-   layer->requireMarginWidth(2, &margin, 'x');
-   layer->requireMarginWidth(2, &margin, 'y');
+   layerGeometry->requireMarginWidth(margin, 'x');
+   layerGeometry->requireMarginWidth(margin, 'y');
 
    hc->processParams(hc->getPrintParamsFilename());
 
    auto *boundaryConditions = layer->getComponentByType<PV::BoundaryConditions>();
-
    FatalIf(boundaryConditions == nullptr, "%s does not have a BoundaryConditions component.\n");
    FatalIf(!boundaryConditions->getMirrorBCflag(), "%s has mirrorBCflag set to false.\n");
 

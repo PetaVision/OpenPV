@@ -50,8 +50,6 @@ int HyPerLayer::initialize_base() {
    name                  = NULL;
    probes                = NULL;
    numProbes             = 0;
-   marginIndices         = NULL;
-   numMargin             = 0;
    writeTime             = 0;
    initialWriteTime      = 0;
    triggerFlag           = false; // Default to update every timestamp
@@ -68,10 +66,7 @@ int HyPerLayer::initialize_base() {
    d_Datastore              = NULL;
    d_ActiveIndices          = NULL;
    d_numActive              = NULL;
-   updatedDeviceActivity    = true; // Start off always updating activity
    updatedDeviceDatastore   = true;
-   updatedDeviceGSyn        = true;
-   krUpdate                 = NULL;
 #ifdef PV_USE_CUDNN
    cudnn_GSyn      = NULL;
    cudnn_Datastore = NULL;
@@ -246,9 +241,6 @@ HyPerLayer::~HyPerLayer() {
    delete mOutputStateStream;
 
 #ifdef PV_USE_CUDA
-   if (krUpdate) {
-      delete krUpdate;
-   }
    if (d_Datastore) {
       delete d_Datastore;
    }
@@ -260,7 +252,6 @@ HyPerLayer::~HyPerLayer() {
 #endif // PV_USE_CUDNN
 #endif // PV_USE_CUDA
 
-   free(marginIndices);
    free(probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be deleted,
    // only the array itself.
 
@@ -845,68 +836,6 @@ void HyPerLayer::synchronizeMarginWidth(HyPerLayer *layer) {
    return;
 }
 
-int HyPerLayer::equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2) {
-   int border1, border2, maxborder, result;
-   int status = PV_SUCCESS;
-
-   border1   = layer1->getLayerLoc()->halo.lt;
-   border2   = layer2->getLayerLoc()->halo.lt;
-   maxborder = border1 > border2 ? border1 : border2;
-   layer1->requireMarginWidth(maxborder, &result, 'x');
-   if (result != maxborder) {
-      status = PV_FAILURE;
-   }
-   layer2->requireMarginWidth(maxborder, &result, 'x');
-   if (result != maxborder) {
-      status = PV_FAILURE;
-   }
-   if (status != PV_SUCCESS) {
-      Fatal().printf(
-            "Error in rank %d process: unable to synchronize x-margin widths of layers \"%s\" "
-            "and "
-            "\"%s\" to %d\n",
-            layer1->mCommunicator->globalCommRank(),
-            layer1->getName(),
-            layer2->getName(),
-            maxborder);
-      ;
-   }
-   assert(
-         layer1->getLayerLoc()->halo.lt == layer2->getLayerLoc()->halo.lt
-         && layer1->getLayerLoc()->halo.rt == layer2->getLayerLoc()->halo.rt
-         && layer1->getLayerLoc()->halo.lt == layer1->getLayerLoc()->halo.rt
-         && layer1->getLayerLoc()->halo.lt == maxborder);
-
-   border1   = layer1->getLayerLoc()->halo.dn;
-   border2   = layer2->getLayerLoc()->halo.dn;
-   maxborder = border1 > border2 ? border1 : border2;
-   layer1->requireMarginWidth(maxborder, &result, 'y');
-   if (result != maxborder) {
-      status = PV_FAILURE;
-   }
-   layer2->requireMarginWidth(maxborder, &result, 'y');
-   if (result != maxborder) {
-      status = PV_FAILURE;
-   }
-   if (status != PV_SUCCESS) {
-      Fatal().printf(
-            "Error in rank %d process: unable to synchronize y-margin widths of layers \"%s\" "
-            "and "
-            "\"%s\" to %d\n",
-            layer1->mCommunicator->globalCommRank(),
-            layer1->getName(),
-            layer2->getName(),
-            maxborder);
-      ;
-   }
-   assert(
-         layer1->getLayerLoc()->halo.dn == layer2->getLayerLoc()->halo.dn
-         && layer1->getLayerLoc()->halo.up == layer2->getLayerLoc()->halo.up
-         && layer1->getLayerLoc()->halo.dn == layer1->getLayerLoc()->halo.up
-         && layer1->getLayerLoc()->halo.dn == maxborder);
-   return status;
-}
-
 Response::Status HyPerLayer::allocateDataStructures() {
    // Once initialize and communicateInitInfo have been called, HyPerLayer has the
    // information it needs to allocate the membrane potential buffer V, the
@@ -961,24 +890,6 @@ int HyPerLayer::increaseDelayLevels(int neededDelay) {
    if (numDelayLevels > MAX_F_DELAY)
       numDelayLevels = MAX_F_DELAY;
    return numDelayLevels;
-}
-
-void HyPerLayer::requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis) {
-   auto *layerGeometry = getComponentByType<LayerGeometry>();
-   pvAssert(layerGeometry);
-   layerGeometry->requireMarginWidth(marginWidthNeeded, axis);
-   switch (axis) {
-      case 'x':
-         *marginWidthResult = getLayerLoc()->halo.lt;
-         pvAssert(*marginWidthResult == getLayerLoc()->halo.rt);
-         break;
-      case 'y':
-         *marginWidthResult = getLayerLoc()->halo.dn;
-         pvAssert(*marginWidthResult == getLayerLoc()->halo.up);
-         break;
-      default: assert(0); break;
-   }
-   pvAssert(*marginWidthResult >= marginWidthNeeded);
 }
 
 /**
@@ -1128,7 +1039,6 @@ Response::Status HyPerLayer::callUpdateState(double simTime, double deltaTime) {
       gpu_update_timer->stop();
    }
    // Activity updated, set flag to true
-   updatedDeviceActivity  = true;
    updatedDeviceDatastore = true;
 #endif // PV_USE_CUDA
    update_timer->stop();
@@ -1197,7 +1107,6 @@ void HyPerLayer::resetStateOnTrigger(double simTime, double deltaTime) {
       if (mActivityComponent) {
          mActivityComponent->copyToCuda();
       }
-      updatedDeviceActivity  = true;
       updatedDeviceDatastore = true;
    }
 #endif

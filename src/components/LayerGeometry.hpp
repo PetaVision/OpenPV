@@ -53,9 +53,8 @@ class LayerGeometry : public BaseObject {
     * If axis is 'x', sets the PVLayerLoc's halo.lt and halo.rt to the
     * larger of their current value and the value of marginWidthNeeded.
     * If axis is 'y', does the same but for halo.dn and halo.up.
-    * The return value is the resulting margin.
     */
-   int requireMarginWidth(int marginWidthNeeded, char axis);
+   void requireMarginWidth(int marginWidthNeeded, char axis);
 
    static void synchronizeMarginWidths(LayerGeometry *geometry1, LayerGeometry *geometry2);
 

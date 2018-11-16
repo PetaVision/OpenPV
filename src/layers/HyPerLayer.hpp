@@ -192,8 +192,6 @@ class HyPerLayer : public ComponentBasedObject {
     */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   static int equalizeMargins(HyPerLayer *layer1, HyPerLayer *layer2);
-
    void freeActivityCube();
 
   public:
@@ -296,7 +294,6 @@ class HyPerLayer : public ComponentBasedObject {
    int getNumDelayLevels() { return numDelayLevels; }
 
    int increaseDelayLevels(int neededDelay);
-   void requireMarginWidth(int marginWidthNeeded, int *marginWidthResult, char axis);
 
    float const *getV() const {
       return mActivityComponent->getComponentByType<InternalStateBuffer>()->getBufferData();
@@ -391,9 +388,6 @@ class HyPerLayer : public ComponentBasedObject {
    int writeActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in the
    // header of the a%d.pvp file)
 
-   int *marginIndices; // indices of neurons in margin
-   int numMargin; // number of neurons in margin
-
    unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves
    // {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use
    // by this layer
@@ -446,17 +440,9 @@ class HyPerLayer : public ComponentBasedObject {
 
    void setAllocDeviceActiveIndices() { allocDeviceActiveIndices = true; }
 
-   bool getUpdatedDeviceActivityFlag() { return updatedDeviceActivity; }
-
-   void setUpdatedDeviceActivityFlag(bool in) { updatedDeviceActivity = in; }
-
    bool getUpdatedDeviceDatastoreFlag() { return updatedDeviceDatastore; }
 
    void setUpdatedDeviceDatastoreFlag(bool in) { updatedDeviceDatastore = in; }
-
-   bool getUpdatedDeviceGSynFlag() { return updatedDeviceGSyn; }
-
-   void setUpdatedDeviceGSynFlag(bool in) { updatedDeviceGSyn = in; }
 
   protected:
    virtual int allocateDeviceBuffers();
@@ -465,14 +451,11 @@ class HyPerLayer : public ComponentBasedObject {
 
    bool allocDeviceDatastore;
    bool allocDeviceActiveIndices;
-   bool updatedDeviceActivity;
    bool updatedDeviceDatastore;
-   bool updatedDeviceGSyn;
 
    PVCuda::CudaBuffer *d_Datastore;
    PVCuda::CudaBuffer *d_numActive;
    PVCuda::CudaBuffer *d_ActiveIndices;
-   PVCuda::CudaKernel *krUpdate;
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer *cudnn_GSyn;
    PVCuda::CudaBuffer *cudnn_Datastore;

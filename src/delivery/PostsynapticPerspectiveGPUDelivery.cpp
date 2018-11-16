@@ -306,8 +306,6 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       mRecvKernel->permuteGSynCudnnToPV(getChannelCode());
 #endif
    }
-   // GSyn already living on GPU
-   mPostLayer->setUpdatedDeviceGSynFlag(false);
 }
 
 // This is a copy of PostsynapticPerspectiveConvolveDelivery.

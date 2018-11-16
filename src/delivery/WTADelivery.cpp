@@ -141,9 +141,6 @@ void WTADelivery::deliver(float *destBuffer) {
          postGSynBuffer[k] += maxValue;
       }
    }
-#ifdef PV_USE_CUDA
-   mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
-#endif // PV_USE_CUDA
 }
 
 void WTADelivery::deliverUnitInput(float *recvBuffer) {

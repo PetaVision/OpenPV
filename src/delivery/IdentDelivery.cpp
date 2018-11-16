@@ -161,9 +161,6 @@ void IdentDelivery::deliver(float *destBuffer) {
          }
       }
    }
-#ifdef PV_USE_CUDA
-   mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
-#endif // PV_USE_CUDA
 }
 
 void IdentDelivery::deliverUnitInput(float *recvBuffer) {

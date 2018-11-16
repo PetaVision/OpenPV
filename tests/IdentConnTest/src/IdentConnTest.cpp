@@ -204,15 +204,18 @@ PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName) {
 }
 
 void setMargins(PV::HyPerLayer *layer, int const xMargin, int const yMargin) {
+   auto *geometry = layer->getComponentByType<PV::LayerGeometry>();
+   pvAssert(geometry);
    int marginResult;
-   layer->requireMarginWidth(xMargin, &marginResult, 'x');
+   geometry->requireMarginWidth(xMargin, 'x');
+   geometry->requireMarginWidth(yMargin, 'y');
+   PVLayerLoc const *loc = geometry->getLayerLoc();
    FatalIf(
-         marginResult != xMargin,
-         "Failed to set x-margin for \"%s\".\n",
+         loc->halo.lt != xMargin or loc->halo.rt != xMargin,
+         "Failed to set x-margin for %s.\n",
          layer->getDescription_c());
-   layer->requireMarginWidth(yMargin, &marginResult, 'y');
    FatalIf(
-         marginResult != yMargin,
-         "Failed to set y-margin for \"%s\".\n",
+         loc->halo.dn != yMargin or loc->halo.up != yMargin,
+         "Failed to set y-margin for %s.\n",
          layer->getDescription_c());
 }

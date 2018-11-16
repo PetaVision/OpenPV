@@ -64,18 +64,20 @@ Response::Status WeightsPairInterface::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   HyPerLayer *pre           = mConnectionData->getPre();
-   HyPerLayer *post          = mConnectionData->getPost();
-   PVLayerLoc const *preLoc  = pre->getLayerLoc();
-   PVLayerLoc const *postLoc = post->getLayerLoc();
+   HyPerLayer *pre  = mConnectionData->getPre();
+   HyPerLayer *post = mConnectionData->getPost();
+   pvAssert(pre and post);
+   LayerGeometry *preGeom  = pre->getComponentByType<LayerGeometry>();
+   LayerGeometry *postGeom = post->getComponentByType<LayerGeometry>();
+   pvAssert(preGeom and postGeom);
+   PVLayerLoc const *preLoc  = preGeom->getLayerLoc();
+   PVLayerLoc const *postLoc = postGeom->getLayerLoc();
 
    // Margins
    int xmargin = requiredConvolveMargin(preLoc->nx, postLoc->nx, mPatchSize->getPatchSizeX());
-   int receivedxmargin = 0;
-   pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');
+   preGeom->requireMarginWidth(xmargin, 'x');
    int ymargin = requiredConvolveMargin(preLoc->ny, postLoc->ny, mPatchSize->getPatchSizeY());
-   int receivedymargin = 0;
-   pre->requireMarginWidth(ymargin, &receivedymargin, 'y');
+   preGeom->requireMarginWidth(ymargin, 'y');
 
    return Response::SUCCESS;
 }

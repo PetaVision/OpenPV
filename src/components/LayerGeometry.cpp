@@ -174,7 +174,7 @@ void LayerGeometry::setLayerLoc(
    // to requireMarginWidth. We don't change the values here.
 }
 
-int LayerGeometry::requireMarginWidth(int marginWidthNeeded, char axis) {
+void LayerGeometry::requireMarginWidth(int marginWidthNeeded, char axis) {
    int *startMargin = nullptr, *endMargin = nullptr; // lt/rt for x-axis; dn/up for y-axis
    switch (axis) {
       case 'x':
@@ -205,7 +205,6 @@ int LayerGeometry::requireMarginWidth(int marginWidthNeeded, char axis) {
    // Update numExtended and numExtendedAllBatches.
    PVLayerLoc const *loc = getLayerLoc();
    updateNumExtended();
-   return *startMargin;
 }
 
 void LayerGeometry::synchronizeMarginWidths(LayerGeometry *geometry1, LayerGeometry *geometry2) {

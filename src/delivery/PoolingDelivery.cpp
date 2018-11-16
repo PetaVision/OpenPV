@@ -280,9 +280,6 @@ void PoolingDelivery::deliver(float *destBuffer) {
          deliverPresynapticPerspective(destBuffer);
       }
    }
-#ifdef PV_USE_CUDA
-   mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
-#endif // PV_USE_CUDA
 }
 
 void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
