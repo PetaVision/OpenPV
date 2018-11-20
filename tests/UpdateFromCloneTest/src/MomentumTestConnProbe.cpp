@@ -37,9 +37,9 @@ Response::Status MomentumTestConnProbe::outputState(double timed) {
                wCorrect = 0;
             }
             else {
-               wCorrect = 0.376471f;
+               wCorrect = 0.0832743f;
                for (int i = 0; i < (timed - 3); i++) {
-                  wCorrect += 0.376471f * expf(-(2 * (i + 1)));
+                  wCorrect += 0.0832743f * expf(-(0.25 * (i + 1)));
                }
             }
             FatalIf(!(fabsf(wObserved - wCorrect) <= 1e-4f), "Test failed.\n");
