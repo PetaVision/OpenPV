@@ -67,7 +67,7 @@ double CudaTimer::accumulateTime() {
    return (double)time;
 }
 
-int CudaTimer::fprint_time(PrintStream &stream) {
+int CudaTimer::fprint_time(PrintStream &stream) const {
    if (rank == 0) {
       stream << message << "processor cycle time == " << time << std::endl;
    }

@@ -106,8 +106,6 @@ void GSynAccumulator::allocateUpdateKernel() {
 
    size_t size              = mChannelCoefficients.size() * sizeof(*mChannelCoefficients.data());
    mCudaChannelCoefficients = device->createBuffer(size, &getDescription());
-
-   mCudaUpdateKernel = new PVCuda::CudaUpdateGSynAccumulator(mCudaDevice);
 }
 
 Response::Status GSynAccumulator::copyInitialStateToGPU() {
@@ -119,28 +117,7 @@ Response::Status GSynAccumulator::copyInitialStateToGPU() {
       return status;
    }
 
-   // Set arguments of update kernel
-   const PVLayerLoc *loc = getLayerLoc();
-   int const numNeurons  = getBufferSize();
-   int const nbatch      = loc->nbatch;
-   pvAssert(getCudaBuffer());
-   PVCuda::CudaBuffer *layerInputCudaBuffer = mLayerInput->getCudaBuffer();
-   pvAssert(layerInputCudaBuffer);
-
-   pvAssert(mCudaUpdateKernel);
-
    mCudaChannelCoefficients->copyToDevice(mChannelCoefficients.data());
-
-   // Set arguments to kernel
-   auto *cudaUpdateKernel = dynamic_cast<PVCuda::CudaUpdateGSynAccumulator *>(mCudaUpdateKernel);
-   pvAssert(cudaUpdateKernel);
-   cudaUpdateKernel->setArgs(
-         nbatch,
-         numNeurons,
-         mNumChannels,
-         mCudaChannelCoefficients,
-         layerInputCudaBuffer,
-         getCudaBuffer());
    return Response::SUCCESS;
 }
 
@@ -153,8 +130,7 @@ void GSynAccumulator::updateBufferGPU(double simTime, double deltaTime) {
    // Sync all buffers before running
    mCudaDevice->syncDevice();
 
-   // Run kernel
-   mCudaUpdateKernel->run();
+   runKernel();
 }
 #endif // PV_USE_CUDA
 

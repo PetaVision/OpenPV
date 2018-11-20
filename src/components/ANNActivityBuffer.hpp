@@ -10,10 +10,6 @@
 
 #include "components/HyPerActivityBuffer.hpp"
 
-#ifdef PV_USE_CUDA
-#include "cudakernels/CudaUpdateANNActivity.hpp"
-#endif
-
 namespace PV {
 
 /**
@@ -218,6 +214,8 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
    virtual Response::Status copyInitialStateToGPU() override;
 
    virtual void updateBufferGPU(double simTime, double deltaTime) override;
+
+   void runKernel();
 #endif // PV_USE_CUDA
 
   protected:
@@ -244,8 +242,6 @@ class ANNActivityBuffer : public HyPerActivityBuffer {
    PVCuda::CudaBuffer *mCudaVerticesV = nullptr;
    PVCuda::CudaBuffer *mCudaVerticesA = nullptr;
    PVCuda::CudaBuffer *mCudaSlopes    = nullptr;
-
-   PVCuda::CudaUpdateANNActivity *mUpdateStateCudaKernel = nullptr;
 #endif // PV_USE_CUDA
 };
 

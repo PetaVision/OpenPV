@@ -121,57 +121,6 @@ void HyPerLCAInternalStateBuffer::allocateUpdateKernel() {
 
    size_t size  = getLayerLoc()->nbatch * sizeof(double);
    mCudaDtAdapt = device->createBuffer(size, &getDescription());
-
-   mCudaUpdateKernel = new PVCuda::CudaUpdateHyPerLCAInternalState(device);
-}
-
-Response::Status HyPerLCAInternalStateBuffer::copyInitialStateToGPU() {
-   Response::Status status = HyPerInternalStateBuffer::copyInitialStateToGPU();
-   if (!Response::completed(status)) {
-      return status;
-   }
-   if (!isUsingGPU()) {
-      return status;
-   }
-
-   // Set arguments of update kernel
-   const PVLayerLoc *loc = getLayerLoc();
-   int const nx          = loc->nx;
-   int const ny          = loc->ny;
-   int const nf          = loc->nf;
-   int const numNeurons  = nx * ny * nf;
-   int const nbatch      = loc->nbatch;
-   int const lt          = loc->halo.lt;
-   int const rt          = loc->halo.rt;
-   int const dn          = loc->halo.dn;
-   int const up          = loc->halo.up;
-   pvAssert(getCudaBuffer());
-   float const selfInteract                      = (float)this->mSelfInteract;
-   float const tau                               = mScaledTimeConstantTau;
-   PVCuda::CudaBuffer *accumulatedGSynCudaBuffer = mAccumulatedGSyn->getCudaBuffer();
-   PVCuda::CudaBuffer *activityCudaBuffer        = mActivity->getCudaBuffer();
-   pvAssert(accumulatedGSynCudaBuffer);
-
-   auto *cudaKernel = dynamic_cast<PVCuda::CudaUpdateHyPerLCAInternalState *>(mCudaUpdateKernel);
-   pvAssert(cudaKernel);
-   // Set arguments to kernel
-   cudaKernel->setArgs(
-         nbatch,
-         numNeurons,
-         nx,
-         ny,
-         nf,
-         lt,
-         rt,
-         dn,
-         up,
-         getCudaBuffer(),
-         selfInteract,
-         mCudaDtAdapt,
-         tau,
-         accumulatedGSynCudaBuffer,
-         activityCudaBuffer);
-   return Response::SUCCESS;
 }
 
 void HyPerLCAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTime) {
@@ -186,8 +135,7 @@ void HyPerLCAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTi
    // Sync all buffers before running
    mCudaDevice->syncDevice();
 
-   // Run kernel
-   mCudaUpdateKernel->run();
+   runKernel();
 }
 #endif // PV_USE_CUDA
 
@@ -215,25 +163,25 @@ void HyPerLCAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTi
    float tau         = mScaledTimeConstantTau;
    bool selfInteract = mSelfInteract;
 
-   float const *gSyn     = mAccumulatedGSyn->getBufferData();
-   double const *dtAdapt = deltaTimes(simTime, deltaTime);
+   float const *accumulatedGSyn = mAccumulatedGSyn->getBufferData();
+   double const *dtAdapt        = deltaTimes(simTime, deltaTime);
 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int kIndex = 0; kIndex < numNeurons * nbatch; kIndex++) {
-      int b = kIndex / numNeurons;
-      int k = kIndex % numNeurons;
+   for (int n = 0; n < numNeurons * nbatch; n++) {
+      int b = n / numNeurons; // batch index
+      int k = n % numNeurons; // neuron index within batch element
 
-      float exp_tau          = (float)std::exp(-dtAdapt[b] / (double)tau);
-      float *VBatch          = V + b * numNeurons;
-      float const *gSynBatch = gSyn + b * numNeurons;
+      float exp_tau                     = (float)std::exp(-dtAdapt[b] / (double)tau);
+      float *VBatch                     = V + b * numNeurons;
+      float const *accumulatedGSynBatch = accumulatedGSyn + b * numNeurons;
+      float const gSyn                  = accumulatedGSynBatch[k];
       // Activity is an extended buffer.
       float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
 
-      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      VBatch[k] =
-            exp_tau * VBatch[k] + (1.0f - exp_tau) * (gSynBatch[k] + selfInteract * ABatch[kex]);
+      int kex   = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (gSyn + selfInteract * ABatch[kex]);
    }
 }
 

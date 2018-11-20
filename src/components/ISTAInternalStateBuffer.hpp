@@ -13,10 +13,6 @@
 #include "components/ANNActivityBuffer.hpp"
 #include "probes/AdaptiveTimeScaleProbe.hpp"
 
-#ifdef PV_USE_CUDA
-#include "cudakernels/CudaUpdateISTAInternalState.hpp"
-#endif // PV_USE_CUDA
-
 namespace PV {
 
 class ISTAInternalStateBuffer : public HyPerInternalStateBuffer {
@@ -55,14 +51,14 @@ class ISTAInternalStateBuffer : public HyPerInternalStateBuffer {
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
 #ifdef PV_USE_CUDA
-   virtual Response::Status copyInitialStateToGPU() override;
-
    virtual void allocateUpdateKernel() override;
 #endif
 
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 #ifdef PV_USE_CUDA
    virtual void updateBufferGPU(double simTime, double deltaTime) override;
+
+   virtual void runKernel();
 #endif // PV_USE_CUDA
 
    double const *deltaTimes(double simTime, double deltaTime);

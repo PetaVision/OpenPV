@@ -12,10 +12,6 @@
 
 #include "probes/AdaptiveTimeScaleProbe.hpp"
 
-#ifdef PV_USE_CUDA
-#include "cudakernels/CudaUpdateHyPerLCAInternalState.hpp"
-#endif // PV_USE_CUDA
-
 namespace PV {
 
 class HyPerLCAInternalStateBuffer : public HyPerInternalStateBuffer {
@@ -61,14 +57,14 @@ class HyPerLCAInternalStateBuffer : public HyPerInternalStateBuffer {
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
 #ifdef PV_USE_CUDA
-   virtual Response::Status copyInitialStateToGPU() override;
-
    virtual void allocateUpdateKernel() override;
 #endif
 
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 #ifdef PV_USE_CUDA
    virtual void updateBufferGPU(double simTime, double deltaTime) override;
+
+   void runKernel();
 #endif // PV_USE_CUDA
 
    double const *deltaTimes(double simTime, double deltaTime);
@@ -77,7 +73,7 @@ class HyPerLCAInternalStateBuffer : public HyPerInternalStateBuffer {
    // Data members
   protected:
    double mTimeConstantTau = 1.0; // The time constant tau in the equation dV/dt=1/tau*(-V+A+GSyn).
-   float mScaledTimeConstantTau = 1.0f; // tau/dt, used in numerical integration.
+   double mScaledTimeConstantTau = 1.0; // tau/dt, used in numerical integration.
    bool mSelfInteract;
    char *mAdaptiveTimeScaleProbeName               = nullptr;
    AdaptiveTimeScaleProbe *mAdaptiveTimeScaleProbe = nullptr;

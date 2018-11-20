@@ -161,3 +161,13 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CloneActivityComponent.tpp
    ${SUBDIR}/HyPerActivityComponent.tpp
 )
+
+if(PV_USE_CUDA)
+  set (PVLibSrcCu ${PVLibSrcCu}
+     ${SUBDIR}/ANNActivityBuffer.cu
+     ${SUBDIR}/GSynAccumulator.cu
+     ${SUBDIR}/HyPerLCAInternalStateBuffer.cu
+     ${SUBDIR}/ISTAInternalStateBuffer.cu
+     ${SUBDIR}/MomentumLCAInternalStateBuffer.cu
+  )
+endif(PV_USE_CUDA)

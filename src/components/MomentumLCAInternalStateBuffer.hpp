@@ -12,10 +12,6 @@
 
 #include "probes/AdaptiveTimeScaleProbe.hpp"
 
-#ifdef PV_USE_CUDA
-#include "cudakernels/CudaUpdateMomentumLCAInternalState.hpp"
-#endif // PV_USE_CUDA
-
 namespace PV {
 
 class MomentumLCAInternalStateBuffer : public HyPerLCAInternalStateBuffer {
@@ -45,14 +41,14 @@ class MomentumLCAInternalStateBuffer : public HyPerLCAInternalStateBuffer {
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
 #ifdef PV_USE_CUDA
-   virtual Response::Status copyInitialStateToGPU() override;
-
    virtual void allocateUpdateKernel() override;
 #endif
 
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 #ifdef PV_USE_CUDA
    virtual void updateBufferGPU(double simTime, double deltaTime) override;
+
+   virtual void runKernel();
 #endif // PV_USE_CUDA
 
    // Data members

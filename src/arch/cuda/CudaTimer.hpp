@@ -52,7 +52,7 @@ class CudaTimer : public PV::Timer {
     * @return Returns the accumulated time of this timer
     */
    double accumulateTime();
-   virtual int fprint_time(PrintStream &stream);
+   virtual int fprint_time(PrintStream &stream) const override;
    /**
     * A setter function to set the stream to time
     */

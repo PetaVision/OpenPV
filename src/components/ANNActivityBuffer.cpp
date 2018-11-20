@@ -191,8 +191,6 @@ void ANNActivityBuffer::allocateUpdateKernel() {
    mCudaVerticesV = device->createBuffer(size, &getDescription());
    mCudaVerticesA = device->createBuffer(size, &getDescription());
    mCudaSlopes    = device->createBuffer(size + sizeof(*mSlopes), &getDescription());
-
-   mUpdateStateCudaKernel = new PVCuda::CudaUpdateANNActivity(mCudaDevice);
 }
 
 Response::Status ANNActivityBuffer::copyInitialStateToGPU() {
@@ -204,44 +202,10 @@ Response::Status ANNActivityBuffer::copyInitialStateToGPU() {
       return status;
    }
 
-   // Set arguments of update kernel
-   const PVLayerLoc *loc = getLayerLoc();
-   int const nx          = loc->nx;
-   int const ny          = loc->ny;
-   int const nf          = loc->nf;
-   int const numNeurons  = nx * ny * nf;
-   int const nbatch      = loc->nbatch;
-   int const lt          = loc->halo.lt;
-   int const rt          = loc->halo.rt;
-   int const dn          = loc->halo.dn;
-   int const up          = loc->halo.up;
-   pvAssert(getCudaBuffer());
-   PVCuda::CudaBuffer *internalStateCudaBuffer = mInternalState->getCudaBuffer();
-   pvAssert(internalStateCudaBuffer);
-
-   pvAssert(mUpdateStateCudaKernel);
-
    mCudaVerticesV->copyToDevice(mVerticesV);
    mCudaVerticesA->copyToDevice(mVerticesA);
    mCudaSlopes->copyToDevice(mSlopes);
 
-   // Set arguments to kernel
-   mUpdateStateCudaKernel->setArgs(
-         nbatch,
-         numNeurons,
-         nx,
-         ny,
-         nf,
-         lt,
-         rt,
-         dn,
-         up,
-         internalStateCudaBuffer,
-         mNumVertices,
-         mCudaVerticesV,
-         mCudaVerticesA,
-         mCudaSlopes,
-         getCudaBuffer());
    return Response::SUCCESS;
 }
 
@@ -256,8 +220,7 @@ void ANNActivityBuffer::updateBufferGPU(double simTime, double deltaTime) {
    // Sync all buffers before running
    mCudaDevice->syncDevice();
 
-   // Run kernel
-   mUpdateStateCudaKernel->run();
+   runKernel();
 }
 #endif // PV_USE_CUDA
 
@@ -538,11 +501,11 @@ void ANNActivityBuffer::applyVerticesList(
       float *verticesV,
       float *verticesA,
       float *slopes) {
-   int last = numVertices - 1;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
    for (int kbatch = 0; kbatch < numNeurons * nbatch; kbatch++) {
+      int last            = numVertices - 1;
       int b               = kbatch / numNeurons;
       int k               = kbatch % numNeurons;
       float const *VBatch = V + b * numNeurons;

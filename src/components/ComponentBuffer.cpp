@@ -232,6 +232,11 @@ void ComponentBuffer::copyToCuda() {
    mCudaBuffer->copyToDevice(mBufferData.data());
 }
 
+Response::Status ComponentBuffer::copyInitialStateToGPU() {
+   copyToCuda();
+   return Response::SUCCESS;
+}
+
 void ComponentBuffer::updateBufferGPU(double simTime, double deltaTime) {
    Fatal() << "Update state for " << getDescription() << " is not implemented\n";
 }

@@ -11,9 +11,7 @@
 #include "components/RestrictedBuffer.hpp"
 
 #include "components/LayerInputBuffer.hpp"
-#ifdef PV_USE_CUDA
-#include "cudakernels/CudaUpdateGSynAccumulator.hpp"
-#endif
+
 namespace PV {
 
 /**
@@ -68,6 +66,8 @@ class GSynAccumulator : public RestrictedBuffer {
    virtual Response::Status copyInitialStateToGPU() override;
 
    virtual void updateBufferGPU(double simTime, double deltaTime) override;
+
+   void runKernel();
 #endif // PV_USE_CUDA
 
   protected:

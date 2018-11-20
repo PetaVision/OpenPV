@@ -178,7 +178,6 @@ Response::Status ActivityComponent::copyInitialStateToGPU() {
          auto *buffer = dynamic_cast<ComponentBuffer *>(obj);
          if (buffer) {
             pvAssert(buffer->isUsingGPU());
-            buffer->copyToCuda();
             status = buffer->respond(std::make_shared<CopyInitialStateToGPUMessage>());
             FatalIf(
                   !Response::completed(status),

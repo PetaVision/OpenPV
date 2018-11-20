@@ -151,6 +151,7 @@ class ComponentBuffer : public BaseObject {
 #ifdef PV_USE_CUDA
    virtual void allocateUpdateKernel() {}
    virtual void updateBufferGPU(double simTime, double deltaTime);
+   virtual Response::Status copyInitialStateToGPU() override;
 #endif // PV_USE_CUDA
 
   private:
@@ -169,9 +170,6 @@ class ComponentBuffer : public BaseObject {
    std::vector<float> mBufferData;
    float const *mReadOnlyPointer = nullptr;
    float *mReadWritePointer      = nullptr;
-#ifdef PV_USE_CUDA
-   PVCuda::CudaKernel *mCudaUpdateKernel = nullptr;
-#endif // PV_USE_CUDA
 
   private:
    double mTimeLastUpdate = 0.0;

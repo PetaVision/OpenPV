@@ -110,57 +110,6 @@ void ISTAInternalStateBuffer::allocateUpdateKernel() {
 
    size_t size  = getLayerLoc()->nbatch * sizeof(double);
    mCudaDtAdapt = device->createBuffer(size, &getDescription());
-
-   mCudaUpdateKernel = new PVCuda::CudaUpdateISTAInternalState(device);
-}
-
-Response::Status ISTAInternalStateBuffer::copyInitialStateToGPU() {
-   Response::Status status = HyPerInternalStateBuffer::copyInitialStateToGPU();
-   if (!Response::completed(status)) {
-      return status;
-   }
-   if (!isUsingGPU()) {
-      return status;
-   }
-
-   // Set arguments of update kernel
-   const PVLayerLoc *loc = getLayerLoc();
-   int const nx          = loc->nx;
-   int const ny          = loc->ny;
-   int const nf          = loc->nf;
-   int const numNeurons  = nx * ny * nf;
-   int const nbatch      = loc->nbatch;
-   int const lt          = loc->halo.lt;
-   int const rt          = loc->halo.rt;
-   int const dn          = loc->halo.dn;
-   int const up          = loc->halo.up;
-   pvAssert(getCudaBuffer());
-   float const VThresh                           = mActivity->getVThresh();
-   float const tau                               = mScaledTimeConstantTau;
-   PVCuda::CudaBuffer *accumulatedGSynCudaBuffer = mAccumulatedGSyn->getCudaBuffer();
-   PVCuda::CudaBuffer *activityCudaBuffer        = mActivity->getCudaBuffer();
-   pvAssert(accumulatedGSynCudaBuffer);
-
-   auto *cudaKernel = dynamic_cast<PVCuda::CudaUpdateISTAInternalState *>(mCudaUpdateKernel);
-   pvAssert(cudaKernel);
-   // Set arguments to kernel
-   cudaKernel->setArgs(
-         nbatch,
-         numNeurons,
-         nx,
-         ny,
-         nf,
-         lt,
-         rt,
-         dn,
-         up,
-         getCudaBuffer(),
-         VThresh,
-         mCudaDtAdapt,
-         tau,
-         accumulatedGSynCudaBuffer,
-         activityCudaBuffer);
-   return Response::SUCCESS;
 }
 
 void ISTAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTime) {
@@ -175,8 +124,7 @@ void ISTAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTime) 
    // Sync all buffers before running
    mCudaDevice->syncDevice();
 
-   // Run kernel
-   mCudaUpdateKernel->run();
+   runKernel();
 }
 #endif // PV_USE_CUDA
 

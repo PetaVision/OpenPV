@@ -77,61 +77,6 @@ void MomentumLCAInternalStateBuffer::allocateUpdateKernel() {
 
    size_t size  = getLayerLoc()->nbatch * sizeof(double);
    mCudaDtAdapt = device->createBuffer(size, &getDescription());
-
-   mCudaUpdateKernel = new PVCuda::CudaUpdateMomentumLCAInternalState(device);
-}
-
-Response::Status MomentumLCAInternalStateBuffer::copyInitialStateToGPU() {
-   Response::Status status = HyPerInternalStateBuffer::copyInitialStateToGPU();
-   if (!Response::completed(status)) {
-      return status;
-   }
-   if (!isUsingGPU()) {
-      return status;
-   }
-
-   // Set arguments of update kernel
-   const PVLayerLoc *loc = getLayerLoc();
-   int const nx          = loc->nx;
-   int const ny          = loc->ny;
-   int const nf          = loc->nf;
-   int const numNeurons  = nx * ny * nf;
-   int const nbatch      = loc->nbatch;
-   int const lt          = loc->halo.lt;
-   int const rt          = loc->halo.rt;
-   int const dn          = loc->halo.dn;
-   int const up          = loc->halo.up;
-   pvAssert(getCudaBuffer());
-   PVCuda::CudaBuffer *prevDriveCudaBuffer       = mPrevDrive->getCudaBuffer();
-   float const selfInteract                      = (float)this->mSelfInteract;
-   float const tau                               = mScaledTimeConstantTau;
-   PVCuda::CudaBuffer *accumulatedGSynCudaBuffer = mAccumulatedGSyn->getCudaBuffer();
-   PVCuda::CudaBuffer *activityCudaBuffer        = mActivity->getCudaBuffer();
-   pvAssert(accumulatedGSynCudaBuffer);
-   pvAssert(prevDriveCudaBuffer);
-
-   auto *cudaKernel = dynamic_cast<PVCuda::CudaUpdateMomentumLCAInternalState *>(mCudaUpdateKernel);
-   pvAssert(cudaKernel);
-   // Set arguments to kernel
-   cudaKernel->setArgs(
-         nbatch,
-         numNeurons,
-         nx,
-         ny,
-         nf,
-         lt,
-         rt,
-         dn,
-         up,
-         getCudaBuffer(),
-         prevDriveCudaBuffer,
-         selfInteract,
-         mCudaDtAdapt,
-         tau,
-         mLCAMomentumRate,
-         accumulatedGSynCudaBuffer,
-         activityCudaBuffer);
-   return Response::SUCCESS;
 }
 
 void MomentumLCAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTime) {
@@ -146,8 +91,7 @@ void MomentumLCAInternalStateBuffer::updateBufferGPU(double simTime, double delt
    // Sync all buffers before running
    mCudaDevice->syncDevice();
 
-   // Run kernel
-   mCudaUpdateKernel->run();
+   runKernel();
 }
 #endif // PV_USE_CUDA
 

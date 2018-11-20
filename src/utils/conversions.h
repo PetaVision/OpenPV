@@ -700,7 +700,7 @@ static inline int requiredConvolveMargin(int nPre, int nPost, int patchSize) {
       assert(nPre % nPost == 0);
       int densityRatio = nPre / nPost;
       assert(densityRatio % 2 == 0);
-      assert(pow(2.0, nearbyint(log2(densityRatio))) == (double)densityRatio);
+      assert(pow(2.0, nearbyint(log2((double)densityRatio))) == (double)densityRatio);
       margin = (patchSize - 1) * densityRatio / 2;
    }
    else {
@@ -708,7 +708,7 @@ static inline int requiredConvolveMargin(int nPre, int nPost, int patchSize) {
       assert(nPost % nPre == 0);
       int densityRatio = nPost / nPre;
       assert(densityRatio % 2 == 0);
-      assert(pow(2.0, nearbyint(log2(densityRatio))) == (double)densityRatio);
+      assert(pow(2.0, nearbyint(log2((double)densityRatio))) == (double)densityRatio);
       assert(patchSize % densityRatio == 0);
       int numCells = patchSize / densityRatio;
       margin       = numCells / 2;
