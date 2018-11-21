@@ -73,7 +73,7 @@ double HyPerDelivery::convertToRateDeltaTimeFactor(double timeConstantTau, doubl
    // conductance G_EXC, then G_EXC -> G_SYN as t -> inf
 }
 
-bool HyPerDelivery::isAllInputReady() {
+bool HyPerDelivery::isAllInputReady() const {
    bool isReady = true;
    if (getChannelCode() != CHANNEL_NOUPDATE) {
       int const numArbors = mArborList->getNumAxonalArbors();

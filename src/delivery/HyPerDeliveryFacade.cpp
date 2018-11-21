@@ -213,7 +213,7 @@ void HyPerDeliveryFacade::deliverUnitInput(float *recvBuffer) {
    // Therefore nothing needs to be done here.
 }
 
-bool HyPerDeliveryFacade::isAllInputReady() {
+bool HyPerDeliveryFacade::isAllInputReady() const {
    return getChannelCode() == CHANNEL_NOUPDATE ? true : mDeliveryIntern->isAllInputReady();
 }
 

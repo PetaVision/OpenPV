@@ -153,7 +153,7 @@ void WTADelivery::deliverUnitInput(float *recvBuffer) {
    }
 }
 
-bool WTADelivery::isAllInputReady() {
+bool WTADelivery::isAllInputReady() const {
    bool isReady;
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       isReady = true;

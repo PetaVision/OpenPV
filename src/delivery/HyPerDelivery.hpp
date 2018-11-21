@@ -32,7 +32,7 @@ class HyPerDelivery : public BaseDelivery {
 
    virtual void deliver(float *destBuffer) override = 0;
 
-   virtual bool isAllInputReady() override;
+   virtual bool isAllInputReady() const override;
 
   protected:
    HyPerDelivery();

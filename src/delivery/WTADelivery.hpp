@@ -46,7 +46,7 @@ class WTADelivery : public BaseDelivery {
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
-   virtual bool isAllInputReady() override;
+   virtual bool isAllInputReady() const override;
 
   protected:
    WTADelivery() {}

@@ -80,7 +80,7 @@ class PoolingDelivery : public BaseDelivery {
 
    virtual void deliver(float *destBuffer) override;
 
-   virtual bool isAllInputReady() override;
+   virtual bool isAllInputReady() const override;
 
    AccumulateType getAccumulateType() const { return mAccumulateType; }
 

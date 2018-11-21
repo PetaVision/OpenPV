@@ -689,7 +689,7 @@ void PoolingDelivery::clearGateIdxBuffer() {
    }
 }
 
-bool PoolingDelivery::isAllInputReady() {
+bool PoolingDelivery::isAllInputReady() const {
    bool isReady = true;
    if (getChannelCode() != CHANNEL_NOUPDATE) {
       isReady &= getPreLayer()->isExchangeFinished(0 /*delay*/);

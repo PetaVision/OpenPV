@@ -61,7 +61,7 @@ class TransposePoolingDelivery : public BaseDelivery {
 
    virtual void deliver(float *destBuffer) override;
 
-   virtual bool isAllInputReady() override;
+   virtual bool isAllInputReady() const override;
 
   protected:
    TransposePoolingDelivery();

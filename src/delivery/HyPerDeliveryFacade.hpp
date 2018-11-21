@@ -60,7 +60,7 @@ class HyPerDeliveryFacade : public BaseDelivery {
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
-   virtual bool isAllInputReady() override;
+   virtual bool isAllInputReady() const override;
 
    HyPerDelivery::AccumulateType getAccumulateType() const { return mAccumulateType; }
 

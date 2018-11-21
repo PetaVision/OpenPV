@@ -515,7 +515,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
    }
 }
 
-bool TransposePoolingDelivery::isAllInputReady() {
+bool TransposePoolingDelivery::isAllInputReady() const {
    bool isReady = true;
    if (getChannelCode() != CHANNEL_NOUPDATE) {
       isReady &= getPreLayer()->isExchangeFinished(0 /*delay*/);

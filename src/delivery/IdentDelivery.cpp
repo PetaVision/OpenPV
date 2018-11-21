@@ -173,7 +173,7 @@ void IdentDelivery::deliverUnitInput(float *recvBuffer) {
    }
 }
 
-bool IdentDelivery::isAllInputReady() {
+bool IdentDelivery::isAllInputReady() const {
    bool isReady;
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       isReady = true;

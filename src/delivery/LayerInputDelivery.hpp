@@ -54,7 +54,7 @@ class LayerInputDelivery : public BaseObject {
    /**
     * A virtual method to indicate whether the presynaptic layer's input is ready to be delivered.
     */
-   virtual bool isAllInputReady() { return true; }
+   virtual bool isAllInputReady() const { return true; }
 
    ChannelType getChannelCode() const { return mChannelCode; }
    bool getReceiveGpu() const { return mReceiveGpu; }
