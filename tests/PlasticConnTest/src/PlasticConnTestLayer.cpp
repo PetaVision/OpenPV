@@ -71,7 +71,7 @@ Response::Status PlasticConnTestLayer::allocateDataStructures() {
    return status;
 }
 
-Response::Status PlasticConnTestLayer::updateState(double timef, double dt) {
+Response::Status PlasticConnTestLayer::checkUpdateState(double timef, double dt) {
    return Response::SUCCESS;
 }
 

@@ -14,11 +14,11 @@ class AlwaysFailsLayer : public HyPerLayer {
   public:
    AlwaysFailsLayer(char const *name, PVParams *params, Communicator *comm);
    virtual ~AlwaysFailsLayer();
-   virtual bool needUpdate(double simTime, double dt) const override;
 
   protected:
    AlwaysFailsLayer();
    void initialize(char const *name, PVParams *params, Communicator *comm);
+   virtual Response::Status checkUpdateState(double simTime, double deltaTime) override;
 
   private:
    int initialize_base();

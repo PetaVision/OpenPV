@@ -24,6 +24,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ErrScaleInternalStateBuffer.cpp
    ${SUBDIR}/FeedbackConnectionData.cpp
    ${SUBDIR}/FilenameParsingActivityBuffer.cpp
+   ${SUBDIR}/FilenameParsingLayerUpdateController.cpp
    ${SUBDIR}/GapActivityBuffer.cpp
    ${SUBDIR}/GSynAccumulator.cpp
    ${SUBDIR}/HyPerActivityBuffer.cpp
@@ -34,12 +35,14 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ImpliedWeightsPair.cpp
    ${SUBDIR}/InputActivityBuffer.cpp
    ${SUBDIR}/InputLayerNameParam.cpp
+   ${SUBDIR}/InputLayerUpdateController.cpp
    ${SUBDIR}/InputRegionActivityBuffer.cpp
    ${SUBDIR}/InputRegionActivityComponent.cpp
    ${SUBDIR}/InternalStateBuffer.cpp
    ${SUBDIR}/ISTAInternalStateBuffer.cpp
    ${SUBDIR}/LayerGeometry.cpp
    ${SUBDIR}/LayerInputBuffer.cpp
+   ${SUBDIR}/LayerUpdateController.cpp
    ${SUBDIR}/LeakyIntegratorBuffer.cpp
    ${SUBDIR}/LIFActivityComponent.cpp
    ${SUBDIR}/LIFGapActivityComponent.cpp
@@ -103,6 +106,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ErrScaleInternalStateBuffer.hpp
    ${SUBDIR}/FeedbackConnectionData.hpp
    ${SUBDIR}/FilenameParsingActivityBuffer.hpp
+   ${SUBDIR}/FilenameParsingLayerUpdateController.hpp
    ${SUBDIR}/GapActivityBuffer.hpp
    ${SUBDIR}/GSynAccumulator.hpp
    ${SUBDIR}/HyPerActivityBuffer.hpp
@@ -114,12 +118,14 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ImpliedWeightsPair.hpp
    ${SUBDIR}/InputActivityBuffer.hpp
    ${SUBDIR}/InputLayerNameParam.hpp
+   ${SUBDIR}/InputLayerUpdateController.hpp
    ${SUBDIR}/InputRegionActivityBuffer.hpp
    ${SUBDIR}/InputRegionActivityComponent.hpp
    ${SUBDIR}/InternalStateBuffer.hpp
    ${SUBDIR}/ISTAInternalStateBuffer.hpp
    ${SUBDIR}/LayerGeometry.hpp
    ${SUBDIR}/LayerInputBuffer.hpp
+   ${SUBDIR}/LayerUpdateController.hpp
    ${SUBDIR}/LeakyIntegratorBuffer.hpp
    ${SUBDIR}/LIFActivityComponent.hpp
    ${SUBDIR}/LIFGapActivityComponent.hpp

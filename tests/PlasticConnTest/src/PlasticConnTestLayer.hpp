@@ -16,7 +16,7 @@ class PlasticConnTestLayer : public PV::ANNLayer {
   public:
    PlasticConnTestLayer(const char *name, PVParams *params, Communicator *comm);
    virtual Response::Status allocateDataStructures() override;
-   virtual Response::Status updateState(double timef, double dt) override;
+   virtual Response::Status checkUpdateState(double timef, double dt) override;
    virtual int publish(Communicator *comm, double timef) override;
 
   protected:

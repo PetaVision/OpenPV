@@ -12,7 +12,7 @@ class SegmentifyTest : public PV::Segmentify {
 
   protected:
    virtual void createComponentTable(char const *description) override;
-   Response::Status updateState(double timef, double dt) override;
+   Response::Status checkUpdateState(double timef, double dt) override;
 
   private:
    float getTargetVal(int yi, int xi, int fi);

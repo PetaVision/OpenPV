@@ -41,7 +41,7 @@ void MaskTestLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
    }
 }
 
-Response::Status MaskTestLayer::updateState(double timef, double dt) {
+Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
    // Grab layer size
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;

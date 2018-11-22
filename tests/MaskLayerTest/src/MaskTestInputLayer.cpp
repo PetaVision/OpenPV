@@ -17,7 +17,7 @@ ActivityComponent *MaskTestInputLayer::createActivityComponent() {
 
 // Makes a layer such that the restricted space is the index, but with spinning order be [x, y, f]
 // as opposed to [f, x, y]
-Response::Status MaskTestInputLayer::updateState(double timef, double dt) {
+Response::Status MaskTestInputLayer::checkUpdateState(double timef, double dt) {
    // Grab layer size
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;

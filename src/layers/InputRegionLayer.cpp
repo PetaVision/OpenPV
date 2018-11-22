@@ -40,6 +40,8 @@ BoundaryConditions *InputRegionLayer::createBoundaryConditions() {
    return new DependentBoundaryConditions(name, parameters(), mCommunicator);
 }
 
+LayerUpdateController *InputRegionLayer::createLayerUpdateController() { return nullptr; }
+
 LayerInputBuffer *InputRegionLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *InputRegionLayer::createActivityComponent() {
@@ -50,21 +52,11 @@ OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
    return new OriginalLayerNameParam(name, parameters(), mCommunicator);
 }
 
-void InputRegionLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      triggerLayerName = nullptr;
-      triggerFlag      = false;
-      parameters()->handleUnnecessaryParameter(name, "triggerLayerName");
-   }
-}
-
 void InputRegionLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       sparseLayer = false;
       parameters()->handleUnnecessaryParameter(name, "sparseLayer");
    }
 }
-
-bool InputRegionLayer::needUpdate(double timed, double dt) const { return false; }
 
 } /* namespace PV */

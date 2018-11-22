@@ -23,6 +23,17 @@ ActivityComponent *ImagePvpOffsetTestLayer::createActivityComponent() {
          getName(), parameters(), mCommunicator);
 }
 
-void ImagePvpOffsetTestLayer::setNontriggerDeltaUpdateTime(double dt) { mDeltaUpdateTime = 1.0; }
+Response::Status ImagePvpOffsetTestLayer::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = PvpLayer::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   FatalIf(
+         message->mDeltaTime != 1.0,
+         "This test requires the HyPerCol dt parameter equal 1.0 (value is %f).\n",
+         message->mDeltaTime);
+   return Response::SUCCESS;
+}; /* class ImageOffsetTestLayer */
 
 } /* namespace PV */

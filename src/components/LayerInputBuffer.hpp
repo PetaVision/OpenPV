@@ -66,9 +66,6 @@ class LayerInputBuffer : public ComponentBuffer {
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    Response::Status
-   respondLayerClearProgressFlags(std::shared_ptr<LayerClearProgressFlagsMessage const> message);
-
-   Response::Status
    respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
 
 #ifdef PV_USE_CUDA

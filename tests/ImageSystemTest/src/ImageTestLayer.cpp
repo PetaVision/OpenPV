@@ -6,8 +6,8 @@ ImageTestLayer::ImageTestLayer(const char *name, PVParams *params, Communicator 
    initialize(name, params, comm);
 }
 
-Response::Status ImageTestLayer::updateState(double time, double dt) {
-   ImageLayer::updateState(time, dt);
+Response::Status ImageTestLayer::checkUpdateState(double time, double dt) {
+   ImageLayer::checkUpdateState(time, dt);
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
    int ny                = loc->ny;

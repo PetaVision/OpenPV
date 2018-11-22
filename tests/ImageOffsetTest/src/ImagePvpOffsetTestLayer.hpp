@@ -16,8 +16,10 @@ class ImagePvpOffsetTestLayer : public PvpLayer {
 
    virtual ActivityComponent *createActivityComponent() override;
 
-   virtual void setNontriggerDeltaUpdateTime(double dt) override;
-};
-}
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+}; /* class ImageOffsetTestLayer */
+
+} /* namespace PV */
 
 #endif // IMAGEPVPOFFSETTESTLAYER_HPP_

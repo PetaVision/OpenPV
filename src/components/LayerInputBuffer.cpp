@@ -29,12 +29,6 @@ void LayerInputBuffer::initMessageActionMap() {
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<LayerClearProgressFlagsMessage const>(msgptr);
-      return respondLayerClearProgressFlags(castMessage);
-   };
-   mMessageActionMap.emplace("LayerClearProgressFlags", action);
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<LayerRecvSynapticInputMessage const>(msgptr);
       return respondLayerRecvSynapticInput(castMessage);
    };
@@ -123,32 +117,21 @@ LayerInputBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer>
    return Response::SUCCESS;
 }
 
-Response::Status LayerInputBuffer::respondLayerClearProgressFlags(
-      std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
-   mHasReceived = false;
-   return Response::SUCCESS;
-}
-
 Response::Status LayerInputBuffer::respondLayerRecvSynapticInput(
       std::shared_ptr<LayerRecvSynapticInputMessage const> message) {
-   Response::Status status = Response::SUCCESS;
-// Calling HyPerLayer has checked phase, so we don't need to do it here.
+// Calling LayerUpdateController has checked phase, so we don't need to do it here.
 #ifdef PV_USE_CUDA
    if (message->mRecvOnGpuFlag != isUsingGPU()) {
-      return status;
+      return Response::NO_ACTION;
    }
 #endif // PV_USE_CUDA
-   if (mHasReceived) {
-      return status;
-   }
-   if (*(message->mSomeLayerHasActed) or !isAllInputReady()) {
+   if (!isAllInputReady()) {
       *(message->mSomeLayerIsPending) = true;
-      return status;
+      return Response::NO_ACTION;
    }
 
    updateBuffer(message->mTime, message->mDeltaT);
-   *(message->mSomeLayerHasActed) = true;
-   return status;
+   return Response::SUCCESS;
 }
 
 bool LayerInputBuffer::isAllInputReady() {

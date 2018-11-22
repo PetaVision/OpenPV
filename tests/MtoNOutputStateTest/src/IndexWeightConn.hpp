@@ -8,7 +8,7 @@
  * update rule, to be used in testing.
  * The weights in each nxp-by-nyp-by-nfp are ordered 0,1,2,...,(nxp*nyp*nfp-1)
  * in standard PetaVision ordering. At initialization, the strength of the
- * weight at index k is k + start-time; when updateState is called, the
+ * weight at index k is k + start-time; when LayerUpdateState is called, the
  * weight at index k becomes k + simulation-time.
  */
 

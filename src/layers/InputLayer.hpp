@@ -9,20 +9,6 @@
 namespace PV {
 
 class InputLayer : public HyPerLayer {
-  protected:
-   /**
-    * List of parameters needed from the HyPerLayer class
-    * @name InputLayer Parameters
-    * @{
-    */
-
-   /**
-    * triggerLayerName: InputLayer and derived classes do not use triggering, and always set
-    * triggerLayerName to NULL.
-    */
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
-   /** @} */
-
   public:
    InputLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~InputLayer();
@@ -32,6 +18,8 @@ class InputLayer : public HyPerLayer {
 
    void initialize(const char *name, PVParams *params, Communicator *comm);
 
+   virtual LayerUpdateController *createLayerUpdateController() override;
+
    virtual LayerInputBuffer *createLayerInput() override;
 
    /**
@@ -40,8 +28,6 @@ class InputLayer : public HyPerLayer {
     * that ActivityBuffer subclass.
     */
    virtual ActivityComponent *createActivityComponent() override = 0;
-
-   virtual void setNontriggerDeltaUpdateTime(double dt) override;
 };
 
 } // end namespace PV

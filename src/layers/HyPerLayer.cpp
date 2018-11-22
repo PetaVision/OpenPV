@@ -47,18 +47,11 @@ HyPerLayer::HyPerLayer(const char *name, PVParams *params, Communicator *comm) {
 // In general, initialize_base should be used only to initialize member variables
 // to safe values.
 int HyPerLayer::initialize_base() {
-   name                  = NULL;
-   probes                = NULL;
-   numProbes             = 0;
-   writeTime             = 0;
-   initialWriteTime      = 0;
-   triggerFlag           = false; // Default to update every timestamp
-   triggerLayer          = NULL;
-   triggerLayerName      = NULL;
-   triggerBehavior       = NULL;
-   triggerBehaviorType   = NO_TRIGGER;
-   triggerResetLayerName = NULL;
-   triggerOffset         = 0;
+   name             = NULL;
+   probes           = NULL;
+   numProbes        = 0;
+   writeTime        = 0;
+   initialWriteTime = 0;
 
 #ifdef PV_USE_CUDA
    allocDeviceDatastore     = false;
@@ -73,9 +66,8 @@ int HyPerLayer::initialize_base() {
 #endif // PV_USE_CUDNN
 #endif // PV_USE_CUDA
 
-   publish_timer   = NULL;
-   timescale_timer = NULL;
-   io_timer        = NULL;
+   publish_timer = NULL;
+   io_timer      = NULL;
 
    recvConns.clear();
 
@@ -100,9 +92,6 @@ void HyPerLayer::initialize(const char *name, PVParams *params, Communicator *co
    numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed,
    // numDelayLevels is increased when BaseConnection::communicateInitInfo calls
    // increaseDelayLevels
-
-   mLastUpdateTime  = 0.0;
-   mLastTriggerTime = 0.0;
 }
 
 void HyPerLayer::initMessageActionMap() {
@@ -192,6 +181,10 @@ void HyPerLayer::createComponentTable(char const *description) {
    if (mBoundaryConditions) {
       addUniqueComponent(mBoundaryConditions->getDescription(), mBoundaryConditions);
    }
+   mLayerUpdateController = createLayerUpdateController();
+   if (mLayerUpdateController) {
+      addUniqueComponent(mLayerUpdateController->getDescription(), mLayerUpdateController);
+   }
    mLayerInput = createLayerInput();
    if (mLayerInput) {
       addUniqueComponent(mLayerInput->getDescription(), mLayerInput);
@@ -200,6 +193,10 @@ void HyPerLayer::createComponentTable(char const *description) {
    if (mActivityComponent) {
       addUniqueComponent(mActivityComponent->getDescription(), mActivityComponent);
    }
+}
+
+LayerUpdateController *HyPerLayer::createLayerUpdateController() {
+   return new LayerUpdateController(name, parameters(), mCommunicator);
 }
 
 LayerGeometry *HyPerLayer::createLayerGeometry() {
@@ -226,7 +223,6 @@ ActivityComponent *HyPerLayer::createActivityComponent() {
 
 HyPerLayer::~HyPerLayer() {
    delete publish_timer;
-   delete timescale_timer;
    delete io_timer;
 
    delete mOutputStateStream;
@@ -246,10 +242,6 @@ HyPerLayer::~HyPerLayer() {
    free(probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be deleted,
    // only the array itself.
 
-   free(triggerLayerName);
-   free(triggerBehavior);
-   free(triggerResetLayerName);
-
    delete publisher;
 }
 
@@ -265,24 +257,14 @@ void HyPerLayer::addPublisher() {
 
 Response::Status
 HyPerLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   if (mLayerUpdateController) {
+      mLayerUpdateController->respond(message);
+   }
    if (mActivityComponent) {
       mActivityComponent->respond(message);
    }
-   if (triggerLayer and triggerBehaviorType == UPDATEONLY_TRIGGER) {
-      if (!triggerLayer->getInitialValuesSetFlag()) {
-         return Response::POSTPONE;
-      }
-      mDeltaUpdateTime = triggerLayer->getDeltaUpdateTime();
-   }
-   else {
-      setNontriggerDeltaUpdateTime(message->mDeltaTime);
-   }
-   mLastUpdateTime  = message->mDeltaTime;
-   mLastTriggerTime = message->mDeltaTime;
    return Response::SUCCESS;
 }
-
-void HyPerLayer::setNontriggerDeltaUpdateTime(double dt) { mDeltaUpdateTime = dt; }
 
 #ifdef PV_USE_CUDA
 Response::Status HyPerLayer::copyInitialStateToGPU() {
@@ -299,11 +281,6 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
          obj->ioParams(ioFlag, false, false);
       }
    }
-   ioParam_triggerLayerName(ioFlag);
-   ioParam_triggerFlag(ioFlag);
-   ioParam_triggerOffset(ioFlag);
-   ioParam_triggerBehavior(ioFlag);
-   ioParam_triggerResetLayerName(ioFlag);
    ioParam_writeStep(ioFlag);
    ioParam_initialWriteTime(ioFlag);
    ioParam_sparseLayer(ioFlag);
@@ -322,125 +299,6 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
       if (mCommunicator->globalCommRank() == 0) {
          WarnLog().printf(
                "%s defines the dataType param, which is no longer used.\n", getDescription_c());
-      }
-   }
-}
-
-void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
-      if (triggerLayerName && !strcmp(name, triggerLayerName)) {
-         if (mCommunicator->commRank() == 0) {
-            ErrorLog().printf(
-                  "%s: triggerLayerName cannot be the same as the name of the layer itself.\n",
-                  getDescription_c());
-         }
-         MPI_Barrier(mCommunicator->communicator());
-         exit(EXIT_FAILURE);
-      }
-      triggerFlag = (triggerLayerName != NULL && triggerLayerName[0] != '\0');
-   }
-}
-
-// triggerFlag was deprecated Aug 7, 2015.
-// Setting triggerLayerName to a nonempty string has the effect of triggerFlag=true, and
-// setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
-// While triggerFlag is being deprecated, it is an error for triggerFlag to be false
-// and triggerLayerName to be a nonempty string.
-void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-   if (ioFlag == PARAMS_IO_READ && parameters()->present(name, "triggerFlag")) {
-      bool flagFromParams = false;
-      parameters()->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
-      if (mCommunicator->globalCommRank() == 0) {
-         WarnLog(triggerFlagMessage);
-         triggerFlagMessage.printf("%s: triggerFlag has been deprecated.\n", getDescription_c());
-         triggerFlagMessage.printf(
-               "   If triggerLayerName is a nonempty string, triggering will be on;\n");
-         triggerFlagMessage.printf(
-               "   if triggerLayerName is empty or null, triggering will be off.\n");
-         if (flagFromParams != triggerFlag) {
-            ErrorLog(errorMessage);
-            errorMessage.printf("triggerLayerName=", name);
-            if (triggerLayerName) {
-               errorMessage.printf("\"%s\"", triggerLayerName);
-            }
-            else {
-               errorMessage.printf("NULL");
-            }
-            errorMessage.printf(
-                  " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
-                  triggerFlag ? "true" : "false",
-                  flagFromParams ? "true" : "false");
-         }
-      }
-      if (flagFromParams != triggerFlag) {
-         MPI_Barrier(mCommunicator->communicator());
-         exit(EXIT_FAILURE);
-      }
-   }
-}
-
-void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-   if (triggerFlag) {
-      parameters()->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
-      if (triggerOffset < 0) {
-         if (mCommunicator->globalCommRank() == 0) {
-            Fatal().printf(
-                  "%s: TriggerOffset (%f) must be positive\n", getDescription_c(), triggerOffset);
-         }
-      }
-   }
-}
-void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-   if (triggerFlag) {
-      parameters()->ioParamString(
-            ioFlag,
-            name,
-            "triggerBehavior",
-            &triggerBehavior,
-            "updateOnlyOnTrigger",
-            true /*warnIfAbsent*/);
-      if (triggerBehavior == NULL || !strcmp(triggerBehavior, "")) {
-         free(triggerBehavior);
-         triggerBehavior     = strdup("updateOnlyOnTrigger");
-         triggerBehaviorType = UPDATEONLY_TRIGGER;
-      }
-      else if (!strcmp(triggerBehavior, "updateOnlyOnTrigger")) {
-         triggerBehaviorType = UPDATEONLY_TRIGGER;
-      }
-      else if (!strcmp(triggerBehavior, "resetStateOnTrigger")) {
-         triggerBehaviorType = RESETSTATE_TRIGGER;
-      }
-      else if (!strcmp(triggerBehavior, "ignore")) {
-         triggerBehaviorType = NO_TRIGGER;
-      }
-      else {
-         if (mCommunicator->commRank() == 0) {
-            ErrorLog().printf(
-                  "%s: triggerBehavior=\"%s\" is unrecognized.\n",
-                  getDescription_c(),
-                  triggerBehavior);
-         }
-         MPI_Barrier(mCommunicator->communicator());
-         exit(EXIT_FAILURE);
-      }
-   }
-   else {
-      triggerBehaviorType = NO_TRIGGER;
-   }
-}
-
-void HyPerLayer::ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-   if (triggerFlag) {
-      assert(!parameters()->presentAndNotBeenRead(name, "triggerBehavior"));
-      if (!strcmp(triggerBehavior, "resetStateOnTrigger")) {
-         parameters()->ioParamStringRequired(
-               ioFlag, name, "triggerResetLayerName", &triggerResetLayerName);
       }
    }
 }
@@ -496,65 +354,28 @@ Response::Status HyPerLayer::respondLayerProbeWriteParams(
 
 Response::Status HyPerLayer::respondLayerClearProgressFlags(
       std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
-   if (mLayerInput) {
-      mLayerInput->respond(message);
+   if (mLayerUpdateController) {
+      mLayerUpdateController->respond(message);
    }
-   mHasUpdated = false;
    return Response::SUCCESS;
 }
 
 Response::Status HyPerLayer::respondLayerRecvSynapticInput(
       std::shared_ptr<LayerRecvSynapticInputMessage const> message) {
-   Response::Status status = Response::SUCCESS;
-   if (message->mPhase != getPhase()) {
-      return status;
+   if (mLayerUpdateController) {
+      mLayerUpdateController->respond(message);
    }
-   message->mTimer->start();
-   if (needUpdate(message->mTime, message->mDeltaT)) {
-      auto *layerInputBuffer = getComponentByType<LayerInputBuffer>();
-      if (layerInputBuffer) {
-         layerInputBuffer->respond(message);
-      }
-   }
-   message->mTimer->stop();
-
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status
 HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message) {
    Response::Status status = Response::SUCCESS;
-   if (message->mPhase != getPhase()) {
-      return status;
+   if (mLayerUpdateController) {
+      mLayerUpdateController->respond(message);
    }
-#ifdef PV_USE_CUDA
-   if (mLayerInput and message->mRecvOnGpuFlag != mLayerInput->isUsingGPU()) {
-      return status;
-   }
-   if (!mLayerInput and message->mRecvOnGpuFlag != mActivityComponent->getUpdateGpu()) {
-      return status;
-   }
-   if (message->mUpdateOnGpuFlag != mActivityComponent->getUpdateGpu()) {
-      return status;
-   }
-#endif // PV_USE_CUDA
-   if (mHasUpdated or !needUpdate(message->mTime, message->mDeltaT)) {
-      return status;
-   }
-   if (*(message->mSomeLayerHasActed)) {
-      *(message->mSomeLayerIsPending) = true;
-      return status;
-   }
-   if (mLayerInput and !mLayerInput->getHasReceived()) {
-      *(message->mSomeLayerIsPending) = true;
-      return status;
-   }
-   // If we're here, layer has not done UpdateState this timestep, but is ready to do so.
-   status = callUpdateState(message->mTime, message->mDeltaT);
-
-   mHasUpdated                    = true;
-   *(message->mSomeLayerHasActed) = true;
-   return status;
+   checkUpdateState(message->mTime, message->mDeltaT);
+   return Response::SUCCESS;
 }
 
 #ifdef PV_USE_CUDA
@@ -702,72 +523,6 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
       }
    }
 
-   if (triggerFlag) {
-      triggerLayer = hierarchy->lookupByName<HyPerLayer>(std::string(triggerLayerName));
-      if (triggerLayer == NULL) {
-         if (mCommunicator->commRank() == 0) {
-            ErrorLog().printf(
-                  "%s: triggerLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                  getDescription_c(),
-                  triggerLayerName);
-         }
-         MPI_Barrier(mCommunicator->communicator());
-         exit(EXIT_FAILURE);
-      }
-      if (triggerBehaviorType == RESETSTATE_TRIGGER) {
-         char const *resetLayerName = NULL; // Will point to name of actual resetLayer, whether
-         // triggerResetLayerName is blank (in which case
-         // resetLayerName==triggerLayerName) or not
-         if (triggerResetLayerName == NULL || triggerResetLayerName[0] == '\0') {
-            resetLayerName    = triggerLayerName;
-            triggerResetLayer = triggerLayer;
-         }
-         else {
-            resetLayerName               = triggerResetLayerName;
-            std::string resetLayerString = std::string(resetLayerName);
-            triggerResetLayer            = hierarchy->lookupByName<HyPerLayer>(resetLayerString);
-            if (triggerResetLayer == NULL) {
-               if (mCommunicator->commRank() == 0) {
-                  ErrorLog().printf(
-                        "%s: triggerResetLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                        getDescription_c(),
-                        triggerResetLayerName);
-               }
-               MPI_Barrier(mCommunicator->communicator());
-               exit(EXIT_FAILURE);
-            }
-         }
-         if (!triggerResetLayer->getInitInfoCommunicatedFlag()) {
-            return Response::POSTPONE;
-         }
-         // Check that triggerResetLayer and this layer have the same (restricted) dimensions.
-         // Do we need to postpone until triggerResetLayer has finished its communicateInitInfo?
-         PVLayerLoc const *triggerLoc = triggerResetLayer->getLayerLoc();
-         PVLayerLoc const *localLoc   = this->getLayerLoc();
-         if (triggerLoc->nxGlobal != localLoc->nxGlobal
-             || triggerLoc->nyGlobal != localLoc->nyGlobal
-             || triggerLoc->nf != localLoc->nf) {
-            if (mCommunicator->commRank() == 0) {
-               Fatal(errorMessage);
-               errorMessage.printf(
-                     "%s: triggerResetLayer \"%s\" has incompatible dimensions.\n",
-                     getDescription_c(),
-                     resetLayerName);
-               errorMessage.printf(
-                     "    \"%s\" is %d-by-%d-by-%d and \"%s\" is %d-by-%d-by-%d.\n",
-                     name,
-                     localLoc->nxGlobal,
-                     localLoc->nyGlobal,
-                     localLoc->nf,
-                     resetLayerName,
-                     triggerLoc->nxGlobal,
-                     triggerLoc->nyGlobal,
-                     triggerLoc->nf);
-            }
-         }
-      }
-   }
-
 #ifdef PV_USE_CUDA
    // Here, the connection tells all participating recv layers to allocate memory on gpu
    // if receive from gpu is set. These buffers should be set in allocate
@@ -895,21 +650,9 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    if (!Response::completed(status)) {
       return status;
    }
+   notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
    auto *checkpointer = message->mDataRegistry;
-   if (mLayerInput) {
-      mLayerInput->respond(message);
-   }
-   if (mActivityComponent) {
-      mActivityComponent->respond(message);
-   }
    publisher->checkpointDataStore(checkpointer, getName(), "Delays");
-   checkpointer->registerCheckpointData(
-         std::string(getName()),
-         std::string("lastUpdateTime"),
-         &mLastUpdateTime,
-         (std::size_t)1,
-         true /*broadcast*/,
-         false /*not constant*/);
    checkpointer->registerCheckpointData(
          std::string(getName()),
          std::string("nextWrite"),
@@ -945,135 +688,14 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    publish_timer = new Timer(getName(), "layer", "publish");
    checkpointer->registerTimer(publish_timer);
 
-   timescale_timer = new Timer(getName(), "layer", "timescale");
-   checkpointer->registerTimer(timescale_timer);
-
    io_timer = new Timer(getName(), "layer", "io     ");
    checkpointer->registerTimer(io_timer);
 
    return Response::SUCCESS;
 }
 
-double HyPerLayer::getDeltaTriggerTime() const {
-   if (triggerLayer != nullptr) {
-      return triggerLayer->getDeltaUpdateTime();
-   }
-   else {
-      return -1.0;
-   }
-}
-
-bool HyPerLayer::needUpdate(double simTime, double dt) const {
-   double deltaUpdateTime = getDeltaUpdateTime();
-   if (deltaUpdateTime <= 0) {
-      return false;
-   }
-   else if (triggerLayer != nullptr && triggerBehaviorType == UPDATEONLY_TRIGGER) {
-      return triggerLayer->needUpdate(simTime + triggerOffset, dt);
-   }
-   else {
-      double numUpdates    = (simTime - mLastUpdateTime) / deltaUpdateTime;
-      double timeToClosest = std::fabs(numUpdates - std::nearbyint(numUpdates)) * deltaUpdateTime;
-      return timeToClosest < 0.5 * dt;
-   }
-}
-
-bool HyPerLayer::needReset(double simTime, double dt) {
-   if (triggerLayer == nullptr) {
-      return false;
-   }
-   if (triggerBehaviorType != RESETSTATE_TRIGGER) {
-      return false;
-   }
-   if (getDeltaTriggerTime() <= 0) {
-      return false;
-   }
-   if (simTime >= mLastTriggerTime + getDeltaTriggerTime()) {
-      // TODO: test "simTime > mLastTriggerTime + getDeltaTriggerTime() - 0.5 * dt",
-      // to avoid roundoff issues.
-      return true;
-   }
-   return false;
-}
-
-Response::Status HyPerLayer::callUpdateState(double simTime, double deltaTime) {
-   auto status = Response::NO_ACTION;
-   if (needReset(simTime, deltaTime)) {
-      resetStateOnTrigger(simTime, deltaTime);
-      mLastTriggerTime = simTime;
-   }
-
-   updateState(simTime, deltaTime);
-#ifdef PV_USE_CUDA
-   updatedDeviceDatastore = true; // Activity updated, set flag to true
-#endif // PV_USE_CUDA
-   mNeedToPublish  = true;
-   mLastUpdateTime = simTime;
-   return status;
-}
-
-Response::Status HyPerLayer::updateState(double simTime, double deltaTime) {
-   return mActivityComponent->updateState(simTime, deltaTime);
-}
-
-void HyPerLayer::resetStateOnTrigger(double simTime, double deltaTime) {
-   assert(triggerResetLayer != nullptr);
-   InternalStateBuffer *VBuffer = mActivityComponent->getComponentByType<InternalStateBuffer>();
-   if (VBuffer == nullptr) {
-      if (mCommunicator->commRank() == 0) {
-         ErrorLog().printf(
-               "%s: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a "
-               "membrane potential.\n",
-               getDescription_c());
-      }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
-   }
-   float *V = VBuffer->getReadWritePointer();
-   pvAssert(V); // Subclasses that don't own their own V shouldn't call this method.
-
-   auto *resetActivityComponent = triggerResetLayer->getComponentByType<ActivityComponent>();
-   auto *resetVBuffer           = resetActivityComponent->getComponentByType<InternalStateBuffer>();
-   if (resetVBuffer != nullptr) {
-      float const *resetV = resetVBuffer->getBufferData();
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif // PV_USE_OPENMP_THREADS
-      for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
-         V[k] = resetV[k];
-      }
-   }
-   else {
-      auto *resetActivityBuffer = resetActivityComponent->getComponentByType<ActivityBuffer>();
-      float const *resetA       = resetActivityBuffer->getBufferData();
-      PVLayerLoc const *loc     = triggerResetLayer->getLayerLoc();
-      PVHalo const *halo        = &loc->halo;
-      for (int b = 0; b < loc->nbatch; b++) {
-         float const *resetABatch = resetA + (b * resetActivityComponent->getNumExtended());
-         float *VBatch            = V + (b * VBuffer->getBufferSize());
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif // PV_USE_OPENMP_THREADS
-         for (int k = 0; k < getNumNeurons(); k++) {
-            int kex = kIndexExtended(
-                  k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
-            VBatch[k] = resetABatch[kex];
-         }
-      }
-   }
-
-   ActivityBuffer *activityBuffer = mActivityComponent->getComponentByType<ActivityBuffer>();
-   activityBuffer->updateBuffer(simTime, deltaTime);
-
-// Update V on GPU after CPU V gets set
-#ifdef PV_USE_CUDA
-   if (mActivityComponent->getUpdateGpu()) {
-      if (mActivityComponent) {
-         mActivityComponent->copyToCuda();
-      }
-      updatedDeviceDatastore = true;
-   }
-#endif
+Response::Status HyPerLayer::checkUpdateState(double simTime, double deltaTime) {
+   return Response::NO_ACTION;
 }
 
 // Updates active indices for all levels (delays) here
@@ -1097,17 +719,19 @@ int HyPerLayer::publish(Communicator *comm, double simTime) {
    publish_timer->start();
 
    int status = PV_SUCCESS;
-   if (mNeedToPublish) {
+   double lastUpdateTime =
+         mLayerUpdateController ? mLayerUpdateController->getLastUpdateTime() : 0.0;
+   if (lastUpdateTime >= simTime) {
       if (mBoundaryConditions->getMirrorBCflag()) {
          auto *activityBuffer = mActivityComponent->getComponentByType<ActivityBuffer>();
          auto *activityData   = activityBuffer->getReadWritePointer();
          mBoundaryConditions->applyBoundaryConditions(activityData, getLayerLoc());
       }
-      status         = publisher->publish(mLastUpdateTime);
-      mNeedToPublish = false;
+      status = publisher->publish(lastUpdateTime);
+      setUpdatedDeviceDatastoreFlag(true);
    }
    else {
-      publisher->copyForward(mLastUpdateTime);
+      publisher->copyForward(lastUpdateTime);
    }
    publish_timer->stop();
    return status;

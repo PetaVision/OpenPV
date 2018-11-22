@@ -16,14 +16,6 @@ PV::ActivityComponent *FixedImageSequence::createActivityComponent() {
          name, parameters(), mCommunicator);
 }
 
-void FixedImageSequence::ioParam_triggerLayerName(enum PV::ParamsIOFlag ioFlag) {
-   if (ioFlag == PV::PARAMS_IO_READ) {
-      triggerLayerName = nullptr;
-      triggerFlag      = false;
-      parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName", nullptr);
-   }
-}
-
 PV::Response::Status
 FixedImageSequence::initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) {
    mActivityPointer =
@@ -36,12 +28,12 @@ FixedImageSequence::initializeState(std::shared_ptr<PV::InitializeStateMessage c
    return PV::Response::SUCCESS;
 }
 
-PV::Response::Status FixedImageSequence::updateState(double simTime, double deltaTime) {
+PV::Response::Status FixedImageSequence::checkUpdateState(double simTime, double deltaTime) {
    FatalIf(deltaTime != 1.0, "FixedImageSequence assumes dt = 1.\n");
    double timestampRounded = std::nearbyint(simTime);
    FatalIf(
          simTime != timestampRounded,
-         "FixedImageSequence::updateState() requires the time argument be an integer.\n");
+         "FixedImageSequence::checkUpdateState() requires the time argument be an integer.\n");
    PVLayerLoc const *loc = getLayerLoc();
    int timestampInt      = (int)timestampRounded;
    int globalBatchSize   = getMPIBlock()->getGlobalBatchDimension() * loc->nbatch;

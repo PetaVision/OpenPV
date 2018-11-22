@@ -74,11 +74,15 @@ LayerProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
 }
 
 bool LayerProbe::needRecalc(double timevalue) {
-   return this->getLastUpdateTime() < targetLayer->getLastUpdateTime();
+   auto *updateController = targetLayer->getComponentByType<LayerUpdateController>();
+   pvAssert(updateController);
+   return this->getLastUpdateTime() < updateController->getLastUpdateTime();
 }
 
 double LayerProbe::referenceUpdateTime(double simTime) const {
-   return targetLayer->getLastUpdateTime();
+   auto *updateController = targetLayer->getComponentByType<LayerUpdateController>();
+   pvAssert(updateController);
+   return updateController->getLastUpdateTime();
 }
 
 } // namespace PV

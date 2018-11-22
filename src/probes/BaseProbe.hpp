@@ -8,6 +8,7 @@
 #define BASEPROBE_HPP_
 
 #include "columns/BaseObject.hpp"
+#include "components/LayerUpdateController.hpp"
 #include "include/pv_common.h"
 #include "io/FileStream.hpp"
 #include "io/io.hpp"
@@ -347,7 +348,7 @@ class BaseProbe : public BaseObject {
 
    bool triggerFlag;
    char *triggerLayerName;
-   HyPerLayer *triggerLayer;
+   LayerUpdateController *mTriggerControl = nullptr;
    double triggerOffset;
    char *targetName;
    char *energyProbe; // the name of the ColumnEnergyProbe to attach to, if any.

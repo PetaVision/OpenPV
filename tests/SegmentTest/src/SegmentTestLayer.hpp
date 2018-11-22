@@ -11,7 +11,7 @@ class SegmentTestLayer : public PV::SegmentLayer {
    SegmentTestLayer(const char *name, PVParams *params, Communicator *comm);
 
   protected:
-   Response::Status updateState(double timef, double dt) override;
+   Response::Status checkUpdateState(double timef, double dt) override;
 
   private:
    SegmentBuffer *mSegmentBuffer = nullptr;

@@ -20,20 +20,15 @@ class ConstantLayer : public HyPerLayer {
     * @{
     */
 
-   /**
-    * @brief ConstantLayer does not use triggerLayerName.
-    */
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
-   /** @} */ // End list of ConstantLayer parameters
-
   public:
    ConstantLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~ConstantLayer();
-   virtual bool needUpdate(double simTime, double dt) const override;
 
   protected:
    ConstantLayer();
    void initialize(const char *name, PVParams *params, Communicator *comm);
+
+   LayerUpdateController *createLayerUpdateController() override;
 
 }; // class ConstantLayer
 

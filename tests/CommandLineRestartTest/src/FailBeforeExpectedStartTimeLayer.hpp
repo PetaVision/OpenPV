@@ -4,12 +4,12 @@
 #include "layers/HyPerLayer.hpp"
 
 /**
- * A class to make sure that the column does not call updateState before the expected
- * starting time. The use case is for testing that restarting from checkpoint does
- * set the simulation time the way it should.
- * Note that the data member is initialized to +infinity, so that the layer
- * will always fail unless the expected start time is set by calling
- * setExpectedStartTime before updateState is called.
+ * A class to make sure that the column does not call LayerUpdateState before the expected
+ * starting time. The use case is for testing that restarting from checkpoint does set the
+ * simulation time the way it should.
+ * Note that the data member is initialized to +infinity, so that the layer will always
+ * fail unless the expected start time is set by calling setExpectedStartTime before
+ * LayerUpdateState is called.
  */
 class FailBeforeExpectedStartTimeLayer : public PV::HyPerLayer {
   public:
@@ -21,7 +21,7 @@ class FailBeforeExpectedStartTimeLayer : public PV::HyPerLayer {
   protected:
    FailBeforeExpectedStartTimeLayer();
    void initialize(char const *name, PV::PVParams *params, PV::Communicator *comm);
-   virtual PV::Response::Status updateState(double simTime, double dt) override;
+   virtual PV::Response::Status checkUpdateState(double simTime, double dt) override;
 
   private:
    int initialize_base();

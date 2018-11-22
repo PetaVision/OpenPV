@@ -88,7 +88,7 @@ Response::Status ShrunkenPatchTestLayer::allocateDataStructures() {
    return status;
 }
 
-Response::Status ShrunkenPatchTestLayer::updateState(double timed, double dt) {
+Response::Status ShrunkenPatchTestLayer::checkUpdateState(double timed, double dt) {
    return Response::SUCCESS;
 }
 

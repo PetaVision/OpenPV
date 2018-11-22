@@ -17,13 +17,13 @@ void AlwaysFailsLayer::initialize(char const *name, PVParams *params, Communicat
    HyPerLayer::initialize(name, params, comm);
 }
 
-bool AlwaysFailsLayer::needUpdate(double simTime, double dt) const {
+Response::Status AlwaysFailsLayer::checkUpdateState(double simTime, double deltaTime) {
    // The params file should be run with the -n flag, which causes HyPerCol::run() to exit before
    // entering the advanceTime loop.
-   // Therefore neither updateState, nor updateStateGpu, should ever be called.
+   // Therefore LayerUpdateState should ever be called.
    Fatal() << getDescription()
            << ": needUpdate was called, and should never be called during DryRunFlagTest.\n";
-   return false;
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

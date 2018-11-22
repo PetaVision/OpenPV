@@ -275,7 +275,6 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       const int postNy = postLoc->ny;
       const int postNf = postLoc->nf;
 
-      bool updatePreAct = false;
       // Update pre activity, post gsyn, and conn weights
       // Only if they're updated
       if (mPreLayer->getUpdatedDeviceDatastoreFlag()) {
@@ -285,7 +284,6 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
          d_preDatastore->copyToDevice(h_preDatastore);
          // Device now has updated
          mPreLayer->setUpdatedDeviceDatastoreFlag(false);
-         updatePreAct = true;
       }
 
       // Permutation buffer is local to the kernel, NOT the layer

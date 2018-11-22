@@ -19,20 +19,16 @@ class FilenameParsingGroundTruthLayer : public HyPerLayer {
   public:
    FilenameParsingGroundTruthLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~FilenameParsingGroundTruthLayer();
-   virtual bool needUpdate(double simTime, double dt) const override;
 
   private:
    InputLayerNameParam *mInputLayerNameParam = nullptr;
-   InputLayer *mInputLayer                   = nullptr;
 
   protected:
    virtual void createComponentTable(char const *description) override;
+   virtual LayerUpdateController *createLayerUpdateController();
    virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
    virtual InputLayerNameParam *createInputLayerNameParam();
-
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 }; // end class FilenameParsingGroundTruthLayer
 
 } // end namespace PV

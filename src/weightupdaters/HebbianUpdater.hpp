@@ -149,15 +149,15 @@ class HebbianUpdater : public BaseWeightUpdater {
    bool mCombine_dWWithWFlag        = false;
    bool mWriteCompressedCheckpoints = false;
 
-   Weights *mWeights            = nullptr;
-   Weights *mDeltaWeights       = nullptr;
-   HyPerLayer *mTriggerLayer    = nullptr;
-   bool mTriggerFlag            = false;
-   double mWeightUpdateTime     = 0.0;
-   double mLastUpdateTime       = 0.0;
-   bool mNeedFinalize           = true;
-   int mDWMaxDecayTimer         = 0;
-   long **mNumKernelActivations = nullptr;
+   Weights *mWeights                      = nullptr;
+   Weights *mDeltaWeights                 = nullptr;
+   LayerUpdateController *mTriggerControl = nullptr;
+   bool mTriggerFlag                      = false;
+   double mWeightUpdateTime               = 0.0;
+   double mLastUpdateTime                 = 0.0;
+   bool mNeedFinalize                     = true;
+   int mDWMaxDecayTimer                   = 0;
+   long **mNumKernelActivations           = nullptr;
    std::vector<MPI_Request> mDeltaWeightsReduceRequests;
    bool mReductionPending = false;
    // mReductionPending is set by reduce_dW() and cleared by

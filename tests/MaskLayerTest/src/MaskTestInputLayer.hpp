@@ -11,7 +11,7 @@ class MaskTestInputLayer : public PV::HyPerLayer {
 
   protected:
    virtual ActivityComponent *createActivityComponent() override;
-   virtual Response::Status updateState(double timef, double dt) override;
+   virtual Response::Status checkUpdateState(double timef, double dt) override;
 
   private:
 };

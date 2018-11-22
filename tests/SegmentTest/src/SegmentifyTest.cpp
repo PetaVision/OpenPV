@@ -103,9 +103,9 @@ int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, flo
    return PV_SUCCESS;
 }
 
-Response::Status SegmentifyTest::updateState(double timef, double dt) {
+Response::Status SegmentifyTest::checkUpdateState(double timef, double dt) {
    // Do update state first
-   Segmentify::updateState(timef, dt);
+   Segmentify::checkUpdateState(timef, dt);
    PVLayerLoc const *loc = getLayerLoc();
 
    ActivityComponent *activityComponent = getComponentByType<ActivityComponent>();

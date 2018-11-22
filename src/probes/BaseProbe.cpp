@@ -47,7 +47,6 @@ int BaseProbe::initialize_base() {
    probeOutputFilename = NULL;
    triggerFlag         = false;
    triggerLayerName    = NULL;
-   triggerLayer        = NULL;
    triggerOffset       = 0;
    energyProbe         = NULL;
    coefficient         = 1.0;
@@ -235,18 +234,18 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
 
    // Set up triggering.
    if (triggerFlag) {
-      triggerLayer = hierarchy->lookupByName<HyPerLayer>(std::string(triggerLayerName));
-      if (triggerLayer == NULL) {
-         if (mCommunicator->commRank() == 0) {
-            ErrorLog().printf(
-                  "%s \"%s\": triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
-                  parameters()->groupKeywordFromName(name),
-                  name,
-                  triggerLayerName);
-         }
-         MPI_Barrier(mCommunicator->communicator());
-         exit(EXIT_FAILURE);
-      }
+      auto triggerLayer = hierarchy->lookupByName<HyPerLayer>(std::string(triggerLayerName));
+      FatalIf(
+            triggerLayer == nullptr,
+            "%s triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
+            getDescription_c(),
+            triggerLayerName);
+      mTriggerControl = triggerLayer->getComponentByType<LayerUpdateController>();
+      FatalIf(
+            mTriggerControl == nullptr,
+            "%s triggerLayer \"%s\" does not have a LayerUpdateController component.\n",
+            getDescription_c(),
+            triggerLayerName);
    }
 
    // Add the probe to the ColumnEnergyProbe, if there is one.
@@ -307,7 +306,7 @@ int BaseProbe::initMessage(const char *msg) {
 
 bool BaseProbe::needUpdate(double simTime, double dt) const {
    if (triggerFlag) {
-      return triggerLayer->needUpdate(simTime + triggerOffset, dt);
+      return mTriggerControl->needUpdate(simTime + triggerOffset, dt);
    }
    return true;
 }

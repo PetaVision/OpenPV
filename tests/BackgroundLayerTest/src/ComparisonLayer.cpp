@@ -6,7 +6,7 @@ ComparisonLayer::ComparisonLayer(const char *name, PVParams *params, Communicato
    ANNLayer::initialize(name, params, comm);
 }
 
-Response::Status ComparisonLayer::updateState(double timef, double dt) {
+Response::Status ComparisonLayer::checkUpdateState(double timef, double dt) {
 
    // Grab layer size
    const PVLayerLoc *loc = getLayerLoc();

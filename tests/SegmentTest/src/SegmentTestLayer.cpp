@@ -15,9 +15,9 @@ SegmentTestLayer::SegmentTestLayer(const char *name, PVParams *params, Communica
          mSegmentBuffer == nullptr, "%s failed to create an ActivityBuffer.\n", getDescription_c());
 }
 
-Response::Status SegmentTestLayer::updateState(double timef, double dt) {
+Response::Status SegmentTestLayer::checkUpdateState(double timef, double dt) {
    // Do update state first
-   SegmentLayer::updateState(timef, dt);
+   SegmentLayer::checkUpdateState(timef, dt);
    const PVLayerLoc *loc = getLayerLoc();
 
    for (int bi = 0; bi < loc->nbatch; bi++) {

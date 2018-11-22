@@ -87,7 +87,9 @@ Response::Status MPITestLayer::allocateDataStructures() {
    return status;
 }
 
-Response::Status MPITestLayer::updateState(double timed, double dt) { return Response::SUCCESS; }
+Response::Status MPITestLayer::checkUpdateState(double timed, double dt) {
+   return Response::SUCCESS;
+}
 
 int MPITestLayer::publish(Communicator *comm, double timed) {
    setActivitytoGlobalPos();

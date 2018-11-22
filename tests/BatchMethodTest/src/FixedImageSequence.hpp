@@ -11,12 +11,6 @@ class FixedImageSequence : public PV::HyPerLayer {
     * @{
     */
 
-   /**
-    * @brief triggerLayerName: FixedImageSequence always sets triggerLayerName to NULL
-    */
-   virtual void ioParam_triggerLayerName(enum PV::ParamsIOFlag ioFlag) override;
-   /** @} */
-
   public:
    FixedImageSequence(char const *name, PV::PVParams *params, PV::Communicator *comm);
    virtual ~FixedImageSequence() {}
@@ -47,7 +41,7 @@ class FixedImageSequence : public PV::HyPerLayer {
     * timestamp * globalBatchSize + globalBatchIndex
     * into the activity buffer.
     */
-   virtual PV::Response::Status updateState(double timestamp, double dt) override;
+   virtual PV::Response::Status checkUpdateState(double timestamp, double dt) override;
 
    int getNumImages() const { return mNumImages; }
 

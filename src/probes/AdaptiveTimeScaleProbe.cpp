@@ -184,8 +184,8 @@ AdaptiveTimeScaleProbe::respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessag
 
 void AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    std::vector<double> rawProbeValues;
-   if (triggerLayer != nullptr
-       && triggerLayer->needUpdate(timeValue + triggerOffset, mBaseDeltaTime)) {
+   if (mTriggerControl != nullptr
+       && mTriggerControl->needUpdate(timeValue + triggerOffset, mBaseDeltaTime)) {
       rawProbeValues.assign(getNumValues(), -1.0);
    }
    else {

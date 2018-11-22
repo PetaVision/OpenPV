@@ -226,17 +226,18 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    if (mTriggerFlag) {
       auto *tableComponent = hierarchy->lookupByType<ObserverTable>();
       pvAssert(tableComponent);
-      mTriggerLayer = tableComponent->lookupByName<HyPerLayer>(std::string(mTriggerLayerName));
-      if (mTriggerLayer == nullptr) {
-         if (mCommunicator->globalCommRank() == 0) {
-            ErrorLog().printf(
-                  "%s: triggerLayerName \"%s\" does not correspond to a layer in the column.\n",
-                  getDescription_c(),
-                  mTriggerLayerName);
-         }
-         MPI_Barrier(mCommunicator->globalCommunicator());
-         exit(PV_FAILURE);
-      }
+      auto *triggerLayer = tableComponent->lookupByName<HyPerLayer>(std::string(mTriggerLayerName));
+      FatalIf(
+            triggerLayer == nullptr,
+            "%s: triggerLayerName \"%s\" does not correspond to a layer in the column.\n",
+            getDescription_c(),
+            mTriggerLayerName);
+      mTriggerControl = triggerLayer->getComponentByType<LayerUpdateController>();
+      FatalIf(
+            mTriggerControl == nullptr,
+            "%s: triggerLayerName \"%s\" does not have a LayerUpdateController.\n",
+            getDescription_c(),
+            mTriggerLayerName);
    }
 
    return Response::SUCCESS;
@@ -290,7 +291,7 @@ Response::Status HebbianUpdater::allocateDataStructures() {
       }
    }
 
-   if (mPlasticityFlag && !mTriggerLayer) {
+   if (mPlasticityFlag && !mTriggerControl) {
       if (mWeightUpdateTime < 0.0) {
          while (mWeightUpdateTime <= 0.0) {
             mWeightUpdateTime += mWeightUpdatePeriod;
@@ -321,7 +322,7 @@ HebbianUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
       // Do we need to get PrepareCheckpointWrite messages, to call blockingNormalize_dW()?
    }
    std::string nameString = std::string(name);
-   if (mPlasticityFlag && !mTriggerLayer) {
+   if (mPlasticityFlag && !mTriggerControl) {
       checkpointer->registerCheckpointData(
             nameString,
             "lastUpdateTime",
@@ -372,8 +373,8 @@ bool HebbianUpdater::needUpdate(double simTime, double dt) const {
    if (!mPlasticityFlag) {
       return false;
    }
-   if (mTriggerLayer) {
-      return mTriggerLayer->needUpdate(simTime + mTriggerOffset, dt);
+   if (mTriggerControl) {
+      return mTriggerControl->needUpdate(simTime + mTriggerOffset, dt);
    }
    else {
       double numUpdates = (simTime - mLastUpdateTime) / mWeightUpdatePeriod;
@@ -846,7 +847,7 @@ void HebbianUpdater::decay_dWMax() {
 
 void HebbianUpdater::computeNewWeightUpdateTime(double simTime, double currentUpdateTime) {
    // Only called if plasticity flag is set
-   if (!mTriggerLayer) {
+   if (!mTriggerControl) {
       while (simTime >= mWeightUpdateTime) {
          mWeightUpdateTime += mWeightUpdatePeriod;
       }

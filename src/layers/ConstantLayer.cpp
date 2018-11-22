@@ -25,15 +25,6 @@ void ConstantLayer::initialize(const char *name, PVParams *params, Communicator 
    HyPerLayer::initialize(name, params, comm);
 }
 
-void ConstantLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   // This layer is a never a trigger layer, so set to null
-   if (ioFlag == PARAMS_IO_READ) {
-      triggerLayerName = nullptr;
-      triggerFlag      = false;
-      parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName", nullptr);
-   }
-}
-
-bool ConstantLayer::needUpdate(double simTime, double dt) const { return false; }
+LayerUpdateController *ConstantLayer::createLayerUpdateController() { return nullptr; }
 
 } /* namespace PV */

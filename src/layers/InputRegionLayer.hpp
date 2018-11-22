@@ -23,7 +23,6 @@ class InputRegionLayer : public HyPerLayer {
   public:
    InputRegionLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~InputRegionLayer();
-   virtual bool needUpdate(double simTime, double dt) const override;
    virtual bool activityIsSpiking() override { return false; }
 
   protected:
@@ -32,10 +31,10 @@ class InputRegionLayer : public HyPerLayer {
    void createComponentTable(char const *description);
    virtual PhaseParam *createPhaseParam() override;
    virtual BoundaryConditions *createBoundaryConditions() override;
+   virtual LayerUpdateController *createLayerUpdateController() override;
    virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag) override;
 }; // class InputRegionLayer
 
