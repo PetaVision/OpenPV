@@ -1,0 +1,119 @@
+//
+// SparseIdentTest.params
+//
+// created by peteschultz: Nov 27, 2018
+//
+
+//  A params file to test the IdentConn and RescaleConn's deliver method
+//  in the case where the presynaptic layer is sparse.
+//  It serves as the basic template for systems tests, and tests the
+//  basic functionality
+//
+
+debugParsing = false;
+
+// PetaVision, git repository version 3de716345a0823d81ec0318c16c036ff92008838 (Mon Nov 26 16:15:33 2018 -0700) with local modifications
+// Run time Tue Nov 27 17:11:02 2018
+// Compiled with Open MPI 2.0.1 (MPI Standard 3.1).
+// MPI configuration has 1 rows, 1 columns, and batch dimension 1.
+// Compiled with CUDA version 9.2; cuDNN version 7.0.5
+// Compiled with OpenMP parallel code, API version 4.0 (201307) and run using 24 threads.
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 3;
+    progressInterval                    = 3;
+    writeProgressToErr                  = false;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 16;
+    ny                                  = 8;
+    nbatch                              = 4;
+    errorOnNotANumber                   = true;
+};
+
+PvpLayer "Input" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    writeStep                           = -1;
+    sparseLayer                         = true;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 0;
+    inputPath                           = "input/samplesparseimage.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    maxShiftX                           = 0;
+    maxShiftY                           = 0;
+    xFlipEnabled                        = false;
+    yFlipEnabled                        = false;
+    xFlipToggle                         = false;
+    yFlipToggle                         = false;
+    jitterChangeInterval                = 1;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0,0,0,0];
+};
+
+HyPerLayer "OutputIdent" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+HyPerLayer "OutputRescale" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+IdentConn "InputToOutputIdent" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "OutputIdent";
+    channelCode                         = 0;
+    delay                               = 0;
+};
+
+RescaleConn "InputToOutputRescale" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "OutputRescale";
+    channelCode                         = 0;
+    scale                               = 1.0;
+    delay                               = 0;
+};
