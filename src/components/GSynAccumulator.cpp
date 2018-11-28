@@ -17,6 +17,7 @@ GSynAccumulator::~GSynAccumulator() {}
 
 void GSynAccumulator::initialize(char const *name, PVParams *params, Communicator *comm) {
    RestrictedBuffer::initialize(name, params, comm);
+   setBufferLabel("GSynAcc");
    initializeChannelCoefficients();
 }
 
