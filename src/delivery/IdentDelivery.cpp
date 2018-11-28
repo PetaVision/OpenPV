@@ -133,7 +133,7 @@ void IdentDelivery::deliver(float *destBuffer) {
             int kPre = activeIndices[loopIndex].index;
             int kx   = kxPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.lt;
             int ky   = kyPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.up;
-            if (kx < 0 or kx >= nx or ky < 0 or kx >= ny) {
+            if (kx < 0 or kx >= nx or ky < 0 or ky >= ny) {
                continue;
             }
             int kf    = featureIndex(kPre, nxPreExtended, nyPreExtended, nf);

@@ -238,7 +238,7 @@ Response::Status ComponentBuffer::copyInitialStateToGPU() {
 }
 
 void ComponentBuffer::updateBufferGPU(double simTime, double deltaTime) {
-   Fatal() << "Update state for " << getDescription() << " is not implemented\n";
+   Fatal() << "updateGpu for " << getDescription() << " is not implemented\n";
 }
 #endif // PV_USE_CUDA
 
