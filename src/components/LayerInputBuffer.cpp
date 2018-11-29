@@ -15,7 +15,9 @@ LayerInputBuffer::LayerInputBuffer(char const *name, PVParams *params, Communica
 
 LayerInputBuffer::~LayerInputBuffer() {
    delete mReceiveInputTimer;
+#ifdef PV_USE_CUDA
    delete mReceiveInputCudaTimer;
+#endif // PV_USE_CUDA
 }
 
 void LayerInputBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
@@ -34,11 +36,13 @@ void LayerInputBuffer::initMessageActionMap() {
    };
    mMessageActionMap.emplace("LayerRecvSynapticInput", action);
 
+#ifdef PV_USE_CUDA
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<LayerCopyFromGpuMessage const>(msgptr);
       return respondLayerCopyFromGpu(castMessage);
    };
    mMessageActionMap.emplace("LayerCopyFromGpu", action);
+#endif // PV_USE_CUDA
 }
 
 void LayerInputBuffer::setObjectType() { mObjectType = "LayerInputBuffer"; }
@@ -161,6 +165,13 @@ void LayerInputBuffer::updateBufferGPU(double simTime, double deltaTime) {
    // updateBufferGPU and updateBufferCPU both need to call the same functions.
    updateBufferCPU(simTime, deltaTime);
 }
+
+Response::Status
+LayerInputBuffer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
+   copyFromCuda();
+   mReceiveInputCudaTimer->accumulateTime();
+   return Response::SUCCESS;
+}
 #endif // PV_USE_CUDA
 
 void LayerInputBuffer::resetGSynBuffers(double simTime, double deltaTime) {
@@ -211,13 +222,6 @@ void LayerInputBuffer::recvUnitInput(float *recvBuffer, int channelCode) {
          d->deliverUnitInput(recvBuffer);
       }
    }
-}
-
-Response::Status
-LayerInputBuffer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
-   copyFromCuda();
-   mReceiveInputCudaTimer->accumulateTime();
-   return Response::SUCCESS;
 }
 
 } // namespace PV

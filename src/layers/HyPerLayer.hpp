@@ -97,13 +97,12 @@ class HyPerLayer : public ComponentBasedObject {
    virtual LayerInputBuffer *createLayerInput();
    virtual ActivityComponent *createActivityComponent();
 
-   virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
-
    void addPublisher();
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual void readDelaysFromCheckpoint(Checkpointer *checkpointer);
 #ifdef PV_USE_CUDA
+   virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
    virtual Response::Status copyInitialStateToGPU() override;
 #endif // PV_USE_CUDA
 

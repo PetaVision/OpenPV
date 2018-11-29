@@ -10,8 +10,10 @@
 
 #include "columns/BaseObject.hpp"
 
-#include "arch/cuda/CudaKernel.hpp"
 #include "components/LayerGeometry.hpp"
+#ifdef PV_USE_CUDA
+#include "arch/cuda/CudaKernel.hpp"
+#endif // PV_USE_CUDA
 
 namespace PV {
 

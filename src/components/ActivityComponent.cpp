@@ -110,12 +110,6 @@ ActivityComponent::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    return status;
 }
 
-Response::Status
-ActivityComponent::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
-   Response::Status status = ComponentBasedObject::setCudaDevice(message);
-   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
-}
-
 Response::Status ActivityComponent::allocateDataStructures() {
    Response::Status status = ComponentBasedObject::allocateDataStructures();
    if (!Response::completed(status)) {
@@ -171,6 +165,12 @@ Response::Status ActivityComponent::readStateFromCheckpoint(Checkpointer *checkp
 }
 
 #ifdef PV_USE_CUDA
+Response::Status
+ActivityComponent::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   Response::Status status = ComponentBasedObject::setCudaDevice(message);
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+}
+
 Response::Status ActivityComponent::copyInitialStateToGPU() {
    if (mUpdateGpu) {
       Response::Status status = Response::SUCCESS;

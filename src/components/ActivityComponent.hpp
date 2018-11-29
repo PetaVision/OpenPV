@@ -76,8 +76,6 @@ class ActivityComponent : public ComponentBasedObject {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
-
    virtual Response::Status allocateDataStructures() override;
 
    Response::Status
@@ -89,6 +87,7 @@ class ActivityComponent : public ComponentBasedObject {
    Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
 #ifdef PV_USE_CUDA
+   virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
    virtual Response::Status copyInitialStateToGPU() override;
 #endif // PV_USE_CUDA
 

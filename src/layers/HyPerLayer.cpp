@@ -134,11 +134,13 @@ void HyPerLayer::initMessageActionMap() {
    };
    mMessageActionMap.emplace("LayerUpdateState", action);
 
+#ifdef PV_USE_CUDA
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<LayerCopyFromGpuMessage const>(msgptr);
       return respondLayerCopyFromGpu(castMessage);
    };
    mMessageActionMap.emplace("LayerCopyFromGpu", action);
+#endif // PV_USE_CUDA
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<LayerAdvanceDataStoreMessage const>(msgptr);
@@ -442,11 +444,6 @@ HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage cons
    return status;
 }
 
-Response::Status HyPerLayer::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
-   Response::Status status = ComponentBasedObject::setCudaDevice(message);
-   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
-}
-
 #ifdef PV_USE_CUDA
 
 /**
@@ -487,6 +484,11 @@ int HyPerLayer::allocateDeviceBuffers() {
    return status;
 }
 
+Response::Status HyPerLayer::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   Response::Status status = ComponentBasedObject::setCudaDevice(message);
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+}
+
 #endif // PV_USE_CUDA
 
 Response::Status
@@ -516,6 +518,8 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    if (!Response::completed(status)) {
       return status;
    }
+#ifdef PV_USE_CUDA
+   // Set UsingGPUFlag if any of the components use GPU.
    for (auto *c : *mTable) {
       auto obj = dynamic_cast<BaseObject *>(c);
       if (obj) {
@@ -523,7 +527,6 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
       }
    }
 
-#ifdef PV_USE_CUDA
    // Here, the connection tells all participating recv layers to allocate memory on gpu
    // if receive from gpu is set. These buffers should be set in allocate
    if (mActivityComponent->getUpdateGpu()) {
@@ -728,7 +731,9 @@ int HyPerLayer::publish(Communicator *comm, double simTime) {
          mBoundaryConditions->applyBoundaryConditions(activityData, getLayerLoc());
       }
       status = publisher->publish(lastUpdateTime);
+#ifdef PV_USE_CUDA
       setUpdatedDeviceDatastoreFlag(true);
+#endif // PV_USE_CUDA
    }
    else {
       publisher->copyForward(lastUpdateTime);
