@@ -8,12 +8,12 @@
 #include "CorrectState.hpp"
 
 CorrectState::CorrectState(
-      int initialUpdateNumber,
+      float timeConstantTau,
       float initialWeight,
       float initial_dw,
       float initialInput,
       float initialOutput)
-      : mUpdateNumber(initialUpdateNumber),
+      : mTimeConstantTau(timeConstantTau),
         mCorrectWeight(initialWeight),
         mCorrect_dw(initial_dw),
         mCorrectInput(initialInput),
@@ -21,7 +21,9 @@ CorrectState::CorrectState(
 
 void CorrectState::update() {
    mUpdateNumber++;
-   mCorrect_dw = 0.5f * mCorrect_dw + (mCorrectInput * mCorrectOutput);
+   auto base_dw = mCorrectInput * mCorrectOutput;
+   auto prev_dw = mCorrect_dw;
+   mCorrect_dw  = (1 - mTimeConstantTau) * base_dw + mTimeConstantTau * prev_dw;
    mCorrectWeight += mCorrect_dw;
    mCorrectInput  = (float)mUpdateNumber;
    mCorrectOutput = mCorrectInput * mCorrectWeight;

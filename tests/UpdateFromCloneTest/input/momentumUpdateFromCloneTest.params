@@ -22,7 +22,8 @@ PvpLayer "origPre" = {
     inputPath                        = "input/origList.pvp";
     nf                               = 1;
     phase                            = 0;
-    writeStep                        = -1;
+    writeStep                        = 1.0;
+    initialWriteTime                 = 0.0;
     sparseLayer                      = false;
     updateGpu                        = false;
     mirrorBCflag                     = true;
@@ -46,6 +47,7 @@ PvpLayer "clonePre" = {
     nf                               = 1;
     phase                            = 0;
     writeStep                        = -1;
+    // initialWriteTime                 = 0.0;
     sparseLayer                      = false;
     updateGpu                        = false;
     mirrorBCflag                     = true;
@@ -83,7 +85,7 @@ ConstantLayer "clonePost" = {
     nyScale = 1;
     nf = 1;
     writeStep = -1.0;
-    initialWriteTime = 0.0;
+    // initialWriteTime = 0.0;
     mirrorBCflag = true;
     sparseLayer = 0;
     //
@@ -104,7 +106,7 @@ MomentumConn "origConn" = {
     nfp = 1;
 
     numAxonalArbors = 1;
-    writeStep = -1;
+    writeStep = 1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
     
@@ -121,7 +123,7 @@ MomentumConn "origConn" = {
     plasticityFlag = 1;
 
     dWMax = 1;
-    momentumTau = .5;
+    timeConstantTau = 4.0;
     momentumMethod = "viscosity";
 
     weightUpdatePeriod = 1;
@@ -140,6 +142,7 @@ PlasticCloneConn "cloneConn" = {
     postLayerName = "clonePost";
     channelCode = 0;
     writeStep = -1;
+    // initialWriteTime = 0.0;
     originalConnName = "origConn";
     delay = 0;
     convertRateToSpikeCount = false;

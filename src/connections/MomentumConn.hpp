@@ -20,6 +20,7 @@ class MomentumConn : public HyPerConn {
    virtual ~MomentumConn();
 
    char const *getMomentumMethod() const;
+   float getTimeConstantTau() const;
 
   protected:
    MomentumConn();
