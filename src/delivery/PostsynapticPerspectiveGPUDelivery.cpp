@@ -241,43 +241,16 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
-   float *postChannel = destBuffer;
-   pvAssert(postChannel);
-
    pvAssert(mRecvKernel);
-
-   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
-   Weights *weights          = mWeightsPair->getPostWeights();
-
-   int const nxPreExtended  = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
-   int const nyPreExtended  = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
-   int const numPreExtended = nxPreExtended * nyPreExtended * preLoc->nf;
-
-   int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
-
-   int nbatch = preLoc->nbatch;
-   pvAssert(nbatch == postLoc->nbatch);
-
-   const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
-   const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
-
-   bool const preLayerIsSparse = mPreLayer->getSparseFlag();
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
-      int delay                = mArborList->getDelay(arbor);
-      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       mRecvKernel->set_dt_factor(mDeltaTimeFactor);
-
-      const int postNx = postLoc->nx;
-      const int postNy = postLoc->ny;
-      const int postNf = postLoc->nf;
-
-      // Update pre activity, post gsyn, and conn weights
-      // Only if they're updated
+      // Only copy pre activity to GPU if it's updated on the CPU since last GPU update.
       if (mPreLayer->getUpdatedDeviceDatastoreFlag()) {
+         int delay                          = mArborList->getDelay(arbor);
+         PVLayerCube activityCube           = mPreLayer->getPublisher()->createCube(delay);
          float const *h_preDatastore        = activityCube.data;
          PVCuda::CudaBuffer *d_preDatastore = mPreLayer->getDeviceDatastore();
          pvAssert(d_preDatastore);
@@ -294,9 +267,10 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       // Permute GSyn
       mRecvKernel->permuteGSynPVToCudnn(getChannelCode());
 
-      int totF = postNf;
-      int totX = postNx;
-      int totY = postNy;
+      PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+      int totF                  = postLoc->nf;
+      int totX                  = postLoc->nx;
+      int totY                  = postLoc->ny;
       // Make sure local sizes are divisible by f, x, and y
       mRecvKernel->run(totX, totY, totF, 1L, 1L, 1L);
 
