@@ -16,7 +16,6 @@ namespace PV {
 class CloneVLayer : public HyPerLayer {
   public:
    CloneVLayer(const char *name, PVParams *params, Communicator *comm);
-   virtual bool activityIsSpiking() override { return false; }
    HyPerLayer *getOriginalLayer() { return mOriginalLayer; }
    virtual ~CloneVLayer();
 

@@ -16,7 +16,6 @@ class PoolingIndexLayer : public HyPerLayer {
   public:
    PoolingIndexLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~PoolingIndexLayer();
-   bool activityIsSpiking() override { return false; }
 
   protected:
    PoolingIndexLayer();

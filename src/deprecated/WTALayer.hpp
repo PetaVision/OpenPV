@@ -18,7 +18,6 @@ class WTALayer : public HyPerLayer {
    virtual Response::Status updateState(double timef, double dt) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual bool activityIsSpiking() override { return false; }
 
   protected:
    void initialize(const char *name, PVParams *params, Communicator *comm);

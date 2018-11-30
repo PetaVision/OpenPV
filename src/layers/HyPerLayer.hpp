@@ -113,7 +113,6 @@ class HyPerLayer : public ComponentBasedObject {
   public:
    HyPerLayer(const char *name, PVParams *params, Communicator *comm);
    virtual double getTimeScale(int batchIdx) { return -1.0; };
-   virtual bool activityIsSpiking() { return false; }
 
   protected:
    /**

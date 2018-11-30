@@ -16,7 +16,6 @@ namespace PV {
 class KmeansLayer : public HyPerLayer {
   public:
    KmeansLayer(const char *name, PVParams *params, Communicator *comm);
-   virtual bool activityIsSpiking() override { return false; }
    virtual ~KmeansLayer();
 
   protected:

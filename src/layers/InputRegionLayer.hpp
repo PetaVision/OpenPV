@@ -23,7 +23,6 @@ class InputRegionLayer : public HyPerLayer {
   public:
    InputRegionLayer(const char *name, PVParams *params, Communicator *comm);
    virtual ~InputRegionLayer();
-   virtual bool activityIsSpiking() override { return false; }
 
   protected:
    InputRegionLayer();
