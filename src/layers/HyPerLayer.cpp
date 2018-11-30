@@ -700,16 +700,6 @@ void HyPerLayer::updateActiveIndices() { publisher->updateActiveIndices(0); }
 
 bool HyPerLayer::isExchangeFinished(int delay) { return publisher->isExchangeFinished(delay); }
 
-bool HyPerLayer::isAllInputReady() {
-   bool isReady = true;
-   for (auto &c : recvConns) {
-      auto *deliveryComponent = c->getComponentByType<BaseDelivery>();
-      pvAssert(deliveryComponent);
-      isReady &= deliveryComponent->isAllInputReady();
-   }
-   return isReady;
-}
-
 int HyPerLayer::publish(Communicator *comm, double simTime) {
    publish_timer->start();
 

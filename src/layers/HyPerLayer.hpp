@@ -110,13 +110,6 @@ class HyPerLayer : public ComponentBasedObject {
 
    virtual Response::Status processCheckpointRead() override;
 
-   /**
-    * Returns true if each layer that delivers input to this layer
-    * has finished its MPI exchange for its delay; false if any of
-    * them has not.
-    */
-   bool isAllInputReady();
-
   public:
    HyPerLayer(const char *name, PVParams *params, Communicator *comm);
    virtual double getTimeScale(int batchIdx) { return -1.0; };
