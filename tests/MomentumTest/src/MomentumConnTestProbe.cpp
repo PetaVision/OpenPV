@@ -67,15 +67,7 @@ Response::Status MomentumConnTestProbe::outputState(double simTime, double delta
          wCorrect = 0;
       }
       else {
-         if (isViscosity) {
-            wCorrect = 1;
-            for (int i = 0; i < (simTime - 3); i++) {
-               wCorrect += expf(-(2 * (i + 1)));
-            }
-         }
-         else {
-            wCorrect = 2 - powf(2, -(simTime - 3));
-         }
+         wCorrect = 1.0f - std::pow(2.0f, -((float)simTime - 2.0f));
       }
 
       if (fabs(((double)(wObserved - wCorrect)) / simTime) > 1e-4) {

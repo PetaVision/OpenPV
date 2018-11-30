@@ -141,7 +141,7 @@ MomentumConn "ConnA" = {
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
     momentumMethod                      = "viscosity";
-    momentumTau                         = 100.0;
+    timeConstantTau                     = 100.0;
     momentumDecay                       = 0.0;
 };
 
@@ -247,7 +247,7 @@ MomentumConn "ConnC" = {
     dWMaxDecayInterval                  = 0;
     dWMaxDecayFactor                    = 0;
     momentumMethod                      = "viscosity";
-    momentumTau                         = 100.0;
+    timeConstantTau                     = 100.0;
     momentumDecay                       = 0.0;
 };
 

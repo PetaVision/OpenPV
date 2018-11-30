@@ -19,16 +19,15 @@
  * for the input and output layers and for the weight between them, and the
  * number of updates.
  *
- * The update rule for momentumMethod=simple, momentumTau=1, momentumDecay=0,
- * dWMax=1 is:
+ * The update rule for momentumMethod=simple, timeConstantTau=0.75, momentumDecay=0, is:
  *
  * new update number = old update number + 1.
- * new dw = old dw + (old input * old output).
- * new weight = old weight + dw.
+ * new dw = 0.75*old dw + 0.25*(dWMax * old input * old output).
+ * new weight = old weight + new dw.
  * new input  = new update number.
  * new output = new input * new weight.
  *
- * The test uses an input layer display of 4 and a connection that, either
+ * The test uses an input layer displayPeriod of 4 and a connection that, either
  * using the input layer as a trigger layer or by defining weightUpdatePeriod=4
  * and initialWeightUpdateTime=1, updates at times 1, 5, 9, etc.
  *
@@ -37,29 +36,14 @@
  * is initialized as 2. Therefore, at the end of each timestep, the correct
  * state of the system is as follows:
  *
- *   time update weight  dw  input   output
- *     0     0       1     0   1         2
- *     1     1       3     2   1         3
- *     2     1       3     2   1         3
- *     3     1       3     2   1         3
- *     4     1       3     2   1         3
- *     5     2       8     5   2        16
- *     6     2       8     5   2        16
- *     7     2       8     5   2        16
- *     8     2       8     5   2        16
- *     9     3      45    37   3       135
- *    10     3      45    37   3       135
- *    11     3      45    37   3       135
- *    12     3      45    37   3       135
- *    13     4     487   442   4      1948
- *    14     4     487   442   4      1948
- *    15     4     487   442   4      1948
- *    16     4     487   442   4      1948
- *    17     5    8721  8234   5     43605
- *    18     5    8721  8234   5     43605
- *    19     5    8721  8234   5     43605
- *    20     5    8721  8234   5     43605
- *
+ *   time        update  pre*post   prev_dw     dw        weight      input       output
+ *     0           0                             0         1           1           2
+ *     1           1        2        0           0.5       1.5         1           1.5
+ *     5           2        1.5      0.5         0.75      2.25        2           4.5
+ *     9           3        9.0      0.75        2.8125    5.0625      3          15.1875
+ *    13           4       45.5625   2.8125     13.5      18.5625      4          74.25
+ *    17           5      297       13.5        84.375   102.9375      5         514.6875
+ *    20           5      297       13.5        84.375   102.9375      5         514.6875
  */
 class CorrectState {
   public:
@@ -68,7 +52,7 @@ class CorrectState {
     * weight value, input value, and output value.
     */
    CorrectState(
-         int initialUpdateNumber,
+         float timeConstantTau,
          float initialWeight,
          float initial_dw,
          float initialInput,
@@ -86,9 +70,9 @@ class CorrectState {
    void update();
 
    /**
-    * Returns the current update number.
+    * Returns the time constant tau.
     */
-   int getUpdateNumber() const { return mUpdateNumber; }
+   float getTimeConstantTau() const { return mTimeConstantTau; }
 
    /**
     * Returns the current value for the correct weight.
@@ -110,12 +94,19 @@ class CorrectState {
     */
    float getCorrectOutput() const { return mCorrectOutput; }
 
+   /**
+    * Returns the number of times update() has been called.
+    */
+   float getUpdateNumber() const { return mUpdateNumber; }
+
   private:
-   int mUpdateNumber    = 0;
-   float mCorrectWeight = 0.0;
-   float mCorrect_dw    = 0.0;
-   float mCorrectInput  = 0.0;
-   float mCorrectOutput = 0.0;
+   float mTimeConstantTau = 0.0;
+   float mCorrectWeight   = 0.0;
+   float mCorrect_dw      = 0.0;
+   float mCorrectInput    = 0.0;
+   float mCorrectOutput   = 0.0;
+
+   int mUpdateNumber = 0;
 };
 
 #endif // CORRECTSTATE_HPP_

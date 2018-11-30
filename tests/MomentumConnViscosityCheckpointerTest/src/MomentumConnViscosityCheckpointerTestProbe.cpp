@@ -47,8 +47,9 @@ void MomentumConnViscosityCheckpointerTestProbe::ioParam_textOutputFlag(
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::communicateInitInfo(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    auto status = PV::ColProbe::communicateInitInfo(message);
-   FatalIf(
-         status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
+   if (!PV::Response::completed(status)) {
+      return status;
+   }
 
    auto *componentTable = message->mHierarchy;
    status               = status + initInputLayer(componentTable);
@@ -194,19 +195,11 @@ int MomentumConnViscosityCheckpointerTestProbe::calcUpdateNumber(double timevalu
 
 void MomentumConnViscosityCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
    int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
-   if (updateNumber == 0) {
-      mCorrectState =
-            new CorrectState(0, 1.0f /*weight*/, 0.0f /*dw*/, 1.0f /*input*/, 2.0f /*output*/);
-   }
-   else {
-      mCorrectState =
-            new CorrectState(1, 3.0f /*weight*/, 2.0f /*dw*/, 1.0f /*input*/, 3.0f /*output*/);
-
-      for (int j = 2; j < updateNumber; j++) {
-         mCorrectState->update();
-      }
-      // Don't update for the current updateNumber; this will happen in outputState.
-   }
+   auto *momentumUpdater  = mConnection->getComponentByType<PV::MomentumUpdater>();
+   float const tau        = momentumUpdater->getTimeConstantTau();
+   float const tau_exp    = std::exp(-1.0f / tau);
+   mCorrectState =
+         new CorrectState(tau_exp, 1.0f /*weight*/, 0.0f /*dw*/, 1.0f /*input*/, 2.0f /*output*/);
 }
 
 PV::Response::Status

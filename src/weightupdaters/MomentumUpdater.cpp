@@ -22,6 +22,7 @@ void MomentumUpdater::setObjectType() { mObjectType = "MomentumUpdater"; }
 int MomentumUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HebbianUpdater::ioParamsFillGroup(ioFlag);
    ioParam_momentumMethod(ioFlag);
+   ioParam_timeConstantTau(ioFlag);
    ioParam_momentumTau(ioFlag);
    ioParam_momentumDecay(ioFlag);
    return status;
@@ -31,19 +32,75 @@ void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
       parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &mMomentumMethod);
-      if (strcmp(mMomentumMethod, "simple") == 0) {
-         mMethod = SIMPLE;
-      }
-      else if (strcmp(mMomentumMethod, "viscosity") == 0) {
+      if (strcmp(mMomentumMethod, "viscosity") == 0) {
          mMethod = VISCOSITY;
+      }
+      else if (strcmp(mMomentumMethod, "simple") == 0) {
+         mMethod = SIMPLE;
       }
       else if (strcmp(mMomentumMethod, "alex") == 0) {
          mMethod = ALEX;
       }
       else {
          Fatal() << "MomentumUpdater " << name << ": momentumMethod of " << mMomentumMethod
-                 << " is not known. Options are \"simple\", \"viscosity\", and \"alex\".\n";
+                 << " is not known. Options are \"viscosity\", \"simple\", and \"alex\".\n";
       }
+   }
+}
+
+void MomentumUpdater::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (mPlasticityFlag) {
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "momentumMethod"));
+      float defaultVal = 0;
+      switch (mMethod) {
+         case VISCOSITY: defaultVal = mDefaultTimeConstantTauViscosity; break;
+         case SIMPLE: defaultVal    = mDefaultTimeConstantTauSimple; break;
+         case ALEX: defaultVal      = mDefaultTimeConstantTauAlex; break;
+         default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
+      }
+
+      // If momentumTau is being used instead of timeConstantTau, ioParam_momentumTau
+      // will print a warning, so we don't warn if timeConstantTau is absent here.
+      // When momentumTau is removed, warnIfAbsent should be set to true here.
+      bool warnIfAbsent = !parameters()->present(getName(), "momentumTau");
+      parameters()->ioParamValue(
+            ioFlag, name, "timeConstantTau", &mTimeConstantTau, defaultVal, warnIfAbsent);
+      if (ioFlag == PARAMS_IO_READ) {
+         checkTimeConstantTau();
+      }
+   }
+}
+
+void MomentumUpdater::checkTimeConstantTau() {
+   switch (mMethod) {
+      case VISCOSITY:
+         FatalIf(
+               mTimeConstantTau < 0,
+               "%s uses momentumMethod \"viscosity\" and so must have "
+               "TimeConstantTau >= 0"
+               " (value is %f).\n",
+               getDescription_c(),
+               (double)mTimeConstantTau);
+         break;
+      case SIMPLE:
+         FatalIf(
+               mTimeConstantTau < 0 or mTimeConstantTau >= 1,
+               "%s uses momentumMethod \"simple\" and so must have "
+               "TimeConstantTau >= 0 and timeConstantTau < 1"
+               " (value is %f).\n",
+               getDescription_c(),
+               (double)mTimeConstantTau);
+         break;
+      case ALEX:
+         FatalIf(
+               mTimeConstantTau < 0 or mTimeConstantTau >= 1,
+               "%s uses momentumMethod \"alex\" and so must have "
+               "TimeConstantTau >= 0 and timeConstantTau < 1"
+               " (value is %f).\n",
+               getDescription_c(),
+               (double)mTimeConstantTau);
+         break;
    }
 }
 
@@ -51,15 +108,20 @@ void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
       pvAssert(!parameters()->presentAndNotBeenRead(name, "momentumMethod"));
-      float defaultVal = 0;
-      switch (mMethod) {
-         case SIMPLE: defaultVal    = 0.25f; break;
-         case VISCOSITY: defaultVal = 100.0f; break;
-         case ALEX: defaultVal      = 0.9f; break;
-         default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "timeConstantTau"));
+      if (!parameters()->present(getName(), "momentumTau")) {
+         return;
       }
-
-      parameters()->ioParamValue(ioFlag, name, "momentumTau", &mMomentumTau, defaultVal);
+      if (parameters()->present(getName(), "timeConstantTau")) {
+         WarnLog().printf(
+               "%s sets timeConstantTau, so momentumTau will be ignored.\n", getDescription_c());
+         return;
+      }
+      mUsingDeprecatedMomentumTau = true;
+      parameters()->ioParamValueRequired(ioFlag, name, "momentumTau", &mMomentumTau);
+      WarnLog().printf(
+            "%s uses momentumTau, which is deprecated. Use timeConstantTau instead.\n",
+            getDescription_c());
    }
 }
 
@@ -120,7 +182,15 @@ Response::Status MomentumUpdater::readStateFromCheckpoint(Checkpointer *checkpoi
 
 int MomentumUpdater::updateWeights(int arborId) {
    // Add momentum right before updateWeights
-   applyMomentum(arborId);
+   if (mUsingDeprecatedMomentumTau) { // MomentumTau was deprecated Nov 19, 2018.
+      WarnLog().printf(
+            "%s is using momentumTau, which has been deprecated in favor of timeConstantTau.\n",
+            getDescription_c());
+      applyMomentumDeprecated(arborId);
+   }
+   else {
+      applyMomentum(arborId);
+   }
 
    // Current dW saved to prev_dW
    pvAssert(mPrevDeltaWeights);
@@ -136,14 +206,50 @@ int MomentumUpdater::updateWeights(int arborId) {
 void MomentumUpdater::applyMomentum(int arborId) {
    // Shared weights done in parallel, parallel in numkernels
    switch (mMethod) {
-      case SIMPLE: applyMomentum(arborId, mMomentumTau, mMomentumDecay); break;
-      case VISCOSITY: applyMomentum(arborId, std::exp(-1.0f / mMomentumTau), mMomentumDecay); break;
-      case ALEX: applyMomentum(arborId, mMomentumTau, mMomentumDecay * mDWMax); break;
+      case VISCOSITY:
+         applyMomentum(arborId, std::exp(-1.0f / mTimeConstantTau), mMomentumDecay);
+         break;
+      case SIMPLE: applyMomentum(arborId, mTimeConstantTau, mMomentumDecay); break;
+      case ALEX: applyMomentum(arborId, mTimeConstantTau, mMomentumDecay * mDWMax); break;
       default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
    }
 }
 
 void MomentumUpdater::applyMomentum(int arborId, float dwFactor, float wFactor) {
+   int const numKernels = mDeltaWeights->getNumDataPatches();
+   pvAssert(numKernels == mPrevDeltaWeights->getNumDataPatches());
+   int const patchSizeOverall = mDeltaWeights->getPatchSizeOverall();
+   pvAssert(patchSizeOverall == mPrevDeltaWeights->getPatchSizeOverall());
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+   for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
+      float *dwdata_start        = mDeltaWeights->getDataFromDataIndex(arborId, kernelIdx);
+      float const *prev_dw_start = mPrevDeltaWeights->getDataFromDataIndex(arborId, kernelIdx);
+      float const *wdata_start   = mWeights->getDataFromDataIndex(arborId, kernelIdx);
+      for (int k = 0; k < patchSizeOverall; k++) {
+         dwdata_start[k] *= 1 - dwFactor;
+         dwdata_start[k] += dwFactor * prev_dw_start[k];
+         dwdata_start[k] -= wFactor * wdata_start[k]; // TODO handle decay in a separate component
+      }
+   }
+   // Since weights data is allocated with all patches of a given arbor in a single vector,
+   // these two for-loops can probably be collapsed. --pschultz 2017-12-16
+}
+
+void MomentumUpdater::applyMomentumDeprecated(int arborId) {
+   // Shared weights done in parallel, parallel in numkernels
+   switch (mMethod) {
+      case VISCOSITY:
+         applyMomentumDeprecated(arborId, std::exp(-1.0f / mMomentumTau), mMomentumDecay);
+         break;
+      case SIMPLE: applyMomentumDeprecated(arborId, mMomentumTau, mMomentumDecay); break;
+      case ALEX: applyMomentumDeprecated(arborId, mMomentumTau, mMomentumDecay * mDWMax); break;
+      default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
+   }
+}
+
+void MomentumUpdater::applyMomentumDeprecated(int arborId, float dwFactor, float wFactor) {
    int const numKernels = mDeltaWeights->getNumDataPatches();
    pvAssert(numKernels == mPrevDeltaWeights->getNumDataPatches());
    int const patchSizeOverall = mDeltaWeights->getPatchSizeOverall();

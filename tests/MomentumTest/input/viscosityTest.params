@@ -85,7 +85,7 @@ MomentumConn "preToPost" = {
     pvpatchAccumulateType = "convolve";
 
     dWMax = 1;
-    momentumTau = .5;
+    timeConstantTau = 1.4426950408889634;
     momentumMethod = "viscosity";
      
     delay = 0;
