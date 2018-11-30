@@ -43,7 +43,7 @@ void RescaleDelivery::deliver(float *destBuffer) {
    int delay                         = mSingleArbor->getDelay(0);
    PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(delay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
-   PVLayerLoc const &postLoc         = *mPostLayer->getLayerLoc();
+   PVLayerLoc const &postLoc         = *mPostGSyn->getLayerLoc();
 
    int const nx       = preLoc.nx;
    int const ny       = preLoc.ny;
@@ -105,7 +105,7 @@ void RescaleDelivery::deliver(float *destBuffer) {
 }
 
 void RescaleDelivery::deliverUnitInput(float *recvBuffer) {
-   const int numNeuronsPost = mPostLayer->getNumNeuronsAllBatches();
+   const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif

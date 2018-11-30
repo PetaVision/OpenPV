@@ -44,9 +44,9 @@ IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 
 void IdentDelivery::checkPreAndPostDimensions() {
    int status = PV_SUCCESS;
-   pvAssert(mPreLayer and mPostLayer); // Only call this after BaseDelivery::communicateInitInfo().
+   pvAssert(mPreLayer and mPostGSyn); // Only call this after BaseDelivery::communicateInitInfo().
    PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    if (preLoc->nx != postLoc->nx) {
       ErrorLog().printf(
             "%s requires pre and post nx be equal (%d versus %d).\n",
@@ -85,7 +85,7 @@ void IdentDelivery::checkPreAndPostDimensions() {
          "%dx%dx%d vs. %dx%dx%d\n",
          name,
          mPreLayer->getName(),
-         mPostLayer->getName(),
+         mPostGSyn->getName(),
          preLoc->nx,
          preLoc->ny,
          preLoc->nf,
@@ -102,7 +102,7 @@ void IdentDelivery::deliver(float *destBuffer) {
    int delay                         = mSingleArbor->getDelay(0);
    PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(delay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
-   PVLayerLoc const &postLoc         = *mPostLayer->getLayerLoc();
+   PVLayerLoc const &postLoc         = *mPostGSyn->getLayerLoc();
 
    int const nx       = preLoc.nx;
    int const ny       = preLoc.ny;
@@ -164,7 +164,7 @@ void IdentDelivery::deliver(float *destBuffer) {
 }
 
 void IdentDelivery::deliverUnitInput(float *recvBuffer) {
-   const int numNeuronsPost = mPostLayer->getNumNeuronsAllBatches();
+   const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif

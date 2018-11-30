@@ -94,7 +94,7 @@ void ComponentBuffer::setCudaBuffer() {
             mCudaDevice == nullptr,
             "%s did not receive a SetCudaDevice message.\n",
             getDescription_c());
-      std::size_t sizeInBytes = sizeof(float) * (std::size_t)getBufferSizeAcrossBatch();
+      std::size_t sizeInBytes = sizeof(float) * (std::size_t)getBufferSizeAcrossChannels();
       mCudaBuffer             = mCudaDevice->createBuffer(sizeInBytes, &getDescription());
    }
 }

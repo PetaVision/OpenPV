@@ -55,7 +55,7 @@ Response::Status PresynapticPerspectiveGPUDelivery::communicateInitInfo(
    // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
    getPreLayer()->setAllocDeviceDatastore();
    mWeightsPair->getPreWeights()->useGPU();
-   getPostLayer()->getComponentByType<LayerInputBuffer>()->useCuda();
+   mPostGSyn->useCuda();
 
    // If recv from pre and pre layer is sparse, allocate activeIndices
    if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
@@ -125,13 +125,12 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    mRecvKernel                = new PVCuda::CudaRecvPre(device);
 
    const PVLayerLoc *preLoc  = getPreLayer()->getLayerLoc();
-   const PVLayerLoc *postLoc = getPostLayer()->getLayerLoc();
+   const PVLayerLoc *postLoc = mPostGSyn->getLayerLoc();
    const PVHalo *preHalo     = &getPreLayer()->getLayerLoc()->halo;
-   const PVHalo *postHalo    = &getPostLayer()->getLayerLoc()->halo;
+   const PVHalo *postHalo    = &mPostGSyn->getLayerLoc()->halo;
 
-   PVCuda::CudaBuffer *d_PreData = getPreLayer()->getDeviceDatastore();
-   PVCuda::CudaBuffer *d_PostGSyn =
-         getPostLayer()->getComponentByType<LayerInputBuffer>()->getCudaBuffer();
+   PVCuda::CudaBuffer *d_PreData           = getPreLayer()->getDeviceDatastore();
+   PVCuda::CudaBuffer *d_PostGSyn          = mPostGSyn->getCudaBuffer();
    PVCuda::CudaBuffer *d_PatchToDataLookup = preWeights->getDevicePatchToDataLookup();
    PVCuda::CudaBuffer *d_WData             = preWeights->getDeviceData();
 
@@ -158,7 +157,7 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    bool isSparse = getPreLayer()->getSparseFlag();
 
    int numPreExt  = getPreLayer()->getNumExtended();
-   int numPostRes = getPostLayer()->getNumNeurons();
+   int numPostRes = mPostGSyn->getBufferSize();
 
    int nbatch = postLoc->nbatch;
 
@@ -207,7 +206,7 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
    pvAssert(mRecvKernel);
 
    PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
    int const nxPreExtended  = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
@@ -234,7 +233,7 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       // Post layer receives synaptic input
       // Only with respect to post layer
       const PVLayerLoc *preLoc  = getPreLayer()->getLayerLoc();
-      const PVLayerLoc *postLoc = getPostLayer()->getLayerLoc();
+      const PVLayerLoc *postLoc = mPostGSyn->getLayerLoc();
       // If the connection uses gpu to receive, update all buffers
 
       // Update pre datastore, post gsyn, and conn weights only if they're updated
@@ -292,7 +291,7 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
 // The spirit of this class says we should put this method on the GPU,
 // but the priority for doing so is rather low.
 void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
    int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;

@@ -62,7 +62,7 @@ Response::Status PostsynapticPerspectiveStochasticDelivery::allocateDataStructur
    if (!Response::completed(status)) {
       return status;
    }
-   mRandState = new Random(mPostLayer->getLayerLoc(), false /*restricted, not extended*/);
+   mRandState = new Random(mPostGSyn->getLayerLoc(), false /*restricted, not extended*/);
    return Response::SUCCESS;
 }
 
@@ -80,10 +80,10 @@ void PostsynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
       PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       // Get number of neurons restricted target
-      const int numPostRestricted = mPostLayer->getNumNeurons();
+      const int numPostRestricted = mPostGSyn->getBufferSize();
 
       const PVLayerLoc *sourceLoc = mPreLayer->getLayerLoc();
-      const PVLayerLoc *targetLoc = mPostLayer->getLayerLoc();
+      const PVLayerLoc *targetLoc = mPostGSyn->getLayerLoc();
 
       const int sourceNx = sourceLoc->nx;
       const int sourceNy = sourceLoc->ny;
@@ -169,9 +169,9 @@ void PostsynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
 
 void PostsynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffer) {
    // Get number of neurons restricted target
-   const int numPostRestricted = mPostLayer->getNumNeurons();
+   const int numPostRestricted = mPostGSyn->getBufferSize();
 
-   const PVLayerLoc *targetLoc = mPostLayer->getLayerLoc();
+   const PVLayerLoc *targetLoc = mPostGSyn->getLayerLoc();
 
    const int targetNx = targetLoc->nx;
    const int targetNy = targetLoc->ny;

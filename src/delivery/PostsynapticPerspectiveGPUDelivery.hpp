@@ -79,6 +79,7 @@ class PostsynapticPerspectiveGPUDelivery : public HyPerDelivery {
   protected:
    PVCuda::CudaRecvPost *mRecvKernel            = nullptr;
    PVCuda::CudaBuffer *mDevicePostToPreActivity = nullptr;
+   PVCuda::CudaBuffer *mCudnnGSyn               = nullptr;
 }; // end class PostsynapticPerspectiveGPUDelivery
 
 } // end namespace PV

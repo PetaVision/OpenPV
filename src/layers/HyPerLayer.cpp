@@ -61,7 +61,6 @@ int HyPerLayer::initialize_base() {
    d_numActive              = NULL;
    updatedDeviceDatastore   = true;
 #ifdef PV_USE_CUDNN
-   cudnn_GSyn      = NULL;
    cudnn_Datastore = NULL;
 #endif // PV_USE_CUDNN
 #endif // PV_USE_CUDA
@@ -473,13 +472,6 @@ int HyPerLayer::allocateDeviceBuffers() {
             getNumExtendedAllBatches() * sizeof(SparseList<float>::Entry), &getDescription());
       assert(d_ActiveIndices);
    }
-
-#ifdef PV_USE_CUDNN
-   // mLayerInput's CudaBuffer is the entire GSyn buffer. cudnn_GSyn is only one gsyn channel
-   if (mLayerInput and mLayerInput->isUsingGPU()) {
-      cudnn_GSyn = device->createBuffer(size, &getDescription());
-   }
-#endif
 
    return status;
 }

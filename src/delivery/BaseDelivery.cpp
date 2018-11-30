@@ -40,19 +40,21 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
       return Response::POSTPONE;
    }
 
-   mPreLayer  = mConnectionData->getPre();
-   mPostLayer = mConnectionData->getPost();
-   pvAssert(mPreLayer != nullptr and mPostLayer != nullptr);
+   mPreLayer = mConnectionData->getPre();
+   pvAssert(mPreLayer != nullptr);
 
+   auto *postLayer = mConnectionData->getPost();
+   pvAssert(postLayer != nullptr);
+   mPostGSyn        = postLayer->getComponentByType<LayerInputBuffer>();
    int channelAsInt = (int)getChannelCode();
    if (channelAsInt >= 0) {
-      auto *postLayerInputBuffer = mPostLayer->getComponentByType<LayerInputBuffer>();
+      auto *postLayerInputBuffer = mPostGSyn;
       FatalIf(
-            postLayerInputBuffer == nullptr,
+            mPostGSyn == nullptr,
             "%s post layer \"%s\" does not have a LayerInputBuffer component.\n",
             getDescription_c(),
-            mPostLayer->getName());
-      postLayerInputBuffer->requireChannel(channelAsInt);
+            mPostGSyn->getName());
+      mPostGSyn->requireChannel(channelAsInt);
       int numChannelsCheck = postLayerInputBuffer->getNumChannels();
       FatalIf(
             numChannelsCheck <= channelAsInt,
@@ -79,7 +81,10 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
 void BaseDelivery::allocateThreadGSyn() {
    int const numThreads = mNumThreads;
    if (numThreads > 1) {
-      int const numNeuronsAllBatches = mPostLayer->getNumNeuronsAllBatches();
+      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
+      // We could use mPostGSyn->getBufferSizeAcrossBatch(), but this requires
+      // checking mPostGSyn->getDataStructuresAllocatedFlag().
+      int const numNeuronsAllBatches = postLoc->nx * postLoc->ny * postLoc->nf * postLoc->nbatch;
       mThreadGSyn.resize(numThreads);
       for (auto &th : mThreadGSyn) {
          th.resize(numNeuronsAllBatches);
@@ -90,7 +95,7 @@ void BaseDelivery::allocateThreadGSyn() {
 void BaseDelivery::clearThreadGSyn() {
    int const numThreads = (int)mThreadGSyn.size();
    if (numThreads > 1) {
-      int const numPostRestricted = mPostLayer->getNumNeurons();
+      int const numPostRestricted = mPostGSyn->getBufferSize();
 #pragma omp parallel for schedule(static)
       for (int ti = 0; ti < numThreads; ++ti) {
          float *threadData = mThreadGSyn[ti].data();
@@ -108,7 +113,7 @@ void BaseDelivery::accumulateThreadGSyn(float *baseGSynBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
    int const numThreads = (int)mThreadGSyn.size();
    if (numThreads > 0) {
-      int numNeuronsPost = mPostLayer->getNumNeurons();
+      int numNeuronsPost = mPostGSyn->getBufferSize();
       for (int ti = 0; ti < numThreads; ti++) {
          float *threadData = mThreadGSyn[ti].data();
 // Looping over neurons is thread safe

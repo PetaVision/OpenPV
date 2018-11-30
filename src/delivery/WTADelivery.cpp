@@ -47,9 +47,9 @@ WTADelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
 
 void WTADelivery::checkPreAndPostDimensions() {
    int status = PV_SUCCESS;
-   pvAssert(mPreLayer and mPostLayer); // Only call this after BaseDelivery::communicateInitInfo().
+   pvAssert(mPreLayer and mPostGSyn); // Only call this after BaseDelivery::communicateInitInfo().
    PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    if (preLoc->nx != postLoc->nx) {
       ErrorLog().printf(
             "%s requires pre and post nx be equal (%d versus %d).\n",
@@ -87,7 +87,7 @@ void WTADelivery::checkPreAndPostDimensions() {
          "%dx%dx%d vs. %dx%dx%d\n",
          name,
          mPreLayer->getName(),
-         mPostLayer->getName(),
+         mPostGSyn->getName(),
          preLoc->nx,
          preLoc->ny,
          preLoc->nf,
@@ -116,7 +116,7 @@ void WTADelivery::deliver(float *destBuffer) {
 
    float *postChannel = destBuffer;
    int const nbatch   = preLoc.nbatch;
-   pvAssert(nbatch == mPostLayer->getLayerLoc()->nbatch);
+   pvAssert(nbatch == mPostGSyn->getLayerLoc()->nbatch);
    for (int b = 0; b < nbatch; b++) {
       float const *preActivityBuffer = preActivityCube.data + b * numPreExtended;
       float *postGSynBuffer          = postChannel + b * numPostRestricted;
@@ -144,7 +144,7 @@ void WTADelivery::deliver(float *destBuffer) {
 }
 
 void WTADelivery::deliverUnitInput(float *recvBuffer) {
-   const int numNeuronsPost = mPostLayer->getNumNeuronsAllBatches();
+   const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif

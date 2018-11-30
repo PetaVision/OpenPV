@@ -21,6 +21,7 @@ PostsynapticPerspectiveGPUDelivery::PostsynapticPerspectiveGPUDelivery() {}
 PostsynapticPerspectiveGPUDelivery::~PostsynapticPerspectiveGPUDelivery() {
    delete mRecvKernel;
    delete mDevicePostToPreActivity;
+   delete mCudnnGSyn;
 }
 
 void PostsynapticPerspectiveGPUDelivery::initialize(
@@ -58,7 +59,7 @@ Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
    // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
    getPreLayer()->setAllocDeviceDatastore();
    mWeightsPair->getPostWeights()->useGPU();
-   getPostLayer()->getComponentByType<LayerInputBuffer>()->useCuda();
+   mPostGSyn->useCuda();
 
    // If recv from pre and pre layer is sparse, allocate activeIndices
    if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
@@ -88,16 +89,22 @@ Response::Status PostsynapticPerspectiveGPUDelivery::allocateDataStructures() {
    if (!mWeightsPair->getDataStructuresAllocatedFlag()) {
       return Response::POSTPONE;
    }
+   if (!mPostGSyn->getDataStructuresAllocatedFlag()) {
+      return Response::POSTPONE;
+   }
 
    auto status = HyPerDelivery::allocateDataStructures();
    if (!Response::completed(status)) {
       return status;
    }
 
-   auto *postInputBuffer       = getPostLayer()->getComponentByType<LayerInputBuffer>();
-   int const numPostRestricted = postInputBuffer->getBufferSize();
+   int const numPostRestricted = mPostGSyn->getBufferSize();
    mDevicePostToPreActivity =
          mCudaDevice->createBuffer(numPostRestricted * sizeof(long), &getDescription());
+
+   // mCudnnGSyn only needs the GSyn channel used by the delivery object
+   int const numPostAcrossBatch = mPostGSyn->getBufferSizeAcrossBatch();
+   mCudnnGSyn = mCudaDevice->createBuffer(numPostAcrossBatch * sizeof(float), &getDescription());
 
    return Response::SUCCESS;
 }
@@ -113,20 +120,18 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    mRecvKernel                = new PVCuda::CudaRecvPost(device);
 
    PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
-   PVLayerLoc const *postLoc = getPostLayer()->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
 
-   PVCuda::CudaBuffer *d_PreData = getPreLayer()->getDeviceDatastore();
-   PVCuda::CudaBuffer *d_PostGSyn =
-         getPostLayer()->getComponentByType<LayerInputBuffer>()->getCudaBuffer();
+   PVCuda::CudaBuffer *d_PreData           = getPreLayer()->getDeviceDatastore();
+   PVCuda::CudaBuffer *d_PostGSyn          = mPostGSyn->getCudaBuffer();
    PVCuda::CudaBuffer *d_PatchToDataLookup = postWeights->getDevicePatchToDataLookup();
    PVCuda::CudaBuffer *d_WData             = postWeights->getDeviceData();
 
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer *cudnn_preData = getPreLayer()->getCudnnDatastore();
-   PVCuda::CudaBuffer *cudnn_gSyn    = getPostLayer()->getCudnnGSyn();
    PVCuda::CudaBuffer *cudnn_WData   = postWeights->getCUDNNData();
    pvAssert(cudnn_preData);
-   pvAssert(cudnn_gSyn);
+   pvAssert(mCudnnGSyn);
    pvAssert(cudnn_WData);
 #endif
 
@@ -231,7 +236,7 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
 #ifdef PV_USE_CUDNN
          cudnn_preData,
          cudnn_WData,
-         cudnn_gSyn,
+         mCudnnGSyn,
 #endif
          d_PatchToDataLookup);
 }
@@ -267,7 +272,7 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       // Permute GSyn
       mRecvKernel->permuteGSynPVToCudnn(getChannelCode());
 
-      PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
       int totF                  = postLoc->nf;
       int totX                  = postLoc->nx;
       int totY                  = postLoc->ny;
@@ -287,9 +292,9 @@ void PostsynapticPerspectiveGPUDelivery::deliverUnitInput(
 
       float *recvBuffer) {
    // Get number of neurons restricted target
-   const int numPostRestricted = mPostLayer->getNumNeurons();
+   const int numPostRestricted = mPostGSyn->getBufferSize();
 
-   const PVLayerLoc *targetLoc = mPostLayer->getLayerLoc();
+   const PVLayerLoc *targetLoc = mPostGSyn->getLayerLoc();
 
    const int targetNx = targetLoc->nx;
    const int targetNy = targetLoc->ny;

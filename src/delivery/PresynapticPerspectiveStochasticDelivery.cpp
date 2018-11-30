@@ -83,7 +83,7 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
    pvAssert(postChannel);
 
    PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
    int const nxPreExtended  = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
@@ -213,7 +213,7 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
 
 void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffer) {
    PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
    int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;

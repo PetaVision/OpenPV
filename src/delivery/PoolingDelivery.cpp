@@ -154,7 +154,7 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
       getPreLayer()->setAllocDeviceDatastore();
-      getPostLayer()->getComponentByType<LayerInputBuffer>()->useCuda();
+      mPostGSyn->useCuda();
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
       weights->useGPU();
@@ -214,9 +214,8 @@ Response::Status PoolingDelivery::allocateDataStructures() {
 #ifdef PV_USE_CUDA
 void PoolingDelivery::initializeDeliverKernelArgs() {
    PVCuda::CudaBuffer *d_preDatastore = getPreLayer()->getDeviceDatastore();
-   PVCuda::CudaBuffer *d_postGSyn =
-         getPostLayer()->getComponentByType<LayerInputBuffer>()->getCudaBuffer();
-   Weights *weights = mWeightsPair->getPostWeights();
+   PVCuda::CudaBuffer *d_postGSyn     = mPostGSyn->getCudaBuffer();
+   Weights *weights                   = mWeightsPair->getPostWeights();
    pvAssert(weights);
    int const nxpPost = weights->getPatchSizeX();
    int const nypPost = weights->getPatchSizeY();
@@ -235,7 +234,7 @@ void PoolingDelivery::initializeDeliverKernelArgs() {
    mRecvKernel = new PVCuda::CudaPoolingDeliverKernel(mCudaDevice);
    mRecvKernel->setArgs(
          getPreLayer()->getLayerLoc(),
-         getPostLayer()->getLayerLoc(),
+         mPostGSyn->getLayerLoc(),
          nxpPost,
          nypPost,
          poolingMode,
@@ -255,7 +254,7 @@ void PoolingDelivery::allocateThreadGateIdxBuffer() {
       // mThreadGateIdxBuffer is only a buffer for one batch element. We're threading over
       // presynaptic neuron index, not batch element; so batch elements will be processed serially.
       for (int th = 0; th < numThreads; th++) {
-         mThreadGateIdxBuffer[th].resize(mPostLayer->getNumNeurons());
+         mThreadGateIdxBuffer[th].resize(mPostGSyn->getBufferSize());
       }
    }
 }
@@ -284,7 +283,7 @@ void PoolingDelivery::deliver(float *destBuffer) {
 
 void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
    PVLayerLoc const *sourceLoc = mPreLayer->getLayerLoc();
-   PVLayerLoc const *targetLoc = mPostLayer->getLayerLoc();
+   PVLayerLoc const *targetLoc = mPostGSyn->getLayerLoc();
    Weights *postWeights        = mWeightsPair->getPostWeights();
 
    // Slightly inefficient to define the function pointer each time deliver() is called;
@@ -310,11 +309,13 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
 
    float w = 1.0f;
    if (mAccumulateType == AVGPOOLING) {
-      float relative_XScale = pow(2, (getPostLayer()->getXScale() - getPreLayer()->getXScale()));
-      float relative_YScale = pow(2, (getPostLayer()->getYScale() - getPreLayer()->getYScale()));
-      float nxp             = (float)mPatchSize->getPatchSizeX();
-      float nyp             = (float)mPatchSize->getPatchSizeY();
-      w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
+      PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
+      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
+      float relative_XScale     = (float)preLoc->nx / (float)postLoc->nx;
+      float relative_YScale     = (float)preLoc->ny / (float)postLoc->ny;
+      float nxp                 = (float)mPatchSize->getPatchSizeX();
+      float nyp                 = (float)mPatchSize->getPatchSizeY();
+      w                         = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
    }
 
    PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(0 /*delay*/);
@@ -323,7 +324,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
    pvAssert(gSyn);
 
    // Get number of neurons restricted target
-   int const numPostRestricted = mPostLayer->getNumNeurons();
+   int const numPostRestricted = mPostGSyn->getBufferSize();
 
    int const sourceNx = sourceLoc->nx;
    int const sourceNy = sourceLoc->ny;
@@ -396,7 +397,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
          int yPatchSize   = postWeights->getPatchSizeY();
          int numPerStride = postWeights->getPatchSizeX() * postWeights->getPatchSizeF();
 
-         const PVLayerLoc *postLoc = mPostLayer->getLayerLoc();
+         const PVLayerLoc *postLoc = mPostGSyn->getLayerLoc();
          int const kfPost          = featureIndex(
                kTargetExt,
                postLoc->nx + postLoc->halo.lt + postLoc->halo.rt,
@@ -442,7 +443,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
 
 void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
    PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
-   PVLayerLoc const *postLoc = getPostLayer()->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *preWeights       = mWeightsPair->getPreWeights();
 
    // Slightly inefficient to define the function pointer each time deliver() is called;
@@ -467,11 +468,11 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
 
    float w = 1.0f;
    if (mAccumulateType == AVGPOOLING) {
-      float relative_XScale = pow(2, (getPostLayer()->getXScale() - getPreLayer()->getXScale()));
-      float relative_YScale = pow(2, (getPostLayer()->getYScale() - getPreLayer()->getYScale()));
-      float nxp             = (float)mPatchSize->getPatchSizeX();
-      float nyp             = (float)mPatchSize->getPatchSizeY();
-      w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
+      float relative_XScale     = (float)preLoc->nx / (float)postLoc->nx;
+      float relative_YScale     = (float)preLoc->ny / (float)postLoc->ny;
+      float nxp                 = (float)mPatchSize->getPatchSizeX();
+      float nyp                 = (float)mPatchSize->getPatchSizeY();
+      w                         = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
    }
 
    PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(0 /*delay*/);
@@ -485,7 +486,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int i = 0; i < getPostLayer()->getNumNeuronsAllBatches(); i++) {
+      for (int i = 0; i < mPostGSyn->getBufferSizeAcrossBatch(); i++) {
          gSyn[i] = resetVal;
       }
    }
@@ -519,9 +520,9 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
       pvAssert((int)mThreadGSyn.size() == numThreads);
       if (numThreads > 0) {
 #pragma omp parallel for
-         for (int i = 0; i < numThreads * getPostLayer()->getNumNeurons(); i++) {
-            int ti                       = i / getPostLayer()->getNumNeurons();
-            int ni                       = i % getPostLayer()->getNumNeurons();
+         for (int i = 0; i < numThreads * mPostGSyn->getBufferSize(); i++) {
+            int ti                       = i / mPostGSyn->getBufferSize();
+            int ni                       = i % mPostGSyn->getBufferSize();
             mThreadGateIdxBuffer[ti][ni] = -1.0f;
          }
       }
@@ -532,7 +533,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
       // BaseDelivery::clearThreadGSyn() is that the former sets the values to zero, while this
       // method sets them to resetVal (which is -infinity for maxpooling and zero for other types).
       if (numThreads > 0) {
-         int numNeurons = getPostLayer()->getNumNeurons();
+         int numNeurons = mPostGSyn->getBufferSize();
          for (int ti = 0; ti < numThreads; ti++) {
             float *threadData = mThreadGSyn[ti].data();
 #ifdef PV_USE_OPENMP_THREADS
@@ -637,7 +638,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
       // Accumulate back into gSyn
       if (mAccumulateType == MAXPOOLING) {
          if (numThreads > 1) {
-            int numNeurons       = getPostLayer()->getNumNeurons();
+            int numNeurons       = mPostGSyn->getBufferSize();
             float *gateIdxBuffer = nullptr;
             if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
                gateIdxBuffer = gatePatchHeadBatch;
@@ -663,7 +664,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
 #endif
    }
    if (activityCube.isSparse) {
-      for (int k = 0; k < getPostLayer()->getNumNeuronsAllBatches(); k++) {
+      for (int k = 0; k < mPostGSyn->getBufferSizeAcrossBatch(); k++) {
          if (gSyn[k] == -INFINITY) {
             gSyn[k] = 0.0f;
          }

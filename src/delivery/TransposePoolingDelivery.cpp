@@ -98,7 +98,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
 #endif // PV_USE_CUDA
    mOriginalPostIndexLayer = originalPoolingDelivery->getPostIndexLayer();
    mOriginalPreLayer       = originalPoolingDelivery->getPreLayer();
-   mOriginalPostLayer      = originalPoolingDelivery->getPostLayer();
+   mOriginalPostLayer      = originalConn->getComponentByType<ConnectionData>()->getPost();
 
    // If receiveGpu is false, we need to read updateGSynFromPostPerspective.
    // If it is true, we use the CUDA routine, which always uses the post perspective.
@@ -145,7 +145,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
       getPreLayer()->setAllocDeviceDatastore();
-      getPostLayer()->getComponentByType<LayerInputBuffer>()->useCuda();
+      mPostGSyn->useCuda();
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
       weights->useGPU();
@@ -194,10 +194,9 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
 
 #ifdef PV_USE_CUDA
 void TransposePoolingDelivery::initializeDeliverKernelArgs() {
-   PVCuda::CudaDevice *device         = mCudaDevice;
-   PVCuda::CudaBuffer *d_preDatastore = mPreLayer->getDeviceDatastore();
-   PVCuda::CudaBuffer *d_postGSyn =
-         mPostLayer->getComponentByType<LayerInputBuffer>()->getCudaBuffer();
+   PVCuda::CudaDevice *device                 = mCudaDevice;
+   PVCuda::CudaBuffer *d_preDatastore         = mPreLayer->getDeviceDatastore();
+   PVCuda::CudaBuffer *d_postGSyn             = mPostGSyn->getCudaBuffer();
    PVCuda::CudaBuffer *d_originalPreDatastore = mOriginalPreLayer->getDeviceDatastore();
    PVCuda::CudaBuffer *d_originalPostGSyn =
          mOriginalPostLayer->getComponentByType<LayerInputBuffer>()->getCudaBuffer();
@@ -221,7 +220,7 @@ void TransposePoolingDelivery::initializeDeliverKernelArgs() {
    mDeliverKernel = new PVCuda::CudaTransposePoolingDeliverKernel(device);
    mDeliverKernel->setArgs(
          mPreLayer->getLayerLoc(),
-         mPostLayer->getLayerLoc(),
+         mPostGSyn->getLayerLoc(),
          mOriginalPreLayer->getLayerLoc(),
          mOriginalPostLayer->getLayerLoc(),
          nxpPost,
@@ -264,7 +263,7 @@ void TransposePoolingDelivery::deliverPostsynapticPerspective(float *destBuffer)
 
 void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
    PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
-   PVLayerLoc const *postLoc = getPostLayer()->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *preWeights       = mWeightsPair->getPreWeights();
 
    // Slightly inefficient to define the function pointer each time deliver() is called;
@@ -289,11 +288,13 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
 
    float w = 1.0f;
    if (mAccumulateType == PoolingDelivery::AVGPOOLING) {
-      float relative_XScale = pow(2, (getPostLayer()->getXScale() - getPreLayer()->getXScale()));
-      float relative_YScale = pow(2, (getPostLayer()->getYScale() - getPreLayer()->getYScale()));
-      float nxp             = (float)mPatchSize->getPatchSizeX();
-      float nyp             = (float)mPatchSize->getPatchSizeY();
-      w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
+      PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
+      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
+      float relative_XScale     = (float)preLoc->nx / (float)postLoc->nx;
+      float relative_YScale     = (float)preLoc->ny / (float)postLoc->ny;
+      float nxp                 = (float)mPatchSize->getPatchSizeX();
+      float nyp                 = (float)mPatchSize->getPatchSizeY();
+      w                         = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
    }
 
    PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(0 /*delay*/);
@@ -461,8 +462,6 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
                w = 1.0f;
             }
             else if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
-               // float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
-               // float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
                float const nxp     = (float)mPatchSize->getPatchSizeX();
                float const nyp     = (float)mPatchSize->getPatchSizeY();
                float const normVal = nxp * nyp;
@@ -475,8 +474,8 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
             }
          }
       }
-      float relative_XScale = pow(2, (getPostLayer()->getXScale() - getPreLayer()->getXScale()));
-      float relative_YScale = pow(2, (getPostLayer()->getYScale() - getPreLayer()->getYScale()));
+      float relative_XScale = (float)preLoc->nx / (float)postLoc->nx;
+      float relative_YScale = (float)preLoc->ny / (float)postLoc->ny;
       float nxp             = (float)mPatchSize->getPatchSizeX();
       float nyp             = (float)mPatchSize->getPatchSizeY();
       w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
@@ -486,7 +485,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
       int const numThreads = (int)mThreadGSyn.size();
       if (numThreads > 1) {
          float *gSynPatchHead = gSynPatchHeadBatch;
-         int numNeurons       = getPostLayer()->getNumNeurons();
+         int numNeurons       = mPostGSyn->getBufferSize();
 // Looping over neurons first to be thread safe
 #pragma omp parallel for
          for (int ni = 0; ni < numNeurons; ni++) {

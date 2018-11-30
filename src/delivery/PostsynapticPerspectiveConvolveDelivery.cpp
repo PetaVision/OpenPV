@@ -74,10 +74,10 @@ void PostsynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
       PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       // Get number of neurons restricted target
-      const int numPostRestricted = mPostLayer->getNumNeurons();
+      const int numPostRestricted = mPostGSyn->getBufferSize();
 
       const PVLayerLoc *sourceLoc = mPreLayer->getLayerLoc();
-      const PVLayerLoc *targetLoc = mPostLayer->getLayerLoc();
+      const PVLayerLoc *targetLoc = mPostGSyn->getLayerLoc();
 
       const int sourceNx = sourceLoc->nx;
       const int sourceNy = sourceLoc->ny;
@@ -162,9 +162,9 @@ void PostsynapticPerspectiveConvolveDelivery::deliverUnitInput(
 
       float *recvBuffer) {
    // Get number of neurons restricted target
-   const int numPostRestricted = mPostLayer->getNumNeurons();
+   const int numPostRestricted = mPostGSyn->getBufferSize();
 
-   const PVLayerLoc *targetLoc = mPostLayer->getLayerLoc();
+   const PVLayerLoc *targetLoc = mPostGSyn->getLayerLoc();
 
    const int targetNx = targetLoc->nx;
    const int targetNy = targetLoc->ny;

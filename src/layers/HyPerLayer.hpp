@@ -291,9 +291,6 @@ class HyPerLayer : public ComponentBasedObject {
 // GPU variables
 #ifdef PV_USE_CUDA
   public:
-#ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer *getCudnnGSyn() { return cudnn_GSyn; }
-#endif // PV_USE_CUDNN
    PVCuda::CudaBuffer *getDeviceDatastore() { return d_Datastore; }
 
    PVCuda::CudaBuffer *getDeviceActiveIndices() { return d_ActiveIndices; }
@@ -325,7 +322,6 @@ class HyPerLayer : public ComponentBasedObject {
    PVCuda::CudaBuffer *d_numActive;
    PVCuda::CudaBuffer *d_ActiveIndices;
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer *cudnn_GSyn;
    PVCuda::CudaBuffer *cudnn_Datastore;
 #endif // PV_USE_CUDNN
 #endif // PV_USE_CUDA

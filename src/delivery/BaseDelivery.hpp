@@ -9,6 +9,7 @@
 #define BASEDELIVERY_HPP_
 
 #include "components/ConnectionData.hpp"
+#include "components/LayerInputBuffer.hpp"
 #include "delivery/LayerInputDelivery.hpp"
 #include "layers/HyPerLayer.hpp"
 
@@ -26,7 +27,7 @@ class BaseDelivery : public LayerInputDelivery {
    virtual ~BaseDelivery() {}
 
    HyPerLayer *getPreLayer() const { return mPreLayer; }
-   HyPerLayer *getPostLayer() const { return mPostLayer; }
+   LayerInputBuffer *getPostGSyn() const { return mPostGSyn; }
 
   protected:
    BaseDelivery() {}
@@ -42,7 +43,7 @@ class BaseDelivery : public LayerInputDelivery {
    /**
     * If called, allocates one buffer per openmp thread, where each buffer is the
     * size of the restricted postsynaptic layer (not including batching).
-    * That is, the size of each openmp thread's buffer is mPostLayer->getNumNeurons().
+    * That is, the size of each openmp thread's buffer is mPostGSyn->getBufferSize().
     */
    void allocateThreadGSyn();
 
@@ -54,7 +55,7 @@ class BaseDelivery : public LayerInputDelivery {
 
    /**
     * Accumulates the buffers in ThreadGSyn into the given buffer of size
-    * mPostLayer->getNumNeurons().
+    * mPostGSyn->getBufferSize().
     * That is, if the value of buffer[k] is G0 on entry, its value is
     *      G0 + sum_n ThreadGSyn[n][k].
     * If not using OpenMP, or if the ThreadGSyn vector is empty, the routine has no effect.
@@ -79,7 +80,7 @@ class BaseDelivery : public LayerInputDelivery {
   protected:
    ConnectionData *mConnectionData = nullptr;
    HyPerLayer *mPreLayer           = nullptr;
-   HyPerLayer *mPostLayer          = nullptr;
+   LayerInputBuffer *mPostGSyn     = nullptr;
 // Rather than the layers, should we store the buffers and the PVLayerLoc data?
 
 #ifdef PV_USE_OPENMP_THREADS
