@@ -24,7 +24,7 @@ LayerProbe::LayerProbe(const char *name, PVParams *params, Communicator *comm) {
    initialize(name, params, comm);
 }
 
-LayerProbe::~LayerProbe() {}
+LayerProbe::~LayerProbe() { delete mIOTimer; }
 
 int LayerProbe::initialize_base() {
    targetLayer = NULL;
@@ -37,6 +37,23 @@ int LayerProbe::initialize_base() {
  */
 void LayerProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
    BaseProbe::initialize(name, params, comm);
+}
+
+void LayerProbe::initMessageActionMap() {
+   BaseProbe::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerProbeWriteParamsMessage const>(msgptr);
+      return respondLayerProbeWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("LayerProbeWriteParams", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(msgptr);
+      return respondLayerOutputState(castMessage);
+   };
+   mMessageActionMap.emplace("LayerOutputState", action);
 }
 
 void LayerProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
@@ -57,19 +74,27 @@ LayerProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    }
    // Set target layer
    targetLayer = message->mHierarchy->lookupByName<HyPerLayer>(std::string(targetName));
-   if (targetLayer == NULL) {
-      if (mCommunicator->commRank() == 0) {
-         ErrorLog().printf(
-               "%s: targetLayer \"%s\" is not a layer in the column.\n",
-               getDescription_c(),
-               targetName);
-      }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
+   FatalIf(
+         targetLayer == nullptr,
+         "%s targetLayer \"%s\" is not a layer in the column.\n",
+         getDescription_c(),
+         targetName);
+
+   return Response::SUCCESS;
+}
+
+Response::Status
+LayerProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseProbe::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
    }
 
-   // Add to layer
-   targetLayer->insertProbe(this);
+   auto *checkpointer = message->mDataRegistry;
+
+   mIOTimer = new Timer(getName(), "layer", "io     ");
+   checkpointer->registerTimer(mIOTimer);
+
    return Response::SUCCESS;
 }
 
@@ -83,6 +108,29 @@ double LayerProbe::referenceUpdateTime(double simTime) const {
    auto *updateController = targetLayer->getComponentByType<LayerUpdateController>();
    pvAssert(updateController);
    return updateController->getLastUpdateTime();
+}
+
+Response::Status LayerProbe::respondLayerProbeWriteParams(
+      std::shared_ptr<LayerProbeWriteParamsMessage const> message) {
+   writeParams();
+   return Response::SUCCESS;
+}
+
+Response::Status
+LayerProbe::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   Response::Status status = Response::SUCCESS;
+   if (message->mPhase != targetLayer->getPhase()) {
+      return status;
+   }
+   status = outputStateWrapper(message->mTime, message->mDeltaTime);
+   return status;
+}
+
+Response::Status LayerProbe::outputStateWrapper(double simTime, double deltaTime) {
+   mIOTimer->start();
+   auto status = BaseProbe::outputStateWrapper(simTime, deltaTime);
+   mIOTimer->stop();
+   return status;
 }
 
 } // namespace PV

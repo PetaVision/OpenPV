@@ -89,7 +89,7 @@ Response::Status BaseConnectionProbe::registerData(
    if (!Response::completed(status)) {
       return status;
    }
-   mIOTimer = new Timer(getName(), "probe", "update");
+   mIOTimer = new Timer(getName(), "probe", "io     ");
    message->mDataRegistry->registerTimer(mIOTimer);
    return Response::SUCCESS;
 }

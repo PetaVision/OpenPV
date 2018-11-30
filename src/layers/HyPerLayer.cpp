@@ -48,8 +48,6 @@ HyPerLayer::HyPerLayer(const char *name, PVParams *params, Communicator *comm) {
 // to safe values.
 int HyPerLayer::initialize_base() {
    name             = NULL;
-   probes           = NULL;
-   numProbes        = 0;
    writeTime        = 0;
    initialWriteTime = 0;
 
@@ -108,12 +106,6 @@ void HyPerLayer::initMessageActionMap() {
       return respondLayerWriteParams(castMessage);
    };
    mMessageActionMap.emplace("LayerWriteParams", action);
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<LayerProbeWriteParamsMessage const>(msgptr);
-      return respondLayerProbeWriteParams(castMessage);
-   };
-   mMessageActionMap.emplace("LayerProbeWriteParams", action);
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<LayerClearProgressFlagsMessage const>(msgptr);
@@ -240,9 +232,6 @@ HyPerLayer::~HyPerLayer() {
 #endif // PV_USE_CUDNN
 #endif // PV_USE_CUDA
 
-   free(probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be deleted,
-   // only the array itself.
-
    delete publisher;
 }
 
@@ -348,11 +337,6 @@ HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage cons
    return Response::SUCCESS;
 }
 
-Response::Status HyPerLayer::respondLayerProbeWriteParams(
-      std::shared_ptr<LayerProbeWriteParamsMessage const> message) {
-   return outputProbeParams();
-}
-
 Response::Status HyPerLayer::respondLayerClearProgressFlags(
       std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
    if (mLayerUpdateController) {
@@ -439,7 +423,7 @@ HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage cons
    if (message->mPhase != getPhase()) {
       return status;
    }
-   status = outputState(message->mTime, message->mDeltaTime); // also calls probes' outputState
+   status = outputState(message->mTime, message->mDeltaTime);
    return status;
 }
 
@@ -739,62 +723,8 @@ int HyPerLayer::waitOnPublish(Communicator *comm) {
  * FileIO
  *****************************************************************/
 
-/* Inserts a new probe into an array of LayerProbes.
- *
- *
- *
- */
-int HyPerLayer::insertProbe(LayerProbe *p) {
-   if (p->getTargetLayer() != this) {
-      WarnLog().printf(
-            "HyPerLayer \"%s\": insertProbe called with probe %p, whose targetLayer is not this "
-            "layer.  Probe was not inserted.\n",
-            name,
-            p);
-      return numProbes;
-   }
-   for (int i = 0; i < numProbes; i++) {
-      if (p == probes[i]) {
-         WarnLog().printf(
-               "HyPerLayer \"%s\": insertProbe called with probe %p, which has already been "
-               "inserted as probe %d.\n",
-               name,
-               p,
-               i);
-         return numProbes;
-      }
-   }
-
-   // malloc'ing a new buffer, copying data over, and freeing the old buffer could be replaced by
-   // malloc
-   LayerProbe **tmp;
-   tmp = (LayerProbe **)malloc((numProbes + 1) * sizeof(LayerProbe *));
-   assert(tmp != NULL);
-
-   for (int i = 0; i < numProbes; i++) {
-      tmp[i] = probes[i];
-   }
-   free(probes);
-
-   probes            = tmp;
-   probes[numProbes] = p;
-
-   return ++numProbes;
-}
-
-Response::Status HyPerLayer::outputProbeParams() {
-   for (int p = 0; p < numProbes; p++) {
-      probes[p]->writeParams();
-   }
-   return Response::SUCCESS;
-}
-
 Response::Status HyPerLayer::outputState(double timestamp, double deltaTime) {
    io_timer->start();
-
-   for (int i = 0; i < numProbes; i++) {
-      probes[i]->outputStateWrapper(timestamp, deltaTime);
-   }
 
    if (timestamp >= (writeTime - (deltaTime / 2)) && writeStep >= 0) {
       int writeStatus = PV_SUCCESS;

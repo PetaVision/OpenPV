@@ -10,6 +10,7 @@
 
 #include "BaseProbe.hpp"
 #include "io/fileio.hpp"
+#include "utils/Timer.hpp"
 #include <stdio.h>
 
 namespace PV {
@@ -24,26 +25,7 @@ typedef enum { BufV, BufActivity } PVBufType;
 class LayerProbe : public BaseProbe {
 
    // Methods
-  public:
-   LayerProbe(const char *name, PVParams *params, Communicator *comm);
-   virtual ~LayerProbe();
-
-   /**
-    * Called by HyPerCol::run.  It calls BaseProbe::communicateInitInfo, then
-    * checks that
-    * the targetLayer/targetName parameter refers to a HyPerLayer in the parent
-    * HyPerCol,
-    * and then calls the layer's insertProbe method.
-    */
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
-   HyPerLayer *getTargetLayer() { return targetLayer; }
-
   protected:
-   LayerProbe();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
-
    /**
     * List of parameters for the LayerProbe class
     * @name LayerProbe Parameters
@@ -53,12 +35,36 @@ class LayerProbe : public BaseProbe {
    /**
     * @brief targetName: the name of the layer to attach the probe to.
     * In LayerProbes, targetLayer can be used in the params file instead of
-    * targetName.  LayerProbe
-    * looks for targetLayer first
-    * and then targetName.
+    * targetName.  LayerProbe looks for targetLayer first and then targetName.
     */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
    /** @} */
+  public:
+   LayerProbe(const char *name, PVParams *params, Communicator *comm);
+   virtual ~LayerProbe();
+
+   /**
+    * Called by HyPerCol::run.  It calls BaseProbe::communicateInitInfo, then
+    * checks that the targetLayer/targetName parameter refers to a HyPerLayer.
+    */
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   Response::Status
+   respondLayerProbeWriteParams(std::shared_ptr<LayerProbeWriteParamsMessage const> message);
+   Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
+
+   virtual Response::Status outputStateWrapper(double simTime, double deltaTime) override;
+
+   HyPerLayer *getTargetLayer() { return targetLayer; }
+
+  protected:
+   LayerProbe();
+   void initialize(const char *name, PVParams *params, Communicator *comm);
+   virtual void initMessageActionMap() override;
+
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    /**
     * Implements the needRecalc method.  Returns true if the target layer's
@@ -78,7 +84,8 @@ class LayerProbe : public BaseProbe {
 
    // Member variables
   protected:
-   HyPerLayer *targetLayer;
+   HyPerLayer *targetLayer = nullptr;
+   Timer *mIOTimer         = nullptr;
 };
 }
 

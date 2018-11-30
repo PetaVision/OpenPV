@@ -297,27 +297,14 @@ int testioparams(PV_Init *initObj, int rank) {
 int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
    const char *targetLayerName = "comparison";
    HyPerLayer *layer           = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(targetLayerName));
-   FatalIf(!(layer), "Test failed.\n");
-   LayerProbe *probe = NULL;
-   int np            = layer->getNumProbes();
-   for (int p = 0; p < np; p++) {
-      if (!strcmp(layer->getProbe(p)->getName(), "comparison_test")) {
-         probe = layer->getProbe(p);
-         break;
-      }
-   }
-   RequireAllZeroActivityProbe *allzeroProbe = dynamic_cast<RequireAllZeroActivityProbe *>(probe);
-   FatalIf(!(allzeroProbe), "Test failed.\n");
-   if (allzeroProbe->getNonzeroFound()) {
-      if (hc->columnId() == 0) {
-         double t = allzeroProbe->getNonzeroTime();
-         ErrorLog().printf(
-               "%s had at least one nonzero activity value, beginning at time %f\n",
-               layer->getDescription_c(),
-               t);
-      }
-      MPI_Barrier(hc->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
+   FatalIf(!layer, "Unable to find layer \"%s\".\n", targetLayerName);
+   auto *allzeroProbe =
+         dynamic_cast<RequireAllZeroActivityProbe *>(hc->getObjectFromName("comparison_test"));
+   FatalIf(!allzeroProbe, "Unable to find RequireAllZeroActivityProbe \"comparison_test\".\n");
+   FatalIf(
+         allzeroProbe->getNonzeroFound(),
+         "%s had at least one nonzero activity value, beginning at time %f\n",
+         layer->getDescription_c(),
+         allzeroProbe->getNonzeroTime());
    return PV_SUCCESS;
 }

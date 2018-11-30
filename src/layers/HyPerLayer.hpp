@@ -27,7 +27,6 @@
 #include "include/pv_common.h"
 #include "include/pv_types.h"
 #include "io/fileio.hpp"
-#include "probes/LayerProbe.hpp"
 #include "utils/Timer.hpp"
 
 #ifdef PV_USE_OPENMP_THREADS
@@ -130,8 +129,6 @@ class HyPerLayer : public ComponentBasedObject {
    Response::Status respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message);
    Response::Status respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
    Response::Status
-   respondLayerProbeWriteParams(std::shared_ptr<LayerProbeWriteParamsMessage const> message);
-   Response::Status
    respondLayerClearProgressFlags(std::shared_ptr<LayerClearProgressFlagsMessage const> message);
    Response::Status
    respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
@@ -160,17 +157,11 @@ class HyPerLayer : public ComponentBasedObject {
    virtual int writeActivity(double timed);
    virtual int writeActivitySparse(double timed);
 
-   virtual int insertProbe(LayerProbe *probe);
-   Response::Status outputProbeParams();
-
    /**
     * Returns true if the MPI exchange for the specified delay has finished;
     * false if it is still in process.
     */
    bool isExchangeFinished(int delay = 0);
-
-   int getNumProbes() { return numProbes; }
-   LayerProbe *getProbe(int n) { return (n >= 0 && n < numProbes) ? probes[n] : NULL; }
 
    // Public access functions:
 
@@ -241,9 +232,6 @@ class HyPerLayer : public ComponentBasedObject {
    virtual Response::Status checkUpdateState(double simTime, double deltaTime);
 
    Publisher *publisher = nullptr;
-
-   int numProbes;
-   LayerProbe **probes;
 
    LayerGeometry *mLayerGeometry = nullptr;
 

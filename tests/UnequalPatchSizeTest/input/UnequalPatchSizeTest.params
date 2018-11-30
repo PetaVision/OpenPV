@@ -88,7 +88,7 @@ PvpLayer "correct" = {
     offsetY = 0;
 };
 
-ANNLayer "compare" = {
+HyPerLayer "compare" = {
     // nxScale set in parameter sweep
     // nyScale set in parameter sweep
     nf = 1;
@@ -100,13 +100,6 @@ ANNLayer "compare" = {
     sparseLayer = false;
 
     InitVType = "ZeroV";
-
-
-    VThresh = -infinity;   
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
 };
 
 HyPerConn "input_to_output" = {
