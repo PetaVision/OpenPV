@@ -10,6 +10,8 @@
 
 #include "delivery/HyPerDelivery.hpp"
 
+#include "columns/Random.hpp"
+
 namespace PV {
 
 /**

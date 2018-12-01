@@ -101,8 +101,6 @@ int pv_getopt_unsigned(
       unsigned int *uVal,
       bool *paramusage);
 
-int readFile(const char *filename, float *buf, int *nx, int *ny);
-
 int parse_options(
       int argc,
       char const *const *argv,

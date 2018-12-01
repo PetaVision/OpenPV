@@ -161,10 +161,6 @@ long int PV_ftell_primitive(PV_Stream *pvstream) {
    return filepos;
 }
 
-long int getPV_StreamFilepos(PV_Stream *pvstream) { return pvstream->filepos; }
-
-// Use getPV_StreamFilepos instead of PV_ftell whenever possible, since NMC cluster's ftell is
-// currently unreliable
 long int PV_ftell(PV_Stream *pvstream) {
    long int filepos = PV_ftell_primitive(pvstream);
    if (pvstream->filepos != filepos) {
@@ -578,34 +574,6 @@ void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
       }
       exit(EXIT_FAILURE);
    }
-}
-
-int pv_text_write_patch(
-      PrintStream *outStream,
-      Patch const *patch,
-      float *data,
-      int nf,
-      int sx,
-      int sy,
-      int sf) {
-   int f, i, j;
-
-   const int nx = (int)patch->nx;
-   const int ny = (int)patch->ny;
-
-   assert(outStream != NULL);
-
-   for (f = 0; f < nf; f++) {
-      for (j = 0; j < ny; j++) {
-         for (i = 0; i < nx; i++) {
-            outStream->printf("%7.5f ", (double)data[i * sx + j * sy + f * sf]);
-         }
-         outStream->printf("\n");
-      }
-      outStream->printf("\n");
-   }
-
-   return 0;
 }
 
 } // namespace PV

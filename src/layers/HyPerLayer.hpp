@@ -15,8 +15,6 @@
 #include "columns/Communicator.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/Publisher.hpp"
-#include "columns/Random.hpp"
-#include "components/ActivityBuffer.hpp"
 #include "components/ActivityComponent.hpp"
 #include "components/BoundaryConditions.hpp"
 #include "components/InternalStateBuffer.hpp"
@@ -217,7 +215,7 @@ class HyPerLayer : public ComponentBasedObject {
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    /**
-    * This routine initializes the InternalStateBuffer and ActivityBuffer components.
+    * This routine initializes the ActivityComponent component.
     */
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
