@@ -167,7 +167,6 @@ class HyPerCol : public Subject, public ParamsInterface {
    int getNyGlobal() { return mNumYGlobal; }
    int getNBatchGlobal() { return mNumBatchGlobal; }
    int getNumThreads() const { return mNumThreads; }
-   int numberOfBorderRegions() const { return MAX_NEIGHBORS; }
    int numberOfColumns() { return mCommunicator->commSize(); }
    int numberOfGlobalColumns() { return mCommunicator->globalCommSize(); }
    int commColumn() { return mCommunicator->commColumn(); }

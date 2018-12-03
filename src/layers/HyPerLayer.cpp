@@ -13,21 +13,14 @@
 */
 
 #include "HyPerLayer.hpp"
-#include "checkpointing/CheckpointEntryPvpBuffer.hpp"
-#include "checkpointing/CheckpointEntryRandState.hpp"
 #include "components/HyPerActivityBuffer.hpp"
 #include "components/HyPerActivityComponent.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 #include "connections/BaseConnection.hpp"
-#include "include/default_params.h"
-#include "include/pv_common.h"
-#include "io/FileStream.hpp"
-#include "io/io.hpp"
 #include "observerpattern/ObserverTable.hpp"
-#include <assert.h>
-#include <iostream>
-#include <sstream>
-#include <string.h>
+#include "utils/BufferUtilsMPI.hpp"
+#include <cassert>
+#include <cstring>
 
 namespace PV {
 
