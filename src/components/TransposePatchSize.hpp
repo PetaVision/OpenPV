@@ -22,12 +22,12 @@ class TransposePatchSize : public DependentPatchSize {
    TransposePatchSize(char const *name, PVParams *params, Communicator *comm);
    virtual ~TransposePatchSize();
 
-   virtual void setObjectType() override;
-
   protected:
    TransposePatchSize();
 
    void initialize(char const *name, PVParams *params, Communicator *comm);
+
+   virtual void setObjectType() override;
 
    virtual void setPatchSize(PatchSize *originalPatchSize) override;
 

@@ -36,12 +36,12 @@ class SingleArbor : public ArborList {
    SingleArbor(char const *name, PVParams *params, Communicator *comm);
    virtual ~SingleArbor();
 
-   virtual void setObjectType() override;
-
   protected:
    SingleArbor();
 
    void initialize(char const *name, PVParams *params, Communicator *comm);
+
+   virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

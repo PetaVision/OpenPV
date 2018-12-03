@@ -42,6 +42,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ISTAInternalStateBuffer.cpp
    ${SUBDIR}/LayerGeometry.cpp
    ${SUBDIR}/LayerInputBuffer.cpp
+   ${SUBDIR}/LayerOutputComponent.cpp
    ${SUBDIR}/LayerUpdateController.cpp
    ${SUBDIR}/LeakyIntegratorBuffer.cpp
    ${SUBDIR}/LIFActivityComponent.cpp
@@ -125,6 +126,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ISTAInternalStateBuffer.hpp
    ${SUBDIR}/LayerGeometry.hpp
    ${SUBDIR}/LayerInputBuffer.hpp
+   ${SUBDIR}/LayerOutputComponent.hpp
    ${SUBDIR}/LayerUpdateController.hpp
    ${SUBDIR}/LeakyIntegratorBuffer.hpp
    ${SUBDIR}/LIFActivityComponent.hpp

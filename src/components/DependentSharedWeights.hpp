@@ -36,12 +36,12 @@ class DependentSharedWeights : public SharedWeights {
    DependentSharedWeights(char const *name, PVParams *params, Communicator *comm);
    virtual ~DependentSharedWeights();
 
-   virtual void setObjectType() override;
-
   protected:
    DependentSharedWeights();
 
    void initialize(char const *name, PVParams *params, Communicator *comm);
+
+   virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

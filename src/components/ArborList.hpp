@@ -44,8 +44,6 @@ class ArborList : public BaseObject {
    ArborList(char const *name, PVParams *params, Communicator *comm);
    virtual ~ArborList();
 
-   virtual void setObjectType() override;
-
    /**
     * Returns the number of arbors in the connection
     */
@@ -57,6 +55,8 @@ class ArborList : public BaseObject {
    ArborList();
 
    void initialize(char const *name, PVParams *params, Communicator *comm);
+
+   virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

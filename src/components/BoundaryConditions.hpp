@@ -39,8 +39,6 @@ class BoundaryConditions : public BaseObject {
    BoundaryConditions(char const *name, PVParams *params, Communicator *comm);
    virtual ~BoundaryConditions();
 
-   virtual void setObjectType() override;
-
    /**
     * Use the BoundaryConditions parameters to fill in the extended part of the given
     * buffer using the given PVLayerLoc. The boundary conditions are applied to all
@@ -55,6 +53,8 @@ class BoundaryConditions : public BaseObject {
    BoundaryConditions();
 
    void initialize(char const *name, PVParams *params, Communicator *comm);
+
+   virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
