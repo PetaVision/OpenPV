@@ -29,6 +29,7 @@ class ConstantLayer : public HyPerLayer {
    void initialize(const char *name, PVParams *params, Communicator *comm);
 
    LayerUpdateController *createLayerUpdateController() override;
+   LayerOutputComponent *createLayerOutput() override;
 
 }; // class ConstantLayer
 

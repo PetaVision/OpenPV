@@ -40,10 +40,6 @@ HyPerLayer::HyPerLayer(const char *name, PVParams *params, Communicator *comm) {
 // In general, initialize_base should be used only to initialize member variables
 // to safe values.
 int HyPerLayer::initialize_base() {
-   name             = NULL;
-   writeTime        = 0;
-   initialWriteTime = 0;
-
 #ifdef PV_USE_CUDA
    allocDeviceDatastore     = false;
    allocDeviceActiveIndices = false;
@@ -57,7 +53,6 @@ int HyPerLayer::initialize_base() {
 #endif // PV_USE_CUDA
 
    publish_timer = NULL;
-   io_timer      = NULL;
 
    recvConns.clear();
 
@@ -76,9 +71,6 @@ void HyPerLayer::initialize(const char *name, PVParams *params, Communicator *co
    // layer will automatically read InitializeFromCheckpointFlag, but shouldn't also write it.
    mWriteInitializeFromCheckpointFlag = true;
 
-   writeTime                = initialWriteTime;
-   writeActivityCalls       = 0;
-   writeActivitySparseCalls = 0;
    numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed,
    // numDelayLevels is increased when BaseConnection::communicateInitInfo calls
    // increaseDelayLevels
@@ -179,6 +171,10 @@ void HyPerLayer::createComponentTable(char const *description) {
    if (mActivityComponent) {
       addUniqueComponent(mActivityComponent->getDescription(), mActivityComponent);
    }
+   mLayerOutput = createLayerOutput();
+   if (mLayerOutput) {
+      addUniqueComponent(mLayerOutput->getDescription(), mLayerOutput);
+   }
 }
 
 LayerUpdateController *HyPerLayer::createLayerUpdateController() {
@@ -207,11 +203,12 @@ ActivityComponent *HyPerLayer::createActivityComponent() {
                                      HyPerActivityBuffer>(name, parameters(), mCommunicator);
 }
 
+LayerOutputComponent *HyPerLayer::createLayerOutput() {
+   return new LayerOutputComponent(name, parameters(), mCommunicator);
+}
+
 HyPerLayer::~HyPerLayer() {
    delete publish_timer;
-   delete io_timer;
-
-   delete mOutputStateStream;
 
 #ifdef PV_USE_CUDA
    if (d_Datastore) {
@@ -236,6 +233,7 @@ void HyPerLayer::addPublisher() {
    activityCube->data        = activityBuffer->getBufferData();
    activityCube->loc         = *getLayerLoc();
    publisher = new Publisher(*mpiBlock, activityCube, getNumDelayLevels(), getSparseFlag());
+   mLayerOutput->setPublisher(publisher);
 }
 
 Response::Status
@@ -264,9 +262,6 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
          obj->ioParams(ioFlag, false, false);
       }
    }
-   ioParam_writeStep(ioFlag);
-   ioParam_initialWriteTime(ioFlag);
-   ioParam_sparseLayer(ioFlag);
 
    ioParam_dataType(ioFlag);
    return PV_SUCCESS;
@@ -284,39 +279,6 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
                "%s defines the dataType param, which is no longer used.\n", getDescription_c());
       }
    }
-}
-
-void HyPerLayer::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   bool warnIfAbsent = false; // If not in params, will be set in CommunicateInitInfo stage
-   // If writing a derived class that overrides ioParam_writeStep, check if the setDefaultWriteStep
-   // method also needs to be overridden.
-   parameters()->ioParamValue(ioFlag, name, "writeStep", &writeStep, writeStep, warnIfAbsent);
-}
-
-void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "writeStep"));
-   if (writeStep >= 0.0) {
-      parameters()->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, 0.0);
-      if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < 0.0) {
-         double storeInitialWriteTime = initialWriteTime;
-         while (initialWriteTime < 0.0) {
-            initialWriteTime += writeStep;
-         }
-         if (mCommunicator->globalCommRank() == 0) {
-            WarnLog(warningMessage);
-            warningMessage.printf(
-                  "%s: initialWriteTime %f is negative.  Adjusting "
-                  "initialWriteTime:\n",
-                  getDescription_c(),
-                  initialWriteTime);
-            warningMessage.printf("    initialWriteTime adjusted to %f\n", initialWriteTime);
-         }
-      }
-   }
-}
-
-void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "sparseLayer", &sparseLayer, false);
 }
 
 Response::Status
@@ -412,11 +374,10 @@ Response::Status HyPerLayer::respondLayerCheckNotANumber(
 
 Response::Status
 HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
-   Response::Status status = Response::SUCCESS;
-   if (message->mPhase != getPhase()) {
-      return status;
+   auto status = Response::NO_ACTION;
+   if (mLayerOutput and message->mPhase == getPhase()) {
+      status = mLayerOutput->respond(message);
    }
-   status = outputState(message->mTime, message->mDeltaTime);
    return status;
 }
 
@@ -505,37 +466,7 @@ HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    }
 #endif
 
-   if (!parameters()->present(getName(), "writeStep")) {
-      setDefaultWriteStep(message);
-   }
-
    return Response::SUCCESS;
-}
-
-void HyPerLayer::setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   writeStep = message->mDeltaTime;
-   // Call ioParamValue to generate the warnIfAbsent warning.
-   parameters()->ioParamValue(PARAMS_IO_READ, name, "writeStep", &writeStep, writeStep, true);
-}
-
-int HyPerLayer::openOutputStateFile(
-      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   pvAssert(writeStep >= 0);
-
-   auto *checkpointer = message->mDataRegistry;
-   if (checkpointer->getMPIBlock()->getRank() == 0) {
-      std::string outputStatePath(getName());
-      outputStatePath.append(".pvp");
-
-      std::string checkpointLabel(getName());
-      checkpointLabel.append("_filepos");
-
-      bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
-      mOutputStateStream = new CheckpointableFileStream(
-            outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
-      mOutputStateStream->respond(message); // CheckpointableFileStream needs to register data
-   }
-   return PV_SUCCESS;
 }
 
 void HyPerLayer::synchronizeMarginWidth(HyPerLayer *layer) {
@@ -625,43 +556,10 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
    auto *checkpointer = message->mDataRegistry;
    publisher->checkpointDataStore(checkpointer, getName(), "Delays");
-   checkpointer->registerCheckpointData(
-         std::string(getName()),
-         std::string("nextWrite"),
-         &writeTime,
-         (std::size_t)1,
-         true /*broadcast*/,
-         false /*not constant*/);
-
-   if (writeStep >= 0.0) {
-      openOutputStateFile(message);
-      if (sparseLayer) {
-         checkpointer->registerCheckpointData(
-               std::string(getName()),
-               std::string("numframes_sparse"),
-               &writeActivitySparseCalls,
-               (std::size_t)1,
-               true /*broadcast*/,
-               false /*not constant*/);
-      }
-      else {
-         checkpointer->registerCheckpointData(
-               std::string(getName()),
-               std::string("numframes"),
-               &writeActivityCalls,
-               (std::size_t)1,
-               true /*broadcast*/,
-               false /*not constant*/);
-      }
-   }
 
    // Timers
-
    publish_timer = new Timer(getName(), "layer", "publish");
    checkpointer->registerTimer(publish_timer);
-
-   io_timer = new Timer(getName(), "layer", "io     ");
-   checkpointer->registerTimer(io_timer);
 
    return Response::SUCCESS;
 }
@@ -716,29 +614,6 @@ int HyPerLayer::waitOnPublish(Communicator *comm) {
  * FileIO
  *****************************************************************/
 
-Response::Status HyPerLayer::outputState(double timestamp, double deltaTime) {
-   io_timer->start();
-
-   if (timestamp >= (writeTime - (deltaTime / 2)) && writeStep >= 0) {
-      int writeStatus = PV_SUCCESS;
-      writeTime += writeStep;
-      if (sparseLayer) {
-         writeStatus = writeActivitySparse(timestamp);
-      }
-      else {
-         writeStatus = writeActivity(timestamp);
-      }
-      FatalIf(
-            writeStatus != PV_SUCCESS,
-            "%s: outputState failed on rank %d process.\n",
-            getDescription_c(),
-            mCommunicator->globalCommRank());
-   }
-
-   io_timer->stop();
-   return Response::SUCCESS;
-}
-
 Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
    pvAssert(mInitializeFromCheckpointFlag);
    auto status = Response::NO_ACTION;
@@ -758,125 +633,6 @@ void HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
 Response::Status HyPerLayer::processCheckpointRead() {
    updateAllActiveIndices();
    return Response::SUCCESS;
-}
-
-int HyPerLayer::writeActivitySparse(double timed) {
-   PVLayerCube cube      = publisher->createCube(0 /*delay*/);
-   PVLayerLoc const *loc = getLayerLoc();
-   pvAssert(cube.numItems == loc->nbatch * getNumExtended());
-
-   int const mpiBatchDimension = getMPIBlock()->getBatchDimension();
-   int const numFrames         = mpiBatchDimension * loc->nbatch;
-   for (int frame = 0; frame < numFrames; frame++) {
-      int const localBatchIndex = frame % loc->nbatch;
-      int const mpiBatchIndex   = frame / loc->nbatch; // Integer division
-      pvAssert(mpiBatchIndex * loc->nbatch + localBatchIndex == frame);
-
-      SparseList<float> list;
-      auto *activeIndicesBatch   = (SparseList<float>::Entry const *)cube.activeIndices;
-      auto *activeIndicesElement = &activeIndicesBatch[localBatchIndex * getNumExtended()];
-      PVLayerLoc const *loc      = getLayerLoc();
-      int nxExt                  = loc->nx + loc->halo.lt + loc->halo.rt;
-      int nyExt                  = loc->ny + loc->halo.dn + loc->halo.up;
-      int nf                     = loc->nf;
-      for (long int k = 0; k < cube.numActive[localBatchIndex]; k++) {
-         SparseList<float>::Entry entry = activeIndicesElement[k];
-         int index                      = (int)entry.index;
-
-         // Location is local extended; need global restricted.
-         // Get local restricted coordinates.
-         int x = kxPos(index, nxExt, nyExt, nf) - loc->halo.lt;
-         if (x < 0 or x >= loc->nx) {
-            continue;
-         }
-         int y = kyPos(index, nxExt, nyExt, nf) - loc->halo.up;
-         if (y < 0 or y >= loc->ny) {
-            continue;
-         }
-         // Convert to global restricted coordinates.
-         x += loc->kx0;
-         y += loc->ky0;
-         int f = featureIndex(index, nxExt, nyExt, nf);
-
-         // Get global restricted index.
-         entry.index = (uint32_t)kIndex(x, y, f, loc->nxGlobal, loc->nyGlobal, nf);
-         list.addEntry(entry);
-      }
-      auto gatheredList =
-            BufferUtils::gatherSparse(getMPIBlock(), list, mpiBatchIndex, 0 /*root process*/);
-      if (getMPIBlock()->getRank() == 0) {
-         long fpos = mOutputStateStream->getOutPos();
-         if (fpos == 0L) {
-            BufferUtils::ActivityHeader header = BufferUtils::buildSparseActivityHeader<float>(
-                  loc->nx * getMPIBlock()->getNumColumns(),
-                  loc->ny * getMPIBlock()->getNumRows(),
-                  loc->nf,
-                  0 /* numBands */); // numBands will be set by call to incrementNBands.
-            header.timestamp = timed;
-            BufferUtils::writeActivityHeader(*mOutputStateStream, header);
-         }
-         BufferUtils::writeSparseFrame(*mOutputStateStream, &gatheredList, timed);
-      }
-   }
-   writeActivitySparseCalls += numFrames;
-   updateNBands(writeActivitySparseCalls);
-   return PV_SUCCESS;
-}
-
-// write non-spiking activity
-int HyPerLayer::writeActivity(double timed) {
-   PVLayerCube cube      = publisher->createCube(0);
-   PVLayerLoc const *loc = getLayerLoc();
-   pvAssert(cube.numItems == loc->nbatch * getNumExtended());
-
-   PVHalo const &halo   = loc->halo;
-   int const nxExtLocal = loc->nx + halo.lt + halo.rt;
-   int const nyExtLocal = loc->ny + halo.dn + halo.up;
-   int const nf         = loc->nf;
-
-   int const mpiBatchDimension = getMPIBlock()->getBatchDimension();
-   int const numFrames         = mpiBatchDimension * loc->nbatch;
-   for (int frame = 0; frame < numFrames; frame++) {
-      int const localBatchIndex = frame % loc->nbatch;
-      int const mpiBatchIndex   = frame / loc->nbatch; // Integer division
-      pvAssert(mpiBatchIndex * loc->nbatch + localBatchIndex == frame);
-
-      float const *data = &cube.data[localBatchIndex * getNumExtended()];
-      Buffer<float> localBuffer(data, nxExtLocal, nyExtLocal, nf);
-      localBuffer.crop(loc->nx, loc->ny, Buffer<float>::CENTER);
-      Buffer<float> blockBuffer = BufferUtils::gather<float>(
-            getMPIBlock(), localBuffer, loc->nx, loc->ny, mpiBatchIndex, 0 /*root process*/);
-      // At this point, the rank-zero process has the entire block for the batch element,
-      // regardless of what the mpiBatchIndex is.
-      if (getMPIBlock()->getRank() == 0) {
-         long fpos = mOutputStateStream->getOutPos();
-         if (fpos == 0L) {
-            BufferUtils::ActivityHeader header = BufferUtils::buildActivityHeader<float>(
-                  loc->nx * getMPIBlock()->getNumColumns(),
-                  loc->ny * getMPIBlock()->getNumRows(),
-                  loc->nf,
-                  0 /* numBands */); // numBands will be set by call to incrementNBands.
-            header.timestamp = timed;
-            BufferUtils::writeActivityHeader(*mOutputStateStream, header);
-         }
-         BufferUtils::writeFrame<float>(*mOutputStateStream, &blockBuffer, timed);
-      }
-   }
-   writeActivityCalls += numFrames;
-   updateNBands(writeActivityCalls);
-   return PV_SUCCESS;
-}
-
-void HyPerLayer::updateNBands(int const numCalls) {
-   // Only the root process needs to maintain INDEX_NBANDS, so only the root process modifies
-   // numCalls
-   // This way, writeActivityCalls does not need to be coordinated across MPI
-   if (mOutputStateStream != nullptr) {
-      long int fpos = mOutputStateStream->getOutPos();
-      mOutputStateStream->setOutPos(sizeof(int) * INDEX_NBANDS, true /*fromBeginning*/);
-      mOutputStateStream->write(&numCalls, (long)sizeof(numCalls));
-      mOutputStateStream->setOutPos(fpos, true /*fromBeginning*/);
-   }
 }
 
 } // end of PV namespace

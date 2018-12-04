@@ -33,8 +33,8 @@ class InputRegionLayer : public HyPerLayer {
    virtual LayerUpdateController *createLayerUpdateController() override;
    virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
+   virtual LayerOutputComponent *createLayerOutput() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
-   virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag) override;
 }; // class InputRegionLayer
 
 } /* namespace PV */

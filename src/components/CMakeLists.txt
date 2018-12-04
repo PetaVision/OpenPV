@@ -15,6 +15,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ComponentBuffer.cpp
    ${SUBDIR}/ConnectionData.cpp
    ${SUBDIR}/CopyWeightsPair.cpp
+   ${SUBDIR}/DefaultNoOutputComponent.cpp
+   ${SUBDIR}/DenseLayerOutputComponent.cpp
    ${SUBDIR}/DependentArborList.cpp
    ${SUBDIR}/DependentBoundaryConditions.cpp
    ${SUBDIR}/DependentPatchSize.cpp
@@ -98,6 +100,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ComponentBuffer.hpp
    ${SUBDIR}/ConnectionData.hpp
    ${SUBDIR}/CopyWeightsPair.hpp
+   ${SUBDIR}/DefaultNoOutputComponent.hpp
+   ${SUBDIR}/DenseLayerOutputComponent.hpp
    ${SUBDIR}/DependentArborList.hpp
    ${SUBDIR}/DependentBoundaryConditions.hpp
    ${SUBDIR}/DependentPatchSize.hpp

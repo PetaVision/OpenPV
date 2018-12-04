@@ -6,6 +6,7 @@
  */
 
 #include "InputRegionLayer.hpp"
+#include "components/DenseLayerOutputComponent.hpp"
 #include "components/DependentBoundaryConditions.hpp"
 #include "components/DependentPhaseParam.hpp"
 #include "components/InputRegionActivityComponent.hpp"
@@ -48,15 +49,12 @@ ActivityComponent *InputRegionLayer::createActivityComponent() {
    return new InputRegionActivityComponent(getName(), parameters(), mCommunicator);
 }
 
-OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
+LayerOutputComponent *InputRegionLayer::createLayerOutput() {
+   return new DenseLayerOutputComponent(getName(), parameters(), mCommunicator);
 }
 
-void InputRegionLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      sparseLayer = false;
-      parameters()->handleUnnecessaryParameter(name, "sparseLayer");
-   }
+OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
+   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
 }
 
 } /* namespace PV */
