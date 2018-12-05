@@ -93,7 +93,7 @@ void TopDownDelivery::deliver() {
             if (kx < 0 or kx >= nx or ky < 0 or kx >= ny) {
                continue;
             }
-            int kf    = featureIndex(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.up;
+            int kf    = featureIndex(kPre, nxPreExtended, nyPreExtended, nf);
             int kPost = kIndex(kx, ky, kf, nx, ny, nf);
             pvAssert(kPost >= 0 and kPost < numPostRestricted);
             float a = activeIndices[loopIndex].value;
