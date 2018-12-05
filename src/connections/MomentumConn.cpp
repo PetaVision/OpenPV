@@ -30,4 +30,11 @@ char const *MomentumConn::getMomentumMethod() const {
    return momentumUpdater->getMomentumMethod();
 }
 
+float MomentumConn::getTimeConstantTau() const {
+   auto *momentumUpdater =
+         mapLookupByType<MomentumUpdater>(mComponentTable.getObjectMap(), getDescription());
+   pvAssert(momentumUpdater);
+   return momentumUpdater->getTimeConstantTau();
+}
+
 } // namespace PV

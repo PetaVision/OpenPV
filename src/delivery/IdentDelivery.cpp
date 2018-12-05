@@ -128,10 +128,10 @@ void IdentDelivery::deliver() {
             int kPre = activeIndices[loopIndex].index;
             int kx   = kxPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.lt;
             int ky   = kyPos(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.up;
-            if (kx < 0 or kx >= nx or ky < 0 or kx >= ny) {
+            if (kx < 0 or kx >= nx or ky < 0 or ky >= ny) {
                continue;
             }
-            int kf    = featureIndex(kPre, nxPreExtended, nyPreExtended, nf) - preLoc.halo.up;
+            int kf    = featureIndex(kPre, nxPreExtended, nyPreExtended, nf);
             int kPost = kIndex(kx, ky, kf, nx, ny, nf);
             pvAssert(kPost >= 0 and kPost < numPostRestricted);
             float a = activeIndices[loopIndex].value;
