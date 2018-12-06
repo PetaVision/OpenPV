@@ -6,7 +6,6 @@
  */
 
 #include "LayerInputDelivery.hpp"
-#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 

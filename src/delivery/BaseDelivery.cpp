@@ -6,7 +6,6 @@
  */
 
 #include "BaseDelivery.hpp"
-#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
@@ -40,8 +39,9 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
       return Response::POSTPONE;
    }
 
-   mPreLayer = mConnectionData->getPre();
-   pvAssert(mPreLayer != nullptr);
+   auto *preLayer = mConnectionData->getPre();
+   pvAssert(preLayer != nullptr);
+   mPreData = preLayer->getComponentByType<PublisherComponent>();
 
    auto *postLayer = mConnectionData->getPost();
    pvAssert(postLayer != nullptr);

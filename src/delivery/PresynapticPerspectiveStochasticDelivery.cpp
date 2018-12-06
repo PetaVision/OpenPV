@@ -71,7 +71,7 @@ Response::Status PresynapticPerspectiveStochasticDelivery::allocateDataStructure
 }
 
 void PresynapticPerspectiveStochasticDelivery::allocateRandState() {
-   mRandState = new Random(mPreLayer->getLayerLoc(), true /*need RNGs in the extended buffer*/);
+   mRandState = new Random(mPreData->getLayerLoc(), true /*need RNGs in the extended buffer*/);
 }
 
 void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
@@ -82,7 +82,7 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
    float *postChannel = destBuffer;
    pvAssert(postChannel);
 
-   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
+   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
@@ -98,25 +98,27 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
    const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
    const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
 
-   bool const preLayerIsSparse = mPreLayer->getSparseFlag();
+   bool const preLayerIsSparse = mPreData->getSparseLayer();
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       int delay                = mArborList->getDelay(arbor);
-      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
+      PVLayerCube activityCube = mPreData->getPublisher()->createCube(delay);
 
       for (int b = 0; b < nbatch; b++) {
          size_t batchOffset                                 = b * numPreExtended;
          float const *activityBatch                         = activityCube.data + batchOffset;
          float *gSynPatchHeadBatch                          = postChannel + b * numPostRestricted;
-         SparseList<float>::Entry const *activeIndicesBatch = NULL;
+         SparseList<float>::Entry const *activeIndicesBatch = nullptr;
+         int numNeurons;
          if (preLayerIsSparse) {
             activeIndicesBatch =
                   (SparseList<float>::Entry *)activityCube.activeIndices + batchOffset;
+            numNeurons = activityCube.numActive[b];
          }
-
-         int numNeurons =
-               preLayerIsSparse ? activityCube.numActive[b] : mPreLayer->getNumExtended();
+         else {
+            numNeurons = activityCube.numItems / activityCube.loc.nbatch;
+         }
 
 #ifdef PV_USE_OPENMP_THREADS
          clearThreadGSyn();
@@ -212,7 +214,7 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
 }
 
 void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffer) {
-   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
+   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
@@ -226,11 +228,11 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
    int const numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       int delay                = mArborList->getDelay(arbor);
-      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
+      PVLayerCube activityCube = mPreData->getPublisher()->createCube(delay);
 
       for (int b = 0; b < nbatch; b++) {
          float *recvBatch = recvBuffer + b * numPostRestricted;
-         int numNeurons   = mPreLayer->getNumExtended();
+         int numNeurons   = activityCube.numItems / activityCube.loc.nbatch;
 
 #ifdef PV_USE_OPENMP_THREADS
          clearThreadGSyn();

@@ -47,8 +47,8 @@ WTADelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
 
 void WTADelivery::checkPreAndPostDimensions() {
    int status = PV_SUCCESS;
-   pvAssert(mPreLayer and mPostGSyn); // Only call this after BaseDelivery::communicateInitInfo().
-   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
+   pvAssert(mPreData and mPostGSyn); // Only call this after BaseDelivery::communicateInitInfo().
+   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    if (preLoc->nx != postLoc->nx) {
       ErrorLog().printf(
@@ -86,7 +86,7 @@ void WTADelivery::checkPreAndPostDimensions() {
          "WTADelivery \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: "
          "%dx%dx%d vs. %dx%dx%d\n",
          name,
-         mPreLayer->getName(),
+         mPreData->getName(),
          mPostGSyn->getName(),
          preLoc->nx,
          preLoc->ny,
@@ -101,7 +101,7 @@ void WTADelivery::deliver(float *destBuffer) {
       return;
    }
 
-   PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(mDelay);
+   PVLayerCube const preActivityCube = mPreData->getPublisher()->createCube(mDelay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
 
    int const nx       = preLoc.nx;
@@ -159,7 +159,7 @@ bool WTADelivery::isAllInputReady() const {
       isReady = true;
    }
    else {
-      isReady = getPreLayer()->isExchangeFinished(mDelay);
+      isReady = mPreData->isExchangeFinished(mDelay);
    }
    return isReady;
 }

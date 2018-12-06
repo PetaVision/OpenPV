@@ -97,8 +97,11 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    mUsingGPUFlag = originalPoolingDelivery->isUsingGPU();
 #endif // PV_USE_CUDA
    mOriginalPostIndexLayer = originalPoolingDelivery->getPostIndexLayer();
-   mOriginalPreLayer       = originalPoolingDelivery->getPreLayer();
-   mOriginalPostLayer      = originalConn->getComponentByType<ConnectionData>()->getPost();
+
+   auto *originalConnectionData = originalConn->getComponentByType<ConnectionData>();
+   pvAssert(originalConnectionData);
+   mOriginalPreData  = originalConnectionData->getPre()->getComponentByType<PublisherComponent>();
+   mOriginalPostGSyn = originalConnectionData->getPost()->getComponentByType<LayerInputBuffer>();
 
    // If receiveGpu is false, we need to read updateGSynFromPostPerspective.
    // If it is true, we use the CUDA routine, which always uses the post perspective.
@@ -144,15 +147,15 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
-      getPreLayer()->setAllocCudaDatastore();
+      getPreData()->setAllocCudaDatastore();
       mPostGSyn->useCuda();
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
       weights->useGPU();
 
       // If recv from pre and pre layer is sparse, allocate activeIndices
-      if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
-         getPreLayer()->setAllocCudaActiveIndices();
+      if (!mUpdateGSynFromPostPerspective && getPreData()->getSparseLayer()) {
+         getPreData()->setAllocCudaActiveIndices();
       }
    }
 #endif // PV_USE_CUDA
@@ -194,12 +197,11 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
 
 #ifdef PV_USE_CUDA
 void TransposePoolingDelivery::initializeDeliverKernelArgs() {
-   PVCuda::CudaBuffer *d_preDatastore         = mPreLayer->getCudaDatastore();
+   PVCuda::CudaBuffer *d_preDatastore         = mPreData->getCudaDatastore();
    PVCuda::CudaBuffer *d_postGSyn             = mPostGSyn->getCudaBuffer();
-   PVCuda::CudaBuffer *d_originalPreDatastore = mOriginalPreLayer->getCudaDatastore();
-   PVCuda::CudaBuffer *d_originalPostGSyn =
-         mOriginalPostLayer->getComponentByType<LayerInputBuffer>()->getCudaBuffer();
-   Weights *weights = mWeightsPair->getPostWeights();
+   PVCuda::CudaBuffer *d_originalPreDatastore = mOriginalPreData->getCudaDatastore();
+   PVCuda::CudaBuffer *d_originalPostGSyn     = mOriginalPostGSyn->getCudaBuffer();
+   Weights *weights                           = mWeightsPair->getPostWeights();
    pvAssert(weights);
    int const nxpPost = weights->getPatchSizeX();
    int const nypPost = weights->getPatchSizeY();
@@ -218,10 +220,10 @@ void TransposePoolingDelivery::initializeDeliverKernelArgs() {
    }
    mDeliverKernel = new PVCuda::CudaTransposePoolingDeliverKernel(mCudaDevice);
    mDeliverKernel->setArgs(
-         mPreLayer->getLayerLoc(),
+         mPreData->getLayerLoc(),
          mPostGSyn->getLayerLoc(),
-         mOriginalPreLayer->getLayerLoc(),
-         mOriginalPostLayer->getLayerLoc(),
+         mOriginalPreData->getLayerLoc(),
+         mOriginalPostGSyn->getLayerLoc(),
          nxpPost,
          nypPost,
          poolingMode,
@@ -261,7 +263,7 @@ void TransposePoolingDelivery::deliverPostsynapticPerspective(float *destBuffer)
 }
 
 void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
-   PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
+   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *preWeights       = mWeightsPair->getPreWeights();
 
@@ -287,7 +289,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
 
    float w = 1.0f;
    if (mAccumulateType == PoolingDelivery::AVGPOOLING) {
-      PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
+      PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
       PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
       float relative_XScale     = (float)preLoc->nx / (float)postLoc->nx;
       float relative_YScale     = (float)preLoc->ny / (float)postLoc->ny;
@@ -296,7 +298,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
       w                         = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
    }
 
-   PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(0 /*delay*/);
+   PVLayerCube activityCube = mPreData->getPublisher()->createCube(0 /*delay*/);
 
    float *gSyn = destBuffer;
    pvAssert(gSyn);
@@ -325,15 +327,18 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
          postIdxDataBatch = postIdxData + b * mOriginalPostIndexLayer->getNumExtended();
       }
 
-      SparseList<float>::Entry const *activeIndicesBatch = NULL;
+      SparseList<float>::Entry const *activeIndicesBatch = nullptr;
+      int numLoop;
       if (activityCube.isSparse) {
          activeIndicesBatch = (SparseList<float>::Entry *)activityCube.activeIndices
                               + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
                                       * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
                                       * preLoc->nf;
+         numLoop = activityCube.numActive[b];
       }
-
-      int numLoop = activityCube.isSparse ? activityCube.numActive[b] : mPreLayer->getNumExtended();
+      else {
+         numLoop = activityCube.numItems / activityCube.loc.nbatch;
+      }
 
 #ifdef PV_USE_OPENMP_THREADS
       // Note: before the clearThreadGSyn method was abstracted out, PoolingDelivery did an
@@ -516,7 +521,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
 bool TransposePoolingDelivery::isAllInputReady() const {
    bool isReady = true;
    if (getChannelCode() != CHANNEL_NOUPDATE) {
-      isReady &= getPreLayer()->isExchangeFinished(0 /*delay*/);
+      isReady &= getPreData()->isExchangeFinished(0 /*delay*/);
    }
    return isReady;
 }
@@ -525,14 +530,14 @@ bool TransposePoolingDelivery::isAllInputReady() const {
 void TransposePoolingDelivery::deliverGPU(float *destBuffer) {
    pvAssert(destBuffer);
 
-   if (mPreLayer->getUpdatedCudaDatastoreFlag()) {
-      PVLayerCube activityCube           = mPreLayer->getPublisher()->createCube(0 /*delay*/);
+   if (mPreData->getUpdatedCudaDatastoreFlag()) {
+      PVLayerCube activityCube           = mPreData->getPublisher()->createCube(0 /*delay*/);
       float const *h_preDatastore        = activityCube.data;
-      PVCuda::CudaBuffer *d_preDatastore = mPreLayer->getCudaDatastore();
+      PVCuda::CudaBuffer *d_preDatastore = mPreData->getCudaDatastore();
       pvAssert(d_preDatastore);
       d_preDatastore->copyToDevice(h_preDatastore);
       // Device now has updated
-      mPreLayer->setUpdatedCudaDatastoreFlag(false);
+      mPreData->setUpdatedCudaDatastoreFlag(false);
    }
 
    mDeliverKernel->run();

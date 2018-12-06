@@ -77,12 +77,12 @@ void PostsynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       int delay                = mArborList->getDelay(arbor);
-      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
+      PVLayerCube activityCube = mPreData->getPublisher()->createCube(delay);
 
       // Get number of neurons restricted target
       const int numPostRestricted = mPostGSyn->getBufferSize();
 
-      const PVLayerLoc *sourceLoc = mPreLayer->getLayerLoc();
+      const PVLayerLoc *sourceLoc = mPreData->getLayerLoc();
       const PVLayerLoc *targetLoc = mPostGSyn->getLayerLoc();
 
       const int sourceNx = sourceLoc->nx;

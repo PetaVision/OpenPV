@@ -41,7 +41,7 @@ void RescaleDelivery::deliver(float *destBuffer) {
    }
 
    int delay                         = mSingleArbor->getDelay(0);
-   PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(delay);
+   PVLayerCube const preActivityCube = mPreData->getPublisher()->createCube(delay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
    PVLayerLoc const &postLoc         = *mPostGSyn->getLayerLoc();
 

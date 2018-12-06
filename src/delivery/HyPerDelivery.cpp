@@ -78,7 +78,7 @@ bool HyPerDelivery::isAllInputReady() const {
    if (getChannelCode() != CHANNEL_NOUPDATE) {
       int const numArbors = mArborList->getNumAxonalArbors();
       for (int a = 0; a < numArbors; a++) {
-         isReady &= getPreLayer()->isExchangeFinished(mArborList->getDelay(a));
+         isReady &= mPreData->isExchangeFinished(mArborList->getDelay(a));
       }
    }
    return isReady;

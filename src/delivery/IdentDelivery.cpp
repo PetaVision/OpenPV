@@ -44,8 +44,8 @@ IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 
 void IdentDelivery::checkPreAndPostDimensions() {
    int status = PV_SUCCESS;
-   pvAssert(mPreLayer and mPostGSyn); // Only call this after BaseDelivery::communicateInitInfo().
-   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
+   pvAssert(mPreData and mPostGSyn); // Only call this after BaseDelivery::communicateInitInfo().
+   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    if (preLoc->nx != postLoc->nx) {
       ErrorLog().printf(
@@ -84,7 +84,7 @@ void IdentDelivery::checkPreAndPostDimensions() {
          "IdentDelivery \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: "
          "%dx%dx%d vs. %dx%dx%d\n",
          name,
-         mPreLayer->getName(),
+         mPreData->getName(),
          mPostGSyn->getName(),
          preLoc->nx,
          preLoc->ny,
@@ -100,7 +100,7 @@ void IdentDelivery::deliver(float *destBuffer) {
    }
 
    int delay                         = mSingleArbor->getDelay(0);
-   PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(delay);
+   PVLayerCube const preActivityCube = mPreData->getPublisher()->createCube(delay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
    PVLayerLoc const &postLoc         = *mPostGSyn->getLayerLoc();
 
@@ -179,7 +179,7 @@ bool IdentDelivery::isAllInputReady() const {
       isReady = true;
    }
    else {
-      isReady = getPreLayer()->isExchangeFinished(mSingleArbor->getDelay(0));
+      isReady = mPreData->isExchangeFinished(mSingleArbor->getDelay(0));
    }
    return isReady;
 }

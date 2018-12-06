@@ -72,7 +72,7 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
    float *postChannel = destBuffer;
    pvAssert(postChannel);
 
-   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
+   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
@@ -88,25 +88,27 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
    const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
    const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
 
-   bool const preLayerIsSparse = mPreLayer->getSparseFlag();
+   bool const preLayerIsSparse = mPreData->getSparseLayer();
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       int delay                = mArborList->getDelay(arbor);
-      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
+      PVLayerCube activityCube = mPreData->getPublisher()->createCube(delay);
 
       for (int b = 0; b < nbatch; b++) {
          size_t batchOffset                                 = b * numPreExtended;
          float const *activityBatch                         = activityCube.data + batchOffset;
          float *gSynPatchHeadBatch                          = postChannel + b * numPostRestricted;
-         SparseList<float>::Entry const *activeIndicesBatch = NULL;
+         SparseList<float>::Entry const *activeIndicesBatch = nullptr;
+         int numNeurons;
          if (preLayerIsSparse) {
             activeIndicesBatch =
                   (SparseList<float>::Entry *)activityCube.activeIndices + batchOffset;
+            numNeurons = activityCube.numActive[b];
          }
-
-         int numNeurons =
-               preLayerIsSparse ? activityCube.numActive[b] : mPreLayer->getNumExtended();
+         else {
+            numNeurons = activityCube.numItems / activityCube.loc.nbatch;
+         }
 
 #ifdef PV_USE_OPENMP_THREADS
          clearThreadGSyn();
@@ -196,23 +198,24 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
 }
 
 void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer) {
-   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
-   Weights *weights          = mWeightsPair->getPreWeights();
+   PVLayerLoc const *preLoc = mPreData->getLayerLoc();
+   int const nxPreExt       = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+   int const nyPreExt       = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
+   int const numPreExt      = nxPreExt * nyPreExt * preLoc->nf;
 
+   PVLayerLoc const *postLoc   = mPostGSyn->getLayerLoc();
    int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
+   int nbatch                  = postLoc->nbatch;
+   const int sy                = postLoc->nx * postLoc->nf; // stride in restricted layer
 
-   int nbatch = postLoc->nbatch;
-
-   const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
-   const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
+   Weights *weights = mWeightsPair->getPreWeights();
+   const int syw    = weights->getGeometry()->getPatchStrideY(); // stride in patch
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       for (int b = 0; b < nbatch; b++) {
          float *recvBatch                                   = recvBuffer + b * numPostRestricted;
          SparseList<float>::Entry const *activeIndicesBatch = NULL;
-
-         int numNeurons = mPreLayer->getNumExtended();
 
 #ifdef PV_USE_OPENMP_THREADS
          clearThreadGSyn();
@@ -223,7 +226,7 @@ void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer)
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
-            for (int idx = 0; idx < numNeurons; idx++) {
+            for (int idx = 0; idx < numPreExt; idx++) {
                int kPreExt = idx;
 
                // Weight

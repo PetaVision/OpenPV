@@ -57,13 +57,13 @@ Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
    // during the AllocateDataStructures stage.
 
    // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
-   getPreLayer()->setAllocCudaDatastore();
+   mPreData->setAllocCudaDatastore();
    mWeightsPair->getPostWeights()->useGPU();
    mPostGSyn->useCuda();
 
    // If recv from pre and pre layer is sparse, allocate activeIndices
-   if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
-      getPreLayer()->setAllocCudaActiveIndices();
+   if (!mUpdateGSynFromPostPerspective && mPreData->getSparseLayer()) {
+      mPreData->setAllocCudaActiveIndices();
    }
    return Response::SUCCESS;
 }
@@ -119,16 +119,16 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    Weights *postWeights       = mWeightsPair->getPostWeights();
    mRecvKernel                = new PVCuda::CudaRecvPost(device);
 
-   PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
+   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
 
-   PVCuda::CudaBuffer *d_PreData           = getPreLayer()->getCudaDatastore();
+   PVCuda::CudaBuffer *d_PreData           = mPreData->getCudaDatastore();
    PVCuda::CudaBuffer *d_PostGSyn          = mPostGSyn->getCudaBuffer();
    PVCuda::CudaBuffer *d_PatchToDataLookup = postWeights->getDevicePatchToDataLookup();
    PVCuda::CudaBuffer *d_WData             = postWeights->getDeviceData();
 
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer *cudnn_preData = getPreLayer()->getCudnnDatastore();
+   PVCuda::CudaBuffer *cudnn_preData = mPreData->getCudnnDatastore();
    PVCuda::CudaBuffer *cudnn_WData   = postWeights->getCUDNNData();
    pvAssert(cudnn_preData);
    pvAssert(mCudnnGSyn);
@@ -253,15 +253,15 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
 
       mRecvKernel->set_dt_factor(mDeltaTimeFactor);
       // Only copy pre activity to GPU if it's updated on the CPU since last GPU update.
-      if (mPreLayer->getUpdatedCudaDatastoreFlag()) {
+      if (mPreData->getUpdatedCudaDatastoreFlag()) {
          int delay                            = mArborList->getDelay(arbor);
-         PVLayerCube activityCube             = mPreLayer->getPublisher()->createCube(delay);
+         PVLayerCube activityCube             = mPreData->getPublisher()->createCube(delay);
          float const *h_preDatastore          = activityCube.data;
-         PVCuda::CudaBuffer *cudaPreDatastore = mPreLayer->getCudaDatastore();
+         PVCuda::CudaBuffer *cudaPreDatastore = mPreData->getCudaDatastore();
          pvAssert(cudaPreDatastore);
          cudaPreDatastore->copyToDevice(h_preDatastore);
          // Device now has updated
-         mPreLayer->setUpdatedCudaDatastoreFlag(false);
+         mPreData->setUpdatedCudaDatastoreFlag(false);
       }
 
       // Permutation buffer is local to the kernel, NOT the layer

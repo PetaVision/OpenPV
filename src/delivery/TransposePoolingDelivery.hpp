@@ -20,7 +20,7 @@
 namespace PV {
 
 /**
- * The delivery component for PoolingConns.
+ * The delivery component for TransposePoolingConn.
  */
 class TransposePoolingDelivery : public BaseDelivery {
   protected:
@@ -102,8 +102,8 @@ class TransposePoolingDelivery : public BaseDelivery {
    DependentPatchSize *mPatchSize             = nullptr;
    ImpliedWeightsPair *mWeightsPair           = nullptr;
    PoolingIndexLayer *mOriginalPostIndexLayer = nullptr; // Used by deliverPresynapticPerspective
-   HyPerLayer *mOriginalPreLayer              = nullptr; // Used by deliverGPU
-   HyPerLayer *mOriginalPostLayer             = nullptr; // Used by deliverGPU
+   PublisherComponent *mOriginalPreData       = nullptr; // Used by deliverGPU
+   LayerInputBuffer *mOriginalPostGSyn        = nullptr; // Used by deliverGPU
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaTransposePoolingDeliverKernel *mDeliverKernel = nullptr;

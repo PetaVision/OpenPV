@@ -58,6 +58,8 @@ class PublisherComponent : public BaseObject {
     */
    float const *getLayerData(int delay = 0) const;
 
+   PVLayerLoc const *getLayerLoc() const { return mActivity->getLayerLoc(); }
+
    bool getSparseLayer() const { return mSparseLayer; }
 
    Publisher *getPublisher() { return mPublisher; }
