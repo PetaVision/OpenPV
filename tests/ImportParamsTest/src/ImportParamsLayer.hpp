@@ -14,7 +14,6 @@ class ImportParamsLayer : public PV::ANNLayer {
 
   private:
    void initialize(const char *name, PVParams *params, Communicator *comm);
-   int initialize_base();
 };
 
 } /* namespace PV */

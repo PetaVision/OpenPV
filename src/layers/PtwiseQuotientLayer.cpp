@@ -19,16 +19,13 @@
 
 namespace PV {
 
-PtwiseQuotientLayer::PtwiseQuotientLayer() { initialize_base(); }
+PtwiseQuotientLayer::PtwiseQuotientLayer() {}
 
 PtwiseQuotientLayer::PtwiseQuotientLayer(const char *name, PVParams *params, Communicator *comm) {
-   initialize_base();
    initialize(name, params, comm);
 } // end PtwiseQuotientLayer::PtwiseQuotientLayer(const char *, HyPerCol *)
 
 PtwiseQuotientLayer::~PtwiseQuotientLayer() {}
-
-int PtwiseQuotientLayer::initialize_base() { return PV_SUCCESS; }
 
 void PtwiseQuotientLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
    HyPerLayer::initialize(name, params, comm);

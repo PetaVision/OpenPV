@@ -27,9 +27,6 @@ class CloneVLayer : public HyPerLayer {
    virtual ActivityComponent *createActivityComponent() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
 
-  private:
-   int initialize_base();
-
   protected:
    HyPerLayer *mOriginalLayer = nullptr;
 }; // class CloneVLayer

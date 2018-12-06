@@ -3,11 +3,8 @@
 namespace PV {
 
 ImportParamsLayer::ImportParamsLayer(const char *name, PVParams *params, Communicator *comm) {
-   initialize_base();
    initialize(name, params, comm);
 }
-
-int ImportParamsLayer::initialize_base() { return PV_SUCCESS; }
 
 void ImportParamsLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
    ANNLayer::initialize(name, params, comm);

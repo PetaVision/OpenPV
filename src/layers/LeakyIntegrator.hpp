@@ -22,13 +22,6 @@ class LeakyIntegrator : public ANNLayer {
    LeakyIntegrator();
    void initialize(const char *name, PVParams *params, Communicator *comm);
    virtual ActivityComponent *createActivityComponent() override;
-
-  private:
-   int initialize_base();
-
-   // Member Variables
-  protected:
-   float integrationTime;
 }; // class LeakyIntegrator
 
 } /* namespace PV */

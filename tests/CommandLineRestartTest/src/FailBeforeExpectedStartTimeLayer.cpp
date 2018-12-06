@@ -5,13 +5,10 @@ FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer(
       char const *name,
       PV::PVParams *params,
       PV::Communicator *comm) {
-   initialize_base();
    initialize(name, params, comm);
 }
 
-FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer() { initialize_base(); }
-
-int FailBeforeExpectedStartTimeLayer::initialize_base() { return PV_SUCCESS; }
+FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer() {}
 
 void FailBeforeExpectedStartTimeLayer::initialize(
       char const *name,

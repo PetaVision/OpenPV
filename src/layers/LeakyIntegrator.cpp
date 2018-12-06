@@ -14,16 +14,10 @@
 namespace PV {
 
 LeakyIntegrator::LeakyIntegrator(const char *name, PVParams *params, Communicator *comm) {
-   initialize_base();
    initialize(name, params, comm);
 }
 
-LeakyIntegrator::LeakyIntegrator() { initialize_base(); }
-
-int LeakyIntegrator::initialize_base() {
-   integrationTime = FLT_MAX;
-   return PV_SUCCESS;
-}
+LeakyIntegrator::LeakyIntegrator() {}
 
 void LeakyIntegrator::initialize(const char *name, PVParams *params, Communicator *comm) {
    ANNLayer::initialize(name, params, comm);

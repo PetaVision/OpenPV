@@ -16,13 +16,7 @@ class MaskTestLayer : public PV::ANNLayer {
    virtual void ioParam_maskMethod(enum ParamsIOFlag ioFlag);
 
   private:
-   int initialize_base() {
-      maskMethod = nullptr;
-      return PV_SUCCESS;
-   }
-
-  private:
-   char *maskMethod;
+   char *maskMethod = nullptr;
 };
 
 } /* namespace PV */

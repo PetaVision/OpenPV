@@ -24,9 +24,6 @@ class FailBeforeExpectedStartTimeLayer : public PV::HyPerLayer {
    virtual PV::Response::Status checkUpdateState(double simTime, double dt) override;
 
   private:
-   int initialize_base();
-
-  private:
    double mExpectedStartTime = std::numeric_limits<double>::infinity();
 };
 

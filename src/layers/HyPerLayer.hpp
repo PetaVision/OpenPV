@@ -46,8 +46,6 @@
 
 namespace PV {
 
-class BaseConnection;
-
 class HyPerLayer : public ComponentBasedObject {
 
   protected:
@@ -61,9 +59,6 @@ class HyPerLayer : public ComponentBasedObject {
    /** @brief dataType: no longer used. */
    virtual void ioParam_dataType(enum ParamsIOFlag ioFlag);
    /** @} */
-
-  private:
-   int initialize_base();
 
   protected:
    // only subclasses can be constructed directly
@@ -222,10 +217,6 @@ class HyPerLayer : public ComponentBasedObject {
    PublisherComponent *mPublisher = nullptr;
 
    LayerOutputComponent *mLayerOutput = nullptr;
-
-   // timesteps for connections with delays
-
-   std::vector<BaseConnection *> recvConns;
 
 // GPU variables
 #ifdef PV_USE_CUDA

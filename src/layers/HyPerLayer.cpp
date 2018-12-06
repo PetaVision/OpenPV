@@ -17,7 +17,6 @@
 #include "components/HyPerActivityComponent.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 #include "components/SparseLayerFlagPublisherComponent.hpp"
-#include "connections/BaseConnection.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include <cassert>
@@ -28,22 +27,10 @@ namespace PV {
 // This constructor is protected so that only derived classes can call it.
 // It should be called as the normal method of object construction by
 // derived classes.  It should NOT call any virtual methods
-HyPerLayer::HyPerLayer() { initialize_base(); }
+HyPerLayer::HyPerLayer() {}
 
 HyPerLayer::HyPerLayer(const char *name, PVParams *params, Communicator *comm) {
-   initialize_base();
    initialize(name, params, comm);
-}
-
-// initialize_base should be called only by constructors.  It should not
-// call any virtual methods, because polymorphism is not available when
-// a base class constructor is inherited from a derived class constructor.
-// In general, initialize_base should be used only to initialize member variables
-// to safe values.
-int HyPerLayer::initialize_base() {
-   recvConns.clear();
-
-   return PV_SUCCESS;
 }
 
 ///////

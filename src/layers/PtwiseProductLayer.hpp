@@ -36,9 +36,6 @@ class PtwiseProductLayer : public HyPerLayer {
    PtwiseProductLayer();
    void initialize(const char *name, PVParams *params, Communicator *comm);
    ActivityComponent *createActivityComponent() override;
-
-  private:
-   int initialize_base();
 }; // end class PtwiseProductLayer
 
 } // end namespace PV

@@ -33,9 +33,6 @@ class PtwiseQuotientLayer : public HyPerLayer {
    PtwiseQuotientLayer();
    void initialize(const char *name, PVParams *params, Communicator *comm);
    ActivityComponent *createActivityComponent() override;
-
-  private:
-   int initialize_base();
 }; // end class PtwiseQuotientLayer
 
 } // end namespace PV

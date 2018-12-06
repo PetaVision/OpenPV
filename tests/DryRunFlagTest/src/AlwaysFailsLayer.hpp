@@ -19,9 +19,6 @@ class AlwaysFailsLayer : public HyPerLayer {
    AlwaysFailsLayer();
    void initialize(char const *name, PVParams *params, Communicator *comm);
    virtual Response::Status checkUpdateState(double simTime, double deltaTime) override;
-
-  private:
-   int initialize_base();
 };
 
 } // end namespace PV

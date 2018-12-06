@@ -3,15 +3,12 @@
 namespace PV {
 
 AlwaysFailsLayer::AlwaysFailsLayer(char const *name, PVParams *params, Communicator *comm) {
-   initialize_base();
    initialize(name, params, comm);
 }
 
-AlwaysFailsLayer::AlwaysFailsLayer() { initialize_base(); }
+AlwaysFailsLayer::AlwaysFailsLayer() {}
 
 AlwaysFailsLayer::~AlwaysFailsLayer() {}
-
-int AlwaysFailsLayer::initialize_base() { return PV_SUCCESS; }
 
 void AlwaysFailsLayer::initialize(char const *name, PVParams *params, Communicator *comm) {
    HyPerLayer::initialize(name, params, comm);

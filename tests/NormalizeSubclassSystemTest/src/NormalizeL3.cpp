@@ -7,16 +7,10 @@
 namespace PV {
 
 NormalizeL3::NormalizeL3(char const *name, PVParams *params, Communicator *comm) {
-   initialize_base();
    initialize(name, params, comm);
 }
 
-NormalizeL3::NormalizeL3() { initialize_base(); }
-
-int NormalizeL3::initialize_base() {
-   minL3NormTolerated = 0.0f;
-   return PV_SUCCESS;
-}
+NormalizeL3::NormalizeL3() {}
 
 void NormalizeL3::initialize(char const *name, PVParams *params, Communicator *comm) {
    NormalizeMultiply::initialize(name, params, comm);

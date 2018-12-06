@@ -13,18 +13,14 @@
 namespace PV {
 
 CloneVLayer::CloneVLayer(const char *name, PVParams *params, Communicator *comm) {
-   initialize_base();
    initialize(name, params, comm);
 }
 
 CloneVLayer::CloneVLayer() {
-   initialize_base();
    // initialize() gets called by subclass's initialize method
 }
 
 CloneVLayer::~CloneVLayer() {}
-
-int CloneVLayer::initialize_base() { return PV_SUCCESS; }
 
 void CloneVLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
    HyPerLayer::initialize(name, params, comm);
