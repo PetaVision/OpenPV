@@ -16,7 +16,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ConnectionData.cpp
    ${SUBDIR}/CopyWeightsPair.cpp
    ${SUBDIR}/DefaultNoOutputComponent.cpp
-   ${SUBDIR}/DenseLayerOutputComponent.cpp
    ${SUBDIR}/DependentArborList.cpp
    ${SUBDIR}/DependentBoundaryConditions.cpp
    ${SUBDIR}/DependentPatchSize.cpp
@@ -61,6 +60,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PoolingIndexLayerInputBuffer.cpp
    ${SUBDIR}/PtwiseProductGSynAccumulator.cpp
    ${SUBDIR}/PtwiseQuotientGSynAccumulator.cpp
+   ${SUBDIR}/PublisherComponent.cpp
    ${SUBDIR}/PvpActivityBuffer.cpp
    ${SUBDIR}/RescaleActivityBuffer.cpp
    ${SUBDIR}/RestrictedBuffer.cpp
@@ -71,6 +71,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/SigmoidActivityBuffer.cpp
    ${SUBDIR}/SingleArbor.cpp
    ${SUBDIR}/SingleChannelGSynAccumulator.cpp
+   ${SUBDIR}/SparseLayerFlagPublisherComponent.cpp
    ${SUBDIR}/SquaredGSynAccumulator.cpp
    ${SUBDIR}/StrengthParam.cpp
    ${SUBDIR}/TransposePatchSize.cpp
@@ -101,7 +102,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ConnectionData.hpp
    ${SUBDIR}/CopyWeightsPair.hpp
    ${SUBDIR}/DefaultNoOutputComponent.hpp
-   ${SUBDIR}/DenseLayerOutputComponent.hpp
    ${SUBDIR}/DependentArborList.hpp
    ${SUBDIR}/DependentBoundaryConditions.hpp
    ${SUBDIR}/DependentPatchSize.hpp
@@ -148,6 +148,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PoolingIndexLayerInputBuffer.hpp
    ${SUBDIR}/PtwiseProductGSynAccumulator.hpp
    ${SUBDIR}/PtwiseQuotientGSynAccumulator.hpp
+   ${SUBDIR}/PublisherComponent.hpp
    ${SUBDIR}/PvpActivityBuffer.hpp
    ${SUBDIR}/RescaleActivityBuffer.hpp
    ${SUBDIR}/RestrictedBuffer.hpp
@@ -158,6 +159,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/SigmoidActivityBuffer.hpp
    ${SUBDIR}/SingleArbor.hpp
    ${SUBDIR}/SingleChannelGSynAccumulator.hpp
+   ${SUBDIR}/SparseLayerFlagPublisherComponent.hpp
    ${SUBDIR}/SquaredGSynAccumulator.hpp
    ${SUBDIR}/StrengthParam.hpp
    ${SUBDIR}/TransposePatchSize.hpp

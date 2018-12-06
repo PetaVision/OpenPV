@@ -17,11 +17,11 @@ MPITestProbe::MPITestProbe(const char *name, PVParams *params, Communicator *com
    initialize(name, params, comm);
 }
 
-int MPITestProbe::initialize_base() { return PV_SUCCESS; }
-
 void MPITestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
    StatsProbe::initialize(name, params, comm);
 }
+
+void MPITestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 Response::Status MPITestProbe::outputState(double simTime, double deltaTime) {
    auto status = StatsProbe::outputState(simTime, deltaTime);
@@ -57,9 +57,8 @@ Response::Status MPITestProbe::outputState(double simTime, double deltaTime) {
 
    for (int b = 0; b < (int)mOutputStreams.size(); b++) {
       if (simTime > 3.0) {
-         output(b) << std::endl;
          output(b).printf(
-               "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f",
+               "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f\n",
                getMessage(),
                (double)min_global_xpos,
                (double)ave_global_xpos,

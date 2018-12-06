@@ -37,14 +37,6 @@ PlasticConnTestLayer "Pre" = {
     mirrorBCflag = false;
     valueBC = 0.0;
     sparseLayer = false;
-
-    InitVType = "ConstantV";
-    valueV = 1.0;
-
-    VThresh = -infinity;
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
 };
 
 
@@ -59,14 +51,6 @@ PlasticConnTestLayer "Post" = {
     mirrorBCflag = false;
     valueBC = 0.0;
     sparseLayer = false;
-
-    InitVType = "ConstantV";
-    valueV = 1.0;
-
-    VThresh = -infinity;
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
 };
 //  connections: 
 

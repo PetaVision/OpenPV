@@ -35,14 +35,13 @@ Response::Status PlasticConnTestProbe::outputState(double simTime, double deltaT
    const int patchSize = nxp * nyp * nfp;
    float const *w      = getWeightData() + getKernelIndex() * patchSize;
 
-   if (getOutputPlasticIncr() && getDeltaWeightData() == nullptr) {
-      Fatal().printf(
-            "%s: %s has dKernelData(%d,%d) set to null.\n",
-            getDescription_c(),
-            getTargetConn()->getDescription_c(),
-            getKernelIndex(),
-            getArbor());
-   }
+   FatalIf(
+         getOutputPlasticIncr() and getDeltaWeightData() == nullptr,
+         "%s: %s has dKernelData(%d,%d) set to null.\n",
+         getDescription_c(),
+         getTargetConn()->getDescription_c(),
+         getKernelIndex(),
+         getArbor());
    float const *dw = getDeltaWeightData() + getKernelIndex() * patchSize;
 
    int status = PV_SUCCESS;
@@ -52,14 +51,6 @@ Response::Status PlasticConnTestProbe::outputState(double simTime, double deltaT
       if (getOutputWeights()) {
          float wCorrect  = simTime * wx;
          float wObserved = w[k];
-         if (k == 0) {
-            double q = fabs(((double)(wObserved - wCorrect)) / simTime);
-            printf(
-                  "fabs(%f/%f) = %f\n",
-                  ((double)(wObserved - wCorrect)),
-                  simTime,
-                  fabs(((double)(wObserved - wCorrect)) / simTime));
-         }
          if (fabs(((double)(wObserved - wCorrect)) / simTime) > 1e-4) {
             int y = kyPos(k, nxp, nyp, nfp);
             int f = featureIndex(k, nxp, nyp, nfp);
@@ -71,8 +62,8 @@ Response::Status PlasticConnTestProbe::outputState(double simTime, double deltaT
                   f,
                   (double)wObserved,
                   (double)wCorrect);
+            status = PV_FAILURE;
          }
-         // status = PV_FAILURE;
       }
       if (simTime > 0 && getOutputPlasticIncr()) {
          float dwCorrect  = wx;
@@ -88,8 +79,8 @@ Response::Status PlasticConnTestProbe::outputState(double simTime, double deltaT
                   f,
                   (double)dwObserved,
                   (double)dwCorrect);
+            status = PV_FAILURE;
          }
-         // status = PV_FAILURE;
       }
    }
    FatalIf(status != PV_SUCCESS, "%s failed at t=%f.\n", getDescription_c(), simTime);

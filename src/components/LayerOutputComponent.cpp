@@ -39,7 +39,6 @@ void LayerOutputComponent::initMessageActionMap() {
 int LayerOutputComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_writeStep(ioFlag);
    ioParam_initialWriteTime(ioFlag);
-   ioParam_sparseLayer(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -72,21 +71,19 @@ void LayerOutputComponent::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void LayerOutputComponent::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "sparseLayer", &mSparseLayer, false);
-}
-
 Response::Status LayerOutputComponent::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   if (!parameters()->present(getName(), "writeStep")) {
+      setDefaultWriteStep(message);
+   }
    auto status = BaseObject::communicateInitInfo(message);
    if (!Response::completed) {
       return status;
    }
-   if (!parameters()->present(getName(), "writeStep")) {
-      setDefaultWriteStep(message);
-   }
    mWriteTime = mInitialWriteTime;
-   return status;
+   mPublisher = message->mHierarchy->lookupByType<PublisherComponent>();
+   FatalIf(mPublisher == nullptr, "%s requires a PublisherComponent.\n", getDescription_c());
+   return Response::SUCCESS;
 }
 
 void LayerOutputComponent::setDefaultWriteStep(
@@ -94,11 +91,6 @@ void LayerOutputComponent::setDefaultWriteStep(
    mWriteStep = message->mDeltaTime;
    // Call ioParamValue to generate the warnIfAbsent warning.
    parameters()->ioParamValue(PARAMS_IO_READ, name, "writeStep", &mWriteStep, mWriteStep, true);
-}
-
-void LayerOutputComponent::setPublisher(Publisher *publisher) {
-   FatalIf(mPublisher != nullptr, "%s Publisher has already been set.\n", getDescription_c());
-   mPublisher = publisher;
 }
 
 Response::Status LayerOutputComponent::registerData(
@@ -117,7 +109,7 @@ Response::Status LayerOutputComponent::registerData(
          false /*not constant*/);
    if (mWriteStep >= 0.0) {
       openOutputStateFile(message);
-      if (mSparseLayer) {
+      if (mPublisher->getSparseLayer()) {
          checkpointer->registerCheckpointData(
                std::string(getName()),
                std::string("numframes_sparse"),
@@ -177,8 +169,8 @@ Response::Status LayerOutputComponent::outputState(double simTime, double deltaT
    if (simTime >= (mWriteTime - (deltaTime / 2)) and mWriteStep >= 0) {
       int writeStatus = PV_SUCCESS;
       mWriteTime += mWriteStep;
-      PVLayerCube cube = mPublisher->createCube(0 /*delay*/);
-      if (mSparseLayer) {
+      PVLayerCube cube = mPublisher->getPublisher()->createCube(0 /*delay*/);
+      if (mPublisher->getSparseLayer()) {
          writeActivitySparse(simTime, cube);
       }
       else {

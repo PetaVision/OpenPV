@@ -13,6 +13,12 @@
 namespace PV {
 
 class MPITestProbe : public PV::StatsProbe {
+  protected:
+   /**
+    * MPITestProbe sets buffer to "Activity". It is an error to set it to a different value.
+    */
+   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
+
   public:
    MPITestProbe(const char *name, PVParams *params, Communicator *comm);
 
@@ -20,9 +26,6 @@ class MPITestProbe : public PV::StatsProbe {
 
   protected:
    void initialize(const char *name, PVParams *params, Communicator *comm);
-
-  private:
-   int initialize_base();
 }; // end class MPITestProbe
 
 } // end namespace PV

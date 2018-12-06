@@ -39,6 +39,5 @@
 #define INITIAL_LAYER_ARRAY_SIZE 10
 #define INITIAL_CONNECTION_ARRAY_SIZE 10
 #define RESIZE_ARRAY_INCR 5
-#define MAX_F_DELAY 1001 // 21 // can have 0:MAX_F_DELAY-1 buffers of delay
 
 #endif /* PV_COMMON_H */

@@ -203,7 +203,6 @@ void LayerGeometry::requireMarginWidth(int marginWidthNeeded, char axis) {
    pvAssert(*startMargin >= marginWidthNeeded);
 
    // Update numExtended and numExtendedAllBatches.
-   PVLayerLoc const *loc = getLayerLoc();
    updateNumExtended();
 }
 

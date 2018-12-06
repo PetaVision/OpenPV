@@ -57,13 +57,13 @@ Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
    // during the AllocateDataStructures stage.
 
    // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
-   getPreLayer()->setAllocDeviceDatastore();
+   getPreLayer()->setAllocCudaDatastore();
    mWeightsPair->getPostWeights()->useGPU();
    mPostGSyn->useCuda();
 
    // If recv from pre and pre layer is sparse, allocate activeIndices
    if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
-      getPreLayer()->setAllocDeviceActiveIndices();
+      getPreLayer()->setAllocCudaActiveIndices();
    }
    return Response::SUCCESS;
 }
@@ -122,7 +122,7 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
 
-   PVCuda::CudaBuffer *d_PreData           = getPreLayer()->getDeviceDatastore();
+   PVCuda::CudaBuffer *d_PreData           = getPreLayer()->getCudaDatastore();
    PVCuda::CudaBuffer *d_PostGSyn          = mPostGSyn->getCudaBuffer();
    PVCuda::CudaBuffer *d_PatchToDataLookup = postWeights->getDevicePatchToDataLookup();
    PVCuda::CudaBuffer *d_WData             = postWeights->getDeviceData();
@@ -253,15 +253,15 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
 
       mRecvKernel->set_dt_factor(mDeltaTimeFactor);
       // Only copy pre activity to GPU if it's updated on the CPU since last GPU update.
-      if (mPreLayer->getUpdatedDeviceDatastoreFlag()) {
-         int delay                          = mArborList->getDelay(arbor);
-         PVLayerCube activityCube           = mPreLayer->getPublisher()->createCube(delay);
-         float const *h_preDatastore        = activityCube.data;
-         PVCuda::CudaBuffer *d_preDatastore = mPreLayer->getDeviceDatastore();
-         pvAssert(d_preDatastore);
-         d_preDatastore->copyToDevice(h_preDatastore);
+      if (mPreLayer->getUpdatedCudaDatastoreFlag()) {
+         int delay                            = mArborList->getDelay(arbor);
+         PVLayerCube activityCube             = mPreLayer->getPublisher()->createCube(delay);
+         float const *h_preDatastore          = activityCube.data;
+         PVCuda::CudaBuffer *cudaPreDatastore = mPreLayer->getCudaDatastore();
+         pvAssert(cudaPreDatastore);
+         cudaPreDatastore->copyToDevice(h_preDatastore);
          // Device now has updated
-         mPreLayer->setUpdatedDeviceDatastoreFlag(false);
+         mPreLayer->setUpdatedCudaDatastoreFlag(false);
       }
 
       // Permutation buffer is local to the kernel, NOT the layer

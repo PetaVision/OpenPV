@@ -53,13 +53,13 @@ Response::Status PresynapticPerspectiveGPUDelivery::communicateInitInfo(
    // during the AllocateDataStructures stage.
 
    // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
-   getPreLayer()->setAllocDeviceDatastore();
+   getPreLayer()->setAllocCudaDatastore();
    mWeightsPair->getPreWeights()->useGPU();
    mPostGSyn->useCuda();
 
    // If recv from pre and pre layer is sparse, allocate activeIndices
    if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
-      getPreLayer()->setAllocDeviceActiveIndices();
+      getPreLayer()->setAllocCudaActiveIndices();
    }
 
    return status;
@@ -129,7 +129,7 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    const PVHalo *preHalo     = &getPreLayer()->getLayerLoc()->halo;
    const PVHalo *postHalo    = &mPostGSyn->getLayerLoc()->halo;
 
-   PVCuda::CudaBuffer *d_PreData           = getPreLayer()->getDeviceDatastore();
+   PVCuda::CudaBuffer *d_PreData           = getPreLayer()->getCudaDatastore();
    PVCuda::CudaBuffer *d_PostGSyn          = mPostGSyn->getCudaBuffer();
    PVCuda::CudaBuffer *d_PatchToDataLookup = preWeights->getDevicePatchToDataLookup();
    PVCuda::CudaBuffer *d_WData             = preWeights->getDeviceData();
@@ -164,9 +164,9 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    PVCuda::CudaBuffer *d_activeIndices = NULL;
    PVCuda::CudaBuffer *d_numActive     = NULL;
    if (isSparse) {
-      d_numActive = getPreLayer()->getDeviceNumActive();
+      d_numActive = getPreLayer()->getCudaNumActive();
       pvAssert(d_numActive);
-      d_activeIndices = getPreLayer()->getDeviceActiveIndices();
+      d_activeIndices = getPreLayer()->getCudaActiveIndices();
       pvAssert(d_activeIndices);
    }
 
@@ -237,28 +237,28 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       // If the connection uses gpu to receive, update all buffers
 
       // Update pre datastore, post gsyn, and conn weights only if they're updated
-      if (getPreLayer()->getUpdatedDeviceDatastoreFlag()) {
+      if (getPreLayer()->getUpdatedCudaDatastoreFlag()) {
          float const *h_preDatastore        = activityCube.data;
-         PVCuda::CudaBuffer *d_preDatastore = getPreLayer()->getDeviceDatastore();
+         PVCuda::CudaBuffer *d_preDatastore = getPreLayer()->getCudaDatastore();
          pvAssert(d_preDatastore);
          d_preDatastore->copyToDevice(h_preDatastore);
 
          // Copy active indices and num active if needed
          if (activityCube.isSparse) {
-            PVCuda::CudaBuffer *d_ActiveIndices;
+            PVCuda::CudaBuffer *d_activeIndices;
             PVCuda::CudaBuffer *d_numActive;
-            d_ActiveIndices = getPreLayer()->getDeviceActiveIndices();
-            d_numActive     = getPreLayer()->getDeviceNumActive();
-            pvAssert(d_ActiveIndices);
+            d_activeIndices = getPreLayer()->getCudaActiveIndices();
+            d_numActive     = getPreLayer()->getCudaNumActive();
+            pvAssert(d_activeIndices);
             SparseList<float>::Entry const *h_ActiveIndices =
                   (SparseList<float>::Entry *)activityCube.activeIndices;
             long const *h_numActive = activityCube.numActive;
             pvAssert(h_ActiveIndices);
             d_numActive->copyToDevice(h_numActive);
-            d_ActiveIndices->copyToDevice(h_ActiveIndices);
+            d_activeIndices->copyToDevice(h_ActiveIndices);
          }
          // Device now has updated
-         getPreLayer()->setUpdatedDeviceDatastoreFlag(false);
+         getPreLayer()->setUpdatedCudaDatastoreFlag(false);
       }
 
       // X direction is active neuron

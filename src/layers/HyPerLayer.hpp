@@ -14,7 +14,6 @@
 #include "checkpointing/CheckpointableFileStream.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/ComponentBasedObject.hpp"
-#include "columns/Publisher.hpp"
 #include "components/ActivityComponent.hpp"
 #include "components/BoundaryConditions.hpp"
 #include "components/InternalStateBuffer.hpp"
@@ -23,6 +22,7 @@
 #include "components/LayerOutputComponent.hpp"
 #include "components/LayerUpdateController.hpp"
 #include "components/PhaseParam.hpp"
+#include "components/PublisherComponent.hpp"
 #include "include/pv_common.h"
 #include "include/pv_types.h"
 #include "io/fileio.hpp"
@@ -77,9 +77,8 @@ class HyPerLayer : public ComponentBasedObject {
    virtual LayerUpdateController *createLayerUpdateController();
    virtual LayerInputBuffer *createLayerInput();
    virtual ActivityComponent *createActivityComponent();
+   virtual PublisherComponent *createPublisher();
    virtual LayerOutputComponent *createLayerOutput();
-
-   void addPublisher();
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual void readDelaysFromCheckpoint(Checkpointer *checkpointer);
@@ -125,22 +124,21 @@ class HyPerLayer : public ComponentBasedObject {
    Response::Status
    respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
    Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
-   virtual int publish(Communicator *comm, double simTime);
+   void publish(Communicator *comm, double simTime) { mPublisher->publish(comm, simTime); }
    // ************************************************************************************//
 
    // mpi public wait method to ensure all targets have received synaptic input before proceeding to
    // next time step
-   virtual int waitOnPublish(Communicator *comm);
+   int waitOnPublish(Communicator *comm) { return mPublisher->waitOnPublish(comm); }
 
-   virtual void updateAllActiveIndices();
-   void updateActiveIndices();
-   int resetBuffer(float *buf, int numItems);
+   void updateAllActiveIndices() { mPublisher->updateAllActiveIndices(); }
+   void updateActiveIndices() { mPublisher->updateActiveIndices(); }
 
    /**
     * Returns true if the MPI exchange for the specified delay has finished;
     * false if it is still in process.
     */
-   bool isExchangeFinished(int delay = 0);
+   bool isExchangeFinished(int delay = 0) { return mPublisher->isExchangeFinished(delay); }
 
    // Public access functions:
 
@@ -158,9 +156,9 @@ class HyPerLayer : public ComponentBasedObject {
       return (loc->nxGlobal + loc->halo.lt + loc->halo.rt)
              * (loc->nyGlobal + loc->halo.dn + loc->halo.up) * loc->nf;
    }
-   int getNumDelayLevels() { return numDelayLevels; }
+   int getNumDelayLevels() { return mPublisher->getNumDelayLevels(); }
 
-   int increaseDelayLevels(int neededDelay);
+   int increaseDelayLevels(int neededDelay) { return mPublisher->increaseDelayLevels(neededDelay); }
 
    float const *getV() const {
       return mActivityComponent->getComponentByType<InternalStateBuffer>()->getBufferData();
@@ -176,15 +174,15 @@ class HyPerLayer : public ComponentBasedObject {
    int getYScale() const { return mLayerGeometry->getYScale(); }
    PVLayerLoc const *getLayerLoc() const { return mLayerGeometry->getLayerLoc(); }
 
-   bool getSparseFlag() { return mLayerOutput->getSparseLayer(); }
+   bool getSparseFlag() { return mPublisher->getSparseLayer(); }
 
    int getPhase() { return mPhaseParam->getPhase(); }
 
    // implementation of LayerDataInterface interface
    //
-   const float *getLayerData(int delay = 0);
+   float const *getLayerData(int delay = 0) const { return mPublisher->getLayerData(delay); }
 
-   Publisher *getPublisher() { return publisher; }
+   Publisher *getPublisher() { return mPublisher->getPublisher(); }
 
   protected:
    virtual Response::Status
@@ -208,8 +206,6 @@ class HyPerLayer : public ComponentBasedObject {
     */
    virtual Response::Status checkUpdateState(double simTime, double deltaTime);
 
-   Publisher *publisher = nullptr;
-
    LayerGeometry *mLayerGeometry = nullptr;
 
    // All layers with phase 0 get updated before any with phase 1, etc.
@@ -223,59 +219,35 @@ class HyPerLayer : public ComponentBasedObject {
 
    ActivityComponent *mActivityComponent = nullptr;
 
+   PublisherComponent *mPublisher = nullptr;
+
    LayerOutputComponent *mLayerOutput = nullptr;
 
-   int numDelayLevels; // The number of timesteps in the datastore ring buffer to store older
    // timesteps for connections with delays
 
-   unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves
-   // {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use
-   // by this layer
-
    std::vector<BaseConnection *> recvConns;
-
-   bool mHasUpdated = false;
 
 // GPU variables
 #ifdef PV_USE_CUDA
   public:
-   PVCuda::CudaBuffer *getDeviceDatastore() { return d_Datastore; }
+   PVCuda::CudaBuffer *getCudaDatastore() { return mPublisher->getCudaDatastore(); }
 
-   PVCuda::CudaBuffer *getDeviceActiveIndices() { return d_ActiveIndices; }
+   PVCuda::CudaBuffer *getCudaActiveIndices() { return mPublisher->getCudaActiveIndices(); }
 
-   PVCuda::CudaBuffer *getDeviceNumActive() { return d_numActive; }
+   PVCuda::CudaBuffer *getCudaNumActive() { return mPublisher->getCudaNumActive(); }
 
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer *getCudnnDatastore() { return cudnn_Datastore; }
+   PVCuda::CudaBuffer *getCudnnDatastore() { return mPublisher->getCudnnDatastore(); }
 #endif // PV_USE_CUDNN
 
-   void setAllocDeviceDatastore() { allocDeviceDatastore = true; }
+   void setAllocCudaDatastore() { mPublisher->setAllocCudaDatastore(); }
 
-   void setAllocDeviceActiveIndices() { allocDeviceActiveIndices = true; }
+   void setAllocCudaActiveIndices() { mPublisher->setAllocCudaActiveIndices(); }
 
-   bool getUpdatedDeviceDatastoreFlag() { return updatedDeviceDatastore; }
+   bool getUpdatedCudaDatastoreFlag() { return mPublisher->getUpdatedCudaDatastoreFlag(); }
 
-   void setUpdatedDeviceDatastoreFlag(bool in) { updatedDeviceDatastore = in; }
-
-  protected:
-   virtual int allocateDeviceBuffers();
-   // OpenCL buffers and their corresponding flags
-   //
-
-   bool allocDeviceDatastore;
-   bool allocDeviceActiveIndices;
-   bool updatedDeviceDatastore;
-
-   PVCuda::CudaBuffer *d_Datastore;
-   PVCuda::CudaBuffer *d_numActive;
-   PVCuda::CudaBuffer *d_ActiveIndices;
-#ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer *cudnn_Datastore;
-#endif // PV_USE_CUDNN
+   void setUpdatedCudaDatastoreFlag(bool in) { mPublisher->setUpdatedCudaDatastoreFlag(in); }
 #endif // PV_USE_CUDA
-
-  protected:
-   Timer *publish_timer;
 };
 
 } // namespace PV

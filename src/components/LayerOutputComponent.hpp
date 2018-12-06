@@ -11,7 +11,7 @@
 #include "columns/BaseObject.hpp"
 
 #include "checkpointing/CheckpointableFileStream.hpp"
-#include "columns/Publisher.hpp"
+#include "components/PublisherComponent.hpp"
 #include "utils/Timer.hpp"
 
 namespace PV {
@@ -42,21 +42,11 @@ class LayerOutputComponent : public BaseObject {
     */
    virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief sparseLayer: Specifies if the layer should be considered sparse for optimization and
-    * output
-    */
-   virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag);
-
    /** @} */ // end of LayerOutputComponent parameters
 
   public:
    LayerOutputComponent(char const *name, PVParams *params, Communicator *comm);
    virtual ~LayerOutputComponent();
-
-   void setPublisher(Publisher *publisher);
-
-   bool getSparseLayer() const { return mSparseLayer; }
 
   protected:
    LayerOutputComponent();
@@ -101,9 +91,8 @@ class LayerOutputComponent : public BaseObject {
    double mInitialWriteTime = 0.0; // time of first output
    double mWriteTime        = 0.0; // time of next output
    double mWriteStep        = 0.0; // output time interval
-   bool mSparseLayer; // if true, only nonzero activities are saved; if false, all values are saved.
 
-   Publisher *mPublisher                        = nullptr;
+   PublisherComponent *mPublisher               = nullptr;
    CheckpointableFileStream *mOutputStateStream = nullptr; // file stream for the pvp file
    int mWriteActivityCalls; // Number of calls to writeActivity (written to nbands in the pvp file)
    int mWriteActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in

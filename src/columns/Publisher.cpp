@@ -12,15 +12,30 @@
 
 namespace PV {
 
-Publisher::Publisher(MPIBlock const &mpiBlock, PVLayerCube *cube, int numLevels, bool isSparse) {
-   this->mLayerCube = cube;
+Publisher::Publisher(
+      MPIBlock const &mpiBlock,
+      float const *data,
+      PVLayerLoc const *loc,
+      int numLevels,
+      bool isSparse) {
+   mLayerCube = (PVLayerCube *)malloc(sizeof(PVLayerCube));
 
-   int const numBuffers = cube->loc.nbatch;
-   int const numItems   = cube->numItems / numBuffers; // number of items in one batch element.
+   int const nxExt           = loc->nx + loc->halo.lt + loc->halo.rt;
+   int const nyExt           = loc->ny + loc->halo.dn + loc->halo.up;
+   int const numItemsInBatch = nxExt * nyExt * loc->nf; // number of items in one batch element.
 
-   store = new DataStore(numBuffers, numItems, numLevels, isSparse);
+   mLayerCube->numItems      = numItemsInBatch * loc->nbatch; // number of items across the batch.
+   mLayerCube->data          = data;
+   mLayerCube->loc           = *loc;
+   mLayerCube->isSparse      = isSparse;
+   mLayerCube->numActive     = nullptr;
+   mLayerCube->activeIndices = nullptr;
 
-   mBorderExchanger = new BorderExchange(mpiBlock, cube->loc);
+   int const numBuffers = loc->nbatch; // DataStore buffers correspond to batch elements
+
+   store = new DataStore(numBuffers, numItemsInBatch, numLevels, isSparse);
+
+   mBorderExchanger = new BorderExchange(mpiBlock, *loc);
 
    mpiRequestsBuffer = new RingBuffer<std::vector<MPI_Request>>(numLevels, 1);
    for (int l = 0; l < numLevels; l++) {
