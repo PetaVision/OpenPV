@@ -82,21 +82,16 @@ class HyPerLayer : public ComponentBasedObject {
    virtual Response::Status copyInitialStateToGPU() override;
 #endif // PV_USE_CUDA
 
-   void updateNBands(int numCalls);
-
    virtual Response::Status processCheckpointRead() override;
 
   public:
    HyPerLayer(const char *name, PVParams *params, Communicator *comm);
-   virtual double getTimeScale(int batchIdx) { return -1.0; };
 
   protected:
    /**
     * The function that calls all ioParam functions
     */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-
-   void freeActivityCube();
 
   public:
    virtual ~HyPerLayer();
@@ -161,7 +156,6 @@ class HyPerLayer : public ComponentBasedObject {
    float *getV() {
       return mActivityComponent->getComponentByType<InternalStateBuffer>()->getReadWritePointer();
    }
-   int getNumChannels() { return mLayerInput->getNumChannels(); }
 
    // Eventually, anything that calls one of getXScale, getYScale, or getLayerLoc should retrieve
    // the LayerGeometry component, and these get-methods can be removed from HyPerLayer.
