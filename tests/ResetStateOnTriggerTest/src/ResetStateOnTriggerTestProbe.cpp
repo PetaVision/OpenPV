@@ -1,4 +1,5 @@
 #include "ResetStateOnTriggerTestProbe.hpp"
+#include <components/PublisherComponent.hpp>
 #include <layers/HyPerLayer.hpp>
 
 ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(
@@ -34,14 +35,16 @@ PV::Response::Status ResetStateOnTriggerTestProbe::initializeState(
 void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    int nBatch = getNumValues();
    if (timevalue > 0.0) {
-      int N                 = targetLayer->getNumNeurons();
-      int NGlobal           = targetLayer->getNumGlobalNeurons();
+      auto *targetPublisher = targetLayer->getComponentByType<PV::PublisherComponent>();
       PVLayerLoc const *loc = targetLayer->getLayerLoc();
+      int N                 = loc->nx * loc->ny * loc->nf;
+      int NGlobal           = loc->nxGlobal * loc->nyGlobal * loc->nf;
+      int numExtended       = targetLayer->getNumExtended();
       PVHalo const *halo    = &loc->halo;
       int inttime           = (int)nearbyintf(timevalue / mDeltaTime);
       for (int b = 0; b < nBatch; b++) {
          int numDiscreps       = 0;
-         float const *activity = targetLayer->getLayerData() + b * targetLayer->getNumExtended();
+         float const *activity = targetPublisher->getLayerData() + b * numExtended;
          for (int k = 0; k < N; k++) {
             int kex = kIndexExtended(
                   k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);

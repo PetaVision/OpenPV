@@ -10,8 +10,8 @@
 
 #include <columns/ComponentBasedObject.hpp>
 #include <columns/HyPerCol.hpp>
+#include <components/PublisherComponent.hpp>
 #include <include/PVLayerLoc.h>
-#include <layers/HyPerLayer.hpp>
 
 struct LayerArchive {
    std::string name;
@@ -58,7 +58,7 @@ class ColumnArchive {
   private:
    ColumnArchive() {}
    void addCol(PV::HyPerCol *hc, float layerTolerance, float connTolerance);
-   void addLayer(PV::HyPerLayer *layer, float layerTolerance);
+   void addLayer(PV::PublisherComponent *layer, float layerTolerance);
    void addConn(PV::ComponentBasedObject *conn, float connTolerance);
 
   private:

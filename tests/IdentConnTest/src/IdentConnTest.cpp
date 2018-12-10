@@ -74,7 +74,12 @@ int main(int argc, char *argv[]) {
 
    hc.run();
 
-   PVLayerLoc const preLoc = *preLayerExc0->getLayerLoc();
+   auto *preExc0Publisher = preLayerExc0->getComponentByType<PV::PublisherComponent>();
+   auto *preExc1Publisher = preLayerExc1->getComponentByType<PV::PublisherComponent>();
+   auto *preInh0Publisher = preLayerInh0->getComponentByType<PV::PublisherComponent>();
+   auto *preInh1Publisher = preLayerInh1->getComponentByType<PV::PublisherComponent>();
+
+   PVLayerLoc const preLoc = *preExc0Publisher->getLayerLoc();
    int const nx            = preLoc.nx;
    int const ny            = preLoc.ny;
    int const nf            = preLoc.nf;
@@ -84,7 +89,7 @@ int main(int argc, char *argv[]) {
       int const kGlobal = globalIndexFromLocal(k, preLoc);
       int const kExt    = kIndexExtended(k, nx, ny, nf, xMargin, xMargin, yMargin, yMargin);
 
-      float const observedExc0Value = preLayerExc0->getLayerData(0)[kExt];
+      float const observedExc0Value = preExc0Publisher->getLayerData(0)[kExt];
       float const correctExc0Value  = (float)(kGlobal * kGlobal);
       if (observedExc0Value != (float)(correctExc0Value)) {
          ErrorLog().printf(
@@ -97,7 +102,7 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
-      float const observedExc1Value = preLayerExc1->getLayerData(0)[kExt];
+      float const observedExc1Value = preExc1Publisher->getLayerData(0)[kExt];
       float const correctExc1Value  = (float)(kGlobal + kGlobal + 1);
       if (observedExc1Value != (float)(correctExc1Value)) {
          ErrorLog().printf(
@@ -123,7 +128,7 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
-      float const observedInh0Value = preLayerInh0->getLayerData(0)[kExt];
+      float const observedInh0Value = preInh0Publisher->getLayerData(0)[kExt];
       float const correctInh0Value  = (float)(kGlobal * kGlobal / 2 /* integer division */);
       if (observedInh0Value != (float)(correctInh0Value)) {
          ErrorLog().printf(
@@ -136,7 +141,7 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
-      float const observedInh1Value = preLayerInh1->getLayerData(0)[kExt];
+      float const observedInh1Value = preInh1Publisher->getLayerData(0)[kExt];
       float const correctInh1Value  = (float)((kGlobal + 1) / 2 /* integer division */);
       if (observedInh1Value != (float)(correctInh1Value)) {
          ErrorLog().printf(

@@ -101,7 +101,7 @@ class TransposePoolingDelivery : public BaseDelivery {
 
    DependentPatchSize *mPatchSize             = nullptr;
    ImpliedWeightsPair *mWeightsPair           = nullptr;
-   PoolingIndexLayer *mOriginalPostIndexLayer = nullptr; // Used by deliverPresynapticPerspective
+   PublisherComponent *mOriginalPostIndexData = nullptr; // Used by deliverPresynapticPerspective
    PublisherComponent *mOriginalPreData       = nullptr; // Used by deliverGPU
    LayerInputBuffer *mOriginalPostGSyn        = nullptr; // Used by deliverGPU
 

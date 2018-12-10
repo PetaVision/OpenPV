@@ -51,60 +51,32 @@ PV::Response::Status PoolingConnCheckpointerTestProbe::communicateInitInfo(
    }
 
    auto *componentTable = message->mHierarchy;
-   status               = status + initInputLayer(componentTable);
-   status               = status + initOutputLayer(componentTable);
-   status               = status + initConnection(componentTable);
 
-   if (PV::Response::completed(status)) {
-      mInitializeFromCheckpointFlag = mInputLayer->getInitializeFromCheckpointFlag();
-      FatalIf(
-            mOutputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
-            "%s and %s have different initializeFromCheckpointFlag values.\n",
-            mInputLayer->getDescription(),
-            mOutputLayer->getDescription());
+   status = mConnection ? status : status + initConnection(componentTable);
+   status = mInputPublisher ? status : status + initInputPublisher(componentTable);
+   status = mOutputPublisher ? status : status + initOutputPublisher(componentTable);
+   if (!PV::Response::completed(status)) {
+      return status;
    }
 
-   return status;
-}
-
-PV::Response::Status
-PoolingConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *componentTable) {
-   mInputLayer = componentTable->lookupByName<PV::InputLayer>(std::string("Input"));
-   FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
-   if (checkCommunicatedFlag(mInputLayer) == PV::Response::POSTPONE) {
-      return PV::Response::POSTPONE;
-   }
-
-   PVHalo const *halo = &mInputLayer->getLayerLoc()->halo;
+   mInitializeFromCheckpointFlag = mInputPublisher->getInitializeFromCheckpointFlag();
    FatalIf(
-         halo->lt != 0 || halo->rt != 0 || halo->dn != 0 || halo->up != 0,
-         "This test assumes that the input layer has no border region.\n");
+         mInitializeFromCheckpointFlag != mOutputPublisher->getInitializeFromCheckpointFlag(),
+         "%s and %s have different initializeFromCheckpointFlag values.\n",
+         mInputPublisher->getDescription_c(),
+         mOutputPublisher->getDescription_c());
 
-   auto *activityComponent = mInputLayer->getComponentByType<PV::ActivityComponent>();
-   auto *inputBuffer       = activityComponent->getComponentByType<PV::InputActivityBuffer>();
-   FatalIf(
-         inputBuffer->getDisplayPeriod() != 4.0,
-         "This test assumes that the display period is 4 (should really not be hard-coded.\n");
-   return PV::Response::SUCCESS;
-}
-
-PV::Response::Status
-PoolingConnCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *componentTable) {
-   mOutputLayer = componentTable->lookupByName<PV::HyPerLayer>(std::string("Output"));
-   FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
-   if (checkCommunicatedFlag(mOutputLayer) == PV::Response::POSTPONE) {
-      return PV::Response::POSTPONE;
-   }
    return PV::Response::SUCCESS;
 }
 
 PV::Response::Status
 PoolingConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *componentTable) {
-   mConnection = componentTable->lookupByName<PV::PoolingConn>(std::string("InputToOutput"));
-   FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
-   if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {
+   auto *connection = componentTable->lookupByName<PV::PoolingConn>(std::string("InputToOutput"));
+   FatalIf(connection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
+   if (checkCommunicatedFlag(connection) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
+   mConnection = connection;
 
    auto *patchSize = mConnection->getComponentByType<PV::PatchSize>();
    FatalIf(
@@ -114,6 +86,49 @@ PoolingConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *compon
    FatalIf(patchSize->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
    FatalIf(patchSize->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(patchSize->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
+   return PV::Response::SUCCESS;
+}
+
+PV::Response::Status
+PoolingConnCheckpointerTestProbe::initInputPublisher(PV::ObserverTable const *componentTable) {
+   auto *inputLayer = componentTable->lookupByName<PV::InputLayer>(std::string("Input"));
+   FatalIf(inputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
+   if (checkCommunicatedFlag(inputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
+
+   PVHalo const *halo = &inputLayer->getLayerLoc()->halo;
+   FatalIf(
+         halo->lt != 0 || halo->rt != 0 || halo->dn != 0 || halo->up != 0,
+         "This test assumes that the input layer has no border region.\n");
+
+   auto *activityComponent = inputLayer->getComponentByType<PV::ActivityComponent>();
+   auto *inputBuffer       = activityComponent->getComponentByType<PV::InputActivityBuffer>();
+   FatalIf(
+         inputBuffer->getDisplayPeriod() != 4.0,
+         "This test assumes that the display period is 4 (should really not be hard-coded.\n");
+
+   mInputPublisher = inputLayer->getComponentByType<PV::PublisherComponent>();
+   FatalIf(
+         mInputPublisher == nullptr,
+         "%s does not have a PublisherComponent.\n",
+         inputLayer->getDescription_c());
+   return PV::Response::SUCCESS;
+}
+
+PV::Response::Status
+PoolingConnCheckpointerTestProbe::initOutputPublisher(PV::ObserverTable const *componentTable) {
+   auto *outputLayer = componentTable->lookupByName<PV::HyPerLayer>(std::string("Output"));
+   FatalIf(outputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
+   if (checkCommunicatedFlag(outputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
+
+   mOutputPublisher = outputLayer->getComponentByType<PV::PublisherComponent>();
+   FatalIf(
+         mOutputPublisher == nullptr,
+         "%s does not have a PublisherComponent.\n",
+         outputLayer->getDescription_c());
    return PV::Response::SUCCESS;
 }
 
@@ -167,7 +182,7 @@ int PoolingConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
 void PoolingConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
    int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
    mCorrectState          = new CorrectState(
-         updateNumber - 1, mInputLayer->getLayerLoc(), mOutputLayer->getLayerLoc());
+         updateNumber - 1, mInputPublisher->getLayerLoc(), mOutputPublisher->getLayerLoc());
    // Don't update for the current updateNumber;
    // outputState calls mCorrectState->update() if needed.
 }
@@ -185,8 +200,8 @@ PoolingConnCheckpointerTestProbe::outputState(double simTime, double deltaTime) 
 
    bool failed = false;
 
-   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInputBuffer(), simTime);
-   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutputBuffer(), simTime);
+   failed |= verifyLayer(mInputPublisher, mCorrectState->getCorrectInputBuffer(), simTime);
+   failed |= verifyLayer(mOutputPublisher, mCorrectState->getCorrectOutputBuffer(), simTime);
 
    if (failed) {
       std::string errorMsg(getDescription() + " failed at t = " + std::to_string(simTime) + "\n");
@@ -208,17 +223,17 @@ PoolingConnCheckpointerTestProbe::outputState(double simTime, double deltaTime) 
 }
 
 bool PoolingConnCheckpointerTestProbe::verifyLayer(
-      PV::HyPerLayer *layer,
+      PV::PublisherComponent *layer,
       PV::Buffer<float> const &correctValueBuffer,
       double timevalue) {
    int failed = 0;
 
-   int const numNeurons   = layer->getNumNeurons();
    float const *layerData = layer->getLayerData();
    PVLayerLoc loc         = *layer->getLayerLoc();
    int const nx           = loc.nx;
    int const ny           = loc.ny;
    int const nf           = loc.nf;
+   int const numNeurons   = nx * ny * nf;
    std::vector<int> badIndices(numNeurons, -1);
    for (int k = 0; k < numNeurons; k++) {
       int const x = kxPos(k, nx, ny, nf);
@@ -233,7 +248,7 @@ bool PoolingConnCheckpointerTestProbe::verifyLayer(
    PV::Communicator *comm = mCommunicator;
    std::vector<int> badIndicesGlobal;
    if (comm->commRank() == 0) {
-      badIndicesGlobal.resize(layer->getNumGlobalNeurons());
+      badIndicesGlobal.resize(loc.nxGlobal * loc.nyGlobal * loc.nf);
       std::vector<MPI_Request> requests(comm->commSize() - 1);
       for (int r = 1; r < comm->commSize(); r++) {
          int *recvBuffer = &badIndicesGlobal.at(r * numNeurons);

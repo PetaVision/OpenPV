@@ -114,21 +114,7 @@ class HyPerLayer : public ComponentBasedObject {
    Response::Status
    respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
    Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
-   void publish(Communicator *comm, double simTime) { mPublisher->publish(comm, simTime); }
    // ************************************************************************************//
-
-   // mpi public wait method to ensure all targets have received synaptic input before proceeding to
-   // next time step
-   int waitOnPublish(Communicator *comm) { return mPublisher->waitOnPublish(comm); }
-
-   void updateAllActiveIndices() { mPublisher->updateAllActiveIndices(); }
-   void updateActiveIndices() { mPublisher->updateActiveIndices(); }
-
-   /**
-    * Returns true if the MPI exchange for the specified delay has finished;
-    * false if it is still in process.
-    */
-   bool isExchangeFinished(int delay = 0) { return mPublisher->isExchangeFinished(delay); }
 
    // Public access functions:
 
@@ -146,9 +132,6 @@ class HyPerLayer : public ComponentBasedObject {
       return (loc->nxGlobal + loc->halo.lt + loc->halo.rt)
              * (loc->nyGlobal + loc->halo.dn + loc->halo.up) * loc->nf;
    }
-   int getNumDelayLevels() { return mPublisher->getNumDelayLevels(); }
-
-   int increaseDelayLevels(int neededDelay) { return mPublisher->increaseDelayLevels(neededDelay); }
 
    float const *getV() const {
       return mActivityComponent->getComponentByType<InternalStateBuffer>()->getBufferData();
@@ -163,15 +146,7 @@ class HyPerLayer : public ComponentBasedObject {
    int getYScale() const { return mLayerGeometry->getYScale(); }
    PVLayerLoc const *getLayerLoc() const { return mLayerGeometry->getLayerLoc(); }
 
-   bool getSparseFlag() { return mPublisher->getSparseLayer(); }
-
    int getPhase() { return mPhaseParam->getPhase(); }
-
-   // implementation of LayerDataInterface interface
-   //
-   float const *getLayerData(int delay = 0) const { return mPublisher->getLayerData(delay); }
-
-   Publisher *getPublisher() { return mPublisher->getPublisher(); }
 
   protected:
    virtual Response::Status
@@ -211,28 +186,6 @@ class HyPerLayer : public ComponentBasedObject {
    PublisherComponent *mPublisher = nullptr;
 
    LayerOutputComponent *mLayerOutput = nullptr;
-
-// GPU variables
-#ifdef PV_USE_CUDA
-  public:
-   PVCuda::CudaBuffer *getCudaDatastore() { return mPublisher->getCudaDatastore(); }
-
-   PVCuda::CudaBuffer *getCudaActiveIndices() { return mPublisher->getCudaActiveIndices(); }
-
-   PVCuda::CudaBuffer *getCudaNumActive() { return mPublisher->getCudaNumActive(); }
-
-#ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer *getCudnnDatastore() { return mPublisher->getCudnnDatastore(); }
-#endif // PV_USE_CUDNN
-
-   void setAllocCudaDatastore() { mPublisher->setAllocCudaDatastore(); }
-
-   void setAllocCudaActiveIndices() { mPublisher->setAllocCudaActiveIndices(); }
-
-   bool getUpdatedCudaDatastoreFlag() { return mPublisher->getUpdatedCudaDatastoreFlag(); }
-
-   void setUpdatedCudaDatastoreFlag(bool in) { mPublisher->setUpdatedCudaDatastoreFlag(in); }
-#endif // PV_USE_CUDA
 };
 
 } // namespace PV

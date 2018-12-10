@@ -11,6 +11,7 @@
 #include "probes/ColProbe.hpp"
 
 #include "CorrectState.hpp"
+#include "components/PublisherComponent.hpp"
 #include "connections/PoolingConn.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/InputLayer.hpp"
@@ -51,22 +52,22 @@ class PoolingConnCheckpointerTestProbe : public PV::ColProbe {
    PoolingConnCheckpointerTestProbe();
 
    /**
+    * Sets the connection data member, and checks that the connection's parameters are
+    * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
+    */
+   PV::Response::Status initConnection(PV::ObserverTable const *componentTable);
+
+   /**
     * Sets the input layer data member, and checks that the input layer's parameters are
     * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
     */
-   PV::Response::Status initInputLayer(PV::ObserverTable const *componentTable);
+   PV::Response::Status initInputPublisher(PV::ObserverTable const *componentTable);
 
    /**
     * Sets the output layer data member, and checks that the output layer's parameters are
     * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
     */
-   PV::Response::Status initOutputLayer(PV::ObserverTable const *componentTable);
-
-   /**
-    * Sets the connection data member, and checks that the connection's parameters are
-    * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
-    */
-   PV::Response::Status initConnection(PV::ObserverTable const *componentTable);
+   PV::Response::Status initOutputPublisher(PV::ObserverTable const *componentTable);
 
    /**
     * Checks whether the given object has finished its communicateInitInfo stage, and
@@ -78,19 +79,19 @@ class PoolingConnCheckpointerTestProbe : public PV::ColProbe {
    void initializeCorrectValues(double timevalue);
 
    bool verifyLayer(
-         PV::HyPerLayer *layer,
+         PV::PublisherComponent *layer,
          PV::Buffer<float> const &correctValueBuffer,
          double timevalue);
 
    // Data members
   protected:
-   int mStartingUpdateNumber    = 0;
-   bool mValuesSet              = false;
-   PV::InputLayer *mInputLayer  = nullptr;
-   PV::HyPerLayer *mOutputLayer = nullptr;
-   PV::PoolingConn *mConnection = nullptr;
-   CorrectState *mCorrectState  = nullptr;
-   bool mTestFailed             = false;
+   int mStartingUpdateNumber                = 0;
+   bool mValuesSet                          = false;
+   PV::PublisherComponent *mInputPublisher  = nullptr;
+   PV::PublisherComponent *mOutputPublisher = nullptr;
+   PV::PoolingConn *mConnection             = nullptr;
+   CorrectState *mCorrectState              = nullptr;
+   bool mTestFailed                         = false;
 };
 
 #endif // POOLINGCONNCHECKPOINTERTESTPROBE_HPP_

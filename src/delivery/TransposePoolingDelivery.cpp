@@ -96,7 +96,10 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
 #ifdef PV_USE_CUDA
    mUsingGPUFlag = originalPoolingDelivery->isUsingGPU();
 #endif // PV_USE_CUDA
-   mOriginalPostIndexLayer = originalPoolingDelivery->getPostIndexLayer();
+   auto *originalPostIndexLayer = originalPoolingDelivery->getPostIndexLayer();
+   if (originalPostIndexLayer) {
+      mOriginalPostIndexData = originalPostIndexLayer->getComponentByType<PublisherComponent>();
+   }
 
    auto *originalConnectionData = originalConn->getComponentByType<ConnectionData>();
    pvAssert(originalConnectionData);
@@ -305,10 +308,12 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
 
    // Grab postIdxLayer's data
    float const *postIdxData = nullptr;
+   int postIdxNumExtended;
    if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
-      pvAssert(dynamic_cast<PoolingIndexLayer *>(mOriginalPostIndexLayer));
-      PVLayerCube cube = mOriginalPostIndexLayer->getPublisher()->createCube(0 /*delay*/);
-      postIdxData      = cube.data;
+      pvAssert(mOriginalPostIndexData);
+      PVLayerCube cube   = mOriginalPostIndexData->getPublisher()->createCube(0 /*delay*/);
+      postIdxData        = cube.data;
+      postIdxNumExtended = mOriginalPostIndexData->getNumExtended();
    }
 
    int const nbatch = preLoc->nbatch;
@@ -317,23 +322,18 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
          "%s has different presynaptic and postsynaptic batch sizes.\n",
          getDescription_c());
    for (int b = 0; b < nbatch; b++) {
-      float const *activityBatch = activityCube.data
-                                   + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                                           * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
-                                           * preLoc->nf;
+      float const *activityBatch    = activityCube.data + b * mPreData->getNumExtended();
       float *gSynPatchHeadBatch     = gSyn + b * postLoc->nx * postLoc->ny * postLoc->nf;
       float const *postIdxDataBatch = nullptr;
       if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
-         postIdxDataBatch = postIdxData + b * mOriginalPostIndexLayer->getNumExtended();
+         postIdxDataBatch = postIdxData + b * postIdxNumExtended;
       }
 
       SparseList<float>::Entry const *activeIndicesBatch = nullptr;
       int numLoop;
       if (activityCube.isSparse) {
          activeIndicesBatch = (SparseList<float>::Entry *)activityCube.activeIndices
-                              + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                                      * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
-                                      * preLoc->nf;
+                              + b * mPreData->getNumExtended();
          numLoop = activityCube.numActive[b];
       }
       else {

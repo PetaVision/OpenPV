@@ -99,25 +99,25 @@ Response::Status BinningActivityBuffer::communicateInitInfo(
    } catch (std::invalid_argument &e) {
       Fatal().printf("%s: %s\n", getDescription_c(), e.what());
    }
-   mOriginalLayer = dynamic_cast<HyPerLayer *>(originalObject);
+   mOriginalLayerData = originalObject->getComponentByType<PublisherComponent>();
    FatalIf(
-         mOriginalLayer == nullptr,
-         "%s could not find a layer named \"%s\".\n",
+         mOriginalLayerData == nullptr,
+         "%s original layer \"%s\" does not have a PublisherComponent.\n",
          getDescription_c(),
          originalLayerNameParam->getLinkedObjectName());
    checkDimensions();
 
-   mOriginalLayer->increaseDelayLevels(mDelay);
+   mOriginalLayerData->increaseDelayLevels(mDelay);
    return Response::SUCCESS;
 }
 
 void BinningActivityBuffer::checkDimensions() const {
-   PVLayerLoc const *locOriginal = mOriginalLayer->getLayerLoc();
+   PVLayerLoc const *locOriginal = mOriginalLayerData->getLayerLoc();
    PVLayerLoc const *loc         = getLayerLoc();
    FatalIf(
          locOriginal->nbatch != loc->nbatch,
          "%s and %s do not have the same batch width (%d versus %d)\n",
-         mOriginalLayer->getDescription_c(),
+         mOriginalLayerData->getDescription_c(),
          getDescription_c(),
          locOriginal->nbatch,
          loc->nbatch);
@@ -128,7 +128,7 @@ void BinningActivityBuffer::checkDimensions() const {
    FatalIf(
          !dimsEqual,
          "%s and %s do not have the same x- and y- dimensions (%d-by-%d) versus (%d-by-%d).\n",
-         mOriginalLayer->getDescription_c(),
+         mOriginalLayerData->getDescription_c(),
          getDescription_c(),
          locOriginal->nx,
          locOriginal->nx,
@@ -139,7 +139,7 @@ void BinningActivityBuffer::checkDimensions() const {
          locOriginal->nf != 1,
          "\"%s\" requires original layer \"%s\" to have only one feature (nf=%d)\n",
          getDescription_c(),
-         mOriginalLayer->getName(),
+         mOriginalLayerData->getName(),
          locOriginal->nf);
 }
 
@@ -149,7 +149,7 @@ BinningActivityBuffer::initializeState(std::shared_ptr<InitializeStateMessage co
 }
 
 void BinningActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
-   PVLayerLoc const *origLoc = mOriginalLayer->getLayerLoc();
+   PVLayerLoc const *origLoc = mOriginalLayerData->getLayerLoc();
    PVLayerLoc const *currLoc = getLayerLoc();
 
    pvAssert(origLoc->nx == currLoc->nx);
@@ -171,7 +171,7 @@ void BinningActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    int const nxExt = origLoc->nx + origLoc->halo.lt + origLoc->halo.rt;
    int const nyExt = origLoc->ny + origLoc->halo.dn + origLoc->halo.up;
 
-   float const *origData = mOriginalLayer->getLayerData(mDelay);
+   float const *origData = mOriginalLayerData->getLayerData(mDelay);
    float *currActivity   = mBufferData.data();
 
    int nbatch = currLoc->nbatch;

@@ -100,15 +100,18 @@ int main(int argc, char *argv[]) {
       Fatal().printf("[%d]: test_constant_input: ERROR in image data\n", rank);
    }
 
-   float const *retinaActivity = retina->getComponentByType<ActivityComponent>()->getActivity();
-   float retinaVal             = sumOfWeights * image->getConstantVal();
+   ActivityComponent *retinaActivity = retina->getComponentByType<ActivityComponent>();
+   float retinaVal                   = sumOfWeights * image->getConstantVal();
 
-   status = checkInput(retina->getLayerLoc(), retinaActivity, retinaVal, false);
+   status =
+         checkInput(retinaActivity->getLayerLoc(), retinaActivity->getActivity(), retinaVal, false);
    if (status != 0) {
       Fatal().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
 
-   status = checkInput(retina->getLayerLoc(), retina->getLayerData(), retinaVal, true);
+   PublisherComponent *retinaPublisher = retina->getComponentByType<PublisherComponent>();
+   status                              = checkInput(
+         retinaPublisher->getLayerLoc(), retinaPublisher->getLayerData(), retinaVal, true);
    if (status != 0) {
       Fatal().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }

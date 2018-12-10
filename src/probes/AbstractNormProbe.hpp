@@ -9,21 +9,20 @@
 #define ABSTRACTNORMPROBE_HPP_
 
 #include "LayerProbe.hpp"
+#include "components/PublisherComponent.hpp"
 
 namespace PV {
 
 /**
  * An abstract layer probe where getValue and getValues return a norm-like
- * quantity
- * where the quantity over the entire column is the sum of subquantities
- * computed
- * over each MPI process.
+ * quantity where the quantity over the entire column is the sum of
+ * subquantities computed over each MPI process.
  *
  * Derived classes must implement getValueInternal(double, int).  Each MPI
- * process
- * should return its own contribution to the norm.  getValues() and getValue()
- * call getValueInternal and apply MPI_Allreduce to the result, so that
- * getValueInternal() typically does not have to call any MPI processes.
+ * process should return its own contribution to the norm.
+ * getValues() and getValue() call getValueInternal() and apply MPI_Allreduce
+ * to the result, so that getValueInternal() typically does not have to call
+ * any MPI processes.
  */
 class AbstractNormProbe : public LayerProbe {
   public:
@@ -34,7 +33,7 @@ class AbstractNormProbe : public LayerProbe {
     * Returns a pointer to the masking layer.  Returns NULL if masking is not
     * used.
     */
-   HyPerLayer *getMaskLayer() { return maskLayer; }
+   PublisherComponent *getMaskLayerData() { return mMaskLayerData; }
 
    /**
     * Returns the name of the masking layer, as given by the params.
@@ -137,15 +136,14 @@ class AbstractNormProbe : public LayerProbe {
    int initialize_base();
 
   private:
-   char *normDescription;
-   char *maskLayerName;
-   HyPerLayer *maskLayer;
-   bool singleFeatureMask;
+   char *normDescription              = nullptr;
+   char *maskLayerName                = nullptr;
+   PublisherComponent *mMaskLayerData = nullptr;
+   bool singleFeatureMask             = false;
 
-   double timeLastComputed; // the value of the input argument timevalue for the
-   // most recent
-   // getValues() call.  Calls to getValue() do not set or refer to this
-   // time.
+   double timeLastComputed = -std::numeric_limits<double>::infinity();
+   // the value of the input argument timevalue for the most recent
+   // getValues() call.  Calls to getValue() do not set or refer to this time.
 
 }; // end class AbstractNormProbe
 

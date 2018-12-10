@@ -3,8 +3,9 @@
  *
  */
 
+#include <columns/ComponentBasedObject.hpp>
 #include <columns/buildandrun.hpp>
-#include <layers/HyPerLayer.hpp>
+#include <components/PublisherComponent.hpp>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);
 
@@ -20,19 +21,26 @@ int main(int argc, char *argv[]) {
 }
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
-   HyPerLayer *checkCloneLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("CheckClone"));
-   FatalIf(checkCloneLayer == nullptr, "No layer named \"CheckClone\"\n");
-   float const *checkCloneLayerData = checkCloneLayer->getLayerData();
-   int const numCloneLayerNeurons   = checkCloneLayer->getNumExtended();
+   auto *checkClone = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("CheckClone"));
+   FatalIf(checkClone == nullptr, "No layer named \"CheckClone\"\n");
+   auto *checkClonePublisher = checkClone->getComponentByType<PublisherComponent>();
+   FatalIf(
+         checkClonePublisher == nullptr,
+         "Layer \"CheckClone\" does not have a PublisherComponent\n");
+   float const *checkCloneLayerData = checkClonePublisher->getLayerData();
+   int const numCloneLayerNeurons   = checkClonePublisher->getNumExtended();
    for (int k = 0; k < numCloneLayerNeurons; k++) {
       FatalIf(fabsf(checkCloneLayerData[k]) >= 1.0e-6f, "Test failed.\n");
    }
 
-   HyPerLayer *checkSigmoidLayer =
-         dynamic_cast<HyPerLayer *>(hc->getObjectFromName("CheckSigmoid"));
-   FatalIf(checkSigmoidLayer == nullptr, "No layer named \"CheckSigmoid\"\n");
-   float const *checkSigmoidLayerData = checkSigmoidLayer->getLayerData();
-   int const numSigmoidLayerNeurons   = checkSigmoidLayer->getNumExtended();
+   auto *checkSigmoid = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("CheckSigmoid"));
+   FatalIf(checkSigmoid == nullptr, "No layer named \"CheckSigmoid\"\n");
+   auto *checkSigmoidPublisher = checkSigmoid->getComponentByType<PublisherComponent>();
+   FatalIf(
+         checkSigmoidPublisher == nullptr,
+         "Layer \"CheckSigmoid\" does not have a PublisherComponent\n");
+   float const *checkSigmoidLayerData = checkSigmoidPublisher->getLayerData();
+   int const numSigmoidLayerNeurons   = checkSigmoidPublisher->getNumExtended();
    for (int k = 0; k < numSigmoidLayerNeurons; k++) {
       FatalIf(fabsf(checkSigmoidLayerData[k]) >= 1.0e-6f, "Test failed.\n");
    }

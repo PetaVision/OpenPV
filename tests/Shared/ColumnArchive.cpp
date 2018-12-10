@@ -6,9 +6,11 @@
  */
 
 #include "ColumnArchive.hpp"
-#include "components/ArborList.hpp"
-#include "components/PatchSize.hpp"
-#include "components/WeightsPair.hpp"
+#include <components/ArborList.hpp>
+#include <components/PatchSize.hpp>
+#include <components/WeightsPair.hpp>
+#include <layers/HyPerLayer.hpp>
+
 #include <cmath>
 // Definitions of constructor and destructor are both empty, defined in header
 
@@ -134,14 +136,14 @@ bool ColumnArchive::operator==(ColumnArchive const &comparison) const {
    return areEqual;
 }
 
-void ColumnArchive::addLayer(PV::HyPerLayer *layer, float layerTolerance) {
+void ColumnArchive::addLayer(PV::PublisherComponent *layer, float layerTolerance) {
    std::vector<LayerArchive>::size_type sz = m_layerdata.size();
    m_layerdata.resize(sz + 1);
    LayerArchive &latestLayer = m_layerdata.at(sz);
    latestLayer.name          = layer->getName();
    latestLayer.layerLoc      = layer->getLayerLoc()[0];
    float const *ldatastart   = layer->getLayerData();
-   float const *ldataend     = &ldatastart[layer->getNumExtendedAllBatches()];
+   float const *ldataend     = &ldatastart[layer->getNumExtended() * latestLayer.layerLoc.nbatch];
    latestLayer.data          = std::vector<float>(ldatastart, ldataend);
    latestLayer.tolerance     = layerTolerance;
 }
@@ -178,7 +180,8 @@ void ColumnArchive::addCol(PV::HyPerCol *hc, float layerTolerance, float connTol
    for (PV::Observer *obj = firstObject; obj != nullptr; obj = hc->getNextObject(obj)) {
       PV::HyPerLayer *layer = dynamic_cast<PV::HyPerLayer *>(obj);
       if (layer != nullptr) {
-         addLayer(layer, layerTolerance);
+         auto *publisherComponent = layer->getComponentByType<PV::PublisherComponent>();
+         addLayer(publisherComponent, layerTolerance);
       }
       auto *conn = dynamic_cast<PV::ComponentBasedObject *>(obj);
       if (conn->getComponentByType<PV::PatchSize>() != nullptr) {

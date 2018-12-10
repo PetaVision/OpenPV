@@ -12,6 +12,9 @@
 #include "components/PatchSize.hpp"
 #include "components/SharedWeights.hpp"
 #include "components/WeightsPair.hpp"
+#include "connections/HyPerConn.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "layers/InputLayer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include <cmath>
 
@@ -52,48 +55,18 @@ PV::Response::Status HyPerConnCheckpointerTestProbe::communicateInitInfo(
    }
 
    auto *componentTable = message->mHierarchy;
-   status               = status + initInputLayer(componentTable);
-   status               = status + initOutputLayer(componentTable);
-   status               = status + initConnection(componentTable);
 
-   if (PV::Response::completed(status)) {
-      FatalIf(
-            mInputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
-            "%s has a different initializeFromCheckpointFlag value from the connection.\n",
-            mInputLayer->getDescription());
-      FatalIf(
-            mOutputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
-            "%s has a different initializeFromCheckpointFlag value from the connection.\n",
-            mOutputLayer->getDescription());
+   status = mPreWeights ? status : status + initConnection(componentTable);
+   // initConnection sets InitializeFromCheckpointFlag, and init{In,Out}PutLayer checks
+   // against that value, so we have to complete initConnection successively before
+   // calling initInputLayer or initOutputLayer.
+   if (!PV::Response::completed(status)) {
+      return status;
    }
+   status = mInputPublisher ? status : status + initInputLayer(componentTable);
+   status = mOutputPublisher ? status : status + initOutputLayer(componentTable);
 
    return status;
-}
-
-PV::Response::Status
-HyPerConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *componentTable) {
-   mInputLayer = componentTable->lookupByName<PV::InputLayer>(std::string("Input"));
-   FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
-   if (checkCommunicatedFlag(mInputLayer) == PV::Response::POSTPONE) {
-      return PV::Response::POSTPONE;
-   }
-
-   auto *activityComponent = mInputLayer->getComponentByType<PV::ActivityComponent>();
-   auto *inputBuffer       = activityComponent->getComponentByType<PV::InputActivityBuffer>();
-   FatalIf(
-         inputBuffer->getDisplayPeriod() != 4.0,
-         "This test assumes that the display period is 4 (should really not be hard-coded.\n");
-   return PV::Response::SUCCESS;
-}
-
-PV::Response::Status
-HyPerConnCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *componentTable) {
-   mOutputLayer = componentTable->lookupByName<PV::HyPerLayer>(std::string("Output"));
-   FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
-   if (checkCommunicatedFlag(mOutputLayer) == PV::Response::POSTPONE) {
-      return PV::Response::POSTPONE;
-   }
-   return PV::Response::SUCCESS;
 }
 
 PV::Response::Status
@@ -145,6 +118,50 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *componen
    }
    mPreWeights                   = weightsPair->getPreWeights();
    mInitializeFromCheckpointFlag = weightsPair->getInitializeFromCheckpointFlag();
+   return PV::Response::SUCCESS;
+}
+
+PV::Response::Status
+HyPerConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *componentTable) {
+   auto *inputLayer = componentTable->lookupByName<PV::InputLayer>(std::string("Input"));
+   FatalIf(inputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
+   if (checkCommunicatedFlag(inputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
+   FatalIf(
+         inputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
+         "%s has a different initializeFromCheckpointFlag value from the connection.\n",
+         inputLayer->getDescription_c());
+
+   auto *activityComponent = inputLayer->getComponentByType<PV::ActivityComponent>();
+   auto *inputBuffer       = activityComponent->getComponentByType<PV::InputActivityBuffer>();
+   FatalIf(
+         inputBuffer->getDisplayPeriod() != 4.0,
+         "This test assumes that the display period is 4 (should really not be hard-coded.\n");
+   mInputPublisher = inputLayer->getComponentByType<PV::PublisherComponent>();
+   FatalIf(
+         mInputPublisher == nullptr,
+         "%s does not have a PublisherComponent.\n",
+         inputLayer->getDescription_c());
+   return PV::Response::SUCCESS;
+}
+
+PV::Response::Status
+HyPerConnCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *componentTable) {
+   auto *outputLayer = componentTable->lookupByName<PV::HyPerLayer>(std::string("Output"));
+   FatalIf(outputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
+   if (checkCommunicatedFlag(outputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
+   FatalIf(
+         outputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
+         "%s has a different initializeFromCheckpointFlag value from the connection.\n",
+         outputLayer->getDescription());
+   mOutputPublisher = outputLayer->getComponentByType<PV::PublisherComponent>();
+   FatalIf(
+         mOutputPublisher == nullptr,
+         "%s does not have a PublisherComponent.\n",
+         outputLayer->getDescription_c());
    return PV::Response::SUCCESS;
 }
 
@@ -223,8 +240,8 @@ PV::Response::Status HyPerConnCheckpointerTestProbe::outputState(double simTime,
    bool failed = false;
 
    failed |= verifyConnection(mPreWeights, mCorrectState->getCorrectWeight(), simTime);
-   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), simTime);
-   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), simTime);
+   failed |= verifyLayer(mInputPublisher, mCorrectState->getCorrectInput(), simTime);
+   failed |= verifyLayer(mOutputPublisher, mCorrectState->getCorrectOutput(), simTime);
 
    if (failed) {
       std::string errorMsg(getDescription() + " failed at t = " + std::to_string(simTime) + "\n");
@@ -246,7 +263,7 @@ PV::Response::Status HyPerConnCheckpointerTestProbe::outputState(double simTime,
 }
 
 bool HyPerConnCheckpointerTestProbe::verifyLayer(
-      PV::HyPerLayer *layer,
+      PV::PublisherComponent *layer,
       float correctValue,
       double timevalue) {
    bool failed = false;

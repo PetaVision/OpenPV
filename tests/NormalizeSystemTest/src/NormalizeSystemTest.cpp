@@ -29,7 +29,8 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    float normalizeSumStrength    = normalizeSumNormalizer->getStrength();
    baseObject                    = getObject(hc, "NormalizeSumCheck");
    HyPerLayer *normalizeSumCheck = dynamic_cast<HyPerLayer *>(baseObject);
-   float normalizeSumValue       = normalizeSumCheck->getLayerData()[0];
+   auto *normalizeSumCheckData   = normalizeSumCheck->getComponentByType<PublisherComponent>();
+   float normalizeSumValue       = normalizeSumCheckData->getLayerData()[0];
    FatalIf(fabsf(normalizeSumValue - normalizeSumStrength) >= tol, "Test failed.\n");
 
    // check normalizeL2
@@ -39,8 +40,9 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    float normalizeL2Strength    = normalizeL2Normalizer->getStrength();
    baseObject                   = getObject(hc, "NormalizeL2Check");
    HyPerLayer *normalizeL2Check = dynamic_cast<HyPerLayer *>(baseObject);
-   FatalIf(!(normalizeL2Check), "Test failed.\n");
-   float normalizeL2Value = sqrtf(normalizeL2Check->getLayerData()[0]);
+   FatalIf(normalizeL2Check == nullptr, "No layer named NormalizeL2Check.\n");
+   auto *normalizeL2CheckData = normalizeL2Check->getComponentByType<PublisherComponent>();
+   float normalizeL2Value     = sqrtf(normalizeL2CheckData->getLayerData()[0]);
    FatalIf(fabsf(normalizeL2Value - normalizeL2Strength) >= tol, "Test failed.\n");
 
    // check normalizeMax
@@ -50,10 +52,11 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    float normalizeMaxStrength    = normalizeMaxNormalizer->getStrength();
    baseObject                    = getObject(hc, "NormalizeMaxCheck");
    HyPerLayer *normalizeMaxCheck = dynamic_cast<HyPerLayer *>(baseObject);
-   FatalIf(!(normalizeMaxCheck), "Test failed.\n");
-   float normalizeMaxValue = -FLT_MAX;
+   FatalIf(normalizeMaxCheck == nullptr, "No layer named NormalizeMaxCheck.\n");
+   auto *normalizeMaxCheckData = normalizeMaxCheck->getComponentByType<PublisherComponent>();
+   float normalizeMaxValue     = -FLT_MAX;
    for (int k = 0; k < normalizeMaxCheck->getNumExtended(); k++) {
-      float layerData = normalizeMaxCheck->getLayerData()[k];
+      float layerData = normalizeMaxCheckData->getLayerData()[k];
       if (normalizeMaxValue < layerData) {
          normalizeMaxValue = layerData;
       }
@@ -73,17 +76,27 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    auto *connData                          = baseObject->getComponentByType<ConnectionData>();
    FatalIf(!connData, "%s has no ConnectionData component.\n", baseObject->getDescription_c());
    int numNeurons = connData->getPost()->getNumGlobalNeurons();
-   baseObject     = getObject(hc, "NormalizeContrastZeroMeanCheckMean");
+
+   // check normalizeConstransZeroMean mean
+   baseObject = getObject(hc, "NormalizeContrastZeroMeanCheckMean");
    HyPerLayer *normalizeContrastZeroMeanCheckMean = dynamic_cast<HyPerLayer *>(baseObject);
-   FatalIf(!normalizeContrastZeroMeanCheckMean, "Test failed.\n");
-   float normalizeContrastZeroMeanValue =
-         normalizeContrastZeroMeanCheckMean->getLayerData()[0] / numNeurons;
+   FatalIf(
+         !normalizeContrastZeroMeanCheckMean,
+         "No layer named \"NormalizeContrastZeroMeanCheckMean\".\n");
+   auto *checkDataMean =
+         normalizeContrastZeroMeanCheckMean->getComponentByType<PublisherComponent>();
+   float normalizeContrastZeroMeanValue = checkDataMean->getLayerData()[0] / numNeurons;
    FatalIf(fabsf(normalizeContrastZeroMeanValue) >= tol, "Test failed.\n");
+
+   // check normalizeConstransZeroMean variance
    baseObject = getObject(hc, "NormalizeContrastZeroMeanCheckVariance");
    HyPerLayer *normalizeContrastZeroMeanCheckVariance = dynamic_cast<HyPerLayer *>(baseObject);
-   FatalIf(!normalizeContrastZeroMeanCheckVariance, "Test failed.\n");
-   float normalizeContrastZeroMeanStDev =
-         sqrtf(normalizeContrastZeroMeanCheckVariance->getLayerData()[0] / numNeurons);
+   FatalIf(
+         !normalizeContrastZeroMeanCheckVariance,
+         "No layer named \"NormalizeContrastZeroMeanCheckVariance\".\n");
+   auto *checkDataVariance =
+         normalizeContrastZeroMeanCheckVariance->getComponentByType<PublisherComponent>();
+   float normalizeContrastZeroMeanStDev = sqrtf(checkDataVariance->getLayerData()[0] / numNeurons);
    FatalIf(
          fabsf(normalizeContrastZeroMeanStDev - normalizeContrastZeroMeanStrength) >= tol,
          "Test failed.\n");

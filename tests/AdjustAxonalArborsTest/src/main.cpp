@@ -25,19 +25,23 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
 
    // Input layer should be 2x2 with values 1, 2, 3, 4;
    // and have margin width 1 with mirror boundary conditions off.
-   HyPerLayer *inLayer     = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Input"));
-   const PVLayerLoc *inLoc = inLayer->getLayerLoc();
-   FatalIf(!(inLoc->nxGlobal == 2 && inLoc->nyGlobal == 2 && inLoc->nf == 1), "Test failed.\n");
-   assert(
-         inLoc->halo.lt == 1 && inLoc->halo.rt == 1 && inLoc->halo.dn == 1 && inLoc->halo.up == 1
-         && inLayer->getNumGlobalExtended() == 16);
+   HyPerLayer *inLayer             = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Input"));
+   PublisherComponent *inLayerData = inLayer->getComponentByType<PublisherComponent>();
+   const PVLayerLoc *inLoc         = inLayerData->getLayerLoc();
+   FatalIf(inLoc->nxGlobal != 2 or inLoc->nyGlobal != 2 or inLoc->nf != 1, "Test failed.\n");
+   pvAssert(
+         inLoc->halo.lt == 1 and inLoc->halo.rt == 1 and inLoc->halo.dn == 1
+         and inLoc->halo.up == 1);
+   int const numGlobalExtended = 16;
+   int const numExtended       = inLayerData->getNumExtended();
+   FatalIf(numExtended != (inLoc->nx + 1 + 1) * (inLoc->ny + 1 + 1) * inLoc->nf, "Test failed.\n");
 
    InfoLog().flush();
    MPI_Barrier(hc->getCommunicator()->communicator());
    for (int r = 0; r < hc->getCommunicator()->commSize(); r++) {
       if (r == hc->columnId()) {
          InfoLog().printf("Rank %d, Input layer activity\n", r);
-         for (int k = 0; k < inLayer->getNumExtended(); k++) {
+         for (int k = 0; k < numExtended; k++) {
             int x = kxPos(k,
                           inLoc->nx + inLoc->halo.lt + inLoc->halo.rt,
                           inLoc->ny + inLoc->halo.dn + inLoc->halo.up,
@@ -53,7 +57,7 @@ int checkoutput(HyPerCol *hc, int argc, char **argv) {
                   inLoc->nx + inLoc->halo.lt + inLoc->halo.rt,
                   inLoc->ny + inLoc->halo.dn + inLoc->halo.up,
                   inLoc->nf);
-            float a = inLayer->getLayerData()[k];
+            float a = inLayerData->getLayerData()[k];
 
             if (x >= 0 && x < inLoc->nxGlobal && y >= 0 && y < inLoc->nyGlobal) {
                int kRestricted = kIndex(x, y, f, inLoc->nxGlobal, inLoc->nyGlobal, inLoc->nf);

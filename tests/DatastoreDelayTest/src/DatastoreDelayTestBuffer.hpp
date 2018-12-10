@@ -9,7 +9,6 @@
 #define DATASTOREDELAYTESTBUFFER_HPP_
 
 #include <components/InternalStateBuffer.hpp>
-#include <layers/HyPerLayer.hpp> // Temporary hack - getNumDelayLevels isn't in a component yet.
 
 namespace PV {
 

@@ -103,21 +103,18 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    double VThreshPlusVWidth = VThresh + VWidth;
    double amax              = 0.5 * VThreshPlusVWidth;
    double a2                = 0.5 / VThreshPlusVWidth;
-   float const *aBuffer =
-         getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
+   auto *publisherComponent = getTargetLayer()->getComponentByType<PublisherComponent>();
+   int const numExtended    = publisherComponent->getNumExtended();
+   float const *aBuffer     = publisherComponent->getLayerData() + index * numExtended;
 
-   if (getMaskLayer()) {
-      PVLayerLoc const *maskLoc = getMaskLayer()->getLayerLoc();
-      PVHalo const *maskHalo    = &maskLoc->halo;
-      float const *maskLayerData =
-            getMaskLayer()->getLayerData()
-            + index * getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the
-      // part of the layer data for a given batch
-      // index?
-      int const maskLt = maskHalo->lt;
-      int const maskRt = maskHalo->rt;
-      int const maskDn = maskHalo->dn;
-      int const maskUp = maskHalo->up;
+   if (getMaskLayerData()) {
+      PVLayerLoc const *maskLoc  = getMaskLayerData()->getLayerLoc();
+      int const maskLt           = maskLoc->halo.lt;
+      int const maskRt           = maskLoc->halo.rt;
+      int const maskDn           = maskLoc->halo.dn;
+      int const maskUp           = maskLoc->halo.up;
+      int const maskNumExtended  = getMaskLayerData()->getNumExtended();
+      float const *maskLayerData = getMaskLayerData()->getLayerData() + index * maskNumExtended;
       if (maskHasSingleFeature()) {
          assert(getTargetLayer()->getNumNeurons() == nx * ny * nf);
          int nxy = nx * ny;
@@ -166,8 +163,8 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
       }
    }
    else {
-      if (getTargetLayer()->getSparseFlag()) {
-         PVLayerCube cube   = getTargetLayer()->getPublisher()->createCube();
+      if (publisherComponent->getSparseLayer()) {
+         PVLayerCube cube   = publisherComponent->getPublisher()->createCube();
          long int numActive = cube.numActive[index];
          int numItems       = cube.numItems / cube.loc.nbatch;
          SparseList<float>::Entry const *activeList =

@@ -197,17 +197,17 @@ void PointProbe::calcValues(double timevalue) {
          valuesBuffer[0] = 0.0f;
       }
 
-      const float *activity = getTargetLayer()->getLayerData();
-      // Send V and A to root
-      if (activity) {
-         const int kex = kIndexExtended(
+      auto *publisherComponent = getTargetLayer()->getComponentByType<PublisherComponent>();
+      if (publisherComponent) {
+         float const *activity = publisherComponent->getLayerData();
+         const int kex         = kIndexExtended(
                k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          valuesBuffer[1] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
       }
       else {
          valuesBuffer[1] = 0.0;
       }
-      // If not in root process, send to root process
+      // If not in root process, send V and A to root process
       if (mCommunicator->commRank() != 0) {
          MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, mCommunicator->communicator());
       }

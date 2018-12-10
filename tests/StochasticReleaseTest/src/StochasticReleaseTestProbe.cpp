@@ -168,18 +168,21 @@ Response::Status StochasticReleaseTestProbe::outputState(double simTime, double 
 }
 
 void StochasticReleaseTestProbe::computePValues() {
-   int nf       = getTargetLayer()->getLayerLoc()->nf;
-   auto oldsize = pvalues.size();
+   HyPerLayer *layer             = getTargetLayer();
+   PublisherComponent *publisher = layer->getComponentByType<PublisherComponent>();
+   int nf                        = publisher->getLayerLoc()->nf;
+   auto oldsize                  = pvalues.size();
    pvalues.resize(oldsize + nf);
    auto *preWeights = conn->getComponentByType<WeightsPair>()->getPreWeights();
    auto *preLayer   = conn->getComponentByType<ConnectionData>()->getPre();
    for (int f = 0; f < nf; f++) {
-      int nf = getTargetLayer()->getLayerLoc()->nf;
+      int nf = publisher->getLayerLoc()->nf;
       FatalIf(!(f >= 0 && f < nf), "Test failed.\n");
       float wgt = preWeights->getData(0)[f * (nf + 1)]; // weights should be one-to-one weights
 
-      const float *preactPtr   = preLayer->getLayerData();
-      const PVLayerLoc *preLoc = preLayer->getLayerLoc();
+      auto *prePublisher       = preLayer->getComponentByType<PublisherComponent>();
+      const float *preactPtr   = prePublisher->getLayerData();
+      const PVLayerLoc *preLoc = prePublisher->getLayerLoc();
       const int numPreNeurons  = preLayer->getNumNeurons();
       bool found               = false;
       float preact             = 0.0f;
@@ -209,10 +212,10 @@ void StochasticReleaseTestProbe::computePValues() {
       if (preact > 1.0f)
          preact = 1.0f;
 
-      const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-      const float *activity = getTargetLayer()->getLayerData();
+      const PVLayerLoc *loc = publisher->getLayerLoc();
+      const float *activity = publisher->getLayerData();
       int nnzf              = 0;
-      const int numNeurons  = getTargetLayer()->getNumNeurons();
+      const int numNeurons  = layer->getNumNeurons();
       for (int n = f; n < numNeurons; n += nf) {
          int nExt = kIndexExtended(
                n,
@@ -227,9 +230,8 @@ void StochasticReleaseTestProbe::computePValues() {
          if (activity[nExt] != 0)
             nnzf++;
       }
-      HyPerLayer *l = getTargetLayer();
       MPI_Allreduce(MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, mCommunicator->communicator());
-      const int neuronsPerFeature = l->getNumGlobalNeurons() / nf;
+      const int neuronsPerFeature = layer->getNumGlobalNeurons() / nf;
       double mean                 = preact * neuronsPerFeature;
       double stddev               = sqrt(neuronsPerFeature * preact * (1 - preact));
       double numdevs              = (nnzf - mean) / stddev;

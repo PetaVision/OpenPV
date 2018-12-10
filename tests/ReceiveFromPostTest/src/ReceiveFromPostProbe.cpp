@@ -42,10 +42,11 @@ Response::Status ReceiveFromPostProbe::outputState(double simTime, double deltaT
    if (status != Response::SUCCESS) {
       return status;
    }
-   const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   int numExtNeurons     = getTargetLayer()->getNumExtended();
-   const float *A        = getTargetLayer()->getLayerData();
-   bool failed           = false;
+   auto *publisherComponent = getTargetLayer()->getComponentByType<PublisherComponent>();
+   const PVLayerLoc *loc    = publisherComponent->getLayerLoc();
+   int numExtNeurons        = publisherComponent->getNumExtended();
+   const float *A           = publisherComponent->getLayerData();
+   bool failed              = false;
    for (int i = 0; i < numExtNeurons; i++) {
       if (fabsf(A[i]) != 0) {
          int xpos =

@@ -7,6 +7,7 @@
 
 #include "FilenameParsingProbe.hpp"
 #include <components/InputActivityBuffer.hpp>
+#include <components/PublisherComponent.hpp>
 
 FilenameParsingProbe::FilenameParsingProbe() { initialize_base(); }
 
@@ -62,21 +63,25 @@ PV::Response::Status FilenameParsingProbe::outputState(double simTime, double de
    // From t=0 to the first display flip, displayNumber is 0.
    // From then until the second display flip, displayNumber is 1, etc.
 
-   int mpiBatchIndex          = getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex();
-   PVLayerLoc const *loc      = getTargetLayer()->getLayerLoc();
+   int mpiBatchIndex        = getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex();
+   auto *publisherComponent = getTargetLayer()->getComponentByType<PV::PublisherComponent>();
+   FatalIf(
+         publisherComponent == nullptr,
+         "Target layer \"%s\" does not have a PublisherComponent.\n",
+         getTargetLayer()->getName());
+   PVLayerLoc const *loc      = publisherComponent->getLayerLoc();
    int const localBatchWidth  = loc->nbatch;
    int const globalBatchWidth = localBatchWidth * getMPIBlock()->getGlobalBatchDimension();
    int const localBatchStart  = mpiBatchIndex * localBatchWidth;
    int const numCategories    = (int)mCategories.size();
-   int const numExtended      = getTargetLayer()->getNumExtended();
+   int const numExtended      = publisherComponent->getNumExtended();
    int const nxExt            = loc->nx + loc->halo.lt + loc->halo.rt;
    int const nyExt            = loc->ny + loc->halo.dn + loc->halo.up;
    bool failed                = false;
    for (int b = 0; b < localBatchWidth; b++) {
-      float const *activity =
-            getTargetLayer()->getLayerData(0) + b * getTargetLayer()->getNumExtended();
-      int globalBatchIndex = localBatchStart + b;
-      int imageIndex       = (globalBatchIndex + displayNumber * globalBatchWidth);
+      float const *activity = publisherComponent->getLayerData(0) + b * numExtended;
+      int globalBatchIndex  = localBatchStart + b;
+      int imageIndex        = (globalBatchIndex + displayNumber * globalBatchWidth);
       imageIndex %= (int)mCategories.size();
       int expectedCategory = mCategories[imageIndex];
 

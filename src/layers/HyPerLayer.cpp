@@ -301,7 +301,7 @@ HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> messa
    if (message->mPhase != getPhase()) {
       return Response::NO_ACTION;
    }
-   publish(mCommunicator, message->mTime);
+   mPublisher->publish(mCommunicator, message->mTime);
    return Response::SUCCESS;
 }
 
@@ -311,7 +311,7 @@ Response::Status HyPerLayer::respondLayerCheckNotANumber(
    if (message->mPhase != getPhase()) {
       return status;
    }
-   auto layerData = getLayerData();
+   auto layerData = mPublisher->getLayerData();
    int const N    = getNumExtendedAllBatches();
    for (int n = 0; n < N; n++) {
       float a = layerData[n];
@@ -448,7 +448,7 @@ Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer)
       return status;
    }
    readDelaysFromCheckpoint(checkpointer);
-   updateAllActiveIndices();
+   mPublisher->updateAllActiveIndices();
    return Response::SUCCESS;
 }
 
@@ -457,7 +457,7 @@ void HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
 }
 
 Response::Status HyPerLayer::processCheckpointRead() {
-   updateAllActiveIndices();
+   mPublisher->updateAllActiveIndices();
    return Response::SUCCESS;
 }
 

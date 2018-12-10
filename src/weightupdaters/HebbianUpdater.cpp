@@ -494,8 +494,8 @@ int HebbianUpdater::update_dW(int arborID) {
    int const nbatch      = loc->nbatch;
    int delay             = mArborList->getDelay(arborID);
 
-   float const *preactbufHead  = pre->getLayerData(delay);
-   float const *postactbufHead = post->getLayerData();
+   float const *preactbufHead  = pre->getComponentByType<PublisherComponent>()->getLayerData(delay);
+   float const *postactbufHead = post->getComponentByType<PublisherComponent>()->getLayerData();
 
    if (mWeights->getSharedFlag()) {
       // Calculate x and y cell size
@@ -551,10 +551,14 @@ int HebbianUpdater::update_dW(int arborID) {
    // If update from clones, update dw here as well
    // Updates on all PlasticClones
    for (auto &c : mClones) {
-      pvAssert(c->getPre()->getNumExtended() == nExt);
-      pvAssert(c->getPre()->getLayerLoc()->nbatch == nbatch);
-      float const *clonePre  = c->getPre()->getLayerData(delay);
-      float const *clonePost = c->getPost()->getLayerData();
+      HyPerLayer *clonePreLayer  = c->getPre();
+      HyPerLayer *clonePostLayer = c->getPost();
+      auto *clonePrePublisher    = clonePreLayer->getComponentByType<PublisherComponent>();
+      auto *clonePostPublisher   = clonePostLayer->getComponentByType<PublisherComponent>();
+      pvAssert(clonePrePublisher->getNumExtended() == nExt);
+      pvAssert(clonePrePublisher->getLayerLoc()->nbatch == nbatch);
+      float const *clonePre  = clonePrePublisher->getLayerData(delay);
+      float const *clonePost = clonePostPublisher->getLayerData();
       for (int b = 0; b < nbatch; b++) {
          for (int kExt = 0; kExt < nExt; kExt++) {
             updateInd_dW(arborID, b, clonePre, clonePost, kExt);

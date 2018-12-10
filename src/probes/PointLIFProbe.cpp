@@ -84,16 +84,16 @@ void PointLIFProbe::calcValues(double timevalue) {
    pvAssert(lifActivity != nullptr);
    ObserverTable const *activityComponents = lifActivity->getTable();
    float const *V                          = getBufferData(activityComponents, "V");
-   float const *A                          = getBufferData(activityComponents, "A");
    float const *G_E                        = getBufferData(activityComponents, "G_E");
    float const *G_I                        = getBufferData(activityComponents, "G_I");
    float const *G_IB                       = getBufferData(activityComponents, "G_IB");
    float const *Vth                        = getBufferData(activityComponents, "Vth");
-   double *valuesBuffer                    = this->getValuesBuffer();
+
+   float const *activity =
+         getTargetLayer()->getComponentByType<PublisherComponent>()->getLayerData();
+   double *valuesBuffer = this->getValuesBuffer();
    // We need to calculate which mpi process contains the target point, and send
-   // that info to the
-   // root process
-   // Each process calculates local index
+   // that info to the root process. Each process calculates local index
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    // Calculate local cords from global
    const int kx0         = loc->kx0;
@@ -110,8 +110,6 @@ void PointLIFProbe::calcValues(double timevalue) {
    // if in bounds
    if (xLocLocal >= 0 && xLocLocal < nx && yLocLocal >= 0 && yLocLocal < ny && nbatchLocal >= 0
        && nbatchLocal < nbatch) {
-      const float *V        = getTargetLayer()->getV();
-      const float *activity = getTargetLayer()->getLayerData();
       // Send V and A to root
       const int k      = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
       const int kbatch = k + nbatchLocal * getTargetLayer()->getNumNeurons();

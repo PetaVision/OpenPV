@@ -29,9 +29,10 @@ Response::Status GPUSystemTestProbe::outputState(double simTime, double deltaTim
    if (status != Response::SUCCESS) {
       return status;
    }
-   const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   int numExtNeurons     = getTargetLayer()->getNumExtendedAllBatches();
-   const float *A        = getTargetLayer()->getLayerData();
+   auto *targetPublisher = getTargetLayer()->getComponentByType<PublisherComponent>();
+   PVLayerLoc const *loc = targetPublisher->getLayerLoc();
+   int numExtNeurons     = targetPublisher->getNumExtended() * loc->nbatch;
+   const float *A        = targetPublisher->getLayerData();
    float sumsq           = 0;
    float tolSigma        = 5e-5;
    for (int b = 0; b < loc->nbatch; b++) {

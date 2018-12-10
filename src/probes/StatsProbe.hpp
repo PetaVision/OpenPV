@@ -59,6 +59,9 @@ class StatsProbe : public LayerProbe {
       Fatal().printf("%s does not use calcValues.\n", getDescription_c());
    }
 
+   float const *retrieveActivityBuffer();
+   float const *retrieveVBuffer();
+
    // Member variables
    PVBufType type;
    double *sum;

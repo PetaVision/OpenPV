@@ -59,10 +59,10 @@ Response::Status BackgroundActivityBuffer::communicateInitInfo(
    } catch (std::invalid_argument &e) {
       Fatal().printf("%s: %s\n", getDescription_c(), e.what());
    }
-   mOriginalLayer = dynamic_cast<HyPerLayer *>(originalObject);
+   mOriginalData = originalObject->getComponentByType<PublisherComponent>();
    FatalIf(
-         mOriginalLayer == nullptr,
-         "%s could not find a layer named \"%s\".\n",
+         mOriginalData == nullptr,
+         "%s originalLayerName \"%s\" does not have a PublisherComponent.\n",
          getDescription_c(),
          originalLayerNameParam->getLinkedObjectName());
    checkDimensions();
@@ -70,12 +70,12 @@ Response::Status BackgroundActivityBuffer::communicateInitInfo(
 }
 
 void BackgroundActivityBuffer::checkDimensions() const {
-   PVLayerLoc const *locOriginal = mOriginalLayer->getLayerLoc();
+   PVLayerLoc const *locOriginal = mOriginalData->getLayerLoc();
    PVLayerLoc const *loc         = getLayerLoc();
    FatalIf(
          locOriginal->nbatch != loc->nbatch,
          "%s and %s do not have the same batch width (%d versus %d)\n",
-         mOriginalLayer->getDescription_c(),
+         mOriginalData->getDescription_c(),
          getDescription_c(),
          locOriginal->nbatch,
          loc->nbatch);
@@ -86,7 +86,7 @@ void BackgroundActivityBuffer::checkDimensions() const {
    FatalIf(
          !dimsEqual,
          "%s and %s do not have the same x- and y- dimensions (%d-by-%d) versus (%d-by-%d).\n",
-         mOriginalLayer->getDescription_c(),
+         mOriginalData->getDescription_c(),
          getDescription_c(),
          locOriginal->nx,
          locOriginal->nx,
@@ -101,7 +101,7 @@ void BackgroundActivityBuffer::checkDimensions() const {
          "The original layer has n=%d features; therefore the background layer must have "
          "(n+1)*repFeatureNum = (%d+1)*%d = %d features instead of %d.\n",
          getDescription_c(),
-         mOriginalLayer->getDescription_c(),
+         mOriginalData->getDescription_c(),
          locOriginal->nf,
          locOriginal->nf,
          mRepFeatureNum,
@@ -125,9 +125,9 @@ BackgroundActivityBuffer::initializeState(std::shared_ptr<InitializeStateMessage
 
 void BackgroundActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    float *A                      = mBufferData.data();
-   float const *originalA        = mOriginalLayer->getLayerData(0);
+   float const *originalA        = mOriginalData->getLayerData(0);
    PVLayerLoc const *loc         = getLayerLoc();
-   PVLayerLoc const *locOriginal = mOriginalLayer->getLayerLoc();
+   PVLayerLoc const *locOriginal = mOriginalData->getLayerLoc();
 
    // Make sure all sizes match (this was checked in checkDimensions)
    assert(locOriginal->nx == loc->nx);
@@ -140,9 +140,13 @@ void BackgroundActivityBuffer::updateBufferCPU(double simTime, double deltaTime)
    int thisNf = loc->nf;
    int nbatch = loc->nbatch;
 
+   int originalNxExtended  = locOriginal->nx + locOriginal->halo.lt + locOriginal->halo.rt;
+   int originalNyExtended  = locOriginal->ny + locOriginal->halo.dn + locOriginal->halo.up;
+   int originalNumExtended = originalNxExtended * originalNyExtended * locOriginal->nf;
+
    for (int b = 0; b < nbatch; b++) {
       float *ABatch               = A + b * getBufferSize();
-      float const *originalABatch = originalA + b * mOriginalLayer->getNumExtended();
+      float const *originalABatch = originalA + b * originalNumExtended;
 
 // Loop through all nx and ny
 // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside

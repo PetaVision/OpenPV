@@ -6,6 +6,8 @@
  */
 
 #include "DatastoreDelayTestBuffer.hpp"
+#include <columns/ComponentBasedObject.hpp>
+#include <components/PublisherComponent.hpp>
 #include <include/pv_arch.h>
 
 namespace PV {
@@ -36,10 +38,12 @@ Response::Status DatastoreDelayTestBuffer::communicateInitInfo(
    // the HyPerLayer itself and not one of the components. Once the publisher is moved to a
    // component, this should grab NumDelayLevels from that component.
    int maxIterations = 2;
-   HyPerLayer *parentLayer =
-         message->mHierarchy->lookupByNameRecursive<HyPerLayer>(getName(), maxIterations);
+   ComponentBasedObject *parentLayer =
+         message->mHierarchy->lookupByNameRecursive<ComponentBasedObject>(getName(), maxIterations);
    pvAssert(parentLayer);
-   mPeriod = parentLayer->getNumDelayLevels();
+   PublisherComponent *parentPublisher = parentLayer->getComponentByType<PublisherComponent>();
+   pvAssert(parentPublisher);
+   mPeriod = parentPublisher->getNumDelayLevels();
 
    return Response::SUCCESS;
 }

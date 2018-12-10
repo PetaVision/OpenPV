@@ -206,7 +206,7 @@ Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
 #endif // PV_USE_MPI
 
    int nk;
-   const float *buf;
+   float const *baseBuffer;
    resetStats();
 
    nk = getTargetLayer()->getNumNeurons();
@@ -216,8 +216,9 @@ Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
    comptimer->start();
    switch (type) {
       case BufV:
+         baseBuffer = retrieveVBuffer();
          for (int b = 0; b < nbatch; b++) {
-            buf = getTargetLayer()->getV() + b * getTargetLayer()->getNumNeurons();
+            float const *buf = baseBuffer + b * getTargetLayer()->getNumNeurons();
             if (buf == NULL) {
 #ifdef PV_USE_MPI
                if (rank != rcvProc) {
@@ -244,9 +245,9 @@ Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
          }
          break;
       case BufActivity:
+         baseBuffer = retrieveActivityBuffer();
          for (int b = 0; b < nbatch; b++) {
-            buf = getTargetLayer()->getLayerData() + b * getTargetLayer()->getNumExtended();
-            assert(buf != NULL);
+            float const *buf = baseBuffer + b * getTargetLayer()->getNumExtended();
             for (int k = 0; k < nk; k++) {
                const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
                int kex               = kIndexExtended(
@@ -265,7 +266,7 @@ Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
                sum[b] += (double)a;
                sum2[b] += (double)(a * a);
                if (fabsf(a) > nnzThreshold) {
-                  nnz[b]++; // Optimize for different datatypes of a?
+                  nnz[b]++;
                }
                if (a < fMin[b]) {
                   fMin[b] = a;
@@ -306,7 +307,8 @@ Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
       sigma[b]            = sqrtf((float)sum2[b] / divisor - avg[b] * avg[b]);
       float avgval        = 0.0f;
       char const *avgnote = nullptr;
-      if (type == BufActivity && getTargetLayer()->getSparseFlag()) {
+      if (type == BufActivity
+          and getTargetLayer()->getComponentByType<PublisherComponent>()->getSparseLayer()) {
          avgval  = 1000.0f * avg[b]; // convert spikes per millisecond to hertz.
          avgnote = " Hz (/dt ms)";
       }
@@ -334,6 +336,27 @@ Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
    iotimer->stop();
 
    return Response::SUCCESS;
+}
+
+float const *StatsProbe::retrieveVBuffer() {
+   auto *activityComponent = getTargetLayer()->getComponentByType<ActivityComponent>();
+   auto *internalState     = activityComponent->getComponentByType<InternalStateBuffer>();
+   FatalIf(
+         internalState == nullptr,
+         "%s target layer \"%s\" does not have a V buffer.\n",
+         getDescription_c(),
+         getTargetLayer()->getName());
+   return internalState->getBufferData();
+}
+
+float const *StatsProbe::retrieveActivityBuffer() {
+   auto *publisherComponent = getTargetLayer()->getComponentByType<PublisherComponent>();
+   FatalIf(
+         publisherComponent == nullptr,
+         "%s target layer \"%s\" does not have an A buffer.\n",
+         getDescription_c(),
+         getTargetLayer()->getName());
+   return publisherComponent->getLayerData();
 }
 
 int StatsProbe::checkpointTimers(PrintStream &timerstream) {

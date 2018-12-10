@@ -38,7 +38,9 @@ Response::Status DatastoreDelayTestProbe::communicateInitInfo(
    }
    HyPerLayer *inputLayer = message->mHierarchy->lookupByName<HyPerLayer>(std::string("input"));
    FatalIf(inputLayer == nullptr, "Unable to find layer \"input\".\n");
-   mNumDelayLevels = inputLayer->getNumDelayLevels();
+   PublisherComponent *inputPublisher = inputLayer->getComponentByType<PublisherComponent>();
+   pvAssert(inputPublisher);
+   mNumDelayLevels = inputPublisher->getNumDelayLevels();
 
    return Response::SUCCESS;
 }

@@ -52,61 +52,29 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::communicateInit
    }
 
    auto *componentTable = message->mHierarchy;
-   status               = status + initInputLayer(componentTable);
-   status               = status + initOutputLayer(componentTable);
-   status               = status + initConnection(componentTable);
 
-   if (PV::Response::completed(status)) {
-      mInitializeFromCheckpointFlag = mConnection->getInitializeFromCheckpointFlag();
-      FatalIf(
-            mInputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
-            "%s has a different initializeFromCheckpointFlag value from the connection %s.\n",
-            mInputLayer->getDescription(),
-            mConnection->getDescription());
-      FatalIf(
-            mOutputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
-            "%s has a different initializeFromCheckpointFlag value from the connection %s.\n",
-            mOutputLayer->getDescription(),
-            mConnection->getDescription());
+   status = mConnection ? status : status + initConnection(componentTable);
+   // initConnection sets InitializeFromCheckpointFlag, and init{In,Out}PutLayer checks
+   // against that value, so we have to complete initConnection successively before
+   // calling initInputLayer or initOutputLayer.
+   if (!PV::Response::completed(status)) {
+      return status;
    }
+   status = mInputPublisher ? status : status + initInputLayer(componentTable);
+   status = mOutputPublisher ? status : status + initOutputLayer(componentTable);
 
    return status;
 }
 
-PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initInputLayer(
-      PV::ObserverTable const *componentTable) {
-   mInputLayer = componentTable->lookupByName<PV::InputLayer>(std::string("Input"));
-   FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
-   if (checkCommunicatedFlag(mInputLayer) == PV::Response::POSTPONE) {
-      return PV::Response::POSTPONE;
-   }
-
-   auto *activityComponent = mInputLayer->getComponentByType<PV::ActivityComponent>();
-   auto *inputBuffer       = activityComponent->getComponentByType<PV::InputActivityBuffer>();
-   FatalIf(
-         inputBuffer->getDisplayPeriod() != 4.0,
-         "This test assumes that the display period is 4 (should really not be hard-coded.\n");
-   return PV::Response::SUCCESS;
-}
-
-PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initOutputLayer(
-      PV::ObserverTable const *componentTable) {
-   mOutputLayer = componentTable->lookupByName<PV::HyPerLayer>(std::string("Output"));
-   FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
-   if (checkCommunicatedFlag(mOutputLayer) == PV::Response::POSTPONE) {
-      return PV::Response::POSTPONE;
-   }
-   return PV::Response::SUCCESS;
-}
-
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initConnection(
       PV::ObserverTable const *componentTable) {
-   mConnection = componentTable->lookupByName<PV::MomentumConn>(std::string("InputToOutput"));
-   FatalIf(
-         mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
-   if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {
+   auto *connection =
+         componentTable->lookupByName<PV::ComponentBasedObject>(std::string("InputToOutput"));
+   FatalIf(connection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
+   if (checkCommunicatedFlag(connection) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
+   mConnection = connection;
 
    auto *arborList = mConnection->getComponentByType<PV::ArborList>();
    FatalIf(
@@ -143,6 +111,54 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initConnection(
    FatalIf(
          std::strcmp(momentumUpdater->getMomentumMethod(), "viscosity"),
          "This test assumes that the connection has momentumMethod=\"viscosity\".\n");
+   mInitializeFromCheckpointFlag = mConnection->getInitializeFromCheckpointFlag();
+   return PV::Response::SUCCESS;
+}
+
+PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initInputLayer(
+      PV::ObserverTable const *componentTable) {
+   auto *inputLayer = componentTable->lookupByName<PV::InputLayer>(std::string("Input"));
+   FatalIf(inputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
+   if (checkCommunicatedFlag(inputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
+   FatalIf(
+         inputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
+         "%s has a different initializeFromCheckpointFlag value from the probe %s.\n",
+         inputLayer->getDescription_c(),
+         getDescription_c());
+
+   auto *activityComponent = inputLayer->getComponentByType<PV::ActivityComponent>();
+   auto *inputBuffer       = activityComponent->getComponentByType<PV::InputActivityBuffer>();
+   FatalIf(
+         inputBuffer->getDisplayPeriod() != 4.0,
+         "This test assumes that the display period is 4 (should really not be hard-coded.\n");
+
+   mInputPublisher = inputLayer->getComponentByType<PV::PublisherComponent>();
+   FatalIf(
+         mInputPublisher == nullptr,
+         "%s does not have a PublisherComponent.\n",
+         inputLayer->getDescription_c());
+   return PV::Response::SUCCESS;
+}
+
+PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initOutputLayer(
+      PV::ObserverTable const *componentTable) {
+   auto *outputLayer = componentTable->lookupByName<PV::HyPerLayer>(std::string("Output"));
+   FatalIf(outputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
+   if (checkCommunicatedFlag(outputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
+   FatalIf(
+         outputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
+         "%s has a different initializeFromCheckpointFlag value from the probe %s.\n",
+         outputLayer->getDescription_c(),
+         getDescription_c());
+   mOutputPublisher = outputLayer->getComponentByType<PV::PublisherComponent>();
+   FatalIf(
+         mOutputPublisher == nullptr,
+         "%s does not have a PublisherComponent.\n",
+         outputLayer->getDescription_c());
    return PV::Response::SUCCESS;
 }
 
@@ -216,8 +232,8 @@ MomentumConnViscosityCheckpointerTestProbe::outputState(double simTime, double d
    bool failed = false;
 
    failed |= verifyConnection(mConnection, mCorrectState, simTime);
-   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), simTime);
-   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), simTime);
+   failed |= verifyLayer(mInputPublisher, mCorrectState->getCorrectInput(), simTime);
+   failed |= verifyLayer(mOutputPublisher, mCorrectState->getCorrectOutput(), simTime);
 
    if (failed) {
       std::string errorMsg(getDescription() + " failed at t = " + std::to_string(simTime) + "\n");
@@ -239,7 +255,7 @@ MomentumConnViscosityCheckpointerTestProbe::outputState(double simTime, double d
 }
 
 bool MomentumConnViscosityCheckpointerTestProbe::verifyConnection(
-      PV::MomentumConn *connection,
+      PV::ComponentBasedObject *connection,
       CorrectState const *correctState,
       double timevalue) {
    bool failed = false;
@@ -289,7 +305,7 @@ bool MomentumConnViscosityCheckpointerTestProbe::verifyConnValue(
 }
 
 bool MomentumConnViscosityCheckpointerTestProbe::verifyLayer(
-      PV::HyPerLayer *layer,
+      PV::PublisherComponent *layer,
       float correctValue,
       double timevalue) {
    bool failed = false;

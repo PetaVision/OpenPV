@@ -77,11 +77,12 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
       }
       return Response::POSTPONE;
    }
-   HyPerLayer *preLayer = connectionData->getPre();
+   HyPerLayer *preLayer        = connectionData->getPre();
+   PublisherComponent *preData = preLayer->getComponentByType<PublisherComponent>();
 
    initializeDelays(message->mDeltaTime);
    int maxDelay     = maxDelaySteps();
-   int allowedDelay = preLayer->increaseDelayLevels(maxDelay);
+   int allowedDelay = preData->increaseDelayLevels(maxDelay);
    if (allowedDelay < maxDelay) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(

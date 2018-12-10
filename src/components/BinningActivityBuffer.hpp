@@ -11,7 +11,7 @@
 #include "components/ActivityBuffer.hpp"
 #include "components/ComponentBuffer.hpp"
 #include "components/InternalStateBuffer.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "components/PublisherComponent.hpp"
 
 namespace PV {
 
@@ -77,7 +77,7 @@ class BinningActivityBuffer : public ActivityBuffer {
    bool mZeroDCR    = false;
    bool mNormalDist = true;
 
-   HyPerLayer *mOriginalLayer = nullptr;
+   PublisherComponent *mOriginalLayerData = nullptr;
 };
 
 } // namespace PV

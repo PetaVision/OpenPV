@@ -11,6 +11,7 @@
 #include "probes/ColProbe.hpp"
 
 #include "CorrectState.hpp"
+#include "components/PublisherComponent.hpp"
 #include "connections/MomentumConn.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/InputLayer.hpp"
@@ -54,6 +55,12 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    MomentumConnSimpleCheckpointerTestProbe();
 
    /**
+    * Sets the connection data member, and checks that the connection's parameters are
+    * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
+    */
+   PV::Response::Status initConnection(PV::ObserverTable const *componentTable);
+
+   /**
     * Sets the input layer data member, and checks that the input layer's parameters are
     * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
     */
@@ -64,12 +71,6 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
     * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
     */
    PV::Response::Status initOutputLayer(PV::ObserverTable const *componentTable);
-
-   /**
-    * Sets the connection data member, and checks that the connection's parameters are
-    * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
-    */
-   PV::Response::Status initConnection(PV::ObserverTable const *componentTable);
 
    /**
     * Checks whether the given object has finished its communicateInitInfo stage, and
@@ -86,17 +87,17 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
          double timevalue);
    bool
    verifyConnValue(double timevalue, float observed, float correct, char const *valueDescription);
-   bool verifyLayer(PV::HyPerLayer *layer, float correctValue, double timevalue);
+   bool verifyLayer(PV::PublisherComponent *layer, float correctValue, double timevalue);
 
    // Data members
   protected:
-   int mStartingUpdateNumber             = 0;
-   bool mValuesSet                       = false;
-   PV::InputLayer *mInputLayer           = nullptr;
-   PV::HyPerLayer *mOutputLayer          = nullptr;
-   PV::ComponentBasedObject *mConnection = nullptr;
-   CorrectState *mCorrectState           = nullptr;
-   bool mTestFailed                      = false;
+   int mStartingUpdateNumber                = 0;
+   bool mValuesSet                          = false;
+   PV::PublisherComponent *mInputPublisher  = nullptr;
+   PV::PublisherComponent *mOutputPublisher = nullptr;
+   PV::ComponentBasedObject *mConnection    = nullptr;
+   CorrectState *mCorrectState              = nullptr;
+   bool mTestFailed                         = false;
 };
 
 #endif // MOMENTUMCONNSIMPLECHECKPOINTERTESTPROBE_HPP_

@@ -56,10 +56,12 @@ int main(int argc, char *argv[]) {
 }
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
-   HyPerLayer *checkDropoutLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Average"));
-   FatalIf(checkDropoutLayer == nullptr, "No layer named \"Output\"\n");
-   float const *checkData = checkDropoutLayer->getLayerData();
-   int const numNeurons   = checkDropoutLayer->getNumExtended();
+   HyPerLayer *averageLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Average"));
+   FatalIf(averageLayer == nullptr, "No layer named \"Average\"\n");
+   auto *averagePublisher = averageLayer->getComponentByType<PublisherComponent>();
+   FatalIf(averagePublisher == nullptr, "Layer \"Average\" does not have a PublisherComponent\n");
+   float const *checkData = averagePublisher->getLayerData();
+   int const numNeurons   = averagePublisher->getNumExtended();
 
    /* Leaky integrator has average per neuron- calculate average over whole layer */
    float count = 0.0f;

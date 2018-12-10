@@ -66,6 +66,9 @@ class PublisherComponent : public BaseObject {
 
    int getNumDelayLevels() const { return mNumDelayLevels; }
 
+   int getNumExtended() const { return mActivity->getBufferSize(); }
+   int getNumExtendedAcrossBatch() const { return mActivity->getBufferSizeAcrossBatch(); }
+
 // get-methods for CudaBuffers
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer *getCudaDatastore() { return mCudaDatastore; }
