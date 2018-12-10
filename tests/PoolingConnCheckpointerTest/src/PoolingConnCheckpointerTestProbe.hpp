@@ -11,7 +11,7 @@
 #include "probes/ColProbe.hpp"
 
 #include "CorrectState.hpp"
-#include "components/PublisherComponent.hpp"
+#include "components/BasePublisherComponent.hpp"
 #include "connections/PoolingConn.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/InputLayer.hpp"
@@ -79,19 +79,19 @@ class PoolingConnCheckpointerTestProbe : public PV::ColProbe {
    void initializeCorrectValues(double timevalue);
 
    bool verifyLayer(
-         PV::PublisherComponent *layer,
+         PV::BasePublisherComponent *layer,
          PV::Buffer<float> const &correctValueBuffer,
          double timevalue);
 
    // Data members
   protected:
-   int mStartingUpdateNumber                = 0;
-   bool mValuesSet                          = false;
-   PV::PublisherComponent *mInputPublisher  = nullptr;
-   PV::PublisherComponent *mOutputPublisher = nullptr;
-   PV::PoolingConn *mConnection             = nullptr;
-   CorrectState *mCorrectState              = nullptr;
-   bool mTestFailed                         = false;
+   int mStartingUpdateNumber                    = 0;
+   bool mValuesSet                              = false;
+   PV::BasePublisherComponent *mInputPublisher  = nullptr;
+   PV::BasePublisherComponent *mOutputPublisher = nullptr;
+   PV::PoolingConn *mConnection                 = nullptr;
+   CorrectState *mCorrectState                  = nullptr;
+   bool mTestFailed                             = false;
 };
 
 #endif // POOLINGCONNCHECKPOINTERTESTPROBE_HPP_

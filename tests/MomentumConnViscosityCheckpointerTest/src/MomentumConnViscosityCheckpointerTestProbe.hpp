@@ -11,7 +11,7 @@
 #include "probes/ColProbe.hpp"
 
 #include "CorrectState.hpp"
-#include "components/PublisherComponent.hpp"
+#include "components/BasePublisherComponent.hpp"
 #include "connections/MomentumConn.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/InputLayer.hpp"
@@ -87,17 +87,17 @@ class MomentumConnViscosityCheckpointerTestProbe : public PV::ColProbe {
          double timevalue);
    bool
    verifyConnValue(double timevalue, float observed, float correct, char const *valueDescription);
-   bool verifyLayer(PV::PublisherComponent *layer, float correctValue, double timevalue);
+   bool verifyLayer(PV::BasePublisherComponent *layer, float correctValue, double timevalue);
 
    // Data members
   protected:
-   int mStartingUpdateNumber                = 0;
-   bool mValuesSet                          = false;
-   PV::PublisherComponent *mInputPublisher  = nullptr;
-   PV::PublisherComponent *mOutputPublisher = nullptr;
-   PV::ComponentBasedObject *mConnection    = nullptr;
-   CorrectState *mCorrectState              = nullptr;
-   bool mTestFailed                         = false;
+   int mStartingUpdateNumber                    = 0;
+   bool mValuesSet                              = false;
+   PV::BasePublisherComponent *mInputPublisher  = nullptr;
+   PV::BasePublisherComponent *mOutputPublisher = nullptr;
+   PV::ComponentBasedObject *mConnection        = nullptr;
+   CorrectState *mCorrectState                  = nullptr;
+   bool mTestFailed                             = false;
 };
 
 #endif // MOMENTUMCONNVISCOSITYCHECKPOINTERTESTPROBE_HPP_

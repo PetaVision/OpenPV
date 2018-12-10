@@ -9,9 +9,9 @@
 #define BINNINGACTIVITYBUFFER_HPP_
 
 #include "components/ActivityBuffer.hpp"
+#include "components/BasePublisherComponent.hpp"
 #include "components/ComponentBuffer.hpp"
 #include "components/InternalStateBuffer.hpp"
-#include "components/PublisherComponent.hpp"
 
 namespace PV {
 
@@ -77,7 +77,7 @@ class BinningActivityBuffer : public ActivityBuffer {
    bool mZeroDCR    = false;
    bool mNormalDist = true;
 
-   PublisherComponent *mOriginalLayerData = nullptr;
+   BasePublisherComponent *mOriginalLayerData = nullptr;
 };
 
 } // namespace PV

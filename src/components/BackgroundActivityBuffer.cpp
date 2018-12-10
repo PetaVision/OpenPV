@@ -59,10 +59,10 @@ Response::Status BackgroundActivityBuffer::communicateInitInfo(
    } catch (std::invalid_argument &e) {
       Fatal().printf("%s: %s\n", getDescription_c(), e.what());
    }
-   mOriginalData = originalObject->getComponentByType<PublisherComponent>();
+   mOriginalData = originalObject->getComponentByType<BasePublisherComponent>();
    FatalIf(
          mOriginalData == nullptr,
-         "%s originalLayerName \"%s\" does not have a PublisherComponent.\n",
+         "%s originalLayerName \"%s\" does not have a BasePublisherComponent.\n",
          getDescription_c(),
          originalLayerNameParam->getLinkedObjectName());
    checkDimensions();

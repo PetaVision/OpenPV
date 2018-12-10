@@ -494,8 +494,9 @@ int HebbianUpdater::update_dW(int arborID) {
    int const nbatch      = loc->nbatch;
    int delay             = mArborList->getDelay(arborID);
 
-   float const *preactbufHead  = pre->getComponentByType<PublisherComponent>()->getLayerData(delay);
-   float const *postactbufHead = post->getComponentByType<PublisherComponent>()->getLayerData();
+   float const *preactbufHead =
+         pre->getComponentByType<BasePublisherComponent>()->getLayerData(delay);
+   float const *postactbufHead = post->getComponentByType<BasePublisherComponent>()->getLayerData();
 
    if (mWeights->getSharedFlag()) {
       // Calculate x and y cell size
@@ -553,8 +554,8 @@ int HebbianUpdater::update_dW(int arborID) {
    for (auto &c : mClones) {
       HyPerLayer *clonePreLayer  = c->getPre();
       HyPerLayer *clonePostLayer = c->getPost();
-      auto *clonePrePublisher    = clonePreLayer->getComponentByType<PublisherComponent>();
-      auto *clonePostPublisher   = clonePostLayer->getComponentByType<PublisherComponent>();
+      auto *clonePrePublisher    = clonePreLayer->getComponentByType<BasePublisherComponent>();
+      auto *clonePostPublisher   = clonePostLayer->getComponentByType<BasePublisherComponent>();
       pvAssert(clonePrePublisher->getNumExtended() == nExt);
       pvAssert(clonePrePublisher->getLayerLoc()->nbatch == nbatch);
       float const *clonePre  = clonePrePublisher->getLayerData(delay);

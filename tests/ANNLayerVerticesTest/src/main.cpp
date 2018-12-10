@@ -5,8 +5,8 @@
 
 #include <columns/ComponentBasedObject.hpp>
 #include <columns/buildandrun.hpp>
+#include <components/BasePublisherComponent.hpp>
 #include <components/InternalStateBuffer.hpp>
-#include <components/PublisherComponent.hpp>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);
 
@@ -22,7 +22,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    auto *activityComponent  = outputLayer->getComponentByType<ActivityComponent>();
    auto *internalState      = activityComponent->getComponentByType<InternalStateBuffer>();
    float const *V           = internalState->getBufferData();
-   auto *publisherComponent = outputLayer->getComponentByType<PublisherComponent>();
+   auto *publisherComponent = outputLayer->getComponentByType<BasePublisherComponent>();
    float const *A           = publisherComponent->getLayerData();
    PVLayerLoc const *loc    = publisherComponent->getLayerLoc();
    PVHalo const &halo       = loc->halo;

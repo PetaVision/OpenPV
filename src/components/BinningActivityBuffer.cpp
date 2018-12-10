@@ -99,10 +99,10 @@ Response::Status BinningActivityBuffer::communicateInitInfo(
    } catch (std::invalid_argument &e) {
       Fatal().printf("%s: %s\n", getDescription_c(), e.what());
    }
-   mOriginalLayerData = originalObject->getComponentByType<PublisherComponent>();
+   mOriginalLayerData = originalObject->getComponentByType<BasePublisherComponent>();
    FatalIf(
          mOriginalLayerData == nullptr,
-         "%s original layer \"%s\" does not have a PublisherComponent.\n",
+         "%s original layer \"%s\" does not have a BasePublisherComponent.\n",
          getDescription_c(),
          originalLayerNameParam->getLinkedObjectName());
    checkDimensions();

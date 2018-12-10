@@ -90,7 +90,7 @@ void PointLIFProbe::calcValues(double timevalue) {
    float const *Vth                        = getBufferData(activityComponents, "Vth");
 
    float const *activity =
-         getTargetLayer()->getComponentByType<PublisherComponent>()->getLayerData();
+         getTargetLayer()->getComponentByType<BasePublisherComponent>()->getLayerData();
    double *valuesBuffer = this->getValuesBuffer();
    // We need to calculate which mpi process contains the target point, and send
    // that info to the root process. Each process calculates local index

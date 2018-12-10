@@ -134,10 +134,10 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initInputLayer(
          inputBuffer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
 
-   mInputPublisher = inputLayer->getComponentByType<PV::PublisherComponent>();
+   mInputPublisher = inputLayer->getComponentByType<PV::BasePublisherComponent>();
    FatalIf(
          mInputPublisher == nullptr,
-         "%s does not have a PublisherComponent.\n",
+         "%s does not have a BasePublisherComponent.\n",
          inputLayer->getDescription_c());
    return PV::Response::SUCCESS;
 }
@@ -154,10 +154,10 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initOutputLayer
          "%s has a different initializeFromCheckpointFlag value from the probe %s.\n",
          outputLayer->getDescription_c(),
          getDescription_c());
-   mOutputPublisher = outputLayer->getComponentByType<PV::PublisherComponent>();
+   mOutputPublisher = outputLayer->getComponentByType<PV::BasePublisherComponent>();
    FatalIf(
          mOutputPublisher == nullptr,
-         "%s does not have a PublisherComponent.\n",
+         "%s does not have a BasePublisherComponent.\n",
          outputLayer->getDescription_c());
    return PV::Response::SUCCESS;
 }
@@ -305,7 +305,7 @@ bool MomentumConnViscosityCheckpointerTestProbe::verifyConnValue(
 }
 
 bool MomentumConnViscosityCheckpointerTestProbe::verifyLayer(
-      PV::PublisherComponent *layer,
+      PV::BasePublisherComponent *layer,
       float correctValue,
       double timevalue) {
    bool failed = false;

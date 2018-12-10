@@ -6,7 +6,7 @@
  */
 
 #include "ShrunkenPatchTestProbe.hpp"
-#include <components/PublisherComponent.hpp>
+#include <components/BasePublisherComponent.hpp>
 #include <include/pv_arch.h>
 #include <io/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
@@ -128,7 +128,8 @@ Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double delt
    }
    float tol = 1e-4f;
 
-   float const *buf = getTargetLayer()->getComponentByType<PublisherComponent>()->getLayerData();
+   float const *buf =
+         getTargetLayer()->getComponentByType<BasePublisherComponent>()->getLayerData();
 
    if (simTime >= 3.0) {
       for (int k = 0; k < num_neurons; k++) {

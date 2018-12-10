@@ -5,7 +5,7 @@
 
 #include <columns/ComponentBasedObject.hpp>
 #include <columns/buildandrun.hpp>
-#include <components/PublisherComponent.hpp>
+#include <components/BasePublisherComponent.hpp>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);
 
@@ -23,10 +23,10 @@ int main(int argc, char *argv[]) {
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    auto *checkClone = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("CheckClone"));
    FatalIf(checkClone == nullptr, "No layer named \"CheckClone\"\n");
-   auto *checkClonePublisher = checkClone->getComponentByType<PublisherComponent>();
+   auto *checkClonePublisher = checkClone->getComponentByType<BasePublisherComponent>();
    FatalIf(
          checkClonePublisher == nullptr,
-         "Layer \"CheckClone\" does not have a PublisherComponent\n");
+         "Layer \"CheckClone\" does not have a BasePublisherComponent\n");
    float const *checkCloneLayerData = checkClonePublisher->getLayerData();
    int const numCloneLayerNeurons   = checkClonePublisher->getNumExtended();
    for (int k = 0; k < numCloneLayerNeurons; k++) {
@@ -35,10 +35,10 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    auto *checkSigmoid = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("CheckSigmoid"));
    FatalIf(checkSigmoid == nullptr, "No layer named \"CheckSigmoid\"\n");
-   auto *checkSigmoidPublisher = checkSigmoid->getComponentByType<PublisherComponent>();
+   auto *checkSigmoidPublisher = checkSigmoid->getComponentByType<BasePublisherComponent>();
    FatalIf(
          checkSigmoidPublisher == nullptr,
-         "Layer \"CheckSigmoid\" does not have a PublisherComponent\n");
+         "Layer \"CheckSigmoid\" does not have a BasePublisherComponent\n");
    float const *checkSigmoidLayerData = checkSigmoidPublisher->getLayerData();
    int const numSigmoidLayerNeurons   = checkSigmoidPublisher->getNumExtended();
    for (int k = 0; k < numSigmoidLayerNeurons; k++) {

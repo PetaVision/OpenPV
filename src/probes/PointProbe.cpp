@@ -197,7 +197,7 @@ void PointProbe::calcValues(double timevalue) {
          valuesBuffer[0] = 0.0f;
       }
 
-      auto *publisherComponent = getTargetLayer()->getComponentByType<PublisherComponent>();
+      auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
       if (publisherComponent) {
          float const *activity = publisherComponent->getLayerData();
          const int kex         = kIndexExtended(

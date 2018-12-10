@@ -98,12 +98,13 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
 #endif // PV_USE_CUDA
    auto *originalPostIndexLayer = originalPoolingDelivery->getPostIndexLayer();
    if (originalPostIndexLayer) {
-      mOriginalPostIndexData = originalPostIndexLayer->getComponentByType<PublisherComponent>();
+      mOriginalPostIndexData = originalPostIndexLayer->getComponentByType<BasePublisherComponent>();
    }
 
    auto *originalConnectionData = originalConn->getComponentByType<ConnectionData>();
    pvAssert(originalConnectionData);
-   mOriginalPreData  = originalConnectionData->getPre()->getComponentByType<PublisherComponent>();
+   mOriginalPreData =
+         originalConnectionData->getPre()->getComponentByType<BasePublisherComponent>();
    mOriginalPostGSyn = originalConnectionData->getPost()->getComponentByType<LayerInputBuffer>();
 
    // If receiveGpu is false, we need to read updateGSynFromPostPerspective.

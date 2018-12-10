@@ -168,10 +168,10 @@ Response::Status StochasticReleaseTestProbe::outputState(double simTime, double 
 }
 
 void StochasticReleaseTestProbe::computePValues() {
-   HyPerLayer *layer             = getTargetLayer();
-   PublisherComponent *publisher = layer->getComponentByType<PublisherComponent>();
-   int nf                        = publisher->getLayerLoc()->nf;
-   auto oldsize                  = pvalues.size();
+   HyPerLayer *layer                 = getTargetLayer();
+   BasePublisherComponent *publisher = layer->getComponentByType<BasePublisherComponent>();
+   int nf                            = publisher->getLayerLoc()->nf;
+   auto oldsize                      = pvalues.size();
    pvalues.resize(oldsize + nf);
    auto *preWeights = conn->getComponentByType<WeightsPair>()->getPreWeights();
    auto *preLayer   = conn->getComponentByType<ConnectionData>()->getPre();
@@ -180,7 +180,7 @@ void StochasticReleaseTestProbe::computePValues() {
       FatalIf(!(f >= 0 && f < nf), "Test failed.\n");
       float wgt = preWeights->getData(0)[f * (nf + 1)]; // weights should be one-to-one weights
 
-      auto *prePublisher       = preLayer->getComponentByType<PublisherComponent>();
+      auto *prePublisher       = preLayer->getComponentByType<BasePublisherComponent>();
       const float *preactPtr   = prePublisher->getLayerData();
       const PVLayerLoc *preLoc = prePublisher->getLayerLoc();
       const int numPreNeurons  = preLayer->getNumNeurons();

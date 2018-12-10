@@ -48,10 +48,10 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(conn == nullptr, "No connection named \"InputToOutput\" in column.\n");
    HyPerLayer *correctValuesLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("SumInputs"));
    FatalIf(correctValuesLayer == nullptr, "No layer named \"SumInputs\" in column.\n");
-   auto *correctValuesPublisher = correctValuesLayer->getComponentByType<PublisherComponent>();
+   auto *correctValuesPublisher = correctValuesLayer->getComponentByType<BasePublisherComponent>();
    FatalIf(
          correctValuesPublisher == nullptr,
-         "%s does not have a PublisherComponent.\n",
+         "%s does not have a BasePublisherComponent.\n",
          correctValuesLayer->getDescription_c());
 
    int const N       = correctValuesLayer->getNumExtended();

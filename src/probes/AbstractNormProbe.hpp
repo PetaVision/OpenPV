@@ -9,7 +9,7 @@
 #define ABSTRACTNORMPROBE_HPP_
 
 #include "LayerProbe.hpp"
-#include "components/PublisherComponent.hpp"
+#include "components/BasePublisherComponent.hpp"
 
 namespace PV {
 
@@ -33,7 +33,7 @@ class AbstractNormProbe : public LayerProbe {
     * Returns a pointer to the masking layer.  Returns NULL if masking is not
     * used.
     */
-   PublisherComponent *getMaskLayerData() { return mMaskLayerData; }
+   BasePublisherComponent *getMaskLayerData() { return mMaskLayerData; }
 
    /**
     * Returns the name of the masking layer, as given by the params.
@@ -136,10 +136,10 @@ class AbstractNormProbe : public LayerProbe {
    int initialize_base();
 
   private:
-   char *normDescription              = nullptr;
-   char *maskLayerName                = nullptr;
-   PublisherComponent *mMaskLayerData = nullptr;
-   bool singleFeatureMask             = false;
+   char *normDescription                  = nullptr;
+   char *maskLayerName                    = nullptr;
+   BasePublisherComponent *mMaskLayerData = nullptr;
+   bool singleFeatureMask                 = false;
 
    double timeLastComputed = -std::numeric_limits<double>::infinity();
    // the value of the input argument timevalue for the most recent

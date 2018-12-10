@@ -65,8 +65,8 @@ void compare(char const *inputname, char const *outputname, HyPerCol *hc) {
 
    ComponentBuffer::checkDimensionsEqual(inputActivityBuffer, outputActivityBuffer);
 
-   auto *inputPublisher  = inputLayer->getComponentByType<PublisherComponent>();
-   auto *outputPublisher = outputLayer->getComponentByType<PublisherComponent>();
+   auto *inputPublisher  = inputLayer->getComponentByType<BasePublisherComponent>();
+   auto *outputPublisher = outputLayer->getComponentByType<BasePublisherComponent>();
 
    int nbatch         = inLoc->nbatch;
    int numNeurons     = inLoc->nx * inLoc->ny * inLoc->nf;

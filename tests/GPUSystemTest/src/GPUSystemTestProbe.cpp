@@ -29,7 +29,7 @@ Response::Status GPUSystemTestProbe::outputState(double simTime, double deltaTim
    if (status != Response::SUCCESS) {
       return status;
    }
-   auto *targetPublisher = getTargetLayer()->getComponentByType<PublisherComponent>();
+   auto *targetPublisher = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    PVLayerLoc const *loc = targetPublisher->getLayerLoc();
    int numExtNeurons     = targetPublisher->getNumExtended() * loc->nbatch;
    const float *A        = targetPublisher->getLayerData();

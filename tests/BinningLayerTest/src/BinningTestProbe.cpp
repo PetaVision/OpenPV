@@ -6,8 +6,8 @@
  */
 
 #include "BinningTestProbe.hpp"
+#include <components/BasePublisherComponent.hpp>
 #include <components/BinningActivityBuffer.hpp>
-#include <components/PublisherComponent.hpp>
 
 namespace PV {
 
@@ -47,10 +47,10 @@ Response::Status BinningTestProbe::outputState(double simTime, double deltaTime)
    int nxGlobalExt       = nxGlobal + loc->halo.lt + loc->halo.rt;
    int nyGlobalExt       = nyGlobal + loc->halo.lt + loc->halo.rt;
    // Grab the activity layer of current layer
-   auto *publisherComponent = mBinningLayer->getComponentByType<PublisherComponent>();
+   auto *publisherComponent = mBinningLayer->getComponentByType<BasePublisherComponent>();
    FatalIf(
          publisherComponent == nullptr,
-         "%s does not have a PublisherComponent.\n",
+         "%s does not have a BasePublisherComponent.\n",
          mBinningLayer->getDescription_c());
    const float *A = publisherComponent->getLayerData();
 

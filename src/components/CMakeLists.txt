@@ -7,6 +7,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ANNActivityBuffer.cpp
    ${SUBDIR}/ArborList.cpp
    ${SUBDIR}/BackgroundActivityBuffer.cpp
+   ${SUBDIR}/BasePublisherComponent.cpp
    ${SUBDIR}/BatchIndexer.cpp
    ${SUBDIR}/BinningActivityBuffer.cpp
    ${SUBDIR}/BoundaryConditions.cpp
@@ -71,7 +72,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/SigmoidActivityBuffer.cpp
    ${SUBDIR}/SingleArbor.cpp
    ${SUBDIR}/SingleChannelGSynAccumulator.cpp
-   ${SUBDIR}/SparseLayerFlagPublisherComponent.cpp
    ${SUBDIR}/SquaredGSynAccumulator.cpp
    ${SUBDIR}/StrengthParam.cpp
    ${SUBDIR}/TransposePatchSize.cpp
@@ -92,6 +92,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ANNActivityBuffer.hpp
    ${SUBDIR}/ArborList.hpp
    ${SUBDIR}/BackgroundActivityBuffer.hpp
+   ${SUBDIR}/BasePublisherComponent.hpp
    ${SUBDIR}/BatchIndexer.hpp
    ${SUBDIR}/BinningActivityBuffer.hpp
    ${SUBDIR}/BoundaryConditions.hpp
@@ -159,7 +160,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/SigmoidActivityBuffer.hpp
    ${SUBDIR}/SingleArbor.hpp
    ${SUBDIR}/SingleChannelGSynAccumulator.hpp
-   ${SUBDIR}/SparseLayerFlagPublisherComponent.hpp
    ${SUBDIR}/SquaredGSynAccumulator.hpp
    ${SUBDIR}/StrengthParam.hpp
    ${SUBDIR}/TransposePatchSize.hpp

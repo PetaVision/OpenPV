@@ -6,8 +6,8 @@
  */
 
 #include "FilenameParsingProbe.hpp"
+#include <components/BasePublisherComponent.hpp>
 #include <components/InputActivityBuffer.hpp>
-#include <components/PublisherComponent.hpp>
 
 FilenameParsingProbe::FilenameParsingProbe() { initialize_base(); }
 
@@ -64,10 +64,10 @@ PV::Response::Status FilenameParsingProbe::outputState(double simTime, double de
    // From then until the second display flip, displayNumber is 1, etc.
 
    int mpiBatchIndex        = getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex();
-   auto *publisherComponent = getTargetLayer()->getComponentByType<PV::PublisherComponent>();
+   auto *publisherComponent = getTargetLayer()->getComponentByType<PV::BasePublisherComponent>();
    FatalIf(
          publisherComponent == nullptr,
-         "Target layer \"%s\" does not have a PublisherComponent.\n",
+         "Target layer \"%s\" does not have a BasePublisherComponent.\n",
          getTargetLayer()->getName());
    PVLayerLoc const *loc      = publisherComponent->getLayerLoc();
    int const localBatchWidth  = loc->nbatch;

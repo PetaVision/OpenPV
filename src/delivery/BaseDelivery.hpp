@@ -8,9 +8,9 @@
 #ifndef BASEDELIVERY_HPP_
 #define BASEDELIVERY_HPP_
 
+#include "components/BasePublisherComponent.hpp"
 #include "components/ConnectionData.hpp"
 #include "components/LayerInputBuffer.hpp"
-#include "components/PublisherComponent.hpp"
 #include "delivery/LayerInputDelivery.hpp"
 
 namespace PV {
@@ -26,7 +26,7 @@ class BaseDelivery : public LayerInputDelivery {
 
    virtual ~BaseDelivery() {}
 
-   PublisherComponent *getPreData() const { return mPreData; }
+   BasePublisherComponent *getPreData() const { return mPreData; }
    LayerInputBuffer *getPostGSyn() const { return mPostGSyn; }
 
   protected:
@@ -78,9 +78,9 @@ class BaseDelivery : public LayerInputDelivery {
    // compiler, it should probably be unrolled.
 
   protected:
-   ConnectionData *mConnectionData = nullptr;
-   PublisherComponent *mPreData    = nullptr;
-   LayerInputBuffer *mPostGSyn     = nullptr;
+   ConnectionData *mConnectionData  = nullptr;
+   BasePublisherComponent *mPreData = nullptr;
+   LayerInputBuffer *mPostGSyn      = nullptr;
 // Rather than the layers, should we store the buffers and the PVLayerLoc data?
 
 #ifdef PV_USE_OPENMP_THREADS

@@ -31,7 +31,7 @@ Response::Status AssertZerosProbe::outputState(double simTime, double deltaTime)
       return status;
    }
    auto *targetLayerInputBuffer = getTargetLayer()->getComponentByType<LayerInputBuffer>();
-   auto *targetPublisher        = getTargetLayer()->getComponentByType<PublisherComponent>();
+   auto *targetPublisher        = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    const PVLayerLoc *loc        = getTargetLayer()->getLayerLoc();
    int numExtNeurons            = targetPublisher->getNumExtended() * loc->nbatch;
    int numResNeurons            = targetLayerInputBuffer->getBufferSizeAcrossBatch();

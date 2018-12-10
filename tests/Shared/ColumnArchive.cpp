@@ -136,7 +136,7 @@ bool ColumnArchive::operator==(ColumnArchive const &comparison) const {
    return areEqual;
 }
 
-void ColumnArchive::addLayer(PV::PublisherComponent *layer, float layerTolerance) {
+void ColumnArchive::addLayer(PV::BasePublisherComponent *layer, float layerTolerance) {
    std::vector<LayerArchive>::size_type sz = m_layerdata.size();
    m_layerdata.resize(sz + 1);
    LayerArchive &latestLayer = m_layerdata.at(sz);
@@ -180,7 +180,7 @@ void ColumnArchive::addCol(PV::HyPerCol *hc, float layerTolerance, float connTol
    for (PV::Observer *obj = firstObject; obj != nullptr; obj = hc->getNextObject(obj)) {
       PV::HyPerLayer *layer = dynamic_cast<PV::HyPerLayer *>(obj);
       if (layer != nullptr) {
-         auto *publisherComponent = layer->getComponentByType<PV::PublisherComponent>();
+         auto *publisherComponent = layer->getComponentByType<PV::BasePublisherComponent>();
          addLayer(publisherComponent, layerTolerance);
       }
       auto *conn = dynamic_cast<PV::ComponentBasedObject *>(obj);

@@ -74,10 +74,10 @@ int main(int argc, char *argv[]) {
 
    hc.run();
 
-   auto *preExc0Publisher = preLayerExc0->getComponentByType<PV::PublisherComponent>();
-   auto *preExc1Publisher = preLayerExc1->getComponentByType<PV::PublisherComponent>();
-   auto *preInh0Publisher = preLayerInh0->getComponentByType<PV::PublisherComponent>();
-   auto *preInh1Publisher = preLayerInh1->getComponentByType<PV::PublisherComponent>();
+   auto *preExc0Publisher = preLayerExc0->getComponentByType<PV::BasePublisherComponent>();
+   auto *preExc1Publisher = preLayerExc1->getComponentByType<PV::BasePublisherComponent>();
+   auto *preInh0Publisher = preLayerInh0->getComponentByType<PV::BasePublisherComponent>();
+   auto *preInh1Publisher = preLayerInh1->getComponentByType<PV::BasePublisherComponent>();
 
    PVLayerLoc const preLoc = *preExc0Publisher->getLayerLoc();
    int const nx            = preLoc.nx;

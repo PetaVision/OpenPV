@@ -6,10 +6,10 @@
  */
 
 #include "InputRegionLayer.hpp"
+#include "components/BasePublisherComponent.hpp"
 #include "components/DependentBoundaryConditions.hpp"
 #include "components/DependentPhaseParam.hpp"
 #include "components/InputRegionActivityComponent.hpp"
-#include "components/PublisherComponent.hpp"
 
 namespace PV {
 
@@ -49,8 +49,8 @@ ActivityComponent *InputRegionLayer::createActivityComponent() {
    return new InputRegionActivityComponent(getName(), parameters(), mCommunicator);
 }
 
-PublisherComponent *InputRegionLayer::createPublisher() {
-   return new PublisherComponent(getName(), parameters(), mCommunicator);
+BasePublisherComponent *InputRegionLayer::createPublisher() {
+   return new BasePublisherComponent(getName(), parameters(), mCommunicator);
 }
 
 OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {

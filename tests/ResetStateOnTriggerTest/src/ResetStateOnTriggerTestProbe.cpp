@@ -1,5 +1,5 @@
 #include "ResetStateOnTriggerTestProbe.hpp"
-#include <components/PublisherComponent.hpp>
+#include <components/BasePublisherComponent.hpp>
 #include <layers/HyPerLayer.hpp>
 
 ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(
@@ -35,7 +35,7 @@ PV::Response::Status ResetStateOnTriggerTestProbe::initializeState(
 void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    int nBatch = getNumValues();
    if (timevalue > 0.0) {
-      auto *targetPublisher = targetLayer->getComponentByType<PV::PublisherComponent>();
+      auto *targetPublisher = targetLayer->getComponentByType<PV::BasePublisherComponent>();
       PVLayerLoc const *loc = targetLayer->getLayerLoc();
       int N                 = loc->nx * loc->ny * loc->nf;
       int NGlobal           = loc->nxGlobal * loc->nyGlobal * loc->nf;

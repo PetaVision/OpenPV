@@ -308,7 +308,7 @@ Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
       float avgval        = 0.0f;
       char const *avgnote = nullptr;
       if (type == BufActivity
-          and getTargetLayer()->getComponentByType<PublisherComponent>()->getSparseLayer()) {
+          and getTargetLayer()->getComponentByType<BasePublisherComponent>()->getSparseLayer()) {
          avgval  = 1000.0f * avg[b]; // convert spikes per millisecond to hertz.
          avgnote = " Hz (/dt ms)";
       }
@@ -350,7 +350,7 @@ float const *StatsProbe::retrieveVBuffer() {
 }
 
 float const *StatsProbe::retrieveActivityBuffer() {
-   auto *publisherComponent = getTargetLayer()->getComponentByType<PublisherComponent>();
+   auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    FatalIf(
          publisherComponent == nullptr,
          "%s target layer \"%s\" does not have an A buffer.\n",

@@ -11,7 +11,7 @@
 #include "probes/ColProbe.hpp"
 
 #include "CorrectState.hpp"
-#include "components/PublisherComponent.hpp"
+#include "components/BasePublisherComponent.hpp"
 #include "components/Weights.hpp"
 
 class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
@@ -76,18 +76,18 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
    int calcUpdateNumber(double timevalue);
    void initializeCorrectValues(double timevalue);
 
-   bool verifyLayer(PV::PublisherComponent *layer, float correctValue, double timevalue);
+   bool verifyLayer(PV::BasePublisherComponent *layer, float correctValue, double timevalue);
    bool verifyConnection(PV::Weights *preWeights, float correctValue, double timevalue);
 
    // Data members
   protected:
-   int mStartingUpdateNumber                = 0;
-   bool mValuesSet                          = false;
-   PV::PublisherComponent *mInputPublisher  = nullptr;
-   PV::PublisherComponent *mOutputPublisher = nullptr;
-   PV::Weights *mPreWeights                 = nullptr;
-   CorrectState *mCorrectState              = nullptr;
-   bool mTestFailed                         = false;
+   int mStartingUpdateNumber                    = 0;
+   bool mValuesSet                              = false;
+   PV::BasePublisherComponent *mInputPublisher  = nullptr;
+   PV::BasePublisherComponent *mOutputPublisher = nullptr;
+   PV::Weights *mPreWeights                     = nullptr;
+   CorrectState *mCorrectState                  = nullptr;
+   bool mTestFailed                             = false;
 };
 
 #endif // HYPERCONNCHECKPOINTERTESTPROBE_HPP_

@@ -99,11 +99,12 @@ class TransposePoolingDelivery : public BaseDelivery {
    PoolingDelivery::AccumulateType mAccumulateType = PoolingDelivery::UNDEFINED;
    bool mUpdateGSynFromPostPerspective             = false;
 
-   DependentPatchSize *mPatchSize             = nullptr;
-   ImpliedWeightsPair *mWeightsPair           = nullptr;
-   PublisherComponent *mOriginalPostIndexData = nullptr; // Used by deliverPresynapticPerspective
-   PublisherComponent *mOriginalPreData       = nullptr; // Used by deliverGPU
-   LayerInputBuffer *mOriginalPostGSyn        = nullptr; // Used by deliverGPU
+   DependentPatchSize *mPatchSize   = nullptr;
+   ImpliedWeightsPair *mWeightsPair = nullptr;
+   BasePublisherComponent *mOriginalPostIndexData =
+         nullptr; // Used by deliverPresynapticPerspective
+   BasePublisherComponent *mOriginalPreData = nullptr; // Used by deliverGPU
+   LayerInputBuffer *mOriginalPostGSyn      = nullptr; // Used by deliverGPU
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaTransposePoolingDeliverKernel *mDeliverKernel = nullptr;

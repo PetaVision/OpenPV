@@ -103,7 +103,7 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    double VThreshPlusVWidth = VThresh + VWidth;
    double amax              = 0.5 * VThreshPlusVWidth;
    double a2                = 0.5 / VThreshPlusVWidth;
-   auto *publisherComponent = getTargetLayer()->getComponentByType<PublisherComponent>();
+   auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    int const numExtended    = publisherComponent->getNumExtended();
    float const *aBuffer     = publisherComponent->getLayerData() + index * numExtended;
 

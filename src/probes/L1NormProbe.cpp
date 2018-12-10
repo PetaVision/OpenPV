@@ -40,7 +40,7 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
    int const dn             = halo->dn;
    int const up             = halo->up;
    double sum               = 0.0;
-   auto *publisherComponent = getTargetLayer()->getComponentByType<PublisherComponent>();
+   auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    int const numExtended    = (nx + lt + rt) * (ny + dn + up) * nf;
    float const *aBuffer     = publisherComponent->getLayerData() + index * numExtended;
 

@@ -67,7 +67,7 @@ class BackgroundActivityBuffer : public ActivityBuffer {
   protected:
    int mRepFeatureNum = 1;
 
-   PublisherComponent *mOriginalData = nullptr;
+   BasePublisherComponent *mOriginalData = nullptr;
 };
 
 } // namespace PV

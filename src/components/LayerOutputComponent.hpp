@@ -11,7 +11,7 @@
 #include "columns/BaseObject.hpp"
 
 #include "checkpointing/CheckpointableFileStream.hpp"
-#include "components/PublisherComponent.hpp"
+#include "components/BasePublisherComponent.hpp"
 #include "utils/Timer.hpp"
 
 namespace PV {
@@ -92,7 +92,7 @@ class LayerOutputComponent : public BaseObject {
    double mWriteTime        = 0.0; // time of next output
    double mWriteStep        = 0.0; // output time interval
 
-   PublisherComponent *mPublisher               = nullptr;
+   BasePublisherComponent *mPublisher           = nullptr;
    CheckpointableFileStream *mOutputStateStream = nullptr; // file stream for the pvp file
    int mWriteActivityCalls; // Number of calls to writeActivity (written to nbands in the pvp file)
    int mWriteActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in

@@ -57,10 +57,10 @@ AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
             "%s: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
             getDescription_c(),
             maskLayerName);
-      mMaskLayerData = maskLayer->getComponentByType<PublisherComponent>();
+      mMaskLayerData = maskLayer->getComponentByType<BasePublisherComponent>();
       FatalIf(
             mMaskLayerData == nullptr,
-            "%s: maskLayerName \"%s\" does not have a PublisherComponent.\n",
+            "%s: maskLayerName \"%s\" does not have a BasePublisherComponent.\n",
             getDescription_c(),
             maskLayerName);
 

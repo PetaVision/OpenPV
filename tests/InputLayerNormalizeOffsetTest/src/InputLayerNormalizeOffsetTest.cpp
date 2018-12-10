@@ -5,7 +5,7 @@
 
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
-#include <components/PublisherComponent.hpp>
+#include <components/BasePublisherComponent.hpp>
 #include <layers/InputLayer.hpp>
 #include <layers/InputRegionLayer.hpp>
 #include <structures/Buffer.hpp>
@@ -17,9 +17,11 @@ T *getObjectFromName(std::string const &objectName, PV::HyPerCol *hc);
 template <typename T>
 char const *objectType();
 
-void verifyLayerLocs(PV::PublisherComponent *publisher1, PV::PublisherComponent *publisher2);
+void verifyLayerLocs(
+      PV::BasePublisherComponent *publisher1,
+      PV::BasePublisherComponent *publisher2);
 PV::Buffer<float>
-gatherLayerData(PV::PublisherComponent *publisher, PV::Communicator *communicator);
+gatherLayerData(PV::BasePublisherComponent *publisher, PV::Communicator *communicator);
 void verifyActivity(
       PV::Buffer<float> *inputBuffer,
       std::string const &inputName,
@@ -35,9 +37,9 @@ int main(int argc, char *argv[]) {
    hc->allocateColumn();
 
    auto *inputLayer           = getObjectFromName<PV::InputLayer>(std::string("Input"), hc);
-   auto *inputPublisher       = inputLayer->getComponentByType<PV::PublisherComponent>();
+   auto *inputPublisher       = inputLayer->getComponentByType<PV::BasePublisherComponent>();
    auto *validRegionLayer     = getObjectFromName<PV::InputLayer>(std::string("ValidRegion"), hc);
-   auto *validRegionPublisher = validRegionLayer->getComponentByType<PV::PublisherComponent>();
+   auto *validRegionPublisher = validRegionLayer->getComponentByType<PV::BasePublisherComponent>();
 
    verifyLayerLocs(inputPublisher, validRegionPublisher);
 
@@ -86,7 +88,9 @@ char const *objectType<PV::InputLayer>() {
    return "InputLayer";
 }
 
-void verifyLayerLocs(PV::PublisherComponent *publisher1, PV::PublisherComponent *publisher2) {
+void verifyLayerLocs(
+      PV::BasePublisherComponent *publisher1,
+      PV::BasePublisherComponent *publisher2) {
    PVLayerLoc const *loc1 = publisher1->getLayerLoc();
    PVLayerLoc const *loc2 = publisher2->getLayerLoc();
    FatalIf(
@@ -148,7 +152,7 @@ void verifyLayerLocs(PV::PublisherComponent *publisher1, PV::PublisherComponent 
 }
 
 PV::Buffer<float>
-gatherLayerData(PV::PublisherComponent *publisher, PV::Communicator *communicator) {
+gatherLayerData(PV::BasePublisherComponent *publisher, PV::Communicator *communicator) {
    PVLayerLoc const *loc = publisher->getLayerLoc();
    int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
    int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;

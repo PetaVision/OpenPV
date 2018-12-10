@@ -58,8 +58,9 @@ int main(int argc, char *argv[]) {
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    HyPerLayer *averageLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("Average"));
    FatalIf(averageLayer == nullptr, "No layer named \"Average\"\n");
-   auto *averagePublisher = averageLayer->getComponentByType<PublisherComponent>();
-   FatalIf(averagePublisher == nullptr, "Layer \"Average\" does not have a PublisherComponent\n");
+   auto *averagePublisher = averageLayer->getComponentByType<BasePublisherComponent>();
+   FatalIf(
+         averagePublisher == nullptr, "Layer \"Average\" does not have a BasePublisherComponent\n");
    float const *checkData = averagePublisher->getLayerData();
    int const numNeurons   = averagePublisher->getNumExtended();
 

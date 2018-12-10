@@ -4,7 +4,7 @@
  */
 
 #include <columns/buildandrun.hpp>
-#include <components/PublisherComponent.hpp>
+#include <components/BasePublisherComponent.hpp>
 #include <layers/HyPerLayer.hpp>
 
 int customexit(HyPerCol *hc, int argc, char **argv);
@@ -25,7 +25,7 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
    }
    HyPerLayer *inputlayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("input"));
    FatalIf(inputlayer == nullptr, "No layer named \"input\".\n");
-   auto *inputpublisher  = inputlayer->getComponentByType<PublisherComponent>();
+   auto *inputpublisher  = inputlayer->getComponentByType<BasePublisherComponent>();
    PVLayerLoc const *loc = inputpublisher->getLayerLoc();
    FatalIf(loc->nf != 1, "Layer \"input\" nf must be 1 (values is %d).\n", loc->nf);
    const int numNeurons = loc->nx * loc->ny * loc->nf;

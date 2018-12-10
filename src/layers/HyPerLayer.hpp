@@ -15,6 +15,7 @@
 #include "columns/Communicator.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "components/ActivityComponent.hpp"
+#include "components/BasePublisherComponent.hpp"
 #include "components/BoundaryConditions.hpp"
 #include "components/InternalStateBuffer.hpp"
 #include "components/LayerGeometry.hpp"
@@ -22,7 +23,6 @@
 #include "components/LayerOutputComponent.hpp"
 #include "components/LayerUpdateController.hpp"
 #include "components/PhaseParam.hpp"
-#include "components/PublisherComponent.hpp"
 #include "include/pv_common.h"
 #include "include/pv_types.h"
 #include "io/fileio.hpp"
@@ -72,7 +72,7 @@ class HyPerLayer : public ComponentBasedObject {
    virtual LayerUpdateController *createLayerUpdateController();
    virtual LayerInputBuffer *createLayerInput();
    virtual ActivityComponent *createActivityComponent();
-   virtual PublisherComponent *createPublisher();
+   virtual BasePublisherComponent *createPublisher();
    virtual LayerOutputComponent *createLayerOutput();
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
@@ -183,7 +183,7 @@ class HyPerLayer : public ComponentBasedObject {
 
    ActivityComponent *mActivityComponent = nullptr;
 
-   PublisherComponent *mPublisher = nullptr;
+   BasePublisherComponent *mPublisher = nullptr;
 
    LayerOutputComponent *mLayerOutput = nullptr;
 };

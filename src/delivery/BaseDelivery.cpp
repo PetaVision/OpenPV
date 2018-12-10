@@ -41,7 +41,7 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
 
    auto *preLayer = mConnectionData->getPre();
    pvAssert(preLayer != nullptr);
-   mPreData = preLayer->getComponentByType<PublisherComponent>();
+   mPreData = preLayer->getComponentByType<BasePublisherComponent>();
 
    auto *postLayer = mConnectionData->getPost();
    pvAssert(postLayer != nullptr);

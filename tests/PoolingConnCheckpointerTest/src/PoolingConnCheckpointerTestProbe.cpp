@@ -108,10 +108,10 @@ PoolingConnCheckpointerTestProbe::initInputPublisher(PV::ObserverTable const *co
          inputBuffer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
 
-   mInputPublisher = inputLayer->getComponentByType<PV::PublisherComponent>();
+   mInputPublisher = inputLayer->getComponentByType<PV::BasePublisherComponent>();
    FatalIf(
          mInputPublisher == nullptr,
-         "%s does not have a PublisherComponent.\n",
+         "%s does not have a BasePublisherComponent.\n",
          inputLayer->getDescription_c());
    return PV::Response::SUCCESS;
 }
@@ -124,10 +124,10 @@ PoolingConnCheckpointerTestProbe::initOutputPublisher(PV::ObserverTable const *c
       return PV::Response::POSTPONE;
    }
 
-   mOutputPublisher = outputLayer->getComponentByType<PV::PublisherComponent>();
+   mOutputPublisher = outputLayer->getComponentByType<PV::BasePublisherComponent>();
    FatalIf(
          mOutputPublisher == nullptr,
-         "%s does not have a PublisherComponent.\n",
+         "%s does not have a BasePublisherComponent.\n",
          outputLayer->getDescription_c());
    return PV::Response::SUCCESS;
 }
@@ -223,7 +223,7 @@ PoolingConnCheckpointerTestProbe::outputState(double simTime, double deltaTime) 
 }
 
 bool PoolingConnCheckpointerTestProbe::verifyLayer(
-      PV::PublisherComponent *layer,
+      PV::BasePublisherComponent *layer,
       PV::Buffer<float> const &correctValueBuffer,
       double timevalue) {
    int failed = 0;

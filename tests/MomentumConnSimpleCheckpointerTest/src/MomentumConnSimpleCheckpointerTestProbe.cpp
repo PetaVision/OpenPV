@@ -137,10 +137,10 @@ MomentumConnSimpleCheckpointerTestProbe::initInputLayer(PV::ObserverTable const 
          inputBuffer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
 
-   mInputPublisher = inputLayer->getComponentByType<PV::PublisherComponent>();
+   mInputPublisher = inputLayer->getComponentByType<PV::BasePublisherComponent>();
    FatalIf(
          mInputPublisher == nullptr,
-         "%s does not have a PublisherComponent.\n",
+         "%s does not have a BasePublisherComponent.\n",
          inputLayer->getDescription_c());
    return PV::Response::SUCCESS;
 }
@@ -157,10 +157,10 @@ MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const
          "%s has a different initializeFromCheckpointFlag value from the probe %s.\n",
          outputLayer->getDescription_c(),
          getDescription_c());
-   mOutputPublisher = outputLayer->getComponentByType<PV::PublisherComponent>();
+   mOutputPublisher = outputLayer->getComponentByType<PV::BasePublisherComponent>();
    FatalIf(
          mOutputPublisher == nullptr,
-         "%s does not have a PublisherComponent.\n",
+         "%s does not have a BasePublisherComponent.\n",
          outputLayer->getDescription_c());
    return PV::Response::SUCCESS;
 }
@@ -307,7 +307,7 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyConnValue(
 }
 
 bool MomentumConnSimpleCheckpointerTestProbe::verifyLayer(
-      PV::PublisherComponent *layer,
+      PV::BasePublisherComponent *layer,
       float correctValue,
       double timevalue) {
    bool failed = false;

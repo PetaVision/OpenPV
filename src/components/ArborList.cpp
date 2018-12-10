@@ -77,8 +77,8 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
       }
       return Response::POSTPONE;
    }
-   HyPerLayer *preLayer        = connectionData->getPre();
-   PublisherComponent *preData = preLayer->getComponentByType<PublisherComponent>();
+   HyPerLayer *preLayer            = connectionData->getPre();
+   BasePublisherComponent *preData = preLayer->getComponentByType<BasePublisherComponent>();
 
    initializeDelays(message->mDeltaTime);
    int maxDelay     = maxDelaySteps();

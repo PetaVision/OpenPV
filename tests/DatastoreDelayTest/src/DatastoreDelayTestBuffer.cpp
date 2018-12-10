@@ -7,7 +7,7 @@
 
 #include "DatastoreDelayTestBuffer.hpp"
 #include <columns/ComponentBasedObject.hpp>
-#include <components/PublisherComponent.hpp>
+#include <components/BasePublisherComponent.hpp>
 #include <include/pv_arch.h>
 
 namespace PV {
@@ -41,7 +41,8 @@ Response::Status DatastoreDelayTestBuffer::communicateInitInfo(
    ComponentBasedObject *parentLayer =
          message->mHierarchy->lookupByNameRecursive<ComponentBasedObject>(getName(), maxIterations);
    pvAssert(parentLayer);
-   PublisherComponent *parentPublisher = parentLayer->getComponentByType<PublisherComponent>();
+   BasePublisherComponent *parentPublisher =
+         parentLayer->getComponentByType<BasePublisherComponent>();
    pvAssert(parentPublisher);
    mPeriod = parentPublisher->getNumDelayLevels();
 

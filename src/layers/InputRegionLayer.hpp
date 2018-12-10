@@ -33,7 +33,7 @@ class InputRegionLayer : public HyPerLayer {
    virtual LayerUpdateController *createLayerUpdateController() override;
    virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
-   virtual PublisherComponent *createPublisher() override;
+   virtual BasePublisherComponent *createPublisher() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();
 }; // class InputRegionLayer
 

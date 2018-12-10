@@ -16,7 +16,7 @@
 #include "components/HyPerActivityBuffer.hpp"
 #include "components/HyPerActivityComponent.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
-#include "components/SparseLayerFlagPublisherComponent.hpp"
+#include "components/PublisherComponent.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include <cassert>
@@ -177,8 +177,8 @@ ActivityComponent *HyPerLayer::createActivityComponent() {
                                      HyPerActivityBuffer>(name, parameters(), mCommunicator);
 }
 
-PublisherComponent *HyPerLayer::createPublisher() {
-   return new SparseLayerFlagPublisherComponent(name, parameters(), mCommunicator);
+BasePublisherComponent *HyPerLayer::createPublisher() {
+   return new PublisherComponent(name, parameters(), mCommunicator);
 }
 
 LayerOutputComponent *HyPerLayer::createLayerOutput() {

@@ -109,8 +109,8 @@ int main(int argc, char *argv[]) {
       Fatal().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
 
-   PublisherComponent *retinaPublisher = retina->getComponentByType<PublisherComponent>();
-   status                              = checkInput(
+   BasePublisherComponent *retinaPublisher = retina->getComponentByType<BasePublisherComponent>();
+   status                                  = checkInput(
          retinaPublisher->getLayerLoc(), retinaPublisher->getLayerData(), retinaVal, true);
    if (status != 0) {
       Fatal().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);

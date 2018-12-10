@@ -42,7 +42,7 @@ Response::Status ReceiveFromPostProbe::outputState(double simTime, double deltaT
    if (status != Response::SUCCESS) {
       return status;
    }
-   auto *publisherComponent = getTargetLayer()->getComponentByType<PublisherComponent>();
+   auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    const PVLayerLoc *loc    = publisherComponent->getLayerLoc();
    int numExtNeurons        = publisherComponent->getNumExtended();
    const float *A           = publisherComponent->getLayerData();

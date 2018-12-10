@@ -5,7 +5,7 @@
 
 #include "columns/HyPerCol.hpp"
 #include "columns/PV_Init.hpp"
-#include "components/PublisherComponent.hpp"
+#include "components/BasePublisherComponent.hpp"
 #include "layers/HyPerLayer.hpp"
 
 int main(int argc, char *argv[]) {
@@ -73,10 +73,10 @@ int main(int argc, char *argv[]) {
 
    PV::HyPerLayer *outputLayer = dynamic_cast<PV::HyPerLayer *>(hc2->getObjectFromName("Output"));
    FatalIf(outputLayer == nullptr, "No layer named \"Output\".");
-   auto *outputPublisher = outputLayer->getComponentByType<PV::PublisherComponent>();
+   auto *outputPublisher = outputLayer->getComponentByType<PV::BasePublisherComponent>();
    FatalIf(
          outputPublisher == nullptr,
-         "%s does not have a PublisherComponent.",
+         "%s does not have a BasePublisherComponent.",
          outputLayer->getDescription_c());
 
    double const totalTime = stopTime1 + stopTime2;
