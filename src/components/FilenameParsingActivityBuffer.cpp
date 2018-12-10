@@ -95,13 +95,14 @@ Response::Status FilenameParsingActivityBuffer::communicateInitInfo(
    }
    int const phase = phaseParam->getPhase();
 
+   int const inputLayerPhase = mInputLayer->getComponentByType<PhaseParam>()->getPhase();
    FatalIf(
-         mInputLayer->getPhase() <= phase,
+         inputLayerPhase <= phase,
          "%s: The phase of layer %s (%d) must be greater than the phase of the "
          "FilenameParsingActivityBuffer (%d)\n",
          getName(),
          mInputLayerName,
-         mInputLayer->getPhase(),
+         inputLayerPhase,
          phase);
    return Response::SUCCESS;
 }

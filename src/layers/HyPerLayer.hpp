@@ -146,8 +146,6 @@ class HyPerLayer : public ComponentBasedObject {
    int getYScale() const { return mLayerGeometry->getYScale(); }
    PVLayerLoc const *getLayerLoc() const { return mLayerGeometry->getLayerLoc(); }
 
-   int getPhase() { return mPhaseParam->getPhase(); }
-
   protected:
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

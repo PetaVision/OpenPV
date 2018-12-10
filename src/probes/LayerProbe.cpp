@@ -119,7 +119,8 @@ Response::Status LayerProbe::respondLayerProbeWriteParams(
 Response::Status
 LayerProbe::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
    Response::Status status = Response::SUCCESS;
-   if (message->mPhase != targetLayer->getPhase()) {
+   int targetLayerPhase    = targetLayer->getComponentByType<PhaseParam>()->getPhase();
+   if (message->mPhase != targetLayerPhase) {
       return status;
    }
    status = outputStateWrapper(message->mTime, message->mDeltaTime);

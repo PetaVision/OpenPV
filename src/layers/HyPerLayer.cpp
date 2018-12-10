@@ -273,7 +273,7 @@ HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage cons
 Response::Status
 HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
    Response::Status status = Response::SUCCESS;
-   if (message->mPhase != getPhase()) {
+   if (message->mPhase != mPhaseParam->getPhase()) {
       return status;
    }
    message->mTimer->start();
@@ -290,7 +290,7 @@ HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage cons
 
 Response::Status HyPerLayer::respondLayerAdvanceDataStore(
       std::shared_ptr<LayerAdvanceDataStoreMessage const> message) {
-   if (message->mPhase < 0 || message->mPhase == getPhase()) {
+   if (message->mPhase < 0 || message->mPhase == mPhaseParam->getPhase()) {
       mPublisher->respond(message);
    }
    return Response::SUCCESS;
@@ -298,7 +298,7 @@ Response::Status HyPerLayer::respondLayerAdvanceDataStore(
 
 Response::Status
 HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message) {
-   if (message->mPhase != getPhase()) {
+   if (message->mPhase != mPhaseParam->getPhase()) {
       return Response::NO_ACTION;
    }
    mPublisher->publish(mCommunicator, message->mTime);
@@ -308,7 +308,7 @@ HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> messa
 Response::Status HyPerLayer::respondLayerCheckNotANumber(
       std::shared_ptr<LayerCheckNotANumberMessage const> message) {
    Response::Status status = Response::SUCCESS;
-   if (message->mPhase != getPhase()) {
+   if (message->mPhase != mPhaseParam->getPhase()) {
       return status;
    }
    auto layerData = mPublisher->getLayerData();
@@ -326,7 +326,7 @@ Response::Status HyPerLayer::respondLayerCheckNotANumber(
 Response::Status
 HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
    auto status = Response::NO_ACTION;
-   if (mLayerOutput and message->mPhase == getPhase()) {
+   if (mLayerOutput and message->mPhase == mPhaseParam->getPhase()) {
       status = mLayerOutput->respond(message);
    }
    return status;
