@@ -116,12 +116,26 @@ void CheckpointableFileStream::read(void *data, long length) {
    updateFilePos();
 }
 
+void CheckpointableFileStream::setOutPos(long pos, std::ios_base::seekdir seekAnchor) {
+   if (seekAnchor != std::ios_base::beg) {
+      syncFilePos();
+   }
+   FileStream::setOutPos(pos, seekAnchor);
+}
+
 void CheckpointableFileStream::setOutPos(long pos, bool fromBeginning) {
    if (!fromBeginning) {
       syncFilePos();
    }
    FileStream::setOutPos(pos, fromBeginning);
    updateFilePos();
+}
+
+void CheckpointableFileStream::setInPos(long pos, std::ios_base::seekdir seekAnchor) {
+   if (seekAnchor != std::ios_base::beg) {
+      syncFilePos();
+   }
+   FileStream::setInPos(pos, seekAnchor);
 }
 
 void CheckpointableFileStream::setInPos(long pos, bool fromBeginning) {

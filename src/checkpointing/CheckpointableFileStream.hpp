@@ -46,7 +46,9 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
          string const &objName);
    virtual void write(void const *data, long length) override;
    virtual void read(void *data, long length) override;
+   virtual void setOutPos(long pos, std::ios_base::seekdir seekAnchor) override;
    virtual void setOutPos(long pos, bool fromBeginning) override;
+   virtual void setInPos(long pos, std::ios_base::seekdir seekAnchor);
    virtual void setInPos(long pos, bool fromBeginning) override;
 
   private:
