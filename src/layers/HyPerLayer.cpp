@@ -381,26 +381,6 @@ Response::Status HyPerLayer::copyInitialStateToGPU() {
 #endif // PV_USE_CUDA
 
 /******************************************************************
- * ReadStateFromCheckpoint stage
- *****************************************************************/
-Response::Status HyPerLayer::processCheckpointRead() {
-   mPublisher->updateAllActiveIndices();
-   return Response::SUCCESS;
-}
-
-Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   pvAssert(mInitializeFromCheckpointFlag);
-   auto status = Response::NO_ACTION;
-   status      = ComponentBasedObject::readStateFromCheckpoint(checkpointer);
-   if (!Response::completed(status)) {
-      return status;
-   }
-   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("Delays"), false);
-   mPublisher->updateAllActiveIndices();
-   return Response::SUCCESS;
-}
-
-/******************************************************************
  * Run-loop stage
  *****************************************************************/
 Response::Status HyPerLayer::respondLayerAdvanceDataStore(

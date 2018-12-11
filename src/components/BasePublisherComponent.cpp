@@ -132,6 +132,20 @@ Response::Status BasePublisherComponent::registerData(
    return Response::SUCCESS;
 }
 
+Response::Status BasePublisherComponent::processCheckpointRead() {
+   updateAllActiveIndices();
+   return Response::SUCCESS;
+}
+
+Response::Status BasePublisherComponent::readStateFromCheckpoint(Checkpointer *checkpointer) {
+   Response::Status status = BaseObject::readStateFromCheckpoint(checkpointer);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("Delays"), false);
+   return Response::SUCCESS;
+}
+
 Response::Status BasePublisherComponent::respondLayerAdvanceDataStore(
       std::shared_ptr<LayerAdvanceDataStoreMessage const> message) {
    advanceDataStore();

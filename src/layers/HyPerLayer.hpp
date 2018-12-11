@@ -146,10 +146,6 @@ class HyPerLayer : public ComponentBasedObject {
    virtual Response::Status copyInitialStateToGPU() override;
 #endif // PV_USE_CUDA
 
-   virtual Response::Status processCheckpointRead() override;
-
-   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
-
    Response::Status
    respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);
    Response::Status respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);

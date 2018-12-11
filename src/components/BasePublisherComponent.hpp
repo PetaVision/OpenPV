@@ -24,6 +24,11 @@ namespace PV {
 /**
  * A component to hold a HyPerLayer's activity ring buffer and to publish the
  * layer's activity to be used by delivery objects, probes, etc.
+ * During initialization, indicate how many timesteps in the past will be needed
+ * by calling the increaseDelayLevels(int) method, with the needed number of
+ * timesteps. The activity is retrieved by calling the getLayerData(int) method,
+ * where the argument is the number of timesteps in the past, and the default
+ * is zero.
  */
 class BasePublisherComponent : public BaseObject {
   public:
@@ -106,6 +111,9 @@ class BasePublisherComponent : public BaseObject {
 
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+
+   virtual Response::Status processCheckpointRead() override;
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    Response::Status
    respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);

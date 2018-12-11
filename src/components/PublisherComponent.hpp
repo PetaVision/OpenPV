@@ -16,11 +16,9 @@
 namespace PV {
 
 /**
- * A component to output a layer's activity. It creates a .pvp file whose name is the
- * component's name followed by the suffix ".pvp" in the output directory.
- * It then responds to the LayerOutputStateMessage by appending a frame to the .pvp file
- * with the current activity state (retrieved from the publisher).
- * The boolean parameter sparseLayer controls whether the layer is sparse or dense.
+ * A derived class of BasePublisherComponent, that adds a Boolean parameter sparseLayerFlag.
+ * If true, the Publisher will maintain a SparseEntry table of nonzero values as well as
+ * the dense activity.
  */
 class PublisherComponent : public BasePublisherComponent {
   protected:
