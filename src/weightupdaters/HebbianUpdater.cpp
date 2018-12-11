@@ -487,12 +487,13 @@ int HebbianUpdater::update_dW(int arborID) {
    // compute dW but don't add them to the weights yet.
    // That takes place in reduceKernels, so that the output is
    // independent of the number of processors.
-   HyPerLayer *pre       = mConnectionData->getPre();
-   HyPerLayer *post      = mConnectionData->getPost();
-   int nExt              = pre->getNumExtended();
-   PVLayerLoc const *loc = pre->getLayerLoc();
-   int const nbatch      = loc->nbatch;
-   int delay             = mArborList->getDelay(arborID);
+   HyPerLayer *pre           = mConnectionData->getPre();
+   HyPerLayer *post          = mConnectionData->getPost();
+   int nExt                  = pre->getNumExtended();
+   PVLayerLoc const *preLoc  = pre->getLayerLoc();
+   PVLayerLoc const *postLoc = post->getLayerLoc();
+   int const nbatch          = preLoc->nbatch;
+   int delay                 = mArborList->getDelay(arborID);
 
    float const *preactbufHead =
          pre->getComponentByType<BasePublisherComponent>()->getLayerData(delay);
@@ -500,11 +501,11 @@ int HebbianUpdater::update_dW(int arborID) {
 
    if (mWeights->getSharedFlag()) {
       // Calculate x and y cell size
-      int xCellSize  = zUnitCellSize(pre->getXScale(), post->getXScale());
-      int yCellSize  = zUnitCellSize(pre->getYScale(), post->getYScale());
-      int nxExt      = loc->nx + loc->halo.lt + loc->halo.rt;
-      int nyExt      = loc->ny + loc->halo.up + loc->halo.dn;
-      int nf         = loc->nf;
+      int xCellSize  = zUnitCellSize(preLoc->nx, postLoc->nx);
+      int yCellSize  = zUnitCellSize(preLoc->ny, postLoc->ny);
+      int nxExt      = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+      int nyExt      = preLoc->ny + preLoc->halo.up + preLoc->halo.dn;
+      int nf         = preLoc->nf;
       int numKernels = mWeights->getNumDataPatches();
 
       for (int b = 0; b < nbatch; b++) {

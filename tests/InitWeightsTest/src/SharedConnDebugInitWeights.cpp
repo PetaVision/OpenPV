@@ -259,30 +259,32 @@ void SharedConnDebugInitWeights::cocircCalcWeights(
 
    auto *preLayer  = getComponentByType<ConnectionData>()->getPre();
    auto *postLayer = getComponentByType<ConnectionData>()->getPost();
+   auto *preGeom   = preLayer->getComponentByType<LayerGeometry>();
+   auto *postGeom  = postLayer->getComponentByType<LayerGeometry>();
    dist2NearestCell(
          kxPre_tmp,
-         postLayer->getXScale() - preLayer->getXScale(),
+         postGeom->getXScale() - preGeom->getXScale(),
          &xDistNNPreUnits,
          &xDistNNPostUnits);
    float yDistNNPreUnits;
    float yDistNNPostUnits;
    dist2NearestCell(
          kyPre_tmp,
-         postLayer->getYScale() - preLayer->getYScale(),
+         postGeom->getYScale() - preGeom->getYScale(),
          &yDistNNPreUnits,
          &yDistNNPostUnits);
 
    // get indices of nearest neighbor
    int kxNN;
    int kyNN;
-   kxNN = nearby_neighbor(kxPre_tmp, postLayer->getXScale() - preLayer->getXScale());
-   kyNN = nearby_neighbor(kyPre_tmp, postLayer->getYScale() - preLayer->getYScale());
+   kxNN = nearby_neighbor(kxPre_tmp, postGeom->getXScale() - preGeom->getXScale());
+   kyNN = nearby_neighbor(kyPre_tmp, postGeom->getYScale() - preGeom->getYScale());
 
    // get indices of patch head
    int kxHead;
    int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, postLayer->getXScale() - preLayer->getXScale());
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, postLayer->getYScale() - preLayer->getYScale());
+   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, postGeom->getXScale() - preGeom->getXScale());
+   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, postGeom->getYScale() - preGeom->getYScale());
 
    // get distance to patch head
    float xDistHeadPostUnits;
@@ -299,19 +301,19 @@ void SharedConnDebugInitWeights::cocircCalcWeights(
    yDistHeadPreUnits = yDistHeadPostUnits * yRelativeScale;
 
    // sigma is in units of pre-synaptic layer
-   const float dxPost = powf(2, postLayer->getXScale());
-   const float dyPost = powf(2, postLayer->getYScale());
+   const float dxPost = powf(2, postGeom->getXScale());
+   const float dyPost = powf(2, postGeom->getYScale());
 
    const int kfPre = featureIndex(
          dataPatchIndex,
-         preLayer->getLayerLoc()->nx,
-         preLayer->getLayerLoc()->ny,
-         preLayer->getLayerLoc()->nf);
+         preGeom->getLayerLoc()->nx,
+         preGeom->getLayerLoc()->ny,
+         preGeom->getLayerLoc()->nf);
 
    bool POS_KURVE_FLAG  = false; //  handle pos and neg curvature separately
    bool SADDLE_FLAG     = false; // handle saddle points separately
-   const int nKurvePre  = preLayer->getLayerLoc()->nf / noPre;
-   const int nKurvePost = postLayer->getLayerLoc()->nf / noPost;
+   const int nKurvePre  = preGeom->getLayerLoc()->nf / noPre;
+   const int nKurvePost = postGeom->getLayerLoc()->nf / noPost;
    const float dThPre   = PI / noPre;
    const float dThPost  = PI / noPost;
    const float th0Pre   = rotate * dThPre / 2.0f;
@@ -640,6 +642,8 @@ void SharedConnDebugInitWeights::gauss2DCalcWeights(
    auto *preLayer  = getComponentByType<ConnectionData>()->getPre();
    auto *postLayer = getComponentByType<ConnectionData>()->getPost();
    bool self       = (preLayer != postLayer);
+   auto *preGeom   = preLayer->getComponentByType<LayerGeometry>();
+   auto *postGeom  = postLayer->getComponentByType<LayerGeometry>();
 
    // get dimensions of (potentially shrunken patch)
    auto *patchSize   = getComponentByType<PatchSize>();
@@ -689,28 +693,28 @@ void SharedConnDebugInitWeights::gauss2DCalcWeights(
    float xDistNNPostUnits;
    dist2NearestCell(
          kxPre_tmp,
-         postLayer->getXScale() - preLayer->getXScale(),
+         postGeom->getXScale() - preGeom->getXScale(),
          &xDistNNPreUnits,
          &xDistNNPostUnits);
    float yDistNNPreUnits;
    float yDistNNPostUnits;
    dist2NearestCell(
          kyPre_tmp,
-         postLayer->getYScale() - preLayer->getYScale(),
+         postGeom->getYScale() - preGeom->getYScale(),
          &yDistNNPreUnits,
          &yDistNNPostUnits);
 
    // get indices of nearest neighbor
    int kxNN;
    int kyNN;
-   kxNN = nearby_neighbor(kxPre_tmp, postLayer->getXScale() - preLayer->getXScale());
-   kyNN = nearby_neighbor(kyPre_tmp, postLayer->getYScale() - preLayer->getYScale());
+   kxNN = nearby_neighbor(kxPre_tmp, postGeom->getXScale() - preGeom->getXScale());
+   kyNN = nearby_neighbor(kyPre_tmp, postGeom->getYScale() - preGeom->getYScale());
 
    // get indices of patch head
    int kxHead;
    int kyHead;
-   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, postLayer->getXScale() - preLayer->getXScale());
-   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, postLayer->getYScale() - preLayer->getYScale());
+   kxHead = zPatchHead(kxPre_tmp, nxPatch_tmp, postGeom->getXScale() - preGeom->getXScale());
+   kyHead = zPatchHead(kyPre_tmp, nyPatch_tmp, postGeom->getYScale() - preGeom->getYScale());
 
    // get distance to patch head (measured relative to pre-synaptic cell)
    float xDistHeadPostUnits;
@@ -733,13 +737,13 @@ void SharedConnDebugInitWeights::gauss2DCalcWeights(
    // TODO - the following assumes that if aspect > 1, # orientations = # features
    //   int noPost = no;
    // number of orientations only used if aspect != 1
-   const int noPost    = postLayer->getLayerLoc()->nf;
+   const int noPost    = postGeom->getLayerLoc()->nf;
    const float dthPost = PI * thetaMax / (float)noPost;
    const float th0Post = rotate * dthPost / 2.0f;
-   const int noPre     = preLayer->getLayerLoc()->nf;
+   const int noPre     = preGeom->getLayerLoc()->nf;
    const float dthPre  = PI * thetaMax / (float)noPre;
    const float th0Pre  = rotate * dthPre / 2.0f;
-   const int fPre      = dataPatchIndex % preLayer->getLayerLoc()->nf;
+   const int fPre      = dataPatchIndex % preGeom->getLayerLoc()->nf;
    FatalIf(!(fPre == kfPre_tmp), "Test failed.\n");
    const int iThPre  = dataPatchIndex % noPre;
    const float thPre = th0Pre + iThPre * dthPre;
@@ -801,8 +805,10 @@ void SharedConnDebugInitWeights::initializeGaborWeights(float *dataStart, int nu
 
    auto *preLayer   = getComponentByType<ConnectionData>()->getPre();
    auto *postLayer  = getComponentByType<ConnectionData>()->getPost();
-   const int xScale = postLayer->getXScale() - preLayer->getXScale();
-   const int yScale = postLayer->getYScale() - preLayer->getYScale();
+   auto *preGeom    = preLayer->getComponentByType<LayerGeometry>();
+   auto *postGeom   = postLayer->getComponentByType<LayerGeometry>();
+   const int xScale = postGeom->getXScale() - preGeom->getXScale();
+   const int yScale = postGeom->getYScale() - preGeom->getYScale();
 
    PVParams *params = parameters();
 

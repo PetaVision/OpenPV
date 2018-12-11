@@ -91,10 +91,8 @@ class HyPerLayer : public ComponentBasedObject {
       return mActivityComponent->getComponentByType<InternalStateBuffer>()->getReadWritePointer();
    }
 
-   // Eventually, anything that calls one of getXScale, getYScale, or getLayerLoc should retrieve
-   // the LayerGeometry component, and these get-methods can be removed from HyPerLayer.
-   int getXScale() const { return mLayerGeometry->getXScale(); }
-   int getYScale() const { return mLayerGeometry->getYScale(); }
+   // Eventually, anything that calls one of getLayerLoc should retrieve
+   // the LayerGeometry component, and getLayerLoc() can be removed from HyPerLayer.
    PVLayerLoc const *getLayerLoc() const { return mLayerGeometry->getLayerLoc(); }
 
   protected:

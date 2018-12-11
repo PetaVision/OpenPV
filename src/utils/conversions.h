@@ -429,8 +429,12 @@ static inline int localIndexFromGlobal(int kGlobal, const PVLayerLoc loc) {
 #endif // PV_USE_MPI
 }
 
-static inline int zUnitCellSize(float preZScale, float postZScale) {
-   return (preZScale < postZScale) ? (int)pow(2, postZScale - preZScale) : 1;
+/**
+ * Gives the size of the unit cell (either x or y dimension) of a patch for a HyPerConn
+ * whose pre- and post-layers have the given dimensions.
+ */
+static inline int zUnitCellSize(int preZSize, int postZSize) {
+   return (preZSize > postZSize) ? preZSize / postZSize : 1;
 }
 
 int layerIndexToUnitCellIndex(

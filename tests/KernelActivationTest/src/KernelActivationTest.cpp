@@ -95,12 +95,14 @@ int dumponeweight(ComponentBasedObject *conn) {
    int nxpre            = pre->getLayerLoc()->nxGlobal;
    int nypre            = pre->getLayerLoc()->nyGlobal;
    bool usingMirrorBCs  = pre->getComponentByType<BoundaryConditions>()->getMirrorBCflag();
+   auto *preGeom        = pre->getComponentByType<LayerGeometry>();
+   auto *postGeom       = post->getComponentByType<LayerGeometry>();
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    // If xScaleDiff > 0, it's a many-to-one connection.
-   int xScaleDiff = post->getXScale() - connectionData->getPre()->getXScale();
+   int xScaleDiff = postGeom->getXScale() - preGeom->getXScale();
    float xFalloff = powf(2, xScaleDiff);
-   int yScaleDiff = post->getYScale() - connectionData->getPre()->getYScale();
+   int yScaleDiff = postGeom->getYScale() - preGeom->getYScale();
    float yFalloff = powf(2, yScaleDiff);
 
    auto *weightsPair = conn->getComponentByType<WeightsPair>();
