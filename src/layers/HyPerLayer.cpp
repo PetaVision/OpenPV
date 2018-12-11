@@ -4,12 +4,6 @@
  *  Created on: Jul 29, 2008
  *
  *  The top of the hierarchy for layer classes.
- *
- *  To make it easy to subclass from classes in the HyPerLayer hierarchy,
- *  please follow the guidelines below when adding subclasses to the HyPerLayer hierarchy:
- *
- *  For a class named DerivedLayer that is derived from a class named BaseLayer,
- *  the .hpp file should have
 */
 
 #include "HyPerLayer.hpp"
@@ -19,8 +13,6 @@
 #include "components/PublisherComponent.hpp"
 #include "observerpattern/ObserverTable.hpp"
 #include "utils/BufferUtilsMPI.hpp"
-#include <cassert>
-#include <cstring>
 
 namespace PV {
 
@@ -32,6 +24,8 @@ HyPerLayer::HyPerLayer() {}
 HyPerLayer::HyPerLayer(const char *name, PVParams *params, Communicator *comm) {
    initialize(name, params, comm);
 }
+
+HyPerLayer::~HyPerLayer() {}
 
 ///////
 /// Classes derived from HyPerLayer should call HyPerLayer::initialize themselves
@@ -46,6 +40,9 @@ void HyPerLayer::initialize(const char *name, PVParams *params, Communicator *co
    mWriteInitializeFromCheckpointFlag = true;
 }
 
+/******************************************************************
+ * Define actions for layer-specific messages
+ *****************************************************************/
 void HyPerLayer::initMessageActionMap() {
    ComponentBasedObject::initMessageActionMap();
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
@@ -113,6 +110,9 @@ void HyPerLayer::initMessageActionMap() {
    mMessageActionMap.emplace("LayerOutputState", action);
 }
 
+/******************************************************************
+ * Create components
+ *****************************************************************/
 void HyPerLayer::createComponentTable(char const *description) {
    pvAssert(mTable == nullptr);
    Subject::createComponentTable(description);
@@ -151,10 +151,6 @@ void HyPerLayer::createComponentTable(char const *description) {
    }
 }
 
-LayerUpdateController *HyPerLayer::createLayerUpdateController() {
-   return new LayerUpdateController(name, parameters(), mCommunicator);
-}
-
 LayerGeometry *HyPerLayer::createLayerGeometry() {
    return new LayerGeometry(name, parameters(), mCommunicator);
 }
@@ -165,6 +161,10 @@ PhaseParam *HyPerLayer::createPhaseParam() {
 
 BoundaryConditions *HyPerLayer::createBoundaryConditions() {
    return new BoundaryConditions(name, parameters(), mCommunicator);
+}
+
+LayerUpdateController *HyPerLayer::createLayerUpdateController() {
+   return new LayerUpdateController(name, parameters(), mCommunicator);
 }
 
 LayerInputBuffer *HyPerLayer::createLayerInput() {
@@ -185,25 +185,9 @@ LayerOutputComponent *HyPerLayer::createLayerOutput() {
    return new LayerOutputComponent(name, parameters(), mCommunicator);
 }
 
-HyPerLayer::~HyPerLayer() {}
-
-Response::Status
-HyPerLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   if (mLayerUpdateController) {
-      mLayerUpdateController->respond(message);
-   }
-   if (mActivityComponent) {
-      mActivityComponent->respond(message);
-   }
-   return Response::SUCCESS;
-}
-
-#ifdef PV_USE_CUDA
-Response::Status HyPerLayer::copyInitialStateToGPU() {
-   return mActivityComponent->respond(std::make_shared<CopyInitialStateToGPUMessage>());
-}
-#endif // PV_USE_CUDA
-
+/******************************************************************
+ * Read/write params for layer and for layer components
+ *****************************************************************/
 int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // Derived classes with new params behavior should override ioParamsFillGroup
    // and the overriding method should call the base class's ioParamsFillGroup.
@@ -232,113 +216,9 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
    }
 }
 
-Response::Status
-HyPerLayer::respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message) {
-   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
-}
-
-Response::Status
-HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message) {
-   writeParams();
-   return Response::SUCCESS;
-}
-
-Response::Status HyPerLayer::respondLayerClearProgressFlags(
-      std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
-   if (mLayerUpdateController) {
-      mLayerUpdateController->respond(message);
-   }
-   return Response::SUCCESS;
-}
-
-Response::Status HyPerLayer::respondLayerRecvSynapticInput(
-      std::shared_ptr<LayerRecvSynapticInputMessage const> message) {
-   if (mLayerUpdateController) {
-      mLayerUpdateController->respond(message);
-   }
-   return Response::SUCCESS;
-}
-
-Response::Status
-HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message) {
-   Response::Status status = Response::SUCCESS;
-   if (mLayerUpdateController) {
-      mLayerUpdateController->respond(message);
-   }
-   checkUpdateState(message->mTime, message->mDeltaT);
-   return Response::SUCCESS;
-}
-
-#ifdef PV_USE_CUDA
-Response::Status
-HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
-   Response::Status status = Response::SUCCESS;
-   if (message->mPhase != mPhaseParam->getPhase()) {
-      return status;
-   }
-   message->mTimer->start();
-   if (mActivityComponent and mActivityComponent->isUsingGPU()) {
-      mActivityComponent->copyFromCuda();
-   }
-   if (mLayerInput and mLayerInput->isUsingGPU()) {
-      mLayerInput->respond(message);
-   }
-   message->mTimer->stop();
-   return status;
-}
-#endif // PV_USE_CUDA
-
-Response::Status HyPerLayer::respondLayerAdvanceDataStore(
-      std::shared_ptr<LayerAdvanceDataStoreMessage const> message) {
-   if (message->mPhase < 0 || message->mPhase == mPhaseParam->getPhase()) {
-      mPublisher->respond(message);
-   }
-   return Response::SUCCESS;
-}
-
-Response::Status
-HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message) {
-   if (message->mPhase != mPhaseParam->getPhase()) {
-      return Response::NO_ACTION;
-   }
-   mPublisher->publish(mCommunicator, message->mTime);
-   return Response::SUCCESS;
-}
-
-Response::Status HyPerLayer::respondLayerCheckNotANumber(
-      std::shared_ptr<LayerCheckNotANumberMessage const> message) {
-   Response::Status status = Response::SUCCESS;
-   if (message->mPhase != mPhaseParam->getPhase()) {
-      return status;
-   }
-   auto layerData = mPublisher->getLayerData();
-   int const N    = getNumExtendedAllBatches();
-   for (int n = 0; n < N; n++) {
-      float a = layerData[n];
-      FatalIf(
-            a != a,
-            "%s has not-a-number values in the activity buffer.  Exiting.\n",
-            getDescription_c());
-   }
-   return status;
-}
-
-Response::Status
-HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
-   auto status = Response::NO_ACTION;
-   if (mLayerOutput and message->mPhase == mPhaseParam->getPhase()) {
-      status = mLayerOutput->respond(message);
-   }
-   return status;
-}
-
-#ifdef PV_USE_CUDA
-Response::Status HyPerLayer::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
-   Response::Status status = ComponentBasedObject::setCudaDevice(message);
-   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
-}
-#endif // PV_USE_CUDA
-
+/******************************************************************
+ * CommunicateInitInfo stage
+ *****************************************************************/
 Response::Status
 HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto *hierarchy      = message->mHierarchy;
@@ -400,6 +280,22 @@ void HyPerLayer::synchronizeMarginWidth(HyPerLayer *layer) {
    return;
 }
 
+Response::Status
+HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message) {
+   writeParams();
+   return Response::SUCCESS;
+}
+
+#ifdef PV_USE_CUDA
+Response::Status HyPerLayer::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   Response::Status status = ComponentBasedObject::setCudaDevice(message);
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+}
+#endif // PV_USE_CUDA
+
+/******************************************************************
+ * AllocateDataStructures stage
+ *****************************************************************/
 Response::Status HyPerLayer::allocateDataStructures() {
    // Once initialize and communicateInitInfo have been called, HyPerLayer has the
    // information it needs to allocate the membrane potential buffer V, the
@@ -420,6 +316,14 @@ Response::Status HyPerLayer::allocateDataStructures() {
 }
 
 Response::Status
+HyPerLayer::respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message) {
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+}
+
+/******************************************************************
+ * RegisterData stage
+ *****************************************************************/
+Response::Status
 HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto status = ComponentBasedObject::registerData(message);
    if (!Response::completed(status)) {
@@ -432,13 +336,57 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    return Response::SUCCESS;
 }
 
-Response::Status HyPerLayer::checkUpdateState(double simTime, double deltaTime) {
-   return Response::NO_ACTION;
+/******************************************************************
+ * InitializeState stage
+ *****************************************************************/
+Response::Status
+HyPerLayer::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   if (mLayerUpdateController) {
+      mLayerUpdateController->respond(message);
+   }
+   if (mActivityComponent) {
+      mActivityComponent->respond(message);
+   }
+   return Response::SUCCESS;
+}
+Response::Status HyPerLayer::respondLayerClearProgressFlags(
+      std::shared_ptr<LayerClearProgressFlagsMessage const> message) {
+   if (mLayerUpdateController) {
+      mLayerUpdateController->respond(message);
+   }
+   return Response::SUCCESS;
 }
 
+#ifdef PV_USE_CUDA
+Response::Status
+HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
+   Response::Status status = Response::SUCCESS;
+   if (message->mPhase != mPhaseParam->getPhase()) {
+      return status;
+   }
+   message->mTimer->start();
+   if (mActivityComponent and mActivityComponent->isUsingGPU()) {
+      mActivityComponent->copyFromCuda();
+   }
+   if (mLayerInput and mLayerInput->isUsingGPU()) {
+      mLayerInput->respond(message);
+   }
+   message->mTimer->stop();
+   return status;
+}
+
+Response::Status HyPerLayer::copyInitialStateToGPU() {
+   return mActivityComponent->respond(std::make_shared<CopyInitialStateToGPUMessage>());
+}
+#endif // PV_USE_CUDA
+
 /******************************************************************
- * FileIO
+ * ReadStateFromCheckpoint stage
  *****************************************************************/
+Response::Status HyPerLayer::processCheckpointRead() {
+   mPublisher->updateAllActiveIndices();
+   return Response::SUCCESS;
+}
 
 Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
    pvAssert(mInitializeFromCheckpointFlag);
@@ -447,18 +395,78 @@ Response::Status HyPerLayer::readStateFromCheckpoint(Checkpointer *checkpointer)
    if (!Response::completed(status)) {
       return status;
    }
-   readDelaysFromCheckpoint(checkpointer);
-   mPublisher->updateAllActiveIndices();
-   return Response::SUCCESS;
-}
-
-void HyPerLayer::readDelaysFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(std::string(name), std::string("Delays"), false);
-}
-
-Response::Status HyPerLayer::processCheckpointRead() {
    mPublisher->updateAllActiveIndices();
    return Response::SUCCESS;
+}
+
+/******************************************************************
+ * Run-loop stage
+ *****************************************************************/
+Response::Status HyPerLayer::respondLayerAdvanceDataStore(
+      std::shared_ptr<LayerAdvanceDataStoreMessage const> message) {
+   if (message->mPhase < 0 || message->mPhase == mPhaseParam->getPhase()) {
+      mPublisher->respond(message);
+   }
+   return Response::SUCCESS;
+}
+
+Response::Status
+HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message) {
+   if (message->mPhase != mPhaseParam->getPhase()) {
+      return Response::NO_ACTION;
+   }
+   mPublisher->publish(mCommunicator, message->mTime);
+   return Response::SUCCESS;
+}
+
+Response::Status
+HyPerLayer::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   auto status = Response::NO_ACTION;
+   if (mLayerOutput and message->mPhase == mPhaseParam->getPhase()) {
+      status = mLayerOutput->respond(message);
+   }
+   return status;
+}
+
+Response::Status HyPerLayer::respondLayerRecvSynapticInput(
+      std::shared_ptr<LayerRecvSynapticInputMessage const> message) {
+   if (mLayerUpdateController) {
+      mLayerUpdateController->respond(message);
+   }
+   return Response::SUCCESS;
+}
+
+Response::Status
+HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message) {
+   Response::Status status = Response::SUCCESS;
+   if (mLayerUpdateController) {
+      mLayerUpdateController->respond(message);
+   }
+   checkUpdateState(message->mTime, message->mDeltaT);
+   return Response::SUCCESS;
+}
+
+Response::Status HyPerLayer::checkUpdateState(double simTime, double deltaTime) {
+   return Response::NO_ACTION;
+}
+
+Response::Status HyPerLayer::respondLayerCheckNotANumber(
+      std::shared_ptr<LayerCheckNotANumberMessage const> message) {
+   Response::Status status = Response::SUCCESS;
+   if (message->mPhase != mPhaseParam->getPhase()) {
+      return status;
+   }
+   auto layerData = mPublisher->getLayerData();
+   int const N    = getNumExtendedAllBatches();
+   for (int n = 0; n < N; n++) {
+      float a = layerData[n];
+      FatalIf(
+            a != a,
+            "%s has not-a-number values in the activity buffer.  Exiting.\n",
+            getDescription_c());
+   }
+   return status;
 }
 
 } // end of PV namespace

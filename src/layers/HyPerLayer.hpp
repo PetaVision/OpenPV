@@ -11,8 +11,6 @@
 #ifndef HYPERLAYER_HPP_
 #define HYPERLAYER_HPP_
 
-#include "checkpointing/CheckpointableFileStream.hpp"
-#include "columns/Communicator.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "components/ActivityComponent.hpp"
 #include "components/BasePublisherComponent.hpp"
@@ -23,31 +21,34 @@
 #include "components/LayerOutputComponent.hpp"
 #include "components/LayerUpdateController.hpp"
 #include "components/PhaseParam.hpp"
-#include "include/pv_common.h"
-#include "include/pv_types.h"
-#include "io/fileio.hpp"
-#include "utils/Timer.hpp"
-
-#ifdef PV_USE_OPENMP_THREADS
-#include <omp.h>
-#endif // PV_USE_OPENMP_THREADS
-
-#ifdef PV_USE_CUDA
-#include <arch/cuda/CudaBuffer.hpp>
-#include <arch/cuda/CudaKernel.hpp>
-#include <arch/cuda/CudaTimer.hpp>
-#endif // PV_USE_CUDA
-
-#include <vector>
-
-// default constants
-#define HYPERLAYER_FEEDBACK_DELAY 1
-#define HYPERLAYER_FEEDFORWARD_DELAY 0
 
 namespace PV {
 
+/**
+ * The top of the layer hierarchy. HyPerLayer has several components:
+ *
+ * a LayerGeometry component that defines the dimensions of the layer.
+ *
+ * a LayerUpdateController component that determines whether the layer
+ * acts on a given timestep.
+ *
+ * a LayerInputBuffer component that receives synaptic input from a connection.
+ *
+ * an ActivityComponent that uses the contents of the LayerInputBuffer to
+ * maintain the ActivityBuffer within the ActivityComponent.
+ *
+ * a PublisherComponent which manages a ring buffer of delays and makes the
+ * activity available to other objects in the HyPerCol hierarchy.
+ *
+ * a PhaseParam component which gives each layer a phase, creating a partial ordering
+ * of layer updates within a timestep.
+ *
+ * a LayerOutputComponent to output the state of the layer.
+ *
+ * Subclasses may have additional components, or may skip some of these components
+ * (e.g. InputLayer does not use LayerInputBuffer).
+ */
 class HyPerLayer : public ComponentBasedObject {
-
   protected:
    /**
     * List of parameters needed from the HyPerLayer class
@@ -60,74 +61,24 @@ class HyPerLayer : public ComponentBasedObject {
    virtual void ioParam_dataType(enum ParamsIOFlag ioFlag);
    /** @} */
 
-  protected:
-   // only subclasses can be constructed directly
-   HyPerLayer();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
-   virtual void initMessageActionMap() override;
-   virtual void createComponentTable(char const *description) override;
-   virtual LayerGeometry *createLayerGeometry();
-   virtual PhaseParam *createPhaseParam();
-   virtual BoundaryConditions *createBoundaryConditions();
-   virtual LayerUpdateController *createLayerUpdateController();
-   virtual LayerInputBuffer *createLayerInput();
-   virtual ActivityComponent *createActivityComponent();
-   virtual BasePublisherComponent *createPublisher();
-   virtual LayerOutputComponent *createLayerOutput();
-
-   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
-   virtual void readDelaysFromCheckpoint(Checkpointer *checkpointer);
-#ifdef PV_USE_CUDA
-   virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
-   virtual Response::Status copyInitialStateToGPU() override;
-#endif // PV_USE_CUDA
-
-   virtual Response::Status processCheckpointRead() override;
-
   public:
    HyPerLayer(const char *name, PVParams *params, Communicator *comm);
-
-  protected:
-   /**
-    * The function that calls all ioParam functions
-    */
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-
-  public:
    virtual ~HyPerLayer();
 
    void synchronizeMarginWidth(HyPerLayer *layer);
 
-   Response::Status respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message);
-   Response::Status respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
-   Response::Status
-   respondLayerClearProgressFlags(std::shared_ptr<LayerClearProgressFlagsMessage const> message);
-   Response::Status
-   respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
-   Response::Status respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message);
-#ifdef PV_USE_CUDA
-   Response::Status respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message);
-#endif // PV_USE_CUDA
-   Response::Status
-   respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);
-   Response::Status respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
-   Response::Status
-   respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
-   Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
-   // ************************************************************************************//
-
-   // Public access functions:
-
+   // Public access functions.
+   // As much as possible, anything that needs one of these quantities should instead retrieve
+   // the appropriate component and use access functions of the component.
    int getNumNeurons() const { return mLayerGeometry->getNumNeurons(); }
    int getNumExtended() const { return mLayerGeometry->getNumExtended(); }
    int getNumNeuronsAllBatches() const { return mLayerGeometry->getNumNeuronsAllBatches(); }
    int getNumExtendedAllBatches() const { return mLayerGeometry->getNumExtendedAllBatches(); }
 
-   int getNumGlobalNeurons() {
-      const PVLayerLoc *loc = getLayerLoc();
-      return loc->nxGlobal * loc->nyGlobal * loc->nf;
+   int getNumGlobalNeurons() const {
+      return getLayerLoc()->nxGlobal * getLayerLoc()->nyGlobal * getLayerLoc()->nf;
    }
-   int getNumGlobalExtended() {
+   int getNumGlobalExtended() const {
       const PVLayerLoc *loc = getLayerLoc();
       return (loc->nxGlobal + loc->halo.lt + loc->halo.rt)
              * (loc->nyGlobal + loc->halo.dn + loc->halo.up) * loc->nf;
@@ -147,10 +98,38 @@ class HyPerLayer : public ComponentBasedObject {
    PVLayerLoc const *getLayerLoc() const { return mLayerGeometry->getLayerLoc(); }
 
   protected:
+   HyPerLayer();
+   void initialize(const char *name, PVParams *params, Communicator *comm);
+
+   virtual void initMessageActionMap() override;
+   virtual void createComponentTable(char const *description) override;
+   virtual LayerGeometry *createLayerGeometry();
+   virtual PhaseParam *createPhaseParam();
+   virtual BoundaryConditions *createBoundaryConditions();
+   virtual LayerUpdateController *createLayerUpdateController();
+   virtual LayerInputBuffer *createLayerInput();
+   virtual ActivityComponent *createActivityComponent();
+   virtual BasePublisherComponent *createPublisher();
+   virtual LayerOutputComponent *createLayerOutput();
+
+   /**
+    * The function that calls all ioParam_[parameter name] functions
+    */
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   Response::Status respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
+
+#ifdef PV_USE_CUDA
+   virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
+#endif // PV_USE_CUDA
+
    virtual Response::Status allocateDataStructures() override;
+
+   Response::Status respondLayerSetMaxPhase(std::shared_ptr<LayerSetMaxPhaseMessage const> message);
+
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
@@ -160,6 +139,25 @@ class HyPerLayer : public ComponentBasedObject {
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
+   Response::Status
+   respondLayerClearProgressFlags(std::shared_ptr<LayerClearProgressFlagsMessage const> message);
+#ifdef PV_USE_CUDA
+   Response::Status respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message);
+   virtual Response::Status copyInitialStateToGPU() override;
+#endif // PV_USE_CUDA
+
+   virtual Response::Status processCheckpointRead() override;
+
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
+
+   Response::Status
+   respondLayerAdvanceDataStore(std::shared_ptr<LayerAdvanceDataStoreMessage const> message);
+   Response::Status respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
+   Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
+   Response::Status
+   respondLayerRecvSynapticInput(std::shared_ptr<LayerRecvSynapticInputMessage const> message);
+   Response::Status respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message);
+
    /**
     * Deprecated. A virtual function called after the LayerUpdateController updates the state.
     * Provided because before the layer refactoring, a large number of system tests
@@ -168,6 +166,11 @@ class HyPerLayer : public ComponentBasedObject {
     */
    virtual Response::Status checkUpdateState(double simTime, double deltaTime);
 
+   Response::Status
+   respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
+
+   // Data members
+  protected:
    LayerGeometry *mLayerGeometry = nullptr;
 
    // All layers with phase 0 get updated before any with phase 1, etc.

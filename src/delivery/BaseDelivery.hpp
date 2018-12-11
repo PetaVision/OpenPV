@@ -13,6 +13,10 @@
 #include "components/LayerInputBuffer.hpp"
 #include "delivery/LayerInputDelivery.hpp"
 
+#ifdef PV_USE_OPENMP_THREADS
+#include <omp.h>
+#endif // PV_USE_OPENMP_THREADS
+
 namespace PV {
 
 /**
