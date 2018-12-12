@@ -23,7 +23,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/TransposeWeights.hpp
 )
 
-set (PVLibSrcHpp ${PVLibSrcHpp}
+set (PVLibSrcHpp ${PVLibSrcTpp}
    ${SUBDIR}/BufferUtilsMPI.tpp
    ${SUBDIR}/BufferUtilsPvp.tpp
 )

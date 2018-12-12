@@ -6,7 +6,9 @@
  */
 
 #include "HyPerLCAInternalStateBuffer.hpp"
-#include <iostream>
+
+#undef PV_RUN_ON_GPU
+#include "HyPerLCAInternalStateBuffer.kpp"
 
 namespace PV {
 
@@ -147,42 +149,29 @@ void HyPerLCAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTi
    }
 #endif // PV_USE_CUDA
 
-   const PVLayerLoc *loc = getLayerLoc();
-   float const *A        = mActivity->getBufferData();
-   float *V              = mBufferData.data();
-
-   int nx            = loc->nx;
-   int ny            = loc->ny;
-   int nf            = loc->nf;
-   int numNeurons    = getBufferSize();
-   int nbatch        = loc->nbatch;
-   int lt            = loc->halo.lt;
-   int rt            = loc->halo.rt;
-   int dn            = loc->halo.dn;
-   int up            = loc->halo.up;
-   float tau         = mScaledTimeConstantTau;
-   bool selfInteract = mSelfInteract;
-
-   float const *accumulatedGSyn = mAccumulatedGSyn->getBufferData();
+   PVLayerLoc const *loc        = getLayerLoc();
+   int const numNeurons         = getBufferSize();
    double const *dtAdapt        = deltaTimes(simTime, deltaTime);
+   float const *accumulatedGSyn = mAccumulatedGSyn->getBufferData();
+   float const *A               = mActivity->getBufferData();
+   float *V                     = mBufferData.data();
 
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (int n = 0; n < numNeurons * nbatch; n++) {
-      int b = n / numNeurons; // batch index
-      int k = n % numNeurons; // neuron index within batch element
-
-      float exp_tau                     = (float)std::exp(-dtAdapt[b] / (double)tau);
-      float *VBatch                     = V + b * numNeurons;
-      float const *accumulatedGSynBatch = accumulatedGSyn + b * numNeurons;
-      float const gSyn                  = accumulatedGSynBatch[k];
-      // Activity is an extended buffer.
-      float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
-
-      int kex   = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (gSyn + selfInteract * ABatch[kex]);
-   }
+   updateHyPerLCAOnCPU(
+         loc->nbatch,
+         numNeurons,
+         loc->nx,
+         loc->ny,
+         loc->nf,
+         loc->halo.lt,
+         loc->halo.rt,
+         loc->halo.dn,
+         loc->halo.up,
+         mSelfInteract,
+         dtAdapt,
+         mScaledTimeConstantTau,
+         accumulatedGSyn,
+         A,
+         V);
 }
 
 double const *HyPerLCAInternalStateBuffer::deltaTimes(double simTime, double deltaTime) {

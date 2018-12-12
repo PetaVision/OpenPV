@@ -170,7 +170,13 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/WeightsPairInterface.hpp
 )
 
-set (PVLibSrcHpp ${PVLibSrcHpp}
+set (PVLibSrcHpp ${PVLibSrcKpp}
+     ${SUBDIR}/ANNActivityBuffer.kpp
+     ${SUBDIR}/GSynAccumulator.kpp
+     ${SUBDIR}/HyPerLCAInternalStateBuffer.kpp
+)
+
+set (PVLibSrcHpp ${PVLibSrcTpp}
    ${SUBDIR}/ActivityComponentActivityOnly.tpp
    ${SUBDIR}/CloneActivityComponent.tpp
    ${SUBDIR}/HyPerActivityComponent.tpp

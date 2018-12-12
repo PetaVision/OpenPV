@@ -7,6 +7,9 @@
 
 #include "ANNActivityBuffer.hpp"
 
+#undef PV_RUN_ON_GPU
+#include "ANNActivityBuffer.kpp"
+
 namespace PV {
 
 ANNActivityBuffer::ANNActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
@@ -428,18 +431,13 @@ void ANNActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    const PVLayerLoc *loc = getLayerLoc();
    float *A              = getReadWritePointer();
    float const *V        = mInternalState->getBufferData();
-   int nx                = loc->nx;
-   int ny                = loc->ny;
-   int nf                = loc->nf;
    int numNeurons        = mInternalState->getBufferSize();
    int nbatch            = loc->nbatch;
 
    if (mVerticesListInParams) {
-      applyVerticesList(
+      applyVerticesANNActivityBufferOnCPU(
             nbatch,
             numNeurons,
-            A,
-            V,
             loc->nx,
             loc->ny,
             loc->nf,
@@ -450,7 +448,9 @@ void ANNActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
             mNumVertices,
             mVerticesV,
             mVerticesA,
-            mSlopes);
+            mSlopes,
+            V,
+            A);
    }
    else {
       HyPerActivityBuffer::updateBufferCPU(simTime, deltaTime);
@@ -482,60 +482,6 @@ void ANNActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
             loc->halo.rt,
             loc->halo.dn,
             loc->halo.up);
-   }
-}
-
-void ANNActivityBuffer::applyVerticesList(
-      int nbatch,
-      int numNeurons,
-      float *A,
-      float const *V,
-      int nx,
-      int ny,
-      int nf,
-      int lt,
-      int rt,
-      int dn,
-      int up,
-      int numVertices,
-      float *verticesV,
-      float *verticesA,
-      float *slopes) {
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-   for (int kbatch = 0; kbatch < numNeurons * nbatch; kbatch++) {
-      int last            = numVertices - 1;
-      int b               = kbatch / numNeurons;
-      int k               = kbatch % numNeurons;
-      float const *VBatch = V + b * numNeurons;
-      float *ABatch       = A + b * (nx + lt + rt) * (ny + up + dn) * nf;
-      int kex             = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      int v;
-      float potential = VBatch[k];
-      float activity  = 0.0f;
-
-      if (potential < verticesV[0]) {
-         activity = verticesA[0] + slopes[0] * (potential - verticesV[0]);
-      }
-      else if (potential >= verticesV[last]) {
-         activity = verticesA[last] + slopes[numVertices] * (potential - verticesV[last]);
-      }
-      else {
-         for (v = 0; v < last; v++) {
-            if (potential < verticesV[v]) {
-               break; // makes the jumps continuous from the right.  TODO: allow user control over
-               // value at jump
-            }
-            if (potential == verticesV[v]) {
-               activity = verticesA[v];
-            }
-            else if (potential > verticesV[v] && potential < verticesV[v + 1]) {
-               activity = verticesA[v] + slopes[v + 1] * (potential - verticesV[v]);
-            }
-         }
-      }
-      ABatch[kex] = activity;
    }
 }
 

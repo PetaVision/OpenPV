@@ -7,6 +7,9 @@
 
 #include "GSynAccumulator.hpp"
 
+#undef PV_RUN_ON_GPU
+#include "GSynAccumulator.kpp"
+
 namespace PV {
 
 GSynAccumulator::GSynAccumulator(char const *name, PVParams *params, Communicator *comm) {
@@ -86,19 +89,13 @@ GSynAccumulator::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 }
 
 void GSynAccumulator::updateBufferCPU(double simTime, double deltaTime) {
-   const PVLayerLoc *loc = getLayerLoc();
-   float *bufferData     = mBufferData.data();
-   int numNeurons        = getBufferSizeAcrossBatch();
-   int numChannels       = (int)mChannelCoefficients.size();
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (int kIndex = 0; kIndex < numNeurons; kIndex++) {
-      bufferData[kIndex] = 0.0f;
-      for (int ch = 0; ch < numChannels; ch++) {
-         bufferData[kIndex] += mChannelCoefficients[ch] * mLayerInput->getChannelData(ch)[kIndex];
-      }
-   }
+   int const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
+   int const numChannels           = (int)mChannelCoefficients.size();
+   float const *channelCoeffs      = mChannelCoefficients.data();
+   float const *layerInput         = mLayerInput->getBufferData();
+   float *bufferData               = mBufferData.data();
+   updateGSynAccumulatorOnCPU(
+         numNeuronsAcrossBatch, numChannels, channelCoeffs, layerInput, bufferData);
 }
 
 #ifdef PV_USE_CUDA

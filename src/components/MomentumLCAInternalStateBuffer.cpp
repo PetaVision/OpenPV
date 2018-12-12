@@ -6,7 +6,9 @@
  */
 
 #include "MomentumLCAInternalStateBuffer.hpp"
-#include <iostream>
+
+#undef PV_RUN_ON_GPU
+#include "MomentumLCAInternalStateBuffer.kpp"
 
 namespace PV {
 
@@ -104,46 +106,32 @@ void MomentumLCAInternalStateBuffer::updateBufferCPU(double simTime, double delt
 #endif // PV_USE_CUDA
 
    const PVLayerLoc *loc = getLayerLoc();
-   float const *A        = mActivity->getBufferData();
-   float *V              = mBufferData.data();
+   int numNeurons        = getBufferSize();
 
-   int nx            = loc->nx;
-   int ny            = loc->ny;
-   int nf            = loc->nf;
-   int numNeurons    = getBufferSize();
-   int nbatch        = loc->nbatch;
-   int lt            = loc->halo.lt;
-   int rt            = loc->halo.rt;
-   int dn            = loc->halo.dn;
-   int up            = loc->halo.up;
-   float tau         = mScaledTimeConstantTau;
-   bool selfInteract = mSelfInteract;
+   double const *dtAdapt        = deltaTimes(simTime, deltaTime);
+   float const *accumulatedGSyn = mAccumulatedGSyn->getBufferData();
+   float const *A               = mActivity->getBufferData();
+   float *prevDrive             = mPrevDrive->getReadWritePointer();
+   float *V                     = mBufferData.data();
 
-   float const *gSyn     = mAccumulatedGSyn->getBufferData();
-   double const *dtAdapt = deltaTimes(simTime, deltaTime);
-   float *prevDrive      = mPrevDrive->getReadWritePointer();
-
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (int kIndex = 0; kIndex < numNeurons * nbatch; kIndex++) {
-      int b = kIndex / numNeurons;
-      int k = kIndex % numNeurons;
-
-      float exp_tau          = (float)std::exp(-dtAdapt[b] / (double)tau);
-      float *VBatch          = V + b * numNeurons;
-      float const *gSynBatch = gSyn + b * numNeurons;
-      float *prevDriveBatch  = prevDrive + b * numNeurons;
-      // Activity is an extended buffer.
-      float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
-
-      int kex            = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      float currentDrive = (1.0f - exp_tau) * (gSynBatch[k] + selfInteract * ABatch[kex]);
-      // Accumulate into VBatch with decay and momentum
-      VBatch[k] = exp_tau * VBatch[k] + currentDrive + mLCAMomentumRate * prevDriveBatch[k];
-      // Update momentum buffer
-      prevDriveBatch[k] = currentDrive;
-   }
+   updateMomentumLCAOnCPU(
+         loc->nbatch,
+         numNeurons,
+         loc->nx,
+         loc->ny,
+         loc->nf,
+         loc->halo.lt,
+         loc->halo.rt,
+         loc->halo.dn,
+         loc->halo.up,
+         mSelfInteract,
+         mLCAMomentumRate,
+         dtAdapt,
+         mScaledTimeConstantTau,
+         accumulatedGSyn,
+         A,
+         prevDrive,
+         V);
 }
 
 } /* namespace PV */

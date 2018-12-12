@@ -6,7 +6,9 @@
  */
 
 #include "ISTAInternalStateBuffer.hpp"
-#include <iostream>
+
+#undef PV_RUN_ON_GPU
+#include "ISTAInternalStateBuffer.kpp"
 
 namespace PV {
 
@@ -137,42 +139,27 @@ void ISTAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) 
 #endif // PV_USE_CUDA
 
    const PVLayerLoc *loc = getLayerLoc();
+   double const *dtAdapt = deltaTimes(simTime, deltaTime);
+   float const *gSyn     = mAccumulatedGSyn->getBufferData();
    float const *A        = mActivity->getBufferData();
    float *V              = mBufferData.data();
 
-   int nx         = loc->nx;
-   int ny         = loc->ny;
-   int nf         = loc->nf;
-   int numNeurons = getBufferSize();
-   int nbatch     = loc->nbatch;
-   int lt         = loc->halo.lt;
-   int rt         = loc->halo.rt;
-   int dn         = loc->halo.dn;
-   int up         = loc->halo.up;
-   float tau      = mScaledTimeConstantTau;
-   float VThresh  = mActivity->getVThresh();
-
-   float const *gSyn     = mAccumulatedGSyn->getBufferData();
-   double const *dtAdapt = deltaTimes(simTime, deltaTime);
-
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
-   for (int kIndex = 0; kIndex < numNeurons * nbatch; kIndex++) {
-      int b                  = kIndex / numNeurons;
-      int k                  = kIndex % numNeurons;
-      float *VBatch          = V + b * numNeurons;
-      float const *gSynBatch = gSyn + b * numNeurons;
-      // Activity is an extended buffer.
-      float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
-
-      int kex    = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      float sign = 0.0f;
-      if (ABatch[kex] != 0.0f) {
-         sign = ABatch[kex] / fabsf(ABatch[kex]);
-      }
-      VBatch[k] += ((float)dtAdapt[b] / tau) * (gSynBatch[k] - (VThresh * sign));
-   }
+   updateISTAInternalStateBufferOnCPU(
+         loc->nbatch,
+         getBufferSize() /*numNeurons*/,
+         loc->nx,
+         loc->ny,
+         loc->nf,
+         loc->halo.lt,
+         loc->halo.rt,
+         loc->halo.dn,
+         loc->halo.up,
+         mActivity->getVThresh(),
+         dtAdapt,
+         mScaledTimeConstantTau,
+         gSyn,
+         A,
+         V);
 }
 
 double const *ISTAInternalStateBuffer::deltaTimes(double simTime, double deltaTime) {
