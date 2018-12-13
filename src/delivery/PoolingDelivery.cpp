@@ -204,6 +204,15 @@ Response::Status PoolingDelivery::allocateDataStructures() {
    }
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
+      if (!getPreLayer()->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
+      if (!getPostLayer()->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
+      if (!mWeightsPair->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
       initializeDeliverKernelArgs();
    }
 #endif // PV_USE_CUDA
