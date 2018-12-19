@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 
    // Was the help message requested?
    if (showHelp) {
-      showHelpMessage(progPath);
+      showHelpMessage(progName);
       return EXIT_SUCCESS;
    }
 
