@@ -11,6 +11,7 @@ project(PetaVision)
 set(PV_DIR_DEFAULT "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PV_TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests")
 set(PV_DEMOS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/demos")
+set(PV_TOOLS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tools")
 
 # Defaults
 set(PV_BUILD_DEMOS_DEFAULT OFF)
@@ -42,3 +43,5 @@ endif()
 if (${PV_BUILD_DEMOS})
    add_subdirectory(${PV_DEMOS_DIR})
 endif()
+
+add_subdirectory(${PV_TOOLS_DIR})

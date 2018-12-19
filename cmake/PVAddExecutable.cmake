@@ -2,7 +2,7 @@
 # Adds an OpenPV based executable. Takes a target name and a list of files
 # to build the target
 #
-# Exepcted in scope variables to be set:
+# Expected in scope variables to be set:
 #
 # PV_CONFIG_FILE_DIR
 # PV_INCLUDE_DIR: path to OpenPV include files
