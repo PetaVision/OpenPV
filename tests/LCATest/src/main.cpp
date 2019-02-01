@@ -9,7 +9,7 @@
 
 #define CORRECT_PVP_NX 128 // The x-dimension in the "correct.pvp" file.  Needed by generate()
 #define CORRECT_PVP_NY 64 // The y-dimension in the "correct.pvp" file.  Needed by generate()
-#define CORRECT_PVP_NF 3 // The number of features in the "correct.pvp" file.  Needed by generate()
+#define CORRECT_PVP_NF 1 // The number of features in the "correct.pvp" file.  Needed by generate()
 
 int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]);
 int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]);
@@ -161,12 +161,11 @@ int generate(PV_Init *initObj, int rank) {
             0 /*last four bytes of timestamp in first frame*/,
             0 /*Number of active values in the frame (zero for empty data)*/};
 
-      size_t numwritten = PV_fwrite(emptydata, 23, sizeof(int), emptyinfile);
-      if (numwritten != 23) {
-         ErrorLog().printf(
-               "%s failure to write placeholder data into input/correct.pvp file.\n",
-               initObj->getProgramName());
-      }
+      size_t numwritten = PV_fwrite(emptydata, sizeof(int), (std::size_t)23, emptyinfile);
+      FatalIf(
+            numwritten != 23,
+            "%s failure to write placeholder data into input/correct.pvp file.\n",
+            initObj->getProgramName());
       PV_fclose(emptyinfile);
    }
    int status = rebuildandrun(initObj, NULL, &copyCorrectOutput);
