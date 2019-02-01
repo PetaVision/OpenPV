@@ -116,7 +116,7 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
 
    // We create mDevicePatches and mDeviceGSynPatchStart here, as opposed to creating them in
    // the Weights object, because they are only needed by presynaptic-perspective delivery.
-   auto preGeometry = preWeights->getGeometry();
+   auto preGeometry             = preWeights->getGeometry();
    std::size_t const numPatches = (std::size_t)preGeometry->getNumPatches();
    std::size_t size;
 
@@ -169,6 +169,7 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
          syw,
          mDeltaTimeFactor,
          preWeights->getSharedFlag(),
+         mChannelCode,
          mDevicePatches,
          mDeviceGSynPatchStart,
 
