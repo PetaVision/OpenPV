@@ -388,15 +388,16 @@ double ParameterGroup::value(const char *name) {
 }
 
 bool ParameterGroup::arrayPresent(const char *name) {
-   int array_found = 0;
+   bool array_found = false;
    int count       = arrayStack->size();
    for (int i = 0; i < count; i++) {
       ParameterArray *p = arrayStack->peek(i);
       if (strcmp(name, p->name()) == 0) {
-         array_found = 1; // string is present
+         array_found = true; // string is present
          break;
       }
    }
+   if (!array_found) { array_found = (present(name) != 0); }
    return array_found;
 }
 
