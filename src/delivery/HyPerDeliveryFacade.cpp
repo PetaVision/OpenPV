@@ -15,7 +15,9 @@ HyPerDeliveryFacade::HyPerDeliveryFacade(char const *name, HyPerCol *hc) { initi
 
 HyPerDeliveryFacade::HyPerDeliveryFacade() {}
 
-HyPerDeliveryFacade::~HyPerDeliveryFacade() {}
+HyPerDeliveryFacade::~HyPerDeliveryFacade() {
+   delete mDeliveryIntern;
+}
 
 int HyPerDeliveryFacade::initialize(char const *name, HyPerCol *hc) {
    return BaseDelivery::initialize(name, hc);
