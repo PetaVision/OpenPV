@@ -278,12 +278,14 @@ void PresynapticPerspectiveGPUDelivery::deliver() {
          }
       }
 
-      long totPatchSize   = (long)weights->getPatchSizeOverall();
-      long totThreads     = maxTotalActiveNeuron * totPatchSize;
-      int maxThreads      = parent->getDevice()->get_max_threads();
-      int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
+      if (maxTotalActiveNeuron > 0) {
+         long totPatchSize   = (long)weights->getPatchSizeOverall();
+         long totThreads     = maxTotalActiveNeuron * totPatchSize;
+         int maxThreads      = parent->getDevice()->get_max_threads();
+         int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
 
-      mRecvKernel->run_nocheck(totThreads, numLocalThreads);
+         mRecvKernel->run_nocheck(totThreads, numLocalThreads);
+      }
    }
    // GSyn already living on GPU
    mPostLayer->setUpdatedDeviceGSynFlag(false);
