@@ -52,17 +52,17 @@ class CudaTimer : public PV::Timer {
     * @return Returns the accumulated time of this timer
     */
    double accumulateTime();
-   virtual int fprint_time(PrintStream &stream) const override;
+   virtual int fprint_time(PrintStream &printStream) const override;
    /**
     * A setter function to set the stream to time
     */
-   void setStream(cudaStream_t stream) { this->stream = stream; }
+   void setStream(cudaStream_t stream) { mStream = stream; }
 
   private:
-   cudaEvent_t startEvent;
-   cudaEvent_t stopEvent;
-   float time; // TODO maybe use Timer's member variables to store the time?
-   cudaStream_t stream;
+   cudaEvent_t mStartEvent;
+   cudaEvent_t mStopEvent;
+   float mTime; // TODO maybe use Timer's member variables to store the time?
+   cudaStream_t mStream;
    bool mEventPending = false; // A flag that is set by stop(). If true, accumulateTime() will add
 };
 
