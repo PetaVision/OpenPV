@@ -16,7 +16,9 @@ HyPerDeliveryFacade::HyPerDeliveryFacade(char const *name, PVParams *params, Com
 
 HyPerDeliveryFacade::HyPerDeliveryFacade() {}
 
-HyPerDeliveryFacade::~HyPerDeliveryFacade() {}
+HyPerDeliveryFacade::~HyPerDeliveryFacade() {
+   delete mDeliveryIntern;
+}
 
 void HyPerDeliveryFacade::initialize(char const *name, PVParams *params, Communicator *comm) {
    BaseDelivery::initialize(name, params, comm);
