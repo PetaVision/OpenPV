@@ -9,7 +9,6 @@ namespace PV {
 void GSynAccumulator::runKernel() {
    PVLayerLoc const *loc           = getLayerLoc();
    int const numNeuronsAcrossBatch = loc->nx * loc->ny * loc->nf * loc->nbatch;
-   int const numChannels           = (int)mChannelCoefficients.size();
    float const *channelCoeffs      = (float const *)mCudaChannelCoefficients->getPointer();
    float const *layerInput         = (float const *)mLayerInput->getCudaBuffer()->getPointer();
    float *bufferData               = (float *)getCudaBuffer()->getPointer();
@@ -19,7 +18,7 @@ void GSynAccumulator::runKernel() {
    int currGridSize = (int)ceil(((float)numNeuronsAcrossBatch) / currBlockSize);
    // Call function
    PVCuda::updateGSynAccumulatorOnGPU<<<currGridSize, currBlockSize, 0, cudaStream>>>(
-         numNeuronsAcrossBatch, numChannels, channelCoeffs, layerInput, bufferData);
+         numNeuronsAcrossBatch, mNumInputChannels, channelCoeffs, layerInput, bufferData);
 }
 
 } // end namespace PV

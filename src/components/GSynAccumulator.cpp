@@ -79,23 +79,24 @@ GSynAccumulator::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       mChannelCoefficients[channelIndex] = mChannelCoefficientsParams[i];
    }
 
-   for (std::size_t ch = (std::size_t)0; ch < mChannelCoefficients.size(); ch++) {
-      if (mChannelCoefficients[ch] != 0.0f) {
-         mLayerInput->requireChannel(ch);
-      }
-   }
-
    return Response::SUCCESS;
+}
+
+Response::Status GSynAccumulator::allocateDataStructures() {
+   mNumInputChannels = (int)mChannelCoefficients.size();
+   if (mLayerInput->getNumChannels() < mNumInputChannels) {
+      mNumInputChannels = mLayerInput->getNumChannels();
+   }
+   return RestrictedBuffer::allocateDataStructures();
 }
 
 void GSynAccumulator::updateBufferCPU(double simTime, double deltaTime) {
    int const numNeuronsAcrossBatch = getBufferSizeAcrossBatch();
-   int const numChannels           = (int)mChannelCoefficients.size();
    float const *channelCoeffs      = mChannelCoefficients.data();
    float const *layerInput         = mLayerInput->getBufferData();
    float *bufferData               = mBufferData.data();
    updateGSynAccumulatorOnCPU(
-         numNeuronsAcrossBatch, numChannels, channelCoeffs, layerInput, bufferData);
+         numNeuronsAcrossBatch, mNumInputChannels, channelCoeffs, layerInput, bufferData);
 }
 
 #ifdef PV_USE_CUDA

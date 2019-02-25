@@ -60,6 +60,8 @@ class GSynAccumulator : public RestrictedBuffer {
    Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   virtual Response::Status allocateDataStructures() override;
+
 #ifdef PV_USE_CUDA
    virtual void allocateUpdateKernel() override;
 
@@ -77,6 +79,10 @@ class GSynAccumulator : public RestrictedBuffer {
    float *mChannelCoefficientsParams = nullptr; // The channel coefficients as provided in params
    std::vector<float> mChannelCoefficients;
    LayerInputBuffer *mLayerInput = nullptr;
+
+   int mNumInputChannels = 0;
+// The smaller of the number of channel coefficients and mLayerInput's NumChannels.
+// Set in the Allocate stage.
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer *mCudaChannelCoefficients = nullptr;
