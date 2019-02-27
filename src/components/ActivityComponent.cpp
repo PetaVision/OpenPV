@@ -239,7 +239,7 @@ void ActivityComponent::copyToCuda() {
 void ActivityComponent::copyFromCuda() {
    for (auto *obj : *mTable) {
       auto *buffer = dynamic_cast<ComponentBuffer *>(obj);
-      if (buffer) {
+      if (buffer && !buffer->getBufferLabel().empty()) {
          buffer->copyFromCuda();
       }
    }
