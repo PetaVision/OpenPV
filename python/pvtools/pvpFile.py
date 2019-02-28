@@ -1,7 +1,7 @@
 import pdb
 import numpy as np
 import scipy.sparse as sp
-from readpvpheader import readpvpheader,headerPattern,extendedHeaderPattern
+from pvtools.readpvpheader import readpvpheader,headerPattern,extendedHeaderPattern
 import os
 
 """
