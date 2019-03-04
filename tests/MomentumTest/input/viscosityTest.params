@@ -1,107 +1,137 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    nx = 2; //1242;  // KITTI synced value
-    ny = 2;  //218;
-    dt = 1.0;
-    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    stopTime = 10.0;       // Depends on number of VINE video frames
-    progressInterval = 1.0;
-    //Change this
-    outputPath = "output/";
-    checkpointWrite = true;
-    checkpointWriteDir = "output/Checkpoints";
-    checkpointWriteStepInterval = 1;
-    deleteOlderCheckpoints = false;
-    writeProgressToErr = true;
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 1;
+    writeProgressToErr                  = true;
+    outputPath                          = "output/";
+    verifyWrites                        = true;
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "output/Checkpoints";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 1;
+    checkpointIndexWidth                = -1;
+    suppressNonplasticCheckpoints       = false;
+    deleteOlderCheckpoints              = false;
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 2;
+    ny                                  = 2;
+    nbatch                              = 1;
+    errorOnNotANumber                   = false;
 };
 
 PvpLayer "pre" = {
-    nxScale                          = 1;
-    nyScale                          = 1;
-    inputPath                        = "input/input.pvp";
-    nf                               = 1;
-    phase                            = 0;
-    writeStep                        = -1;
-    sparseLayer                      = false;
-    mirrorBCflag                     = false;
-    useInputBCflag                   = false;
-    inverseFlag                      = false;
-    normalizeLuminanceFlag           = false;
-    autoResizeFlag                   = false;
-    offsetX                          = 0;
-    offsetY                          = 0;
-    displayPeriod                    = 1;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    displayPeriod                       = 1;
+    inputPath                           = "input/input.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    maxShiftX                           = 0;
+    maxShiftY                           = 0;
+    xFlipEnabled                        = false;
+    yFlipEnabled                        = false;
+    xFlipToggle                         = false;
+    yFlipToggle                         = false;
+    jitterChangeInterval                = 1;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0.000000];
+    writeFrameToTimestamp               = true;
 };
 
 ConstantLayer "post" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = false;
-    sparseLayer = 0;
-    //
-    InitVType = "ConstantV";
-    valueV = 1.0;
-
-    phase = 1; 
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "ConstantV";
+    valueV                              = 1;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
 };
 
 MomentumConn "preToPost" = {
-    preLayerName = "pre";
-    postLayerName = "post";
-    channelCode = -1; //Inhib b, doing nothing to input
-    nxp = 1; 
-    nyp = 1; 
-    numAxonalArbors = 1;
-    writeStep = -1;
-    initialWriteTime = 0.0;
-    writeCompressedWeights = false;
-    sharedWeights = true;
-    
-    weightInitType = "UniformWeight";
-    wInit = 0;
-        
+    preLayerName                        = "pre";
+    postLayerName                       = "post";
+    channelCode                         = -1;
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    numAxonalArbors                     = 1;
+    delay                               = [0.000000];
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 1;
+    sharedWeights                       = true;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    initializeFromCheckpointFlag        = false;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 0;
+    connectOnlySameFeatures             = false;
     normalizeMethod                     = "none";
-    //strength                            = 1;
-    //rMinX                               = 1.5;
-    //rMinY                               = 1.5;
-    //normalize_cutoff                    = 0;
-
-    normalizeArborsIndividually = false;
-    normalizeFromPostPerspective = false;
-
-    minL2NormTolerated                  = 0;
-
-    symmetrizeWeights = false;
-    
-    //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = true;
-    triggerLayerName = "pre";
-    pvpatchAccumulateType = "convolve";
-
-    dWMax = 1;
-    timeConstantTau = 1.4426950408889634;
-    momentumMethod = "viscosity";
-     
-    delay = 0;
-     
-    convertRateToSpikeCount = false;
-
-    updateGSynFromPostPerspective = false;
-
+    plasticityFlag                      = true;
+    triggerLayerName                    = "pre";
+    triggerOffset                       = 0;
+    immediateWeightUpdate               = true;
+    dWMax                               = 1;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    normalizeDw                         = true;
+    combine_dW_with_W_flag              = false;
+    momentumMethod                      = "viscosity";
+    timeConstantTau                     = 1.4427;
+    momentumDecay                       = 0;
 };
 
 StatsProbe "movieprobe" = {
-   targetLayer = "pre";
+    targetLayer                         = "pre";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = NULL;
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    buffer                              = "Activity";
+    nnzThreshold                        = 0;
 };
 
-
 MomentumConnTestProbe "connprobe" = {
-    targetConnection = "preToPost";
-    isViscosity = 1;
+    targetConnection                    = "preToPost";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = NULL;
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    kernelIndex                         = 0;
+    arborId                             = 0;
+    outputWeights                       = true;
+    outputPlasticIncr                   = false;
+    outputPatchIndices                  = false;
+    isViscosity                         = 1;
 };

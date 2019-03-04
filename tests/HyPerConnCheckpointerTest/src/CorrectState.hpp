@@ -21,42 +21,42 @@
  *
  * The update rule is:
  *
- * new update number = old update number + 1.
- * new weight = old weight + old input + old output.
- * new input  = new update number.
- * new output = new input * new weight.
+ * input increments by 1 at timesteps 5, 9, 13, etc.
+ * new output = new input * old weight.
+ * new weight = old weight + new input * new output, updates at t=4, 8, 12, etc.
  *
  * The test uses an input layer display of 4 and a connection that, either
- * using the input layer as a trigger layer or by defining weightUpdatePeriod=4
- * and initialWeightUpdateTime=1, updates at times 1, 5, 9, etc.
+ * using the input layer as a trigger layer, with triggerOffset=1, or
+ * by defining weightUpdatePeriod=4 and initialWeightUpdateTime=4,
+ * updates at times 4, 8, 12, 16, and 20.
  *
  * The frames of the input layer are constant 1, constant 2, etc, and the
  * weight has dWMax = 1. The weight is initialized as 1 and the output layer
  * is initialized as 2. Therefore, at the end of each timestep, the correct
  * state of the system is as follows:
  *
- *   time update connection  input   output
- *     0     0         1       1         2
- *     1     1         3       1         3
- *     2     1         3       1         3
- *     3     1         3       1         3
- *     4     1         3       1         3
- *     5     2         6       2        12
- *     6     2         6       2        12
- *     7     2         6       2        12
- *     8     2         6       2        12
- *     9     3        30       3        90
- *    10     3        30       3        90
- *    11     3        30       3        90
- *    12     3        30       3        90
- *    13     4       300       4      1200
- *    14     4       300       4      1200
- *    15     4       300       4      1200
- *    16     4       300       4      1200
- *    17     5      5100       5     25500
- *    18     5      5100       5     25500
- *    19     5      5100       5     25500
- *    20     5      5100       5     25500
+ *   time update  input   output  connection
+ *     0     0      1         1        1
+ *     1     1      1         1        1
+ *     2     1      1         1        1
+ *     3     1      1         1        1
+ *     4     1      1         1        2
+ *     5     2      2         4        2
+ *     6     2      2         4        2
+ *     7     2      2         4        2
+ *     8     2      2         4       10
+ *     9     3      3        30       10
+ *    10     3      3        30       10
+ *    11     3      3        30       10
+ *    12     3      3        30      100
+ *    13     4      4       400      100
+ *    14     4      4       400      100
+ *    15     4      4       400      100
+ *    16     4      4       400     1700
+ *    17     5      5      8500     1700
+ *    18     5      5      8500     1700
+ *    19     5      5      8500     1700
+ *    20     5      5      8500    44200
  *
  */
 class CorrectState {
@@ -85,7 +85,7 @@ class CorrectState {
    /**
     * Returns the current update number.
     */
-   int getUpdateNumber() const { return mUpdateNumber; }
+   int getTimestamp() const { return mTimestamp; }
 
    /**
     * Returns the current value for the correct weight.
@@ -103,7 +103,7 @@ class CorrectState {
    float getCorrectOutput() const { return mCorrectOutput; }
 
   private:
-   int mUpdateNumber    = 0;
+   int mTimestamp       = 0;
    float mCorrectWeight = 0.0;
    float mCorrectInput  = 0.0;
    float mCorrectOutput = 0.0;
