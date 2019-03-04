@@ -17,7 +17,6 @@ int TestConnProbe::initialize_base() { return PV_SUCCESS; }
 void TestConnProbe::initNumValues() { setNumValues(-1); }
 
 Response::Status TestConnProbe::outputState(double timed) {
-   // Grab weights of probe and test for the value of .625/1.5, or .4166666
    HyPerConn *conn = getTargetHyPerConn();
    int numPreExt   = conn->getPre()->getNumExtended();
    int syw         = conn->getPatchStrideY(); // stride in patch
@@ -31,17 +30,16 @@ Response::Status TestConnProbe::outputState(double timed) {
       for (int y = 0; y < ny; y++) {
          float *dataYStart = data + y * syw;
          for (int k = 0; k < nk; k++) {
+            // Initially, origPre=128/255 and clonePre=64/255, and origConn is 5x5 with weight 1.
+            // After layers update, origPost=25*128/255 and clonePost=25*128/255.
+            // The weight update is then dw = (((128/255)*(25*128/255)) + ((64/255)*(25*64/255)))/2
+            // The updated w is then 1 + dw = 1 + (10240/2601) = 4.936947...
+            // Because of roundoff issues, the observed value is 4.9369383...
             if (fabs(timed - 0) < (parent->getDeltaTime() / 2)) {
-               if (fabsf(dataYStart[k] - 1) > 0.01f) {
-                  Fatal() << "dataYStart[k]: " << dataYStart[k] << "\n";
-               }
-               FatalIf(!(fabsf(dataYStart[k] - 1) <= 0.01f), "Test failed.\n");
+               FatalIf(dataYStart[k] != 1.0f, "Test failed.\n");
             }
             else if (fabs(timed - 1) < (parent->getDeltaTime() / 2)) {
-               if (fabsf(dataYStart[k] - 1.375f) > 0.01f) {
-                  Fatal() << "dataYStart[k]: " << dataYStart[k] << "\n";
-               }
-               FatalIf(!(fabsf(dataYStart[k] - 1.375f) <= 0.01f), "Test failed.\n");
+               FatalIf(!(fabsf(dataYStart[k] - 4.9369f) <= 1.0e-4f), "Test failed.\n");
             }
          }
       }

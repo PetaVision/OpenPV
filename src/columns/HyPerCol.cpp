@@ -669,13 +669,6 @@ int HyPerCol::advanceTime(double sim_time) {
 
    int status = PV_SUCCESS;
 
-   // update the connections (weights)
-   //
-   notifyLoop(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
-   notifyLoop(std::make_shared<ConnectionNormalizeMessage>());
-   notifyLoop(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
-   notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime, mDeltaTime));
-
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {
       notifyLoop(std::make_shared<LayerClearProgressFlagsMessage>());
@@ -777,6 +770,13 @@ int HyPerCol::advanceTime(double sim_time) {
          notifyLoop(std::make_shared<LayerCheckNotANumberMessage>(phase));
       }
    }
+
+   // update the connections (weights)
+   //
+   notifyLoop(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ConnectionNormalizeMessage>());
+   notifyLoop(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime, mDeltaTime));
 
    mRunTimer->stop();
 

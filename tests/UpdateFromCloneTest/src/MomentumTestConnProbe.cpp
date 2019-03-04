@@ -17,7 +17,6 @@ int MomentumTestConnProbe::initialize_base() { return PV_SUCCESS; }
 void MomentumTestConnProbe::initNumValues() { setNumValues(-1); }
 
 Response::Status MomentumTestConnProbe::outputState(double timed) {
-   // Grab weights of probe and test for the value of .625/1.5, or .4166666
    HyPerConn *conn = getTargetHyPerConn();
    int numPreExt   = conn->getPre()->getNumExtended();
    int syw         = conn->getPatchStrideY(); // stride in patch
@@ -33,16 +32,16 @@ Response::Status MomentumTestConnProbe::outputState(double timed) {
          float *dataYStart = data + y * syw;
          for (int k = 0; k < nk; k++) {
             float wObserved = dataYStart[k];
-            if (timed < 3) {
+            if (timed < 2) {
                wCorrect = 0;
             }
             else {
                wCorrect = 0.0832743f;
-               for (int i = 0; i < (timed - 3); i++) {
+               for (int i = 0; i < (timed - 2); i++) {
                   wCorrect += 0.0832743f * expf(-(0.25 * (i + 1)));
                }
             }
-            FatalIf(!(fabsf(wObserved - wCorrect) <= 1e-4f), "Test failed.\n");
+            FatalIf(!(fabsf(wObserved - wCorrect) <= 1.0e-4f), "Test failed.\n");
          }
       }
    }

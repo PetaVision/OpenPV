@@ -128,26 +128,18 @@ HyPerConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkp
    std::string initializeFromCheckpointDir(checkpointer->getInitializeFromCheckpointDir());
    timeInfoCheckpointEntry.read(initializeFromCheckpointDir, nullptr);
 
-   mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
+   mStartingUpdateNumber = timeInfo.mSimTime;
 
    return PV::Response::SUCCESS;
 }
 
-int HyPerConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
-   pvAssert(timevalue >= 0.0);
-   int const step = (int)std::nearbyint(timevalue);
-   pvAssert(step >= 0);
-   int const updateNumber = (step + 3) / 4; // integer division
-   return updateNumber;
-}
-
 void HyPerConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
-   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
+   int const updateNumber = mStartingUpdateNumber + timevalue;
    if (updateNumber == 0) {
-      mCorrectState = new CorrectState(0, 1.0f /*weight*/, 1.0f /*input*/, 2.0f /*output*/);
+      mCorrectState = new CorrectState(0, 1.0f /*weight*/, 1.0f /*input*/, 1.0f /*output*/);
    }
    else {
-      mCorrectState = new CorrectState(1, 3.0f /*weight*/, 1.0f /*input*/, 3.0f /*output*/);
+      mCorrectState = new CorrectState(1, 1.0f /*weight*/, 1.0f /*input*/, 1.0f /*output*/);
 
       for (int j = 2; j < updateNumber; j++) {
          mCorrectState->update();
@@ -161,8 +153,8 @@ PV::Response::Status HyPerConnCheckpointerTestProbe::outputState(double timestam
       initializeCorrectValues(timestamp);
       mValuesSet = true;
    }
-   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timestamp);
-   while (updateNumber > mCorrectState->getUpdateNumber()) {
+   int const updateNumber = mStartingUpdateNumber + timestamp;
+   while (updateNumber > mCorrectState->getTimestamp()) {
       mCorrectState->update();
    }
 

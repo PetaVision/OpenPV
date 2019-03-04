@@ -76,7 +76,6 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
     */
    PV::Response::Status checkCommunicatedFlag(PV::BaseObject *dependencyObject);
 
-   int calcUpdateNumber(double timevalue);
    void initializeCorrectValues(double timevalue);
 
    bool verifyConnection(
@@ -89,7 +88,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
 
    // Data members
   protected:
-   int mStartingUpdateNumber     = 0;
+   int mStartingTimestamp        = 0;
    bool mValuesSet               = false;
    PV::InputLayer *mInputLayer   = nullptr;
    PV::HyPerLayer *mOutputLayer  = nullptr;
