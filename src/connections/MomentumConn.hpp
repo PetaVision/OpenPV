@@ -11,7 +11,6 @@
 
 namespace PV {
 
-
 class MomentumConn : public HyPerConn {
   public:
    MomentumConn(char const *name, PVParams *params, Communicator *comm);

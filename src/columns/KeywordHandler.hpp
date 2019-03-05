@@ -14,7 +14,6 @@ namespace PV {
 
 typedef BaseObject *(*ObjectCreateFn)(char const *name, PVParams *params, Communicator *comm);
 
-
 /**
  * KeywordHandler is a class that associates a string, the keyword,
  * with a function pointer for creating objects of a type corresponding

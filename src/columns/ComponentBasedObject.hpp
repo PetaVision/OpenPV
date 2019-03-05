@@ -18,7 +18,6 @@
 
 namespace PV {
 
-
 /**
  * The base class for layers, connections, probes, and components of those
  * objects. Provides common interfaces for CommunicateInitInfo, AllocateDataStructures,

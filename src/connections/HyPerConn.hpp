@@ -20,7 +20,6 @@
 
 namespace PV {
 
-
 class HyPerConn : public BaseConnection {
   public:
    HyPerConn(char const *name, PVParams *params, Communicator *comm);

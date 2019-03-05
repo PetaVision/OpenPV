@@ -14,7 +14,6 @@
 
 namespace PV {
 
-
 class CopyConn : public HyPerConn {
   public:
    CopyConn(char const *name, PVParams *params, Communicator *comm);

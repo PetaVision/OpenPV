@@ -44,8 +44,8 @@ CudaTimer::~CudaTimer() {
 
 double CudaTimer::start() {
    if (mEventPending == true) {
-      WarnLog() << "CudaTimer called start() while event was still pending (timer message = \"" <<
-                   message << "\").\n";
+      WarnLog() << "CudaTimer called start() while event was still pending (timer message = \""
+                << message << "\").\n";
    }
    handleError(cudaEventRecord(mStartEvent, mStream), "Recording start event");
    return 0;
@@ -54,8 +54,8 @@ double CudaTimer::start() {
 double CudaTimer::stop() {
    handleError(cudaEventRecord(mStopEvent, mStream), "Recording stop event");
    if (mEventPending == true) {
-      WarnLog() << "CudaTimer called stop() while event was still pending (timer message = \"" <<
-                   message << "\").\n";
+      WarnLog() << "CudaTimer called stop() while event was still pending (timer message = \""
+                << message << "\").\n";
    }
    mEventPending = true;
    return 0;

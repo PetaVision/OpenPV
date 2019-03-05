@@ -16,7 +16,6 @@
 
 namespace PV {
 
-
 class StochasticReleaseTestProbe : public PV::StatsProbe {
   public:
    StochasticReleaseTestProbe(const char *name, PVParams *params, Communicator *comm);

@@ -14,7 +14,6 @@
 
 namespace PV {
 
-
 class PoolingConn : public BaseConnection {
   public:
    PoolingConn(char const *name, PVParams *params, Communicator *comm);

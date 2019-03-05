@@ -92,8 +92,8 @@ void Buffer<T>::grow(int newWidth, int newHeight, enum Anchor anchor) {
    if (newWidth <= getWidth() && newHeight <= getHeight()) {
       return;
    }
-   newWidth  = std::max(newWidth, getWidth());
-   newHeight = std::max(newHeight, getHeight());
+   newWidth    = std::max(newWidth, getWidth());
+   newHeight   = std::max(newHeight, getHeight());
    int offsetX = getAnchorX(anchor, getWidth(), newWidth);
    int offsetY = getAnchorY(anchor, getHeight(), newHeight);
    Buffer bigger(newWidth, newHeight, getFeatures());

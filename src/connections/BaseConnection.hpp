@@ -16,7 +16,6 @@
 
 namespace PV {
 
-
 class BaseConnection : public ComponentBasedObject {
   public:
    BaseConnection(char const *name, PVParams *params, Communicator *comm);

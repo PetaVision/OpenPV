@@ -13,7 +13,6 @@
 
 namespace PV {
 
-
 /**
  * ColProbe is the base class for probes that are attached to the column as a
  * whole,
