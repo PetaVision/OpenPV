@@ -14,7 +14,6 @@
 * OpenMP (http://openmp.org/wp/)
 * CUDA (https://developer.nvidia.com/cuda-downloads)
 * cuDNN (https://developer.nvidia.com/cudnn)
-* GDAL (http://www.gdal.org)
 
 ####Suggested additional tools:
 * lua (http://www.lua.org/) 
