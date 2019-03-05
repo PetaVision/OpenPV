@@ -190,6 +190,21 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
    }
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
+      if (!mPreData->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
+      if (!mPostGSyn->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
+      if (!mOriginalPreData->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
+      if (!mOriginalPostGSyn->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
+      if (!mWeightsPair->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
       initializeDeliverKernelArgs();
    }
 #endif // PV_USE_CUDA

@@ -63,8 +63,10 @@ __global__ void HyPerLayer_recv_pre(recv_pre_params params, int batchIdx) {
       return;
    }
 
-   int postBatchOffset = batchIdx * params.numPostRes;
-   float *gSynStart    = params.postGSyn + postBatchOffset + params.gSynPatchStart[kPreExt];
+   int channelStart     = params.channelCode * params.nbatch * params.numPostRes;
+   int postBatchOffset  = batchIdx * params.numPostRes;
+   int patchStartOffset = params.gSynPatchStart[kPreExt];
+   float *gSynStart     = params.postGSyn + channelStart + postBatchOffset + patchStartOffset;
 
    // Calculate what y row patchIndex is in
    int ky = kyPos(patchIndex, patch.nx, patch.ny, params.nfp);

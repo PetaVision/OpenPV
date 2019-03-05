@@ -1,10 +1,10 @@
 //
-// LCATest.params
+// MomentumLCATest.params
 //
 // created by peteschultz: Aug 15, 2014
 //
 
-//  A test of LCA in the GenericSystemTest paradigm
+//  A test of LCA with momentum in the GenericSystemTest paradigm
 //  An input->error<->V1 LCA module, using random initial weights
 //  and a correct-values movie being compared to the Reconstruction layer.
 //
@@ -76,7 +76,7 @@ ANNErrorLayer "Residual" = {
     nyScale = 1;
     nf = 1;
     phase = 1;
-    mirrorBCflag = true;
+    mirrorBCflag = false;
     triggerLayerName = NULL;
     writeStep = 1;
     initialWriteTime = 0;
@@ -238,7 +238,7 @@ ANNLayer "Comparison" = {
     nyScale = 1;
     nf = 1;
     phase = 4;
-    mirrorBCflag = true;
+    mirrorBCflag = false;
     triggerLayerName = NULL;
     writeStep = 1.0;
     initialWriteTime = 1.0;

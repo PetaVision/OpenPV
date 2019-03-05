@@ -20,7 +20,7 @@ void RescaleDelivery::initialize(char const *name, PVParams *params, Communicato
 void RescaleDelivery::setObjectType() { mObjectType = "RescaleDelivery"; }
 
 int RescaleDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseDelivery::ioParamsFillGroup(ioFlag);
+   int status = IdentDelivery::ioParamsFillGroup(ioFlag);
    ioParam_scale(ioFlag);
    return status;
 }

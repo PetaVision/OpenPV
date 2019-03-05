@@ -184,6 +184,7 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
          syw,
          mDeltaTimeFactor,
          preWeights->getSharedFlag(),
+         mChannelCode,
          mDevicePatches,
          mDeviceGSynPatchStart,
 
@@ -280,12 +281,14 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
          }
       }
 
-      long totPatchSize   = (long)weights->getPatchSizeOverall();
-      long totThreads     = maxTotalActiveNeuron * totPatchSize;
-      int maxThreads      = mCudaDevice->get_max_threads();
-      int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
+      if (maxTotalActiveNeuron > 0) {
+         long totPatchSize   = (long)weights->getPatchSizeOverall();
+         long totThreads     = maxTotalActiveNeuron * totPatchSize;
+         int maxThreads      = mCudaDevice->get_max_threads();
+         int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
 
-      mRecvKernel->run_nocheck(totThreads, numLocalThreads);
+         mRecvKernel->run_nocheck(totThreads, numLocalThreads);
+      }
    }
 }
 

@@ -24,6 +24,7 @@ void CudaRecvPre::setArgs(
       int syw,
       float dt_factor,
       int sharedWeights,
+      int channelCode,
 
       /* Patch* */ CudaBuffer *patches,
       /* size_t* */ CudaBuffer *gSynPatchStart,
@@ -48,6 +49,7 @@ void CudaRecvPre::setArgs(
    params.syw           = syw;
    params.dt_factor     = dt_factor;
    params.sharedWeights = sharedWeights;
+   params.channelCode   = channelCode;
 
    params.patches        = (Patch *)patches->getPointer();
    params.gSynPatchStart = (size_t *)gSynPatchStart->getPointer();

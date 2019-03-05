@@ -388,15 +388,16 @@ double ParameterGroup::value(const char *name) {
 }
 
 bool ParameterGroup::arrayPresent(const char *name) {
-   int array_found = 0;
+   bool array_found = false;
    int count       = arrayStack->size();
    for (int i = 0; i < count; i++) {
       ParameterArray *p = arrayStack->peek(i);
       if (strcmp(name, p->name()) == 0) {
-         array_found = 1; // string is present
+         array_found = true; // string is present
          break;
       }
    }
+   if (!array_found) { array_found = (present(name) != 0); }
    return array_found;
 }
 
@@ -1128,9 +1129,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
             break;
          }
       }
-      if (hypercolGroup == nullptr) {
-         Fatal() << "PVParams::parseBuffer: no HyPerCol group\n";
-      }
+      FatalIf(hypercolGroup == nullptr, "PVParams::parseBuffer: no HyPerCol group\n");
    }
 
    // Each ParameterSweep needs to have its group/parameter pair added to the database, if it's not
@@ -1426,7 +1425,7 @@ void PVParams::ioParamString(
          else {
             // parameter was not set in params file; use the default.  But default might or might
             // not be nullptr.
-            if (icComm->globalCommRank() == 0 && warnIfAbsent == true) {
+            if (worldRank == 0 and warnIfAbsent == true) {
                if (defaultValue != nullptr) {
                   WarnLog().printf(
                         "Using default value \"%s\" for string parameter \"%s\" in group \"%s\"\n",
@@ -1449,7 +1448,7 @@ void PVParams::ioParamString(
             FatalIf(
                   *paramStringValue == nullptr,
                   "Global rank %d process unable to copy param %s in group \"%s\": %s\n",
-                  icComm->globalCommRank(),
+                  worldRank,
                   paramName,
                   groupName,
                   strerror(errno));
@@ -1476,7 +1475,7 @@ void PVParams::ioParamStringRequired(
             FatalIf(
                   *paramStringValue == nullptr,
                   "Global Rank %d process unable to copy param %s in group \"%s\": %s\n",
-                  icComm->globalCommRank(),
+                  worldRank,
                   paramName,
                   groupName,
                   strerror(errno));
@@ -1484,7 +1483,7 @@ void PVParams::ioParamStringRequired(
          else if (!stringPresent(groupName, paramName)) {
             // Setting the param to NULL explicitly is allowed;
             // if the string parameter is not present at all, error out.
-            if (icComm->globalCommRank() == 0) {
+            if (worldRank == 0) {
                ErrorLog().printf(
                      "%s \"%s\": string parameter \"%s\" is required.\n",
                      groupKeywordFromName(groupName),

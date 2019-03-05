@@ -3,6 +3,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BufferUtilsPvp.cpp
    ${SUBDIR}/BufferUtilsRescale.cpp
    ${SUBDIR}/Clock.cpp
+   ${SUBDIR}/CompareParamsFiles.cpp
    ${SUBDIR}/PVAssert.cpp
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
@@ -16,6 +17,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BufferUtilsPvp.hpp
    ${SUBDIR}/BufferUtilsRescale.hpp
    ${SUBDIR}/Clock.hpp
+   ${SUBDIR}/CompareParamsFiles.hpp
    ${SUBDIR}/PVAssert.hpp
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp
