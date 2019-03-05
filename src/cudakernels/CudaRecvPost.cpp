@@ -401,8 +401,6 @@ void CudaRecvPost::permuteDatastorePVToCudnn() {
    // Ceil to get all weights
    int gridSize = ceil((float)numNeurons / blockSize);
 
-   device->syncDevice();
-
    callPermuteDatastorePVToCudnnKernel(
          gridSize,
          blockSize,

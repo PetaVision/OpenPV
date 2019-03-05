@@ -671,10 +671,6 @@ int HyPerCol::advanceTime(double sim_time) {
             &someLayerHasActed);
       nonblockingLayerUpdate(recvMessage, updateMessage);
 
-      if (getDevice() != nullptr) {
-         getDevice()->syncDevice();
-      }
-
       // Update for receiving on cpu and updating on gpu
       nonblockingLayerUpdate(
             std::make_shared<LayerUpdateStateMessage>(
@@ -687,7 +683,6 @@ int HyPerCol::advanceTime(double sim_time) {
                   &someLayerHasActed));
 
       if (getDevice() != nullptr) {
-         getDevice()->syncDevice();
          notifyLoop(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
       }
 
@@ -725,9 +720,13 @@ int HyPerCol::advanceTime(double sim_time) {
       }
    }
 
-   mRunTimer->stop();
-
    notifyLoop(std::make_shared<ColProbeOutputStateMessage>(mSimTime, mDeltaTime));
+
+   if (getDevice() != nullptr) {
+      getDevice()->syncDevice();
+   }
+
+   mRunTimer->stop();
 
    return PV_SUCCESS;
 }

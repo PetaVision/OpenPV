@@ -126,9 +126,6 @@ void GSynAccumulator::updateBufferGPU(double simTime, double deltaTime) {
       mLayerInput->copyToCuda();
    }
 
-   // Sync all buffers before running
-   mCudaDevice->syncDevice();
-
    runKernel();
 }
 #endif // PV_USE_CUDA

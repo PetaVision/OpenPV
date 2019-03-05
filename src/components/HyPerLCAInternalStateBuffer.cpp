@@ -134,9 +134,6 @@ void HyPerLCAInternalStateBuffer::updateBufferGPU(double simTime, double deltaTi
    // Copy over mCudaDtAdapt
    mCudaDtAdapt->copyToDevice(deltaTimes(simTime, deltaTime));
 
-   // Sync all buffers before running
-   mCudaDevice->syncDevice();
-
    runKernel();
 }
 #endif // PV_USE_CUDA
