@@ -50,7 +50,7 @@ int CudaDevice::initialize(int device) {
    int status = 0;
 
 #ifdef PV_USE_CUDA
-   handleError(cudaThreadExit(), "Thread exiting in initialize");
+   handleError(cudaDeviceReset(), "Device resetting in initialize");
 
    handleError(cudaGetDeviceCount(&num_devices), "Getting device count");
    handleError(cudaSetDevice(device), "Setting device");
