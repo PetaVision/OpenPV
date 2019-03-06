@@ -8,15 +8,13 @@
 #include "Checkpointer.hpp"
 
 #include "checkpointing/CheckpointingMessages.hpp"
+#include "utils/ExpandLeadingTilde.hpp"
 #include <cerrno>
 #include <climits>
-// #include <cmath>
-// #include <cstring>
 #include <fts.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-// #include <unistd.h>
 #define DEFAULT_OUTPUT_PATH "output"
 
 namespace PV {

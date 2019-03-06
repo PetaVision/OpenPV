@@ -9,6 +9,7 @@
 #include "connections/weight_conversions.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
+#include "utils/ExpandLeadingTilde.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.h"
 

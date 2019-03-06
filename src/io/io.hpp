@@ -121,21 +121,6 @@ int parse_options(
       int *batch_width,
       int *dryrun);
 
-/** If a filename begins with "~/" or is "~", presume the user means the home directory.
- * The return value is the expanded path; e.g. if the home directory is /home/user1,
- * calling with the path "~/directory/file.name" returns "/home/user1/directory/file.name"
- * If the input filename is longer than "~" and doesn't start with "~/", the return value
- * has the same contents as input (but is a different block of memory).
- * The calling routine has the responsibility for freeing the return value, and
- * if the input string needs to be free()'ed, the calling routine has that responsibility
- * as well.
- */
-std::string expandLeadingTilde(std::string const &path);
-
-/** An overload of expandLeadingTilde to take a C-style string instead of a C++ std::string.
- */
-std::string expandLeadingTilde(char const *path);
-
 } // end namespace PV
 
 #endif /* IO_HPP_ */

@@ -17,6 +17,7 @@ extern "C" {
 
 #include "FileStream.hpp"
 #include "io/io.hpp"
+#include "utils/ExpandLeadingTilde.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 

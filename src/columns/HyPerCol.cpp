@@ -15,6 +15,7 @@
 #include "io/PrintStream.hpp"
 #include "io/io.hpp"
 #include "pvGitRevision.h"
+#include "utils/ExpandLeadingTilde.hpp"
 
 #include <assert.h>
 #include <cmath>

@@ -136,9 +136,7 @@ void PV_Init::initLogFile(bool appendFlag) {
    // the global rank.
    // If filename does not have an extension, _<rank> is appended.
    // Note that the global rank zero process does not insert _<rank>.  This is
-   // deliberate, as the
-   // nonzero ranks
-   // should be MPI-ing the data to the zero rank.
+   // deliberate, as the nonzero ranks should be MPI-ing the data to the zero rank.
    std::string logFile         = arguments->getStringArgument("LogFile");
    int const globalRootProcess = 0;
    int globalRank;
