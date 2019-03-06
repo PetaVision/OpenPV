@@ -117,7 +117,7 @@ CudaBuffer *CudaDevice::createBuffer(size_t size, std::string const *str) {
       InfoLog().flush();
       Fatal().printf("CudaDevice createBuffer: out of memory\n");
    }
-   return (new CudaBuffer(size, this, stream));
+   return (new CudaBuffer(size, &device_props, stream));
 }
 
 void CudaDevice::query_device(int id) {

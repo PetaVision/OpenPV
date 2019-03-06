@@ -153,7 +153,7 @@ class BasePublisherComponent : public BaseObject {
    PVCuda::CudaBuffer *mCudaNumActive     = nullptr;
    PVCuda::CudaBuffer *mCudaActiveIndices = nullptr;
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer *mCudnnDatastore;
+   PVCuda::CudaBuffer *mCudnnDatastore = nullptr;
 #endif // PV_USE_CUDNN
 
    bool mUpdatedCudaDatastore = true;
