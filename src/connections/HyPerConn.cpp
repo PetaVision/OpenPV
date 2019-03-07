@@ -6,6 +6,7 @@
  */
 
 #include "HyPerConn.hpp"
+#include "columns/Factory.hpp"
 #include "components/StrengthParam.hpp"
 #include "delivery/HyPerDeliveryFacade.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
@@ -111,7 +112,7 @@ InitWeights *HyPerConn::createWeightInitializer() {
          weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
          "%s must set weightInitType.\n",
          getDescription_c());
-   BaseObject *baseObject  = createSubobject(weightInitTypeString);
+   BaseObject *baseObject  = Factory::instance()->createByKeyword(weightInitTypeString, this);
    auto *weightInitializer = dynamic_cast<InitWeights *>(baseObject);
    FatalIf(
          weightInitializer == nullptr,
@@ -152,7 +153,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
       auto strengthParam = new StrengthParam(name, parameters(), mCommunicator);
       addUniqueComponent(strengthParam->getDescription(), strengthParam);
    }
-   BaseObject *baseObj = createSubobject(normalizeMethod);
+   BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, this);
    normalizer          = dynamic_cast<NormalizeBase *>(baseObj);
    if (normalizer == nullptr) {
       pvAssert(baseObj);

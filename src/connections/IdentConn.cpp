@@ -6,6 +6,7 @@
  */
 
 #include "IdentConn.hpp"
+#include "columns/Factory.hpp"
 #include "delivery/IdentDelivery.hpp"
 
 namespace PV {
@@ -21,7 +22,7 @@ void IdentConn::initialize(const char *name, PVParams *params, Communicator cons
 }
 
 BaseDelivery *IdentConn::createDeliveryObject() {
-   BaseObject *baseObject        = createSubobject("IdentDelivery");
+   BaseObject *baseObject        = Factory::instance()->createByKeyword("IdentDelivery", this);
    IdentDelivery *deliveryObject = dynamic_cast<IdentDelivery *>(baseObject);
    pvAssert(deliveryObject); // IdentDelivery is a core keyword.
    return deliveryObject;

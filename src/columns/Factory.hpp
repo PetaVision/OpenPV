@@ -96,16 +96,20 @@ class Factory {
 
    /**
     * The method to create an object of the type specified by keyword, with the
-    * given name
-    * and parent HyPerCol.  It calls the function associated with the keyword by
-    * the
-    * registerKeyword pointer.
+    * given name, params, and communicator. The keyword must have already been
+    * registered in the Factory singleton.
     */
    BaseObject *createByKeyword(
          char const *keyword,
          char const *name,
          PVParams *params,
          Communicator const *comm) const;
+
+   /**
+    * An overload of the createByKeyword() method that uses a reference BaseObject
+    * to retrieve the name, params, and communicator.
+    */
+   BaseObject *createByKeyword(char const *keyword, BaseObject *baseObject) const;
 
   private:
    /**

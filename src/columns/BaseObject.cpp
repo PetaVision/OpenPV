@@ -7,7 +7,6 @@
 
 #include "BaseObject.hpp"
 #include "columns/Communicator.hpp"
-#include "columns/Factory.hpp"
 #include <cassert>
 #include <cerrno>
 #include <cstdio>
@@ -140,21 +139,6 @@ Response::Status BaseObject::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage 
    return Response::SUCCESS;
 }
 #endif // PV_USE_CUDA
-
-BaseObject *BaseObject::createSubobject(char const *keyword) {
-   BaseObject *subobject = nullptr;
-   try {
-      subobject = Factory::instance()->createByKeyword(keyword, name, parameters(), mCommunicator);
-   } catch (const std::exception &e) {
-      Fatal() << getDescription() << " unable to create " << keyword << ": " << e.what() << "\n";
-   }
-   FatalIf(
-         subobject == nullptr, // Because of try/catch above, this should never happen.
-         "%s attempt to create %s returned null pointer.\n",
-         getDescription_c(),
-         keyword);
-   return subobject;
-}
 
 BaseObject::~BaseObject() {}
 

@@ -6,6 +6,7 @@
  */
 
 #include "InternalStateBuffer.hpp"
+#include "columns/Factory.hpp"
 
 namespace PV {
 
@@ -39,7 +40,7 @@ void InternalStateBuffer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
          BaseInitV::mDefaultInitV.data(),
          true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
-      BaseObject *object = createSubobject(mInitVTypeString);
+      BaseObject *object = Factory::instance()->createByKeyword(mInitVTypeString, this);
       mInitVObject       = dynamic_cast<BaseInitV *>(object);
       FatalIf(
             mInitVObject == nullptr,

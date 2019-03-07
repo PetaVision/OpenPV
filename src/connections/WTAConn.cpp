@@ -6,6 +6,7 @@
  */
 
 #include "WTAConn.hpp"
+#include "columns/Factory.hpp"
 #include "delivery/WTADelivery.hpp"
 
 namespace PV {
@@ -21,7 +22,7 @@ void WTAConn::initialize(const char *name, PVParams *params, Communicator const 
 }
 
 BaseDelivery *WTAConn::createDeliveryObject() {
-   BaseObject *baseObject      = createSubobject("WTADelivery");
+   BaseObject *baseObject      = Factory::instance()->createByKeyword("WTADelivery", this);
    WTADelivery *deliveryObject = dynamic_cast<WTADelivery *>(baseObject);
    pvAssert(deliveryObject); // WTADelivery is a core keyword.
    return deliveryObject;

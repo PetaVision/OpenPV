@@ -36,23 +36,23 @@ class BaseObject : public ParamsInterface {
   public:
    virtual ~BaseObject();
 
+   Communicator const *getCommunicator() const { return mCommunicator; }
+
    /**
     * Get-method for mInitInfoCommunicatedFlag, which is false on initialization
-    * and
-    * then becomes true once setInitInfoCommunicatedFlag() is called.
+    * and then becomes true once setInitInfoCommunicatedFlag() is called.
     */
    bool getInitInfoCommunicatedFlag() const { return mInitInfoCommunicatedFlag; }
 
    /**
-    * Get-method for mDataStructuresAllocatedFlag, which is false on
-    * initialization and
-    * then becomes true once setDataStructuresAllocatedFlag() is called.
+    * Get-method for mDataStructuresAllocatedFlag, which is false on initialization
+    * and then becomes true once setDataStructuresAllocatedFlag() is called.
     */
    bool getDataStructuresAllocatedFlag() const { return mDataStructuresAllocatedFlag; }
 
    /**
-    * Get-method for mInitialValuesSetFlag, which is false on initialization and
-    * then becomes true once setInitialValuesSetFlag() is called.
+    * Get-method for mInitialValuesSetFlag, which is false on initialization
+    * and then becomes true once setInitialValuesSetFlag() is called.
     */
    bool getInitialValuesSetFlag() const { return mInitialValuesSetFlag; }
 
@@ -111,13 +111,6 @@ class BaseObject : public ParamsInterface {
     * This method sets the flag returned by getInitialValuesSetFlag to true.
     */
    void setInitialValuesSetFlag() { mInitialValuesSetFlag = true; }
-
-   /**
-    * Creates a new BaseObject with the given keyword,
-    * and the same name, params, and communicator as the current object.
-    * The keyword must have been registered previously with the Factory singleton.
-    */
-   BaseObject *createSubobject(char const *keyword);
 
    // Data members
   protected:

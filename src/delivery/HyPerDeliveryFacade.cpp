@@ -6,6 +6,7 @@
  */
 
 #include "HyPerDeliveryFacade.hpp"
+#include "columns/Factory.hpp"
 
 namespace PV {
 
@@ -94,10 +95,12 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
    if (getReceiveGpu()) {
 #ifdef PV_USE_CUDA
       if (getUpdateGSynFromPostPerspective()) {
-         baseObject = createSubobject("PostsynapticPerspectiveGPUDelivery");
+         baseObject =
+               Factory::instance()->createByKeyword("PostsynapticPerspectiveGPUDelivery", this);
       }
       else {
-         baseObject = createSubobject("PresynapticPerspectiveGPUDelivery");
+         baseObject =
+               Factory::instance()->createByKeyword("PresynapticPerspectiveGPUDelivery", this);
       }
 #else //
       pvAssert(0); // If PV_USE_CUDA is off, receiveGpu should always be false.
@@ -107,18 +110,22 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
       switch (mAccumulateType) {
          case HyPerDelivery::CONVOLVE:
             if (getUpdateGSynFromPostPerspective()) {
-               baseObject = createSubobject("PostsynapticPerspectiveConvolveDelivery");
+               baseObject = Factory::instance()->createByKeyword(
+                     "PostsynapticPerspectiveConvolveDelivery", this);
             }
             else {
-               baseObject = createSubobject("PresynapticPerspectiveConvolveDelivery");
+               baseObject = Factory::instance()->createByKeyword(
+                     "PresynapticPerspectiveConvolveDelivery", this);
             }
             break;
          case HyPerDelivery::STOCHASTIC:
             if (getUpdateGSynFromPostPerspective()) {
-               baseObject = createSubobject("PostsynapticPerspectiveStochasticDelivery");
+               baseObject = Factory::instance()->createByKeyword(
+                     "PostsynapticPerspectiveStochasticDelivery", this);
             }
             else {
-               baseObject = createSubobject("PresynapticPerspectiveStochasticDelivery");
+               baseObject = Factory::instance()->createByKeyword(
+                     "PresynapticPerspectiveStochasticDelivery", this);
             }
             break;
          default:

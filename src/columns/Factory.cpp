@@ -43,6 +43,25 @@ BaseObject *Factory::createByKeyword(
    return keywordHandler ? keywordHandler->create(name, params, comm) : nullptr;
 }
 
+BaseObject *Factory::createByKeyword(char const *keyword, BaseObject *baseObject) const {
+   BaseObject *newobject = nullptr;
+   try {
+      auto const *name = baseObject->getName();
+      auto *params     = baseObject->parameters();
+      auto const *comm = baseObject->getCommunicator();
+      newobject        = createByKeyword(keyword, name, params, comm);
+   } catch (const std::exception &e) {
+      Fatal().printf(
+            "%s unable to create %s: %s\n", baseObject->getDescription_c(), keyword, e.what());
+   }
+   FatalIf(
+         newobject == nullptr, // Because of try/catch above, this should never happen.
+         "%s attempt to create %s returned null pointer.\n",
+         baseObject->getDescription_c(),
+         keyword);
+   return newobject;
+}
+
 KeywordHandler const *Factory::getKeywordHandler(char const *keyword) const {
    pvAssert(keyword != nullptr);
    for (auto &typeCreator : mKeywordHandlerList) {
