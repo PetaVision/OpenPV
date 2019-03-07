@@ -6,7 +6,6 @@
  */
 
 #include "HyPerDeliveryFacade.hpp"
-#include "columns/Factory.hpp"
 
 namespace PV {
 
@@ -92,12 +91,10 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
    if (getReceiveGpu()) {
 #ifdef PV_USE_CUDA
       if (getUpdateGSynFromPostPerspective()) {
-         baseObject = Factory::instance()->createByKeyword(
-               "PostsynapticPerspectiveGPUDelivery", name, parameters(), mCommunicator);
+         baseObject = createSubobject("PostsynapticPerspectiveGPUDelivery");
       }
       else {
-         baseObject = Factory::instance()->createByKeyword(
-               "PresynapticPerspectiveGPUDelivery", name, parameters(), mCommunicator);
+         baseObject = createSubobject("PresynapticPerspectiveGPUDelivery");
       }
 #else //
       pvAssert(0); // If PV_USE_CUDA is off, receiveGpu should always be false.
@@ -107,25 +104,18 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
       switch (mAccumulateType) {
          case HyPerDelivery::CONVOLVE:
             if (getUpdateGSynFromPostPerspective()) {
-               baseObject = Factory::instance()->createByKeyword(
-                     "PostsynapticPerspectiveConvolveDelivery", name, parameters(), mCommunicator);
+               baseObject = createSubobject("PostsynapticPerspectiveConvolveDelivery");
             }
             else {
-               baseObject = Factory::instance()->createByKeyword(
-                     "PresynapticPerspectiveConvolveDelivery", name, parameters(), mCommunicator);
+               baseObject = createSubobject("PresynapticPerspectiveConvolveDelivery");
             }
             break;
          case HyPerDelivery::STOCHASTIC:
             if (getUpdateGSynFromPostPerspective()) {
-               baseObject = Factory::instance()->createByKeyword(
-                     "PostsynapticPerspectiveStochasticDelivery",
-                     name,
-                     parameters(),
-                     mCommunicator);
+               baseObject = createSubobject("PostsynapticPerspectiveStochasticDelivery");
             }
             else {
-               baseObject = Factory::instance()->createByKeyword(
-                     "PresynapticPerspectiveStochasticDelivery", name, parameters(), mCommunicator);
+               baseObject = createSubobject("PresynapticPerspectiveStochasticDelivery");
             }
             break;
          default:

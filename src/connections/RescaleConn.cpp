@@ -6,7 +6,6 @@
  */
 
 #include "RescaleConn.hpp"
-#include "columns/Factory.hpp"
 #include "delivery/RescaleDelivery.hpp"
 
 namespace PV {
@@ -22,10 +21,9 @@ void RescaleConn::initialize(const char *name, PVParams *params, Communicator *c
 }
 
 BaseDelivery *RescaleConn::createDeliveryObject() {
-   BaseObject *baseObject =
-         Factory::instance()->createByKeyword("RescaleDelivery", name, parameters(), mCommunicator);
+   BaseObject *baseObject          = createSubobject("RescaleDelivery");
    RescaleDelivery *deliveryObject = dynamic_cast<RescaleDelivery *>(baseObject);
-   pvAssert(deliveryObject);
+   pvAssert(deliveryObject); // RescaleDelivery is a core keyword.
    return deliveryObject;
 }
 

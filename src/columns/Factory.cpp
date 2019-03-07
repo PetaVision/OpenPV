@@ -248,13 +248,6 @@ int Factory::registerCoreKeywords() {
    return PV_SUCCESS;
 }
 
-int Factory::copyKeywordHandlerList(std::vector<KeywordHandler *> const &orig) {
-   for (auto &kh : orig) {
-      registerKeyword(kh->getKeyword(), kh->getCreator());
-   }
-   return PV_SUCCESS;
-}
-
 int Factory::registerKeyword(char const *keyword, ObjectCreateFn creator) {
    KeywordHandler const *keywordHandler = getKeywordHandler(keyword);
    if (keywordHandler != nullptr) {

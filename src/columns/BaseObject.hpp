@@ -112,6 +112,13 @@ class BaseObject : public ParamsInterface {
     */
    void setInitialValuesSetFlag() { mInitialValuesSetFlag = true; }
 
+   /**
+    * Creates a new BaseObject with the given keyword,
+    * and the same name, params, and communicator as the current object.
+    * The keyword must have been registered previously with the Factory singleton.
+    */
+   BaseObject *createSubobject(char const *keyword);
+
    // Data members
   protected:
    Communicator *mCommunicator       = nullptr;

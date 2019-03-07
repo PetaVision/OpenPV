@@ -74,7 +74,8 @@ class Factory {
     * A function template that can be used to register most subclasses of
     * BaseObject in the factory using the registerKeyword function.  The
     * requirements on the BaseObject subclass is that it have a constructor
-    * with two arguments, the name and a pointer to the HyPerCol.
+    * with three arguments: the name and a pointer to the PVParams object,
+    * and a pointer to the Communicator object.
     */
    template <typename T>
    static BaseObject *create(char const *name, PVParams *params, Communicator *comm) {
@@ -123,13 +124,6 @@ class Factory {
     * keywords.
     */
    int registerCoreKeywords();
-
-   /**
-    * A method used internally by the copy assignment operator and copy
-    * constructor,
-    * to copy a keyword handler list into the Factory.
-    */
-   int copyKeywordHandlerList(std::vector<KeywordHandler *> const &orig);
 
    /**
     * A method used internally to retrieve the keyword handler corresponding to a

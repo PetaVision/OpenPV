@@ -6,7 +6,6 @@
  */
 
 #include "HyPerConn.hpp"
-#include "columns/Factory.hpp"
 #include "components/StrengthParam.hpp"
 #include "delivery/HyPerDeliveryFacade.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
@@ -112,13 +111,7 @@ InitWeights *HyPerConn::createWeightInitializer() {
          weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
          "%s must set weightInitType.\n",
          getDescription_c());
-   BaseObject *baseObject = nullptr;
-   try {
-      baseObject = Factory::instance()->createByKeyword(
-            weightInitTypeString, name, parameters(), mCommunicator);
-   } catch (const std::exception &e) {
-      Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
-   }
+   BaseObject *baseObject  = createSubobject(weightInitTypeString);
    auto *weightInitializer = dynamic_cast<InitWeights *>(baseObject);
    FatalIf(
          weightInitializer == nullptr,
@@ -159,17 +152,8 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
       auto strengthParam = new StrengthParam(name, parameters(), mCommunicator);
       addUniqueComponent(strengthParam->getDescription(), strengthParam);
    }
-   BaseObject *baseObj =
-         Factory::instance()->createByKeyword(normalizeMethod, name, parameters(), mCommunicator);
-   if (baseObj == nullptr) {
-      if (mCommunicator->commRank() == 0) {
-         Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
-                 << "\" is not recognized." << std::endl;
-      }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
-   }
-   normalizer = dynamic_cast<NormalizeBase *>(baseObj);
+   BaseObject *baseObj = createSubobject(normalizeMethod);
+   normalizer          = dynamic_cast<NormalizeBase *>(baseObj);
    if (normalizer == nullptr) {
       pvAssert(baseObj);
       if (mCommunicator->commRank() == 0) {
