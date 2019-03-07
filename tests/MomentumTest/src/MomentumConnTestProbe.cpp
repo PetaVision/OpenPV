@@ -60,17 +60,17 @@ Response::Status MomentumConnTestProbe::outputState(double simTime, double delta
    int status = PV_SUCCESS;
    for (int k = 0; k < patchSize; k++) {
       float wObserved = w[k];
-      // Pulse happens at time 3
+      // Pulse happens at time 2
       float wCorrect;
 
-      if (simTime < 3) {
+      if (simTime < 2) {
          wCorrect = 0;
       }
       else {
-         wCorrect = 1.0f - std::pow(2.0f, -((float)simTime - 2.0f));
+         wCorrect = 1 - powf(2, -(simTime - 1));
       }
 
-      if (fabs(((double)(wObserved - wCorrect)) / simTime) > 1e-4) {
+      if (fabs(((double)(wObserved - wCorrect)) / simTime) > 1e-6) {
          int y = kyPos(k, nxp, nyp, nfp);
          int f = featureIndex(k, nxp, nyp, nfp);
          output(0).printf("        w = %f, should be %f\n", (double)wObserved, (double)wCorrect);

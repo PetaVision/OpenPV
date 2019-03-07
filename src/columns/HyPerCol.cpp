@@ -619,12 +619,7 @@ int HyPerCol::advanceTime(double sim_time) {
    // been delivered to the data store.
    //
 
-   // update the connections (weights)
-   //
-   notifyLoop(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
-   notifyLoop(std::make_shared<ConnectionNormalizeMessage>(mSimTime));
-   notifyLoop(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
-   notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime, mDeltaTime));
+   int status = PV_SUCCESS;
 
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {
@@ -720,6 +715,13 @@ int HyPerCol::advanceTime(double sim_time) {
          notifyLoop(std::make_shared<LayerCheckNotANumberMessage>(phase));
       }
    }
+
+   // update the connections (weights)
+   //
+   notifyLoop(std::make_shared<ConnectionUpdateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ConnectionNormalizeMessage>(mSimTime));
+   notifyLoop(std::make_shared<ConnectionFinalizeUpdateMessage>(mSimTime, mDeltaTime));
+   notifyLoop(std::make_shared<ConnectionOutputMessage>(mSimTime, mDeltaTime));
 
    notifyLoop(std::make_shared<ColProbeOutputStateMessage>(mSimTime, mDeltaTime));
 

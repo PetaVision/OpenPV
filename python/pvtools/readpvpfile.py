@@ -1,4 +1,4 @@
-from pvpFile import pvpOpen
+from pvtools.pvpFile import pvpOpen
 
 #Convenience function for new and improved pvpOpen
 def readpvpfile(filename,

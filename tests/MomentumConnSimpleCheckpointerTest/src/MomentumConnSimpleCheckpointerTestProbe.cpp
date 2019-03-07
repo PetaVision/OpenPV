@@ -199,25 +199,17 @@ MomentumConnSimpleCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointe
    std::string initializeFromCheckpointDir(checkpointer->getInitializeFromCheckpointDir());
    timeInfoCheckpointEntry.read(initializeFromCheckpointDir, nullptr);
 
-   mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
+   mStartingTimestamp = timeInfo.mSimTime;
 
    return PV::Response::SUCCESS;
 }
 
-int MomentumConnSimpleCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
-   pvAssert(timevalue >= 0.0);
-   int const step = (int)std::nearbyint(timevalue);
-   pvAssert(step >= 0);
-   int const updateNumber = (step + 3) / 4; // integer division
-   return updateNumber;
-}
-
 void MomentumConnSimpleCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
-   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
+   int const updateNumber = mStartingTimestamp + timevalue;
    auto *momentumUpdater  = mConnection->getComponentByType<PV::MomentumUpdater>();
    float const tau        = momentumUpdater->getTimeConstantTau();
    mCorrectState =
-         new CorrectState(tau, 1.0f /*weight*/, 0.0f /*dw*/, 1.0f /*input*/, 2.0f /*output*/);
+         new CorrectState(tau, 1.0f /*weight*/, 0.0f /*dw*/, 1.0f /*input*/, 1.0f /*output*/);
 }
 
 PV::Response::Status
@@ -226,8 +218,8 @@ MomentumConnSimpleCheckpointerTestProbe::outputState(double simTime, double delt
       initializeCorrectValues(simTime);
       mValuesSet = true;
    }
-   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(simTime);
-   while (updateNumber > mCorrectState->getUpdateNumber()) {
+   int const updateNumber = mStartingTimestamp + simTime;
+   while (updateNumber > mCorrectState->getTimestamp()) {
       mCorrectState->update();
    }
 
@@ -262,7 +254,7 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyConnection(
       double timevalue) {
    bool failed = false;
 
-   if (mCommunicator->commRank() == 0) {
+   if (mCommunicator->commRank() == 0 and correctState->doesWeightUpdate(timevalue)) {
       auto *weightsPair         = connection->getComponentByType<PV::WeightsPair>();
       float observedWeightValue = weightsPair->getPreWeights()->getData(0)[0];
       float correctWeightValue  = correctState->getCorrectWeight();
