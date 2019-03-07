@@ -10,7 +10,7 @@
 
 namespace PV {
 
-ConnectionData::ConnectionData(char const *name, PVParams *params, Communicator *comm) {
+ConnectionData::ConnectionData(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ ConnectionData::~ConnectionData() {
    free(mPostLayerName);
 }
 
-void ConnectionData::initialize(char const *name, PVParams *params, Communicator *comm) {
+void ConnectionData::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

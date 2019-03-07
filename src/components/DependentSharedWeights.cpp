@@ -15,7 +15,7 @@ namespace PV {
 DependentSharedWeights::DependentSharedWeights(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -23,7 +23,10 @@ DependentSharedWeights::DependentSharedWeights() {}
 
 DependentSharedWeights::~DependentSharedWeights() {}
 
-void DependentSharedWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+void DependentSharedWeights::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    SharedWeights::initialize(name, params, comm);
 }
 

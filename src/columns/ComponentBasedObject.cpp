@@ -18,7 +18,10 @@ ComponentBasedObject::ComponentBasedObject() {
 
 int ComponentBasedObject::initialize_base() { return PV_SUCCESS; }
 
-void ComponentBasedObject::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ComponentBasedObject::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
    std::string componentTableName = std::string("ObserverTable \"") + name + "\"";
    createComponentTable(componentTableName.c_str());

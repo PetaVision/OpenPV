@@ -12,7 +12,7 @@
 
 namespace PV {
 
-CloneWeightsPair::CloneWeightsPair(char const *name, PVParams *params, Communicator *comm) {
+CloneWeightsPair::CloneWeightsPair(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ CloneWeightsPair::~CloneWeightsPair() {
    mPostWeights = nullptr;
 }
 
-void CloneWeightsPair::initialize(char const *name, PVParams *params, Communicator *comm) {
+void CloneWeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
    WeightsPair::initialize(name, params, comm);
 }
 

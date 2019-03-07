@@ -9,11 +9,11 @@
 
 namespace PV {
 
-BaseDelivery::BaseDelivery(char const *name, PVParams *params, Communicator *comm) {
+BaseDelivery::BaseDelivery(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void BaseDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+void BaseDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
    LayerInputDelivery::initialize(name, params, comm);
 }
 

@@ -14,7 +14,7 @@ namespace PV {
 
 L1NormProbe::L1NormProbe() : AbstractNormProbe() { initialize_base(); }
 
-L1NormProbe::L1NormProbe(const char *name, PVParams *params, Communicator *comm)
+L1NormProbe::L1NormProbe(const char *name, PVParams *params, Communicator const *comm)
       : AbstractNormProbe() {
    initialize_base();
    initialize(name, params, comm);
@@ -22,7 +22,7 @@ L1NormProbe::L1NormProbe(const char *name, PVParams *params, Communicator *comm)
 
 L1NormProbe::~L1NormProbe() {}
 
-void L1NormProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void L1NormProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    AbstractNormProbe::initialize(name, params, comm);
 }
 

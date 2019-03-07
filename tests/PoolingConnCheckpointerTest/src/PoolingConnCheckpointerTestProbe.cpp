@@ -19,7 +19,7 @@ PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe() {}
 PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe(
       const char *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -28,7 +28,7 @@ PoolingConnCheckpointerTestProbe::~PoolingConnCheckpointerTestProbe() {}
 void PoolingConnCheckpointerTestProbe::initialize(
       const char *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    return PV::ColProbe::initialize(name, params, comm);
 }
 
@@ -245,7 +245,7 @@ bool PoolingConnCheckpointerTestProbe::verifyLayer(
          failed            = 1;
       }
    }
-   PV::Communicator *comm = mCommunicator;
+   PV::Communicator const *comm = mCommunicator;
    std::vector<int> badIndicesGlobal;
    if (comm->commRank() == 0) {
       badIndicesGlobal.resize(loc.nxGlobal * loc.nyGlobal * loc.nf);

@@ -9,7 +9,7 @@
 
 namespace PV {
 
-InitCocircWeights::InitCocircWeights(char const *name, PVParams *params, Communicator *comm) {
+InitCocircWeights::InitCocircWeights(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +17,7 @@ InitCocircWeights::InitCocircWeights() {}
 
 InitCocircWeights::~InitCocircWeights() {}
 
-void InitCocircWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InitCocircWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
    InitGauss2DWeights::initialize(name, params, comm);
 }
 

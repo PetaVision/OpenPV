@@ -7,7 +7,7 @@ namespace PV {
 
 class GateMaxPoolTestLayer : public HyPerLayer {
   public:
-   GateMaxPoolTestLayer(const char *name, PVParams *params, Communicator *comm);
+   GateMaxPoolTestLayer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    ActivityComponent *createActivityComponent() override;

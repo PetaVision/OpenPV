@@ -12,11 +12,11 @@ namespace PV {
 
 WTAConn::WTAConn() {}
 
-WTAConn::WTAConn(const char *name, PVParams *params, Communicator *comm) {
+WTAConn::WTAConn(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void WTAConn::initialize(const char *name, PVParams *params, Communicator *comm) {
+void WTAConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
    BaseConnection::initialize(name, params, comm);
 }
 

@@ -18,14 +18,14 @@ namespace PV {
  */
 class PvpActivityBuffer : public InputActivityBuffer {
   public:
-   PvpActivityBuffer(char const *name, PVParams *params, Communicator *comm);
+   PvpActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~PvpActivityBuffer();
 
   protected:
    PvpActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

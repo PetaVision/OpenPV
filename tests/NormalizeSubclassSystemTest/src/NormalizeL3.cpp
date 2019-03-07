@@ -6,13 +6,13 @@
 
 namespace PV {
 
-NormalizeL3::NormalizeL3(char const *name, PVParams *params, Communicator *comm) {
+NormalizeL3::NormalizeL3(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 NormalizeL3::NormalizeL3() {}
 
-void NormalizeL3::initialize(char const *name, PVParams *params, Communicator *comm) {
+void NormalizeL3::initialize(char const *name, PVParams *params, Communicator const *comm) {
    NormalizeMultiply::initialize(name, params, comm);
 }
 

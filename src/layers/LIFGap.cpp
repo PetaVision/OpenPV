@@ -10,7 +10,7 @@
 
 namespace PV {
 
-LIFGap::LIFGap(const char *name, PVParams *params, Communicator *comm) {
+LIFGap::LIFGap(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -18,7 +18,7 @@ LIFGap::LIFGap() {}
 
 LIFGap::~LIFGap() {}
 
-void LIFGap::initialize(const char *name, PVParams *params, Communicator *comm) {
+void LIFGap::initialize(const char *name, PVParams *params, Communicator const *comm) {
    LIF::initialize(name, params, comm);
 }
 

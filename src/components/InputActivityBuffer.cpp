@@ -11,13 +11,16 @@
 
 namespace PV {
 
-InputActivityBuffer::InputActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+InputActivityBuffer::InputActivityBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 InputActivityBuffer::~InputActivityBuffer() { delete mTimestampStream; }
 
-void InputActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InputActivityBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 

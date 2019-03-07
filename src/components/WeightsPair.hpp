@@ -30,7 +30,7 @@ class WeightsPair : public WeightsPairInterface {
    /** @} */ // end of WeightsPair parameters
 
   public:
-   WeightsPair(char const *name, PVParams *params, Communicator *comm);
+   WeightsPair(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~WeightsPair();
 
@@ -44,7 +44,7 @@ class WeightsPair : public WeightsPairInterface {
   protected:
    WeightsPair() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

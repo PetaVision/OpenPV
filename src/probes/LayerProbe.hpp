@@ -39,7 +39,7 @@ class LayerProbe : public BaseProbe {
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
    /** @} */
   public:
-   LayerProbe(const char *name, PVParams *params, Communicator *comm);
+   LayerProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~LayerProbe();
 
    /**
@@ -59,7 +59,7 @@ class LayerProbe : public BaseProbe {
 
   protected:
    LayerProbe();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual void initMessageActionMap() override;
 
    virtual Response::Status

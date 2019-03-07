@@ -11,7 +11,7 @@ class KneeTimeScaleProbe : public AdaptiveTimeScaleProbe {
    virtual void ioParam_kneeThresh(enum ParamsIOFlag ioFlag);
    virtual void ioParam_kneeSlope(enum ParamsIOFlag ioFlag);
 
-   KneeTimeScaleProbe(char const *name, PVParams *params, Communicator *comm);
+   KneeTimeScaleProbe(char const *name, PVParams *params, Communicator const *comm);
 
   protected:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;

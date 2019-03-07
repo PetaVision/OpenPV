@@ -12,7 +12,7 @@ namespace PV {
 PresynapticPerspectiveGPUDelivery::PresynapticPerspectiveGPUDelivery(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -23,7 +23,7 @@ PresynapticPerspectiveGPUDelivery::~PresynapticPerspectiveGPUDelivery() {}
 void PresynapticPerspectiveGPUDelivery::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

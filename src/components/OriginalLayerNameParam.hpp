@@ -18,14 +18,14 @@ namespace PV {
  */
 class OriginalLayerNameParam : public LinkedObjectParam {
   public:
-   OriginalLayerNameParam(char const *name, PVParams *params, Communicator *comm);
+   OriginalLayerNameParam(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~OriginalLayerNameParam();
 
   protected:
    OriginalLayerNameParam() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 };

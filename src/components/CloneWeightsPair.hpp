@@ -34,7 +34,7 @@ class CloneWeightsPair : public WeightsPair {
    /** @} */ // end of CloneWeightsPair parameters
 
   public:
-   CloneWeightsPair(char const *name, PVParams *params, Communicator *comm);
+   CloneWeightsPair(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~CloneWeightsPair();
 
@@ -55,7 +55,7 @@ class CloneWeightsPair : public WeightsPair {
   protected:
    CloneWeightsPair() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

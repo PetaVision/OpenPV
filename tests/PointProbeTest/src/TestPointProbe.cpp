@@ -15,7 +15,7 @@ TestPointProbe::TestPointProbe() {
    // their init-method.
 }
 
-TestPointProbe::TestPointProbe(const char *name, PVParams *params, Communicator *comm)
+TestPointProbe::TestPointProbe(const char *name, PVParams *params, Communicator const *comm)
       : PointProbe() {
    initialize(name, params, comm);
 }

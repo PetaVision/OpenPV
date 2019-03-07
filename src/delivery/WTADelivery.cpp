@@ -10,11 +10,11 @@
 
 namespace PV {
 
-WTADelivery::WTADelivery(char const *name, PVParams *params, Communicator *comm) {
+WTADelivery::WTADelivery(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void WTADelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+void WTADelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseDelivery::initialize(name, params, comm);
 }
 

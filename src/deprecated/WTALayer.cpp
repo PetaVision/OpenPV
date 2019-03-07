@@ -12,7 +12,7 @@
 #include <string>
 
 namespace PV {
-WTALayer::WTALayer(const char *name, PVParams *params, Communicator *comm) {
+WTALayer::WTALayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -27,7 +27,7 @@ int WTALayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-void WTALayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void WTALayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    WarnLog() << "WTALayer has been deprecated. Use a WTAConn to a HyPerLayer instead.\n";
    HyPerLayer::initialize(name, params, comm);
 }

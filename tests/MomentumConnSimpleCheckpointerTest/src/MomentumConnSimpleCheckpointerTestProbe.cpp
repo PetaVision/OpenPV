@@ -20,7 +20,7 @@ MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe
 MomentumConnSimpleCheckpointerTestProbe::MomentumConnSimpleCheckpointerTestProbe(
       const char *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -29,7 +29,7 @@ MomentumConnSimpleCheckpointerTestProbe::~MomentumConnSimpleCheckpointerTestProb
 void MomentumConnSimpleCheckpointerTestProbe::initialize(
       const char *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    return PV::ColProbe::initialize(name, params, comm);
 }
 
@@ -317,7 +317,7 @@ bool MomentumConnSimpleCheckpointerTestProbe::verifyLayer(
    int const inputNxExt       = inputLoc->nx + inputHalo->lt + inputHalo->rt;
    int const inputNyExt       = inputLoc->ny + inputHalo->dn + inputHalo->up;
    PV::Buffer<float> localBuffer(layer->getLayerData(0), inputNxExt, inputNyExt, inputLoc->nf);
-   PV::Communicator *comm         = mCommunicator;
+   PV::Communicator const *comm   = mCommunicator;
    PV::Buffer<float> globalBuffer = PV::BufferUtils::gather(
          comm->getLocalMPIBlock(), localBuffer, inputLoc->nx, inputLoc->ny, 0, 0);
    if (comm->commRank() == 0) {

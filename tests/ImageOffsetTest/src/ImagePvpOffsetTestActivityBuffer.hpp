@@ -10,7 +10,7 @@ class ImagePvpOffsetTestActivityBuffer : public PvpActivityBuffer {
    virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag) override;
 
   public:
-   ImagePvpOffsetTestActivityBuffer(const char *name, PVParams *params, Communicator *comm);
+   ImagePvpOffsetTestActivityBuffer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    void updateBufferCPU(double simTime, double deltaTime) override;

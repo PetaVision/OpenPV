@@ -14,7 +14,7 @@
 
 namespace PV {
 
-CopyConn::CopyConn(char const *name, PVParams *params, Communicator *comm) {
+CopyConn::CopyConn(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -22,7 +22,7 @@ CopyConn::CopyConn() {}
 
 CopyConn::~CopyConn() {}
 
-void CopyConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+void CopyConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
    HyPerConn::initialize(name, params, comm);
 }
 

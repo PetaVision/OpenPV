@@ -10,13 +10,13 @@
 
 namespace PV {
 
-MomentumLCALayer::MomentumLCALayer(const char *name, PVParams *params, Communicator *comm) {
+MomentumLCALayer::MomentumLCALayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 MomentumLCALayer::~MomentumLCALayer() {}
 
-void MomentumLCALayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void MomentumLCALayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLCALayer::initialize(name, params, comm);
 }
 

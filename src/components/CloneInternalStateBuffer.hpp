@@ -33,14 +33,14 @@ class CloneInternalStateBuffer : public InternalStateBuffer {
 
    /** @} */
   public:
-   CloneInternalStateBuffer(char const *name, PVParams *params, Communicator *comm);
+   CloneInternalStateBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~CloneInternalStateBuffer();
 
   protected:
    CloneInternalStateBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

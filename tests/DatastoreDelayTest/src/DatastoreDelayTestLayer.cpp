@@ -16,13 +16,16 @@ namespace PV {
 DatastoreDelayTestLayer::DatastoreDelayTestLayer(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 DatastoreDelayTestLayer::~DatastoreDelayTestLayer() {}
 
-void DatastoreDelayTestLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void DatastoreDelayTestLayer::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

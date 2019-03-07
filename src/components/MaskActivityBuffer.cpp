@@ -11,7 +11,10 @@
 
 namespace PV {
 
-MaskActivityBuffer::MaskActivityBuffer(const char *name, PVParams *params, Communicator *comm) {
+MaskActivityBuffer::MaskActivityBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 

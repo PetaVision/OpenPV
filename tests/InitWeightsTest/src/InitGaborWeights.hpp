@@ -19,7 +19,7 @@ class InitGaborWeights : public PV::InitGauss2DWeights {
    virtual void ioParam_invert(enum ParamsIOFlag ioFlag);
 
   public:
-   InitGaborWeights(char const *name, PVParams *params, Communicator *comm);
+   InitGaborWeights(char const *name, PVParams *params, Communicator const *comm);
    virtual ~InitGaborWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -29,7 +29,7 @@ class InitGaborWeights : public PV::InitGauss2DWeights {
 
   protected:
    InitGaborWeights();
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
   private:
    void gaborWeights(float *dataStart);

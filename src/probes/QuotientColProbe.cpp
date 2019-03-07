@@ -18,7 +18,10 @@ QuotientColProbe::QuotientColProbe()
    initialize_base();
 } // end QuotientColProbe::QuotientColProbe(const char *)
 
-QuotientColProbe::QuotientColProbe(const char *probename, PVParams *params, Communicator *comm)
+QuotientColProbe::QuotientColProbe(
+      const char *probename,
+      PVParams *params,
+      Communicator const *comm)
       : ColProbe() {
    initialize_base();
    initialize(probename, params, comm);
@@ -41,7 +44,10 @@ int QuotientColProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-void QuotientColProbe::initialize(const char *probename, PVParams *params, Communicator *comm) {
+void QuotientColProbe::initialize(
+      const char *probename,
+      PVParams *params,
+      Communicator const *comm) {
    ColProbe::initialize(probename, params, comm);
 }
 

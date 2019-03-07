@@ -17,13 +17,13 @@ namespace PV {
 
 class ParameterSweepTestProbe : public StatsProbe {
   public:
-   ParameterSweepTestProbe(const char *name, PVParams *params, Communicator *comm);
+   ParameterSweepTestProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~ParameterSweepTestProbe();
 
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_expectedSum(enum ParamsIOFlag ioFlag);

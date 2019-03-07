@@ -11,7 +11,7 @@
 
 namespace PV {
 
-LayerGeometry::LayerGeometry(char const *name, PVParams *params, Communicator *comm) {
+LayerGeometry::LayerGeometry(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -19,7 +19,7 @@ LayerGeometry::LayerGeometry() {}
 
 LayerGeometry::~LayerGeometry() {}
 
-void LayerGeometry::initialize(char const *name, PVParams *params, Communicator *comm) {
+void LayerGeometry::initialize(char const *name, PVParams *params, Communicator const *comm) {
    std::memset(&mLayerLoc, 0, sizeof(mLayerLoc));
    BaseObject::initialize(name, params, comm);
 }
@@ -80,7 +80,7 @@ void LayerGeometry::setLayerLoc(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    int status = PV_SUCCESS;
 
-   Communicator *icComm = mCommunicator;
+   Communicator const *icComm = mCommunicator;
 
    float nxglobalfloat = mNxScale * message->mNxGlobal;
    layerLoc->nxGlobal  = (int)nearbyintf(nxglobalfloat);

@@ -12,11 +12,14 @@ namespace PV {
 IncrementingWeightUpdater::IncrementingWeightUpdater(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void IncrementingWeightUpdater::initialize(char const *name, PVParams *params, Communicator *comm) {
+void IncrementingWeightUpdater::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    HebbianUpdater::initialize(name, params, comm);
 }
 

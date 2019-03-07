@@ -9,7 +9,7 @@
 
 namespace PV {
 
-FeedbackConn::FeedbackConn(char const *name, PVParams *params, Communicator *comm) {
+FeedbackConn::FeedbackConn(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +17,7 @@ FeedbackConn::FeedbackConn() {}
 
 FeedbackConn::~FeedbackConn() {}
 
-void FeedbackConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+void FeedbackConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
    TransposeConn::initialize(name, params, comm);
 }
 

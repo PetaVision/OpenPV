@@ -15,14 +15,14 @@ namespace PV {
 
 class IncrementingWeightUpdater : public HebbianUpdater {
   public:
-   IncrementingWeightUpdater(char const *name, PVParams *params, Communicator *comm);
+   IncrementingWeightUpdater(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~IncrementingWeightUpdater() {}
 
   protected:
    IncrementingWeightUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual int updateWeights(int arborId);
 };

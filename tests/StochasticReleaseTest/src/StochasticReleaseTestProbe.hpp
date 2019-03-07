@@ -18,7 +18,7 @@ namespace PV {
 
 class StochasticReleaseTestProbe : public PV::StatsProbe {
   public:
-   StochasticReleaseTestProbe(const char *name, PVParams *params, Communicator *comm);
+   StochasticReleaseTestProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~StochasticReleaseTestProbe();
 
    virtual Response::Status
@@ -28,7 +28,7 @@ class StochasticReleaseTestProbe : public PV::StatsProbe {
 
   protected:
    StochasticReleaseTestProbe();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    void computePValues();
    void computePValues(int step, int f);

@@ -14,12 +14,12 @@ namespace PV {
 
 class CloneKernelConnTestProbe : public PV::StatsProbe {
   public:
-   CloneKernelConnTestProbe(const char *name, PVParams *params, Communicator *comm);
+   CloneKernelConnTestProbe(const char *name, PVParams *params, Communicator const *comm);
 
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
   private:
    int initialize_base();

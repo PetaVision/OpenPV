@@ -75,7 +75,7 @@ class LayerUpdateController : public BaseObject {
   public:
    enum TriggerBehaviorType { NO_TRIGGER, UPDATEONLYONTRIGGER, RESETSTATEONTRIGGER };
 
-   LayerUpdateController(char const *name, PVParams *params, Communicator *comm);
+   LayerUpdateController(char const *name, PVParams *params, Communicator const *comm);
    virtual ~LayerUpdateController();
 
    /**
@@ -100,7 +100,7 @@ class LayerUpdateController : public BaseObject {
   protected:
    LayerUpdateController();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
    virtual void initMessageActionMap() override;
 
    virtual void setObjectType() override;

@@ -7,7 +7,7 @@ namespace PV {
 
 class MaxPoolTestLayer : public HyPerLayer {
   public:
-   MaxPoolTestLayer(const char *name, PVParams *params, Communicator *comm);
+   MaxPoolTestLayer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    ActivityComponent *createActivityComponent() override;

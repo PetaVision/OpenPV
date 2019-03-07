@@ -25,7 +25,7 @@ class SegmentifyBuffer : public ActivityBuffer {
    void ioParam_outputMethod(enum ParamsIOFlag ioFlag);
 
   public:
-   SegmentifyBuffer(const char *name, PVParams *params, Communicator *comm);
+   SegmentifyBuffer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~SegmentifyBuffer();
 
    char const *getInputMethod() const { return mInputMethod; }
@@ -33,7 +33,7 @@ class SegmentifyBuffer : public ActivityBuffer {
 
   protected:
    SegmentifyBuffer();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status

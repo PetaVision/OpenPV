@@ -9,7 +9,7 @@
 
 namespace PV {
 
-HyPerDelivery::HyPerDelivery(char const *name, PVParams *params, Communicator *comm) {
+HyPerDelivery::HyPerDelivery(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +17,7 @@ HyPerDelivery::HyPerDelivery() {}
 
 HyPerDelivery::~HyPerDelivery() {}
 
-void HyPerDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+void HyPerDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseDelivery::initialize(name, params, comm);
 }
 

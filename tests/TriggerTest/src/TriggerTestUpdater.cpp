@@ -9,7 +9,10 @@
 
 namespace PV {
 
-TriggerTestUpdater::TriggerTestUpdater(char const *name, PVParams *params, Communicator *comm) {
+TriggerTestUpdater::TriggerTestUpdater(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    HebbianUpdater::initialize(name, params, comm);
 }
 

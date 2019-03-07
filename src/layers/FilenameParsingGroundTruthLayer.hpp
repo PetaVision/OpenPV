@@ -17,7 +17,7 @@ namespace PV {
 
 class FilenameParsingGroundTruthLayer : public HyPerLayer {
   public:
-   FilenameParsingGroundTruthLayer(const char *name, PVParams *params, Communicator *comm);
+   FilenameParsingGroundTruthLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~FilenameParsingGroundTruthLayer();
 
   private:

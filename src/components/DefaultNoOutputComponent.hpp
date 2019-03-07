@@ -18,13 +18,13 @@ namespace PV {
  */
 class DefaultNoOutputComponent : public LayerOutputComponent {
   public:
-   DefaultNoOutputComponent(char const *name, PVParams *params, Communicator *comm);
+   DefaultNoOutputComponent(char const *name, PVParams *params, Communicator const *comm);
    virtual ~DefaultNoOutputComponent();
 
   protected:
    DefaultNoOutputComponent();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 }; // class DefaultNoOutputComponent

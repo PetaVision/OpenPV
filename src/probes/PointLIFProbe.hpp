@@ -14,11 +14,11 @@ namespace PV {
 
 class PointLIFProbe : public PointProbe {
   public:
-   PointLIFProbe(const char *name, PVParams *params, Communicator *comm);
+   PointLIFProbe(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    PointLIFProbe();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
 

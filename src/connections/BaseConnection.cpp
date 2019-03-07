@@ -10,7 +10,7 @@
 
 namespace PV {
 
-BaseConnection::BaseConnection(char const *name, PVParams *params, Communicator *comm) {
+BaseConnection::BaseConnection(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -18,7 +18,7 @@ BaseConnection::BaseConnection() {}
 
 BaseConnection::~BaseConnection() {}
 
-void BaseConnection::initialize(char const *name, PVParams *params, Communicator *comm) {
+void BaseConnection::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ComponentBasedObject::initialize(name, params, comm);
 
    // The WeightsPair writes this flag to output params file. Other ParamsInterface-derived

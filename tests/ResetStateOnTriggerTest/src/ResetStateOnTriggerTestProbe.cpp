@@ -5,7 +5,7 @@
 ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(
       char const *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -21,7 +21,7 @@ int ResetStateOnTriggerTestProbe::initialize_base() {
 void ResetStateOnTriggerTestProbe::initialize(
       char const *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    int status = PV_SUCCESS;
    PV::LayerProbe::initialize(name, params, comm);
 }
@@ -121,7 +121,9 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, d
 
 ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {}
 
-PV::BaseObject *
-createResetStateOnTriggerTestProbe(char const *name, PV::PVParams *params, PV::Communicator *comm) {
+PV::BaseObject *createResetStateOnTriggerTestProbe(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator const *comm) {
    return new ResetStateOnTriggerTestProbe(name, params, comm);
 }

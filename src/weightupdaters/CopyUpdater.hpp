@@ -31,14 +31,14 @@ class CopyUpdater : public BaseWeightUpdater {
    /** @} */ // end of CopyUpdater parameters
 
   public:
-   CopyUpdater(char const *name, PVParams *params, Communicator *comm);
+   CopyUpdater(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~CopyUpdater() {}
 
   protected:
    CopyUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

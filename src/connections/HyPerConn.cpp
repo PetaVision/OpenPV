@@ -12,7 +12,7 @@
 
 namespace PV {
 
-HyPerConn::HyPerConn(char const *name, PVParams *params, Communicator *comm) {
+HyPerConn::HyPerConn(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -20,7 +20,7 @@ HyPerConn::HyPerConn() {}
 
 HyPerConn::~HyPerConn() { delete mUpdateTimer; }
 
-void HyPerConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+void HyPerConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseConnection::initialize(name, params, comm);
 }
 

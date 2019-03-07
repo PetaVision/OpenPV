@@ -16,7 +16,7 @@ template <typename G, typename V, typename A>
 HyPerActivityComponent<G, V, A>::HyPerActivityComponent(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -27,7 +27,7 @@ template <typename G, typename V, typename A>
 void HyPerActivityComponent<G, V, A>::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    ActivityComponent::initialize(name, params, comm);
 }
 

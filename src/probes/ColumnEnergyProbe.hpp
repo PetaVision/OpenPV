@@ -40,7 +40,7 @@ class ColumnEnergyProbe : public ColProbe {
    /**
     * Public constructor for the ColumnEnergyProbe class.
     */
-   ColumnEnergyProbe(const char *probename, PVParams *params, Communicator *comm);
+   ColumnEnergyProbe(const char *probename, PVParams *params, Communicator const *comm);
 
    /**
     * Destructor for the ColumnEnergyProbe class.
@@ -80,7 +80,7 @@ class ColumnEnergyProbe : public ColProbe {
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   void initialize(const char *probename, PVParams *params, Communicator *comm);
+   void initialize(const char *probename, PVParams *params, Communicator const *comm);
 
    virtual void outputHeader() override;
 

@@ -9,13 +9,16 @@
 
 namespace PV {
 
-HyPerActivityBuffer::HyPerActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+HyPerActivityBuffer::HyPerActivityBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 HyPerActivityBuffer::~HyPerActivityBuffer() {}
 
-void HyPerActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void HyPerActivityBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    VInputActivityBuffer::initialize(name, params, comm);
 }
 

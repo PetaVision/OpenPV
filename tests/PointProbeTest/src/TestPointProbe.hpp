@@ -12,7 +12,7 @@ namespace PV {
 
 class TestPointProbe : public PV::PointProbe {
   public:
-   TestPointProbe(const char *name, PVParams *params, Communicator *comm);
+   TestPointProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~TestPointProbe();
 
   protected:

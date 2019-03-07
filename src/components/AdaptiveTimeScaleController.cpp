@@ -22,7 +22,7 @@ AdaptiveTimeScaleController::AdaptiveTimeScaleController(
       double tauFactor,
       double growthFactor,
       bool writeTimeScaleFieldnames,
-      Communicator *communicator) {
+      Communicator const *communicator) {
    mName                     = strdup(name);
    mBatchWidth               = batchWidth;
    mBaseMax                  = baseMax;

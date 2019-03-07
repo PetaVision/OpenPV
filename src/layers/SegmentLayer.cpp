@@ -5,7 +5,7 @@
 
 namespace PV {
 
-SegmentLayer::SegmentLayer(const char *name, PVParams *params, Communicator *comm) {
+SegmentLayer::SegmentLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -13,7 +13,7 @@ SegmentLayer::SegmentLayer() {}
 
 SegmentLayer::~SegmentLayer() {}
 
-void SegmentLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void SegmentLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

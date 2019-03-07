@@ -10,7 +10,7 @@
 
 namespace PV {
 
-ActivityComponent::ActivityComponent(char const *name, PVParams *params, Communicator *comm) {
+ActivityComponent::ActivityComponent(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ ActivityComponent::~ActivityComponent() {
 #endif // PV_USE_CUDA
 }
 
-void ActivityComponent::initialize(char const *name, PVParams *params, Communicator *comm) {
+void ActivityComponent::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ComponentBasedObject::initialize(name, params, comm);
 }
 

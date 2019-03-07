@@ -2,7 +2,10 @@
 
 namespace PV {
 
-ImagePvpTestBuffer::ImagePvpTestBuffer(const char *name, PVParams *params, Communicator *comm) {
+ImagePvpTestBuffer::ImagePvpTestBuffer(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 

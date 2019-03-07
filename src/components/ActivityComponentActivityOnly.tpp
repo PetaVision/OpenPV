@@ -14,7 +14,7 @@ template <typename A>
 ActivityComponentActivityOnly<A>::ActivityComponentActivityOnly(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -25,7 +25,7 @@ template <typename A>
 void ActivityComponentActivityOnly<A>::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    ActivityComponent::initialize(name, params, comm);
 }
 

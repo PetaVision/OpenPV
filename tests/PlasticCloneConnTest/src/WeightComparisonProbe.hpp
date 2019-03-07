@@ -26,7 +26,7 @@ class WeightComparisonProbe : public PV::ColProbe {
    /**
     * Public constructor for the ColProbe class.
     */
-   WeightComparisonProbe(char const *name, PV::PVParams *params, PV::Communicator *comm);
+   WeightComparisonProbe(char const *name, PV::PVParams *params, PV::Communicator const *comm);
 
    /**
     * Destructor for the ColProbe class.
@@ -36,7 +36,7 @@ class WeightComparisonProbe : public PV::ColProbe {
   protected:
    /**
     */
-   void initialize(char const *name, PV::PVParams *params, PV::Communicator *comm);
+   void initialize(char const *name, PV::PVParams *params, PV::Communicator const *comm);
    /**
     * Assembles the list of HyPerConns in the column.
     */

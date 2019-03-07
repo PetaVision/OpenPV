@@ -29,7 +29,7 @@ class ComponentBasedObject : public BaseObject, public Subject {
 
   protected:
    ComponentBasedObject();
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
   private:
    int initialize_base();

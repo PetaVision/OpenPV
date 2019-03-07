@@ -13,7 +13,7 @@ namespace PV {
 
 KernelProbe::KernelProbe() { initialize_base(); }
 
-KernelProbe::KernelProbe(const char *probename, PVParams *params, Communicator *comm) {
+KernelProbe::KernelProbe(const char *probename, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(probename, params, comm);
 }
@@ -22,7 +22,7 @@ KernelProbe::~KernelProbe() {}
 
 int KernelProbe::initialize_base() { return PV_SUCCESS; }
 
-void KernelProbe::initialize(const char *probename, PVParams *params, Communicator *comm) {
+void KernelProbe::initialize(const char *probename, PVParams *params, Communicator const *comm) {
    BaseConnectionProbe::initialize(probename, params, comm);
 }
 
@@ -184,12 +184,11 @@ Response::Status KernelProbe::outputState(double simTime, double deltaTime) {
    if (mOutputStreams.empty()) {
       return Response::NO_ACTION;
    }
-   Communicator *icComm = mCommunicator;
-   const int rank       = icComm->commRank();
-   int nxp              = getPatchSize()->getPatchSizeX();
-   int nyp              = getPatchSize()->getPatchSizeY();
-   int nfp              = getPatchSize()->getPatchSizeF();
-   int patchSize        = nxp * nyp * nfp;
+   const int rank = mCommunicator->commRank();
+   int nxp        = getPatchSize()->getPatchSizeX();
+   int nyp        = getPatchSize()->getPatchSizeY();
+   int nfp        = getPatchSize()->getPatchSizeF();
+   int patchSize  = nxp * nyp * nfp;
 
    const float *wdata  = mWeightData + patchSize * kernelIndex;
    const float *dwdata = outputPlasticIncr ? mDeltaWeightData + patchSize * kernelIndex : nullptr;

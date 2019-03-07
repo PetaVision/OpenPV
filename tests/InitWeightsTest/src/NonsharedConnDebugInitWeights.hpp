@@ -18,11 +18,11 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
 
   public:
    NonsharedConnDebugInitWeights();
-   NonsharedConnDebugInitWeights(const char *name, PVParams *params, Communicator *comm);
+   NonsharedConnDebugInitWeights(const char *name, PVParams *params, Communicator const *comm);
    virtual ~NonsharedConnDebugInitWeights();
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual SharedWeights *createSharedWeights() override;
 

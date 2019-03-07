@@ -33,7 +33,7 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
          double tauFactor,
          double growthFactor,
          bool writeTimeScaleFieldnames,
-         Communicator *comm);
+         Communicator const *comm);
    virtual ~AdaptiveTimeScaleController();
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
@@ -50,7 +50,7 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
    double mTauFactor;
    double mGrowthFactor;
    bool mWriteTimeScaleFieldnames;
-   Communicator *mCommunicator;
+   Communicator const *mCommunicator;
 
    TimeScaleInfo mTimeScaleInfo, mOldTimeScaleInfo;
    std::vector<double> mOldTimeScale;

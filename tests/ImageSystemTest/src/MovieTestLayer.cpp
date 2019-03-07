@@ -5,7 +5,7 @@
 
 namespace PV {
 
-MovieTestLayer::MovieTestLayer(char const *name, PVParams *params, Communicator *comm) {
+MovieTestLayer::MovieTestLayer(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 

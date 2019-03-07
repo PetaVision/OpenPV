@@ -21,7 +21,7 @@ void verifyLayerLocs(
       PV::BasePublisherComponent *publisher1,
       PV::BasePublisherComponent *publisher2);
 PV::Buffer<float>
-gatherLayerData(PV::BasePublisherComponent *publisher, PV::Communicator *communicator);
+gatherLayerData(PV::BasePublisherComponent *publisher, PV::Communicator const *communicator);
 void verifyActivity(
       PV::Buffer<float> *inputBuffer,
       std::string const &inputName,
@@ -44,9 +44,9 @@ int main(int argc, char *argv[]) {
    verifyLayerLocs(inputPublisher, validRegionPublisher);
 
    // Gather everything to rank-zero process; nonzero-rank processes are then done.
-   PV::Communicator *communicator = hc->getCommunicator();
-   auto inputBuffer               = gatherLayerData(inputPublisher, communicator);
-   auto validRegionBuffer         = gatherLayerData(validRegionPublisher, communicator);
+   PV::Communicator const *communicator = hc->getCommunicator();
+   auto inputBuffer                     = gatherLayerData(inputPublisher, communicator);
+   auto validRegionBuffer               = gatherLayerData(validRegionPublisher, communicator);
 
    if (communicator->commRank() == 0) {
       verifyActivity(
@@ -152,7 +152,7 @@ void verifyLayerLocs(
 }
 
 PV::Buffer<float>
-gatherLayerData(PV::BasePublisherComponent *publisher, PV::Communicator *communicator) {
+gatherLayerData(PV::BasePublisherComponent *publisher, PV::Communicator const *communicator) {
    PVLayerLoc const *loc = publisher->getLayerLoc();
    int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
    int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;

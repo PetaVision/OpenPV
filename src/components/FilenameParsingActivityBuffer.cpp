@@ -21,7 +21,7 @@ namespace PV {
 FilenameParsingActivityBuffer::FilenameParsingActivityBuffer(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 

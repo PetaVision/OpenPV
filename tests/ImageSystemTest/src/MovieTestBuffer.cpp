@@ -3,7 +3,7 @@
 
 namespace PV {
 
-MovieTestBuffer::MovieTestBuffer(const char *name, PVParams *params, Communicator *comm) {
+MovieTestBuffer::MovieTestBuffer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 

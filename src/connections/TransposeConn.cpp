@@ -12,7 +12,7 @@
 
 namespace PV {
 
-TransposeConn::TransposeConn(char const *name, PVParams *params, Communicator *comm) {
+TransposeConn::TransposeConn(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -20,7 +20,7 @@ TransposeConn::TransposeConn() {}
 
 TransposeConn::~TransposeConn() {}
 
-void TransposeConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+void TransposeConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
    HyPerConn::initialize(name, params, comm);
 }
 

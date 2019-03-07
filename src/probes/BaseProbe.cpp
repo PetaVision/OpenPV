@@ -60,7 +60,7 @@ int BaseProbe::initialize_base() {
  * @filename
  * @layer
  */
-void BaseProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void BaseProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
    readParams();
 }

@@ -12,7 +12,7 @@ namespace PV {
 PostsynapticPerspectiveConvolveDelivery::PostsynapticPerspectiveConvolveDelivery(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -23,7 +23,7 @@ PostsynapticPerspectiveConvolveDelivery::~PostsynapticPerspectiveConvolveDeliver
 void PostsynapticPerspectiveConvolveDelivery::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

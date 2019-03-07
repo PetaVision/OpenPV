@@ -4,13 +4,13 @@
 
 namespace PV {
 
-PvpLayer::PvpLayer(char const *name, PVParams *params, Communicator *comm) {
+PvpLayer::PvpLayer(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 PvpLayer::~PvpLayer() {}
 
-void PvpLayer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void PvpLayer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    InputLayer::initialize(name, params, comm);
 }
 

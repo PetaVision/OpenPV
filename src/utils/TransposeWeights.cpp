@@ -13,7 +13,10 @@
 
 namespace PV {
 
-void TransposeWeights::transpose(Weights *preWeights, Weights *postWeights, Communicator *comm) {
+void TransposeWeights::transpose(
+      Weights *preWeights,
+      Weights *postWeights,
+      Communicator const *comm) {
    int const numArbors = preWeights->getNumArbors();
    FatalIf(
          numArbors != postWeights->getNumArbors(),
@@ -31,7 +34,7 @@ void TransposeWeights::transpose(Weights *preWeights, Weights *postWeights, Comm
 void TransposeWeights::transpose(
       Weights *preWeights,
       Weights *postWeights,
-      Communicator *comm,
+      Communicator const *comm,
       int arbor) {
    // TODO: Check if preWeights's preLoc is postWeights's postLoc and vice versa
    bool sharedFlag = preWeights->getSharedFlag();
@@ -121,7 +124,7 @@ void TransposeWeights::transposeShared(Weights *preWeights, Weights *postWeights
 void TransposeWeights::transposeNonshared(
       Weights *preWeights,
       Weights *postWeights,
-      Communicator *comm,
+      Communicator const *comm,
       int arbor) {
    int const numPatchesXPre = preWeights->getNumDataPatchesX();
    int const numPatchesYPre = preWeights->getNumDataPatchesY();

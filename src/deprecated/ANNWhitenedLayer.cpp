@@ -33,7 +33,7 @@ namespace PV {
 
 ANNWhitenedLayer::ANNWhitenedLayer() { initialize_base(); }
 
-ANNWhitenedLayer::ANNWhitenedLayer(const char *name, PVParams *params, Communicator *comm) {
+ANNWhitenedLayer::ANNWhitenedLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -42,7 +42,7 @@ ANNWhitenedLayer::~ANNWhitenedLayer() {}
 
 int ANNWhitenedLayer::initialize_base() { return PV_SUCCESS; }
 
-void ANNWhitenedLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ANNWhitenedLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    WarnLog() << "ANNWhitenedLayer has been deprecated.\n";
    ANNLayer::initialize(name, params, comm);
    mLayerInput->requireChannel(2); // applyGSyn_ANNWhitenedLayer uses channels 0, 1, and 2

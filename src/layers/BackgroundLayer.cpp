@@ -12,13 +12,13 @@
 namespace PV {
 BackgroundLayer::BackgroundLayer() {}
 
-BackgroundLayer::BackgroundLayer(const char *name, PVParams *params, Communicator *comm) {
+BackgroundLayer::BackgroundLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 BackgroundLayer::~BackgroundLayer() {}
 
-void BackgroundLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void BackgroundLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

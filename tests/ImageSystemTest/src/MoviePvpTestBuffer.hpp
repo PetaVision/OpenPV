@@ -11,7 +11,7 @@ namespace PV {
 
 class MoviePvpTestBuffer : public PvpActivityBuffer {
   public:
-   MoviePvpTestBuffer(const char *name, PVParams *params, Communicator *comm);
+   MoviePvpTestBuffer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    virtual void updateBufferCPU(double simTime, double deltaTime) override;

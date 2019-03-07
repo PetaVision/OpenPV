@@ -19,13 +19,13 @@ namespace PV {
  */
 class ANNSquaredLayer : public HyPerLayer {
   public:
-   ANNSquaredLayer(const char *name, PVParams *params, Communicator *comm);
+   ANNSquaredLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~ANNSquaredLayer();
 
   protected:
    ANNSquaredLayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 

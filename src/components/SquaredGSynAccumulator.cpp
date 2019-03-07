@@ -12,13 +12,16 @@ namespace PV {
 SquaredGSynAccumulator::SquaredGSynAccumulator(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 SquaredGSynAccumulator::~SquaredGSynAccumulator() {}
 
-void SquaredGSynAccumulator::initialize(char const *name, PVParams *params, Communicator *comm) {
+void SquaredGSynAccumulator::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    SingleChannelGSynAccumulator::initialize(name, params, comm);
 }
 

@@ -16,7 +16,7 @@ InitRandomWeights::~InitRandomWeights() {
    mRandState = nullptr;
 }
 
-void InitRandomWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InitRandomWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
    InitWeights::initialize(name, params, comm);
 }
 

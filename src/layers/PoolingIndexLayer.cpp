@@ -14,7 +14,7 @@
 
 namespace PV {
 
-PoolingIndexLayer::PoolingIndexLayer(const char *name, PVParams *params, Communicator *comm) {
+PoolingIndexLayer::PoolingIndexLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -22,7 +22,7 @@ PoolingIndexLayer::PoolingIndexLayer() {}
 
 PoolingIndexLayer::~PoolingIndexLayer() {}
 
-void PoolingIndexLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void PoolingIndexLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
    // This layer is storing its buffers as ints. This is a check to make sure the sizes are the same
    assert(sizeof(int) == sizeof(float));

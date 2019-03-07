@@ -10,13 +10,13 @@
 
 namespace PV {
 
-SharedWeightsTrue::SharedWeightsTrue(char const *name, PVParams *params, Communicator *comm) {
+SharedWeightsTrue::SharedWeightsTrue(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 SharedWeightsTrue::~SharedWeightsTrue() {}
 
-void SharedWeightsTrue::initialize(char const *name, PVParams *params, Communicator *comm) {
+void SharedWeightsTrue::initialize(char const *name, PVParams *params, Communicator const *comm) {
    SharedWeights::initialize(name, params, comm);
 }
 

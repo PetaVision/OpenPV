@@ -37,7 +37,7 @@ class PublisherComponent : public BasePublisherComponent {
    /** @} */ // end of PublisherComponent parameters
 
   public:
-   PublisherComponent(char const *name, PVParams *params, Communicator *comm);
+   PublisherComponent(char const *name, PVParams *params, Communicator const *comm);
    virtual ~PublisherComponent();
 
    bool getSparseLayer() const { return mSparseLayer; }
@@ -45,7 +45,7 @@ class PublisherComponent : public BasePublisherComponent {
   protected:
    PublisherComponent();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

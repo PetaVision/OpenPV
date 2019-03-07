@@ -12,11 +12,11 @@
 
 namespace PV {
 
-NormalizeBase::NormalizeBase(char const *name, PVParams *params, Communicator *comm) {
+NormalizeBase::NormalizeBase(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void NormalizeBase::initialize(char const *name, PVParams *params, Communicator *comm) {
+void NormalizeBase::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

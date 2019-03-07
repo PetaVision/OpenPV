@@ -14,7 +14,10 @@
 namespace PV {
 RunningAverageLayer::RunningAverageLayer() { initialize_base(); }
 
-RunningAverageLayer::RunningAverageLayer(const char *name, PVParams *params, Communicator *comm) {
+RunningAverageLayer::RunningAverageLayer(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -27,7 +30,7 @@ int RunningAverageLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-void RunningAverageLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void RunningAverageLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    WarnLog() << "RunningAverageLayer has been deprecated.\n";
    int status_init = CloneVLayer::initialize(name, params, comm);
    return status_init;

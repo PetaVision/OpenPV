@@ -12,7 +12,7 @@ namespace PV {
 InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -23,7 +23,7 @@ InitOneToOneWeightsWithDelays::~InitOneToOneWeightsWithDelays() {}
 void InitOneToOneWeightsWithDelays::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    InitWeights::initialize(name, params, comm);
 }
 

@@ -46,7 +46,7 @@ class LayerGeometry : public BaseObject {
    /** @} */ // end of LayerGeometry parameters
 
   public:
-   LayerGeometry(char const *name, PVParams *params, Communicator *comm);
+   LayerGeometry(char const *name, PVParams *params, Communicator const *comm);
    virtual ~LayerGeometry();
 
    /**
@@ -91,7 +91,7 @@ class LayerGeometry : public BaseObject {
   protected:
    LayerGeometry();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

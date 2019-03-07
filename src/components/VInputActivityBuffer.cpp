@@ -9,13 +9,19 @@
 
 namespace PV {
 
-VInputActivityBuffer::VInputActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+VInputActivityBuffer::VInputActivityBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 VInputActivityBuffer::~VInputActivityBuffer() {}
 
-void VInputActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void VInputActivityBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 

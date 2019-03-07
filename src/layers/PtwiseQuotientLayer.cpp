@@ -21,13 +21,16 @@ namespace PV {
 
 PtwiseQuotientLayer::PtwiseQuotientLayer() {}
 
-PtwiseQuotientLayer::PtwiseQuotientLayer(const char *name, PVParams *params, Communicator *comm) {
+PtwiseQuotientLayer::PtwiseQuotientLayer(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 } // end PtwiseQuotientLayer::PtwiseQuotientLayer(const char *, HyPerCol *)
 
 PtwiseQuotientLayer::~PtwiseQuotientLayer() {}
 
-void PtwiseQuotientLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void PtwiseQuotientLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

@@ -20,13 +20,16 @@ namespace PV {
 
 PtwiseProductLayer::PtwiseProductLayer() {}
 
-PtwiseProductLayer::PtwiseProductLayer(const char *name, PVParams *params, Communicator *comm) {
+PtwiseProductLayer::PtwiseProductLayer(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 } // end PtwiseProductLayer::PtwiseProductLayer(const char *, HyPerCol *)
 
 PtwiseProductLayer::~PtwiseProductLayer() {}
 
-void PtwiseProductLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void PtwiseProductLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

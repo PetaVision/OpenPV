@@ -11,7 +11,7 @@
 namespace PV {
 InitVFromFile::InitVFromFile() { initialize_base(); }
 
-InitVFromFile::InitVFromFile(char const *name, PVParams *params, Communicator *comm) {
+InitVFromFile::InitVFromFile(char const *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -20,7 +20,7 @@ InitVFromFile::~InitVFromFile() { free(mVfilename); }
 
 int InitVFromFile::initialize_base() { return PV_SUCCESS; }
 
-void InitVFromFile::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InitVFromFile::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseInitV::initialize(name, params, comm);
 }
 

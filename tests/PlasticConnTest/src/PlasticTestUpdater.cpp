@@ -9,7 +9,7 @@
 
 namespace PV {
 
-PlasticTestUpdater::PlasticTestUpdater(const char *name, PVParams *params, Communicator *comm)
+PlasticTestUpdater::PlasticTestUpdater(const char *name, PVParams *params, Communicator const *comm)
       : HebbianUpdater() {
    HebbianUpdater::initialize(name, params, comm);
 }

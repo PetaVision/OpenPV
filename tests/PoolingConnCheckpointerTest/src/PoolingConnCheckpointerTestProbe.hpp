@@ -21,7 +21,10 @@ class PoolingConnCheckpointerTestProbe : public PV::ColProbe {
    /**
     * Public constructor for the PoolingConnCheckpointerTestProbe class.
     */
-   PoolingConnCheckpointerTestProbe(const char *name, PV::PVParams *params, PV::Communicator *comm);
+   PoolingConnCheckpointerTestProbe(
+         const char *name,
+         PV::PVParams *params,
+         PV::Communicator const *comm);
 
    /**
     * Destructor for the PoolingConnCheckpointerTestProbe class.
@@ -37,7 +40,7 @@ class PoolingConnCheckpointerTestProbe : public PV::ColProbe {
    bool getTestFailed() const { return mTestFailed; }
 
   protected:
-   void initialize(const char *name, PV::PVParams *params, PV::Communicator *comm);
+   void initialize(const char *name, PV::PVParams *params, PV::Communicator const *comm);
    virtual void ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) override;
    virtual PV::Response::Status
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;

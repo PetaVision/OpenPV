@@ -5,7 +5,7 @@ namespace PV {
 MomentumTestConnProbe::MomentumTestConnProbe(
       const char *probename,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize_base();
    initialize(probename, params, comm);
 }

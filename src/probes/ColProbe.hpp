@@ -38,7 +38,7 @@ class ColProbe : public BaseProbe {
    /**
     * Public constructor for the ColProbe class.
     */
-   ColProbe(const char *name, PVParams *params, Communicator *comm);
+   ColProbe(const char *name, PVParams *params, Communicator const *comm);
 
    /**
     * Destructor for the ColProbe class.
@@ -73,7 +73,7 @@ class ColProbe : public BaseProbe {
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    /**
     * Defines actions for the ColProbeWriteParams and ColProbeOutputState messages,

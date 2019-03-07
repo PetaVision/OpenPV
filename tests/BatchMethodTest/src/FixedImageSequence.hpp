@@ -12,7 +12,7 @@ class FixedImageSequence : public PV::HyPerLayer {
     */
 
   public:
-   FixedImageSequence(char const *name, PV::PVParams *params, PV::Communicator *comm);
+   FixedImageSequence(char const *name, PV::PVParams *params, PV::Communicator const *comm);
    virtual ~FixedImageSequence() {}
 
   protected:

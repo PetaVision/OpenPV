@@ -21,12 +21,12 @@ class ConstantLayer : public HyPerLayer {
     */
 
   public:
-   ConstantLayer(const char *name, PVParams *params, Communicator *comm);
+   ConstantLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~ConstantLayer();
 
   protected:
    ConstantLayer();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    LayerUpdateController *createLayerUpdateController() override;
    LayerOutputComponent *createLayerOutput() override;

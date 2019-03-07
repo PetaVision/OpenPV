@@ -62,7 +62,7 @@ class HyPerLayer : public ComponentBasedObject {
    /** @} */
 
   public:
-   HyPerLayer(const char *name, PVParams *params, Communicator *comm);
+   HyPerLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~HyPerLayer();
 
    void synchronizeMarginWidth(HyPerLayer *layer);
@@ -97,7 +97,7 @@ class HyPerLayer : public ComponentBasedObject {
 
   protected:
    HyPerLayer();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual void initMessageActionMap() override;
    virtual void createComponentTable(char const *description) override;

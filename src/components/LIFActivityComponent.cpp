@@ -12,13 +12,19 @@
 
 namespace PV {
 
-LIFActivityComponent::LIFActivityComponent(char const *name, PVParams *params, Communicator *comm) {
+LIFActivityComponent::LIFActivityComponent(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 LIFActivityComponent::~LIFActivityComponent() { delete mRandState; }
 
-void LIFActivityComponent::initialize(char const *name, PVParams *params, Communicator *comm) {
+void LIFActivityComponent::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ActivityComponent::initialize(name, params, comm);
 }
 

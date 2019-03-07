@@ -9,13 +9,13 @@
 
 namespace PV {
 
-PvpActivityBuffer::PvpActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+PvpActivityBuffer::PvpActivityBuffer(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 PvpActivityBuffer::~PvpActivityBuffer() {}
 
-void PvpActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void PvpActivityBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    InputActivityBuffer::initialize(name, params, comm);
 }
 

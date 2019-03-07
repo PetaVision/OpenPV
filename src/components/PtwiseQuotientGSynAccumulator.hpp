@@ -38,7 +38,7 @@ class PtwiseQuotientGSynAccumulator : public GSynAccumulator {
 
    /** @} */
   public:
-   PtwiseQuotientGSynAccumulator(char const *name, PVParams *params, Communicator *comm);
+   PtwiseQuotientGSynAccumulator(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~PtwiseQuotientGSynAccumulator();
 
@@ -47,7 +47,7 @@ class PtwiseQuotientGSynAccumulator : public GSynAccumulator {
   protected:
    PtwiseQuotientGSynAccumulator() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

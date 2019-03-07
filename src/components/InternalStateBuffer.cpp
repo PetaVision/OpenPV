@@ -9,13 +9,16 @@
 
 namespace PV {
 
-InternalStateBuffer::InternalStateBuffer(char const *name, PVParams *params, Communicator *comm) {
+InternalStateBuffer::InternalStateBuffer(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 InternalStateBuffer::~InternalStateBuffer() { free(mInitVTypeString); }
 
-void InternalStateBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InternalStateBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    RestrictedBuffer::initialize(name, params, comm);
    setBufferLabel("V");
 }

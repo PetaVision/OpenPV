@@ -5,7 +5,7 @@ namespace PV {
 AvgPoolTestInputBuffer::AvgPoolTestInputBuffer(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 

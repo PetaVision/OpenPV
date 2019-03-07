@@ -45,13 +45,13 @@ class LayerOutputComponent : public BaseObject {
    /** @} */ // end of LayerOutputComponent parameters
 
   public:
-   LayerOutputComponent(char const *name, PVParams *params, Communicator *comm);
+   LayerOutputComponent(char const *name, PVParams *params, Communicator const *comm);
    virtual ~LayerOutputComponent();
 
   protected:
    LayerOutputComponent();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

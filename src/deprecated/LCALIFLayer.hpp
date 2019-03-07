@@ -21,7 +21,7 @@ class LCALIFLayer : public LIFGap {
    LCALIFLayer(
          const char *name,
          PVParams *params,
-         Communicator *comm); // The constructor called by other methods
+         Communicator const *comm); // The constructor called by other methods
    virtual ~LCALIFLayer();
    virtual Response::Status allocateDataStructures() override;
    virtual Response::Status updateState(double timef, double dt) override;

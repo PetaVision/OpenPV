@@ -11,7 +11,7 @@
 
 namespace PV {
 
-L1NormLCAProbe::L1NormLCAProbe(const char *name, PVParams *params, Communicator *comm) {
+L1NormLCAProbe::L1NormLCAProbe(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }

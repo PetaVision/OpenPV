@@ -14,7 +14,7 @@ class MomentumTestConnProbe : public BaseHyPerConnProbe {
 
    // Methods
   public:
-   MomentumTestConnProbe(const char *probename, PVParams *params, Communicator *comm);
+   MomentumTestConnProbe(const char *probename, PVParams *params, Communicator const *comm);
    virtual ~MomentumTestConnProbe();
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 

@@ -12,7 +12,7 @@ namespace PV {
 BasePublisherComponent::BasePublisherComponent(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -23,7 +23,10 @@ BasePublisherComponent::~BasePublisherComponent() {
    delete mPublisher;
 }
 
-void BasePublisherComponent::initialize(char const *name, PVParams *params, Communicator *comm) {
+void BasePublisherComponent::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 
@@ -162,7 +165,7 @@ BasePublisherComponent::respondLayerPublish(std::shared_ptr<LayerPublishMessage 
    return Response::SUCCESS;
 }
 
-void BasePublisherComponent::publish(Communicator *comm, double simTime) {
+void BasePublisherComponent::publish(Communicator const *comm, double simTime) {
    double lastUpdateTime = mUpdateController ? mUpdateController->getLastUpdateTime() : 0.0;
    if (lastUpdateTime >= simTime) {
       if (mBoundaryConditions->getMirrorBCflag()) {
@@ -188,7 +191,7 @@ bool BasePublisherComponent::isExchangeFinished(int delay) {
    return mPublisher->isExchangeFinished(delay);
 }
 
-int BasePublisherComponent::waitOnPublish(Communicator *comm) {
+int BasePublisherComponent::waitOnPublish(Communicator const *comm) {
    mPublishTimer->start();
 
    // wait for MPI border transfers to complete

@@ -14,12 +14,12 @@ namespace PV {
 
 class PoolingIndexLayer : public HyPerLayer {
   public:
-   PoolingIndexLayer(const char *name, PVParams *params, Communicator *comm);
+   PoolingIndexLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~PoolingIndexLayer();
 
   protected:
    PoolingIndexLayer();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent();

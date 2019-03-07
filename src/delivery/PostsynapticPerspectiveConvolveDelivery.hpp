@@ -32,7 +32,10 @@ class PostsynapticPerspectiveConvolveDelivery : public HyPerDelivery {
    /** @} */ // End of list of BaseDelivery parameters.
 
   public:
-   PostsynapticPerspectiveConvolveDelivery(char const *name, PVParams *params, Communicator *comm);
+   PostsynapticPerspectiveConvolveDelivery(
+         char const *name,
+         PVParams *params,
+         Communicator const *comm);
 
    virtual ~PostsynapticPerspectiveConvolveDelivery();
 
@@ -54,7 +57,7 @@ class PostsynapticPerspectiveConvolveDelivery : public HyPerDelivery {
   protected:
    PostsynapticPerspectiveConvolveDelivery();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

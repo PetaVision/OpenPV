@@ -12,7 +12,7 @@
 
 namespace PV {
 
-StatsProbe::StatsProbe(const char *name, PVParams *params, Communicator *comm) {
+StatsProbe::StatsProbe(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -58,7 +58,7 @@ int StatsProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-void StatsProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void StatsProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    LayerProbe::initialize(name, params, comm);
 }
 
@@ -199,10 +199,10 @@ StatsProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
 
 Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
 #ifdef PV_USE_MPI
-   Communicator *icComm = mCommunicator;
-   MPI_Comm comm        = icComm->communicator();
-   int rank             = icComm->commRank();
-   const int rcvProc    = 0;
+   Communicator const *icComm = mCommunicator;
+   MPI_Comm comm              = icComm->communicator();
+   int rank                   = icComm->commRank();
+   const int rcvProc          = 0;
 #endif // PV_USE_MPI
 
    int nk;

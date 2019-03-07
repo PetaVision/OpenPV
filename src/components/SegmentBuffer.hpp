@@ -20,7 +20,7 @@ class SegmentBuffer : public ActivityBuffer {
    void ioParam_segmentMethod(enum ParamsIOFlag ioFlag);
 
   public:
-   SegmentBuffer(const char *name, PVParams *params, Communicator *comm);
+   SegmentBuffer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~SegmentBuffer();
 
    virtual Response::Status allocateDataStructures() override;
@@ -29,7 +29,7 @@ class SegmentBuffer : public ActivityBuffer {
 
   protected:
    SegmentBuffer();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

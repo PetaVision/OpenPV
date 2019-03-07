@@ -26,12 +26,12 @@ class MomentumLCAInternalStateBuffer : public HyPerLCAInternalStateBuffer {
    /** @} */
 
   public:
-   MomentumLCAInternalStateBuffer(const char *name, PVParams *params, Communicator *comm);
+   MomentumLCAInternalStateBuffer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~MomentumLCAInternalStateBuffer();
 
   protected:
    MomentumLCAInternalStateBuffer();
-   int initialize(const char *name, PVParams *params, Communicator *comm);
+   int initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;

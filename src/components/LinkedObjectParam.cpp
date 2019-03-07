@@ -15,7 +15,7 @@ LinkedObjectParam::~LinkedObjectParam() {}
 void LinkedObjectParam::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm,
+      Communicator const *comm,
       std::string const &paramName) {
    mParamName = paramName;
    BaseObject::initialize(name, params, comm);

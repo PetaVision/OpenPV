@@ -9,7 +9,10 @@
 
 namespace PV {
 
-LayerPhaseTestProbe::LayerPhaseTestProbe(const char *name, PVParams *params, Communicator *comm)
+LayerPhaseTestProbe::LayerPhaseTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm)
       : StatsProbe() {
    initialize_base();
    initialize(name, params, comm);
@@ -17,7 +20,7 @@ LayerPhaseTestProbe::LayerPhaseTestProbe(const char *name, PVParams *params, Com
 
 int LayerPhaseTestProbe::initialize_base() { return PV_SUCCESS; }
 
-void LayerPhaseTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void LayerPhaseTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 
@@ -43,9 +46,8 @@ Response::Status LayerPhaseTestProbe::outputState(double simTime, double deltaTi
    if (status != Response::SUCCESS) {
       return status;
    }
-   Communicator *icComm = mCommunicator;
-   const int rcvProc    = 0;
-   if (icComm->commRank() != rcvProc) {
+   const int rcvProc = 0;
+   if (mCommunicator->commRank() != rcvProc) {
       return status;
    }
    for (int b = 0; b < mLocalBatchWidth; b++) {

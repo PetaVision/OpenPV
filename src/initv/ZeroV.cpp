@@ -10,7 +10,7 @@
 namespace PV {
 ZeroV::ZeroV() { initialize_base(); }
 
-ZeroV::ZeroV(char const *name, PVParams *params, Communicator *comm) {
+ZeroV::ZeroV(char const *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -19,7 +19,7 @@ ZeroV::~ZeroV() {}
 
 int ZeroV::initialize_base() { return PV_SUCCESS; }
 
-void ZeroV::initialize(char const *name, PVParams *params, Communicator *comm) {
+void ZeroV::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ConstantV::initialize(name, params, comm);
 }
 

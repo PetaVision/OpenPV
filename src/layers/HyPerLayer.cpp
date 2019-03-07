@@ -21,7 +21,7 @@ namespace PV {
 // derived classes.  It should NOT call any virtual methods
 HyPerLayer::HyPerLayer() {}
 
-HyPerLayer::HyPerLayer(const char *name, PVParams *params, Communicator *comm) {
+HyPerLayer::HyPerLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -32,7 +32,7 @@ HyPerLayer::~HyPerLayer() {}
 /// to take advantage of virtual methods.  Note that the HyPerLayer constructor
 /// does not call initialize.  This way, HyPerLayer::initialize can call virtual
 /// methods and the derived class's method will be the one that gets called.
-void HyPerLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void HyPerLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    ComponentBasedObject::initialize(name, params, comm);
 
    // The layer writes this flag to output params file. ParamsInterface-derived components of the

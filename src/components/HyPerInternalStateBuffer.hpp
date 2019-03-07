@@ -20,14 +20,14 @@ namespace PV {
  */
 class HyPerInternalStateBuffer : public InternalStateBuffer {
   public:
-   HyPerInternalStateBuffer(char const *name, PVParams *params, Communicator *comm);
+   HyPerInternalStateBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~HyPerInternalStateBuffer();
 
   protected:
    HyPerInternalStateBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

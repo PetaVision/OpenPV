@@ -12,7 +12,7 @@
 
 namespace PV {
 
-typedef BaseObject *(*ObjectCreateFn)(char const *name, PVParams *params, Communicator *comm);
+typedef BaseObject *(*ObjectCreateFn)(char const *name, PVParams *params, Communicator const *comm);
 
 /**
  * KeywordHandler is a class that associates a string, the keyword,
@@ -62,7 +62,7 @@ class KeywordHandler {
    /**
     * The method that calls the function pointer with the given arguments
     */
-   BaseObject *create(char const *name, PVParams *params, Communicator *comm) const;
+   BaseObject *create(char const *name, PVParams *params, Communicator const *comm) const;
 
    /**
     * The destructor for KeywordHandler.
@@ -76,7 +76,7 @@ class KeywordHandler {
     */
    int initialize(
          char const *kw,
-         BaseObject *(*creator)(char const *name, PVParams *params, Communicator *comm));
+         BaseObject *(*creator)(char const *name, PVParams *params, Communicator const *comm));
 
    // Member variables
   private:

@@ -33,7 +33,7 @@ class DropoutActivityBuffer : public ANNActivityBuffer {
 
    /** @} */
   public:
-   DropoutActivityBuffer(char const *name, PVParams *params, Communicator *comm);
+   DropoutActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~DropoutActivityBuffer();
 
@@ -42,7 +42,7 @@ class DropoutActivityBuffer : public ANNActivityBuffer {
   protected:
    DropoutActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

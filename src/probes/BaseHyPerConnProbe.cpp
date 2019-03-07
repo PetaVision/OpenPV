@@ -10,13 +10,16 @@
 
 namespace PV {
 
-BaseHyPerConnProbe::BaseHyPerConnProbe(const char *name, PVParams *params, Communicator *comm) {
+BaseHyPerConnProbe::BaseHyPerConnProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 BaseHyPerConnProbe::BaseHyPerConnProbe() {}
 
-void BaseHyPerConnProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void BaseHyPerConnProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    BaseConnectionProbe::initialize(name, params, comm);
 }
 

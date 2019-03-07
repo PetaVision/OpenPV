@@ -23,11 +23,11 @@ namespace PV {
  */
 class WTAConn : public BaseConnection {
   public:
-   WTAConn(const char *name, PVParams *params, Communicator *comm);
+   WTAConn(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    WTAConn();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual void createComponentTable(char const *description) override;
 

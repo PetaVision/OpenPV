@@ -11,7 +11,7 @@
 
 namespace PV {
 
-ConstantLayer::ConstantLayer(const char *name, PVParams *params, Communicator *comm) {
+ConstantLayer::ConstantLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -19,7 +19,7 @@ ConstantLayer::ConstantLayer() {}
 
 ConstantLayer::~ConstantLayer() {}
 
-void ConstantLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ConstantLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

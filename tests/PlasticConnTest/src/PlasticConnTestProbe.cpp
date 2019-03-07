@@ -14,11 +14,14 @@ namespace PV {
 PlasticConnTestProbe::PlasticConnTestProbe(
       const char *probename,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(probename, params, comm);
 }
 
-void PlasticConnTestProbe::initialize(const char *probename, PVParams *params, Communicator *comm) {
+void PlasticConnTestProbe::initialize(
+      const char *probename,
+      PVParams *params,
+      Communicator const *comm) {
    errorPresent = false;
    KernelProbe::initialize(probename, params, comm);
 }
@@ -100,7 +103,6 @@ Response::Status PlasticConnTestProbe::outputState(double simTime, double deltaT
 }
 
 PlasticConnTestProbe::~PlasticConnTestProbe() {
-   Communicator *icComm = mCommunicator;
    if (!mOutputStreams.empty()) {
       if (!errorPresent) {
          output(0).printf("No errors detected\n");

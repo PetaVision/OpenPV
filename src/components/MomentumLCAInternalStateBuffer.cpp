@@ -17,7 +17,7 @@ MomentumLCAInternalStateBuffer::MomentumLCAInternalStateBuffer() {}
 MomentumLCAInternalStateBuffer::MomentumLCAInternalStateBuffer(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -26,7 +26,7 @@ MomentumLCAInternalStateBuffer::~MomentumLCAInternalStateBuffer() {}
 int MomentumLCAInternalStateBuffer::initialize(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    HyPerLCAInternalStateBuffer::initialize(name, params, comm);
    return PV_SUCCESS;
 }

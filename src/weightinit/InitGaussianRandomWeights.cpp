@@ -12,7 +12,7 @@ namespace PV {
 InitGaussianRandomWeights::InitGaussianRandomWeights(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -24,7 +24,10 @@ InitGaussianRandomWeights::~InitGaussianRandomWeights() {
    mRandState = nullptr; // Prevents InitRandomWeights destructor from double-deleting
 }
 
-void InitGaussianRandomWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InitGaussianRandomWeights::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    InitRandomWeights::initialize(name, params, comm);
 }
 

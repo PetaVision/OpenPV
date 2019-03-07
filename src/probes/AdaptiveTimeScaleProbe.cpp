@@ -13,7 +13,7 @@ namespace PV {
 AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,10 @@ AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe() {}
 
 AdaptiveTimeScaleProbe::~AdaptiveTimeScaleProbe() { delete mAdaptiveTimeScaleController; }
 
-void AdaptiveTimeScaleProbe::initialize(char const *name, PVParams *params, Communicator *comm) {
+void AdaptiveTimeScaleProbe::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ColProbe::initialize(name, params, comm);
 }
 

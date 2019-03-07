@@ -19,14 +19,14 @@ namespace PV {
  */
 class RestrictedBuffer : public ComponentBuffer {
   public:
-   RestrictedBuffer(char const *name, PVParams *params, Communicator *comm);
+   RestrictedBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~RestrictedBuffer();
 
   protected:
    RestrictedBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 };

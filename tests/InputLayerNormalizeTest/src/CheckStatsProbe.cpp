@@ -42,7 +42,10 @@ void CheckStatsProbe::ioParam_tolerance(enum PV::ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
 }
 
-CheckStatsProbe::CheckStatsProbe(char const *name, PV::PVParams *params, PV::Communicator *comm) {
+CheckStatsProbe::CheckStatsProbe(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator const *comm) {
    initialize(name, params, comm);
    initialize_base();
 }
@@ -53,7 +56,10 @@ CheckStatsProbe::~CheckStatsProbe() {}
 
 int CheckStatsProbe::initialize_base() { return PV_SUCCESS; }
 
-void CheckStatsProbe::initialize(char const *name, PV::PVParams *params, PV::Communicator *comm) {
+void CheckStatsProbe::initialize(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 
@@ -74,8 +80,7 @@ PV::Response::Status CheckStatsProbe::outputState(double simTime, double deltaTi
    if (status != PV::Response::SUCCESS) {
       return status;
    }
-   PV::Communicator *icComm = mCommunicator;
-   if (icComm->commRank() != 0) {
+   if (mCommunicator->commRank() != 0) {
       return status;
    }
    FatalIf(

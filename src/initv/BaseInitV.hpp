@@ -14,14 +14,14 @@ namespace PV {
 
 class BaseInitV : public BaseObject {
   public:
-   BaseInitV(char const *name, PVParams *params, Communicator *comm);
+   BaseInitV(char const *name, PVParams *params, Communicator const *comm);
    virtual ~BaseInitV();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void calcV(float *V, PVLayerLoc const *loc);
 
   protected:
    BaseInitV();
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
    virtual void setObjectType() override;
 
   private:

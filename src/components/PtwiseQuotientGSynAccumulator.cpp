@@ -12,7 +12,7 @@ namespace PV {
 PtwiseQuotientGSynAccumulator::PtwiseQuotientGSynAccumulator(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ PtwiseQuotientGSynAccumulator::~PtwiseQuotientGSynAccumulator() {}
 void PtwiseQuotientGSynAccumulator::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    GSynAccumulator::initialize(name, params, comm);
 }
 

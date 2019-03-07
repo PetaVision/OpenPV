@@ -15,12 +15,12 @@ namespace PV {
 class VaryingHyPerConn : public HyPerConn {
 
   public:
-   VaryingHyPerConn(const char *name, PVParams *params, Communicator *comm);
+   VaryingHyPerConn(const char *name, PVParams *params, Communicator const *comm);
    virtual ~VaryingHyPerConn();
 
   protected:
    VaryingHyPerConn() {}
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    BaseWeightUpdater *createWeightUpdater() override;
 
 }; // end class VaryingHyPerConn

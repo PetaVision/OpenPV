@@ -40,7 +40,7 @@ class GSynAccumulator : public RestrictedBuffer {
 
    /** @} */
   public:
-   GSynAccumulator(char const *name, PVParams *params, Communicator *comm);
+   GSynAccumulator(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~GSynAccumulator();
 
@@ -49,7 +49,7 @@ class GSynAccumulator : public RestrictedBuffer {
   protected:
    GSynAccumulator() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

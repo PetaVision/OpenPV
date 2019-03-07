@@ -66,14 +66,14 @@ class RetinaActivityBuffer : public ActivityBuffer {
    static constexpr float mDefaultAbsRefractoryPeriod = 3.0f;
    static constexpr float mDefaultRefractoryPeriod    = 5.0f;
 
-   RetinaActivityBuffer(char const *name, PVParams *params, Communicator *comm);
+   RetinaActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~RetinaActivityBuffer();
 
   protected:
    RetinaActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

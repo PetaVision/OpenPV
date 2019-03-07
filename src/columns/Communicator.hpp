@@ -24,10 +24,10 @@ class Communicator {
    virtual ~Communicator();
 
    // Previous names of MPI getter functions now default to local ranks and sizes
-   int commRank() { return localRank; }
-   int globalCommRank() { return globalRank; }
-   int commSize() { return localSize; }
-   int globalCommSize() { return globalSize; }
+   int commRank() const { return localRank; }
+   int globalCommRank() const { return globalRank; }
+   int commSize() const { return localSize; }
+   int globalCommSize() const { return globalSize; }
 
    MPI_Comm communicator() const { return localMPIBlock->getComm(); }
    MPI_Comm batchCommunicator() const { return batchMPIBlock->getComm(); }
@@ -39,21 +39,21 @@ class Communicator {
 
    int numberOfNeighbors(); // includes interior (self) as a neighbor
 
-   bool hasNeighbor(int neighborId);
-   int neighborIndex(int commId, int index);
-   int reverseDirection(int commId, int direction);
+   bool hasNeighbor(int neighborId) const;
+   int neighborIndex(int commId, int index) const;
+   int reverseDirection(int commId, int direction) const;
 
-   int commRow() { return commRow(localRank); }
-   int commColumn() { return commColumn(localRank); }
-   int commBatch() { return commBatch(globalRank); }
-   int numCommRows() { return numRows; }
-   int numCommColumns() { return numCols; }
-   int numCommBatches() { return batchWidth; }
+   int commRow() const { return commRow(localRank); }
+   int commColumn() const { return commColumn(localRank); }
+   int commBatch() const { return commBatch(globalRank); }
+   int numCommRows() const { return numRows; }
+   int numCommColumns() const { return numCols; }
+   int numCommBatches() const { return batchWidth; }
 
-   int getTag(int neighbor) { return tags[neighbor]; }
-   int getReverseTag(int neighbor) { return tags[reverseDirection(localRank, neighbor)]; }
+   int getTag(int neighbor) const { return tags[neighbor]; }
+   int getReverseTag(int neighbor) const { return tags[reverseDirection(localRank, neighbor)]; }
 
-   bool isExtraProc() { return isExtra; }
+   bool isExtraProc() const { return isExtra; }
 
    static const int LOCAL     = 0;
    static const int NORTHWEST = 1;
@@ -66,10 +66,10 @@ class Communicator {
    static const int SOUTHEAST = 8;
 
   protected:
-   int commRow(int commId);
-   int commColumn(int commId);
-   int commBatch(int commId);
-   int commIdFromRowColumn(int commRow, int commColumn);
+   int commRow(int commId) const;
+   int commColumn(int commId) const;
+   int commBatch(int commId) const;
+   int commIdFromRowColumn(int commRow, int commColumn) const;
 
    int numNeighbors; // # of remote neighbors plus local.  NOT the size of the
    // neighbors array,
@@ -85,7 +85,7 @@ class Communicator {
    // up/down communication.
 
   private:
-   int gcd(int a, int b);
+   int gcd(int a, int b) const;
 
    int localRank;
    int localSize;
@@ -104,23 +104,23 @@ class Communicator {
 
    int neighborInit();
 
-   bool hasNorthwesternNeighbor(int commRow, int commColumn);
-   bool hasNorthernNeighbor(int commRow, int commColumn);
-   bool hasNortheasternNeighbor(int commRow, int commColumn);
-   bool hasWesternNeighbor(int commRow, int commColumn);
-   bool hasEasternNeighbor(int commRow, int commColumn);
-   bool hasSouthwesternNeighbor(int commRow, int commColumn);
-   bool hasSouthernNeighbor(int commRow, int commColumn);
-   bool hasSoutheasternNeighbor(int commRow, int commColumn);
+   bool hasNorthwesternNeighbor(int commRow, int commColumn) const;
+   bool hasNorthernNeighbor(int commRow, int commColumn) const;
+   bool hasNortheasternNeighbor(int commRow, int commColumn) const;
+   bool hasWesternNeighbor(int commRow, int commColumn) const;
+   bool hasEasternNeighbor(int commRow, int commColumn) const;
+   bool hasSouthwesternNeighbor(int commRow, int commColumn) const;
+   bool hasSouthernNeighbor(int commRow, int commColumn) const;
+   bool hasSoutheasternNeighbor(int commRow, int commColumn) const;
 
-   int northwest(int commRow, int commColumn);
-   int north(int commRow, int commColumn);
-   int northeast(int commRow, int commColumn);
-   int west(int commRow, int commColumn);
-   int east(int commRow, int commColumn);
-   int southwest(int commRow, int commColumn);
-   int south(int commRow, int commColumn);
-   int southeast(int commRow, int commColumn);
+   int northwest(int commRow, int commColumn) const;
+   int north(int commRow, int commColumn) const;
+   int northeast(int commRow, int commColumn) const;
+   int west(int commRow, int commColumn) const;
+   int east(int commRow, int commColumn) const;
+   int southwest(int commRow, int commColumn) const;
+   int south(int commRow, int commColumn) const;
+   int southeast(int commRow, int commColumn) const;
 };
 
 } // namespace PV

@@ -12,11 +12,11 @@ namespace PV {
 
 IdentConn::IdentConn() {}
 
-IdentConn::IdentConn(const char *name, PVParams *params, Communicator *comm) {
+IdentConn::IdentConn(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void IdentConn::initialize(const char *name, PVParams *params, Communicator *comm) {
+void IdentConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
    BaseConnection::initialize(name, params, comm);
 }
 

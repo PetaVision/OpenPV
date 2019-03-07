@@ -5,13 +5,19 @@
 
 namespace PV {
 
-ImageOffsetTestLayer::ImageOffsetTestLayer(const char *name, PVParams *params, Communicator *comm) {
+ImageOffsetTestLayer::ImageOffsetTestLayer(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 ImageOffsetTestLayer::~ImageOffsetTestLayer() {}
 
-void ImageOffsetTestLayer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void ImageOffsetTestLayer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ImageLayer::initialize(name, params, comm);
 }
 

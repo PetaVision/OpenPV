@@ -13,7 +13,7 @@ namespace PV {
 DependentBoundaryConditions::DependentBoundaryConditions(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -22,7 +22,7 @@ DependentBoundaryConditions::~DependentBoundaryConditions() {}
 void DependentBoundaryConditions::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

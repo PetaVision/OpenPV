@@ -13,13 +13,13 @@
 
 namespace PV {
 
-LeakyIntegrator::LeakyIntegrator(const char *name, PVParams *params, Communicator *comm) {
+LeakyIntegrator::LeakyIntegrator(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 LeakyIntegrator::LeakyIntegrator() {}
 
-void LeakyIntegrator::initialize(const char *name, PVParams *params, Communicator *comm) {
+void LeakyIntegrator::initialize(const char *name, PVParams *params, Communicator const *comm) {
    ANNLayer::initialize(name, params, comm);
 }
 

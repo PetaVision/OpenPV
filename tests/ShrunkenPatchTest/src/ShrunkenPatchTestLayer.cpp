@@ -15,13 +15,16 @@ namespace PV {
 ShrunkenPatchTestLayer::ShrunkenPatchTestLayer(
       const char *name,
       PVParams *params,
-      Communicator *comm)
+      Communicator const *comm)
       : HyPerLayer() {
    // ShrunkenPatchTestLayer has no member variables to initialize in initialize_base()
    initialize(name, params, comm);
 }
 
-void ShrunkenPatchTestLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ShrunkenPatchTestLayer::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

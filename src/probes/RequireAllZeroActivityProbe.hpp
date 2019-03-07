@@ -23,7 +23,7 @@ namespace PV {
 
 class RequireAllZeroActivityProbe : public StatsProbe {
   public:
-   RequireAllZeroActivityProbe(const char *name, PVParams *params, Communicator *comm);
+   RequireAllZeroActivityProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~RequireAllZeroActivityProbe();
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
@@ -33,7 +33,7 @@ class RequireAllZeroActivityProbe : public StatsProbe {
   protected:
    RequireAllZeroActivityProbe();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
    /**

@@ -22,7 +22,7 @@ namespace PV {
 
 class HyPerConn : public BaseConnection {
   public:
-   HyPerConn(char const *name, PVParams *params, Communicator *comm);
+   HyPerConn(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~HyPerConn();
 
@@ -35,7 +35,7 @@ class HyPerConn : public BaseConnection {
   protected:
    HyPerConn();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void initMessageActionMap() override;
 

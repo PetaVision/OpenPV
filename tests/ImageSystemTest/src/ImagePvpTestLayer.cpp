@@ -4,13 +4,13 @@
 
 namespace PV {
 
-ImagePvpTestLayer::ImagePvpTestLayer(char const *name, PVParams *params, Communicator *comm) {
+ImagePvpTestLayer::ImagePvpTestLayer(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 ImagePvpTestLayer::~ImagePvpTestLayer() {}
 
-void ImagePvpTestLayer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void ImagePvpTestLayer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    InputLayer::initialize(name, params, comm);
 }
 

@@ -15,7 +15,7 @@ namespace PV {
 
 class BinningTestProbe : public PV::LayerProbe {
   public:
-   BinningTestProbe(const char *name, PVParams *params, Communicator *comm);
+   BinningTestProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual void calcValues(double timeValue) {}
 
   protected:

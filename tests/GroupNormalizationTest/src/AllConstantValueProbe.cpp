@@ -10,7 +10,7 @@ namespace PV {
 AllConstantValueProbe::AllConstantValueProbe(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -22,7 +22,10 @@ int AllConstantValueProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-void AllConstantValueProbe::initialize(char const *name, PVParams *params, Communicator *comm) {
+void AllConstantValueProbe::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 

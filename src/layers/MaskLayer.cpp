@@ -14,13 +14,13 @@
 
 namespace PV {
 
-MaskLayer::MaskLayer(const char *name, PVParams *params, Communicator *comm) {
+MaskLayer::MaskLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 MaskLayer::~MaskLayer() {}
 
-void MaskLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void MaskLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

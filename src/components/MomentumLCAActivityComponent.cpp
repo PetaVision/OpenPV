@@ -16,7 +16,7 @@ namespace PV {
 MomentumLCAActivityComponent::MomentumLCAActivityComponent(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -25,7 +25,7 @@ MomentumLCAActivityComponent::~MomentumLCAActivityComponent() {}
 void MomentumLCAActivityComponent::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    BaseMomentumActivityComponent::initialize(name, params, comm);
 }
 

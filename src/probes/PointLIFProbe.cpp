@@ -21,12 +21,12 @@ PointLIFProbe::PointLIFProbe() : PointProbe() {
    // and call PointLIFProbe::initialize during their initialization.
 }
 
-PointLIFProbe::PointLIFProbe(const char *name, PVParams *params, Communicator *comm)
+PointLIFProbe::PointLIFProbe(const char *name, PVParams *params, Communicator const *comm)
       : PointProbe() {
    initialize(name, params, comm);
 }
 
-void PointLIFProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void PointLIFProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    PointProbe::initialize(name, params, comm);
    writeTime = 0.0;
 }

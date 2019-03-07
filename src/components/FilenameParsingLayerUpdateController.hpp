@@ -18,7 +18,10 @@ namespace PV {
  */
 class FilenameParsingLayerUpdateController : public LayerUpdateController {
   public:
-   FilenameParsingLayerUpdateController(char const *name, PVParams *params, Communicator *comm);
+   FilenameParsingLayerUpdateController(
+         char const *name,
+         PVParams *params,
+         Communicator const *comm);
    virtual ~FilenameParsingLayerUpdateController();
 
    virtual bool needUpdate(double simTime, double deltaTime) const override;
@@ -26,7 +29,7 @@ class FilenameParsingLayerUpdateController : public LayerUpdateController {
   protected:
    FilenameParsingLayerUpdateController();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -17,11 +17,11 @@ namespace PV {
 
 class IdentConn : public BaseConnection {
   public:
-   IdentConn(const char *name, PVParams *params, Communicator *comm);
+   IdentConn(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    IdentConn();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual void createComponentTable(char const *description) override;
 

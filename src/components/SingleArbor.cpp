@@ -10,7 +10,7 @@
 
 namespace PV {
 
-SingleArbor::SingleArbor(char const *name, PVParams *params, Communicator *comm) {
+SingleArbor::SingleArbor(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -18,7 +18,7 @@ SingleArbor::SingleArbor() {}
 
 SingleArbor::~SingleArbor() {}
 
-void SingleArbor::initialize(char const *name, PVParams *params, Communicator *comm) {
+void SingleArbor::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ArborList::initialize(name, params, comm);
 }
 

@@ -9,7 +9,10 @@
 
 namespace PV {
 
-InitUniformWeights::InitUniformWeights(char const *name, PVParams *params, Communicator *comm) {
+InitUniformWeights::InitUniformWeights(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +20,7 @@ InitUniformWeights::InitUniformWeights() {}
 
 InitUniformWeights::~InitUniformWeights() {}
 
-void InitUniformWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InitUniformWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
    InitWeights::initialize(name, params, comm);
 }
 

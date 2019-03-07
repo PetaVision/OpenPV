@@ -12,13 +12,13 @@
 
 namespace PV {
 
-HebbianUpdater::HebbianUpdater(char const *name, PVParams *params, Communicator *comm) {
+HebbianUpdater::HebbianUpdater(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 HebbianUpdater::~HebbianUpdater() { cleanup(); }
 
-void HebbianUpdater::initialize(char const *name, PVParams *params, Communicator *comm) {
+void HebbianUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseWeightUpdater::initialize(name, params, comm);
 }
 
@@ -670,11 +670,11 @@ int HebbianUpdater::reduce_dW(int arborId) {
 
 int HebbianUpdater::reduceKernels(int arborID) {
    pvAssert(mWeights->getSharedFlag() && mPlasticityFlag);
-   Communicator *comm = mCommunicator;
-   const int nxProcs  = comm->numCommColumns();
-   const int nyProcs  = comm->numCommRows();
-   const int nbProcs  = comm->numCommBatches();
-   const int nProcs   = nxProcs * nyProcs * nbProcs;
+   Communicator const *comm = mCommunicator;
+   const int nxProcs        = comm->numCommColumns();
+   const int nyProcs        = comm->numCommRows();
+   const int nbProcs        = comm->numCommBatches();
+   const int nProcs         = nxProcs * nyProcs * nbProcs;
    if (nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
       const int numPatches    = mWeights->getNumDataPatches();
@@ -699,11 +699,11 @@ int HebbianUpdater::reduceKernels(int arborID) {
 
 int HebbianUpdater::reduceActivations(int arborID) {
    pvAssert(mWeights->getSharedFlag() && mPlasticityFlag);
-   Communicator *comm = mCommunicator;
-   const int nxProcs  = comm->numCommColumns();
-   const int nyProcs  = comm->numCommRows();
-   const int nbProcs  = comm->numCommBatches();
-   const int nProcs   = nxProcs * nyProcs * nbProcs;
+   Communicator const *comm = mCommunicator;
+   const int nxProcs        = comm->numCommColumns();
+   const int nyProcs        = comm->numCommRows();
+   const int nbProcs        = comm->numCommBatches();
+   const int nProcs         = nxProcs * nyProcs * nbProcs;
    if (mNumKernelActivations && nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
       const int numPatches    = mWeights->getNumDataPatches();

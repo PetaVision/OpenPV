@@ -16,7 +16,7 @@ namespace PV {
 
 class PoolingConn : public BaseConnection {
   public:
-   PoolingConn(char const *name, PVParams *params, Communicator *comm);
+   PoolingConn(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~PoolingConn();
 
@@ -29,7 +29,7 @@ class PoolingConn : public BaseConnection {
   protected:
    PoolingConn();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void createComponentTable(char const *description) override;
 

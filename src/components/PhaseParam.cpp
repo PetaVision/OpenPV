@@ -9,13 +9,13 @@
 
 namespace PV {
 
-PhaseParam::PhaseParam(char const *name, PVParams *params, Communicator *comm) {
+PhaseParam::PhaseParam(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 PhaseParam::~PhaseParam() {}
 
-void PhaseParam::initialize(char const *name, PVParams *params, Communicator *comm) {
+void PhaseParam::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

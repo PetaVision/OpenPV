@@ -8,7 +8,7 @@
  *  random number generation is not affected by details of the
  *  MPI configuration.
  *
- *  Random(Communicator * comm, const PVLayerLoc * locptr, bool isExtended)
+ *  Random(const PVLayerLoc * locptr, bool isExtended)
  *  creates an array of RNG states.
  *  The size of the array is determined by the local layer size specified in
  * locptr,

@@ -7,7 +7,7 @@ namespace PV {
 
 class AvgPoolTestLayer : public HyPerLayer {
   public:
-   AvgPoolTestLayer(const char *name, PVParams *params, Communicator *comm);
+   AvgPoolTestLayer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    ActivityComponent *createActivityComponent() override;

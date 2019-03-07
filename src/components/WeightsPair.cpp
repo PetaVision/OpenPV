@@ -12,13 +12,13 @@
 
 namespace PV {
 
-WeightsPair::WeightsPair(char const *name, PVParams *params, Communicator *comm) {
+WeightsPair::WeightsPair(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 WeightsPair::~WeightsPair() { delete mOutputStateStream; }
 
-void WeightsPair::initialize(char const *name, PVParams *params, Communicator *comm) {
+void WeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
    WeightsPairInterface::initialize(name, params, comm);
 }
 

@@ -13,13 +13,16 @@ namespace PV {
 BackgroundActivityBuffer::BackgroundActivityBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 BackgroundActivityBuffer::~BackgroundActivityBuffer() {}
 
-void BackgroundActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void BackgroundActivityBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 

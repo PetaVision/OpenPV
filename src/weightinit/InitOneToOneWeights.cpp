@@ -9,7 +9,10 @@
 
 namespace PV {
 
-InitOneToOneWeights::InitOneToOneWeights(char const *name, PVParams *params, Communicator *comm) {
+InitOneToOneWeights::InitOneToOneWeights(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +20,7 @@ InitOneToOneWeights::InitOneToOneWeights() {}
 
 InitOneToOneWeights::~InitOneToOneWeights() {}
 
-void InitOneToOneWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InitOneToOneWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
    InitWeights::initialize(name, params, comm);
 }
 

@@ -14,10 +14,10 @@ namespace PV {
 
 class PlasticConnTestLayer : public PV::HyPerLayer {
   public:
-   PlasticConnTestLayer(const char *name, PVParams *params, Communicator *comm);
+   PlasticConnTestLayer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual ActivityComponent *createActivityComponent();
 }; // end class PlasticConnTestLayer
 

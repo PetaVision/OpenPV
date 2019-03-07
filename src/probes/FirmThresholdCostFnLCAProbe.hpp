@@ -23,14 +23,14 @@ namespace PV {
  */
 class FirmThresholdCostFnLCAProbe : public FirmThresholdCostFnProbe {
   public:
-   FirmThresholdCostFnLCAProbe(const char *name, PVParams *params, Communicator *comm);
+   FirmThresholdCostFnLCAProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual ~FirmThresholdCostFnLCAProbe() {}
 
   protected:
    FirmThresholdCostFnLCAProbe();
-   void initialize(const char *name, PVParams *params, Communicator *comm) {
+   void initialize(const char *name, PVParams *params, Communicator const *comm) {
       FirmThresholdCostFnProbe::initialize(name, params, comm);
    }
 

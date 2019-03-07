@@ -12,13 +12,13 @@
 
 namespace PV {
 
-SegmentBuffer::SegmentBuffer(const char *name, PVParams *params, Communicator *comm) {
+SegmentBuffer::SegmentBuffer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 SegmentBuffer::SegmentBuffer() {}
 
-void SegmentBuffer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void SegmentBuffer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 
@@ -305,9 +305,9 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
       }
 
       // We need to mpi across processors in case a segment crosses an mpi boundary
-      Communicator *icComm = mCommunicator;
-      int numMpi           = icComm->commSize();
-      int rank             = icComm->commRank();
+      Communicator const *icComm = mCommunicator;
+      int numMpi                 = icComm->commSize();
+      int rank                   = icComm->commRank();
 
       // Local comm rank
       // Non root processes simply send buffer size and then buffers

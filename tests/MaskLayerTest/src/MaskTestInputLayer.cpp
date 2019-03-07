@@ -6,7 +6,10 @@
 
 namespace PV {
 
-MaskTestInputLayer::MaskTestInputLayer(const char *name, PVParams *params, Communicator *comm) {
+MaskTestInputLayer::MaskTestInputLayer(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

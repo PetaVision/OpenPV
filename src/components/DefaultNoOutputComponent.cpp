@@ -12,7 +12,7 @@ namespace PV {
 DefaultNoOutputComponent::DefaultNoOutputComponent(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -20,7 +20,10 @@ DefaultNoOutputComponent::DefaultNoOutputComponent() {}
 
 DefaultNoOutputComponent::~DefaultNoOutputComponent() {}
 
-void DefaultNoOutputComponent::initialize(char const *name, PVParams *params, Communicator *comm) {
+void DefaultNoOutputComponent::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    LayerOutputComponent::initialize(name, params, comm);
    mWriteStep = -1;
 }

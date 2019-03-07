@@ -2,7 +2,7 @@
 
 namespace PV {
 
-SegmentifyTest::SegmentifyTest(const char *name, PVParams *params, Communicator *comm) {
+SegmentifyTest::SegmentifyTest(const char *name, PVParams *params, Communicator const *comm) {
    Segmentify::initialize(name, params, comm);
 }
 

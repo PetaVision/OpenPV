@@ -13,7 +13,8 @@
 #define LIFTESTPROBE_BINS 5
 
 namespace PV {
-LIFTestProbe::LIFTestProbe(const char *name, PVParams *params, Communicator *comm) : StatsProbe() {
+LIFTestProbe::LIFTestProbe(const char *name, PVParams *params, Communicator const *comm)
+      : StatsProbe() {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -28,7 +29,7 @@ int LIFTestProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-void LIFTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void LIFTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
 
    StatsProbe::initialize(name, params, comm);
 
@@ -145,8 +146,8 @@ Response::Status LIFTestProbe::outputState(double simTime, double deltaTime) {
          rates[bin_number] += (double)l->getV()[k];
       }
    }
-   int root_proc        = 0;
-   Communicator *icComm = mCommunicator;
+   int root_proc              = 0;
+   Communicator const *icComm = mCommunicator;
    if (icComm->commRank() == root_proc) {
       MPI_Reduce(
             MPI_IN_PLACE,

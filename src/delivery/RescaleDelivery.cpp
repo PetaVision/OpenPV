@@ -9,11 +9,11 @@
 
 namespace PV {
 
-RescaleDelivery::RescaleDelivery(char const *name, PVParams *params, Communicator *comm) {
+RescaleDelivery::RescaleDelivery(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void RescaleDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+void RescaleDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseDelivery::initialize(name, params, comm);
 }
 

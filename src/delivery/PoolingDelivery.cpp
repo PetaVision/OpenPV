@@ -12,7 +12,7 @@
 
 namespace PV {
 
-PoolingDelivery::PoolingDelivery(char const *name, PVParams *params, Communicator *comm) {
+PoolingDelivery::PoolingDelivery(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -20,7 +20,7 @@ PoolingDelivery::PoolingDelivery() {}
 
 PoolingDelivery::~PoolingDelivery() {}
 
-void PoolingDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+void PoolingDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseDelivery::initialize(name, params, comm);
 }
 

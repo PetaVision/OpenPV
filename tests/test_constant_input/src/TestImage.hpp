@@ -14,14 +14,14 @@ namespace PV {
 
 class TestImage : public PV::HyPerLayer {
   public:
-   TestImage(const char *name, PVParams *params, Communicator *comm);
+   TestImage(const char *name, PVParams *params, Communicator const *comm);
    virtual ~TestImage();
 
    float getConstantVal() const;
 
   protected:
    TestImage();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual ActivityComponent *createActivityComponent() override;
 
 }; // class TestImage

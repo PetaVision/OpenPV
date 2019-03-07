@@ -14,14 +14,14 @@ namespace PV {
 MomentumConnTestProbe::MomentumConnTestProbe(
       const char *probename,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(probename, params, comm);
 }
 
 void MomentumConnTestProbe::initialize(
       const char *probename,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    KernelProbe::initialize(probename, params, comm);
 }
 

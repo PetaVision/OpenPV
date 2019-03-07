@@ -12,13 +12,16 @@ namespace PV {
 DropoutActivityBuffer::DropoutActivityBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 DropoutActivityBuffer::~DropoutActivityBuffer() {}
 
-void DropoutActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void DropoutActivityBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ANNActivityBuffer::initialize(name, params, comm);
 }
 

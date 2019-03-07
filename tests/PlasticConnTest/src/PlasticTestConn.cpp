@@ -10,7 +10,7 @@
 
 namespace PV {
 
-PlasticTestConn::PlasticTestConn(const char *name, PVParams *params, Communicator *comm)
+PlasticTestConn::PlasticTestConn(const char *name, PVParams *params, Communicator const *comm)
       : HyPerConn() {
    HyPerConn::initialize(name, params, comm);
 }

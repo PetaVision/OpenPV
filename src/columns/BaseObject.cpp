@@ -22,12 +22,12 @@ BaseObject::BaseObject() {
    // constructor.
 }
 
-void BaseObject::initialize(const char *name, PVParams *params, Communicator *comm) {
+void BaseObject::initialize(const char *name, PVParams *params, Communicator const *comm) {
    setCommunicator(comm);
    ParamsInterface::initialize(name, params);
 }
 
-void BaseObject::setCommunicator(Communicator *comm) {
+void BaseObject::setCommunicator(Communicator const *comm) {
    pvAssert(mCommunicator == nullptr);
    mCommunicator = comm;
 }

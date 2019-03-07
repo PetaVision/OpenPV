@@ -14,14 +14,17 @@ NormalizeContrastZeroMean::NormalizeContrastZeroMean() { initialize_base(); }
 NormalizeContrastZeroMean::NormalizeContrastZeroMean(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
 
 int NormalizeContrastZeroMean::initialize_base() { return PV_SUCCESS; }
 
-void NormalizeContrastZeroMean::initialize(const char *name, PVParams *params, Communicator *comm) {
+void NormalizeContrastZeroMean::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    NormalizeBase::initialize(name, params, comm);
 }
 

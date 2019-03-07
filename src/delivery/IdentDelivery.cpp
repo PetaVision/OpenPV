@@ -10,11 +10,11 @@
 
 namespace PV {
 
-IdentDelivery::IdentDelivery(char const *name, PVParams *params, Communicator *comm) {
+IdentDelivery::IdentDelivery(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void IdentDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+void IdentDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseDelivery::initialize(name, params, comm);
 }
 

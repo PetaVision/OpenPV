@@ -10,13 +10,16 @@
 
 namespace PV {
 
-DependentPhaseParam::DependentPhaseParam(char const *name, PVParams *params, Communicator *comm) {
+DependentPhaseParam::DependentPhaseParam(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 DependentPhaseParam::~DependentPhaseParam() {}
 
-void DependentPhaseParam::initialize(char const *name, PVParams *params, Communicator *comm) {
+void DependentPhaseParam::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

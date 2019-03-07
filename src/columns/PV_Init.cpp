@@ -223,7 +223,7 @@ int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
 }
 
 void PV_Init::printInitMessage() {
-   Communicator *communicator = getCommunicator();
+   Communicator const *communicator = getCommunicator();
    if (communicator == nullptr or communicator->globalCommRank() == 0) {
       time_t currentTime = time(nullptr);
       InfoLog() << "PetaVision initialized at "

@@ -23,9 +23,9 @@ void verifyLayerLocs(
 void compareLayers(
       PV::BasePublisherComponent *publisher1,
       PV::BasePublisherComponent *publisher2,
-      PV::Communicator *communicator);
+      PV::Communicator const *communicator);
 PV::Buffer<float>
-gatherLayer(PV::BasePublisherComponent *publisher, PV::Communicator *communicator);
+gatherLayer(PV::BasePublisherComponent *publisher, PV::Communicator const *communicator);
 void dumpLayerActivity(
       PV::Buffer<float> &layerBuffer,
       PVLayerLoc const *loc,
@@ -155,7 +155,7 @@ void verifyLayerLocs(
 void compareLayers(
       PV::BasePublisherComponent *publisher1,
       PV::BasePublisherComponent *publisher2,
-      PV::Communicator *communicator) {
+      PV::Communicator const *communicator) {
    verifyLayerLocs(publisher1, publisher2);
    PV::Buffer<float> layer1buffer = gatherLayer(publisher1, communicator);
    PV::Buffer<float> layer2buffer = gatherLayer(publisher2, communicator);
@@ -202,7 +202,7 @@ void compareLayers(
 }
 
 PV::Buffer<float>
-gatherLayer(PV::BasePublisherComponent *publisher, PV::Communicator *communicator) {
+gatherLayer(PV::BasePublisherComponent *publisher, PV::Communicator const *communicator) {
    PVLayerLoc const *loc = publisher->getLayerLoc();
    int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
    int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;

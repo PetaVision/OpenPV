@@ -12,7 +12,7 @@ namespace PV {
 InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -23,7 +23,7 @@ InitSpreadOverArborsWeights::~InitSpreadOverArborsWeights() {}
 void InitSpreadOverArborsWeights::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    InitGauss2DWeights::initialize(name, params, comm);
 }
 

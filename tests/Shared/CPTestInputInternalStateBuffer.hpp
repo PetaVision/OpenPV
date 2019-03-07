@@ -19,14 +19,14 @@ namespace PV {
  */
 class CPTestInputInternalStateBuffer : public HyPerInternalStateBuffer {
   public:
-   CPTestInputInternalStateBuffer(char const *name, PVParams *params, Communicator *comm);
+   CPTestInputInternalStateBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~CPTestInputInternalStateBuffer();
 
   protected:
    CPTestInputInternalStateBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

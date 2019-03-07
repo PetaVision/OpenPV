@@ -34,7 +34,7 @@ class RescaleDelivery : public IdentDelivery {
    // End of parameters needed from the RescaleConn class.
 
   public:
-   RescaleDelivery(char const *name, PVParams *params, Communicator *comm);
+   RescaleDelivery(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~RescaleDelivery() {}
 
@@ -45,7 +45,7 @@ class RescaleDelivery : public IdentDelivery {
   protected:
    RescaleDelivery() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

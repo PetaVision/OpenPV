@@ -9,7 +9,7 @@
 
 namespace PV {
 
-NormalizeNone::NormalizeNone(const char *name, PVParams *params, Communicator *comm) {
+NormalizeNone::NormalizeNone(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +17,7 @@ NormalizeNone::NormalizeNone() {}
 
 NormalizeNone::~NormalizeNone() {}
 
-void NormalizeNone::initialize(const char *name, PVParams *params, Communicator *comm) {
+void NormalizeNone::initialize(const char *name, PVParams *params, Communicator const *comm) {
    NormalizeBase::initialize(name, params, comm);
 }
 

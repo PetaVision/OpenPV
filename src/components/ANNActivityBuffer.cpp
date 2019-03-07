@@ -12,7 +12,7 @@
 
 namespace PV {
 
-ANNActivityBuffer::ANNActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+ANNActivityBuffer::ANNActivityBuffer(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -22,7 +22,7 @@ ANNActivityBuffer::~ANNActivityBuffer() {
    free(mSlopes);
 }
 
-void ANNActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void ANNActivityBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    HyPerActivityBuffer::initialize(name, params, comm);
 }
 

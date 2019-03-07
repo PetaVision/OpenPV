@@ -14,13 +14,13 @@
 
 namespace PV {
 
-HyPerLCALayer::HyPerLCALayer(const char *name, PVParams *params, Communicator *comm) {
+HyPerLCALayer::HyPerLCALayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 HyPerLCALayer::~HyPerLCALayer() {}
 
-void HyPerLCALayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void HyPerLCALayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

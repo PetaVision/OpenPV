@@ -10,7 +10,7 @@ namespace PV {
 TriggerTestLayerProbe::TriggerTestLayerProbe(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    LayerProbe::initialize(name, params, comm);
 }
 

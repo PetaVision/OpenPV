@@ -3,7 +3,7 @@
 
 namespace PV {
 
-LogTimeScaleProbe::LogTimeScaleProbe(char const *name, PVParams *params, Communicator *comm) {
+LogTimeScaleProbe::LogTimeScaleProbe(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 

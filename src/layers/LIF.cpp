@@ -10,13 +10,15 @@
 
 namespace PV {
 
-LIF::LIF(const char *name, PVParams *params, Communicator *comm) { initialize(name, params, comm); }
+LIF::LIF(const char *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 LIF::LIF() {}
 
 LIF::~LIF() {}
 
-void LIF::initialize(const char *name, PVParams *params, Communicator *comm) {
+void LIF::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

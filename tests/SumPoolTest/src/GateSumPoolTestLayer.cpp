@@ -7,7 +7,10 @@
 
 namespace PV {
 
-GateSumPoolTestLayer::GateSumPoolTestLayer(const char *name, PVParams *params, Communicator *comm) {
+GateSumPoolTestLayer::GateSumPoolTestLayer(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

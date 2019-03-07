@@ -2,7 +2,7 @@
 
 namespace PV {
 
-TestConnProbe::TestConnProbe(const char *probename, PVParams *params, Communicator *comm) {
+TestConnProbe::TestConnProbe(const char *probename, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(probename, params, comm);
 }

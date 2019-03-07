@@ -18,14 +18,14 @@ namespace PV {
  */
 class TestImageActivityComponent : public ActivityComponent {
   public:
-   TestImageActivityComponent(char const *name, PVParams *params, Communicator *comm);
+   TestImageActivityComponent(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~TestImageActivityComponent();
 
   protected:
    TestImageActivityComponent() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType();
 

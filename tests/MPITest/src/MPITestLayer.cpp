@@ -12,12 +12,13 @@
 
 namespace PV {
 
-MPITestLayer::MPITestLayer(const char *name, PVParams *params, Communicator *comm) : HyPerLayer() {
+MPITestLayer::MPITestLayer(const char *name, PVParams *params, Communicator const *comm)
+      : HyPerLayer() {
    // MPITestLayer has no member variables to initialize in initialize_base()
    initialize(name, params, comm);
 }
 
-void MPITestLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void MPITestLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

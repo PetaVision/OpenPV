@@ -10,7 +10,10 @@
 
 namespace PV {
 
-CloneDeliveryFacade::CloneDeliveryFacade(char const *name, PVParams *params, Communicator *comm) {
+CloneDeliveryFacade::CloneDeliveryFacade(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -18,7 +21,7 @@ CloneDeliveryFacade::CloneDeliveryFacade() {}
 
 CloneDeliveryFacade::~CloneDeliveryFacade() {}
 
-void CloneDeliveryFacade::initialize(char const *name, PVParams *params, Communicator *comm) {
+void CloneDeliveryFacade::initialize(char const *name, PVParams *params, Communicator const *comm) {
    HyPerDeliveryFacade::initialize(name, params, comm);
 }
 

@@ -11,7 +11,10 @@
 
 namespace PV {
 
-TransposePoolingConn::TransposePoolingConn(char const *name, PVParams *params, Communicator *comm) {
+TransposePoolingConn::TransposePoolingConn(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -19,7 +22,10 @@ TransposePoolingConn::TransposePoolingConn() {}
 
 TransposePoolingConn::~TransposePoolingConn() {}
 
-void TransposePoolingConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+void TransposePoolingConn::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    PoolingConn::initialize(name, params, comm);
 }
 

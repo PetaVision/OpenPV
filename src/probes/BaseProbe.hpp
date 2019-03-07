@@ -137,7 +137,7 @@ class BaseProbe : public BaseObject {
 
   protected:
    BaseProbe();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

@@ -12,13 +12,16 @@ namespace PV {
 HyPerInternalStateBuffer::HyPerInternalStateBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 HyPerInternalStateBuffer::~HyPerInternalStateBuffer() {}
 
-void HyPerInternalStateBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void HyPerInternalStateBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    InternalStateBuffer::initialize(name, params, comm);
 }
 

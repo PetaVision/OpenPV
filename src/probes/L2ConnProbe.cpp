@@ -11,7 +11,7 @@ namespace PV {
 
 L2ConnProbe::L2ConnProbe() {}
 
-L2ConnProbe::L2ConnProbe(const char *probename, PVParams *params, Communicator *comm)
+L2ConnProbe::L2ConnProbe(const char *probename, PVParams *params, Communicator const *comm)
       : KernelProbe(probename, params, comm) {}
 
 L2ConnProbe::~L2ConnProbe() {}
@@ -21,12 +21,11 @@ Response::Status L2ConnProbe::outputState(double simTime, double deltaTime) {
       return Response::NO_ACTION;
    }
    pvAssert(getTargetConn() != nullptr);
-   Communicator *icComm = mCommunicator;
-   const int rank       = icComm->commRank();
-   int nxp              = getPatchSize()->getPatchSizeX();
-   int nyp              = getPatchSize()->getPatchSizeY();
-   int nfp              = getPatchSize()->getPatchSizeF();
-   int patchSize        = nxp * nyp * nfp;
+   const int rank = mCommunicator->commRank();
+   int nxp        = getPatchSize()->getPatchSizeX();
+   int nyp        = getPatchSize()->getPatchSizeY();
+   int nfp        = getPatchSize()->getPatchSizeF();
+   int patchSize  = nxp * nyp * nfp;
 
    int arborID = getArbor();
    int numKern = getWeights()->getNumDataPatches();

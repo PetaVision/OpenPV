@@ -41,7 +41,7 @@ class ArborList : public BaseObject {
    /** @} */ // end of ArborList parameters
 
   public:
-   ArborList(char const *name, PVParams *params, Communicator *comm);
+   ArborList(char const *name, PVParams *params, Communicator const *comm);
    virtual ~ArborList();
 
    /**
@@ -54,7 +54,7 @@ class ArborList : public BaseObject {
   protected:
    ArborList();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

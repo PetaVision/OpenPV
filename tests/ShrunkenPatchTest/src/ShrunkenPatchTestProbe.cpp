@@ -23,7 +23,7 @@ namespace PV {
 ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(
       const char *name,
       PVParams *params,
-      Communicator *comm)
+      Communicator const *comm)
       : StatsProbe() {
    initialize_base();
    initialize(name, params, comm);
@@ -31,7 +31,10 @@ ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(
 
 int ShrunkenPatchTestProbe::initialize_base() { return PV_SUCCESS; }
 
-void ShrunkenPatchTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ShrunkenPatchTestProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    correctValues = NULL;
    StatsProbe::initialize(name, params, comm);
 }

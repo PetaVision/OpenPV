@@ -41,14 +41,14 @@ class InternalStateBuffer : public RestrictedBuffer {
 
    /** @} */
   public:
-   InternalStateBuffer(char const *name, PVParams *params, Communicator *comm);
+   InternalStateBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~InternalStateBuffer();
 
   protected:
    InternalStateBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -13,7 +13,7 @@ namespace PV {
 
 UniformRandomV::UniformRandomV() { initialize_base(); }
 
-UniformRandomV::UniformRandomV(char const *name, PVParams *params, Communicator *comm) {
+UniformRandomV::UniformRandomV(char const *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -22,7 +22,7 @@ UniformRandomV::~UniformRandomV() {}
 
 int UniformRandomV::initialize_base() { return PV_SUCCESS; }
 
-void UniformRandomV::initialize(char const *name, PVParams *params, Communicator *comm) {
+void UniformRandomV::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseInitV::initialize(name, params, comm);
 }
 

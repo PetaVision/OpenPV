@@ -23,7 +23,7 @@ namespace PV {
 class ComponentBuffer : public BaseObject {
 
   public:
-   ComponentBuffer(char const *name, PVParams *params, Communicator *comm);
+   ComponentBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~ComponentBuffer();
 
@@ -106,7 +106,7 @@ class ComponentBuffer : public BaseObject {
   protected:
    ComponentBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

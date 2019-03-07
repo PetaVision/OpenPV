@@ -54,7 +54,8 @@ namespace PV {
  *
  * For example:
  * ...
- * BaseObject * createCustomLayerType(char const *name, PVParams *params, Communicator *comm) {
+ * BaseObject * createCustomLayerType(char const *name, PVParams *params, Communicator const *comm)
+ * {
  *    return new CustomLayerType(name, params, comm);
  * }
  * ...
@@ -76,7 +77,7 @@ class Factory {
     * and a pointer to the Communicator object.
     */
    template <typename T>
-   static BaseObject *create(char const *name, PVParams *params, Communicator *comm) {
+   static BaseObject *create(char const *name, PVParams *params, Communicator const *comm) {
       return new T(name, params, comm);
    }
 
@@ -100,9 +101,11 @@ class Factory {
     * the
     * registerKeyword pointer.
     */
-   BaseObject *
-   createByKeyword(char const *keyword, char const *name, PVParams *params, Communicator *comm)
-         const;
+   BaseObject *createByKeyword(
+         char const *keyword,
+         char const *name,
+         PVParams *params,
+         Communicator const *comm) const;
 
   private:
    /**

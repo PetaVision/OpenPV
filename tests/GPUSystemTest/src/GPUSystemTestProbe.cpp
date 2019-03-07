@@ -10,14 +10,17 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-GPUSystemTestProbe::GPUSystemTestProbe(const char *name, PVParams *params, Communicator *comm) {
+GPUSystemTestProbe::GPUSystemTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
 
 int GPUSystemTestProbe::initialize_base() { return PV_SUCCESS; }
 
-void GPUSystemTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void GPUSystemTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 

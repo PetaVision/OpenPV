@@ -7,7 +7,10 @@
 
 namespace PV {
 
-GateMaxPoolTestLayer::GateMaxPoolTestLayer(const char *name, PVParams *params, Communicator *comm) {
+GateMaxPoolTestLayer::GateMaxPoolTestLayer(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

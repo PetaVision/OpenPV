@@ -13,13 +13,13 @@
 
 namespace PV {
 
-ANNErrorLayer::ANNErrorLayer(const char *name, PVParams *params, Communicator *comm) {
+ANNErrorLayer::ANNErrorLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 ANNErrorLayer::~ANNErrorLayer() {}
 
-void ANNErrorLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ANNErrorLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

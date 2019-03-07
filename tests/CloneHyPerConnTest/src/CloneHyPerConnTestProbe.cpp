@@ -16,7 +16,7 @@ namespace PV {
 CloneHyPerConnTestProbe::CloneHyPerConnTestProbe(
       const char *name,
       PVParams *params,
-      Communicator *comm)
+      Communicator const *comm)
       : StatsProbe() {
    initialize_base();
    initialize(name, params, comm);
@@ -24,7 +24,10 @@ CloneHyPerConnTestProbe::CloneHyPerConnTestProbe(
 
 int CloneHyPerConnTestProbe::initialize_base() { return PV_SUCCESS; }
 
-void CloneHyPerConnTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void CloneHyPerConnTestProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 

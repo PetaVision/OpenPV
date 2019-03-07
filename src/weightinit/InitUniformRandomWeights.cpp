@@ -12,7 +12,7 @@ namespace PV {
 InitUniformRandomWeights::InitUniformRandomWeights(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -20,7 +20,10 @@ InitUniformRandomWeights::InitUniformRandomWeights() {}
 
 InitUniformRandomWeights::~InitUniformRandomWeights() {}
 
-void InitUniformRandomWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InitUniformRandomWeights::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    InitRandomWeights::initialize(name, params, comm);
 }
 

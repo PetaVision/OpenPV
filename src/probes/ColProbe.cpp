@@ -15,7 +15,7 @@ ColProbe::ColProbe() { // Default constructor to be called by derived classes.
    initialize_base();
 }
 
-ColProbe::ColProbe(const char *name, PVParams *params, Communicator *comm) {
+ColProbe::ColProbe(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -24,7 +24,7 @@ ColProbe::~ColProbe() {}
 
 int ColProbe::initialize_base() { return PV_SUCCESS; }
 
-void ColProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ColProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    BaseProbe::initialize(name, params, comm);
 }
 

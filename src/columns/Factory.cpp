@@ -30,7 +30,7 @@ BaseObject *Factory::createByKeyword(
       char const *keyword,
       char const *name,
       PVParams *params,
-      Communicator *comm) const {
+      Communicator const *comm) const {
    if (keyword == nullptr) {
       return nullptr;
    }

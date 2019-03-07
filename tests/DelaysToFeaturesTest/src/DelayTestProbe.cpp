@@ -13,7 +13,7 @@
 
 namespace PV {
 
-DelayTestProbe::DelayTestProbe(const char *name, PVParams *params, Communicator *comm)
+DelayTestProbe::DelayTestProbe(const char *name, PVParams *params, Communicator const *comm)
       : StatsProbe() {
    initialize_base();
    initialize(name, params, comm);
@@ -23,7 +23,7 @@ DelayTestProbe::~DelayTestProbe() {}
 
 int DelayTestProbe::initialize_base() { return PV_SUCCESS; }
 
-void DelayTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void DelayTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 
@@ -32,8 +32,8 @@ Response::Status DelayTestProbe::outputState(double simTime, double deltaTime) {
    if (status != Response::SUCCESS) {
       return status;
    }
-   Communicator *icComm = mCommunicator;
-   int const rcvProc    = 0;
+   Communicator const *icComm = mCommunicator;
+   int const rcvProc          = 0;
    if (icComm->commRank() != rcvProc) {
       return status;
    }

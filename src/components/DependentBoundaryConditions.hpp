@@ -43,14 +43,14 @@ class DependentBoundaryConditions : public BoundaryConditions {
    /** @} */ // end of DependentBoundaryConditions parameters
 
   public:
-   DependentBoundaryConditions(char const *name, PVParams *params, Communicator *comm);
+   DependentBoundaryConditions(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~DependentBoundaryConditions();
 
   protected:
    DependentBoundaryConditions() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

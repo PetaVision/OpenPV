@@ -17,7 +17,7 @@ class KernelProbe : public BaseHyPerConnProbe {
 
    // Methods
   public:
-   KernelProbe(const char *probename, PVParams *params, Communicator *comm);
+   KernelProbe(const char *probename, PVParams *params, Communicator const *comm);
    virtual ~KernelProbe();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -31,7 +31,7 @@ class KernelProbe : public BaseHyPerConnProbe {
 
   protected:
    KernelProbe(); // Default constructor, can only be called by derived classes
-   void initialize(const char *probename, PVParams *params, Communicator *comm);
+   void initialize(const char *probename, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_kernelIndex(enum ParamsIOFlag ioFlag);
    virtual void ioParam_arborId(enum ParamsIOFlag ioFlag);

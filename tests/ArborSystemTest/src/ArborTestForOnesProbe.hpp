@@ -14,13 +14,13 @@ namespace PV {
 
 class ArborTestForOnesProbe : public PV::StatsProbe {
   public:
-   ArborTestForOnesProbe(const char *name, PVParams *params, Communicator *comm);
+   ArborTestForOnesProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~ArborTestForOnesProbe();
 
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
   private:
    int initialize_base();

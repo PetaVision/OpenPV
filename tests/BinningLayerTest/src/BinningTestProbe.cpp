@@ -11,7 +11,7 @@
 
 namespace PV {
 
-BinningTestProbe::BinningTestProbe(const char *name, PVParams *params, Communicator *comm) {
+BinningTestProbe::BinningTestProbe(const char *name, PVParams *params, Communicator const *comm) {
    LayerProbe::initialize(name, params, comm);
 }
 

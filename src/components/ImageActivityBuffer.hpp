@@ -18,7 +18,7 @@ namespace PV {
  */
 class ImageActivityBuffer : public InputActivityBuffer {
   public:
-   ImageActivityBuffer(char const *name, PVParams *params, Communicator *comm);
+   ImageActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~ImageActivityBuffer();
 
@@ -28,7 +28,7 @@ class ImageActivityBuffer : public InputActivityBuffer {
   protected:
    ImageActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

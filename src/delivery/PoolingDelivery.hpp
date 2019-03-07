@@ -72,7 +72,7 @@ class PoolingDelivery : public BaseDelivery {
   public:
    enum AccumulateType { UNDEFINED, MAXPOOLING, SUMPOOLING, AVGPOOLING };
 
-   PoolingDelivery(char const *name, PVParams *params, Communicator *comm);
+   PoolingDelivery(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~PoolingDelivery();
 
@@ -99,7 +99,7 @@ class PoolingDelivery : public BaseDelivery {
   protected:
    PoolingDelivery();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

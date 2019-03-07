@@ -12,7 +12,10 @@
 
 namespace PV {
 
-TransposeWeightsPair::TransposeWeightsPair(char const *name, PVParams *params, Communicator *comm) {
+TransposeWeightsPair::TransposeWeightsPair(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +24,10 @@ TransposeWeightsPair::~TransposeWeightsPair() {
    mPostWeights = nullptr;
 }
 
-void TransposeWeightsPair::initialize(char const *name, PVParams *params, Communicator *comm) {
+void TransposeWeightsPair::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    WeightsPair::initialize(name, params, comm);
 }
 

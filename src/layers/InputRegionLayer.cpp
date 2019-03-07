@@ -13,7 +13,7 @@
 
 namespace PV {
 
-InputRegionLayer::InputRegionLayer(const char *name, PVParams *params, Communicator *comm) {
+InputRegionLayer::InputRegionLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ InputRegionLayer::InputRegionLayer() {}
 
 InputRegionLayer::~InputRegionLayer() {}
 
-void InputRegionLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void InputRegionLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

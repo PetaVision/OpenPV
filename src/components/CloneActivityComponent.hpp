@@ -23,14 +23,14 @@ namespace PV {
 template <typename V, typename A>
 class CloneActivityComponent : public ActivityComponent {
   public:
-   CloneActivityComponent(char const *name, PVParams *params, Communicator *comm);
+   CloneActivityComponent(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~CloneActivityComponent();
 
   protected:
    CloneActivityComponent() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType();
 

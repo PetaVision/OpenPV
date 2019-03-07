@@ -17,7 +17,7 @@ namespace PV {
 
 class WeightsPairInterface : public BaseObject {
   public:
-   WeightsPairInterface(char const *name, PVParams *params, Communicator *comm);
+   WeightsPairInterface(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~WeightsPairInterface();
 
@@ -47,7 +47,7 @@ class WeightsPairInterface : public BaseObject {
   protected:
    WeightsPairInterface() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

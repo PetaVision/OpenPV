@@ -15,12 +15,15 @@ namespace PV {
 DatastoreDelayTestProbe::DatastoreDelayTestProbe(
       const char *name,
       PVParams *params,
-      Communicator *comm)
+      Communicator const *comm)
       : StatsProbe() {
    initialize(name, params, comm);
 }
 
-void DatastoreDelayTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void DatastoreDelayTestProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 

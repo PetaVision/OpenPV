@@ -55,7 +55,7 @@ class FilenameParsingActivityBuffer : public ActivityBuffer {
    /** @} */
 
   public:
-   FilenameParsingActivityBuffer(const char *name, PVParams *params, Communicator *comm);
+   FilenameParsingActivityBuffer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~FilenameParsingActivityBuffer();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

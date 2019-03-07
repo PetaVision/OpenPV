@@ -10,7 +10,7 @@
 
 namespace PV {
 
-TestImage::TestImage(const char *name, PVParams *params, Communicator *comm) {
+TestImage::TestImage(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -18,7 +18,7 @@ TestImage::TestImage() {}
 
 TestImage::~TestImage() {}
 
-void TestImage::initialize(const char *name, PVParams *params, Communicator *comm) {
+void TestImage::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

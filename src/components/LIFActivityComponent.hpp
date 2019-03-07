@@ -76,14 +76,14 @@ class LIFActivityComponent : public ActivityComponent {
    virtual void ioParam_method(enum ParamsIOFlag ioFlag);
 
   public:
-   LIFActivityComponent(char const *name, PVParams *params, Communicator *comm);
+   LIFActivityComponent(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~LIFActivityComponent();
 
   protected:
    LIFActivityComponent() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType();
 

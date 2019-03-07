@@ -33,7 +33,7 @@ class PhaseParam : public BaseObject {
    /** @} */ // end of PhaseParam parameters
 
   public:
-   PhaseParam(char const *name, PVParams *params, Communicator *comm);
+   PhaseParam(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~PhaseParam();
 
@@ -44,7 +44,7 @@ class PhaseParam : public BaseObject {
   protected:
    PhaseParam() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

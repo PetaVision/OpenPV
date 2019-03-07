@@ -10,13 +10,16 @@
 
 namespace PV {
 
-InputLayerNameParam::InputLayerNameParam(char const *name, PVParams *params, Communicator *comm) {
+InputLayerNameParam::InputLayerNameParam(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 InputLayerNameParam::~InputLayerNameParam() {}
 
-void InputLayerNameParam::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InputLayerNameParam::initialize(char const *name, PVParams *params, Communicator const *comm) {
    LinkedObjectParam::initialize(name, params, comm, std::string("inputLayerName"));
 }
 

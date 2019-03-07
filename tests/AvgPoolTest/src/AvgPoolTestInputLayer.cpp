@@ -8,7 +8,7 @@ namespace PV {
 AvgPoolTestInputLayer::AvgPoolTestInputLayer(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

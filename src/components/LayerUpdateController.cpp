@@ -13,7 +13,7 @@ namespace PV {
 LayerUpdateController::LayerUpdateController(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -25,7 +25,10 @@ LayerUpdateController::~LayerUpdateController() {
    free(mTriggerResetLayerName);
 }
 
-void LayerUpdateController::initialize(char const *name, PVParams *params, Communicator *comm) {
+void LayerUpdateController::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

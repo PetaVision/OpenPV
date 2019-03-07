@@ -83,7 +83,7 @@ class MomentumUpdater : public HebbianUpdater {
    static constexpr float mDefaultTimeConstantTauViscosity = 100.0f;
    static constexpr float mDefaultTimeConstantTauAlex      = 0.9f;
 
-   MomentumUpdater(char const *name, PVParams *params, Communicator *comm);
+   MomentumUpdater(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~MomentumUpdater() {}
 
@@ -94,7 +94,7 @@ class MomentumUpdater : public HebbianUpdater {
   protected:
    MomentumUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

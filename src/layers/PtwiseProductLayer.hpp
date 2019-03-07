@@ -27,14 +27,14 @@ namespace PV {
  */
 class PtwiseProductLayer : public HyPerLayer {
   public:
-   PtwiseProductLayer(const char *name, PVParams *params, Communicator *comm);
+   PtwiseProductLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~PtwiseProductLayer();
 
    virtual Response::Status allocateDataStructures() override;
 
   protected:
    PtwiseProductLayer();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    ActivityComponent *createActivityComponent() override;
 }; // end class PtwiseProductLayer
 

@@ -24,7 +24,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    MomentumConnSimpleCheckpointerTestProbe(
          const char *name,
          PV::PVParams *params,
-         PV::Communicator *comm);
+         PV::Communicator const *comm);
 
    /**
     * Destructor for the MomentumConnSimpleCheckpointerTestProbe class.
@@ -40,7 +40,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    bool getTestFailed() const { return mTestFailed; }
 
   protected:
-   void initialize(const char *name, PV::PVParams *params, PV::Communicator *comm);
+   void initialize(const char *name, PV::PVParams *params, PV::Communicator const *comm);
    virtual void ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) override;
    virtual PV::Response::Status
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;

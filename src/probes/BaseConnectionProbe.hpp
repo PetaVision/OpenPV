@@ -19,7 +19,7 @@ class BaseConnectionProbe : public BaseProbe {
 
    // Methods
   public:
-   BaseConnectionProbe(const char *name, PVParams *params, Communicator *comm);
+   BaseConnectionProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~BaseConnectionProbe();
 
    ComponentBasedObject *getTargetConn() { return mTargetConn; }
@@ -27,7 +27,7 @@ class BaseConnectionProbe : public BaseProbe {
   protected:
    BaseConnectionProbe(); // Default constructor, can only be called by derived
    // classes
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual void initMessageActionMap() override;
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 

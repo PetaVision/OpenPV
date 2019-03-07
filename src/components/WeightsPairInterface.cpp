@@ -9,7 +9,10 @@
 
 namespace PV {
 
-WeightsPairInterface::WeightsPairInterface(char const *name, PVParams *params, Communicator *comm) {
+WeightsPairInterface::WeightsPairInterface(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -18,7 +21,10 @@ WeightsPairInterface::~WeightsPairInterface() {
    delete mPostWeights;
 }
 
-void WeightsPairInterface::initialize(char const *name, PVParams *params, Communicator *comm) {
+void WeightsPairInterface::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

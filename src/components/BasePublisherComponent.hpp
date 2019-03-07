@@ -32,7 +32,7 @@ namespace PV {
  */
 class BasePublisherComponent : public BaseObject {
   public:
-   BasePublisherComponent(char const *name, PVParams *params, Communicator *comm);
+   BasePublisherComponent(char const *name, PVParams *params, Communicator const *comm);
    virtual ~BasePublisherComponent();
 
    /**
@@ -42,11 +42,11 @@ class BasePublisherComponent : public BaseObject {
     */
    int increaseDelayLevels(int neededDelay);
 
-   virtual void publish(Communicator *comm, double simTime);
+   virtual void publish(Communicator const *comm, double simTime);
 
    // mpi public wait method to ensure all targets have received synaptic input before proceeding to
    // next time step
-   int waitOnPublish(Communicator *comm);
+   int waitOnPublish(Communicator const *comm);
 
    void updateAllActiveIndices();
    void updateActiveIndices();
@@ -98,7 +98,7 @@ class BasePublisherComponent : public BaseObject {
   protected:
    BasePublisherComponent();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

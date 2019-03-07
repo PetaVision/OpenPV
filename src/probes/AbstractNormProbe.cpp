@@ -13,7 +13,7 @@ namespace PV {
 
 AbstractNormProbe::AbstractNormProbe() : LayerProbe() {}
 
-AbstractNormProbe::AbstractNormProbe(const char *name, PVParams *params, Communicator *comm)
+AbstractNormProbe::AbstractNormProbe(const char *name, PVParams *params, Communicator const *comm)
       : LayerProbe() {
    initialize(name, params, comm);
 }
@@ -26,7 +26,7 @@ AbstractNormProbe::~AbstractNormProbe() {
    // Don't free mMaskLayerData, which belongs to the layer named by maskLayerName.
 }
 
-void AbstractNormProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void AbstractNormProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    LayerProbe::initialize(name, params, comm);
    setNormDescription();
 }

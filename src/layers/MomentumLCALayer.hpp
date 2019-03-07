@@ -14,12 +14,12 @@ namespace PV {
 
 class MomentumLCALayer : public HyPerLCALayer {
   public:
-   MomentumLCALayer(const char *name, PVParams *params, Communicator *comm);
+   MomentumLCALayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~MomentumLCALayer();
 
   protected:
    MomentumLCALayer() {}
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

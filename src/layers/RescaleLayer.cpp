@@ -8,7 +8,7 @@
 
 namespace PV {
 
-RescaleLayer::RescaleLayer(const char *name, PVParams *params, Communicator *comm) {
+RescaleLayer::RescaleLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -16,7 +16,7 @@ RescaleLayer::RescaleLayer() {}
 
 RescaleLayer::~RescaleLayer() {}
 
-void RescaleLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void RescaleLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    CloneVLayer::initialize(name, params, comm);
 }
 

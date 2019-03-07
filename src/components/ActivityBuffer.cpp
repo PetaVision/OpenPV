@@ -9,13 +9,13 @@
 
 namespace PV {
 
-ActivityBuffer::ActivityBuffer(char const *name, PVParams *params, Communicator *comm) {
+ActivityBuffer::ActivityBuffer(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 ActivityBuffer::~ActivityBuffer() {}
 
-void ActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void ActivityBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ComponentBuffer::initialize(name, params, comm);
    mExtendedFlag = true;
    setBufferLabel("A");

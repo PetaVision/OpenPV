@@ -17,7 +17,7 @@ namespace PV {
 WeightComparisonProbe::WeightComparisonProbe(
       char const *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -29,7 +29,7 @@ int WeightComparisonProbe::initialize_base() { return PV_SUCCESS; }
 void WeightComparisonProbe::initialize(
       char const *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    ColProbe::initialize(name, params, comm);
 }
 

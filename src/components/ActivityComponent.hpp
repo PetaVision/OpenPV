@@ -38,7 +38,7 @@ class ActivityComponent : public ComponentBasedObject {
    /** @} */
 
   public:
-   ActivityComponent(char const *name, PVParams *params, Communicator *comm);
+   ActivityComponent(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~ActivityComponent();
 
@@ -63,7 +63,7 @@ class ActivityComponent : public ComponentBasedObject {
   protected:
    ActivityComponent() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType();
 

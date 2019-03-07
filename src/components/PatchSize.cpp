@@ -9,13 +9,13 @@
 
 namespace PV {
 
-PatchSize::PatchSize(char const *name, PVParams *params, Communicator *comm) {
+PatchSize::PatchSize(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 PatchSize::~PatchSize() {}
 
-void PatchSize::initialize(char const *name, PVParams *params, Communicator *comm) {
+void PatchSize::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

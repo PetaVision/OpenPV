@@ -17,14 +17,14 @@ namespace PV {
  */
 class ShrunkenPatchTestActivityBuffer : public ActivityBuffer {
   public:
-   ShrunkenPatchTestActivityBuffer(char const *name, PVParams *params, Communicator *comm);
+   ShrunkenPatchTestActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~ShrunkenPatchTestActivityBuffer();
 
   protected:
    ShrunkenPatchTestActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

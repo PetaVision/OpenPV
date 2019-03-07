@@ -9,7 +9,10 @@
 
 namespace PV {
 
-BoundaryConditions::BoundaryConditions(char const *name, PVParams *params, Communicator *comm) {
+BoundaryConditions::BoundaryConditions(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +20,7 @@ BoundaryConditions::BoundaryConditions() {}
 
 BoundaryConditions::~BoundaryConditions() {}
 
-void BoundaryConditions::initialize(char const *name, PVParams *params, Communicator *comm) {
+void BoundaryConditions::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

@@ -7,7 +7,7 @@
 #include "TriggerTestUpdater.hpp"
 
 namespace PV {
-TriggerTestConn::TriggerTestConn(const char *name, PVParams *params, Communicator *comm) {
+TriggerTestConn::TriggerTestConn(const char *name, PVParams *params, Communicator const *comm) {
    HyPerConn::initialize(name, params, comm);
 }
 

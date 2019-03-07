@@ -2,11 +2,11 @@
 
 namespace PV {
 
-ImportParamsLayer::ImportParamsLayer(const char *name, PVParams *params, Communicator *comm) {
+ImportParamsLayer::ImportParamsLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void ImportParamsLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ImportParamsLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    ANNLayer::initialize(name, params, comm);
 
    if (strcmp(name, "orig") == 0) {

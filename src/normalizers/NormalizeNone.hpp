@@ -20,12 +20,12 @@ class NormalizeNone : public NormalizeBase {
    virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) override {}
 
   public:
-   NormalizeNone(const char *name, PVParams *params, Communicator *comm);
+   NormalizeNone(const char *name, PVParams *params, Communicator const *comm);
    virtual ~NormalizeNone();
 
   protected:
    NormalizeNone();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

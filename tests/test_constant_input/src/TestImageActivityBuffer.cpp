@@ -12,13 +12,16 @@ namespace PV {
 TestImageActivityBuffer::TestImageActivityBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 TestImageActivityBuffer::~TestImageActivityBuffer() {}
 
-void TestImageActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void TestImageActivityBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 

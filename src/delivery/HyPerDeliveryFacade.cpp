@@ -9,7 +9,10 @@
 
 namespace PV {
 
-HyPerDeliveryFacade::HyPerDeliveryFacade(char const *name, PVParams *params, Communicator *comm) {
+HyPerDeliveryFacade::HyPerDeliveryFacade(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +20,7 @@ HyPerDeliveryFacade::HyPerDeliveryFacade() {}
 
 HyPerDeliveryFacade::~HyPerDeliveryFacade() { delete mDeliveryIntern; }
 
-void HyPerDeliveryFacade::initialize(char const *name, PVParams *params, Communicator *comm) {
+void HyPerDeliveryFacade::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseDelivery::initialize(name, params, comm);
 }
 

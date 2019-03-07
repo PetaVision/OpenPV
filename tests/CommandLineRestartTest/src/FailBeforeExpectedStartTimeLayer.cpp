@@ -4,7 +4,7 @@
 FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer(
       char const *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -13,7 +13,7 @@ FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer() {}
 void FailBeforeExpectedStartTimeLayer::initialize(
       char const *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    return PV::HyPerLayer::initialize(name, params, comm);
 }
 

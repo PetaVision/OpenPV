@@ -32,13 +32,13 @@ class InputLayerUpdateController : public LayerUpdateController {
    /** @} */ // end of InputLayerUpdateController parameters
 
   public:
-   InputLayerUpdateController(char const *name, PVParams *params, Communicator *comm);
+   InputLayerUpdateController(char const *name, PVParams *params, Communicator const *comm);
    virtual ~InputLayerUpdateController();
 
   protected:
    InputLayerUpdateController();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

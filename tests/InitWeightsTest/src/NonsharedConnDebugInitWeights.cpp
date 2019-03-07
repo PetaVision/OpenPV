@@ -15,7 +15,7 @@ NonsharedConnDebugInitWeights::NonsharedConnDebugInitWeights() {}
 NonsharedConnDebugInitWeights::NonsharedConnDebugInitWeights(
       const char *name,
       PVParams *params,
-      Communicator *comm)
+      Communicator const *comm)
       : HyPerConn() {
    NonsharedConnDebugInitWeights::initialize(name, params, comm);
 }
@@ -25,7 +25,7 @@ NonsharedConnDebugInitWeights::~NonsharedConnDebugInitWeights() {}
 void NonsharedConnDebugInitWeights::initialize(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    HyPerConn::initialize(name, params, comm);
 }
 

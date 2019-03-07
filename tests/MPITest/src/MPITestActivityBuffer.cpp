@@ -12,13 +12,16 @@ namespace PV {
 MPITestActivityBuffer::MPITestActivityBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 MPITestActivityBuffer::~MPITestActivityBuffer() {}
 
-void MPITestActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void MPITestActivityBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 

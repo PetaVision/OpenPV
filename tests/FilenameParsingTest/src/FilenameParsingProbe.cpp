@@ -17,7 +17,7 @@ FilenameParsingProbe::FilenameParsingProbe() { initialize_base(); }
 FilenameParsingProbe::FilenameParsingProbe(
       const char *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -29,7 +29,7 @@ int FilenameParsingProbe::initialize_base() { return PV_SUCCESS; }
 void FilenameParsingProbe::initialize(
       const char *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    LayerProbe::initialize(name, params, comm);
 }
 

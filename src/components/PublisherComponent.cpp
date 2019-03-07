@@ -9,7 +9,10 @@
 
 namespace PV {
 
-PublisherComponent::PublisherComponent(char const *name, PVParams *params, Communicator *comm) {
+PublisherComponent::PublisherComponent(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +20,7 @@ PublisherComponent::PublisherComponent() {}
 
 PublisherComponent::~PublisherComponent() {}
 
-void PublisherComponent::initialize(char const *name, PVParams *params, Communicator *comm) {
+void PublisherComponent::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BasePublisherComponent::initialize(name, params, comm);
 }
 

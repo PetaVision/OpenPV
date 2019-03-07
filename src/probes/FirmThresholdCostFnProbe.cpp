@@ -17,7 +17,7 @@ FirmThresholdCostFnProbe::FirmThresholdCostFnProbe() : AbstractNormProbe() { ini
 FirmThresholdCostFnProbe::FirmThresholdCostFnProbe(
       const char *name,
       PVParams *params,
-      Communicator *comm)
+      Communicator const *comm)
       : AbstractNormProbe() {
    initialize_base();
    initialize(name, params, comm);
@@ -31,7 +31,10 @@ int FirmThresholdCostFnProbe::initialize_base() {
 
 FirmThresholdCostFnProbe::~FirmThresholdCostFnProbe() {}
 
-void FirmThresholdCostFnProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void FirmThresholdCostFnProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    AbstractNormProbe::initialize(name, params, comm);
 }
 

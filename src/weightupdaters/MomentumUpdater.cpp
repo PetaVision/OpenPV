@@ -9,11 +9,11 @@
 
 namespace PV {
 
-MomentumUpdater::MomentumUpdater(char const *name, PVParams *params, Communicator *comm) {
+MomentumUpdater::MomentumUpdater(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void MomentumUpdater::initialize(char const *name, PVParams *params, Communicator *comm) {
+void MomentumUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
    HebbianUpdater::initialize(name, params, comm);
 }
 

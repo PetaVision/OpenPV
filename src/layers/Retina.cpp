@@ -11,7 +11,7 @@
 
 namespace PV {
 
-Retina::Retina(const char *name, PVParams *params, Communicator *comm) {
+Retina::Retina(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -19,7 +19,7 @@ Retina::Retina() {}
 
 Retina::~Retina() {}
 
-void Retina::initialize(const char *name, PVParams *params, Communicator *comm) {
+void Retina::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

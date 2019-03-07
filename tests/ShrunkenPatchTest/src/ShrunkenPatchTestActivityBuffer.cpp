@@ -12,7 +12,7 @@ namespace PV {
 ShrunkenPatchTestActivityBuffer::ShrunkenPatchTestActivityBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ ShrunkenPatchTestActivityBuffer::~ShrunkenPatchTestActivityBuffer() {}
 void ShrunkenPatchTestActivityBuffer::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 

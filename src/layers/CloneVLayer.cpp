@@ -12,7 +12,7 @@
 
 namespace PV {
 
-CloneVLayer::CloneVLayer(const char *name, PVParams *params, Communicator *comm) {
+CloneVLayer::CloneVLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -22,7 +22,7 @@ CloneVLayer::CloneVLayer() {
 
 CloneVLayer::~CloneVLayer() {}
 
-void CloneVLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void CloneVLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

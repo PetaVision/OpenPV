@@ -12,11 +12,11 @@ namespace PV {
 
 RescaleConn::RescaleConn() {}
 
-RescaleConn::RescaleConn(const char *name, PVParams *params, Communicator *comm) {
+RescaleConn::RescaleConn(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void RescaleConn::initialize(const char *name, PVParams *params, Communicator *comm) {
+void RescaleConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
    IdentConn::initialize(name, params, comm);
 }
 

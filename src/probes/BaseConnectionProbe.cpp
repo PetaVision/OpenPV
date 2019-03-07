@@ -11,13 +11,16 @@ namespace PV {
 
 BaseConnectionProbe::BaseConnectionProbe() {}
 
-BaseConnectionProbe::BaseConnectionProbe(const char *name, PVParams *params, Communicator *comm) {
+BaseConnectionProbe::BaseConnectionProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 BaseConnectionProbe::~BaseConnectionProbe() { delete mIOTimer; }
 
-void BaseConnectionProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void BaseConnectionProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    BaseProbe::initialize(name, params, comm);
 }
 

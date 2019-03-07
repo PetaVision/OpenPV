@@ -18,13 +18,13 @@ namespace PV {
  */
 class ANNErrorLayer : public HyPerLayer {
   public:
-   ANNErrorLayer(const char *name, PVParams *params, Communicator *comm);
+   ANNErrorLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~ANNErrorLayer();
 
   protected:
    ANNErrorLayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

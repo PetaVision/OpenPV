@@ -2,7 +2,7 @@
 
 namespace PV {
 
-MaskTestLayer::MaskTestLayer(const char *name, PVParams *params, Communicator *comm) {
+MaskTestLayer::MaskTestLayer(const char *name, PVParams *params, Communicator const *comm) {
    ANNLayer::initialize(name, params, comm);
 }
 

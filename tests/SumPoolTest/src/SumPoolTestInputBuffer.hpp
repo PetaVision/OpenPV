@@ -7,7 +7,7 @@ namespace PV {
 
 class SumPoolTestInputBuffer : public ActivityBuffer {
   public:
-   SumPoolTestInputBuffer(const char *name, PVParams *params, Communicator *comm);
+   SumPoolTestInputBuffer(const char *name, PVParams *params, Communicator const *comm);
 
    void updateBufferCPU(double simTime, double deltaTime) override;
 

@@ -13,11 +13,11 @@
 
 namespace PV {
 
-CopyUpdater::CopyUpdater(char const *name, PVParams *params, Communicator *comm) {
+CopyUpdater::CopyUpdater(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void CopyUpdater::initialize(char const *name, PVParams *params, Communicator *comm) {
+void CopyUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseWeightUpdater::initialize(name, params, comm);
 }
 

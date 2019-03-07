@@ -17,14 +17,14 @@ namespace PV {
  */
 class MPITestActivityBuffer : public ActivityBuffer {
   public:
-   MPITestActivityBuffer(char const *name, PVParams *params, Communicator *comm);
+   MPITestActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~MPITestActivityBuffer();
 
   protected:
    MPITestActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

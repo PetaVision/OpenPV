@@ -17,7 +17,8 @@ PointProbe::PointProbe() {
    // PointProbe::initialize from their init-method.
 }
 
-PointProbe::PointProbe(const char *name, PVParams *params, Communicator *comm) : LayerProbe() {
+PointProbe::PointProbe(const char *name, PVParams *params, Communicator const *comm)
+      : LayerProbe() {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -32,7 +33,7 @@ int PointProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-void PointProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void PointProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    LayerProbe::initialize(name, params, comm);
 }
 

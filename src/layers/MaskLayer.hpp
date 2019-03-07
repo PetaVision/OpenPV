@@ -14,13 +14,13 @@ namespace PV {
 
 class MaskLayer : public HyPerLayer {
   public:
-   MaskLayer(const char *name, PVParams *params, Communicator *comm);
+   MaskLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~MaskLayer();
 
   protected:
    MaskLayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

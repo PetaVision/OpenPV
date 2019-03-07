@@ -13,14 +13,14 @@ namespace PV {
 
 class MomentumConn : public HyPerConn {
   public:
-   MomentumConn(char const *name, PVParams *params, Communicator *comm);
+   MomentumConn(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~MomentumConn();
 
   protected:
    MomentumConn();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual BaseWeightUpdater *createWeightUpdater() override;
 }; // class MomentumConn

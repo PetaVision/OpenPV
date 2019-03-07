@@ -19,14 +19,14 @@ namespace PV {
 class HyPerActivityBuffer : public VInputActivityBuffer {
 
   public:
-   HyPerActivityBuffer(char const *name, PVParams *params, Communicator *comm);
+   HyPerActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~HyPerActivityBuffer();
 
   protected:
    HyPerActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

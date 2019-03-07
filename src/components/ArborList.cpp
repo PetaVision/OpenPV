@@ -11,7 +11,7 @@
 
 namespace PV {
 
-ArborList::ArborList(char const *name, PVParams *params, Communicator *comm) {
+ArborList::ArborList(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -19,7 +19,7 @@ ArborList::ArborList() {}
 
 ArborList::~ArborList() { free(mDelaysParams); }
 
-void ArborList::initialize(char const *name, PVParams *params, Communicator *comm) {
+void ArborList::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

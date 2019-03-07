@@ -5,7 +5,7 @@ namespace PV {
 ImageOffsetTestActivityBuffer::ImageOffsetTestActivityBuffer(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 

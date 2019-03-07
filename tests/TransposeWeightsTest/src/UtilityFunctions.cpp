@@ -32,7 +32,7 @@ int calcStride(int pre, std::string const &preDesc, int post, std::string const 
    return stride;
 }
 
-void checkMPICompatibility(PVLayerLoc const &loc, PV::Communicator *comm) {
+void checkMPICompatibility(PVLayerLoc const &loc, PV::Communicator const *comm) {
    FatalIf(
          loc.nbatch * comm->numCommBatches() != loc.nbatchGlobal,
          "Number of processes in the batch dimension is %d, but it must be a "
@@ -63,7 +63,7 @@ PV::Weights createOriginalWeights(
       int nfPost,
       int patchSizeXPre,
       int patchSizeYPre,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    int const xStride  = calcStride(nxPre, std::string("nxPre"), nxPost, std::string("nxPost"));
    int const xTStride = calcStride(nxPost, std::string("nxPost"), nxPre, std::string("nxPre"));
    int const yStride  = calcStride(nyPre, std::string("nyPre"), nyPost, std::string("nyPost"));
@@ -219,7 +219,7 @@ int checkTransposeOfTranspose(
       std::string const &testName,
       PV::Weights &originalWeights,
       PV::Weights &transposeWeights,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    int status = PV_SUCCESS;
 
    PV::Weights transposeOfTranspose(std::string("transpose of transpose"));

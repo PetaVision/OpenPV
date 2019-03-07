@@ -11,7 +11,7 @@
 
 namespace PV {
 
-ComponentBuffer::ComponentBuffer(char const *name, PVParams *params, Communicator *comm) {
+ComponentBuffer::ComponentBuffer(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ ComponentBuffer::~ComponentBuffer() {
 #endif // PV_USE_CUDA
 }
 
-void ComponentBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void ComponentBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
    mBufferLabel = "";
 }

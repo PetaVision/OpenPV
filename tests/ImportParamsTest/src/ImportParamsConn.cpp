@@ -2,14 +2,14 @@
 
 namespace PV {
 
-ImportParamsConn::ImportParamsConn(const char *name, PVParams *params, Communicator *comm) {
+ImportParamsConn::ImportParamsConn(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
 
 int ImportParamsConn::initialize_base() { return PV_SUCCESS; }
 
-void ImportParamsConn::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ImportParamsConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerConn::initialize(name, params, comm);
 
    // Test grabbed array value

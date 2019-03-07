@@ -15,13 +15,13 @@
 
 namespace PV {
 
-IndexLayer::IndexLayer(const char *name, PVParams *params, Communicator *comm) {
+IndexLayer::IndexLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 IndexLayer::~IndexLayer() {}
 
-void IndexLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void IndexLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

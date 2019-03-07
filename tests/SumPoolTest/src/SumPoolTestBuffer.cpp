@@ -4,7 +4,7 @@
 
 namespace PV {
 
-SumPoolTestBuffer::SumPoolTestBuffer(const char *name, PVParams *params, Communicator *comm) {
+SumPoolTestBuffer::SumPoolTestBuffer(const char *name, PVParams *params, Communicator const *comm) {
    ANNActivityBuffer::initialize(name, params, comm);
 }
 
@@ -74,9 +74,8 @@ void SumPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
          }
       }
       if (!isCorrect) {
-         Communicator *icComm = mCommunicator;
-         MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't
-         // kill the run before process 0 reports the error.
+         MPI_Barrier(mCommunicator->communicator()); // If there is an error,
+         // make sure that MPI doesn't kill the run before process 0 reports the error.
          exit(EXIT_FAILURE);
       }
    }

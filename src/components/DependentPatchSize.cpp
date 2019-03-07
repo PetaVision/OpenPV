@@ -12,7 +12,10 @@
 
 namespace PV {
 
-DependentPatchSize::DependentPatchSize(char const *name, PVParams *params, Communicator *comm) {
+DependentPatchSize::DependentPatchSize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -20,7 +23,7 @@ DependentPatchSize::DependentPatchSize() {}
 
 DependentPatchSize::~DependentPatchSize() {}
 
-void DependentPatchSize::initialize(char const *name, PVParams *params, Communicator *comm) {
+void DependentPatchSize::initialize(char const *name, PVParams *params, Communicator const *comm) {
    PatchSize::initialize(name, params, comm);
 }
 

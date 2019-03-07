@@ -3,7 +3,10 @@
 
 namespace PV {
 
-KneeTimeScaleProbe::KneeTimeScaleProbe(char const *name, PVParams *params, Communicator *comm) {
+KneeTimeScaleProbe::KneeTimeScaleProbe(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 

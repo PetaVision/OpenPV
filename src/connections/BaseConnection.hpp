@@ -18,7 +18,7 @@ namespace PV {
 
 class BaseConnection : public ComponentBasedObject {
   public:
-   BaseConnection(char const *name, PVParams *params, Communicator *comm);
+   BaseConnection(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~BaseConnection();
 
@@ -31,7 +31,7 @@ class BaseConnection : public ComponentBasedObject {
   protected:
    BaseConnection();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void initMessageActionMap() override;
 

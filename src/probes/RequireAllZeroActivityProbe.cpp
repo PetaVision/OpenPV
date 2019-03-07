@@ -13,7 +13,7 @@ namespace PV {
 RequireAllZeroActivityProbe::RequireAllZeroActivityProbe(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -25,7 +25,7 @@ int RequireAllZeroActivityProbe::initialize_base() { return PV_SUCCESS; }
 void RequireAllZeroActivityProbe::initialize(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 

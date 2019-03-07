@@ -3,7 +3,7 @@
 
 namespace PV {
 
-SegmentTestLayer::SegmentTestLayer(const char *name, PVParams *params, Communicator *comm) {
+SegmentTestLayer::SegmentTestLayer(const char *name, PVParams *params, Communicator const *comm) {
    SegmentLayer::initialize(name, params, comm);
 
    FatalIf(

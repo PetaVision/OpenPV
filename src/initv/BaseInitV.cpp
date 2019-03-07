@@ -11,7 +11,7 @@ namespace PV {
 
 BaseInitV::BaseInitV() { initialize_base(); }
 
-BaseInitV::BaseInitV(char const *name, PVParams *params, Communicator *comm) {
+BaseInitV::BaseInitV(char const *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -20,7 +20,7 @@ BaseInitV::~BaseInitV() {}
 
 int BaseInitV::initialize_base() { return PV_SUCCESS; }
 
-void BaseInitV::initialize(char const *name, PVParams *params, Communicator *comm) {
+void BaseInitV::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

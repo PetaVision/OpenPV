@@ -7,7 +7,7 @@
 FixedImageSequence::FixedImageSequence(
       char const *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    PV::HyPerLayer::initialize(name, params, comm);
 }
 

@@ -14,10 +14,10 @@ namespace PV {
 
 class ShrunkenPatchTestLayer : public PV::HyPerLayer {
   public:
-   ShrunkenPatchTestLayer(const char *name, PVParams *params, Communicator *comm);
+   ShrunkenPatchTestLayer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual ActivityComponent *createActivityComponent();
 };
 

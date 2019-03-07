@@ -22,14 +22,14 @@ namespace PV {
  */
 class L0NormLCAProbe : public L0NormProbe {
   public:
-   L0NormLCAProbe(const char *name, PVParams *params, Communicator *comm);
+   L0NormLCAProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual ~L0NormLCAProbe() {}
 
   protected:
    L0NormLCAProbe();
-   void initialize(const char *name, PVParams *params, Communicator *comm) {
+   void initialize(const char *name, PVParams *params, Communicator const *comm) {
       L0NormProbe::initialize(name, params, comm);
    }
 

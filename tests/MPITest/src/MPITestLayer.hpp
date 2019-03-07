@@ -14,10 +14,10 @@ namespace PV {
 
 class MPITestLayer : public PV::HyPerLayer {
   public:
-   MPITestLayer(const char *name, PVParams *params, Communicator *comm);
+   MPITestLayer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual ActivityComponent *createActivityComponent();
 };
 

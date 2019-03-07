@@ -13,7 +13,10 @@
 
 namespace PV {
 
-ArborTestForOnesProbe::ArborTestForOnesProbe(const char *name, PVParams *params, Communicator *comm)
+ArborTestForOnesProbe::ArborTestForOnesProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm)
       : StatsProbe() {
    initialize_base();
    initialize(name, params, comm);
@@ -23,7 +26,10 @@ ArborTestForOnesProbe::~ArborTestForOnesProbe() {}
 
 int ArborTestForOnesProbe::initialize_base() { return PV_SUCCESS; }
 
-void ArborTestForOnesProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ArborTestForOnesProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 

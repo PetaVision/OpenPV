@@ -27,12 +27,12 @@ class ZeroV : public ConstantV {
    /** @} */
 
   public:
-   ZeroV(const char *name, PVParams *params, Communicator *comm);
+   ZeroV(const char *name, PVParams *params, Communicator const *comm);
    virtual ~ZeroV();
 
   protected:
    ZeroV();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
   private:
    int initialize_base();

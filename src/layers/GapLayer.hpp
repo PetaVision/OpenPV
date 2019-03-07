@@ -18,13 +18,13 @@ namespace PV {
  */
 class GapLayer : public CloneVLayer {
   public:
-   GapLayer(const char *name, PVParams *params, Communicator *comm);
+   GapLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~GapLayer();
 
   protected:
    GapLayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

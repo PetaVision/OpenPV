@@ -11,7 +11,10 @@
 
 namespace PV {
 
-LayerOutputComponent::LayerOutputComponent(char const *name, PVParams *params, Communicator *comm) {
+LayerOutputComponent::LayerOutputComponent(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -19,7 +22,10 @@ LayerOutputComponent::LayerOutputComponent() {}
 
 LayerOutputComponent::~LayerOutputComponent() { delete mIOTimer; }
 
-void LayerOutputComponent::initialize(char const *name, PVParams *params, Communicator *comm) {
+void LayerOutputComponent::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

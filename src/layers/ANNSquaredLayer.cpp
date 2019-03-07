@@ -13,13 +13,13 @@
 
 namespace PV {
 
-ANNSquaredLayer::ANNSquaredLayer(const char *name, PVParams *params, Communicator *comm) {
+ANNSquaredLayer::ANNSquaredLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 ANNSquaredLayer::~ANNSquaredLayer() {}
 
-void ANNSquaredLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ANNSquaredLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

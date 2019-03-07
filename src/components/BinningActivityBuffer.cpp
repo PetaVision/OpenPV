@@ -13,13 +13,16 @@ namespace PV {
 BinningActivityBuffer::BinningActivityBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 BinningActivityBuffer::~BinningActivityBuffer() {}
 
-void BinningActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void BinningActivityBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 

@@ -19,12 +19,12 @@ namespace PV {
  */
 class L2NormProbe : public AbstractNormProbe {
   public:
-   L2NormProbe(const char *name, PVParams *params, Communicator *comm);
+   L2NormProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~L2NormProbe();
 
   protected:
    L2NormProbe();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    /**
     * Overrides AbstractNormProbe::setNormDescription().

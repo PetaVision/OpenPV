@@ -12,7 +12,7 @@ namespace PV {
 CPTestInputInternalStateBuffer::CPTestInputInternalStateBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ CPTestInputInternalStateBuffer::~CPTestInputInternalStateBuffer() {}
 void CPTestInputInternalStateBuffer::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    HyPerInternalStateBuffer::initialize(name, params, comm);
 }
 

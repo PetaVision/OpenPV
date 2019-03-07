@@ -10,13 +10,16 @@
 
 namespace PV {
 
-ImpliedWeightsPair::ImpliedWeightsPair(char const *name, PVParams *params, Communicator *comm) {
+ImpliedWeightsPair::ImpliedWeightsPair(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 ImpliedWeightsPair::~ImpliedWeightsPair() {}
 
-void ImpliedWeightsPair::initialize(char const *name, PVParams *params, Communicator *comm) {
+void ImpliedWeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
    WeightsPairInterface::initialize(name, params, comm);
 }
 

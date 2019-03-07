@@ -10,7 +10,7 @@
 
 namespace PV {
 
-InitGaborWeights::InitGaborWeights(char const *name, PVParams *params, Communicator *comm) {
+InitGaborWeights::InitGaborWeights(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -18,7 +18,7 @@ InitGaborWeights::InitGaborWeights() {}
 
 InitGaborWeights::~InitGaborWeights() {}
 
-void InitGaborWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InitGaborWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
    InitGauss2DWeights::initialize(name, params, comm);
 }
 

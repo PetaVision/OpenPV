@@ -14,13 +14,13 @@
 
 namespace PV {
 
-ISTALayer::ISTALayer(const char *name, PVParams *params, Communicator *comm) {
+ISTALayer::ISTALayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 ISTALayer::~ISTALayer() {}
 
-void ISTALayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ISTALayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

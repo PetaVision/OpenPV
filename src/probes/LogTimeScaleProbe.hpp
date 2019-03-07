@@ -12,7 +12,7 @@ class LogTimeScaleProbe : public AdaptiveTimeScaleProbe {
    virtual void ioParam_logThresh(enum ParamsIOFlag ioFlag);
    virtual void ioParam_logSlope(enum ParamsIOFlag ioFlag);
 
-   LogTimeScaleProbe(char const *name, PVParams *params, Communicator *comm);
+   LogTimeScaleProbe(char const *name, PVParams *params, Communicator const *comm);
 
   protected:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;

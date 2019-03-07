@@ -13,13 +13,16 @@ namespace PV {
 OriginalConnNameParam::OriginalConnNameParam(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 OriginalConnNameParam::~OriginalConnNameParam() {}
 
-void OriginalConnNameParam::initialize(char const *name, PVParams *params, Communicator *comm) {
+void OriginalConnNameParam::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    LinkedObjectParam::initialize(name, params, comm, std::string("originalConnName"));
 }
 

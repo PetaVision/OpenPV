@@ -11,7 +11,7 @@ namespace PV {
 
 class TriggerTestConn : public PV::HyPerConn {
   public:
-   TriggerTestConn(const char *name, PVParams *params, Communicator *comm);
+   TriggerTestConn(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    BaseWeightUpdater *createWeightUpdater() override;

@@ -15,13 +15,16 @@ namespace PV {
 InputRegionActivityBuffer::InputRegionActivityBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 InputRegionActivityBuffer::~InputRegionActivityBuffer() {}
 
-void InputRegionActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InputRegionActivityBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 

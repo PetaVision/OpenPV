@@ -26,14 +26,14 @@ typedef HyPerActivityComponent<GSynAccumulator, MomentumLCAInternalStateBuffer, 
 class MomentumLCAActivityComponent : public BaseMomentumActivityComponent {
 
   public:
-   MomentumLCAActivityComponent(char const *name, PVParams *parameters, Communicator *comm);
+   MomentumLCAActivityComponent(char const *name, PVParams *parameters, Communicator const *comm);
 
    virtual ~MomentumLCAActivityComponent();
 
   protected:
    MomentumLCAActivityComponent() {}
 
-   void initialize(char const *name, PVParams *parameters, Communicator *comm);
+   void initialize(char const *name, PVParams *parameters, Communicator const *comm);
 
    virtual void setObjectType();
 

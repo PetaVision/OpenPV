@@ -9,7 +9,7 @@
 
 namespace PV {
 
-InitSmartWeights::InitSmartWeights(char const *name, PVParams *params, Communicator *comm)
+InitSmartWeights::InitSmartWeights(char const *name, PVParams *params, Communicator const *comm)
       : InitWeights() {
    InitSmartWeights::initialize(name, params, comm);
 }
@@ -18,7 +18,7 @@ InitSmartWeights::InitSmartWeights() {}
 
 InitSmartWeights::~InitSmartWeights() {}
 
-void InitSmartWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InitSmartWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
    InitWeights::initialize(name, params, comm);
 }
 

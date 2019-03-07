@@ -12,13 +12,16 @@ RescaleActivityBuffer::RescaleActivityBuffer() {}
 RescaleActivityBuffer::RescaleActivityBuffer(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 RescaleActivityBuffer::~RescaleActivityBuffer() { free(mRescaleMethod); }
 
-void RescaleActivityBuffer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void RescaleActivityBuffer::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 

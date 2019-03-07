@@ -12,7 +12,7 @@ namespace PV {
 SingleChannelGSynAccumulator::SingleChannelGSynAccumulator(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ SingleChannelGSynAccumulator::~SingleChannelGSynAccumulator() {}
 void SingleChannelGSynAccumulator::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    GSynAccumulator::initialize(name, params, comm);
 }
 

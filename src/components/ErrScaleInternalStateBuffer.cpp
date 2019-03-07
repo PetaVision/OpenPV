@@ -12,7 +12,7 @@ namespace PV {
 ErrScaleInternalStateBuffer::ErrScaleInternalStateBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ ErrScaleInternalStateBuffer::~ErrScaleInternalStateBuffer() {}
 void ErrScaleInternalStateBuffer::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    HyPerInternalStateBuffer::initialize(name, params, comm);
 }
 

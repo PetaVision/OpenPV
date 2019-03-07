@@ -15,7 +15,7 @@ namespace PV {
 FeedbackConnectionData::FeedbackConnectionData(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -23,7 +23,10 @@ FeedbackConnectionData::FeedbackConnectionData() {}
 
 FeedbackConnectionData::~FeedbackConnectionData() {}
 
-void FeedbackConnectionData::initialize(char const *name, PVParams *params, Communicator *comm) {
+void FeedbackConnectionData::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ConnectionData::initialize(name, params, comm);
 }
 

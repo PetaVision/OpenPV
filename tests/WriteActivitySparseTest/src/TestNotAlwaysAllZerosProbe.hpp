@@ -9,13 +9,13 @@ namespace PV {
 
 class TestNotAlwaysAllZerosProbe : public StatsProbe {
   public:
-   TestNotAlwaysAllZerosProbe(const char *name, PVParams *params, Communicator *comm);
+   TestNotAlwaysAllZerosProbe(const char *name, PVParams *params, Communicator const *comm);
    bool nonzeroValueHasOccurred() { return nonzeroValueOccurred; }
 
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:

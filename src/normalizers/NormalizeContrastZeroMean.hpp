@@ -15,7 +15,7 @@ namespace PV {
 class NormalizeContrastZeroMean : public NormalizeBase {
    // Member functions
   public:
-   NormalizeContrastZeroMean(const char *name, PVParams *params, Communicator *comm);
+   NormalizeContrastZeroMean(const char *name, PVParams *params, Communicator const *comm);
    virtual ~NormalizeContrastZeroMean();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -23,7 +23,7 @@ class NormalizeContrastZeroMean : public NormalizeBase {
 
   protected:
    NormalizeContrastZeroMean();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual void ioParam_minSumTolerated(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);

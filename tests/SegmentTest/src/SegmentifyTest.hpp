@@ -8,7 +8,7 @@ namespace PV {
 
 class SegmentifyTest : public PV::Segmentify {
   public:
-   SegmentifyTest(const char *name, PVParams *params, Communicator *comm);
+   SegmentifyTest(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    virtual void createComponentTable(char const *description) override;

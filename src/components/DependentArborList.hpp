@@ -34,13 +34,13 @@ class DependentArborList : public ArborList {
    /** @} */ // end of DependentArborList parameters
 
   public:
-   DependentArborList(char const *name, PVParams *params, Communicator *comm);
+   DependentArborList(char const *name, PVParams *params, Communicator const *comm);
    virtual ~DependentArborList();
 
   protected:
    DependentArborList();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

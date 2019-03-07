@@ -12,7 +12,7 @@ namespace PV {
 PlasticConnTestActivityBuffer::PlasticConnTestActivityBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ PlasticConnTestActivityBuffer::~PlasticConnTestActivityBuffer() {}
 void PlasticConnTestActivityBuffer::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 

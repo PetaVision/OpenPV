@@ -14,14 +14,14 @@ namespace PV {
 
 class LIFGapActivityComponent : public LIFActivityComponent {
   public:
-   LIFGapActivityComponent(const char *name, PVParams *params, Communicator *comm);
+   LIFGapActivityComponent(const char *name, PVParams *params, Communicator const *comm);
    virtual ~LIFGapActivityComponent();
 
    float const *getGapStrength() { return mGapStrength->getBufferData(); }
 
   protected:
    LIFGapActivityComponent();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual void createComponentTable(char const *tableDescription) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

@@ -18,7 +18,10 @@ ColumnEnergyProbe::ColumnEnergyProbe()
    initialize_base();
 } // end ColumnEnergyProbe::ColumnEnergyProbe(const char *)
 
-ColumnEnergyProbe::ColumnEnergyProbe(const char *probename, PVParams *params, Communicator *comm)
+ColumnEnergyProbe::ColumnEnergyProbe(
+      const char *probename,
+      PVParams *params,
+      Communicator const *comm)
       : ColProbe() {
    initialize_base();
    initialize(probename, params, comm);
@@ -47,7 +50,10 @@ void ColumnEnergyProbe::ioParam_reductionInterval(enum ParamsIOFlag ioFlag) {
          ioFlag, name, "reductionInterval", &mSkipInterval, mSkipInterval, false /*warnIfAbsent*/);
 }
 
-void ColumnEnergyProbe::initialize(const char *probename, PVParams *params, Communicator *comm) {
+void ColumnEnergyProbe::initialize(
+      const char *probename,
+      PVParams *params,
+      Communicator const *comm) {
    ColProbe::initialize(probename, params, comm);
 }
 

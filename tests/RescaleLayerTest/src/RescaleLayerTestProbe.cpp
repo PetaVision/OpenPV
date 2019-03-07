@@ -15,12 +15,18 @@
 
 namespace PV {
 
-RescaleLayerTestProbe::RescaleLayerTestProbe(const char *name, PVParams *params, Communicator *comm)
+RescaleLayerTestProbe::RescaleLayerTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm)
       : StatsProbe() {
    initialize(name, params, comm);
 }
 
-void RescaleLayerTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void RescaleLayerTestProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 
@@ -74,9 +80,8 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
    if (simTime == 0.0) {
       return status;
    }
-   float tolerance      = 2.0e-5f;
-   Communicator *icComm = mCommunicator;
-   bool isRoot          = icComm->commRank() == 0;
+   float tolerance = 2.0e-5f;
+   bool isRoot     = mCommunicator->commRank() == 0;
 
    pvAssert(mRescaleBuffer);
 

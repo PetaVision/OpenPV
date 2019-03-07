@@ -13,7 +13,7 @@ namespace PV {
 InputLayerUpdateController::InputLayerUpdateController(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -24,7 +24,7 @@ InputLayerUpdateController::~InputLayerUpdateController() {}
 void InputLayerUpdateController::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    LayerUpdateController::initialize(name, params, comm);
 }
 

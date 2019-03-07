@@ -11,7 +11,7 @@
 
 namespace PV {
 
-PoolingConn::PoolingConn(char const *name, PVParams *params, Communicator *comm) {
+PoolingConn::PoolingConn(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -19,7 +19,7 @@ PoolingConn::PoolingConn() {}
 
 PoolingConn::~PoolingConn() {}
 
-void PoolingConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+void PoolingConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseConnection::initialize(name, params, comm);
 }
 

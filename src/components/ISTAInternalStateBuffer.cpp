@@ -17,13 +17,16 @@ ISTAInternalStateBuffer::ISTAInternalStateBuffer() {}
 ISTAInternalStateBuffer::ISTAInternalStateBuffer(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 ISTAInternalStateBuffer::~ISTAInternalStateBuffer() { free(mAdaptiveTimeScaleProbeName); }
 
-void ISTAInternalStateBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void ISTAInternalStateBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    HyPerInternalStateBuffer::initialize(name, params, comm);
 }
 

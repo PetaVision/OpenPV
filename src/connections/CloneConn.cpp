@@ -13,7 +13,7 @@
 
 namespace PV {
 
-CloneConn::CloneConn(char const *name, PVParams *params, Communicator *comm) {
+CloneConn::CloneConn(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ CloneConn::CloneConn() {}
 
 CloneConn::~CloneConn() {}
 
-void CloneConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+void CloneConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
    HyPerConn::initialize(name, params, comm);
 }
 

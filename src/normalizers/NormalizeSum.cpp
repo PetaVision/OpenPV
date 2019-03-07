@@ -12,7 +12,7 @@ namespace PV {
 
 NormalizeSum::NormalizeSum() { initialize_base(); }
 
-NormalizeSum::NormalizeSum(const char *name, PVParams *params, Communicator *comm) {
+NormalizeSum::NormalizeSum(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -21,7 +21,7 @@ NormalizeSum::~NormalizeSum() {}
 
 int NormalizeSum::initialize_base() { return PV_SUCCESS; }
 
-void NormalizeSum::initialize(const char *name, PVParams *params, Communicator *comm) {
+void NormalizeSum::initialize(const char *name, PVParams *params, Communicator const *comm) {
    NormalizeMultiply::initialize(name, params, comm);
 }
 

@@ -14,14 +14,14 @@ namespace PV {
 
 class CloneConn : public HyPerConn {
   public:
-   CloneConn(char const *name, PVParams *params, Communicator *comm);
+   CloneConn(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~CloneConn();
 
   protected:
    CloneConn();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void createComponentTable(char const *description) override;
 

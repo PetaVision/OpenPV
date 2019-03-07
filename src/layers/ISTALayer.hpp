@@ -14,13 +14,13 @@ namespace PV {
 
 class ISTALayer : public HyPerLayer {
   public:
-   ISTALayer(const char *name, PVParams *params, Communicator *comm);
+   ISTALayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~ISTALayer();
 
   protected:
    ISTALayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual LayerInputBuffer *createLayerInput() override;
 

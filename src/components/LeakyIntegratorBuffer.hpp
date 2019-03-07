@@ -33,14 +33,14 @@ class LeakyIntegratorBuffer : public HyPerInternalStateBuffer {
    virtual void ioParam_integrationTime(enum ParamsIOFlag ioFlag);
 
   public:
-   LeakyIntegratorBuffer(char const *name, PVParams *params, Communicator *comm);
+   LeakyIntegratorBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~LeakyIntegratorBuffer();
 
   protected:
    LeakyIntegratorBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -5,11 +5,14 @@ namespace PV {
 GateMaxPoolTestBuffer::GateMaxPoolTestBuffer(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void GateMaxPoolTestBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void GateMaxPoolTestBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    GSynAccumulator::initialize(name, params, comm);
 }
 

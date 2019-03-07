@@ -19,7 +19,7 @@ namespace PV {
 StochasticReleaseTestProbe::StochasticReleaseTestProbe(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -31,7 +31,7 @@ int StochasticReleaseTestProbe::initialize_base() { return PV_SUCCESS; }
 void StochasticReleaseTestProbe::initialize(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 

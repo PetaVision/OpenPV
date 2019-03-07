@@ -9,7 +9,7 @@
 
 namespace PV {
 
-LayerInputBuffer::LayerInputBuffer(char const *name, PVParams *params, Communicator *comm) {
+LayerInputBuffer::LayerInputBuffer(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -20,7 +20,7 @@ LayerInputBuffer::~LayerInputBuffer() {
 #endif // PV_USE_CUDA
 }
 
-void LayerInputBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void LayerInputBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ComponentBuffer::initialize(name, params, comm);
    mExtendedFlag = false;
    mBufferLabel  = ""; // GSyn doesn't get checkpointed

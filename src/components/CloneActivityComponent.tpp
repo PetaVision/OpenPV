@@ -16,7 +16,7 @@ template <typename V, typename A>
 CloneActivityComponent<V, A>::CloneActivityComponent(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -24,8 +24,10 @@ template <typename V, typename A>
 CloneActivityComponent<V, A>::~CloneActivityComponent() {}
 
 template <typename V, typename A>
-void CloneActivityComponent<V,
-                            A>::initialize(char const *name, PVParams *params, Communicator *comm) {
+void CloneActivityComponent<V, A>::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    ActivityComponent::initialize(name, params, comm);
 }
 

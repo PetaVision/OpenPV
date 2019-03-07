@@ -7,7 +7,7 @@ namespace PV {
 
 class MaxPoolTestBuffer : public ANNActivityBuffer {
   public:
-   MaxPoolTestBuffer(const char *name, PVParams *params, Communicator *comm);
+   MaxPoolTestBuffer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    void updateBufferCPU(double simTime, double deltaTime) override;

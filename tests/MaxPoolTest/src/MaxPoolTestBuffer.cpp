@@ -2,7 +2,7 @@
 
 namespace PV {
 
-MaxPoolTestBuffer::MaxPoolTestBuffer(const char *name, PVParams *params, Communicator *comm) {
+MaxPoolTestBuffer::MaxPoolTestBuffer(const char *name, PVParams *params, Communicator const *comm) {
    ANNActivityBuffer::initialize(name, params, comm);
 }
 

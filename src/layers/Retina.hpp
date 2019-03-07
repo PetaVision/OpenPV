@@ -14,12 +14,12 @@ namespace PV {
 
 class Retina : public HyPerLayer {
   public:
-   Retina(const char *name, PVParams *params, Communicator *comm);
+   Retina(const char *name, PVParams *params, Communicator const *comm);
    virtual ~Retina();
 
   protected:
    Retina();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual ActivityComponent *createActivityComponent() override;
 
 }; // class Retina

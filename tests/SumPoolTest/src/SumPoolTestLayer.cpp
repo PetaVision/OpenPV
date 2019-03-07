@@ -7,7 +7,7 @@
 
 namespace PV {
 
-SumPoolTestLayer::SumPoolTestLayer(const char *name, PVParams *params, Communicator *comm) {
+SumPoolTestLayer::SumPoolTestLayer(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

@@ -9,7 +9,7 @@
 
 namespace PV {
 
-InitIdentWeights::InitIdentWeights(char const *name, PVParams *params, Communicator *comm) {
+InitIdentWeights::InitIdentWeights(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +17,7 @@ InitIdentWeights::InitIdentWeights() {}
 
 InitIdentWeights::~InitIdentWeights() {}
 
-void InitIdentWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InitIdentWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
    InitOneToOneWeights::initialize(name, params, comm);
 }
 

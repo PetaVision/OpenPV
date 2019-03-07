@@ -16,7 +16,7 @@ InputRegionActivityComponent::InputRegionActivityComponent() {}
 InputRegionActivityComponent::InputRegionActivityComponent(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -25,7 +25,7 @@ InputRegionActivityComponent::~InputRegionActivityComponent() {}
 void InputRegionActivityComponent::initialize(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    ActivityComponent::initialize(name, params, comm);
 }
 

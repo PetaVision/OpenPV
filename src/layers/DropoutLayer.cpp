@@ -10,13 +10,13 @@
 
 namespace PV {
 
-DropoutLayer::DropoutLayer(const char *name, PVParams *params, Communicator *comm) {
+DropoutLayer::DropoutLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 DropoutLayer::~DropoutLayer() {}
 
-void DropoutLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void DropoutLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

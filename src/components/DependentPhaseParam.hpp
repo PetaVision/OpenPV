@@ -37,14 +37,14 @@ class DependentPhaseParam : public PhaseParam {
    /** @} */ // end of DependentPhaseParam parameters
 
   public:
-   DependentPhaseParam(char const *name, PVParams *params, Communicator *comm);
+   DependentPhaseParam(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~DependentPhaseParam();
 
   protected:
    DependentPhaseParam() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

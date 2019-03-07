@@ -9,11 +9,14 @@
 
 namespace PV {
 
-IndexWeightUpdater::IndexWeightUpdater(char const *name, PVParams *params, Communicator *comm) {
+IndexWeightUpdater::IndexWeightUpdater(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void IndexWeightUpdater::initialize(char const *name, PVParams *params, Communicator *comm) {
+void IndexWeightUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
    HebbianUpdater::initialize(name, params, comm);
 }
 

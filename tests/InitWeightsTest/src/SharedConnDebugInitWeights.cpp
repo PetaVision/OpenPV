@@ -15,7 +15,7 @@ SharedConnDebugInitWeights::SharedConnDebugInitWeights() {}
 SharedConnDebugInitWeights::SharedConnDebugInitWeights(
       const char *name,
       PVParams *params,
-      Communicator *comm)
+      Communicator const *comm)
       : HyPerConn() {
    SharedConnDebugInitWeights::initialize(name, params, comm);
 }
@@ -25,7 +25,7 @@ SharedConnDebugInitWeights::~SharedConnDebugInitWeights() {}
 void SharedConnDebugInitWeights::initialize(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    HyPerConn::initialize(name, params, comm);
 }
 

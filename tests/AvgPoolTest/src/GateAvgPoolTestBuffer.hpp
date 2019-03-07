@@ -7,7 +7,7 @@ namespace PV {
 
 class GateAvgPoolTestBuffer : public HyPerActivityBuffer {
   public:
-   GateAvgPoolTestBuffer(const char *name, PVParams *params, Communicator *comm);
+   GateAvgPoolTestBuffer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    void updateBufferCPU(double simTime, double deltaTime) override;

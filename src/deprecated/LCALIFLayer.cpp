@@ -72,7 +72,7 @@ LCALIFLayer::LCALIFLayer() {
    // initialize(arguments) should *not* be called by the protected constructor.
 }
 
-LCALIFLayer::LCALIFLayer(const char *name, PVParams *params, Communicator *comm) {
+LCALIFLayer::LCALIFLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, hc, "LCALIF_update_state");
 }

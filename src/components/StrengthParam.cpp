@@ -9,13 +9,13 @@
 
 namespace PV {
 
-StrengthParam::StrengthParam(char const *name, PVParams *params, Communicator *comm) {
+StrengthParam::StrengthParam(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 StrengthParam::~StrengthParam() {}
 
-void StrengthParam::initialize(char const *name, PVParams *params, Communicator *comm) {
+void StrengthParam::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

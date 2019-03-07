@@ -9,7 +9,7 @@
 
 namespace PV {
 
-MomentumConn::MomentumConn(char const *name, PVParams *params, Communicator *comm) {
+MomentumConn::MomentumConn(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +17,7 @@ MomentumConn::MomentumConn() {}
 
 MomentumConn::~MomentumConn() {}
 
-void MomentumConn::initialize(char const *name, PVParams *params, Communicator *comm) {
+void MomentumConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
    HyPerConn::initialize(name, params, comm);
 }
 

@@ -12,7 +12,7 @@ namespace PV {
 PostsynapticPerspectiveStochasticDelivery::PostsynapticPerspectiveStochasticDelivery(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -25,7 +25,7 @@ PostsynapticPerspectiveStochasticDelivery::~PostsynapticPerspectiveStochasticDel
 void PostsynapticPerspectiveStochasticDelivery::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

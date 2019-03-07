@@ -13,7 +13,7 @@ namespace PV {
 FilenameParsingLayerUpdateController::FilenameParsingLayerUpdateController(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -22,7 +22,7 @@ FilenameParsingLayerUpdateController::FilenameParsingLayerUpdateController() {}
 void FilenameParsingLayerUpdateController::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    LayerUpdateController::initialize(name, params, comm);
 }
 

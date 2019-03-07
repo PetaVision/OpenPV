@@ -28,13 +28,16 @@ LIFGapActivityComponent::LIFGapActivityComponent() {}
 LIFGapActivityComponent::LIFGapActivityComponent(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 LIFGapActivityComponent::~LIFGapActivityComponent() {}
 
-void LIFGapActivityComponent::initialize(const char *name, PVParams *params, Communicator *comm) {
+void LIFGapActivityComponent::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    LIFActivityComponent::initialize(name, params, comm);
 }
 

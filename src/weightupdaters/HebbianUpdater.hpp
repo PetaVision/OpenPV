@@ -36,7 +36,7 @@ class HebbianUpdater : public BaseWeightUpdater {
    /** @} */ // end of HebbianUpdater parameters
 
   public:
-   HebbianUpdater(char const *name, PVParams *params, Communicator *comm);
+   HebbianUpdater(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~HebbianUpdater();
 
@@ -53,7 +53,7 @@ class HebbianUpdater : public BaseWeightUpdater {
   protected:
    HebbianUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

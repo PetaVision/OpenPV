@@ -7,7 +7,7 @@ namespace PV {
 
 class SumPoolTestBuffer : public ANNActivityBuffer {
   public:
-   SumPoolTestBuffer(const char *name, PVParams *params, Communicator *comm);
+   SumPoolTestBuffer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    void updateBufferCPU(double simTime, double deltaTime) override;

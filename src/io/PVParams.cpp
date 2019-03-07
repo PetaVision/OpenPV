@@ -786,7 +786,7 @@ const char *ParameterSweep::getStringValue(int n) {
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(const char *filename, size_t initialSize, Communicator *inIcComm) {
+PVParams::PVParams(const char *filename, size_t initialSize, Communicator const *inIcComm) {
    this->icComm = inIcComm;
    initialize(initialSize);
    parseFile(filename);
@@ -796,7 +796,7 @@ PVParams::PVParams(const char *filename, size_t initialSize, Communicator *inIcC
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(size_t initialSize, Communicator *inIcComm) {
+PVParams::PVParams(size_t initialSize, Communicator const *inIcComm) {
    this->icComm = inIcComm;
    initialize(initialSize);
 }
@@ -811,7 +811,7 @@ PVParams::PVParams(
       const char *buffer,
       long int bufferLength,
       size_t initialSize,
-      Communicator *inIcComm) {
+      Communicator const *inIcComm) {
    this->icComm = inIcComm;
    initialize(initialSize);
    parseBuffer(buffer, bufferLength);

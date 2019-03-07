@@ -21,7 +21,7 @@ using namespace std;
 namespace PV {
 ShuffleLayer::ShuffleLayer() { initialize_base(); }
 
-ShuffleLayer::ShuffleLayer(const char *name, PVParams *params, Communicator *comm) {
+ShuffleLayer::ShuffleLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -61,7 +61,7 @@ int ShuffleLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-void ShuffleLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void ShuffleLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    WarnLog() << "ShuffleLayer has been deprecated.\n";
    int status_init = HyPerLayer::initialize(name, params, comm);
    // don't need conductance channels

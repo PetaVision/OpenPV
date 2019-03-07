@@ -10,14 +10,14 @@
 
 namespace PV {
 
-VaryingHyPerConn::VaryingHyPerConn(const char *name, PVParams *params, Communicator *comm)
+VaryingHyPerConn::VaryingHyPerConn(const char *name, PVParams *params, Communicator const *comm)
       : HyPerConn() {
    initialize(name, params, comm);
 }
 
 VaryingHyPerConn::~VaryingHyPerConn() {}
 
-void VaryingHyPerConn::initialize(const char *name, PVParams *params, Communicator *comm) {
+void VaryingHyPerConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerConn::initialize(name, params, comm);
 }
 

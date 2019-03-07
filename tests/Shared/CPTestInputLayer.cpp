@@ -10,13 +10,13 @@
 
 namespace PV {
 
-CPTestInputLayer::CPTestInputLayer(const char *name, PVParams *params, Communicator *comm) {
+CPTestInputLayer::CPTestInputLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 CPTestInputLayer::~CPTestInputLayer() {}
 
-void CPTestInputLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void CPTestInputLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

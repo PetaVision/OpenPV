@@ -11,7 +11,7 @@
 
 namespace PV {
 
-InitWeights::InitWeights(char const *name, PVParams *params, Communicator *comm) {
+InitWeights::InitWeights(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -19,7 +19,7 @@ InitWeights::InitWeights() {}
 
 InitWeights::~InitWeights() {}
 
-void InitWeights::initialize(char const *name, PVParams *params, Communicator *comm) {
+void InitWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

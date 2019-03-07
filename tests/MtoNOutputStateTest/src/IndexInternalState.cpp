@@ -10,7 +10,10 @@
 
 namespace PV {
 
-IndexInternalState::IndexInternalState(char const *name, PVParams *params, Communicator *comm) {
+IndexInternalState::IndexInternalState(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -18,7 +21,7 @@ IndexInternalState::IndexInternalState() {}
 
 IndexInternalState::~IndexInternalState() {}
 
-void IndexInternalState::initialize(char const *name, PVParams *params, Communicator *comm) {
+void IndexInternalState::initialize(char const *name, PVParams *params, Communicator const *comm) {
    InternalStateBuffer::initialize(name, params, comm);
 }
 

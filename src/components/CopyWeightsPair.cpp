@@ -11,13 +11,13 @@
 
 namespace PV {
 
-CopyWeightsPair::CopyWeightsPair(char const *name, PVParams *params, Communicator *comm) {
+CopyWeightsPair::CopyWeightsPair(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 CopyWeightsPair::~CopyWeightsPair() {}
 
-void CopyWeightsPair::initialize(char const *name, PVParams *params, Communicator *comm) {
+void CopyWeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
    WeightsPair::initialize(name, params, comm);
 }
 

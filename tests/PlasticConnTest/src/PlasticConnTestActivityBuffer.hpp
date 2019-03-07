@@ -17,14 +17,14 @@ namespace PV {
  */
 class PlasticConnTestActivityBuffer : public ActivityBuffer {
   public:
-   PlasticConnTestActivityBuffer(char const *name, PVParams *params, Communicator *comm);
+   PlasticConnTestActivityBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~PlasticConnTestActivityBuffer();
 
   protected:
    PlasticConnTestActivityBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

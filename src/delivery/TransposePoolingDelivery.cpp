@@ -16,7 +16,7 @@ namespace PV {
 TransposePoolingDelivery::TransposePoolingDelivery(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -24,7 +24,10 @@ TransposePoolingDelivery::TransposePoolingDelivery() {}
 
 TransposePoolingDelivery::~TransposePoolingDelivery() {}
 
-void TransposePoolingDelivery::initialize(char const *name, PVParams *params, Communicator *comm) {
+void TransposePoolingDelivery::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    BaseDelivery::initialize(name, params, comm);
 }
 

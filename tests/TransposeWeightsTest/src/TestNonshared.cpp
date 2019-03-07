@@ -19,7 +19,7 @@ int TestNonshared(
       int nfPost,
       int patchSizeXPre,
       int patchSizeYPre,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    int status = PV_SUCCESS;
 
    // For one-to-one connections, stride and transpose-stride are both one.

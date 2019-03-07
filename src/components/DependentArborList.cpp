@@ -12,7 +12,10 @@
 
 namespace PV {
 
-DependentArborList::DependentArborList(char const *name, PVParams *params, Communicator *comm) {
+DependentArborList::DependentArborList(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -20,7 +23,7 @@ DependentArborList::DependentArborList() {}
 
 DependentArborList::~DependentArborList() {}
 
-void DependentArborList::initialize(char const *name, PVParams *params, Communicator *comm) {
+void DependentArborList::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ArborList::initialize(name, params, comm);
 }
 

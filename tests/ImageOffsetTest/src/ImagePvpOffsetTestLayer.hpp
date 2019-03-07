@@ -6,13 +6,13 @@
 namespace PV {
 class ImagePvpOffsetTestLayer : public PvpLayer {
   public:
-   ImagePvpOffsetTestLayer(char const *name, PVParams *params, Communicator *comm);
+   ImagePvpOffsetTestLayer(char const *name, PVParams *params, Communicator const *comm);
    virtual ~ImagePvpOffsetTestLayer();
 
   protected:
    ImagePvpOffsetTestLayer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 

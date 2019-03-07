@@ -14,7 +14,7 @@ namespace PV {
 FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }

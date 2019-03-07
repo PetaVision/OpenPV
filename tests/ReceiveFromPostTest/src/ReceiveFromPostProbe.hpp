@@ -11,12 +11,12 @@ namespace PV {
 
 class ReceiveFromPostProbe : public PV::StatsProbe {
   public:
-   ReceiveFromPostProbe(const char *name, PVParams *params, Communicator *comm);
+   ReceiveFromPostProbe(const char *name, PVParams *params, Communicator const *comm);
 
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    void ioParam_tolerance(enum ParamsIOFlag ioFlag);

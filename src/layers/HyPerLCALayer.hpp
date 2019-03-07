@@ -14,13 +14,13 @@ namespace PV {
 
 class HyPerLCALayer : public HyPerLayer {
   public:
-   HyPerLCALayer(const char *name, PVParams *params, Communicator *comm);
+   HyPerLCALayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~HyPerLCALayer();
 
   protected:
    HyPerLCALayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual LayerInputBuffer *createLayerInput() override;
 

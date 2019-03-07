@@ -18,7 +18,7 @@ namespace PV {
 
 class ShuffleLayer : public CloneVLayer {
   public:
-   ShuffleLayer(const char *name, PVParams *params, Communicator *comm);
+   ShuffleLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~ShuffleLayer();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -28,7 +28,7 @@ class ShuffleLayer : public CloneVLayer {
 
   protected:
    ShuffleLayer();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_shuffleMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_readFreqFromFile(enum ParamsIOFlag ioFlag);

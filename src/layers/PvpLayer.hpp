@@ -8,13 +8,13 @@ namespace PV {
 class PvpLayer : public InputLayer {
 
   public:
-   PvpLayer(char const *name, PVParams *params, Communicator *comm);
+   PvpLayer(char const *name, PVParams *params, Communicator const *comm);
    virtual ~PvpLayer();
 
   protected:
    PvpLayer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

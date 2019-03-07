@@ -31,14 +31,14 @@ class ErrScaleInternalStateBuffer : public HyPerInternalStateBuffer {
    virtual void ioParam_errScale(enum ParamsIOFlag ioFlag);
 
   public:
-   ErrScaleInternalStateBuffer(char const *name, PVParams *params, Communicator *comm);
+   ErrScaleInternalStateBuffer(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~ErrScaleInternalStateBuffer();
 
   protected:
    ErrScaleInternalStateBuffer() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

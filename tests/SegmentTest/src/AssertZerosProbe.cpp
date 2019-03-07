@@ -10,7 +10,7 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-AssertZerosProbe::AssertZerosProbe(const char *name, PVParams *params, Communicator *comm)
+AssertZerosProbe::AssertZerosProbe(const char *name, PVParams *params, Communicator const *comm)
       : StatsProbe() {
    initialize_base();
    initialize(name, params, comm);
@@ -18,7 +18,7 @@ AssertZerosProbe::AssertZerosProbe(const char *name, PVParams *params, Communica
 
 int AssertZerosProbe::initialize_base() { return PV_SUCCESS; }
 
-void AssertZerosProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void AssertZerosProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 

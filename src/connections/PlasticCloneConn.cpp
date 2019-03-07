@@ -12,13 +12,13 @@ namespace PV {
 
 PlasticCloneConn::PlasticCloneConn() {}
 
-PlasticCloneConn::PlasticCloneConn(const char *name, PVParams *params, Communicator *comm) {
+PlasticCloneConn::PlasticCloneConn(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 PlasticCloneConn::~PlasticCloneConn() {}
 
-void PlasticCloneConn::initialize(const char *name, PVParams *params, Communicator *comm) {
+void PlasticCloneConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
    CloneConn::initialize(name, params, comm);
 }
 

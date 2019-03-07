@@ -13,14 +13,17 @@
 
 namespace PV {
 
-InitWeightTestProbe::InitWeightTestProbe(const char *name, PVParams *params, Communicator *comm)
+InitWeightTestProbe::InitWeightTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm)
       : StatsProbe() {
    initialize(name, params, comm);
 }
 
 int InitWeightTestProbe::initialize_base() { return PV_SUCCESS; }
 
-void InitWeightTestProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void InitWeightTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 
@@ -31,8 +34,8 @@ Response::Status InitWeightTestProbe::outputState(double simTime, double deltaTi
    if (status != Response::SUCCESS) {
       return status;
    }
-   Communicator *icComm = mCommunicator;
-   const int rcvProc    = 0;
+   Communicator const *icComm = mCommunicator;
+   const int rcvProc          = 0;
    if (icComm->commRank() != rcvProc) {
       return status;
    }

@@ -9,11 +9,11 @@
 
 namespace PV {
 
-BaseWeightUpdater::BaseWeightUpdater(char const *name, PVParams *params, Communicator *comm) {
+BaseWeightUpdater::BaseWeightUpdater(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void BaseWeightUpdater::initialize(char const *name, PVParams *params, Communicator *comm) {
+void BaseWeightUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }
 

@@ -12,13 +12,16 @@ namespace PV {
 LeakyIntegratorBuffer::LeakyIntegratorBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 LeakyIntegratorBuffer::~LeakyIntegratorBuffer() {}
 
-void LeakyIntegratorBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void LeakyIntegratorBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    HyPerInternalStateBuffer::initialize(name, params, comm);
 }
 

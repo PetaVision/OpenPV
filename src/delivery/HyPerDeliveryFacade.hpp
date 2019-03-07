@@ -52,7 +52,7 @@ class HyPerDeliveryFacade : public BaseDelivery {
    /** @} */ // End of list of HyPerDeliveryFacade parameters.
 
   public:
-   HyPerDeliveryFacade(char const *name, PVParams *params, Communicator *comm);
+   HyPerDeliveryFacade(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~HyPerDeliveryFacade();
 
@@ -71,7 +71,7 @@ class HyPerDeliveryFacade : public BaseDelivery {
   protected:
    HyPerDeliveryFacade();
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -3,14 +3,14 @@
 FixedImageSequenceByFile::FixedImageSequenceByFile(
       char const *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 void FixedImageSequenceByFile::initialize(
       char const *name,
       PV::PVParams *params,
-      PV::Communicator *comm) {
+      PV::Communicator const *comm) {
    FixedImageSequence::initialize(name, params, comm);
 }
 

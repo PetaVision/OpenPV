@@ -12,13 +12,16 @@ namespace PV {
 SigmoidActivityBuffer::SigmoidActivityBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 SigmoidActivityBuffer::~SigmoidActivityBuffer() {}
 
-void SigmoidActivityBuffer::initialize(char const *name, PVParams *params, Communicator *comm) {
+void SigmoidActivityBuffer::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    VInputActivityBuffer::initialize(name, params, comm);
 }
 

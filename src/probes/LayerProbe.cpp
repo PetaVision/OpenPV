@@ -19,7 +19,7 @@ LayerProbe::LayerProbe() {
 /**
  * @filename
  */
-LayerProbe::LayerProbe(const char *name, PVParams *params, Communicator *comm) {
+LayerProbe::LayerProbe(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -35,7 +35,7 @@ int LayerProbe::initialize_base() {
  * @filename
  * @layer
  */
-void LayerProbe::initialize(const char *name, PVParams *params, Communicator *comm) {
+void LayerProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    BaseProbe::initialize(name, params, comm);
 }
 

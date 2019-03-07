@@ -10,13 +10,13 @@
 namespace PV {
 BinningLayer::BinningLayer() {}
 
-BinningLayer::BinningLayer(const char *name, PVParams *params, Communicator *comm) {
+BinningLayer::BinningLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 BinningLayer::~BinningLayer() {}
 
-void BinningLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void BinningLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

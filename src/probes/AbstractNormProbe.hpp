@@ -26,7 +26,7 @@ namespace PV {
  */
 class AbstractNormProbe : public LayerProbe {
   public:
-   AbstractNormProbe(const char *name, PVParams *params, Communicator *comm);
+   AbstractNormProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~AbstractNormProbe();
 
    /**
@@ -43,7 +43,7 @@ class AbstractNormProbe : public LayerProbe {
 
   protected:
    AbstractNormProbe();
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    /**
     * Called during initialization, sets the member variable normDescription.

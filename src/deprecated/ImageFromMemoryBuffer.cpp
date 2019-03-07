@@ -18,7 +18,7 @@ namespace PV {
 ImageFromMemoryBuffer::ImageFromMemoryBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    Fatal() << "Unable to create layer \"" << name << "\": ImageFromMemoryBuffer is obsolete.\n";
 }
 

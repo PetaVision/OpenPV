@@ -12,7 +12,7 @@ namespace PV {
 PoolingIndexLayerInputBuffer::PoolingIndexLayerInputBuffer(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ PoolingIndexLayerInputBuffer::~PoolingIndexLayerInputBuffer() {}
 void PoolingIndexLayerInputBuffer::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    LayerInputBuffer::initialize(name, params, comm);
 }
 

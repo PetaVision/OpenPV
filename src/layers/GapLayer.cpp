@@ -12,13 +12,13 @@
 
 namespace PV {
 
-GapLayer::GapLayer(const char *name, PVParams *params, Communicator *comm) {
+GapLayer::GapLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
 GapLayer::~GapLayer() {}
 
-void GapLayer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void GapLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    CloneVLayer::initialize(name, params, comm);
 }
 

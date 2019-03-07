@@ -12,7 +12,7 @@
 
 namespace PV {
 
-NormalizeGroup::NormalizeGroup(char const *name, PVParams *params, Communicator *comm) {
+NormalizeGroup::NormalizeGroup(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -20,7 +20,7 @@ NormalizeGroup::NormalizeGroup() {}
 
 NormalizeGroup::~NormalizeGroup() { free(mNormalizeGroupName); }
 
-void NormalizeGroup::initialize(char const *name, PVParams *params, Communicator *comm) {
+void NormalizeGroup::initialize(char const *name, PVParams *params, Communicator const *comm) {
    NormalizeBase::initialize(name, params, comm);
 }
 

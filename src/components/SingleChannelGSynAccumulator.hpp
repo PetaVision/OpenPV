@@ -38,7 +38,7 @@ class SingleChannelGSynAccumulator : public GSynAccumulator {
 
    /** @} */
   public:
-   SingleChannelGSynAccumulator(char const *name, PVParams *params, Communicator *comm);
+   SingleChannelGSynAccumulator(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~SingleChannelGSynAccumulator();
 
@@ -47,7 +47,7 @@ class SingleChannelGSynAccumulator : public GSynAccumulator {
   protected:
    SingleChannelGSynAccumulator() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

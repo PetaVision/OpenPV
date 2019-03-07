@@ -7,7 +7,7 @@
 
 namespace PV {
 
-MaxPoolTestLayer::MaxPoolTestLayer(const char *name, PVParams *params, Communicator *comm) {
+MaxPoolTestLayer::MaxPoolTestLayer(const char *name, PVParams *params, Communicator const *comm) {
    HyPerLayer::initialize(name, params, comm);
 }
 

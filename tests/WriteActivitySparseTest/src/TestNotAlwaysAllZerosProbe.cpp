@@ -19,7 +19,7 @@ namespace PV {
 TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -48,7 +48,7 @@ int TestNotAlwaysAllZerosProbe::initialize_base() {
 void TestNotAlwaysAllZerosProbe::initialize(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    StatsProbe::initialize(name, params, comm);
 }
 

@@ -18,14 +18,14 @@ namespace PV {
  */
 class OriginalConnNameParam : public LinkedObjectParam {
   public:
-   OriginalConnNameParam(char const *name, PVParams *params, Communicator *comm);
+   OriginalConnNameParam(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~OriginalConnNameParam();
 
   protected:
    OriginalConnNameParam() {}
 
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 };

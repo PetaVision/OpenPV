@@ -9,7 +9,7 @@
 
 namespace PV {
 
-NormalizeMultiply::NormalizeMultiply(const char *name, PVParams *params, Communicator *comm) {
+NormalizeMultiply::NormalizeMultiply(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -17,7 +17,7 @@ NormalizeMultiply::NormalizeMultiply() {}
 
 NormalizeMultiply::~NormalizeMultiply() {}
 
-void NormalizeMultiply::initialize(const char *name, PVParams *params, Communicator *comm) {
+void NormalizeMultiply::initialize(const char *name, PVParams *params, Communicator const *comm) {
    NormalizeBase::initialize(name, params, comm);
 }
 

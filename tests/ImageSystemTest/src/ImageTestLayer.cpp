@@ -2,7 +2,7 @@
 
 namespace PV {
 
-ImageTestLayer::ImageTestLayer(const char *name, PVParams *params, Communicator *comm) {
+ImageTestLayer::ImageTestLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 

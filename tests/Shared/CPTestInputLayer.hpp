@@ -10,13 +10,13 @@ namespace PV {
 
 class CPTestInputLayer : public HyPerLayer {
   public:
-   CPTestInputLayer(const char *name, PVParams *params, Communicator *comm);
+   CPTestInputLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~CPTestInputLayer();
 
   protected:
    CPTestInputLayer() {}
 
-   void initialize(const char *name, PVParams *params, Communicator *comm);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual ActivityComponent *createActivityComponent() override;
 };

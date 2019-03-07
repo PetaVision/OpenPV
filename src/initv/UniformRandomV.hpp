@@ -31,14 +31,14 @@ class UniformRandomV : public BaseInitV {
    virtual void ioParam_maxV(enum ParamsIOFlag ioFlag);
    /** @} */
   public:
-   UniformRandomV(char const *name, PVParams *params, Communicator *comm);
+   UniformRandomV(char const *name, PVParams *params, Communicator const *comm);
    virtual ~UniformRandomV();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    UniformRandomV();
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
   private:
    int initialize_base();

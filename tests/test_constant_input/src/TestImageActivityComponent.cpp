@@ -12,7 +12,7 @@ namespace PV {
 TestImageActivityComponent::TestImageActivityComponent(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -21,7 +21,7 @@ TestImageActivityComponent::~TestImageActivityComponent() {}
 void TestImageActivityComponent::initialize(
       char const *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    ActivityComponent::initialize(name, params, comm);
 }
 

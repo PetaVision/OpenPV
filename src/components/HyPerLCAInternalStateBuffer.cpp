@@ -17,7 +17,7 @@ HyPerLCAInternalStateBuffer::HyPerLCAInternalStateBuffer() {}
 HyPerLCAInternalStateBuffer::HyPerLCAInternalStateBuffer(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -26,7 +26,7 @@ HyPerLCAInternalStateBuffer::~HyPerLCAInternalStateBuffer() { free(mAdaptiveTime
 void HyPerLCAInternalStateBuffer::initialize(
       const char *name,
       PVParams *params,
-      Communicator *comm) {
+      Communicator const *comm) {
    HyPerInternalStateBuffer::initialize(name, params, comm);
 }
 

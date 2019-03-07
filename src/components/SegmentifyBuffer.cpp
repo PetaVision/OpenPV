@@ -12,7 +12,7 @@
 
 namespace PV {
 
-SegmentifyBuffer::SegmentifyBuffer(const char *name, PVParams *params, Communicator *comm) {
+SegmentifyBuffer::SegmentifyBuffer(const char *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
@@ -22,7 +22,7 @@ SegmentifyBuffer::SegmentifyBuffer() {
 
 SegmentifyBuffer::~SegmentifyBuffer() {}
 
-void SegmentifyBuffer::initialize(const char *name, PVParams *params, Communicator *comm) {
+void SegmentifyBuffer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
 }
 
@@ -255,9 +255,9 @@ void SegmentifyBuffer::checkLabelValBuf(int newSize) {
 }
 
 void SegmentifyBuffer::buildLabelToIdx(int batchIdx) {
-   Communicator *icComm = mCommunicator;
-   int numMpi           = icComm->commSize();
-   int rank             = icComm->commRank();
+   Communicator const *icComm = mCommunicator;
+   int numMpi                 = icComm->commSize();
+   int rank                   = icComm->commRank();
 
    mLabelToIdx.clear();
    // First, we need a single scalar per feature per segment label
@@ -306,7 +306,7 @@ void SegmentifyBuffer::buildLabelToIdx(int batchIdx) {
 }
 
 void SegmentifyBuffer::calculateLabelVals(int batchIdx) {
-   Communicator *icComm = mCommunicator;
+   Communicator const *icComm = mCommunicator;
 
    const PVLayerLoc *srcLoc = mOriginalActivity->getLayerLoc();
    const PVLayerLoc *segLoc = mSegmentBuffer->getLayerLoc();

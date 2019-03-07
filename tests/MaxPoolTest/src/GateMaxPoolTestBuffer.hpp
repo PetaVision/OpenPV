@@ -7,10 +7,10 @@ namespace PV {
 
 class GateMaxPoolTestBuffer : public GSynAccumulator {
   public:
-   GateMaxPoolTestBuffer(const char *name, PVParams *params, Communicator *comm);
+   GateMaxPoolTestBuffer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
-   void initialize(char const *name, PVParams *params, Communicator *comm);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
    void updateBufferCPU(double simTime, double deltaTime) override;
 };
 
