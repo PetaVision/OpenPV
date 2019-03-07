@@ -8,6 +8,7 @@
 #include "cMakeHeader.h"
 #include "columns/CommandLineArguments.hpp"
 #include "columns/ConfigFileArguments.hpp"
+#include "columns/CoreKeywords.hpp"
 #include "utils/PVLog.hpp"
 #include <csignal>
 #ifdef PV_USE_OPENMP_THREADS
@@ -49,6 +50,7 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
       arguments = new CommandLineArguments(mArgC, mArgV.data(), allowUnrecognizedArguments);
    }
    initLogFile(false /*appendFlag*/);
+   initFactory();
    initialize(); // must be called after initialization of arguments data member.
 }
 
@@ -126,6 +128,8 @@ int PV_Init::commInit(int *argc, char ***argv) {
 
    return 0;
 }
+
+void PV_Init::initFactory() { PV::registerCoreKeywords(); }
 
 void PV_Init::initLogFile(bool appendFlag) {
    // TODO: Under MPI, non-root processes should send messages to root process.

@@ -120,12 +120,6 @@ class Factory {
    virtual ~Factory();
 
    /**
-    * The function called by the default constructor, to add the core PetaVision
-    * keywords.
-    */
-   int registerCoreKeywords();
-
-   /**
     * A method used internally to retrieve the keyword handler corresponding to a
     * given keyword.
     */
@@ -139,7 +133,7 @@ class Factory {
 
    // Member variables
   private:
-   std::vector<KeywordHandler *> keywordHandlerList;
+   std::vector<KeywordHandler *> mKeywordHandlerList;
 }; // class Factory
 
 } // namespace PV

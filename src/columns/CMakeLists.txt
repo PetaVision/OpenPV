@@ -6,6 +6,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/Communicator.cpp
    ${SUBDIR}/ComponentBasedObject.cpp
    ${SUBDIR}/ConfigFileArguments.cpp
+   ${SUBDIR}/CoreKeywords.cpp
    ${SUBDIR}/DataStore.cpp
    ${SUBDIR}/Factory.cpp
    ${SUBDIR}/GaussianRandom.cpp
@@ -26,6 +27,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Communicator.hpp
    ${SUBDIR}/ComponentBasedObject.hpp
    ${SUBDIR}/ConfigFileArguments.hpp
+   ${SUBDIR}/CoreKeywords.hpp
    ${SUBDIR}/DataStore.hpp
    ${SUBDIR}/Factory.hpp
    ${SUBDIR}/GaussianRandom.hpp

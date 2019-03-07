@@ -8,245 +8,13 @@
 #include "Factory.hpp"
 #include "include/pv_common.h"
 
-#include "layers/ANNErrorLayer.hpp"
-#include "layers/ANNLayer.hpp"
-#include "layers/ANNSquaredLayer.hpp"
-#include "layers/BackgroundLayer.hpp"
-#include "layers/BinningLayer.hpp"
-#include "layers/CloneVLayer.hpp"
-#include "layers/ConstantLayer.hpp"
-#include "layers/DropoutLayer.hpp"
-#include "layers/FilenameParsingGroundTruthLayer.hpp"
-#include "layers/GapLayer.hpp"
-#include "layers/HyPerLCALayer.hpp"
-#include "layers/HyPerLayer.hpp"
-#include "layers/ISTALayer.hpp"
-#include "layers/ImageLayer.hpp"
-#include "layers/InputRegionLayer.hpp"
-#include "layers/LIF.hpp"
-#include "layers/LIFGap.hpp"
-#include "layers/LeakyIntegrator.hpp"
-#include "layers/MaskLayer.hpp"
-#include "layers/MomentumLCALayer.hpp"
-#include "layers/PoolingIndexLayer.hpp"
-#include "layers/PtwiseProductLayer.hpp"
-#include "layers/PtwiseQuotientLayer.hpp"
-#include "layers/PvpLayer.hpp"
-#include "layers/RescaleLayer.hpp"
-#include "layers/Retina.hpp"
-#include "layers/SigmoidLayer.hpp"
-
-// #include "deprecated/ANNWhitenedLayer.hpp"
-// #include "deprecated/KmeansLayer.hpp"
-// #include "deprecated/LCALIFLayer.hpp"
-// #include "deprecated/LabelErrorLayer.hpp"
-// #include "deprecated/RunningAverageLayer.hpp"
-// #include "deprecated/ShuffleLayer.hpp"
-// #include "deprecated/WTALayer.hpp"
-
-#include "connections/CloneConn.hpp"
-#include "connections/CopyConn.hpp"
-#include "connections/FeedbackConn.hpp"
-#include "connections/GapConn.hpp"
-#include "connections/HyPerConn.hpp"
-#include "connections/IdentConn.hpp"
-#include "connections/MomentumConn.hpp"
-#include "connections/PlasticCloneConn.hpp"
-#include "connections/PoolingConn.hpp"
-#include "connections/RescaleConn.hpp"
-#include "connections/TransposeConn.hpp"
-#include "connections/TransposePoolingConn.hpp"
-#include "connections/WTAConn.hpp"
-
-#include "probes/AdaptiveTimeScaleProbe.hpp"
-#include "probes/ColumnEnergyProbe.hpp"
-#include "probes/FirmThresholdCostFnLCAProbe.hpp"
-#include "probes/FirmThresholdCostFnProbe.hpp"
-#include "probes/KernelProbe.hpp"
-#include "probes/KneeTimeScaleProbe.hpp"
-#include "probes/L0NormLCAProbe.hpp"
-#include "probes/L0NormProbe.hpp"
-#include "probes/L1NormLCAProbe.hpp"
-#include "probes/L1NormProbe.hpp"
-#include "probes/L2ConnProbe.hpp"
-#include "probes/L2NormProbe.hpp"
-#include "probes/LogTimeScaleProbe.hpp"
-#include "probes/PointLIFProbe.hpp"
-#include "probes/PointProbe.hpp"
-#include "probes/QuotientColProbe.hpp"
-#include "probes/RequireAllZeroActivityProbe.hpp"
-#include "probes/StatsProbe.hpp"
-
-#include "initv/ConstantV.hpp"
-#include "initv/GaussianRandomV.hpp"
-#include "initv/InitVFromFile.hpp"
-#include "initv/UniformRandomV.hpp"
-#include "initv/ZeroV.hpp"
-
-#include "delivery/IdentDelivery.hpp"
-#include "delivery/PostsynapticPerspectiveConvolveDelivery.hpp"
-#include "delivery/PostsynapticPerspectiveStochasticDelivery.hpp"
-#include "delivery/PresynapticPerspectiveConvolveDelivery.hpp"
-#include "delivery/PresynapticPerspectiveStochasticDelivery.hpp"
-#include "delivery/RescaleDelivery.hpp"
-#include "delivery/WTADelivery.hpp"
-
-#ifdef PV_USE_CUDA
-#include "delivery/PostsynapticPerspectiveGPUDelivery.hpp"
-#include "delivery/PresynapticPerspectiveGPUDelivery.hpp"
-#endif // PV_USE_CUDA
-
-#include "weightinit/InitCocircWeights.hpp"
-#include "weightinit/InitGauss2DWeights.hpp"
-#include "weightinit/InitGaussianRandomWeights.hpp"
-#include "weightinit/InitIdentWeights.hpp"
-#include "weightinit/InitOneToOneWeights.hpp"
-#include "weightinit/InitOneToOneWeightsWithDelays.hpp"
-#include "weightinit/InitSmartWeights.hpp"
-#include "weightinit/InitSpreadOverArborsWeights.hpp"
-#include "weightinit/InitUniformRandomWeights.hpp"
-#include "weightinit/InitUniformWeights.hpp"
-#include "weightinit/InitWeights.hpp"
-
-#include "weightupdaters/HebbianUpdater.hpp"
-
-#include "normalizers/NormalizeContrastZeroMean.hpp"
-#include "normalizers/NormalizeGroup.hpp"
-#include "normalizers/NormalizeL2.hpp"
-#include "normalizers/NormalizeMax.hpp"
-#include "normalizers/NormalizeNone.hpp"
-#include "normalizers/NormalizeSum.hpp"
-
 namespace PV {
 
-Factory::Factory() { registerCoreKeywords(); }
+Factory::Factory() {}
 
-int Factory::registerCoreKeywords() {
-   keywordHandlerList = std::vector<KeywordHandler *>();
-
-   registerKeyword("ANNErrorLayer", Factory::create<ANNErrorLayer>);
-   registerKeyword("ANNLayer", Factory::create<ANNLayer>);
-   registerKeyword("ANNSquaredLayer", Factory::create<ANNSquaredLayer>);
-   registerKeyword("BackgroundLayer", Factory::create<BackgroundLayer>);
-   registerKeyword("BinningLayer", Factory::create<BinningLayer>);
-   registerKeyword("CloneVLayer", Factory::create<CloneVLayer>);
-   registerKeyword("ConstantLayer", Factory::create<ConstantLayer>);
-   registerKeyword("DropoutLayer", Factory::create<DropoutLayer>);
-   registerKeyword(
-         "FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
-   registerKeyword("GapLayer", Factory::create<GapLayer>);
-   registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
-   registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);
-   registerKeyword("ISTALayer", Factory::create<ISTALayer>);
-
-   registerKeyword("ImageLayer", Factory::create<ImageLayer>);
-   registerKeyword("InputRegionLayer", Factory::create<InputRegionLayer>);
-   registerKeyword("LIF", Factory::create<LIF>);
-   registerKeyword("LIFGap", Factory::create<LIFGap>);
-   registerKeyword("LeakyIntegrator", Factory::create<LeakyIntegrator>);
-   registerKeyword("MaskLayer", Factory::create<MaskLayer>);
-   registerKeyword("MomentumLCALayer", Factory::create<MomentumLCALayer>);
-   registerKeyword("PoolingIndexLayer", Factory::create<PoolingIndexLayer>);
-   registerKeyword("PvpLayer", Factory::create<PvpLayer>);
-   registerKeyword("PtwiseProductLayer", Factory::create<PtwiseProductLayer>);
-   registerKeyword("PtwiseQuotientLayer", Factory::create<PtwiseQuotientLayer>);
-   registerKeyword("RescaleLayer", Factory::create<RescaleLayer>);
-   registerKeyword("Retina", Factory::create<Retina>);
-   registerKeyword("SigmoidLayer", Factory::create<SigmoidLayer>);
-
-   // Deprecated layers
-   // registerKeyword("ANNWhitenedLayer", Factory::create<ANNWhitenedLayer>);
-   // registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
-   // registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
-   // registerKeyword("LabelErrorLayer", Factory::create<LabelErrorLayer>);
-   // registerKeyword("RunningAverageLayer", Factory::create<RunningAverageLayer>);
-   // registerKeyword("ShuffleLayer", Factory::create<ShuffleLayer>);
-   // registerKeyword("WTALayer", Factory::create<WTALayer>);
-
-   registerKeyword("HyPerConn", Factory::create<HyPerConn>);
-   registerKeyword("CloneConn", Factory::create<CloneConn>);
-   registerKeyword("CopyConn", Factory::create<CopyConn>);
-   registerKeyword("FeedbackConn", Factory::create<FeedbackConn>);
-   registerKeyword("GapConn", Factory::create<GapConn>);
-   registerKeyword("IdentConn", Factory::create<IdentConn>);
-   registerKeyword("MomentumConn", Factory::create<MomentumConn>);
-   registerKeyword("PlasticCloneConn", Factory::create<PlasticCloneConn>);
-   registerKeyword("PoolingConn", Factory::create<PoolingConn>);
-   registerKeyword("RescaleConn", Factory::create<RescaleConn>);
-   registerKeyword("TransposeConn", Factory::create<TransposeConn>);
-   registerKeyword("TransposePoolingConn", Factory::create<TransposePoolingConn>);
-   registerKeyword("WTAConn", Factory::create<WTAConn>);
-
-   registerKeyword("AdaptiveTimeScaleProbe", Factory::create<AdaptiveTimeScaleProbe>);
-   registerKeyword("KneeTimeScaleProbe", Factory::create<KneeTimeScaleProbe>);
-   registerKeyword("LogTimeScaleProbe", Factory::create<LogTimeScaleProbe>);
-   registerKeyword("ColumnEnergyProbe", Factory::create<ColumnEnergyProbe>);
-   registerKeyword("FirmThresholdCostFnLCAProbe", Factory::create<FirmThresholdCostFnLCAProbe>);
-   registerKeyword("FirmThresholdCostFnProbe", Factory::create<FirmThresholdCostFnProbe>);
-   registerKeyword("KernelProbe", Factory::create<KernelProbe>);
-   registerKeyword("L0NormLCAProbe", Factory::create<L0NormLCAProbe>);
-   registerKeyword("L0NormProbe", Factory::create<L0NormProbe>);
-   registerKeyword("L1NormLCAProbe", Factory::create<L1NormLCAProbe>);
-   registerKeyword("L1NormProbe", Factory::create<L1NormProbe>);
-   registerKeyword("L2ConnProbe", Factory::create<L2ConnProbe>);
-   registerKeyword("L2NormProbe", Factory::create<L2NormProbe>);
-   registerKeyword("PointLIFProbe", Factory::create<PointLIFProbe>);
-   registerKeyword("PointProbe", Factory::create<PointProbe>);
-   registerKeyword("QuotientColProbe", Factory::create<QuotientColProbe>);
-   registerKeyword("RequireAllZeroActivityProbe", Factory::create<RequireAllZeroActivityProbe>);
-   registerKeyword("StatsProbe", Factory::create<StatsProbe>);
-
-   registerKeyword("ConstantV", Factory::create<ConstantV>);
-   registerKeyword("GaussianRandomV", Factory::create<GaussianRandomV>);
-   registerKeyword("InitVFromFile", Factory::create<InitVFromFile>);
-   registerKeyword("UniformRandomV", Factory::create<UniformRandomV>);
-   registerKeyword("ZeroV", Factory::create<ZeroV>);
-
-   registerKeyword("IdentDelivery", Factory::create<IdentDelivery>);
-   registerKeyword(
-         "PostsynapticPerspectiveConvolveDelivery",
-         Factory::create<PostsynapticPerspectiveConvolveDelivery>);
-   registerKeyword(
-         "PostsynapticPerspectiveStochasticDelivery",
-         Factory::create<PostsynapticPerspectiveStochasticDelivery>);
-   registerKeyword(
-         "PresynapticPerspectiveConvolveDelivery",
-         Factory::create<PresynapticPerspectiveConvolveDelivery>);
-   registerKeyword(
-         "PresynapticPerspectiveStochasticDelivery",
-         Factory::create<PresynapticPerspectiveStochasticDelivery>);
-   registerKeyword("RescaleDelivery", Factory::create<RescaleDelivery>);
-   registerKeyword("WTADelivery", Factory::create<WTADelivery>);
-#ifdef PV_USE_CUDA
-   registerKeyword(
-         "PostsynapticPerspectiveGPUDelivery", Factory::create<PostsynapticPerspectiveGPUDelivery>);
-   registerKeyword(
-         "PresynapticPerspectiveGPUDelivery", Factory::create<PresynapticPerspectiveGPUDelivery>);
-#endif // PV_USE_CUDA
-
-   registerKeyword("Gauss2DWeight", Factory::create<InitGauss2DWeights>);
-   registerKeyword("CoCircWeight", Factory::create<InitCocircWeights>);
-   registerKeyword("UniformWeight", Factory::create<InitUniformWeights>);
-   registerKeyword("SmartWeight", Factory::create<InitSmartWeights>);
-   registerKeyword("UniformRandomWeight", Factory::create<InitUniformRandomWeights>);
-   registerKeyword("GaussianRandomWeight", Factory::create<InitGaussianRandomWeights>);
-   registerKeyword("IdentWeight", Factory::create<InitIdentWeights>);
-   registerKeyword("OneToOneWeights", Factory::create<InitOneToOneWeights>);
-   registerKeyword("OneToOneWeightsWithDelays", Factory::create<InitOneToOneWeightsWithDelays>);
-   registerKeyword("SpreadOverArborsWeight", Factory::create<InitSpreadOverArborsWeights>);
-   registerKeyword("FileWeight", Factory::create<InitWeights>);
-
-   registerKeyword("HebbianUpdater", Factory::create<HebbianUpdater>);
-
-   registerKeyword("normalizeContrastZeroMean", Factory::create<NormalizeContrastZeroMean>);
-   registerKeyword("normalizeL2", Factory::create<NormalizeL2>);
-   registerKeyword("normalizeMax", Factory::create<NormalizeMax>);
-   registerKeyword("none", Factory::create<NormalizeNone>);
-   registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
-   registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
-
-   return PV_SUCCESS;
-}
+// Factory::registerCoreKeywords has been moved to PV::registerCoreKeywords in CoreKeywords.cpp
+// The core keywords are no longer automatically added when instantiating the factory.
+// Instantiating PV_Init will call registerCoreKeywords().
 
 int Factory::registerKeyword(char const *keyword, ObjectCreateFn creator) {
    KeywordHandler const *keywordHandler = getKeywordHandler(keyword);
@@ -254,7 +22,7 @@ int Factory::registerKeyword(char const *keyword, ObjectCreateFn creator) {
       return PV_FAILURE;
    }
    KeywordHandler *newKeyword = new KeywordHandler(keyword, creator);
-   keywordHandlerList.push_back(newKeyword);
+   mKeywordHandlerList.push_back(newKeyword);
    return PV_SUCCESS;
 }
 
@@ -277,7 +45,7 @@ BaseObject *Factory::createByKeyword(
 
 KeywordHandler const *Factory::getKeywordHandler(char const *keyword) const {
    pvAssert(keyword != nullptr);
-   for (auto &typeCreator : keywordHandlerList) {
+   for (auto &typeCreator : mKeywordHandlerList) {
       if (!strcmp(typeCreator->getKeyword(), keyword)) {
          return typeCreator;
       }
@@ -286,10 +54,10 @@ KeywordHandler const *Factory::getKeywordHandler(char const *keyword) const {
 }
 
 int Factory::clearKeywordHandlerList() {
-   for (auto &kh : keywordHandlerList) {
+   for (auto &kh : mKeywordHandlerList) {
       delete kh;
    }
-   keywordHandlerList.clear();
+   mKeywordHandlerList.clear();
    return PV_SUCCESS;
 }
 
