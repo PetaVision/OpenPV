@@ -12,8 +12,6 @@
 
 namespace PV {
 
-class BaseProbe;
-
 /**
  * ColumnEnergyProbe assembles several base probes each of which
  * contribute a term to an energy of the entire HyPerCol.

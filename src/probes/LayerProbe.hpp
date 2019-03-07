@@ -10,12 +10,11 @@
 
 #include "BaseProbe.hpp"
 #include "io/fileio.hpp"
+#include "layers/HyPerLayer.hpp"
 #include "utils/Timer.hpp"
 #include <stdio.h>
 
 namespace PV {
-
-class HyPerLayer;
 
 typedef enum { BufV, BufActivity } PVBufType;
 

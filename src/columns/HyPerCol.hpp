@@ -36,9 +36,6 @@
 
 namespace PV {
 
-class PV_Init;
-class PVParams;
-
 class HyPerCol : public Subject, public ParamsInterface {
 
   private:

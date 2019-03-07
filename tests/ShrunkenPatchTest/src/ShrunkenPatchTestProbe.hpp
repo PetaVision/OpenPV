@@ -12,8 +12,6 @@
 
 namespace PV {
 
-class PVParams;
-
 class ShrunkenPatchTestProbe : public PV::StatsProbe {
   public:
    ShrunkenPatchTestProbe(const char *probename, PVParams *params, Communicator *comm);

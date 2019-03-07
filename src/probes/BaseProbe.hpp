@@ -17,8 +17,6 @@
 
 namespace PV {
 
-class HyPerLayer;
-
 /**
  * An abstract base class for the common functionality of layer probes and
  * connection probes.

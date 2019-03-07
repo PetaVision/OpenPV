@@ -12,8 +12,6 @@
 
 namespace PV {
 
-class BaseProbe;
-
 /**
  * QuotientColProbe takes two probes (of any type) and reports their quotient.
  * The original motivation for QuotientColProbe was to get total energy of a

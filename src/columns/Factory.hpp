@@ -14,8 +14,6 @@
 
 namespace PV {
 
-class BaseObject;
-
 /**
  * The class to generate layers, connections, etc. for adding to a HyPerCol.
  * The function build() in buildandrun.cpp (which underlies all the
