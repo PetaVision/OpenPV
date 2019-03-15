@@ -330,9 +330,7 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
       return status;
    }
    notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
-   auto *checkpointer = message->mDataRegistry;
 
-   // Timers
    return Response::SUCCESS;
 }
 
