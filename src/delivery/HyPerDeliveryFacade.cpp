@@ -183,6 +183,15 @@ Response::Status HyPerDeliveryFacade::allocateDataStructures() {
    return status;
 }
 
+Response::Status HyPerDeliveryFacade::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseDelivery::registerData(message);
+   if (Response::completed(status) and mDeliveryIntern != nullptr) {
+      status = mDeliveryIntern->respond(message);
+   }
+   return status;
+}
+
 Response::Status
 HyPerDeliveryFacade::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    auto status = BaseDelivery::initializeState(message);
