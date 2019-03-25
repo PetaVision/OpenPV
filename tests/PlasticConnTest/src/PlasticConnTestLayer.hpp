@@ -8,21 +8,17 @@
 #ifndef PLASTICCONNTESTLAYER_HPP_
 #define PLASTICCONNTESTLAYER_HPP_
 
-#include <layers/ANNLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
-class PlasticConnTestLayer : public PV::ANNLayer {
+class PlasticConnTestLayer : public PV::HyPerLayer {
   public:
-   PlasticConnTestLayer(const char *name, HyPerCol *hc);
-   virtual Response::Status allocateDataStructures() override;
-   virtual Response::Status updateState(double timef, double dt) override;
-   virtual int publish(Communicator *comm, double timef) override;
+   PlasticConnTestLayer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
-   int copyAtoV();
-   int setActivitytoGlobalPos();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual ActivityComponent *createActivityComponent();
 }; // end class PlasticConnTestLayer
 
 } // end namespace PV

@@ -15,14 +15,14 @@ namespace PV {
 
 class BinningTestProbe : public PV::LayerProbe {
   public:
-   BinningTestProbe(const char *name, HyPerCol *hc);
+   BinningTestProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual void calcValues(double timeValue) {}
 
   protected:
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status outputState(double simTime) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   private:
    BinningLayer *mBinningLayer = nullptr;

@@ -17,12 +17,15 @@
  */
 
 #include "arch/mpi/mpi.h"
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/buildandrun.hpp"
-#include "connections/HyPerConn.hpp"
+#include "components/PatchSize.hpp"
+#include "components/WeightsPair.hpp"
 #include "io/io.hpp"
+#include "weightupdaters/BaseWeightUpdater.hpp"
 
 int dumpweights(HyPerCol *hc, int argc, char *argv[]);
-int dumponeweight(HyPerConn *conn);
+int dumponeweight(ComponentBasedObject *conn);
 
 int main(int argc, char *argv[]) {
    int status;
@@ -45,7 +48,7 @@ int dumpweights(HyPerCol *hc, int argc, char *argv[]) {
    int status         = PV_SUCCESS;
    bool existsgenconn = false;
    for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
-      HyPerConn *conn = dynamic_cast<HyPerConn *>(obj);
+      ComponentBasedObject *conn = dynamic_cast<ComponentBasedObject *>(obj);
       if (conn == nullptr) {
          continue;
       }
@@ -77,27 +80,35 @@ int dumpweights(HyPerCol *hc, int argc, char *argv[]) {
    return status;
 }
 
-int dumponeweight(HyPerConn *conn) {
-   int status          = PV_SUCCESS;
-   bool errorfound     = false;
-   int nxp             = conn->getPatchSizeX();
-   int nyp             = conn->getPatchSizeY();
-   int nfp             = conn->getPatchSizeF();
-   int xcenter         = (nxp - 1) / 2;
-   int ycenter         = (nyp - 1) / 2;
-   int nxpre           = conn->getPre()->getLayerLoc()->nxGlobal;
-   int nypre           = conn->getPre()->getLayerLoc()->nyGlobal;
-   bool usingMirrorBCs = conn->getPre()->useMirrorBCs();
+int dumponeweight(ComponentBasedObject *conn) {
+   int status           = PV_SUCCESS;
+   bool errorfound      = false;
+   auto *patchSize      = conn->getComponentByType<PatchSize>();
+   int nxp              = patchSize->getPatchSizeX();
+   int nyp              = patchSize->getPatchSizeY();
+   int nfp              = patchSize->getPatchSizeF();
+   int xcenter          = (nxp - 1) / 2;
+   int ycenter          = (nyp - 1) / 2;
+   auto *connectionData = conn->getComponentByType<ConnectionData>();
+   HyPerLayer *pre      = connectionData->getPre();
+   HyPerLayer *post     = connectionData->getPost();
+   int nxpre            = pre->getLayerLoc()->nxGlobal;
+   int nypre            = pre->getLayerLoc()->nyGlobal;
+   bool usingMirrorBCs  = pre->getComponentByType<BoundaryConditions>()->getMirrorBCflag();
+   auto *preGeom        = pre->getComponentByType<LayerGeometry>();
+   auto *postGeom       = post->getComponentByType<LayerGeometry>();
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    // If xScaleDiff > 0, it's a many-to-one connection.
-   int xScaleDiff = conn->getPost()->getXScale() - conn->getPre()->getXScale();
+   int xScaleDiff = postGeom->getXScale() - preGeom->getXScale();
    float xFalloff = powf(2, xScaleDiff);
-   int yScaleDiff = conn->getPost()->getYScale() - conn->getPre()->getYScale();
+   int yScaleDiff = postGeom->getYScale() - preGeom->getYScale();
    float yFalloff = powf(2, yScaleDiff);
 
-   for (int p = 0; p < conn->getNumDataPatches(); p++) {
-      float *wgtData = conn->getWeightsDataHead(0, p); // conn->getKernelPatch(0,p)->data;
+   auto *weightsPair = conn->getComponentByType<WeightsPair>();
+   auto *preWeights  = weightsPair->getPreWeights();
+   for (int p = 0; p < preWeights->getNumDataPatches(); p++) {
+      float *wgtData = preWeights->getDataFromDataIndex(0, p);
       for (int f = 0; f < nfp; f++) {
          for (int x = 0; x < nxp; x++) {
             int xoffset = abs((int)floor((x - xcenter) * xFalloff));

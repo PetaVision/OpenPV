@@ -8,7 +8,7 @@
 #ifndef WEIGHTCOMPARISONPROBE_HPP_
 #define WEIGHTCOMPARISONPROBE_HPP_
 
-#include <connections/HyPerConn.hpp>
+#include <columns/ComponentBasedObject.hpp>
 #include <probes/ColProbe.hpp>
 
 #include <vector>
@@ -26,7 +26,7 @@ class WeightComparisonProbe : public PV::ColProbe {
    /**
     * Public constructor for the ColProbe class.
     */
-   WeightComparisonProbe(char const *name, PV::HyPerCol *hc);
+   WeightComparisonProbe(char const *name, PV::PVParams *params, PV::Communicator const *comm);
 
    /**
     * Destructor for the ColProbe class.
@@ -36,7 +36,7 @@ class WeightComparisonProbe : public PV::ColProbe {
   protected:
    /**
     */
-   int initialize(char const *name, PV::HyPerCol *hc);
+   void initialize(char const *name, PV::PVParams *params, PV::Communicator const *comm);
    /**
     * Assembles the list of HyPerConns in the column.
     */
@@ -51,19 +51,19 @@ class WeightComparisonProbe : public PV::ColProbe {
    virtual Response::Status allocateDataStructures() override;
 
    virtual bool needRecalc(double timevalue) override { return true; }
-   virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
+   virtual double referenceUpdateTime(double simTime) const override;
    virtual void calcValues(double timevalue) override {}
    /**
     * Exits with an error if any connections are found to be different
     * from each other.
     */
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   private:
    int initialize_base();
 
   private:
-   std::vector<PV::HyPerConn *> mConnectionList;
+   std::vector<PV::ComponentBasedObject *> mConnectionList;
    int mNumArbors;
    std::size_t mNumWeightsInArbor;
 }; // end class WeightComparisonProbe

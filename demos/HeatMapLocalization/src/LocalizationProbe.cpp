@@ -98,11 +98,11 @@ int LocalizationProbe::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
 }
 
 void LocalizationProbe::ioParam_imageLayer(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "imageLayer", &imageLayerName);
+   parameters()->ioParamStringRequired(ioFlag, name, "imageLayer", &imageLayerName);
 }
 
 void LocalizationProbe::ioParam_reconLayer(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "reconLayer", &reconLayerName);
+   parameters()->ioParamStringRequired(ioFlag, name, "reconLayer", &reconLayerName);
 }
 
 void LocalizationProbe::ioParam_displayedCategories(enum PV::ParamsIOFlag ioFlag) {
@@ -115,7 +115,7 @@ void LocalizationProbe::ioParam_displayedCategories(enum PV::ParamsIOFlag ioFlag
 }
 
 void LocalizationProbe::ioParam_displayCategoryIndexStart(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
    if (numDisplayedCategories == 0) {
       this->getParent()->parameters()->ioParamValue(
             ioFlag,
@@ -128,7 +128,7 @@ void LocalizationProbe::ioParam_displayCategoryIndexStart(enum PV::ParamsIOFlag 
 }
 
 void LocalizationProbe::ioParam_displayCategoryIndexEnd(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
    if (numDisplayedCategories == 0) {
       this->getParent()->parameters()->ioParamValue(
             ioFlag,
@@ -141,16 +141,16 @@ void LocalizationProbe::ioParam_displayCategoryIndexEnd(enum PV::ParamsIOFlag io
 }
 
 void LocalizationProbe::ioParam_detectionThreshold(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamArray(
+   parameters()->ioParamArray(
          ioFlag, name, "detectionThreshold", &detectionThreshold, &numDetectionThresholds);
 }
 
 void LocalizationProbe::ioParam_classNamesFile(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(ioFlag, name, "classNamesFile", &classNamesFile, "");
+   parameters()->ioParamString(ioFlag, name, "classNamesFile", &classNamesFile, "");
 }
 
 void LocalizationProbe::ioParam_outputPeriod(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "triggerLayer"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "triggerLayer"));
    if (!triggerLayer) {
       this->getParent()->parameters()->ioParamValue(
             ioFlag,
@@ -191,7 +191,7 @@ void LocalizationProbe::ioParam_drawMontage(enum PV::ParamsIOFlag ioFlag) {
 }
 
 void LocalizationProbe::ioParam_heatMapMontageDir(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->parameters()->ioParamStringRequired(
             ioFlag, this->getName(), "heatMapMontageDir", &heatMapMontageDir);
@@ -199,15 +199,15 @@ void LocalizationProbe::ioParam_heatMapMontageDir(enum PV::ParamsIOFlag ioFlag) 
 }
 
 void LocalizationProbe::ioParam_heatMapMaximum(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
-      parent->parameters()->ioParamArray(
+      parameters()->ioParamArray(
             ioFlag, name, "heatMapMaximum", &heatMapMaximum, &numHeatMapMaxima);
    }
 }
 
 void LocalizationProbe::ioParam_imageBlendCoeff(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->parameters()->ioParamValue(
             ioFlag,
@@ -230,7 +230,7 @@ void LocalizationProbe::ioParam_maxDetections(enum PV::ParamsIOFlag ioFlag) {
 }
 
 void LocalizationProbe::ioParam_boundingBoxLineWidth(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->parameters()->ioParamValue(
             ioFlag,
@@ -243,7 +243,7 @@ void LocalizationProbe::ioParam_boundingBoxLineWidth(enum PV::ParamsIOFlag ioFla
 }
 
 void LocalizationProbe::ioParam_displayCommand(enum PV::ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   assert(!parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->parameters()->ioParamString(
             ioFlag,

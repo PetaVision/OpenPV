@@ -13,16 +13,19 @@
 
 namespace PV {
 
-MPITestProbe::MPITestProbe(const char *name, HyPerCol *hc) : StatsProbe() { initialize(name, hc); }
-
-int MPITestProbe::initialize_base() { return PV_SUCCESS; }
-
-int MPITestProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+MPITestProbe::MPITestProbe(const char *name, PVParams *params, Communicator const *comm)
+      : StatsProbe() {
+   initialize(name, params, comm);
 }
 
-Response::Status MPITestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+void MPITestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   StatsProbe::initialize(name, params, comm);
+}
+
+void MPITestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
+
+Response::Status MPITestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
@@ -34,7 +37,8 @@ Response::Status MPITestProbe::outputState(double timed) {
    // if many to one connection, each neuron should receive its global x/y/f position
    // if one to many connection, the position of the nearest sending cell is received
    // assume sending layer has scale factor == 1
-   int xScaleLog2 = getTargetLayer()->getCLayer()->xScale;
+   auto *layerGeometry = getTargetLayer()->getComponentByType<LayerGeometry>();
+   int xScaleLog2      = layerGeometry->getXScale();
 
    // determine min/max position of receiving layer
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
@@ -53,10 +57,9 @@ Response::Status MPITestProbe::outputState(double timed) {
    float ave_global_xpos = (min_global_xpos + max_global_xpos) / 2.0f;
 
    for (int b = 0; b < (int)mOutputStreams.size(); b++) {
-      if (timed > 3.0) {
-         output(b) << std::endl;
+      if (simTime > 3.0) {
          output(b).printf(
-               "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f",
+               "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f\n",
                getMessage(),
                (double)min_global_xpos,
                (double)ave_global_xpos,

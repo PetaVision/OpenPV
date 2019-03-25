@@ -8,23 +8,18 @@
 #ifndef SHRUNKENPATCHTESTLAYER_HPP_
 #define SHRUNKENPATCHTESTLAYER_HPP_
 
-#include <layers/ANNLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
-class ShrunkenPatchTestLayer : public PV::ANNLayer {
+class ShrunkenPatchTestLayer : public PV::HyPerLayer {
   public:
-   ShrunkenPatchTestLayer(const char *name, HyPerCol *hc);
-   virtual Response::Status allocateDataStructures() override;
-   virtual Response::Status updateState(double time, double dt) override;
-   virtual int publish(Communicator *comm, double timed) override;
-   int setVtoGlobalPos();
-   int setActivitytoGlobalPos();
+   ShrunkenPatchTestLayer(const char *name, PVParams *params, Communicator const *comm);
 
-  private:
-   int initialize(const char *name, HyPerCol *hc);
-
-}; // end class ShrunkenPatchTestLayer
+  protected:
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual ActivityComponent *createActivityComponent();
+};
 
 } /* namespace PV */
 #endif /* SHRUNKENPATCHTESTLAYER_HPP_ */

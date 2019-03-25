@@ -20,7 +20,7 @@ class InitRandomWeights : public InitWeights {
 
   protected:
    InitRandomWeights();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
    virtual int initRNGs(bool isKernel) override;
    virtual void calcWeights(int patchIndex, int arborId) override;
    virtual void randomWeights(float *patchDataStart, int patchIndex) = 0;

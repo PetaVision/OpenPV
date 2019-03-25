@@ -1,31 +1,26 @@
-/*
- * CPTestInputLayer.hpp
- *
- *  Created on: Nov 10, 2011
- *      Author: pschultz
- */
+// CPTestInputLayer
+// HyPerLayer subclass that applies a thresholding transfer function.
 
-#ifndef CPTESTINPUTLAYER_HPP_
-#define CPTESTINPUTLAYER_HPP_
+#ifndef CPTESTINPUTLAYER_HPP__
+#define CPTESTINPUTLAYER_HPP__
 
 #include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
 class CPTestInputLayer : public HyPerLayer {
-
   public:
-   CPTestInputLayer(const char *name, HyPerCol *hc);
+   CPTestInputLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~CPTestInputLayer();
-   virtual Response::Status allocateDataStructures() override;
-   virtual Response::Status updateState(double timed, double dt) override;
 
   protected:
-   int initialize(const char *name, HyPerCol *hc);
-   virtual void initializeV() override;
+   CPTestInputLayer() {}
 
-}; // end class CPTestInputLayer
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
-} // end of namespace PV block
+   virtual ActivityComponent *createActivityComponent() override;
+};
 
-#endif /* CPTESTINPUTLAYER_HPP_ */
+} // end namespace PV
+
+#endif

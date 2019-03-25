@@ -106,7 +106,6 @@ PoolingConn "input2maxPoolPre" = {
      
     delay = 0;
      
-    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 

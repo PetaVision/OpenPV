@@ -22,10 +22,8 @@ enum ChannelType {
    CHANNEL_NOUPDATE = -1
 };
 
-enum PVDataType {
-   PV_FLOAT = 0,
-   PV_INT   = 1,
-};
+// PVDatatType enum was removed Mar 29, 2018.
+// Used only for the HyPerLayer dataType param, which has been removed.
 
 typedef struct PVPatchStrides_ {
    int sx, sy, sf; // stride in x,y,features
@@ -52,14 +50,11 @@ typedef struct PV_Stream_ {
  *    plus location information
  */
 typedef struct PVLayerCube_ {
-   // size of entire cube in bytes
-   size_t size;
-
    // number of items in data buffer
    int numItems;
 
    // pointer to data (may follow header)
-   float *data;
+   float const *data;
 
    // location of cube in global layer
    PVLayerLoc loc;
@@ -67,36 +62,6 @@ typedef struct PVLayerCube_ {
    long const *numActive;
    void const *activeIndices;
 } PVLayerCube;
-
-/**
- * PVLayer is a collection of neurons of a specific class
- */
-typedef struct PVLayer_ {
-   // # neurons in this layer
-   int numNeurons;
-   // # neurons in layer including extended border regions
-   int numExtended;
-
-   // # neurons in this layer across all batches
-   int numNeuronsAllBatches;
-
-   // # neurons in this layer across all batches, including extended regions
-   int numExtendedAllBatches;
-
-   PVLayerLoc loc;
-
-   // Layer size = 2^(-scale) * column size.
-   // Layers with positive xScale are more dense in the x dimension
-   int xScale, yScale;
-
-   PVLayerCube *activity;
-
-   // time of previous spike for each neuron
-   float *prevActivity;
-
-   // membrane potential
-   float *V;
-} PVLayer;
 
 typedef struct { unsigned int s1, s2, s3; } taus_state_t;
 

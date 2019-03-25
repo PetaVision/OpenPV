@@ -1,10 +1,9 @@
 /**
  * A file that includes device conversion functions
- * TODO see if we can include conversions.hcu instead of having this file
  */
 
-#ifndef DEVICE_UTIL_HPP_
-#define DEVICE_UTIL_HPP_
+#ifndef CONVERSIONS_HCU_
+#define CONVERSIONS_HCU_
 
 namespace PVCuda {
 
@@ -23,6 +22,7 @@ kIndexExtended(int k, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    const int kf    = featureIndex(k, nx, ny, nf);
    return kIndex(kx_ex, ky_ex, kf, nx + lt + rt, ny + dn + up, nf);
 }
-}
 
-#endif
+} // end namespace PVCuda
+
+#endif // CONVERSIONS_HCU_

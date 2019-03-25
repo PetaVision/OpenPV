@@ -32,7 +32,10 @@ class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
    /** @} */ // End of list of BaseDelivery parameters.
 
   public:
-   PresynapticPerspectiveConvolveDelivery(char const *name, HyPerCol *hc);
+   PresynapticPerspectiveConvolveDelivery(
+         char const *name,
+         PVParams *params,
+         Communicator const *comm);
 
    virtual ~PresynapticPerspectiveConvolveDelivery();
 
@@ -47,14 +50,14 @@ class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
     * same post-neuron, we internally allocate multiple buffers the size of the post channel,
     * and accumulate them at the end.
     */
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
   protected:
    PresynapticPerspectiveConvolveDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 
@@ -65,11 +68,8 @@ class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
 
    virtual Response::Status allocateDataStructures() override;
 
-   void allocateThreadGSyn();
-
    // Data members
   protected:
-   std::vector<std::vector<float>> mThreadGSyn;
 }; // end class PresynapticPerspectiveConvolveDelivery
 
 } // end namespace PV

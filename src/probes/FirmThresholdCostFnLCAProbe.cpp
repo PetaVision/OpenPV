@@ -6,13 +6,17 @@
  */
 
 #include "FirmThresholdCostFnLCAProbe.hpp"
-#include "../layers/HyPerLCALayer.hpp"
+#include "components/ANNActivityBuffer.hpp"
+#include "layers/HyPerLCALayer.hpp"
 
 namespace PV {
 
-FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(const char *name, HyPerCol *hc) {
+FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 FirmThresholdCostFnLCAProbe::FirmThresholdCostFnLCAProbe() { initialize_base(); }
@@ -24,33 +28,26 @@ Response::Status FirmThresholdCostFnLCAProbe::communicateInitInfo(
       return status;
    }
    assert(targetLayer);
-   bool failed                   = false;
-   HyPerLCALayer *targetLCALayer = dynamic_cast<HyPerLCALayer *>(targetLayer);
-   if (targetLCALayer == nullptr) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: targetLayer \"%s\" is not an LCA layer.\n",
-               getDescription_c(),
-               getTargetName());
-      }
-      failed = true;
-   }
-   if (targetLCALayer->layerListsVerticesInParams() == true) {
-      if (parent->columnId() == 0) {
-         ErrorLog().printf(
-               "%s: LCAProbes require targetLayer \"%s\" to use "
-               "VThresh etc. instead of "
-               "verticesV/verticesV.\n",
-               getDescription_c(),
-               getTargetName());
-      }
-      failed = true;
-   }
-   if (failed) {
-      MPI_Barrier(parent->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   coefficient = targetLCALayer->getVThresh();
+   auto *activityComponent = targetLayer->getComponentByType<ActivityComponent>();
+   FatalIf(
+         activityComponent == nullptr,
+         "%s: targetLayer \"%s\" does not have an activity component.\n",
+         getDescription_c(),
+         getTargetName());
+   ANNActivityBuffer *activityBuffer = activityComponent->getComponentByType<ANNActivityBuffer>();
+   FatalIf(
+         activityBuffer == nullptr,
+         "%s: targetLayer \"%s\" does not have an ANNActivityBuffer component.\n",
+         getDescription_c(),
+         getTargetName());
+
+   FatalIf(
+         activityBuffer->usingVerticesListInParams() == true,
+         "%s: LCAProbes require targetLayer \"%s\" to use VThresh etc. "
+         "instead of verticesV/verticesV.\n",
+         getDescription_c(),
+         getTargetName());
+   coefficient = activityBuffer->getVThresh();
    return Response::SUCCESS;
 }
 

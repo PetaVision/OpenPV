@@ -14,8 +14,6 @@
 
 namespace PV {
 
-class BaseObject;
-
 /**
  * The class to generate layers, connections, etc. for adding to a HyPerCol.
  * The function build() in buildandrun.cpp (which underlies all the
@@ -41,8 +39,8 @@ class BaseObject;
  * ...
  * PV_Init pv_init(&argc, &argv, false);
  * HyPerCol * hc = new HyPerCol("column", &pv_init);
- * pv_init.registerKeyword("CustomLayerType", Factory::create<CustomLayerType>);
- * Factory::instance()->create("customLayerType", hc);
+ * pv_init.registerKeyword("CustomType", Factory::create<CustomType>);
+ * CustomType customObject = *Factory::instance()->create("CustomType", params, comm);
  * ...
  * Note that buildandrun() automates the task of calling the create() method;
  * in practice, you only need to specify the instantiator function, and
@@ -56,8 +54,9 @@ class BaseObject;
  *
  * For example:
  * ...
- * BaseObject * createCustomLayerType(char const * name, HyPerCol * hc) {
- *    return new CustomLayerType(name, hc);
+ * BaseObject * createCustomLayerType(char const *name, PVParams *params, Communicator const *comm)
+ * {
+ *    return new CustomLayerType(name, params, comm);
  * }
  * ...
  * pv_init.registerKeyword("CustomLayerType", createCustomLayerType);
@@ -74,11 +73,12 @@ class Factory {
     * A function template that can be used to register most subclasses of
     * BaseObject in the factory using the registerKeyword function.  The
     * requirements on the BaseObject subclass is that it have a constructor
-    * with two arguments, the name and a pointer to the HyPerCol.
+    * with three arguments: the name and a pointer to the PVParams object,
+    * and a pointer to the Communicator object.
     */
    template <typename T>
-   static BaseObject *create(char const *name, HyPerCol *hc) {
-      return hc == nullptr ? nullptr : new T(name, hc);
+   static BaseObject *create(char const *name, PVParams *params, Communicator const *comm) {
+      return new T(name, params, comm);
    }
 
    /**
@@ -96,12 +96,20 @@ class Factory {
 
    /**
     * The method to create an object of the type specified by keyword, with the
-    * given name
-    * and parent HyPerCol.  It calls the function associated with the keyword by
-    * the
-    * registerKeyword pointer.
+    * given name, params, and communicator. The keyword must have already been
+    * registered in the Factory singleton.
     */
-   BaseObject *createByKeyword(char const *keyword, char const *name, HyPerCol *hc) const;
+   BaseObject *createByKeyword(
+         char const *keyword,
+         char const *name,
+         PVParams *params,
+         Communicator const *comm) const;
+
+   /**
+    * An overload of the createByKeyword() method that uses a reference BaseObject
+    * to retrieve the name, params, and communicator.
+    */
+   BaseObject *createByKeyword(char const *keyword, BaseObject *baseObject) const;
 
   private:
    /**
@@ -117,19 +125,6 @@ class Factory {
    virtual ~Factory();
 
    /**
-    * The function called by the default constructor, to add the core PetaVision
-    * keywords.
-    */
-   int registerCoreKeywords();
-
-   /**
-    * A method used internally by the copy assignment operator and copy
-    * constructor,
-    * to copy a keyword handler list into the Factory.
-    */
-   int copyKeywordHandlerList(std::vector<KeywordHandler *> const &orig);
-
-   /**
     * A method used internally to retrieve the keyword handler corresponding to a
     * given keyword.
     */
@@ -143,7 +138,7 @@ class Factory {
 
    // Member variables
   private:
-   std::vector<KeywordHandler *> keywordHandlerList;
+   std::vector<KeywordHandler *> mKeywordHandlerList;
 }; // class Factory
 
 } // namespace PV

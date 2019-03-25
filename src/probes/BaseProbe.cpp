@@ -47,7 +47,6 @@ int BaseProbe::initialize_base() {
    probeOutputFilename = NULL;
    triggerFlag         = false;
    triggerLayerName    = NULL;
-   triggerLayer        = NULL;
    triggerOffset       = 0;
    energyProbe         = NULL;
    coefficient         = 1.0;
@@ -61,17 +60,10 @@ int BaseProbe::initialize_base() {
  * @filename
  * @layer
  */
-int BaseProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = BaseObject::initialize(name, hc);
-   if (status != PV_SUCCESS) {
-      return status;
-   }
+void BaseProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   BaseObject::initialize(name, params, comm);
    readParams();
-   initNumValues();
-   return status;
 }
-
-void BaseProbe::setObjectType() { mObjectType = lookupKeyword(); }
 
 int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_targetName(ioFlag);
@@ -87,45 +79,43 @@ int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
+   parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
 }
 
 void BaseProbe::ioParam_message(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
-         ioFlag, name, "message", &msgparams, NULL, false /*warnIfAbsent*/);
+   parameters()->ioParamString(ioFlag, name, "message", &msgparams, NULL, false /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       initMessage(msgparams);
    }
 }
 
 void BaseProbe::ioParam_energyProbe(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "energyProbe", &energyProbe, NULL, false /*warnIfAbsent*/);
 }
 
 void BaseProbe::ioParam_coefficient(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "energyProbe"));
+   assert(!parameters()->presentAndNotBeenRead(name, "energyProbe"));
    if (energyProbe && energyProbe[0]) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag, name, "coefficient", &coefficient, coefficient, true /*warnIfAbsent*/);
    }
 }
 
 void BaseProbe::ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "textOutputFlag", &textOutputFlag, textOutputFlag);
+   parameters()->ioParamValue(ioFlag, name, "textOutputFlag", &textOutputFlag, textOutputFlag);
 }
 
 void BaseProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   assert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
    if (textOutputFlag) {
-      parent->parameters()->ioParamString(
+      parameters()->ioParamString(
             ioFlag, name, "probeOutputFile", &probeOutputFilename, NULL, false /*warnIfAbsent*/);
    }
 }
 
 void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       triggerFlag = (triggerLayerName != NULL && triggerLayerName[0] != '\0');
@@ -137,12 +127,11 @@ void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 // setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
 // For a reasonable fade-out time, it is an error for triggerFlag to be defined in params.
 void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-   if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
+   assert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   if (ioFlag == PARAMS_IO_READ && parameters()->present(name, "triggerFlag")) {
       bool flagFromParams = false;
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
-      if (parent->columnId() == 0) {
+      parameters()->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
+      if (mCommunicator->globalCommRank() == 0) {
          Fatal(triggerFlagDeprecated);
          triggerFlagDeprecated.printf(
                "%s: triggerFlag is obsolete for probes.\n", getDescription_c());
@@ -155,17 +144,16 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+   assert(!parameters()->presentAndNotBeenRead(name, "triggerFlag"));
    if (triggerFlag) {
-      parent->parameters()->ioParamValue(
-            ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
+      parameters()->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if (triggerOffset < 0) {
          Fatal().printf(
                "%s \"%s\" error in rank %d process: TriggerOffset (%f) "
                "must be positive\n",
-               parent->parameters()->groupKeywordFromName(name),
+               parameters()->groupKeywordFromName(name),
                name,
-               parent->columnId(),
+               mCommunicator->globalCommRank(),
                triggerOffset);
       }
    }
@@ -176,10 +164,9 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
    int blockColumnIndex     = mpiBlock->getColumnIndex();
    int blockRowIndex        = mpiBlock->getRowIndex();
    if (blockColumnIndex == 0 and blockRowIndex == 0) {
-      int localBatchWidth  = parent->getNBatch();
       int mpiBatchIndex    = mpiBlock->getStartBatch() + mpiBlock->getBatchIndex();
-      int localBatchOffset = localBatchWidth * mpiBatchIndex;
-      mOutputStreams.resize(localBatchWidth);
+      int localBatchOffset = mLocalBatchWidth * mpiBatchIndex;
+      mOutputStreams.resize(mLocalBatchWidth);
       char const *probeOutputFilename = getProbeOutputFilename();
       if (probeOutputFilename) {
          std::string path(probeOutputFilename);
@@ -193,7 +180,7 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
          if (!checkpointer->getCheckpointReadDirectory().empty()) {
             mode |= std::ios_base::app;
          }
-         for (int b = 0; b < localBatchWidth; b++) {
+         for (int b = 0; b < mLocalBatchWidth; b++) {
             int globalBatchIndex         = b + localBatchOffset;
             std::string batchPath        = path;
             std::string batchIndexString = std::to_string(globalBatchIndex);
@@ -206,7 +193,7 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
          }
       }
       else {
-         for (int b = 0; b < localBatchWidth; b++) {
+         for (int b = 0; b < mLocalBatchWidth; b++) {
             mOutputStreams[b] = new PrintStream(PV::getOutputStream());
          }
       }
@@ -216,7 +203,7 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
    }
 }
 
-void BaseProbe::initNumValues() { setNumValues(parent->getNBatch()); }
+void BaseProbe::initNumValues() { setNumValues(mLocalBatchWidth); }
 
 void BaseProbe::setNumValues(int n) {
    if (n > 0) {
@@ -238,35 +225,42 @@ void BaseProbe::setNumValues(int n) {
 
 Response::Status
 BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   // Retrieve local batch width and set up number of values.
+   int const nBatchGlobal = message->mNBatchGlobal;
+   mLocalBatchWidth       = nBatchGlobal / mCommunicator->numCommBatches();
+   pvAssert(mLocalBatchWidth * mCommunicator->numCommBatches() == nBatchGlobal);
+   initNumValues();
+   auto *hierarchy = message->mHierarchy;
+
    // Set up triggering.
    if (triggerFlag) {
-      triggerLayer = message->lookup<HyPerLayer>(std::string(triggerLayerName));
-      if (triggerLayer == NULL) {
-         if (parent->columnId() == 0) {
-            ErrorLog().printf(
-                  "%s \"%s\": triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
-                  parent->parameters()->groupKeywordFromName(name),
-                  name,
-                  triggerLayerName);
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
+      auto triggerLayer = hierarchy->lookupByName<HyPerLayer>(std::string(triggerLayerName));
+      FatalIf(
+            triggerLayer == nullptr,
+            "%s triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
+            getDescription_c(),
+            triggerLayerName);
+      mTriggerControl = triggerLayer->getComponentByType<LayerUpdateController>();
+      FatalIf(
+            mTriggerControl == nullptr,
+            "%s triggerLayer \"%s\" does not have a LayerUpdateController component.\n",
+            getDescription_c(),
+            triggerLayerName);
    }
 
    // Add the probe to the ColumnEnergyProbe, if there is one.
    if (energyProbe && energyProbe[0]) {
-      ColumnEnergyProbe *probe = message->lookup<ColumnEnergyProbe>(std::string(energyProbe));
+      auto *probe = hierarchy->lookupByName<ColumnEnergyProbe>(std::string(energyProbe));
       if (probe == NULL) {
-         if (parent->columnId() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the "
                   "column.\n",
-                  parent->parameters()->groupKeywordFromName(getName()),
+                  parameters()->groupKeywordFromName(getName()),
                   getName(),
                   energyProbe);
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       int termAdded = probe->addTerm(this);
@@ -302,7 +296,7 @@ int BaseProbe::initMessage(const char *msg) {
    if (!this->msgstring) {
       ErrorLog().printf(
             "%s \"%s\": Unable to allocate memory for probe's message.\n",
-            parent->parameters()->groupKeywordFromName(name),
+            parameters()->groupKeywordFromName(name),
             name);
       status = PV_FAILURE;
    }
@@ -310,26 +304,27 @@ int BaseProbe::initMessage(const char *msg) {
    return status;
 }
 
-bool BaseProbe::needUpdate(double simTime, double dt) {
+bool BaseProbe::needUpdate(double simTime, double dt) const {
    if (triggerFlag) {
-      return triggerLayer->needUpdate(simTime + triggerOffset, dt);
+      return mTriggerControl->needUpdate(simTime + triggerOffset, dt);
    }
    return true;
 }
 
-Response::Status BaseProbe::registerData(Checkpointer *checkpointer) {
-   auto status = BaseObject::registerData(checkpointer);
+Response::Status
+BaseProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseObject::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
-   initOutputStreams(probeOutputFilename, checkpointer);
+   initOutputStreams(probeOutputFilename, message->mDataRegistry);
    return Response::SUCCESS;
 }
 
 void BaseProbe::getValues(double timevalue) {
    if (needRecalc(timevalue)) {
       calcValues(timevalue);
-      lastUpdateTime = referenceUpdateTime();
+      lastUpdateTime = referenceUpdateTime(timevalue);
    }
 }
 
@@ -358,7 +353,7 @@ double BaseProbe::getValue(double timevalue, int index) {
 Response::Status BaseProbe::outputStateWrapper(double timef, double dt) {
    auto status = Response::NO_ACTION;
    if (textOutputFlag && needUpdate(timef, dt)) {
-      status = outputState(timef);
+      status = outputState(timef, dt);
    }
    return status;
 }

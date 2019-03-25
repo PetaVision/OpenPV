@@ -6,12 +6,14 @@
  */
 
 #include "TriggerTestUpdater.hpp"
-#include <columns/HyPerCol.cpp>
 
 namespace PV {
 
-TriggerTestUpdater::TriggerTestUpdater(char const *name, HyPerCol *hc) {
-   HebbianUpdater::initialize(name, hc);
+TriggerTestUpdater::TriggerTestUpdater(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   HebbianUpdater::initialize(name, params, comm);
 }
 
 void TriggerTestUpdater::updateState(double time, double dt) {

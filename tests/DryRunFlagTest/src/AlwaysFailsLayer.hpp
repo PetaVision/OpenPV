@@ -12,16 +12,13 @@ namespace PV {
  */
 class AlwaysFailsLayer : public HyPerLayer {
   public:
-   AlwaysFailsLayer(char const *name, HyPerCol *hc);
+   AlwaysFailsLayer(char const *name, PVParams *params, Communicator const *comm);
    virtual ~AlwaysFailsLayer();
-   virtual bool needUpdate(double simTime, double dt) override;
 
   protected:
    AlwaysFailsLayer();
-   int initialize(char const *name, HyPerCol *hc);
-
-  private:
-   int initialize_base();
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   virtual Response::Status checkUpdateState(double simTime, double deltaTime) override;
 };
 
 } // end namespace PV

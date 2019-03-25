@@ -11,37 +11,40 @@ namespace PV {
 
 BaseConnectionProbe::BaseConnectionProbe() {}
 
-BaseConnectionProbe::BaseConnectionProbe(const char *name, HyPerCol *hc) { initialize(name, hc); }
+BaseConnectionProbe::BaseConnectionProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 BaseConnectionProbe::~BaseConnectionProbe() { delete mIOTimer; }
 
-int BaseConnectionProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = BaseProbe::initialize(name, hc);
-   return status;
+void BaseConnectionProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   BaseProbe::initialize(name, params, comm);
+}
+
+void BaseConnectionProbe::initMessageActionMap() {
+   BaseProbe::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionProbeWriteParamsMessage const>(msgptr);
+      return respondConnectionProbeWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionProbeWriteParams", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(msgptr);
+      return respondConnectionOutput(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionOutput", action);
 }
 
 void BaseConnectionProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(ioFlag, name, "targetConnection", &targetName, NULL, false);
+   parameters()->ioParamString(ioFlag, name, "targetConnection", &targetName, NULL, false);
    if (targetName == NULL) {
       BaseProbe::ioParam_targetName(ioFlag);
-   }
-}
-
-Response::Status BaseConnectionProbe::respond(std::shared_ptr<BaseMessage const> message) {
-   Response::Status status = BaseProbe::respond(message);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ConnectionProbeWriteParamsMessage const>(message)) {
-      return respondConnectionProbeWriteParams(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(message)) {
-      return respondConnectionOutput(castMessage);
-   }
-   else {
-      return status;
    }
 }
 
@@ -67,30 +70,30 @@ Response::Status BaseConnectionProbe::communicateInitInfo(
    }
 
    bool failed = false;
-   mTargetConn = message->lookup<BaseConnection>(std::string(targetName));
+   mTargetConn = message->mHierarchy->lookupByName<ComponentBasedObject>(std::string(targetName));
    if (mTargetConn == nullptr) {
       ErrorLog().printf(
             "%s, rank %d process: targetConnection \"%s\" is not a connection in the column.\n",
             getDescription_c(),
-            parent->columnId(),
+            mCommunicator->globalCommRank(),
             targetName);
       failed = true;
-      ;
    }
-   MPI_Barrier(parent->getCommunicator()->communicator());
+   MPI_Barrier(mCommunicator->communicator());
    if (failed) {
       exit(EXIT_FAILURE);
    }
    return Response::SUCCESS;
 }
 
-Response::Status BaseConnectionProbe::registerData(Checkpointer *checkpointer) {
-   auto status = BaseProbe::registerData(checkpointer);
+Response::Status BaseConnectionProbe::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseProbe::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
-   mIOTimer = new Timer(getName(), "probe", "update");
-   checkpointer->registerTimer(mIOTimer);
+   mIOTimer = new Timer(getName(), "probe", "io     ");
+   message->mDataRegistry->registerTimer(mIOTimer);
    return Response::SUCCESS;
 }
 

@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class InitUniformRandomWeights : public PV::InitRandomWeights {
+class InitUniformRandomWeights : public InitRandomWeights {
   protected:
    void ioParam_wMinInit(enum ParamsIOFlag ioFlag);
    void ioParam_wMaxInit(enum ParamsIOFlag ioFlag);
@@ -20,14 +20,14 @@ class InitUniformRandomWeights : public PV::InitRandomWeights {
    void ioParam_minNNZ(enum ParamsIOFlag ioFlag);
 
   public:
-   InitUniformRandomWeights(char const *name, HyPerCol *hc);
+   InitUniformRandomWeights(char const *name, PVParams *params, Communicator const *comm);
    virtual ~InitUniformRandomWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
    InitUniformRandomWeights();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
    void randomWeights(float *patchDataStart, int patchIndex) override;
 
    // Data members

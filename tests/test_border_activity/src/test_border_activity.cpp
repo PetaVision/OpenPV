@@ -92,15 +92,18 @@ int main(int argc, char *argv[]) {
 int check_activity(HyPerLayer *l) {
    int status = 0;
 
-   const int nx = l->clayer->loc.nx;
-   const int ny = l->clayer->loc.ny;
-   const int nf = l->clayer->loc.nf;
+   const int nx = l->getLayerLoc()->nx;
+   const int ny = l->getLayerLoc()->ny;
+   const int nf = l->getLayerLoc()->nf;
 
-   const int nk = l->clayer->numNeurons;
+   const int nk = l->getNumNeurons();
    FatalIf(!(nk == nx * ny * nf), "Test failed.\n");
 
+   auto *activityComponent = l->getComponentByType<ActivityComponent>();
+   auto *activityBuffer    = activityComponent->getComponentByType<ActivityBuffer>();
+   float const *activity   = activityBuffer->getBufferData();
    for (int k = 0; k < nk; k++) {
-      int a = (int)l->clayer->activity->data[k];
+      int a = (int)activity[k];
       if (a != UNIFORM_ACTIVITY_VALUE) {
          status = -1;
          ErrorLog().printf("test_border_activity: activity==%d != %d\n", a, UNIFORM_ACTIVITY_VALUE);

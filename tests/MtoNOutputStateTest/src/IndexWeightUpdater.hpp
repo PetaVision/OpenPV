@@ -15,18 +15,18 @@ namespace PV {
 
 class IndexWeightUpdater : public HebbianUpdater {
   public:
-   IndexWeightUpdater(char const *name, HyPerCol *hc);
+   IndexWeightUpdater(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~IndexWeightUpdater() {}
 
-   void initializeWeights();
+   virtual void updateState(double timestamp, double dt) override;
 
   protected:
    IndexWeightUpdater() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
-   virtual int updateWeights(int arborId) override;
+   Response::Status initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 };
 
 } // namespace PV

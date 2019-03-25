@@ -1,9 +1,13 @@
 #include "ResetStateOnTriggerTestProbe.hpp"
+#include <components/BasePublisherComponent.hpp>
 #include <layers/HyPerLayer.hpp>
 
-ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc) {
+ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe() { initialize_base(); }
@@ -14,23 +18,33 @@ int ResetStateOnTriggerTestProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ResetStateOnTriggerTestProbe::initialize(char const *name, PV::HyPerCol *hc) {
+void ResetStateOnTriggerTestProbe::initialize(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator const *comm) {
    int status = PV_SUCCESS;
-   status     = PV::LayerProbe::initialize(name, hc);
-   return status;
+   PV::LayerProbe::initialize(name, params, comm);
+}
+
+PV::Response::Status ResetStateOnTriggerTestProbe::initializeState(
+      std::shared_ptr<PV::InitializeStateMessage const> message) {
+   mDeltaTime = message->mDeltaTime;
+   return PV::Response::SUCCESS;
 }
 
 void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    int nBatch = getNumValues();
    if (timevalue > 0.0) {
-      int N                 = targetLayer->getNumNeurons();
-      int NGlobal           = targetLayer->getNumGlobalNeurons();
+      auto *targetPublisher = targetLayer->getComponentByType<PV::BasePublisherComponent>();
       PVLayerLoc const *loc = targetLayer->getLayerLoc();
+      int N                 = loc->nx * loc->ny * loc->nf;
+      int NGlobal           = loc->nxGlobal * loc->nyGlobal * loc->nf;
+      int numExtended       = targetLayer->getNumExtended();
       PVHalo const *halo    = &loc->halo;
-      int inttime           = (int)nearbyintf(timevalue / parent->getDeltaTime());
+      int inttime           = (int)nearbyintf(timevalue / mDeltaTime);
       for (int b = 0; b < nBatch; b++) {
          int numDiscreps       = 0;
-         float const *activity = targetLayer->getLayerData() + b * targetLayer->getNumExtended();
+         float const *activity = targetPublisher->getLayerData() + b * numExtended;
          for (int k = 0; k < N; k++) {
             int kex = kIndexExtended(
                   k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
@@ -50,7 +64,7 @@ void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
             nBatch,
             MPI_DOUBLE,
             MPI_SUM,
-            parent->getCommunicator()->communicator());
+            mCommunicator->communicator());
       if (probeStatus == 0) {
          for (int k = 0; k < nBatch; k++) {
             if (getValuesBuffer()[k]) {
@@ -67,8 +81,8 @@ void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    }
 }
 
-PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double timevalue) {
-   getValues(timevalue); // calls calcValues
+PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, double deltaTime) {
+   getValues(simTime); // calls calcValues
    if (mOutputStreams.empty()) {
       return PV::Response::SUCCESS;
    }
@@ -85,7 +99,7 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double timevalue)
                   .printf(
                         "%s t=%f, %d neuron%s the wrong value.\n",
                         getMessage(),
-                        timevalue,
+                        simTime,
                         nnz,
                         nnz == 1 ? " has" : "s have");
          }
@@ -95,7 +109,7 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double timevalue)
                   .printf(
                         "%s t=%f, batch element %d, %d neuron%s the wrong value.\n",
                         getMessage(),
-                        timevalue,
+                        simTime,
                         localBatchIndex,
                         nnz,
                         nnz == 1 ? " has" : "s have");
@@ -107,6 +121,9 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double timevalue)
 
 ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {}
 
-PV::BaseObject *createResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc) {
-   return hc ? new ResetStateOnTriggerTestProbe(name, hc) : NULL;
+PV::BaseObject *createResetStateOnTriggerTestProbe(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator const *comm) {
+   return new ResetStateOnTriggerTestProbe(name, params, comm);
 }

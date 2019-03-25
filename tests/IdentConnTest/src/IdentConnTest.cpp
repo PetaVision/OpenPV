@@ -74,7 +74,12 @@ int main(int argc, char *argv[]) {
 
    hc.run();
 
-   PVLayerLoc const preLoc = *preLayerExc0->getLayerLoc();
+   auto *preExc0Publisher = preLayerExc0->getComponentByType<PV::BasePublisherComponent>();
+   auto *preExc1Publisher = preLayerExc1->getComponentByType<PV::BasePublisherComponent>();
+   auto *preInh0Publisher = preLayerInh0->getComponentByType<PV::BasePublisherComponent>();
+   auto *preInh1Publisher = preLayerInh1->getComponentByType<PV::BasePublisherComponent>();
+
+   PVLayerLoc const preLoc = *preExc0Publisher->getLayerLoc();
    int const nx            = preLoc.nx;
    int const ny            = preLoc.ny;
    int const nf            = preLoc.nf;
@@ -84,7 +89,7 @@ int main(int argc, char *argv[]) {
       int const kGlobal = globalIndexFromLocal(k, preLoc);
       int const kExt    = kIndexExtended(k, nx, ny, nf, xMargin, xMargin, yMargin, yMargin);
 
-      float const observedExc0Value = preLayerExc0->getLayerData(0)[kExt];
+      float const observedExc0Value = preExc0Publisher->getLayerData(0)[kExt];
       float const correctExc0Value  = (float)(kGlobal * kGlobal);
       if (observedExc0Value != (float)(correctExc0Value)) {
          ErrorLog().printf(
@@ -97,7 +102,7 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
-      float const observedExc1Value = preLayerExc1->getLayerData(0)[kExt];
+      float const observedExc1Value = preExc1Publisher->getLayerData(0)[kExt];
       float const correctExc1Value  = (float)(kGlobal + kGlobal + 1);
       if (observedExc1Value != (float)(correctExc1Value)) {
          ErrorLog().printf(
@@ -110,8 +115,9 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
+      auto *layerInputBuffer     = postLayer->getComponentByType<PV::LayerInputBuffer>();
+      float const observedExcSum = layerInputBuffer->getBufferData()[k];
       float const correctExcSum  = correctExc0Value + correctExc1Value;
-      float const observedExcSum = postLayer->getChannel(CHANNEL_EXC)[k];
       if (observedExcSum != correctExcSum) {
          ErrorLog().printf(
                "Rank %d, restricted neuron %d: expected %f but observed %f\n",
@@ -122,7 +128,7 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
-      float const observedInh0Value = preLayerInh0->getLayerData(0)[kExt];
+      float const observedInh0Value = preInh0Publisher->getLayerData(0)[kExt];
       float const correctInh0Value  = (float)(kGlobal * kGlobal / 2 /* integer division */);
       if (observedInh0Value != (float)(correctInh0Value)) {
          ErrorLog().printf(
@@ -135,7 +141,7 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
-      float const observedInh1Value = preLayerInh1->getLayerData(0)[kExt];
+      float const observedInh1Value = preInh1Publisher->getLayerData(0)[kExt];
       float const correctInh1Value  = (float)((kGlobal + 1) / 2 /* integer division */);
       if (observedInh1Value != (float)(correctInh1Value)) {
          ErrorLog().printf(
@@ -148,8 +154,8 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
+      float const observedInhSum = layerInputBuffer->getChannelData(CHANNEL_INH)[k];
       float const correctInhSum  = correctInh0Value + correctInh1Value;
-      float const observedInhSum = postLayer->getChannel(CHANNEL_INH)[k];
       if (observedInhSum != correctInhSum) {
          ErrorLog().printf(
                "Rank %d, restricted neuron %d: expected %f but observed %f\n",
@@ -203,15 +209,18 @@ PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName) {
 }
 
 void setMargins(PV::HyPerLayer *layer, int const xMargin, int const yMargin) {
+   auto *geometry = layer->getComponentByType<PV::LayerGeometry>();
+   pvAssert(geometry);
    int marginResult;
-   layer->requireMarginWidth(xMargin, &marginResult, 'x');
+   geometry->requireMarginWidth(xMargin, 'x');
+   geometry->requireMarginWidth(yMargin, 'y');
+   PVLayerLoc const *loc = geometry->getLayerLoc();
    FatalIf(
-         marginResult != xMargin,
-         "Failed to set x-margin for \"%s\".\n",
+         loc->halo.lt != xMargin or loc->halo.rt != xMargin,
+         "Failed to set x-margin for %s.\n",
          layer->getDescription_c());
-   layer->requireMarginWidth(yMargin, &marginResult, 'y');
    FatalIf(
-         marginResult != yMargin,
-         "Failed to set y-margin for \"%s\".\n",
+         loc->halo.dn != yMargin or loc->halo.up != yMargin,
+         "Failed to set y-margin for %s.\n",
          layer->getDescription_c());
 }

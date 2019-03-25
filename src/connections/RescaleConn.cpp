@@ -6,23 +6,25 @@
  */
 
 #include "RescaleConn.hpp"
+#include "columns/Factory.hpp"
 #include "delivery/RescaleDelivery.hpp"
 
 namespace PV {
 
 RescaleConn::RescaleConn() {}
 
-RescaleConn::RescaleConn(const char *name, HyPerCol *hc) { initialize(name, hc); }
+RescaleConn::RescaleConn(const char *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
-int RescaleConn::initialize(const char *name, HyPerCol *hc) {
-   int status = IdentConn::initialize(name, hc);
-   return status;
+void RescaleConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   IdentConn::initialize(name, params, comm);
 }
 
 BaseDelivery *RescaleConn::createDeliveryObject() {
-   BaseObject *baseObject = Factory::instance()->createByKeyword("RescaleDelivery", name, parent);
+   BaseObject *baseObject          = Factory::instance()->createByKeyword("RescaleDelivery", this);
    RescaleDelivery *deliveryObject = dynamic_cast<RescaleDelivery *>(baseObject);
-   pvAssert(deliveryObject);
+   pvAssert(deliveryObject); // RescaleDelivery is a core keyword.
    return deliveryObject;
 }
 

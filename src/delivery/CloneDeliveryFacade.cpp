@@ -6,20 +6,23 @@
  */
 
 #include "CloneDeliveryFacade.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/CloneWeightsPair.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-CloneDeliveryFacade::CloneDeliveryFacade(char const *name, HyPerCol *hc) { initialize(name, hc); }
+CloneDeliveryFacade::CloneDeliveryFacade(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 CloneDeliveryFacade::CloneDeliveryFacade() {}
 
 CloneDeliveryFacade::~CloneDeliveryFacade() {}
 
-int CloneDeliveryFacade::initialize(char const *name, HyPerCol *hc) {
-   return HyPerDeliveryFacade::initialize(name, hc);
+void CloneDeliveryFacade::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   HyPerDeliveryFacade::initialize(name, params, comm);
 }
 
 void CloneDeliveryFacade::setObjectType() { mObjectType = "CloneDeliveryFacade"; }
@@ -31,8 +34,7 @@ Response::Status CloneDeliveryFacade::communicateInitInfo(
       return status;
    }
    if (mUpdateGSynFromPostPerspective) {
-      auto *cloneWeightsPair =
-            mapLookupByType<CloneWeightsPair>(message->mHierarchy, getDescription());
+      auto *cloneWeightsPair = message->mHierarchy->lookupByType<CloneWeightsPair>();
       pvAssert(cloneWeightsPair);
       cloneWeightsPair->synchronizeMarginsPost();
    }

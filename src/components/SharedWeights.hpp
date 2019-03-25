@@ -34,7 +34,7 @@ class SharedWeights : public BaseObject {
    /** @} */ // end of SharedWeights parameters
 
   public:
-   SharedWeights(char const *name, HyPerCol *hc);
+   SharedWeights(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~SharedWeights();
 
@@ -43,7 +43,7 @@ class SharedWeights : public BaseObject {
   protected:
    SharedWeights() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -35,7 +35,13 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    baseObject                   = hc->getObjectFromName("NormalizeL3Check");
    HyPerLayer *normalizeL3Check = dynamic_cast<HyPerLayer *>(baseObject);
    FatalIf(normalizeL3Check == nullptr, "Layer \"NormalizeL3Check\" does not exist.\n");
-   float normalizeL3Value = normalizeL3Check->getLayerData()[0];
+   BasePublisherComponent *checkData =
+         normalizeL3Check->getComponentByType<BasePublisherComponent>();
+   FatalIf(
+         checkData == nullptr,
+         "%s does not have a BasePublisherComponent.\n",
+         normalizeL3Check->getDescription_c());
+   float normalizeL3Value = checkData->getLayerData()[0];
    FatalIf(
          fabsf(normalizeL3Value - correctValue) >= tol,
          "Result %f differs from %f by more than allowed tolerance.\n",

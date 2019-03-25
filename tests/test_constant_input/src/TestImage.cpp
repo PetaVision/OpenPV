@@ -1,55 +1,35 @@
 /*
  * TestImage.cpp
  *
- *  Created on: Mar 19, 2010
- *      Author: Craig Rasmussen
+ *  Created on: Jul 29, 2008
+ *
  */
 
 #include "TestImage.hpp"
+#include "TestImageActivityComponent.hpp"
 
 namespace PV {
 
-TestImage::TestImage() { initialize_base(); }
-
-TestImage::TestImage(const char *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
+TestImage::TestImage(const char *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
 }
+
+TestImage::TestImage() {}
 
 TestImage::~TestImage() {}
 
-int TestImage::initialize_base() { return PV_SUCCESS; }
-
-int TestImage::initialize(const char *name, HyPerCol *hc) {
-   return HyPerLayer::initialize(name, hc);
+void TestImage::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
-int TestImage::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerLayer::ioParamsFillGroup(ioFlag);
-   ioParam_constantVal(ioFlag);
-   return status;
+ActivityComponent *TestImage::createActivityComponent() {
+   return new TestImageActivityComponent(getName(), parameters(), mCommunicator);
 }
 
-void TestImage::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->handleUnnecessaryParameter(name, "InitVType");
-   return;
+float TestImage::getConstantVal() const {
+   auto *buffer = mActivityComponent->getComponentByType<TestImageActivityBuffer>();
+   pvAssert(buffer);
+   return buffer->getConstantVal();
 }
-
-void TestImage::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "constantVal", &val, (float)1);
-}
-
-void TestImage::allocateV() { FatalIf(!(getV() == nullptr), "Test failed.\n"); }
-
-void TestImage::initializeActivity() {
-   for (int k = 0; k < getNumNeurons(); k++) {
-      const PVLayerLoc *loc = getLayerLoc();
-      int kExt              = kIndexExtended(
-            k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-      getActivity()[kExt] = val;
-   }
-}
-
-Response::Status TestImage::updateState(double timed, double dt) { return Response::SUCCESS; }
 
 } // namespace PV

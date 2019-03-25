@@ -13,6 +13,6 @@ int TestShared(
       int nfPost,
       int patchSizeX,
       int patchSizeY,
-      PV::Communicator *comm);
+      PV::Communicator const *comm);
 
 #endif // TESTSHARED_HPP_

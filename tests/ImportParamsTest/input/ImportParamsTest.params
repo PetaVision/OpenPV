@@ -112,7 +112,6 @@ ImportParamsConn "origConn" = {
     normalizeArborsIndividually = false;
     normalize_cutoff = 0;
     symmetrizeWeights = 0;
-    convertRateToSpikeCount = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
     writeCompressedCheckpoints = false;

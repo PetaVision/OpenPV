@@ -71,7 +71,6 @@ PoolingConn "InputToOutputCPU" = {
     channelCode                         = 0;
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
-    convertRateToSpikeCount             = false;
     receiveGpu                          = false;
     sharedWeights                       = true;
     updateGSynFromPostPerspective       = true;

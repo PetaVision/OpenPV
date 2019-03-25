@@ -19,11 +19,19 @@ int main(int argc, char *argv[]) {
    HyPerLayer *inputLayer = getLayerFromName(std::string("Input"), hc);
    pvAssert(inputLayer); // Was tested in getLayerFromName().
 
+   auto *geometry = inputLayer->getComponentByType<LayerGeometry>();
+   FatalIf(
+         geometry == nullptr,
+         "%s does not have a LayerGeometry component.\n",
+         inputLayer->getDescription_c());
    int margin = 2;
-   inputLayer->requireMarginWidth(margin, &margin, 'x');
-   FatalIf(margin != 2, "%s could not set x-margin to 2.\n", inputLayer->getDescription_c());
-   inputLayer->requireMarginWidth(margin, &margin, 'y');
-   FatalIf(margin != 2, "%s could not set y-margin to 2.\n", inputLayer->getDescription_c());
+   geometry->requireMarginWidth(margin, 'x');
+   geometry->requireMarginWidth(margin, 'y');
+   PVHalo const &halo = inputLayer->getLayerLoc()->halo;
+   FatalIf(
+         halo.lt != margin or halo.rt != margin or halo.dn != margin or halo.up != margin,
+         "%s failed to set halo.\n",
+         inputLayer->getDescription_c());
 
    int status = hc->run();
 
@@ -48,45 +56,25 @@ void compare(char const *inputname, char const *outputname, HyPerCol *hc) {
    HyPerLayer *outputLayer = getLayerFromName(std::string(outputname), hc);
    pvAssert(inputLayer and outputLayer); // getLayerFromName() checks result for non-null.
 
-   PVLayerLoc const *inLoc  = inputLayer->getLayerLoc();
-   PVLayerLoc const *outLoc = outputLayer->getLayerLoc();
+   auto *inputActivityComponent  = inputLayer->getComponentByType<ActivityComponent>();
+   auto *inputActivityBuffer     = inputActivityComponent->getComponentByType<ActivityBuffer>();
+   auto *outputActivityComponent = outputLayer->getComponentByType<ActivityComponent>();
+   auto *outputActivityBuffer    = outputActivityComponent->getComponentByType<ActivityBuffer>();
+   PVLayerLoc const *inLoc       = inputActivityBuffer->getLayerLoc();
+   PVLayerLoc const *outLoc      = outputActivityBuffer->getLayerLoc();
 
-   FatalIf(
-         inLoc->nx != outLoc->nx,
-         "%s and %s have different values of nx (%d versus %d)\n",
-         inputLayer->getDescription_c(),
-         outputLayer->getDescription_c(),
-         inLoc->nx,
-         outLoc->nx);
-   FatalIf(
-         inLoc->ny != outLoc->ny,
-         "%s and %s have different values of ny (%d versus %d)\n",
-         inputLayer->getDescription_c(),
-         outputLayer->getDescription_c(),
-         inLoc->ny,
-         outLoc->ny);
-   FatalIf(
-         inLoc->nf != outLoc->nf,
-         "%s and %s have different values of nf (%d versus %d)\n",
-         inputLayer->getDescription_c(),
-         outputLayer->getDescription_c(),
-         inLoc->nf,
-         outLoc->nf);
-   FatalIf(
-         inLoc->nbatch != outLoc->nbatch,
-         "%s and %s have different batch widths (%d versus %d)\n",
-         inputLayer->getDescription_c(),
-         outputLayer->getDescription_c(),
-         inLoc->nbatch,
-         outLoc->nbatch);
+   ComponentBuffer::checkDimensionsEqual(inputActivityBuffer, outputActivityBuffer);
+
+   auto *inputPublisher  = inputLayer->getComponentByType<BasePublisherComponent>();
+   auto *outputPublisher = outputLayer->getComponentByType<BasePublisherComponent>();
 
    int nbatch         = inLoc->nbatch;
    int numNeurons     = inLoc->nx * inLoc->ny * inLoc->nf;
-   int numInExtended  = inputLayer->getNumExtended();
-   int numOutExtended = outputLayer->getNumExtended();
+   int numInExtended  = inputPublisher->getNumExtended();
+   int numOutExtended = outputPublisher->getNumExtended();
 
-   float const *inData  = inputLayer->getLayerData();
-   float const *outData = outputLayer->getLayerData();
+   float const *inData  = inputPublisher->getLayerData();
+   float const *outData = outputPublisher->getLayerData();
    bool failed          = false;
    for (int b = 0; b < nbatch; b++) {
       for (int k = 0; k < numNeurons; k++) {

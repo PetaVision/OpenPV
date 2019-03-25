@@ -6,21 +6,23 @@
  */
 
 #include "HyPerDeliveryFacade.hpp"
-#include "columns/HyPerCol.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "columns/Factory.hpp"
 
 namespace PV {
 
-HyPerDeliveryFacade::HyPerDeliveryFacade(char const *name, HyPerCol *hc) { initialize(name, hc); }
+HyPerDeliveryFacade::HyPerDeliveryFacade(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 HyPerDeliveryFacade::HyPerDeliveryFacade() {}
 
-HyPerDeliveryFacade::~HyPerDeliveryFacade() {
-   delete mDeliveryIntern;
-}
+HyPerDeliveryFacade::~HyPerDeliveryFacade() { delete mDeliveryIntern; }
 
-int HyPerDeliveryFacade::initialize(char const *name, HyPerCol *hc) {
-   return BaseDelivery::initialize(name, hc);
+void HyPerDeliveryFacade::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   BaseDelivery::initialize(name, params, comm);
 }
 
 void HyPerDeliveryFacade::setObjectType() { mObjectType = "HyPerDeliveryFacade"; }
@@ -39,7 +41,7 @@ int HyPerDeliveryFacade::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerDeliveryFacade::ioParam_accumulateType(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "pvpatchAccumulateType", &mAccumulateTypeString, "convolve");
    if (ioFlag == PARAMS_IO_READ) {
       pvAssert(mAccumulateTypeString and mAccumulateTypeString[0]);
@@ -55,18 +57,18 @@ void HyPerDeliveryFacade::ioParam_accumulateType(enum ParamsIOFlag ioFlag) {
          mAccumulateType = HyPerDelivery::STOCHASTIC;
       }
       else {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s error: pvpatchAccumulateType \"%s\" is unrecognized.\n",
                   getDescription_c(),
                   mAccumulateTypeString);
             ErrorLog().printf("  Allowed values are \"convolve\" or \"stochastic\".\n");
          }
-         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+         MPI_Barrier(mCommunicator->globalCommunicator());
          exit(EXIT_FAILURE);
       }
    }
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    FatalIf(
          mReceiveGpu and mAccumulateType == HyPerDelivery::STOCHASTIC,
          "%s sets receiveGpu to true and pvpatchAccumulateType to stochastic, "
@@ -75,7 +77,7 @@ void HyPerDeliveryFacade::ioParam_accumulateType(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerDeliveryFacade::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "updateGSynFromPostPerspective",
@@ -93,12 +95,12 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
    if (getReceiveGpu()) {
 #ifdef PV_USE_CUDA
       if (getUpdateGSynFromPostPerspective()) {
-         baseObject = Factory::instance()->createByKeyword(
-               "PostsynapticPerspectiveGPUDelivery", name, parent);
+         baseObject =
+               Factory::instance()->createByKeyword("PostsynapticPerspectiveGPUDelivery", this);
       }
       else {
-         baseObject = Factory::instance()->createByKeyword(
-               "PresynapticPerspectiveGPUDelivery", name, parent);
+         baseObject =
+               Factory::instance()->createByKeyword("PresynapticPerspectiveGPUDelivery", this);
       }
 #else //
       pvAssert(0); // If PV_USE_CUDA is off, receiveGpu should always be false.
@@ -109,21 +111,21 @@ void HyPerDeliveryFacade::createDeliveryIntern() {
          case HyPerDelivery::CONVOLVE:
             if (getUpdateGSynFromPostPerspective()) {
                baseObject = Factory::instance()->createByKeyword(
-                     "PostsynapticPerspectiveConvolveDelivery", name, parent);
+                     "PostsynapticPerspectiveConvolveDelivery", this);
             }
             else {
                baseObject = Factory::instance()->createByKeyword(
-                     "PresynapticPerspectiveConvolveDelivery", name, parent);
+                     "PresynapticPerspectiveConvolveDelivery", this);
             }
             break;
          case HyPerDelivery::STOCHASTIC:
             if (getUpdateGSynFromPostPerspective()) {
                baseObject = Factory::instance()->createByKeyword(
-                     "PostsynapticPerspectiveStochasticDelivery", name, parent);
+                     "PostsynapticPerspectiveStochasticDelivery", this);
             }
             else {
                baseObject = Factory::instance()->createByKeyword(
-                     "PresynapticPerspectiveStochasticDelivery", name, parent);
+                     "PresynapticPerspectiveStochasticDelivery", this);
             }
             break;
          default:
@@ -175,25 +177,52 @@ HyPerDeliveryFacade::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> m
 Response::Status HyPerDeliveryFacade::allocateDataStructures() {
    auto status = BaseDelivery::allocateDataStructures();
    if (Response::completed(status) and mDeliveryIntern != nullptr) {
-      auto internMessage = std::make_shared<AllocateDataMessage>();
+      auto internMessage = std::make_shared<AllocateDataStructuresMessage>();
       status             = mDeliveryIntern->respond(internMessage);
    }
    return status;
 }
 
-void HyPerDeliveryFacade::deliver() {
-   if (mDeliveryIntern) {
-      mDeliveryIntern->deliver();
+Response::Status HyPerDeliveryFacade::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseDelivery::registerData(message);
+   if (Response::completed(status) and mDeliveryIntern != nullptr) {
+      status = mDeliveryIntern->respond(message);
    }
+   return status;
+}
+
+Response::Status
+HyPerDeliveryFacade::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   auto status = BaseDelivery::initializeState(message);
+   if (Response::completed(status) and mDeliveryIntern != nullptr) {
+      status = mDeliveryIntern->respond(message);
+   }
+   return status;
+}
+
+Response::Status HyPerDeliveryFacade::copyInitialStateToGPU() {
+   auto status = Response::SUCCESS;
+   if (mDeliveryIntern) {
+      auto copyMessage = std::make_shared<CopyInitialStateToGPUMessage>();
+      status           = mDeliveryIntern->respond(copyMessage);
+   }
+   return status;
+}
+
+void HyPerDeliveryFacade::deliver(float *destBuffer) {
+   // The internal delivery object mDeliveryIntern added itself to the post layer during
+   // communicate; the post layer will call that delivery object as well.
+   // Therefore nothing needs to be done here.
 }
 
 void HyPerDeliveryFacade::deliverUnitInput(float *recvBuffer) {
-   if (mDeliveryIntern) {
-      mDeliveryIntern->deliverUnitInput(recvBuffer);
-   }
+   // The internal delivery object mDeliveryIntern added itself to the post layer during
+   // communicate; the post layer will call that delivery object as well.
+   // Therefore nothing needs to be done here.
 }
 
-bool HyPerDeliveryFacade::isAllInputReady() {
+bool HyPerDeliveryFacade::isAllInputReady() const {
    return getChannelCode() == CHANNEL_NOUPDATE ? true : mDeliveryIntern->isAllInputReady();
 }
 

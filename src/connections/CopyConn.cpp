@@ -6,53 +6,62 @@
  */
 
 #include "CopyConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/CopyWeightsPair.hpp"
 #include "components/DependentArborList.hpp"
 #include "components/DependentPatchSize.hpp"
 #include "components/DependentSharedWeights.hpp"
-#include "utils/MapLookupByType.hpp"
 #include "weightupdaters/CopyUpdater.hpp"
 
 namespace PV {
 
-CopyConn::CopyConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
+CopyConn::CopyConn(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 CopyConn::CopyConn() {}
 
 CopyConn::~CopyConn() {}
 
-int CopyConn::initialize(char const *name, HyPerCol *hc) {
-   int status = HyPerConn::initialize(name, hc);
-   return status;
+void CopyConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   HyPerConn::initialize(name, params, comm);
 }
 
-void CopyConn::defineComponents() {
-   HyPerConn::defineComponents();
+void CopyConn::createComponentTable(char const *description) {
+   HyPerConn::createComponentTable(description);
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
-      addObserver(mOriginalConnNameParam);
+      addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
    }
 }
 
-ArborList *CopyConn::createArborList() { return new DependentArborList(name, parent); }
+ArborList *CopyConn::createArborList() {
+   return new DependentArborList(name, parameters(), mCommunicator);
+}
 
-PatchSize *CopyConn::createPatchSize() { return new DependentPatchSize(name, parent); }
+PatchSize *CopyConn::createPatchSize() {
+   return new DependentPatchSize(name, parameters(), mCommunicator);
+}
 
-SharedWeights *CopyConn::createSharedWeights() { return new DependentSharedWeights(name, parent); }
+SharedWeights *CopyConn::createSharedWeights() {
+   return new DependentSharedWeights(name, parameters(), mCommunicator);
+}
 
-WeightsPairInterface *CopyConn::createWeightsPair() { return new CopyWeightsPair(name, parent); }
+WeightsPairInterface *CopyConn::createWeightsPair() {
+   return new CopyWeightsPair(name, parameters(), mCommunicator);
+}
 
 InitWeights *CopyConn::createWeightInitializer() { return nullptr; }
 
-BaseWeightUpdater *CopyConn::createWeightUpdater() { return new CopyUpdater(name, parent); }
-
-OriginalConnNameParam *CopyConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(name, parent);
+BaseWeightUpdater *CopyConn::createWeightUpdater() {
+   return new CopyUpdater(name, parameters(), mCommunicator);
 }
 
-Response::Status CopyConn::initializeState() {
-   auto *copyWeightsPair = dynamic_cast<CopyWeightsPair *>(mWeightsPair);
+OriginalConnNameParam *CopyConn::createOriginalConnNameParam() {
+   return new OriginalConnNameParam(name, parameters(), mCommunicator);
+}
+
+Response::Status CopyConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   auto *copyWeightsPair = getComponentByType<CopyWeightsPair>();
    pvAssert(copyWeightsPair);
    if (!copyWeightsPair->getOriginalWeightsPair()->getInitialValuesSetFlag()) {
       return Response::POSTPONE;

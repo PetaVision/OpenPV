@@ -10,51 +10,53 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-GPUSystemTestProbe::GPUSystemTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+GPUSystemTestProbe::GPUSystemTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int GPUSystemTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int GPUSystemTestProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void GPUSystemTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 void GPUSystemTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 // 2 tests: max difference can be 5e-4, max std is 5e-5
-Response::Status GPUSystemTestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status GPUSystemTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = RequireAllZeroActivityProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
-   const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   int numExtNeurons     = getTargetLayer()->getNumExtendedAllBatches();
-   const float *A        = getTargetLayer()->getLayerData();
+   auto *targetPublisher = getTargetLayer()->getComponentByType<BasePublisherComponent>();
+   PVLayerLoc const *loc = targetPublisher->getLayerLoc();
+   int numExtNeurons     = targetPublisher->getNumExtended() * loc->nbatch;
+   const float *A        = targetPublisher->getLayerData();
    float sumsq           = 0;
-   for (int i = 0; i < numExtNeurons; i++) {
-      float tol = 5.0e-4;
-      FatalIf(
-            fabsf(A[i]) >= 5e-4f,
-            "%s neuron index %d has value %f at time %f; tolerance is %f.\n",
-            getTargetLayer()->getDescription_c(),
-            i,
-            (double)A[i],
-            timed,
-            (double)tol);
-   }
+   float tolSigma        = 5e-5;
    for (int b = 0; b < loc->nbatch; b++) {
       // For max std of 5.0fe-5
-      float tol = 5e-5;
-      FatalIf(
-            sigma[b] > tol,
-            "%s batch element %d has standard deviation %f at time %f; tolerance is %f.\n",
-            getTargetLayer()->getDescription_c(),
-            b,
-            (double)sigma[b],
-            timed,
-            (double)tol);
+      if (sigma[b] > tolSigma) {
+         if (!nonzeroFound) {
+            nonzeroTime = simTime;
+         }
+         nonzeroFound = true;
+         if (mCommunicator->commRank() == 0) {
+            std::stringstream message("");
+            message << getDescription_c() << ": Nonzero standard deviation " << simTime
+                    << " at time " << nonzeroTime << "; tolerance is " << tolSigma << "\n";
+            if (immediateExitOnFailure) {
+               Fatal() << message.str();
+            }
+            else {
+               WarnLog() << message.str();
+            }
+         }
+      }
    }
 
    return status;

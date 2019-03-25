@@ -6,8 +6,8 @@
 namespace PVCuda {
 
 CudaRecvPre::CudaRecvPre(CudaDevice *inDevice) : CudaKernel(inDevice) {
-   kernelName = "CudaRecvPre";
-   numActive  = nullptr;
+   mKernelName = "CudaRecvPre";
+   numActive   = nullptr;
 }
 
 CudaRecvPre::~CudaRecvPre() {}

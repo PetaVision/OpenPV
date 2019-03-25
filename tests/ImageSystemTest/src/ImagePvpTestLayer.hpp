@@ -8,23 +8,19 @@
 #include <layers/PvpLayer.hpp>
 
 namespace PV {
-
-class ImagePvpTestLayer : public PV::PvpLayer {
+class ImagePvpTestLayer : public PvpLayer {
   public:
-   ImagePvpTestLayer(const char *name, HyPerCol *hc);
-   virtual Response::Status updateState(double time, double dt) override;
+   ImagePvpTestLayer(char const *name, PVParams *params, Communicator const *comm);
+   virtual ~ImagePvpTestLayer();
 
   protected:
-   /**
-    * In addition to base-class registerData, broadcast the fileCount to all processes.
-    * All processes need to know the number of input images in order to verify that
-    * they received the correct data, but ordinarily, only the parent class knows.
-    */
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   ImagePvpTestLayer() {}
 
-  private:
-   int mNumFrames = 0; // The number of frames in the pvp file at the input path.
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
+
+   virtual ActivityComponent *createActivityComponent() override;
 };
-}
+
+} // end namespace PV
 
 #endif // IMAGEPVPTESTLAYER_HPP_

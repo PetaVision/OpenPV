@@ -33,25 +33,20 @@ class DependentSharedWeights : public SharedWeights {
    /** @} */ // end of DependentSharedWeights parameters
 
   public:
-   DependentSharedWeights(char const *name, HyPerCol *hc);
+   DependentSharedWeights(char const *name, PVParams *params, Communicator const *comm);
    virtual ~DependentSharedWeights();
-
-   virtual void setObjectType() override;
 
   protected:
    DependentSharedWeights();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
+
+   virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
-   char const *getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const;
-   SharedWeights *getOriginalSharedWeights(
-         std::map<std::string, Observer *> const hierarchy,
-         char const *originalConnName) const;
 
 }; // class DependentSharedWeights
 

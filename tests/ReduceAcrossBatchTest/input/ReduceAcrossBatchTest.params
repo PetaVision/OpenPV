@@ -131,7 +131,6 @@ HyPerConn "InputToOutput" = {
     weightInit = 0.0;
     connectOnlySameFeatures = true;
     normalizeMethod = "none";
-    convertRateToSpikeCount = false;
     receiveGpu = false;
 
     writeCompressedCheckpoints = false;

@@ -6,11 +6,13 @@
  */
 
 #include "BinningTestProbe.hpp"
+#include <components/BasePublisherComponent.hpp>
+#include <components/BinningActivityBuffer.hpp>
 
 namespace PV {
 
-BinningTestProbe::BinningTestProbe(const char *name, HyPerCol *hc) {
-   LayerProbe::initialize(name, hc);
+BinningTestProbe::BinningTestProbe(const char *name, PVParams *params, Communicator const *comm) {
+   LayerProbe::initialize(name, params, comm);
 }
 
 Response::Status
@@ -27,7 +29,7 @@ BinningTestProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    return Response::SUCCESS;
 }
 
-Response::Status BinningTestProbe::outputState(double simTime) {
+Response::Status BinningTestProbe::outputState(double simTime, double deltaTime) {
    if (simTime == 0.0) {
       return Response::SUCCESS;
    }
@@ -45,8 +47,20 @@ Response::Status BinningTestProbe::outputState(double simTime) {
    int nxGlobalExt       = nxGlobal + loc->halo.lt + loc->halo.rt;
    int nyGlobalExt       = nyGlobal + loc->halo.lt + loc->halo.rt;
    // Grab the activity layer of current layer
-   const float *A       = mBinningLayer->getLayerData();
-   const float binSigma = mBinningLayer->getBinSigma();
+   auto *publisherComponent = mBinningLayer->getComponentByType<BasePublisherComponent>();
+   FatalIf(
+         publisherComponent == nullptr,
+         "%s does not have a BasePublisherComponent.\n",
+         mBinningLayer->getDescription_c());
+   const float *A = publisherComponent->getLayerData();
+
+   // Grab BinSigma from BinningLayer, which is contained in a component.
+   auto *activityComponent = mBinningLayer->getComponentByType<ComponentBasedObject>();
+   pvAssert(activityComponent);
+   auto *binningActivityBuffer = activityComponent->getComponentByType<BinningActivityBuffer>();
+   pvAssert(binningActivityBuffer);
+   const float binSigma = binningActivityBuffer->getBinSigma();
+
    // We only care about restricted space
    for (int iY = loc->halo.up; iY < ny + loc->halo.up; iY++) {
       for (int iX = loc->halo.up; iX < nx + loc->halo.lt; iX++) {
@@ -55,7 +69,7 @@ Response::Status BinningTestProbe::outputState(double simTime) {
             int binningIndexGlobal = kIndex(iX + kx0, iY + ky0, iF, nxGlobalExt, nyGlobalExt, nf);
             int binningIndexLocal  = kIndex(iX, iY, iF, nxExt, nyExt, nf);
             float observedValue    = A[binningIndexLocal];
-            if (mBinningLayer->getBinSigma() == 0) {
+            if (binSigma == 0) {
                // Based on the input image, F index should be floor(origIndex/255*32), except
                // that if origIndex==255, F index should be 31.
                float binnedIndex =
@@ -72,13 +86,12 @@ Response::Status BinningTestProbe::outputState(double simTime) {
                      (double)observedValue);
             }
             else {
-               float sigma = mBinningLayer->getBinSigma();
                // Map feature index to the center of its bin
                float binCenter = ((float)iF + 0.5f) / nf; // Assumes maxBin is 1 and minBin is zero
                // Determine number of bins away the input value is from the bin center
                float inputValue   = (float)origIndexGlobal / 255.0f;
                float binOffset    = (binCenter - inputValue) * (float)loc->nf;
-               float correctValue = exp(-binOffset * binOffset / (2 * sigma * sigma));
+               float correctValue = exp(-binOffset * binOffset / (2 * binSigma * binSigma));
                FatalIf(
                      std::fabs(observedValue - correctValue) > 0.0001f,
                      "%s, extended global location x=%d, y=%d, f=%d, expected %f, observed %f.\n",

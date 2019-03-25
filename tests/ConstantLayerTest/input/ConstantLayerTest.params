@@ -186,5 +186,5 @@ RequireAllZeroActivityProbe "InitVFromFileCompareProbe" = {
     triggerLayerName                    = NULL;
     energyProbe                         = NULL;
     nnzThreshold                        = 0.0;
-    exitOnFailure                       = true;
+    exitOnFailure                       = false;
 };

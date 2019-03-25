@@ -46,10 +46,10 @@ void testPvpRestricted(PV::MPIBlock const *mpiBlock, std::string const &director
    // CheckpointEntryPvpBuffer's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
    PV::CheckpointEntryPvpBuffer<float> checkpointEntryPvp{"checkpointEntryPvpRestricted",
-                                                    mpiBlock,
-                                                    checkpointData.data(),
-                                                    &loc,
-                                                    false /*not extended*/};
+                                                          mpiBlock,
+                                                          checkpointData.data(),
+                                                          &loc,
+                                                          false /*not extended*/};
 
    double const simTime = 10.0;
    // Copy correct data into checkpoint data.

@@ -34,18 +34,18 @@ class RescaleDelivery : public IdentDelivery {
    // End of parameters needed from the RescaleConn class.
 
   public:
-   RescaleDelivery(char const *name, HyPerCol *hc);
+   RescaleDelivery(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~RescaleDelivery() {}
 
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
   protected:
    RescaleDelivery() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

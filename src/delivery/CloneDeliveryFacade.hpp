@@ -19,14 +19,14 @@ namespace PV {
  */
 class CloneDeliveryFacade : public HyPerDeliveryFacade {
   public:
-   CloneDeliveryFacade(char const *name, HyPerCol *hc);
+   CloneDeliveryFacade(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~CloneDeliveryFacade();
 
   protected:
    CloneDeliveryFacade();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

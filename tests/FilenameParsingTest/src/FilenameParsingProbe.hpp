@@ -18,16 +18,16 @@ class FilenameParsingProbe : public PV::LayerProbe {
 
    // Methods
   public:
-   FilenameParsingProbe(const char *name, PV::HyPerCol *hc);
+   FilenameParsingProbe(const char *name, PV::PVParams *params, PV::Communicator const *comm);
    virtual ~FilenameParsingProbe();
 
   protected:
    FilenameParsingProbe();
-   int initialize(const char *name, PV::HyPerCol *hc);
+   void initialize(const char *name, PV::PVParams *params, PV::Communicator const *comm);
    virtual PV::Response::Status
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;
    virtual void calcValues(double timevalue) override {}
-   virtual PV::Response::Status outputState(double timestamp) override;
+   virtual PV::Response::Status outputState(double simTime, double deltaTime) override;
 
   private:
    int initialize_base();

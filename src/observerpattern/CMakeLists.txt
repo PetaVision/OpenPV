@@ -1,4 +1,5 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/Observer.cpp
    ${SUBDIR}/ObserverTable.cpp
    ${SUBDIR}/Response.cpp
    ${SUBDIR}/Subject.cpp

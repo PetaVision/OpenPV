@@ -13,32 +13,40 @@
 
 namespace PV {
 
-CloneHyPerConnTestProbe::CloneHyPerConnTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+CloneHyPerConnTestProbe::CloneHyPerConnTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm)
+      : StatsProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int CloneHyPerConnTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int CloneHyPerConnTestProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void CloneHyPerConnTestProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
-Response::Status CloneHyPerConnTestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status CloneHyPerConnTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
-   int const rank    = parent->getCommunicator()->commRank();
+   int const rank    = mCommunicator->commRank();
    int const rcvProc = 0;
    if (rank != rcvProc) {
       return status;
    }
-   for (int b = 0; b < parent->getNBatch(); b++) {
-      if (timed > 2.0) {
-         FatalIf(!(fabsf(fMin[b]) < 1e-6f), "Test failed.\n");
-         FatalIf(!(fabsf(fMax[b]) < 1e-6f), "Test failed.\n");
-         FatalIf(!(fabsf(avg[b]) < 1e-6f), "Test failed.\n");
+   int const nbatch = getTargetLayer()->getLayerLoc()->nbatch;
+   for (int b = 0; b < nbatch; b++) {
+      if (simTime > 2.0) {
+         FatalIf(fabsf(fMin[b]) >= 1e-6f, "Test failed.\n");
+         FatalIf(fabsf(fMax[b]) >= 1e-6f, "Test failed.\n");
+         FatalIf(fabsf(avg[b]) >= 1e-6f, "Test failed.\n");
       }
    }
 

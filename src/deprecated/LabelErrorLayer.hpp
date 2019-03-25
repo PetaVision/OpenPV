@@ -14,14 +14,14 @@
 
 namespace PV {
 
-class LabelErrorLayer : public PV::ANNLayer {
+class LabelErrorLayer : public ANNLayer {
   public:
-   LabelErrorLayer(const char *name, HyPerCol *hc);
+   LabelErrorLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~LabelErrorLayer();
 
   protected:
    LabelErrorLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual Response::Status updateState(double time, double dt) override;
    void ioParam_errScale(enum ParamsIOFlag ioFlag);
    void ioParam_isBinary(enum ParamsIOFlag ioFlag);

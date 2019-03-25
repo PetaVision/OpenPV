@@ -26,6 +26,8 @@ BatchIndexer::BatchIndexer(
    mStartIndices.resize(mBatchWidth, 0);
    mSkipAmounts.resize(mBatchWidth, 0);
    shuffleLookupTable();
+   setDescription(std::string("BatchIndexer \"") + mObjName + "\"");
+   CheckpointerDataInterface::initialize();
 }
 
 int BatchIndexer::nextIndex(int localBatchIndex) {
@@ -105,11 +107,13 @@ void BatchIndexer::shuffleLookupTable() {
    std::shuffle(mIndexLookupTable.begin(), mIndexLookupTable.end(), rng);
 }
 
-Response::Status BatchIndexer::registerData(Checkpointer *checkpointer) {
-   auto status = CheckpointerDataInterface::registerData(checkpointer);
+Response::Status
+BatchIndexer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = CheckpointerDataInterface::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer = message->mDataRegistry;
    checkpointer->registerCheckpointData<int>(
          mObjName,
          std::string("FrameNumbers"),
@@ -135,14 +139,10 @@ Response::Status BatchIndexer::processCheckpointRead() {
 }
 
 Response::Status BatchIndexer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mInitializeFromCheckpointFlag) {
-      checkpointer->readNamedCheckpointEntry(mObjName, "FrameNumbers", false /*not constant*/);
-      checkIndices();
-      return Response::SUCCESS;
-   }
-   else {
-      return Response::NO_ACTION;
-   }
+   pvAssert(mInitializeFromCheckpointFlag);
+   checkpointer->readNamedCheckpointEntry(mObjName, "FrameNumbers", false /*not constant*/);
+   checkIndices();
+   return Response::SUCCESS;
 }
 
 void BatchIndexer::checkIndices() {

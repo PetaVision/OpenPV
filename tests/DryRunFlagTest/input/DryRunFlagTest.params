@@ -154,7 +154,7 @@ false; normalizeOnInitialize
 
 
 
-= true; normalizeOnWeightUpdate = true; normalize_cutoff = 0; convertRateToSpikeCount = false; receiveGpu =
+= true; normalizeOnWeightUpdate = true; normalize_cutoff = 0; receiveGpu =
 false; minSumTolerated = 0.0;
     normalizeFromPostPerspective =
 

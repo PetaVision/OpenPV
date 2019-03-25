@@ -6,22 +6,22 @@
  */
 
 #include "normalizers/NormalizeGroup.hpp"
-#include "columns/ObjectMapComponent.hpp"
 #include "components/WeightsPair.hpp"
 #include "connections/HyPerConn.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
-NormalizeGroup::NormalizeGroup(char const *name, HyPerCol *hc) { initialize(name, hc); }
+NormalizeGroup::NormalizeGroup(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 NormalizeGroup::NormalizeGroup() {}
 
 NormalizeGroup::~NormalizeGroup() { free(mNormalizeGroupName); }
 
-int NormalizeGroup::initialize(char const *name, HyPerCol *hc) {
-   int status = NormalizeBase::initialize(name, hc);
-   return status;
+void NormalizeGroup::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   NormalizeBase::initialize(name, params, comm);
 }
 
 int NormalizeGroup::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -36,8 +36,7 @@ void NormalizeGroup::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {}
 void NormalizeGroup::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {}
 
 void NormalizeGroup::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, "normalizeGroupName", &mNormalizeGroupName);
+   parameters()->ioParamStringRequired(ioFlag, name, "normalizeGroupName", &mNormalizeGroupName);
 }
 
 Response::Status
@@ -47,26 +46,25 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       return status;
    }
 
-   ObjectMapComponent *objectMapComponent =
-         mapLookupByType<ObjectMapComponent>(message->mHierarchy, getDescription());
-   pvAssert(objectMapComponent);
-   HyPerConn *groupHeadConn =
-         objectMapComponent->lookup<HyPerConn>(std::string(mNormalizeGroupName));
-   mGroupHead = groupHeadConn->getComponentByType<NormalizeBase>();
+   auto *tableComponent = message->mHierarchy->lookupByType<ObserverTable>();
+   pvAssert(tableComponent);
+   std::string groupNameString = std::string(mNormalizeGroupName);
+   HyPerConn *groupHeadConn    = tableComponent->lookupByName<HyPerConn>(groupNameString);
+   mGroupHead                  = groupHeadConn->getComponentByType<NormalizeBase>();
 
    if (mGroupHead == nullptr) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
                getDescription_c(),
                mNormalizeGroupName);
       }
-      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      MPI_Barrier(mCommunicator->globalCommunicator());
       exit(EXIT_FAILURE);
    }
 
    auto hierarchy           = message->mHierarchy;
-   WeightsPair *weightsPair = mapLookupByType<WeightsPair>(hierarchy, getDescription());
+   WeightsPair *weightsPair = hierarchy->lookupByType<WeightsPair>();
    Weights *preWeights      = weightsPair->getPreWeights();
    pvAssert(preWeights); // NormalizeBase::communicateInitInfo should have called needPre.
    mGroupHead->addWeightsToList(preWeights);

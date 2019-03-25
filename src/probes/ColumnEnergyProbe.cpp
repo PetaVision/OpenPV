@@ -6,7 +6,6 @@
  */
 
 #include "ColumnEnergyProbe.hpp"
-#include "columns/HyPerCol.hpp"
 #include <limits>
 
 namespace PV {
@@ -19,9 +18,13 @@ ColumnEnergyProbe::ColumnEnergyProbe()
    initialize_base();
 } // end ColumnEnergyProbe::ColumnEnergyProbe(const char *)
 
-ColumnEnergyProbe::ColumnEnergyProbe(const char *probename, HyPerCol *hc) : ColProbe() {
+ColumnEnergyProbe::ColumnEnergyProbe(
+      const char *probename,
+      PVParams *params,
+      Communicator const *comm)
+      : ColProbe() {
    initialize_base();
-   initializeColumnEnergyProbe(probename, hc);
+   initialize(probename, params, comm);
 } // end ColumnEnergyProbe::ColumnEnergyProbe(const char *, HyPerCol *)
 
 ColumnEnergyProbe::~ColumnEnergyProbe() {
@@ -43,12 +46,15 @@ int ColumnEnergyProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ColumnEnergyProbe::ioParam_reductionInterval(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "reductionInterval", &mSkipInterval, mSkipInterval, false /*warnIfAbsent*/);
 }
 
-int ColumnEnergyProbe::initializeColumnEnergyProbe(const char *probename, HyPerCol *hc) {
-   return ColProbe::initialize(probename, hc);
+void ColumnEnergyProbe::initialize(
+      const char *probename,
+      PVParams *params,
+      Communicator const *comm) {
+   ColProbe::initialize(probename, params, comm);
 }
 
 void ColumnEnergyProbe::outputHeader() {
@@ -73,7 +79,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
       int newNumValues = probe->getNumValues();
       if (newNumValues < 0) {
          status = PV_FAILURE;
-         if (parent->columnId() == 0) {
+         if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "%s: %s cannot be used as a term of the energy "
                   "probe (getNumValue() returned a "
@@ -81,7 +87,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
                   getDescription_c(),
                   probe->getDescription_c());
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
       if (newNumValues != this->getNumValues()) {
@@ -90,7 +96,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
    }
    else {
       if (probe->getNumValues() != this->getNumValues()) {
-         if (this->parent->columnId() == 0) {
+         if (this->mCommunicator->commRank() == 0) {
             ErrorLog().printf(
                   "Failed to add terms to %s:  new probe \"%s\" "
                   "returns %d values, but previous "
@@ -100,21 +106,21 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
                   probe->getNumValues(),
                   this->getNumValues());
          }
-         MPI_Barrier(this->parent->getCommunicator()->communicator());
+         MPI_Barrier(this->mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
    }
    assert(probe->getNumValues() == getNumValues());
    int newNumTerms = numTerms + (size_t)1;
    if (newNumTerms <= numTerms) {
-      if (this->parent->columnId() == 0) {
+      if (this->mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "How did you manage to add %zu terms to %s?  "
                "Unable to add any more!\n",
                numTerms,
                getDescription_c());
       }
-      MPI_Barrier(this->parent->getCommunicator()->communicator());
+      MPI_Barrier(this->mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    BaseProbe **newTermsArray =
@@ -136,7 +142,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
 
 bool ColumnEnergyProbe::needRecalc(double timevalue) { return true; }
 
-double ColumnEnergyProbe::referenceUpdateTime() const { return parent->simulationTime(); }
+double ColumnEnergyProbe::referenceUpdateTime(double simTime) const { return simTime; }
 
 void ColumnEnergyProbe::calcValues(double timevalue) {
    if (mLastTimeValue == timevalue || --mSkipTimer > 0) {
@@ -158,8 +164,8 @@ void ColumnEnergyProbe::calcValues(double timevalue) {
    }
 }
 
-Response::Status ColumnEnergyProbe::outputState(double timevalue) {
-   getValues(timevalue);
+Response::Status ColumnEnergyProbe::outputState(double simTime, double deltaTime) {
+   getValues(simTime);
    if (mOutputStreams.empty()) {
       return Response::SUCCESS;
    }
@@ -173,7 +179,7 @@ Response::Status ColumnEnergyProbe::outputState(double timevalue) {
       if (!isWritingToFile()) {
          stream << "\"" << name << "\","; // lack of \n is deliberate
       }
-      stream.printf("%10f, %d, %10.9f\n", timevalue, b, valuesBuffer[b]);
+      stream.printf("%10f, %d, %10.9f\n", simTime, b, valuesBuffer[b]);
       stream.flush();
    }
    return Response::SUCCESS;

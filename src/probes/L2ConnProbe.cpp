@@ -11,38 +11,35 @@ namespace PV {
 
 L2ConnProbe::L2ConnProbe() {}
 
-L2ConnProbe::L2ConnProbe(const char *probename, HyPerCol *hc) : KernelProbe(probename, hc) {}
+L2ConnProbe::L2ConnProbe(const char *probename, PVParams *params, Communicator const *comm)
+      : KernelProbe(probename, params, comm) {}
 
 L2ConnProbe::~L2ConnProbe() {}
 
-Response::Status L2ConnProbe::outputState(double timed) {
+Response::Status L2ConnProbe::outputState(double simTime, double deltaTime) {
    if (mOutputStreams.empty()) {
       return Response::NO_ACTION;
    }
-   Communicator *icComm = parent->getCommunicator();
-   const int rank       = icComm->commRank();
-   assert(getTargetConn() != NULL);
-   int nxp       = getTargetHyPerConn()->getPatchSizeX();
-   int nyp       = getTargetHyPerConn()->getPatchSizeY();
-   int nfp       = getTargetHyPerConn()->getPatchSizeF();
-   int patchSize = nxp * nyp * nfp;
+   pvAssert(getTargetConn() != nullptr);
+   const int rank = mCommunicator->commRank();
+   int nxp        = getPatchSize()->getPatchSizeX();
+   int nyp        = getPatchSize()->getPatchSizeY();
+   int nfp        = getPatchSize()->getPatchSizeF();
+   int patchSize  = nxp * nyp * nfp;
 
    int arborID = getArbor();
-   int numKern = getTargetHyPerConn()->getNumDataPatches();
+   int numKern = getWeights()->getNumDataPatches();
 
-   if (numKern != getTargetHyPerConn()->getPre()->getLayerLoc()->nf) {
+   if (numKern != getWeights()->getGeometry()->getPreLoc().nf) {
       Fatal().printf(
-            "L2ConnProbe %s: L2ConnProbe only works for 1-to-many or "
-            "1-to-1 weights.\n",
-            name);
+            "L2ConnProbe %s: L2ConnProbe only works for 1-to-many or 1-to-1 weights.\n", name);
    }
 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
    for (int kernelIndex = 0; kernelIndex < numKern; ++kernelIndex) {
-      const float *wdata =
-            getTargetHyPerConn()->getWeightsDataStart(arborID) + patchSize * kernelIndex;
+      const float *wdata = getWeightData() + patchSize * kernelIndex;
 
       float sumsq = 0;
 
@@ -58,7 +55,7 @@ Response::Status L2ConnProbe::outputState(double timed) {
             }
          }
       }
-      output(0) << "t=" << timed << ", f=" << kernelIndex << ", squaredL2=" << sumsq << "\n";
+      output(0) << "t=" << simTime << ", f=" << kernelIndex << ", squaredL2=" << sumsq << "\n";
    }
 
    return Response::SUCCESS;

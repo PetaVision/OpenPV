@@ -3,8 +3,10 @@
  *
  */
 
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/buildandrun.hpp"
-#include "layers/InputLayer.hpp"
+#include "components/InputActivityBuffer.hpp"
+#include "layers/HyPerLayer.hpp"
 #include "probes/RequireAllZeroActivityProbe.hpp"
 
 #define CORRECT_PVP_NX 128 // The x-dimension in the "correct.pvp" file.  Needed by generate()
@@ -177,11 +179,15 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
    std::string sourcePathString = hc->getOutputPath();
    sourcePathString += "/"
                        "Reconstruction.pvp";
-   const char *sourcePath   = sourcePathString.c_str();
-   InputLayer *correctLayer = dynamic_cast<InputLayer *>(hc->getObjectFromName("Correct"));
-   FatalIf(!(correctLayer), "No MoviePvp layer named \"Correct\" in params.\n");
-   const char *destPath = correctLayer->getInputPath().c_str();
+   const char *sourcePath = sourcePathString.c_str();
 
+   auto *correctLayer = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("correct"));
+   assert(correctLayer);
+   auto *correctActivityComponent = correctLayer->getComponentByType<ComponentBasedObject>();
+   pvAssert(correctActivityComponent);
+   auto *correctInputBuffer = correctActivityComponent->getComponentByType<InputActivityBuffer>();
+   pvAssert(correctInputBuffer);
+   const char *destPath = correctInputBuffer->getInputPath().c_str();
    if (strcmp(&destPath[strlen(destPath) - 4], ".pvp") != 0) {
       if (hc->columnId() == 0) {
          ErrorLog().printf(
@@ -192,6 +198,7 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
       MPI_Barrier(hc->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+
    if (hc->columnId() == 0) {
       PV_Stream *infile = PV_fopen(sourcePath, "r", false /*verifyWrites*/);
       FatalIf(!infile, "Unable to open \"%s\" for reading.\n", sourcePath);

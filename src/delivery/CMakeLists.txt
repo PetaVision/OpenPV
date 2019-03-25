@@ -5,6 +5,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/HyPerDelivery.cpp
    ${SUBDIR}/HyPerDeliveryFacade.cpp
    ${SUBDIR}/IdentDelivery.cpp
+   ${SUBDIR}/LayerInputDelivery.cpp
    ${SUBDIR}/PoolingDelivery.cpp
    ${SUBDIR}/PostsynapticPerspectiveConvolveDelivery.cpp
    ${SUBDIR}/PostsynapticPerspectiveStochasticDelivery.cpp
@@ -22,6 +23,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/HyPerDeliveryFacade.hpp
    ${SUBDIR}/HyPerDelivery.hpp
    ${SUBDIR}/IdentDelivery.hpp
+   ${SUBDIR}/LayerInputDelivery.hpp
    ${SUBDIR}/PoolingDelivery.hpp
    ${SUBDIR}/PostsynapticPerspectiveConvolveDelivery.hpp
    ${SUBDIR}/PostsynapticPerspectiveStochasticDelivery.hpp

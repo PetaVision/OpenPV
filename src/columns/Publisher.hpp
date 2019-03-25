@@ -21,7 +21,12 @@ namespace PV {
 class Publisher {
 
   public:
-   Publisher(MPIBlock const &mpiBlock, PVLayerCube *cube, int numLevels, bool isSparse);
+   Publisher(
+         MPIBlock const &mpiBlock,
+         float const *data,
+         PVLayerLoc const *loc,
+         int numLevels,
+         bool isSparse);
    virtual ~Publisher();
 
    void
@@ -72,9 +77,9 @@ class Publisher {
       return store->activeIndicesBuffer(bufferId, delay);
    }
 
-   DataStore *store;
+   DataStore *store = nullptr;
 
-   PVLayerCube *mLayerCube;
+   PVLayerCube *mLayerCube = nullptr;
 
    BorderExchange *mBorderExchanger = nullptr;
 

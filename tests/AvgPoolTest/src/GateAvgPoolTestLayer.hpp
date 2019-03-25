@@ -5,14 +5,12 @@
 
 namespace PV {
 
-class GateAvgPoolTestLayer : public PV::HyPerLayer {
+class GateAvgPoolTestLayer : public HyPerLayer {
   public:
-   GateAvgPoolTestLayer(const char *name, HyPerCol *hc);
+   GateAvgPoolTestLayer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
-   Response::Status updateState(double timef, double dt) override;
-
-  private:
+   ActivityComponent *createActivityComponent() override;
 }; // end class GateAvgPoolTestLayer
 
 } /* namespace PV */

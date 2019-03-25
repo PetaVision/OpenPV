@@ -3,24 +3,17 @@
  */
 
 #include "NormalizeL3.hpp"
-#include <columns/HyPerCol.hpp>
 
 namespace PV {
 
-NormalizeL3::NormalizeL3(char const *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
+NormalizeL3::NormalizeL3(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
 }
 
-NormalizeL3::NormalizeL3() { initialize_base(); }
+NormalizeL3::NormalizeL3() {}
 
-int NormalizeL3::initialize_base() {
-   minL3NormTolerated = 0.0f;
-   return PV_SUCCESS;
-}
-
-int NormalizeL3::initialize(char const *name, HyPerCol *hc) {
-   return NormalizeMultiply::initialize(name, hc);
+void NormalizeL3::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   NormalizeMultiply::initialize(name, params, comm);
 }
 
 int NormalizeL3::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -30,7 +23,7 @@ int NormalizeL3::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeL3::ioParam_minL3NormTolerated(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "minL3NormTolerated",

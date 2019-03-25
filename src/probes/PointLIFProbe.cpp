@@ -6,8 +6,8 @@
  */
 
 #include "PointLIFProbe.hpp"
-#include "../layers/HyPerLayer.hpp"
-#include "../layers/LIF.hpp"
+#include "components/LIFActivityComponent.hpp"
+#include "layers/HyPerLayer.hpp"
 #include <assert.h>
 #include <string.h>
 
@@ -17,27 +17,18 @@
 namespace PV {
 
 PointLIFProbe::PointLIFProbe() : PointProbe() {
-   initialize_base();
    // Derived classes of PointLIFProbe should use this PointLIFProbe constructor,
-   // and call
-   // PointLIFProbe::initialize during their initialization.
+   // and call PointLIFProbe::initialize during their initialization.
 }
 
-PointLIFProbe::PointLIFProbe(const char *name, HyPerCol *hc) : PointProbe() {
-   initialize_base();
-   initialize(name, hc);
+PointLIFProbe::PointLIFProbe(const char *name, PVParams *params, Communicator const *comm)
+      : PointProbe() {
+   initialize(name, params, comm);
 }
 
-int PointLIFProbe::initialize_base() {
+void PointLIFProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   PointProbe::initialize(name, params, comm);
    writeTime = 0.0;
-   writeStep = 0.0;
-   return PV_SUCCESS;
-}
-
-int PointLIFProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = PointProbe::initialize(name, hc);
-   writeTime  = 0.0;
-   return status;
 }
 
 int PointLIFProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -47,34 +38,62 @@ int PointLIFProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   writeStep = parent->getDeltaTime(); // Marian, don't change this default behavior
-   parent->parameters()->ioParamValue(
-         ioFlag, getName(), "writeStep", &writeStep, writeStep, true /*warnIfAbsent*/);
+   // If writeStep is not set in params, we initialize it to zero here; in the
+   // CommunicateInitInfo state, we set it to the parent's DeltaTime.
+   // If writing a derived class that overrides ioParam_writeStep, check if the
+   // setDefaultWriteStep method also needs to be overridden.
+   writeStep         = 0.0;
+   bool warnIfAbsent = false;
+   parameters()->ioParamValue(ioFlag, name, "writeStep", &writeStep, writeStep, warnIfAbsent);
 }
 
 void PointLIFProbe::initNumValues() { setNumValues(NUMBER_OF_VALUES); }
+
+Response::Status
+PointLIFProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = PointProbe::communicateInitInfo(message);
+   if (!Response::completed) {
+      return status;
+   }
+
+   if (!parameters()->present(getName(), "writeStep")) {
+      setDefaultWriteStep(message);
+   }
+   return Response::SUCCESS;
+}
+
+void PointLIFProbe::setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   writeStep = message->mDeltaTime;
+   // Call ioParamValue to generate the warnIfAbsent warning.
+   parameters()->ioParamValue(PARAMS_IO_READ, name, "writeStep", &writeStep, writeStep, true);
+}
+
+float const *PointLIFProbe::getBufferData(ObserverTable const *table, char const *label) {
+   std::string lookupString = std::string(label) + " \"" + getTargetLayer()->getName() + "\"";
+   ComponentBuffer *buffer  = table->lookupByName<ComponentBuffer>(lookupString);
+   float const *bufferData  = buffer->getBufferData();
+   pvAssert(bufferData);
+   return bufferData;
+}
 
 void PointLIFProbe::calcValues(double timevalue) {
    // TODO: Reduce duplicated code between PointProbe::calcValues and
    // PointLIFProbe::calcValues.
    assert(this->getNumValues() == NUMBER_OF_VALUES);
-   LIF *LIF_layer = dynamic_cast<LIF *>(getTargetLayer());
-   assert(LIF_layer != NULL);
-   pvconductance_t const *G_E =
-         LIF_layer->getConductance(CHANNEL_EXC) + batchLoc * LIF_layer->getNumNeurons();
-   pvconductance_t const *G_I =
-         LIF_layer->getConductance(CHANNEL_INH) + batchLoc * LIF_layer->getNumNeurons();
-   pvconductance_t const *G_IB =
-         LIF_layer->getConductance(CHANNEL_INHB) + batchLoc * LIF_layer->getNumNeurons();
-   float const *V        = getTargetLayer()->getV();
-   float const *Vth      = LIF_layer->getVth();
-   float const *activity = getTargetLayer()->getLayerData();
-   assert(V && activity && G_E && G_I && G_IB && Vth);
+   LIFActivityComponent *lifActivity = getTargetLayer()->getComponentByType<LIFActivityComponent>();
+   pvAssert(lifActivity != nullptr);
+   ObserverTable const *activityComponents = lifActivity->getTable();
+   float const *V                          = getBufferData(activityComponents, "V");
+   float const *G_E                        = getBufferData(activityComponents, "G_E");
+   float const *G_I                        = getBufferData(activityComponents, "G_I");
+   float const *G_IB                       = getBufferData(activityComponents, "G_IB");
+   float const *Vth                        = getBufferData(activityComponents, "Vth");
+
+   float const *activity =
+         getTargetLayer()->getComponentByType<BasePublisherComponent>()->getLayerData();
    double *valuesBuffer = this->getValuesBuffer();
    // We need to calculate which mpi process contains the target point, and send
-   // that info to the
-   // root process
-   // Each process calculates local index
+   // that info to the root process. Each process calculates local index
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    // Calculate local cords from global
    const int kx0         = loc->kx0;
@@ -91,8 +110,6 @@ void PointLIFProbe::calcValues(double timevalue) {
    // if in bounds
    if (xLocLocal >= 0 && xLocLocal < nx && yLocLocal >= 0 && yLocLocal < ny && nbatchLocal >= 0
        && nbatchLocal < nbatch) {
-      const float *V        = getTargetLayer()->getV();
-      const float *activity = getTargetLayer()->getLayerData();
       // Send V and A to root
       const int k      = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
       const int kbatch = k + nbatchLocal * getTargetLayer()->getNumNeurons();
@@ -105,29 +122,20 @@ void PointLIFProbe::calcValues(double timevalue) {
             kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       valuesBuffer[5] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
       // If not in root process, send to root process
-      if (parent->columnId() != 0) {
-         MPI_Send(
-               valuesBuffer,
-               NUMBER_OF_VALUES,
-               MPI_DOUBLE,
-               0,
-               0,
-               parent->getCommunicator()->communicator());
+      if (mCommunicator->commRank() != 0) {
+         MPI_Send(valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, 0, 0, mCommunicator->communicator());
       }
    }
 
    // Root process
-   if (parent->columnId() == 0) {
+   if (mCommunicator->commRank() == 0) {
       // Calculate which rank target neuron is
       // TODO we need to calculate rank from batch as well
       int xRank = xLoc / nx;
       int yRank = yLoc / ny;
 
       int srcRank = rankFromRowAndColumn(
-            yRank,
-            xRank,
-            parent->getCommunicator()->numCommRows(),
-            parent->getCommunicator()->numCommColumns());
+            yRank, xRank, mCommunicator->numCommRows(), mCommunicator->numCommColumns());
 
       // If srcRank is not root process, MPI_Recv from that rank
       if (srcRank != 0) {
@@ -137,7 +145,7 @@ void PointLIFProbe::calcValues(double timevalue) {
                MPI_DOUBLE,
                srcRank,
                0,
-               parent->getCommunicator()->communicator(),
+               mCommunicator->communicator(),
                MPI_STATUS_IGNORE);
       }
    }

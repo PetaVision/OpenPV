@@ -2,17 +2,22 @@
 
 namespace PV {
 
-ImageTestLayer::ImageTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+ImageTestLayer::ImageTestLayer(const char *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
-Response::Status ImageTestLayer::updateState(double time, double dt) {
-   ImageLayer::updateState(time, dt);
+Response::Status ImageTestLayer::checkUpdateState(double time, double dt) {
+   ImageLayer::checkUpdateState(time, dt);
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;
    int nbatch            = loc->nbatch;
+
+   std::string const lookupString = std::string("A \"") + getName() + "\"";
+   ActivityBuffer *A = mActivityComponent->getTable()->lookupByName<ActivityBuffer>(lookupString);
    for (int b = 0; b < nbatch; b++) {
-      float *dataBatch = getActivity() + b * getNumExtended();
+      float const *dataBatch = A->getBufferData(b);
       for (int nkRes = 0; nkRes < getNumNeurons(); nkRes++) {
          // Calculate extended index
          int nkExt = kIndexExtended(
@@ -33,4 +38,5 @@ Response::Status ImageTestLayer::updateState(double time, double dt) {
    }
    return Response::SUCCESS;
 }
-}
+
+} // end namespace PV

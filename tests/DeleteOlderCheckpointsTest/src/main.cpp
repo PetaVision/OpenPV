@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
    // Initialize PetaVision environment
    PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
    MPI_Init(&argc, &argv);
-   PV::Communicator *comm       = new PV::Communicator(&arguments);
+   PV::Communicator const *comm = new PV::Communicator(&arguments);
    PV::MPIBlock const *mpiBlock = comm->getLocalMPIBlock();
 
    // Params file

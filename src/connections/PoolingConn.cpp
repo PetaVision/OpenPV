@@ -6,41 +6,45 @@
  */
 
 #include "PoolingConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/PatchSize.hpp"
 #include "delivery/PoolingDelivery.hpp"
 
 namespace PV {
 
-PoolingConn::PoolingConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
+PoolingConn::PoolingConn(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 PoolingConn::PoolingConn() {}
 
 PoolingConn::~PoolingConn() {}
 
-int PoolingConn::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseConnection::initialize(name, hc);
-   return status;
+void PoolingConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   BaseConnection::initialize(name, params, comm);
 }
 
-void PoolingConn::defineComponents() {
-   BaseConnection::defineComponents();
+void PoolingConn::createComponentTable(char const *description) {
+   BaseConnection::createComponentTable(description);
    mPatchSize = createPatchSize();
    if (mPatchSize) {
-      addObserver(mPatchSize);
+      addUniqueComponent(mPatchSize->getDescription(), mPatchSize);
    }
    mWeightsPair = createWeightsPair();
    if (mWeightsPair) {
-      addObserver(mWeightsPair);
+      addUniqueComponent(mWeightsPair->getDescription(), mWeightsPair);
    }
 }
 
-BaseDelivery *PoolingConn::createDeliveryObject() { return new PoolingDelivery(name, parent); }
+BaseDelivery *PoolingConn::createDeliveryObject() {
+   return new PoolingDelivery(name, parameters(), mCommunicator);
+}
 
-PatchSize *PoolingConn::createPatchSize() { return new PatchSize(name, parent); }
+PatchSize *PoolingConn::createPatchSize() {
+   return new PatchSize(name, parameters(), mCommunicator);
+}
 
 WeightsPairInterface *PoolingConn::createWeightsPair() {
-   return new ImpliedWeightsPair(name, parent);
+   return new ImpliedWeightsPair(name, parameters(), mCommunicator);
 }
 
 } // namespace PV

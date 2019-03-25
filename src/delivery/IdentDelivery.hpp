@@ -32,20 +32,20 @@ class IdentDelivery : public BaseDelivery {
    /** @} */ // End of list of IdentDelivery parameters.
 
   public:
-   IdentDelivery(char const *name, HyPerCol *hc);
+   IdentDelivery(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~IdentDelivery() {}
 
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
-   virtual bool isAllInputReady() override;
+   virtual bool isAllInputReady() const override;
 
   protected:
    IdentDelivery() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

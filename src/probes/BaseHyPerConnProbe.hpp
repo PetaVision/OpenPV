@@ -8,25 +8,25 @@
 #ifndef BASEHYPERCONNPROBE_HPP_
 #define BASEHYPERCONNPROBE_HPP_
 
-#include "../connections/HyPerConn.hpp"
 #include "BaseConnectionProbe.hpp"
+#include "components/Weights.hpp"
 
 namespace PV {
 
 class BaseHyPerConnProbe : public BaseConnectionProbe {
   public:
-   BaseHyPerConnProbe(const char *name, HyPerCol *hc);
+   BaseHyPerConnProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~BaseHyPerConnProbe();
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   HyPerConn *getTargetHyPerConn() { return dynamic_cast<HyPerConn *>(mTargetConn); }
-   HyPerConn const *getTargetHyPerConn() const { return dynamic_cast<HyPerConn *>(mTargetConn); }
+   // should be const but Weights and PatchGeometry are not const-correct yet
+   Weights *getWeights() { return mWeights; }
 
   protected:
    BaseHyPerConnProbe();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual bool needRecalc(double timevalue) override;
 
    /**
@@ -34,7 +34,10 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
     * the target
     * HyPerConn.
     */
-   virtual double referenceUpdateTime() const override;
+   virtual double referenceUpdateTime(double simTime) const override;
+
+  protected:
+   Weights *mWeights; // should be const but Weights and PatchGeometry are not const-correct yet
 };
 
 } /* namespace PV */

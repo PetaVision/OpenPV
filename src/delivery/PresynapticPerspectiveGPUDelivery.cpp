@@ -6,22 +6,25 @@
  */
 
 #include "PresynapticPerspectiveGPUDelivery.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
 PresynapticPerspectiveGPUDelivery::PresynapticPerspectiveGPUDelivery(
       char const *name,
-      HyPerCol *hc) {
-   initialize(name, hc);
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
 }
 
 PresynapticPerspectiveGPUDelivery::PresynapticPerspectiveGPUDelivery() {}
 
 PresynapticPerspectiveGPUDelivery::~PresynapticPerspectiveGPUDelivery() {}
 
-int PresynapticPerspectiveGPUDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void PresynapticPerspectiveGPUDelivery::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void PresynapticPerspectiveGPUDelivery::setObjectType() {
@@ -50,13 +53,13 @@ Response::Status PresynapticPerspectiveGPUDelivery::communicateInitInfo(
    // during the AllocateDataStructures stage.
 
    // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
-   getPreLayer()->setAllocDeviceDatastore();
+   mPreData->setAllocCudaDatastore();
    mWeightsPair->getPreWeights()->useGPU();
-   getPostLayer()->setAllocDeviceGSyn();
+   mPostGSyn->useCuda();
 
    // If recv from pre and pre layer is sparse, allocate activeIndices
-   if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
-      getPreLayer()->setAllocDeviceActiveIndices();
+   if (!mUpdateGSynFromPostPerspective && mPreData->getSparseLayer()) {
+      mPreData->setAllocCudaActiveIndices();
    }
 
    return status;
@@ -88,24 +91,46 @@ Response::Status PresynapticPerspectiveGPUDelivery::allocateDataStructures() {
       return status;
    }
 
-   initializeRecvKernelArgs();
+   // We create mDevicePatches and mDeviceGSynPatchStart here, as opposed to creating them in
+   // the Weights object, because they are only needed by presynaptic-perspective delivery.
+   auto preGeometry             = mWeightsPair->getPreWeights()->getGeometry();
+   std::size_t const numPatches = (std::size_t)preGeometry->getNumPatches();
+   std::size_t cudaBufferSize;
 
-   allocateThreadGSyn(); // Needed for deliverUnitInput, because it doesn't use GPU yet.
+   auto const *hostPatches = &preGeometry->getPatch(0); // Only used to get size for allocation
+   cudaBufferSize          = (std::size_t)numPatches * sizeof(*hostPatches);
+   mDevicePatches          = mCudaDevice->createBuffer(cudaBufferSize, &getDescription());
+   pvAssert(mDevicePatches);
+
+   auto const *hostGSynPatchStart = preGeometry->getGSynPatchStart().data();
+   cudaBufferSize                 = (std::size_t)numPatches * sizeof(*hostGSynPatchStart);
+   mDeviceGSynPatchStart          = mCudaDevice->createBuffer(cudaBufferSize, &getDescription());
+   pvAssert(mDeviceGSynPatchStart);
+
+#ifdef PV_USE_OPENMP_THREADS
+   allocateThreadGSyn();
+#endif // PV_USE_OPENMP_THREADS
+
+   return Response::SUCCESS;
+}
+
+Response::Status PresynapticPerspectiveGPUDelivery::copyInitialStateToGPU() {
+   initializeRecvKernelArgs();
    return Response::SUCCESS;
 }
 
 void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
-   PVCuda::CudaDevice *device = parent->getDevice();
+   PVCuda::CudaDevice *device = mCudaDevice;
    Weights *preWeights        = mWeightsPair->getPreWeights();
    mRecvKernel                = new PVCuda::CudaRecvPre(device);
 
-   const PVLayerLoc *preLoc  = getPreLayer()->getLayerLoc();
-   const PVLayerLoc *postLoc = getPostLayer()->getLayerLoc();
-   const PVHalo *preHalo     = &getPreLayer()->getLayerLoc()->halo;
-   const PVHalo *postHalo    = &getPostLayer()->getLayerLoc()->halo;
+   const PVLayerLoc *preLoc  = mPreData->getLayerLoc();
+   const PVLayerLoc *postLoc = mPostGSyn->getLayerLoc();
+   const PVHalo *preHalo     = &preLoc->halo;
+   const PVHalo *postHalo    = &mPostGSyn->getLayerLoc()->halo;
 
-   PVCuda::CudaBuffer *d_PreData           = getPreLayer()->getDeviceDatastore();
-   PVCuda::CudaBuffer *d_PostGSyn          = getPostLayer()->getDeviceGSyn();
+   PVCuda::CudaBuffer *d_PreData           = mPreData->getCudaDatastore();
+   PVCuda::CudaBuffer *d_PostGSyn          = mPostGSyn->getCudaBuffer();
    PVCuda::CudaBuffer *d_PatchToDataLookup = preWeights->getDevicePatchToDataLookup();
    PVCuda::CudaBuffer *d_WData             = preWeights->getDeviceData();
 
@@ -114,24 +139,12 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    pvAssert(d_PatchToDataLookup);
    pvAssert(d_WData);
 
-   // We create mDevicePatches and mDeviceGSynPatchStart here, as opposed to creating them in
-   // the Weights object, because they are only needed by presynaptic-perspective delivery.
-   auto preGeometry             = preWeights->getGeometry();
-   std::size_t const numPatches = (std::size_t)preGeometry->getNumPatches();
-   std::size_t size;
-
-   Patch const *hostPatches = &preGeometry->getPatch(0); // Patches allocated as one vector
-   size                     = (std::size_t)numPatches * sizeof(*hostPatches);
-   mDevicePatches           = mCudaDevice->createBuffer(size, &description);
-   pvAssert(mDevicePatches);
-   // Copy patch geometry information onto CUDA device because it never changes.
+   // Copy patch geometry and GSynPatchStart information onto CUDA device
+   auto preGeometry         = preWeights->getGeometry();
+   Patch const *hostPatches = &preGeometry->getPatch(0); // Patches were allocated as one vector
    mDevicePatches->copyToDevice(hostPatches);
 
    auto const *hostGSynPatchStart = preGeometry->getGSynPatchStart().data();
-   size                           = (std::size_t)numPatches * sizeof(*hostGSynPatchStart);
-   mDeviceGSynPatchStart          = mCudaDevice->createBuffer(size, &description);
-   // Copy GSynPatchStart array onto CUDA device because it never changes.
-   pvAssert(mDeviceGSynPatchStart);
    mDeviceGSynPatchStart->copyToDevice(hostGSynPatchStart);
 
    int nxp = mWeightsPair->getPreWeights()->getPatchSizeX();
@@ -141,19 +154,21 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    int sy  = postLoc->nx * postLoc->nf; // stride in restricted post layer
    int syw = preWeights->getPatchStrideY();
 
-   bool isSparse = getPreLayer()->getSparseFlag();
+   bool isSparse = mPreData->getSparseLayer();
 
-   int numPreExt  = getPreLayer()->getNumExtended();
-   int numPostRes = getPostLayer()->getNumNeurons();
+   int const nxPreExt = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+   int const nyPreExt = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
+   int numPreExt      = nxPreExt * nyPreExt * preLoc->nf;
+   int numPostRes     = mPostGSyn->getBufferSize();
 
    int nbatch = postLoc->nbatch;
 
    PVCuda::CudaBuffer *d_activeIndices = NULL;
    PVCuda::CudaBuffer *d_numActive     = NULL;
    if (isSparse) {
-      d_numActive = getPreLayer()->getDeviceNumActive();
+      d_numActive = mPreData->getCudaNumActive();
       pvAssert(d_numActive);
-      d_activeIndices = getPreLayer()->getDeviceActiveIndices();
+      d_activeIndices = mPreData->getCudaActiveIndices();
       pvAssert(d_activeIndices);
    }
 
@@ -183,31 +198,18 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
          d_activeIndices);
 }
 
-void PresynapticPerspectiveGPUDelivery::allocateThreadGSyn() {
-   // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.
-   int const numThreads = parent->getNumThreads();
-   if (numThreads > 1) {
-      mThreadGSyn.resize(numThreads);
-      // mThreadGSyn is only a buffer for one batch element. We're threading over presynaptic
-      // neuron index, not batch element; so batch elements will be processed serially.
-      for (auto &th : mThreadGSyn) {
-         th.resize(mPostLayer->getNumNeurons());
-      }
-   }
-}
-
-void PresynapticPerspectiveGPUDelivery::deliver() {
+void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
-   float *postChannel = mPostLayer->getChannel(getChannelCode());
+   float *postChannel = destBuffer;
    pvAssert(postChannel);
 
    pvAssert(mRecvKernel);
 
-   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
    int const nxPreExtended  = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
@@ -222,56 +224,57 @@ void PresynapticPerspectiveGPUDelivery::deliver() {
    const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
    const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
 
-   bool const preLayerIsSparse = mPreLayer->getSparseFlag();
+   bool const preLayerIsSparse = mPreData->getSparseLayer();
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       int delay                = mArborList->getDelay(arbor);
-      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
+      PVLayerCube activityCube = mPreData->getPublisher()->createCube(delay);
 
       mRecvKernel->set_dt_factor(mDeltaTimeFactor);
 
       // Post layer receives synaptic input
       // Only with respect to post layer
-      const PVLayerLoc *preLoc  = getPreLayer()->getLayerLoc();
-      const PVLayerLoc *postLoc = getPostLayer()->getLayerLoc();
+      PVLayerLoc const *preLoc  = &activityCube.loc;
+      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
       // If the connection uses gpu to receive, update all buffers
 
       // Update pre datastore, post gsyn, and conn weights only if they're updated
-      if (getPreLayer()->getUpdatedDeviceDatastoreFlag()) {
-         float *h_preDatastore              = activityCube.data;
-         PVCuda::CudaBuffer *d_preDatastore = getPreLayer()->getDeviceDatastore();
+      if (mPreData->getUpdatedCudaDatastoreFlag()) {
+         float const *h_preDatastore        = activityCube.data;
+         PVCuda::CudaBuffer *d_preDatastore = mPreData->getCudaDatastore();
          pvAssert(d_preDatastore);
          d_preDatastore->copyToDevice(h_preDatastore);
 
          // Copy active indices and num active if needed
          if (activityCube.isSparse) {
-            PVCuda::CudaBuffer *d_ActiveIndices;
+            PVCuda::CudaBuffer *d_activeIndices;
             PVCuda::CudaBuffer *d_numActive;
-            d_ActiveIndices = getPreLayer()->getDeviceActiveIndices();
-            d_numActive     = getPreLayer()->getDeviceNumActive();
-            pvAssert(d_ActiveIndices);
+            d_activeIndices = mPreData->getCudaActiveIndices();
+            d_numActive     = mPreData->getCudaNumActive();
+            pvAssert(d_activeIndices);
             SparseList<float>::Entry const *h_ActiveIndices =
                   (SparseList<float>::Entry *)activityCube.activeIndices;
             long const *h_numActive = activityCube.numActive;
             pvAssert(h_ActiveIndices);
             d_numActive->copyToDevice(h_numActive);
-            d_ActiveIndices->copyToDevice(h_ActiveIndices);
+            d_activeIndices->copyToDevice(h_ActiveIndices);
          }
          // Device now has updated
-         getPreLayer()->setUpdatedDeviceDatastoreFlag(false);
+         mPreData->setUpdatedCudaDatastoreFlag(false);
       }
 
       // X direction is active neuron
       // Y direction is post patch size
-      long totActiveNeuron[parent->getNBatch()];
+      int const nbatch = preLoc->nbatch;
+      long totActiveNeuron[nbatch];
       long maxTotalActiveNeuron = 0;
-      for (int b = 0; b < parent->getNBatch(); b++) {
+      for (int b = 0; b < nbatch; b++) {
          if (activityCube.isSparse) {
             totActiveNeuron[b] = activityCube.numActive[b];
          }
          else {
-            totActiveNeuron[b] = getPreLayer()->getNumExtended();
+            totActiveNeuron[b] = activityCube.numItems / activityCube.loc.nbatch;
          }
          if (totActiveNeuron[b] > maxTotalActiveNeuron) {
             maxTotalActiveNeuron = totActiveNeuron[b];
@@ -281,48 +284,39 @@ void PresynapticPerspectiveGPUDelivery::deliver() {
       if (maxTotalActiveNeuron > 0) {
          long totPatchSize   = (long)weights->getPatchSizeOverall();
          long totThreads     = maxTotalActiveNeuron * totPatchSize;
-         int maxThreads      = parent->getDevice()->get_max_threads();
+         int maxThreads      = mCudaDevice->get_max_threads();
          int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
 
          mRecvKernel->run_nocheck(totThreads, numLocalThreads);
       }
    }
-   // GSyn already living on GPU
-   mPostLayer->setUpdatedDeviceGSynFlag(false);
 }
 
 // This is a copy of PresynapticPerspectiveConvolveDelivery.
 // The spirit of this class says we should put this method on the GPU,
 // but the priority for doing so is rather low.
 void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
-   Weights *weights          = mWeightsPair->getPreWeights();
+   PVLayerLoc const *preLoc = mPreData->getLayerLoc();
+   int const nxPreExt       = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+   int const nyPreExt       = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
+   int const numPreExt      = nxPreExt * nyPreExt * preLoc->nf;
 
+   PVLayerLoc const *postLoc   = mPostGSyn->getLayerLoc();
    int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
+   int nbatch                  = postLoc->nbatch;
+   int const sy                = postLoc->nx * postLoc->nf; // stride in restricted layer
 
-   int nbatch = postLoc->nbatch;
-
-   const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
-   const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
+   Weights *weights = mWeightsPair->getPreWeights();
+   int const syw    = weights->getGeometry()->getPatchStrideY(); // stride in patch
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       for (int b = 0; b < nbatch; b++) {
          float *recvBatch                                   = recvBuffer + b * numPostRestricted;
-         SparseList<float>::Entry const *activeIndicesBatch = NULL;
-
-         int numNeurons = mPreLayer->getNumExtended();
+         SparseList<float>::Entry const *activeIndicesBatch = nullptr;
 
 #ifdef PV_USE_OPENMP_THREADS
-         // Clear all thread gsyn buffer
-         if (!mThreadGSyn.empty()) {
-#pragma omp parallel for schedule(static)
-            for (int ti = 0; ti < parent->getNumThreads(); ++ti) {
-               for (int ni = 0; ni < numPostRestricted; ++ni) {
-                  mThreadGSyn[ti][ni] = 0.0;
-               }
-            }
-         }
+         clearThreadGSyn();
 #endif
 
          std::size_t const *gSynPatchStart = weights->getGeometry()->getGSynPatchStart().data();
@@ -330,7 +324,7 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
-            for (int idx = 0; idx < numNeurons; idx++) {
+            for (int idx = 0; idx < numPreExt; idx++) {
                int kPreExt = idx;
 
                // Weight
@@ -340,14 +334,7 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
                   continue;
                }
 
-               // gSyn
-               float *recvPatchHead = recvBatch;
-
-#ifdef PV_USE_OPENMP_THREADS
-               if (!mThreadGSyn.empty()) {
-                  recvPatchHead = mThreadGSyn[omp_get_thread_num()].data();
-               }
-#endif // PV_USE_OPENMP_THREADS
+               float *recvPatchHead = setWorkingGSynBuffer(recvBatch);
 
                float *postPatchStart = &recvPatchHead[gSynPatchStart[kPreExt]];
 
@@ -362,22 +349,7 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
                }
             }
          }
-#ifdef PV_USE_OPENMP_THREADS
-         // Accumulate back into gSyn. Should this be done in HyPerLayer where it can be done once,
-         // as opposed to once per connection?
-         if (!mThreadGSyn.empty()) {
-            float *recvPatchHead = recvBatch;
-            int numNeurons       = mPostLayer->getNumNeurons();
-            for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-               float *onethread = mThreadGSyn[ti].data();
-// Looping over neurons is thread safe
-#pragma omp parallel for
-               for (int ni = 0; ni < numNeurons; ni++) {
-                  recvPatchHead[ni] += onethread[ni];
-               }
-            }
-         }
-#endif // PV_USE_OPENMP_THREADS
+         accumulateThreadGSyn(recvBatch);
       }
    }
 }

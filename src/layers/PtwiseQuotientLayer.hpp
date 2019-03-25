@@ -19,30 +19,20 @@ namespace PV {
  *
  * "Exc" and "Inh" are really misnomers for this class, but the
  * terminology is inherited from the base class.
+ *
+ * The activity buffer is an ANNActivityBuffer.
  */
-class PtwiseQuotientLayer : public ANNLayer {
+class PtwiseQuotientLayer : public HyPerLayer {
   public:
-   PtwiseQuotientLayer(const char *name, HyPerCol *hc);
+   PtwiseQuotientLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~PtwiseQuotientLayer();
 
    virtual Response::Status allocateDataStructures() override;
-   virtual Response::Status updateState(double timef, double dt) override;
 
   protected:
    PtwiseQuotientLayer();
-   int initialize(const char *name, HyPerCol *hc);
-
-   /* static */ void doUpdateState(
-         double timef,
-         double dt,
-         const PVLayerLoc *loc,
-         float *A,
-         float *V,
-         int num_channels,
-         float *gSynHead);
-
-  private:
-   int initialize_base();
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   ActivityComponent *createActivityComponent() override;
 }; // end class PtwiseQuotientLayer
 
 } // end namespace PV

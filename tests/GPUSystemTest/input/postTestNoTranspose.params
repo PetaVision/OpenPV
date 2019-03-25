@@ -129,7 +129,6 @@ HyPerConn "cpuConn" = {
      
     delay = 0;
      
-    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = true;
     receiveGpu = false;
@@ -173,7 +172,6 @@ HyPerConn "gpuConn" = {
      
     delay = 0;
      
-    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = true;
     receiveGpu = false;
@@ -199,9 +197,7 @@ IdentConn "RecvPreTest" = {
 GPUSystemTestProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
+   nnzThreshold = 5.0e-4;
+   exitOnFailure = true;
+   immediateExitOnFailure = false;
 };
-
-//RequireAllZeroActivityProbe "testProbe" = {
-//    targetLayer = "outputTest";
-//    nnzThreshold = 1e-6;
-//};

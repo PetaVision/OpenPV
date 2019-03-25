@@ -429,8 +429,12 @@ static inline int localIndexFromGlobal(int kGlobal, const PVLayerLoc loc) {
 #endif // PV_USE_MPI
 }
 
-static inline int zUnitCellSize(float preZScale, float postZScale) {
-   return (preZScale < postZScale) ? (int)pow(2, postZScale - preZScale) : 1;
+/**
+ * Gives the size of the unit cell (either x or y dimension) of a patch for a HyPerConn
+ * whose pre- and post-layers have the given dimensions.
+ */
+static inline int zUnitCellSize(int preZSize, int postZSize) {
+   return (preZSize > postZSize) ? preZSize / postZSize : 1;
 }
 
 int layerIndexToUnitCellIndex(
@@ -700,7 +704,7 @@ static inline int requiredConvolveMargin(int nPre, int nPost, int patchSize) {
       assert(nPre % nPost == 0);
       int densityRatio = nPre / nPost;
       assert(densityRatio % 2 == 0);
-      assert(pow(2.0, nearbyint(log2(densityRatio))) == (double)densityRatio);
+      assert(pow(2.0, nearbyint(log2((double)densityRatio))) == (double)densityRatio);
       margin = (patchSize - 1) * densityRatio / 2;
    }
    else {
@@ -708,7 +712,7 @@ static inline int requiredConvolveMargin(int nPre, int nPost, int patchSize) {
       assert(nPost % nPre == 0);
       int densityRatio = nPost / nPre;
       assert(densityRatio % 2 == 0);
-      assert(pow(2.0, nearbyint(log2(densityRatio))) == (double)densityRatio);
+      assert(pow(2.0, nearbyint(log2((double)densityRatio))) == (double)densityRatio);
       assert(patchSize % densityRatio == 0);
       int numCells = patchSize / densityRatio;
       margin       = numCells / 2;

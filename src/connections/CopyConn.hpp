@@ -14,20 +14,18 @@
 
 namespace PV {
 
-class HyPerCol;
-
 class CopyConn : public HyPerConn {
   public:
-   CopyConn(char const *name, HyPerCol *hc);
+   CopyConn(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~CopyConn();
 
   protected:
    CopyConn();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
-   virtual void defineComponents() override;
+   virtual void createComponentTable(char const *description) override;
 
    virtual ArborList *createArborList() override;
    virtual PatchSize *createPatchSize() override;
@@ -37,7 +35,8 @@ class CopyConn : public HyPerConn {
    virtual BaseWeightUpdater *createWeightUpdater() override;
    virtual OriginalConnNameParam *createOriginalConnNameParam();
 
-   virtual Response::Status initializeState() override;
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
   protected:
    OriginalConnNameParam *mOriginalConnNameParam = nullptr;

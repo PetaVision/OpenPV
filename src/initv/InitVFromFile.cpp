@@ -6,24 +6,22 @@
  */
 
 #include "InitVFromFile.hpp"
-#include "columns/HyPerCol.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 
 namespace PV {
 InitVFromFile::InitVFromFile() { initialize_base(); }
 
-InitVFromFile::InitVFromFile(char const *name, HyPerCol *hc) {
+InitVFromFile::InitVFromFile(char const *name, PVParams *params, Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 InitVFromFile::~InitVFromFile() { free(mVfilename); }
 
 int InitVFromFile::initialize_base() { return PV_SUCCESS; }
 
-int InitVFromFile::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseInitV::initialize(name, hc);
-   return status;
+void InitVFromFile::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   BaseInitV::initialize(name, params, comm);
 }
 
 int InitVFromFile::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -34,7 +32,7 @@ int InitVFromFile::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "Vfilename", &mVfilename, nullptr, true /*warnIfAbsent*/);
    if (mVfilename == nullptr) {
       Fatal().printf(
@@ -46,7 +44,7 @@ void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
 }
 
 void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "frameNumber", &mFrameNumber, mFrameNumber, true /*warnIfAbsent*/);
 }
 

@@ -14,7 +14,7 @@
 namespace PVCuda {
 
 CudaPoolingDeliverKernel::CudaPoolingDeliverKernel(CudaDevice *inDevice) : CudaKernel(inDevice) {
-   kernelName = "CudaPoolingDeliverKernel";
+   mKernelName = "CudaPoolingDeliverKernel";
 }
 
 CudaPoolingDeliverKernel::~CudaPoolingDeliverKernel() {
@@ -105,7 +105,7 @@ void CudaPoolingDeliverKernel::setArgs(
          postLoc->nx); // nx restricted
    cudnnHandleError(status, "Set output tensor descriptor");
 
-   std::string str(kernelName);
+   std::string str(mKernelName);
    mCudnnDataStore = device->createBuffer(dataStoreBuffer->getSize(), &str);
 
    int numGSynNeuronsAcrossBatch = postLoc->nf * postLoc->ny * postLoc->nf * postLoc->nbatch;

@@ -10,6 +10,8 @@
 
 #include "delivery/HyPerDelivery.hpp"
 
+#include "columns/Random.hpp"
+
 namespace PV {
 
 /**
@@ -32,7 +34,10 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
    /** @} */ // End of list of BaseDelivery parameters.
 
   public:
-   PresynapticPerspectiveStochasticDelivery(char const *name, HyPerCol *hc);
+   PresynapticPerspectiveStochasticDelivery(
+         char const *name,
+         PVParams *params,
+         Communicator const *comm);
 
    virtual ~PresynapticPerspectiveStochasticDelivery();
 
@@ -50,14 +55,14 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
     * same post-neuron, we internally allocate multiple buffers the size of the post channel,
     * and accumulate them at the end.
     */
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
   protected:
    PresynapticPerspectiveStochasticDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 
@@ -65,13 +70,10 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
 
    virtual Response::Status allocateDataStructures() override;
 
-   void allocateThreadGSyn();
-
    void allocateRandState();
 
    // Data members
   protected:
-   std::vector<std::vector<float>> mThreadGSyn;
    Random *mRandState = nullptr;
 }; // end class PresynapticPerspectiveStochasticDelivery
 

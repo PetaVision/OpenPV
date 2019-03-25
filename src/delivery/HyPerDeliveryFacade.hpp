@@ -52,15 +52,15 @@ class HyPerDeliveryFacade : public BaseDelivery {
    /** @} */ // End of list of HyPerDeliveryFacade parameters.
 
   public:
-   HyPerDeliveryFacade(char const *name, HyPerCol *hc);
+   HyPerDeliveryFacade(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~HyPerDeliveryFacade();
 
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
-   virtual bool isAllInputReady() override;
+   virtual bool isAllInputReady() const override;
 
    HyPerDelivery::AccumulateType getAccumulateType() const { return mAccumulateType; }
 
@@ -71,7 +71,7 @@ class HyPerDeliveryFacade : public BaseDelivery {
   protected:
    HyPerDeliveryFacade();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 
@@ -88,6 +88,14 @@ class HyPerDeliveryFacade : public BaseDelivery {
 #endif // PV_USE_CUDA
 
    virtual Response::Status allocateDataStructures() override;
+
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
+
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
+   virtual Response::Status copyInitialStateToGPU() override;
 
    // Data members
   protected:

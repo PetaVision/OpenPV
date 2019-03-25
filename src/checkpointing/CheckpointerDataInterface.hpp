@@ -37,24 +37,22 @@ namespace PV {
  *
  * BaseObject derives from CheckpointerDataInterface, and calls registerData
  * when it receives a RegisterDataMessage (which HyPerCol::run calls after
- * AllocateDataMessage and before InitializeStateMessage); and calls
+ * AllocateDataStructuresMessage and before InitializeStateMessage); and calls
  * readStateFromCheckpoint when it receives a ReadStateFromCheckpointMessage
  * (which HyPerCol::run calls after InitializeStateMessage if
  * CheckpointReadDirectory is not set).
  */
 class CheckpointerDataInterface : public Observer {
   public:
-   virtual Response::Status registerData(Checkpointer *checkpointer);
-
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
-
-   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) {
-      return Response::NO_ACTION;
-   }
-
+   bool getInitializeFromCheckpointFlag() const { return mInitializeFromCheckpointFlag; }
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
 
   protected:
+   CheckpointerDataInterface() {}
+
+   int initialize();
+   virtual void initMessageActionMap() override;
+
    Response::Status
    respondRegisterData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
    Response::Status respondReadStateFromCheckpoint(
@@ -65,8 +63,21 @@ class CheckpointerDataInterface : public Observer {
    Response::Status
    respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
 
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
+
+   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) {
+      return Response::NO_ACTION;
+   }
    virtual Response::Status processCheckpointRead() { return Response::NO_ACTION; }
    virtual Response::Status prepareCheckpointWrite() { return Response::NO_ACTION; }
+
+  protected:
+   // If parent HyPerCol sets initializeFromCheckpointDir and this flag is set,
+   // the initial state is loaded from the initializeFromCheckpointDir.
+   // If the flag is false or the parent's initializeFromCheckpointDir is empty,
+   // the initial siate is calculated using setInitialValues().
+   bool mInitializeFromCheckpointFlag = false;
 
   private:
    MPIBlock const *mMPIBlock = nullptr;

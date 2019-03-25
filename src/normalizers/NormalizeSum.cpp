@@ -12,17 +12,17 @@ namespace PV {
 
 NormalizeSum::NormalizeSum() { initialize_base(); }
 
-NormalizeSum::NormalizeSum(const char *name, HyPerCol *hc) {
+NormalizeSum::NormalizeSum(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 NormalizeSum::~NormalizeSum() {}
 
 int NormalizeSum::initialize_base() { return PV_SUCCESS; }
 
-int NormalizeSum::initialize(const char *name, HyPerCol *hc) {
-   return NormalizeMultiply::initialize(name, hc);
+void NormalizeSum::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   NormalizeMultiply::initialize(name, params, comm);
 }
 
 int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -32,7 +32,7 @@ int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeSum::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "minSumTolerated",

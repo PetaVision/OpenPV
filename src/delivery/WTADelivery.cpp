@@ -6,16 +6,16 @@
  */
 
 #include "WTADelivery.hpp"
-#include "columns/HyPerCol.hpp"
-#include "utils/MapLookupByType.hpp"
 #include <cstring>
 
 namespace PV {
 
-WTADelivery::WTADelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
+WTADelivery::WTADelivery(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
-int WTADelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseDelivery::initialize(name, hc);
+void WTADelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   BaseDelivery::initialize(name, params, comm);
 }
 
 void WTADelivery::setObjectType() { mObjectType = "WTADelivery"; }
@@ -24,7 +24,7 @@ void WTADelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // Never receive from gpu
    mReceiveGpu = false;
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "receiveGpu", false /*correctValue*/);
+      parameters()->handleUnnecessaryParameter(name, "receiveGpu", false /*correctValue*/);
    }
 }
 
@@ -35,7 +35,7 @@ WTADelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
       return status;
    }
 
-   auto *singleArbor = mapLookupByType<SingleArbor>(message->mHierarchy, getDescription());
+   auto *singleArbor = message->mHierarchy->lookupByType<SingleArbor>();
    FatalIf(!singleArbor, "%s requires a SingleArbor component.\n", getDescription_c());
    if (!singleArbor->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
@@ -47,9 +47,9 @@ WTADelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
 
 void WTADelivery::checkPreAndPostDimensions() {
    int status = PV_SUCCESS;
-   pvAssert(mPreLayer and mPostLayer); // Only call this after BaseDelivery::communicateInitInfo().
-   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   pvAssert(mPreData and mPostGSyn); // Only call this after BaseDelivery::communicateInitInfo().
+   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    if (preLoc->nx != postLoc->nx) {
       ErrorLog().printf(
             "%s requires pre and post nx be equal (%d versus %d).\n",
@@ -86,8 +86,8 @@ void WTADelivery::checkPreAndPostDimensions() {
          "WTADelivery \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: "
          "%dx%dx%d vs. %dx%dx%d\n",
          name,
-         mPreLayer->getName(),
-         mPostLayer->getName(),
+         mPreData->getName(),
+         mPostGSyn->getName(),
          preLoc->nx,
          preLoc->ny,
          preLoc->nf,
@@ -96,12 +96,12 @@ void WTADelivery::checkPreAndPostDimensions() {
          postLoc->nf);
 }
 
-void WTADelivery::deliver() {
+void WTADelivery::deliver(float *destBuffer) {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }
 
-   PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(mDelay);
+   PVLayerCube const preActivityCube = mPreData->getPublisher()->createCube(mDelay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
 
    int const nx       = preLoc.nx;
@@ -114,8 +114,10 @@ void WTADelivery::deliver() {
    pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
    int numPostRestricted = nx * ny * nf;
 
-   float *postChannel = mPostLayer->getChannel(mChannelCode);
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   float *postChannel = destBuffer;
+   int const nbatch   = preLoc.nbatch;
+   pvAssert(nbatch == mPostGSyn->getLayerLoc()->nbatch);
+   for (int b = 0; b < nbatch; b++) {
       float const *preActivityBuffer = preActivityCube.data + b * numPreExtended;
       float *postGSynBuffer          = postChannel + b * numPostRestricted;
       // If preActivityCube.isSparse is true, we could use the list of activeIndices.
@@ -139,13 +141,10 @@ void WTADelivery::deliver() {
          postGSynBuffer[k] += maxValue;
       }
    }
-#ifdef PV_USE_CUDA
-   mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
-#endif // PV_USE_CUDA
 }
 
 void WTADelivery::deliverUnitInput(float *recvBuffer) {
-   const int numNeuronsPost = mPostLayer->getNumNeuronsAllBatches();
+   const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -154,13 +153,13 @@ void WTADelivery::deliverUnitInput(float *recvBuffer) {
    }
 }
 
-bool WTADelivery::isAllInputReady() {
+bool WTADelivery::isAllInputReady() const {
    bool isReady;
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       isReady = true;
    }
    else {
-      isReady = getPreLayer()->isExchangeFinished(mDelay);
+      isReady = mPreData->isExchangeFinished(mDelay);
    }
    return isReady;
 }

@@ -32,7 +32,10 @@ class PostsynapticPerspectiveConvolveDelivery : public HyPerDelivery {
    /** @} */ // End of list of BaseDelivery parameters.
 
   public:
-   PostsynapticPerspectiveConvolveDelivery(char const *name, HyPerCol *hc);
+   PostsynapticPerspectiveConvolveDelivery(
+         char const *name,
+         PVParams *params,
+         Communicator const *comm);
 
    virtual ~PostsynapticPerspectiveConvolveDelivery();
 
@@ -47,14 +50,14 @@ class PostsynapticPerspectiveConvolveDelivery : public HyPerDelivery {
     * same post-neuron, we internally allocate multiple buffers the size of the post channel,
     * and accumulate them at the end.
     */
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
   protected:
    PostsynapticPerspectiveConvolveDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 

@@ -14,12 +14,12 @@ namespace PV {
 
 class KernelTestProbe : public PV::StatsProbe {
   public:
-   KernelTestProbe(const char *name, HyPerCol *hc);
+   KernelTestProbe(const char *name, PVParams *params, Communicator const *comm);
 
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:

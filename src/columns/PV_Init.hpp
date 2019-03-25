@@ -11,6 +11,7 @@
 #include <arch/mpi/mpi.h>
 #include <columns/Arguments.hpp>
 #include <columns/Factory.hpp>
+#include <columns/KeywordHandler.hpp>
 #include <io/PVParams.hpp>
 #include <io/io.hpp>
 #include <iostream>
@@ -236,6 +237,12 @@ class PV_Init {
    int initSignalHandler();
    int initMaxThreads();
    int commInit(int *argc, char ***argv);
+
+   /**
+    * Makes sure that the Factory singleton is initialized, and registers the core keywords to
+    * the factory, by calling registerCoreKeywords(), defined in the CoreKeywords.hpp file.
+    */
+   void initFactory();
 
    /**
     * A method used internally by initialize() to set the streams that will

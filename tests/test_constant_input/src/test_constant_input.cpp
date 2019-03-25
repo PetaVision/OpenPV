@@ -12,8 +12,9 @@
 
 #include "TestImage.hpp"
 
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
-#include "connections/HyPerConn.hpp"
+#include "components/PatchSize.hpp"
 #include "io/io.hpp"
 #include "layers/Retina.hpp"
 
@@ -49,11 +50,14 @@ int main(int argc, char *argv[]) {
    HyPerLayer *retina = dynamic_cast<HyPerLayer *>(
          dynamic_cast<HyPerLayer *>(hc->getObjectFromName("test_constant_input_retina")));
 
-   HyPerConn *conn =
-         dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_constant_input_connection"));
+   ComponentBasedObject *conn = dynamic_cast<ComponentBasedObject *>(
+         hc->getObjectFromName("test_constant_input_connection"));
 
-   const int nxp               = conn->getPatchSizeX();
-   const int nyp               = conn->getPatchSizeY();
+   hc->allocateColumn();
+
+   auto *patchSize             = conn->getComponentByType<PatchSize>();
+   const int nxp               = patchSize->getPatchSizeX();
+   const int nyp               = patchSize->getPatchSizeY();
    const PVLayerLoc *imageLoc  = image->getLayerLoc();
    const PVLayerLoc *retinaLoc = retina->getLayerLoc();
    const int nfPre             = imageLoc->nf;
@@ -90,19 +94,24 @@ int main(int argc, char *argv[]) {
       Fatal().printf("[%d]: test_constant_input: ERROR in retina loc\n", rank);
    }
 
-   status = checkInput(image->getLayerLoc(), image->getActivity(), image->getConstantVal(), true);
+   float const *imageActivity = image->getComponentByType<ActivityComponent>()->getActivity();
+   status = checkInput(image->getLayerLoc(), imageActivity, image->getConstantVal(), true);
    if (status != PV_SUCCESS) {
       Fatal().printf("[%d]: test_constant_input: ERROR in image data\n", rank);
    }
 
-   float retinaVal = sumOfWeights * image->getConstantVal();
+   ActivityComponent *retinaActivity = retina->getComponentByType<ActivityComponent>();
+   float retinaVal                   = sumOfWeights * image->getConstantVal();
 
-   status = checkInput(retina->getLayerLoc(), retina->getActivity(), retinaVal, false);
+   status =
+         checkInput(retinaActivity->getLayerLoc(), retinaActivity->getActivity(), retinaVal, false);
    if (status != 0) {
       Fatal().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
 
-   status = checkInput(retina->getLayerLoc(), retina->getLayerData(), retinaVal, true);
+   BasePublisherComponent *retinaPublisher = retina->getComponentByType<BasePublisherComponent>();
+   status                                  = checkInput(
+         retinaPublisher->getLayerLoc(), retinaPublisher->getLayerData(), retinaVal, true);
    if (status != 0) {
       Fatal().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
@@ -113,7 +122,7 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
-int checkInput(const PVLayerLoc *loc, const float *data, float val, bool extended) {
+int checkInput(PVLayerLoc const *loc, const float *data, float val, bool extended) {
    int status = 0;
 
    const PVHalo *halo = &loc->halo;

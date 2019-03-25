@@ -6,14 +6,15 @@
  */
 
 #include "RescaleDelivery.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
-RescaleDelivery::RescaleDelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
+RescaleDelivery::RescaleDelivery(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
-int RescaleDelivery::initialize(char const *name, HyPerCol *hc) {
-   return IdentDelivery::initialize(name, hc);
+void RescaleDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   BaseDelivery::initialize(name, params, comm);
 }
 
 void RescaleDelivery::setObjectType() { mObjectType = "RescaleDelivery"; }
@@ -25,7 +26,7 @@ int RescaleDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void RescaleDelivery::ioParam_scale(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "scale", &mScale, mScale /*default*/, true /*warn if absent*/);
 }
 
@@ -34,15 +35,15 @@ void RescaleDelivery::ioParam_scale(enum ParamsIOFlag ioFlag) {
 // for two lines inside for-loops with large numbers of iterations.
 // We're discussing ways to eliminate code duplication like this without
 // incurring added computational costs.
-void RescaleDelivery::deliver() {
+void RescaleDelivery::deliver(float *destBuffer) {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }
 
    int delay                         = mSingleArbor->getDelay(0);
-   PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(delay);
+   PVLayerCube const preActivityCube = mPreData->getPublisher()->createCube(delay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
-   PVLayerLoc const &postLoc         = *mPostLayer->getLayerLoc();
+   PVLayerLoc const &postLoc         = *mPostGSyn->getLayerLoc();
 
    int const nx       = preLoc.nx;
    int const ny       = preLoc.ny;
@@ -53,8 +54,13 @@ void RescaleDelivery::deliver() {
    pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
    int numPostRestricted = nx * ny * nf;
 
-   float *postChannel = mPostLayer->getChannel(mChannelCode);
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   float *postChannel = destBuffer;
+   int const nbatch   = preLoc.nbatch;
+   FatalIf(
+         postLoc.nbatch != nbatch,
+         "%s has different presynaptic and postsynaptic batch sizes.\n",
+         getDescription_c());
+   for (int b = 0; b < nbatch; b++) {
       float const *preActivityBuffer = preActivityCube.data + b * numPreExtended;
       float *postGSynBuffer          = postChannel + b * numPostRestricted;
       if (preActivityCube.isSparse) {
@@ -96,13 +102,10 @@ void RescaleDelivery::deliver() {
          }
       }
    }
-#ifdef PV_USE_CUDA
-   mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
-#endif // PV_USE_CUDA
 }
 
 void RescaleDelivery::deliverUnitInput(float *recvBuffer) {
-   const int numNeuronsPost = mPostLayer->getNumNeuronsAllBatches();
+   const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif

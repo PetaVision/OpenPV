@@ -16,20 +16,23 @@
 
 namespace PV {
 
-TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(const char *name, HyPerCol *hc) {
+TestNotAlwaysAllZerosProbe::TestNotAlwaysAllZerosProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
-Response::Status TestNotAlwaysAllZerosProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status TestNotAlwaysAllZerosProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       Fatal().printf(
             "!!Time %f: TestNotAlwaysAllZerosProbe::outputState failed for %s\n",
-            timed,
+            simTime,
             getTargetLayer()->getDescription_c());
    }
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < mLocalBatchWidth; b++) {
       if (nnz[b] != 0) {
          nonzeroValueOccurred = true;
       }
@@ -42,8 +45,11 @@ int TestNotAlwaysAllZerosProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int TestNotAlwaysAllZerosProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void TestNotAlwaysAllZerosProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 void TestNotAlwaysAllZerosProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {

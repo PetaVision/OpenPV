@@ -17,18 +17,17 @@ namespace PV {
 
 class RunningAverageLayer : public CloneVLayer {
   public:
-   RunningAverageLayer(const char *name, HyPerCol *hc);
+   RunningAverageLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~RunningAverageLayer();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual void allocateV() override;
    virtual Response::Status updateState(double timef, double dt) override;
    virtual int setActivity() override;
    int getNumImagesToAverage() { return numImagesToAverage; }
 
   protected:
    RunningAverageLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    void ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag);
 

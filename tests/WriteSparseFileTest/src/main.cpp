@@ -3,8 +3,10 @@
  *
  */
 
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/buildandrun.hpp"
-#include "layers/InputLayer.cpp"
+#include "components/InputActivityBuffer.hpp"
+#include "layers/HyPerLayer.hpp"
 #include "probes/RequireAllZeroActivityProbe.hpp"
 
 #define CORRECT_PVP_NX 32 // The x-dimension in the "correct.pvp" file.  Needed by generate()
@@ -179,10 +181,15 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
    std::string sourcePathString = hc->getOutputPath();
    sourcePathString += "/"
                        "output.pvp";
-   const char *sourcePath   = sourcePathString.c_str();
-   InputLayer *correctLayer = dynamic_cast<InputLayer *>(hc->getObjectFromName("correct"));
+   const char *sourcePath = sourcePathString.c_str();
+
+   auto *correctLayer = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("correct"));
    assert(correctLayer);
-   const char *destPath = correctLayer->getInputPath().c_str();
+   auto *correctActivityComponent = correctLayer->getComponentByType<ComponentBasedObject>();
+   pvAssert(correctActivityComponent);
+   auto *correctInputBuffer = correctActivityComponent->getComponentByType<InputActivityBuffer>();
+   pvAssert(correctInputBuffer);
+   const char *destPath = correctInputBuffer->getInputPath().c_str();
    if (strcmp(&destPath[strlen(destPath) - 4], ".pvp") != 0) {
       if (hc->columnId() == 0) {
          ErrorLog().printf(
@@ -193,6 +200,7 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
       MPI_Barrier(hc->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+
    if (hc->columnId() == 0) {
       PV_Stream *infile = PV_fopen(sourcePath, "r", false /*verifyWrites*/);
       FatalIf(!(infile), "Test failed.\n");
@@ -289,27 +297,14 @@ int testioparams(PV_Init *initObj, int rank) {
 int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
    const char *targetLayerName = "comparison";
    HyPerLayer *layer           = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(targetLayerName));
-   FatalIf(!(layer), "Test failed.\n");
-   LayerProbe *probe = NULL;
-   int np            = layer->getNumProbes();
-   for (int p = 0; p < np; p++) {
-      if (!strcmp(layer->getProbe(p)->getName(), "comparison_test")) {
-         probe = layer->getProbe(p);
-         break;
-      }
-   }
-   RequireAllZeroActivityProbe *allzeroProbe = dynamic_cast<RequireAllZeroActivityProbe *>(probe);
-   FatalIf(!(allzeroProbe), "Test failed.\n");
-   if (allzeroProbe->getNonzeroFound()) {
-      if (hc->columnId() == 0) {
-         double t = allzeroProbe->getNonzeroTime();
-         ErrorLog().printf(
-               "%s had at least one nonzero activity value, beginning at time %f\n",
-               layer->getDescription_c(),
-               t);
-      }
-      MPI_Barrier(hc->getCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
+   FatalIf(!layer, "Unable to find layer \"%s\".\n", targetLayerName);
+   auto *allzeroProbe =
+         dynamic_cast<RequireAllZeroActivityProbe *>(hc->getObjectFromName("comparison_test"));
+   FatalIf(!allzeroProbe, "Unable to find RequireAllZeroActivityProbe \"comparison_test\".\n");
+   FatalIf(
+         allzeroProbe->getNonzeroFound(),
+         "%s had at least one nonzero activity value, beginning at time %f\n",
+         layer->getDescription_c(),
+         allzeroProbe->getNonzeroTime());
    return PV_SUCCESS;
 }

@@ -238,9 +238,13 @@ class ParameterSweep {
 
 class PVParams {
   public:
-   PVParams(size_t initialSize, Communicator *inIcComm);
-   PVParams(const char *filename, size_t initialSize, Communicator *inIcComm);
-   PVParams(const char *buffer, long int bufferLength, size_t initialSize, Communicator *inIcComm);
+   PVParams(size_t initialSize, Communicator const *inIcComm);
+   PVParams(const char *filename, size_t initialSize, Communicator const *inIcComm);
+   PVParams(
+         const char *buffer,
+         long int bufferLength,
+         size_t initialSize,
+         Communicator const *inIcComm);
    virtual ~PVParams();
 
    bool getParseStatus() { return parseStatus; }
@@ -373,6 +377,8 @@ class PVParams {
    int numberOfGroups() { return numGroups; }
    int numberOfParameterSweeps() { return numParamSweeps; }
    int getParameterSweepSize() { return parameterSweepSize; }
+   FileStream *getPrintParamsStream() { return mPrintParamsStream; }
+   FileStream *getPrintLuaStream() { return mPrintLuaStream; }
 
   private:
    int parseStatus;
@@ -384,7 +390,7 @@ class PVParams {
    ParameterStringStack *stringStack;
    bool debugParsing;
    bool disable;
-   Communicator *icComm;
+   Communicator const *icComm;
    int worldRank;
    int worldSize;
 

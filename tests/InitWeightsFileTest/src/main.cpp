@@ -3,9 +3,12 @@
  *
  */
 
+#include <columns/ComponentBasedObject.hpp>
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
-#include <connections/HyPerConn.hpp>
+#include <components/ConnectionData.hpp>
+#include <components/PatchSize.hpp>
+#include <components/WeightsPair.hpp>
 
 #include <cmath>
 
@@ -16,20 +19,22 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
    }
    hc->allocateColumn();
-   PV::HyPerConn *conn     = dynamic_cast<PV::HyPerConn *>(hc->getObjectFromName("InputToOutput"));
-   PV::HyPerLayer *pre     = conn->getPre();
+   auto *conn = dynamic_cast<PV::ComponentBasedObject *>(hc->getObjectFromName("InputToOutput"));
+   PV::HyPerLayer *pre     = conn->getComponentByType<PV::ConnectionData>()->getPre();
    PVLayerLoc const preLoc = *pre->getLayerLoc();
    int const numExtended   = pre->getNumExtended();
-   int const numPatches    = conn->getNumDataPatches();
+   auto *preWeights        = conn->getComponentByType<PV::WeightsPair>()->getPreWeights();
+   int const numPatches    = preWeights->getNumDataPatches();
    FatalIf(
          numPatches != numExtended,
          "Presynaptic numExtended %d != number of data patches %d\n",
          numExtended,
          numPatches);
 
-   int const nxp = conn->getPatchSizeX();
-   int const nyp = conn->getPatchSizeY();
-   int const nfp = conn->getPatchSizeF();
+   auto *patchSize = conn->getComponentByType<PV::PatchSize>();
+   int const nxp   = patchSize->getPatchSizeX();
+   int const nyp   = patchSize->getPatchSizeY();
+   int const nfp   = patchSize->getPatchSizeF();
 
    float const numItemsInPatch = (float)(nxp * nyp * nfp);
 
@@ -47,14 +52,14 @@ int main(int argc, char *argv[]) {
       int nyExtGlobal = preLoc.nyGlobal + preLoc.halo.dn + preLoc.halo.up;
       int globalIndex = kIndex(x, y, f, nxExtGlobal, nyExtGlobal, nf);
 
-      float const *weights = conn->getWeightsDataHead(0 /*arbor*/, index);
+      float const *weights = preWeights->getDataFromDataIndex(0 /*arbor*/, index);
 
       // only need to check in shrunken patch region.
-      PV::Patch const *patch = conn->getPatch(index);
-      int xStart             = kxPos(patch->offset, nxp, nyp, nfp);
-      int yStart             = kyPos(patch->offset, nxp, nyp, nfp);
-      for (int y = yStart; y < yStart + patch->ny; y++) {
-         for (int x = xStart; x < xStart + patch->nx; x++) {
+      PV::Patch const &patch = preWeights->getPatch(index);
+      int xStart             = kxPos(patch.offset, nxp, nyp, nfp);
+      int yStart             = kyPos(patch.offset, nxp, nyp, nfp);
+      for (int y = yStart; y < yStart + patch.ny; y++) {
+         for (int x = xStart; x < xStart + patch.nx; x++) {
             for (int f = 0; f < nf; f++) {
                int k                    = kIndex(x, y, f, nxp, nyp, nfp);
                float w                  = weights[k];

@@ -12,15 +12,14 @@
 #include <string>
 
 namespace PV {
-WTALayer::WTALayer(const char *name, HyPerCol *hc) {
+WTALayer::WTALayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 WTALayer::~WTALayer() {}
 
 int WTALayer::initialize_base() {
-   numChannels       = 0;
    originalLayerName = NULL;
    originalLayer     = NULL;
    binMax            = 1;
@@ -28,10 +27,14 @@ int WTALayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int WTALayer::initialize(const char *name, HyPerCol *hc) {
+void WTALayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    WarnLog() << "WTALayer has been deprecated. Use a WTAConn to a HyPerLayer instead.\n";
-   return HyPerLayer::initialize(name, hc);
+   HyPerLayer::initialize(name, params, comm);
 }
+
+LayerInputBuffer *WTALayer::createLayerInput() { return nullptr; }
+
+InternalStateBuffer *WTALayer::createInternalState() { return nullptr; }
 
 Response::Status
 WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
@@ -39,15 +42,15 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    if (!Response::completed(status)) {
       return status;
    }
-   originalLayer = message->lookup<HyPerLayer>(std::string(originalLayerName));
-   if (originalLayer == NULL) {
-      if (parent->columnId() == 0) {
+   originalLayer = message->mHierarchy->lookupByName<HyPerLayer>(std::string(originalLayerName));
+   if (originalLayer == nullptr) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                getDescription_c(),
                originalLayerName);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    if (originalLayer->getInitInfoCommunicatedFlag() == false) {
@@ -59,7 +62,7 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    const PVLayerLoc *loc    = getLayerLoc();
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
-      if (parent->columnId() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "%s: originalLayerName \"%s\" does not have the same dimensions.\n",
@@ -72,7 +75,7 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
                loc->nxGlobal,
                loc->nyGlobal);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
    if (getLayerLoc()->nf != 1) {
@@ -81,13 +84,6 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    pvAssert(srcLoc->nx == loc->nx && srcLoc->ny == loc->ny);
    return Response::SUCCESS;
 }
-
-void WTALayer::allocateV() {
-   // Allocate V does nothing since binning does not need a V layer
-   clayer->V = NULL;
-}
-
-void WTALayer::initializeV() { assert(getV() == NULL); }
 
 void WTALayer::initializeActivity() {}
 
@@ -98,37 +94,36 @@ int WTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamStringRequired(
-         ioFlag, name, "originalLayerName", &originalLayerName);
+   parameters()->ioParamStringRequired(ioFlag, name, "originalLayerName", &originalLayerName);
    assert(originalLayerName);
    if (ioFlag == PARAMS_IO_READ && originalLayerName[0] == '\0') {
-      if (parent->columnId() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf("%s: originalLayerName must be set.\n", getDescription_c());
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 }
 
 void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
-   parent->parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
+   parameters()->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
+   parameters()->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
    if (ioFlag == PARAMS_IO_READ && binMax <= binMin) {
-      if (parent->columnId() == 0) {
+      if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
                "%s: binMax (%f) must be greater than binMin (%f).\n",
                getDescription_c(),
                (double)binMax,
                (double)binMin);
       }
-      MPI_Barrier(parent->getCommunicator()->communicator());
+      MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 }
 
 Response::Status WTALayer::updateState(double timef, double dt) {
-   float *currA = getCLayer()->activity->data;
-   float *srcA  = originalLayer->getCLayer()->activity->data;
+   float *currA = getActivity();
+   float *srcA  = originalLayer->getActivity();
 
    const PVLayerLoc *loc    = getLayerLoc();
    const PVLayerLoc *srcLoc = originalLayer->getLayerLoc();

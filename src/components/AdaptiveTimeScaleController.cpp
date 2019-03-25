@@ -22,7 +22,7 @@ AdaptiveTimeScaleController::AdaptiveTimeScaleController(
       double tauFactor,
       double growthFactor,
       bool writeTimeScaleFieldnames,
-      Communicator *communicator) {
+      Communicator const *communicator) {
    mName                     = strdup(name);
    mBatchWidth               = batchWidth;
    mBaseMax                  = baseMax;
@@ -37,12 +37,15 @@ AdaptiveTimeScaleController::AdaptiveTimeScaleController(
    mTimeScaleInfo.mTimeScaleTrue.assign(mBatchWidth, -1.0);
    mOldTimeScale.assign(mBatchWidth, mBaseMin);
    mOldTimeScaleTrue.assign(mBatchWidth, -1.0);
+   setDescription(std::string("AdaptiveTimeScaleController \"") + mName + "\"");
 }
 
 AdaptiveTimeScaleController::~AdaptiveTimeScaleController() { free(mName); }
 
-Response::Status AdaptiveTimeScaleController::registerData(Checkpointer *checkpointer) {
-   auto ptr = std::make_shared<CheckpointEntryTimeScaleInfo>(
+Response::Status AdaptiveTimeScaleController::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto *checkpointer = message->mDataRegistry;
+   auto ptr           = std::make_shared<CheckpointEntryTimeScaleInfo>(
          mName, "timescaleinfo", checkpointer->getMPIBlock(), &mTimeScaleInfo);
    checkpointer->registerCheckpointEntry(ptr, false /*not constant*/);
    return Response::SUCCESS;

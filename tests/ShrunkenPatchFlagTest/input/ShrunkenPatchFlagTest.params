@@ -142,7 +142,6 @@ HyPerConn "inputToNoShrunkenFlag" = {
     pvpatchAccumulateType            = "Convolve";
     shrinkPatches                    = false;
     updateGSynFromPostPerspective    = false;
-    convertRateToSpikeCount             = false;
 };
 
 HyPerConn "inputToShrunkenFlag" = {
@@ -183,7 +182,6 @@ HyPerConn "inputToShrunkenFlag" = {
     pvpatchAccumulateType            = "Convolve";
     shrinkPatches                    = true;
     updateGSynFromPostPerspective    = false;
-    convertRateToSpikeCount             = false;
 };
 
 IdentConn "noShrunkenFlag_to_comparison" = {

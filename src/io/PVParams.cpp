@@ -389,7 +389,7 @@ double ParameterGroup::value(const char *name) {
 
 bool ParameterGroup::arrayPresent(const char *name) {
    bool array_found = false;
-   int count       = arrayStack->size();
+   int count        = arrayStack->size();
    for (int i = 0; i < count; i++) {
       ParameterArray *p = arrayStack->peek(i);
       if (strcmp(name, p->name()) == 0) {
@@ -397,7 +397,9 @@ bool ParameterGroup::arrayPresent(const char *name) {
          break;
       }
    }
-   if (!array_found) { array_found = (present(name) != 0); }
+   if (!array_found) {
+      array_found = (present(name) != 0);
+   }
    return array_found;
 }
 
@@ -784,7 +786,7 @@ const char *ParameterSweep::getStringValue(int n) {
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(const char *filename, size_t initialSize, Communicator *inIcComm) {
+PVParams::PVParams(const char *filename, size_t initialSize, Communicator const *inIcComm) {
    this->icComm = inIcComm;
    initialize(initialSize);
    parseFile(filename);
@@ -794,7 +796,7 @@ PVParams::PVParams(const char *filename, size_t initialSize, Communicator *inIcC
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(size_t initialSize, Communicator *inIcComm) {
+PVParams::PVParams(size_t initialSize, Communicator const *inIcComm) {
    this->icComm = inIcComm;
    initialize(initialSize);
 }
@@ -809,7 +811,7 @@ PVParams::PVParams(
       const char *buffer,
       long int bufferLength,
       size_t initialSize,
-      Communicator *inIcComm) {
+      Communicator const *inIcComm) {
    this->icComm = inIcComm;
    initialize(initialSize);
    parseBuffer(buffer, bufferLength);
@@ -958,7 +960,7 @@ void PVParams::loadParamBuffer(char const *filename, std::string &paramsFileStri
       if (result != LUA_OK) {
          char const *errorMessage = lua_tostring(lua_state, -1);
          lua_pop(lua_state, 1);
-         Fatal() << errorMessage;
+         Fatal() << errorMessage << "\n";
       }
       lua_getglobal(lua_state, "paramsFileString");
       size_t llength;

@@ -14,20 +14,15 @@ namespace PV {
 
 class PoolingIndexLayer : public HyPerLayer {
   public:
-   PoolingIndexLayer(const char *name, HyPerCol *hc);
+   PoolingIndexLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~PoolingIndexLayer();
-   bool activityIsSpiking() override { return false; }
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
 
   protected:
    PoolingIndexLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_dataType(enum ParamsIOFlag ioFlag) override;
-   virtual int resetGSynBuffers(double timef, double dt) override;
-
-  private:
-   int initialize_base();
+   LayerInputBuffer *createLayerInput() override;
+   virtual ActivityComponent *createActivityComponent();
 }; // end of class PoolingIndexLayer
 
 } // end namespace PV

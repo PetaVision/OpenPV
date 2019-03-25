@@ -12,7 +12,7 @@
 #include <vector>
 
 PVLayerLoc setLayerLoc(
-      PV::Communicator *communicator,
+      PV::Communicator const *communicator,
       int nBatchGlobal,
       int nxGlobal,
       int nyGlobal,
@@ -39,8 +39,8 @@ bool isActiveWeight(PV::Patch const &patch, int nxp, int nyp, int nfp, int itemI
 
 int main(int argc, char *argv[]) {
    PV::PV_Init pv_initObj{&argc, &argv, false /*do not allow unrecognized arguments*/};
-   PV::Communicator *communicator = pv_initObj.getCommunicator();
-   PV::MPIBlock const mpiBlock    = setMPIBlock(pv_initObj);
+   PV::Communicator const *communicator = pv_initObj.getCommunicator();
+   PV::MPIBlock const mpiBlock          = setMPIBlock(pv_initObj);
 
    int const nxGlobal = 32;
    int const nyGlobal = 32;
@@ -227,7 +227,7 @@ void verifyCheckpointing(PV::Weights &weights, PV::MPIBlock const mpiBlock) {
 }
 
 PVLayerLoc setLayerLoc(
-      PV::Communicator *communicator,
+      PV::Communicator const *communicator,
       int nBatchGlobal,
       int nxGlobal,
       int nyGlobal,

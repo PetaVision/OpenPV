@@ -1,5 +1,5 @@
-#include "layers/PVLayerCube.hpp"
 #include "utils/PVLog.hpp"
+#include "utils/conversions.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>

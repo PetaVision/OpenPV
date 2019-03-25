@@ -8,7 +8,7 @@
  * update rule, to be used in testing.
  * The weights in each nxp-by-nyp-by-nfp are ordered 0,1,2,...,(nxp*nyp*nfp-1)
  * in standard PetaVision ordering. At initialization, the strength of the
- * weight at index k is k + start-time; when updateState is called, the
+ * weight at index k is k + start-time; when LayerUpdateState is called, the
  * weight at index k becomes k + simulation-time.
  */
 
@@ -21,14 +21,15 @@ namespace PV {
 
 class IndexWeightConn : public HyPerConn {
   public:
-   IndexWeightConn(const char *name, HyPerCol *hc);
+   IndexWeightConn(const char *name, PVParams *params, Communicator const *comm);
    virtual ~IndexWeightConn();
 
   protected:
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual InitWeights *createWeightInitializer() override;
    virtual BaseWeightUpdater *createWeightUpdater() override;
-   virtual Response::Status initializeState() override;
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
 }; // end class IndexWeightConn
 

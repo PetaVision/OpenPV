@@ -18,11 +18,11 @@ void testSeparatedName(PV::MPIBlock const *mpiBlock) {
          correctName.c_str());
 
    PV::CheckpointEntryPvpBuffer<float> separatedNameEntryPvp{"separated",
-                                                       "name",
-                                                       mpiBlock,
-                                                       (float *)nullptr,
-                                                       (PVLayerLoc const *)nullptr,
-                                                       false /*no broadcast*/};
+                                                             "name",
+                                                             mpiBlock,
+                                                             (float *)nullptr,
+                                                             (PVLayerLoc const *)nullptr,
+                                                             false /*no broadcast*/};
 
    std::string const &entryPvpName = separatedNameEntryPvp.getName();
    FatalIf(
