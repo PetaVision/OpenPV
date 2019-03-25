@@ -1,12 +1,6 @@
 /*
  * PtwiseQuotientLayer.hpp
  *
- * The output V is the pointwise division of GSynExc by GSynInh
- * no checking for zero divisors is performed
- *
- * "Exc" and "Inh" are really misnomers for this class, but the
- * terminology is inherited from the base class.
- *
  * created by gkenyon, 06/2016g
  * based on PtwiseProductLayer Created on: Apr 25, 2011
  *      Author: peteschultz
@@ -19,6 +13,13 @@
 
 namespace PV {
 
+/**
+ * The output V is the pointwise division of GSynExc by GSynInh
+ * no checking for zero divisors is performed
+ *
+ * "Exc" and "Inh" are really misnomers for this class, but the
+ * terminology is inherited from the base class.
+ */
 class PtwiseQuotientLayer : public ANNLayer {
   public:
    PtwiseQuotientLayer(const char *name, HyPerCol *hc);

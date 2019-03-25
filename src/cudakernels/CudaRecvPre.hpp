@@ -38,6 +38,7 @@ struct recv_pre_params {
    int syw;
    float dt_factor;
    int sharedWeights;
+   int channelCode;
 
    Patch *patches;
    size_t *gSynPatchStart;
@@ -70,6 +71,7 @@ class CudaRecvPre : public CudaKernel {
          int syw,
          float dt_factor,
          int sharedWeights,
+         int channelCode,
 
          /* Patch* */ CudaBuffer *patches,
          /* size_t* */ CudaBuffer *gSynPatchStart,

@@ -19,22 +19,21 @@
  * correct values for the input and output layers and for the weight between
  * them, and the number of updates.
  *
- * This test uses momentumMethod="viscosity". The value of momentumTau,
- * 1/log(2)=1.4426950408889634,
- * was chosen so that the tauFactor=exp(-1/momentumTau) = 0.5 is an
- * easy-to-work-with value.
+ * This test uses momentumMethod="viscosity". The value of timeConstantTau,
+ * -1/log(0.75)=3.4760594967822072,
+ * was chosen so that the tauFactor=exp(-1/timeConstantTau) = 0.75 is the same
+ * as that for MomentumConnSimpleCheckpointerTest.
  *
  * The update rule for momentumMethod=viscosity, momentumDecay=0, dWMax=1, and
- * momentumTau = 1/log(2)=1.4426950408889634 is:
+ * exp(-1/timeConstantTau) = 0.75 is:
  *
- * new update number = old update number + 1.
- * new dw = old input * old output + 0.5*old dw
+ * input starts at 1 and increments by 1 at timesteps 5, 9, 13, etc.
+ * new output = new input * old weight.
+ * Weight and DeltaWeight update at timesteps 4, 8, 12, etc. using the rule
+ * new dw = 0.75*old dw + 0.25*(dWMax * new input * new output).
  * new weight = old weight + new dw.
- * new input  = new update number.
- * new output = new input * new weight.
  *
-
- * The test uses an input layer display of 4 and a connection that, either
+ * The test uses an input layer displayPeriod of 4 and a connection that, either
  * using the input layer as a trigger layer or by defining weightUpdatePeriod=4
  * and initialWeightUpdateTime=1, updates at times 1, 5, 9, etc.
  *
@@ -43,28 +42,28 @@
  * is initialized as 2. Therefore, at the end of each timestep, the correct
  * state of the system is as follows:
  *
- *   time update  dw  weight input   output
- *     0     0      0     1    1         2
- *     1     1      2     3    1         3
- *     2     1      2     3    1         3
- *     3     1      2     3    1         3
- *     4     1      2     3    1         3
- *     5     2      4     7    2        14
- *     6     2      4     7    2        14
- *     7     2      4     7    2        14
- *     8     2      4     7    2        14
- *     9     3     30    37    3       111
- *    10     3     30    37    3       111
- *    11     3     30    37    3       111
- *    12     3     30    37    3       111
- *    13     4    348   385    4      1540
- *    14     4    348   385    4      1540
- *    15     4    348   385    4      1540
- *    16     4    348   385    4      1540
- *    17     5   6334  6719    5     33595
- *    18     5   6334  6719    5     33595
- *    19     5   6334  6719    5     33595
- *    20     5   6334  6719    5     33595
+ *  time       input      output      pre*post      dw        weight
+ *   0           1           1           1          0           1
+ *   1           1           1           1          0           1
+ *   2           1           1           1          0           1
+ *   3           1           1           1          0           1
+ *   4           1           1           1          0.25        1.25
+ *   5           2           2.5         5          0.25        1.25
+ *   6           2           2.5         5          0.25        1.25
+ *   7           2           2.5         5          0.25        1.25
+ *   8           2           2.5         5          1.4375      2.6875
+ *   9           3           8.0625      24.1875    1.4375      2.6875
+ *  10           3           8.0625      24.1875    1.4375      2.6875
+ *  11           3           8.0625      24.1875    1.4375      2.6875
+ *  12           3           8.0625      24.1875    7.125       9.8125
+ *  13           4          39.25       157         7.125       9.8125
+ *  14           4          39.25       157         7.125       9.8125
+ *  15           4          39.25       157         7.125       9.8125
+ *  16           4          39.25       157        44.59375    54.40625
+ *  17           5         272.03125   1360.15625  44.59375    54.40625
+ *  18           5         272.03125   1360.15625  44.59375    54.40625
+ *  19           5         272.03125   1360.15625  44.59375    54.40625
+ *  20           5         272.03125   1360.15625 373.484375  427.890625
  */
 class CorrectState {
   public:
@@ -73,7 +72,7 @@ class CorrectState {
     * weight value, input value, and output value.
     */
    CorrectState(
-         int initialUpdateNumber,
+         float timeConstantTau,
          float initialWeight,
          float initial_dw,
          float initialInput,
@@ -91,9 +90,14 @@ class CorrectState {
    void update();
 
    /**
-    * Returns the current update number.
+    * Returns true if weights should update during the specified timestep, false otherwise.
     */
-   int getUpdateNumber() const { return mUpdateNumber; }
+   bool doesWeightUpdate(double timestamp) const;
+
+   /**
+    * Returns the time constant tau.
+    */
+   float getTimeConstantTau() const { return mTimeConstantTau; }
 
    /**
     * Returns the current value for the correct weight.
@@ -115,12 +119,19 @@ class CorrectState {
     */
    float getCorrectOutput() const { return mCorrectOutput; }
 
+   /**
+    * Returns the number of times update() has been called.
+    */
+   float getTimestamp() const { return mTimestamp; }
+
   private:
-   int mUpdateNumber    = 0;
-   float mCorrectWeight = 0.0;
-   float mCorrect_dw    = 0.0;
-   float mCorrectInput  = 0.0;
-   float mCorrectOutput = 0.0;
+   float mTimeConstantTau = 0.0f;
+   float mCorrectWeight   = 0.0f;
+   float mCorrect_dw      = 0.0f;
+   float mCorrectInput    = 0.0f;
+   float mCorrectOutput   = 0.0f;
+
+   int mTimestamp = 0;
 };
 
 #endif // CORRECTSTATE_HPP_

@@ -27,7 +27,7 @@ class SharedWeights : public BaseObject {
 
    /**
     * @brief sharedWeights: Boolean, defines if the weights use shared weights or not.
-    * Defaults to false (non-shared weights).
+    * Defaults to true (shared weights).
     */
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
 
@@ -50,7 +50,7 @@ class SharedWeights : public BaseObject {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
-   bool mSharedWeights = false;
+   bool mSharedWeights = true;
 };
 
 } // namespace PV

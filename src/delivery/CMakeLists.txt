@@ -12,6 +12,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.cpp
    ${SUBDIR}/RescaleDelivery.cpp
    ${SUBDIR}/TransposePoolingDelivery.cpp
+   ${SUBDIR}/WTADelivery.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -28,6 +29,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PresynapticPerspectiveStochasticDelivery.hpp
    ${SUBDIR}/RescaleDelivery.hpp
    ${SUBDIR}/TransposePoolingDelivery.hpp
+   ${SUBDIR}/WTADelivery.hpp
 )
 
 if(PV_USE_CUDA)

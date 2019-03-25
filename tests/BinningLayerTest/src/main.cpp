@@ -3,7 +3,7 @@
  *
  */
 
-#include "BinningTestLayer.hpp"
+#include "BinningTestProbe.hpp"
 #include <columns/buildandrun.hpp>
 
 #define MAIN_USES_CUSTOM_GROUPS
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
    // pv_initObj.registerKeyword("CustomClass2", Factory::create<CustomClass2>);
    // etc.
    //
-   pv_initObj.registerKeyword("BinningTestLayer", Factory::create<BinningTestLayer>);
+   pv_initObj.registerKeyword("BinningTestProbe", Factory::create<BinningTestProbe>);
    int status = buildandrun(&pv_initObj);
 #endif // MAIN_USES_CUSTOM_GROUPS
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

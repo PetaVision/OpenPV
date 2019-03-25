@@ -1,0 +1,74 @@
+debugParsing = false;    
+
+HyPerCol "column" = {
+   nx = 10;   
+   ny = 10;
+   nbatch = 1;
+   dt = 1.0;  
+   randomSeed = 1234567890;  
+   stopTime = 1000.0;  
+   errorOnNotANumber = true;
+   progressInterval = 1000.0; 
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params"; 
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last"; 
+};
+
+
+ConstantLayer "Input" = {
+    nxScale             = 1;  
+    nyScale             = 1;  
+    nf                  = 1; 
+    phase               = 0; 
+    writeStep           = -1;  
+    initialWriteTime    = -1;
+    InitVType           = "ConstantV";
+    valueV              = 1;
+};
+
+DropoutLayer "Output" = {
+    nxScale             = 1; 
+    nyScale             = 1;
+    nf                  = 1; 
+    phase               = 1;
+    triggerLayerName    = NULL; 
+    writeStep           = -1;
+    initialWriteTime    = -1;
+    sparseLayer         = false;
+    updateGpu           = false;
+    InitVType           = "ZeroV";
+
+    VThresh             = -infinity;   
+    AMax                = infinity;
+    AMin                = -infinity;
+    AShift              = 0.0;
+    VWidth              = 0.0;
+    probability         = 95; 
+};
+
+LeakyIntegrator "Average" = {
+    nxScale             = 1; 
+    nyScale             = 1;
+    nf                  = 1; 
+    phase               = 2;
+    integrationTime     = 100;
+    writeStep           = -1;
+    initialWriteTime    = -1;
+    InitVType           = "ZeroV";
+};
+
+IdentConn "InputToOutput" = {
+    preLayerName        = "Input";
+    postLayerName       = "Output";
+    channelCode         = 0;
+};
+
+IdentConn "OutputToAverage" = {
+    preLayerName        = "Output";
+    postLayerName       = "Average";
+    channelCode         = 0;
+};

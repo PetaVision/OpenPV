@@ -8,21 +8,28 @@
 #include "CorrectState.hpp"
 
 CorrectState::CorrectState(
-      int initialUpdateNumber,
+      float timeConstantTau,
       float initialWeight,
       float initial_dw,
       float initialInput,
       float initialOutput)
-      : mUpdateNumber(initialUpdateNumber),
+      : mTimeConstantTau(timeConstantTau),
         mCorrectWeight(initialWeight),
         mCorrect_dw(initial_dw),
         mCorrectInput(initialInput),
         mCorrectOutput(initialOutput) {}
 
 void CorrectState::update() {
-   mUpdateNumber++;
-   mCorrect_dw = 0.5f * mCorrect_dw + (mCorrectInput * mCorrectOutput);
-   mCorrectWeight += mCorrect_dw;
-   mCorrectInput  = (float)mUpdateNumber;
+   mTimestamp++;
+   mCorrectInput  = std::ceil((float)mTimestamp / 4.0f);
    mCorrectOutput = mCorrectInput * mCorrectWeight;
+   if (doesWeightUpdate(mTimestamp)) {
+      auto base_dw = mCorrectInput * mCorrectOutput;
+      mCorrect_dw  = (1 - mTimeConstantTau) * base_dw + mTimeConstantTau * mCorrect_dw;
+      mCorrectWeight += mCorrect_dw;
+   }
+}
+
+bool CorrectState::doesWeightUpdate(double timevalue) const {
+   return std::fabs(std::fmod(timevalue + 1, 4.0) - 1) < 0.5;
 }

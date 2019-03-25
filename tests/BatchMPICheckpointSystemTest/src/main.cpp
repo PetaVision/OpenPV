@@ -136,7 +136,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
 
    int status = PV_SUCCESS;
    if (rank == rootproc) {
-      int index          = hc->getFinalStep() - hc->getInitialStep();
+      int index          = hc->getFinalStep();
       const char *cpdir1 = "checkpoints1";
       const char *cpdir2 = "checkpoints2";
       status             = diffDirs(cpdir1, cpdir2, index);

@@ -13,13 +13,13 @@ namespace PV {
 RescaleDelivery::RescaleDelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 int RescaleDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseDelivery::initialize(name, hc);
+   return IdentDelivery::initialize(name, hc);
 }
 
 void RescaleDelivery::setObjectType() { mObjectType = "RescaleDelivery"; }
 
 int RescaleDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseDelivery::ioParamsFillGroup(ioFlag);
+   int status = IdentDelivery::ioParamsFillGroup(ioFlag);
    ioParam_scale(ioFlag);
    return status;
 }

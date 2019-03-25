@@ -134,7 +134,7 @@ void InputLayer::retrieveInput(double timef, double dt) {
             normalizePixels(b);
             // Finally, crop to the part of the image covered by the MPIBlock.
             cropToMPIBlock(mInputData.at(b));
-            cropToMPIBlock(mInputData.at(b));
+            cropToMPIBlock(mInputRegion.at(b));
          }
          // Each MPIBlock sends the local portions.
          scatterInput(b, m);

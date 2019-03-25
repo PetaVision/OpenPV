@@ -1,7 +1,7 @@
 import pdb
 import numpy as np
 import scipy.sparse as sp
-from readpvpheader import readpvpheader,headerPattern,extendedHeaderPattern
+from pvtools.readpvpheader import readpvpheader,headerPattern,extendedHeaderPattern
 import os
 
 """
@@ -58,7 +58,7 @@ class pvpOpen(object):
                 patchsizeoverall = self.header['nxp'] * self.header['nyp'] * self.header['nfp']
                 recordsize = self.header['numpatches'] * (8+4*patchsizeoverall)
                 framesize = recordsize * self.header['nbands'] + self.header['headersize']
-                self.numFrames = filesize/framesize
+                self.numFrames = filesize//framesize
             else:
                 self.numFrames = self.header['nbands']
             #Check filetypes
@@ -180,7 +180,9 @@ class pvpOpen(object):
         # KERNEL WEIGHT FILE
         elif self.header['filetype'] == 5:
             shape = (self.header['nyp'], self.header['nxp'], self.header['nfp'])
-            frameSize = self.header['recordsize'] * self.header['nbands'] + self.header['headersize']
+            patchsizeoverall = self.header['nxp'] * self.header['nyp'] * self.header['nfp']
+            recordsize = self.header['numpatches'] * (8+4*patchsizeoverall)
+            frameSize = recordsize * self.header['nbands'] + self.header['headersize']
             patchPattern = np.dtype([('nx', np.uint16),
                                      ('ny', np.uint16),
                                      ('offset', np.uint32),
@@ -217,7 +219,7 @@ class pvpOpen(object):
                 self.pvpFile.seek(self.framePos[frame], os.SEEK_SET)
                 time = np.fromfile(self.pvpFile,np.float64,1)[0]
                 timeList.append(time)
-                numActive = np.fromfile(self.pvpFile,np.uint32,1)
+                numActive = np.fromfile(self.pvpFile,np.uint32,1).item()
                 currentData = np.fromfile(self.pvpFile,entryPattern,numActive)
                 dataIdx = currentData['index']
                 dataValues = currentData['activation']

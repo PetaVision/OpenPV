@@ -44,8 +44,9 @@ void MomentumConnViscosityCheckpointerTestProbe::ioParam_textOutputFlag(
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::communicateInitInfo(
       std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
    auto status = PV::ColProbe::communicateInitInfo(message);
-   FatalIf(
-         status != PV_SUCCESS, "%s failed in ColProbe::communicateInitInfo\n", getDescription_c());
+   if (!PV::Response::completed(status)) {
+      return status;
+   }
 
    status = status + initInputLayer(message);
    status = status + initOutputLayer(message);
@@ -135,34 +136,17 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::readStateFromCh
    std::string initializeFromCheckpointDir(checkpointer->getInitializeFromCheckpointDir());
    timeInfoCheckpointEntry.read(initializeFromCheckpointDir, nullptr);
 
-   mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
+   mStartingTimestamp = timeInfo.mSimTime;
 
    return PV::Response::SUCCESS;
 }
 
-int MomentumConnViscosityCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
-   pvAssert(timevalue >= 0.0);
-   int const step = (int)std::nearbyint(timevalue);
-   pvAssert(step >= 0);
-   int const updateNumber = (step + 3) / 4; // integer division
-   return updateNumber;
-}
-
 void MomentumConnViscosityCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
-   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
-   if (updateNumber == 0) {
-      mCorrectState =
-            new CorrectState(0, 1.0f /*weight*/, 0.0f /*dw*/, 1.0f /*input*/, 2.0f /*output*/);
-   }
-   else {
-      mCorrectState =
-            new CorrectState(1, 3.0f /*weight*/, 2.0f /*dw*/, 1.0f /*input*/, 3.0f /*output*/);
-
-      for (int j = 2; j < updateNumber; j++) {
-         mCorrectState->update();
-      }
-      // Don't update for the current updateNumber; this will happen in outputState.
-   }
+   int const updateNumber = mStartingTimestamp + timevalue;
+   float const tau        = mConnection->getTimeConstantTau();
+   float const tau_exp    = std::exp(-1.0f / tau);
+   mCorrectState =
+         new CorrectState(tau_exp, 1.0f /*weight*/, 0.0f /*dw*/, 1.0f /*input*/, 1.0f /*output*/);
 }
 
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::outputState(double timevalue) {
@@ -170,8 +154,8 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::outputState(dou
       initializeCorrectValues(timevalue);
       mValuesSet = true;
    }
-   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
-   while (updateNumber > mCorrectState->getUpdateNumber()) {
+   int const updateNumber = mStartingTimestamp + timevalue;
+   while (updateNumber > mCorrectState->getTimestamp()) {
       mCorrectState->update();
    }
 
@@ -180,6 +164,13 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::outputState(dou
    failed |= verifyConnection(mConnection, mCorrectState, timevalue);
    failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), timevalue);
    failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), timevalue);
+   InfoLog().printf(
+         "t=%f, input=%f, output=%f, W=%f, dW=%f\n",
+         timevalue,
+         (double)mInputLayer->getLayerData(0)[0],
+         (double)mOutputLayer->getLayerData(0)[0],
+         (double)mConnection->getWeightsDataHead(0, 0)[0],
+         (double)mConnection->getDeltaWeightsDataHead(0, 0)[0]);
 
    if (failed) {
       std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timevalue) + "\n");
@@ -207,7 +198,7 @@ bool MomentumConnViscosityCheckpointerTestProbe::verifyConnection(
       double timevalue) {
    bool failed = false;
 
-   if (parent->getCommunicator()->commRank() == 0) {
+   if (parent->getCommunicator()->commRank() == 0 and correctState->doesWeightUpdate(timevalue)) {
       float observedWeightValue = connection->getWeightsDataStart(0)[0];
       float correctWeightValue  = correctState->getCorrectWeight();
       failed |= verifyConnValue(timevalue, observedWeightValue, correctWeightValue, "weight");

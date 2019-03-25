@@ -22,7 +22,6 @@ int StochasticReleaseTestProbe::initialize_base() { return PV_SUCCESS; }
 
 int StochasticReleaseTestProbe::initialize(const char *name, HyPerCol *hc) {
    int status = StatsProbe::initialize(name, hc);
-   pvAssert(parent->getInitialStep() == 0L);
    return status;
 }
 

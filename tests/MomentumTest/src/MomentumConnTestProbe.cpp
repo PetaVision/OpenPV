@@ -53,25 +53,17 @@ Response::Status MomentumConnTestProbe::outputState(double timed) {
    int status = PV_SUCCESS;
    for (int k = 0; k < nxp * nyp * nfp; k++) {
       float wObserved = w[k];
-      // Pulse happens at time 3
+      // Pulse happens at time 2
       float wCorrect;
 
-      if (timed < 3) {
+      if (timed < 2) {
          wCorrect = 0;
       }
       else {
-         if (isViscosity) {
-            wCorrect = 1;
-            for (int i = 0; i < (timed - 3); i++) {
-               wCorrect += expf(-(2 * (i + 1)));
-            }
-         }
-         else {
-            wCorrect = 2 - powf(2, -(timed - 3));
-         }
+         wCorrect = 1 - powf(2, -(timed - 1));
       }
 
-      if (fabs(((double)(wObserved - wCorrect)) / timed) > 1e-4) {
+      if (fabs(((double)(wObserved - wCorrect)) / timed) > 1e-6) {
          int y = kyPos(k, nxp, nyp, nfp);
          int f = featureIndex(k, nxp, nyp, nfp);
          output(0).printf("        w = %f, should be %f\n", (double)wObserved, (double)wCorrect);

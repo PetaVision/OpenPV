@@ -76,7 +76,6 @@ class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
     */
    PV::Response::Status checkCommunicatedFlag(PV::BaseObject *dependencyObject);
 
-   int calcUpdateNumber(double timevalue);
    void initializeCorrectValues(double timevalue);
 
    bool verifyLayer(PV::HyPerLayer *layer, float correctValue, double timevalue);

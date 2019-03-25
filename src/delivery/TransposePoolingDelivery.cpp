@@ -96,10 +96,10 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    }
    auto *originalPoolingDelivery = originalConn->getComponentByType<PoolingDelivery>();
    pvAssert(originalPoolingDelivery);
-   mAccumulateType         = originalPoolingDelivery->getAccumulateType();
-   mReceiveGpu             = originalPoolingDelivery->getReceiveGpu();
+   mAccumulateType = originalPoolingDelivery->getAccumulateType();
+   mReceiveGpu     = originalPoolingDelivery->getReceiveGpu();
 #ifdef PV_USE_CUDA
-   mUsingGPUFlag           = originalPoolingDelivery->isUsingGPU();
+   mUsingGPUFlag = originalPoolingDelivery->isUsingGPU();
 #endif // PV_USE_CUDA
    mOriginalPostIndexLayer = originalPoolingDelivery->getPostIndexLayer();
    mOriginalPreLayer       = originalPoolingDelivery->getPreLayer();
@@ -187,6 +187,21 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
    }
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
+      if (!mPreLayer->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
+      if (!mPostLayer->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
+      if (!mOriginalPreLayer->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
+      if (!mOriginalPostLayer->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
+      if (!mWeightsPair->getDataStructuresAllocatedFlag()) {
+         return Response::POSTPONE;
+      }
       initializeDeliverKernelArgs();
    }
 #endif // PV_USE_CUDA
