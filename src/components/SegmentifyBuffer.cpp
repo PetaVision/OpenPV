@@ -174,7 +174,7 @@ void SegmentifyBuffer::setSegmentBuffer(ObserverTable const *hierarchy) {
    FatalIf(
          segmentActivityComponent == nullptr,
          "%s could not find an ActivityComponent within segment layer \"%s\".\n",
-         getDescription(),
+         getDescription_c(),
          segmentLayer->getName());
 
    // Get SegmentBuffer from activity component
@@ -182,7 +182,7 @@ void SegmentifyBuffer::setSegmentBuffer(ObserverTable const *hierarchy) {
    FatalIf(
          mSegmentBuffer == nullptr,
          "%s could not find a SegmentBuffer within segment layer \"%s\".\n",
-         getDescription(),
+         getDescription_c(),
          segmentLayer->getName());
 }
 

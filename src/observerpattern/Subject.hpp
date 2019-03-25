@@ -151,8 +151,8 @@ void Subject::addUniqueComponent(std::string const &tag, S *component) {
    FatalIf(
          foundComponent,
          "attempt to add %s using addUniqueComponent, but the table already has %s.\n",
-         component->getDescription(),
-         foundComponent->getDescription());
+         component->getDescription_c(),
+         foundComponent->getDescription_c());
    addObserver(tag, component);
 }
 

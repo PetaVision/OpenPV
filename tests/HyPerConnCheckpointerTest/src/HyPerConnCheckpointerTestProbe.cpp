@@ -156,7 +156,7 @@ HyPerConnCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *compone
    FatalIf(
          outputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
          "%s has a different initializeFromCheckpointFlag value from the connection.\n",
-         outputLayer->getDescription());
+         outputLayer->getDescription_c());
    mOutputPublisher = outputLayer->getComponentByType<PV::BasePublisherComponent>();
    FatalIf(
          mOutputPublisher == nullptr,

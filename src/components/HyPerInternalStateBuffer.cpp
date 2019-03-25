@@ -47,7 +47,7 @@ void HyPerInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime)
    if (V == nullptr) {
       WarnLog().printf(
             "%s is not updateable. updateBuffer called with t=%f, dt=%f.\n",
-            getDescription(),
+            getDescription_c(),
             simTime,
             deltaTime);
       return;

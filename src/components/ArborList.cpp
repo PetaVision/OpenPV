@@ -106,7 +106,7 @@ void ArborList::initializeDelays(double deltaTime) {
    FatalIf(
          mNumDelays != 1 and mNumDelays != getNumAxonalArbors(),
          "%s Delay must be either a single value or the same length as the number of arbors\n",
-         getDescription());
+         getDescription_c());
    for (int arborId = 0; arborId < (int)mDelay.size(); arborId++) {
       int delayIndex  = (mNumDelays == getNumAxonalArbors()) ? arborId : 0;
       mDelay[arborId] = convertDelay(mDelaysParams[delayIndex], deltaTime);

@@ -32,7 +32,7 @@ void ComponentBuffer::setBufferLabel(std::string const &label) {
    FatalIf(
          !mBufferLabel.empty(),
          "%s called with setBufferLabel(\"%s\"), but the buffer label has already been set.\n",
-         getDescription(),
+         getDescription_c(),
          label.c_str());
    mBufferLabel = label;
    setDescription(label + " \"" + getName() + "\"");

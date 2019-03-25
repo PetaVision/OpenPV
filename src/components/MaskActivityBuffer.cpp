@@ -108,7 +108,7 @@ MaskActivityBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
             ErrorLog().printf(
                   "%s: maskLayerName points to %s, but it does not have an ActivityComponent.\n",
                   getDescription_c(),
-                  maskObject->getDescription());
+                  maskObject->getDescription_c());
          }
          MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
@@ -119,7 +119,7 @@ MaskActivityBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
             ErrorLog().printf(
                   "%s: maskLayerName points to %s, but it does not have an ActivityBuffer.\n",
                   getDescription_c(),
-                  maskObject->getDescription());
+                  maskObject->getDescription_c());
          }
          MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);

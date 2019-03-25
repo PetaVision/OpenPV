@@ -217,8 +217,8 @@ void ANNActivityBuffer::updateBufferGPU(double simTime, double deltaTime) {
    FatalIf(
          !mInternalState->isUsingGPU(),
          "%s is using CUDA but internal state %s is not.\n",
-         getDescription(),
-         mInternalState->getDescription());
+         getDescription_c(),
+         mInternalState->getDescription_c());
 
    runKernel();
 }
