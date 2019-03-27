@@ -300,10 +300,8 @@ Response::Status HyPerLayer::allocateDataStructures() {
    // Once initialize and communicateInitInfo have been called, HyPerLayer has the
    // information it needs to allocate the membrane potential buffer V, the
    // activity buffer activity->data, and the data store.
-   auto status = Response::SUCCESS;
-
    auto allocateMessage = std::make_shared<AllocateDataStructuresMessage>();
-   notify(allocateMessage, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   auto status = notify(allocateMessage, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 
    // If not mirroring, fill the boundaries with the value in the valueBC param
    if (!mBoundaryConditions->getMirrorBCflag() && mBoundaryConditions->getValueBC() != 0.0f) {

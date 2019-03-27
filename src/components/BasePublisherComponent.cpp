@@ -58,7 +58,7 @@ void BasePublisherComponent::initMessageActionMap() {
 Response::Status BasePublisherComponent::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = BaseObject::communicateInitInfo(message);
-   if (!Response::completed) {
+   if (!Response::completed(status)) {
       return status;
    }
    auto hierarchy = message->mHierarchy;
@@ -86,6 +86,9 @@ int BasePublisherComponent::increaseDelayLevels(int neededDelay) {
 }
 
 Response::Status BasePublisherComponent::allocateDataStructures() {
+   if (!mActivity->getDataStructuresAllocatedFlag()) {
+      return Response::POSTPONE;
+   }
    mPublisher = new Publisher(
          *mCommunicator->getLocalMPIBlock(),
          mActivity->getBufferData(),
