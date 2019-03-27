@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
    PV::HyPerCol *hc              = new PV::HyPerCol(pv_init);
    std::string const &paramsFile = pv_init->getStringArgument(std::string("ParamsFile"));
    int status                    = PV_SUCCESS;
-   hc->allocateColumn();
+   hc->run();
 
    auto *inputLayer      = getObjectFromName<PV::InputLayer>(std::string("Input"), hc);
    auto *inputPublisher  = inputLayer->getComponentByType<PV::BasePublisherComponent>();

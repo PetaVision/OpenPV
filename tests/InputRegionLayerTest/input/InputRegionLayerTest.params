@@ -28,8 +28,8 @@ debugParsing = false;
 
 HyPerCol "column" = {
     dt                                  = 1;
-    stopTime                            = 10;
-    progressInterval                    = 10;
+    stopTime                            = 1;
+    progressInterval                    = 1;
     writeProgressToErr                  = false;
     outputPath                          = "output/";
     verifyWrites                        = false;
@@ -162,7 +162,7 @@ IdentConn "InputRegionToComparison" = {
 };
 
 IdentConn "CorrectInputRegionToComparison" = {
-   channelCode = 0;
+   channelCode = 1;
    delay = [0.000000];
 };
 
