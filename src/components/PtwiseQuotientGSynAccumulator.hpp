@@ -29,12 +29,12 @@ class PtwiseQuotientGSynAccumulator : public GSynAccumulator {
     * @brief channelIndices: PtwiseQuotientGSynAccumulator does not use channelIndices.
     * channel coefficients will be specified.
     */
-   virtual void ioParam_channelIndices(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_channelIndices(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief channelIndices: PtwiseQuotientGSynAccumulator does not use channelCoefficients.
     */
-   virtual void ioParam_channelCoefficients(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_channelCoefficients(enum ParamsIOFlag ioFlag) override;
 
    /** @} */
   public:
@@ -42,7 +42,7 @@ class PtwiseQuotientGSynAccumulator : public GSynAccumulator {
 
    virtual ~PtwiseQuotientGSynAccumulator();
 
-   virtual void updateBufferCPU(double simTime, double deltaTime);
+   virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
   protected:
    PtwiseQuotientGSynAccumulator() {}

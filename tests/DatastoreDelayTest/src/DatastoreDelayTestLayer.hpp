@@ -21,7 +21,7 @@ class DatastoreDelayTestLayer : public HyPerLayer {
   protected:
    void initialize(const char *name, PVParams *params, Communicator const *comm);
 
-   virtual LayerInputBuffer *createLayerInput();
+   virtual LayerInputBuffer *createLayerInput() override;
 
    virtual ActivityComponent *createActivityComponent() override;
 

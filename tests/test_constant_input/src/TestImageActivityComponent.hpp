@@ -27,7 +27,7 @@ class TestImageActivityComponent : public ActivityComponent {
 
    void initialize(char const *name, PVParams *params, Communicator const *comm);
 
-   virtual void setObjectType();
+   virtual void setObjectType() override;
 
    virtual ActivityBuffer *createActivity() override;
 };

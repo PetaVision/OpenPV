@@ -102,7 +102,7 @@ class RetinaActivityBuffer : public ActivityBuffer {
    void setRetinaParams(double deltaTime);
 
    // TODO: Eliminate code duplication with LIF - Make RandState a component
-   Response::Status readStateFromCheckpoint(Checkpointer *checkpointer);
+   Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    void readRandStateFromCheckpoint(Checkpointer *checkpointer);
 

@@ -27,7 +27,7 @@ class InputRegionLayer : public HyPerLayer {
   protected:
    InputRegionLayer();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
-   void createComponentTable(char const *description);
+   virtual void createComponentTable(char const *description) override;
    virtual PhaseParam *createPhaseParam() override;
    virtual BoundaryConditions *createBoundaryConditions() override;
    virtual LayerUpdateController *createLayerUpdateController() override;

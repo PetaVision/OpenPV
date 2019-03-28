@@ -29,7 +29,7 @@ class PoolingIndexLayerInputBuffer : public LayerInputBuffer {
    void initialize(char const *name, PVParams *params, Communicator const *comm);
    virtual void setObjectType() override;
 
-   virtual void resetGSynBuffers(double simulationTime, double dt);
+   virtual void resetGSynBuffers(double simulationTime, double dt) override;
 
   protected:
 };

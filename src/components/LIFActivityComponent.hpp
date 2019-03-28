@@ -85,7 +85,7 @@ class LIFActivityComponent : public ActivityComponent {
 
    void initialize(char const *name, PVParams *params, Communicator const *comm);
 
-   virtual void setObjectType();
+   virtual void setObjectType() override;
 
    virtual void createComponentTable(char const *tableDescription) override;
 

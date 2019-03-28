@@ -24,7 +24,7 @@ class IncrementingWeightUpdater : public HebbianUpdater {
 
    void initialize(char const *name, PVParams *params, Communicator const *comm);
 
-   virtual int updateWeights(int arborId);
+   virtual int updateWeights(int arborId) override;
 };
 
 } // namespace PV

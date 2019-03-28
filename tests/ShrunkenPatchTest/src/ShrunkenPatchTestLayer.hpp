@@ -18,7 +18,7 @@ class ShrunkenPatchTestLayer : public PV::HyPerLayer {
 
   protected:
    void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual ActivityComponent *createActivityComponent();
+   virtual ActivityComponent *createActivityComponent() override;
 };
 
 } /* namespace PV */

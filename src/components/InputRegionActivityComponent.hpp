@@ -31,7 +31,7 @@ class InputRegionActivityComponent : public ActivityComponent {
    InputRegionActivityComponent();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
 
-   virtual void setObjectType();
+   virtual void setObjectType() override;
 
    virtual ActivityBuffer *createActivity() override;
 
