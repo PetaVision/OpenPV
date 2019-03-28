@@ -52,7 +52,7 @@ void PointLIFProbe::initNumValues() { setNumValues(NUMBER_OF_VALUES); }
 Response::Status
 PointLIFProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = PointProbe::communicateInitInfo(message);
-   if (!Response::completed) {
+   if (!Response::completed(status)) {
       return status;
    }
 

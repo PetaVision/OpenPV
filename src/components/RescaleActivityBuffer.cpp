@@ -31,7 +31,7 @@ void RescaleActivityBuffer::initialize(
 Response::Status RescaleActivityBuffer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = ActivityBuffer::communicateInitInfo(message);
-   if (!Response::completed) {
+   if (!Response::completed(status)) {
       return status;
    }
    if (mOriginalBuffer == nullptr) {

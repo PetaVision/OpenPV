@@ -83,7 +83,7 @@ Response::Status LayerOutputComponent::communicateInitInfo(
       setDefaultWriteStep(message);
    }
    auto status = BaseObject::communicateInitInfo(message);
-   if (!Response::completed) {
+   if (!Response::completed(status)) {
       return status;
    }
    mWriteTime = mInitialWriteTime;
