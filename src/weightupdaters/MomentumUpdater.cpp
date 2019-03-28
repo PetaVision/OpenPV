@@ -101,6 +101,7 @@ void MomentumUpdater::checkTimeConstantTau() {
                getDescription_c(),
                (double)mTimeConstantTau);
          break;
+      default: Fatal().printf("Unrecognized momentumMethod\n"); break;
    }
 }
 
