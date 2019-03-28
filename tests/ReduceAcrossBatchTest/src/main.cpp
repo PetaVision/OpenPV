@@ -74,5 +74,5 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
                     << weights[k] << "\n";
       }
    }
-   return PV_SUCCESS;
+   return status;
 }

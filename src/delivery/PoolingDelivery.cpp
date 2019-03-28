@@ -32,7 +32,7 @@ int PoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_updateGSynFromPostPerspective(ioFlag);
    ioParam_needPostIndexLayer(ioFlag);
    ioParam_postIndexLayerName(ioFlag);
-   return PV_SUCCESS;
+   return status;
 }
 
 void PoolingDelivery::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {

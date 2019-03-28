@@ -37,7 +37,7 @@ int HebbianUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_normalizeDw(ioFlag);
    ioParam_useMask(ioFlag);
    ioParam_combine_dW_with_W_flag(ioFlag);
-   return PV_SUCCESS;
+   return status;
 }
 
 void HebbianUpdater::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {

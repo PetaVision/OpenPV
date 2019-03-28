@@ -36,7 +36,7 @@ void TransposePoolingDelivery::setObjectType() { mObjectType = "TransposePooling
 int TransposePoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseDelivery::ioParamsFillGroup(ioFlag);
    ioParam_updateGSynFromPostPerspective(ioFlag);
-   return PV_SUCCESS;
+   return status;
 }
 
 void TransposePoolingDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {

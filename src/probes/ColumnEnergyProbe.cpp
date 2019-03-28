@@ -137,7 +137,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
    terms           = newTermsArray;
    terms[numTerms] = probe;
    numTerms        = newNumTerms;
-   return PV_SUCCESS;
+   return status;
 } // end ColumnEnergyProbe::addTerm(BaseProbe *, double)
 
 bool ColumnEnergyProbe::needRecalc(double timevalue) { return true; }
