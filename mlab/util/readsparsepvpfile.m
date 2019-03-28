@@ -1,8 +1,10 @@
-function [data,hdr] = readsparsepvpfile(filename,progressperiod)
-	     % Usage:[data,hdr] = readpvpfile(filename,progressperiod)
-	     % filename is a pvp sparse file type 
+function [data,hdr] = readsparsepvpfile(filename,progressperiod,last_frame)
+% Usage:[data,hdr] = readpvpfile(filename,progressperiod,last_frame)
+%
+% filename is a pvp sparse file type
 % progressperiod is an optional integer argument.  A message is printed
 %     to the screen every progressperiod frames.
+% last_frame is the index of the last frame to read.  Default is all frames.
 %
 % data is an M-by-N sparse array containing the data, where
 %     M is the number of frames in the .pvp file, and
@@ -11,8 +13,6 @@ function [data,hdr] = readsparsepvpfile(filename,progressperiod)
 %     feature index varies fastest, then the x-coordinate, and finally
 %     the y-coordinate varies slowest.
 % hdr is a struct containing the information in the file's header
-
-  addpath('~/openpv/mlab/util');
 
   filedata = dir(filename);
   if length(filedata) ~= 1
@@ -44,9 +44,13 @@ function [data,hdr] = readsparsepvpfile(filename,progressperiod)
       errorident = 'readsparsepvpfile:badfiletype';
       errorstring = sprintf('readsparsepvpfile:File %s is not a sparse pvp file type %d',filename,hdr.filetype);
   end
-  lastframe = numframes;
+  %% last_frames input argument overrides value of numframes
+  if (exist('last_frame','var') && ~isempty(last_frame))
+      lastframe = min(last_frame, numframes);
+  else
+    lastframe = numframes;
+  end%if
   tot_frames = lastframe;
-
 
   if isempty(errorstring)
     data = sparse(tot_frames,hdr.nf*hdr.nx*hdr.ny);
@@ -66,8 +70,8 @@ function [data,hdr] = readsparsepvpfile(filename,progressperiod)
           end%if
         end%if
       end%if
-      data(f,1+data_tmp.values(:,1)) = data_tmp.values(:,2);
-    end%for %% last_frame
+      data(f,1+data_tmp.values(:,1)) = data_tmp.values(:,2)';
+    end%for %% f=1:lastframe
   end%if
 
   fclose(fid);
