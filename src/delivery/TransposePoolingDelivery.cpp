@@ -309,17 +309,6 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
          break;
    }
 
-   float w = 1.0f;
-   if (mAccumulateType == PoolingDelivery::AVGPOOLING) {
-      PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
-      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
-      float relative_XScale     = (float)preLoc->nx / (float)postLoc->nx;
-      float relative_YScale     = (float)preLoc->ny / (float)postLoc->ny;
-      float nxp                 = (float)mPatchSize->getPatchSizeX();
-      float nyp                 = (float)mPatchSize->getPatchSizeY();
-      w                         = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
-   }
-
    PVLayerCube activityCube = mPreData->getPublisher()->createCube(0 /*delay*/);
 
    float *gSyn = destBuffer;
@@ -480,16 +469,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
             int offset = kfPre;
             int sf     = preWeights->getPatchSizeF();
 
-            float w = 1.0f;
-            if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
-               w = 1.0f;
-            }
-            else if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
-               float const nxp     = (float)mPatchSize->getPatchSizeX();
-               float const nyp     = (float)mPatchSize->getPatchSizeY();
-               float const normVal = nxp * nyp;
-               w                   = 1.0f / normVal;
-            }
+            float w      = 1.0f;
             void *auxPtr = NULL;
             for (int y = 0; y < ny; y++) {
                (accumulateFunctionPointer)(
@@ -501,7 +481,6 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
       float relative_YScale = (float)preLoc->ny / (float)postLoc->ny;
       float nxp             = (float)mPatchSize->getPatchSizeX();
       float nyp             = (float)mPatchSize->getPatchSizeY();
-      w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
 
 #ifdef PV_USE_OPENMP_THREADS
       // Set back into gSyn
