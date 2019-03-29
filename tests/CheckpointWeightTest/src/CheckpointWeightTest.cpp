@@ -177,7 +177,7 @@ void verifyCheckpointing(PV::Weights &weights, PV::MPIBlock const mpiBlock) {
    for (int a = 0; a < numArbors; a++) {
       float *w            = weights.getData(a);
       int const arborSize = weights.getNumDataPatches() * numItemsInPatch;
-      for (std::size_t d = 0; d < arborSize; d++) {
+      for (int d = 0; d < arborSize; d++) {
          w[d] = std::numeric_limits<float>::infinity();
       }
    }

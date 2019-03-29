@@ -119,10 +119,10 @@ void CheckpointEntryTimeScaleInfo::write(
       double simTime,
       bool verifyWritesFlag) const {
    if (getMPIBlock()->getRank() == 0) {
-      int batchWidth   = (int)mTimeScaleInfoPtr->mTimeScale.size();
-      std::string path = generatePath(checkpointDirectory, "bin");
+      std::size_t batchWidth = mTimeScaleInfoPtr->mTimeScale.size();
+      std::string path       = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
-      for (int b = 0; b < batchWidth; b++) {
+      for (std::size_t b = 0; b < batchWidth; b++) {
          fileStream.write(&mTimeScaleInfoPtr->mTimeScale.at(b), sizeof(double));
          fileStream.write(&mTimeScaleInfoPtr->mTimeScaleTrue.at(b), sizeof(double));
          fileStream.write(&mTimeScaleInfoPtr->mTimeScaleMax.at(b), sizeof(double));
@@ -147,7 +147,7 @@ void CheckpointEntryTimeScaleInfo::remove(std::string const &checkpointDirectory
 
 void CheckpointEntryTimeScaleInfo::read(std::string const &checkpointDirectory, double *simTimePtr)
       const {
-   int batchWidth = (int)mTimeScaleInfoPtr->mTimeScale.size();
+   std::size_t batchWidth = (int)mTimeScaleInfoPtr->mTimeScale.size();
    if (getMPIBlock()->getRank() == 0) {
       std::string path = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::in, false};

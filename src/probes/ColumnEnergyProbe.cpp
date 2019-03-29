@@ -111,7 +111,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe *probe) {
       }
    }
    assert(probe->getNumValues() == getNumValues());
-   int newNumTerms = numTerms + (size_t)1;
+   auto newNumTerms = numTerms + (std::size_t)1;
    if (newNumTerms <= numTerms) {
       if (this->mCommunicator->commRank() == 0) {
          ErrorLog().printf(
@@ -154,7 +154,7 @@ void ColumnEnergyProbe::calcValues(double timevalue) {
    int numValues        = this->getNumValues();
    memset(valuesBuffer, 0, numValues * sizeof(*valuesBuffer));
    double energy1[numValues];
-   for (int n = 0; n < numTerms; n++) {
+   for (std::size_t n = 0; n < numTerms; n++) {
       BaseProbe *p = terms[n];
       p->getValues(timevalue, energy1);
       double coeff = p->getCoefficient();

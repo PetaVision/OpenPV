@@ -34,7 +34,7 @@ Subject::notify(std::vector<std::shared_ptr<BaseMessage const>> messages, bool p
    Response::Status returnStatus = Response::NO_ACTION;
    std::vector<int> numPostponed(messages.size());
    for (auto *obj : *mTable) {
-      for (int msgIdx = 0; msgIdx < messages.size(); msgIdx++) {
+      for (std::size_t msgIdx = 0; msgIdx < messages.size(); msgIdx++) {
          auto &msg               = messages[msgIdx];
          Response::Status status = obj->respond(msg);
          returnStatus            = returnStatus + status;
@@ -55,7 +55,7 @@ Subject::notify(std::vector<std::shared_ptr<BaseMessage const>> messages, bool p
       }
    }
    if (printFlag) {
-      for (int msgIdx = 0; msgIdx < messages.size(); msgIdx++) {
+      for (std::size_t msgIdx = 0; msgIdx < messages.size(); msgIdx++) {
          int numPostponedThisMsg = numPostponed.at(msgIdx);
          if (numPostponedThisMsg > 0) {
             InfoLog().printf(

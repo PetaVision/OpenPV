@@ -88,7 +88,7 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, d
    }
    if (probeStatus != 0) {
       int nBatch = getNumValues();
-      pvAssert(nBatch == mOutputStreams.size());
+      pvAssert((std::size_t)nBatch == mOutputStreams.size());
       int batchOffset = nBatch * (getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex());
       int globalBatchSize = nBatch * getMPIBlock()->getGlobalBatchDimension();
       for (int localBatchIndex = 0; localBatchIndex < nBatch; localBatchIndex++) {

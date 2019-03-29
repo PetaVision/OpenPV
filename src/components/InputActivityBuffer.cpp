@@ -582,7 +582,7 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
    if (getMPIBlock()->getRank() == 0) {
       int displayPeriodIndex = std::floor(simTime / (mDisplayPeriod * deltaTime));
       if (displayPeriodIndex % mJitterChangeInterval == 0) {
-         for (int b = 0; b < mRandomShiftX.size(); b++) {
+         for (std::size_t b = 0; b < mRandomShiftX.size(); b++) {
             mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2 * mMaxShiftX + 1));
             mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2 * mMaxShiftY + 1));
             if (mXFlipEnabled) {

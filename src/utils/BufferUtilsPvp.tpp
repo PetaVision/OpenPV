@@ -317,7 +317,7 @@ double readSparseBinaryFrame(FileStream &fStream, SparseList<T> *list, T oneValu
    if (numElements > 0) {
       fStream.read(indices.data(), numElements * sizeof(int));
    }
-   for (int i = 0; i < indices.size(); ++i) {
+   for (std::size_t i = 0; i < indices.size(); ++i) {
       contents.at(i).index = indices.at(i);
       contents.at(i).value = oneValue;
    }

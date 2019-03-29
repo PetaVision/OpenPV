@@ -99,7 +99,7 @@ class ColumnEnergyProbe : public ColProbe {
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_reductionInterval(enum ParamsIOFlag ioFlag);
 
-   size_t numTerms;
+   std::size_t numTerms;
    BaseProbe **terms;
 
   private:

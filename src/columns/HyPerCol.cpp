@@ -1145,7 +1145,7 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
       if (deviceVec.size() == 1) {
          device = deviceVec[0];
       }
-      else if (deviceVec.size() >= numMpi) {
+      else if (deviceVec.size() >= (std::size_t)numMpi) {
          device = deviceVec[mCommunicator->globalCommRank()];
       }
       else {
