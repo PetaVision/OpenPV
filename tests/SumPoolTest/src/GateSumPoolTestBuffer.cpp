@@ -20,11 +20,7 @@ void GateSumPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
    int ny                = loc->ny;
-   int nxGlobal          = loc->nxGlobal;
-   int nyGlobal          = loc->nyGlobal;
    int nf                = loc->nf;
-   int kx0               = loc->kx0;
-   int ky0               = loc->ky0;
 
    bool isCorrect = true;
    // Grab the activity layer of current layer
@@ -44,10 +40,10 @@ void GateSumPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
 
                float actualvalue = A[ext_idx];
 
-               int xval = (iX + kx0 - loc->halo.lt) / 2;
-               int yval = (iY + ky0 - loc->halo.up) / 2;
-               FatalIf(!(xval >= 0 && xval < loc->nxGlobal), "Test failed.\n");
-               FatalIf(!(yval >= 0 && yval < loc->nxGlobal), "Test failed.\n");
+               int xval = (iX + loc->kx0 - loc->halo.lt) / 2;
+               int yval = (iY + loc->ky0 - loc->halo.up) / 2;
+               FatalIf(xval < 0 or xval >= loc->nxGlobal, "Test failed.\n");
+               FatalIf(yval < 0 or yval >= loc->nyGlobal, "Test failed.\n");
 
                float expectedvalue;
                expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5;
