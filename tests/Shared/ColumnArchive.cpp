@@ -45,7 +45,7 @@ bool LayerArchive::operator==(LayerArchive const &comparison) const {
                int const f = featureIndex(n, nx, ny, nf);
                std::stringstream fieldstream("");
                fieldstream << "values in batch element " << b << " at x=" << x << ",y=" << y
-                           << ",f=";
+                           << ",f=" << f;
                compareFields("Activities", fieldstream.str().c_str(), dat1[nExt1], dat2[nExt2]);
                areEqual = false;
             }
@@ -80,7 +80,7 @@ bool ConnArchive::operator==(ConnArchive const &comparison) const {
                   int const f = featureIndex(widx, nxp, nyp, nfp);
                   std::stringstream fieldstream("");
                   fieldstream << "values in data patch " << patchIdx << " at x=" << x << ",y=" << y
-                              << ",f=";
+                              << ",f=" << f;
                   compareFields(
                         "Weights", fieldstream.str().c_str(), patchdata1[widx], patchdata2[widx]);
                   areEqual = false;
