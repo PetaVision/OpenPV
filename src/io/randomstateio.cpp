@@ -81,11 +81,18 @@ void writeRandState(
    for (int m = 0; m < mpiBlock->getBatchDimension(); m++) {
       for (int b = 0; b < loc->nbatch; b++) {
          auto localData = &randState[b * numLocal];
-         Buffer<taus_uint4> localBuffer{randState, nxLocal, nyLocal, nf};
+         Buffer<taus_uint4> localBuffer{localData, nxLocal, nyLocal, nf};
          Buffer<taus_uint4> globalBuffer =
                BufferUtils::gather(mpiBlock, localBuffer, loc->nx, loc->ny, m, 0);
          if (mpiBlock->getRank() == 0) {
-            BufferUtils::writeToPvp<taus_uint4>(path.c_str(), &globalBuffer, simTime, verifyWrites);
+            if (b == 0) {
+               BufferUtils::writeToPvp<taus_uint4>(
+                     path.c_str(), &globalBuffer, simTime, verifyWrites);
+            }
+            else {
+               BufferUtils::appendToPvp<taus_uint4>(
+                     path.c_str(), &globalBuffer, b, simTime, verifyWrites);
+            }
          }
       }
    }
