@@ -69,27 +69,23 @@ void bicubicInterp(
 
    // Interpolation using bicubic convolution with a = -1
    // (following Octave image toolbox's imremap function - change this?)
-   float xinterp[widthOut];
    int xinteger[widthOut];
    float xfrac[widthOut];
    float dx = (float)(widthIn - 1) / (float)(widthOut - 1);
 
    for (int kx = 0; kx < widthOut; kx++) {
       float x      = dx * (float)kx;
-      xinterp[kx]  = x;
       float xfloor = floorf(x);
       xinteger[kx] = (int)xfloor;
       xfrac[kx]    = x - xfloor;
    }
 
-   float yinterp[heightOut];
    int yinteger[heightOut];
    float yfrac[heightOut];
    float dy = (float)(heightIn - 1) / (float)(heightOut - 1);
 
    for (int ky = 0; ky < heightOut; ky++) {
       float y      = dy * (float)ky;
-      yinterp[ky]  = y;
       float yfloor = floorf(y);
       yinteger[ky] = (int)yfloor;
       yfrac[ky]    = y - yfloor;

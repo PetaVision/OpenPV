@@ -74,18 +74,6 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(float *dataStart, int a
             }
             else {
                float theta2pi = atan2f(yp, xp) / (2 * PI);
-               unsigned int xpraw, ypraw, atanraw;
-               union u {
-                  float f;
-                  unsigned int i;
-               };
-               union u f2u;
-               f2u.f   = xp;
-               xpraw   = f2u.i;
-               f2u.f   = yp;
-               ypraw   = f2u.i;
-               f2u.f   = theta2pi;
-               atanraw = f2u.i;
                if (theta2pi < 0) {
                   theta2pi += 1;
                }

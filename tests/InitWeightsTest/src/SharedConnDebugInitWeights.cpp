@@ -353,19 +353,21 @@ void SharedConnDebugInitWeights::cocircCalcWeights(
       int iThPost     = kfPost % noPost;
       float thetaPost = th0Post + iThPost * dThPost;
 
-      int iKvPost        = kfPost % nKurvePost;
-      bool iPosKurvePost = false;
-      bool iSaddlePost   = false;
-      float radKurvPost  = delta_radius_curvature + iKvPost * delta_radius_curvature;
-      float kurvePost    = (radKurvPost != 0.0f) ? 1 / radKurvPost : 1.0f;
-      int iKvPostAdj     = iKvPost;
+      int iKvPost = kfPost % nKurvePost;
+      // InitCocircWeights calculates IPosKurvePost and ISaddlePost as data members,
+      // but this test does not check their values. Possible TODO: add these checks?
+      // bool iPosKurvePost = false;
+      // bool iSaddlePost   = false;
+      float radKurvPost = delta_radius_curvature + iKvPost * delta_radius_curvature;
+      float kurvePost   = (radKurvPost != 0.0f) ? 1 / radKurvPost : 1.0f;
+      int iKvPostAdj    = iKvPost;
       if (POS_KURVE_FLAG) {
          FatalIf(!(nKurvePost >= 2), "Test failed.\n");
-         iPosKurvePost = iKvPost >= (int)(nKurvePost / 2);
+         // iPosKurvePost = iKvPost >= (int)(nKurvePost / 2);
          if (SADDLE_FLAG) {
             FatalIf(!(nKurvePost >= 4), "Test failed.\n");
-            iSaddlePost = (iKvPost % 2 == 0) ? 0 : 1;
-            iKvPostAdj  = ((iKvPost % (nKurvePost / 2)) / 2);
+            // iSaddlePost = (iKvPost % 2 == 0) ? 0 : 1;
+            iKvPostAdj = ((iKvPost % (nKurvePost / 2)) / 2);
          }
          else { // SADDLE_FLAG
             iKvPostAdj = (iKvPost % (nKurvePost / 2));
