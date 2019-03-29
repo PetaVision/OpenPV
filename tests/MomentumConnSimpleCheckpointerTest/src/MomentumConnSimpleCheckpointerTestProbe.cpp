@@ -204,10 +204,9 @@ MomentumConnSimpleCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointe
    return PV::Response::SUCCESS;
 }
 
-void MomentumConnSimpleCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
-   int const updateNumber = mStartingTimestamp + timevalue;
-   auto *momentumUpdater  = mConnection->getComponentByType<PV::MomentumUpdater>();
-   float const tau        = momentumUpdater->getTimeConstantTau();
+void MomentumConnSimpleCheckpointerTestProbe::initializeCorrectValues() {
+   auto *momentumUpdater = mConnection->getComponentByType<PV::MomentumUpdater>();
+   float const tau       = momentumUpdater->getTimeConstantTau();
    mCorrectState =
          new CorrectState(tau, 1.0f /*weight*/, 0.0f /*dw*/, 1.0f /*input*/, 1.0f /*output*/);
 }
@@ -215,7 +214,7 @@ void MomentumConnSimpleCheckpointerTestProbe::initializeCorrectValues(double tim
 PV::Response::Status
 MomentumConnSimpleCheckpointerTestProbe::outputState(double simTime, double deltaTime) {
    if (!mValuesSet) {
-      initializeCorrectValues(simTime);
+      initializeCorrectValues();
       mValuesSet = true;
    }
    int const updateNumber = mStartingTimestamp + simTime;

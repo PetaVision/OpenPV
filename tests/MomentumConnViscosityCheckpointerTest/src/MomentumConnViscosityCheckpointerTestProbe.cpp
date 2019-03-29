@@ -201,11 +201,10 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::readStateFromCh
    return PV::Response::SUCCESS;
 }
 
-void MomentumConnViscosityCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
-   int const updateNumber = mStartingTimestamp + timevalue;
-   auto *momentumUpdater  = mConnection->getComponentByType<PV::MomentumUpdater>();
-   float const tau        = momentumUpdater->getTimeConstantTau();
-   float const tau_exp    = std::exp(-1.0f / tau);
+void MomentumConnViscosityCheckpointerTestProbe::initializeCorrectValues() {
+   auto *momentumUpdater = mConnection->getComponentByType<PV::MomentumUpdater>();
+   float const tau       = momentumUpdater->getTimeConstantTau();
+   float const tau_exp   = std::exp(-1.0f / tau);
    mCorrectState =
          new CorrectState(tau_exp, 1.0f /*weight*/, 0.0f /*dw*/, 1.0f /*input*/, 1.0f /*output*/);
 }
@@ -213,7 +212,7 @@ void MomentumConnViscosityCheckpointerTestProbe::initializeCorrectValues(double 
 PV::Response::Status
 MomentumConnViscosityCheckpointerTestProbe::outputState(double simTime, double deltaTime) {
    if (!mValuesSet) {
-      initializeCorrectValues(simTime);
+      initializeCorrectValues();
       mValuesSet = true;
    }
    int const updateNumber = mStartingTimestamp + simTime;
