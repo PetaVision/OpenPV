@@ -213,7 +213,6 @@ void MaskActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif
       for (int ni = 0; ni < numNeurons; ni++) {
-         int kThisRes = ni;
          int kThisExt = kIndexExtended(
                ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          bool maskVal = true;

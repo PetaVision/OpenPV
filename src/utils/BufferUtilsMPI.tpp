@@ -214,7 +214,6 @@ gatherSparse(MPIBlock const *mpiBlock, SparseList<T> list, int mpiBatchIndex, in
    else if (mpiBlock->getBatchIndex() == mpiBatchIndex) {
       vector<struct SparseList<T>::Entry> toSend = list.getContents();
       uint32_t numToSend                         = toSend.size();
-      int batchElementRoot = mpiBlock->calcRankFromRowColBatch(0, 0, mpiBlock->getBatchIndex());
       MPI_Send(&numToSend, 1, MPI_INT, destProcess, 33, mpiBlock->getComm());
       if (numToSend > 0) {
          MPI_Send(

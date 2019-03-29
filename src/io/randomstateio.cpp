@@ -19,7 +19,6 @@ double readRandState(
       nyGlobal += loc->halo.dn + loc->halo.up;
    }
    int const nf          = loc->nf;
-   int const numGlobal   = nxGlobal * nyGlobal * nf;
    int const rootProcess = 0; // process that does the I/O.
 
    Buffer<taus_uint4> buffer{nxGlobal, nyGlobal, nf};

@@ -89,7 +89,6 @@ void GapActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    int nx                          = loc->nx;
    int ny                          = loc->ny;
    int nf                          = loc->nf;
-   int num_neurons                 = nx * ny * nf;
    PVHalo const &origHalo          = mOriginalActivity->getLayerLoc()->halo;
    int lt                          = loc->halo.lt;
    int rt                          = loc->halo.rt;
@@ -104,7 +103,6 @@ void GapActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    int const numNeuronsAcrossBatch = numNeurons * loc->nbatch;
    float const *V                  = mInternalState->getBufferData();
    float const *checkActive        = mOriginalActivity->getBufferData();
-   int numCheckActive              = (nx + orig_lt + orig_rt) * (ny + orig_dn + orig_up) * nf;
    float *A                        = mBufferData.data();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)

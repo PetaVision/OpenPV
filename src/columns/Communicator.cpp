@@ -146,7 +146,6 @@ Communicator::~Communicator() {
  */
 int Communicator::neighborInit() {
    int num_neighbors = 0;
-   int num_borders   = 0;
 
    // initialize neighbor and border lists
    // (local borders and remote neighbors form the complete neighborhood)

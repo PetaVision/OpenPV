@@ -256,7 +256,6 @@ void SegmentifyBuffer::checkLabelValBuf(int newSize) {
 
 void SegmentifyBuffer::buildLabelToIdx(int batchIdx) {
    Communicator const *icComm = mCommunicator;
-   int numMpi                 = icComm->commSize();
    int rank                   = icComm->commRank();
 
    mLabelToIdx.clear();
@@ -366,8 +365,6 @@ void SegmentifyBuffer::calculateLabelVals(int batchIdx) {
    } // End of yi loop
 
    int numLabels = mLabelToIdx.size();
-
-   int rank = icComm->commRank();
 
    // We need to reduce our labelVec array
    for (int fi = 0; fi < srcLoc->nf; fi++) {

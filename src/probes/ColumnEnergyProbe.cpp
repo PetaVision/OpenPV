@@ -173,7 +173,6 @@ Response::Status ColumnEnergyProbe::outputState(double simTime, double deltaTime
    double *valuesBuffer = getValuesBuffer();
    int nbatch           = this->getNumValues();
    pvAssert(nbatch == (int)mOutputStreams.size());
-   char const *probeOutputFilename = getProbeOutputFilename();
    for (int b = 0; b < nbatch; b++) {
       auto stream = *mOutputStreams[b];
       if (!isWritingToFile()) {

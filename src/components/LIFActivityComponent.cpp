@@ -245,8 +245,7 @@ Response::Status LIFActivityComponent::allocateDataStructures() {
    ComponentBuffer::checkDimensionsEqual(mInternalState, mVth);
    ComponentBuffer::checkDimensionsEqual(mInternalState, mActivity);
 
-   PVLayerLoc const *loc = getLayerLoc();
-   mRandState            = new Random(getLayerLoc(), false /*restricted*/);
+   mRandState = new Random(getLayerLoc(), false /*restricted*/);
    return Response::SUCCESS;
 }
 

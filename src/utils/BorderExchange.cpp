@@ -175,12 +175,11 @@ int BorderExchange::wait(std::vector<MPI_Request> &req) {
  * If there is no neighbor, returns a negative value
  */
 int BorderExchange::neighborIndex(int commId, int direction) {
-   int batchDimension = mMPIBlock->getBatchDimension();
-   int numRows        = mMPIBlock->getNumRows();
-   int numColumns     = mMPIBlock->getNumColumns();
-   int rankRowColumn  = commId % (numRows * numColumns);
-   int row            = rowFromRank(rankRowColumn, numRows, numColumns);
-   int column         = columnFromRank(rankRowColumn, numRows, numColumns);
+   int numRows       = mMPIBlock->getNumRows();
+   int numColumns    = mMPIBlock->getNumColumns();
+   int rankRowColumn = commId % (numRows * numColumns);
+   int row           = rowFromRank(rankRowColumn, numRows, numColumns);
+   int column        = columnFromRank(rankRowColumn, numRows, numColumns);
    int neighborRank;
    switch (direction) {
       case LOCAL: return commId;
@@ -326,13 +325,12 @@ int BorderExchange::reverseDirection(int commId, int direction) {
    if (neighbor == commId) {
       return LOCAL;
    }
-   int revdir         = 9 - direction; // Correct unless at an edge of the MPI quilt
-   int batchDimension = mMPIBlock->getBatchDimension();
-   int numRows        = mMPIBlock->getNumRows();
-   int numCols        = mMPIBlock->getNumColumns();
-   int rankRowColumn  = commId % (numRows * numCols);
-   int row            = rowFromRank(rankRowColumn, numRows, numCols);
-   int col            = columnFromRank(rankRowColumn, numRows, numCols);
+   int revdir        = 9 - direction; // Correct unless at an edge of the MPI quilt
+   int numRows       = mMPIBlock->getNumRows();
+   int numCols       = mMPIBlock->getNumColumns();
+   int rankRowColumn = commId % (numRows * numCols);
+   int row           = rowFromRank(rankRowColumn, numRows, numCols);
+   int col           = columnFromRank(rankRowColumn, numRows, numCols);
    switch (direction) {
       case LOCAL:
          pvAssert(0); // Should have neighbor==commId, so should have already returned

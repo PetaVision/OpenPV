@@ -96,7 +96,6 @@ ActivityComponent::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    }
 #endif // PV_USE_CUDA
 
-   auto &hierarchy         = message->mHierarchy;
    auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
          mTable,
          message->mDeltaTime,
@@ -168,7 +167,10 @@ Response::Status ActivityComponent::readStateFromCheckpoint(Checkpointer *checkp
 Response::Status
 ActivityComponent::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
    Response::Status status = ComponentBasedObject::setCudaDevice(message);
-   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   if (Response::completed(status)) {
+      status = notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   }
+   return status;
 }
 
 Response::Status ActivityComponent::copyInitialStateToGPU() {

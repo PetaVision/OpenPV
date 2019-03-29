@@ -463,7 +463,7 @@ bool Checkpointer::registerCheckpointEntry(
    }
    std::string const &name = checkpointEntry->getName();
    for (auto &c : mCheckpointRegistry) {
-      if (c->getName() == checkpointEntry->getName()) {
+      if (c->getName() == name) {
          return false;
       }
    }
@@ -526,7 +526,7 @@ void Checkpointer::findWarmStartDirectory() {
                for (ftsent = fts_children(fts, 0); ftsent != nullptr; ftsent = ftsent->fts_link) {
                   if (ftsent->fts_statp->st_mode & S_IFDIR) {
                      long int x;
-                     int k = sscanf(ftsent->fts_name, "Checkpoint%ld", &x);
+                     sscanf(ftsent->fts_name, "Checkpoint%ld", &x);
                      if (x > cpIndex) {
                         cpIndex    = x;
                         indexedDir = ftsent->fts_name;

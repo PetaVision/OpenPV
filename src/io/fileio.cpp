@@ -249,11 +249,9 @@ int PV_fseek(PV_Stream *pvstream, long offset, int whence) {
 size_t
 PV_fwrite(const void *RESTRICT ptr, size_t size, size_t nitems, PV_Stream *RESTRICT pvstream) {
    assert(ferror(pvstream->fp) == 0);
-   int fwritecounts            = 0;
-   size_t writesize            = nitems * size;
-   size_t charswritten         = (size_t)0;
-   const char *RESTRICT curptr = (const char *RESTRICT)ptr;
-   long int fpos               = pvstream->filepos;
+   size_t writesize    = nitems * size;
+   size_t charswritten = (size_t)0;
+   long int fpos       = pvstream->filepos;
    if (fpos < 0) {
       Fatal().printf(
             "PV_fwrite error: unable to determine file position of \"%s\".  Fatal error\n",
@@ -488,10 +486,8 @@ int checkDirExists(MPIBlock const *mpiBlock, const char *dirname, struct stat *p
    if (rank != 0) {
       return 0;
    }
-   int status;
-   int errorcode;
    char *expandedDirName = strdup(expandLeadingTilde(dirname).c_str());
-   status                = stat(dirname, pathstat);
+   int status            = stat(dirname, pathstat);
    free(expandedDirName);
    return status ? errno : 0;
 }

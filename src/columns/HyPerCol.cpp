@@ -141,7 +141,8 @@ int HyPerCol::initialize(PV_Init *initObj) {
       int status = chdir(working_dir.c_str());
       if (status) {
          Fatal(chdirMessage);
-         chdirMessage.printf("Unable to switch directory to \"%s\"\n", working_dir.c_str());
+         chdirMessage.printf(
+               "%s unable to switch directory to \"%s\"\n", programName, working_dir.c_str());
          chdirMessage.printf("chdir error: %s\n", strerror(errno));
       }
    }
@@ -618,8 +619,6 @@ int HyPerCol::advanceTime(double sim_time) {
    // At this point all activity from the previous time step has
    // been delivered to the data store.
    //
-
-   int status = PV_SUCCESS;
 
    // Each layer's phase establishes a priority for updating
    for (int phase = 0; phase < mNumPhases; phase++) {

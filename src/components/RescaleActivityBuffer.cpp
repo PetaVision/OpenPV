@@ -749,9 +749,6 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          }
       }
       else if (mMethodCode == LOGREG) {
-         int nx = loc->nx;
-         int ny = loc->ny;
-         int nf = loc->nf;
 // Loop through all nx and ny
 // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside
 // loop)

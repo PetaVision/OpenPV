@@ -124,8 +124,7 @@ int ArborList::convertDelay(double delay, double deltaTime) {
 }
 
 int ArborList::maxDelaySteps() {
-   int maxDelay        = 0;
-   int const numArbors = getNumAxonalArbors();
+   int maxDelay = 0;
    for (auto &d : mDelay) {
       if (d > maxDelay) {
          maxDelay = d;

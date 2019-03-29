@@ -55,13 +55,13 @@ void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
       FileStream fileStream(mVfilename, std::ios_base::in | std::ios_base::binary, false);
       BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(fileStream);
       int fileType                       = header.fileType;
-      if (header.fileType == PVP_NONSPIKING_ACT_FILE_TYPE) {
+      if (fileType == PVP_NONSPIKING_ACT_FILE_TYPE) {
          readDenseActivityPvp(V, loc, fileStream, header);
       }
       else { // TODO: Handle sparse activity pvp files.
          if (getMPIBlock()->getRank() == 0) {
             ErrorLog() << "InitVFromFile: filename \"" << mVfilename << "\" has fileType "
-                       << header.fileType << ", which is not supported for InitVFromFile.\n";
+                       << fileType << ", which is not supported for InitVFromFile.\n";
          }
          MPI_Barrier(getMPIBlock()->getComm());
          MPI_Finalize();

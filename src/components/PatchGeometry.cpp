@@ -316,8 +316,6 @@ void PatchGeometry::setTransposeItemIndices() {
 
          int const kernelIndexFPre =
                featureIndex(kernelIndexPre, mNumKernelsX, mNumKernelsY, mNumKernelsF);
-         int const itemInPatchFPre =
-               featureIndex(itemInPatchPre, mPatchSizeX, mPatchSizeY, mPatchSizeF);
 
          int itemInPatchFPost = kernelIndexFPre;
          int patchSizeFPost   = mNumKernelsF;

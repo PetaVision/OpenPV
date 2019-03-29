@@ -112,8 +112,7 @@ void CudaPoolingDeliverKernel::setArgs(
    float *gSynHead               = (float *)gSynBuffer->getPointer();
    mGSyn                         = &gSynHead[channel * numGSynNeuronsAcrossBatch];
 
-   size_t gSynSize = gSynBuffer->getSize();
-   mCudnnGSyn      = device->createBuffer(numGSynNeuronsAcrossBatch, &str);
+   mCudnnGSyn = device->createBuffer(numGSynNeuronsAcrossBatch, &str);
 }
 
 int CudaPoolingDeliverKernel::calcBorderExcess(
@@ -164,7 +163,7 @@ int CudaPoolingDeliverKernel::do_run() {
    // Permute the PV-ordered GSyn channel to CUDNN ordering.
    int const nxPost = mPostLoc->nx;
    int const nyPost = mPostLoc->ny;
-   int const nfPost = mPostLoc->nf;
+   pvAssert(mPostLoc->nf == nf);
    pvAssert(mPostLoc->nbatch == mPreLoc->nbatch);
    // Calculate grid and work size
    numNeurons              = nbatch * nxPost * nyPost * nf;

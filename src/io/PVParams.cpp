@@ -1704,7 +1704,6 @@ void PVParams::handleUnnecessaryParameter(const char *group_name, const char *pa
 }
 
 void PVParams::handleUnnecessaryStringParameter(const char *group_name, const char *param_name) {
-   int status             = PV_SUCCESS;
    const char *class_name = groupKeywordFromName(group_name);
    if (stringPresent(group_name, param_name)) {
       if (worldRank == 0) {
@@ -1715,7 +1714,7 @@ void PVParams::handleUnnecessaryStringParameter(const char *group_name, const ch
                group_name,
                param_name);
       }
-      const char *params_value = stringValue(group_name, param_name, false /*warnIfAbsent*/);
+      stringValue(group_name, param_name, false /*warnIfAbsent*/);
       // marks param as read so that presentAndNotBeenRead doesn't trip up
    }
 }

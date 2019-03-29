@@ -240,7 +240,6 @@ void PointProbe::calcValues(double timevalue) {
 
 void PointProbe::writeState(double timevalue) {
    if (!mOutputStreams.empty()) {
-      double *valuesBuffer = this->getValuesBuffer();
       output(0).printf("%s t=%.1f V=%6.5f a=%.5f", getMessage(), timevalue, getV(), getA());
       output(0) << std::endl;
    }

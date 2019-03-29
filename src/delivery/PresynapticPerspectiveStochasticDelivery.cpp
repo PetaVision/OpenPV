@@ -215,7 +215,6 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
 }
 
 void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffer) {
-   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 

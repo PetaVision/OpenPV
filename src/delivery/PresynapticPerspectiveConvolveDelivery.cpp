@@ -214,8 +214,7 @@ void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer)
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       for (int b = 0; b < nbatch; b++) {
-         float *recvBatch                                   = recvBuffer + b * numPostRestricted;
-         SparseList<float>::Entry const *activeIndicesBatch = NULL;
+         float *recvBatch = recvBuffer + b * numPostRestricted;
 
 #ifdef PV_USE_OPENMP_THREADS
          clearThreadGSyn();

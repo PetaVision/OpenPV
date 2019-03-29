@@ -36,8 +36,6 @@ int PoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PoolingDelivery::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
-   PVParams *params = parameters();
-
    parameters()->ioParamStringRequired(
          ioFlag, name, "pvpatchAccumulateType", &mPvpatchAccumulateTypeString);
    if (ioFlag == PARAMS_IO_READ) {

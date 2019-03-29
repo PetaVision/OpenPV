@@ -477,10 +477,6 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
             }
          }
       }
-      float relative_XScale = (float)preLoc->nx / (float)postLoc->nx;
-      float relative_YScale = (float)preLoc->ny / (float)postLoc->ny;
-      float nxp             = (float)mPatchSize->getPatchSizeX();
-      float nyp             = (float)mPatchSize->getPatchSizeY();
 
 #ifdef PV_USE_OPENMP_THREADS
       // Set back into gSyn

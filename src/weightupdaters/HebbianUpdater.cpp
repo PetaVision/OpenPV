@@ -581,7 +581,6 @@ void HebbianUpdater::updateInd_dW(
    HyPerLayer *post          = mConnectionData->getPost();
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
-   const float *maskactbuf = NULL;
    const float *preactbuf  = preLayerData + batchID * pre->getNumExtended();
    const float *postactbuf = postLayerData + batchID * post->getNumExtended();
 
@@ -602,8 +601,7 @@ void HebbianUpdater::updateInd_dW(
    size_t offset           = mWeights->getGeometry()->getAPostOffset(kExt);
    const float *postactRef = &postactbuf[offset];
 
-   int sym                 = 0;
-   const float *maskactRef = NULL;
+   int sym = 0;
 
    float *dwdata =
          mDeltaWeights->getDataFromPatchIndex(arborID, kExt) + mDeltaWeights->getPatch(kExt).offset;
