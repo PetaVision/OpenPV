@@ -62,6 +62,11 @@ void Publisher::checkpointDataStore(
          std::make_shared<CheckpointEntryDataStore>(
                objectName, bufferName, checkpointer->getMPIBlock(), store, &mLayerCube->loc),
          false /*not constant*/);
+   FatalIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         objectName,
+         bufferName);
 }
 
 void Publisher::updateAllActiveIndices() {
