@@ -32,7 +32,6 @@ void SegmentifyTest::createComponentTable(char const *description) {
  * 7 7 7 8 8 8 9 9
  */
 float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
-   const PVLayerLoc *loc = getLayerLoc();
    // We can convert yi and xi to an index between 0 and 2
    int newYi               = yi / 3;
    int newXi               = xi / 3;
@@ -62,11 +61,9 @@ float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
 }
 
 int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, float actualVal) {
-   const PVLayerLoc *loc = getLayerLoc();
    // We can convert yi and xi to an index between 0 and 2
    int newYi                = yi / 3;
    int newXi                = xi / 3;
-   int segmentLabel         = newYi * 3 + newXi + 1;
    char const *outputMethod = mSegmentifyBuffer->getOutputMethod();
 
    if (strcmp(outputMethod, "centroid") == 0) {

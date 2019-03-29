@@ -84,7 +84,6 @@ SharedConnDebugInitWeights::initializeState(std::shared_ptr<InitializeStateMessa
 
 void SharedConnDebugInitWeights::initializeSmartWeights(float *dataStart, int numPatches) {
    auto *weightsPair    = getComponentByType<WeightsPair>();
-   Weights *preWeights  = weightsPair->getPreWeights();
    int overallPatchSize = weightsPair->getPreWeights()->getPatchSizeOverall();
    for (int k = 0; k < numPatches; k++) {
       smartWeights(&dataStart[k * overallPatchSize], dataIndexToUnitCellIndex(k));

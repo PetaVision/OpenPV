@@ -19,8 +19,6 @@ void SumPoolTestInputBuffer::updateBufferCPU(double simTime, double deltaTime) {
    int nf                = loc->nf;
    int nxGlobal          = loc->nxGlobal;
    int nyGlobal          = loc->nyGlobal;
-   int kx0               = loc->kx0;
-   int ky0               = loc->ky0;
 
    for (int b = 0; b < loc->nbatch; b++) {
       float *A = mBufferData.data() + b * getBufferSize();

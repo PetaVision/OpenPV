@@ -124,9 +124,8 @@ static int check_borders(float *image, PV::BorderExchange *borderExchanger, PVLa
    int const numRows     = mpiBlock->getNumRows();
    int const numColumns  = mpiBlock->getNumColumns();
 
-   int k0   = columnIndex * nx + rowIndex * ny * loc.nxGlobal;
-   int sy   = nx + halo->lt + halo->rt;
-   int rank = mpiBlock->getRank();
+   int k0 = columnIndex * nx + rowIndex * ny * loc.nxGlobal;
+   int sy = nx + halo->lt + halo->rt;
 
    // northwest
    // Note that if this MPI process is on the northern edge of the MPI quilt,

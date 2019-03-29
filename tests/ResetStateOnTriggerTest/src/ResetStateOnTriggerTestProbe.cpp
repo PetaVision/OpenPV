@@ -22,7 +22,6 @@ void ResetStateOnTriggerTestProbe::initialize(
       char const *name,
       PV::PVParams *params,
       PV::Communicator const *comm) {
-   int status = PV_SUCCESS;
    PV::LayerProbe::initialize(name, params, comm);
 }
 
@@ -89,7 +88,6 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, d
    if (probeStatus != 0) {
       int nBatch = getNumValues();
       pvAssert((std::size_t)nBatch == mOutputStreams.size());
-      int batchOffset = nBatch * (getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex());
       int globalBatchSize = nBatch * getMPIBlock()->getGlobalBatchDimension();
       for (int localBatchIndex = 0; localBatchIndex < nBatch; localBatchIndex++) {
          int nnz = (int)nearbyint(getValuesBuffer()[localBatchIndex]);
@@ -104,7 +102,6 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, d
                         nnz == 1 ? " has" : "s have");
          }
          else {
-            int globalBatchIndex = localBatchIndex + batchOffset;
             output(localBatchIndex)
                   .printf(
                         "%s t=%f, batch element %d, %d neuron%s the wrong value.\n",

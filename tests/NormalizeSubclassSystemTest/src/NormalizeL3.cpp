@@ -69,8 +69,6 @@ int NormalizeL3::normalizeWeights() {
                int nxp               = weights->getPatchSizeX();
                int nyp               = weights->getPatchSizeY();
                int nfp               = weights->getPatchSizeF();
-               int xPatchStride      = weights->getPatchStrideX();
-               int yPatchStride      = weights->getPatchStrideY();
                int weights_per_patch = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weights_per_patch;
                for (int k = 0; k < weights_per_patch; k++) {
@@ -108,8 +106,6 @@ int NormalizeL3::normalizeWeights() {
                int nxp               = weights->getPatchSizeX();
                int nyp               = weights->getPatchSizeY();
                int nfp               = weights->getPatchSizeF();
-               int xPatchStride      = weights->getPatchStrideX();
-               int yPatchStride      = weights->getPatchStrideY();
                int weights_per_patch = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weights_per_patch;
                for (int k = 0; k < weights_per_patch; k++) {

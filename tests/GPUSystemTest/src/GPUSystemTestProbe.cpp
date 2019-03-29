@@ -34,9 +34,6 @@ Response::Status GPUSystemTestProbe::outputState(double simTime, double deltaTim
    }
    auto *targetPublisher = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    PVLayerLoc const *loc = targetPublisher->getLayerLoc();
-   int numExtNeurons     = targetPublisher->getNumExtended() * loc->nbatch;
-   const float *A        = targetPublisher->getLayerData();
-   float sumsq           = 0;
    float tolSigma        = 5e-5;
    for (int b = 0; b < loc->nbatch; b++) {
       // For max std of 5.0fe-5

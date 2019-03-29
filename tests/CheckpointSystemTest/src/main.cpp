@@ -94,9 +94,6 @@ int main(int argc, char *argv[]) {
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    // Rank of the checkpointing MPI communicator does is not publicly accessible, so recreate it.
    Arguments const *arguments = hc->getPV_InitObj()->getArguments();
-   int cellNumRows            = arguments->getIntegerArgument("CheckpointCellNumRows");
-   int cellNumColumns         = arguments->getIntegerArgument("CheckpointCellNumColumns");
-   int cellBatchDimension     = arguments->getIntegerArgument("CheckpointCellBatchDimension");
    MPIBlock mpiBlock(
          hc->getCommunicator()->globalCommunicator(),
          arguments->getIntegerArgument("NumRows"),

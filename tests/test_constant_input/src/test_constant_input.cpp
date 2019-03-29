@@ -194,7 +194,6 @@ int checkLoc(HyPerCol *hc, const PVLayerLoc *loc) {
 
    const int cols = hc->numCommColumns();
    const int rows = hc->numCommRows();
-   const int rank = hc->columnId();
 
    if (loc->nxGlobal != loc->nx * cols) {
       status = PV_FAILURE;

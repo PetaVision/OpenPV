@@ -115,7 +115,6 @@ bool ColumnArchive::operator==(ColumnArchive const &comparison) const {
 
    areEqual &= compareFields(
          "The columns", "numbers of connections", m_conndata.size(), comparison.m_conndata.size());
-   int const nc = m_conndata.size();
    for (auto const &conn1 : m_conndata) {
       bool found = false;
       for (auto const &conn2 : comparison.m_conndata) {

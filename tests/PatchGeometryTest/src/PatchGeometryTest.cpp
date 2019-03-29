@@ -107,8 +107,7 @@ void testOneToOneExtended() {
    patchGeometry.allocateDataStructures();
 
    int numPatches         = patchGeometry.getNumPatches();
-   int expectedNumPatches = (preLoc.nx + preLoc.halo.lt + preLoc.halo.rt)
-                            * (preLoc.ny + preLoc.halo.dn + preLoc.halo.up) * preLoc.nf;
+   int expectedNumPatches = nxExt * nyExt * preLoc.nf;
    FatalIf(
          numPatches != expectedNumPatches,
          "%s: expected %d patches; there were %d.\n",
@@ -125,7 +124,6 @@ void testOneToOneExtended() {
       int numPatchesF = patchGeometry.getNumPatchesF();
       int xIndex      = kxPos(p, numPatchesX, numPatchesY, numPatchesF);
       int yIndex      = kyPos(p, numPatchesX, numPatchesY, numPatchesF);
-      int fIndex      = featureIndex(p, numPatchesX, numPatchesY, numPatchesF);
 
       auto &patch = patchGeometry.getPatch(p);
 
@@ -262,10 +260,10 @@ void testOneToManyExtended() {
    postLoc.nx      = preLoc.nx * tstride;
    postLoc.ny      = preLoc.ny * tstride;
    postLoc.nf      = 10;
-   postLoc.halo.lt = preMargin * tstride;
-   postLoc.halo.rt = preMargin * tstride;
-   postLoc.halo.dn = preMargin * tstride;
-   postLoc.halo.up = preMargin * tstride;
+   postLoc.halo.lt = postMargin;
+   postLoc.halo.rt = postMargin;
+   postLoc.halo.dn = postMargin;
+   postLoc.halo.up = postMargin;
    // Other fields of preLoc, postLoc are not used.
 
    int nxp = (2 * preMargin + 1) * tstride;
@@ -279,8 +277,7 @@ void testOneToManyExtended() {
    patchGeometry.allocateDataStructures();
 
    int numPatches         = patchGeometry.getNumPatches();
-   int expectedNumPatches = (preLoc.nx + preLoc.halo.lt + preLoc.halo.rt)
-                            * (preLoc.ny + preLoc.halo.dn + preLoc.halo.up) * preLoc.nf;
+   int expectedNumPatches = nxExt * nyExt * preLoc.nf;
    FatalIf(
          numPatches != expectedNumPatches,
          "%s: expected %d patches; there were %d.\n",
@@ -301,11 +298,6 @@ void testOneToManyExtended() {
                   patchGeometry.getNumPatchesX(),
                   patchGeometry.getNumPatchesY(),
                   patchGeometry.getNumPatchesF());
-      int fIndex = featureIndex(
-            p,
-            patchGeometry.getNumPatchesX(),
-            patchGeometry.getNumPatchesY(),
-            patchGeometry.getNumPatchesF());
 
       auto &patch = patchGeometry.getPatch(p);
 
@@ -457,9 +449,6 @@ void testManyToOneExtended() {
    int nyp = 2 * postMargin + 1;
    int nfp = 10;
 
-   int xStride = preLoc.nx / postLoc.nx;
-   int yStride = preLoc.ny / postLoc.ny;
-
    int nxExt = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyExt = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
 
@@ -467,8 +456,7 @@ void testManyToOneExtended() {
    patchGeometry.allocateDataStructures();
 
    int numPatches         = patchGeometry.getNumPatches();
-   int expectedNumPatches = (preLoc.nx + preLoc.halo.lt + preLoc.halo.rt)
-                            * (preLoc.ny + preLoc.halo.dn + preLoc.halo.up) * preLoc.nf;
+   int expectedNumPatches = nxExt * nyExt * preLoc.nf;
    FatalIf(
          numPatches != expectedNumPatches,
          "%s: expected %d patches; there were %d.\n",
@@ -497,11 +485,6 @@ void testManyToOneExtended() {
                   patchGeometry.getNumPatchesX(),
                   patchGeometry.getNumPatchesY(),
                   patchGeometry.getNumPatchesF());
-      int fIndex = featureIndex(
-            p,
-            patchGeometry.getNumPatchesX(),
-            patchGeometry.getNumPatchesY(),
-            patchGeometry.getNumPatchesF());
 
       auto &patch = patchGeometry.getPatch(p);
 

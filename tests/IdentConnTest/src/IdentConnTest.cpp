@@ -35,10 +35,6 @@ int main(int argc, char *argv[]) {
    PV::HyPerLayer *preLayerInh0 = findLayer(hc, std::string("PreLayerInh0"));
    PV::HyPerLayer *preLayerInh1 = findLayer(hc, std::string("PreLayerInh1"));
    PV::HyPerLayer *postLayer    = findLayer(hc, std::string("PostLayer"));
-   PV::IdentConn *exc0          = findIdentConn(hc, std::string("Exc0"));
-   PV::IdentConn *exc1          = findIdentConn(hc, std::string("Exc1"));
-   PV::IdentConn *inh0          = findIdentConn(hc, std::string("Inh0"));
-   PV::IdentConn *inh1          = findIdentConn(hc, std::string("Inh1"));
 
    // Give the pre-layers margins, to test converting from extended to restricted indices as needed
    int xMargin = 3;
@@ -47,7 +43,6 @@ int main(int argc, char *argv[]) {
    setMargins(preLayerExc1, xMargin, yMargin);
    setMargins(preLayerInh0, xMargin, yMargin);
    setMargins(preLayerInh1, xMargin, yMargin);
-   int marginResult;
 
    // IdentConn should check that pre and post have the same # of neurons, but let's make sure.
    int const numNeurons = postLayer->getNumNeurons();
@@ -211,7 +206,6 @@ PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName) {
 void setMargins(PV::HyPerLayer *layer, int const xMargin, int const yMargin) {
    auto *geometry = layer->getComponentByType<PV::LayerGeometry>();
    pvAssert(geometry);
-   int marginResult;
    geometry->requireMarginWidth(xMargin, 'x');
    geometry->requireMarginWidth(yMargin, 'y');
    PVLayerLoc const *loc = geometry->getLayerLoc();
