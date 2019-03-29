@@ -423,6 +423,10 @@ void ANNActivityBuffer::checkVertices() const {
          }
       }
    }
+   FatalIf(
+         status != PV_SUCCESS,
+         "%s requires V-coordinates to be nondecreasing.\n",
+         getDescription_c());
 }
 
 void ANNActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
