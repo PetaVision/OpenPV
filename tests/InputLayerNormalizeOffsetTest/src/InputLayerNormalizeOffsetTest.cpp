@@ -252,7 +252,7 @@ void verifyActivity(
                                 false /*no warning if absent*/)
                           != 0;
    FatalIf(
-         !normalizeLuminance,
+         !normalizeStdDev,
          "%s has normalizeStdDev set to false. This test requires it to be true.\n",
          inputName.c_str());
    double stddev = 0.0;
