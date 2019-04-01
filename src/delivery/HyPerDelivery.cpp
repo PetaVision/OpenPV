@@ -31,7 +31,7 @@ int HyPerDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       status = BaseDelivery::ioParamsFillGroup(ioFlag);
    }
-   return PV_SUCCESS;
+   return status;
 }
 
 Response::Status

@@ -184,11 +184,10 @@ Response::Status KernelProbe::outputState(double simTime, double deltaTime) {
    if (mOutputStreams.empty()) {
       return Response::NO_ACTION;
    }
-   const int rank = mCommunicator->commRank();
-   int nxp        = getPatchSize()->getPatchSizeX();
-   int nyp        = getPatchSize()->getPatchSizeY();
-   int nfp        = getPatchSize()->getPatchSizeF();
-   int patchSize  = nxp * nyp * nfp;
+   int nxp       = getPatchSize()->getPatchSizeX();
+   int nyp       = getPatchSize()->getPatchSizeY();
+   int nfp       = getPatchSize()->getPatchSizeF();
+   int patchSize = nxp * nyp * nfp;
 
    const float *wdata  = mWeightData + patchSize * kernelIndex;
    const float *dwdata = outputPlasticIncr ? mDeltaWeightData + patchSize * kernelIndex : nullptr;

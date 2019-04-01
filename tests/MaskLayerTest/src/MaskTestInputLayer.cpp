@@ -28,8 +28,6 @@ Response::Status MaskTestInputLayer::checkUpdateState(double timef, double dt) {
    int nf                = loc->nf;
    int nxGlobal          = loc->nxGlobal;
    int nyGlobal          = loc->nyGlobal;
-   int kx0               = loc->kx0;
-   int ky0               = loc->ky0;
 
    float *A = mActivityComponent->getComponentByType<ActivityBuffer>()->getReadWritePointer();
    // looping over ext

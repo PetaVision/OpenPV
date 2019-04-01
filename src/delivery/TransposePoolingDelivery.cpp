@@ -36,7 +36,7 @@ void TransposePoolingDelivery::setObjectType() { mObjectType = "TransposePooling
 int TransposePoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseDelivery::ioParamsFillGroup(ioFlag);
    ioParam_updateGSynFromPostPerspective(ioFlag);
-   return PV_SUCCESS;
+   return status;
 }
 
 void TransposePoolingDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
@@ -227,19 +227,11 @@ void TransposePoolingDelivery::initializeDeliverKernelArgs() {
    pvAssert(weights);
    int const nxpPost = weights->getPatchSizeX();
    int const nypPost = weights->getPatchSizeY();
-   cudnnPoolingMode_t poolingMode;
-   int multiplier = 1;
-   switch (mAccumulateType) {
-      case PoolingDelivery::MAXPOOLING: poolingMode = CUDNN_POOLING_MAX; break;
-      case PoolingDelivery::SUMPOOLING:
-         poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
-         multiplier  = nxpPost * nypPost;
-         break;
-      case PoolingDelivery::AVGPOOLING:
-         poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
-         break;
-      default: pvAssert(0); break;
-   }
+   int multiplier    = mAccumulateType == PoolingDelivery::SUMPOOLING ? nxpPost * nypPost : 1;
+
+   cudnnPoolingMode_t poolingMode = mAccumulateType == PoolingDelivery::MAXPOOLING
+                                          ? CUDNN_POOLING_MAX
+                                          : CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
    mDeliverKernel = new PVCuda::CudaTransposePoolingDeliverKernel(mCudaDevice);
    mDeliverKernel->setArgs(
          mPreData->getLayerLoc(),
@@ -309,17 +301,6 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
          break;
    }
 
-   float w = 1.0f;
-   if (mAccumulateType == PoolingDelivery::AVGPOOLING) {
-      PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
-      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
-      float relative_XScale     = (float)preLoc->nx / (float)postLoc->nx;
-      float relative_YScale     = (float)preLoc->ny / (float)postLoc->ny;
-      float nxp                 = (float)mPatchSize->getPatchSizeX();
-      float nyp                 = (float)mPatchSize->getPatchSizeY();
-      w                         = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
-   }
-
    PVLayerCube activityCube = mPreData->getPublisher()->createCube(0 /*delay*/);
 
    float *gSyn = destBuffer;
@@ -327,12 +308,11 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
 
    // Grab postIdxLayer's data
    float const *postIdxData = nullptr;
-   int postIdxNumExtended;
+   int postIdxNumExtended   = mOriginalPostIndexData->getNumExtended();
    if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
       pvAssert(mOriginalPostIndexData);
-      PVLayerCube cube   = mOriginalPostIndexData->getPublisher()->createCube(0 /*delay*/);
-      postIdxData        = cube.data;
-      postIdxNumExtended = mOriginalPostIndexData->getNumExtended();
+      PVLayerCube cube = mOriginalPostIndexData->getPublisher()->createCube(0 /*delay*/);
+      postIdxData      = cube.data;
    }
 
    int const nbatch = preLoc->nbatch;
@@ -480,16 +460,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
             int offset = kfPre;
             int sf     = preWeights->getPatchSizeF();
 
-            float w = 1.0f;
-            if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
-               w = 1.0f;
-            }
-            else if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
-               float const nxp     = (float)mPatchSize->getPatchSizeX();
-               float const nyp     = (float)mPatchSize->getPatchSizeY();
-               float const normVal = nxp * nyp;
-               w                   = 1.0f / normVal;
-            }
+            float w      = 1.0f;
             void *auxPtr = NULL;
             for (int y = 0; y < ny; y++) {
                (accumulateFunctionPointer)(
@@ -497,11 +468,6 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
             }
          }
       }
-      float relative_XScale = (float)preLoc->nx / (float)postLoc->nx;
-      float relative_YScale = (float)preLoc->ny / (float)postLoc->ny;
-      float nxp             = (float)mPatchSize->getPatchSizeX();
-      float nyp             = (float)mPatchSize->getPatchSizeY();
-      w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
 
 #ifdef PV_USE_OPENMP_THREADS
       // Set back into gSyn

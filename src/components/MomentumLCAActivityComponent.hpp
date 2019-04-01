@@ -35,7 +35,7 @@ class MomentumLCAActivityComponent : public BaseMomentumActivityComponent {
 
    void initialize(char const *name, PVParams *parameters, Communicator const *comm);
 
-   virtual void setObjectType();
+   virtual void setObjectType() override;
 
    virtual void createComponentTable(char const *tableDescription) override;
 

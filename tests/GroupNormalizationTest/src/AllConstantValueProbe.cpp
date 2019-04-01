@@ -54,10 +54,7 @@ Response::Status AllConstantValueProbe::outputState(double simTime, double delta
             nbatch != (int)mOutputStreams.size(),
             "Number of output streams for %s does not agree with local batch width.\n",
             getDescription_c());
-      int globalBatchOffset =
-            nbatch * (getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex());
       for (int b = 0; b < nbatch; b++) {
-         int globalBatchIndex = globalBatchOffset + b;
          if (fMin[b] < correctValue - nnzThreshold or fMax[b] > correctValue + nnzThreshold) {
             output(b).printf(
                   "     Values outside of tolerance nnzThreshold=%f\n", (double)nnzThreshold);

@@ -32,7 +32,6 @@ void SegmentifyTest::createComponentTable(char const *description) {
  * 7 7 7 8 8 8 9 9
  */
 float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
-   const PVLayerLoc *loc = getLayerLoc();
    // We can convert yi and xi to an index between 0 and 2
    int newYi               = yi / 3;
    int newXi               = xi / 3;
@@ -62,33 +61,15 @@ float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
 }
 
 int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, float actualVal) {
-   const PVLayerLoc *loc = getLayerLoc();
    // We can convert yi and xi to an index between 0 and 2
    int newYi                = yi / 3;
    int newXi                = xi / 3;
-   int segmentLabel         = newYi * 3 + newXi + 1;
    char const *outputMethod = mSegmentifyBuffer->getOutputMethod();
 
    if (strcmp(outputMethod, "centroid") == 0) {
-      int centX, centY;
-      if (newXi == 0) {
-         centX = 1;
-      }
-      else if (newXi == 1) {
-         centX = 4;
-      }
-      else if (newXi == 2) {
-         centX = 6;
-      }
-      if (newYi == 0) {
-         centY = 1;
-      }
-      else if (newYi == 1) {
-         centY = 4;
-      }
-      else if (newYi == 2) {
-         centY = 6;
-      }
+      int centX = newXi == 0 ? 1 : newXi == 1 ? 4 : newXi == 2 ? 6 : -1;
+      int centY = newYi == 0 ? 1 : newYi == 1 ? 4 : newYi == 2 ? 6 : -1;
+      FatalIf(centX < 0 or centY < 0, "Test failed.\n");
 
       if (xi == centX && yi == centY) {
          FatalIf(!(actualVal == targetVal), "Test failed.\n");

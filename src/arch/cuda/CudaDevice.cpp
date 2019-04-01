@@ -100,7 +100,7 @@ int CudaDevice::query_device_info() {
    InfoLog().printf("Number of Cuda devices found: %d\n", num_devices);
    InfoLog().printf("\n");
 
-   for (unsigned int i = 0; i < num_devices; i++) {
+   for (int i = 0; i < num_devices; i++) {
       query_device(i);
    }
    return 0;

@@ -25,7 +25,8 @@ class FixedImageSequence : public PV::HyPerLayer {
     * the pure virtual method defineImageSequence to set the
     * mIndexStart and mIndexSkip data members.
     */
-   PV::Response::Status initializeState(std::shared_ptr<PV::InitializeStateMessage const> message);
+   PV::Response::Status
+   initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) override;
 
    /**
     * A pure virtual method where derived classes should set the data members

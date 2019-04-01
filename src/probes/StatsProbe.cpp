@@ -283,15 +283,14 @@ Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
 
 #ifdef PV_USE_MPI
    mpitimer->start();
-   int ierr;
 
    // In place reduction to prevent allocating a temp recv buffer
-   ierr = MPI_Allreduce(MPI_IN_PLACE, sum, nbatch, MPI_DOUBLE, MPI_SUM, comm);
-   ierr = MPI_Allreduce(MPI_IN_PLACE, sum2, nbatch, MPI_DOUBLE, MPI_SUM, comm);
-   ierr = MPI_Allreduce(MPI_IN_PLACE, nnz, nbatch, MPI_INT, MPI_SUM, comm);
-   ierr = MPI_Allreduce(MPI_IN_PLACE, fMin, nbatch, MPI_FLOAT, MPI_MIN, comm);
-   ierr = MPI_Allreduce(MPI_IN_PLACE, fMax, nbatch, MPI_FLOAT, MPI_MAX, comm);
-   ierr = MPI_Allreduce(MPI_IN_PLACE, &nk, 1, MPI_INT, MPI_SUM, comm);
+   MPI_Allreduce(MPI_IN_PLACE, sum, nbatch, MPI_DOUBLE, MPI_SUM, comm);
+   MPI_Allreduce(MPI_IN_PLACE, sum2, nbatch, MPI_DOUBLE, MPI_SUM, comm);
+   MPI_Allreduce(MPI_IN_PLACE, nnz, nbatch, MPI_INT, MPI_SUM, comm);
+   MPI_Allreduce(MPI_IN_PLACE, fMin, nbatch, MPI_FLOAT, MPI_MIN, comm);
+   MPI_Allreduce(MPI_IN_PLACE, fMax, nbatch, MPI_FLOAT, MPI_MAX, comm);
+   MPI_Allreduce(MPI_IN_PLACE, &nk, 1, MPI_INT, MPI_SUM, comm);
 
    mpitimer->stop();
    if (rank != rcvProc) {

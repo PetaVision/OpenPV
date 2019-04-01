@@ -30,7 +30,9 @@ int IncrementingWeightUpdater::updateWeights(int arborId) {
       float *Wdata  = mWeights->getDataFromDataIndex(arborId, patchIndex);
       float *dWdata = mDeltaWeights->getDataFromDataIndex(arborId, patchIndex);
       for (int k = 0; k < nPatch; k++) {
-         Wdata[k] += 1.0f;
+         float const dw = 1.0f;
+         dWdata[k]      = dw;
+         Wdata[k] += dw;
       }
    }
    return PV_SUCCESS;

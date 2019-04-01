@@ -144,8 +144,6 @@ int SegmentBuffer::checkLabelBufSize(int newSize) {
       return PV_SUCCESS;
    }
 
-   const PVLayerLoc *loc = getLayerLoc();
-
    // Grow buffer
    mLabelBuf = (int *)realloc(mLabelBuf, newSize * sizeof(int));
    mMaxXBuf  = (int *)realloc(mMaxXBuf, newSize * sizeof(int));

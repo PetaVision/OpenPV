@@ -91,14 +91,14 @@ int PatchGeometry::verifyPatchSize(int numPreRestricted, int numPostRestricted, 
    int log2ScaleDiff;
    std::stringstream errMsgStream;
    if (numPreRestricted > numPostRestricted) {
-      int stride = numPreRestricted / numPostRestricted;
+      int stride    = numPreRestricted / numPostRestricted;
+      log2ScaleDiff = (int)std::nearbyint(std::log2(stride));
       if (stride * numPostRestricted != numPreRestricted) {
          errMsgStream << "presynaptic ?-dimension (" << numPreRestricted << ") "
                       << "is greater than but not a multiple of "
                       << "presynaptic ?-dimension (" << numPostRestricted << ")";
       }
       else {
-         log2ScaleDiff = (int)std::nearbyint(std::log2(stride));
          if (2 << (log2ScaleDiff - 1) != stride) {
             errMsgStream << "presynaptic ?-dimension (" << numPreRestricted << ") is a multiple "
                          << "of postsynaptic ?-dimension (" << numPostRestricted << ") "
@@ -107,7 +107,9 @@ int PatchGeometry::verifyPatchSize(int numPreRestricted, int numPostRestricted, 
       }
    }
    else if (numPreRestricted < numPostRestricted) {
-      int tstride = numPostRestricted / numPreRestricted;
+      int tstride          = numPostRestricted / numPreRestricted;
+      int negLog2ScaleDiff = (int)std::nearbyint(std::log2(tstride));
+      log2ScaleDiff        = -negLog2ScaleDiff;
       if (tstride * numPreRestricted != numPostRestricted) {
          errMsgStream << "postsynaptic ?-dimension (" << numPostRestricted << ") "
                       << "is greater than but not an even multiple of "
@@ -120,22 +122,20 @@ int PatchGeometry::verifyPatchSize(int numPreRestricted, int numPostRestricted, 
                       << tstride;
       }
       else {
-         int negLog2ScaleDiff = (int)std::nearbyint(std::log2(tstride));
          if (2 << (negLog2ScaleDiff - 1) != tstride) {
             errMsgStream << "postsynaptic ?-dimension (" << numPostRestricted << ") is a multiple "
                          << "of presynaptic ?-dimension (" << numPreRestricted << ") "
                          << "but the quotient " << tstride << " is not a power of 2";
          }
-         log2ScaleDiff = -negLog2ScaleDiff;
       }
    }
    else {
       pvAssert(numPreRestricted == numPostRestricted);
+      log2ScaleDiff = 0;
       if (patchSize % 2 != 1) {
          errMsgStream << "presynaptic and postsynaptic ?-dimensions are both equal to "
                       << numPreRestricted << ", but patch size " << patchSize << " is not odd";
       }
-      log2ScaleDiff = 0;
    }
    std::string errorMessage(errMsgStream.str());
    if (!errorMessage.empty()) {
@@ -316,8 +316,6 @@ void PatchGeometry::setTransposeItemIndices() {
 
          int const kernelIndexFPre =
                featureIndex(kernelIndexPre, mNumKernelsX, mNumKernelsY, mNumKernelsF);
-         int const itemInPatchFPre =
-               featureIndex(itemInPatchPre, mPatchSizeX, mPatchSizeY, mPatchSizeF);
 
          int itemInPatchFPost = kernelIndexFPre;
          int patchSizeFPost   = mNumKernelsF;

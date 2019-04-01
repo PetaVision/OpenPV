@@ -309,9 +309,6 @@ void testManyToOneNonshared() {
    int nyp = 3;
    int nfp = 10;
 
-   int xStride = preLoc.nx / postLoc.nx;
-   int yStride = preLoc.ny / postLoc.ny;
-
    PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, false, 0.0);
 
    int nxExt = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;

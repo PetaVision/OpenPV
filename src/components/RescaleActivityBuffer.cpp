@@ -31,7 +31,7 @@ void RescaleActivityBuffer::initialize(
 Response::Status RescaleActivityBuffer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = ActivityBuffer::communicateInitInfo(message);
-   if (!Response::completed) {
+   if (!Response::completed(status)) {
       return status;
    }
    if (mOriginalBuffer == nullptr) {
@@ -749,9 +749,6 @@ void RescaleActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          }
       }
       else if (mMethodCode == LOGREG) {
-         int nx = loc->nx;
-         int ny = loc->ny;
-         int nf = loc->nf;
 // Loop through all nx and ny
 // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside
 // loop)

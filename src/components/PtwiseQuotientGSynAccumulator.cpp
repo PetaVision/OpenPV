@@ -48,12 +48,10 @@ Response::Status PtwiseQuotientGSynAccumulator::communicateInitInfo(
 }
 
 void PtwiseQuotientGSynAccumulator::updateBufferCPU(double simTime, double deltaTime) {
-   PVLayerLoc const *loc = getLayerLoc();
-   float const *gSynExc  = mLayerInput->getChannelData(CHANNEL_EXC);
-   float const *gSynInh  = mLayerInput->getChannelData(CHANNEL_INH);
-   float *bufferData     = mBufferData.data();
-   int numNeurons        = getBufferSizeAcrossBatch();
-   int numChannels       = (int)mChannelCoefficients.size();
+   float const *gSynExc = mLayerInput->getChannelData(CHANNEL_EXC);
+   float const *gSynInh = mLayerInput->getChannelData(CHANNEL_INH);
+   float *bufferData    = mBufferData.data();
+   int numNeurons       = getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif

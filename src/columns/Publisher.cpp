@@ -62,6 +62,11 @@ void Publisher::checkpointDataStore(
          std::make_shared<CheckpointEntryDataStore>(
                objectName, bufferName, checkpointer->getMPIBlock(), store, &mLayerCube->loc),
          false /*not constant*/);
+   FatalIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         objectName,
+         bufferName);
 }
 
 void Publisher::updateAllActiveIndices() {
@@ -141,15 +146,15 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
    int exchangeVectorSize = 2 * (mBorderExchanger->getNumNeighbors() - 1);
    for (int b = 0; b < loc->nbatch; b++) {
       // don't send interior
-      pvAssert(requestsVector->size() == b * exchangeVectorSize);
+      pvAssert(requestsVector->size() == (std::size_t)(b * exchangeVectorSize));
 
       float *data = recvBuffer(b, delay);
       std::vector<MPI_Request> batchElementMPIRequest{};
       mBorderExchanger->exchange(data, batchElementMPIRequest);
-      pvAssert(batchElementMPIRequest.size() == exchangeVectorSize);
+      pvAssert(batchElementMPIRequest.size() == (std::size_t)exchangeVectorSize);
       requestsVector->insert(
             requestsVector->end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
-      pvAssert(requestsVector->size() == (b + 1) * exchangeVectorSize);
+      pvAssert(requestsVector->size() == (std::size_t)((b + 1) * exchangeVectorSize));
    }
 
 #endif // PV_USE_MPI

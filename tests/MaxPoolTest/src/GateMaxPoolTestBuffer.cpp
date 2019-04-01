@@ -22,15 +22,10 @@ void GateMaxPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
    }
 
    // Grab layer size
-   const PVLayerLoc *loc = getLayerLoc();
-   int nx                = loc->nx;
-   int ny                = loc->ny;
-   int nf                = loc->nf;
-   int kx0               = loc->kx0;
-   int ky0               = loc->ky0;
+   const int nbatch = getLayerLoc()->nbatch;
 
    bool isCorrect = true;
-   for (int b = 0; b < loc->nbatch; b++) {
+   for (int b = 0; b < nbatch; b++) {
       float const *GSynExt = mLayerInput->getBufferData(b, CHANNEL_EXC); // gated
       float const *GSynInh = mLayerInput->getBufferData(b, CHANNEL_INH); // gt
 

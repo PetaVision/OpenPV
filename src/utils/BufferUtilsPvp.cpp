@@ -33,8 +33,7 @@ WeightHeader buildWeightHeader(
    baseHeader.numRecords = numArbors;
    baseHeader.recordSize = 0;
 
-   int numPatches    = preLayerNxExt * preLayerNyExt * preLayerNf;
-   int numPatchItems = nxp * nyp * nfp;
+   int numPatches = preLayerNxExt * preLayerNyExt * preLayerNf;
    if (compress) {
       baseHeader.dataSize = (int)sizeof(unsigned char);
       baseHeader.dataType = returnDataType<unsigned char>();
@@ -164,9 +163,6 @@ void calcNumberOfPatches(
       int &numPatchesF,
       int &numPatchesXExt,
       int &numPatchesYExt) {
-   int nxPreRestricted = preLayerLoc->nx * numColumnProcesses;
-   int nyPreRestricted = preLayerLoc->ny * numRowProcesses;
-
    numPatchesX = preLayerLoc->nx * numColumnProcesses;
    numPatchesY = preLayerLoc->ny * numRowProcesses;
 

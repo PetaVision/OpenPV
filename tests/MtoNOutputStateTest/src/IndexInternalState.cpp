@@ -41,7 +41,6 @@ IndexInternalState::initializeState(std::shared_ptr<InitializeStateMessage const
 
 void IndexInternalState::updateBufferCPU(double simTime, double deltaTime) {
    PVLayerLoc const *loc = getLayerLoc();
-   PVHalo const &halo    = loc->halo;
    int const numNeurons  = loc->nx * loc->ny * loc->nf;
    pvAssert(numNeurons == getBufferSize());
    int const numGlobalNeurons = loc->nxGlobal * loc->nyGlobal * loc->nf;

@@ -121,7 +121,8 @@ class HyPerLayer : public ComponentBasedObject {
    Response::Status respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage const> message);
 
 #ifdef PV_USE_CUDA
-   virtual Response::Status setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message);
+   virtual Response::Status
+   setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) override;
 #endif // PV_USE_CUDA
 
    virtual Response::Status allocateDataStructures() override;

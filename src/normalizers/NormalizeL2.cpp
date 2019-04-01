@@ -105,8 +105,6 @@ int NormalizeL2::normalizeWeights() {
                int nxp               = weights->getPatchSizeX();
                int nyp               = weights->getPatchSizeY();
                int nfp               = weights->getPatchSizeF();
-               int xPatchStride      = weights->getPatchStrideX();
-               int yPatchStride      = weights->getPatchStrideY();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
                accumulateSumSquared(dataStartPatch, weightsPerPatch, &sumsq);

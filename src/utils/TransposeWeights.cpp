@@ -54,14 +54,11 @@ void TransposeWeights::transpose(
 }
 
 void TransposeWeights::transposeShared(Weights *preWeights, Weights *postWeights, int arbor) {
-   int const numPatchesXPre = preWeights->getNumDataPatchesX();
-   int const numPatchesYPre = preWeights->getNumDataPatchesY();
-   int const numPatchesFPre = preWeights->getNumDataPatchesF();
-   int const numPatchesPre  = preWeights->getNumDataPatches();
-   int const patchSizeXPre  = preWeights->getPatchSizeX();
-   int const patchSizeYPre  = preWeights->getPatchSizeY();
-   int const patchSizeFPre  = preWeights->getPatchSizeF();
-   int const patchSizePre   = patchSizeXPre * patchSizeYPre * patchSizeFPre;
+   int const numPatchesPre = preWeights->getNumDataPatches();
+   int const patchSizeXPre = preWeights->getPatchSizeX();
+   int const patchSizeYPre = preWeights->getPatchSizeY();
+   int const patchSizeFPre = preWeights->getPatchSizeF();
+   int const patchSizePre  = patchSizeXPre * patchSizeYPre * patchSizeFPre;
 
    int const numPatchesXPost = postWeights->getNumDataPatchesX();
    int const numPatchesYPost = postWeights->getNumDataPatchesY();
@@ -72,12 +69,6 @@ void TransposeWeights::transposeShared(Weights *preWeights, Weights *postWeights
 #endif
    for (int patchIndexPre = 0; patchIndexPre < numPatchesPre; patchIndexPre++) {
       for (int itemInPatchPre = 0; itemInPatchPre < patchSizePre; itemInPatchPre++) {
-         int const patchIndexXPre =
-               kxPos(patchIndexPre, numPatchesXPre, numPatchesYPre, numPatchesFPre);
-         int const patchIndexYPre =
-               kyPos(patchIndexPre, numPatchesXPre, numPatchesYPre, numPatchesFPre);
-         int const patchIndexFPre =
-               featureIndex(patchIndexPre, numPatchesXPre, numPatchesYPre, numPatchesFPre);
 
          int itemInPatchPost =
                preWeights->getGeometry()->getTransposeItemIndex(patchIndexPre, itemInPatchPre);
@@ -145,15 +136,7 @@ void TransposeWeights::transposeNonshared(
    PVLayerLoc const &preLoc  = preWeights->getGeometry()->getPreLoc();
    PVLayerLoc const &postLoc = postWeights->getGeometry()->getPreLoc();
 
-   int const nxPre            = preLoc.nx;
-   int const nyPre            = preLoc.ny;
-   int const nfPre            = preLoc.nf;
-   int const numRestrictedPre = nxPre * nyPre * nfPre;
-
-   int const nxPost            = postLoc.nx;
-   int const nyPost            = postLoc.ny;
-   int const nfPost            = postLoc.nf;
-   int const numRestrictedPost = nxPost * nyPost * nfPost;
+   int const nfPost = postLoc.nf;
 
    int const numKernelsXPre = preWeights->getGeometry()->getNumKernelsX();
    int const numKernelsYPre = preWeights->getGeometry()->getNumKernelsY();

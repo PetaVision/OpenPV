@@ -493,7 +493,6 @@ void InputActivityBuffer::initializeBatchIndexer() {
    pvAssert(getMPIBlock());
    pvAssert(getMPIBlock()->getRank() == 0);
    int localBatchCount  = getLayerLoc()->nbatch;
-   int mpiBatchCount    = getMPIBlock()->getBatchDimension();
    int mpiGlobalCount   = getMPIBlock()->getGlobalBatchDimension();
    int globalBatchCount = localBatchCount * mpiGlobalCount;
    int batchOffset      = localBatchCount * getMPIBlock()->getStartBatch();
@@ -547,8 +546,7 @@ void InputActivityBuffer::writeToTimestampStream(double simTime) {
       for (int b = 0; b < blockBatchCount; ++b) {
          int index = mBatchIndexer->getIndex(b);
          outStrStream << "[" << getName() << "] time: " << simTime << ", batch element: " << b + kb0
-                      << ", index: " << mBatchIndexer->getIndex(b) << ","
-                      << describeInput(mBatchIndexer->getIndex(b)) << "\n";
+                      << ", index: " << index << "," << describeInput(index) << "\n";
       }
       size_t len = outStrStream.str().length();
       mTimestampStream->write(outStrStream.str().c_str(), len);
@@ -582,7 +580,7 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
    if (getMPIBlock()->getRank() == 0) {
       int displayPeriodIndex = std::floor(simTime / (mDisplayPeriod * deltaTime));
       if (displayPeriodIndex % mJitterChangeInterval == 0) {
-         for (int b = 0; b < mRandomShiftX.size(); b++) {
+         for (std::size_t b = 0; b < mRandomShiftX.size(); b++) {
             mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2 * mMaxShiftX + 1));
             mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2 * mMaxShiftY + 1));
             if (mXFlipEnabled) {

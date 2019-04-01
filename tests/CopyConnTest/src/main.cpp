@@ -11,7 +11,6 @@
 int runparamsfile(PV_Init *initObj, char const *paramsfile);
 
 int main(int argc, char *argv[]) {
-   int rank         = 0;
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
    if (initObj->getParams()) {
       if (initObj->getWorldRank() == 0) {

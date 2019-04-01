@@ -126,8 +126,6 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
 
    const PVLayerLoc *preLoc  = mPreData->getLayerLoc();
    const PVLayerLoc *postLoc = mPostGSyn->getLayerLoc();
-   const PVHalo *preHalo     = &preLoc->halo;
-   const PVHalo *postHalo    = &mPostGSyn->getLayerLoc()->halo;
 
    PVCuda::CudaBuffer *d_PreData           = mPreData->getCudaDatastore();
    PVCuda::CudaBuffer *d_PostGSyn          = mPostGSyn->getCudaBuffer();
@@ -212,19 +210,8 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
-   int const nxPreExtended  = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
-   int const nyPreExtended  = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
-   int const numPreExtended = nxPreExtended * nyPreExtended * preLoc->nf;
-
-   int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
-
    int nbatch = preLoc->nbatch;
    pvAssert(nbatch == postLoc->nbatch);
-
-   const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
-   const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
-
-   bool const preLayerIsSparse = mPreData->getSparseLayer();
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
@@ -233,10 +220,7 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
 
       mRecvKernel->set_dt_factor(mDeltaTimeFactor);
 
-      // Post layer receives synaptic input
-      // Only with respect to post layer
-      PVLayerLoc const *preLoc  = &activityCube.loc;
-      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
+      PVLayerLoc const *preLoc = &activityCube.loc;
       // If the connection uses gpu to receive, update all buffers
 
       // Update pre datastore, post gsyn, and conn weights only if they're updated
@@ -312,8 +296,7 @@ void PresynapticPerspectiveGPUDelivery::deliverUnitInput(float *recvBuffer) {
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       for (int b = 0; b < nbatch; b++) {
-         float *recvBatch                                   = recvBuffer + b * numPostRestricted;
-         SparseList<float>::Entry const *activeIndicesBatch = nullptr;
+         float *recvBatch = recvBuffer + b * numPostRestricted;
 
 #ifdef PV_USE_OPENMP_THREADS
          clearThreadGSyn();

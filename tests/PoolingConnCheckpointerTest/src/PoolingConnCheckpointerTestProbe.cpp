@@ -254,7 +254,7 @@ bool PoolingConnCheckpointerTestProbe::verifyLayer(
          int *recvBuffer = &badIndicesGlobal.at(r * numNeurons);
          MPI_Irecv(recvBuffer, numNeurons, MPI_INT, r, 211, comm->communicator(), &requests[r - 1]);
       }
-      int status = MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
+      MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
       badIndicesGlobal.erase(
             std::remove_if(
                   badIndicesGlobal.begin(), badIndicesGlobal.end(), [](int j) { return j < 0; }),

@@ -40,7 +40,6 @@ Response::Status AssertZerosProbe::outputState(double simTime, double deltaTime)
    const float *GSyn_I          = targetLayerInputBuffer->getChannelData(CHANNEL_INH);
 
    // getOutputStream().precision(15);
-   float sumsq = 0;
    for (int i = 0; i < numExtNeurons; i++) {
       FatalIf(fabsf(A[i]) >= 5e-4f, "Test failed.\n");
    }

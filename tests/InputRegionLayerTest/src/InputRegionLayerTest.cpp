@@ -34,9 +34,8 @@ void dumpLayerActivity(
 int main(int argc, char *argv[]) {
    PV::PV_Init *pv_init =
          new PV::PV_Init(&argc, &argv, false /* do not allow unrecognized arguments */);
-   PV::HyPerCol *hc              = new PV::HyPerCol(pv_init);
-   std::string const &paramsFile = pv_init->getStringArgument(std::string("ParamsFile"));
-   int status                    = PV_SUCCESS;
+   PV::HyPerCol *hc = new PV::HyPerCol(pv_init);
+   int status       = PV_SUCCESS;
    hc->run();
 
    auto *inputLayer      = getObjectFromName<PV::InputLayer>(std::string("Input"), hc);
@@ -159,7 +158,7 @@ void compareLayers(
    verifyLayerLocs(publisher1, publisher2);
    PV::Buffer<float> layer1buffer = gatherLayer(publisher1, communicator);
    PV::Buffer<float> layer2buffer = gatherLayer(publisher2, communicator);
-   if (communicator->commRank() == 0) {
+   if (communicator->globalCommRank() == 0) {
       FatalIf(
             layer1buffer.getTotalElements() != layer2buffer.getTotalElements(),
             "Buffers from %s and %s do not have the same total number of elements.\n",
@@ -217,33 +216,30 @@ void dumpLayerActivity(
       PV::Buffer<float> &layerBuffer,
       PVLayerLoc const *loc,
       std::string const &description) {
-   int const rootProc = 0;
-   {
-      int nxExtGlobal = loc->nxGlobal + loc->halo.lt + loc->halo.rt;
-      int nyExtGlobal = loc->nyGlobal + loc->halo.dn + loc->halo.up;
-      int nf          = loc->nf;
-      FatalIf(
-            layerBuffer.getTotalElements() != nxExtGlobal * nyExtGlobal * nf,
-            "%s has the wrong number of elements.\n",
-            description.c_str());
-      InfoLog() << description << ":\n";
-      for (int f = 0; f < loc->nf; f++) {
-         InfoLog() << "    Feature index " << f << ":\n";
-         for (int y = 0; y < nyExtGlobal; y++) {
-            if (y == loc->halo.up or y == loc->nyGlobal + loc->halo.up) {
-               InfoLog() << std::string(12, ' ') << std::string(loc->halo.lt * 5, '-') << '+'
-                         << std::string(loc->nxGlobal * 5, '-') << '+'
-                         << std::string(loc->halo.rt * 5, '-') << "\n";
-            }
-            InfoLog().printf("    y = %3d:", y - loc->halo.up);
-            for (int x = 0; x < nxExtGlobal; x++) {
-               if (x == loc->halo.lt or x == loc->nxGlobal + loc->halo.lt) {
-                  printf("|");
-               }
-               InfoLog().printf(" %3.1f ", (double)layerBuffer.at(x, y, f));
-            }
-            InfoLog() << "\n";
+   int nxExtGlobal = loc->nxGlobal + loc->halo.lt + loc->halo.rt;
+   int nyExtGlobal = loc->nyGlobal + loc->halo.dn + loc->halo.up;
+   int nf          = loc->nf;
+   FatalIf(
+         layerBuffer.getTotalElements() != nxExtGlobal * nyExtGlobal * nf,
+         "%s has the wrong number of elements.\n",
+         description.c_str());
+   InfoLog() << description << ":\n";
+   for (int f = 0; f < loc->nf; f++) {
+      InfoLog() << "    Feature index " << f << ":\n";
+      for (int y = 0; y < nyExtGlobal; y++) {
+         if (y == loc->halo.up or y == loc->nyGlobal + loc->halo.up) {
+            InfoLog() << std::string(12, ' ') << std::string(loc->halo.lt * 5, '-') << '+'
+                      << std::string(loc->nxGlobal * 5, '-') << '+'
+                      << std::string(loc->halo.rt * 5, '-') << "\n";
          }
+         InfoLog().printf("    y = %3d:", y - loc->halo.up);
+         for (int x = 0; x < nxExtGlobal; x++) {
+            if (x == loc->halo.lt or x == loc->nxGlobal + loc->halo.lt) {
+               printf("|");
+            }
+            InfoLog().printf(" %3.1f ", (double)layerBuffer.at(x, y, f));
+         }
+         InfoLog() << "\n";
       }
    }
 }

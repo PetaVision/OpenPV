@@ -8,6 +8,9 @@ MovieTestBuffer::MovieTestBuffer(const char *name, PVParams *params, Communicato
 }
 
 void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
+   FatalIf(
+         mBatchMethod == BatchIndexer::RANDOM,
+         "%s has BatchMethod = random. This test does not check that case.\n");
    ImageActivityBuffer::updateBufferCPU(simTime, deltaTime);
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -15,14 +18,50 @@ void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
    int nf                = loc->nf;
    int nbatch            = loc->nbatch;
    int numNeurons        = nx * ny * nf;
+   int batchIndexerData[2 * nbatch];
+   if (getMPIBlock()->getRank() == 0) {
+      for (int b = 0; b < nbatch; b++) {
+         batchIndexerData[b]          = mBatchIndexer->getStartIndex(b);
+         batchIndexerData[b + nbatch] = mBatchIndexer->getSkipAmount(b);
+      }
+   }
+   MPI_Bcast(batchIndexerData, 2 * nbatch, MPI_INT, 0, getMPIBlock()->getComm());
    for (int b = 0; b < nbatch; b++) {
       float const *dataBatch = getBufferData(b);
-      int frameIdx;
+      int startIndex         = batchIndexerData[b];
+      int skipAmount         = batchIndexerData[b + nbatch];
+      int t                  = (int)std::nearbyint(simTime);
+      int frameIdx           = (t - 1) * skipAmount + startIndex;
       if (mBatchMethod == BatchIndexer::BYFILE) {
-         frameIdx = (simTime - 1) * nbatch + b;
+         FatalIf(
+               skipAmount != nbatch,
+               "%s has BatchMethod = byFile, but SkipAmounts[%d] is %d instead of nbatch=%d\n",
+               getDescription_c(),
+               b,
+               skipAmount,
+               nbatch);
+         FatalIf(
+               startIndex != b,
+               "%s has BatchMethod = byFile, but StartIndices[%d] is %d instead of b=%d\n",
+               getDescription_c(),
+               b,
+               startIndex,
+               b);
       }
-      else if (mBatchMethod == BatchIndexer::BYLIST) {
-         frameIdx = b * 2 + (simTime - 1);
+      if (mBatchMethod == BatchIndexer::BYLIST) {
+         FatalIf(
+               skipAmount != 1,
+               "%s has BatchMethod = byList, but SkipAmounts[%d] is %d instead of 1\n",
+               getDescription_c(),
+               b,
+               skipAmount);
+         FatalIf(
+               startIndex != 2 * b,
+               "%s has BatchMethod = byList, but StartIndices[%d] is %d instead of 2*b=%d\n",
+               getDescription_c(),
+               b,
+               startIndex,
+               2 * b);
       }
 
       for (int nkRes = 0; nkRes < numNeurons; nkRes++) {

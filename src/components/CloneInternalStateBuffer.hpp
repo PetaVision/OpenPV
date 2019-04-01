@@ -29,7 +29,7 @@ class CloneInternalStateBuffer : public InternalStateBuffer {
    /**
     * @brief initVType: CloneInternalStateBuffer does not use InitVType.
     */
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
 
    /** @} */
   public:
@@ -50,7 +50,7 @@ class CloneInternalStateBuffer : public InternalStateBuffer {
    /**
     * Sets the read-only pointer to the original layer's read-only pointer.
     */
-   virtual void setReadOnlyPointer();
+   virtual void setReadOnlyPointer() override;
 
   protected:
    InternalStateBuffer *mOriginalBuffer = nullptr;

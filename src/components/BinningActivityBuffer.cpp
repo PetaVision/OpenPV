@@ -158,14 +158,11 @@ void BinningActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    pvAssert(origLoc->nx == currLoc->nx);
    pvAssert(origLoc->ny == currLoc->ny);
    pvAssert(origLoc->nf == 1);
-   int nx = currLoc->nx;
-   int ny = currLoc->ny;
 
    pvAssert(origLoc->halo.lt == currLoc->halo.lt);
    pvAssert(origLoc->halo.rt == currLoc->halo.rt);
    pvAssert(origLoc->halo.dn == currLoc->halo.dn);
    pvAssert(origLoc->halo.up == currLoc->halo.up);
-   PVHalo const *halo = &origLoc->halo;
 
    int numBins    = currLoc->nf;
    float binRange = mBinMax - mBinMin;

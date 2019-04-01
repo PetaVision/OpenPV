@@ -81,9 +81,8 @@ PV::Response::Status FilenameParsingProbe::outputState(double simTime, double de
    for (int b = 0; b < localBatchWidth; b++) {
       float const *activity = publisherComponent->getLayerData(0) + b * numExtended;
       int globalBatchIndex  = localBatchStart + b;
-      int imageIndex        = (globalBatchIndex + displayNumber * globalBatchWidth);
-      imageIndex %= (int)mCategories.size();
-      int expectedCategory = mCategories[imageIndex];
+      int imageIndex        = (globalBatchIndex + displayNumber * globalBatchWidth) % numCategories;
+      int expectedCategory  = mCategories[imageIndex];
 
       for (int k = 0; k < numExtended; k++) {
          int f               = featureIndex(k, nxExt, nyExt, loc->nf);

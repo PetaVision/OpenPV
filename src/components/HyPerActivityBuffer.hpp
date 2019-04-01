@@ -38,7 +38,7 @@ class HyPerActivityBuffer : public VInputActivityBuffer {
     * Note that it does not check whether the internal state buffer has updated; the calling
     * routine needs make sure to do so before updating the activity buffer.
     */
-   virtual void updateBufferCPU(double simTime, double deltaTime);
+   virtual void updateBufferCPU(double simTime, double deltaTime) override;
 };
 
 } // namespace PV

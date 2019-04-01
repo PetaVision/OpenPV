@@ -36,7 +36,6 @@ PV::Response::Status FixedImageSequence::checkUpdateState(double simTime, double
          "FixedImageSequence::checkUpdateState() requires the time argument be an integer.\n");
    PVLayerLoc const *loc = getLayerLoc();
    int timestampInt      = (int)timestampRounded;
-   int globalBatchSize   = getMPIBlock()->getGlobalBatchDimension() * loc->nbatch;
    int localNBatch       = loc->nbatch;
 
    for (int m = 0; m < getMPIBlock()->getBatchDimension(); m++) {

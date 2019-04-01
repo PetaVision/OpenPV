@@ -55,7 +55,6 @@ Response::Status MomentumConnTestProbe::outputState(double simTime, double delta
             getKernelIndex(),
             getArbor());
    }
-   float const *dw = getDeltaWeightData() + getKernelIndex() * patchSize;
 
    int status = PV_SUCCESS;
    for (int k = 0; k < patchSize; k++) {
@@ -71,12 +70,14 @@ Response::Status MomentumConnTestProbe::outputState(double simTime, double delta
       }
 
       if (fabs(((double)(wObserved - wCorrect)) / simTime) > 1e-6) {
-         int y = kyPos(k, nxp, nyp, nfp);
-         int f = featureIndex(k, nxp, nyp, nfp);
+         // int x = kxPos(k, nxp, nyp, nfp);
+         // int y = kyPos(k, nxp, nyp, nfp);
+         // int f = featureIndex(k, nxp, nyp, nfp);
          output(0).printf("        w = %f, should be %f\n", (double)wObserved, (double)wCorrect);
-         exit(EXIT_FAILURE);
+         status = PV_FAILURE;
       }
    }
+   FatalIf(status != PV_SUCCESS, "%s found incorrect weights.\n", getDescription_c());
 
    return Response::SUCCESS;
 }

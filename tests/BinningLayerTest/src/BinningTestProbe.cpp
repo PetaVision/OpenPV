@@ -65,10 +65,9 @@ Response::Status BinningTestProbe::outputState(double simTime, double deltaTime)
    for (int iY = loc->halo.up; iY < ny + loc->halo.up; iY++) {
       for (int iX = loc->halo.up; iX < nx + loc->halo.lt; iX++) {
          for (int iF = 0; iF < nf; iF++) {
-            int origIndexGlobal    = kIndex(iX + kx0, iY + ky0, 0, nxGlobalExt, nyGlobalExt, 1);
-            int binningIndexGlobal = kIndex(iX + kx0, iY + ky0, iF, nxGlobalExt, nyGlobalExt, nf);
-            int binningIndexLocal  = kIndex(iX, iY, iF, nxExt, nyExt, nf);
-            float observedValue    = A[binningIndexLocal];
+            int origIndexGlobal   = kIndex(iX + kx0, iY + ky0, 0, nxGlobalExt, nyGlobalExt, 1);
+            int binningIndexLocal = kIndex(iX, iY, iF, nxExt, nyExt, nf);
+            float observedValue   = A[binningIndexLocal];
             if (binSigma == 0) {
                // Based on the input image, F index should be floor(origIndex/255*32), except
                // that if origIndex==255, F index should be 31.

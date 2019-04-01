@@ -289,7 +289,10 @@ HyPerLayer::respondLayerWriteParams(std::shared_ptr<LayerWriteParamsMessage cons
 #ifdef PV_USE_CUDA
 Response::Status HyPerLayer::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
    Response::Status status = ComponentBasedObject::setCudaDevice(message);
-   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   if (Response::completed(status)) {
+      status = notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   }
+   return status;
 }
 #endif // PV_USE_CUDA
 
@@ -417,10 +420,10 @@ Response::Status
 HyPerLayer::respondLayerUpdateState(std::shared_ptr<LayerUpdateStateMessage const> message) {
    Response::Status status = Response::SUCCESS;
    if (mLayerUpdateController) {
-      mLayerUpdateController->respond(message);
+      status = mLayerUpdateController->respond(message);
    }
    checkUpdateState(message->mTime, message->mDeltaT);
-   return Response::SUCCESS;
+   return status;
 }
 
 Response::Status HyPerLayer::checkUpdateState(double simTime, double deltaTime) {

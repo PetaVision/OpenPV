@@ -71,7 +71,10 @@ void LayerOutputComponent::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
                   "initialWriteTime:\n",
                   getDescription_c(),
                   mInitialWriteTime);
-            warningMessage.printf("    initialWriteTime adjusted to %f\n", mInitialWriteTime);
+            warningMessage.printf(
+                  "    initialWriteTime adjusted from %f to %f\n",
+                  storeInitialWriteTime,
+                  mInitialWriteTime);
          }
       }
    }
@@ -83,7 +86,7 @@ Response::Status LayerOutputComponent::communicateInitInfo(
       setDefaultWriteStep(message);
    }
    auto status = BaseObject::communicateInitInfo(message);
-   if (!Response::completed) {
+   if (!Response::completed(status)) {
       return status;
    }
    mWriteTime = mInitialWriteTime;
@@ -173,7 +176,6 @@ Response::Status LayerOutputComponent::respondLayerOutputState(
 
 Response::Status LayerOutputComponent::outputState(double simTime, double deltaTime) {
    if (simTime >= (mWriteTime - (deltaTime / 2)) and mWriteStep >= 0) {
-      int writeStatus = PV_SUCCESS;
       mWriteTime += mWriteStep;
       PVLayerCube cube = mPublisher->getPublisher()->createCube(0 /*delay*/);
       if (mPublisher->getSparseLayer()) {

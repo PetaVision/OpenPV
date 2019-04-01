@@ -121,7 +121,6 @@ void verifyCheckpointing(PV::Weights &weights, PV::MPIBlock const mpiBlock) {
    // values inside a shrunken patch on another.
    if (!shared) {
       for (int a = 0; a < numArbors; a++) {
-         float *arborDataStart = weights.getData(a);
          for (int p = 0; p < numDataPatches; p++) {
             PV::Patch const &patch = weights.getPatch(p);
             float *w               = weights.getDataFromDataIndex(a, p);
@@ -177,7 +176,7 @@ void verifyCheckpointing(PV::Weights &weights, PV::MPIBlock const mpiBlock) {
    for (int a = 0; a < numArbors; a++) {
       float *w            = weights.getData(a);
       int const arborSize = weights.getNumDataPatches() * numItemsInPatch;
-      for (std::size_t d = 0; d < arborSize; d++) {
+      for (int d = 0; d < arborSize; d++) {
          w[d] = std::numeric_limits<float>::infinity();
       }
    }

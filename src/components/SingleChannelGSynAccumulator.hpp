@@ -29,12 +29,12 @@ class SingleChannelGSynAccumulator : public GSynAccumulator {
     * @brief channelIndices: SingleChannelGSynAccumulator does not use channelIndices.
     * channel coefficients will be specified.
     */
-   virtual void ioParam_channelIndices(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_channelIndices(enum ParamsIOFlag ioFlag) override;
 
    /**
     * @brief channelIndices: SingleChannelGSynAccumulator does not use channelCoefficients.
     */
-   virtual void ioParam_channelCoefficients(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_channelCoefficients(enum ParamsIOFlag ioFlag) override;
 
    /** @} */
   public:
@@ -42,7 +42,7 @@ class SingleChannelGSynAccumulator : public GSynAccumulator {
 
    virtual ~SingleChannelGSynAccumulator();
 
-   virtual void updateBufferCPU(double simTime, double deltaTime);
+   virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
   protected:
    SingleChannelGSynAccumulator() {}

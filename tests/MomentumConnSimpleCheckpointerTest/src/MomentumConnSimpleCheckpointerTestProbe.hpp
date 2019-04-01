@@ -78,7 +78,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
     */
    PV::Response::Status checkCommunicatedFlag(PV::BaseObject *dependencyObject);
 
-   void initializeCorrectValues(double timevalue);
+   void initializeCorrectValues();
 
    bool verifyConnection(
          PV::ComponentBasedObject *connection,

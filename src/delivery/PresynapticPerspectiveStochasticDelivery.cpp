@@ -6,6 +6,7 @@
  */
 
 #include "PresynapticPerspectiveStochasticDelivery.hpp"
+#include <cmath>
 
 // Note: there is a lot of code duplication between PresynapticPerspectiveConvolveDelivery
 // and PresynapticPerspectiveStochasticDelivery.
@@ -214,7 +215,6 @@ void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
 }
 
 void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffer) {
-   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
@@ -264,7 +264,7 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
                float const *weightDataHead  = weights->getDataFromPatchIndex(arbor, kPreExt);
                float const *weightDataStart = &weightDataHead[patch->offset];
                taus_uint4 *rng              = mRandState->getRNG(kPreExt);
-               long along                   = (long)cl_random_max();
+               long along                   = (long)std::floor((double)a * cl_random_max());
 
                float *v                  = postPatchStart + y * sy;
                float const *weightValues = weightDataStart + y * syw;

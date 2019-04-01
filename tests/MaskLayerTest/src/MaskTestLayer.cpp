@@ -46,8 +46,6 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;
-   int kx0               = loc->kx0;
-   int ky0               = loc->ky0;
 
    bool isCorrect = true;
    for (int b = 0; b < loc->nbatch; b++) {

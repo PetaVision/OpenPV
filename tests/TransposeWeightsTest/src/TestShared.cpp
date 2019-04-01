@@ -78,9 +78,7 @@ int TestShared(
    PV::Weights originalWeights = createOriginalWeights(
          shared, nxPre, nyPre, nfPre, nxPost, nyPost, nfPost, patchSizeXPre, patchSizeYPre, comm);
 
-   int const patchSizeFPre    = originalWeights.getPatchSizeF();
-   int const numPatchItemsPre = originalWeights.getPatchSizeOverall();
-   int const numKernelsPre    = originalWeights.getGeometry()->getNumKernels();
+   int const patchSizeFPre = originalWeights.getPatchSizeF();
 
    std::string transposeWeightsName("Transpose");
    PV::Weights transposeWeights(

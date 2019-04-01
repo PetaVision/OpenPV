@@ -30,11 +30,9 @@ void SquaredGSynAccumulator::setObjectType() { mObjectType = "SquaredGSynAccumul
 void SquaredGSynAccumulator::initializeChannelCoefficients() { mChannelCoefficients = {1.0f}; }
 
 void SquaredGSynAccumulator::updateBufferCPU(double simTime, double deltaTime) {
-   PVLayerLoc const *loc = getLayerLoc();
-   float const *gSynExc  = mLayerInput->getChannelData(CHANNEL_EXC);
-   float *bufferData     = mBufferData.data();
-   int numNeurons        = getBufferSizeAcrossBatch();
-   int numChannels       = (int)mChannelCoefficients.size();
+   float const *gSynExc = mLayerInput->getChannelData(CHANNEL_EXC);
+   float *bufferData    = mBufferData.data();
+   int numNeurons       = getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif

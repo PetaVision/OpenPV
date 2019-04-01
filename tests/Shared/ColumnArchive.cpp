@@ -45,7 +45,7 @@ bool LayerArchive::operator==(LayerArchive const &comparison) const {
                int const f = featureIndex(n, nx, ny, nf);
                std::stringstream fieldstream("");
                fieldstream << "values in batch element " << b << " at x=" << x << ",y=" << y
-                           << ",f=";
+                           << ",f=" << f;
                compareFields("Activities", fieldstream.str().c_str(), dat1[nExt1], dat2[nExt2]);
                areEqual = false;
             }
@@ -73,14 +73,14 @@ bool ConnArchive::operator==(ConnArchive const &comparison) const {
          for (int patchIdx = 0; patchIdx < numDataPatches; patchIdx++) {
             float const *patchdata1 = &arbor1.data()[patchIdx * patchSize];
             float const *patchdata2 = &arbor2.data()[patchIdx * patchSize];
-            for (int widx; widx < patchSize; widx++) {
+            for (int widx = 0; widx < patchSize; widx++) {
                if (std::fabs(patchdata1[widx] - patchdata2[widx]) > tolerance) {
                   int const x = kxPos(widx, nxp, nyp, nfp);
                   int const y = kyPos(widx, nxp, nyp, nfp);
                   int const f = featureIndex(widx, nxp, nyp, nfp);
                   std::stringstream fieldstream("");
                   fieldstream << "values in data patch " << patchIdx << " at x=" << x << ",y=" << y
-                              << ",f=";
+                              << ",f=" << f;
                   compareFields(
                         "Weights", fieldstream.str().c_str(), patchdata1[widx], patchdata2[widx]);
                   areEqual = false;
@@ -115,7 +115,6 @@ bool ColumnArchive::operator==(ColumnArchive const &comparison) const {
 
    areEqual &= compareFields(
          "The columns", "numbers of connections", m_conndata.size(), comparison.m_conndata.size());
-   int const nc = m_conndata.size();
    for (auto const &conn1 : m_conndata) {
       bool found = false;
       for (auto const &conn2 : comparison.m_conndata) {

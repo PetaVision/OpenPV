@@ -21,13 +21,11 @@ Response::Status L2ConnProbe::outputState(double simTime, double deltaTime) {
       return Response::NO_ACTION;
    }
    pvAssert(getTargetConn() != nullptr);
-   const int rank = mCommunicator->commRank();
-   int nxp        = getPatchSize()->getPatchSizeX();
-   int nyp        = getPatchSize()->getPatchSizeY();
-   int nfp        = getPatchSize()->getPatchSizeF();
-   int patchSize  = nxp * nyp * nfp;
+   int nxp       = getPatchSize()->getPatchSizeX();
+   int nyp       = getPatchSize()->getPatchSizeY();
+   int nfp       = getPatchSize()->getPatchSizeF();
+   int patchSize = nxp * nyp * nfp;
 
-   int arborID = getArbor();
    int numKern = getWeights()->getNumDataPatches();
 
    if (numKern != getWeights()->getGeometry()->getPreLoc().nf) {

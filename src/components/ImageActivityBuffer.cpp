@@ -136,8 +136,7 @@ Buffer<float> ImageActivityBuffer::retrieveData(int inputIndex) {
 }
 
 void ImageActivityBuffer::readImage(std::string filename) {
-   const PVLayerLoc *loc = getLayerLoc();
-   bool usingTempFile    = false;
+   bool usingTempFile = false;
 
    // Attempt to download our input file if we've been passed a URL or AWS path
    if (filename.find("://") != std::string::npos) {

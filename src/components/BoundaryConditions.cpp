@@ -289,7 +289,6 @@ void BoundaryConditions::mirrorToSouth(
    int ny           = loc->ny;
    int nf           = loc->nf;
    int leftBorder   = loc->halo.lt;
-   int rightBorder  = loc->halo.rt;
    int topBorder    = loc->halo.up;
    int bottomBorder = loc->halo.dn;
    int nbatch       = loc->nbatch;

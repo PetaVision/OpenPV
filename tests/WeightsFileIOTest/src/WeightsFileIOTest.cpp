@@ -38,9 +38,6 @@ PV::Weights makeWeights(PV::PV_Init &pv_init, std::string const &name, bool shar
    int nfp       = 10;
    int numArbors = 4;
 
-   int xStride = preLoc.nx / postLoc.nx;
-   int yStride = preLoc.ny / postLoc.ny;
-
    PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, numArbors, sharedFlag, 0.0);
    weightsObject.allocateDataStructures();
    return weightsObject;

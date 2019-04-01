@@ -44,7 +44,7 @@ class GSynAccumulator : public RestrictedBuffer {
 
    virtual ~GSynAccumulator();
 
-   virtual void updateBufferCPU(double simTime, double deltaTime);
+   virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
   protected:
    GSynAccumulator() {}
@@ -55,7 +55,7 @@ class GSynAccumulator : public RestrictedBuffer {
 
    virtual void initializeChannelCoefficients();
 
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

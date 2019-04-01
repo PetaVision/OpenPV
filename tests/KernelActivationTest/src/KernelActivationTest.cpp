@@ -87,23 +87,11 @@ int dumponeweight(ComponentBasedObject *conn) {
    int nxp              = patchSize->getPatchSizeX();
    int nyp              = patchSize->getPatchSizeY();
    int nfp              = patchSize->getPatchSizeF();
-   int xcenter          = (nxp - 1) / 2;
-   int ycenter          = (nyp - 1) / 2;
    auto *connectionData = conn->getComponentByType<ConnectionData>();
    HyPerLayer *pre      = connectionData->getPre();
-   HyPerLayer *post     = connectionData->getPost();
-   int nxpre            = pre->getLayerLoc()->nxGlobal;
-   int nypre            = pre->getLayerLoc()->nyGlobal;
    bool usingMirrorBCs  = pre->getComponentByType<BoundaryConditions>()->getMirrorBCflag();
-   auto *preGeom        = pre->getComponentByType<LayerGeometry>();
-   auto *postGeom       = post->getComponentByType<LayerGeometry>();
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   // If xScaleDiff > 0, it's a many-to-one connection.
-   int xScaleDiff = postGeom->getXScale() - preGeom->getXScale();
-   float xFalloff = powf(2, xScaleDiff);
-   int yScaleDiff = postGeom->getYScale() - preGeom->getYScale();
-   float yFalloff = powf(2, yScaleDiff);
 
    auto *weightsPair = conn->getComponentByType<WeightsPair>();
    auto *preWeights  = weightsPair->getPreWeights();
@@ -111,14 +99,10 @@ int dumponeweight(ComponentBasedObject *conn) {
       float *wgtData = preWeights->getDataFromDataIndex(0, p);
       for (int f = 0; f < nfp; f++) {
          for (int x = 0; x < nxp; x++) {
-            int xoffset = abs((int)floor((x - xcenter) * xFalloff));
             for (int y = 0; y < nyp; y++) {
-               int yoffset = abs((int)floor((y - ycenter) * yFalloff));
-               int idx     = kIndex(x, y, f, nxp, nyp, nfp);
+               int idx = kIndex(x, y, f, nxp, nyp, nfp);
                // TODO-CER-2014.4.4 - weight conversion
                float wgt = wgtData[idx];
-               // float correct = usingMirrorBCs ? 1 :
-               // (nxpre-xoffset)*(nypre-yoffset)/((float) (nxpre*nypre));
                // New normalization takes into account if pre is not active
                // The pixel value from the input is actually 127, where we divide it by 255.
                // Not exaclty .5, a little less

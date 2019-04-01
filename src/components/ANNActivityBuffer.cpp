@@ -356,16 +356,17 @@ void ANNActivityBuffer::setVertices() {
    }
    // Check for NaN
    assert(mSlopeNegInf == mSlopeNegInf && mSlopePosInf == mSlopePosInf && mNumVertices > 0);
-   assert(vectorA.size() == mNumVertices && vectorV.size() == mNumVertices);
-   mVerticesV = (float *)malloc((size_t)mNumVertices * sizeof(*mVerticesV));
-   mVerticesA = (float *)malloc((size_t)mNumVertices * sizeof(*mVerticesA));
+   std::size_t numVertices = (std::size_t)mNumVertices;
+   assert(vectorA.size() == numVertices && vectorV.size() == numVertices);
+   mVerticesV = (float *)malloc(numVertices * sizeof(*mVerticesV));
+   mVerticesA = (float *)malloc(numVertices * sizeof(*mVerticesA));
    if (mVerticesV == NULL || mVerticesA == NULL) {
       ErrorLog().printf(
             "%s: unable to allocate memory for vertices:%s\n", getDescription_c(), strerror(errno));
       exit(EXIT_FAILURE);
    }
-   memcpy(mVerticesV, &vectorV[0], mNumVertices * sizeof(*mVerticesV));
-   memcpy(mVerticesA, &vectorA[0], mNumVertices * sizeof(*mVerticesA));
+   memcpy(mVerticesV, &vectorV[0], numVertices * sizeof(*mVerticesV));
+   memcpy(mVerticesA, &vectorA[0], numVertices * sizeof(*mVerticesA));
 }
 
 void ANNActivityBuffer::setSlopes() {
@@ -422,6 +423,10 @@ void ANNActivityBuffer::checkVertices() const {
          }
       }
    }
+   FatalIf(
+         status != PV_SUCCESS,
+         "%s requires V-coordinates to be nondecreasing.\n",
+         getDescription_c());
 }
 
 void ANNActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {

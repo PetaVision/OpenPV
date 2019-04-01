@@ -23,7 +23,7 @@ class SquaredGSynAccumulator : public SingleChannelGSynAccumulator {
 
    virtual ~SquaredGSynAccumulator();
 
-   virtual void updateBufferCPU(double simTime, double deltaTime);
+   virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
   protected:
    SquaredGSynAccumulator() {}

@@ -595,8 +595,8 @@ static inline int
 extendedIndexInBorderRegion(int extK, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int x = kxPos(extK, nx + lt + rt, ny + dn + up, nf);
    int y = kyPos(extK, nx + lt + rt, ny + dn + up, nf);
-   return x < lt | x >= nx + lt | y < up
-          | y >= ny + up; // Which is better: bitwise-or or logical-or?
+   return (x < lt) | (x >= nx + lt) | (y < up) | (y >= ny + up);
+   // Which is better: bitwise-or or logical-or?
 }
 
 // Converts a local ext index into a global res index

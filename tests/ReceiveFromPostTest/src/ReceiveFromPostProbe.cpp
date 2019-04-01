@@ -49,31 +49,10 @@ Response::Status ReceiveFromPostProbe::outputState(double simTime, double deltaT
       return status;
    }
    auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
-   const PVLayerLoc *loc    = publisherComponent->getLayerLoc();
-   int numExtNeurons        = publisherComponent->getNumExtended();
-   const float *A           = publisherComponent->getLayerData();
-   bool failed              = false;
+   int numExtNeurons = publisherComponent->getNumExtended();
+   const float *A    = publisherComponent->getLayerData();
+   bool failed       = false;
    for (int i = 0; i < numExtNeurons; i++) {
-      if (fabsf(A[i]) != 0) {
-         int xpos =
-               kxPos(i,
-                     loc->nx + loc->halo.lt + loc->halo.rt,
-                     loc->ny + loc->halo.dn + loc->halo.up,
-                     loc->nf);
-         int ypos =
-               kyPos(i,
-                     loc->nx + loc->halo.lt + loc->halo.rt,
-                     loc->ny + loc->halo.dn + loc->halo.up,
-                     loc->nf);
-         int fpos = featureIndex(
-               i,
-               loc->nx + loc->halo.lt + loc->halo.rt,
-               loc->ny + loc->halo.dn + loc->halo.up,
-               loc->nf);
-         // InfoLog() << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i]
-         // <<
-         // "\n";
-      }
       // For roundoff errors
       if (fabsf(A[i]) >= tolerance) {
          ErrorLog().printf(

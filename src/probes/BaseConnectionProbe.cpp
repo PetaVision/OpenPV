@@ -98,7 +98,6 @@ Response::Status BaseConnectionProbe::registerData(
 }
 
 void BaseConnectionProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
-   MPIBlock const *mpiBlock = checkpointer->getMPIBlock();
    if (getMPIBlock()->getRank() == 0) {
       char const *probeOutputFilename = getProbeOutputFilename();
       if (probeOutputFilename) {

@@ -377,14 +377,6 @@ void WeightsFileIO::writeNonsharedWeights(double timestamp, bool compress) {
                long lineStartFile = arborStartFile + (long)startFile * (long)patchSizePvpFormat;
                mFileStream->setOutPos(lineStartFile, true /*from beginning of file*/);
 
-               int const startPatchLocal = kIndex(
-                     startPatchX,
-                     y + startPatchY,
-                     0,
-                     mWeights->getNumDataPatchesX(),
-                     mWeights->getNumDataPatchesY(),
-                     mWeights->getNumDataPatchesF());
-
                for (int k = startPatchK; k < endPatchK; k++) {
                   int patchIndexLocal = kIndex(
                         k, y + startPatchY, 0, numDataPatchesK, mWeights->getNumDataPatchesY(), 1);
