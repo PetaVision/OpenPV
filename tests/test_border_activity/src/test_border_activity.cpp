@@ -52,23 +52,16 @@ int main(int argc, char *argv[]) {
 
    HyPerCol *hc = new PV::HyPerCol(initObj);
 
-   const char *imageLayerName  = "test_border_activity_image";
-   const char *retinaLayerName = "test_border_activity_retina";
-   const char *l1LayerName     = "test_border_activity_layer";
-
-   PvpLayer *image = dynamic_cast<PvpLayer *>(hc->getObjectFromName(imageLayerName));
-   assert(image);
-   Retina *retina = dynamic_cast<Retina *>(hc->getObjectFromName(retinaLayerName));
-   assert(retina);
-   ANNLayer *l1 = dynamic_cast<ANNLayer *>(hc->getObjectFromName(l1LayerName));
-   assert(l1);
+   const char *l1LayerName = "test_border_activity_layer";
+   ANNLayer *l1            = dynamic_cast<ANNLayer *>(hc->getObjectFromName(l1LayerName));
+   FatalIf(!l1, "Unable to find layer \"%s\"\n", l1LayerName);
 
    HyPerConn *conn1 =
          dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_border_activity_connection1"));
-   FatalIf(!(conn1), "Test failed.\n");
+   FatalIf(!conn1, "Test failed.\n");
    HyPerConn *conn2 =
          dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_border_activity_connection2"));
-   FatalIf(!(conn2), "Test failed.\n");
+   FatalIf(!conn2, "Test failed.\n");
 
 #ifdef DEBUG_OUTPUT
    PointProbe *p1 = new PointProbe(0, 0, 0, "L1 (0,0,0):");
@@ -97,7 +90,7 @@ int check_activity(HyPerLayer *l) {
    const int nf = l->getLayerLoc()->nf;
 
    const int nk = l->getNumNeurons();
-   FatalIf(!(nk == nx * ny * nf), "Test failed.\n");
+   FatalIf(nk != nx * ny * nf, "%s NumNeurons does not match nx*ny*nf.\n", l->getDescription_c());
 
    auto *activityComponent = l->getComponentByType<ActivityComponent>();
    auto *activityBuffer    = activityComponent->getComponentByType<ActivityBuffer>();
