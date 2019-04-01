@@ -227,19 +227,11 @@ void TransposePoolingDelivery::initializeDeliverKernelArgs() {
    pvAssert(weights);
    int const nxpPost = weights->getPatchSizeX();
    int const nypPost = weights->getPatchSizeY();
-   cudnnPoolingMode_t poolingMode;
-   int multiplier = 1;
-   switch (mAccumulateType) {
-      case PoolingDelivery::MAXPOOLING: poolingMode = CUDNN_POOLING_MAX; break;
-      case PoolingDelivery::SUMPOOLING:
-         poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
-         multiplier  = nxpPost * nypPost;
-         break;
-      case PoolingDelivery::AVGPOOLING:
-         poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
-         break;
-      default: pvAssert(0); break;
-   }
+   int multiplier    = mAccumulateType == PoolingDelivery::SUMPOOLING ? nxpPost * nypPost : 1;
+
+   cudnnPoolingMode_t poolingMode = mAccumulateType == PoolingDelivery::MAXPOOLING
+                                          ? CUDNN_POOLING_MAX
+                                          : CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
    mDeliverKernel = new PVCuda::CudaTransposePoolingDeliverKernel(mCudaDevice);
    mDeliverKernel->setArgs(
          mPreData->getLayerLoc(),
@@ -316,12 +308,11 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
 
    // Grab postIdxLayer's data
    float const *postIdxData = nullptr;
-   int postIdxNumExtended;
+   int postIdxNumExtended   = mOriginalPostIndexData->getNumExtended();
    if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
       pvAssert(mOriginalPostIndexData);
-      PVLayerCube cube   = mOriginalPostIndexData->getPublisher()->createCube(0 /*delay*/);
-      postIdxData        = cube.data;
-      postIdxNumExtended = mOriginalPostIndexData->getNumExtended();
+      PVLayerCube cube = mOriginalPostIndexData->getPublisher()->createCube(0 /*delay*/);
+      postIdxData      = cube.data;
    }
 
    int const nbatch = preLoc->nbatch;

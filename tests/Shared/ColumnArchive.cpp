@@ -73,7 +73,7 @@ bool ConnArchive::operator==(ConnArchive const &comparison) const {
          for (int patchIdx = 0; patchIdx < numDataPatches; patchIdx++) {
             float const *patchdata1 = &arbor1.data()[patchIdx * patchSize];
             float const *patchdata2 = &arbor2.data()[patchIdx * patchSize];
-            for (int widx; widx < patchSize; widx++) {
+            for (int widx = 0; widx < patchSize; widx++) {
                if (std::fabs(patchdata1[widx] - patchdata2[widx]) > tolerance) {
                   int const x = kxPos(widx, nxp, nyp, nfp);
                   int const y = kyPos(widx, nxp, nyp, nfp);

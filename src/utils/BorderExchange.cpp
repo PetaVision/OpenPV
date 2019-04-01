@@ -191,7 +191,10 @@ int BorderExchange::neighborIndex(int commId, int direction) {
       case SOUTHWEST: neighborRank = southwest(row, column, numRows, numColumns); break;
       case SOUTH: neighborRank     = south(row, column, numRows, numColumns); break;
       case SOUTHEAST: neighborRank = southeast(row, column, numRows, numColumns); break;
-      default: pvAssert(0); break;
+      default:
+         neighborRank = -1;
+         pvAssert(0);
+         break;
    }
    if (neighborRank >= 0) {
       int rankBatchStart = commId - rankRowColumn;
@@ -416,6 +419,7 @@ std::size_t BorderExchange::recvOffset(int direction) {
       case SOUTH: offset     = sx * leftBorder + sy * (topBorder + ny); break;
       case SOUTHEAST: offset = sx * leftBorder + sx * nx + sy * (topBorder + ny); break;
       default:
+         offset = -1; // Suppresses g++ maybe-uninitialized warning
          pvAssert(0); /* All allowable directions handled in above cases */
          break;
    }
@@ -466,6 +470,7 @@ std::size_t BorderExchange::sendOffset(int direction) {
                 + sy * (ny + !hasSouthNeighbor * topBorder);
          break;
       default:
+         offset = -1; // Suppresses g++ maybe-uninitialized warning
          pvAssert(0); /* All allowable directions handled in above cases */
          break;
    }

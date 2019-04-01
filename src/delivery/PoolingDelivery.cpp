@@ -224,19 +224,13 @@ void PoolingDelivery::initializeDeliverKernelArgs() {
    PVCuda::CudaBuffer *d_postGSyn     = mPostGSyn->getCudaBuffer();
    Weights *weights                   = mWeightsPair->getPostWeights();
    pvAssert(weights);
+   cudnnPoolingMode_t poolingMode = mAccumulateType == MAXPOOLING
+                                          ? CUDNN_POOLING_MAX
+                                          : CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+
    int const nxpPost = weights->getPatchSizeX();
    int const nypPost = weights->getPatchSizeY();
-   cudnnPoolingMode_t poolingMode;
-   int multiplier = 1;
-   switch (mAccumulateType) {
-      case MAXPOOLING: poolingMode = CUDNN_POOLING_MAX; break;
-      case SUMPOOLING:
-         poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
-         multiplier  = nxpPost * nypPost;
-         break;
-      case AVGPOOLING: poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING; break;
-      default: pvAssert(0); break;
-   }
+   int multiplier    = mAccumulateType == SUMPOOLING ? nxpPost * nypPost : 1;
 
    mRecvKernel = new PVCuda::CudaPoolingDeliverKernel(mCudaDevice);
    mRecvKernel->setArgs(

@@ -28,6 +28,8 @@ class BatchIndexer : public CheckpointerDataInterface {
    void setIndices(const std::vector<int> &indices) { mIndices = indices; }
    void setWrapToStartIndex(bool value) { mWrapToStartIndex = value; }
    bool getWrapToStartIndex() { return mWrapToStartIndex; }
+   int getStartIndex(int b) const { return mStartIndices.at(b); }
+   int getSkipAmount(int b) const { return mSkipAmounts.at(b); }
    std::vector<int> getIndices() { return mIndices; }
 
    virtual Response::Status

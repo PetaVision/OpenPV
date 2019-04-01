@@ -68,6 +68,10 @@ Response::Status WeightComparisonProbe::allocateDataStructures() {
       int const numArbors = c->getComponentByType<ArborList>()->getNumAxonalArbors();
       auto *preWeights    = c->getComponentByType<WeightsPair>()->getPreWeights();
       auto *patchSize     = c->getComponentByType<PatchSize>();
+      numPatches          = preWeights->getNumDataPatches();
+      nxp                 = patchSize->getPatchSizeX();
+      nyp                 = patchSize->getPatchSizeY();
+      nfp                 = patchSize->getPatchSizeF();
       if (initialized) {
          FatalIf(
                numArbors != mNumArbors,
@@ -75,8 +79,8 @@ Response::Status WeightComparisonProbe::allocateDataStructures() {
                firstConn.c_str(),
                c->getDescription_c());
          FatalIf(
-               numPatches != preWeights->getNumDataPatches(),
-               "%s and %s have different numbers of data patches.\n",
+               mNumWeightsInArbor != nxp * nyp * nfp * numPatches,
+               "%s and %s have different numbers of data weights.\n",
                firstConn.c_str(),
                c->getDescription_c());
          auto *patchSize = c->getComponentByType<PatchSize>();
@@ -99,11 +103,7 @@ Response::Status WeightComparisonProbe::allocateDataStructures() {
       else {
          firstConn          = c->getDescription();
          mNumArbors         = numArbors;
-         numPatches         = preWeights->getNumDataPatches();
-         nxp                = patchSize->getPatchSizeX();
-         nyp                = patchSize->getPatchSizeY();
-         nfp                = patchSize->getPatchSizeF();
-         mNumWeightsInArbor = (std::size_t)(nxp * nyp * nfp * numPatches);
+         mNumWeightsInArbor = nxp * nyp * nfp * numPatches;
          initialized        = true;
       }
    }
@@ -117,7 +117,7 @@ Response::Status WeightComparisonProbe::outputState(double simTime, double delta
       for (int a = 0; a < mNumArbors; a++) {
          float *firstConnWeightData = firstConnWeights->getData(a);
          float *thisConnWeightData  = thisConnWeights->getData(a);
-         std::size_t memsize        = sizeof(float) * mNumWeightsInArbor;
+         std::size_t memsize        = sizeof(float) * (std::size_t)mNumWeightsInArbor;
          FatalIf(
                memcmp(firstConnWeightData, thisConnWeightData, memsize) != 0,
                "%s and %s do not have the same weights.\n",
