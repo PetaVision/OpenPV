@@ -19,19 +19,19 @@ function [data,hdr] = readsparsepvpfile(filename,progressperiod,last_frame,start
 
   filedata = dir(filename);
   if length(filedata) ~= 1
-    error('readpvpfile:notonefile',...
+    error('readsparsepvpfile:notonefile',...
           'Path %s should expand to exactly one file; in this case there are %d',...
           filename,length(filedata));
   end%if
 
   if filedata(1).bytes < 1
-    error('readpvpfile:fileempty',...
+    error('readsparsepvpfile:fileempty',...
           'File %s is empty',filename);
   end%if filedata(1).bytes
 
   fid = fopen(filename);
   if fid<0
-    error('readpvpfile:badfilename','readpvpfile:Unable to open %s',filename);
+    error('readsparsepvpfile:badfilename','readsparsepvpfile:Unable to open %s',filename);
   end%if
 
   errorident = '';
