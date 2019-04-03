@@ -73,7 +73,7 @@ class InitCocircWeights : public InitGauss2DWeights {
    bool mIPosKurvePost;
    bool mISaddlePost;
    float mKurvePost;
-   float mSigmaKurvePre;
+   // float mSigmaKurvePre; // Unused data member
    float mSigmaKurvePre2;
    float mSigmaKurvePost;
    float mSigmaKurvePost2;

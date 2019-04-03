@@ -330,7 +330,6 @@ class Checkpointer : public Subject {
    long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol
    double mNextCheckpointSimtime        = 0.0;
    std::time_t mLastCheckpointWallclock = (std::time_t)0;
-   std::time_t mNextCheckpointWallclock = (std::time_t)0;
    int mWidthOfFinalStepNumber          = 0;
    int mOldCheckpointDirectoriesIndex =
          0; // A pointer to the oldest checkpoint in the mOldCheckpointDirectories vector.

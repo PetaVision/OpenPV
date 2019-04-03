@@ -91,7 +91,6 @@ class Communicator {
    int localSize;
    int globalRank;
    int globalSize;
-   int batchRank;
    int numRows;
    int numCols;
    int batchWidth;

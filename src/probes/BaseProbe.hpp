@@ -363,8 +363,6 @@ class BaseProbe : public BaseObject {
    double *probeValues;
    double lastUpdateTime; // The time of the last time calcValues was called.
    bool textOutputFlag;
-   bool mInitInfoCommunicatedFlag    = false;
-   bool mDataStructuresAllocatedFlag = false;
 };
 }
 

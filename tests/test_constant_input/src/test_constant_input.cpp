@@ -31,9 +31,6 @@ int checkLoc(HyPerCol *hc, const PVLayerLoc *loc);
 
 int checkInput(const PVLayerLoc *loc, const float *data, float val, bool extended);
 
-const char filename[] = "output/test_layer_direct.bin";
-const char outfile[]  = "output/test_layer_direct_out.bin";
-
 int main(int argc, char *argv[]) {
    int status = 0;
 
