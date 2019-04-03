@@ -8,15 +8,22 @@
 
 debugParsing = false;
 
+// PetaVision, git repository version 569926da8b915f6664670059775b3f0d1118b019 (Wed Apr 3 10:41:13 2019 -0600) with local modifications
+// Run time Wed Apr  3 11:16:10 2019
+// Compiled with Open MPI 2.0.1 (MPI Standard 3.1).
+// MPI configuration has 1 rows, 1 columns, and batch dimension 1.
+// Compiled with CUDA version 10.1; cuDNN version 7.5.0
+// Compiled with OpenMP parallel code, API version 4.0 (201307) and run using 1 threads.
+
 HyPerCol "column" = {
     dt                                  = 1;
     stopTime                            = 10;
     progressInterval                    = 10;
     writeProgressToErr                  = false;
-    outputPath                          = "output/FirmThresholdCostTest";
+    outputPath                          = "output/DependentFirmThresholdCostTest";
     verifyWrites                        = false;
     checkpointWrite                     = false;
-    lastCheckpointDir                   = "output/FirmThresholdCostTest/Last";
+    lastCheckpointDir                   = "output/DependentFirmThresholdCostTest/Last";
     initializeFromCheckpointDir         = "";
     printParamsFilename                 = "pv.params";
     randomSeed                          = 1234567890;
@@ -53,14 +60,14 @@ PvpLayer "Input" = {
     padValue                            = 0;
     batchMethod                         = "byFile";
     randomSeed                          = 123456789;
-    start_frame_index                   = [0,0];
+    start_frame_index                   = [0.000000,0.000000];
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
     initialWriteTime                    = 1;
 };
 
-FirmThresholdCostLayer "TestLayer" = {
+ANNLayer "V1Layer" = {
     initializeFromCheckpointFlag        = false;
     nxScale                             = 1;
     nyScale                             = 1;
@@ -70,12 +77,33 @@ FirmThresholdCostLayer "TestLayer" = {
     valueBC                             = 0;
     triggerLayerName                    = NULL;
     VThresh                             = 0.5;
+    AMin                                = 0;
+    AMax                                = infinity;
+    AShift                              = 0;
     VWidth                              = 0.3;
     InitVType                           = "ZeroV";
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
     initialWriteTime                    = 1;
+};
+
+DependentFirmThresholdCostLayer "TestLayer" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    VWidth                              = 0.3;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+    originalLayerName                   = "V1Layer";
 };
 
 PvpLayer "CorrectOutput" = {
@@ -105,7 +133,7 @@ PvpLayer "CorrectOutput" = {
     padValue                            = 0;
     batchMethod                         = "byFile";
     randomSeed                          = 123456789;
-    start_frame_index                   = [0,0];
+    start_frame_index                   = [0.000000,0.000000];
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
@@ -126,6 +154,14 @@ HyPerLayer "Comparison" = {
     sparseLayer                         = false;
     writeStep                           = 1;
     initialWriteTime                    = 0;
+};
+
+IdentConn "InputToV1Layer" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Input";
+    postLayerName                       = "V1Layer";
+    channelCode                         = 0;
+    delay                               = 0.0;
 };
 
 IdentConn "InputToTestLayer" = {

@@ -19,6 +19,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/DefaultNoOutputComponent.cpp
    ${SUBDIR}/DependentArborList.cpp
    ${SUBDIR}/DependentBoundaryConditions.cpp
+   ${SUBDIR}/DependentFirmThresholdCostActivityBuffer.cpp
    ${SUBDIR}/DependentPatchSize.cpp
    ${SUBDIR}/DependentPhaseParam.cpp
    ${SUBDIR}/DependentSharedWeights.cpp
@@ -106,6 +107,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/DefaultNoOutputComponent.hpp
    ${SUBDIR}/DependentArborList.hpp
    ${SUBDIR}/DependentBoundaryConditions.hpp
+   ${SUBDIR}/DependentFirmThresholdCostActivityBuffer.hpp
    ${SUBDIR}/DependentPatchSize.hpp
    ${SUBDIR}/DependentPhaseParam.hpp
    ${SUBDIR}/DependentSharedWeights.hpp
