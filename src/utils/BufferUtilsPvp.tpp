@@ -160,23 +160,6 @@ ActivityHeader buildSparseActivityHeader(int width, int height, int features, in
    return header;
 }
 
-static void writeActivityHeader(FileStream &fStream, ActivityHeader const &header) {
-   fStream.setOutPos(0, true);
-   fStream.write(&header, sizeof(header));
-}
-
-// Reads a pvp header and returns it in vector format. Leaves inStream
-// pointing at the start of the first frame.
-static ActivityHeader readActivityHeader(FileStream &fStream) {
-   fStream.setInPos(0, true);
-   int headerSize = -1;
-   fStream.read(&headerSize, sizeof(int));
-   fStream.setInPos(0, true);
-   ActivityHeader header;
-   fStream.read(&header, headerSize);
-   return header;
-}
-
 // Writes a buffer to a pvp file containing a header and a single frame.
 // Use appendToPvp to write multiple frames to a pvp file.
 template <typename T>
@@ -323,40 +306,6 @@ double readSparseBinaryFrame(FileStream &fStream, SparseList<T> *list, T oneValu
    }
    list->set(contents);
    return timeStamp;
-}
-
-// Builds a table of offsets and lengths for each pvp frame
-// index up to (but not including) upToIndex. Works for both
-// sparse activity and sparse binary files. Leaves the input
-// stream pointing at the location where frame upToIndex would
-// begin.
-static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex) {
-   ActivityHeader header = readActivityHeader(fStream);
-   FatalIf(
-         upToIndex > header.nBands,
-         "buildSparseFileTable requested frame %d / %d.\n",
-         upToIndex,
-         header.nBands);
-
-   SparseFileTable result;
-   result.valuesIncluded = header.fileType != PVP_ACT_FILE_TYPE;
-   int dataSize          = header.dataSize;
-   result.frameLengths.resize(upToIndex + 1, 0);
-   result.frameStartOffsets.resize(upToIndex + 1, 0);
-
-   for (int f = 0; f < upToIndex + 1; ++f) {
-      double timeStamp      = 0;
-      long frameLength      = 0;
-      long frameStartOffset = fStream.getInPos();
-      fStream.read(&timeStamp, sizeof(double));
-      fStream.read(&frameLength, sizeof(int));
-      result.frameLengths.at(f)      = frameLength;
-      result.frameStartOffsets.at(f) = frameStartOffset;
-      if (f < upToIndex) {
-         fStream.setInPos(frameLength * (long)dataSize, false);
-      }
-   }
-   return result;
 }
 
 template <typename T>
