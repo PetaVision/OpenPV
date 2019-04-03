@@ -308,11 +308,12 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
 
    // Grab postIdxLayer's data
    float const *postIdxData = nullptr;
-   int postIdxNumExtended   = mOriginalPostIndexData->getNumExtended();
+   int postIdxNumExtended;
    if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
       pvAssert(mOriginalPostIndexData);
-      PVLayerCube cube = mOriginalPostIndexData->getPublisher()->createCube(0 /*delay*/);
-      postIdxData      = cube.data;
+      PVLayerCube cube   = mOriginalPostIndexData->getPublisher()->createCube(0 /*delay*/);
+      postIdxData        = cube.data;
+      postIdxNumExtended = mOriginalPostIndexData->getNumExtended();
    }
 
    int const nbatch = preLoc->nbatch;
