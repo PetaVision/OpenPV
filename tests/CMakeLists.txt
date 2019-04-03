@@ -79,6 +79,7 @@ add_subdirectory(DelaysToFeaturesTest)
 add_subdirectory(DropoutLayerTest)
 add_subdirectory(DryRunFlagTest)
 add_subdirectory(FilenameParsingTest)
+add_subdirectory(FirmThresholdCostTest)
 add_subdirectory(GenericSystemTest)
 
 if (PV_USE_CUDA)

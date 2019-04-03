@@ -27,6 +27,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FeedbackConnectionData.cpp
    ${SUBDIR}/FilenameParsingActivityBuffer.cpp
    ${SUBDIR}/FilenameParsingLayerUpdateController.cpp
+   ${SUBDIR}/FirmThresholdCostActivityBuffer.cpp
    ${SUBDIR}/GapActivityBuffer.cpp
    ${SUBDIR}/GSynAccumulator.cpp
    ${SUBDIR}/HyPerActivityBuffer.cpp
@@ -113,6 +114,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FeedbackConnectionData.hpp
    ${SUBDIR}/FilenameParsingActivityBuffer.hpp
    ${SUBDIR}/FilenameParsingLayerUpdateController.hpp
+   ${SUBDIR}/FirmThresholdCostActivityBuffer.hpp
    ${SUBDIR}/GapActivityBuffer.hpp
    ${SUBDIR}/GSynAccumulator.hpp
    ${SUBDIR}/HyPerActivityBuffer.hpp

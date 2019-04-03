@@ -8,6 +8,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/CloneVLayer.cpp
    ${SUBDIR}/ConstantLayer.cpp
    ${SUBDIR}/FilenameParsingGroundTruthLayer.cpp
+   ${SUBDIR}/FirmThresholdCostLayer.cpp
    ${SUBDIR}/GapLayer.cpp
    ${SUBDIR}/HyPerLayer.cpp
    ${SUBDIR}/HyPerLCALayer.cpp
@@ -41,6 +42,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/DropoutLayer.hpp
    ${SUBDIR}/ConstantLayer.hpp
    ${SUBDIR}/FilenameParsingGroundTruthLayer.hpp
+   ${SUBDIR}/FirmThresholdCostLayer.hpp
    ${SUBDIR}/GapLayer.hpp
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp
