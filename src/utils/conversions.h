@@ -437,15 +437,6 @@ static inline int zUnitCellSize(int preZSize, int postZSize) {
    return (preZSize > postZSize) ? preZSize / postZSize : 1;
 }
 
-int layerIndexToUnitCellIndex(
-      int patchIndex,
-      const PVLayerLoc *preLoc,
-      int nxUnitCell,
-      int nyUnitCell,
-      int *kxUnitCellIndex,
-      int *kyUnitCellIndex,
-      int *kfUnitCellIndex);
-
 /**
  * @x
  */
