@@ -8,8 +8,8 @@
 #ifndef CONVERSIONS_H_
 #define CONVERSIONS_H_
 
-#include "include/pv_types.h"
-
+#include "include/PVLayerLoc.h"
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 
@@ -21,7 +21,36 @@ extern "C" {
 // analogously in y-direction.
 int dist2NearestCell(int kzPre, int zLog2ScaleDiff, float *distPre, float *distPost);
 
-int zPatchHead(int kzPre, int nzPatch, int zLog2ScaleDiff);
+/**
+ * Return the leading index in z direction (either x or y) of a patch in postsynaptic layer
+ * @kzPre is the pre-synaptic index in z direction (can be either local or global)
+ * @nzPatch is the size of patch in z direction
+ * @zLog2ScaleDiff is the relative scale factor log2(nzPre / nzPost).
+ *
+ * kzPre is always in restricted coordinates.
+ */
+static inline int zPatchHead(int kzPre, int nzPatch, int zLog2ScaleDiff) {
+   if (zLog2ScaleDiff == 0) {
+      // one-to-one case
+      return kzPre - (nzPatch - 1) / 2; // integer arithmetic
+   }
+   else if (zLog2ScaleDiff > 0) {
+      // many-to-one case
+      float tstride         = powf(2.0f, (float)zLog2ScaleDiff);
+      float halfWidth       = 0.5f * (float)(nzPatch - 1.0f);
+      float zPreInPostSpace = ((float)kzPre + 0.5f) / tstride;
+      return (int)floor(zPreInPostSpace - halfWidth);
+   }
+   else {
+      assert(zLog2ScaleDiff < 0);
+      // one-to-many case
+      int stride = (int)powf(2.0f, -zLog2ScaleDiff);
+      return kzPre * stride - (nzPatch - stride) / 2;
+      // A note regarding integer arithmetic. stride must be even here, and the typical use case
+      // is that nzPatch is an integer multiple of stride; then there is no truncation from
+      // integer division. If nzPatch is odd, the result is the same as if nzPatch-1 were given.
+   }
+}
 
 /*
  * The following functions are simple, static inline functions.  They have been given the
