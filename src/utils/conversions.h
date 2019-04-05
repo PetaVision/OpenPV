@@ -637,10 +637,6 @@ static inline float gaussianWeight(float x0, float x, float sigma, float max) {
    return expf(-0.5f * dx * dx / (sigma * sigma));
 }
 
-static inline float *getChannelStart(float *gSynHead, enum ChannelType ch, int num_neurons) {
-   return &gSynHead[num_neurons * ((int)ch)];
-}
-
 static inline int rankFromRowAndColumn(int row, int column, int numRows, int numColumns) {
    return (row >= 0 && row < numRows && column >= 0 && column < numColumns)
                 ? row * numColumns + column
