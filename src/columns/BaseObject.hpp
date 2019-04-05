@@ -19,6 +19,7 @@
 #include "utils/PVAlloc.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
+#include "utils/conversions.hpp"
 #include <memory>
 
 #ifdef PV_USE_CUDA

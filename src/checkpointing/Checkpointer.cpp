@@ -11,6 +11,7 @@
 #include "utils/ExpandLeadingTilde.hpp"
 #include <cerrno>
 #include <climits>
+#include <cmath>
 #include <fts.h>
 #include <signal.h>
 #include <sys/stat.h>

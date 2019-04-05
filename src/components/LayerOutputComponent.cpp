@@ -8,6 +8,7 @@
 #include "LayerOutputComponent.hpp"
 
 #include "utils/BufferUtilsMPI.hpp"
+#include "utils/BufferUtilsPvp.hpp"
 
 namespace PV {
 

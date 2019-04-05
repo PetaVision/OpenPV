@@ -27,25 +27,25 @@
 static inline int dist2NearestCell(int kzPre, int zLog2ScaleDiff, float *distPre, float *distPost) {
    if (zLog2ScaleDiff == 0) {
       // one-to-one case
-      *distPre = 0.0f;
+      *distPre  = 0.0f;
       *distPost = 0.0f;
       return kzPre;
    }
    else if (zLog2ScaleDiff > 0) {
       // many-to-one case
-      float scaleFactor = powf(2.0f, (float)zLog2ScaleDiff);
-      float kzPreToPostCoords = ((float)kzPre - 0.5f * (scaleFactor - 1.0f))/scaleFactor;
-      float kzPost = round(kzPreToPostCoords);
-      *distPost = kzPost - kzPreToPostCoords;
-      *distPre = *distPost * scaleFactor;
+      float scaleFactor       = powf(2.0f, (float)zLog2ScaleDiff);
+      float kzPreToPostCoords = ((float)kzPre - 0.5f * (scaleFactor - 1.0f)) / scaleFactor;
+      float kzPost            = round(kzPreToPostCoords);
+      *distPost               = kzPost - kzPreToPostCoords;
+      *distPre                = *distPost * scaleFactor;
       return (int)kzPost;
    }
    else {
       assert(zLog2ScaleDiff < 0);
       // one-to-many case
       float scaleFactor = powf(2.0f, (float)(-zLog2ScaleDiff));
-      *distPost = -0.5f;
-      *distPre = -0.5f / scaleFactor;
+      *distPost         = -0.5f;
+      *distPre          = -0.5f / scaleFactor;
       return (int)(((float)kzPre + 0.5f) * scaleFactor) - 1;
       // left neighbor, add 1 for right neighbor
    }

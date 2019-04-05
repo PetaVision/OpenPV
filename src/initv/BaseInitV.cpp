@@ -34,6 +34,6 @@ int BaseInitV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) { return PV_SUCCESS; 
 
 void BaseInitV::calcV(float *V, PVLayerLoc const *loc) {}
 
-string const BaseInitV::mDefaultInitV = "ConstantV";
+std::string const BaseInitV::mDefaultInitV = "ConstantV";
 
 } // end namespace PV

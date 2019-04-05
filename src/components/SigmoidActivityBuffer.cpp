@@ -6,6 +6,7 @@
  */
 
 #include "SigmoidActivityBuffer.hpp"
+#include <cmath>
 
 namespace PV {
 
