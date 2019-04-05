@@ -1,7 +1,7 @@
 #include "testPvpRestricted.hpp"
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "include/PVLayerLoc.h"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 #include <vector>
 
 void testPvpRestricted(PV::MPIBlock const *mpiBlock, std::string const &directory) {

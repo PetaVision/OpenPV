@@ -1,5 +1,5 @@
 /*
- * conversions.h
+ * conversions.hpp
  *
  *  Created on: Jan 7, 2010
  *      Author: rasmussn
@@ -12,10 +12,6 @@
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif // __cplusplus
 
 /**
  * compute distance from kzPre to the nearest kzPost, i.e.
@@ -770,9 +766,5 @@ static inline int requiredConvolveMargin(int nPre, int nPost, int patchSize) {
    }
    return margin;
 }
-
-#ifdef __cplusplus
-}
-#endif // __cplusplus
 
 #endif /* CONVERSIONS_H_ */

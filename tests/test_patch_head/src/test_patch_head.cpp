@@ -2,7 +2,7 @@
 #include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
-#include <utils/conversions.h>
+#include <utils/conversions.hpp>
 
 /*
  * The preferred patch size is even for a > 1 and odd for a <= 1

@@ -3,7 +3,7 @@
 #include <utils/PVAssert.hpp>
 #include <utils/PVLog.hpp>
 #include <utils/TransposeWeights.hpp>
-#include <utils/conversions.h>
+#include <utils/conversions.hpp>
 
 int calcStride(int pre, std::string const &preDesc, int post, std::string const &postDesc) {
    int stride;

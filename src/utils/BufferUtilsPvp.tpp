@@ -1,5 +1,5 @@
 #include "io/io.hpp"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 #include <limits>
 
 namespace PV {

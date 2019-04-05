@@ -1,7 +1,7 @@
 #include "testPvpBatch.hpp"
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "include/PVLayerLoc.h"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 #include <vector>
 
 void testPvpBatch(PV::MPIBlock const *mpiBlock, std::string const &directory) {

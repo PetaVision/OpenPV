@@ -6,7 +6,7 @@
 #include <components/PatchGeometry.hpp>
 #include <string.h>
 #include <utils/PVLog.hpp>
-#include <utils/conversions.h>
+#include <utils/conversions.hpp>
 
 void testOneToOneRestricted() {
    std::string name("One-to-one, patch size 1");

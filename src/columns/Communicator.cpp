@@ -13,7 +13,7 @@
 #include "io/io.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 
 namespace PV {
 

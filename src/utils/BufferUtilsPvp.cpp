@@ -1,5 +1,5 @@
 #include "BufferUtilsPvp.hpp"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 
 namespace PV {
 

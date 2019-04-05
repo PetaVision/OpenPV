@@ -12,7 +12,7 @@
 #include "../arch/cuda/CudaKernel.hpp"
 #include "../structures/SparseList.hpp"
 //#include "../arch/cuda/Cuda3dFloatTextureBuffer.hpp"
-//#include "../utils/conversions.h"
+//#include "../utils/conversions.hpp"
 //#include "../layers/accumulate_functions.h"
 
 namespace PVCuda {

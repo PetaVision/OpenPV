@@ -1,7 +1,7 @@
 #include "utils/PVLog.hpp"
 #include <stdio.h>
 #include <stdlib.h>
-#include <utils/conversions.h>
+#include <utils/conversions.hpp>
 
 /*
  * The scale factor is a measure of the difference in distance scales between

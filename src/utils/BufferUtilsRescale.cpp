@@ -1,5 +1,5 @@
 #include "BufferUtilsRescale.hpp"
-#include "conversions.h"
+#include "conversions.hpp"
 #include <cmath>
 #include <cstring>
 

@@ -11,7 +11,7 @@
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/ExpandLeadingTilde.hpp"
 #include "utils/PVLog.hpp"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 
 #include <assert.h>
 #include <iostream>

@@ -8,7 +8,7 @@
 #include "Weights.hpp"
 #include "checkpointing/CheckpointEntryWeightPvp.hpp"
 #include "utils/PVAssert.hpp"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 #include <cstring>
 #include <stdexcept>
 
