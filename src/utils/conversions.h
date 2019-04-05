@@ -17,9 +17,43 @@
 extern "C" {
 #endif // __cplusplus
 
-// zLog2ScaleDiff in the x-direction is post->getXScale() - pre->getXScale() = log2(nxPre/nxPost);
-// analogously in y-direction.
-int dist2NearestCell(int kzPre, int zLog2ScaleDiff, float *distPre, float *distPost);
+/**
+ * compute distance from kzPre to the nearest kzPost, i.e.
+ *    (xPost - xPre) or (yPost - yPre)
+ * in units of both pre- and post-synaptic dx (or dy).
+ *
+ * distance can be positive or negative
+ * zLog2ScaleDiff in the x-direction is post->getXScale() - pre->getXScale() = log2(nxPre/nxPost);
+ * analogously in y-direction.
+ *
+ * returns kzPost, which is local x (or y) index of nearest cell in post layer
+ */
+static inline int dist2NearestCell(int kzPre, int zLog2ScaleDiff, float *distPre, float *distPost) {
+   if (zLog2ScaleDiff == 0) {
+      // one-to-one case
+      *distPre = 0.0f;
+      *distPost = 0.0f;
+      return kzPre;
+   }
+   else if (zLog2ScaleDiff > 0) {
+      // many-to-one case
+      float scaleFactor = powf(2.0f, (float)zLog2ScaleDiff);
+      float kzPreToPostCoords = ((float)kzPre - 0.5f * (scaleFactor - 1.0f))/scaleFactor;
+      float kzPost = round(kzPreToPostCoords);
+      *distPost = kzPost - kzPreToPostCoords;
+      *distPre = *distPost * scaleFactor;
+      return (int)kzPost;
+   }
+   else {
+      assert(zLog2ScaleDiff < 0);
+      // one-to-many case
+      float scaleFactor = powf(2.0f, (float)(-zLog2ScaleDiff));
+      *distPost = -0.5f;
+      *distPre = -0.5f / scaleFactor;
+      return (int)(((float)kzPre + 0.5f) * scaleFactor) - 1;
+      // left neighbor, add 1 for right neighbor
+   }
+}
 
 /**
  * Return the leading index in z direction (either x or y) of a patch in postsynaptic layer

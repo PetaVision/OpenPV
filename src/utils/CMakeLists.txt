@@ -34,7 +34,6 @@ set (PVLibSrcHpp ${PVLibSrcTpp}
 
 set (PVLibSrcC ${PVLibSrcC}
    ${SUBDIR}/cl_random.c
-   ${SUBDIR}/conversions.c
 )
 
 set (PVLibSrcH ${PVLibSrcH}
