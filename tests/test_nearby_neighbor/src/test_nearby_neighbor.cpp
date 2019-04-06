@@ -20,6 +20,8 @@
  *
  */
 
+using PV::nearby_neighbor;
+
 int main(int argc, char *argv[]) {
    int kPre, kPost, kBack, a, ans, test;
 

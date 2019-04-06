@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <utils/conversions.hpp>
 
+using PV::deltaPosLayers;
+
 int main(int argc, char *argv[]) {
    float dx;
    int kPre;

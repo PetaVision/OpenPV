@@ -19,22 +19,24 @@
 #include <layers/HyPerLayer.hpp>
 #include <utils/PVLog.hpp>
 
-PV::HyPerLayer *findLayer(PV::HyPerCol &hc, std::string const &layerName);
-PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName);
-void setMargins(PV::HyPerLayer *layer, int const xMargin, int const yMargin);
+using namespace PV;
+
+HyPerLayer *findLayer(HyPerCol &hc, std::string const &layerName);
+IdentConn *findIdentConn(HyPerCol &hc, std::string const &connName);
+void setMargins(HyPerLayer *layer, int const xMargin, int const yMargin);
 
 int main(int argc, char *argv[]) {
    int status = PV_SUCCESS;
 
    // Initial setup
-   PV::PV_Init pv_init(&argc, &argv, false);
-   PV::HyPerCol hc(&pv_init);
+   PV_Init pv_init(&argc, &argv, false);
+   HyPerCol hc(&pv_init);
 
-   PV::HyPerLayer *preLayerExc0 = findLayer(hc, std::string("PreLayerExc0"));
-   PV::HyPerLayer *preLayerExc1 = findLayer(hc, std::string("PreLayerExc1"));
-   PV::HyPerLayer *preLayerInh0 = findLayer(hc, std::string("PreLayerInh0"));
-   PV::HyPerLayer *preLayerInh1 = findLayer(hc, std::string("PreLayerInh1"));
-   PV::HyPerLayer *postLayer    = findLayer(hc, std::string("PostLayer"));
+   HyPerLayer *preLayerExc0 = findLayer(hc, std::string("PreLayerExc0"));
+   HyPerLayer *preLayerExc1 = findLayer(hc, std::string("PreLayerExc1"));
+   HyPerLayer *preLayerInh0 = findLayer(hc, std::string("PreLayerInh0"));
+   HyPerLayer *preLayerInh1 = findLayer(hc, std::string("PreLayerInh1"));
+   HyPerLayer *postLayer    = findLayer(hc, std::string("PostLayer"));
 
    // Give the pre-layers margins, to test converting from extended to restricted indices as needed
    int xMargin = 3;
@@ -69,10 +71,10 @@ int main(int argc, char *argv[]) {
 
    hc.run();
 
-   auto *preExc0Publisher = preLayerExc0->getComponentByType<PV::BasePublisherComponent>();
-   auto *preExc1Publisher = preLayerExc1->getComponentByType<PV::BasePublisherComponent>();
-   auto *preInh0Publisher = preLayerInh0->getComponentByType<PV::BasePublisherComponent>();
-   auto *preInh1Publisher = preLayerInh1->getComponentByType<PV::BasePublisherComponent>();
+   auto *preExc0Publisher = preLayerExc0->getComponentByType<BasePublisherComponent>();
+   auto *preExc1Publisher = preLayerExc1->getComponentByType<BasePublisherComponent>();
+   auto *preInh0Publisher = preLayerInh0->getComponentByType<BasePublisherComponent>();
+   auto *preInh1Publisher = preLayerInh1->getComponentByType<BasePublisherComponent>();
 
    PVLayerLoc const preLoc = *preExc0Publisher->getLayerLoc();
    int const nx            = preLoc.nx;
@@ -110,7 +112,7 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
-      auto *layerInputBuffer     = postLayer->getComponentByType<PV::LayerInputBuffer>();
+      auto *layerInputBuffer     = postLayer->getComponentByType<LayerInputBuffer>();
       float const observedExcSum = layerInputBuffer->getBufferData()[k];
       float const correctExcSum  = correctExc0Value + correctExc1Value;
       if (observedExcSum != correctExcSum) {
@@ -165,8 +167,8 @@ int main(int argc, char *argv[]) {
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-PV::HyPerLayer *findLayer(PV::HyPerCol &hc, std::string const &layerName) {
-   PV::Observer *object = hc.getObjectFromName(layerName);
+HyPerLayer *findLayer(HyPerCol &hc, std::string const &layerName) {
+   Observer *object = hc.getObjectFromName(layerName);
    FatalIf(
          object == nullptr,
          "%s does not have a layer named \"%s\" in %s\n",
@@ -174,7 +176,7 @@ PV::HyPerLayer *findLayer(PV::HyPerCol &hc, std::string const &layerName) {
          layerName.c_str(),
          hc.getPV_InitObj()->getStringArgument(std::string("ParamsFile")).c_str());
 
-   PV::HyPerLayer *layer = dynamic_cast<PV::HyPerLayer *>(object);
+   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(object);
    FatalIf(
          layer == nullptr,
          "%s object \"%s\" is not a layer.\n",
@@ -184,8 +186,8 @@ PV::HyPerLayer *findLayer(PV::HyPerCol &hc, std::string const &layerName) {
    return layer;
 }
 
-PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName) {
-   PV::Observer *object = hc.getObjectFromName(connName);
+IdentConn *findIdentConn(HyPerCol &hc, std::string const &connName) {
+   Observer *object = hc.getObjectFromName(connName);
    FatalIf(
          object == nullptr,
          "%s does not have a layer named \"%s\" in %s\n",
@@ -193,7 +195,7 @@ PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName) {
          connName.c_str(),
          hc.getPV_InitObj()->getStringArgument(std::string("ParamsFile")).c_str());
 
-   PV::IdentConn *conn = dynamic_cast<PV::IdentConn *>(object);
+   IdentConn *conn = dynamic_cast<IdentConn *>(object);
    FatalIf(
          conn == nullptr,
          "%s object \"%s\" is not an IdentConn.\n",
@@ -203,8 +205,8 @@ PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName) {
    return conn;
 }
 
-void setMargins(PV::HyPerLayer *layer, int const xMargin, int const yMargin) {
-   auto *geometry = layer->getComponentByType<PV::LayerGeometry>();
+void setMargins(HyPerLayer *layer, int const xMargin, int const yMargin) {
+   auto *geometry = layer->getComponentByType<LayerGeometry>();
    pvAssert(geometry);
    geometry->requireMarginWidth(xMargin, 'x');
    geometry->requireMarginWidth(yMargin, 'y');

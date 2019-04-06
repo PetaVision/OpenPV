@@ -4,6 +4,11 @@
 #include <utils/PVLog.hpp>
 #include <utils/conversions.hpp>
 
+using PV::kxPos;
+using PV::kyPos;
+using PV::featureIndex;
+using PV::kIndex;
+
 //
 // A replacement for globalIndexFromLocal from conversions.hpp.
 // WARNING - any changes in conversions.hpp should be reflected here.

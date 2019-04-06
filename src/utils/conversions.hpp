@@ -13,6 +13,8 @@
 #include <math.h>
 #include <stdio.h>
 
+namespace PV {
+
 /**
  * compute distance from kzPre to the nearest kzPost, i.e.
  *    (xPost - xPre) or (yPost - yPre)
@@ -766,5 +768,7 @@ static inline int requiredConvolveMargin(int nPre, int nPost, int patchSize) {
    }
    return margin;
 }
+
+} // end namespace PV
 
 #endif /* CONVERSIONS_H_ */

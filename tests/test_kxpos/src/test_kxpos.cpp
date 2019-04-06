@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <utils/conversions.hpp>
 
+using PV::kxPos;
+
 int main(int argc, char *argv[]) {
    int kl;
 

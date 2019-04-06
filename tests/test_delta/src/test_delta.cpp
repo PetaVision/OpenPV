@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <cstdlib>
 
+using PV::deltaWithPBC;
+
 static int zero(float x) {
    if (std::fabs(x) < .00001f)
       return 1;
