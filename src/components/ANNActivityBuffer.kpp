@@ -10,9 +10,8 @@
 // .cu file and the other is run from the .cpp file.  The .cu file defines the preprocessor
 // directive PV_RUN_ON_GPU before including this file; the and the .cpp file undefines it.
 
-
+#include "utils/conversions.hpp"
 #ifdef PV_RUN_ON_GPU
-#include "cudakernels/conversions.hcu"
 namespace PVCuda {
 __global__ void applyVerticesANNActivityBufferOnGPU
 #else
@@ -50,8 +49,8 @@ inline void applyVerticesANNActivityBufferOnCPU
       float const *VBatch = V + b * numNeurons;
       float *ABatch       = A + b * (nx + lt + rt) * (ny + up + dn) * nf;
       int kex             = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      float potential = VBatch[k];
-      float activity  = 0.0f;
+      float potential     = VBatch[k];
+      float activity      = 0.0f;
 
       if (potential < verticesV[0]) {
          activity = verticesA[0] + slopes[0] * (potential - verticesV[0]);

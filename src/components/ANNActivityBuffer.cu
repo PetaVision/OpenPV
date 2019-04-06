@@ -1,8 +1,7 @@
-#include "ANNActivityBuffer.hpp"
-
 #define PV_RUN_ON_GPU
+
+#include "ANNActivityBuffer.hpp"
 #include "ANNActivityBuffer.kpp"
-#undef PV_RUN_ON_GPU
 
 namespace PV {
 
@@ -34,3 +33,5 @@ void ANNActivityBuffer::runKernel() {
 }
 
 } // end namespace PV
+
+#undef PV_RUN_ON_GPU

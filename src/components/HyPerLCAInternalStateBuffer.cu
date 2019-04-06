@@ -1,8 +1,7 @@
-#include "HyPerLCAInternalStateBuffer.hpp"
-
 #define PV_RUN_ON_GPU
+
+#include "HyPerLCAInternalStateBuffer.hpp"
 #include "HyPerLCAInternalStateBuffer.kpp"
-#undef PV_RUN_ON_GPU
 
 namespace PV {
 
@@ -35,3 +34,5 @@ void HyPerLCAInternalStateBuffer::runKernel() {
 }
 
 } // end namespace PV
+
+#undef PV_RUN_ON_GPU

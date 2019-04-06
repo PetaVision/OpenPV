@@ -1,8 +1,7 @@
-#include "GSynAccumulator.hpp"
-
 #define PV_RUN_ON_GPU
+
+#include "GSynAccumulator.hpp"
 #include "GSynAccumulator.kpp"
-#undef PV_RUN_ON_GPU
 
 namespace PV {
 
@@ -22,3 +21,5 @@ void GSynAccumulator::runKernel() {
 }
 
 } // end namespace PV
+
+#undef PV_RUN_ON_GPU
