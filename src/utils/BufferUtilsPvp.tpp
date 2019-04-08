@@ -231,6 +231,7 @@ double readActivityFromPvp(
                "type.\n",
                fName,
                fileType);
+         exit(EXIT_FAILURE); /* suppresses sometimes-uninitialized compiler warning */
          break;
    }
    return timestamp;
@@ -454,9 +455,6 @@ double readDenseFromSparseBinaryPvp(
 template <typename T>
 std::size_t weightPatchSize(int numWeightsInPatch) {
    HeaderDataType dataType = returnDataType<T>();
-   FatalIf(
-         dataType == UNRECOGNIZED_DATATYPE,
-         "buildActivityHeader called with unrecognized data type.\n");
 
    std::size_t sz;
    switch (dataType) {
@@ -464,7 +462,10 @@ std::size_t weightPatchSize(int numWeightsInPatch) {
       case BYTE: sz                  = sizeof(char); break;
       case INT: sz                   = sizeof(int); break;
       case FLOAT: sz                 = sizeof(float); break;
-      default: pvAssert(0); break;
+      default:
+         Fatal().printf("buildActivityHeader called with unrecognized data type.\n");
+         exit(EXIT_FAILURE); /* suppresses sometimes-uninitialized compiler warning */
+         break;
    }
    return (2 * sizeof(unsigned short) + sizeof(unsigned int) + numWeightsInPatch * sz);
 }
