@@ -16,8 +16,10 @@
 #include "layers/BinningLayer.hpp"
 #include "layers/CloneVLayer.hpp"
 #include "layers/ConstantLayer.hpp"
+#include "layers/DependentFirmThresholdCostLayer.hpp"
 #include "layers/DropoutLayer.hpp"
 #include "layers/FilenameParsingGroundTruthLayer.hpp"
+#include "layers/FirmThresholdCostLayer.hpp"
 #include "layers/GapLayer.hpp"
 #include "layers/HyPerLCALayer.hpp"
 #include "layers/HyPerLayer.hpp"
@@ -132,9 +134,12 @@ void registerCoreKeywords() {
    factory->registerKeyword("BinningLayer", Factory::create<BinningLayer>);
    factory->registerKeyword("CloneVLayer", Factory::create<CloneVLayer>);
    factory->registerKeyword("ConstantLayer", Factory::create<ConstantLayer>);
+   factory->registerKeyword(
+         "DependentFirmThresholdCostLayer", Factory::create<DependentFirmThresholdCostLayer>);
    factory->registerKeyword("DropoutLayer", Factory::create<DropoutLayer>);
    factory->registerKeyword(
          "FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
+   factory->registerKeyword("FirmThresholdCostLayer", Factory::create<FirmThresholdCostLayer>);
    factory->registerKeyword("GapLayer", Factory::create<GapLayer>);
    factory->registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
    factory->registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);

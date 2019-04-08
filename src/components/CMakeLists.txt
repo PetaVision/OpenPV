@@ -19,6 +19,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/DefaultNoOutputComponent.cpp
    ${SUBDIR}/DependentArborList.cpp
    ${SUBDIR}/DependentBoundaryConditions.cpp
+   ${SUBDIR}/DependentFirmThresholdCostActivityBuffer.cpp
    ${SUBDIR}/DependentPatchSize.cpp
    ${SUBDIR}/DependentPhaseParam.cpp
    ${SUBDIR}/DependentSharedWeights.cpp
@@ -27,6 +28,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FeedbackConnectionData.cpp
    ${SUBDIR}/FilenameParsingActivityBuffer.cpp
    ${SUBDIR}/FilenameParsingLayerUpdateController.cpp
+   ${SUBDIR}/FirmThresholdCostActivityBuffer.cpp
    ${SUBDIR}/GapActivityBuffer.cpp
    ${SUBDIR}/GSynAccumulator.cpp
    ${SUBDIR}/HyPerActivityBuffer.cpp
@@ -105,6 +107,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/DefaultNoOutputComponent.hpp
    ${SUBDIR}/DependentArborList.hpp
    ${SUBDIR}/DependentBoundaryConditions.hpp
+   ${SUBDIR}/DependentFirmThresholdCostActivityBuffer.hpp
    ${SUBDIR}/DependentPatchSize.hpp
    ${SUBDIR}/DependentPhaseParam.hpp
    ${SUBDIR}/DependentSharedWeights.hpp
@@ -113,6 +116,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FeedbackConnectionData.hpp
    ${SUBDIR}/FilenameParsingActivityBuffer.hpp
    ${SUBDIR}/FilenameParsingLayerUpdateController.hpp
+   ${SUBDIR}/FirmThresholdCostActivityBuffer.hpp
    ${SUBDIR}/GapActivityBuffer.hpp
    ${SUBDIR}/GSynAccumulator.hpp
    ${SUBDIR}/HyPerActivityBuffer.hpp
