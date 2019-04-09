@@ -80,7 +80,7 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    auto *originalPatchSize = originalConn->getComponentByType<PatchSize>();
    FatalIf(
          originalPatchSize == nullptr,
-         "%s original connection \"%s\" does not have an PatchSize.\n",
+         "%s original connection \"%s\" does not have a PatchSize.\n",
          getDescription_c(),
          originalConn->getName());
 
