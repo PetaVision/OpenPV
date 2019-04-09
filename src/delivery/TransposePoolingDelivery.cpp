@@ -281,26 +281,6 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *preWeights       = mWeightsPair->getPreWeights();
 
-   // Slightly inefficient to define the function pointer each time deliver() is called;
-   // but the real inefficiency is calling the function pointer in a tight for-loop.
-   // TODO: Use templating instead of function pointer.
-   void (*accumulateFunctionPointer)(
-         int kPreRes, int nk, float *v, float a, float const *w, void *auxPtr, int sf) = nullptr;
-   switch (mAccumulateType) {
-      case PoolingDelivery::MAXPOOLING: accumulateFunctionPointer = pvpatch_max_pooling; break;
-      case PoolingDelivery::SUMPOOLING: accumulateFunctionPointer = pvpatch_sum_pooling; break;
-      case PoolingDelivery::AVGPOOLING:
-         accumulateFunctionPointer = pvpatch_sum_pooling;
-         // Division by the number of weights happens outside the call to the accumulate function.
-         break;
-      default:
-         pvAssert(0);
-         // Only MAXPOOLING, SUMPOOLING, AVGPOOLING are allowed.
-         // UNDEFINED is the only other possible value of mAccumulateType, but the type should be
-         // defined before this function is ever called.
-         break;
-   }
-
    PVLayerCube activityCube = mPreData->getPublisher()->createCube(0 /*delay*/);
 
    float *gSyn = destBuffer;
@@ -308,7 +288,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
 
    // Grab postIdxLayer's data
    float const *postIdxData = nullptr;
-   int postIdxNumExtended;
+   int postIdxNumExtended   = 0;
    if (mAccumulateType == PoolingDelivery::MAXPOOLING) {
       pvAssert(mOriginalPostIndexData);
       PVLayerCube cube   = mOriginalPostIndexData->getPublisher()->createCube(0 /*delay*/);
@@ -464,8 +444,7 @@ void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) 
             float w      = 1.0f;
             void *auxPtr = NULL;
             for (int y = 0; y < ny; y++) {
-               (accumulateFunctionPointer)(
-                     0, nk, postPatchStart + y * sy + offset, a, &w, auxPtr, sf);
+               pvpatch_max_pooling(0, nk, postPatchStart + y * sy + offset, a, &w, auxPtr, sf);
             }
          }
       }
