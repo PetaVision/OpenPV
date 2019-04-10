@@ -94,9 +94,9 @@ class LayerOutputComponent : public BaseObject {
 
    BasePublisherComponent *mPublisher           = nullptr;
    CheckpointableFileStream *mOutputStateStream = nullptr; // file stream for the pvp file
-   int mWriteActivityCalls; // Number of calls to writeActivity (written to nbands in the pvp file)
-   int mWriteActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in
-   // the pvp file)
+
+   int mWriteActivityCalls       = 0; // No. of frames in pvp file (written to nBands in pvp header)
+   int mWriteActivitySparseCalls = 0; // No. of frames in pvp file (written to nBands in pvp header)
 
    Timer *mIOTimer = nullptr;
 }; // class LayerOutputComponent
