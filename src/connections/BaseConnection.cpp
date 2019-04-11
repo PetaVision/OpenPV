@@ -71,13 +71,8 @@ BaseDelivery *BaseConnection::createDeliveryObject() {
 }
 
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   for (auto &c : *mTable) {
-      auto obj = dynamic_cast<BaseObject *>(c);
-      if (obj) {
-         obj->ioParams(ioFlag, false, false);
-      }
-   }
-   return PV_SUCCESS;
+   int status = ComponentBasedObject::ioParamsFillGroup(ioFlag);
+   return status;
 }
 
 Response::Status BaseConnection::respondConnectionWriteParams(

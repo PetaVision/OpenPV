@@ -62,7 +62,6 @@ int BaseProbe::initialize_base() {
  */
 void BaseProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
-   readParams();
 }
 
 int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

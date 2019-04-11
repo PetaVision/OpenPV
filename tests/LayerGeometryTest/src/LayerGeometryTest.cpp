@@ -42,7 +42,6 @@ int main(int argc, char *argv[]) {
 
    // Test direct construction of the LayerGeometry component.
    lg = new PV::LayerGeometry("Layer", hc->parameters(), hc->getCommunicator());
-   lg->readParams();
 
    auto *observerTable        = hc->getTable();
    auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(

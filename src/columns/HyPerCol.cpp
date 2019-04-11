@@ -163,12 +163,11 @@ int HyPerCol::initialize(PV_Init *initObj) {
       exit(parsedStatus);
    }
 
-   mRandomSeed = mPVInitObj->getUnsignedIntArgument("RandomSeed");
-
    mCheckpointer = new Checkpointer(
-         std::string(getName()), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
+         std::string(group0Name), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
    mCheckpointer->addObserver(this->getName(), this);
-   readParams();
+   mCheckpointer->ioParams(PARAMS_IO_READ, parameters());
+
    mSimTime     = 0.0;
    mCurrentStep = 0L;
    mFinalStep   = (long int)nearbyint(mStopTime / mDeltaTime);
@@ -243,13 +242,16 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
-   mCheckpointer->ioParams(ioFlag, parameters());
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
    ioParam_nx(ioFlag);
    ioParam_ny(ioFlag);
    ioParam_nBatch(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
+   if (ioFlag == PARAMS_IO_WRITE) {
+      pvAssert(mCheckpointer);
+      mCheckpointer->ioParams(ioFlag, parameters());
+   }
 
    return PV_SUCCESS;
 }
@@ -290,6 +292,7 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
       // the system clock
       case PARAMS_IO_READ:
          // set random seed if it wasn't set in the command line
+         mRandomSeed = mPVInitObj->getUnsignedIntArgument("RandomSeed");
          if (!mRandomSeed) {
             if (mParams->present(getName(), "randomSeed")) {
                mRandomSeed = (unsigned long)mParams->value(getName(), "randomSeed");

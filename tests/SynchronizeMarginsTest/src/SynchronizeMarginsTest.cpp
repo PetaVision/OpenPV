@@ -168,15 +168,12 @@ void initGeometries(
    *geomC = nullptr;
 
    *geomA = new PV::LayerGeometry("A", hc->parameters(), hc->getCommunicator());
-   (*geomA)->readParams();
    (*geomA)->respond(communicateMessagePtr);
 
    *geomB = new PV::LayerGeometry("B", hc->parameters(), hc->getCommunicator());
-   (*geomB)->readParams();
    (*geomB)->respond(communicateMessagePtr);
 
    *geomC = new PV::LayerGeometry("C", hc->parameters(), hc->getCommunicator());
-   (*geomC)->readParams();
    (*geomC)->respond(communicateMessagePtr);
 }
 

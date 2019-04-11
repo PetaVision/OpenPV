@@ -30,6 +30,7 @@ class ComponentBasedObject : public BaseObject, public Subject {
   protected:
    ComponentBasedObject();
    void initialize(char const *name, PVParams *params, Communicator const *comm);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   private:
    int initialize_base();

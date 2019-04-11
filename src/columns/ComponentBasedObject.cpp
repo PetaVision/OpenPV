@@ -25,7 +25,21 @@ void ComponentBasedObject::initialize(
    BaseObject::initialize(name, params, comm);
    std::string componentTableName = std::string("ObserverTable \"") + name + "\"";
    createComponentTable(componentTableName.c_str());
-   readParams();
+}
+
+int ComponentBasedObject::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   // Components, like all BaseObject-derived objects, read their params during instantiation.
+   // When writing out the params file, ComponentBasedObjects must pass the write message
+   // to their components.
+   if (ioFlag == PARAMS_IO_WRITE) {
+      for (auto *c : *mTable) {
+         auto obj = dynamic_cast<BaseObject *>(c);
+         if (obj) {
+            obj->ioParams(ioFlag, false, false);
+         }
+      }
+   }
+   return PV_SUCCESS;
 }
 
 ComponentBasedObject::~ComponentBasedObject() {}

@@ -24,8 +24,8 @@ void DefaultNoOutputComponent::initialize(
       char const *name,
       PVParams *params,
       Communicator const *comm) {
-   LayerOutputComponent::initialize(name, params, comm);
    mWriteStep = -1;
+   LayerOutputComponent::initialize(name, params, comm);
 }
 
 void DefaultNoOutputComponent::setObjectType() { mObjectType = "DefaultNoOutputComponent"; }

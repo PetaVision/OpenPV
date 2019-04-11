@@ -16,6 +16,7 @@ int ParamsInterface::initialize(char const *name, PVParams *params) {
    setObjectType();
    setDescription(getObjectType() + " \"" + getName() + "\"");
    CheckpointerDataInterface::initialize();
+   readParams();
    return PV_SUCCESS;
 }
 
