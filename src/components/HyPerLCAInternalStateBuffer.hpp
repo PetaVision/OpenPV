@@ -74,7 +74,7 @@ class HyPerLCAInternalStateBuffer : public HyPerInternalStateBuffer {
   protected:
    double mTimeConstantTau = 1.0; // The time constant tau in the equation dV/dt=1/tau*(-V+A+GSyn).
    double mScaledTimeConstantTau = 1.0; // tau/dt, used in numerical integration.
-   bool mSelfInteract;
+   bool mSelfInteract = true;
    char *mAdaptiveTimeScaleProbeName               = nullptr;
    AdaptiveTimeScaleProbe *mAdaptiveTimeScaleProbe = nullptr;
    std::vector<double> mDeltaTimes;
