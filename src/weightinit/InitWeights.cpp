@@ -17,7 +17,7 @@ InitWeights::InitWeights(char const *name, PVParams *params, Communicator const 
 
 InitWeights::InitWeights() {}
 
-InitWeights::~InitWeights() {}
+InitWeights::~InitWeights() { free(mWeightInitTypeString); }
 
 void InitWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);

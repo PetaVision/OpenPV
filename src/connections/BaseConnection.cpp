@@ -14,7 +14,7 @@ BaseConnection::BaseConnection(char const *name, PVParams *params, Communicator 
    initialize(name, params, comm);
 }
 
-BaseConnection::BaseConnection() {}
+BaseConnection::BaseConnection() { delete mIOTimer; }
 
 BaseConnection::~BaseConnection() {}
 

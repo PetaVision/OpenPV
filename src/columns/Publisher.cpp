@@ -52,6 +52,7 @@ Publisher::~Publisher() {
    delete mpiRequestsBuffer;
    delete store;
    delete mBorderExchanger;
+   free(mLayerCube);
 }
 
 void Publisher::checkpointDataStore(
