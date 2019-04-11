@@ -27,7 +27,7 @@ namespace PV {
  */
 class Subject {
   public:
-   Subject();
+   // No public constructors; only subclasses may be instantiated.
    virtual ~Subject();
 
    /**
@@ -53,9 +53,17 @@ class Subject {
 
   protected:
    /**
-    * The virtual method for populating the ObserverTable data member.
+    * The default constructor called by derived classes. Derived classes should
+    * call Subject::initializeTable().
     */
-   virtual void createComponentTable(char const *tableDescription);
+   Subject();
+
+   void initializeTable(char const *tableDescription);
+
+   /**
+    * The virtual method for populating the ObserverTable data member, called by initialize().
+    */
+   virtual void fillComponentTable() {}
 
    /**
     * This method calls the respond() method of each object in the given table, using the given
@@ -134,7 +142,7 @@ class Subject {
       notifyLoop(std::vector<std::shared_ptr<BaseMessage const>>{message}, printFlag, description);
    }
 
-   virtual void deleteTable();
+   void deleteTable();
 
   protected:
    ObserverTable *mTable = nullptr;

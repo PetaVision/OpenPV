@@ -23,8 +23,8 @@ void PoolingConn::initialize(char const *name, PVParams *params, Communicator co
    BaseConnection::initialize(name, params, comm);
 }
 
-void PoolingConn::createComponentTable(char const *description) {
-   BaseConnection::createComponentTable(description);
+void PoolingConn::fillComponentTable() {
+   BaseConnection::fillComponentTable();
    mPatchSize = createPatchSize();
    if (mPatchSize) {
       addUniqueComponent(mPatchSize->getDescription(), mPatchSize);

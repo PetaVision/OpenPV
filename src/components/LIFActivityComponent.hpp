@@ -87,7 +87,7 @@ class LIFActivityComponent : public ActivityComponent {
 
    virtual void setObjectType() override;
 
-   virtual void createComponentTable(char const *tableDescription) override;
+   virtual void fillComponentTable() override;
 
    virtual RestrictedBuffer *createRestrictedBuffer(char const *label);
 

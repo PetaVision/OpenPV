@@ -39,7 +39,7 @@ class HyPerConn : public BaseConnection {
 
    virtual void initMessageActionMap() override;
 
-   virtual void createComponentTable(char const *description) override;
+   virtual void fillComponentTable() override;
 
    virtual BaseDelivery *createDeliveryObject() override;
    virtual ArborList *createArborList();

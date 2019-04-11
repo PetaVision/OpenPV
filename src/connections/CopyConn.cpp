@@ -26,8 +26,8 @@ void CopyConn::initialize(char const *name, PVParams *params, Communicator const
    HyPerConn::initialize(name, params, comm);
 }
 
-void CopyConn::createComponentTable(char const *description) {
-   HyPerConn::createComponentTable(description);
+void CopyConn::fillComponentTable() {
+   HyPerConn::fillComponentTable();
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
       addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);

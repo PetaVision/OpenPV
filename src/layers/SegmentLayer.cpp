@@ -17,8 +17,8 @@ void SegmentLayer::initialize(const char *name, PVParams *params, Communicator c
    HyPerLayer::initialize(name, params, comm);
 }
 
-void SegmentLayer::createComponentTable(char const *description) {
-   HyPerLayer::createComponentTable(description);
+void SegmentLayer::fillComponentTable() {
+   HyPerLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);

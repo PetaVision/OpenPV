@@ -14,9 +14,9 @@ BaseConnection::BaseConnection(char const *name, PVParams *params, Communicator 
    initialize(name, params, comm);
 }
 
-BaseConnection::BaseConnection() { delete mIOTimer; }
+BaseConnection::BaseConnection() {}
 
-BaseConnection::~BaseConnection() {}
+BaseConnection::~BaseConnection() { delete mIOTimer; }
 
 void BaseConnection::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ComponentBasedObject::initialize(name, params, comm);
@@ -50,8 +50,8 @@ void BaseConnection::initMessageActionMap() {
    mMessageActionMap.emplace("ConnectionOutput", action);
 }
 
-void BaseConnection::createComponentTable(char const *description) {
-   ComponentBasedObject::createComponentTable(description);
+void BaseConnection::fillComponentTable() {
+   ComponentBasedObject::fillComponentTable();
    auto *connectionData = createConnectionData();
    if (connectionData) {
       addUniqueComponent(connectionData->getDescription(), connectionData);

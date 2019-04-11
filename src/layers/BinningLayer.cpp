@@ -20,8 +20,8 @@ void BinningLayer::initialize(const char *name, PVParams *params, Communicator c
    HyPerLayer::initialize(name, params, comm);
 }
 
-void BinningLayer::createComponentTable(char const *description) {
-   HyPerLayer::createComponentTable(description);
+void BinningLayer::fillComponentTable() {
+   HyPerLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);

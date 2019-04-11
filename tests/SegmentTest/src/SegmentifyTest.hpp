@@ -11,7 +11,7 @@ class SegmentifyTest : public PV::Segmentify {
    SegmentifyTest(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
-   virtual void createComponentTable(char const *description) override;
+   virtual void fillComponentTable() override;
    Response::Status checkUpdateState(double timef, double dt) override;
 
   private:

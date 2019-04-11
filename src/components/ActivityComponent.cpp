@@ -56,8 +56,8 @@ void ActivityComponent::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #endif // PV_USE_CUDA
 }
 
-void ActivityComponent::createComponentTable(char const *tableDescription) {
-   ComponentBasedObject::createComponentTable(tableDescription);
+void ActivityComponent::fillComponentTable() {
+   ComponentBasedObject::fillComponentTable();
    mActivity = createActivity();
    if (mActivity) {
       addUniqueComponent(mActivity->getDescription(), mActivity);

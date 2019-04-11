@@ -37,8 +37,8 @@ void HyPerActivityComponent<G, V, A>::setObjectType() {
 }
 
 template <typename G, typename V, typename A>
-void HyPerActivityComponent<G, V, A>::createComponentTable(char const *tableDescription) {
-   ActivityComponent::createComponentTable(tableDescription); // creates Activity
+void HyPerActivityComponent<G, V, A>::fillComponentTable() {
+   ActivityComponent::fillComponentTable(); // creates Activity
    mInternalState = createInternalState();
    if (mInternalState) {
       addUniqueComponent(mInternalState->getDescription(), mInternalState);

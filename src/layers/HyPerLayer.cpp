@@ -113,10 +113,8 @@ void HyPerLayer::initMessageActionMap() {
 /******************************************************************
  * Create components
  *****************************************************************/
-void HyPerLayer::createComponentTable(char const *description) {
-   pvAssert(mTable == nullptr);
-   Subject::createComponentTable(description);
-   pvAssert(mTable != nullptr);
+void HyPerLayer::fillComponentTable() {
+   Subject::fillComponentTable();
    mLayerGeometry = createLayerGeometry();
    if (mLayerGeometry) {
       addUniqueComponent(mLayerGeometry->getDescription(), mLayerGeometry);

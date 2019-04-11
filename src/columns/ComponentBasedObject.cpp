@@ -24,7 +24,7 @@ void ComponentBasedObject::initialize(
       Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
    std::string componentTableName = std::string("ObserverTable \"") + name + "\"";
-   createComponentTable(componentTableName.c_str());
+   Subject::initializeTable(componentTableName.c_str());
 }
 
 int ComponentBasedObject::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

@@ -29,8 +29,8 @@ void TransposePoolingConn::initialize(
    PoolingConn::initialize(name, params, comm);
 }
 
-void TransposePoolingConn::createComponentTable(char const *description) {
-   PoolingConn::createComponentTable(description);
+void TransposePoolingConn::fillComponentTable() {
+   PoolingConn::fillComponentTable();
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
       addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
