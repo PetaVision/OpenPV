@@ -9,7 +9,7 @@
 #include "components/DependentArborList.hpp"
 #include "components/DependentPatchSize.hpp"
 #include "components/DependentSharedWeights.hpp"
-#include "delivery/CloneDeliveryFacade.hpp"
+#include "delivery/CloneDeliveryCreator.hpp"
 
 namespace PV {
 
@@ -34,7 +34,9 @@ void CloneConn::fillComponentTable() {
 }
 
 BaseDelivery *CloneConn::createDeliveryObject() {
-   return new CloneDeliveryFacade(name, parameters(), mCommunicator);
+   auto *deliveryCreator = new CloneDeliveryCreator(name, parameters(), mCommunicator);
+   addUniqueComponent(deliveryCreator->getDescription(), deliveryCreator);
+   return deliveryCreator->create();
 }
 
 ArborList *CloneConn::createArborList() {

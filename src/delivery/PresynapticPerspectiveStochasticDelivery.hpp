@@ -19,20 +19,6 @@ namespace PV {
  * with accumulate type "stochastic".
  */
 class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
-  protected:
-   /**
-    * List of parameters needed from the PresynapticPerspectiveStochasticDelivery class
-    * @name PresynapticPerspectiveStochasticDelivery Parameters
-    * @{
-    */
-
-   /**
-    * @brief receiveGpu: PresynapticPerspectiveStochasticDelivery always sets receiveGpu to false.
-    * The receiveGpu=true case is handled by the PresynapticPerspectiveGPUDelivery class.
-    */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
-   /** @} */ // End of list of BaseDelivery parameters.
-
   public:
    PresynapticPerspectiveStochasticDelivery(
          char const *name,
@@ -66,11 +52,12 @@ class PresynapticPerspectiveStochasticDelivery : public HyPerDelivery {
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-
    virtual Response::Status allocateDataStructures() override;
 
    void allocateRandState();
+
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
    // Data members
   protected:

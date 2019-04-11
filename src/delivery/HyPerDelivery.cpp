@@ -23,15 +23,8 @@ void HyPerDelivery::initialize(char const *name, PVParams *params, Communicator 
 
 void HyPerDelivery::setObjectType() { mObjectType = "HyPerDelivery"; }
 
-int HyPerDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = PV_SUCCESS;
-   // Only read params because HyPerDeliveryFacade will read/write them too.
-   // The facade needs to read the params in order to determine which HyPerDelivery subclass
-   // to instantiate.
-   if (ioFlag == PARAMS_IO_READ) {
-      status = BaseDelivery::ioParamsFillGroup(ioFlag);
-   }
-   return status;
+void HyPerDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
+   parameters()->handleUnnecessaryParameter(name, "receiveGpu");
 }
 
 Response::Status
@@ -50,19 +43,6 @@ HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    pvAssert(mArborList);
    if (!mArborList->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
-   }
-   return Response::SUCCESS;
-}
-
-Response::Status
-HyPerDelivery::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   auto status      = BaseDelivery::allocateDataStructures();
-   mDeltaTimeFactor = 1.0f; // Default value
-   if (!Response::completed(status)) {
-      return status;
-   }
-   if (mAccumulateType == STOCHASTIC) {
-      mDeltaTimeFactor = (float)message->mDeltaTime;
    }
    return Response::SUCCESS;
 }

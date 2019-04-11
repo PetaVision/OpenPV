@@ -1,9 +1,9 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/accumulate_functions.cpp
    ${SUBDIR}/BaseDelivery.cpp
-   ${SUBDIR}/CloneDeliveryFacade.cpp
+   ${SUBDIR}/CloneDeliveryCreator.cpp
    ${SUBDIR}/HyPerDelivery.cpp
-   ${SUBDIR}/HyPerDeliveryFacade.cpp
+   ${SUBDIR}/HyPerDeliveryCreator.cpp
    ${SUBDIR}/IdentDelivery.cpp
    ${SUBDIR}/LayerInputDelivery.cpp
    ${SUBDIR}/PoolingDelivery.cpp
@@ -19,8 +19,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/accumulate_functions.hpp
    ${SUBDIR}/BaseDelivery.hpp
-   ${SUBDIR}/CloneDeliveryFacade.hpp
-   ${SUBDIR}/HyPerDeliveryFacade.hpp
+   ${SUBDIR}/CloneDeliveryCreator.hpp
+   ${SUBDIR}/HyPerDeliveryCreator.hpp
    ${SUBDIR}/HyPerDelivery.hpp
    ${SUBDIR}/IdentDelivery.hpp
    ${SUBDIR}/LayerInputDelivery.hpp
