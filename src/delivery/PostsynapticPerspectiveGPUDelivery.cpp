@@ -13,10 +13,13 @@ PostsynapticPerspectiveGPUDelivery::PostsynapticPerspectiveGPUDelivery(
       char const *name,
       PVParams *params,
       Communicator const *comm) {
+   mCorrectReceiveGpu = true;
    initialize(name, params, comm);
 }
 
-PostsynapticPerspectiveGPUDelivery::PostsynapticPerspectiveGPUDelivery() {}
+PostsynapticPerspectiveGPUDelivery::PostsynapticPerspectiveGPUDelivery() {
+   mCorrectReceiveGpu = true;
+}
 
 PostsynapticPerspectiveGPUDelivery::~PostsynapticPerspectiveGPUDelivery() {
    delete mRecvKernel;
