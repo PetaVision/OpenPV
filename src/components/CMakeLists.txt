@@ -74,6 +74,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/SigmoidActivityBuffer.cpp
    ${SUBDIR}/SingleArbor.cpp
    ${SUBDIR}/SingleChannelGSynAccumulator.cpp
+   ${SUBDIR}/SpikingActivityComponent.cpp
    ${SUBDIR}/SquaredGSynAccumulator.cpp
    ${SUBDIR}/StrengthParam.cpp
    ${SUBDIR}/TransposePatchSize.cpp
@@ -164,6 +165,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/SigmoidActivityBuffer.hpp
    ${SUBDIR}/SingleArbor.hpp
    ${SUBDIR}/SingleChannelGSynAccumulator.hpp
+   ${SUBDIR}/SpikingActivityComponent.hpp
    ${SUBDIR}/SquaredGSynAccumulator.hpp
    ${SUBDIR}/StrengthParam.hpp
    ${SUBDIR}/TransposePatchSize.hpp

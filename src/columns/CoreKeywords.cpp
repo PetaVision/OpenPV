@@ -38,6 +38,7 @@
 #include "layers/RescaleLayer.hpp"
 #include "layers/Retina.hpp"
 #include "layers/SigmoidLayer.hpp"
+#include "layers/SpikingIntegrator.hpp"
 
 // #include "deprecated/ANNWhitenedLayer.hpp"
 // #include "deprecated/KmeansLayer.hpp"
@@ -158,6 +159,7 @@ void registerCoreKeywords() {
    factory->registerKeyword("RescaleLayer", Factory::create<RescaleLayer>);
    factory->registerKeyword("Retina", Factory::create<Retina>);
    factory->registerKeyword("SigmoidLayer", Factory::create<SigmoidLayer>);
+   factory->registerKeyword("SpikingIntegrator", Factory::create<SpikingIntegrator>);
 
    // Deprecated layers
    // factory->registerKeyword("ANNWhitenedLayer", Factory::create<ANNWhitenedLayer>);

@@ -21,8 +21,8 @@ namespace PV {
 class LeakyIntegratorBuffer : public HyPerInternalStateBuffer {
   protected:
    /**
-    * List of parameters used by the ANNErrorLayer class
-    * @name ANNErrorLayer Parameters
+    * List of parameters used by the LeakyIntegratorBuffer class
+    * @name LeakyIntegrator Parameters
     * @{
     */
 

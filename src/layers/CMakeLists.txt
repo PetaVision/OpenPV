@@ -31,6 +31,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/Segmentify.cpp
    ${SUBDIR}/SegmentLayer.cpp
    ${SUBDIR}/SigmoidLayer.cpp
+   ${SUBDIR}/SpikingIntegrator.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -66,4 +67,5 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Segmentify.hpp
    ${SUBDIR}/SegmentLayer.hpp
    ${SUBDIR}/SigmoidLayer.hpp
+   ${SUBDIR}/SpikingIntegrator.hpp
 )
