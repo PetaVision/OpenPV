@@ -26,8 +26,8 @@ void CloneVLayer::initialize(const char *name, PVParams *params, Communicator co
    HyPerLayer::initialize(name, params, comm);
 }
 
-void CloneVLayer::createComponentTable(char const *description) {
-   HyPerLayer::createComponentTable(description);
+void CloneVLayer::fillComponentTable() {
+   HyPerLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);

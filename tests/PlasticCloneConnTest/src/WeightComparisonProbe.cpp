@@ -6,11 +6,12 @@
  */
 
 #include "WeightComparisonProbe.hpp"
-#include "components/ArborList.hpp"
-#include "components/PatchSize.hpp"
-#include "components/WeightsPair.hpp"
+#include <components/ArborList.hpp>
+#include <components/PatchSize.hpp>
+#include <components/WeightsPair.hpp>
+#include <delivery/HyPerDeliveryCreator.hpp>
+
 #include <cstring>
-#include <delivery/HyPerDeliveryFacade.hpp>
 
 namespace PV {
 
@@ -45,11 +46,11 @@ Response::Status WeightComparisonProbe::communicateInitInfo(
       if (!c->getInitInfoCommunicatedFlag()) {
          return Response::POSTPONE;
       }
-      auto *deliveryComponent = c->getComponentByType<HyPerDeliveryFacade>();
-      pvAssert(deliveryComponent);
+      auto *deliveryCreator = c->getComponentByType<HyPerDeliveryCreator>();
+      pvAssert(deliveryCreator);
       auto *weightsPair = c->getComponentByType<WeightsPair>();
       pvAssert(weightsPair);
-      bool deliverPostPerspective = deliveryComponent->getUpdateGSynFromPostPerspective();
+      bool deliverPostPerspective = deliveryCreator->getUpdateGSynFromPostPerspective();
       if (deliverPostPerspective) {
          weightsPair->needPost();
       }

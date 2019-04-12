@@ -21,7 +21,7 @@ class TransposeConn : public HyPerConn {
   protected:
    TransposeConn();
 
-   virtual void createComponentTable(char const *description) override;
+   virtual void fillComponentTable() override;
 
    void initialize(char const *name, PVParams *params, Communicator const *comm);
 

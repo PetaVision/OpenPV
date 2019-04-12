@@ -31,8 +31,8 @@ void MomentumLCAActivityComponent::initialize(
 
 void MomentumLCAActivityComponent::setObjectType() { mObjectType = "MomentumLCAActivityComponent"; }
 
-void MomentumLCAActivityComponent::createComponentTable(char const *tableDescription) {
-   BaseMomentumActivityComponent::createComponentTable(tableDescription);
+void MomentumLCAActivityComponent::fillComponentTable() {
+   BaseMomentumActivityComponent::fillComponentTable();
    // creates A, V, and accumulated-GSyn buffers.
    mPrevDrive = createPrevDrive();
    if (mPrevDrive) {

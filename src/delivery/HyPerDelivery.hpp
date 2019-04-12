@@ -15,20 +15,23 @@
 namespace PV {
 
 /**
- * The base delivery component for HyPerConns. It is owned by a HyPerDeliveryFacade object,
- * which handles the interactions between a HyPerDelivery object and the HyPerConn object.
- * The subclasses handle the individual delivery methods, based on the values of receiveGpu,
- * pvpatchAccumulateType, and updateGSynFromPostPerspective.
+ * A pure virtual class for delivery components for HyPerConns. It is typically created by a
+ * HyPerDeliveryCreator, which reads the receiveGpu parameter to decide which HyPerDelivery
+ * subclass to create; hence the receiveGpu parameter in this subclass does nothing.
  */
 class HyPerDelivery : public BaseDelivery {
-  public:
-   enum AccumulateType { UNDEFINED, CONVOLVE, STOCHASTIC };
+  protected:
+   /**
+    * The HyPerDeliveryCreator object reads this parameter and creates the appropriate
+    * HyPerDelivery-derived object based on its value; hence the derived class knows
+    * the value of receiveGpu just from having been instantiated.
+    */
+   void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
 
+  public:
    HyPerDelivery(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~HyPerDelivery();
-
-   void setConnectionData(ConnectionData *connectionData);
 
    virtual void deliver(float *destBuffer) override = 0;
 
@@ -41,21 +44,13 @@ class HyPerDelivery : public BaseDelivery {
 
    virtual void setObjectType() override;
 
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
-   virtual Response::Status
-   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
    double convertToRateDeltaTimeFactor(double timeConstantTau, double deltaTime) const;
 
    // Data members
   protected:
-   AccumulateType mAccumulateType      = CONVOLVE;
-   bool mUpdateGSynFromPostPerspective = false;
-
    float mDeltaTimeFactor    = 1.0f;
    WeightsPair *mWeightsPair = nullptr;
    ArborList *mArborList     = nullptr;

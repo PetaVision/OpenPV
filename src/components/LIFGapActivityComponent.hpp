@@ -22,7 +22,7 @@ class LIFGapActivityComponent : public LIFActivityComponent {
   protected:
    LIFGapActivityComponent();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual void createComponentTable(char const *tableDescription) override;
+   virtual void fillComponentTable() override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status

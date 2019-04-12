@@ -14,13 +14,14 @@ namespace PV {
 
 Subject::Subject() {}
 
-Subject::~Subject() { deleteTable(); }
+Subject::~Subject() {
+   deleteTable();
+   delete mTable;
+}
 
-void Subject::createComponentTable(char const *tableDescription) {
-   FatalIf(
-         mTable != nullptr,
-         "createComponentTable has been called, but the table has already been created.\n");
+void Subject::initializeTable(char const *tableDescription) {
    mTable = new ObserverTable(tableDescription);
+   fillComponentTable();
 }
 
 void Subject::addObserver(std::string const &tag, Observer *observer) {

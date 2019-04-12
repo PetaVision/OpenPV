@@ -6,8 +6,8 @@ SegmentifyTest::SegmentifyTest(const char *name, PVParams *params, Communicator 
    Segmentify::initialize(name, params, comm);
 }
 
-void SegmentifyTest::createComponentTable(char const *description) {
-   Segmentify::createComponentTable(description);
+void SegmentifyTest::fillComponentTable() {
+   Segmentify::fillComponentTable();
    FatalIf(
          mActivityComponent == nullptr,
          "%s failed to create an ActivityComponent.\n",

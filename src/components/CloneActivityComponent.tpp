@@ -37,8 +37,8 @@ void CloneActivityComponent<V, A>::setObjectType() {
 }
 
 template <typename V, typename A>
-void CloneActivityComponent<V, A>::createComponentTable(char const *tableDescription) {
-   ActivityComponent::createComponentTable(tableDescription); // creates Activity
+void CloneActivityComponent<V, A>::fillComponentTable() {
+   ActivityComponent::fillComponentTable(); // creates Activity
    mInternalState = createInternalState();
    if (mInternalState) {
       addUniqueComponent(mInternalState->getDescription(), mInternalState);

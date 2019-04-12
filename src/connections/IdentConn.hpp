@@ -23,7 +23,7 @@ class IdentConn : public BaseConnection {
    IdentConn();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
 
-   virtual void createComponentTable(char const *description) override;
+   virtual void fillComponentTable() override;
 
    virtual BaseDelivery *createDeliveryObject() override;
 

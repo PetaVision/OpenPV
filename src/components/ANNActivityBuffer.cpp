@@ -242,7 +242,7 @@ void ANNActivityBuffer::setVertices() {
    if (mAMax < limfromright)
       limfromright = mAMax;
 
-   if (mAMin > limfromright) {
+   if (mVThresh > -0.99f * FLT_MAX and mAMin > limfromright) {
       if (mCommunicator->globalCommRank() == 0) {
          if (mVWidth == 0) {
             WarnLog().printf(

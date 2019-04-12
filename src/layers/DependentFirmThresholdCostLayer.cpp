@@ -29,8 +29,8 @@ void DependentFirmThresholdCostLayer::initialize(
    FirmThresholdCostLayer::initialize(name, params, comm);
 }
 
-void DependentFirmThresholdCostLayer::createComponentTable(char const *description) {
-   FirmThresholdCostLayer::createComponentTable(description);
+void DependentFirmThresholdCostLayer::fillComponentTable() {
+   FirmThresholdCostLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);

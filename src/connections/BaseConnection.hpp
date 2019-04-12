@@ -35,7 +35,7 @@ class BaseConnection : public ComponentBasedObject {
 
    virtual void initMessageActionMap() override;
 
-   virtual void createComponentTable(char const *description) override;
+   virtual void fillComponentTable() override;
 
    virtual ConnectionData *createConnectionData();
    virtual BaseDelivery *createDeliveryObject();

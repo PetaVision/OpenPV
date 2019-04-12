@@ -21,8 +21,8 @@ FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer(
 
 FilenameParsingGroundTruthLayer::~FilenameParsingGroundTruthLayer() {}
 
-void FilenameParsingGroundTruthLayer::createComponentTable(char const *description) {
-   HyPerLayer::createComponentTable(description);
+void FilenameParsingGroundTruthLayer::fillComponentTable() {
+   HyPerLayer::fillComponentTable();
    mInputLayerNameParam = createInputLayerNameParam();
    if (mInputLayerNameParam) {
       addUniqueComponent(mInputLayerNameParam->getDescription(), mInputLayerNameParam);

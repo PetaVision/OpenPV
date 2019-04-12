@@ -28,12 +28,7 @@ void ActivityComponent::initialize(char const *name, PVParams *params, Communica
 void ActivityComponent::setObjectType() { mObjectType = "ActivityComponent"; }
 
 int ActivityComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   for (auto &c : *mTable) {
-      auto *obj = dynamic_cast<BaseObject *>(c);
-      if (obj) {
-         obj->ioParams(ioFlag, false, false);
-      }
-   }
+   int status = ComponentBasedObject::ioParamsFillGroup(ioFlag);
 
    // GPU-specific parameter.  If not using GPUs, this flag can be set to false or left out,
    // but it is an error to set updateGpu to true if compiling without GPUs.  We read it here and
@@ -61,8 +56,8 @@ void ActivityComponent::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #endif // PV_USE_CUDA
 }
 
-void ActivityComponent::createComponentTable(char const *tableDescription) {
-   ComponentBasedObject::createComponentTable(tableDescription);
+void ActivityComponent::fillComponentTable() {
+   ComponentBasedObject::fillComponentTable();
    mActivity = createActivity();
    if (mActivity) {
       addUniqueComponent(mActivity->getDescription(), mActivity);

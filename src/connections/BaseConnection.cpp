@@ -16,7 +16,7 @@ BaseConnection::BaseConnection(char const *name, PVParams *params, Communicator 
 
 BaseConnection::BaseConnection() {}
 
-BaseConnection::~BaseConnection() {}
+BaseConnection::~BaseConnection() { delete mIOTimer; }
 
 void BaseConnection::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ComponentBasedObject::initialize(name, params, comm);
@@ -50,8 +50,8 @@ void BaseConnection::initMessageActionMap() {
    mMessageActionMap.emplace("ConnectionOutput", action);
 }
 
-void BaseConnection::createComponentTable(char const *description) {
-   ComponentBasedObject::createComponentTable(description);
+void BaseConnection::fillComponentTable() {
+   ComponentBasedObject::fillComponentTable();
    auto *connectionData = createConnectionData();
    if (connectionData) {
       addUniqueComponent(connectionData->getDescription(), connectionData);
@@ -71,13 +71,8 @@ BaseDelivery *BaseConnection::createDeliveryObject() {
 }
 
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   for (auto &c : *mTable) {
-      auto obj = dynamic_cast<BaseObject *>(c);
-      if (obj) {
-         obj->ioParams(ioFlag, false, false);
-      }
-   }
-   return PV_SUCCESS;
+   int status = ComponentBasedObject::ioParamsFillGroup(ioFlag);
+   return status;
 }
 
 Response::Status BaseConnection::respondConnectionWriteParams(

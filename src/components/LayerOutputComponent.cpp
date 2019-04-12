@@ -20,7 +20,10 @@ LayerOutputComponent::LayerOutputComponent(
 
 LayerOutputComponent::LayerOutputComponent() {}
 
-LayerOutputComponent::~LayerOutputComponent() { delete mIOTimer; }
+LayerOutputComponent::~LayerOutputComponent() {
+   delete mIOTimer;
+   delete mOutputStateStream;
+}
 
 void LayerOutputComponent::initialize(
       char const *name,

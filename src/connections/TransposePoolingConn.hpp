@@ -23,7 +23,7 @@ class TransposePoolingConn : public PoolingConn {
 
    void initialize(char const *name, PVParams *params, Communicator const *comm);
 
-   virtual void createComponentTable(char const *description) override;
+   virtual void fillComponentTable() override;
 
    virtual BaseDelivery *createDeliveryObject() override;
 

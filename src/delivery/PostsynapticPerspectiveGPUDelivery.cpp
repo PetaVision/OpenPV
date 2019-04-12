@@ -28,20 +28,12 @@ void PostsynapticPerspectiveGPUDelivery::initialize(
       char const *name,
       PVParams *params,
       Communicator const *comm) {
+   mReceiveGpu = true; // If it's false, we should be using a different class.
    BaseObject::initialize(name, params, comm);
 }
 
 void PostsynapticPerspectiveGPUDelivery::setObjectType() {
    mObjectType = "PostsynapticPerspectiveGPUDelivery";
-}
-
-int PostsynapticPerspectiveGPUDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerDelivery::ioParamsFillGroup(ioFlag);
-   return status;
-}
-
-void PostsynapticPerspectiveGPUDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
-   mReceiveGpu = true; // If it's false, we should be using a different class.
 }
 
 Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
@@ -61,10 +53,6 @@ Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
    mWeightsPair->getPostWeights()->useGPU();
    mPostGSyn->useCuda();
 
-   // If recv from pre and pre layer is sparse, allocate activeIndices
-   if (!mUpdateGSynFromPostPerspective && mPreData->getSparseLayer()) {
-      mPreData->setAllocCudaActiveIndices();
-   }
    return Response::SUCCESS;
 }
 
