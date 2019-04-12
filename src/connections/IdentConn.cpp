@@ -28,8 +28,8 @@ BaseDelivery *IdentConn::createDeliveryObject() {
    return deliveryObject;
 }
 
-void IdentConn::createComponentTable(char const *description) {
-   BaseConnection::createComponentTable(description);
+void IdentConn::fillComponentTable() {
+   BaseConnection::fillComponentTable();
    mSingleArbor = createSingleArbor();
    if (mSingleArbor) {
       addUniqueComponent(mSingleArbor->getDescription(), mSingleArbor);

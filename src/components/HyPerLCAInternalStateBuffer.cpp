@@ -98,12 +98,6 @@ Response::Status HyPerLCAInternalStateBuffer::allocateDataStructures() {
    }
    mDeltaTimes.resize(getLayerLoc()->nbatch);
 
-#ifdef PV_USE_CUDA
-   if (isUsingGPU()) {
-      allocateUpdateKernel();
-   }
-#endif // PV_USE_CUDA
-
    return Response::SUCCESS;
 }
 

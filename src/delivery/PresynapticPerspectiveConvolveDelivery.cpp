@@ -24,20 +24,12 @@ void PresynapticPerspectiveConvolveDelivery::initialize(
       char const *name,
       PVParams *params,
       Communicator const *comm) {
+   mReceiveGpu = false; // If it's true, we should be using a different class.
    BaseObject::initialize(name, params, comm);
 }
 
 void PresynapticPerspectiveConvolveDelivery::setObjectType() {
    mObjectType = "PresynapticPerspectiveConvolveDelivery";
-}
-
-int PresynapticPerspectiveConvolveDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerDelivery::ioParamsFillGroup(ioFlag);
-   return status;
-}
-
-void PresynapticPerspectiveConvolveDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
-   mReceiveGpu = false; // If it's true, we should be using a different class.
 }
 
 Response::Status PresynapticPerspectiveConvolveDelivery::communicateInitInfo(

@@ -79,28 +79,32 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
 
 #ifdef PV_USE_OPENMP_THREADS
 void BaseDelivery::allocateThreadGSyn() {
-   int const numThreads = mNumThreads;
-   if (numThreads > 1) {
-      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
-      // We could use mPostGSyn->getBufferSizeAcrossBatch(), but this requires
-      // checking mPostGSyn->getDataStructuresAllocatedFlag().
-      int const numNeuronsAllBatches = postLoc->nx * postLoc->ny * postLoc->nf * postLoc->nbatch;
-      mThreadGSyn.resize(numThreads);
-      for (auto &th : mThreadGSyn) {
-         th.resize(numNeuronsAllBatches);
+   if (getChannelCode() >= 0) {
+      int numThreads = mNumThreads;
+      if (numThreads > 1) {
+         PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
+         // We could use mPostGSyn->getBufferSizeAcrossBatch(), but this requires
+         // checking mPostGSyn->getDataStructuresAllocatedFlag().
+         int const numNeuronsAllBatches = postLoc->nx * postLoc->ny * postLoc->nf * postLoc->nbatch;
+         mThreadGSyn.resize(numThreads);
+         for (auto &th : mThreadGSyn) {
+            th.resize(numNeuronsAllBatches);
+         }
       }
    }
 }
 
 void BaseDelivery::clearThreadGSyn() {
-   int const numThreads = (int)mThreadGSyn.size();
-   if (numThreads > 1) {
-      int const numPostRestricted = mPostGSyn->getBufferSize();
+   if (getChannelCode() >= 0) {
+      int const numThreads = (int)mThreadGSyn.size();
+      if (numThreads > 1) {
+         int const numPostRestricted = mPostGSyn->getBufferSize();
 #pragma omp parallel for schedule(static)
-      for (int ti = 0; ti < numThreads; ++ti) {
-         float *threadData = mThreadGSyn[ti].data();
-         for (int ni = 0; ni < numPostRestricted; ++ni) {
-            threadData[ni] = 0.0f;
+         for (int ti = 0; ti < numThreads; ++ti) {
+            float *threadData = mThreadGSyn[ti].data();
+            for (int ni = 0; ni < numPostRestricted; ++ni) {
+               threadData[ni] = 0.0f;
+            }
          }
       }
    }
@@ -111,15 +115,17 @@ void BaseDelivery::clearThreadGSyn() {
 
 void BaseDelivery::accumulateThreadGSyn(float *baseGSynBuffer) {
 #ifdef PV_USE_OPENMP_THREADS
-   int const numThreads = (int)mThreadGSyn.size();
-   if (numThreads > 0) {
-      int numNeuronsPost = mPostGSyn->getBufferSize();
-      for (int ti = 0; ti < numThreads; ti++) {
-         float *threadData = mThreadGSyn[ti].data();
+   if (getChannelCode() >= 0) {
+      int const numThreads = (int)mThreadGSyn.size();
+      if (numThreads > 1) {
+         int numNeuronsPost = mPostGSyn->getBufferSize();
+         for (int ti = 0; ti < numThreads; ti++) {
+            float *threadData = mThreadGSyn[ti].data();
 // Looping over neurons is thread safe
 #pragma omp parallel for
-         for (int ni = 0; ni < numNeuronsPost; ni++) {
-            baseGSynBuffer[ni] += threadData[ni];
+            for (int ni = 0; ni < numNeuronsPost; ni++) {
+               baseGSynBuffer[ni] += threadData[ni];
+            }
          }
       }
    }

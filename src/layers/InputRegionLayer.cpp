@@ -25,8 +25,8 @@ void InputRegionLayer::initialize(const char *name, PVParams *params, Communicat
    HyPerLayer::initialize(name, params, comm);
 }
 
-void InputRegionLayer::createComponentTable(char const *description) {
-   HyPerLayer::createComponentTable(description);
+void InputRegionLayer::fillComponentTable() {
+   HyPerLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);

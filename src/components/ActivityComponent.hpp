@@ -67,7 +67,7 @@ class ActivityComponent : public ComponentBasedObject {
 
    virtual void setObjectType() override;
 
-   virtual void createComponentTable(char const *tableDescription) override;
+   virtual void fillComponentTable() override;
 
    virtual ActivityBuffer *createActivity();
 

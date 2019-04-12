@@ -1,30 +1,30 @@
 /*
- * CloneDeliveryFacade.hpp
+ * CloneDeliveryCreator.hpp
  *
  *  Created on: Aug 24, 2017
  *      Author: Pete Schultz
  */
 
-#ifndef CLONEDELIVERYFACADE_HPP_
-#define CLONEDELIVERYFACADE_HPP_
+#ifndef CLONEDELIVERYCREATOR_HPP_
+#define CLONEDELIVERYCREATOR_HPP_
 
-#include "delivery/HyPerDeliveryFacade.hpp"
+#include "delivery/HyPerDeliveryCreator.hpp"
 
 namespace PV {
 
 /**
- * The delivery component for CloneConns. It is exactly the same as HyPerDeliveryFacade, except
+ * The delivery component for CloneConns. It is exactly the same as HyPerDeliveryCreator, except
  * that it requires the WeightsPair to be a CloneWeights pair; and if updateGSynFromPostPerspective
  * is set, it synchronizes the original's and clone's postsynaptic layer margin widths.
  */
-class CloneDeliveryFacade : public HyPerDeliveryFacade {
+class CloneDeliveryCreator : public HyPerDeliveryCreator {
   public:
-   CloneDeliveryFacade(char const *name, PVParams *params, Communicator const *comm);
+   CloneDeliveryCreator(char const *name, PVParams *params, Communicator const *comm);
 
-   virtual ~CloneDeliveryFacade();
+   virtual ~CloneDeliveryCreator();
 
   protected:
-   CloneDeliveryFacade();
+   CloneDeliveryCreator();
 
    void initialize(char const *name, PVParams *params, Communicator const *comm);
 
@@ -32,8 +32,8 @@ class CloneDeliveryFacade : public HyPerDeliveryFacade {
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-}; // end class CloneDeliveryFacade
+}; // end class CloneDeliveryCreator
 
 } // end namespace PV
 
-#endif // CLONEDELIVERYFACADE_HPP_
+#endif // CLONEDELIVERYCREATOR_HPP_

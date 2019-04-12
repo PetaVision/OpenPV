@@ -191,6 +191,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    virtual void initMessageActionMap() override;
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    int checkDirExists(const char *dirname, struct stat *pathstat);
+   virtual void fillComponentTable();
    void addComponent(BaseObject *component);
    inline void notifyLoop(std::vector<std::shared_ptr<BaseMessage const>> messages) {
       bool printFlag = getCommunicator()->globalCommRank() == 0;

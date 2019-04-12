@@ -17,7 +17,10 @@ InternalStateBuffer::InternalStateBuffer(
    initialize(name, params, comm);
 }
 
-InternalStateBuffer::~InternalStateBuffer() { free(mInitVTypeString); }
+InternalStateBuffer::~InternalStateBuffer() {
+   free(mInitVTypeString);
+   delete mInitVObject;
+}
 
 void InternalStateBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    RestrictedBuffer::initialize(name, params, comm);

@@ -8,7 +8,7 @@
 #include "HyPerConn.hpp"
 #include "columns/Factory.hpp"
 #include "components/StrengthParam.hpp"
-#include "delivery/HyPerDeliveryFacade.hpp"
+#include "delivery/HyPerDeliveryCreator.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
 
 namespace PV {
@@ -42,8 +42,8 @@ void HyPerConn::initMessageActionMap() {
    mMessageActionMap.emplace("ConnectionNormalize", action);
 }
 
-void HyPerConn::createComponentTable(char const *description) {
-   BaseConnection::createComponentTable(description);
+void HyPerConn::fillComponentTable() {
+   BaseConnection::fillComponentTable();
    auto *arborList = createArborList();
    if (arborList) {
       addUniqueComponent(arborList->getDescription(), arborList);
@@ -75,7 +75,9 @@ void HyPerConn::createComponentTable(char const *description) {
 }
 
 BaseDelivery *HyPerConn::createDeliveryObject() {
-   return new HyPerDeliveryFacade(name, parameters(), mCommunicator);
+   auto *deliveryCreator = new HyPerDeliveryCreator(name, parameters(), mCommunicator);
+   addUniqueComponent(deliveryCreator->getDescription(), deliveryCreator);
+   return deliveryCreator->create();
 }
 
 ArborList *HyPerConn::createArborList() { return new ArborList(name, parameters(), mCommunicator); }

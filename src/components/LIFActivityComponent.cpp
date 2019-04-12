@@ -30,8 +30,8 @@ void LIFActivityComponent::initialize(
 
 void LIFActivityComponent::setObjectType() { mObjectType = "LIFActivityComponent"; }
 
-void LIFActivityComponent::createComponentTable(char const *tableDescription) {
-   ActivityComponent::createComponentTable(tableDescription); // creates A and V buffers
+void LIFActivityComponent::fillComponentTable() {
+   ActivityComponent::fillComponentTable(); // creates A and V buffers
    mInternalState = createInternalState();
    if (mInternalState) {
       addUniqueComponent(mInternalState->getDescription(), mInternalState);

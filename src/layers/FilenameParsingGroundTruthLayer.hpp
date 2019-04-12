@@ -24,7 +24,7 @@ class FilenameParsingGroundTruthLayer : public HyPerLayer {
    InputLayerNameParam *mInputLayerNameParam = nullptr;
 
   protected:
-   virtual void createComponentTable(char const *description) override;
+   virtual void fillComponentTable() override;
    virtual LayerUpdateController *createLayerUpdateController() override;
    virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;

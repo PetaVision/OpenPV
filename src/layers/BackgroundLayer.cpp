@@ -22,8 +22,8 @@ void BackgroundLayer::initialize(const char *name, PVParams *params, Communicato
    HyPerLayer::initialize(name, params, comm);
 }
 
-void BackgroundLayer::createComponentTable(char const *description) {
-   HyPerLayer::createComponentTable(description);
+void BackgroundLayer::fillComponentTable() {
+   HyPerLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);

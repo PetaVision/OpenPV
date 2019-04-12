@@ -19,21 +19,6 @@ namespace PV {
  * with accumulate type "convolve".
  */
 class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
-  protected:
-   /**
-    * List of parameters needed from the PresynapticPerspectiveGPUDelivery class
-    * @name PresynapticPerspectiveGPUDelivery Parameters
-    * @{
-    */
-
-   /**
-    * @brief receiveGpu: PresynapticPerspectiveGPUDelivery always sets receiveGpu to true.
-    * The receiveGpu=false case is handled by the PresynapticPerspectiveConvolveDelivery
-    * and PresynapticPerspectiveStochasticDelivery classes.
-    */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
-   /** @} */ // End of list of BaseDelivery parameters.
-
   public:
    PresynapticPerspectiveGPUDelivery(char const *name, PVParams *params, Communicator const *comm);
 
@@ -55,8 +40,6 @@ class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
    void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
-
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

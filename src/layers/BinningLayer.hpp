@@ -35,7 +35,7 @@ class BinningLayer : public HyPerLayer {
    BinningLayer();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
 
-   virtual void createComponentTable(char const *description) override;
+   virtual void fillComponentTable() override;
    virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
    virtual OriginalLayerNameParam *createOriginalLayerNameParam();

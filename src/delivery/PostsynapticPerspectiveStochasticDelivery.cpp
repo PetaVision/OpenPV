@@ -26,20 +26,12 @@ void PostsynapticPerspectiveStochasticDelivery::initialize(
       char const *name,
       PVParams *params,
       Communicator const *comm) {
+   mReceiveGpu = false; // If it's true, we should be using a different class.
    BaseObject::initialize(name, params, comm);
 }
 
 void PostsynapticPerspectiveStochasticDelivery::setObjectType() {
    mObjectType = "PostsynapticPerspectiveStochasticDelivery";
-}
-
-int PostsynapticPerspectiveStochasticDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerDelivery::ioParamsFillGroup(ioFlag);
-   return status;
-}
-
-void PostsynapticPerspectiveStochasticDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
-   mReceiveGpu = false; // If it's true, we should be using a different class.
 }
 
 Response::Status PostsynapticPerspectiveStochasticDelivery::communicateInitInfo(
@@ -63,6 +55,16 @@ Response::Status PostsynapticPerspectiveStochasticDelivery::allocateDataStructur
       return status;
    }
    mRandState = new Random(mPostGSyn->getLayerLoc(), false /*restricted, not extended*/);
+   return Response::SUCCESS;
+}
+
+Response::Status PostsynapticPerspectiveStochasticDelivery::initializeState(
+      std::shared_ptr<InitializeStateMessage const> message) {
+   auto status = HyPerDelivery::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   mDeltaTimeFactor = (float)message->mDeltaTime;
    return Response::SUCCESS;
 }
 

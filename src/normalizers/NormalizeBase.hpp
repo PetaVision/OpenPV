@@ -39,7 +39,7 @@ class NormalizeBase : public BaseObject {
   public:
    NormalizeBase(char const *name, PVParams *params, Communicator const *comm);
 
-   virtual ~NormalizeBase() {}
+   virtual ~NormalizeBase();
 
    void addWeightsToList(Weights *weights);
 

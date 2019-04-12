@@ -16,6 +16,8 @@ NormalizeBase::NormalizeBase(char const *name, PVParams *params, Communicator co
    initialize(name, params, comm);
 }
 
+NormalizeBase::~NormalizeBase() { free(mNormalizeMethod); }
+
 void NormalizeBase::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
 }

@@ -41,8 +41,8 @@ void LIFGapActivityComponent::initialize(
    LIFActivityComponent::initialize(name, params, comm);
 }
 
-void LIFGapActivityComponent::createComponentTable(char const *tableDescription) {
-   LIFActivityComponent::createComponentTable(tableDescription); // creates A, V, and conductances
+void LIFGapActivityComponent::fillComponentTable() {
+   LIFActivityComponent::fillComponentTable(); // creates A, V, and conductances
    mGapStrength = createRestrictedBuffer("gapStrength");
    if (mGapStrength) {
       addObserver(mGapStrength->getBufferLabel(), mGapStrength);

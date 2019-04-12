@@ -37,7 +37,7 @@ class MomentumLCAActivityComponent : public BaseMomentumActivityComponent {
 
    virtual void setObjectType() override;
 
-   virtual void createComponentTable(char const *tableDescription) override;
+   virtual void fillComponentTable() override;
 
    virtual RestrictedBuffer *createPrevDrive();
 

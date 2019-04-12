@@ -18,7 +18,7 @@ debugParsing = false;
 HyPerCol "column" = {
     dt                                  = 1;
     stopTime                            = 10;
-    progressInterval                    = 10;
+    progressInterval                    = 1;
     writeProgressToErr                  = false;
     outputPath                          = "output/DependentFirmThresholdCostTest";
     verifyWrites                        = false;
@@ -144,8 +144,8 @@ HyPerLayer "Comparison" = {
     initializeFromCheckpointFlag        = false;
     nxScale                             = 1;
     nyScale                             = 1;
-    nf                                  = 1;
-    phase                               = 0;
+    nf                                  = 3;
+    phase                               = 2;
     mirrorBCflag                        = false;
     valueBC                             = 0;
     triggerLayerName                    = NULL;
@@ -153,7 +153,7 @@ HyPerLayer "Comparison" = {
     updateGpu                           = false;
     sparseLayer                         = false;
     writeStep                           = 1;
-    initialWriteTime                    = 0;
+    initialWriteTime                    = 1;
 };
 
 IdentConn "InputToV1Layer" = {
@@ -174,16 +174,16 @@ IdentConn "InputToTestLayer" = {
 
 IdentConn "TestLayerToComparison" = {
     initializeFromCheckpointFlag        = false;
-    preLayerName                        = "Input";
-    postLayerName                       = "TestLayer";
+    preLayerName                        = "TestLayer";
+    postLayerName                       = "Comparison";
     channelCode                         = 0;
     delay                               = 0.0;
 };
 
 IdentConn "CorrectOutputToComparison" = {
     initializeFromCheckpointFlag        = false;
-    preLayerName                        = "Input";
-    postLayerName                       = "TestLayer";
+    preLayerName                        = "CorrectOutput";
+    postLayerName                       = "Comparison";
     channelCode                         = 1;
     delay                               = 0.0;
 };
@@ -195,7 +195,7 @@ RequireAllZeroActivityProbe "ComparisonProbe" = {
     probeOutputFile                     = "ComparisonProbe.txt";
     triggerLayerName                    = NULL;
     energyProbe                         = NULL;
-    nnzThreshold                        = 0;
+    nnzThreshold                        = 1e-7;
     exitOnFailure                       = true;
-    immediateExitOnFailure              = true;
+    immediateExitOnFailure              = false;
 };

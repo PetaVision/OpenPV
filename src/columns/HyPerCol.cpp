@@ -73,8 +73,7 @@ HyPerCol::~HyPerCol() {
 
 int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their
-   // actual values in
-   // initialize()
+   // actual values in initialize()
    mReadyFlag                = false;
    mParamsProcessedFlag      = false;
    mNumPhases                = 0;
@@ -118,14 +117,13 @@ int HyPerCol::initialize(PV_Init *initObj) {
       exit(EXIT_FAILURE);
    }
 
-   int numGroups          = mParams->numberOfGroups();
-   std::string paramsFile = initObj->getStringArgument("ParamsFile");
-   if (numGroups == 0) {
+   std::string paramsFile = mPVInitObj->getStringArgument("ParamsFile");
+   if (mParams->numberOfGroups() == 0) {
       ErrorLog() << "Params \"" << paramsFile << "\" does not define any groups.\n";
       return PV_FAILURE;
    }
    if (strcmp(mParams->groupKeywordFromIndex(0), "HyPerCol")) {
-      std::string paramsFile = initObj->getStringArgument("ParamsFile");
+      std::string paramsFile = mPVInitObj->getStringArgument("ParamsFile");
       ErrorLog() << "First group in the params file \"" << paramsFile
                  << "\" does not define a HyPerCol.\n";
       return PV_FAILURE;
@@ -163,12 +161,11 @@ int HyPerCol::initialize(PV_Init *initObj) {
       exit(parsedStatus);
    }
 
-   mRandomSeed = mPVInitObj->getUnsignedIntArgument("RandomSeed");
-
    mCheckpointer = new Checkpointer(
-         std::string(getName()), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
+         std::string(group0Name), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
    mCheckpointer->addObserver(this->getName(), this);
-   readParams();
+   mCheckpointer->ioParams(PARAMS_IO_READ, parameters());
+
    mSimTime     = 0.0;
    mCurrentStep = 0L;
    mFinalStep   = (long int)nearbyint(mStopTime / mDeltaTime);
@@ -198,16 +195,20 @@ int HyPerCol::initialize(PV_Init *initObj) {
    mCheckpointReadFlag = !mCheckpointer->getCheckpointReadDirectory().empty();
 
    // Add layers, connections, etc.
-   Subject::createComponentTable(group0Name);
+   Subject::initializeTable(group0Name);
+   return PV_SUCCESS;
+}
+
+void HyPerCol::fillComponentTable() {
+   int numGroups = mParams->numberOfGroups();
    for (int k = 1; k < numGroups; k++) { // k = 0 is the HyPerCol itself.
       const char *kw   = mParams->groupKeywordFromIndex(k);
       const char *name = mParams->groupNameFromIndex(k);
       if (!strcmp(kw, "HyPerCol")) {
          if (globalRank() == 0) {
-            std::string paramsFile = initObj->getStringArgument("ParamsFile");
-            ErrorLog() << "Group " << k + 1 << " in params file (\"" << paramsFile
-                       << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
-            return PV_FAILURE;
+            std::string paramsFile = mPVInitObj->getStringArgument("ParamsFile");
+            Fatal() << "Group " << k + 1 << " in params file (\"" << paramsFile
+                    << "\") is a HyPerCol; only the first group can be a HyPercol.\n";
          }
       }
       else {
@@ -218,13 +219,11 @@ int HyPerCol::initialize(PV_Init *initObj) {
             Fatal() << e.what() << std::endl;
          }
          if (addedObject == nullptr) {
-            ErrorLog().printf("Unable to create %s \"%s\".\n", kw, name);
-            return PV_FAILURE;
+            Fatal().printf("Unable to create %s \"%s\".\n", kw, name);
          }
          addComponent(addedObject);
       }
    } // for-loop over parameter groups
-   return PV_SUCCESS;
 }
 
 void HyPerCol::initMessageActionMap() {
@@ -243,13 +242,16 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
-   mCheckpointer->ioParams(ioFlag, parameters());
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
    ioParam_nx(ioFlag);
    ioParam_ny(ioFlag);
    ioParam_nBatch(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
+   if (ioFlag == PARAMS_IO_WRITE) {
+      pvAssert(mCheckpointer);
+      mCheckpointer->ioParams(ioFlag, parameters());
+   }
 
    return PV_SUCCESS;
 }
@@ -290,6 +292,7 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
       // the system clock
       case PARAMS_IO_READ:
          // set random seed if it wasn't set in the command line
+         mRandomSeed = mPVInitObj->getUnsignedIntArgument("RandomSeed");
          if (!mRandomSeed) {
             if (mParams->present(getName(), "randomSeed")) {
                mRandomSeed = (unsigned long)mParams->value(getName(), "randomSeed");

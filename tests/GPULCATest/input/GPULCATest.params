@@ -277,13 +277,15 @@ TransposeConn "ResidualGPUToV1GPU" = {
     @preLayerName = "ResidualGPU";
     @postLayerName = "V1GPU";
     @receiveGpu = true;
+    @originalConnName = "V1GPUToResidualGPU";
 };
 
 CloneConn "V1GPUToReconstructionGPU" = {
     #include "V1CPUToReconstructionCPU";
     @preLayerName = "V1GPU";
     @postLayerName = "ReconstructionGPU";
-    @receiveGpu = true;
+    // For convolution from sparse layer, receiveGpu is still false for the GPU side.
+    @originalConnName = "V1GPUToResidualGPU";
 };
 
 IdentConn "ReconstructionGPUToResidualGPU" = {

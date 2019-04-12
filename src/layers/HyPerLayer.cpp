@@ -113,10 +113,8 @@ void HyPerLayer::initMessageActionMap() {
 /******************************************************************
  * Create components
  *****************************************************************/
-void HyPerLayer::createComponentTable(char const *description) {
-   pvAssert(mTable == nullptr);
-   Subject::createComponentTable(description);
-   pvAssert(mTable != nullptr);
+void HyPerLayer::fillComponentTable() {
+   Subject::fillComponentTable();
    mLayerGeometry = createLayerGeometry();
    if (mLayerGeometry) {
       addUniqueComponent(mLayerGeometry->getDescription(), mLayerGeometry);
@@ -189,17 +187,9 @@ LayerOutputComponent *HyPerLayer::createLayerOutput() {
  * Read/write params for layer and for layer components
  *****************************************************************/
 int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   // Derived classes with new params behavior should override ioParamsFillGroup
-   // and the overriding method should call the base class's ioParamsFillGroup.
-   for (auto *c : *mTable) {
-      auto obj = dynamic_cast<BaseObject *>(c);
-      if (obj) {
-         obj->ioParams(ioFlag, false, false);
-      }
-   }
-
+   int status = ComponentBasedObject::ioParamsFillGroup(ioFlag);
    ioParam_dataType(ioFlag);
-   return PV_SUCCESS;
+   return status;
 }
 
 // The dataType parameter was marked obsolete Mar 29, 2018.

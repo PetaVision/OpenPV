@@ -19,8 +19,8 @@ void Segmentify::initialize(const char *name, PVParams *params, Communicator con
    HyPerLayer::initialize(name, params, comm);
 }
 
-void Segmentify::createComponentTable(char const *description) {
-   HyPerLayer::createComponentTable(description);
+void Segmentify::fillComponentTable() {
+   HyPerLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
       addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);
