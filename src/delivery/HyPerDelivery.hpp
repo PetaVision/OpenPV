@@ -24,7 +24,9 @@ class HyPerDelivery : public BaseDelivery {
    /**
     * The HyPerDeliveryCreator object reads this parameter and creates the appropriate
     * HyPerDelivery-derived object based on its value; hence the derived class knows
-    * the value of receiveGpu just from having been instantiated.
+    * the value of receiveGpu just from having been instantiated. Instead of setting
+    * receiveGpu here, this class checks that if the value is present it agrees with
+    * the correct value for the derived class (based on the value of mCorrectReceiveGpu).
     */
    void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
 
@@ -54,6 +56,10 @@ class HyPerDelivery : public BaseDelivery {
    float mDeltaTimeFactor    = 1.0f;
    WeightsPair *mWeightsPair = nullptr;
    ArborList *mArborList     = nullptr;
+
+   // subclasses that use GPU (e.g. PresynapticPerspectiveGPUDelivery) must set this flag to
+   // true in initialize() before ioParam_receiveGpu gets called.
+   bool mCorrectReceiveGpu = false;
 
 }; // end class HyPerDelivery
 

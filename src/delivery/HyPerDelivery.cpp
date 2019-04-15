@@ -24,7 +24,20 @@ void HyPerDelivery::initialize(char const *name, PVParams *params, Communicator 
 void HyPerDelivery::setObjectType() { mObjectType = "HyPerDelivery"; }
 
 void HyPerDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
-   parameters()->handleUnnecessaryParameter(name, "receiveGpu");
+   // Don't call handleUnnecessaryParameter here because that will generate a warning.
+   // HyPerDeliver-derived classes don't need this parameter, but in the usual situation,
+   // the parameter is read by HyPerDeliverCreator, which does need the parameter.
+   // Hence a warning generated here would be misleading.
+   if (ioFlag == PARAMS_IO_READ) {
+      bool receiveGpu = parameters()->value(
+            name, "receiveGpu", mCorrectReceiveGpu, false /*don't warn if absent*/);
+      FatalIf(
+            receiveGpu != mCorrectReceiveGpu,
+            "%s has receiveGpu set to %s in params, but requires %s to be %s.\n",
+            getDescription(),
+            receiveGpu ? "true" : "false",
+            mCorrectReceiveGpu ? "true" : "false");
+   }
 }
 
 Response::Status

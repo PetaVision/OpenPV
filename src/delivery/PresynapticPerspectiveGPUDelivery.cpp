@@ -13,10 +13,13 @@ PresynapticPerspectiveGPUDelivery::PresynapticPerspectiveGPUDelivery(
       char const *name,
       PVParams *params,
       Communicator const *comm) {
+   mCorrectReceiveGpu = true;
    initialize(name, params, comm);
 }
 
-PresynapticPerspectiveGPUDelivery::PresynapticPerspectiveGPUDelivery() {}
+PresynapticPerspectiveGPUDelivery::PresynapticPerspectiveGPUDelivery() {
+   mCorrectReceiveGpu = true;
+}
 
 PresynapticPerspectiveGPUDelivery::~PresynapticPerspectiveGPUDelivery() {}
 
