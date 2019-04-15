@@ -1,5 +1,5 @@
 #include "BufferUtilsPvp.hpp"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 
 namespace PV {
 
@@ -139,6 +139,50 @@ WeightHeader buildNonsharedWeightHeader(
          maxVal);
 
    return weightHeader;
+}
+
+void writeActivityHeader(FileStream &fStream, ActivityHeader const &header) {
+   fStream.setOutPos(0, true);
+   fStream.write(&header, sizeof(header));
+}
+
+ActivityHeader readActivityHeader(FileStream &fStream) {
+   fStream.setInPos(0, true);
+   int headerSize = -1;
+   fStream.read(&headerSize, sizeof(int));
+   fStream.setInPos(0, true);
+   ActivityHeader header;
+   fStream.read(&header, headerSize);
+   return header;
+}
+
+SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex) {
+   ActivityHeader header = readActivityHeader(fStream);
+   FatalIf(
+         upToIndex > header.nBands,
+         "buildSparseFileTable requested frame %d / %d.\n",
+         upToIndex,
+         header.nBands);
+
+   SparseFileTable result;
+   result.valuesIncluded = header.fileType != PVP_ACT_FILE_TYPE;
+   int dataSize          = header.dataSize;
+   result.frameLengths.resize(upToIndex + 1, 0);
+   result.frameStartOffsets.resize(upToIndex + 1, 0);
+
+   for (int f = 0; f < upToIndex + 1; ++f) {
+      double timeStamp      = 0;
+      long frameLength      = 0;
+      long frameStartOffset = fStream.getInPos();
+      fStream.read(&timeStamp, sizeof(double));
+      fStream.read(&frameLength, sizeof(int));
+      result.frameLengths.at(f)      = frameLength;
+      result.frameStartOffsets.at(f) = frameStartOffset;
+      if (f < upToIndex) {
+         fStream.setInPos(frameLength * (long)dataSize, false);
+      }
+   }
+   return result;
 }
 
 std::size_t weightPatchSize(int numWeightsInPatch, bool compressed) {

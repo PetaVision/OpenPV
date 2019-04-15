@@ -1,7 +1,7 @@
 #include "PVAssert.hpp"
 #include "PVLog.hpp"
 #include "arch/mpi/mpi.h"
-#include "conversions.h"
+#include "conversions.hpp"
 
 namespace PV {
 namespace BufferUtils {

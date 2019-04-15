@@ -173,9 +173,22 @@ double readDenseFromSparseBinaryPvp(
       int frameReadIndex,
       SparseFileTable *sparseFileTable);
 
-static void writeActivityHeader(FileStream &fStream, ActivityHeader const &header);
-static ActivityHeader readActivityHeader(FileStream &fStream);
-static SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex);
+void writeActivityHeader(FileStream &fStream, ActivityHeader const &header);
+
+/**
+ * Reads a pvp header and returns it in vector format. Leaves inStream
+ * pointing at the start of the first frame.
+ */
+ActivityHeader readActivityHeader(FileStream &fStream);
+
+/**
+ * Builds a table of offsets and lengths for each pvp frame
+ * index up to (but not including) upToIndex. Works for both
+ * sparse activity and sparse binary files. Leaves the input
+ * stream pointing at the location where frame upToIndex would
+ * begin.
+ */
+SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex);
 
 template <typename T>
 std::size_t weightPatchSize(int numWeightsInPatch);

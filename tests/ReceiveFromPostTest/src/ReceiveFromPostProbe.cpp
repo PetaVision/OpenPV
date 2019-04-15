@@ -49,9 +49,9 @@ Response::Status ReceiveFromPostProbe::outputState(double simTime, double deltaT
       return status;
    }
    auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
-   int numExtNeurons = publisherComponent->getNumExtended();
-   const float *A    = publisherComponent->getLayerData();
-   bool failed       = false;
+   int numExtNeurons        = publisherComponent->getNumExtended();
+   const float *A           = publisherComponent->getLayerData();
+   bool failed              = false;
    for (int i = 0; i < numExtNeurons; i++) {
       // For roundoff errors
       if (fabsf(A[i]) >= tolerance) {

@@ -6,6 +6,7 @@
  */
 
 #include "LeakyIntegratorBuffer.hpp"
+#include <cmath>
 
 namespace PV {
 

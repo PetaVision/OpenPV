@@ -6,6 +6,7 @@
  */
 
 #include "FirmThresholdCostActivityBuffer.hpp"
+#include <cmath>
 
 namespace PV {
 

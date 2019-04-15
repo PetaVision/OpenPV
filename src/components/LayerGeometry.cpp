@@ -7,6 +7,7 @@
 
 #include "LayerGeometry.hpp"
 #include "observerpattern/ObserverTable.hpp"
+#include <cmath>
 #include <cstring>
 
 namespace PV {

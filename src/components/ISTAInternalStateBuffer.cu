@@ -1,8 +1,7 @@
-#include "ISTAInternalStateBuffer.hpp"
-
 #define PV_RUN_ON_GPU
+
+#include "ISTAInternalStateBuffer.hpp"
 #include "ISTAInternalStateBuffer.kpp"
-#undef PV_RUN_ON_GPU
 
 namespace PV {
 
@@ -34,3 +33,5 @@ void ISTAInternalStateBuffer::runKernel() {
 }
 
 } // end namespace PVCuda
+
+#undef PV_RUN_ON_GPU

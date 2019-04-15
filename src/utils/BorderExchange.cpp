@@ -5,7 +5,7 @@
 #include "BorderExchange.hpp"
 #include "include/pv_common.h"
 #include "utils/PVAssert.hpp"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 
 namespace PV {
 

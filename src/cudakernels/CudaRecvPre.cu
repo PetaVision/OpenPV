@@ -1,5 +1,8 @@
 #include "CudaRecvPre.hpp"
-#include "conversions.hcu"
+
+#define PV_RUN_ON_GPU
+#include "utils/conversions.hpp"
+#undef PV_RUN_ON_GPU
 
 namespace PVCuda {
 

@@ -1,6 +1,5 @@
 #include "CudaRecvPost.hpp"
 #include "arch/cuda/cuda_util.hpp"
-#include "conversions.hcu"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include <cmath>

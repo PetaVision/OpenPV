@@ -132,10 +132,12 @@ bool WeightsFileIO::isCompressedHeader(BufferUtils::WeightHeader const &header) 
          Fatal().printf(
                "File \"%s\" has dataType INT. Only FLOAT and BYTE are supported.\n",
                mFileStream->getFileName().c_str());
+         exit(EXIT_FAILURE); // suppresses sometimes-uninitialized compiler warning
          break;
       default:
          Fatal().printf(
                "File \"%s\" has unrecognized datatype.\n", mFileStream->getFileName().c_str());
+         exit(EXIT_FAILURE); // suppresses sometimes-uninitialized compiler warning
          break;
    }
    return isCompressed;

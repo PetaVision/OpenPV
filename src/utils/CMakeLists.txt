@@ -4,6 +4,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BufferUtilsRescale.cpp
    ${SUBDIR}/Clock.cpp
    ${SUBDIR}/CompareParamsFiles.cpp
+   ${SUBDIR}/conversions.hpp
    ${SUBDIR}/ExpandLeadingTilde.cpp
    ${SUBDIR}/PVAssert.cpp
    ${SUBDIR}/PVAlloc.cpp
@@ -34,10 +35,8 @@ set (PVLibSrcHpp ${PVLibSrcTpp}
 
 set (PVLibSrcC ${PVLibSrcC}
    ${SUBDIR}/cl_random.c
-   ${SUBDIR}/conversions.c
 )
 
 set (PVLibSrcH ${PVLibSrcH}
    ${SUBDIR}/cl_random.h
-   ${SUBDIR}/conversions.h
 )

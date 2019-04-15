@@ -7,7 +7,7 @@
 
 #include "PatchGeometry.hpp"
 #include "utils/PVAssert.hpp"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 #include <cmath>
 #include <cstring>
 #include <sstream>

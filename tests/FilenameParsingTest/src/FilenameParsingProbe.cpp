@@ -9,6 +9,8 @@
 #include <components/BasePublisherComponent.hpp>
 #include <components/InputActivityBuffer.hpp>
 
+using namespace PV;
+
 FilenameParsingProbe::FilenameParsingProbe() { initialize_base(); }
 
 /**
@@ -16,8 +18,8 @@ FilenameParsingProbe::FilenameParsingProbe() { initialize_base(); }
  */
 FilenameParsingProbe::FilenameParsingProbe(
       const char *name,
-      PV::PVParams *params,
-      PV::Communicator const *comm) {
+      PVParams *params,
+      Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -28,34 +30,34 @@ int FilenameParsingProbe::initialize_base() { return PV_SUCCESS; }
 
 void FilenameParsingProbe::initialize(
       const char *name,
-      PV::PVParams *params,
-      PV::Communicator const *comm) {
+      PVParams *params,
+      Communicator const *comm) {
    LayerProbe::initialize(name, params, comm);
 }
 
-PV::Response::Status FilenameParsingProbe::communicateInitInfo(
-      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
-   auto status = PV::LayerProbe::communicateInitInfo(message);
-   if (!PV::Response::completed(status)) {
+Response::Status FilenameParsingProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = LayerProbe::communicateInitInfo(message);
+   if (!Response::completed(status)) {
       return status;
    }
 
    char const *inputLayerName = parameters()->stringValue(getTargetName(), "inputLayerName", false);
    pvAssert(inputLayerName);
    std::string inputLayerString(inputLayerName);
-   PV::InputLayer *inputLayer = message->mHierarchy->lookupByName<PV::InputLayer>(inputLayerString);
+   InputLayer *inputLayer = message->mHierarchy->lookupByName<InputLayer>(inputLayerString);
    pvAssert(inputLayer);
-   auto *activityComponent = inputLayer->getComponentByType<PV::ActivityComponent>();
+   auto *activityComponent = inputLayer->getComponentByType<ActivityComponent>();
    pvAssert(activityComponent);
-   auto *inputBuffer = activityComponent->getComponentByType<PV::InputActivityBuffer>();
+   auto *inputBuffer = activityComponent->getComponentByType<InputActivityBuffer>();
    pvAssert(inputBuffer);
    mInputDisplayPeriod = inputBuffer->getDisplayPeriod();
-   return PV::Response::SUCCESS;
+   return Response::SUCCESS;
 }
 
-PV::Response::Status FilenameParsingProbe::outputState(double simTime, double deltaTime) {
+Response::Status FilenameParsingProbe::outputState(double simTime, double deltaTime) {
    if (simTime == 0.0) {
-      return PV::Response::NO_ACTION;
+      return Response::NO_ACTION;
    } // FilenameParsingGroundTruthLayer hasn't updated.
 
    double const displayTime = (simTime - deltaTime) / mInputDisplayPeriod;
@@ -64,7 +66,7 @@ PV::Response::Status FilenameParsingProbe::outputState(double simTime, double de
    // From then until the second display flip, displayNumber is 1, etc.
 
    int mpiBatchIndex        = getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex();
-   auto *publisherComponent = getTargetLayer()->getComponentByType<PV::BasePublisherComponent>();
+   auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    FatalIf(
          publisherComponent == nullptr,
          "Target layer \"%s\" does not have a BasePublisherComponent.\n",
@@ -94,5 +96,5 @@ PV::Response::Status FilenameParsingProbe::outputState(double simTime, double de
       }
    }
    FatalIf(failed, "FilenameParsingProbe failed at t=%f\n", simTime);
-   return PV::Response::SUCCESS;
+   return Response::SUCCESS;
 }

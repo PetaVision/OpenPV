@@ -11,6 +11,7 @@
 #include "utils/ExpandLeadingTilde.hpp"
 #include <cerrno>
 #include <climits>
+#include <cmath>
 #include <fts.h>
 #include <signal.h>
 #include <sys/stat.h>
@@ -672,11 +673,10 @@ void Checkpointer::checkpointWrite(double simTime) {
 bool Checkpointer::receivedSignal() {
    int checkpointSignal;
    if (mMPIBlock->getGlobalRank() == 0) {
-      int sigstatus = PV_SUCCESS;
       sigset_t pollusr1;
 
-      sigstatus = sigpending(&pollusr1);
-      assert(sigstatus == 0);
+      int sigstatus = sigpending(&pollusr1);
+      FatalIf(sigstatus, "Signal handling routine sigpending() failed. %s\n", strerror(errno));
       checkpointSignal = sigismember(&pollusr1, SIGUSR1);
       assert(checkpointSignal == 0 || checkpointSignal == 1);
       if (checkpointSignal) {

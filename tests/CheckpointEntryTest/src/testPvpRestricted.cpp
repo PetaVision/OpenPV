@@ -1,10 +1,12 @@
 #include "testPvpRestricted.hpp"
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
 #include "include/PVLayerLoc.h"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 #include <vector>
 
-void testPvpRestricted(PV::MPIBlock const *mpiBlock, std::string const &directory) {
+using namespace PV;
+
+void testPvpRestricted(MPIBlock const *mpiBlock, std::string const &directory) {
    PVLayerLoc loc;
    loc.nbatchGlobal = mpiBlock->getBatchDimension();
    loc.nxGlobal     = 16;
@@ -45,11 +47,11 @@ void testPvpRestricted(PV::MPIBlock const *mpiBlock, std::string const &director
    // Need to make sure that checkpointData.data() never gets relocated, since the
    // CheckpointEntryPvpBuffer's mDataPointer doesn't change with it.
    std::vector<float> checkpointData(correctData.size());
-   PV::CheckpointEntryPvpBuffer<float> checkpointEntryPvp{"checkpointEntryPvpRestricted",
-                                                          mpiBlock,
-                                                          checkpointData.data(),
-                                                          &loc,
-                                                          false /*not extended*/};
+   CheckpointEntryPvpBuffer<float> checkpointEntryPvp{"checkpointEntryPvpRestricted",
+                                                      mpiBlock,
+                                                      checkpointData.data(),
+                                                      &loc,
+                                                      false /*not extended*/};
 
    double const simTime = 10.0;
    // Copy correct data into checkpoint data.

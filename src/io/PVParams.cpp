@@ -147,8 +147,8 @@ int ParameterArray::pushValue(double value) {
 
 ParameterArray *ParameterArray::copyParameterArray() {
    ParameterArray *returnPA = new ParameterArray(bufferSize);
-   int status               = returnPA->setName(paramName);
-   assert(status == PV_SUCCESS);
+   returnPA->setName(paramName);
+   assert(!strcmp(returnPA->name(), paramName));
    for (int i = 0; i < arraySize; i++) {
       returnPA->pushValue(valuesDbl[i]);
    }
@@ -1051,27 +1051,23 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
             abort();
          }
 
-         char dummy;
-         int lenserialno = snprintf(&dummy, 0, "%d", parameterSweepSize - 1);
-         int len         = snprintf(
-                         &dummy,
-                         0,
-                         "%s/paramsweep_%0*d/",
-                         outputPathName,
-                         lenserialno,
-                         parameterSweepSize - 1)
-                   + 1;
-         char *outputPathStr = (char *)calloc(len, sizeof(char));
-         if (outputPathStr == NULL)
-            abort();
+         // Push the strings "[outputPathName]/paramsweep_[n]/"
+         // to the parameter sweep, where [n] ranges from 0 to parameterSweepSize - 1,
+         // and is zero-padded so that the parameter sweep's outputPath directories
+         // sort the same lexicographically and numerically.
+         auto lenmax = std::to_string(parameterSweepSize - 1).size();
          for (int i = 0; i < parameterSweepSize; i++) {
-            int chars_needed = snprintf(
-                  outputPathStr, len, "%s/paramsweep_%0*d/", outputPathName, lenserialno, i);
-            assert(chars_needed < len);
-            activeParamSweep->pushStringValue(outputPathStr);
+            std::string outputPathStr(outputPathName);
+            outputPathStr.append("/paramsweep_");
+            std::string serialNumberStr = std::to_string(i);
+            auto len                    = serialNumberStr.size();
+            if (len < lenmax) {
+               outputPathStr.append(lenmax - len, '0');
+            }
+            outputPathStr.append(serialNumberStr);
+            outputPathStr.append("/");
+            activeParamSweep->pushStringValue(outputPathStr.c_str());
          }
-         free(outputPathStr);
-         outputPathStr = NULL;
          addActiveParamSweep(hypercolgroupname, "outputPath");
       }
 
@@ -1091,32 +1087,23 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
             abort();
          }
          if (checkpointWriteDir) {
-            char dummy;
-            int lenserialno = snprintf(&dummy, 0, "%d", parameterSweepSize - 1);
-            int len         = snprintf(
-                            &dummy,
-                            0,
-                            "%s/paramsweep_%0*d/",
-                            checkpointWriteDir,
-                            lenserialno,
-                            parameterSweepSize - 1)
-                      + 1;
-            char *checkpointPathStr = (char *)calloc(len, sizeof(char));
-            if (checkpointPathStr == NULL)
-               abort();
+            // Push the strings "[checkpointWriteDir]/paramsweep_[n]/"
+            // to the parameter sweep, where [n] ranges from 0 to parameterSweepSize - 1,
+            // and is zero-padded so that the parameter sweep's checkpointWriteDir directories
+            // sort the same lexicographically and numerically.
+            auto lenmax = std::to_string(parameterSweepSize - 1).size();
             for (int i = 0; i < parameterSweepSize; i++) {
-               int chars_needed = snprintf(
-                     checkpointPathStr,
-                     len,
-                     "%s/paramsweep_%0*d/",
-                     checkpointWriteDir,
-                     lenserialno,
-                     i);
-               assert(chars_needed < len);
-               activeParamSweep->pushStringValue(checkpointPathStr);
+               std::string checkpointWriteDirStr(checkpointWriteDir);
+               checkpointWriteDirStr.append("/paramsweep_");
+               std::string serialNumberStr = std::to_string(i);
+               auto len                    = serialNumberStr.size();
+               if (len < lenmax) {
+                  checkpointWriteDirStr.append(lenmax - len, '0');
+               }
+               checkpointWriteDirStr.append(serialNumberStr);
+               checkpointWriteDirStr.append("/");
+               activeParamSweep->pushStringValue(checkpointWriteDirStr.c_str());
             }
-            free(checkpointPathStr);
-            checkpointPathStr = NULL;
             addActiveParamSweep(hypercolgroupname, "checkpointWriteDir");
          }
       }
@@ -1959,8 +1946,8 @@ void PVParams::action_parameter_array(char *id) {
       InfoLog().printf("action_parameter_array: %s\n", id);
       InfoLog().flush();
    }
-   int status = currentParamArray->setName(id);
-   assert(status == PV_SUCCESS);
+   currentParamArray->setName(id);
+   assert(!strcmp(currentParamArray->name(), id));
    checkDuplicates(id);
    arrayStack->push(currentParamArray);
    currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
@@ -2017,9 +2004,13 @@ void PVParams::action_parameter_array_value(double val) {
       InfoLog().flush();
       InfoLog().printf("action_parameter_array_value %lf\n", val);
    }
-   int sz      = currentParamArray->getArraySize();
-   int newsize = currentParamArray->pushValue(val);
+#ifdef NDEBUG
+   currentParamArray->pushValue(val);
+#else
+   int sz            = currentParamArray->getArraySize();
+   int newsize       = currentParamArray->pushValue(val);
    assert(newsize == sz + 1);
+#endif // NDEBUG
 }
 
 void PVParams::action_parameter_string_def(const char *id, const char *stringval) {

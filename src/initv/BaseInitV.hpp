@@ -9,6 +9,7 @@
 #define BASEINITV_HPP_
 
 #include "columns/BaseObject.hpp"
+#include <string>
 
 namespace PV {
 
@@ -28,7 +29,7 @@ class BaseInitV : public BaseObject {
    int initialize_base();
 
   public:
-   static string const mDefaultInitV;
+   static std::string const mDefaultInitV;
 }; // end class BaseInitV
 
 } // end namespace PV

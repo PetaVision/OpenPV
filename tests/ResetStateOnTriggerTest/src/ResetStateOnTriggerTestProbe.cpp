@@ -2,10 +2,12 @@
 #include <components/BasePublisherComponent.hpp>
 #include <layers/HyPerLayer.hpp>
 
+using namespace PV;
+
 ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(
       char const *name,
-      PV::PVParams *params,
-      PV::Communicator const *comm) {
+      PVParams *params,
+      Communicator const *comm) {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -20,21 +22,21 @@ int ResetStateOnTriggerTestProbe::initialize_base() {
 
 void ResetStateOnTriggerTestProbe::initialize(
       char const *name,
-      PV::PVParams *params,
-      PV::Communicator const *comm) {
-   PV::LayerProbe::initialize(name, params, comm);
+      PVParams *params,
+      Communicator const *comm) {
+   LayerProbe::initialize(name, params, comm);
 }
 
-PV::Response::Status ResetStateOnTriggerTestProbe::initializeState(
-      std::shared_ptr<PV::InitializeStateMessage const> message) {
+Response::Status ResetStateOnTriggerTestProbe::initializeState(
+      std::shared_ptr<InitializeStateMessage const> message) {
    mDeltaTime = message->mDeltaTime;
-   return PV::Response::SUCCESS;
+   return Response::SUCCESS;
 }
 
 void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    int nBatch = getNumValues();
    if (timevalue > 0.0) {
-      auto *targetPublisher = targetLayer->getComponentByType<PV::BasePublisherComponent>();
+      auto *targetPublisher = targetLayer->getComponentByType<BasePublisherComponent>();
       PVLayerLoc const *loc = targetLayer->getLayerLoc();
       int N                 = loc->nx * loc->ny * loc->nf;
       int NGlobal           = loc->nxGlobal * loc->nyGlobal * loc->nf;
@@ -80,10 +82,10 @@ void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    }
 }
 
-PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, double deltaTime) {
+Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, double deltaTime) {
    getValues(simTime); // calls calcValues
    if (mOutputStreams.empty()) {
-      return PV::Response::SUCCESS;
+      return Response::SUCCESS;
    }
    if (probeStatus != 0) {
       int nBatch = getNumValues();
@@ -113,14 +115,12 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, d
          }
       }
    }
-   return PV::Response::SUCCESS;
+   return Response::SUCCESS;
 }
 
 ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {}
 
-PV::BaseObject *createResetStateOnTriggerTestProbe(
-      char const *name,
-      PV::PVParams *params,
-      PV::Communicator const *comm) {
+BaseObject *
+createResetStateOnTriggerTestProbe(char const *name, PVParams *params, Communicator const *comm) {
    return new ResetStateOnTriggerTestProbe(name, params, comm);
 }

@@ -33,8 +33,7 @@ class FilenameParsingProbe : public PV::LayerProbe {
    int initialize_base();
 
   private:
-   PV::FilenameParsingGroundTruthLayer *mFilenameParsingLayer = nullptr;
-   int mInputDisplayPeriod                                    = 0;
+   int mInputDisplayPeriod = 0;
 
    // This vector gives the category corresponding to each line of
    // InputImages.txt. For example, the first line of InputImages.txt is

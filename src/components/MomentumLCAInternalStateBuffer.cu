@@ -1,8 +1,7 @@
-#include "MomentumLCAInternalStateBuffer.hpp"
-
 #define PV_RUN_ON_GPU
+
+#include "MomentumLCAInternalStateBuffer.hpp"
 #include "MomentumLCAInternalStateBuffer.kpp"
-#undef PV_RUN_ON_GPU
 
 namespace PV {
 
@@ -44,3 +43,5 @@ void MomentumLCAInternalStateBuffer::runKernel() {
 }
 
 } // end namespace PV
+
+#undef PV_RUN_ON_GPU

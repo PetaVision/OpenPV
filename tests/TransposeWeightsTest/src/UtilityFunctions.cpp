@@ -3,7 +3,9 @@
 #include <utils/PVAssert.hpp>
 #include <utils/PVLog.hpp>
 #include <utils/TransposeWeights.hpp>
-#include <utils/conversions.h>
+#include <utils/conversions.hpp>
+
+using namespace PV;
 
 int calcStride(int pre, std::string const &preDesc, int post, std::string const &postDesc) {
    int stride;
@@ -32,7 +34,7 @@ int calcStride(int pre, std::string const &preDesc, int post, std::string const 
    return stride;
 }
 
-void checkMPICompatibility(PVLayerLoc const &loc, PV::Communicator const *comm) {
+void checkMPICompatibility(PVLayerLoc const &loc, Communicator const *comm) {
    FatalIf(
          loc.nbatch * comm->numCommBatches() != loc.nbatchGlobal,
          "Number of processes in the batch dimension is %d, but it must be a "
@@ -53,7 +55,7 @@ void checkMPICompatibility(PVLayerLoc const &loc, PV::Communicator const *comm) 
          loc.nyGlobal);
 }
 
-PV::Weights createOriginalWeights(
+Weights createOriginalWeights(
       bool sharedFlag,
       int nxPre,
       int nyPre,
@@ -63,7 +65,7 @@ PV::Weights createOriginalWeights(
       int nfPost,
       int patchSizeXPre,
       int patchSizeYPre,
-      PV::Communicator const *comm) {
+      Communicator const *comm) {
    int const xStride  = calcStride(nxPre, std::string("nxPre"), nxPost, std::string("nxPost"));
    int const xTStride = calcStride(nxPost, std::string("nxPost"), nxPre, std::string("nxPre"));
    int const yStride  = calcStride(nyPre, std::string("nyPre"), nyPost, std::string("nyPost"));
@@ -121,7 +123,7 @@ PV::Weights createOriginalWeights(
    int const patchSizeFPre = nfPost;
    int const numArbors     = 1;
    double const timestamp  = 0.0;
-   PV::Weights originalWeights(
+   Weights originalWeights(
          originalWeightsName,
          patchSizeXPre,
          patchSizeYPre,
@@ -192,7 +194,7 @@ PV::Weights createOriginalWeights(
                preLoc.nx + preLoc.halo.lt + preLoc.halo.rt,
                preLoc.ny + preLoc.halo.dn + preLoc.halo.up,
                preLoc.nf);
-         PV::Patch const &patch = originalWeights.getPatch(localExtended);
+         Patch const &patch = originalWeights.getPatch(localExtended);
          for (int itemInPatch = 0; itemInPatch < numItemsInPatch; itemInPatch++) {
             float value;
             // Are we inside a shrunken patch?
@@ -217,12 +219,12 @@ PV::Weights createOriginalWeights(
 
 int checkTransposeOfTranspose(
       std::string const &testName,
-      PV::Weights &originalWeights,
-      PV::Weights &transposeWeights,
-      PV::Communicator const *comm) {
+      Weights &originalWeights,
+      Weights &transposeWeights,
+      Communicator const *comm) {
    int status = PV_SUCCESS;
 
-   PV::Weights transposeOfTranspose(std::string("transpose of transpose"));
+   Weights transposeOfTranspose(std::string("transpose of transpose"));
    transposeOfTranspose.initialize(
          originalWeights.getPatchSizeX(),
          originalWeights.getPatchSizeY(),
@@ -233,7 +235,7 @@ int checkTransposeOfTranspose(
          originalWeights.getSharedFlag(),
          originalWeights.getTimestamp());
    transposeOfTranspose.allocateDataStructures();
-   PV::TransposeWeights::transpose(&transposeWeights, &transposeOfTranspose, comm);
+   TransposeWeights::transpose(&transposeWeights, &transposeOfTranspose, comm);
 
    int const numDataPatchesPre = originalWeights.getNumDataPatches();
    if (transposeOfTranspose.getNumDataPatches() != numDataPatchesPre) {

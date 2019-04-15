@@ -12,18 +12,20 @@
 
 #include <cmath>
 
+using namespace PV;
+
 int main(int argc, char *argv[]) {
-   PV::PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
-   PV::HyPerCol *hc = new PV::HyPerCol(&pv_initObj);
+   PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
+   HyPerCol *hc = new HyPerCol(&pv_initObj);
    if (hc == nullptr) {
       return EXIT_FAILURE;
    }
    hc->allocateColumn();
-   auto *conn = dynamic_cast<PV::ComponentBasedObject *>(hc->getObjectFromName("InputToOutput"));
-   PV::HyPerLayer *pre     = conn->getComponentByType<PV::ConnectionData>()->getPre();
+   auto *conn      = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("InputToOutput"));
+   HyPerLayer *pre = conn->getComponentByType<ConnectionData>()->getPre();
    PVLayerLoc const preLoc = *pre->getLayerLoc();
    int const numExtended   = pre->getNumExtended();
-   auto *preWeights        = conn->getComponentByType<PV::WeightsPair>()->getPreWeights();
+   auto *preWeights        = conn->getComponentByType<WeightsPair>()->getPreWeights();
    int const numPatches    = preWeights->getNumDataPatches();
    FatalIf(
          numPatches != numExtended,
@@ -31,7 +33,7 @@ int main(int argc, char *argv[]) {
          numExtended,
          numPatches);
 
-   auto *patchSize = conn->getComponentByType<PV::PatchSize>();
+   auto *patchSize = conn->getComponentByType<PatchSize>();
    int const nxp   = patchSize->getPatchSizeX();
    int const nyp   = patchSize->getPatchSizeY();
    int const nfp   = patchSize->getPatchSizeF();
@@ -55,9 +57,9 @@ int main(int argc, char *argv[]) {
       float const *weights = preWeights->getDataFromDataIndex(0 /*arbor*/, index);
 
       // only need to check in shrunken patch region.
-      PV::Patch const &patch = preWeights->getPatch(index);
-      int xStart             = kxPos(patch.offset, nxp, nyp, nfp);
-      int yStart             = kyPos(patch.offset, nxp, nyp, nfp);
+      Patch const &patch = preWeights->getPatch(index);
+      int xStart         = kxPos(patch.offset, nxp, nyp, nfp);
+      int yStart         = kyPos(patch.offset, nxp, nyp, nfp);
       for (int y = yStart; y < yStart + patch.ny; y++) {
          for (int x = xStart; x < xStart + patch.nx; x++) {
             for (int f = 0; f < nf; f++) {

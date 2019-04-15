@@ -84,8 +84,6 @@ class Publisher {
    BorderExchange *mBorderExchanger = nullptr;
 
    RingBuffer<std::vector<MPI_Request>> *mpiRequestsBuffer = nullptr;
-   // std::vector<MPI_Request> requests;
-   MPI_Datatype *neighborDatatypes;
 };
 
 } /* namespace PV */

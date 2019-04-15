@@ -73,8 +73,7 @@ void PostsynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
-   float *postChannel = destBuffer;
-   pvAssert(postChannel);
+   pvAssert(destBuffer);
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {

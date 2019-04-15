@@ -7,6 +7,7 @@
 
 #include "LayerUpdateController.hpp"
 #include "components/InternalStateBuffer.hpp"
+#include <cmath>
 
 namespace PV {
 

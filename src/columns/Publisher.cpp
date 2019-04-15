@@ -140,11 +140,13 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
    auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
    pvAssert(requestsVector->empty());
 
-   // Loop through batch.
-   // The loop over batch elements probably belongs inside
-   // BorderExchange::exchange(), but for this to happen, exchange() would need
-   // to know how its data argument is organized with respect to batching.
+// Loop through batch.
+// The loop over batch elements probably belongs inside
+// BorderExchange::exchange(), but for this to happen, exchange() would need
+// to know how its data argument is organized with respect to batching.
+#ifndef NDEBUG
    int exchangeVectorSize = 2 * (mBorderExchanger->getNumNeighbors() - 1);
+#endif // NDEBUG
    for (int b = 0; b < loc->nbatch; b++) {
       // don't send interior
       pvAssert(requestsVector->size() == (std::size_t)(b * exchangeVectorSize));

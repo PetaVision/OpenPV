@@ -6,7 +6,14 @@
 #include <components/PatchGeometry.hpp>
 #include <string.h>
 #include <utils/PVLog.hpp>
-#include <utils/conversions.h>
+#include <utils/conversions.hpp>
+
+using PV::Patch;
+using PV::PatchGeometry;
+using PV::kIndex;
+using PV::kxPos;
+using PV::kyPos;
+using PV::featureIndex;
 
 void testOneToOneRestricted() {
    std::string name("One-to-one, patch size 1");

@@ -179,7 +179,7 @@ void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
          mDeviceGSynPatchStart,
 
          d_PreData,
-         preWeights->getDeviceData(),
+         d_WData,
          d_PostGSyn,
          d_PatchToDataLookup,
 
@@ -193,17 +193,11 @@ void PresynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
-   float *postChannel = destBuffer;
-   pvAssert(postChannel);
+   pvAssert(destBuffer);
 
    pvAssert(mRecvKernel);
 
-   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
-   Weights *weights          = mWeightsPair->getPreWeights();
-
-   int nbatch = preLoc->nbatch;
-   pvAssert(nbatch == postLoc->nbatch);
+   Weights *weights = mWeightsPair->getPreWeights();
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {

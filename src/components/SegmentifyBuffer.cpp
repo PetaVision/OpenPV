@@ -207,10 +207,8 @@ void SegmentifyBuffer::checkDimensions() {
       exit(EXIT_FAILURE);
    }
 
-   // Segment layer must have 1 feature
-   const PVLayerLoc *segLoc = mSegmentBuffer->getLayerLoc();
-   pvAssert(segLoc != nullptr);
-   pvAssert(segLoc->nf == 1); // Already checked by SegmentBuffer::checkDimensions() method.
+   // Segment layer must have nf==1 (already checked by SegmentBuffer::checkDimensions() method).
+   pvAssert(mSegmentBuffer->getLayerLoc() and mSegmentBuffer->getLayerLoc()->nf == 1);
 }
 
 Response::Status SegmentifyBuffer::allocateDataStructures() {

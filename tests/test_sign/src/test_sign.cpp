@@ -1,11 +1,13 @@
 #include "utils/PVLog.hpp"
-#include "utils/conversions.h"
+#include "utils/conversions.hpp"
 #include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 
+using PV::sign;
+
 static int zero(float x) {
-   if (fabsf(x) < 0.00001f)
+   if (std::fabs(x) < 0.00001f)
       return 1;
    return 0;
 }

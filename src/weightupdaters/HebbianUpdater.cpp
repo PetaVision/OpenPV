@@ -657,7 +657,11 @@ int HebbianUpdater::reduce_dW(int arborId) {
       kernel_status = reduceKernels(arborId); // combine partial changes in each column
       if (mNormalizeDw) {
          int activation_status = reduceActivations(arborId);
-         pvAssert(kernel_status == activation_status);
+         FatalIf(
+               kernel_status != activation_status,
+               "%s reduce_dW returned differing values for reduceKernels() and "
+               "reduceActivations()\n",
+               getDescription_c());
       }
    }
    else {

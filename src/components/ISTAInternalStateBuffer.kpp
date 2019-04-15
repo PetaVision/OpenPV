@@ -10,8 +10,8 @@
 // .cu file and the other is run from the .cpp file.  The .cu file defines the preprocessor
 // directive PV_RUN_ON_GPU before including this file; the and the .cpp file undefines it.
 
+#include "utils/conversions.hpp"
 #ifdef PV_RUN_ON_GPU
-#include "cudakernels/conversions.hcu"
 namespace PVCuda {
 __global__ void updateISTAInternalStateBufferOnGPU
 #else

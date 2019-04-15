@@ -8,6 +8,7 @@
 #ifndef PVPARAMS_HPP_
 #define PVPARAMS_HPP_
 
+#include "FileStream.hpp"
 #include "columns/Communicator.hpp"
 #include "fileio.hpp"
 #include "include/pv_common.h"
