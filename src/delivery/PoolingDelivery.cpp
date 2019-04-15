@@ -199,14 +199,21 @@ Response::Status PoolingDelivery::allocateDataStructures() {
    }
    pvAssert(mPreData and mPreData->getLayerLoc());
    pvAssert(mPostGSyn and mPostGSyn->getLayerLoc());
+   if (preLoc->nf != postLoc->nf) {
+      ErrorLog().printf(
+            "%s requires pre and post nf be equal (%d versus %d).\n",
+            getDescription_c(),
+            preLoc->nf,
+            postLoc->nf);
+      status = PV_FAILURE;
+   }
    FatalIf(
          mPreData->getLayerLoc()->nf != mPostGSyn->getLayerLoc()->nf,
-         "%s pre layer \"%s\" has %d features but post layer \"%s\" has %d features. "
-         "The numbers of features must be equal.\n",
+         "%s requires pre layer \"%s\" and post layer \"%s\" have equal nf (%d versus %d).\n",
          getDescription_c(),
          mPreData->getName(),
-         mPreData->getLayerLoc()->nf,
          mPostGSyn->getName(),
+         mPreData->getLayerLoc()->nf,
          mPostGSyn->getLayerLoc()->nf);
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
