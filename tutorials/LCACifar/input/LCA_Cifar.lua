@@ -22,8 +22,8 @@ local dictionarySize   = 128;   --Number of patches/elements in dictionary
 local dictionaryFile   = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
 local plasticityFlag   = true;  --Determines if we are learning our dictionary or holding it constant
 local momentumTau      = 500;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
-local dWMax            = 0.05;    --The learning rate
-local VThresh          = 0.1;  -- .005; --The threshold, or lambda, of the network
+local dWMax            = 0.05;  --The learning rate
+local VThresh          = 0.55;  --The threshold, or lambda, of the network
 local AMin             = 0;
 local AMax             = infinity;
 local AShift           = VThresh;  --This being equal to VThresh is a soft threshold
@@ -62,7 +62,7 @@ local pvParameters = {
    };
 
    AdaptiveTimeScales = {
-      groupType = "AdaptiveTimeScaleProbe";
+      groupType = "KneeTimeScaleProbe";
       targetName                          = "V1EnergyProbe";
       message                             = nil;
       textOutputFlag                      = true;
@@ -74,6 +74,8 @@ local pvParameters = {
       tauFactor                           = 0.03;  -- Percent of tau used as growth target
       growthFactor                        = 0.025; -- Exponential growth factor. The smaller value between this and the above is chosen. 
       writeTimeScalesFieldnames           = false;
+      kneeThresh                          = 1.0;
+      kneeSlope                           = 0.01;
    };
 
    Input = {
