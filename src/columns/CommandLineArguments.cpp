@@ -72,6 +72,21 @@ void CommandLineArguments::resetState(
          &numColumns,
          &batchWidth,
          &dryRun);
+   if (!allowUnrecognizedArguments) {
+      bool allrecognized = true;
+      for (int argi = 0; argi < argc; argi++) {
+         bool recognized = paramUsage[argi];
+         if (!recognized) {
+            allrecognized = false;
+            ErrorLog().printf(
+                  "Argument %d, \"%s\", is unrecognized and AllowUnrecognizedArguments is set to "
+                  "false.\n",
+                  argi,
+                  argv[argi]);
+         }
+      }
+      FatalIf(!allrecognized, "%s called with unrecognized arguments.\n", argv[0]);
+   }
    std::string configString = ConfigParser::createString(
          requireReturn,
          std::string{outputPath ? outputPath : ""},
