@@ -199,14 +199,6 @@ Response::Status PoolingDelivery::allocateDataStructures() {
    }
    pvAssert(mPreData and mPreData->getLayerLoc());
    pvAssert(mPostGSyn and mPostGSyn->getLayerLoc());
-   if (preLoc->nf != postLoc->nf) {
-      ErrorLog().printf(
-            "%s requires pre and post nf be equal (%d versus %d).\n",
-            getDescription_c(),
-            preLoc->nf,
-            postLoc->nf);
-      status = PV_FAILURE;
-   }
    FatalIf(
          mPreData->getLayerLoc()->nf != mPostGSyn->getLayerLoc()->nf,
          "%s requires pre layer \"%s\" and post layer \"%s\" have equal nf (%d versus %d).\n",
