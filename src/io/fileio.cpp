@@ -527,12 +527,11 @@ void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
 
    InfoLog().printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
 
-   // Try up to 5 times until it works
-   int const numAttempts = 5;
-   for (int attemptNum = 0; attemptNum < numAttempts; attemptNum++) {
+   // Try up to MAX_FILESYSTEMCALL_TRIES times until it works
+   for (int attemptNum = 0; attemptNum < MAX_FILESYSTEMCALL_TRIES; attemptNum++) {
       int mkdirstatus = makeDirectory(expandedDirName.c_str());
       if (mkdirstatus != 0) {
-         if (attemptNum == numAttempts - 1) {
+         if (attemptNum == MAX_FILESYSTEMCALL_TRIES - 1) {
             Fatal().printf(
                   "Directory \"%s\" could not be created: %s; Exiting\n", dirname, strerror(errno));
          }
@@ -543,7 +542,7 @@ void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
                   dirname,
                   strerror(errno),
                   attemptNum + 1,
-                  numAttempts);
+                  MAX_FILESYSTEMCALL_TRIES);
             sleep(1);
          }
       }
