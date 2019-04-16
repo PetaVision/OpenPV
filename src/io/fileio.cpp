@@ -504,55 +504,54 @@ static inline int makeDirectory(char const *dir) {
 void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
    // If rank zero, see if path exists, and try to create it if it doesn't.
    // If not rank zero, the routine does nothing.
-   int rank                    = mpiBlock->getRank();
+   if (mpiBlock->getRank() != 0) {
+      return;
+   }
+
    std::string expandedDirName = expandLeadingTilde(dirname);
    struct stat pathstat;
    int statresult = stat(expandedDirName.c_str(), &pathstat);
 
-   if (statresult == 0) { // mOutputPath exists; now check if it's a directory.
-      FatalIf(
-            rank == 0 && !(pathstat.st_mode & S_IFDIR),
-            "Path \"%s\" exists but is not a directory\n",
-            dirname);
-   }
-   else if (errno == ENOENT /* No such file or directory */) {
-      if (rank == 0) {
-         InfoLog().printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
+   // If path exists but is not a directory, fatal error.
+   FatalIf(
+         statresult == 0 and !(pathstat.st_mode & S_IFDIR),
+         "Path \"%s\" exists but is not a directory\n",
+         dirname);
 
-         // Try up to 5 times until it works
-         int const numAttempts = 5;
-         for (int attemptNum = 0; attemptNum < numAttempts; attemptNum++) {
-            int mkdirstatus = makeDirectory(expandedDirName.c_str());
-            if (mkdirstatus != 0) {
-               if (attemptNum == numAttempts - 1) {
-                  Fatal().printf(
-                        "Directory \"%s\" could not be created: %s; Exiting\n",
-                        dirname,
-                        strerror(errno));
-               }
-               else {
-                  getOutputStream().flush();
-                  WarnLog().printf(
-                        "Directory \"%s\" could not be created: %s; Retrying %d out of %d\n",
-                        dirname,
-                        strerror(errno),
-                        attemptNum + 1,
-                        numAttempts);
-                  sleep(1);
-               }
-            }
-            else {
-               break;
-            }
+   // Fatal error if checking the path gave an error other than No such file or directory
+   FatalIf(
+         statresult != 0 and errno != ENOENT,
+         "Checking status of directory \"%s\" gave error \"%s\".\n",
+         dirname,
+         strerror(errno));
+
+   InfoLog().printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
+
+   // Try up to 5 times until it works
+   int const numAttempts = 5;
+   for (int attemptNum = 0; attemptNum < numAttempts; attemptNum++) {
+      int mkdirstatus = makeDirectory(expandedDirName.c_str());
+      if (mkdirstatus != 0) {
+         if (attemptNum == numAttempts - 1) {
+            Fatal().printf(
+                  "Directory \"%s\" could not be created: %s; Exiting\n", dirname, strerror(errno));
+         }
+         else {
+            getOutputStream().flush();
+            WarnLog().printf(
+                  "Directory \"%s\" could not be created: %s; Retrying %d out of %d\n",
+                  dirname,
+                  strerror(errno),
+                  attemptNum + 1,
+                  numAttempts);
+            sleep(1);
          }
       }
-   }
-   else {
-      if (rank == 0) {
-         ErrorLog().printf(
-               "Error checking status of directory \"%s\": %s\n", dirname, strerror(errno));
+      else {
+         InfoLog().printf("Successfully created directory \"%s/\".\n", dirname);
+         errno = 0;
+         break;
       }
-      exit(EXIT_FAILURE);
    }
 }
 
