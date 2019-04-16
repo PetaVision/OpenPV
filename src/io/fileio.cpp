@@ -474,22 +474,6 @@ int PV_fclose(PV_Stream *pvstream) {
    return status;
 }
 
-int checkDirExists(MPIBlock const *mpiBlock, const char *dirname, struct stat *pathstat) {
-   // check if the given directory name exists for the rank zero process
-   // the return value is zero if a successful stat(2) call and the error
-   // if unsuccessful.  pathstat contains the result of the buffer from the stat call.
-   // The rank zero process is the only one that calls stat();
-   // nonzero rank processes return PV_SUCCESS immediately.
-   pvAssert(pathstat);
-
-   int rank = mpiBlock->getRank();
-   if (rank != 0) {
-      return 0;
-   }
-   int status = stat(dirname, pathstat);
-   return status ? errno : 0;
-}
-
 static inline int makeDirectory(char const *dir) {
    mode_t dirmode = S_IRWXU | S_IRWXG | S_IRWXO;
    int status     = 0;
@@ -520,18 +504,18 @@ static inline int makeDirectory(char const *dir) {
 void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
    // If rank zero, see if path exists, and try to create it if it doesn't.
    // If not rank zero, the routine does nothing.
-   int rank = mpiBlock->getRank();
-   struct stat pathstat;
+   int rank                    = mpiBlock->getRank();
    std::string expandedDirName = expandLeadingTilde(dirname);
-   int resultcode              = checkDirExists(mpiBlock, expandedDirName.c_str(), &pathstat);
+   struct stat pathstat;
+   int statresult = stat(expandedDirName.c_str(), &pathstat);
 
-   if (resultcode == 0) { // mOutputPath exists; now check if it's a directory.
+   if (statresult == 0) { // mOutputPath exists; now check if it's a directory.
       FatalIf(
             rank == 0 && !(pathstat.st_mode & S_IFDIR),
             "Path \"%s\" exists but is not a directory\n",
             dirname);
    }
-   else if (resultcode == ENOENT /* No such file or directory */) {
+   else if (errno == ENOENT /* No such file or directory */) {
       if (rank == 0) {
          InfoLog().printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
 
@@ -566,7 +550,7 @@ void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
    else {
       if (rank == 0) {
          ErrorLog().printf(
-               "Error checking status of directory \"%s\": %s\n", dirname, strerror(resultcode));
+               "Error checking status of directory \"%s\": %s\n", dirname, strerror(errno));
       }
       exit(EXIT_FAILURE);
    }
