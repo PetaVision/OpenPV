@@ -486,9 +486,7 @@ int checkDirExists(MPIBlock const *mpiBlock, const char *dirname, struct stat *p
    if (rank != 0) {
       return 0;
    }
-   char *expandedDirName = strdup(expandLeadingTilde(dirname).c_str());
-   int status            = stat(dirname, pathstat);
-   free(expandedDirName);
+   int status = stat(dirname, pathstat);
    return status ? errno : 0;
 }
 
@@ -524,7 +522,8 @@ void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
    // If not rank zero, the routine does nothing.
    int rank = mpiBlock->getRank();
    struct stat pathstat;
-   int resultcode = checkDirExists(mpiBlock, dirname, &pathstat);
+   std::string expandedDirName = expandLeadingTilde(dirname);
+   int resultcode              = checkDirExists(mpiBlock, expandedDirName.c_str(), &pathstat);
 
    if (resultcode == 0) { // mOutputPath exists; now check if it's a directory.
       FatalIf(
@@ -539,7 +538,7 @@ void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
          // Try up to 5 times until it works
          int const numAttempts = 5;
          for (int attemptNum = 0; attemptNum < numAttempts; attemptNum++) {
-            int mkdirstatus = makeDirectory(dirname);
+            int mkdirstatus = makeDirectory(expandedDirName.c_str());
             if (mkdirstatus != 0) {
                if (attemptNum == numAttempts - 1) {
                   Fatal().printf(
