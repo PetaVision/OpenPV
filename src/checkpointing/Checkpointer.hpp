@@ -11,14 +11,10 @@
 #include "checkpointing/CheckpointEntry.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
 #include "io/PVParams.hpp"
-// #include "io/io.hpp"
 #include "observerpattern/Subject.hpp"
-// #include "structures/MPIBlock.hpp"
+#include "structures/MPIBlock.hpp"
 #include "utils/Timer.hpp"
 #include <ctime>
-// #include <map>
-// #include <memory>
-// #include <string>
 
 namespace PV {
 

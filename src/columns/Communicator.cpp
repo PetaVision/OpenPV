@@ -10,7 +10,6 @@
 #include <iostream>
 
 #include "Communicator.hpp"
-#include "io/io.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.hpp"

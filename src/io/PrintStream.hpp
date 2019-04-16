@@ -9,7 +9,6 @@ extern "C" {
 #include <cstdio>
 #include <cstring>
 
-#include "io/io.hpp"
 #include "utils/PVAssert.hpp"
 
 namespace PV {

@@ -1,6 +1,7 @@
 #ifndef __BUFFERUTILSPVP_HPP__
 #define __BUFFERUTILSPVP_HPP__
 
+#include "include/pv_types.h"
 #include "io/FileStream.hpp"
 #include "structures/Buffer.hpp"
 #include "structures/SparseList.hpp"

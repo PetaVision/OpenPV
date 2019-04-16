@@ -15,7 +15,6 @@
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/HyPerCol.hpp"
 #include "components/PatchSize.hpp"
-#include "io/io.hpp"
 #include "layers/Retina.hpp"
 
 #include <stdio.h>

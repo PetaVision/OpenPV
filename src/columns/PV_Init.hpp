@@ -13,7 +13,6 @@
 #include <columns/Factory.hpp>
 #include <columns/KeywordHandler.hpp>
 #include <io/PVParams.hpp>
-#include <io/io.hpp>
 #include <iostream>
 
 namespace PV {

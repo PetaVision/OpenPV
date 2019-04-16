@@ -16,7 +16,6 @@
 #include "DatastoreDelayTestLayer.hpp"
 #include "DatastoreDelayTestProbe.hpp"
 #include "columns/buildandrun.hpp"
-#include "io/io.hpp"
 #include <utils/PVLog.hpp>
 
 int main(int argc, char *argv[]) {

@@ -21,7 +21,6 @@
 #include "columns/buildandrun.hpp"
 #include "components/PatchSize.hpp"
 #include "components/WeightsPair.hpp"
-#include "io/io.hpp"
 #include "weightupdaters/BaseWeightUpdater.hpp"
 
 int dumpweights(HyPerCol *hc, int argc, char *argv[]);

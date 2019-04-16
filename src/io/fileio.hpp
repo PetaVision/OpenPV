@@ -12,7 +12,6 @@
 #include "components/Patch.hpp"
 #include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
-#include "io.hpp"
 #include "structures/MPIBlock.hpp"
 
 #include <sys/stat.h>

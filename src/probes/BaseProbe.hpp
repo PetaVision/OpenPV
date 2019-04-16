@@ -11,7 +11,6 @@
 #include "components/LayerUpdateController.hpp"
 #include "include/pv_common.h"
 #include "io/FileStream.hpp"
-#include "io/io.hpp"
 #include <stdio.h>
 #include <vector>
 
