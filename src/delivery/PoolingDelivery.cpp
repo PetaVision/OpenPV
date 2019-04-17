@@ -197,6 +197,16 @@ Response::Status PoolingDelivery::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
+   pvAssert(mPreData and mPreData->getLayerLoc());
+   pvAssert(mPostGSyn and mPostGSyn->getLayerLoc());
+   FatalIf(
+         mPreData->getLayerLoc()->nf != mPostGSyn->getLayerLoc()->nf,
+         "%s requires pre layer \"%s\" and post layer \"%s\" have equal nf (%d versus %d).\n",
+         getDescription_c(),
+         mPreData->getName(),
+         mPostGSyn->getName(),
+         mPreData->getLayerLoc()->nf,
+         mPostGSyn->getLayerLoc()->nf);
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       if (!mPreData->getDataStructuresAllocatedFlag()) {

@@ -191,6 +191,17 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
+   pvAssert(mPreData and mPreData->getLayerLoc());
+   pvAssert(mPostGSyn and mPostGSyn->getLayerLoc());
+   FatalIf(
+         mPreData->getLayerLoc()->nf != mPostGSyn->getLayerLoc()->nf,
+         "%s pre layer \"%s\" has %d features but post layer \"%s\" has %d features. "
+         "The numbers of features must be equal.\n",
+         getDescription_c(),
+         mPreData->getName(),
+         mPreData->getLayerLoc()->nf,
+         mPostGSyn->getName(),
+         mPostGSyn->getLayerLoc()->nf);
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       if (!mPreData->getDataStructuresAllocatedFlag()) {
