@@ -23,8 +23,6 @@
 // TODO - make MAX_PARAMS dynamic
 #define MAX_PARAMS 100 // maximum number of parameters in a group
 
-#undef HAS_MAIN // define if provides a main function
-
 namespace PV {
 
 enum ParamsIOFlag { PARAMS_IO_READ, PARAMS_IO_WRITE };
