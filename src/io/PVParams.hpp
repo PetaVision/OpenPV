@@ -27,6 +27,8 @@
 
 namespace PV {
 
+enum ParamsIOFlag { PARAMS_IO_READ, PARAMS_IO_WRITE };
+
 class Parameter {
   public:
    Parameter(const char *name, double value);
