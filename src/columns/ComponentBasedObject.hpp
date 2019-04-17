@@ -19,21 +19,27 @@
 namespace PV {
 
 /**
- * The base class for layers, connections, probes, and components of those
- * objects. Provides common interfaces for CommunicateInitInfo, AllocateDataStructures,
- * SetInitialValues messages, and a few others.
+ * The base class for layers, connections, ActivityComponent, and other classes that
+ * comprise components. This class inherits the Subject class to provide a component
+ * table.
  */
 class ComponentBasedObject : public BaseObject, public Subject {
   public:
    virtual ~ComponentBasedObject();
 
   protected:
+   /** The default constructor for ComponentBasedObject does nothing. Derived classes
+    *  should call ComponentBasedObject::initialize() during their own initialization.
+    */
    ComponentBasedObject();
    void initialize(char const *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-  private:
-   int initialize_base();
+   /**
+     * When called with the write flag, calls the ioParams function of each component.
+     * When called with the read flag, does nothing since components read their params
+     * during instantiation.
+     */
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 }; // class ComponentBasedObject
 
 } // namespace PV

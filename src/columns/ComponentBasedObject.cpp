@@ -10,13 +10,9 @@
 namespace PV {
 
 ComponentBasedObject::ComponentBasedObject() {
-   initialize_base();
-   // Note that initialize() is not called in the constructor.
-   // Instead, derived classes should call ComponentBasedObject::initialize in their own
-   // constructor.
+   // Derived classes should call ComponentBasedObject::initialize() during their own
+   // instantiation.
 }
-
-int ComponentBasedObject::initialize_base() { return PV_SUCCESS; }
 
 void ComponentBasedObject::initialize(
       const char *name,
