@@ -1,11 +1,11 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    nx = 64; //1242;  // KITTI synced value
-    ny = 64;  //218;
+    nx = 64;
+    ny = 64;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    stopTime = 30.0;       // Depends on number of VINE video frames
+    stopTime = 30.0;
     progressInterval = 1.0;
     //Change this
     outputPath = "output/postTestNoTranspose/";
@@ -16,7 +16,6 @@ HyPerCol "column" = {
 };
 
 ConstantLayer "input" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
@@ -33,7 +32,6 @@ ConstantLayer "input" = {
 };
 
 ANNLayer "outputRecv" = {
-    restart = 0;
     nxScale = .5;
     nyScale = .5;
     nf = 64;
@@ -53,7 +51,6 @@ ANNLayer "outputRecv" = {
 };
 
 ANNLayer "outputRecvGpu" = {
-    restart = 0;
     nxScale = .5;
     nyScale = .5;
     nf = 64;
@@ -73,7 +70,6 @@ ANNLayer "outputRecvGpu" = {
 };
 
 ANNLayer "outputTest" = {
-    restart = 0;
     nxScale = .5;
     nyScale = .5;
     nf = 64;
@@ -104,19 +100,10 @@ HyPerConn "cpuConn" = {
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
     
-//    weightInitType = "UniformRandomWeight";
-//    wMinInit = -1;
-//    wMaxInit = 1;
-//    sparseFraction = 0;
-//
     weightInitType = "UniformWeight";
     weightInit = 1;
         
     normalizeMethod                     = "none";
-    //strength                            = 1;
-    //rMinX                               = 1.5;
-    //rMinY                               = 1.5;
-    //normalize_cutoff                    = 0;
 
     normalizeArborsIndividually = false;
     normalizeFromPostPerspective = false;
@@ -129,7 +116,6 @@ HyPerConn "cpuConn" = {
      
     delay = 0;
      
-    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = true;
     receiveGpu = false;
@@ -148,19 +134,10 @@ HyPerConn "gpuConn" = {
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
     
-//    weightInitType = "UniformRandomWeight";
-//    wMinInit = -1;
-//    wMaxInit = 1;
-//    sparseFraction = 0;
-//
     weightInitType = "UniformWeight";
     weightInit = 1;
         
     normalizeMethod                     = "none";
-    //strength                            = 1;
-    //rMinX                               = 1.5;
-    //rMinY                               = 1.5;
-    //normalize_cutoff                    = 0;
 
     normalizeArborsIndividually = false;
     normalizeFromPostPerspective = false;
@@ -172,12 +149,9 @@ HyPerConn "gpuConn" = {
     pvpatchAccumulateType = "convolve";
      
     delay = 0;
-     
-    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = true;
-    receiveGpu = false;
-
+    receiveGpu = true;
 };
 
 IdentConn "RecvPostTest" = {
@@ -199,9 +173,7 @@ IdentConn "RecvPreTest" = {
 GPUSystemTestProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
+   nnzThreshold = 5.0e-4;
+   exitOnFailure = true;
+   immediateExitOnFailure = false;
 };
-
-//RequireAllZeroActivityProbe "testProbe" = {
-//    targetLayer = "outputTest";
-//    nnzThreshold = 1e-6;
-//};

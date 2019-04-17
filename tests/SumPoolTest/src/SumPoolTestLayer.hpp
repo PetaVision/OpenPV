@@ -1,18 +1,16 @@
 #ifndef SUMPOOLTESTLAYER_HPP_
 #define SUMPOOLTESTLAYER_HPP_
 
-#include <layers/ANNLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
-class SumPoolTestLayer : public PV::ANNLayer {
+class SumPoolTestLayer : public HyPerLayer {
   public:
-   SumPoolTestLayer(const char *name, HyPerCol *hc);
+   SumPoolTestLayer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
-   Response::Status updateState(double timef, double dt) override;
-
-  private:
+   ActivityComponent *createActivityComponent() override;
 }; // end class SumPoolTestLayer
 
 } /* namespace PV */

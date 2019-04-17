@@ -39,27 +39,31 @@ class CudaTimer : public PV::Timer {
     */
    virtual double start() override;
    /**
-    * A function to put an instruction on the GPU queue to stop timing
+    * A function to put an instruction on the GPU queue to stop timing.
+    * Internally sets the mEventPending flag, to signal to accumulateTime()
+    * to add the time of the start/stop pair.
     */
    virtual double stop() override;
    /**
     * A blocking function to accumulate to the final time between start and stop.
     * This function must be called after a pair of start/stops. Not doing so will clobber the
-    * previous start/stop pair
+    * previous start/stop pair. If the mEventPending flag is true, adds the time of the pending
+    * start/stop pair and clears the flag. If mEventPending is false, this routine does nothing.
     * @return Returns the accumulated time of this timer
     */
    double accumulateTime();
-   virtual int fprint_time(PrintStream &stream);
+   virtual int fprint_time(PrintStream &printStream) const override;
    /**
     * A setter function to set the stream to time
     */
-   void setStream(cudaStream_t stream) { this->stream = stream; }
+   void setStream(cudaStream_t stream) { mStream = stream; }
 
   private:
-   cudaEvent_t startEvent;
-   cudaEvent_t stopEvent;
-   float time; // TODO maybe use Timer's member variables to store the time?
-   cudaStream_t stream;
+   cudaEvent_t mStartEvent;
+   cudaEvent_t mStopEvent;
+   float mTime; // TODO maybe use Timer's member variables to store the time?
+   cudaStream_t mStream;
+   bool mEventPending = false; // A flag that is set by stop(). If true, accumulateTime() will add
 };
 
 } // namespace PV

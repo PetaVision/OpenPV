@@ -4,7 +4,7 @@
 
 #include <components/Weights.hpp>
 #include <utils/PVLog.hpp>
-#include <utils/conversions.h>
+#include <utils/conversions.hpp>
 
 #include <string.h>
 
@@ -308,9 +308,6 @@ void testManyToOneNonshared() {
    int nxp = 3;
    int nyp = 3;
    int nfp = 10;
-
-   int xStride = preLoc.nx / postLoc.nx;
-   int yStride = preLoc.ny / postLoc.ny;
 
    PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, 1, false, 0.0);
 

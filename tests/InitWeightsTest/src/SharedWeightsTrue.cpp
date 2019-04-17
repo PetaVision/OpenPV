@@ -6,18 +6,18 @@
  */
 
 #include "SharedWeightsTrue.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ConnectionData.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-SharedWeightsTrue::SharedWeightsTrue(char const *name, HyPerCol *hc) { initialize(name, hc); }
+SharedWeightsTrue::SharedWeightsTrue(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 SharedWeightsTrue::~SharedWeightsTrue() {}
 
-int SharedWeightsTrue::initialize(char const *name, HyPerCol *hc) {
-   return SharedWeights::initialize(name, hc);
+void SharedWeightsTrue::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   SharedWeights::initialize(name, params, comm);
 }
 
 void SharedWeightsTrue::setObjectType() { mObjectType = "SharedWeightsTrue"; }
@@ -28,7 +28,7 @@ int SharedWeightsTrue::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void SharedWeightsTrue::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       mSharedWeights = true;
-      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
+      parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
    }
 }
 

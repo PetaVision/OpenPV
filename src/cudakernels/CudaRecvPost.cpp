@@ -1,6 +1,5 @@
 #include "CudaRecvPost.hpp"
 #include "arch/cuda/cuda_util.hpp"
-#include "conversions.hcu"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include <cmath>
@@ -14,7 +13,7 @@ namespace PVCuda {
 #endif // PV_USE_CUDNN
 
 CudaRecvPost::CudaRecvPost(CudaDevice *inDevice) : CudaKernel(inDevice) {
-   kernelName = "CudaRecvPost";
+   mKernelName = "CudaRecvPost";
 }
 
 CudaRecvPost::~CudaRecvPost() {
@@ -400,8 +399,6 @@ void CudaRecvPost::permuteDatastorePVToCudnn() {
    int blockSize  = device->get_max_threads();
    // Ceil to get all weights
    int gridSize = ceil((float)numNeurons / blockSize);
-
-   device->syncDevice();
 
    callPermuteDatastorePVToCudnnKernel(
          gridSize,

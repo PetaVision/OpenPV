@@ -1,0 +1,79 @@
+//
+// SynchronizeMarginsTest.params
+//
+// created by peteschultz: Apr 18, 2018
+//
+
+// A params file of three HyPerLayers, used by SynchronizeMarginsTest for
+// testing the margin manipulation routines of LayerGeometry.
+
+debugParsing = false;    // Debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx = 32;   //size of the whole network
+   ny = 32;
+   nbatch = 2;
+   dt = 1.0;  //time step in ms.
+   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 10.0; //Program will output its progress at each progressInterval
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last"; //If true, save the last output as checkpoint.
+};
+
+//
+// layers
+//
+
+//All layers are subclasses of hyperlayer
+
+HyPerLayer "A" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8; // 8 outputs 
+    phase = 1;
+    triggerLayerName = NULL; // If set to another layer, this layer updates in response to the trigger layer updating.
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};
+
+HyPerLayer "B" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8; // 8 outputs 
+    phase = 1;
+    triggerLayerName = NULL; // If set to another layer, this layer updates in response to the trigger layer updating.
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};
+
+HyPerLayer "C" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 8; // 8 outputs 
+    phase = 1;
+    triggerLayerName = NULL; // If set to another layer, this layer updates in response to the trigger layer updating.
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};

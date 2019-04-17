@@ -12,9 +12,7 @@
 
 namespace PV {
 
-typedef BaseObject *(*ObjectCreateFn)(char const *name, HyPerCol *hc);
-
-class HyPerCol;
+typedef BaseObject *(*ObjectCreateFn)(char const *name, PVParams *params, Communicator const *comm);
 
 /**
  * KeywordHandler is a class that associates a string, the keyword,
@@ -32,7 +30,7 @@ class HyPerCol;
  * one can insert a new HyPerLayer called "layer" into a given HyPerCol with
  * the statement.
  *
- * kwh->create("layer", hc);
+ * kwh->create("layer", params, comm);
  */
 class KeywordHandler {
   public:
@@ -64,7 +62,7 @@ class KeywordHandler {
    /**
     * The method that calls the function pointer with the given arguments
     */
-   BaseObject *create(char const *name, HyPerCol *hc) const;
+   BaseObject *create(char const *name, PVParams *params, Communicator const *comm) const;
 
    /**
     * The destructor for KeywordHandler.
@@ -76,7 +74,9 @@ class KeywordHandler {
     * A method used internally by the constructors and copy assignment operator
     * to set the initialize the KeywordHandler object.
     */
-   int initialize(char const *kw, BaseObject *(*creator)(char const *name, HyPerCol *hc));
+   int initialize(
+         char const *kw,
+         BaseObject *(*creator)(char const *name, PVParams *params, Communicator const *comm));
 
    // Member variables
   private:

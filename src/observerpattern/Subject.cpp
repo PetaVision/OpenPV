@@ -12,15 +12,30 @@
 
 namespace PV {
 
-Response::Status Subject::notify(
-      ObserverTable const &table,
-      std::vector<std::shared_ptr<BaseMessage const>> messages,
-      bool printFlag) {
+Subject::Subject() {}
+
+Subject::~Subject() {
+   deleteTable();
+   delete mTable;
+}
+
+void Subject::initializeTable(char const *tableDescription) {
+   mTable = new ObserverTable(tableDescription);
+   fillComponentTable();
+}
+
+void Subject::addObserver(std::string const &tag, Observer *observer) {
+   bool succeeded = mTable->addObject(tag, observer);
+   FatalIf(
+         !succeeded, "Adding %s with tag %s failed.\n", tag.c_str(), observer->getDescription_c());
+}
+
+Response::Status
+Subject::notify(std::vector<std::shared_ptr<BaseMessage const>> messages, bool printFlag) {
    Response::Status returnStatus = Response::NO_ACTION;
-   auto &objectVector            = table.getObjectVector();
    std::vector<int> numPostponed(messages.size());
-   for (auto &obj : objectVector) {
-      for (int msgIdx = 0; msgIdx < messages.size(); msgIdx++) {
+   for (auto *obj : *mTable) {
+      for (std::size_t msgIdx = 0; msgIdx < messages.size(); msgIdx++) {
          auto &msg               = messages[msgIdx];
          Response::Status status = obj->respond(msg);
          returnStatus            = returnStatus + status;
@@ -41,7 +56,7 @@ Response::Status Subject::notify(
       }
    }
    if (printFlag) {
-      for (int msgIdx = 0; msgIdx < messages.size(); msgIdx++) {
+      for (std::size_t msgIdx = 0; msgIdx < messages.size(); msgIdx++) {
          int numPostponedThisMsg = numPostponed.at(msgIdx);
          if (numPostponedThisMsg > 0) {
             InfoLog().printf(
@@ -55,13 +70,12 @@ Response::Status Subject::notify(
 }
 
 void Subject::notifyLoop(
-      ObserverTable const &table,
       std::vector<std::shared_ptr<BaseMessage const>> messages,
       bool printFlag,
       std::string const &description) {
    Response::Status status = Response::PARTIAL;
    while (status == Response::PARTIAL) {
-      status = notify(table, messages, printFlag);
+      status = notify(messages, printFlag);
    }
    FatalIf(
          status == Response::POSTPONE,
@@ -69,6 +83,13 @@ void Subject::notifyLoop(
          description.c_str(),
          description.c_str());
    pvAssert(Response::completed(status));
+}
+
+void Subject::deleteTable() {
+   for (auto *c : *mTable) {
+      delete c;
+   }
+   mTable->clear();
 }
 
 } /* namespace PV */

@@ -5,54 +5,25 @@
  *      Author: slundquist
  */
 
-#ifndef MOMENTUMLCALAYER_HPP_
-#define MOMENTUMLCALAYER_HPP_
+#ifndef MOMENTUMLCALAYER_HPP__
+#define MOMENTUMLCALAYER_HPP__
 
 #include "HyPerLCALayer.hpp"
 
 namespace PV {
 
-class MomentumLCALayer : public PV::HyPerLCALayer {
+class MomentumLCALayer : public HyPerLCALayer {
   public:
-   MomentumLCALayer(const char *name, HyPerCol *hc);
+   MomentumLCALayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~MomentumLCALayer();
 
   protected:
-   MomentumLCALayer();
-   int initialize(const char *name, HyPerCol *hc);
-   virtual Response::Status allocateDataStructures() override;
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   MomentumLCALayer() {}
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
-   /**
-    * List of parameters needed from the MomentumLCALayer class
-    * @name HyPerConn Parameters
-    * @{
-    */
+   virtual ActivityComponent *createActivityComponent() override;
+};
 
-   virtual void ioParam_LCAMomentumRate(enum ParamsIOFlag ioFlag);
+} // end namespace PV
 
-   /** @} */
-
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
-   virtual Response::Status processCheckpointRead() override;
-   virtual Response::Status prepareCheckpointWrite() override;
-
-   virtual Response::Status updateState(double time, double dt) override;
-
-#ifdef PV_USE_CUDA
-   virtual Response::Status updateStateGpu(double time, double dt) override;
-   virtual int allocateUpdateKernel() override;
 #endif
-
-   float LCAMomentumRate;
-   float *prevDrive;
-#ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer *d_prevDrive;
-#endif
-
-  private:
-   int initialize_base();
-}; // class MomentumLCALayer
-
-} /* namespace PV */
-#endif /* MOMENTUMLCALAYER_HPP_ */

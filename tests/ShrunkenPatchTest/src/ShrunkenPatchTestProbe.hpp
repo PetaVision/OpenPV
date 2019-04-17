@@ -12,19 +12,17 @@
 
 namespace PV {
 
-class PVParams;
-
 class ShrunkenPatchTestProbe : public PV::StatsProbe {
   public:
-   ShrunkenPatchTestProbe(const char *probename, HyPerCol *hc);
+   ShrunkenPatchTestProbe(const char *probename, PVParams *params, Communicator const *comm);
    ShrunkenPatchTestProbe(const char *probename, HyPerLayer *layer, const char *msg);
 
-   virtual Response::Status outputState(double timestamp) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
    virtual ~ShrunkenPatchTestProbe();
 
   protected:
-   int initialize(const char *probename, HyPerCol *hc);
+   void initialize(const char *probename, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);

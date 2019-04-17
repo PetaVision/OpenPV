@@ -8,16 +8,13 @@
 #define BASEPROBE_HPP_
 
 #include "columns/BaseObject.hpp"
+#include "components/LayerUpdateController.hpp"
 #include "include/pv_common.h"
 #include "io/FileStream.hpp"
-#include "io/io.hpp"
 #include <stdio.h>
 #include <vector>
 
 namespace PV {
-
-class HyPerCol;
-class HyPerLayer;
 
 /**
  * An abstract base class for the common functionality of layer probes and
@@ -30,14 +27,12 @@ class BaseProbe : public BaseObject {
    virtual ~BaseProbe();
 
    /**
-    * A pure virtual function called during HyPerCol::run, during the
-    * communicateInitInfo stage.
-    * BaseProbe::communicateInitInfo sets up the triggering layer and attaches to
-    * the energy probe,
+    * A virtual function called during HyPerCol::run, during the communicateInitInfo stage.
+    * BaseProbe::communicateInitInfo sets up the triggering layer and attaches to the energy probe,
     * if either triggerFlag or energyProbe are set.
     */
    virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override = 0;
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
     * Called during HyPerCol::run, during the allocateDataStructures stage.
@@ -45,7 +40,8 @@ class BaseProbe : public BaseObject {
     * Derived classes that override this method should make sure to
     * call this method in their own allocateDataStructures methods.
     */
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    /**
     * Returns the number of value indices the probe can compute (typically the
@@ -72,7 +68,7 @@ class BaseProbe : public BaseObject {
    /**
     * A pure virtual method for writing output to the output file.
     */
-   virtual Response::Status outputState(double timef) = 0;
+   virtual Response::Status outputState(double simTime, double deltaTime) = 0;
    virtual int writeTimer(PrintStream &stream) { return PV_SUCCESS; }
 
    /**
@@ -140,9 +136,7 @@ class BaseProbe : public BaseObject {
 
   protected:
    BaseProbe();
-   int initialize(const char *name, HyPerCol *hc);
-
-   virtual void setObjectType() override;
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
@@ -257,7 +251,7 @@ class BaseProbe : public BaseObject {
     * the implementation of needRecalc() will return true if lastUpdateTime is
     * less than the value returned by referenceUpdateTime, and false otherwise.
     */
-   virtual double referenceUpdateTime() const = 0;
+   virtual double referenceUpdateTime(double simTime) const = 0;
 
    /**
     * A pure virtual method to calculate the values of the probe.  calcValues()
@@ -339,7 +333,7 @@ class BaseProbe : public BaseObject {
     * triggering
     * to choose when output its state.
     */
-   virtual bool needUpdate(double time, double dt);
+   virtual bool needUpdate(double time, double dt) const;
 
   private:
    int initialize_base();
@@ -351,11 +345,12 @@ class BaseProbe : public BaseObject {
 
    bool triggerFlag;
    char *triggerLayerName;
-   HyPerLayer *triggerLayer;
+   LayerUpdateController *mTriggerControl = nullptr;
    double triggerOffset;
    char *targetName;
    char *energyProbe; // the name of the ColumnEnergyProbe to attach to, if any.
    double coefficient;
+   int mLocalBatchWidth = 1; // the value of loc->nbatch
 
   private:
    char *msgparams; // the message parameter in the params
@@ -367,8 +362,6 @@ class BaseProbe : public BaseObject {
    double *probeValues;
    double lastUpdateTime; // The time of the last time calcValues was called.
    bool textOutputFlag;
-   bool mInitInfoCommunicatedFlag    = false;
-   bool mDataStructuresAllocatedFlag = false;
 };
 }
 

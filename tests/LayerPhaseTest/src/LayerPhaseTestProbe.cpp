@@ -9,15 +9,19 @@
 
 namespace PV {
 
-LayerPhaseTestProbe::LayerPhaseTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+LayerPhaseTestProbe::LayerPhaseTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm)
+      : StatsProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int LayerPhaseTestProbe::initialize_base() { return PV_SUCCESS; }
 
-int LayerPhaseTestProbe::initialize(const char *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void LayerPhaseTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 int LayerPhaseTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -30,27 +34,24 @@ int LayerPhaseTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void LayerPhaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufV); }
 
 void LayerPhaseTestProbe::ioParam_equilibriumValue(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, getName(), "equilibriumValue", &equilibriumValue, 0.0f, true);
+   parameters()->ioParamValue(ioFlag, getName(), "equilibriumValue", &equilibriumValue, 0.0f, true);
 }
 
 void LayerPhaseTestProbe::ioParam_equilibriumTime(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, getName(), "equilibriumTime", &equilibriumTime, 0.0, true);
+   parameters()->ioParamValue(ioFlag, getName(), "equilibriumTime", &equilibriumTime, 0.0, true);
 }
 
-Response::Status LayerPhaseTestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status LayerPhaseTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
-   Communicator *icComm = parent->getCommunicator();
-   const int rcvProc    = 0;
-   if (icComm->commRank() != rcvProc) {
+   const int rcvProc = 0;
+   if (mCommunicator->commRank() != rcvProc) {
       return status;
    }
-   for (int b = 0; b < parent->getNBatch(); b++) {
-      if (timed >= equilibriumTime) {
+   for (int b = 0; b < mLocalBatchWidth; b++) {
+      if (simTime >= equilibriumTime) {
          float const tol = 1e-6f;
          // TODO: std::fabs is preferred to fabsf. But we implicitly include
          // math.h because the header includes HyPerLayer.hpp, which eventually

@@ -14,11 +14,11 @@ namespace PV {
 
 class PointLIFProbe : public PointProbe {
   public:
-   PointLIFProbe(const char *name, HyPerCol *hc);
+   PointLIFProbe(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
    PointLIFProbe();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
 
@@ -26,6 +26,10 @@ class PointLIFProbe : public PointProbe {
     * Overrides initNumValues to set numValues to 6 (G_E, G_I, G_IB, V, Vth, a)
     */
    virtual void initNumValues() override;
+
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual void setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message);
 
    /**
     * Overrides PointProbe::calcValues to report the conductances and threshold V
@@ -41,11 +45,15 @@ class PointLIFProbe : public PointProbe {
    virtual void writeState(double timevalue) override;
 
   private:
-   int initialize_base();
+   /**
+    * Used by calcValues to get the buffer data for the components in the
+    * target LIF layer's activity component.
+    */
+   float const *getBufferData(ObserverTable const *table, char const *label);
 
   protected:
-   double writeTime; // time of next output
-   double writeStep; // output time interval
+   double writeTime = 0.0; // time of next output
+   double writeStep = 0.0; // output time interval
 
 }; // end class PointLIFProbe
 }

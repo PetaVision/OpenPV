@@ -4,14 +4,20 @@
 #include <layers/ImageLayer.hpp>
 
 namespace PV {
-class ImageOffsetTestLayer : public PV::ImageLayer {
+class ImageOffsetTestLayer : public ImageLayer {
   public:
-   ImageOffsetTestLayer(const char *name, HyPerCol *hc);
-   virtual double getDeltaUpdateTime() override;
+   ImageOffsetTestLayer(char const *name, PVParams *params, Communicator const *comm);
+   virtual ~ImageOffsetTestLayer();
 
   protected:
-   Response::Status updateState(double timef, double dt) override;
-   bool readyForNextFile() override;
+   ImageOffsetTestLayer() {}
+
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
+
+   virtual ActivityComponent *createActivityComponent() override;
+
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 };
 
 } /* namespace PV */

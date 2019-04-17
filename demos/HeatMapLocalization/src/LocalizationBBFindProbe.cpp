@@ -78,17 +78,16 @@ void LocalizationBBFindProbe::ioParam_framesPerMap(enum PV::ParamsIOFlag ioFlag)
 }
 
 void LocalizationBBFindProbe::ioParam_threshold(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "threshold", &threshold, threshold, true /*warnIfAbsent*/);
 }
 
 void LocalizationBBFindProbe::ioParam_contrast(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "contrast", &contrast, contrast, true /*warnIfAbsent*/);
+   parameters()->ioParamValue(ioFlag, name, "contrast", &contrast, contrast, true /*warnIfAbsent*/);
 }
 
 void LocalizationBBFindProbe::ioParam_contrastStrength(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "contrastStrength",
@@ -98,12 +97,12 @@ void LocalizationBBFindProbe::ioParam_contrastStrength(enum PV::ParamsIOFlag ioF
 }
 
 void LocalizationBBFindProbe::ioParam_prevInfluence(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "prevInfluence", &prevInfluence, prevInfluence, true /*warnIfAbsent*/);
 }
 
 void LocalizationBBFindProbe::ioParam_accumulateAmount(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "accumulateAmount",
@@ -113,17 +112,17 @@ void LocalizationBBFindProbe::ioParam_accumulateAmount(enum PV::ParamsIOFlag ioF
 }
 
 void LocalizationBBFindProbe::ioParam_prevLeakTau(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "prevLeakTau", &prevLeakTau, prevLeakTau, true /*warnIfAbsent*/);
 }
 
 void LocalizationBBFindProbe::ioParam_minBlobSize(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "minBlobSize", &minBlobSize, minBlobSize, true /*warnIfAbsent*/);
 }
 
 void LocalizationBBFindProbe::ioParam_boundingboxGuessSize(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "boundingboxGuessSize",
@@ -133,7 +132,7 @@ void LocalizationBBFindProbe::ioParam_boundingboxGuessSize(enum PV::ParamsIOFlag
 }
 
 void LocalizationBBFindProbe::ioParam_slidingAverageSize(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "slidingAverageSize",
@@ -143,7 +142,7 @@ void LocalizationBBFindProbe::ioParam_slidingAverageSize(enum PV::ParamsIOFlag i
 }
 
 void LocalizationBBFindProbe::ioParam_maxRectangleMemory(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "maxRectangleMemory",
@@ -153,12 +152,12 @@ void LocalizationBBFindProbe::ioParam_maxRectangleMemory(enum PV::ParamsIOFlag i
 }
 
 void LocalizationBBFindProbe::ioParam_detectionWait(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "detectionWait", &detectionWait, detectionWait, true /*warnIfAbsent*/);
 }
 
 void LocalizationBBFindProbe::ioParam_internalMapWidth(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "internalMapWidth",
@@ -168,7 +167,7 @@ void LocalizationBBFindProbe::ioParam_internalMapWidth(enum PV::ParamsIOFlag ioF
 }
 
 void LocalizationBBFindProbe::ioParam_internalMapHeight(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "internalMapHeight",

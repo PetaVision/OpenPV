@@ -12,9 +12,8 @@
 
 #include "cMakeHeader.h"
 #include "observerpattern/BaseMessage.hpp"
-#include "observerpattern/Observer.hpp"
+#include "observerpattern/ObserverTable.hpp"
 #include "utils/Timer.hpp"
-#include <map>
 #include <string>
 
 #ifdef PV_USE_CUDA
@@ -25,22 +24,28 @@ namespace PV {
 
 class CommunicateInitInfoMessage : public BaseMessage {
   public:
-   CommunicateInitInfoMessage(std::map<std::string, Observer *> const &hierarchy) {
+   CommunicateInitInfoMessage(
+         ObserverTable const *hierarchy,
+         double deltaTime,
+         int nxGlobal,
+         int nyGlobal,
+         int nBatchGlobal,
+         int numThreads) {
       setMessageType("CommunicateInitInfo");
-      mHierarchy = hierarchy;
+      mHierarchy    = hierarchy;
+      mDeltaTime    = deltaTime;
+      mNxGlobal     = nxGlobal;
+      mNyGlobal     = nyGlobal;
+      mNBatchGlobal = nBatchGlobal;
+      mNumThreads   = numThreads;
    }
-   template <typename T>
-   T *lookup(std::string const &name) const {
-      auto search = mHierarchy.find(name);
-      if (search == mHierarchy.end()) {
-         return nullptr;
-      }
-      else {
-         T *result = dynamic_cast<T *>(search->second);
-         return result;
-      }
-   }
-   std::map<std::string, Observer *> mHierarchy;
+   // For lookup, use the ObserverTable function members.
+   ObserverTable const *mHierarchy;
+   double mDeltaTime;
+   int mNxGlobal;
+   int mNyGlobal;
+   int mNBatchGlobal;
+   int mNumThreads;
 };
 
 #ifdef PV_USE_CUDA
@@ -54,15 +59,15 @@ class SetCudaDeviceMessage : public BaseMessage {
 };
 #endif // PV_USE_CUDA
 
-class AllocateDataMessage : public BaseMessage {
+class AllocateDataStructuresMessage : public BaseMessage {
   public:
-   AllocateDataMessage() { setMessageType("AllocateDataStructures"); }
+   AllocateDataStructuresMessage() { setMessageType("AllocateDataStructures"); }
 };
 
 class LayerSetMaxPhaseMessage : public BaseMessage {
   public:
    LayerSetMaxPhaseMessage(int *maxPhase) {
-      setMessageType("LayerSetPhase");
+      setMessageType("LayerSetMaxPhase");
       mMaxPhase = maxPhase;
    }
    int *mMaxPhase = nullptr;
@@ -92,7 +97,11 @@ class ConnectionProbeWriteParamsMessage : public BaseMessage {
 
 class InitializeStateMessage : public BaseMessage {
   public:
-   InitializeStateMessage() { setMessageType("InitializeState"); }
+   InitializeStateMessage(double deltaTime) {
+      setMessageType("InitializeState");
+      mDeltaTime = deltaTime;
+   }
+   double mDeltaTime;
 };
 
 class CopyInitialStateToGPUMessage : public BaseMessage {
@@ -102,7 +111,11 @@ class CopyInitialStateToGPUMessage : public BaseMessage {
 
 class AdaptTimestepMessage : public BaseMessage {
   public:
-   AdaptTimestepMessage() { setMessageType("AdaptTimestep"); }
+   AdaptTimestepMessage(double simTime) {
+      setMessageType("AdaptTimestep");
+      mTime = simTime;
+   }
+   double mTime;
 };
 
 class ConnectionUpdateMessage : public BaseMessage {
@@ -113,13 +126,16 @@ class ConnectionUpdateMessage : public BaseMessage {
       mDeltaT = deltaTime;
    }
    double mTime;
-   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive
-   // timesteps
+   double mDeltaT; // TODO: this should be the nbatch-sized vector of adaptive timesteps
 };
 
 class ConnectionNormalizeMessage : public BaseMessage {
   public:
-   ConnectionNormalizeMessage() { setMessageType("ConnectionNormalizeMessage"); }
+   ConnectionNormalizeMessage(double simTime) {
+      setMessageType("ConnectionNormalize");
+      mTime = simTime;
+   }
+   double mTime;
 };
 
 class ConnectionFinalizeUpdateMessage : public BaseMessage {
@@ -254,19 +270,17 @@ class LayerPublishMessage : public BaseMessage {
    double mTime;
 };
 
-// LayerUpdateActiveIndices message removed Feb 3, 2017.
-// Active indices are updated by waitOnPublish, and by isExchangeFinished if
-// the MPI exchange has completed.
-
 class LayerOutputStateMessage : public BaseMessage {
   public:
-   LayerOutputStateMessage(int phase, double simTime) {
+   LayerOutputStateMessage(int phase, double simTime, double deltaTime) {
       setMessageType("LayerOutputState");
-      mPhase = phase;
-      mTime  = simTime;
+      mPhase     = phase;
+      mTime      = simTime;
+      mDeltaTime = deltaTime;
    }
    int mPhase;
    double mTime;
+   double mDeltaTime;
 };
 
 class LayerCheckNotANumberMessage : public BaseMessage {

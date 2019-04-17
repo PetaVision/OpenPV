@@ -127,7 +127,6 @@ HyPerConn "origConn" = {
      
     delay = 0;
      
-    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -138,7 +137,6 @@ CloneConn "clone" = {
     postLayerName = "outputRecvPost";
     channelCode = 0;
     originalConnName = "origConn";
-    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";

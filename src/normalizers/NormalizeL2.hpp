@@ -12,10 +12,10 @@
 
 namespace PV {
 
-class NormalizeL2 : public PV::NormalizeMultiply {
+class NormalizeL2 : public NormalizeMultiply {
    // Member functions
   public:
-   NormalizeL2(const char *name, HyPerCol *hc);
+   NormalizeL2(const char *name, PVParams *params, Communicator const *comm);
    virtual ~NormalizeL2();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -23,7 +23,7 @@ class NormalizeL2 : public PV::NormalizeMultiply {
 
   protected:
    NormalizeL2();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual void ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag);
 

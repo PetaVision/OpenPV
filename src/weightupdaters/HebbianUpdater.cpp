@@ -6,20 +6,20 @@
  */
 
 #include "HebbianUpdater.hpp"
-#include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
 #include "components/WeightsPair.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "observerpattern/ObserverTable.hpp"
 #include "utils/TransposeWeights.hpp"
 
 namespace PV {
 
-HebbianUpdater::HebbianUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
+HebbianUpdater::HebbianUpdater(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 HebbianUpdater::~HebbianUpdater() { cleanup(); }
 
-int HebbianUpdater::initialize(char const *name, HyPerCol *hc) {
-   return BaseWeightUpdater::initialize(name, hc);
+void HebbianUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   BaseWeightUpdater::initialize(name, params, comm);
 }
 
 void HebbianUpdater::setObjectType() { mObjectType = "HebbianUpdater"; }
@@ -37,13 +37,13 @@ int HebbianUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_normalizeDw(ioFlag);
    ioParam_useMask(ioFlag);
    ioParam_combine_dW_with_W_flag(ioFlag);
-   return PV_SUCCESS;
+   return status;
 }
 
 void HebbianUpdater::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamString(
+      parameters()->ioParamString(
             ioFlag, name, "triggerLayerName", &mTriggerLayerName, nullptr, false /*warnIfAbsent*/);
       if (ioFlag == PARAMS_IO_READ) {
          mTriggerFlag = (mTriggerLayerName != nullptr && mTriggerLayerName[0] != '\0');
@@ -52,17 +52,16 @@ void HebbianUpdater::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
       if (mTriggerFlag) {
-         parent->parameters()->ioParamValue(
-               ioFlag, name, "triggerOffset", &mTriggerOffset, mTriggerOffset);
+         parameters()->ioParamValue(ioFlag, name, "triggerOffset", &mTriggerOffset, mTriggerOffset);
          if (mTriggerOffset < 0) {
             Fatal().printf(
                   "%s error in rank %d process: TriggerOffset (%f) must be positive",
                   getDescription_c(),
-                  parent->getCommunicator()->globalCommRank(),
+                  mCommunicator->globalCommRank(),
                   mTriggerOffset);
          }
       }
@@ -70,16 +69,16 @@ void HebbianUpdater::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
       if (!mTriggerLayerName) {
-         parent->parameters()->ioParamValueRequired(
+         parameters()->ioParamValueRequired(
                ioFlag, name, "weightUpdatePeriod", &mWeightUpdatePeriod);
       }
       else
          FatalIf(
-               parent->parameters()->present(name, "weightUpdatePeriod"),
+               parameters()->present(name, "weightUpdatePeriod"),
                "%s sets both triggerLayerName and weightUpdatePeriod; "
                "only one of these can be set.\n",
                getDescription_c());
@@ -87,11 +86,11 @@ void HebbianUpdater::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
       if (!mTriggerLayerName) {
-         parent->parameters()->ioParamValue(
+         parameters()->ioParamValue(
                ioFlag,
                name,
                "initialWeightUpdateTime",
@@ -106,9 +105,9 @@ void HebbianUpdater::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag,
             name,
             "immediateWeightUpdate",
@@ -119,18 +118,18 @@ void HebbianUpdater::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamValueRequired(ioFlag, name, "dWMax", &mDWMax);
+      parameters()->ioParamValueRequired(ioFlag, name, "dWMax", &mDWMax);
    }
 }
 
 void HebbianUpdater::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "dWMax"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "dWMax"));
       if (mDWMax > 0) {
-         parent->parameters()->ioParamValue(
+         parameters()->ioParamValue(
                ioFlag,
                name,
                "dWMaxDecayInterval",
@@ -142,10 +141,10 @@ void HebbianUpdater::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-      parent->parameters()->ioParamValue(
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+      parameters()->ioParamValue(
             ioFlag, name, "dWMaxDecayFactor", &mDWMaxDecayFactor, mDWMaxDecayFactor, false);
       FatalIf(
             mDWMaxDecayFactor < 0.0f || mDWMaxDecayFactor >= 1.0f,
@@ -155,25 +154,25 @@ void HebbianUpdater::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag, getName(), "normalizeDw", &mNormalizeDw, mNormalizeDw, false /*warnIfAbsent*/);
    }
 }
 
 void HebbianUpdater::ioParam_useMask(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
       if (mPlasticityFlag) {
          bool useMask = false;
-         parent->parameters()->ioParamValue(
+         parameters()->ioParamValue(
                ioFlag, getName(), "useMask", &useMask, useMask, false /*warnIfAbsent*/);
          if (useMask) {
-            if (parent->getCommunicator()->globalCommRank() == 0) {
+            if (mCommunicator->globalCommRank() == 0) {
                ErrorLog().printf("%s has useMask set to true. This parameter is obsolete.\n");
             }
-            MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+            MPI_Barrier(mCommunicator->globalCommunicator());
             exit(EXIT_FAILURE);
          }
       }
@@ -181,9 +180,9 @@ void HebbianUpdater::ioParam_useMask(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag,
             name,
             "combine_dW_with_W_flag",
@@ -195,13 +194,13 @@ void HebbianUpdater::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto componentMap       = message->mHierarchy;
-   std::string const &desc = getDescription();
-   auto *weightsPair       = mapLookupByType<WeightsPair>(componentMap, desc);
+   auto *hierarchy   = message->mHierarchy;
+   auto *weightsPair = hierarchy->lookupByType<WeightsPair>();
    pvAssert(weightsPair);
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
+   pvAssert(mInitializeFromCheckpointFlag == weightsPair->getInitializeFromCheckpointFlag());
 
    auto status = BaseWeightUpdater::communicateInitInfo(message);
    if (!Response::completed(status)) {
@@ -213,53 +212,32 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    if (mPlasticityFlag) {
       mWeights->setWeightsArePlastic();
    }
-   mWriteCompressedCheckpoints   = weightsPair->getWriteCompressedCheckpoints();
-   mInitializeFromCheckpointFlag = weightsPair->getInitializeFromCheckpointFlag();
+   mWriteCompressedCheckpoints = weightsPair->getWriteCompressedCheckpoints();
 
-   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   mConnectionData = hierarchy->lookupByType<ConnectionData>();
    FatalIf(
          mConnectionData == nullptr,
          "%s requires a ConnectionData component.\n",
          getDescription_c());
 
-   mArborList = mapLookupByType<ArborList>(message->mHierarchy, getDescription());
+   mArborList = message->mHierarchy->lookupByType<ArborList>();
    FatalIf(mArborList == nullptr, "%s requires a ArborList component.\n", getDescription_c());
 
    if (mTriggerFlag) {
-      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(componentMap, desc);
-      pvAssert(objectMapComponent);
-      mTriggerLayer = objectMapComponent->lookup<HyPerLayer>(std::string(mTriggerLayerName));
-      if (mTriggerLayer == nullptr) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
-            ErrorLog().printf(
-                  "%s: triggerLayerName \"%s\" does not correspond to a layer in the column.\n",
-                  getDescription_c(),
-                  mTriggerLayerName);
-         }
-         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-         exit(PV_FAILURE);
-      }
-
-      // Although weightUpdatePeriod and weightUpdateTime are being set here, if triggerLayerName
-      // is set, they are not being used. Only updating for backwards compatibility
-      mWeightUpdatePeriod = mTriggerLayer->getDeltaUpdateTime();
-      if (mWeightUpdatePeriod <= 0) {
-         if (mPlasticityFlag == true) {
-            WarnLog() << "Connection " << name << "triggered layer " << mTriggerLayerName
-                      << " never updates, turning plasticity flag off\n";
-            mPlasticityFlag = false;
-         }
-      }
-      if (mWeightUpdatePeriod != -1 && mTriggerOffset >= mWeightUpdatePeriod) {
-         Fatal().printf(
-               "%s, rank %d process: TriggerOffset (%f) must be lower than the change in update "
-               "time (%f) of the attached trigger layer\n",
-               getDescription_c(),
-               parent->getCommunicator()->globalCommRank(),
-               mTriggerOffset,
-               mWeightUpdatePeriod);
-      }
-      mWeightUpdateTime = parent->getDeltaTime();
+      auto *tableComponent = hierarchy->lookupByType<ObserverTable>();
+      pvAssert(tableComponent);
+      auto *triggerLayer = tableComponent->lookupByName<HyPerLayer>(std::string(mTriggerLayerName));
+      FatalIf(
+            triggerLayer == nullptr,
+            "%s: triggerLayerName \"%s\" does not correspond to a layer in the column.\n",
+            getDescription_c(),
+            mTriggerLayerName);
+      mTriggerControl = triggerLayer->getComponentByType<LayerUpdateController>();
+      FatalIf(
+            mTriggerControl == nullptr,
+            "%s: triggerLayerName \"%s\" does not have a LayerUpdateController.\n",
+            getDescription_c(),
+            mTriggerLayerName);
    }
 
    return Response::SUCCESS;
@@ -313,12 +291,12 @@ Response::Status HebbianUpdater::allocateDataStructures() {
       }
    }
 
-   if (mPlasticityFlag && !mTriggerLayer) {
-      if (mWeightUpdateTime < parent->simulationTime()) {
-         while (mWeightUpdateTime <= parent->simulationTime()) {
+   if (mPlasticityFlag && !mTriggerControl) {
+      if (mWeightUpdateTime < 0.0) {
+         while (mWeightUpdateTime <= 0.0) {
             mWeightUpdateTime += mWeightUpdatePeriod;
          }
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             WarnLog().printf(
                   "initialWeightUpdateTime of %s less than simulation start time.  Adjusting "
                   "weightUpdateTime to %f\n",
@@ -326,24 +304,25 @@ Response::Status HebbianUpdater::allocateDataStructures() {
                   mWeightUpdateTime);
          }
       }
-      mLastUpdateTime = mWeightUpdateTime - parent->getDeltaTime();
+      mLastUpdateTime = mInitialWeightUpdateTime;
    }
-   mLastTimeUpdateCalled = parent->simulationTime();
 
    return Response::SUCCESS;
 }
 
-Response::Status HebbianUpdater::registerData(Checkpointer *checkpointer) {
-   auto status = BaseWeightUpdater::registerData(checkpointer);
+Response::Status
+HebbianUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = BaseWeightUpdater::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
+   auto *checkpointer = message->mDataRegistry;
    if (mPlasticityFlag and !mImmediateWeightUpdate) {
       mDeltaWeights->checkpointWeightPvp(checkpointer, name, "dW", mWriteCompressedCheckpoints);
       // Do we need to get PrepareCheckpointWrite messages, to call blockingNormalize_dW()?
    }
    std::string nameString = std::string(name);
-   if (mPlasticityFlag && !mTriggerLayer) {
+   if (mPlasticityFlag && !mTriggerControl) {
       checkpointer->registerCheckpointData(
             nameString,
             "lastUpdateTime",
@@ -363,16 +342,12 @@ Response::Status HebbianUpdater::registerData(Checkpointer *checkpointer) {
 }
 
 Response::Status HebbianUpdater::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   if (mInitializeFromCheckpointFlag) {
-      if (mPlasticityFlag and !mImmediateWeightUpdate) {
-         checkpointer->readNamedCheckpointEntry(
-               std::string(name), std::string("dW"), false /*not constant*/);
-      }
-      return Response::SUCCESS;
+   pvAssert(mInitializeFromCheckpointFlag);
+   if (mPlasticityFlag and !mImmediateWeightUpdate) {
+      checkpointer->readNamedCheckpointEntry(
+            std::string(name), std::string("dW"), false /*not constant*/);
    }
-   else {
-      return Response::NO_ACTION;
-   }
+   return Response::SUCCESS;
 }
 
 void HebbianUpdater::updateState(double simTime, double dt) {
@@ -392,17 +367,21 @@ void HebbianUpdater::updateState(double simTime, double dt) {
       computeNewWeightUpdateTime(simTime, mWeightUpdateTime);
       mNeedFinalize = true;
    }
-   mLastTimeUpdateCalled = simTime;
 }
 
-bool HebbianUpdater::needUpdate(double simTime, double dt) {
+bool HebbianUpdater::needUpdate(double simTime, double dt) const {
    if (!mPlasticityFlag) {
       return false;
    }
-   if (mTriggerLayer) {
-      return mTriggerLayer->needUpdate(simTime + mTriggerOffset, dt);
+   if (mTriggerControl) {
+      return mTriggerControl->needUpdate(simTime + mTriggerOffset, dt);
    }
-   return simTime >= mWeightUpdateTime;
+   else {
+      double numUpdates = (simTime - mLastUpdateTime) / mWeightUpdatePeriod;
+      double timeToClosest =
+            std::fabs(numUpdates - std::nearbyint(numUpdates)) * mWeightUpdatePeriod;
+      return timeToClosest < 0.5 * dt;
+   }
 }
 
 void HebbianUpdater::updateWeightsImmediate(double simTime, double dt) {
@@ -508,23 +487,25 @@ int HebbianUpdater::update_dW(int arborID) {
    // compute dW but don't add them to the weights yet.
    // That takes place in reduceKernels, so that the output is
    // independent of the number of processors.
-   HyPerLayer *pre       = mConnectionData->getPre();
-   HyPerLayer *post      = mConnectionData->getPost();
-   int nExt              = pre->getNumExtended();
-   PVLayerLoc const *loc = pre->getLayerLoc();
-   int const nbatch      = loc->nbatch;
-   int delay             = mArborList->getDelay(arborID);
+   HyPerLayer *pre           = mConnectionData->getPre();
+   HyPerLayer *post          = mConnectionData->getPost();
+   int nExt                  = pre->getNumExtended();
+   PVLayerLoc const *preLoc  = pre->getLayerLoc();
+   PVLayerLoc const *postLoc = post->getLayerLoc();
+   int const nbatch          = preLoc->nbatch;
+   int delay                 = mArborList->getDelay(arborID);
 
-   float const *preactbufHead  = pre->getLayerData(delay);
-   float const *postactbufHead = post->getLayerData();
+   float const *preactbufHead =
+         pre->getComponentByType<BasePublisherComponent>()->getLayerData(delay);
+   float const *postactbufHead = post->getComponentByType<BasePublisherComponent>()->getLayerData();
 
    if (mWeights->getSharedFlag()) {
       // Calculate x and y cell size
-      int xCellSize  = zUnitCellSize(pre->getXScale(), post->getXScale());
-      int yCellSize  = zUnitCellSize(pre->getYScale(), post->getYScale());
-      int nxExt      = loc->nx + loc->halo.lt + loc->halo.rt;
-      int nyExt      = loc->ny + loc->halo.up + loc->halo.dn;
-      int nf         = loc->nf;
+      int xCellSize  = zUnitCellSize(preLoc->nx, postLoc->nx);
+      int yCellSize  = zUnitCellSize(preLoc->ny, postLoc->ny);
+      int nxExt      = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
+      int nyExt      = preLoc->ny + preLoc->halo.up + preLoc->halo.dn;
+      int nf         = preLoc->nf;
       int numKernels = mWeights->getNumDataPatches();
 
       for (int b = 0; b < nbatch; b++) {
@@ -572,10 +553,14 @@ int HebbianUpdater::update_dW(int arborID) {
    // If update from clones, update dw here as well
    // Updates on all PlasticClones
    for (auto &c : mClones) {
-      pvAssert(c->getPre()->getNumExtended() == nExt);
-      pvAssert(c->getPre()->getLayerLoc()->nbatch == nbatch);
-      float const *clonePre  = c->getPre()->getLayerData(delay);
-      float const *clonePost = c->getPost()->getLayerData();
+      HyPerLayer *clonePreLayer  = c->getPre();
+      HyPerLayer *clonePostLayer = c->getPost();
+      auto *clonePrePublisher    = clonePreLayer->getComponentByType<BasePublisherComponent>();
+      auto *clonePostPublisher   = clonePostLayer->getComponentByType<BasePublisherComponent>();
+      pvAssert(clonePrePublisher->getNumExtended() == nExt);
+      pvAssert(clonePrePublisher->getLayerLoc()->nbatch == nbatch);
+      float const *clonePre  = clonePrePublisher->getLayerData(delay);
+      float const *clonePost = clonePostPublisher->getLayerData();
       for (int b = 0; b < nbatch; b++) {
          for (int kExt = 0; kExt < nExt; kExt++) {
             updateInd_dW(arborID, b, clonePre, clonePost, kExt);
@@ -596,7 +581,6 @@ void HebbianUpdater::updateInd_dW(
    HyPerLayer *post          = mConnectionData->getPost();
    const PVLayerLoc *postLoc = post->getLayerLoc();
 
-   const float *maskactbuf = NULL;
    const float *preactbuf  = preLayerData + batchID * pre->getNumExtended();
    const float *postactbuf = postLayerData + batchID * post->getNumExtended();
 
@@ -617,8 +601,7 @@ void HebbianUpdater::updateInd_dW(
    size_t offset           = mWeights->getGeometry()->getAPostOffset(kExt);
    const float *postactRef = &postactbuf[offset];
 
-   int sym                 = 0;
-   const float *maskactRef = NULL;
+   int sym = 0;
 
    float *dwdata =
          mDeltaWeights->getDataFromPatchIndex(arborID, kExt) + mDeltaWeights->getPatch(kExt).offset;
@@ -674,7 +657,11 @@ int HebbianUpdater::reduce_dW(int arborId) {
       kernel_status = reduceKernels(arborId); // combine partial changes in each column
       if (mNormalizeDw) {
          int activation_status = reduceActivations(arborId);
-         pvAssert(kernel_status == activation_status);
+         FatalIf(
+               kernel_status != activation_status,
+               "%s reduce_dW returned differing values for reduceKernels() and "
+               "reduceActivations()\n",
+               getDescription_c());
       }
    }
    else {
@@ -685,11 +672,11 @@ int HebbianUpdater::reduce_dW(int arborId) {
 
 int HebbianUpdater::reduceKernels(int arborID) {
    pvAssert(mWeights->getSharedFlag() && mPlasticityFlag);
-   Communicator *comm = parent->getCommunicator();
-   const int nxProcs  = comm->numCommColumns();
-   const int nyProcs  = comm->numCommRows();
-   const int nbProcs  = comm->numCommBatches();
-   const int nProcs   = nxProcs * nyProcs * nbProcs;
+   Communicator const *comm = mCommunicator;
+   const int nxProcs        = comm->numCommColumns();
+   const int nyProcs        = comm->numCommRows();
+   const int nbProcs        = comm->numCommBatches();
+   const int nProcs         = nxProcs * nyProcs * nbProcs;
    if (nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
       const int numPatches    = mWeights->getNumDataPatches();
@@ -714,11 +701,11 @@ int HebbianUpdater::reduceKernels(int arborID) {
 
 int HebbianUpdater::reduceActivations(int arborID) {
    pvAssert(mWeights->getSharedFlag() && mPlasticityFlag);
-   Communicator *comm = parent->getCommunicator();
-   const int nxProcs  = comm->numCommColumns();
-   const int nyProcs  = comm->numCommRows();
-   const int nbProcs  = comm->numCommBatches();
-   const int nProcs   = nxProcs * nyProcs * nbProcs;
+   Communicator const *comm = mCommunicator;
+   const int nxProcs        = comm->numCommColumns();
+   const int nyProcs        = comm->numCommRows();
+   const int nbProcs        = comm->numCommBatches();
+   const int nProcs         = nxProcs * nyProcs * nbProcs;
    if (mNumKernelActivations && nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
       const int numPatches    = mWeights->getNumDataPatches();
@@ -743,12 +730,12 @@ int HebbianUpdater::reduceActivations(int arborID) {
 
 void HebbianUpdater::reduceAcrossBatch(int arborID) {
    pvAssert(!mWeights->getSharedFlag() && mPlasticityFlag);
-   if (parent->getCommunicator()->numCommBatches() != 1) {
+   if (mCommunicator->numCommBatches() != 1) {
       const int numPatches     = mWeights->getNumDataPatches();
       const size_t patchSize   = (size_t)mWeights->getPatchSizeOverall();
       size_t const localSize   = (size_t)numPatches * (size_t)patchSize;
       size_t const arborSize   = localSize * (size_t)mArborList->getNumAxonalArbors();
-      MPI_Comm const batchComm = parent->getCommunicator()->batchCommunicator();
+      MPI_Comm const batchComm = mCommunicator->batchCommunicator();
 
       auto sz = mDeltaWeightsReduceRequests.size();
       mDeltaWeightsReduceRequests.resize(sz + 1);
@@ -868,7 +855,7 @@ void HebbianUpdater::decay_dWMax() {
 
 void HebbianUpdater::computeNewWeightUpdateTime(double simTime, double currentUpdateTime) {
    // Only called if plasticity flag is set
-   if (!mTriggerLayer) {
+   if (!mTriggerControl) {
       while (simTime >= mWeightUpdateTime) {
          mWeightUpdateTime += mWeightUpdatePeriod;
       }

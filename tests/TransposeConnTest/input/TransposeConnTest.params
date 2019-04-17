@@ -130,11 +130,9 @@ HyPerConn "OriginalMapForOneToOneTest" = {
     nfp                                 = 4;
     numAxonalArbors                     = 2;
     delay                               = 0;
-    shrinkPatches                       = false;
     updateGSynFromPostPerspective       = false;
     plasticityFlag                      = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     // initialWriteTime;
     // writeCompressedWeights;
@@ -167,7 +165,6 @@ TransposeConn "TransposeForOneToOneTestOfTransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };
@@ -180,7 +177,6 @@ TransposeConn "TransposeOfTransposeForOneToOneTestOfTransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };
@@ -191,7 +187,6 @@ FeedbackConn "TransposeForOneToOneTestOfFeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };
@@ -202,7 +197,6 @@ FeedbackConn "TransposeOfTransposeForOneToOneTestOfFeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };
@@ -217,11 +211,9 @@ HyPerConn "OriginalMapForManyToOneTest" = {
     nfp                                 = 8;
     numAxonalArbors                     = 2;
     delay                               = 0;
-    shrinkPatches                       = false;
     updateGSynFromPostPerspective       = false;
     plasticityFlag                      = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     // initialWriteTime;
     // writeCompressedWeights;
@@ -253,7 +245,6 @@ TransposeConn "TransposeForManyToOneTestOfTransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };
@@ -266,7 +257,6 @@ TransposeConn "TransposeOfTransposeForManyToOneTestOfTransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };
@@ -277,7 +267,6 @@ FeedbackConn "TransposeForManyToOneTestOfFeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };
@@ -288,7 +277,6 @@ FeedbackConn "TransposeOfTransposeForManyToOneTestOfFeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };
@@ -303,11 +291,9 @@ HyPerConn "OriginalMapForOneToManyTest" = {
     nfp                                 = 2;
     numAxonalArbors                     = 2;
     delay                               = 0;
-    shrinkPatches                       = false;
     updateGSynFromPostPerspective       = false;
     plasticityFlag                      = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     // initialWriteTime;
     // writeCompressedWeights;
@@ -339,7 +325,6 @@ TransposeConn "TransposeForOneToManyTestOfTransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };
@@ -352,7 +337,6 @@ TransposeConn "TransposeOfTransposeForOneToManyTestOfTransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };
@@ -363,7 +347,6 @@ FeedbackConn "TransposeForOneToManyTestOfFeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };
@@ -374,7 +357,6 @@ FeedbackConn "TransposeOfTransposeForOneToManyTestOfFeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
 };

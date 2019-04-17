@@ -114,7 +114,6 @@ HyPerConn "InputToOutput" = {
     normalizeOnInitialize = true;
     normalizeOnWeightUpdate = true;
     normalize_cutoff = 0;
-    convertRateToSpikeCount = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
     rMinX = 0.0;

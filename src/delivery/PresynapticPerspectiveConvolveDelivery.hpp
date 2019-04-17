@@ -17,22 +17,11 @@ namespace PV {
  * with accumulate type "convolve".
  */
 class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
-  protected:
-   /**
-    * List of parameters needed from the PresynapticPerspectiveConvolveDelivery class
-    * @name PresynapticPerspectiveConvolveDelivery Parameters
-    * @{
-    */
-
-   /**
-    * @brief receiveGpu: PresynapticPerspectiveConvolveDelivery always sets receiveGpu to false.
-    * The receiveGpu=true case is handled by the PresynapticPerspectiveGPUDelivery class.
-    */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
-   /** @} */ // End of list of BaseDelivery parameters.
-
   public:
-   PresynapticPerspectiveConvolveDelivery(char const *name, HyPerCol *hc);
+   PresynapticPerspectiveConvolveDelivery(
+         char const *name,
+         PVParams *params,
+         Communicator const *comm);
 
    virtual ~PresynapticPerspectiveConvolveDelivery();
 
@@ -47,29 +36,24 @@ class PresynapticPerspectiveConvolveDelivery : public HyPerDelivery {
     * same post-neuron, we internally allocate multiple buffers the size of the post channel,
     * and accumulate them at the end.
     */
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
   protected:
    PresynapticPerspectiveConvolveDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
-
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual Response::Status allocateDataStructures() override;
 
-   void allocateThreadGSyn();
-
    // Data members
   protected:
-   std::vector<std::vector<float>> mThreadGSyn;
 }; // end class PresynapticPerspectiveConvolveDelivery
 
 } // end namespace PV

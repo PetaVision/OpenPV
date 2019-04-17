@@ -24,16 +24,17 @@ class FileStream : public PrintStream {
    virtual void setOutPos(long pos, bool fromBeginning);
    virtual void setInPos(long pos, std::ios_base::seekdir seekAnchor);
    virtual void setInPos(long pos, bool fromBeginning);
-   bool readable() { return mMode & std::ios_base::in; }
-   bool writeable() { return mMode & std::ios_base::out; }
-   bool binary() { return mFStream.flags() & std::ios_base::binary; }
-   bool readwrite() { return readable() && writeable(); }
+   bool readable() const { return mMode & std::ios_base::in; }
+   bool writeable() const { return mMode & std::ios_base::out; }
+   bool binary() const { return mFStream.flags() & std::ios_base::binary; }
+   bool readwrite() const { return readable() && writeable(); }
    long getOutPos();
    long getInPos();
    std::string const &getFileName() const { return mFileName; }
 
   protected:
    FileStream() {}
+   void initialize(char const *path, std::ios_base::openmode mode, bool verifyWrites);
    void verifyFlags(const char *caller);
    void openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites);
 

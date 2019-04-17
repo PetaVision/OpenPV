@@ -36,7 +36,7 @@ class HebbianUpdater : public BaseWeightUpdater {
    /** @} */ // end of HebbianUpdater parameters
 
   public:
-   HebbianUpdater(char const *name, HyPerCol *hc);
+   HebbianUpdater(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~HebbianUpdater();
 
@@ -53,7 +53,7 @@ class HebbianUpdater : public BaseWeightUpdater {
   protected:
    HebbianUpdater() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 
@@ -64,7 +64,8 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    virtual Response::Status allocateDataStructures() override;
 
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
@@ -72,7 +73,7 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    virtual void updateState(double timestamp, double dt) override;
 
-   virtual bool needUpdate(double time, double dt);
+   virtual bool needUpdate(double time, double dt) const;
 
    void updateWeightsImmediate(double simTime, double dt);
    void updateWeightsDelayed(double simTime, double dt);
@@ -141,24 +142,22 @@ class HebbianUpdater : public BaseWeightUpdater {
    bool mImmediateWeightUpdate     = true;
 
    // dWMax is required if plasticityFlag is true
-   float mDWMax                       = std::numeric_limits<float>::quiet_NaN();
-   int mDWMaxDecayFactor              = 0;
-   float mDWMaxDecayInterval          = 0.0f;
-   bool mNormalizeDw                  = true;
-   bool mCombine_dWWithWFlag          = false;
-   bool mWriteCompressedCheckpoints   = false;
-   bool mInitializeFromCheckpointFlag = false;
+   float mDWMax                     = std::numeric_limits<float>::quiet_NaN();
+   int mDWMaxDecayFactor            = 0;
+   float mDWMaxDecayInterval        = 0.0f;
+   bool mNormalizeDw                = true;
+   bool mCombine_dWWithWFlag        = false;
+   bool mWriteCompressedCheckpoints = false;
 
-   Weights *mWeights            = nullptr;
-   Weights *mDeltaWeights       = nullptr;
-   HyPerLayer *mTriggerLayer    = nullptr;
-   bool mTriggerFlag            = false;
-   double mWeightUpdateTime     = 0.0;
-   double mLastUpdateTime       = 0.0;
-   bool mNeedFinalize           = true;
-   double mLastTimeUpdateCalled = 0.0;
-   int mDWMaxDecayTimer         = 0;
-   long **mNumKernelActivations = nullptr;
+   Weights *mWeights                      = nullptr;
+   Weights *mDeltaWeights                 = nullptr;
+   LayerUpdateController *mTriggerControl = nullptr;
+   bool mTriggerFlag                      = false;
+   double mWeightUpdateTime               = 0.0;
+   double mLastUpdateTime                 = 0.0;
+   bool mNeedFinalize                     = true;
+   int mDWMaxDecayTimer                   = 0;
+   long **mNumKernelActivations           = nullptr;
    std::vector<MPI_Request> mDeltaWeightsReduceRequests;
    bool mReductionPending = false;
    // mReductionPending is set by reduce_dW() and cleared by

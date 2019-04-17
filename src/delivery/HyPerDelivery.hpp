@@ -15,68 +15,51 @@
 namespace PV {
 
 /**
- * The base delivery component for HyPerConns. It is owned by a HyPerDeliveryFacade object,
- * which handles the interactions between a HyPerDelivery object and the HyPerConn object.
- * The subclasses handle the individual delivery methods, based on the values of receiveGpu,
- * pvpatchAccumulateType, and updateGSynFromPostPerspective.
+ * A pure virtual class for delivery components for HyPerConns. It is typically created by a
+ * HyPerDeliveryCreator, which reads the receiveGpu parameter to decide which HyPerDelivery
+ * subclass to create; hence the receiveGpu parameter in this subclass does nothing.
  */
 class HyPerDelivery : public BaseDelivery {
   protected:
    /**
-    * List of parameters needed from the HyPerDeliveryFacade class
-    * @name HyPerDeliveryFacade Parameters
-    * @{
+    * The HyPerDeliveryCreator object reads this parameter and creates the appropriate
+    * HyPerDelivery-derived object based on its value; hence the derived class knows
+    * the value of receiveGpu just from having been instantiated. Instead of setting
+    * receiveGpu here, this class checks that if the value is present it agrees with
+    * the correct value for the derived class (based on the value of mCorrectReceiveGpu).
     */
-
-   /**
-    * @brief convertRateToSpikeCount: If true, presynaptic activity is converted
-    * from a rate (spikes per second) to a count (number of spikes in the timestep).
-    * @details If this flag is true and the presynaptic layer is not spiking,
-    * the activity will be interpreted as a spike rate, and will be converted to a
-    * spike count when delivering activity to the postsynaptic GSyn buffer.
-    * If this flag is false, activity will not be converted.
-    */
-   virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
-   /** @} */ // End of list of HyPerDeliveryFacade parameters.
+   void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
 
   public:
-   enum AccumulateType { UNDEFINED, CONVOLVE, STOCHASTIC };
-
-   HyPerDelivery(char const *name, HyPerCol *hc);
+   HyPerDelivery(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~HyPerDelivery();
 
-   void setConnectionData(ConnectionData *connectionData);
+   virtual void deliver(float *destBuffer) override = 0;
 
-   virtual void deliver() override = 0;
-
-   virtual bool isAllInputReady() override;
+   virtual bool isAllInputReady() const override;
 
   protected:
    HyPerDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
-
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status allocateDataStructures() override;
-
-   double convertToRateDeltaTimeFactor(double timeConstantTau) const;
+   double convertToRateDeltaTimeFactor(double timeConstantTau, double deltaTime) const;
 
    // Data members
   protected:
-   AccumulateType mAccumulateType      = CONVOLVE;
-   bool mUpdateGSynFromPostPerspective = false;
-   bool mConvertRateToSpikeCount       = false;
-
    float mDeltaTimeFactor    = 1.0f;
    WeightsPair *mWeightsPair = nullptr;
    ArborList *mArborList     = nullptr;
+
+   // subclasses that use GPU (e.g. PresynapticPerspectiveGPUDelivery) must set this flag to
+   // true in initialize() before ioParam_receiveGpu gets called.
+   bool mCorrectReceiveGpu = false;
 
 }; // end class HyPerDelivery
 

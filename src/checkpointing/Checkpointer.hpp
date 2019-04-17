@@ -11,17 +11,16 @@
 #include "checkpointing/CheckpointEntry.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
 #include "io/PVParams.hpp"
-// #include "io/io.hpp"
 #include "observerpattern/Subject.hpp"
-// #include "structures/MPIBlock.hpp"
+#include "structures/MPIBlock.hpp"
 #include "utils/Timer.hpp"
 #include <ctime>
-// #include <map>
-// #include <memory>
-// #include <string>
 
 namespace PV {
 
+/**
+ * A class to handle checkpointing tasks.
+ */
 class Checkpointer : public Subject {
   private:
    /**
@@ -180,7 +179,6 @@ class Checkpointer : public Subject {
          bool constantEntireRun);
 
    void registerTimer(Timer const *timer);
-   virtual void addObserver(Observer *observer) override;
 
    void readNamedCheckpointEntry(
          std::string const &objName,
@@ -304,7 +302,6 @@ class Checkpointer : public Subject {
    // that each MPI process
    // iterates over the entries
    // in the same order.
-   ObserverTable mObserverTable;
    TimeInfo mTimeInfo;
    std::shared_ptr<CheckpointEntryData<TimeInfo>> mTimeInfoCheckpointEntry = nullptr;
    bool mWarmStart                                                         = false;
@@ -329,7 +326,6 @@ class Checkpointer : public Subject {
    long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol
    double mNextCheckpointSimtime        = 0.0;
    std::time_t mLastCheckpointWallclock = (std::time_t)0;
-   std::time_t mNextCheckpointWallclock = (std::time_t)0;
    int mWidthOfFinalStepNumber          = 0;
    int mOldCheckpointDirectoriesIndex =
          0; // A pointer to the oldest checkpoint in the mOldCheckpointDirectories vector.

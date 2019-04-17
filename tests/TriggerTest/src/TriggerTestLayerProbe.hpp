@@ -11,9 +11,8 @@ namespace PV {
 
 class TriggerTestLayerProbe : public PV::LayerProbe {
   public:
-   TriggerTestLayerProbe(const char *name, HyPerCol *hc);
-   virtual Response::Status outputStateWrapper(double time, double dt) override;
-   virtual Response::Status outputState(double timestamp) override;
+   TriggerTestLayerProbe(const char *name, PVParams *params, Communicator const *comm);
+   virtual Response::Status outputStateWrapper(double simTime, double dt) override;
 
   protected:
    /**
@@ -21,6 +20,9 @@ class TriggerTestLayerProbe : public PV::LayerProbe {
     * as it overrides outputStateWrapper to always create a text file.
     */
    virtual void ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) override {}
+
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
    /**
     * TriggerTestLayerProbe::needRecalc(double) always returns true so that we can always
@@ -33,6 +35,15 @@ class TriggerTestLayerProbe : public PV::LayerProbe {
     * dt.
     */
    virtual void calcValues(double timevalue) override;
+
+   /**
+    * TriggerTestLayerProbe does not call outputState, but the routine is needed since
+    * LayerProbe::TriggerTestLayerProbe is pure virtual
+    */
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
+
+  protected:
+   double mDeltaTime = 1.0; // Set during InitializeState, and used in calcValues.
 }; // end TriggerTestLayer
 
 } // end namespacePV

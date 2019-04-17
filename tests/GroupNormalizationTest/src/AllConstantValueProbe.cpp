@@ -3,14 +3,16 @@
  */
 
 #include "AllConstantValueProbe.hpp"
-#include <columns/HyPerCol.hpp>
 #include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
-AllConstantValueProbe::AllConstantValueProbe(char const *name, HyPerCol *hc) {
+AllConstantValueProbe::AllConstantValueProbe(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 AllConstantValueProbe::AllConstantValueProbe() { initialize_base(); }
@@ -20,8 +22,11 @@ int AllConstantValueProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int AllConstantValueProbe::initialize(char const *name, HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void AllConstantValueProbe::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 int AllConstantValueProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -31,16 +36,16 @@ int AllConstantValueProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void AllConstantValueProbe::ioParam_correctValue(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, getName(), "correctValue", &correctValue, correctValue /*default*/);
 }
 
-Response::Status AllConstantValueProbe::outputState(double timestamp) {
-   auto status = StatsProbe::outputState(timestamp);
+Response::Status AllConstantValueProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
-   if (timestamp <= 0) {
+   if (simTime <= 0) {
       return status;
    }
    if (!mOutputStreams.empty()) {
@@ -49,17 +54,14 @@ Response::Status AllConstantValueProbe::outputState(double timestamp) {
             nbatch != (int)mOutputStreams.size(),
             "Number of output streams for %s does not agree with local batch width.\n",
             getDescription_c());
-      int globalBatchOffset =
-            nbatch * (getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex());
       for (int b = 0; b < nbatch; b++) {
-         int globalBatchIndex = globalBatchOffset + b;
          if (fMin[b] < correctValue - nnzThreshold or fMax[b] > correctValue + nnzThreshold) {
             output(b).printf(
                   "     Values outside of tolerance nnzThreshold=%f\n", (double)nnzThreshold);
             ErrorLog().printf(
                   "t=%f: fMin=%f, fMax=%f; values more than nnzThreshold=%g away from correct "
                   "value %f\n",
-                  timestamp,
+                  simTime,
                   (double)fMin[b],
                   (double)fMax[b],
                   (double)nnzThreshold,

@@ -10,7 +10,7 @@
 //
 // Logging with the C++ builder pattern.
 //
-// After PV_Init::initialize has been called, use the following macros instead
+// After PV_Init has been instantiated, use the following macros instead
 // of writing to stdout, stderr, std::cout, std::cerr, etc.
 // This way, the file will go to stdout or stderr if the -l option is not used,
 // but will go to the log file if it is.

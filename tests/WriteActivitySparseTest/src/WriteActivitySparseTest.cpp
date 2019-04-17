@@ -15,8 +15,6 @@ int main(int argc, char *argv[]) {
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    char const *paramFile1 = "input/GenerateOutput.params";
    char const *paramFile2 = "input/TestOutput.params";
-   char const *outputDir1 = "outputGenerate";
-   char const *outputDir2 = "outputTest";
    int status             = PV_SUCCESS;
    if (initObj.getParams() != NULL) {
       if (rank == 0) {

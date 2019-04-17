@@ -13,41 +13,22 @@
 
 namespace PV {
 
-// CloneLayer can be used to implement gap junctions between spiking neurons
+/**
+ * GapLayer can be used to implement gap junctions
+ */
 class GapLayer : public CloneVLayer {
   public:
-   GapLayer(const char *name, HyPerCol *hc);
+   GapLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~GapLayer();
 
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   virtual Response::Status allocateDataStructures() override;
-
-   virtual Response::Status updateState(double timef, double dt) override;
-
   protected:
-   GapLayer();
-   int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_ampSpikelet(enum ParamsIOFlag ioFlag);
+   GapLayer() {}
 
-   /* static */ void updateState(
-         double timef,
-         double dt,
-         const PVLayerLoc *loc,
-         float *A,
-         float *V,
-         float *checkActive);
-   virtual int setActivity() override;
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
-  private:
-   int initialize_base();
+   virtual ActivityComponent *createActivityComponent() override;
+};
 
-   // Handled in CloneVLayer
-   float ampSpikelet;
-
-}; // class GapLayer
-
-} // namespace PV
+} // end namespace PV
 
 #endif /* GAPLAYER_HPP_ */

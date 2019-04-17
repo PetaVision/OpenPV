@@ -129,7 +129,6 @@ ANNLayer "outputTest" = {
 //     
 //    delay = 0;
 //     
-//    convertRateToSpikeCount = false;
 //
 //    updateGSynFromPostPerspective = false;
 //
@@ -172,7 +171,6 @@ HyPerConn "origConn" = {
      
     delay = 0;
      
-    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -183,7 +181,6 @@ TransposeConn "TransposeConn" = {
     postLayerName = "outputRecv";
     channelCode = 0; 
     originalConnName = "origConn";
-    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -196,7 +193,6 @@ TransposeConn "gpuTransposeConn" = {
     postLayerName = "outputRecvGpu";
     channelCode = 0;
     originalConnName = "origConn";
-    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -223,9 +219,7 @@ IdentConn "RecvPreTest" = {
 GPUSystemTestProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
+   nnzThreshold = 5.0e-4;
+   exitOnFailure = true;
+   immediateExitOnFailure = false;
 };
-
-//RequireAllZeroActivityProbe "testProbe" = {
-//    targetLayer = "outputTest";
-//    nnzThreshold = 1e-6;
-//};

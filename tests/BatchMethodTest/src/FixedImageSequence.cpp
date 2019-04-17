@@ -1,36 +1,48 @@
 #include "FixedImageSequence.hpp"
+#include <components/ActivityBuffer.hpp>
+#include <components/ActivityComponentActivityOnly.hpp>
 #include <structures/Image.hpp>
 #include <utils/BufferUtilsMPI.hpp>
 
-FixedImageSequence::FixedImageSequence(char const *name, PV::HyPerCol *hc) {
-   PV::HyPerLayer::initialize(name, hc);
+using namespace PV;
+
+FixedImageSequence::FixedImageSequence(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
-void FixedImageSequence::allocateV() { clayer->V = nullptr; }
+ActivityComponent *FixedImageSequence::createActivityComponent() {
+   return new ActivityComponentActivityOnly<ActivityBuffer>(name, parameters(), mCommunicator);
+}
 
-PV::Response::Status FixedImageSequence::initializeState() {
+Response::Status
+FixedImageSequence::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   mActivityPointer =
+         mActivityComponent->getComponentByType<ActivityBuffer>()->getReadWritePointer();
+   float *A = mActivityPointer;
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
-      clayer->activity->data[k] = 0.0f;
+      A[k] = 0.0f;
    }
    defineImageSequence();
-   return PV::Response::SUCCESS;
+   return Response::SUCCESS;
 }
 
-PV::Response::Status FixedImageSequence::updateState(double timestamp, double dt) {
-   FatalIf(dt != 1.0, "FixedImageSequence assumes dt = 1.\n");
-   double timestampRounded = std::nearbyint(timestamp);
+Response::Status FixedImageSequence::checkUpdateState(double simTime, double deltaTime) {
+   FatalIf(deltaTime != 1.0, "FixedImageSequence assumes dt = 1.\n");
+   double timestampRounded = std::nearbyint(simTime);
    FatalIf(
-         timestamp != timestampRounded,
-         "FixedImageSequence::updateState() requires the time argument be an integer.\n");
+         simTime != timestampRounded,
+         "FixedImageSequence::checkUpdateState() requires the time argument be an integer.\n");
    PVLayerLoc const *loc = getLayerLoc();
    int timestampInt      = (int)timestampRounded;
-   int globalBatchSize   = getMPIBlock()->getGlobalBatchDimension() * loc->nbatch;
    int localNBatch       = loc->nbatch;
 
    for (int m = 0; m < getMPIBlock()->getBatchDimension(); m++) {
       int mpiBlockIndex = m + getMPIBlock()->getStartBatch();
       for (int b = 0; b < localNBatch; b++) {
-         PV::Buffer<float> buffer;
+         Buffer<float> buffer;
          if (getMPIBlock()->getRank() == 0) {
             int globalBatchElement = b + localNBatch * mpiBlockIndex;
             int inputIndex         = mIndexStart + (timestampInt - 1) * mIndexStepTime;
@@ -38,7 +50,7 @@ PV::Response::Status FixedImageSequence::updateState(double timestamp, double dt
             inputIndex %= mNumImages;
 
             auto filename = std::string("input/images/") + std::to_string(inputIndex) + ".png";
-            PV::Image image(filename);
+            Image image(filename);
             bool sameDims = image.getWidth() == loc->nxGlobal and image.getHeight() == loc->nyGlobal
                             and image.getFeatures() == loc->nf;
             FatalIf(
@@ -57,7 +69,7 @@ PV::Response::Status FixedImageSequence::updateState(double timestamp, double dt
          else {
             buffer.resize(loc->nx, loc->ny, loc->nf);
          }
-         PV::BufferUtils::scatter<float>(getMPIBlock(), buffer, loc->nx, loc->ny, m, 0);
+         BufferUtils::scatter<float>(getMPIBlock(), buffer, loc->nx, loc->ny, m, 0);
          if (getMPIBlock()->getBatchIndex() != m) {
             continue;
          }
@@ -66,7 +78,7 @@ PV::Response::Status FixedImageSequence::updateState(double timestamp, double dt
          FatalIf(
                !sameDims,
                "Image for t=%f scattered to a %dx%dx%d buffer, but local size of %s is %dx%dx%d.\n",
-               timestamp,
+               simTime,
                buffer.getWidth(),
                buffer.getHeight(),
                buffer.getFeatures(),
@@ -74,7 +86,7 @@ PV::Response::Status FixedImageSequence::updateState(double timestamp, double dt
                loc->nx,
                loc->ny,
                loc->nf);
-         float *activity = &clayer->activity->data[b * getNumExtended()];
+         float *activity = &mActivityPointer[b * mActivityComponent->getNumExtended()];
          for (int k = 0; k < getNumNeurons(); k++) {
             int kExt = kIndexExtended(
                   k,
@@ -92,5 +104,5 @@ PV::Response::Status FixedImageSequence::updateState(double timestamp, double dt
          }
       }
    }
-   return PV::Response::SUCCESS;
+   return Response::SUCCESS;
 }

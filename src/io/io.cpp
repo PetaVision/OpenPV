@@ -8,14 +8,9 @@
 // Shared input and output routines
 
 #include "io.hpp"
-
-#include <assert.h>
-#include <cmath>
-#include <float.h> // FLT_MAX/MIN
-#include <string.h> // memcpy
-#include <string>
-
-#include "utils/PVLog.hpp"
+#include "utils/PVLog.hpp" // InfoLog
+#include <cstdlib> // atoi, strtol, strtoul
+#include <cstring> // strcmp, strdup
 
 namespace PV {
 
@@ -263,52 +258,6 @@ int pv_getopt_str(
    if (sVal != NULL)
       *sVal = NULL;
    return -1; // not found
-}
-
-std::string expandLeadingTilde(std::string const &path) { return expandLeadingTilde(path.c_str()); }
-
-std::string expandLeadingTilde(char const *path) {
-   if (path == NULL) {
-      return std::string("");
-   }
-   char *newpath = NULL;
-   if (path != NULL) {
-      int len = strlen(path);
-      if (len == 1 && path[0] == '~') {
-         newpath = strdup(getenv("HOME"));
-         if (newpath == NULL) {
-            Fatal().printf(
-                  "Unable to expand \"%s\": "
-                  "home directory not defined\n",
-                  path);
-            exit(EXIT_FAILURE);
-         }
-      }
-      else if (len > 1 && path[0] == '~' && path[1] == '/') {
-         char *homedir = getenv("HOME");
-         if (homedir == NULL) {
-            Fatal().printf(
-                  "Unable to expand \"%s\": "
-                  "home directory not defined\n",
-                  path);
-         }
-         char dummy;
-         int chars_needed = snprintf(&dummy, 0, "%s/%s", homedir, &path[2]);
-         newpath          = (char *)malloc(chars_needed + 1);
-         if (newpath == NULL) {
-            Fatal().printf("Unable to allocate memory for path \"%s/%s\"\n", homedir, &path[2]);
-         }
-         int chars_used = snprintf(newpath, chars_needed + 1, "%s/%s", homedir, &path[2]);
-         assert(chars_used == chars_needed);
-      }
-      else {
-         newpath = strdup(path);
-      }
-   }
-   FatalIf(newpath == NULL, "Could not expand path: %s\n", path);
-   std::string result(newpath);
-   free(newpath);
-   return result;
 }
 
 } // namespace PV

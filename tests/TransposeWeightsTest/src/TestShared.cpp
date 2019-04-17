@@ -5,7 +5,9 @@
 #include <utils/PVAssert.hpp>
 #include <utils/PVLog.hpp>
 #include <utils/TransposeWeights.hpp>
-#include <utils/conversions.h>
+#include <utils/conversions.hpp>
+
+using namespace PV;
 
 int TestShared(
       std::string const &testName,
@@ -17,7 +19,7 @@ int TestShared(
       int nfPost,
       int patchSizeXPre,
       int patchSizeYPre,
-      PV::Communicator *comm) {
+      Communicator const *comm) {
    int status = PV_SUCCESS;
 
    // For one-to-one connections, stride and transpose-stride are both one.
@@ -74,19 +76,17 @@ int TestShared(
 
    int const patchSizeFPost = nfPre;
 
-   bool const shared           = true;
-   PV::Weights originalWeights = createOriginalWeights(
+   bool const shared       = true;
+   Weights originalWeights = createOriginalWeights(
          shared, nxPre, nyPre, nfPre, nxPost, nyPost, nfPost, patchSizeXPre, patchSizeYPre, comm);
 
-   int const patchSizeFPre    = originalWeights.getPatchSizeF();
-   int const numPatchItemsPre = originalWeights.getPatchSizeOverall();
-   int const numKernelsPre    = originalWeights.getGeometry()->getNumKernels();
+   int const patchSizeFPre = originalWeights.getPatchSizeF();
 
    std::string transposeWeightsName("Transpose");
-   PV::Weights transposeWeights(
+   Weights transposeWeights(
          transposeWeightsName,
-         PV::PatchSize::calcPostPatchSize(patchSizeXPre, nxPre, nxPost),
-         PV::PatchSize::calcPostPatchSize(patchSizeYPre, nyPre, nyPost),
+         PatchSize::calcPostPatchSize(patchSizeXPre, nxPre, nxPost),
+         PatchSize::calcPostPatchSize(patchSizeYPre, nyPre, nyPost),
          nfPre,
          &originalWeights.getGeometry()->getPostLoc(),
          &originalWeights.getGeometry()->getPreLoc(),
@@ -130,7 +130,7 @@ int TestShared(
 
    transposeWeights.allocateDataStructures();
 
-   PV::TransposeWeights::transpose(&originalWeights, &transposeWeights, comm);
+   TransposeWeights::transpose(&originalWeights, &transposeWeights, comm);
 
    for (int kPost = 0; kPost < numKernelsPost; kPost++) {
       int const kxPost = kxPos(kPost, xTStride, yTStride, nfPost);

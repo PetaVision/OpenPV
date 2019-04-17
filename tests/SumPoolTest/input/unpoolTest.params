@@ -153,7 +153,6 @@ PoolingConn "input2sumPoolPre" = {
      
     delay = 0;
      
-    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -170,7 +169,6 @@ TransposePoolingConn "sumPoolPreToUnpoolPre" = {
     postLayerName = "UnpoolTestPre";
     channelCode = 0;
     originalConnName = "input2sumPoolPre";
-    convertRateToSpikeCount = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
     writeCompressedCheckpoints = false;
     shmget_flag = false;
@@ -183,7 +181,6 @@ TransposePoolingConn "sumPoolPostToUnpoolPost" = {
     postLayerName = "UnpoolTestPost";
     channelCode = 0;
     originalConnName = "input2sumPoolPost";
-    convertRateToSpikeCount = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
     writeCompressedCheckpoints = false;
     shmget_flag = false;

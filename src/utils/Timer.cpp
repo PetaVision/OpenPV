@@ -70,19 +70,24 @@ Timer::Timer(const char *objname, const char *objtype, const char *timertype, do
    reset(init_time);
    char dummy;
    int charsneeded =
-         snprintf(&dummy, 1, "%32s: total time in %6s %10s: ", objname, objtype, timertype);
-   message = (char *)malloc(charsneeded + 1);
-   if (message == NULL) {
-      Fatal().printf(
-            "Timer::setMessage unable to allocate memory for Timer message: called with name=%s, "
-            "objtype=%s, timertype=%s\n",
-            objname,
-            objtype,
-            timertype);
-   }
-   int chars_used = snprintf(
-         message, charsneeded + 1, "%32s: total time in %6s %10s: ", objname, objtype, timertype);
+         snprintf(&dummy, 1, "%32s: total time in %6s %10s: ", objname, objtype, timertype) + 1;
+   message = (char *)malloc(charsneeded);
+   FatalIf(
+         message == nullptr,
+         "Timer::setMessage unable to allocate memory for Timer message: called with name=%s, "
+         "objtype=%s, timertype=%s\n",
+         objname,
+         objtype,
+         timertype);
+#ifdef NDEBUG
+   snprintf(message, charsneeded, "%32s: total time in %6s %10s: ", objname, objtype, timertype);
+#else
+   int chars_used =
+         snprintf(
+               message, charsneeded, "%32s: total time in %6s %10s: ", objname, objtype, timertype)
+         + 1;
    assert(chars_used <= charsneeded);
+#endif // NDEBUG
 }
 
 Timer::~Timer() { free(message); }

@@ -6,79 +6,73 @@
  */
 
 #include "BaseConnection.hpp"
-#include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
-BaseConnection::BaseConnection(char const *name, HyPerCol *hc) { initialize(name, hc); }
+BaseConnection::BaseConnection(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 BaseConnection::BaseConnection() {}
 
-BaseConnection::~BaseConnection() {
-   deleteComponents();
-   delete mIOTimer;
+BaseConnection::~BaseConnection() { delete mIOTimer; }
+
+void BaseConnection::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   ComponentBasedObject::initialize(name, params, comm);
+
+   // The WeightsPair writes this flag to output params file. Other ParamsInterface-derived
+   // components of the connection will automatically read InitializeFromCheckpointFlag, but
+   // shouldn't also write it.
+   mWriteInitializeFromCheckpointFlag = true;
 }
 
-int BaseConnection::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseObject::initialize(name, hc);
+void BaseConnection::initMessageActionMap() {
+   ComponentBasedObject::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
-   if (status == PV_SUCCESS) {
-      defineComponents();
-      readParams();
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionWriteParamsMessage const>(msgptr);
+      return respondConnectionWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionWriteParams", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionFinalizeUpdateMessage const>(msgptr);
+      return respondConnectionFinalizeUpdate(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionFinalizeUpdate", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(msgptr);
+      return respondConnectionOutput(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionOutput", action);
+}
+
+void BaseConnection::fillComponentTable() {
+   ComponentBasedObject::fillComponentTable();
+   auto *connectionData = createConnectionData();
+   if (connectionData) {
+      addUniqueComponent(connectionData->getDescription(), connectionData);
    }
-   return status;
-}
-
-void BaseConnection::addObserver(Observer *observer) {
-   mComponentTable.addObject(observer->getDescription(), observer);
-}
-
-void BaseConnection::defineComponents() {
-   mConnectionData = createConnectionData();
-   if (mConnectionData) {
-      addObserver(mConnectionData);
-   }
-   mDeliveryObject = createDeliveryObject();
-   if (mDeliveryObject) {
-      addObserver(mDeliveryObject);
+   auto *deliveryObject = createDeliveryObject();
+   if (deliveryObject) {
+      addUniqueComponent(deliveryObject->getDescription(), deliveryObject);
    }
 }
 
-ConnectionData *BaseConnection::createConnectionData() { return new ConnectionData(name, parent); }
+ConnectionData *BaseConnection::createConnectionData() {
+   return new ConnectionData(name, parameters(), mCommunicator);
+}
 
-BaseDelivery *BaseConnection::createDeliveryObject() { return new BaseDelivery(name, parent); }
+BaseDelivery *BaseConnection::createDeliveryObject() {
+   return new BaseDelivery(name, parameters(), mCommunicator);
+}
 
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   for (auto &c : mComponentTable.getObjectVector()) {
-      auto obj = dynamic_cast<BaseObject *>(c);
-      obj->ioParams(ioFlag, false, false);
-   }
-   return PV_SUCCESS;
-}
-
-Response::Status BaseConnection::respond(std::shared_ptr<BaseMessage const> message) {
-   Response::Status status = BaseObject::respond(message);
-   if (!Response::completed(status)) {
-      return status;
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ConnectionWriteParamsMessage const>(message)) {
-      return respondConnectionWriteParams(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ConnectionFinalizeUpdateMessage const>(message)) {
-      return respondConnectionFinalizeUpdate(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(message)) {
-      return respondConnectionOutput(castMessage);
-   }
-   else {
-      return status;
-   }
+   int status = ComponentBasedObject::ioParamsFillGroup(ioFlag);
+   return status;
 }
 
 Response::Status BaseConnection::respondConnectionWriteParams(
@@ -89,46 +83,50 @@ Response::Status BaseConnection::respondConnectionWriteParams(
 
 Response::Status BaseConnection::respondConnectionFinalizeUpdate(
       std::shared_ptr<ConnectionFinalizeUpdateMessage const> message) {
-   auto status = notify(
-         mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   auto status = notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
    return status;
 }
 
 Response::Status
 BaseConnection::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
    mIOTimer->start();
-   auto status = notify(
-         mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   auto status = notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
    mIOTimer->stop();
    return status;
 }
 
 Response::Status
 BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   // build a CommunicateInitInfoMessage consisting of everything in the passed message
-   // and everything in the observer table. This way components can communicate with
-   // other objects in the HyPerCol's hierarchy.
-   auto componentTable = mComponentTable;
-   ObjectMapComponent objectMapComponent(name, parent);
-   objectMapComponent.setObjectMap(message->mHierarchy);
-   componentTable.addObject(objectMapComponent.getDescription(), &objectMapComponent);
-   auto communicateMessage =
-         std::make_shared<CommunicateInitInfoMessage>(componentTable.getObjectMap());
+   // Add a component consisting of a lookup table from the names of HyPerCol's components
+   // to the HyPerCol's components themselves. This is needed by, for example, CloneWeightsPair,
+   // to find the original weights pair.
+   // Since communicateInitInfo can be called more than once, we must ensure that the
+   // ObserverTable is only added once.
+   auto *tableComponent = mTable->lookupByType<ObserverTable>();
+   if (!tableComponent) {
+      std::string tableDescription = std::string("ObserverTable \"") + getName() + "\"";
+      tableComponent               = new ObserverTable(tableDescription.c_str());
+      tableComponent->copyTable(message->mHierarchy);
+      addUniqueComponent(tableComponent->getDescription(), tableComponent);
+      // mTable takes ownership of tableComponent, which will therefore be deleted by the
+      // Subject::deleteObserverTable() method during destructor.
+   }
+   pvAssert(tableComponent);
 
-   Response::Status status = notify(
-         componentTable,
-         communicateMessage,
-         parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+   auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
+         mTable,
+         message->mDeltaTime,
+         message->mNxGlobal,
+         message->mNyGlobal,
+         message->mNBatchGlobal,
+         message->mNumThreads);
+
+   Response::Status status =
+         notify(communicateMessage, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 
    if (Response::completed(status)) {
-      auto *deliveryObject = getComponentByType<BaseDelivery>();
-      pvAssert(deliveryObject);
-      HyPerLayer *postLayer = deliveryObject->getPostLayer();
-      if (postLayer != nullptr) {
-         postLayer->addRecvConn(this);
-      }
 #ifdef PV_USE_CUDA
-      for (auto &c : componentTable.getObjectVector()) {
+      for (auto &c : *mTable) {
          auto *baseObject = dynamic_cast<BaseObject *>(c);
          if (baseObject) {
             mUsingGPUFlag |= baseObject->isUsingGPU();
@@ -144,36 +142,46 @@ BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
 #ifdef PV_USE_CUDA
 Response::Status
 BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
-   auto status = BaseObject::setCudaDevice(message);
+   auto status = ComponentBasedObject::setCudaDevice(message);
    if (status != Response::SUCCESS) {
       return status;
    }
-   status = notify(
-         mComponentTable, message, parent->getCommunicator()->globalCommunicator() /*printFlag*/);
+   status = notify(message, mCommunicator->globalCommunicator() /*printFlag*/);
    return status;
 }
 #endif // PV_USE_CUDA
 
 Response::Status BaseConnection::allocateDataStructures() {
    Response::Status status = notify(
-         mComponentTable,
-         std::make_shared<AllocateDataMessage>(),
-         parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+         std::make_shared<AllocateDataStructuresMessage>(),
+         mCommunicator->globalCommRank() == 0 /*printFlag*/);
    return status;
 }
 
-Response::Status BaseConnection::registerData(Checkpointer *checkpointer) {
-   auto status = notify(
-         mComponentTable,
+Response::Status
+BaseConnection::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto *checkpointer = message->mDataRegistry;
+   auto status        = notify(
          std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer),
-         parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+         mCommunicator->globalCommRank() == 0 /*printFlag*/);
    mIOTimer = new Timer(getName(), "conn", "io");
    checkpointer->registerTimer(mIOTimer);
    return status;
 }
 
-void BaseConnection::deleteComponents() {
-   mComponentTable.clear(true); // Deletes each component and clears the component table
+Response::Status
+BaseConnection::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+}
+
+Response::Status BaseConnection::copyInitialStateToGPU() {
+   auto status = ComponentBasedObject::copyInitialStateToGPU();
+   if (status != Response::SUCCESS) {
+      return status;
+   }
+   auto message = std::make_shared<CopyInitialStateToGPUMessage>();
+   status       = notify(message, mCommunicator->globalCommunicator() /*printFlag*/);
+   return status;
 }
 
 } // namespace PV

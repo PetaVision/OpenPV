@@ -9,7 +9,6 @@
 #define CLONEWEIGHTSPAIR_HPP_
 
 #include "components/WeightsPair.hpp"
-#include "connections/HyPerConn.hpp"
 
 namespace PV {
 
@@ -35,7 +34,7 @@ class CloneWeightsPair : public WeightsPair {
    /** @} */ // end of CloneWeightsPair parameters
 
   public:
-   CloneWeightsPair(char const *name, HyPerCol *hc);
+   CloneWeightsPair(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~CloneWeightsPair();
 
@@ -56,7 +55,7 @@ class CloneWeightsPair : public WeightsPair {
   protected:
    CloneWeightsPair() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 
@@ -67,18 +66,21 @@ class CloneWeightsPair : public WeightsPair {
 
    virtual void createPreWeights(std::string const &weightsName) override;
    virtual void createPostWeights(std::string const &weightsName) override;
+   virtual void
+   setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual Response::Status allocateDataStructures() override;
 
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    virtual void finalizeUpdate(double timestamp, double deltaTime) override;
 
    virtual void outputState(double timestamp) override;
 
   protected:
-   HyPerConn *mOriginalConn          = nullptr;
    WeightsPair *mOriginalWeightsPair = nullptr;
+   ConnectionData *mOriginalConnData = nullptr;
 };
 
 } // namespace PV

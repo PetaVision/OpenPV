@@ -19,26 +19,24 @@
 #include <layers/HyPerLayer.hpp>
 #include <utils/PVLog.hpp>
 
-PV::HyPerLayer *findLayer(PV::HyPerCol &hc, std::string const &layerName);
-PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName);
-void setMargins(PV::HyPerLayer *layer, int const xMargin, int const yMargin);
+using namespace PV;
+
+HyPerLayer *findLayer(HyPerCol &hc, std::string const &layerName);
+IdentConn *findIdentConn(HyPerCol &hc, std::string const &connName);
+void setMargins(HyPerLayer *layer, int const xMargin, int const yMargin);
 
 int main(int argc, char *argv[]) {
    int status = PV_SUCCESS;
 
    // Initial setup
-   PV::PV_Init pv_init(&argc, &argv, false);
-   PV::HyPerCol hc(&pv_init);
+   PV_Init pv_init(&argc, &argv, false);
+   HyPerCol hc(&pv_init);
 
-   PV::HyPerLayer *preLayerExc0 = findLayer(hc, std::string("PreLayerExc0"));
-   PV::HyPerLayer *preLayerExc1 = findLayer(hc, std::string("PreLayerExc1"));
-   PV::HyPerLayer *preLayerInh0 = findLayer(hc, std::string("PreLayerInh0"));
-   PV::HyPerLayer *preLayerInh1 = findLayer(hc, std::string("PreLayerInh1"));
-   PV::HyPerLayer *postLayer    = findLayer(hc, std::string("PostLayer"));
-   PV::IdentConn *exc0          = findIdentConn(hc, std::string("Exc0"));
-   PV::IdentConn *exc1          = findIdentConn(hc, std::string("Exc1"));
-   PV::IdentConn *inh0          = findIdentConn(hc, std::string("Inh0"));
-   PV::IdentConn *inh1          = findIdentConn(hc, std::string("Inh1"));
+   HyPerLayer *preLayerExc0 = findLayer(hc, std::string("PreLayerExc0"));
+   HyPerLayer *preLayerExc1 = findLayer(hc, std::string("PreLayerExc1"));
+   HyPerLayer *preLayerInh0 = findLayer(hc, std::string("PreLayerInh0"));
+   HyPerLayer *preLayerInh1 = findLayer(hc, std::string("PreLayerInh1"));
+   HyPerLayer *postLayer    = findLayer(hc, std::string("PostLayer"));
 
    // Give the pre-layers margins, to test converting from extended to restricted indices as needed
    int xMargin = 3;
@@ -47,7 +45,6 @@ int main(int argc, char *argv[]) {
    setMargins(preLayerExc1, xMargin, yMargin);
    setMargins(preLayerInh0, xMargin, yMargin);
    setMargins(preLayerInh1, xMargin, yMargin);
-   int marginResult;
 
    // IdentConn should check that pre and post have the same # of neurons, but let's make sure.
    int const numNeurons = postLayer->getNumNeurons();
@@ -74,7 +71,12 @@ int main(int argc, char *argv[]) {
 
    hc.run();
 
-   PVLayerLoc const preLoc = *preLayerExc0->getLayerLoc();
+   auto *preExc0Publisher = preLayerExc0->getComponentByType<BasePublisherComponent>();
+   auto *preExc1Publisher = preLayerExc1->getComponentByType<BasePublisherComponent>();
+   auto *preInh0Publisher = preLayerInh0->getComponentByType<BasePublisherComponent>();
+   auto *preInh1Publisher = preLayerInh1->getComponentByType<BasePublisherComponent>();
+
+   PVLayerLoc const preLoc = *preExc0Publisher->getLayerLoc();
    int const nx            = preLoc.nx;
    int const ny            = preLoc.ny;
    int const nf            = preLoc.nf;
@@ -84,7 +86,7 @@ int main(int argc, char *argv[]) {
       int const kGlobal = globalIndexFromLocal(k, preLoc);
       int const kExt    = kIndexExtended(k, nx, ny, nf, xMargin, xMargin, yMargin, yMargin);
 
-      float const observedExc0Value = preLayerExc0->getLayerData(0)[kExt];
+      float const observedExc0Value = preExc0Publisher->getLayerData(0)[kExt];
       float const correctExc0Value  = (float)(kGlobal * kGlobal);
       if (observedExc0Value != (float)(correctExc0Value)) {
          ErrorLog().printf(
@@ -97,7 +99,7 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
-      float const observedExc1Value = preLayerExc1->getLayerData(0)[kExt];
+      float const observedExc1Value = preExc1Publisher->getLayerData(0)[kExt];
       float const correctExc1Value  = (float)(kGlobal + kGlobal + 1);
       if (observedExc1Value != (float)(correctExc1Value)) {
          ErrorLog().printf(
@@ -110,8 +112,9 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
+      auto *layerInputBuffer     = postLayer->getComponentByType<LayerInputBuffer>();
+      float const observedExcSum = layerInputBuffer->getBufferData()[k];
       float const correctExcSum  = correctExc0Value + correctExc1Value;
-      float const observedExcSum = postLayer->getChannel(CHANNEL_EXC)[k];
       if (observedExcSum != correctExcSum) {
          ErrorLog().printf(
                "Rank %d, restricted neuron %d: expected %f but observed %f\n",
@@ -122,7 +125,7 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
-      float const observedInh0Value = preLayerInh0->getLayerData(0)[kExt];
+      float const observedInh0Value = preInh0Publisher->getLayerData(0)[kExt];
       float const correctInh0Value  = (float)(kGlobal * kGlobal / 2 /* integer division */);
       if (observedInh0Value != (float)(correctInh0Value)) {
          ErrorLog().printf(
@@ -135,7 +138,7 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
-      float const observedInh1Value = preLayerInh1->getLayerData(0)[kExt];
+      float const observedInh1Value = preInh1Publisher->getLayerData(0)[kExt];
       float const correctInh1Value  = (float)((kGlobal + 1) / 2 /* integer division */);
       if (observedInh1Value != (float)(correctInh1Value)) {
          ErrorLog().printf(
@@ -148,8 +151,8 @@ int main(int argc, char *argv[]) {
          status = PV_FAILURE;
       }
 
+      float const observedInhSum = layerInputBuffer->getChannelData(CHANNEL_INH)[k];
       float const correctInhSum  = correctInh0Value + correctInh1Value;
-      float const observedInhSum = postLayer->getChannel(CHANNEL_INH)[k];
       if (observedInhSum != correctInhSum) {
          ErrorLog().printf(
                "Rank %d, restricted neuron %d: expected %f but observed %f\n",
@@ -164,8 +167,8 @@ int main(int argc, char *argv[]) {
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-PV::HyPerLayer *findLayer(PV::HyPerCol &hc, std::string const &layerName) {
-   PV::Observer *object = hc.getObjectFromName(layerName);
+HyPerLayer *findLayer(HyPerCol &hc, std::string const &layerName) {
+   Observer *object = hc.getObjectFromName(layerName);
    FatalIf(
          object == nullptr,
          "%s does not have a layer named \"%s\" in %s\n",
@@ -173,7 +176,7 @@ PV::HyPerLayer *findLayer(PV::HyPerCol &hc, std::string const &layerName) {
          layerName.c_str(),
          hc.getPV_InitObj()->getStringArgument(std::string("ParamsFile")).c_str());
 
-   PV::HyPerLayer *layer = dynamic_cast<PV::HyPerLayer *>(object);
+   HyPerLayer *layer = dynamic_cast<HyPerLayer *>(object);
    FatalIf(
          layer == nullptr,
          "%s object \"%s\" is not a layer.\n",
@@ -183,8 +186,8 @@ PV::HyPerLayer *findLayer(PV::HyPerCol &hc, std::string const &layerName) {
    return layer;
 }
 
-PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName) {
-   PV::Observer *object = hc.getObjectFromName(connName);
+IdentConn *findIdentConn(HyPerCol &hc, std::string const &connName) {
+   Observer *object = hc.getObjectFromName(connName);
    FatalIf(
          object == nullptr,
          "%s does not have a layer named \"%s\" in %s\n",
@@ -192,7 +195,7 @@ PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName) {
          connName.c_str(),
          hc.getPV_InitObj()->getStringArgument(std::string("ParamsFile")).c_str());
 
-   PV::IdentConn *conn = dynamic_cast<PV::IdentConn *>(object);
+   IdentConn *conn = dynamic_cast<IdentConn *>(object);
    FatalIf(
          conn == nullptr,
          "%s object \"%s\" is not an IdentConn.\n",
@@ -202,16 +205,18 @@ PV::IdentConn *findIdentConn(PV::HyPerCol &hc, std::string const &connName) {
    return conn;
 }
 
-void setMargins(PV::HyPerLayer *layer, int const xMargin, int const yMargin) {
-   int marginResult;
-   layer->requireMarginWidth(xMargin, &marginResult, 'x');
+void setMargins(HyPerLayer *layer, int const xMargin, int const yMargin) {
+   auto *geometry = layer->getComponentByType<LayerGeometry>();
+   pvAssert(geometry);
+   geometry->requireMarginWidth(xMargin, 'x');
+   geometry->requireMarginWidth(yMargin, 'y');
+   PVLayerLoc const *loc = geometry->getLayerLoc();
    FatalIf(
-         marginResult != xMargin,
-         "Failed to set x-margin for \"%s\".\n",
+         loc->halo.lt != xMargin or loc->halo.rt != xMargin,
+         "Failed to set x-margin for %s.\n",
          layer->getDescription_c());
-   layer->requireMarginWidth(yMargin, &marginResult, 'y');
    FatalIf(
-         marginResult != yMargin,
-         "Failed to set y-margin for \"%s\".\n",
+         loc->halo.dn != yMargin or loc->halo.up != yMargin,
+         "Failed to set y-margin for %s.\n",
          layer->getDescription_c());
 }

@@ -9,15 +9,19 @@
 
 namespace PV {
 
-InitOneToOneWeights::InitOneToOneWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
+InitOneToOneWeights::InitOneToOneWeights(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 InitOneToOneWeights::InitOneToOneWeights() {}
 
 InitOneToOneWeights::~InitOneToOneWeights() {}
 
-int InitOneToOneWeights::initialize(char const *name, HyPerCol *hc) {
-   int status = InitWeights::initialize(name, hc);
-   return status;
+void InitOneToOneWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   InitWeights::initialize(name, params, comm);
 }
 
 int InitOneToOneWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -27,7 +31,7 @@ int InitOneToOneWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitOneToOneWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
+   parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
 }
 
 void InitOneToOneWeights::calcWeights(int patchIndex, int arborId) {

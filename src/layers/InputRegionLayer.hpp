@@ -8,6 +8,7 @@
 #ifndef INPUTREGIONLAYER_HPP_
 #define INPUTREGIONLAYER_HPP_
 
+#include "components/OriginalLayerNameParam.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/InputLayer.hpp"
 
@@ -20,41 +21,20 @@ namespace PV {
  */
 class InputRegionLayer : public HyPerLayer {
   public:
-   InputRegionLayer(const char *name, HyPerCol *hc);
+   InputRegionLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~InputRegionLayer();
-   virtual int requireChannel(int channelNeeded, int *numChannelsResult) override;
-   virtual bool needUpdate(double timestamp, double dt) override;
-   virtual bool activityIsSpiking() override { return false; }
-   InputLayer *getOriginalLayer() { return originalLayer; }
 
   protected:
    InputRegionLayer();
-   int initialize(const char *name, HyPerCol *hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_phase(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag) override;
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   void setOriginalLayer(HyPerLayer *layer);
-   void checkLayerDimensions();
-   virtual Response::Status allocateDataStructures() override;
-   virtual void allocateGSyn() override;
-   virtual void allocateV() override;
-   virtual void allocateActivity() override;
-   virtual int setActivity() override;
-
-  private:
-   int initialize_base();
-
-  protected:
-   char *originalLayerName;
-   InputLayer *originalLayer;
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual void fillComponentTable() override;
+   virtual PhaseParam *createPhaseParam() override;
+   virtual BoundaryConditions *createBoundaryConditions() override;
+   virtual LayerUpdateController *createLayerUpdateController() override;
+   virtual LayerInputBuffer *createLayerInput() override;
+   virtual ActivityComponent *createActivityComponent() override;
+   virtual BasePublisherComponent *createPublisher() override;
+   virtual OriginalLayerNameParam *createOriginalLayerNameParam();
 }; // class InputRegionLayer
 
 } /* namespace PV */

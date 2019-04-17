@@ -1,16 +1,14 @@
 #include "CheckStatsProbe.hpp"
-#include <columns/HyPerCol.hpp>
 #include <layers/HyPerLayer.hpp>
 
 void CheckStatsProbe::ioParam_buffer(enum PV::ParamsIOFlag ioFlag) {
    if (ioFlag == PV::PARAMS_IO_READ) {
       type                  = PV::BufActivity;
       char const *paramName = "buffer";
-      PV::PVParams *params  = parent->parameters();
+      PV::PVParams *params  = parameters();
       if (params->stringPresent(name, paramName)) {
          char *paramValue = nullptr;
-         parent->parameters()->ioParamString(
-               ioFlag, getName(), paramName, &paramValue, "Activity", false);
+         parameters()->ioParamString(ioFlag, getName(), paramName, &paramValue, "Activity", false);
          pvAssert(paramValue);
          for (size_t c = 0; paramValue[c]; c++) {
             paramValue[c] = (char)tolower((int)paramValue[c]);
@@ -25,27 +23,30 @@ void CheckStatsProbe::ioParam_buffer(enum PV::ParamsIOFlag ioFlag) {
 }
 
 void CheckStatsProbe::ioParam_correctMin(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "correctMin", &correctMin, correctMin);
+   parameters()->ioParamValue(ioFlag, getName(), "correctMin", &correctMin, correctMin);
 }
 
 void CheckStatsProbe::ioParam_correctMax(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "correctMax", &correctMax, correctMax);
+   parameters()->ioParamValue(ioFlag, getName(), "correctMax", &correctMax, correctMax);
 }
 
 void CheckStatsProbe::ioParam_correctMean(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "correctMean", &correctMean, correctMean);
+   parameters()->ioParamValue(ioFlag, getName(), "correctMean", &correctMean, correctMean);
 }
 
 void CheckStatsProbe::ioParam_correctStd(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "correctStd", &correctStd, correctStd);
+   parameters()->ioParamValue(ioFlag, getName(), "correctStd", &correctStd, correctStd);
 }
 
 void CheckStatsProbe::ioParam_tolerance(enum PV::ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
+   parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
 }
 
-CheckStatsProbe::CheckStatsProbe(char const *name, PV::HyPerCol *hc) {
-   initialize(name, hc);
+CheckStatsProbe::CheckStatsProbe(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator const *comm) {
+   initialize(name, params, comm);
    initialize_base();
 }
 
@@ -55,8 +56,11 @@ CheckStatsProbe::~CheckStatsProbe() {}
 
 int CheckStatsProbe::initialize_base() { return PV_SUCCESS; }
 
-int CheckStatsProbe::initialize(char const *name, PV::HyPerCol *hc) {
-   return StatsProbe::initialize(name, hc);
+void CheckStatsProbe::initialize(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator const *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 int CheckStatsProbe::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
@@ -69,15 +73,14 @@ int CheckStatsProbe::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
    return status;
 }
 
-PV::Response::Status CheckStatsProbe::outputState(double timestamp) {
+PV::Response::Status CheckStatsProbe::outputState(double simTime, double deltaTime) {
    int nbatch = getTargetLayer()->getLayerLoc()->nbatch;
    FatalIf(nbatch != 1, "%s is only written for nbatch = 1.\n", getDescription_c());
-   auto status = PV::StatsProbe::outputState(timestamp);
+   auto status = PV::StatsProbe::outputState(simTime, deltaTime);
    if (status != PV::Response::SUCCESS) {
       return status;
    }
-   PV::Communicator *icComm = parent->getCommunicator();
-   if (icComm->commRank() != 0) {
+   if (mCommunicator->commRank() != 0) {
       return status;
    }
    FatalIf(

@@ -5,7 +5,10 @@
 
 class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
   public:
-   ResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc);
+   ResetStateOnTriggerTestProbe(
+         char const *name,
+         PV::PVParams *params,
+         PV::Communicator const *comm);
    virtual ~ResetStateOnTriggerTestProbe();
 
    /**
@@ -22,24 +25,31 @@ class ResetStateOnTriggerTestProbe : public PV::LayerProbe {
 
   protected:
    ResetStateOnTriggerTestProbe();
-   int initialize(char const *name, PV::HyPerCol *hc);
+   void initialize(char const *name, PV::PVParams *params, PV::Communicator const *comm);
+
+   virtual PV::Response::Status
+   initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) override;
 
    /**
     * Returns the number of neurons in the target layer that differ from the expected value.
     */
    void calcValues(double timevalue) override;
 
-   virtual PV::Response::Status outputState(double timestamp) override;
+   virtual PV::Response::Status outputState(double simTime, double deltaTime) override;
 
   private:
    int initialize_base();
 
    // Member variables
   protected:
+   double mDeltaTime = 1.0; // Set during InitializeState, and used in calcValues.
    int probeStatus;
    double firstFailureTime;
 };
 
-PV::BaseObject *createResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc);
+PV::BaseObject *createResetStateOnTriggerTestProbe(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator const *comm);
 
 #endif // RESETSTATEONTRIGGERTESTPROBE_HPP_

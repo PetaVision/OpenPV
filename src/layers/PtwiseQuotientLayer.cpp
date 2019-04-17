@@ -12,65 +12,37 @@
  */
 
 #include "PtwiseQuotientLayer.hpp"
+#include "components/ANNActivityBuffer.hpp"
+#include "components/HyPerActivityComponent.hpp"
+#include "components/HyPerInternalStateBuffer.hpp"
+#include "components/PtwiseQuotientGSynAccumulator.hpp"
 
 namespace PV {
 
-PtwiseQuotientLayer::PtwiseQuotientLayer() { initialize_base(); }
+PtwiseQuotientLayer::PtwiseQuotientLayer() {}
 
-PtwiseQuotientLayer::PtwiseQuotientLayer(const char *name, HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
+PtwiseQuotientLayer::PtwiseQuotientLayer(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
 } // end PtwiseQuotientLayer::PtwiseQuotientLayer(const char *, HyPerCol *)
 
 PtwiseQuotientLayer::~PtwiseQuotientLayer() {}
 
-int PtwiseQuotientLayer::initialize_base() {
-   numChannels = 2;
-   return PV_SUCCESS;
+void PtwiseQuotientLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   HyPerLayer::initialize(name, params, comm);
 }
 
-int PtwiseQuotientLayer::initialize(const char *name, HyPerCol *hc) {
-   return ANNLayer::initialize(name, hc);
+ActivityComponent *PtwiseQuotientLayer::createActivityComponent() {
+   return new HyPerActivityComponent<PtwiseQuotientGSynAccumulator,
+                                     HyPerInternalStateBuffer,
+                                     HyPerActivityBuffer>(getName(), parameters(), mCommunicator);
 }
 
 Response::Status PtwiseQuotientLayer::allocateDataStructures() {
-   auto status = ANNLayer::allocateDataStructures();
-   pvAssert(numChannels >= 2);
+   auto status = HyPerLayer::allocateDataStructures();
    return status;
-}
-
-Response::Status PtwiseQuotientLayer::updateState(double timef, double dt) {
-   doUpdateState(
-         timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0]);
-   return Response::SUCCESS;
-}
-
-void PtwiseQuotientLayer::doUpdateState(
-      double timef,
-      double dt,
-      const PVLayerLoc *loc,
-      float *A,
-      float *V,
-      int num_channels,
-      float *gSynHead) {
-   int nx          = loc->nx;
-   int ny          = loc->ny;
-   int nf          = loc->nf;
-   int num_neurons = nx * ny * nf;
-   int nbatch      = loc->nbatch;
-   updateV_PtwiseQuotientLayer(nbatch, num_neurons, V, gSynHead);
-   setActivity_HyPerLayer(
-         nbatch,
-         num_neurons,
-         A,
-         V,
-         nx,
-         ny,
-         nf,
-         loc->halo.lt,
-         loc->halo.rt,
-         loc->halo.dn,
-         loc->halo.up);
 }
 
 } // end namespace PV

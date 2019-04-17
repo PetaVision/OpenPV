@@ -5,40 +5,48 @@
  */
 
 #include "TransposePoolingConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ImpliedWeightsPair.hpp"
 #include "components/TransposePatchSize.hpp"
 #include "delivery/TransposePoolingDelivery.hpp"
 
 namespace PV {
 
-TransposePoolingConn::TransposePoolingConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
+TransposePoolingConn::TransposePoolingConn(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 TransposePoolingConn::TransposePoolingConn() {}
 
 TransposePoolingConn::~TransposePoolingConn() {}
 
-int TransposePoolingConn::initialize(char const *name, HyPerCol *hc) {
-   int status = PoolingConn::initialize(name, hc);
-   return status;
+void TransposePoolingConn::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   PoolingConn::initialize(name, params, comm);
 }
 
-void TransposePoolingConn::defineComponents() {
-   PoolingConn::defineComponents();
+void TransposePoolingConn::fillComponentTable() {
+   PoolingConn::fillComponentTable();
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
-      addObserver(mOriginalConnNameParam);
+      addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
    }
 }
 
 BaseDelivery *TransposePoolingConn::createDeliveryObject() {
-   return new TransposePoolingDelivery(name, parent);
+   return new TransposePoolingDelivery(name, parameters(), mCommunicator);
 }
 
-PatchSize *TransposePoolingConn::createPatchSize() { return new TransposePatchSize(name, parent); }
+PatchSize *TransposePoolingConn::createPatchSize() {
+   return new TransposePatchSize(name, parameters(), mCommunicator);
+}
 
 OriginalConnNameParam *TransposePoolingConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(name, parent);
+   return new OriginalConnNameParam(name, parameters(), mCommunicator);
 }
 
 } // namespace PV

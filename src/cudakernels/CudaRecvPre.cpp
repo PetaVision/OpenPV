@@ -1,13 +1,12 @@
 #include "CudaRecvPre.hpp"
 #include "arch/cuda/cuda_util.hpp"
-#include "conversions.hcu"
 #include "utils/PVLog.hpp"
 
 namespace PVCuda {
 
 CudaRecvPre::CudaRecvPre(CudaDevice *inDevice) : CudaKernel(inDevice) {
-   kernelName = "CudaRecvPre";
-   numActive  = nullptr;
+   mKernelName = "CudaRecvPre";
+   numActive   = nullptr;
 }
 
 CudaRecvPre::~CudaRecvPre() {}

@@ -5,29 +5,33 @@
  *      Author: kpeterson
  */
 
-#ifndef ANNSQUAREDLAYER_HPP_
-#define ANNSQUAREDLAYER_HPP_
+#ifndef ANNSQUAREDLAYER_HPP__
+#define ANNSQUAREDLAYER_HPP__
 
-#include "ANNLayer.hpp"
-
-#define NUM_ANNSQ_EVENTS 3
+#include "HyPerLayer.hpp"
 
 namespace PV {
 
-class ANNSquaredLayer : public PV::ANNLayer {
+/**
+ * ANNSquaredLayer
+ * HyPerLayer subclass that squares the excitatory input (using SquaredInternalStateBuffer)
+ * and then applies a thresholding transfer function (using ANNActivityBuffer).
+ */
+class ANNSquaredLayer : public HyPerLayer {
   public:
-   ANNSquaredLayer(const char *name, HyPerCol *hc);
+   ANNSquaredLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~ANNSquaredLayer();
-   virtual Response::Status updateState(double time, double dt) override;
 
   protected:
-   ANNSquaredLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   ANNSquaredLayer() {}
 
-  private:
-   int initialize_base();
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
-}; // class ANNSquaredLayer
+   virtual ActivityComponent *createActivityComponent() override;
 
-} /* namespace PV */
-#endif /* ANNSQUAREDLAYER_HPP_ */
+   virtual Response::Status allocateDataStructures() override;
+};
+
+} // end namespace PV
+
+#endif

@@ -9,15 +9,20 @@
 
 namespace PV {
 
-ParameterSweepTestProbe::ParameterSweepTestProbe(const char *name, HyPerCol *hc) {
-   initialize(name, hc);
+ParameterSweepTestProbe::ParameterSweepTestProbe(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
 }
 
 ParameterSweepTestProbe::~ParameterSweepTestProbe() {}
 
-int ParameterSweepTestProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = StatsProbe::initialize(name, hc);
-   return status;
+void ParameterSweepTestProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
+   StatsProbe::initialize(name, params, comm);
 }
 
 int ParameterSweepTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -31,28 +36,27 @@ int ParameterSweepTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ParameterSweepTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 void ParameterSweepTestProbe::ioParam_expectedSum(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "expectedSum", &expectedSum, 0.0);
+   parameters()->ioParamValue(ioFlag, getName(), "expectedSum", &expectedSum, 0.0);
 }
 void ParameterSweepTestProbe::ioParam_expectedMin(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "expectedMin", &expectedMin, 0.0f);
+   parameters()->ioParamValue(ioFlag, getName(), "expectedMin", &expectedMin, 0.0f);
 }
 
 void ParameterSweepTestProbe::ioParam_expectedMax(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "expectedMax", &expectedMax, 0.0f);
+   parameters()->ioParamValue(ioFlag, getName(), "expectedMax", &expectedMax, 0.0f);
 }
 
-Response::Status ParameterSweepTestProbe::outputState(double timed) {
-   auto status = StatsProbe::outputState(timed);
+Response::Status ParameterSweepTestProbe::outputState(double simTime, double deltaTime) {
+   auto status = StatsProbe::outputState(simTime, deltaTime);
    if (status != Response::SUCCESS) {
       return status;
    }
-   Communicator *icComm = parent->getCommunicator();
-   const int rcvProc    = 0;
-   if (icComm->commRank() != rcvProc) {
+   const int rcvProc = 0;
+   if (mCommunicator->commRank() != rcvProc) {
       return status;
    }
-   for (int b = 0; b < parent->getNBatch(); b++) {
-      if (timed >= 3.0) {
+   for (int b = 0; b < mLocalBatchWidth; b++) {
+      if (simTime >= 3.0) {
          FatalIf(std::fabs(expectedSum - sum[b]) >= 1e-6, "Test failed.\n");
          FatalIf(std::fabs(expectedMin - fMin[b]) >= 1e-6f, "Test failed.\n");
          FatalIf(std::fabs(expectedMax - fMax[b]) >= 1e-6f, "Test failed.\n");

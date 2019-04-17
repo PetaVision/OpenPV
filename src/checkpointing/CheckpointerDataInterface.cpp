@@ -9,40 +9,41 @@
 
 namespace PV {
 
-Response::Status CheckpointerDataInterface::respond(std::shared_ptr<BaseMessage const> message) {
-   auto status = Response::NO_ACTION;
-   if (message == nullptr) {
-      return status;
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<RegisterDataMessage<Checkpointer> const>(message)) {
+int CheckpointerDataInterface::initialize() { return Observer::initialize(); }
+
+void CheckpointerDataInterface::initMessageActionMap() {
+   Observer::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<RegisterDataMessage<Checkpointer> const>(msgptr);
       return respondRegisterData(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ReadStateFromCheckpointMessage<Checkpointer> const>(
-                     message)) {
+   };
+   mMessageActionMap.emplace("RegisterData", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage =
+            std::dynamic_pointer_cast<ReadStateFromCheckpointMessage<Checkpointer> const>(msgptr);
       return respondReadStateFromCheckpoint(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<ProcessCheckpointReadMessage const>(message)) {
+   };
+   mMessageActionMap.emplace("ReadStateFromCheckpoint", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ProcessCheckpointReadMessage const>(msgptr);
       return respondProcessCheckpointRead(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<PrepareCheckpointWriteMessage const>(message)) {
+   };
+   mMessageActionMap.emplace("ProcessCheckpointRead", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<PrepareCheckpointWriteMessage const>(msgptr);
       return respondPrepareCheckpointWrite(castMessage);
-   }
-   else {
-      return status;
-   }
+   };
+   mMessageActionMap.emplace("PrepareCheckpointWrite", action);
 }
 
 Response::Status CheckpointerDataInterface::respondRegisterData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = registerData(message->mDataRegistry);
+   auto status = registerData(message);
    if (!Response::completed(status)) {
       Fatal() << getDescription() << ": registerData failed.\n";
    }
@@ -51,7 +52,12 @@ Response::Status CheckpointerDataInterface::respondRegisterData(
 
 Response::Status CheckpointerDataInterface::respondReadStateFromCheckpoint(
       std::shared_ptr<ReadStateFromCheckpointMessage<Checkpointer> const> message) {
-   return readStateFromCheckpoint(message->mDataRegistry);
+   if (mInitializeFromCheckpointFlag) {
+      return readStateFromCheckpoint(message->mDataRegistry);
+   }
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 Response::Status CheckpointerDataInterface::respondProcessCheckpointRead(
@@ -64,13 +70,15 @@ Response::Status CheckpointerDataInterface::respondPrepareCheckpointWrite(
    return prepareCheckpointWrite();
 }
 
-Response::Status CheckpointerDataInterface::registerData(Checkpointer *checkpointer) {
+Response::Status CheckpointerDataInterface::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    if (mMPIBlock) {
       return Response::NO_ACTION;
    }
    else {
-      mMPIBlock = checkpointer->getMPIBlock();
-      checkpointer->addObserver(this);
+      auto *checkpointer = message->mDataRegistry;
+      mMPIBlock          = checkpointer->getMPIBlock();
+      checkpointer->addObserver(this->getDescription(), this);
       return Response::SUCCESS;
    }
 }

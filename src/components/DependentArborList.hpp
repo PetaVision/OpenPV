@@ -34,25 +34,20 @@ class DependentArborList : public ArborList {
    /** @} */ // end of DependentArborList parameters
 
   public:
-   DependentArborList(char const *name, HyPerCol *hc);
+   DependentArborList(char const *name, PVParams *params, Communicator const *comm);
    virtual ~DependentArborList();
-
-   virtual void setObjectType() override;
 
   protected:
    DependentArborList();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
+
+   virtual void setObjectType() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
-   char const *getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const;
-   ArborList *getOriginalArborList(
-         std::map<std::string, Observer *> const hierarchy,
-         char const *originalConnName) const;
 
 }; // class DependentArborList
 

@@ -7,22 +7,22 @@
 
 #include "VaryingHyPerConn.hpp"
 #include "IncrementingWeightUpdater.hpp"
-#include <columns/HyPerCol.hpp>
 
 namespace PV {
 
-VaryingHyPerConn::VaryingHyPerConn(const char *name, HyPerCol *hc) : HyPerConn() {
-   initialize(name, hc);
+VaryingHyPerConn::VaryingHyPerConn(const char *name, PVParams *params, Communicator const *comm)
+      : HyPerConn() {
+   initialize(name, params, comm);
 }
 
 VaryingHyPerConn::~VaryingHyPerConn() {}
 
-int VaryingHyPerConn::initialize(const char *name, HyPerCol *hc) {
-   return HyPerConn::initialize(name, hc);
+void VaryingHyPerConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   HyPerConn::initialize(name, params, comm);
 }
 
 BaseWeightUpdater *VaryingHyPerConn::createWeightUpdater() {
-   return new IncrementingWeightUpdater(name, parent);
+   return new IncrementingWeightUpdater(name, parameters(), mCommunicator);
 }
 
 } // end of namespace PV block

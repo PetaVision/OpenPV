@@ -11,15 +11,21 @@ namespace PV {
 
 NormalizeContrastZeroMean::NormalizeContrastZeroMean() { initialize_base(); }
 
-NormalizeContrastZeroMean::NormalizeContrastZeroMean(const char *name, HyPerCol *hc) {
+NormalizeContrastZeroMean::NormalizeContrastZeroMean(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int NormalizeContrastZeroMean::initialize_base() { return PV_SUCCESS; }
 
-int NormalizeContrastZeroMean::initialize(const char *name, HyPerCol *hc) {
-   return NormalizeBase::initialize(name, hc);
+void NormalizeContrastZeroMean::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
+   NormalizeBase::initialize(name, params, comm);
 }
 
 int NormalizeContrastZeroMean::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -29,21 +35,21 @@ int NormalizeContrastZeroMean::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeContrastZeroMean::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true /*warnIfAbsent*/);
 }
 
 void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      if (parent->parameters()->present(name, "normalizeFromPostPerspective")) {
-         if (parent->columnId() == 0) {
+      if (parameters()->present(name, "normalizeFromPostPerspective")) {
+         if (mCommunicator->globalCommRank() == 0) {
             WarnLog().printf(
                   "%s \"%s\": normalizeMethod \"normalizeContrastZeroMean\" doesn't use "
                   "normalizeFromPostPerspective parameter.\n",
-                  parent->parameters()->groupKeywordFromName(name),
+                  parameters()->groupKeywordFromName(name),
                   name);
          }
-         parent->parameters()->value(
+         parameters()->value(
                name, "normalizeFromPostPerspective"); // marks param as having been read
       }
    }
@@ -59,7 +65,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
    Weights *weights0 = mWeightsList[0];
    for (auto &weights : mWeightsList) {
       if (weights->getNumArbors() != weights0->getNumArbors()) {
-         if (parent->columnId() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "arbors (%s has %d; %s has %d).\n",
@@ -72,7 +78,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
          status = PV_FAILURE;
       }
       if (weights->getNumDataPatches() != weights0->getNumDataPatches()) {
-         if (parent->columnId() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "data patches (%s has %d; %s has %d).\n",
@@ -85,7 +91,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
          status = PV_FAILURE;
       }
       if (status == PV_FAILURE) {
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
    }

@@ -17,7 +17,7 @@ class InitSpreadOverArborsWeights : public InitGauss2DWeights {
    virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
 
   public:
-   InitSpreadOverArborsWeights(char const *name, HyPerCol *hc);
+   InitSpreadOverArborsWeights(char const *name, PVParams *params, Communicator const *comm);
    virtual ~InitSpreadOverArborsWeights();
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -26,7 +26,7 @@ class InitSpreadOverArborsWeights : public InitGauss2DWeights {
 
   protected:
    InitSpreadOverArborsWeights();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
   private:
    int spreadOverArborsWeights(float *dataStart, int arborId);

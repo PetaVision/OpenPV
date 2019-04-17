@@ -12,8 +12,6 @@
 
 namespace PV {
 
-class BaseProbe;
-
 /**
  * ColumnEnergyProbe assembles several base probes each of which
  * contribute a term to an energy of the entire HyPerCol.
@@ -42,7 +40,7 @@ class ColumnEnergyProbe : public ColProbe {
    /**
     * Public constructor for the ColumnEnergyProbe class.
     */
-   ColumnEnergyProbe(const char *probename, HyPerCol *hc);
+   ColumnEnergyProbe(const char *probename, PVParams *params, Communicator const *comm);
 
    /**
     * Destructor for the ColumnEnergyProbe class.
@@ -67,7 +65,7 @@ class ColumnEnergyProbe : public ColProbe {
     * from 0 to
     * getVectorSize()-1.
     */
-   virtual Response::Status outputState(double timevalue) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
    virtual void calcValues(double timevalue) override;
 
@@ -82,7 +80,7 @@ class ColumnEnergyProbe : public ColProbe {
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   int initializeColumnEnergyProbe(const char *probename, HyPerCol *hc);
+   void initialize(const char *probename, PVParams *params, Communicator const *comm);
 
    virtual void outputHeader() override;
 
@@ -96,12 +94,12 @@ class ColumnEnergyProbe : public ColProbe {
     * Implementation of referenceUpdateTime().  Since ColumnEnergyProbe updates
     * every timestep, it uses current simulation time.
     */
-   virtual double referenceUpdateTime() const override;
+   virtual double referenceUpdateTime(double simTime) const override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_reductionInterval(enum ParamsIOFlag ioFlag);
 
-   size_t numTerms;
+   std::size_t numTerms;
    BaseProbe **terms;
 
   private:

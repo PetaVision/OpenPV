@@ -9,15 +9,16 @@
 
 namespace PV {
 
-NormalizeMultiply::NormalizeMultiply(const char *name, HyPerCol *hc) { initialize(name, hc); }
+NormalizeMultiply::NormalizeMultiply(const char *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 NormalizeMultiply::NormalizeMultiply() {}
 
 NormalizeMultiply::~NormalizeMultiply() {}
 
-int NormalizeMultiply::initialize(const char *name, HyPerCol *hc) {
-   int status = NormalizeBase::initialize(name, hc);
-   return status;
+void NormalizeMultiply::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   NormalizeBase::initialize(name, params, comm);
 }
 
 int NormalizeMultiply::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -31,15 +32,15 @@ int NormalizeMultiply::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeMultiply::ioParam_rMinX(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "rMinX", &mRMinX, mRMinX);
+   parameters()->ioParamValue(ioFlag, name, "rMinX", &mRMinX, mRMinX);
 }
 
 void NormalizeMultiply::ioParam_rMinY(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "rMinY", &mRMinY, mRMinY);
+   parameters()->ioParamValue(ioFlag, name, "rMinY", &mRMinY, mRMinY);
 }
 
 void NormalizeMultiply::ioParam_nonnegativeConstraintFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "nonnegativeConstraintFlag",
@@ -48,24 +49,23 @@ void NormalizeMultiply::ioParam_nonnegativeConstraintFlag(enum ParamsIOFlag ioFl
 }
 
 void NormalizeMultiply::ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "normalize_cutoff", &mNormalizeCutoff, mNormalizeCutoff);
 }
 
 void NormalizeMultiply::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ
-       && !parent->parameters()->present(name, "normalizeFromPostPerspective")
-       && parent->parameters()->present(name, "normalize_arbors_individually")) {
-      if (parent->columnId() == 0) {
+   if (ioFlag == PARAMS_IO_READ && !parameters()->present(name, "normalizeFromPostPerspective")
+       && parameters()->present(name, "normalize_arbors_individually")) {
+      if (mCommunicator->globalCommRank() == 0) {
          WarnLog().printf(
                "Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use "
                "normalizeFromPostPerspective.\n",
                name);
       }
-      mNormalizeFromPostPerspective = parent->parameters()->value(name, "normalizeTotalToPost");
+      mNormalizeFromPostPerspective = parameters()->value(name, "normalizeTotalToPost");
       return;
    }
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag,
          name,
          "normalizeFromPostPerspective",
@@ -83,7 +83,7 @@ int NormalizeMultiply::normalizeWeights() {
    for (auto &weights : mWeightsList) {
       // Do we need to require sharedWeights be the same for all connections in the group?
       if (weights->getSharedFlag() != weights0->getSharedFlag()) {
-         if (parent->columnId() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same sharedWeights "
                   "(%s has %d; %s has %d).\n",
@@ -96,7 +96,7 @@ int NormalizeMultiply::normalizeWeights() {
          status = PV_FAILURE;
       }
       if (weights->getNumArbors() != weights0->getNumArbors()) {
-         if (parent->columnId() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "arbors (%s has %d; %s has %d).\n",
@@ -109,7 +109,7 @@ int NormalizeMultiply::normalizeWeights() {
          status = PV_FAILURE;
       }
       if (weights->getNumDataPatches() != weights0->getNumDataPatches()) {
-         if (parent->columnId() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(
                   "%s: All connections in the normalization group must have the same number of "
                   "data patches (%s has %d; %s has %d).\n",
@@ -122,7 +122,7 @@ int NormalizeMultiply::normalizeWeights() {
          status = PV_FAILURE;
       }
       if (status == PV_FAILURE) {
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
    }

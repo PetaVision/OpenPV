@@ -6,15 +6,15 @@
  */
 
 #include "BaseWeightUpdater.hpp"
-#include "columns/HyPerCol.hpp"
-#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-BaseWeightUpdater::BaseWeightUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
+BaseWeightUpdater::BaseWeightUpdater(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
-int BaseWeightUpdater::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void BaseWeightUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void BaseWeightUpdater::setObjectType() { mObjectType = "Updater for "; }
@@ -25,7 +25,7 @@ int BaseWeightUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseWeightUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "plasticityFlag", &mPlasticityFlag, mPlasticityFlag /*default value*/);
 }
 

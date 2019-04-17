@@ -19,23 +19,8 @@ namespace PV {
  * with accumulate type "convolve".
  */
 class PostsynapticPerspectiveGPUDelivery : public HyPerDelivery {
-  protected:
-   /**
-    * List of parameters needed from the PostsynapticPerspectiveGPUDelivery class
-    * @name PostsynapticPerspectiveGPUDelivery Parameters
-    * @{
-    */
-
-   /**
-    * @brief receiveGpu: PostsynapticPerspectiveGPUDelivery always sets receiveGpu to true.
-    * The receiveGpu=false case is handled by the PostsynapticPerspectiveConvolveDelivery
-    * and PostsynapticPerspectiveStochasticDelivery classes.
-    */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
-   /** @} */ // End of list of BaseDelivery parameters.
-
   public:
-   PostsynapticPerspectiveGPUDelivery(char const *name, HyPerCol *hc);
+   PostsynapticPerspectiveGPUDelivery(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~PostsynapticPerspectiveGPUDelivery();
 
@@ -50,18 +35,16 @@ class PostsynapticPerspectiveGPUDelivery : public HyPerDelivery {
     * same post-neuron, we internally allocate multiple buffers the size of the post channel,
     * and accumulate them at the end.
     */
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
   protected:
    PostsynapticPerspectiveGPUDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
-
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -71,12 +54,15 @@ class PostsynapticPerspectiveGPUDelivery : public HyPerDelivery {
 
    virtual Response::Status allocateDataStructures() override;
 
+   virtual Response::Status copyInitialStateToGPU() override;
+
    void initializeRecvKernelArgs();
 
    // Data members
   protected:
    PVCuda::CudaRecvPost *mRecvKernel            = nullptr;
    PVCuda::CudaBuffer *mDevicePostToPreActivity = nullptr;
+   PVCuda::CudaBuffer *mCudnnGSyn               = nullptr;
 }; // end class PostsynapticPerspectiveGPUDelivery
 
 } // end namespace PV

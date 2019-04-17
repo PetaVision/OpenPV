@@ -70,7 +70,7 @@ int Random::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
       int sbGlobal          = nxGlobalExt * nyGlobalExt * nf;
       int syGlobal          = nxGlobalExt * nf;
 
-      // Only thing that is continuous in memory is nx and ny, so loop over batch
+      // Only thing that is continuous in memory is nx and nf, so loop over batch
       // and y
       for (int kb = 0; kb < nbatch; kb++) {
          for (int ky = 0; ky < nyExt; ky++) {
@@ -78,7 +78,7 @@ int Random::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
             int localExtStart = kb * sb + ky * sy;
             // Calculate offset of the seedBase
             int globalExtStart =
-                  (kb + locptr->kb0) * sbGlobal + (ky + locptr->ky0) * syGlobal + locptr->kx0;
+                  (kb + locptr->kb0) * sbGlobal + (ky + locptr->ky0) * syGlobal + locptr->kx0 * nf;
             size_t count = nxExt * nf;
             cl_random_init(&(rngArray[localExtStart]), count, seedBase + globalExtStart);
          }

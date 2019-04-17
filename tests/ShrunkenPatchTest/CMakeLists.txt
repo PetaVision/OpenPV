@@ -1,10 +1,12 @@
 set(SRC_CPP
   src/pv.cpp
+  src/ShrunkenPatchTestActivityBuffer.cpp
   src/ShrunkenPatchTestLayer.cpp
   src/ShrunkenPatchTestProbe.cpp
 )
 
 set(SRC_HPP
+  src/ShrunkenPatchTestActivityBuffer.hpp
   src/ShrunkenPatchTestLayer.hpp
   src/ShrunkenPatchTestProbe.hpp
 )

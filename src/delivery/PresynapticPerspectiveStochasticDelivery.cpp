@@ -6,7 +6,7 @@
  */
 
 #include "PresynapticPerspectiveStochasticDelivery.hpp"
-#include "columns/HyPerCol.hpp"
+#include <cmath>
 
 // Note: there is a lot of code duplication between PresynapticPerspectiveConvolveDelivery
 // and PresynapticPerspectiveStochasticDelivery.
@@ -15,8 +15,9 @@ namespace PV {
 
 PresynapticPerspectiveStochasticDelivery::PresynapticPerspectiveStochasticDelivery(
       char const *name,
-      HyPerCol *hc) {
-   initialize(name, hc);
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
 }
 
 PresynapticPerspectiveStochasticDelivery::PresynapticPerspectiveStochasticDelivery() {}
@@ -25,21 +26,16 @@ PresynapticPerspectiveStochasticDelivery::~PresynapticPerspectiveStochasticDeliv
    delete mRandState;
 }
 
-int PresynapticPerspectiveStochasticDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void PresynapticPerspectiveStochasticDelivery::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   mReceiveGpu = false; // If it's true, we should be using a different class.
+   BaseObject::initialize(name, params, comm);
 }
 
 void PresynapticPerspectiveStochasticDelivery::setObjectType() {
    mObjectType = "PresynapticPerspectiveStochasticDelivery";
-}
-
-int PresynapticPerspectiveStochasticDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = HyPerDelivery::ioParamsFillGroup(ioFlag);
-   return status;
-}
-
-void PresynapticPerspectiveStochasticDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
-   mReceiveGpu = false; // If it's true, we should be using a different class.
 }
 
 Response::Status PresynapticPerspectiveStochasticDelivery::communicateInitInfo(
@@ -51,6 +47,7 @@ Response::Status PresynapticPerspectiveStochasticDelivery::communicateInitInfo(
    // HyPerDelivery::communicateInitInfo() postpones until mWeightsPair communicates.
    pvAssert(mWeightsPair and mWeightsPair->getInitInfoCommunicatedFlag());
    mWeightsPair->needPre();
+
    return Response::SUCCESS;
 }
 
@@ -59,38 +56,37 @@ Response::Status PresynapticPerspectiveStochasticDelivery::allocateDataStructure
    if (!Response::completed(status)) {
       return status;
    }
-   allocateThreadGSyn();
    allocateRandState();
+#ifdef PV_USE_OPENMP_THREADS
+   allocateThreadGSyn();
+#endif // PV_USE_OPENMP_THREADS
    return Response::SUCCESS;
 }
 
-void PresynapticPerspectiveStochasticDelivery::allocateThreadGSyn() {
-   // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.
-   int const numThreads = parent->getNumThreads();
-   if (numThreads > 1) {
-      mThreadGSyn.resize(numThreads);
-      // mThreadGSyn is only a buffer for one batch element. We're threading over presynaptic
-      // neuron index, not batch element; so batch elements will be processed serially.
-      for (auto &th : mThreadGSyn) {
-         th.resize(mPostLayer->getNumNeurons());
-      }
-   }
-}
-
 void PresynapticPerspectiveStochasticDelivery::allocateRandState() {
-   mRandState = new Random(mPreLayer->getLayerLoc(), true /*need RNGs in the extended buffer*/);
+   mRandState = new Random(mPreData->getLayerLoc(), true /*need RNGs in the extended buffer*/);
 }
 
-void PresynapticPerspectiveStochasticDelivery::deliver() {
+Response::Status PresynapticPerspectiveStochasticDelivery::initializeState(
+      std::shared_ptr<InitializeStateMessage const> message) {
+   auto status = HyPerDelivery::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   mDeltaTimeFactor = (float)message->mDeltaTime;
+   return Response::SUCCESS;
+}
+
+void PresynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
-   float *postChannel = mPostLayer->getChannel(getChannelCode());
+   float *postChannel = destBuffer;
    pvAssert(postChannel);
 
-   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
    int const nxPreExtended  = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
@@ -105,36 +101,30 @@ void PresynapticPerspectiveStochasticDelivery::deliver() {
    const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
    const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
 
-   bool const preLayerIsSparse = mPreLayer->getSparseFlag();
+   bool const preLayerIsSparse = mPreData->getSparseLayer();
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       int delay                = mArborList->getDelay(arbor);
-      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
+      PVLayerCube activityCube = mPreData->getPublisher()->createCube(delay);
 
       for (int b = 0; b < nbatch; b++) {
          size_t batchOffset                                 = b * numPreExtended;
-         float *activityBatch                               = activityCube.data + batchOffset;
+         float const *activityBatch                         = activityCube.data + batchOffset;
          float *gSynPatchHeadBatch                          = postChannel + b * numPostRestricted;
-         SparseList<float>::Entry const *activeIndicesBatch = NULL;
+         SparseList<float>::Entry const *activeIndicesBatch = nullptr;
+         int numNeurons;
          if (preLayerIsSparse) {
             activeIndicesBatch =
                   (SparseList<float>::Entry *)activityCube.activeIndices + batchOffset;
+            numNeurons = activityCube.numActive[b];
          }
-
-         int numNeurons =
-               preLayerIsSparse ? activityCube.numActive[b] : mPreLayer->getNumExtended();
+         else {
+            numNeurons = activityCube.numItems / activityCube.loc.nbatch;
+         }
 
 #ifdef PV_USE_OPENMP_THREADS
-         // Clear all thread gsyn buffer
-         if (!mThreadGSyn.empty()) {
-#pragma omp parallel for schedule(static)
-            for (int ti = 0; ti < parent->getNumThreads(); ++ti) {
-               for (int ni = 0; ni < numPostRestricted; ++ni) {
-                  mThreadGSyn[ti][ni] = 0.0;
-               }
-            }
-         }
+         clearThreadGSyn();
 #endif
 
          std::size_t const *gSynPatchStart = weights->getGeometry()->getGSynPatchStart().data();
@@ -160,14 +150,7 @@ void PresynapticPerspectiveStochasticDelivery::deliver() {
                   }
                   a *= mDeltaTimeFactor;
 
-                  // gSyn
-                  float *gSynPatchHead = gSynPatchHeadBatch;
-
-#ifdef PV_USE_OPENMP_THREADS
-                  if (!mThreadGSyn.empty()) {
-                     gSynPatchHead = mThreadGSyn[omp_get_thread_num()].data();
-                  }
-#endif // PV_USE_OPENMP_THREADS
+                  float *gSynPatchHead = setWorkingGSynBuffer(gSynPatchHeadBatch);
 
                   float *postPatchStart = &gSynPatchHead[gSynPatchStart[kPreExt]];
 
@@ -209,14 +192,7 @@ void PresynapticPerspectiveStochasticDelivery::deliver() {
                   }
                   a *= mDeltaTimeFactor;
 
-                  // gSyn
-                  float *gSynPatchHead = gSynPatchHeadBatch;
-
-#ifdef PV_USE_OPENMP_THREADS
-                  if (!mThreadGSyn.empty()) {
-                     gSynPatchHead = mThreadGSyn[omp_get_thread_num()].data();
-                  }
-#endif // PV_USE_OPENMP_THREADS
+                  float *gSynPatchHead = setWorkingGSynBuffer(gSynPatchHeadBatch);
 
                   float *postPatchStart = &gSynPatchHead[gSynPatchStart[kPreExt]];
 
@@ -235,33 +211,13 @@ void PresynapticPerspectiveStochasticDelivery::deliver() {
                }
             }
          }
-#ifdef PV_USE_OPENMP_THREADS
-         // Accumulate back into gSyn. Should this be done in HyPerLayer where it can be done once,
-         // as opposed to once per connection?
-         if (!mThreadGSyn.empty()) {
-            float *gSynPatchHead = gSynPatchHeadBatch;
-            int numNeurons       = mPostLayer->getNumNeurons();
-            for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-               float *onethread = mThreadGSyn[ti].data();
-// Looping over neurons is thread safe
-#pragma omp parallel for
-               for (int ni = 0; ni < numNeurons; ni++) {
-                  gSynPatchHead[ni] += onethread[ni];
-               }
-            }
-         }
-#endif // PV_USE_OPENMP_THREADS
+         accumulateThreadGSyn(gSynPatchHeadBatch);
       }
    }
-#ifdef PV_USE_CUDA
-   // CPU updated GSyn, now need to update GSyn on GPU
-   mPostLayer->setUpdatedDeviceGSynFlag(true);
-#endif // PV_USE_CUDA
 }
 
 void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffer) {
-   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *weights          = mWeightsPair->getPreWeights();
 
    int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
@@ -274,22 +230,14 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
    int const numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       int delay                = mArborList->getDelay(arbor);
-      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
+      PVLayerCube activityCube = mPreData->getPublisher()->createCube(delay);
 
       for (int b = 0; b < nbatch; b++) {
          float *recvBatch = recvBuffer + b * numPostRestricted;
-         int numNeurons   = mPreLayer->getNumExtended();
+         int numNeurons   = activityCube.numItems / activityCube.loc.nbatch;
 
 #ifdef PV_USE_OPENMP_THREADS
-         // Clear all thread gsyn buffer
-         if (!mThreadGSyn.empty()) {
-#pragma omp parallel for schedule(static)
-            for (int ti = 0; ti < parent->getNumThreads(); ++ti) {
-               for (int ni = 0; ni < numPostRestricted; ++ni) {
-                  mThreadGSyn[ti][ni] = 0.0;
-               }
-            }
-         }
+         clearThreadGSyn();
 #endif
 
          std::size_t const *gSynPatchStart = weights->getGeometry()->getGSynPatchStart().data();
@@ -310,14 +258,7 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
                // Activity
                float a = mDeltaTimeFactor;
 
-               // gSyn
-               float *recvPatchHead = recvBatch;
-
-#ifdef PV_USE_OPENMP_THREADS
-               if (!mThreadGSyn.empty()) {
-                  recvPatchHead = mThreadGSyn[omp_get_thread_num()].data();
-               }
-#endif // PV_USE_OPENMP_THREADS
+               float *recvPatchHead = setWorkingGSynBuffer(recvBatch);
 
                float *postPatchStart = &recvPatchHead[gSynPatchStart[kPreExt]];
 
@@ -325,7 +266,7 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
                float const *weightDataHead  = weights->getDataFromPatchIndex(arbor, kPreExt);
                float const *weightDataStart = &weightDataHead[patch->offset];
                taus_uint4 *rng              = mRandState->getRNG(kPreExt);
-               long along                   = (long)cl_random_max();
+               long along                   = (long)std::floor((double)a * cl_random_max());
 
                float *v                  = postPatchStart + y * sy;
                float const *weightValues = weightDataStart + y * syw;
@@ -336,20 +277,7 @@ void PresynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffe
             }
          }
 #ifdef PV_USE_OPENMP_THREADS
-         // Accumulate back into gSyn. Should this be done in HyPerLayer where it can be done once,
-         // as opposed to once per connection?
-         if (!mThreadGSyn.empty()) {
-            float *recvPatchHead = recvBatch;
-            int numNeurons       = mPostLayer->getNumNeurons();
-            for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-               float *onethread = mThreadGSyn[ti].data();
-// Looping over neurons is thread safe
-#pragma omp parallel for
-               for (int ni = 0; ni < numNeurons; ni++) {
-                  recvPatchHead[ni] += onethread[ni];
-               }
-            }
-         }
+         accumulateThreadGSyn(recvBatch);
 #endif // PV_USE_OPENMP_THREADS
       }
    }
