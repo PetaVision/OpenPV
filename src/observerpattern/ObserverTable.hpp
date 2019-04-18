@@ -57,6 +57,9 @@ class ObserverTable : public Observer {
    template <typename S>
    S *lookupByTypeRecursive(int maxIterations) const;
 
+   template <typename T>
+   T *findObject(std::string &name);
+
    // To iterate over ObserverTable:
    typedef std::vector<Observer *>::iterator iterator;
    typedef std::vector<Observer *>::const_iterator const_iterator;

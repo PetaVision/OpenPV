@@ -70,4 +70,20 @@ S *ObserverTable::lookupByTypeRecursive(int maxIterations) const {
    return lookupResult;
 }
 
+template <typename T>
+T *ObserverTable::findObject(std::string &name) {
+   T *result = nullptr;
+   for (auto iterator = begin(); iterator != end(); iterator++) {
+      T *castObject = dynamic_cast<T *>(*iterator);
+      if (castObject and name == castObject->getName()) {
+         FatalIf(
+               result,
+               "findObject found more than one object of matching type with name \"%s\".\n",
+               name.c_str());
+         result = castObject;
+      }
+   }
+   return result;
+}
+
 } // namespace PV
