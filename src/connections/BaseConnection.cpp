@@ -129,12 +129,13 @@ BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messag
 
 Response::Status
 BaseConnection::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto *checkpointer = message->mDataRegistry;
-   auto status        = notify(
-         std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer),
-         mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   auto status = ComponentBasedObject::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+
    mIOTimer = new Timer(getName(), "conn", "io");
-   checkpointer->registerTimer(mIOTimer);
+   message->mDataRegistry->registerTimer(mIOTimer);
    return status;
 }
 

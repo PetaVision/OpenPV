@@ -83,6 +83,16 @@ Response::Status ComponentBasedObject::allocateDataStructures() {
    return status;
 }
 
+Response::Status ComponentBasedObject::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   Response::Status status = BaseObject::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   status = notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   return status;
+}
+
 ComponentBasedObject::~ComponentBasedObject() {}
 
 } /* namespace PV */

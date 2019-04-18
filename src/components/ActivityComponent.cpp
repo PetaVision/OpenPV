@@ -91,11 +91,6 @@ ActivityComponent::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer
       return status;
    }
 
-   status = notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
-   if (!Response::completed(status)) {
-      return status;
-   }
-
    // Timers
 
    auto *checkpointer = message->mDataRegistry;

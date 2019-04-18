@@ -295,7 +295,6 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    if (!Response::completed(status)) {
       return status;
    }
-   notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 
    return Response::SUCCESS;
 }
