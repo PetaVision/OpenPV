@@ -10,6 +10,7 @@
 
 #include "HyPerCol.hpp"
 #include "columns/Communicator.hpp"
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/Factory.hpp"
 #include "columns/RandomSeed.hpp"
 #include "io/PrintStream.hpp"
@@ -554,7 +555,22 @@ int HyPerCol::setNumThreads() {
    return threadStatus;
 }
 
+void expandRecursive(ObserverTable *allObjects, ObserverTable const *table) {
+   for (auto iterator = table->begin(); iterator != table->end(); iterator++) {
+      auto *obs = *iterator;
+      allObjects->addObject(obs->getDescription(), obs);
+      auto *cbo = dynamic_cast<ComponentBasedObject *>(obs);
+      if (cbo) {
+         auto *cboTable = cbo->getTable();
+         expandRecursive(allObjects, cboTable);
+      }
+   }
+}
+
 int HyPerCol::processParams(char const *path) {
+   auto allObjects = ObserverTable("All objects");
+   expandRecursive(&allObjects, mTable);
+
    if (!mParamsProcessedFlag) {
       notifyLoop(
             std::make_shared<CommunicateInitInfoMessage>(
