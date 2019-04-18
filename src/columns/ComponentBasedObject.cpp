@@ -62,6 +62,7 @@ Response::Status ComponentBasedObject::communicateInitInfo(
 
    auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
          mTable,
+         message->mAllObjects,
          message->mDeltaTime,
          message->mNxGlobal,
          message->mNyGlobal,

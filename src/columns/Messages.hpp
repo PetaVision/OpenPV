@@ -26,6 +26,7 @@ class CommunicateInitInfoMessage : public BaseMessage {
   public:
    CommunicateInitInfoMessage(
          ObserverTable const *hierarchy,
+         ObserverTable const *allObjects,
          double deltaTime,
          int nxGlobal,
          int nyGlobal,
@@ -33,6 +34,7 @@ class CommunicateInitInfoMessage : public BaseMessage {
          int numThreads) {
       setMessageType("CommunicateInitInfo");
       mHierarchy    = hierarchy;
+      mAllObjects   = allObjects;
       mDeltaTime    = deltaTime;
       mNxGlobal     = nxGlobal;
       mNyGlobal     = nyGlobal;
@@ -41,6 +43,7 @@ class CommunicateInitInfoMessage : public BaseMessage {
    }
    // For lookup, use the ObserverTable function members.
    ObserverTable const *mHierarchy;
+   ObserverTable const *mAllObjects;
    double mDeltaTime;
    int mNxGlobal;
    int mNyGlobal;

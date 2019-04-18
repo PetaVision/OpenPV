@@ -555,7 +555,7 @@ int HyPerCol::setNumThreads() {
    return threadStatus;
 }
 
-void expandRecursive(ObserverTable *allObjects, ObserverTable const *table) {
+void HyPerCol::expandRecursive(ObserverTable *allObjects, ObserverTable const *table) {
    for (auto iterator = table->begin(); iterator != table->end(); iterator++) {
       auto *obs = *iterator;
       allObjects->addObject(obs->getDescription(), obs);
@@ -567,14 +567,25 @@ void expandRecursive(ObserverTable *allObjects, ObserverTable const *table) {
    }
 }
 
-int HyPerCol::processParams(char const *path) {
+ObserverTable HyPerCol::getAllObjectsFlat() {
    auto allObjects = ObserverTable("All objects");
    expandRecursive(&allObjects, mTable);
+   return allObjects;
+}
+
+int HyPerCol::processParams(char const *path) {
+   auto allObjects = getAllObjectsFlat();
 
    if (!mParamsProcessedFlag) {
       notifyLoop(
             std::make_shared<CommunicateInitInfoMessage>(
-                  mTable, mDeltaTime, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
+                  mTable,
+                  &allObjects,
+                  mDeltaTime,
+                  mNumXGlobal,
+                  mNumYGlobal,
+                  mNumBatchGlobal,
+                  mNumThreads));
    }
 
    // Print a cleaned up version of params to the file given by printParamsFilename

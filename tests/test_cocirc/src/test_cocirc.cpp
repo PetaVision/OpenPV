@@ -70,9 +70,11 @@ int main(int argc, char *argv[]) {
    ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
    auto *observerTable = hc->getTable();
+   auto allObjects     = hc->getAllObjectsFlat();
 
    auto communicateMessagePtr = std::make_shared<CommunicateInitInfoMessage>(
          observerTable,
+         &allObjects,
          hc->getDeltaTime(),
          hc->getNxGlobal(),
          hc->getNyGlobal(),
