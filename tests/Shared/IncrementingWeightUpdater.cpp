@@ -6,21 +6,16 @@
  */
 
 #include "IncrementingWeightUpdater.hpp"
+#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
-IncrementingWeightUpdater::IncrementingWeightUpdater(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
+IncrementingWeightUpdater::IncrementingWeightUpdater(char const *name, HyPerCol *hc) {
+   initialize(name, hc);
 }
 
-void IncrementingWeightUpdater::initialize(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   HebbianUpdater::initialize(name, params, comm);
+int IncrementingWeightUpdater::initialize(char const *name, HyPerCol *hc) {
+   return HebbianUpdater::initialize(name, hc);
 }
 
 int IncrementingWeightUpdater::updateWeights(int arborId) {
@@ -30,9 +25,7 @@ int IncrementingWeightUpdater::updateWeights(int arborId) {
       float *Wdata  = mWeights->getDataFromDataIndex(arborId, patchIndex);
       float *dWdata = mDeltaWeights->getDataFromDataIndex(arborId, patchIndex);
       for (int k = 0; k < nPatch; k++) {
-         float const dw = 1.0f;
-         dWdata[k]      = dw;
-         Wdata[k] += dw;
+         Wdata[k] += 1.0f;
       }
    }
    return PV_SUCCESS;

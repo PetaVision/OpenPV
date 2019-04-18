@@ -1,5 +1,6 @@
 /*
  * RescaleLayer.cpp
+ * Rescale layer is a cloneVLayer, grabs activity from orig layer and rescales it
  */
 
 #ifndef RESCALELAYER_HPP_
@@ -9,23 +10,48 @@
 
 namespace PV {
 
-/**
- * Rescale uses the activity of a different layer and rescales it according to one of
- * several methods.
- */
+// CloneLayer can be used to implement Sigmoid junctions between spiking neurons
 class RescaleLayer : public CloneVLayer {
-   // Derived from CloneVLayer for OriginalLayerNameParam and the lack of LayerInput,
-   // but its ActivityComponent will not have an InternalStateBuffer.
   public:
-   RescaleLayer(const char *name, PVParams *params, Communicator const *comm);
+   RescaleLayer(const char *name, HyPerCol *hc);
    virtual ~RescaleLayer();
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual void allocateV() override;
+   virtual Response::Status updateState(double timef, double dt) override;
+   virtual int setActivity() override;
+
+   float getTargetMax() { return targetMax; }
+   float getTargetMin() { return targetMin; }
+   float getTargetMean() { return targetMean; }
+   float getTargetStd() { return targetStd; }
+   float getL2PatchSize() { return patchSize; }
+   char const *getRescaleMethod() { return rescaleMethod; }
 
   protected:
    RescaleLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual ActivityComponent *createActivityComponent() override;
+   int initialize(const char *name, HyPerCol *hc);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   void ioParam_targetMax(enum ParamsIOFlag ioFlag);
+   void ioParam_targetMin(enum ParamsIOFlag ioFlag);
+   void ioParam_targetMean(enum ParamsIOFlag ioFlag);
+   void ioParam_targetStd(enum ParamsIOFlag ioFlag);
+   void ioParam_rescaleMethod(enum ParamsIOFlag ioFlag);
+   void ioParam_patchSize(enum ParamsIOFlag ioFlag);
+
+  private:
+   int initialize_base();
+
+  protected:
+   float targetMax;
+   float targetMin;
+   float targetMean;
+   float targetStd;
+   char *rescaleMethod; // can be either maxmin or meanstd
+   int patchSize;
 }; // class RescaleLayer
 
 } // namespace PV
 
-#endif /* RESCALELAYER_HPP_ */
+#endif /* CLONELAYER_HPP_ */

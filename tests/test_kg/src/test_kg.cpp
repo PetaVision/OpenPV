@@ -2,16 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <utils/PVLog.hpp>
-#include <utils/conversions.hpp>
-
-using PV::kxPos;
-using PV::kyPos;
-using PV::featureIndex;
-using PV::kIndex;
+#include <utils/conversions.h>
 
 //
-// A replacement for globalIndexFromLocal from conversions.hpp.
-// WARNING - any changes in conversions.hpp should be reflected here.
+// A replacement for globalIndexFromLocal from conversions.h.
+// WARNING - any changes in conversions.h should be reflected here.
 static inline int globalIndexFromLocal_nompi(int kl, PVLayerLoc loc) {
    int kxg = loc.kx0 + kxPos(kl, loc.nx, loc.ny, loc.nf);
    int kyg = loc.ky0 + kyPos(kl, loc.nx, loc.ny, loc.nf);

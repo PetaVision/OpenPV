@@ -6,38 +6,34 @@
  */
 
 #include "IdentConn.hpp"
-#include "columns/Factory.hpp"
 #include "delivery/IdentDelivery.hpp"
 
 namespace PV {
 
 IdentConn::IdentConn() {}
 
-IdentConn::IdentConn(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+IdentConn::IdentConn(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-void IdentConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   BaseConnection::initialize(name, params, comm);
+int IdentConn::initialize(const char *name, HyPerCol *hc) {
+   int status = BaseConnection::initialize(name, hc);
+   return status;
 }
 
 BaseDelivery *IdentConn::createDeliveryObject() {
-   BaseObject *baseObject        = Factory::instance()->createByKeyword("IdentDelivery", this);
+   BaseObject *baseObject = Factory::instance()->createByKeyword("IdentDelivery", name, parent);
    IdentDelivery *deliveryObject = dynamic_cast<IdentDelivery *>(baseObject);
-   pvAssert(deliveryObject); // IdentDelivery is a core keyword.
+   pvAssert(deliveryObject);
    return deliveryObject;
 }
 
-void IdentConn::fillComponentTable() {
-   BaseConnection::fillComponentTable();
+void IdentConn::defineComponents() {
+   BaseConnection::defineComponents();
    mSingleArbor = createSingleArbor();
    if (mSingleArbor) {
-      addUniqueComponent(mSingleArbor->getDescription(), mSingleArbor);
+      addObserver(mSingleArbor);
    }
 }
 
-SingleArbor *IdentConn::createSingleArbor() {
-   return new SingleArbor(name, parameters(), mCommunicator);
-}
+SingleArbor *IdentConn::createSingleArbor() { return new SingleArbor(name, parent); }
 
 } // end of namespace PV block

@@ -7,13 +7,14 @@ namespace PV {
 
 class ImportParamsLayer : public PV::ANNLayer {
   public:
-   ImportParamsLayer(const char *name, PVParams *params, Communicator const *comm);
+   ImportParamsLayer(const char *name, HyPerCol *hc);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
 
   private:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
+   int initialize_base();
 };
 
 } /* namespace PV */

@@ -5,18 +5,18 @@
 
 #ifndef GPUSYSTEMTESTPROBE_HPP_
 #define GPUSYSTEMTESTPROBE_HPP_
-#include "probes/RequireAllZeroActivityProbe.hpp"
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 
-class GPUSystemTestProbe : public PV::RequireAllZeroActivityProbe {
+class GPUSystemTestProbe : public PV::StatsProbe {
   public:
-   GPUSystemTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   GPUSystemTestProbe(const char *name, HyPerCol *hc);
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
    void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   private:

@@ -10,7 +10,7 @@
 #include <omp.h>
 #endif
 #include "Arguments.hpp"
-#include "include/pv_common.h"
+#include "io/io.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include <istream>

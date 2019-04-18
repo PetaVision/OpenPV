@@ -6,14 +6,14 @@
  */
 
 #include "PostsynapticPerspectiveStochasticDelivery.hpp"
+#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
 PostsynapticPerspectiveStochasticDelivery::PostsynapticPerspectiveStochasticDelivery(
       char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
+      HyPerCol *hc) {
+   initialize(name, hc);
 }
 
 PostsynapticPerspectiveStochasticDelivery::PostsynapticPerspectiveStochasticDelivery() {}
@@ -22,16 +22,21 @@ PostsynapticPerspectiveStochasticDelivery::~PostsynapticPerspectiveStochasticDel
    delete mRandState;
 }
 
-void PostsynapticPerspectiveStochasticDelivery::initialize(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   mReceiveGpu = false; // If it's true, we should be using a different class.
-   BaseObject::initialize(name, params, comm);
+int PostsynapticPerspectiveStochasticDelivery::initialize(char const *name, HyPerCol *hc) {
+   return BaseObject::initialize(name, hc);
 }
 
 void PostsynapticPerspectiveStochasticDelivery::setObjectType() {
    mObjectType = "PostsynapticPerspectiveStochasticDelivery";
+}
+
+int PostsynapticPerspectiveStochasticDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerDelivery::ioParamsFillGroup(ioFlag);
+   return status;
+}
+
+void PostsynapticPerspectiveStochasticDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
+   mReceiveGpu = false; // If it's true, we should be using a different class.
 }
 
 Response::Status PostsynapticPerspectiveStochasticDelivery::communicateInitInfo(
@@ -54,37 +59,28 @@ Response::Status PostsynapticPerspectiveStochasticDelivery::allocateDataStructur
    if (!Response::completed(status)) {
       return status;
    }
-   mRandState = new Random(mPostGSyn->getLayerLoc(), false /*restricted, not extended*/);
+   mRandState = new Random(mPostLayer->getLayerLoc(), false /*restricted, not extended*/);
    return Response::SUCCESS;
 }
 
-Response::Status PostsynapticPerspectiveStochasticDelivery::initializeState(
-      std::shared_ptr<InitializeStateMessage const> message) {
-   auto status = HyPerDelivery::allocateDataStructures();
-   if (!Response::completed(status)) {
-      return status;
-   }
-   mDeltaTimeFactor = (float)message->mDeltaTime;
-   return Response::SUCCESS;
-}
-
-void PostsynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
+void PostsynapticPerspectiveStochasticDelivery::deliver() {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
-   pvAssert(destBuffer);
+   float *postChannel = mPostLayer->getChannel(getChannelCode());
+   pvAssert(postChannel);
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
       int delay                = mArborList->getDelay(arbor);
-      PVLayerCube activityCube = mPreData->getPublisher()->createCube(delay);
+      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       // Get number of neurons restricted target
-      const int numPostRestricted = mPostGSyn->getBufferSize();
+      const int numPostRestricted = mPostLayer->getNumNeurons();
 
-      const PVLayerLoc *sourceLoc = mPreData->getLayerLoc();
-      const PVLayerLoc *targetLoc = mPostGSyn->getLayerLoc();
+      const PVLayerLoc *sourceLoc = mPreLayer->getLayerLoc();
+      const PVLayerLoc *targetLoc = mPostLayer->getLayerLoc();
 
       const int sourceNx = sourceLoc->nx;
       const int sourceNy = sourceLoc->ny;
@@ -101,7 +97,7 @@ void PostsynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
       int sy = (sourceNx + sourceHalo->lt + sourceHalo->rt) * sourceNf;
 
       // The start of the gsyn buffer
-      float *gSynPatchHead = destBuffer;
+      float *gSynPatchHead = mPostLayer->getChannel(getChannelCode());
 
       // Get source layer's patch y stride
       Weights *postWeights  = mWeightsPair->getPostWeights();
@@ -115,8 +111,8 @@ void PostsynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
          int sourceNyExt       = sourceNy + sourceHalo->dn + sourceHalo->up;
          int sourceNumExtended = sourceNxExt * sourceNyExt * sourceNf;
 
-         float const *activityBatch = activityCube.data + b * sourceNumExtended;
-         float *gSynPatchHeadBatch  = gSynPatchHead + b * numPostRestricted;
+         float *activityBatch      = activityCube.data + b * sourceNumExtended;
+         float *gSynPatchHeadBatch = gSynPatchHead + b * numPostRestricted;
 
          // Iterate over each line in the y axis, the goal is to keep weights in the cache
          for (int ky = 0; ky < yPatchSize; ky++) {
@@ -140,7 +136,7 @@ void PostsynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
                         targetHalo->dn,
                         targetHalo->up);
                   int startSourceExt = postWeights->getGeometry()->getUnshrunkenStart(idxExtended);
-                  float const *a     = activityBatch + startSourceExt + ky * sy;
+                  float *a           = activityBatch + startSourceExt + ky * sy;
 
                   int kTargetExt = kIndexExtended(
                         idx,
@@ -166,13 +162,17 @@ void PostsynapticPerspectiveStochasticDelivery::deliver(float *destBuffer) {
          }
       }
    }
+#ifdef PV_USE_CUDA
+   // CPU updated GSyn, now need to update GSyn on GPU
+   mPostLayer->setUpdatedDeviceGSynFlag(true);
+#endif // PV_USE_CUDA
 }
 
 void PostsynapticPerspectiveStochasticDelivery::deliverUnitInput(float *recvBuffer) {
    // Get number of neurons restricted target
-   const int numPostRestricted = mPostGSyn->getBufferSize();
+   const int numPostRestricted = mPostLayer->getNumNeurons();
 
-   const PVLayerLoc *targetLoc = mPostGSyn->getLayerLoc();
+   const PVLayerLoc *targetLoc = mPostLayer->getLayerLoc();
 
    const int targetNx = targetLoc->nx;
    const int targetNy = targetLoc->ny;

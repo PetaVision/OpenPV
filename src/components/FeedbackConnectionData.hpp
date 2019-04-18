@@ -37,13 +37,13 @@ class FeedbackConnectionData : public ConnectionData {
    /** @} */ // end of FeedbackConnectionData parameters
 
   public:
-   FeedbackConnectionData(char const *name, PVParams *params, Communicator const *comm);
+   FeedbackConnectionData(char const *name, HyPerCol *hc);
    virtual ~FeedbackConnectionData();
 
   protected:
    FeedbackConnectionData();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 

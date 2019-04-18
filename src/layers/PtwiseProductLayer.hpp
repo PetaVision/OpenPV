@@ -17,25 +17,29 @@
 
 namespace PV {
 
-/**
- * The output V is the pointwise product of GSynExc and GSynInh
- *
- * "Exc" and "Inh" are really misnomers for this class, but the
- * terminology is inherited from the base class.
- *
- * The activity buffer is an ANNActivityBuffer.
- */
-class PtwiseProductLayer : public HyPerLayer {
+class PtwiseProductLayer : public ANNLayer {
   public:
-   PtwiseProductLayer(const char *name, PVParams *params, Communicator const *comm);
+   PtwiseProductLayer(const char *name, HyPerCol *hc);
    virtual ~PtwiseProductLayer();
 
    virtual Response::Status allocateDataStructures() override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
   protected:
    PtwiseProductLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   ActivityComponent *createActivityComponent() override;
+   int initialize(const char *name, HyPerCol *hc);
+
+   int updateState(
+         double timef,
+         double dt,
+         const PVLayerLoc *loc,
+         float *A,
+         float *V,
+         int num_channels,
+         float *gSynHead);
+
+  private:
+   int initialize_base();
 }; // end class PtwiseProductLayer
 
 } // end namespace PV

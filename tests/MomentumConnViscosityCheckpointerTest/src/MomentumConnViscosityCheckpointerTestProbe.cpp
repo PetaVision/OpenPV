@@ -6,38 +6,35 @@
  */
 
 #include "MomentumConnViscosityCheckpointerTestProbe.hpp"
-#include "components/ArborList.hpp"
-#include "components/InputActivityBuffer.hpp"
-#include "components/PatchSize.hpp"
-#include "components/SharedWeights.hpp"
-#include "components/WeightsPair.hpp"
-#include "weightupdaters/MomentumUpdater.hpp"
 #include <cmath>
 #include <utils/BufferUtilsMPI.hpp>
 
-MomentumConnViscosityCheckpointerTestProbe::MomentumConnViscosityCheckpointerTestProbe() {}
+MomentumConnViscosityCheckpointerTestProbe::MomentumConnViscosityCheckpointerTestProbe() {
+   initialize_base();
+}
 
 MomentumConnViscosityCheckpointerTestProbe::MomentumConnViscosityCheckpointerTestProbe(
       const char *name,
-      PV::PVParams *params,
-      PV::Communicator const *comm) {
-   initialize(name, params, comm);
+      PV::HyPerCol *hc) {
+   initialize_base();
+   initialize(name, hc);
 }
 
 MomentumConnViscosityCheckpointerTestProbe::~MomentumConnViscosityCheckpointerTestProbe() {}
 
-void MomentumConnViscosityCheckpointerTestProbe::initialize(
-      const char *name,
-      PV::PVParams *params,
-      PV::Communicator const *comm) {
-   return PV::ColProbe::initialize(name, params, comm);
+int MomentumConnViscosityCheckpointerTestProbe::initialize_base() { return PV_SUCCESS; }
+
+int MomentumConnViscosityCheckpointerTestProbe::initialize(const char *name, PV::HyPerCol *hc) {
+   int status = PV::ColProbe::initialize(name, hc);
+   FatalIf(parent->getDeltaTime() != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
+   return status;
 }
 
 void MomentumConnViscosityCheckpointerTestProbe::ioParam_textOutputFlag(
       enum PV::ParamsIOFlag ioFlag) {
    ColProbe::ioParam_textOutputFlag(ioFlag);
    if (ioFlag == PV::PARAMS_IO_READ && !getTextOutputFlag()) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog() << getDescription() << ": MomentumConnViscosityCheckpointerTestProbe requires "
                                            "textOutputFlag to be set to true.\n";
       }
@@ -51,121 +48,70 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::communicateInit
       return status;
    }
 
-   auto *componentTable = message->mHierarchy;
-
-   status = mConnection ? status : status + initConnection(componentTable);
-   // initConnection sets InitializeFromCheckpointFlag, and init{In,Out}PutLayer checks
-   // against that value, so we have to complete initConnection successively before
-   // calling initInputLayer or initOutputLayer.
-   if (!PV::Response::completed(status)) {
-      return status;
-   }
-   status = mInputPublisher ? status : status + initInputLayer(componentTable);
-   status = mOutputPublisher ? status : status + initOutputLayer(componentTable);
-
+   status = status + initInputLayer(message);
+   status = status + initOutputLayer(message);
+   status = status + initConnection(message);
    return status;
 }
 
-PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initConnection(
-      PV::ObserverTable const *componentTable) {
-   auto *connection =
-         componentTable->lookupByName<PV::ComponentBasedObject>(std::string("InputToOutput"));
-   FatalIf(connection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
-   if (checkCommunicatedFlag(connection) == PV::Response::POSTPONE) {
-      return PV::Response::POSTPONE;
-   }
-   mConnection = connection;
-
-   auto *arborList = mConnection->getComponentByType<PV::ArborList>();
-   FatalIf(
-         arborList == nullptr, "%s does not have an ArborList.\n", mConnection->getDescription_c());
-   FatalIf(
-         arborList->getNumAxonalArbors() != 1,
-         "This test assumes that the connection has only 1 arbor.\n");
-   FatalIf(
-         arborList->getDelay(0) != 0.0, "This test assumes that the connection has zero delay.\n");
-
-   auto *sharedWeights = mConnection->getComponentByType<PV::SharedWeights>();
-   FatalIf(
-         sharedWeights == nullptr,
-         "%s does not have a SharedWeights component.\n",
-         mConnection->getDescription_c());
-   FatalIf(
-         !sharedWeights->getSharedWeights(),
-         "This test assumes that the connection is using shared weights.\n");
-
-   auto *patchSize = mConnection->getComponentByType<PV::PatchSize>();
-   FatalIf(
-         patchSize == nullptr,
-         "%s does not have a PatchSize component.\n",
-         mConnection->getDescription_c());
-   FatalIf(patchSize->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
-   FatalIf(patchSize->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
-   FatalIf(patchSize->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
-
-   auto *momentumUpdater = mConnection->getComponentByType<PV::MomentumUpdater>();
-   FatalIf(
-         momentumUpdater == nullptr,
-         "%s does not have a momentumUpdater.\n",
-         mConnection->getDescription_c());
-   FatalIf(
-         std::strcmp(momentumUpdater->getMomentumMethod(), "viscosity"),
-         "This test assumes that the connection has momentumMethod=\"viscosity\".\n");
-   mInitializeFromCheckpointFlag = mConnection->getInitializeFromCheckpointFlag();
-   return PV::Response::SUCCESS;
-}
-
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initInputLayer(
-      PV::ObserverTable const *componentTable) {
-   auto *inputLayer = componentTable->lookupByName<PV::InputLayer>(std::string("Input"));
-   FatalIf(inputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
-   if (checkCommunicatedFlag(inputLayer) == PV::Response::POSTPONE) {
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
+   mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
+   FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
+   if (checkCommunicatedFlag(mInputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
-   FatalIf(
-         inputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
-         "%s has a different initializeFromCheckpointFlag value from the probe %s.\n",
-         inputLayer->getDescription_c(),
-         getDescription_c());
 
-   auto *activityComponent = inputLayer->getComponentByType<PV::ActivityComponent>();
-   auto *inputBuffer       = activityComponent->getComponentByType<PV::InputActivityBuffer>();
    FatalIf(
-         inputBuffer->getDisplayPeriod() != 4.0,
+         mInputLayer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
-
-   mInputPublisher = inputLayer->getComponentByType<PV::BasePublisherComponent>();
-   FatalIf(
-         mInputPublisher == nullptr,
-         "%s does not have a BasePublisherComponent.\n",
-         inputLayer->getDescription_c());
    return PV::Response::SUCCESS;
 }
 
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initOutputLayer(
-      PV::ObserverTable const *componentTable) {
-   auto *outputLayer = componentTable->lookupByName<PV::HyPerLayer>(std::string("Output"));
-   FatalIf(outputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
-   if (checkCommunicatedFlag(outputLayer) == PV::Response::POSTPONE) {
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
+   mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
+   FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
+   if (checkCommunicatedFlag(mOutputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
+   return PV::Response::SUCCESS;
+}
+
+PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initConnection(
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
+   mConnection = message->lookup<PV::MomentumConn>(std::string("InputToOutput"));
    FatalIf(
-         outputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
-         "%s has a different initializeFromCheckpointFlag value from the probe %s.\n",
-         outputLayer->getDescription_c(),
-         getDescription_c());
-   mOutputPublisher = outputLayer->getComponentByType<PV::BasePublisherComponent>();
+         mConnection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
+   if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
+
    FatalIf(
-         mOutputPublisher == nullptr,
-         "%s does not have a BasePublisherComponent.\n",
-         outputLayer->getDescription_c());
+         mConnection->getNumAxonalArbors() != 1,
+         "This test assumes that the connection has only 1 arbor.\n");
+   FatalIf(
+         mConnection->getDelay(0) != 0.0,
+         "This test assumes that the connection has zero delay.\n");
+   FatalIf(
+         !mConnection->getSharedWeights(),
+         "This test assumes that the connection is using shared weights.\n");
+   FatalIf(
+         mConnection->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
+   FatalIf(
+         mConnection->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
+   FatalIf(
+         mConnection->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
+   FatalIf(
+         std::strcmp(mConnection->getMomentumMethod(), "viscosity"),
+         "This test assumes that the connection has momentumMethod=\"viscosity\".\n");
    return PV::Response::SUCCESS;
 }
 
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::checkCommunicatedFlag(
       PV::BaseObject *dependencyObject) {
    if (!dependencyObject->getInitInfoCommunicatedFlag()) {
-      if (mCommunicator->commRank() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          InfoLog().printf(
                "%s must wait until \"%s\" has finished its communicateInitInfo stage.\n",
                getDescription_c(),
@@ -178,18 +124,12 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::checkCommunicat
    }
 }
 
-PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::initializeState(
-      std::shared_ptr<PV::InitializeStateMessage const> message) {
-   FatalIf(message->mDeltaTime != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
-   return PV::Response::SUCCESS;
-}
-
 PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::readStateFromCheckpoint(
       PV::Checkpointer *checkpointer) {
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
-         mCommunicator->getLocalMPIBlock(),
+         parent->getCommunicator()->getLocalMPIBlock(),
          &timeInfo,
          (size_t)1,
          true /*broadcast*/);
@@ -201,33 +141,39 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::readStateFromCh
    return PV::Response::SUCCESS;
 }
 
-void MomentumConnViscosityCheckpointerTestProbe::initializeCorrectValues() {
-   auto *momentumUpdater = mConnection->getComponentByType<PV::MomentumUpdater>();
-   float const tau       = momentumUpdater->getTimeConstantTau();
-   float const tau_exp   = std::exp(-1.0f / tau);
+void MomentumConnViscosityCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
+   int const updateNumber = mStartingTimestamp + timevalue;
+   float const tau        = mConnection->getTimeConstantTau();
+   float const tau_exp    = std::exp(-1.0f / tau);
    mCorrectState =
          new CorrectState(tau_exp, 1.0f /*weight*/, 0.0f /*dw*/, 1.0f /*input*/, 1.0f /*output*/);
 }
 
-PV::Response::Status
-MomentumConnViscosityCheckpointerTestProbe::outputState(double simTime, double deltaTime) {
+PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::outputState(double timevalue) {
    if (!mValuesSet) {
-      initializeCorrectValues();
+      initializeCorrectValues(timevalue);
       mValuesSet = true;
    }
-   int const updateNumber = mStartingTimestamp + simTime;
+   int const updateNumber = mStartingTimestamp + timevalue;
    while (updateNumber > mCorrectState->getTimestamp()) {
       mCorrectState->update();
    }
 
    bool failed = false;
 
-   failed |= verifyConnection(mConnection, mCorrectState, simTime);
-   failed |= verifyLayer(mInputPublisher, mCorrectState->getCorrectInput(), simTime);
-   failed |= verifyLayer(mOutputPublisher, mCorrectState->getCorrectOutput(), simTime);
+   failed |= verifyConnection(mConnection, mCorrectState, timevalue);
+   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInput(), timevalue);
+   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutput(), timevalue);
+   InfoLog().printf(
+         "t=%f, input=%f, output=%f, W=%f, dW=%f\n",
+         timevalue,
+         (double)mInputLayer->getLayerData(0)[0],
+         (double)mOutputLayer->getLayerData(0)[0],
+         (double)mConnection->getWeightsDataHead(0, 0)[0],
+         (double)mConnection->getDeltaWeightsDataHead(0, 0)[0]);
 
    if (failed) {
-      std::string errorMsg(getDescription() + " failed at t = " + std::to_string(simTime) + "\n");
+      std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timevalue) + "\n");
       if (!mOutputStreams.empty()) {
          output(0).printf(errorMsg.c_str());
       }
@@ -238,7 +184,8 @@ MomentumConnViscosityCheckpointerTestProbe::outputState(double simTime, double d
    }
    else {
       if (!mOutputStreams.empty()) {
-         output(0).printf("%s found all correct values at time %f\n", getDescription_c(), simTime);
+         output(0).printf(
+               "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }
    // Test runs all timesteps and then checks the mTestFailed flag at the end.
@@ -246,20 +193,17 @@ MomentumConnViscosityCheckpointerTestProbe::outputState(double simTime, double d
 }
 
 bool MomentumConnViscosityCheckpointerTestProbe::verifyConnection(
-      PV::ComponentBasedObject *connection,
+      PV::MomentumConn *connection,
       CorrectState const *correctState,
       double timevalue) {
    bool failed = false;
 
-   if (mCommunicator->commRank() == 0 and correctState->doesWeightUpdate(timevalue)) {
-      auto *weightsPair         = connection->getComponentByType<PV::WeightsPair>();
-      float observedWeightValue = weightsPair->getPreWeights()->getData(0)[0];
+   if (parent->getCommunicator()->commRank() == 0 and correctState->doesWeightUpdate(timevalue)) {
+      float observedWeightValue = connection->getWeightsDataStart(0)[0];
       float correctWeightValue  = correctState->getCorrectWeight();
       failed |= verifyConnValue(timevalue, observedWeightValue, correctWeightValue, "weight");
 
-      auto *updater = connection->getComponentByType<PV::MomentumUpdater>();
-      pvAssert(updater);
-      float observed_dwValue = updater->getDeltaWeightsDataStart(0)[0];
+      float observed_dwValue = connection->getDeltaWeightsDataStart(0)[0];
       float correct_dwValue  = correctState->getCorrect_dw();
       failed |= verifyConnValue(timevalue, observed_dwValue, correct_dwValue, "dw");
    }
@@ -272,7 +216,7 @@ bool MomentumConnViscosityCheckpointerTestProbe::verifyConnValue(
       float correct,
       char const *valueDescription) {
    FatalIf(
-         mCommunicator->commRank() != 0,
+         parent->getCommunicator()->commRank() != 0,
          "%s called verifyConnValue from nonroot process.\n",
          getDescription_c());
    FatalIf(
@@ -296,7 +240,7 @@ bool MomentumConnViscosityCheckpointerTestProbe::verifyConnValue(
 }
 
 bool MomentumConnViscosityCheckpointerTestProbe::verifyLayer(
-      PV::BasePublisherComponent *layer,
+      PV::HyPerLayer *layer,
       float correctValue,
       double timevalue) {
    bool failed = false;
@@ -306,7 +250,7 @@ bool MomentumConnViscosityCheckpointerTestProbe::verifyLayer(
    int const inputNxExt       = inputLoc->nx + inputHalo->lt + inputHalo->rt;
    int const inputNyExt       = inputLoc->ny + inputHalo->dn + inputHalo->up;
    PV::Buffer<float> localBuffer(layer->getLayerData(0), inputNxExt, inputNyExt, inputLoc->nf);
-   PV::Communicator const *comm   = mCommunicator;
+   PV::Communicator *comm         = parent->getCommunicator();
    PV::Buffer<float> globalBuffer = PV::BufferUtils::gather(
          comm->getLocalMPIBlock(), localBuffer, inputLoc->nx, inputLoc->ny, 0, 0);
    if (comm->commRank() == 0) {

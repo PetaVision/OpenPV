@@ -6,14 +6,13 @@
  */
 
 #include "L1NormLCAProbe.hpp"
-#include "components/ANNActivityBuffer.hpp"
-#include "layers/HyPerLCALayer.hpp"
+#include "../layers/HyPerLCALayer.hpp"
 
 namespace PV {
 
-L1NormLCAProbe::L1NormLCAProbe(const char *name, PVParams *params, Communicator const *comm) {
+L1NormLCAProbe::L1NormLCAProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 L1NormLCAProbe::L1NormLCAProbe() { initialize_base(); }
@@ -25,26 +24,30 @@ L1NormLCAProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       return status;
    }
    assert(targetLayer);
-   auto *activityComponent = targetLayer->getComponentByType<ActivityComponent>();
-   FatalIf(
-         activityComponent == nullptr,
-         "%s: targetLayer \"%s\" does not have an activity component.\n",
-         getDescription_c(),
-         getTargetName());
-   ANNActivityBuffer *activityBuffer = activityComponent->getComponentByType<ANNActivityBuffer>();
-   FatalIf(
-         activityBuffer == nullptr,
-         "%s: targetLayer \"%s\" does not have an ANNActivityBuffer component.\n",
-         getDescription_c(),
-         getTargetName());
-
-   FatalIf(
-         activityBuffer->usingVerticesListInParams() == true,
-         "%s: LCAProbes require targetLayer \"%s\" to use VThresh etc. "
-         "instead of verticesV/verticesV.\n",
-         getDescription_c(),
-         getTargetName());
-   coefficient = activityBuffer->getVThresh();
+   HyPerLCALayer *targetLCALayer = dynamic_cast<HyPerLCALayer *>(targetLayer);
+   if (targetLCALayer == NULL) {
+      if (parent->columnId() == 0) {
+         ErrorLog().printf(
+               "%s: targetLayer \"%s\" is not an LCA layer.\n",
+               getDescription_c(),
+               getTargetName());
+      }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   if (targetLCALayer->layerListsVerticesInParams() == true) {
+      if (parent->columnId() == 0) {
+         ErrorLog().printf(
+               "%s: LCAProbes require targetLayer \"%s\" to use "
+               "VThresh etc. instead of "
+               "verticesV/verticesV.\n",
+               getDescription_c(),
+               getTargetName());
+      }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   coefficient = targetLCALayer->getVThresh();
    return Response::SUCCESS;
 }
 

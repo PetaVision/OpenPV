@@ -1,24 +1,26 @@
-#ifndef PVPLAYER_HPP__
-#define PVPLAYER_HPP__
+#ifndef __PVPLAYER_HPP__
+#define __PVPLAYER_HPP__
 
 #include "InputLayer.hpp"
+#include "utils/BufferUtilsPvp.hpp"
 
 namespace PV {
 
 class PvpLayer : public InputLayer {
 
-  public:
-   PvpLayer(char const *name, PVParams *params, Communicator const *comm);
-   virtual ~PvpLayer();
-
   protected:
    PvpLayer() {}
+   virtual int countInputImages() override;
+   virtual Buffer<float> retrieveData(int inputIndex) override;
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+  public:
+   PvpLayer(const char *name, HyPerCol *hc);
+   virtual ~PvpLayer();
+   virtual Response::Status allocateDataStructures() override;
 
-   virtual ActivityComponent *createActivityComponent() override;
+  private:
+   struct BufferUtils::SparseFileTable sparseTable;
 };
+}
 
-} // end namespace PV
-
-#endif // PVPLAYER_HPP__
+#endif

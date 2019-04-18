@@ -6,7 +6,6 @@
  */
 
 #include "ShrunkenPatchTestProbe.hpp"
-#include <components/BasePublisherComponent.hpp>
 #include <include/pv_arch.h>
 #include <io/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
@@ -20,23 +19,17 @@ namespace PV {
  * @type
  * @msg
  */
-ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm)
-      : StatsProbe() {
+ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 int ShrunkenPatchTestProbe::initialize_base() { return PV_SUCCESS; }
 
-void ShrunkenPatchTestProbe::initialize(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
+int ShrunkenPatchTestProbe::initialize(const char *name, HyPerCol *hc) {
    correctValues = NULL;
-   StatsProbe::initialize(name, params, comm);
+   int status    = StatsProbe::initialize(name, hc);
+   return status;
 }
 
 int ShrunkenPatchTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -49,12 +42,12 @@ int ShrunkenPatchTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ShrunkenPatchTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 void ShrunkenPatchTestProbe::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "nxpShrunken", &nxpShrunken);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "nxpShrunken", &nxpShrunken);
    return;
 }
 
 void ShrunkenPatchTestProbe::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "nypShrunken", &nypShrunken);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "nypShrunken", &nypShrunken);
    return;
 }
 
@@ -62,7 +55,7 @@ void ShrunkenPatchTestProbe::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
  * @time
  * @l
  */
-Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double deltaTime) {
+Response::Status ShrunkenPatchTestProbe::outputState(double timed) {
    HyPerLayer *l         = getTargetLayer();
    const PVLayerLoc *loc = l->getLayerLoc();
    int num_neurons       = l->getNumNeurons();
@@ -89,7 +82,7 @@ Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double delt
       int nx        = loc->nx;
       correctValues = (float *)malloc((size_t)nx * sizeof(float));
 
-      int xScaleLog2 = getTargetLayer()->getComponentByType<LayerGeometry>()->getXScale();
+      int xScaleLog2 = getTargetLayer()->getCLayer()->xScale;
 
       if (xScaleLog2 >= 0) {
          Fatal().printf(
@@ -125,16 +118,15 @@ Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double delt
    }
    FatalIf(!(correctValues != NULL), "Test failed.\n");
 
-   auto status = StatsProbe::outputState(simTime, deltaTime);
+   auto status = StatsProbe::outputState(timed);
    if (!Response::completed(status)) {
       return status;
    }
    float tol = 1e-4f;
 
-   float const *buf =
-         getTargetLayer()->getComponentByType<BasePublisherComponent>()->getLayerData();
+   const float *buf = getTargetLayer()->getLayerData();
 
-   if (simTime >= 3.0) {
+   if (timed >= 3.0) {
       for (int k = 0; k < num_neurons; k++) {
          int kex = kIndexExtended(
                k,
@@ -154,7 +146,7 @@ Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double delt
                   l->getDescription_c(),
                   (double)buf[kex],
                   (double)correctValues[x],
-                  mCommunicator->globalCommRank(),
+                  parent->columnId(),
                   x,
                   y,
                   f);

@@ -83,6 +83,7 @@ PoolingConn "input2avgPoolPre" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 

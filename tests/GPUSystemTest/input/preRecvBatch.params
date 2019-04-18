@@ -148,6 +148,7 @@ HyPerConn "conn" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
 
 
     updateGSynFromPostPerspective = false;
@@ -167,6 +168,7 @@ CloneConn "gpuconn" = {
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
+    convertRateToSpikeCount = false;
 
     delay = 0;
     
@@ -194,9 +196,6 @@ IdentConn "RecvTest" = {
 GPUSystemTestProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
-   nnzThreshold = 5.0e-4;
-   exitOnFailure = true;
-   immediateExitOnFailure = false;
 };
 
 

@@ -15,17 +15,13 @@ namespace PV {
 
 class TransposeWeights {
   public:
-   static void transpose(Weights *preWeights, Weights *postWeights, Communicator const *comm);
-   static void
-   transpose(Weights *preWeights, Weights *postWeights, Communicator const *comm, int arbor);
+   static void transpose(Weights *preWeights, Weights *postWeights, Communicator *comm);
+   static void transpose(Weights *preWeights, Weights *postWeights, Communicator *comm, int arbor);
 
   private:
    static void transposeShared(Weights *preWeights, Weights *postWeights, int arbor);
-   static void transposeNonshared(
-         Weights *preWeights,
-         Weights *postWeights,
-         Communicator const *comm,
-         int arbor);
+   static void
+   transposeNonshared(Weights *preWeights, Weights *postWeights, Communicator *comm, int arbor);
 };
 
 } // namespace PV

@@ -6,9 +6,7 @@
 #include <io/WeightsFileIO.hpp>
 #include <utils/PVLog.hpp>
 
-using namespace PV;
-
-Weights makeWeights(PV_Init &pv_init, std::string const &name, bool sharedFlag) {
+PV::Weights makeWeights(PV::PV_Init &pv_init, std::string const &name, bool sharedFlag) {
    int const numColumns = pv_init.getCommunicator()->numCommColumns();
    int const numRows    = pv_init.getCommunicator()->numCommRows();
 
@@ -40,12 +38,15 @@ Weights makeWeights(PV_Init &pv_init, std::string const &name, bool sharedFlag) 
    int nfp       = 10;
    int numArbors = 4;
 
-   Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, numArbors, sharedFlag, 0.0);
+   int xStride = preLoc.nx / postLoc.nx;
+   int yStride = preLoc.ny / postLoc.ny;
+
+   PV::Weights weightsObject(name, nxp, nyp, nfp, &preLoc, &postLoc, numArbors, sharedFlag, 0.0);
    weightsObject.allocateDataStructures();
    return weightsObject;
 }
 
-int convertLocalIndexToGlobal(int patchIndex, Weights &weights, MPIBlock const *mpiBlock) {
+int convertLocalIndexToGlobal(int patchIndex, PV::Weights &weights, PV::MPIBlock const *mpiBlock) {
    int numDataPatchesX = weights.getNumDataPatchesX();
    int numDataPatchesY = weights.getNumDataPatchesY();
    int numDataPatchesF = weights.getNumDataPatchesF();
@@ -74,7 +75,7 @@ int convertLocalIndexToGlobal(int patchIndex, Weights &weights, MPIBlock const *
    return globalIndex;
 }
 
-bool isActiveWeight(int itemIndex, int localPatchIndex, Weights const &weights) {
+bool isActiveWeight(int itemIndex, int localPatchIndex, PV::Weights const &weights) {
    int const nxp = weights.getPatchSizeX();
    int const nyp = weights.getPatchSizeY();
    int const nfp = weights.getPatchSizeF();
@@ -82,14 +83,14 @@ bool isActiveWeight(int itemIndex, int localPatchIndex, Weights const &weights) 
    int const x = kxPos(itemIndex, nxp, nyp, nfp);
    int const y = kyPos(itemIndex, nxp, nyp, nfp);
 
-   Patch const &patch = weights.getPatch(localPatchIndex);
-   int const startx   = kxPos(patch.offset, nxp, nyp, nfp);
-   int const starty   = kyPos(patch.offset, nxp, nyp, nfp);
+   PV::Patch const &patch = weights.getPatch(localPatchIndex);
+   int const startx       = kxPos(patch.offset, nxp, nyp, nfp);
+   int const starty       = kyPos(patch.offset, nxp, nyp, nfp);
 
    return (x >= startx and x < startx + patch.nx and y >= starty and y < starty + patch.ny);
 }
 
-void testWeights(Weights &weights, PV_Init &pv_init, bool sharedFlag, bool compressedFlag) {
+void testWeights(PV::Weights &weights, PV::PV_Init &pv_init, bool sharedFlag, bool compressedFlag) {
    int const numArbors         = weights.getNumArbors();
    int const numDataPatches    = weights.getNumDataPatches();
    int const nxp               = weights.getPatchSizeX();
@@ -101,11 +102,11 @@ void testWeights(Weights &weights, PV_Init &pv_init, bool sharedFlag, bool compr
    double const timestamp = 10.0;
 
    // Create a checkpointer in order to use the MPIBlock and block-dependent path name
-   Checkpointer tempCheckpointer(
+   PV::Checkpointer tempCheckpointer(
          weights.getName(), pv_init.getCommunicator()->getGlobalMPIBlock(), pv_init.getArguments());
-   std::string filename     = weights.getName() + std::string(".pvp");
-   std::string path         = tempCheckpointer.makeOutputPathFilename(filename);
-   MPIBlock const *mpiBlock = tempCheckpointer.getMPIBlock();
+   std::string filename         = weights.getName() + std::string(".pvp");
+   std::string path             = tempCheckpointer.makeOutputPathFilename(filename);
+   PV::MPIBlock const *mpiBlock = tempCheckpointer.getMPIBlock();
 
    char pathCopy[path.size() + 1];
    std::memcpy(pathCopy, path.c_str(), path.size());
@@ -144,11 +145,11 @@ void testWeights(Weights &weights, PV_Init &pv_init, bool sharedFlag, bool compr
    }
 
    // Write weights
-   FileStream *writeStream = nullptr;
+   PV::FileStream *writeStream = nullptr;
    if (mpiBlock->getRank() == 0) {
-      writeStream = new FileStream(path.c_str(), std::ios_base::out, false);
+      writeStream = new PV::FileStream(path.c_str(), std::ios_base::out, false);
    }
-   WeightsFileIO weightsFileWrite(writeStream, mpiBlock, &weights);
+   PV::WeightsFileIO weightsFileWrite(writeStream, mpiBlock, &weights);
    weightsFileWrite.writeWeights(timestamp, false);
    delete writeStream;
 
@@ -161,11 +162,11 @@ void testWeights(Weights &weights, PV_Init &pv_init, bool sharedFlag, bool compr
    }
 
    // Read weights back
-   FileStream *readStream = nullptr;
+   PV::FileStream *readStream = nullptr;
    if (mpiBlock->getRank() == 0) {
-      readStream = new FileStream(path.c_str(), std::ios_base::in, false);
+      readStream = new PV::FileStream(path.c_str(), std::ios_base::in, false);
    }
-   WeightsFileIO weightsFileRead(readStream, mpiBlock, &weights);
+   PV::WeightsFileIO weightsFileRead(readStream, mpiBlock, &weights);
    int const frameNumber = 0;
    double readTimestamp  = weightsFileRead.readWeights(frameNumber);
    delete readStream;
@@ -232,22 +233,22 @@ void testWeights(Weights &weights, PV_Init &pv_init, bool sharedFlag, bool compr
    }
 }
 
-void testShared(PV_Init &pv_init) {
-   bool const shared        = true;
-   bool const noncompressed = false;
-   Weights weightsObject    = makeWeights(pv_init, std::string("shared_weights"), shared);
+void testShared(PV::PV_Init &pv_init) {
+   bool const shared         = true;
+   bool const noncompressed  = false;
+   PV::Weights weightsObject = makeWeights(pv_init, std::string("shared_weights"), shared);
    testWeights(weightsObject, pv_init, shared, noncompressed);
 }
 
-void testNonshared(PV_Init &pv_init) {
-   bool const nonshared     = false;
-   bool const noncompressed = false;
-   Weights weightsObject    = makeWeights(pv_init, std::string("nonshared_weights"), nonshared);
+void testNonshared(PV::PV_Init &pv_init) {
+   bool const nonshared      = false;
+   bool const noncompressed  = false;
+   PV::Weights weightsObject = makeWeights(pv_init, std::string("nonshared_weights"), nonshared);
    testWeights(weightsObject, pv_init, nonshared, noncompressed);
 }
 
 int main(int argc, char *argv[]) {
-   PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
+   PV::PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
    if (pv_initObj.getStringArgument("OutputPath").empty()) {
       pv_initObj.setStringArgument(std::string("OutputPath"), "output");
    }

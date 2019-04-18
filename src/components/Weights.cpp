@@ -8,7 +8,7 @@
 #include "Weights.hpp"
 #include "checkpointing/CheckpointEntryWeightPvp.hpp"
 #include "utils/PVAssert.hpp"
-#include "utils/conversions.hpp"
+#include "utils/conversions.h"
 #include <cstring>
 #include <stdexcept>
 
@@ -107,7 +107,6 @@ void Weights::allocateDataStructures() {
       allocateCudaBuffers();
    }
 #endif // PV_USE_CUDA
-   mDataStructuresAllocatedFlag = true;
 }
 
 #ifdef PV_USE_CUDA
@@ -206,10 +205,6 @@ float *Weights::getDataFromDataIndex(int arbor, int dataIndex) {
 float *Weights::getDataFromPatchIndex(int arbor, int patchIndex) {
    int dataIndex = mSharedFlag ? dataIndexLookupTable[patchIndex] : patchIndex;
    return getDataFromDataIndex(arbor, dataIndex);
-}
-
-float *Weights::getDataFromPatchIndexWithOffset(int arbor, int patchIndex) {
-   return getDataFromPatchIndex(arbor, patchIndex) + getPatch(patchIndex).offset;
 }
 
 int Weights::calcDataIndexFromPatchIndex(int patchIndex) const {

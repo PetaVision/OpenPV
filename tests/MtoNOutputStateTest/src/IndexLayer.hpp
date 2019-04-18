@@ -15,16 +15,25 @@
 namespace PV {
 
 class IndexLayer : public HyPerLayer {
+  protected:
+   /**
+    * IndexLayer does not use InitVType. Instead, the layer is initialized
+    * so that global restricted index k is k*startTime.
+    */
+   void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
+
   public:
-   IndexLayer(const char *name, PVParams *params, Communicator const *comm);
-   virtual ~IndexLayer();
+   IndexLayer(char const *name, HyPerCol *hc);
+   ~IndexLayer();
 
   protected:
-   IndexLayer() {}
+   IndexLayer();
+   int initialize(char const *name, HyPerCol *hc);
+   virtual Response::Status initializeState() override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-
-   virtual ActivityComponent *createActivityComponent() override;
+  private:
+   int initialize_base();
 };
 
 } // end namespace PV

@@ -9,22 +9,17 @@
 
 namespace PV {
 
-InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
+InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(char const *name, HyPerCol *hc) {
+   initialize(name, hc);
 }
 
 InitSpreadOverArborsWeights::InitSpreadOverArborsWeights() {}
 
 InitSpreadOverArborsWeights::~InitSpreadOverArborsWeights() {}
 
-void InitSpreadOverArborsWeights::initialize(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   InitGauss2DWeights::initialize(name, params, comm);
+int InitSpreadOverArborsWeights::initialize(char const *name, HyPerCol *hc) {
+   int status = InitGauss2DWeights::initialize(name, hc);
+   return status;
 }
 
 int InitSpreadOverArborsWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -34,7 +29,7 @@ int InitSpreadOverArborsWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitSpreadOverArborsWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "weightInit", &mWeightInit, mWeightInit);
+   parent->parameters()->ioParamValue(ioFlag, name, "weightInit", &mWeightInit, mWeightInit);
 }
 
 void InitSpreadOverArborsWeights::calcWeights(int patchIndex, int arborId) {
@@ -74,6 +69,18 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(float *dataStart, int a
             }
             else {
                float theta2pi = atan2f(yp, xp) / (2 * PI);
+               unsigned int xpraw, ypraw, atanraw;
+               union u {
+                  float f;
+                  unsigned int i;
+               };
+               union u f2u;
+               f2u.f   = xp;
+               xpraw   = f2u.i;
+               f2u.f   = yp;
+               ypraw   = f2u.i;
+               f2u.f   = theta2pi;
+               atanraw = f2u.i;
                if (theta2pi < 0) {
                   theta2pi += 1;
                }

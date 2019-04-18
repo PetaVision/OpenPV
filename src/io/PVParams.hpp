@@ -8,7 +8,6 @@
 #ifndef PVPARAMS_HPP_
 #define PVPARAMS_HPP_
 
-#include "FileStream.hpp"
 #include "columns/Communicator.hpp"
 #include "fileio.hpp"
 #include "include/pv_common.h"
@@ -23,9 +22,9 @@
 // TODO - make MAX_PARAMS dynamic
 #define MAX_PARAMS 100 // maximum number of parameters in a group
 
-namespace PV {
+#undef HAS_MAIN // define if provides a main function
 
-enum ParamsIOFlag { PARAMS_IO_READ, PARAMS_IO_WRITE };
+namespace PV {
 
 class Parameter {
   public:
@@ -239,13 +238,9 @@ class ParameterSweep {
 
 class PVParams {
   public:
-   PVParams(size_t initialSize, Communicator const *inIcComm);
-   PVParams(const char *filename, size_t initialSize, Communicator const *inIcComm);
-   PVParams(
-         const char *buffer,
-         long int bufferLength,
-         size_t initialSize,
-         Communicator const *inIcComm);
+   PVParams(size_t initialSize, Communicator *inIcComm);
+   PVParams(const char *filename, size_t initialSize, Communicator *inIcComm);
+   PVParams(const char *buffer, long int bufferLength, size_t initialSize, Communicator *inIcComm);
    virtual ~PVParams();
 
    bool getParseStatus() { return parseStatus; }
@@ -378,8 +373,6 @@ class PVParams {
    int numberOfGroups() { return numGroups; }
    int numberOfParameterSweeps() { return numParamSweeps; }
    int getParameterSweepSize() { return parameterSweepSize; }
-   FileStream *getPrintParamsStream() { return mPrintParamsStream; }
-   FileStream *getPrintLuaStream() { return mPrintLuaStream; }
 
   private:
    int parseStatus;
@@ -391,7 +384,7 @@ class PVParams {
    ParameterStringStack *stringStack;
    bool debugParsing;
    bool disable;
-   Communicator const *icComm;
+   Communicator *icComm;
    int worldRank;
    int worldSize;
 

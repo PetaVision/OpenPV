@@ -71,14 +71,14 @@ class InitWeights : public BaseObject {
    /** @} */
 
   public:
-   InitWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitWeights(char const *name, HyPerCol *hc);
    virtual ~InitWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
    InitWeights();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
    void handleObsoleteFlag(std::string const &flagName);
 
    virtual void setObjectType() override;
@@ -92,8 +92,7 @@ class InitWeights : public BaseObject {
     * Generally, derived classes should not override initializeState, but instead override
     * one or both of the calcWeights methods, in order to preserve the initWeightsFile behavior.
     */
-   virtual Response::Status
-   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+   virtual Response::Status initializeState() override;
 
    /**
     * Called by initializeWeights, to calculate the weights in all arbors and all patches.

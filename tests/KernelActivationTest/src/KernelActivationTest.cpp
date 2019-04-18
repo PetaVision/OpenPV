@@ -17,14 +17,12 @@
  */
 
 #include "arch/mpi/mpi.h"
-#include "columns/ComponentBasedObject.hpp"
 #include "columns/buildandrun.hpp"
-#include "components/PatchSize.hpp"
-#include "components/WeightsPair.hpp"
-#include "weightupdaters/BaseWeightUpdater.hpp"
+#include "connections/HyPerConn.hpp"
+#include "io/io.hpp"
 
-int dumpweights(HyPerCol *hc, PV_Init &initObj);
-int dumponeweight(ComponentBasedObject *conn);
+int dumpweights(HyPerCol *hc, int argc, char *argv[]);
+int dumponeweight(HyPerConn *conn);
 
 int main(int argc, char *argv[]) {
    int status;
@@ -43,11 +41,11 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
-int dumpweights(HyPerCol *hc, PV_Init &initObj) {
+int dumpweights(HyPerCol *hc, int argc, char *argv[]) {
    int status         = PV_SUCCESS;
    bool existsgenconn = false;
    for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
-      ComponentBasedObject *conn = dynamic_cast<ComponentBasedObject *>(obj);
+      HyPerConn *conn = dynamic_cast<HyPerConn *>(obj);
       if (conn == nullptr) {
          continue;
       }
@@ -66,41 +64,50 @@ int dumpweights(HyPerCol *hc, PV_Init &initObj) {
       }
       InfoLog().printf("\n");
    }
-   int rank                   = hc->getCommunicator()->commRank();
-   std::string paramsFilename = initObj.getStringArgument("ParamsFile");
+   int rank = hc->getCommunicator()->commRank();
+   char *paramsfilename;
+   pv_getopt_str(argc, argv, "-p", &paramsfilename, NULL /*paramusage*/);
    if (status != PV_SUCCESS) {
-      ErrorLog().printf(
-            "Rank %d: %s failed with return code %d.\n", rank, paramsFilename.c_str(), status);
+      ErrorLog().printf("Rank %d: %s failed with return code %d.\n", rank, paramsfilename, status);
    }
    else {
-      InfoLog().printf("Rank %d: %s succeeded.\n", rank, paramsFilename.c_str());
+      InfoLog().printf("Rank %d: %s succeeded.\n", rank, paramsfilename);
    }
+   free(paramsfilename);
    return status;
 }
 
-int dumponeweight(ComponentBasedObject *conn) {
-   int status           = PV_SUCCESS;
-   bool errorfound      = false;
-   auto *patchSize      = conn->getComponentByType<PatchSize>();
-   int nxp              = patchSize->getPatchSizeX();
-   int nyp              = patchSize->getPatchSizeY();
-   int nfp              = patchSize->getPatchSizeF();
-   auto *connectionData = conn->getComponentByType<ConnectionData>();
-   HyPerLayer *pre      = connectionData->getPre();
-   bool usingMirrorBCs  = pre->getComponentByType<BoundaryConditions>()->getMirrorBCflag();
+int dumponeweight(HyPerConn *conn) {
+   int status          = PV_SUCCESS;
+   bool errorfound     = false;
+   int nxp             = conn->getPatchSizeX();
+   int nyp             = conn->getPatchSizeY();
+   int nfp             = conn->getPatchSizeF();
+   int xcenter         = (nxp - 1) / 2;
+   int ycenter         = (nyp - 1) / 2;
+   int nxpre           = conn->getPre()->getLayerLoc()->nxGlobal;
+   int nypre           = conn->getPre()->getLayerLoc()->nyGlobal;
+   bool usingMirrorBCs = conn->getPre()->useMirrorBCs();
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   // If xScaleDiff > 0, it's a many-to-one connection.
+   int xScaleDiff = conn->getPost()->getXScale() - conn->getPre()->getXScale();
+   float xFalloff = powf(2, xScaleDiff);
+   int yScaleDiff = conn->getPost()->getYScale() - conn->getPre()->getYScale();
+   float yFalloff = powf(2, yScaleDiff);
 
-   auto *weightsPair = conn->getComponentByType<WeightsPair>();
-   auto *preWeights  = weightsPair->getPreWeights();
-   for (int p = 0; p < preWeights->getNumDataPatches(); p++) {
-      float *wgtData = preWeights->getDataFromDataIndex(0, p);
+   for (int p = 0; p < conn->getNumDataPatches(); p++) {
+      float *wgtData = conn->getWeightsDataHead(0, p); // conn->getKernelPatch(0,p)->data;
       for (int f = 0; f < nfp; f++) {
          for (int x = 0; x < nxp; x++) {
+            int xoffset = abs((int)floor((x - xcenter) * xFalloff));
             for (int y = 0; y < nyp; y++) {
-               int idx = kIndex(x, y, f, nxp, nyp, nfp);
+               int yoffset = abs((int)floor((y - ycenter) * yFalloff));
+               int idx     = kIndex(x, y, f, nxp, nyp, nfp);
                // TODO-CER-2014.4.4 - weight conversion
                float wgt = wgtData[idx];
+               // float correct = usingMirrorBCs ? 1 :
+               // (nxpre-xoffset)*(nypre-yoffset)/((float) (nxpre*nypre));
                // New normalization takes into account if pre is not active
                // The pixel value from the input is actually 127, where we divide it by 255.
                // Not exaclty .5, a little less

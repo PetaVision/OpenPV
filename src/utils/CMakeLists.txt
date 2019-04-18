@@ -4,8 +4,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BufferUtilsRescale.cpp
    ${SUBDIR}/Clock.cpp
    ${SUBDIR}/CompareParamsFiles.cpp
-   ${SUBDIR}/conversions.hpp
-   ${SUBDIR}/ExpandLeadingTilde.cpp
    ${SUBDIR}/PVAssert.cpp
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
@@ -20,7 +18,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BufferUtilsRescale.hpp
    ${SUBDIR}/Clock.hpp
    ${SUBDIR}/CompareParamsFiles.hpp
-   ${SUBDIR}/ExpandLeadingTilde.hpp
+   ${SUBDIR}/MapLookupByType.hpp
    ${SUBDIR}/PVAssert.hpp
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp
@@ -28,15 +26,17 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/TransposeWeights.hpp
 )
 
-set (PVLibSrcHpp ${PVLibSrcTpp}
+set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BufferUtilsMPI.tpp
    ${SUBDIR}/BufferUtilsPvp.tpp
 )
 
 set (PVLibSrcC ${PVLibSrcC}
    ${SUBDIR}/cl_random.c
+   ${SUBDIR}/conversions.c
 )
 
 set (PVLibSrcH ${PVLibSrcH}
    ${SUBDIR}/cl_random.h
+   ${SUBDIR}/conversions.h
 )

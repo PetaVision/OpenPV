@@ -35,7 +35,7 @@ class ConnectionData : public BaseObject {
    /** @} */ // end of ConnectionData parameters
 
   public:
-   ConnectionData(char const *name, PVParams *params, Communicator const *comm);
+   ConnectionData(char const *name, HyPerCol *hc);
    virtual ~ConnectionData();
 
    /**
@@ -61,7 +61,7 @@ class ConnectionData : public BaseObject {
   protected:
    ConnectionData();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 

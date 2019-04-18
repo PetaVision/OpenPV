@@ -14,16 +14,16 @@ namespace PV {
 
 class TransposeConn : public HyPerConn {
   public:
-   TransposeConn(char const *name, PVParams *params, Communicator const *comm);
+   TransposeConn(char const *name, HyPerCol *hc);
 
    virtual ~TransposeConn();
 
   protected:
    TransposeConn();
 
-   virtual void fillComponentTable() override;
+   virtual void defineComponents() override;
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual ArborList *createArborList() override;
    virtual PatchSize *createPatchSize() override;
@@ -34,8 +34,7 @@ class TransposeConn : public HyPerConn {
    virtual BaseWeightUpdater *createWeightUpdater() override;
    virtual OriginalConnNameParam *createOriginalConnNameParam();
 
-   virtual Response::Status
-   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+   virtual Response::Status initializeState() override;
 
   protected:
    OriginalConnNameParam *mOriginalConnNameParam = nullptr;

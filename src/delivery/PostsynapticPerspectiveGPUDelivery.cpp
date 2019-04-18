@@ -6,37 +6,38 @@
  */
 
 #include "PostsynapticPerspectiveGPUDelivery.hpp"
+#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
 PostsynapticPerspectiveGPUDelivery::PostsynapticPerspectiveGPUDelivery(
       char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   mCorrectReceiveGpu = true;
-   initialize(name, params, comm);
+      HyPerCol *hc) {
+   initialize(name, hc);
 }
 
-PostsynapticPerspectiveGPUDelivery::PostsynapticPerspectiveGPUDelivery() {
-   mCorrectReceiveGpu = true;
-}
+PostsynapticPerspectiveGPUDelivery::PostsynapticPerspectiveGPUDelivery() {}
 
 PostsynapticPerspectiveGPUDelivery::~PostsynapticPerspectiveGPUDelivery() {
    delete mRecvKernel;
    delete mDevicePostToPreActivity;
-   delete mCudnnGSyn;
 }
 
-void PostsynapticPerspectiveGPUDelivery::initialize(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   mReceiveGpu = true; // If it's false, we should be using a different class.
-   BaseObject::initialize(name, params, comm);
+int PostsynapticPerspectiveGPUDelivery::initialize(char const *name, HyPerCol *hc) {
+   return BaseObject::initialize(name, hc);
 }
 
 void PostsynapticPerspectiveGPUDelivery::setObjectType() {
    mObjectType = "PostsynapticPerspectiveGPUDelivery";
+}
+
+int PostsynapticPerspectiveGPUDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerDelivery::ioParamsFillGroup(ioFlag);
+   return status;
+}
+
+void PostsynapticPerspectiveGPUDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
+   mReceiveGpu = true; // If it's false, we should be using a different class.
 }
 
 Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
@@ -52,10 +53,14 @@ Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
    // during the AllocateDataStructures stage.
 
    // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
-   mPreData->setAllocCudaDatastore();
+   getPreLayer()->setAllocDeviceDatastore();
    mWeightsPair->getPostWeights()->useGPU();
-   mPostGSyn->useCuda();
+   getPostLayer()->setAllocDeviceGSyn();
 
+   // If recv from pre and pre layer is sparse, allocate activeIndices
+   if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
+      getPreLayer()->setAllocDeviceActiveIndices();
+   }
    return Response::SUCCESS;
 }
 
@@ -68,7 +73,7 @@ Response::Status PostsynapticPerspectiveGPUDelivery::setCudaDevice(
    }
    mWeightsPair->getPostWeights()->setCudaDevice(message->mCudaDevice);
    // Increment number of postKernels for cuDNN workspace memory
-   mCudaDevice->incrementConvKernels();
+   parent->getDevice()->incrementConvKernels();
    return status;
 }
 
@@ -80,49 +85,36 @@ Response::Status PostsynapticPerspectiveGPUDelivery::allocateDataStructures() {
    if (!mWeightsPair->getDataStructuresAllocatedFlag()) {
       return Response::POSTPONE;
    }
-   if (!mPostGSyn->getDataStructuresAllocatedFlag()) {
-      return Response::POSTPONE;
-   }
 
    auto status = HyPerDelivery::allocateDataStructures();
    if (!Response::completed(status)) {
       return status;
    }
 
-   int const numPostRestricted = mPostGSyn->getBufferSize();
-   mDevicePostToPreActivity =
-         mCudaDevice->createBuffer(numPostRestricted * sizeof(long), &getDescription());
-
-   // mCudnnGSyn only needs the GSyn channel used by the delivery object
-   int const numPostAcrossBatch = mPostGSyn->getBufferSizeAcrossBatch();
-   mCudnnGSyn = mCudaDevice->createBuffer(numPostAcrossBatch * sizeof(float), &getDescription());
-
-   return Response::SUCCESS;
-}
-
-Response::Status PostsynapticPerspectiveGPUDelivery::copyInitialStateToGPU() {
    initializeRecvKernelArgs();
+
    return Response::SUCCESS;
 }
 
 void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
-   PVCuda::CudaDevice *device = mCudaDevice;
+   PVCuda::CudaDevice *device = parent->getDevice();
    Weights *postWeights       = mWeightsPair->getPostWeights();
    mRecvKernel                = new PVCuda::CudaRecvPost(device);
 
-   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
+   PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
+   PVLayerLoc const *postLoc = getPostLayer()->getLayerLoc();
 
-   PVCuda::CudaBuffer *d_PreData           = mPreData->getCudaDatastore();
-   PVCuda::CudaBuffer *d_PostGSyn          = mPostGSyn->getCudaBuffer();
+   PVCuda::CudaBuffer *d_PreData           = getPreLayer()->getDeviceDatastore();
+   PVCuda::CudaBuffer *d_PostGSyn          = getPostLayer()->getDeviceGSyn();
    PVCuda::CudaBuffer *d_PatchToDataLookup = postWeights->getDevicePatchToDataLookup();
    PVCuda::CudaBuffer *d_WData             = postWeights->getDeviceData();
 
 #ifdef PV_USE_CUDNN
-   PVCuda::CudaBuffer *cudnn_preData = mPreData->getCudnnDatastore();
+   PVCuda::CudaBuffer *cudnn_preData = getPreLayer()->getCudnnDatastore();
+   PVCuda::CudaBuffer *cudnn_gSyn    = getPostLayer()->getCudnnGSyn();
    PVCuda::CudaBuffer *cudnn_WData   = postWeights->getCUDNNData();
    pvAssert(cudnn_preData);
-   pvAssert(mCudnnGSyn);
+   pvAssert(cudnn_gSyn);
    pvAssert(cudnn_WData);
 #endif
 
@@ -168,7 +160,9 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    //
    // The relevant information is in the PatchGeometry's mUnshrunkenStart buffer, but this
    // has length post->getNumExtended().
-   int const postNumRestricted     = postNx * postNy * postNf;
+   int const postNumRestricted = postNx * postNy * postNf;
+   mDevicePostToPreActivity =
+         parent->getDevice()->createBuffer(postNumRestricted * sizeof(long), &description);
    auto *h_PostToPreActivityVector = new vector<long>(postNumRestricted);
    auto *h_PostToPreActivity       = h_PostToPreActivityVector->data();
    auto postGeometry               = postWeights->getGeometry();
@@ -184,7 +178,7 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
    // See the size of buffer needed based on x and y
    // oNxp is the patch size from the post point of view
 
-   if (mCommunicator->globalCommRank() == 0) {
+   if (parent->columnId() == 0) {
       InfoLog() << "preToPostScale: (" << preToPostScaleX << "," << preToPostScaleY << ")\n";
    }
 
@@ -227,32 +221,61 @@ void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
 #ifdef PV_USE_CUDNN
          cudnn_preData,
          cudnn_WData,
-         mCudnnGSyn,
+         cudnn_gSyn,
 #endif
          d_PatchToDataLookup);
 }
 
-void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
+void PostsynapticPerspectiveGPUDelivery::deliver() {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
    }
+   float *postChannel = mPostLayer->getChannel(getChannelCode());
+   pvAssert(postChannel);
+
    pvAssert(mRecvKernel);
+
+   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
+   Weights *weights          = mWeightsPair->getPostWeights();
+
+   int const nxPreExtended  = preLoc->nx + preLoc->halo.rt + preLoc->halo.rt;
+   int const nyPreExtended  = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
+   int const numPreExtended = nxPreExtended * nyPreExtended * preLoc->nf;
+
+   int const numPostRestricted = postLoc->nx * postLoc->ny * postLoc->nf;
+
+   int nbatch = preLoc->nbatch;
+   pvAssert(nbatch == postLoc->nbatch);
+
+   const int sy  = postLoc->nx * postLoc->nf; // stride in restricted layer
+   const int syw = weights->getGeometry()->getPatchStrideY(); // stride in patch
+
+   bool const preLayerIsSparse = mPreLayer->getSparseFlag();
 
    int numAxonalArbors = mArborList->getNumAxonalArbors();
    for (int arbor = 0; arbor < numAxonalArbors; arbor++) {
+      int delay                = mArborList->getDelay(arbor);
+      PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(delay);
 
       mRecvKernel->set_dt_factor(mDeltaTimeFactor);
-      // Only copy pre activity to GPU if it's updated on the CPU since last GPU update.
-      if (mPreData->getUpdatedCudaDatastoreFlag()) {
-         int delay                            = mArborList->getDelay(arbor);
-         PVLayerCube activityCube             = mPreData->getPublisher()->createCube(delay);
-         float const *h_preDatastore          = activityCube.data;
-         PVCuda::CudaBuffer *cudaPreDatastore = mPreData->getCudaDatastore();
-         pvAssert(cudaPreDatastore);
-         cudaPreDatastore->copyToDevice(h_preDatastore);
+
+      const int postNx = postLoc->nx;
+      const int postNy = postLoc->ny;
+      const int postNf = postLoc->nf;
+
+      bool updatePreAct = false;
+      // Update pre activity, post gsyn, and conn weights
+      // Only if they're updated
+      if (mPreLayer->getUpdatedDeviceDatastoreFlag()) {
+         float *h_preDatastore              = activityCube.data;
+         PVCuda::CudaBuffer *d_preDatastore = mPreLayer->getDeviceDatastore();
+         pvAssert(d_preDatastore);
+         d_preDatastore->copyToDevice(h_preDatastore);
          // Device now has updated
-         mPreData->setUpdatedCudaDatastoreFlag(false);
+         mPreLayer->setUpdatedDeviceDatastoreFlag(false);
+         updatePreAct = true;
       }
 
       // Permutation buffer is local to the kernel, NOT the layer
@@ -263,10 +286,9 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       // Permute GSyn
       mRecvKernel->permuteGSynPVToCudnn(getChannelCode());
 
-      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
-      int totF                  = postLoc->nf;
-      int totX                  = postLoc->nx;
-      int totY                  = postLoc->ny;
+      int totF = postNf;
+      int totX = postNx;
+      int totY = postNy;
       // Make sure local sizes are divisible by f, x, and y
       mRecvKernel->run(totX, totY, totF, 1L, 1L, 1L);
 
@@ -274,6 +296,8 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
       mRecvKernel->permuteGSynCudnnToPV(getChannelCode());
 #endif
    }
+   // GSyn already living on GPU
+   mPostLayer->setUpdatedDeviceGSynFlag(false);
 }
 
 // This is a copy of PostsynapticPerspectiveConvolveDelivery.
@@ -283,9 +307,9 @@ void PostsynapticPerspectiveGPUDelivery::deliverUnitInput(
 
       float *recvBuffer) {
    // Get number of neurons restricted target
-   const int numPostRestricted = mPostGSyn->getBufferSize();
+   const int numPostRestricted = mPostLayer->getNumNeurons();
 
-   const PVLayerLoc *targetLoc = mPostGSyn->getLayerLoc();
+   const PVLayerLoc *targetLoc = mPostLayer->getLayerLoc();
 
    const int targetNx = targetLoc->nx;
    const int targetNy = targetLoc->ny;

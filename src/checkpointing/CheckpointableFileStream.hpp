@@ -44,11 +44,10 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
          bool newFile,
          Checkpointer *checkpointer,
          string const &objName);
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
    virtual void write(void const *data, long length) override;
    virtual void read(void *data, long length) override;
-   virtual void setOutPos(long pos, std::ios_base::seekdir seekAnchor) override;
    virtual void setOutPos(long pos, bool fromBeginning) override;
-   virtual void setInPos(long pos, std::ios_base::seekdir seekAnchor) override;
    virtual void setInPos(long pos, bool fromBeginning) override;
 
   private:
@@ -58,9 +57,9 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
          Checkpointer *checkpointer,
          string const &objName,
          bool verifyWrites);
-   virtual Response::Status
-   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
-   virtual Response::Status processCheckpointRead() override;
+   void setDescription();
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   Response::Status respondProcessCheckpointRead(ProcessCheckpointReadMessage const *message);
    void syncFilePos();
    void updateFilePos();
    long mFileReadPos  = 0;

@@ -8,18 +8,18 @@
 #include <columns/PV_Init.hpp>
 #include <utils/TransposeWeights.hpp>
 
-void checkSizeCompatibility(PVLayerLoc const &loc, PV::Communicator const *comm);
-int testOneToOneShared(PV::Communicator const *comm);
-int testManyToOneShared(PV::Communicator const *comm);
-int testOneToManyShared(PV::Communicator const *comm);
-int testOneToOneNonshared(PV::Communicator const *comm);
-int testManyToOneNonshared(PV::Communicator const *comm);
-int testOneToManyNonshared(PV::Communicator const *comm);
+void checkSizeCompatibility(PVLayerLoc const &loc, PV::Communicator *comm);
+int testOneToOneShared(PV::Communicator *comm);
+int testManyToOneShared(PV::Communicator *comm);
+int testOneToManyShared(PV::Communicator *comm);
+int testOneToOneNonshared(PV::Communicator *comm);
+int testManyToOneNonshared(PV::Communicator *comm);
+int testOneToManyNonshared(PV::Communicator *comm);
 
 int main(int argc, char *argv[]) {
-   PV::PV_Init *pv_init         = new PV::PV_Init(&argc, &argv, false);
-   PV::Communicator const *comm = pv_init->getCommunicator();
-   int status                   = PV_SUCCESS;
+   PV::PV_Init *pv_init   = new PV::PV_Init(&argc, &argv, false);
+   PV::Communicator *comm = pv_init->getCommunicator();
+   int status             = PV_SUCCESS;
    if (testOneToOneShared(comm) != PV_SUCCESS) {
       status = PV_FAILURE;
    }
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
-void checkSizeCompatibility(PVLayerLoc const &loc, PV::Communicator const *comm) {
+void checkSizeCompatibility(PVLayerLoc const &loc, PV::Communicator *comm) {
    FatalIf(
          loc.nx * comm->numCommColumns() != loc.nxGlobal,
          "testOneToOneShared: Number of process in the x-direction was %d, but it must be a "
@@ -60,7 +60,7 @@ void checkSizeCompatibility(PVLayerLoc const &loc, PV::Communicator const *comm)
          loc.nyGlobal);
 }
 
-int testOneToOneShared(PV::Communicator const *comm) {
+int testOneToOneShared(PV::Communicator *comm) {
    int const nxPre      = 8;
    int const nyPre      = 8;
    int const nfPre      = 3;
@@ -82,7 +82,7 @@ int testOneToOneShared(PV::Communicator const *comm) {
          comm);
 }
 
-int testManyToOneShared(PV::Communicator const *comm) {
+int testManyToOneShared(PV::Communicator *comm) {
    int const nxPre      = 8;
    int const nyPre      = 8;
    int const nfPre      = 3;
@@ -104,7 +104,7 @@ int testManyToOneShared(PV::Communicator const *comm) {
          comm);
 }
 
-int testOneToManyShared(PV::Communicator const *comm) {
+int testOneToManyShared(PV::Communicator *comm) {
    int const nxPre      = 4;
    int const nyPre      = 4;
    int const nfPre      = 8;
@@ -126,7 +126,7 @@ int testOneToManyShared(PV::Communicator const *comm) {
          comm);
 }
 
-int testOneToOneNonshared(PV::Communicator const *comm) {
+int testOneToOneNonshared(PV::Communicator *comm) {
    int const nxPre      = 8;
    int const nyPre      = 8;
    int const nfPre      = 3;
@@ -148,7 +148,7 @@ int testOneToOneNonshared(PV::Communicator const *comm) {
          comm);
 }
 
-int testManyToOneNonshared(PV::Communicator const *comm) {
+int testManyToOneNonshared(PV::Communicator *comm) {
    int const nxPre      = 8;
    int const nyPre      = 8;
    int const nfPre      = 3;
@@ -170,7 +170,7 @@ int testManyToOneNonshared(PV::Communicator const *comm) {
          comm);
 }
 
-int testOneToManyNonshared(PV::Communicator const *comm) {
+int testOneToManyNonshared(PV::Communicator *comm) {
    int const nxPre      = 4;
    int const nyPre      = 4;
    int const nfPre      = 8;

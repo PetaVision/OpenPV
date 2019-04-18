@@ -16,7 +16,7 @@ namespace BufferUtils = PV::BufferUtils;
 
 // BufferSlicer::scatter(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 // BufferSlicer::gather(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
-void testRestricted(Communicator const *comm) {
+void testRestricted(Communicator *comm) {
    int rank = comm->commRank();
 
    InfoLog() << "Setup complete on rank " << rank << ". Running test.\n";
@@ -100,7 +100,7 @@ void testRestricted(Communicator const *comm) {
 
 // BufferSlicer::scatter(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
 // BufferSlicer::gather(Buffer &buffer, uint sliceStrideX, uint sliceStrideY)
-void testExtended(Communicator const *comm) {
+void testExtended(Communicator *comm) {
    int rank = comm->commRank();
 
    InfoLog() << "Setup complete on rank " << rank << ". Running test.\n";
@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
    CommandLineArguments *args = new CommandLineArguments(argc, argv, false);
    args->setIntegerArgument("NumRows", numProcs == 1 ? 1 : 2);
    args->setIntegerArgument("NumColumns", numProcs != 4 ? 1 : 2);
-   Communicator const *comm = new Communicator(args);
+   Communicator *comm = new Communicator(args);
 
    InfoLog() << "Rank " << rank
              << ": Testing restricted BufferUtils::scatter() and BufferUtils::gather():\n";

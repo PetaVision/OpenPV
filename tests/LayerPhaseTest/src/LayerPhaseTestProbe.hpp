@@ -17,12 +17,12 @@ namespace PV {
 
 class LayerPhaseTestProbe : public PV::StatsProbe {
   public:
-   LayerPhaseTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   LayerPhaseTestProbe(const char *name, HyPerCol *hc);
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_equilibriumValue(enum ParamsIOFlag ioFlag);

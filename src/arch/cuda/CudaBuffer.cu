@@ -6,6 +6,7 @@
  */
 
 #include "CudaBuffer.hpp"
+#include "CudaDevice.hpp"
 #include <ctime>
 #include <sys/time.h>
 
@@ -50,7 +51,7 @@ void CudaBuffer::callCudaPermuteWeightsPVToCudnn(
       int ny,
       int nx,
       int inFeatures) {
-   CudaPermuteWeightsPVToCudnn<<<gridSize, blockSize, 0, mStream>>>(
+   CudaPermuteWeightsPVToCudnn<<<gridSize, blockSize, 0, stream>>>(
          (float *)d_ptr, (float *)d_inPtr, numArbors, outFeatures, ny, nx, inFeatures);
 }
 

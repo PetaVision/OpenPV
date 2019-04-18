@@ -14,24 +14,35 @@
 
 namespace PV {
 
+class HyPerCol;
+
 class PoolingConn : public BaseConnection {
   public:
-   PoolingConn(char const *name, PVParams *params, Communicator const *comm);
+   PoolingConn(char const *name, HyPerCol *hc);
 
    virtual ~PoolingConn();
 
-   // Jul 10, 2018: get-methods have been moved into the corresponding component classes.
-   // For example, the old PoolingConn::getPatchSizeX() has been moved into the PatchSize class.
-   // To get the PatchSizeX value from a PoolingConn conn , get the PatchSize component using
-   // "PatchSize *patchsize = conn->getComponentByType<PatchSize>()" and then call
-   // "patchSize->getPatchSizeX()"
+   // get-methods for params
+   int getPatchSizeX() const { return mPatchSize->getPatchSizeX(); }
+   int getPatchSizeY() const { return mPatchSize->getPatchSizeY(); }
+   int getPatchSizeF() const { return mPatchSize->getPatchSizeF(); }
+
+   // other get-methods
+   int getNumDataPatches() const { return mWeightsPair->getPreWeights()->getNumDataPatches(); }
+   int getNumGeometryPatches() const {
+      return mWeightsPair->getPreWeights()->getGeometry()->getNumPatches();
+   }
+   Patch const *getPatch(int kPre) { return &mWeightsPair->getPreWeights()->getPatch(kPre); }
+   int getPatchStrideX() const { return mWeightsPair->getPreWeights()->getPatchStrideX(); }
+   int getPatchStrideY() const { return mWeightsPair->getPreWeights()->getPatchStrideY(); }
+   int getPatchStrideF() const { return mWeightsPair->getPreWeights()->getPatchStrideF(); }
 
   protected:
    PoolingConn();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
-   virtual void fillComponentTable() override;
+   virtual void defineComponents() override;
 
    virtual BaseDelivery *createDeliveryObject() override;
 

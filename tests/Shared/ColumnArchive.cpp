@@ -6,15 +6,7 @@
  */
 
 #include "ColumnArchive.hpp"
-#include <components/ArborList.hpp>
-#include <components/PatchSize.hpp>
-#include <components/WeightsPair.hpp>
-#include <layers/HyPerLayer.hpp>
-
 #include <cmath>
-
-using namespace PV;
-
 // Definitions of constructor and destructor are both empty, defined in header
 
 bool LayerArchive::operator==(LayerArchive const &comparison) const {
@@ -48,7 +40,7 @@ bool LayerArchive::operator==(LayerArchive const &comparison) const {
                int const f = featureIndex(n, nx, ny, nf);
                std::stringstream fieldstream("");
                fieldstream << "values in batch element " << b << " at x=" << x << ",y=" << y
-                           << ",f=" << f;
+                           << ",f=";
                compareFields("Activities", fieldstream.str().c_str(), dat1[nExt1], dat2[nExt2]);
                areEqual = false;
             }
@@ -76,14 +68,14 @@ bool ConnArchive::operator==(ConnArchive const &comparison) const {
          for (int patchIdx = 0; patchIdx < numDataPatches; patchIdx++) {
             float const *patchdata1 = &arbor1.data()[patchIdx * patchSize];
             float const *patchdata2 = &arbor2.data()[patchIdx * patchSize];
-            for (int widx = 0; widx < patchSize; widx++) {
+            for (int widx; widx < patchSize; widx++) {
                if (std::fabs(patchdata1[widx] - patchdata2[widx]) > tolerance) {
                   int const x = kxPos(widx, nxp, nyp, nfp);
                   int const y = kyPos(widx, nxp, nyp, nfp);
                   int const f = featureIndex(widx, nxp, nyp, nfp);
                   std::stringstream fieldstream("");
                   fieldstream << "values in data patch " << patchIdx << " at x=" << x << ",y=" << y
-                              << ",f=" << f;
+                              << ",f=";
                   compareFields(
                         "Weights", fieldstream.str().c_str(), patchdata1[widx], patchdata2[widx]);
                   areEqual = false;
@@ -118,6 +110,7 @@ bool ColumnArchive::operator==(ColumnArchive const &comparison) const {
 
    areEqual &= compareFields(
          "The columns", "numbers of connections", m_conndata.size(), comparison.m_conndata.size());
+   int const nc = m_conndata.size();
    for (auto const &conn1 : m_conndata) {
       bool found = false;
       for (auto const &conn2 : comparison.m_conndata) {
@@ -138,55 +131,49 @@ bool ColumnArchive::operator==(ColumnArchive const &comparison) const {
    return areEqual;
 }
 
-void ColumnArchive::addLayer(BasePublisherComponent *layer, float layerTolerance) {
+void ColumnArchive::addLayer(PV::HyPerLayer *layer, float layerTolerance) {
    std::vector<LayerArchive>::size_type sz = m_layerdata.size();
    m_layerdata.resize(sz + 1);
    LayerArchive &latestLayer = m_layerdata.at(sz);
    latestLayer.name          = layer->getName();
    latestLayer.layerLoc      = layer->getLayerLoc()[0];
    float const *ldatastart   = layer->getLayerData();
-   float const *ldataend     = &ldatastart[layer->getNumExtended() * latestLayer.layerLoc.nbatch];
+   float const *ldataend     = &ldatastart[layer->getNumExtendedAllBatches()];
    latestLayer.data          = std::vector<float>(ldatastart, ldataend);
    latestLayer.tolerance     = layerTolerance;
 }
 
-void ColumnArchive::addConn(ComponentBasedObject *conn, float connTolerance) {
+void ColumnArchive::addConn(PV::HyPerConn *conn, float connTolerance) {
    std::vector<ConnArchive>::size_type sz = m_conndata.size();
    m_conndata.resize(sz + 1);
    ConnArchive &latestConnection = m_conndata.at(sz);
    latestConnection.name         = conn->getName();
+   int const numArbors           = conn->getNumAxonalArbors();
 
-   auto *arborList            = conn->getComponentByType<ArborList>();
-   int const numArbors        = arborList->getNumAxonalArbors();
    latestConnection.numArbors = numArbors;
-
-   auto *patchSize      = conn->getComponentByType<PatchSize>();
-   latestConnection.nxp = patchSize->getPatchSizeX();
-   latestConnection.nyp = patchSize->getPatchSizeY();
-   latestConnection.nfp = patchSize->getPatchSizeF();
+   latestConnection.nxp       = conn->getPatchSizeX();
+   latestConnection.nyp       = conn->getPatchSizeY();
+   latestConnection.nfp       = conn->getPatchSizeF();
    latestConnection.data.resize(numArbors);
    int const datasize = latestConnection.nxp * latestConnection.nyp * latestConnection.nfp
                         * latestConnection.numDataPatches;
-   auto *weightsPair = conn->getComponentByType<WeightsPair>();
-   auto *preWeights  = weightsPair->getPreWeights();
    for (int arbor = 0; arbor < numArbors; arbor++) {
-      float const *cdatastart         = preWeights->getData(arbor);
+      float const *cdatastart         = conn->getWeightsDataStart(arbor);
       float const *cdataend           = &cdatastart[datasize];
       latestConnection.data.at(arbor) = std::vector<float>(cdatastart, cdataend);
    }
    latestConnection.tolerance = connTolerance;
 }
 
-void ColumnArchive::addCol(HyPerCol *hc, float layerTolerance, float connTolerance) {
-   Observer *firstObject = hc->getNextObject(nullptr);
-   for (Observer *obj = firstObject; obj != nullptr; obj = hc->getNextObject(obj)) {
-      HyPerLayer *layer = dynamic_cast<HyPerLayer *>(obj);
+void ColumnArchive::addCol(PV::HyPerCol *hc, float layerTolerance, float connTolerance) {
+   PV::Observer *firstObject = hc->getNextObject(nullptr);
+   for (PV::Observer *obj = firstObject; obj != nullptr; obj = hc->getNextObject(obj)) {
+      PV::HyPerLayer *layer = dynamic_cast<PV::HyPerLayer *>(obj);
       if (layer != nullptr) {
-         auto *publisherComponent = layer->getComponentByType<BasePublisherComponent>();
-         addLayer(publisherComponent, layerTolerance);
+         addLayer(layer, layerTolerance);
       }
-      auto *conn = dynamic_cast<ComponentBasedObject *>(obj);
-      if (conn->getComponentByType<PatchSize>() != nullptr) {
+      PV::HyPerConn *conn = dynamic_cast<PV::HyPerConn *>(obj);
+      if (conn != nullptr) {
          addConn(conn, connTolerance);
       }
    }

@@ -121,6 +121,7 @@ HyPerConn "origConn" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
     shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
@@ -131,6 +132,7 @@ TransposeConn "preTransposeConn" = {
     postLayerName = "outputRecvPre";
     channelCode = 0; //Does nothing to the input layer
     originalConnName = "origConn";
+    convertRateToSpikeCount = false;
     writeStep = -1;
     writeCompressedCheckpoints = false;
     shmget_flag = false;
@@ -145,6 +147,7 @@ TransposeConn "postTransposeConn" = {
     postLayerName = "outputRecvPost";
     channelCode = 0;
     originalConnName = "origConn";
+    convertRateToSpikeCount = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;

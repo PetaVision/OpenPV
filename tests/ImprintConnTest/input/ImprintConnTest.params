@@ -150,6 +150,7 @@ ImprintConn "imprintConnection" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
@@ -167,6 +168,7 @@ CloneConn "reconConnection" = {
    originalConnName = "imprintConnection";
    selfFlag = false;
    delay = 0;
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
    pvpatchAccumulateType = "convolve";
 };

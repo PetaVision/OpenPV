@@ -18,22 +18,23 @@ class FilenameParsingProbe : public PV::LayerProbe {
 
    // Methods
   public:
-   FilenameParsingProbe(const char *name, PV::PVParams *params, PV::Communicator const *comm);
+   FilenameParsingProbe(const char *name, PV::HyPerCol *hc);
    virtual ~FilenameParsingProbe();
 
   protected:
    FilenameParsingProbe();
-   void initialize(const char *name, PV::PVParams *params, PV::Communicator const *comm);
+   int initialize(const char *name, PV::HyPerCol *hc);
    virtual PV::Response::Status
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;
    virtual void calcValues(double timevalue) override {}
-   virtual PV::Response::Status outputState(double simTime, double deltaTime) override;
+   virtual PV::Response::Status outputState(double timestamp) override;
 
   private:
    int initialize_base();
 
   private:
-   int mInputDisplayPeriod = 0;
+   PV::FilenameParsingGroundTruthLayer *mFilenameParsingLayer = nullptr;
+   int mInputDisplayPeriod                                    = 0;
 
    // This vector gives the category corresponding to each line of
    // InputImages.txt. For example, the first line of InputImages.txt is

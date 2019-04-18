@@ -6,12 +6,12 @@
  */
 
 #include "PlasticTestUpdater.hpp"
+#include <columns/HyPerCol.hpp>
 
 namespace PV {
 
-PlasticTestUpdater::PlasticTestUpdater(const char *name, PVParams *params, Communicator const *comm)
-      : HebbianUpdater() {
-   HebbianUpdater::initialize(name, params, comm);
+PlasticTestUpdater::PlasticTestUpdater(const char *name, HyPerCol *hc) : HebbianUpdater() {
+   HebbianUpdater::initialize(name, hc);
 }
 
 float PlasticTestUpdater::updateRule_dW(float pre, float post) { return pre - post; }

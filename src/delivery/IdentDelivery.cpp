@@ -6,16 +6,16 @@
  */
 
 #include "IdentDelivery.hpp"
+#include "columns/HyPerCol.hpp"
+#include "utils/MapLookupByType.hpp"
 #include <cstring>
 
 namespace PV {
 
-IdentDelivery::IdentDelivery(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+IdentDelivery::IdentDelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-void IdentDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseDelivery::initialize(name, params, comm);
+int IdentDelivery::initialize(char const *name, HyPerCol *hc) {
+   return BaseDelivery::initialize(name, hc);
 }
 
 void IdentDelivery::setObjectType() { mObjectType = "IdentDelivery"; }
@@ -24,7 +24,7 @@ void IdentDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // Never receive from gpu
    mReceiveGpu = false;
    if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "receiveGpu", false /*correctValue*/);
+      parent->parameters()->handleUnnecessaryParameter(name, "receiveGpu", false /*correctValue*/);
    }
 }
 
@@ -35,8 +35,8 @@ IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
       return status;
    }
 
-   mSingleArbor = message->mHierarchy->lookupByType<SingleArbor>();
-   pvAssert(mSingleArbor);
+   mSingleArbor = mapLookupByType<SingleArbor>(message->mHierarchy, getDescription());
+   FatalIf(!mSingleArbor, "%s requires a SingleArbor component.\n", getDescription_c());
 
    checkPreAndPostDimensions();
    return Response::SUCCESS;
@@ -44,9 +44,9 @@ IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 
 void IdentDelivery::checkPreAndPostDimensions() {
    int status = PV_SUCCESS;
-   pvAssert(mPreData and mPostGSyn); // Only call this after BaseDelivery::communicateInitInfo().
-   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
-   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
+   pvAssert(mPreLayer and mPostLayer); // Only call this after BaseDelivery::communicateInitInfo().
+   PVLayerLoc const *preLoc  = mPreLayer->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostLayer->getLayerLoc();
    if (preLoc->nx != postLoc->nx) {
       ErrorLog().printf(
             "%s requires pre and post nx be equal (%d versus %d).\n",
@@ -84,8 +84,8 @@ void IdentDelivery::checkPreAndPostDimensions() {
          "IdentDelivery \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: "
          "%dx%dx%d vs. %dx%dx%d\n",
          name,
-         mPreData->getName(),
-         mPostGSyn->getName(),
+         mPreLayer->getName(),
+         mPostLayer->getName(),
          preLoc->nx,
          preLoc->ny,
          preLoc->nf,
@@ -94,15 +94,15 @@ void IdentDelivery::checkPreAndPostDimensions() {
          postLoc->nf);
 }
 
-void IdentDelivery::deliver(float *destBuffer) {
+void IdentDelivery::deliver() {
    if (mChannelCode == CHANNEL_NOUPDATE) {
       return;
    }
 
    int delay                         = mSingleArbor->getDelay(0);
-   PVLayerCube const preActivityCube = mPreData->getPublisher()->createCube(delay);
+   PVLayerCube const preActivityCube = mPreLayer->getPublisher()->createCube(delay);
    PVLayerLoc const &preLoc          = preActivityCube.loc;
-   PVLayerLoc const &postLoc         = *mPostGSyn->getLayerLoc();
+   PVLayerLoc const &postLoc         = *mPostLayer->getLayerLoc();
 
    int const nx       = preLoc.nx;
    int const ny       = preLoc.ny;
@@ -113,13 +113,8 @@ void IdentDelivery::deliver(float *destBuffer) {
    pvAssert(numPreExtended * preLoc.nbatch == preActivityCube.numItems);
    int numPostRestricted = nx * ny * nf;
 
-   float *postChannel = destBuffer;
-   int const nbatch   = preLoc.nbatch;
-   FatalIf(
-         postLoc.nbatch != nbatch,
-         "%s has different presynaptic and postsynaptic batch sizes.\n",
-         getDescription_c());
-   for (int b = 0; b < nbatch; b++) {
+   float *postChannel = mPostLayer->getChannel(mChannelCode);
+   for (int b = 0; b < parent->getNBatch(); b++) {
       float const *preActivityBuffer = preActivityCube.data + b * numPreExtended;
       float *postGSynBuffer          = postChannel + b * numPostRestricted;
       if (preActivityCube.isSparse) {
@@ -161,10 +156,13 @@ void IdentDelivery::deliver(float *destBuffer) {
          }
       }
    }
+#ifdef PV_USE_CUDA
+   mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
+#endif // PV_USE_CUDA
 }
 
 void IdentDelivery::deliverUnitInput(float *recvBuffer) {
-   const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
+   const int numNeuronsPost = mPostLayer->getNumNeuronsAllBatches();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -173,13 +171,13 @@ void IdentDelivery::deliverUnitInput(float *recvBuffer) {
    }
 }
 
-bool IdentDelivery::isAllInputReady() const {
+bool IdentDelivery::isAllInputReady() {
    bool isReady;
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       isReady = true;
    }
    else {
-      isReady = mPreData->isExchangeFinished(mSingleArbor->getDelay(0));
+      isReady = getPreLayer()->isExchangeFinished(mSingleArbor->getDelay(0));
    }
    return isReady;
 }

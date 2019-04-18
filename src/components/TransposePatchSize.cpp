@@ -6,22 +6,18 @@
  */
 
 #include "TransposePatchSize.hpp"
+#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
-TransposePatchSize::TransposePatchSize(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
-}
+TransposePatchSize::TransposePatchSize(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 TransposePatchSize::TransposePatchSize() {}
 
 TransposePatchSize::~TransposePatchSize() {}
 
-void TransposePatchSize::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   PatchSize::initialize(name, params, comm);
+int TransposePatchSize::initialize(char const *name, HyPerCol *hc) {
+   return PatchSize::initialize(name, hc);
 }
 
 void TransposePatchSize::setObjectType() { mObjectType = "TransposePatchSize"; }

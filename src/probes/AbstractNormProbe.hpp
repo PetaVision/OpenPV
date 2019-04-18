@@ -9,31 +9,32 @@
 #define ABSTRACTNORMPROBE_HPP_
 
 #include "LayerProbe.hpp"
-#include "components/BasePublisherComponent.hpp"
 
 namespace PV {
 
 /**
  * An abstract layer probe where getValue and getValues return a norm-like
- * quantity where the quantity over the entire column is the sum of
- * subquantities computed over each MPI process.
+ * quantity
+ * where the quantity over the entire column is the sum of subquantities
+ * computed
+ * over each MPI process.
  *
  * Derived classes must implement getValueInternal(double, int).  Each MPI
- * process should return its own contribution to the norm.
- * getValues() and getValue() call getValueInternal() and apply MPI_Allreduce
- * to the result, so that getValueInternal() typically does not have to call
- * any MPI processes.
+ * process
+ * should return its own contribution to the norm.  getValues() and getValue()
+ * call getValueInternal and apply MPI_Allreduce to the result, so that
+ * getValueInternal() typically does not have to call any MPI processes.
  */
 class AbstractNormProbe : public LayerProbe {
   public:
-   AbstractNormProbe(const char *name, PVParams *params, Communicator const *comm);
+   AbstractNormProbe(const char *name, HyPerCol *hc);
    virtual ~AbstractNormProbe();
 
    /**
     * Returns a pointer to the masking layer.  Returns NULL if masking is not
     * used.
     */
-   BasePublisherComponent *getMaskLayerData() { return mMaskLayerData; }
+   HyPerLayer *getMaskLayer() { return maskLayer; }
 
    /**
     * Returns the name of the masking layer, as given by the params.
@@ -43,7 +44,7 @@ class AbstractNormProbe : public LayerProbe {
 
   protected:
    AbstractNormProbe();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
 
    /**
     * Called during initialization, sets the member variable normDescription.
@@ -128,7 +129,7 @@ class AbstractNormProbe : public LayerProbe {
     * and norm value for
     * each batch element.
     */
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timevalue) override;
 
    char const *getNormDescription() { return normDescription; }
 
@@ -136,14 +137,15 @@ class AbstractNormProbe : public LayerProbe {
    int initialize_base();
 
   private:
-   char *normDescription                  = nullptr;
-   char *maskLayerName                    = nullptr;
-   BasePublisherComponent *mMaskLayerData = nullptr;
-   bool singleFeatureMask                 = false;
+   char *normDescription;
+   char *maskLayerName;
+   HyPerLayer *maskLayer;
+   bool singleFeatureMask;
 
-   double timeLastComputed = -std::numeric_limits<double>::infinity();
-   // the value of the input argument timevalue for the most recent
-   // getValues() call.  Calls to getValue() do not set or refer to this time.
+   double timeLastComputed; // the value of the input argument timevalue for the
+   // most recent
+   // getValues() call.  Calls to getValue() do not set or refer to this
+   // time.
 
 }; // end class AbstractNormProbe
 

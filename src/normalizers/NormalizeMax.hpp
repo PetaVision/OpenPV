@@ -12,10 +12,10 @@
 
 namespace PV {
 
-class NormalizeMax : public NormalizeMultiply {
+class NormalizeMax : public PV::NormalizeMultiply {
    // Member functions
   public:
-   NormalizeMax(const char *name, PVParams *params, Communicator const *comm);
+   NormalizeMax(const char *name, HyPerCol *hc);
    virtual ~NormalizeMax();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -23,7 +23,7 @@ class NormalizeMax : public NormalizeMultiply {
 
   protected:
    NormalizeMax();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
 
    virtual void ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag);
 

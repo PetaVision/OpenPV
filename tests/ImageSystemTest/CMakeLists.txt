@@ -1,21 +1,15 @@
 set(SRC_CPP
-  src/ImagePvpTestBuffer.cpp
   src/ImagePvpTestLayer.cpp
   src/ImageSystemTest.cpp
   src/ImageTestLayer.cpp
-  src/MoviePvpTestBuffer.cpp
   src/MoviePvpTestLayer.cpp
-  src/MovieTestBuffer.cpp
   src/MovieTestLayer.cpp
 )
 
 set(SRC_HPP
-  src/ImagePvpTestBuffer.hpp
   src/ImagePvpTestLayer.hpp
   src/ImageTestLayer.hpp
-  src/MoviePvpTestBuffer.hpp
   src/MoviePvpTestLayer.hpp
-  src/MovieTestBuffer.hpp
   src/MovieTestLayer.hpp
 )
 

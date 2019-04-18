@@ -1,51 +1,58 @@
 /*
  * ObserverTable.cpp
  *
- *  Created on: Nov 20, 2017
+ *  Created on: Jul 22, 2016
  *      Author: pschultz
  */
 
 #include "observerpattern/ObserverTable.hpp"
-#include "utils/PVLog.hpp"
+#include "utils/PVAssert.hpp"
+#include <algorithm>
 
 namespace PV {
 
-ObserverTable::ObserverTable(char const *description) { initialize(description); }
-
-ObserverTable::ObserverTable() {}
-
-ObserverTable::~ObserverTable() { clear(); }
-
-void ObserverTable::initialize(char const *description) {
-   Observer::initialize();
-   setDescription(description);
+std::vector<Observer *>::size_type ObserverTable::size() const {
+   pvAssert(mObjectVector.size() == mObjectMap.size());
+   return mObjectVector.size();
 }
 
 bool ObserverTable::addObject(std::string const &name, Observer *entry) {
-   // auto insertion = mTableAsMap.insert(std::make_pair(std::string(name), entry));
-   auto insertion = mTableAsMap.insert(std::make_pair(name, entry));
-   // map::insert() returns a pair whose second element is whether the insertion was successful.
-   bool addSucceeded = insertion.second;
+   bool addSucceeded =
+         mObjectMap.insert(std::make_pair(std::string(name), entry)).second; // map::insert()
+   // returns a pair whose
+   // second element is
+   // whether the
+   // insertion was
+   // successful.
    if (addSucceeded) {
-      mTableAsVector.emplace_back(entry);
+      mObjectVector.emplace_back(entry);
    }
    return addSucceeded;
 }
 
-void ObserverTable::copyTable(ObserverTable const *origTable) {
-   FatalIf(
-         !mTableAsVector.empty(),
-         "copyTable called for %s but the table was not empty.\n",
-         getDescription_c());
-   auto &map = origTable->mTableAsMap;
-   for (auto &p : map) {
-      addObject(p.first, p.second);
+void ObserverTable::deleteObject(std::string const &name, bool deallocateFlag) {
+   Observer *obj        = nullptr;
+   auto mapSearchResult = mObjectMap.find(name);
+   if (mapSearchResult == mObjectMap.end()) {
+      obj                     = mapSearchResult->second;
+      auto vectorSearchResult = find(mObjectVector.begin(), mObjectVector.end(), obj);
+      pvAssert(vectorSearchResult != mObjectVector.end());
+      mObjectMap.erase(mapSearchResult);
+      mObjectVector.erase(vectorSearchResult);
+      if (deallocateFlag) {
+         delete obj;
+      }
    }
 }
 
-void ObserverTable::clear() {
-   mTableAsVector.clear();
-   mTableAsMap.clear();
+void ObserverTable::clear(bool deallocateFlag) {
+   if (deallocateFlag) {
+      for (auto &obj : mObjectVector) {
+         delete obj;
+      }
+   }
+   mObjectVector.clear();
+   mObjectMap.clear();
 }
 
-} // end namespace PV
+} /* namespace PV */

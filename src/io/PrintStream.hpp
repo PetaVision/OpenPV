@@ -9,13 +9,15 @@ extern "C" {
 #include <cstdio>
 #include <cstring>
 
+#include "io/io.hpp"
 #include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
 
 namespace PV {
 
 class PrintStream {
   public:
-   PrintStream(std::ostream &stream) { initialize(stream); }
+   PrintStream(std::ostream &stream) { setOutStream(stream); }
    virtual ~PrintStream() {}
 
    int printf(const char *fmt, ...) {
@@ -23,14 +25,11 @@ class PrintStream {
       va_start(args1, fmt);
       va_copy(args2, args1);
       char c;
-      int chars_needed = vsnprintf(&c, 1, fmt, args1) + 1; // +1 for null terminator
+      int chars_needed = vsnprintf(&c, 1, fmt, args1);
+      chars_needed++;
       char output_string[chars_needed];
-#ifdef NDEBUG
-      vsnprintf(output_string, chars_needed, fmt, args2);
-#else
-      int chars_printed = vsnprintf(output_string, chars_needed, fmt, args2) + 1;
-      pvAssert(chars_printed == chars_needed);
-#endif // NDEBUG
+      int chars_printed = vsnprintf(output_string, chars_needed, fmt, args2);
+      pvAssert(chars_printed + 1 == chars_needed);
       (*mOutStream) << std::string(output_string);
       va_end(args1);
       va_end(args2);
@@ -60,7 +59,7 @@ class PrintStream {
 
   protected:
    PrintStream() {}
-   void initialize(std::ostream &stream) { mOutStream = &stream; }
+   void setOutStream(std::ostream &stream) { mOutStream = &stream; }
 
   private:
    std::ostream *mOutStream = nullptr;

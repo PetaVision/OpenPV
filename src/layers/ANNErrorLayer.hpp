@@ -5,30 +5,74 @@
  *      Author: gkenyon
  */
 
-#ifndef ANNERRORLAYER_HPP__
-#define ANNERRORLAYER_HPP__
+#ifndef ANNERRORLAYER_HPP_
+#define ANNERRORLAYER_HPP_
 
-#include "HyPerLayer.hpp"
+#include "ANNLayer.hpp"
 
 namespace PV {
 
-/**
- * HyPerLayer subclass that applies a thresholding transfer function,
- * where |V|<threshold -> A=0 and |V|>threshold -> A=V.
- */
-class ANNErrorLayer : public HyPerLayer {
+class ANNErrorLayer : public PV::ANNLayer {
   public:
-   ANNErrorLayer(const char *name, PVParams *params, Communicator const *comm);
+   ANNErrorLayer(const char *name, HyPerCol *hc);
    virtual ~ANNErrorLayer();
 
   protected:
-   ANNErrorLayer() {}
+   ANNErrorLayer();
+   int initialize(const char *name, HyPerCol *hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   /**
+    * List of parameters used by the ANNErrorLayer class
+    * @name ANNErrorLayer Parameters
+    * @{
+    */
 
-   virtual ActivityComponent *createActivityComponent() override;
-};
+   /**
+    * @brief: errScale: The input to the error layer is multiplied by errScale before applying the
+    * threshold.
+    */
+   virtual void ioParam_errScale(enum ParamsIOFlag ioFlag);
 
-} // end namespace PV
+   /**
+    * @brief VThresh: Errors whose absolute value is below VThresh are truncated to zero.
+    * @detail If VThresh is negative, no truncation takes place.  errScale is applied before
+    * VThresh.
+    */
+   virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag) override {
+      ANNLayer::ioParam_VThresh(ioFlag);
+      return;
+   }
 
-#endif
+   /**
+    * @brief ANNErrorLayer does not use AMin.
+    */
+   virtual void ioParam_AMin(enum ParamsIOFlag ioFlag) override {}
+
+   /**
+    * @brief ANNErrorLayer does not use AMax.
+    */
+   virtual void ioParam_AMax(enum ParamsIOFlag ioFlag) override {}
+
+   /**
+    * @brief ANNErrorLayer does not use AShift.
+    */
+   virtual void ioParam_AShift(enum ParamsIOFlag ioFlag) override {}
+
+   /**
+    * @brief ANNErrorLayer does not use VWidth.
+    */
+   virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag) override {}
+   /** @} */
+
+   virtual int setVertices() override;
+   virtual int checkVertices() const override;
+   virtual Response::Status updateState(double time, double dt) override;
+
+  private:
+   int initialize_base();
+   float errScale;
+}; // class ANNErrorLayer
+
+} /* namespace PV */
+#endif /* ANNERRORLAYER_HPP_ */

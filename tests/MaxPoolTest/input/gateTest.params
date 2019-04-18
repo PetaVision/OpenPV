@@ -236,6 +236,7 @@ PoolingConn "input2maxPoolPre" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
    
     needPostIndexLayer = true;
     postIndexLayerName = "maxPoolIndexPre";
@@ -264,6 +265,7 @@ PoolingConn "input2maxPoolPost" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
    
     needPostIndexLayer = true;
     postIndexLayerName = "maxPoolIndexPost";
@@ -277,6 +279,7 @@ TransposePoolingConn "maxPoolPreToGatedMaxPoolPre" = {
     postLayerName = "GatedMaxPoolPre";
     channelCode = 0;
     originalConnName = "input2maxPoolPre";
+    convertRateToSpikeCount = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
     writeCompressedCheckpoints = false;
     shmget_flag = false;
@@ -289,6 +292,7 @@ TransposePoolingConn "maxPoolPostToGatedMaxPoolPost" = {
     postLayerName = "GatedMaxPoolPost";
     channelCode = 0;
     originalConnName = "input2maxPoolPost";
+    convertRateToSpikeCount = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
     writeCompressedCheckpoints = false;
     shmget_flag = false;

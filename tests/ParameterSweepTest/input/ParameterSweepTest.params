@@ -242,6 +242,7 @@ HyPerConn "InputToOutput" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
 };
 
 HyPerConn "InputToOutput1x1" = {
@@ -267,6 +268,7 @@ HyPerConn "InputToOutput1x1" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
 };
 
 HyPerConn "InputToOutput3x3" = {
@@ -292,6 +294,7 @@ HyPerConn "InputToOutput3x3" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
 };
 
 HyPerConn "InputToOutput5x5" = {
@@ -317,6 +320,7 @@ HyPerConn "InputToOutput5x5" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
 };
 
 HyPerConn "InputToOutput7x7" = {
@@ -342,6 +346,7 @@ HyPerConn "InputToOutput7x7" = {
     delay = 0;
 
     pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
 };
 
 IdentConn "OutputToComparison1x1" = {

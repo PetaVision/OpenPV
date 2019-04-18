@@ -6,15 +6,14 @@
  */
 
 #include "MomentumUpdater.hpp"
+#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
-MomentumUpdater::MomentumUpdater(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+MomentumUpdater::MomentumUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-void MomentumUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   HebbianUpdater::initialize(name, params, comm);
+int MomentumUpdater::initialize(char const *name, HyPerCol *hc) {
+   return HebbianUpdater::initialize(name, hc);
 }
 
 void MomentumUpdater::setObjectType() { mObjectType = "MomentumUpdater"; }
@@ -29,9 +28,9 @@ int MomentumUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &mMomentumMethod);
+      parent->parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &mMomentumMethod);
       if (strcmp(mMomentumMethod, "viscosity") == 0) {
          mMethod = VISCOSITY;
       }
@@ -49,9 +48,9 @@ void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumUpdater::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "momentumMethod"));
+      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "momentumMethod"));
       float defaultVal = 0;
       switch (mMethod) {
          case VISCOSITY: defaultVal = mDefaultTimeConstantTauViscosity; break;
@@ -60,11 +59,10 @@ void MomentumUpdater::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
          default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
       }
 
-      // If momentumTau is being used instead of timeConstantTau, ioParam_momentumTau
-      // will print a warning, so we don't warn if timeConstantTau is absent here.
-      // When momentumTau is removed, warnIfAbsent should be set to true here.
-      bool warnIfAbsent = !parameters()->present(getName(), "momentumTau");
-      parameters()->ioParamValue(
+      // If momentumTau is being used instead of timeConstantTau, ioParam_momentum
+      // When momentumTau is marked obsolete, warnIfAbsent should be set to true.
+      bool warnIfAbsent = !parent->parameters()->present(getName(), "momentumTau");
+      parent->parameters()->ioParamValue(
             ioFlag, name, "timeConstantTau", &mTimeConstantTau, defaultVal, warnIfAbsent);
       if (ioFlag == PARAMS_IO_READ) {
          checkTimeConstantTau();
@@ -101,25 +99,24 @@ void MomentumUpdater::checkTimeConstantTau() {
                getDescription_c(),
                (double)mTimeConstantTau);
          break;
-      default: Fatal().printf("Unrecognized momentumMethod\n"); break;
    }
 }
 
 void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "momentumMethod"));
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "timeConstantTau"));
-      if (!parameters()->present(getName(), "momentumTau")) {
+      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "momentumMethod"));
+      pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "timeConstantTau"));
+      if (!parent->parameters()->present(getName(), "momentumTau")) {
          return;
       }
-      if (parameters()->present(getName(), "timeConstantTau")) {
+      if (parent->parameters()->present(getName(), "timeConstantTau")) {
          WarnLog().printf(
                "%s sets timeConstantTau, so momentumTau will be ignored.\n", getDescription_c());
          return;
       }
       mUsingDeprecatedMomentumTau = true;
-      parameters()->ioParamValueRequired(ioFlag, name, "momentumTau", &mMomentumTau);
+      parent->parameters()->ioParamValueRequired(ioFlag, name, "momentumTau", &mMomentumTau);
       WarnLog().printf(
             "%s uses momentumTau, which is deprecated. Use timeConstantTau instead.\n",
             getDescription_c());
@@ -127,9 +124,10 @@ void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamValue(ioFlag, name, "momentumDecay", &mMomentumDecay, mMomentumDecay);
+      parent->parameters()->ioParamValue(
+            ioFlag, name, "momentumDecay", &mMomentumDecay, mMomentumDecay);
       if (mMomentumDecay < 0.0f || mMomentumDecay > 1.0f) {
          Fatal() << "MomentumUpdater " << name
                  << ": momentumDecay must be between 0 and 1 inclusive\n";
@@ -154,16 +152,14 @@ Response::Status MomentumUpdater::allocateDataStructures() {
    return Response::SUCCESS;
 }
 
-Response::Status
-MomentumUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = HebbianUpdater::registerData(message);
+Response::Status MomentumUpdater::registerData(Checkpointer *checkpointer) {
+   auto status = HebbianUpdater::registerData(checkpointer);
    if (!Response::completed(status)) {
       return status;
    }
    // Note: HebbianUpdater does not checkpoint dW if the mImmediateWeightUpdate flag is true.
    // Do we need to handle it here and in readStateFromCheckpoint? --pschultz, 2017-12-16
    if (mPlasticityFlag) {
-      auto *checkpointer = message->mDataRegistry;
       mPrevDeltaWeights->checkpointWeightPvp(
             checkpointer, name, "prev_dW", mWriteCompressedCheckpoints);
    }
@@ -171,14 +167,18 @@ MomentumUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
 }
 
 Response::Status MomentumUpdater::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   pvAssert(mInitializeFromCheckpointFlag);
-   // Note: HebbianUpdater does not checkpoint dW if the mImmediateWeightUpdate flag is true.
-   // Do we need to handle it here and in registerData? --pschultz, 2017-12-16
-   if (mPlasticityFlag) {
-      checkpointer->readNamedCheckpointEntry(
-            std::string(name), std::string("prev_dW"), false /*not constant*/);
+   if (mInitializeFromCheckpointFlag) {
+      // Note: HebbianUpdater does not checkpoint dW if the mImmediateWeightUpdate flag is true.
+      // Do we need to handle it here and in registerData? --pschultz, 2017-12-16
+      if (mPlasticityFlag) {
+         checkpointer->readNamedCheckpointEntry(
+               std::string(name), std::string("prev_dW"), false /*not constant*/);
+      }
+      return Response::SUCCESS;
    }
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 int MomentumUpdater::updateWeights(int arborId) {

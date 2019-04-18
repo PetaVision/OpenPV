@@ -33,29 +33,31 @@ namespace PV {
 
 ANNWhitenedLayer::ANNWhitenedLayer() { initialize_base(); }
 
-ANNWhitenedLayer::ANNWhitenedLayer(const char *name, PVParams *params, Communicator const *comm) {
+ANNWhitenedLayer::ANNWhitenedLayer(const char *name, HyPerCol *hc) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 ANNWhitenedLayer::~ANNWhitenedLayer() {}
 
-int ANNWhitenedLayer::initialize_base() { return PV_SUCCESS; }
+int ANNWhitenedLayer::initialize_base() {
+   numChannels = 3; // applyGSyn_ANNWhitenedLayer uses 3 channels
+   return PV_SUCCESS;
+}
 
-void ANNWhitenedLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
+int ANNWhitenedLayer::initialize(const char *name, HyPerCol *hc) {
    WarnLog() << "ANNWhitenedLayer has been deprecated.\n";
-   ANNLayer::initialize(name, params, comm);
-   mLayerInput->requireChannel(2); // applyGSyn_ANNWhitenedLayer uses channels 0, 1, and 2
-   pvAssert(mLayerInput->getNumChannels() == 3);
+   ANNLayer::initialize(name, hc);
+   assert(numChannels == 3);
    return PV_SUCCESS;
 }
 
 Response::Status ANNWhitenedLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = mActivity->getActivity();
+   float *A              = clayer->activity->data;
    float *V              = getV();
    int num_channels      = getNumChannels();
-   float *gSynHead       = mLayerInput->getLayerInput();
+   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

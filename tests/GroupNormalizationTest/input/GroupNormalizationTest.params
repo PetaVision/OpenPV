@@ -127,6 +127,7 @@ HyPerConn "input_to_output1" = {
     numAxonalArbors = 1;
     sharedWeights = true;
     writeStep = -1;
+    convertRateToSpikeCount = false;
     
     weightInitType = "UniformWeight";
     weightInit = 1.0;
@@ -163,6 +164,7 @@ HyPerConn "input_to_output2" = {
     numAxonalArbors = 1;
     sharedWeights = true;
     writeStep = -1;
+    convertRateToSpikeCount = false;
     
     weightInitType = "UniformWeight";
     weightInit = 1.0;

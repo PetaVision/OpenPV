@@ -6,37 +6,20 @@
  */
 
 #include "WeightsPair.hpp"
+#include "columns/HyPerCol.hpp"
 #include "io/WeightsFileIO.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "utils/MapLookupByType.hpp"
 #include "utils/TransposeWeights.hpp"
 
 namespace PV {
 
-WeightsPair::WeightsPair(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+WeightsPair::WeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 WeightsPair::~WeightsPair() { delete mOutputStateStream; }
 
-void WeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   WeightsPairInterface::initialize(name, params, comm);
-}
-
-void WeightsPair::initMessageActionMap() {
-   WeightsPairInterface::initMessageActionMap();
-   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ConnectionFinalizeUpdateMessage const>(msgptr);
-      return respondConnectionFinalizeUpdate(castMessage);
-   };
-   mMessageActionMap.emplace("ConnectionFinalizeUpdate", action);
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(msgptr);
-      return respondConnectionOutput(castMessage);
-   };
-   mMessageActionMap.emplace("ConnectionOutput", action);
+int WeightsPair::initialize(char const *name, HyPerCol *hc) {
+   return WeightsPairInterface::initialize(name, hc);
 }
 
 void WeightsPair::setObjectType() { mObjectType = "WeightsPair"; }
@@ -46,20 +29,19 @@ int WeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_initialWriteTime(ioFlag);
    ioParam_writeCompressedWeights(ioFlag);
    ioParam_writeCompressedCheckpoints(ioFlag);
+   ioParam_initializeFromCheckpointFlag(ioFlag);
    return PV_SUCCESS;
 }
 
 void WeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
-   bool warnIfAbsent = false; // If not in params, will be set in CommunicateInitInfo stage
-   // If writing a derived class that overrides ioParam_writeStep, check if the setDefaultWriteStep
-   // method also needs to be overridden.
-   parameters()->ioParamValue(ioFlag, name, "writeStep", &mWriteStep, mWriteStep, warnIfAbsent);
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "writeStep", &mWriteStep, parent->getDeltaTime(), true /*warn if absent */);
 }
 
 void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "writeStep"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (mWriteStep >= 0) {
-      parameters()->ioParamValue(
+      parent->parameters()->ioParamValue(
             ioFlag,
             name,
             "initialWriteTime",
@@ -68,7 +50,7 @@ void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
             true /*warnifabsent*/);
       if (ioFlag == PARAMS_IO_READ) {
          if (mWriteStep > 0 && mInitialWriteTime < 0.0) {
-            if (mCommunicator->globalCommRank() == 0) {
+            if (parent->getCommunicator()->globalCommRank() == 0) {
                WarnLog(adjustInitialWriteTime);
                adjustInitialWriteTime.printf(
                      "%s: initialWriteTime %f earlier than starting time 0.0.  Adjusting "
@@ -80,7 +62,7 @@ void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
             while (mInitialWriteTime < 0.0) {
                mInitialWriteTime += mWriteStep; // TODO: this hangs if writeStep is zero.
             }
-            if (mCommunicator->globalCommRank() == 0) {
+            if (parent->getCommunicator()->globalCommRank() == 0) {
                InfoLog().printf(
                      "%s: initialWriteTime adjusted to %f\n",
                      getDescription_c(),
@@ -93,9 +75,9 @@ void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
 }
 
 void WeightsPair::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "writeStep"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (mWriteStep >= 0) {
-      parameters()->ioParamValue(
+      parent->parameters()->ioParamValue(
             ioFlag,
             name,
             "writeCompressedWeights",
@@ -106,13 +88,41 @@ void WeightsPair::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
 }
 
 void WeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag,
          name,
          "writeCompressedCheckpoints",
          &mWriteCompressedCheckpoints,
          mWriteCompressedCheckpoints,
          true /*warnifabsent*/);
+}
+
+void WeightsPair::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(
+         ioFlag,
+         name,
+         "initializeFromCheckpointFlag",
+         &mInitializeFromCheckpointFlag,
+         mInitializeFromCheckpointFlag,
+         true /*warnIfAbsent*/);
+}
+
+Response::Status WeightsPair::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = WeightsPairInterface::respond(message);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
+   else if (
+         auto castMessage =
+               std::dynamic_pointer_cast<ConnectionFinalizeUpdateMessage const>(message)) {
+      return respondConnectionFinalizeUpdate(castMessage);
+   }
+   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(message)) {
+      return respondConnectionOutput(castMessage);
+   }
+   else {
+      return status;
+   }
 }
 
 Response::Status WeightsPair::respondConnectionFinalizeUpdate(
@@ -135,11 +145,13 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
    pvAssert(mConnectionData); // set during WeightsPairInterface::communicateInitInfo()
 
-   mArborList = message->mHierarchy->lookupByType<ArborList>();
-   pvAssert(mArborList);
+   if (mArborList == nullptr) {
+      mArborList = mapLookupByType<ArborList>(message->mHierarchy, getDescription());
+   }
+   FatalIf(mArborList == nullptr, "%s requires an ArborList component.\n", getDescription_c());
 
    if (!mArborList->getInitInfoCommunicatedFlag()) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the ArborList component has finished its "
                "communicateInitInfo stage.\n",
@@ -149,22 +161,21 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
 
    if (mSharedWeights == nullptr) {
-      mSharedWeights = message->mHierarchy->lookupByType<SharedWeights>();
-      pvAssert(mSharedWeights);
+      mSharedWeights = mapLookupByType<SharedWeights>(message->mHierarchy, getDescription());
    }
+   FatalIf(
+         mSharedWeights == nullptr,
+         "%s requires an SharedWeights component.\n",
+         getDescription_c());
 
    if (!mSharedWeights->getInitInfoCommunicatedFlag()) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the SharedWeights component has finished its "
                "communicateInitInfo stage.\n",
                getDescription_c());
       }
       return status + Response::POSTPONE;
-   }
-
-   if (!parameters()->present(getName(), "writeStep")) {
-      setDefaultWriteStep(message);
    }
 
    return status;
@@ -204,19 +215,15 @@ void WeightsPair::createPostWeights(std::string const &weightsName) {
          -std::numeric_limits<double>::infinity() /*timestamp*/);
 }
 
-void WeightsPair::setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   mWriteStep = message->mDeltaTime;
-   // Call ioParamValue to generate the warnIfAbsent warning.
-   parameters()->ioParamValue(PARAMS_IO_READ, name, "writeStep", &mWriteStep, mWriteStep, true);
-}
-
 void WeightsPair::allocatePreWeights() {
    pvAssert(mPreWeights);
    mPreWeights->setMargins(
          mConnectionData->getPre()->getLayerLoc()->halo,
          mConnectionData->getPost()->getLayerLoc()->halo);
 #ifdef PV_USE_CUDA
-   mPreWeights->setCudaDevice(mCudaDevice);
+   if (mCudaDevice) {
+      mPreWeights->setCudaDevice(mCudaDevice);
+   }
 #endif // PV_USE_CUDA
    mPreWeights->allocateDataStructures();
 }
@@ -227,20 +234,20 @@ void WeightsPair::allocatePostWeights() {
          mConnectionData->getPost()->getLayerLoc()->halo,
          mConnectionData->getPre()->getLayerLoc()->halo);
 #ifdef PV_USE_CUDA
-   mPostWeights->setCudaDevice(mCudaDevice);
+   if (mCudaDevice) {
+      mPostWeights->setCudaDevice(mCudaDevice);
+   }
 #endif // PV_USE_CUDA
    mPostWeights->allocateDataStructures();
 }
 
-Response::Status
-WeightsPair::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = WeightsPairInterface::registerData(message);
+Response::Status WeightsPair::registerData(Checkpointer *checkpointer) {
+   auto status = WeightsPairInterface::registerData(checkpointer);
    if (status != Response::SUCCESS) {
       return status;
    }
    needPre();
    allocatePreWeights();
-   auto *checkpointer = message->mDataRegistry;
    mPreWeights->checkpointWeightPvp(checkpointer, getName(), "W", mWriteCompressedCheckpoints);
    if (mWriteStep >= 0) {
       checkpointer->registerCheckpointData(
@@ -251,7 +258,7 @@ WeightsPair::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> cons
             true /*broadcast*/,
             false /*not constant*/);
 
-      openOutputStateFile(message);
+      openOutputStateFile(checkpointer);
    }
 
    return Response::SUCCESS;
@@ -266,7 +273,7 @@ void WeightsPair::finalizeUpdate(double timestamp, double deltaTime) {
       double const timestampPre  = mPreWeights->getTimestamp();
       double const timestampPost = mPostWeights->getTimestamp();
       if (timestampPre > timestampPost) {
-         TransposeWeights::transpose(mPreWeights, mPostWeights, mCommunicator);
+         TransposeWeights::transpose(mPreWeights, mPostWeights, parent->getCommunicator());
          mPostWeights->setTimestamp(timestampPre);
       }
 #ifdef PV_USE_CUDA
@@ -275,10 +282,8 @@ void WeightsPair::finalizeUpdate(double timestamp, double deltaTime) {
    }
 }
 
-void WeightsPair::openOutputStateFile(
-      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+void WeightsPair::openOutputStateFile(Checkpointer *checkpointer) {
    if (mWriteStep >= 0) {
-      auto *checkpointer = message->mDataRegistry;
       if (checkpointer->getMPIBlock()->getRank() == 0) {
          std::string outputStatePath(getName());
          outputStatePath.append(".pvp");
@@ -289,7 +294,6 @@ void WeightsPair::openOutputStateFile(
          bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
          mOutputStateStream = new CheckpointableFileStream(
                outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
-         mOutputStateStream->respond(message); // CheckpointableFileStream needs to register data
       }
    }
 }

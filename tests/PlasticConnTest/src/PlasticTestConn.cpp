@@ -10,13 +10,12 @@
 
 namespace PV {
 
-PlasticTestConn::PlasticTestConn(const char *name, PVParams *params, Communicator const *comm)
-      : HyPerConn() {
-   HyPerConn::initialize(name, params, comm);
+PlasticTestConn::PlasticTestConn(const char *name, HyPerCol *hc) : HyPerConn() {
+   HyPerConn::initialize(name, hc);
 }
 
 BaseWeightUpdater *PlasticTestConn::createWeightUpdater() {
-   return new PlasticTestUpdater(name, parameters(), mCommunicator);
+   return new PlasticTestUpdater(name, parent);
 }
 
 PlasticTestConn::~PlasticTestConn() {}

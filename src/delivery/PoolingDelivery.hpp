@@ -72,15 +72,15 @@ class PoolingDelivery : public BaseDelivery {
   public:
    enum AccumulateType { UNDEFINED, MAXPOOLING, SUMPOOLING, AVGPOOLING };
 
-   PoolingDelivery(char const *name, PVParams *params, Communicator const *comm);
+   PoolingDelivery(char const *name, HyPerCol *hc);
 
    virtual ~PoolingDelivery();
 
    void setConnectionData(ConnectionData *connectionData);
 
-   virtual void deliver(float *destBuffer) override;
+   virtual void deliver() override;
 
-   virtual bool isAllInputReady() const override;
+   virtual bool isAllInputReady() override;
 
    AccumulateType getAccumulateType() const { return mAccumulateType; }
 
@@ -99,7 +99,7 @@ class PoolingDelivery : public BaseDelivery {
   protected:
    PoolingDelivery();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 
@@ -117,18 +117,16 @@ class PoolingDelivery : public BaseDelivery {
 
    void initializeDeliverKernelArgs();
 
-#ifdef PV_USE_OPENMP_THREADS
-   void allocateThreadGateIdxBuffer();
-#endif // PV_USE_OPENMP_THREADS
+   void allocateThreadGSyn();
 
-   void deliverPostsynapticPerspective(float *destBuffer);
+   void deliverPostsynapticPerspective();
 
-   void deliverPresynapticPerspective(float *destBuffer);
+   void deliverPresynapticPerspective();
 
    void clearGateIdxBuffer();
 
 #ifdef PV_USE_CUDA
-   void deliverGPU(float *destBuffer);
+   void deliverGPU();
 #endif // PV_USE_CUDA
 
    // Data members
@@ -144,10 +142,8 @@ class PoolingDelivery : public BaseDelivery {
    char *mPostIndexLayerName          = nullptr;
    PoolingIndexLayer *mPostIndexLayer = nullptr;
 
-#ifdef PV_USE_OPENMP_THREADS
+   std::vector<std::vector<float>> mThreadGSyn;
    std::vector<std::vector<float>> mThreadGateIdxBuffer;
-#endif // PV_USE_OPENMP_THREADS
-
 #ifdef PV_USE_CUDA
    PVCuda::CudaPoolingDeliverKernel *mRecvKernel = nullptr; // Cuda kernel for updating GSyn
 #endif // PV_USE_CUDA

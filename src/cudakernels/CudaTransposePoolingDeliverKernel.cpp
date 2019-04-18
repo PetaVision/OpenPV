@@ -15,7 +15,7 @@ namespace PVCuda {
 
 CudaTransposePoolingDeliverKernel::CudaTransposePoolingDeliverKernel(CudaDevice *inDevice)
       : CudaKernel(inDevice) {
-   mKernelName = "CudaTransposePoolingDeliverKernel";
+   kernelName = "CudaTransposePoolingDeliverKernel";
 }
 
 CudaTransposePoolingDeliverKernel::~CudaTransposePoolingDeliverKernel() {}
@@ -94,7 +94,7 @@ void CudaTransposePoolingDeliverKernel::setArgs(
          mPreLoc->nx + preHalo->lt + preHalo->rt - 2 * mBorderExcessX); // Width of each feature map
    cudnnHandleError(status, "Set input tensor descriptor");
    mDataStore = (float *)dataStoreBuffer->getPointer();
-   std::string str(mKernelName);
+   std::string str(kernelName);
    mCudnnDataStore = device->createBuffer(dataStoreBuffer->getSize(), &str);
 
    status = cudnnCreateTensorDescriptor(&mGSynDescriptor);

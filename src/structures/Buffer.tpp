@@ -1,5 +1,5 @@
 #include "utils/PVLog.hpp"
-//#include "utils/conversions.hpp"
+//#include "utils/conversions.h"
 
 #include <cmath>
 #include <cstring>
@@ -52,7 +52,7 @@ void Buffer<T>::set(int k, T value) {
 template <class T>
 void Buffer<T>::set(const std::vector<T> &vector, int width, int height, int features) {
    FatalIf(
-         (int)vector.size() != width * height * features,
+         vector.size() != width * height * features,
          "Invalid vector size: Expected %d elements, vector contained %d elements.\n",
          width * height * features,
          vector.size());
@@ -92,8 +92,8 @@ void Buffer<T>::grow(int newWidth, int newHeight, enum Anchor anchor) {
    if (newWidth <= getWidth() && newHeight <= getHeight()) {
       return;
    }
-   newWidth    = std::max(newWidth, getWidth());
-   newHeight   = std::max(newHeight, getHeight());
+   newWidth  = std::max(newWidth, getWidth());
+   newHeight = std::max(newHeight, getHeight());
    int offsetX = getAnchorX(anchor, getWidth(), newWidth);
    int offsetY = getAnchorY(anchor, getHeight(), newHeight);
    Buffer bigger(newWidth, newHeight, getFeatures());

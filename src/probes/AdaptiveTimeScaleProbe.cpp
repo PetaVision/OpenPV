@@ -10,33 +10,17 @@
 
 namespace PV {
 
-AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
+AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe(char const *name, HyPerCol *hc) {
+   initialize(name, hc);
 }
 
 AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe() {}
 
 AdaptiveTimeScaleProbe::~AdaptiveTimeScaleProbe() { delete mAdaptiveTimeScaleController; }
 
-void AdaptiveTimeScaleProbe::initialize(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   ColProbe::initialize(name, params, comm);
-}
-
-void AdaptiveTimeScaleProbe::initMessageActionMap() {
-   ColProbe::initMessageActionMap();
-   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<AdaptTimestepMessage const>(msgptr);
-      return respondAdaptTimestep(castMessage);
-   };
-   mMessageActionMap.emplace("AdaptTimestep", action);
+int AdaptiveTimeScaleProbe::initialize(char const *name, HyPerCol *hc) {
+   int status = ColProbe::initialize(name, hc);
+   return status;
 }
 
 int AdaptiveTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -51,23 +35,23 @@ int AdaptiveTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void AdaptiveTimeScaleProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_baseMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "baseMax", &mBaseMax, mBaseMax);
+   parent->parameters()->ioParamValue(ioFlag, name, "baseMax", &mBaseMax, mBaseMax);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_baseMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "baseMin", &mBaseMin, mBaseMin);
+   parent->parameters()->ioParamValue(ioFlag, name, "baseMin", &mBaseMin, mBaseMin);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_tauFactor(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "tauFactor", &tauFactor, tauFactor);
+   parent->parameters()->ioParamValue(ioFlag, name, "tauFactor", &tauFactor, tauFactor);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_growthFactor(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
+   parent->parameters()->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
 }
 
 // writeTimeScales was marked obsolete Jul 27, 2017. Use textOutputFlag instead.
@@ -75,14 +59,14 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScales(enum ParamsIOFlag ioFlag) {
    if (ioFlag != PARAMS_IO_READ) {
       return;
    }
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
-   if (parameters()->present(name, "writeTimeScales")) {
-      bool writeTimeScales = (parameters()->value(name, "writeTimeScales") != 0);
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   if (parent->parameters()->present(name, "writeTimeScales")) {
+      bool writeTimeScales = (parent->parameters()->value(name, "writeTimeScales") != 0);
       if (writeTimeScales == getTextOutputFlag()) {
          WarnLog() << getDescription()
                    << " sets writeTimeScales, which is obsolete. Use textOutputFlag instead.\n";
       }
-      else if (parameters()->present(name, "textOutputFlag")) {
+      else if (parent->parameters()->present(name, "textOutputFlag")) {
          Fatal() << "writeTimeScales is obsolete as it is redundant with textOutputFlag. "
                  << getDescription() << " sets these flags to opposite values.\n";
       }
@@ -98,9 +82,9 @@ void AdaptiveTimeScaleProbe::ioParam_writeTimeScales(enum ParamsIOFlag ioFlag) {
 }
 
 void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
    if (getTextOutputFlag()) {
-      parameters()->ioParamValue(
+      parent->parameters()->ioParamValue(
             ioFlag,
             name,
             "writeTimeScaleFieldnames",
@@ -115,13 +99,13 @@ Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mTargetProbe = message->mHierarchy->lookupByName<BaseProbe>(std::string(targetName));
+   mTargetProbe = message->lookup<BaseProbe>(std::string(targetName));
    if (mTargetProbe == nullptr) {
-      if (mCommunicator->commRank() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          Fatal() << getDescription() << ": targetName \"" << targetName
                  << "\" is not a probe in the HyPerCol.\n";
       }
-      MPI_Barrier(mCommunicator->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    return Response::SUCCESS;
@@ -133,12 +117,12 @@ Response::Status AdaptiveTimeScaleProbe::allocateDataStructures() {
       return status;
    }
    if (mTargetProbe->getNumValues() != getNumValues()) {
-      if (mCommunicator->commRank() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          Fatal() << getDescription() << ": target probe \"" << mTargetProbe->getDescription()
                  << "\" does not have the correct numValues (" << mTargetProbe->getNumValues()
                  << " instead of " << getNumValues() << ").\n";
       }
-      MPI_Barrier(mCommunicator->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    allocateTimeScaleController();
@@ -154,28 +138,34 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
          tauFactor,
          mGrowthFactor,
          mWriteTimeScaleFieldnames,
-         mCommunicator);
+         parent->getCommunicator());
 }
 
-Response::Status AdaptiveTimeScaleProbe::registerData(
-      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = ColProbe::registerData(message);
+Response::Status AdaptiveTimeScaleProbe::registerData(Checkpointer *checkpointer) {
+   auto status = ColProbe::registerData(checkpointer);
    if (!Response::completed(status)) {
       return status;
    }
-   mAdaptiveTimeScaleController->registerData(message);
+   mAdaptiveTimeScaleController->registerData(checkpointer);
    return Response::SUCCESS;
 }
 
-Response::Status
-AdaptiveTimeScaleProbe::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   mBaseDeltaTime = message->mDeltaTime;
-   return Response::SUCCESS;
+Response::Status AdaptiveTimeScaleProbe::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = ColProbe::respond(message);
+   if (message == nullptr) {
+      return status;
+   }
+   else if (auto castMessage = std::dynamic_pointer_cast<AdaptTimestepMessage const>(message)) {
+      return respondAdaptTimestep(castMessage);
+   }
+   else {
+      return status;
+   }
 }
 
 Response::Status
 AdaptiveTimeScaleProbe::respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message) {
-   getValues(message->mTime);
+   getValues(parent->simulationTime());
    return Response::SUCCESS;
 }
 
@@ -187,23 +177,23 @@ AdaptiveTimeScaleProbe::respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessag
 
 void AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    std::vector<double> rawProbeValues;
-   if (mTriggerControl != nullptr
-       && mTriggerControl->needUpdate(timeValue + triggerOffset, mBaseDeltaTime)) {
+   if (triggerLayer != nullptr
+       && triggerLayer->needUpdate(timeValue + triggerOffset, parent->getDeltaTime())) {
       rawProbeValues.assign(getNumValues(), -1.0);
    }
    else {
       mTargetProbe->getValues(timeValue, &rawProbeValues);
    }
-   pvAssert(rawProbeValues.size() == (std::size_t)getNumValues());
-   // In allocateDataStructures, we checked that mTargetProbe has a compatible size.
+   pvAssert(rawProbeValues.size() == getNumValues()); // In allocateDataStructures, we checked that
+   // mTargetProbe has a compatible size.
    std::vector<double> timeSteps =
          mAdaptiveTimeScaleController->calcTimesteps(timeValue, rawProbeValues);
    memcpy(getValuesBuffer(), timeSteps.data(), sizeof(double) * getNumValues());
 }
 
-Response::Status AdaptiveTimeScaleProbe::outputState(double simTime, double deltaTime) {
+Response::Status AdaptiveTimeScaleProbe::outputState(double timeValue) {
    if (!mOutputStreams.empty()) {
-      mAdaptiveTimeScaleController->writeTimestepInfo(simTime, mOutputStreams);
+      mAdaptiveTimeScaleController->writeTimestepInfo(timeValue, mOutputStreams);
    }
    return Response::SUCCESS;
 }

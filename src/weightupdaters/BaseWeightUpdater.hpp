@@ -29,7 +29,7 @@ class BaseWeightUpdater : public BaseObject {
    /** @} */ // end of BaseWeightUpdater parameters
 
   public:
-   BaseWeightUpdater(char const *name, PVParams *params, Communicator const *comm);
+   BaseWeightUpdater(char const *name, HyPerCol *hc);
 
    virtual ~BaseWeightUpdater() {}
 
@@ -40,7 +40,7 @@ class BaseWeightUpdater : public BaseObject {
   protected:
    BaseWeightUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 

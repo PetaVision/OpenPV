@@ -11,43 +11,23 @@
 #include "include/pv_common.h"
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Response.hpp"
-#include <functional>
-#include <map>
 #include <memory>
 
 namespace PV {
 
 class Observer {
   public:
-   // No public constructor; only derived classes of observer can be constructed.
-   virtual ~Observer() {}
-   Response::Status respond(std::shared_ptr<BaseMessage const> message);
-   inline std::string const &getDescription() const { return mDescription; }
-   inline char const *getDescription_c() const { return mDescription.c_str(); }
-
-  protected:
    Observer() {}
-   void setDescription(std::string const &description) { mDescription = description; }
-   void setDescription(char const *description) { mDescription = description; }
-
-   /**
-    * Calls the initMessageActionMap() method. Note that this function is not called
-    * by the Observer's constructor; instead it must be called by the derived class's
-    * initialize function. The reason is so that when initMessageActionMap is called,
-    * the object uses the derived class's initMessageActionMap, not the base class's
-    * method.
-    */
-   int initialize();
-
-   virtual void initMessageActionMap() {}
+   virtual ~Observer() {}
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) {
+      return Response::NO_ACTION;
+   }
+   inline std::string const &getDescription() const { return description; }
+   inline char const *getDescription_c() const { return description.c_str(); }
 
    // Data members
   protected:
-   std::map<std::string, std::function<Response::Status(std::shared_ptr<BaseMessage const>)>>
-         mMessageActionMap;
-
-  private:
-   std::string mDescription;
+   std::string description;
 };
 
 } /* namespace PV */

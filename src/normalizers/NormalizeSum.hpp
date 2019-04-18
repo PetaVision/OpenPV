@@ -12,10 +12,10 @@
 
 namespace PV {
 
-class NormalizeSum : public NormalizeMultiply {
+class NormalizeSum : public PV::NormalizeMultiply {
    // Member functions
   public:
-   NormalizeSum(const char *name, PVParams *params, Communicator const *comm);
+   NormalizeSum(const char *name, HyPerCol *hc);
    virtual ~NormalizeSum();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -23,7 +23,7 @@ class NormalizeSum : public NormalizeMultiply {
 
   protected:
    NormalizeSum();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
 
    virtual void ioParam_minSumTolerated(enum ParamsIOFlag ioFlag);
 

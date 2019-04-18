@@ -8,8 +8,8 @@
 #ifndef CUDADEVICE_HPP_
 #define CUDADEVICE_HPP_
 
+#include "../../include/pv_arch.h"
 #include "CudaBuffer.hpp"
-#include "include/pv_arch.h"
 #include <cuda_runtime_api.h>
 #include <stdio.h>
 #include <string>

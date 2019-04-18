@@ -27,14 +27,14 @@ class ConstantV : public BaseInitV {
    /** @} */
 
   public:
-   ConstantV(const char *name, PVParams *params, Communicator const *comm);
+   ConstantV(const char *name, HyPerCol *hc);
    virtual ~ConstantV();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void calcV(float *V, PVLayerLoc const *loc) override;
 
   protected:
    ConstantV();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
 
   private:
    int initialize_base();

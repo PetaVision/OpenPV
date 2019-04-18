@@ -6,95 +6,70 @@
  */
 
 #include "HyPerConn.hpp"
-#include "columns/Factory.hpp"
+#include "columns/HyPerCol.hpp"
 #include "components/StrengthParam.hpp"
-#include "delivery/HyPerDeliveryCreator.hpp"
+#include "delivery/HyPerDeliveryFacade.hpp"
+#include "utils/MapLookupByType.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
 
 namespace PV {
 
-HyPerConn::HyPerConn(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+HyPerConn::HyPerConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 HyPerConn::HyPerConn() {}
 
 HyPerConn::~HyPerConn() { delete mUpdateTimer; }
 
-void HyPerConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseConnection::initialize(name, params, comm);
+int HyPerConn::initialize(char const *name, HyPerCol *hc) {
+   int status = BaseConnection::initialize(name, hc);
+   return status;
 }
 
-void HyPerConn::initMessageActionMap() {
-   BaseConnection::initMessageActionMap();
-   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ConnectionUpdateMessage const>(msgptr);
-      return respondConnectionUpdate(castMessage);
-   };
-   mMessageActionMap.emplace("ConnectionUpdate", action);
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(msgptr);
-      return respondConnectionNormalize(castMessage);
-   };
-   mMessageActionMap.emplace("ConnectionNormalize", action);
-}
-
-void HyPerConn::fillComponentTable() {
-   BaseConnection::fillComponentTable();
-   auto *arborList = createArborList();
-   if (arborList) {
-      addUniqueComponent(arborList->getDescription(), arborList);
+void HyPerConn::defineComponents() {
+   BaseConnection::defineComponents();
+   mArborList = createArborList();
+   if (mArborList) {
+      addObserver(mArborList);
    }
-   auto *patchSize = createPatchSize();
-   if (patchSize) {
-      addUniqueComponent(patchSize->getDescription(), patchSize);
+   mPatchSize = createPatchSize();
+   if (mPatchSize) {
+      addObserver(mPatchSize);
    }
-   auto *sharedWeights = createSharedWeights();
-   if (sharedWeights) {
-      addUniqueComponent(sharedWeights->getDescription(), sharedWeights);
+   mSharedWeights = createSharedWeights();
+   if (mSharedWeights) {
+      addObserver(mSharedWeights);
    }
-   auto *weightsPair = createWeightsPair();
-   if (weightsPair) {
-      addUniqueComponent(weightsPair->getDescription(), weightsPair);
+   mWeightsPair = createWeightsPair();
+   if (mWeightsPair) {
+      addObserver(mWeightsPair);
    }
-   auto *weightInitializer = createWeightInitializer();
-   if (weightInitializer) {
-      addUniqueComponent(weightInitializer->getDescription(), weightInitializer);
+   mWeightInitializer = createWeightInitializer();
+   if (mWeightInitializer) {
+      addObserver(mWeightInitializer);
    }
-   auto *weightNormalizer = createWeightNormalizer();
-   if (weightNormalizer) {
-      addUniqueComponent(weightNormalizer->getDescription(), weightNormalizer);
+   mWeightNormalizer = createWeightNormalizer();
+   if (mWeightNormalizer) {
+      addObserver(mWeightNormalizer);
    }
-   auto *weightUpdater = createWeightUpdater();
-   if (weightUpdater) {
-      addUniqueComponent(weightUpdater->getDescription(), weightUpdater);
+   mWeightUpdater = createWeightUpdater();
+   if (mWeightUpdater) {
+      addObserver(mWeightUpdater);
    }
 }
 
-BaseDelivery *HyPerConn::createDeliveryObject() {
-   auto *deliveryCreator = new HyPerDeliveryCreator(name, parameters(), mCommunicator);
-   addUniqueComponent(deliveryCreator->getDescription(), deliveryCreator);
-   return deliveryCreator->create();
-}
+BaseDelivery *HyPerConn::createDeliveryObject() { return new HyPerDeliveryFacade(name, parent); }
 
-ArborList *HyPerConn::createArborList() { return new ArborList(name, parameters(), mCommunicator); }
+ArborList *HyPerConn::createArborList() { return new ArborList(name, parent); }
 
-PatchSize *HyPerConn::createPatchSize() { return new PatchSize(name, parameters(), mCommunicator); }
+PatchSize *HyPerConn::createPatchSize() { return new PatchSize(name, parent); }
 
-SharedWeights *HyPerConn::createSharedWeights() {
-   return new SharedWeights(name, parameters(), mCommunicator);
-}
+SharedWeights *HyPerConn::createSharedWeights() { return new SharedWeights(name, parent); }
 
-WeightsPairInterface *HyPerConn::createWeightsPair() {
-   return new WeightsPair(name, parameters(), mCommunicator);
-}
+WeightsPairInterface *HyPerConn::createWeightsPair() { return new WeightsPair(name, parent); }
 
 InitWeights *HyPerConn::createWeightInitializer() {
    char *weightInitTypeString = nullptr;
-   parameters()->ioParamString(
+   parent->parameters()->ioParamString(
          PARAMS_IO_READ,
          name,
          "weightInitType",
@@ -114,7 +89,12 @@ InitWeights *HyPerConn::createWeightInitializer() {
          weightInitTypeString == nullptr or weightInitTypeString[0] == '\0',
          "%s must set weightInitType.\n",
          getDescription_c());
-   BaseObject *baseObject  = Factory::instance()->createByKeyword(weightInitTypeString, this);
+   BaseObject *baseObject = nullptr;
+   try {
+      baseObject = Factory::instance()->createByKeyword(weightInitTypeString, name, parent);
+   } catch (const std::exception &e) {
+      Fatal() << getDescription() << " unable to create weightInitializer: " << e.what() << "\n";
+   }
    auto *weightInitializer = dynamic_cast<InitWeights *>(baseObject);
    FatalIf(
          weightInitializer == nullptr,
@@ -130,7 +110,7 @@ InitWeights *HyPerConn::createWeightInitializer() {
 NormalizeBase *HyPerConn::createWeightNormalizer() {
    NormalizeBase *normalizer = nullptr;
    char *normalizeMethod     = nullptr;
-   parameters()->ioParamString(
+   parent->parameters()->ioParamString(
          PARAMS_IO_READ, name, "normalizeMethod", &normalizeMethod, nullptr, true /*warnIfAbsent*/);
    // Note: The normalizeMethod string param gets read both here and by the
    // NormalizeBase::ioParam_weightInitType() method. It is read here because we need
@@ -142,7 +122,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    // in a loop, without knowing which component is which.
 
    if (normalizeMethod == nullptr) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->columnId() == 0) {
          Fatal().printf(
                "%s: specifying a normalizeMethod string is required.\n", getDescription_c());
       }
@@ -152,45 +132,49 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
       normalizeMethod = strdup("none");
    }
    if (strcmp(normalizeMethod, "none")) {
-      auto strengthParam = new StrengthParam(name, parameters(), mCommunicator);
-      addUniqueComponent(strengthParam->getDescription(), strengthParam);
+      auto strengthParam = new StrengthParam(name, parent);
+      addObserver(strengthParam);
    }
-   BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, this);
-   normalizer          = dynamic_cast<NormalizeBase *>(baseObj);
+   BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, name, parent);
+   if (baseObj == nullptr) {
+      if (parent->columnId() == 0) {
+         Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
+                 << "\" is not recognized." << std::endl;
+      }
+      MPI_Barrier(parent->getCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   normalizer = dynamic_cast<NormalizeBase *>(baseObj);
    if (normalizer == nullptr) {
       pvAssert(baseObj);
-      if (mCommunicator->commRank() == 0) {
+      if (parent->columnId() == 0) {
          Fatal() << getDescription_c() << ": normalizeMethod \"" << normalizeMethod
                  << "\" is not a recognized normalization method." << std::endl;
       }
-      MPI_Barrier(mCommunicator->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    free(normalizeMethod);
    return normalizer;
 }
 
-BaseWeightUpdater *HyPerConn::createWeightUpdater() {
-   return new HebbianUpdater(name, parameters(), mCommunicator);
-}
+BaseWeightUpdater *HyPerConn::createWeightUpdater() { return new HebbianUpdater(name, parent); }
 
-Response::Status
-HyPerConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto status = BaseConnection::communicateInitInfo(message);
+Response::Status HyPerConn::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = BaseConnection::respond(message);
    if (!Response::completed(status)) {
       return status;
    }
-   auto updater = getComponentByType<BaseWeightUpdater>();
-   if (updater and updater->getPlasticityFlag()) {
-      auto delivery = getComponentByType<BaseDelivery>();
-      if (delivery and delivery->getChannelCode() == CHANNEL_GAP) {
-         WarnLog() << getDescription() << " is a gap connection but has plasticity set to true.\n"
-                   << "The gap strength is calculated only once, during initialization, "
-                   << "and will not change if the connection weights are updated.\n";
-         // Perhaps GapConn should be resurrected to handle this warning and only this warning?
-      }
+   else if (auto castMessage = std::dynamic_pointer_cast<ConnectionUpdateMessage const>(message)) {
+      return respondConnectionUpdate(castMessage);
    }
-   return Response::SUCCESS;
+   else if (
+         auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(message)) {
+      return respondConnectionNormalize(castMessage);
+   }
+   else {
+      return status;
+   }
 }
 
 Response::Status
@@ -206,19 +190,48 @@ HyPerConn::respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const
 
 Response::Status
 HyPerConn::respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message) {
-   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   return notify(
+         mComponentTable, message, parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
 }
 
-Response::Status
-HyPerConn::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = BaseConnection::registerData(message);
+Response::Status HyPerConn::initializeState() {
+   return notify(
+         mComponentTable,
+         std::make_shared<InitializeStateMessage>(),
+         parent->getCommunicator()->globalCommRank() == 0 /*printFlag*/);
+}
+
+Response::Status HyPerConn::registerData(Checkpointer *checkpointer) {
+   auto status = BaseConnection::registerData(checkpointer);
    if (Response::completed(status)) {
-      if (getComponentByType<BaseWeightUpdater>()) {
+      if (mWeightUpdater) {
          mUpdateTimer = new Timer(getName(), "conn", "update");
-         message->mDataRegistry->registerTimer(mUpdateTimer);
+         checkpointer->registerTimer(mUpdateTimer);
       }
    }
    return status;
+}
+
+float const *HyPerConn::getDeltaWeightsDataStart(int arbor) const {
+   auto *hebbianUpdater =
+         mapLookupByType<HebbianUpdater>(mComponentTable.getObjectMap(), getDescription());
+   if (hebbianUpdater) {
+      return hebbianUpdater->getDeltaWeightsDataStart(arbor);
+   }
+   else {
+      return nullptr;
+   }
+}
+
+float const *HyPerConn::getDeltaWeightsDataHead(int arbor, int dataIndex) const {
+   auto *hebbianUpdater =
+         mapLookupByType<HebbianUpdater>(mComponentTable.getObjectMap(), getDescription());
+   if (hebbianUpdater) {
+      return hebbianUpdater->getDeltaWeightsDataHead(arbor, dataIndex);
+   }
+   else {
+      return nullptr;
+   }
 }
 
 } // namespace PV

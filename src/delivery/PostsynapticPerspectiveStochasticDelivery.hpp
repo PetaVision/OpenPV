@@ -10,8 +10,6 @@
 
 #include "delivery/HyPerDelivery.hpp"
 
-#include "columns/Random.hpp"
-
 namespace PV {
 
 /**
@@ -19,11 +17,22 @@ namespace PV {
  * with accumulate type "convolve".
  */
 class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
+  protected:
+   /**
+    * List of parameters needed from the PostsynapticPerspectiveStochasticDelivery class
+    * @name PostsynapticPerspectiveStochasticDelivery Parameters
+    * @{
+    */
+
+   /**
+    * @brief receiveGpu: PostsynapticPerspectiveStochasticDelivery always sets receiveGpu to false.
+    * The receiveGpu=true case is handled by the PostsynapticPerspectiveGPUDelivery class.
+    */
+   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
+   /** @} */ // End of list of BaseDelivery parameters.
+
   public:
-   PostsynapticPerspectiveStochasticDelivery(
-         char const *name,
-         PVParams *params,
-         Communicator const *comm);
+   PostsynapticPerspectiveStochasticDelivery(char const *name, HyPerCol *hc);
 
    virtual ~PostsynapticPerspectiveStochasticDelivery();
 
@@ -38,14 +47,16 @@ class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
     * same post-neuron, we internally allocate multiple buffers the size of the post channel,
     * and accumulate them at the end.
     */
-   virtual void deliver(float *destBuffer) override;
+   virtual void deliver() override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
   protected:
    PostsynapticPerspectiveStochasticDelivery();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
+
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual void setObjectType() override;
 
@@ -54,8 +65,7 @@ class PostsynapticPerspectiveStochasticDelivery : public HyPerDelivery {
 
    virtual Response::Status allocateDataStructures() override;
 
-   virtual Response::Status
-   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+   void allocateThreadGSyn();
 
    // Data members
   protected:

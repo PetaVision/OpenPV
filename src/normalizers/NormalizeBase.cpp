@@ -6,35 +6,23 @@
  */
 
 #include "NormalizeBase.hpp"
+#include "columns/HyPerCol.hpp"
 #include "components/StrengthParam.hpp"
 #include "components/WeightsPair.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-NormalizeBase::NormalizeBase(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+NormalizeBase::NormalizeBase(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-NormalizeBase::~NormalizeBase() { free(mNormalizeMethod); }
-
-void NormalizeBase::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
-}
-
-void NormalizeBase::initMessageActionMap() {
-   BaseObject::initMessageActionMap();
-   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(msgptr);
-      return respondConnectionNormalize(castMessage);
-   };
-   mMessageActionMap.emplace("ConnectionNormalize", action);
+int NormalizeBase::initialize(char const *name, HyPerCol *hc) {
+   int status = BaseObject::initialize(name, hc);
+   return status;
 }
 
 void NormalizeBase::setObjectType() {
-   auto *params                = parameters();
+   auto *params                = parent->parameters();
    char const *normalizeMethod = params->stringValue(name, "normalizeMethod", false);
    mObjectType                 = normalizeMethod ? normalizeMethod : "Normalizer for";
 }
@@ -48,11 +36,11 @@ int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeBase::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "normalizeMethod", &mNormalizeMethod);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "normalizeMethod", &mNormalizeMethod);
 }
 
 void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag,
          name,
          "normalizeArborsIndividually",
@@ -62,12 +50,12 @@ void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag
 }
 
 void NormalizeBase::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, name, "normalizeOnInitialize", &mNormalizeOnInitialize, mNormalizeOnInitialize);
 }
 
 void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag,
          name,
          "normalizeOnWeightUpdate",
@@ -75,10 +63,24 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
          mNormalizeOnWeightUpdate);
 }
 
+Response::Status NormalizeBase::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = BaseObject::respond(message);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
+   else if (
+         auto castMessage = std::dynamic_pointer_cast<ConnectionNormalizeMessage const>(message)) {
+      return respondConnectionNormalize(castMessage);
+   }
+   else {
+      return status;
+   }
+}
+
 Response::Status NormalizeBase::respondConnectionNormalize(
       std::shared_ptr<ConnectionNormalizeMessage const> message) {
    bool needUpdate = false;
-   double simTime  = message->mTime;
+   double simTime  = parent->simulationTime();
    if (mNormalizeOnInitialize && simTime == 0.0) {
       needUpdate = true;
    }
@@ -101,13 +103,13 @@ Response::Status NormalizeBase::respondConnectionNormalize(
 
 Response::Status
 NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *weightsPair = message->mHierarchy->lookupByType<WeightsPair>();
+   auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
    pvAssert(weightsPair);
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
 
-   auto *strengthParam = message->mHierarchy->lookupByType<StrengthParam>();
+   auto *strengthParam = mapLookupByType<StrengthParam>(message->mHierarchy, getDescription());
    pvAssert(strengthParam);
    if (!strengthParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
@@ -129,7 +131,7 @@ NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 
 void NormalizeBase::addWeightsToList(Weights *weights) {
    mWeightsList.push_back(weights);
-   if (mCommunicator->globalCommRank() == 0) {
+   if (parent->getCommunicator()->globalCommRank() == 0) {
       InfoLog().printf(
             "Adding %s to normalizer group \"%s\".\n", weights->getName().c_str(), this->getName());
    }

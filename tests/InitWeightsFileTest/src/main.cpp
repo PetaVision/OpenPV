@@ -3,40 +3,33 @@
  *
  */
 
-#include <columns/ComponentBasedObject.hpp>
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
-#include <components/ConnectionData.hpp>
-#include <components/PatchSize.hpp>
-#include <components/WeightsPair.hpp>
+#include <connections/HyPerConn.hpp>
 
 #include <cmath>
 
-using namespace PV;
-
 int main(int argc, char *argv[]) {
-   PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
-   HyPerCol *hc = new HyPerCol(&pv_initObj);
+   PV::PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
+   PV::HyPerCol *hc = new PV::HyPerCol(&pv_initObj);
    if (hc == nullptr) {
       return EXIT_FAILURE;
    }
    hc->allocateColumn();
-   auto *conn      = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("InputToOutput"));
-   HyPerLayer *pre = conn->getComponentByType<ConnectionData>()->getPre();
+   PV::HyPerConn *conn     = dynamic_cast<PV::HyPerConn *>(hc->getObjectFromName("InputToOutput"));
+   PV::HyPerLayer *pre     = conn->getPre();
    PVLayerLoc const preLoc = *pre->getLayerLoc();
    int const numExtended   = pre->getNumExtended();
-   auto *preWeights        = conn->getComponentByType<WeightsPair>()->getPreWeights();
-   int const numPatches    = preWeights->getNumDataPatches();
+   int const numPatches    = conn->getNumDataPatches();
    FatalIf(
          numPatches != numExtended,
          "Presynaptic numExtended %d != number of data patches %d\n",
          numExtended,
          numPatches);
 
-   auto *patchSize = conn->getComponentByType<PatchSize>();
-   int const nxp   = patchSize->getPatchSizeX();
-   int const nyp   = patchSize->getPatchSizeY();
-   int const nfp   = patchSize->getPatchSizeF();
+   int const nxp = conn->getPatchSizeX();
+   int const nyp = conn->getPatchSizeY();
+   int const nfp = conn->getPatchSizeF();
 
    float const numItemsInPatch = (float)(nxp * nyp * nfp);
 
@@ -54,14 +47,14 @@ int main(int argc, char *argv[]) {
       int nyExtGlobal = preLoc.nyGlobal + preLoc.halo.dn + preLoc.halo.up;
       int globalIndex = kIndex(x, y, f, nxExtGlobal, nyExtGlobal, nf);
 
-      float const *weights = preWeights->getDataFromDataIndex(0 /*arbor*/, index);
+      float const *weights = conn->getWeightsDataHead(0 /*arbor*/, index);
 
       // only need to check in shrunken patch region.
-      Patch const &patch = preWeights->getPatch(index);
-      int xStart         = kxPos(patch.offset, nxp, nyp, nfp);
-      int yStart         = kyPos(patch.offset, nxp, nyp, nfp);
-      for (int y = yStart; y < yStart + patch.ny; y++) {
-         for (int x = xStart; x < xStart + patch.nx; x++) {
+      PV::Patch const *patch = conn->getPatch(index);
+      int xStart             = kxPos(patch->offset, nxp, nyp, nfp);
+      int yStart             = kyPos(patch->offset, nxp, nyp, nfp);
+      for (int y = yStart; y < yStart + patch->ny; y++) {
+         for (int x = xStart; x < xStart + patch->nx; x++) {
             for (int f = 0; f < nf; f++) {
                int k                    = kIndex(x, y, f, nxp, nyp, nfp);
                float w                  = weights[k];

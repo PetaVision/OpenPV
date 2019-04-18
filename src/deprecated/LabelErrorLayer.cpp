@@ -35,24 +35,24 @@ namespace PV {
 
 LabelErrorLayer::LabelErrorLayer() { initialize_base(); }
 
-LabelErrorLayer::LabelErrorLayer(const char *name, PVParams *params, Communicator const *comm) {
+LabelErrorLayer::LabelErrorLayer(const char *name, HyPerCol *hc) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 LabelErrorLayer::~LabelErrorLayer() {}
 
 int LabelErrorLayer::initialize_base() {
-   errScale = 1;
-   isBinary = 1;
+   numChannels = 2;
+   errScale    = 1;
+   isBinary    = 1;
    return PV_SUCCESS;
 }
 
-void LabelErrorLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
+int LabelErrorLayer::initialize(const char *name, HyPerCol *hc) {
    WarnLog() << "LabelErrorLayer has been deprecated.\n";
-   int status = ANNLayer::initialize(name, params, comm);
-   mLayerInput->requireChannel(1);
-   assert(mLayerInput->getNumChannels() == 2);
+   int status = ANNLayer::initialize(name, hc);
+   assert(numChannels == 2);
    return status;
 }
 
@@ -64,19 +64,19 @@ int LabelErrorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LabelErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "errScale", &errScale, errScale);
+   parent->parameters()->ioParamValue(ioFlag, name, "errScale", &errScale, errScale);
 }
 
 void LabelErrorLayer::ioParam_isBinary(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "isBinary", &isBinary, isBinary);
+   parent->parameters()->ioParamValue(ioFlag, name, "isBinary", &isBinary, isBinary);
 }
 
 Response::Status LabelErrorLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = mActivity->getActivity();
+   float *A              = clayer->activity->data;
    float *V              = getV();
-   int num_channels      = mLayerInput->getNumChannels();
-   float *gSynHead       = mLayerInput->getLayerInput();
+   int num_channels      = getNumChannels();
+   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

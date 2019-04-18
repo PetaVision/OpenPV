@@ -249,6 +249,7 @@ ANNLayer "Post32x32Multiband" = {
 //    numOrientationsPost = 4;
 //    normalizeMethod = "none";
 //
+//    convertRateToSpikeCount = false;
 //    
 //};
 
@@ -281,6 +282,7 @@ HyPerConn "8x8ImagesToPost8x8Multiband" = {
     numOrientationsPost = 4;
     normalizeMethod = "none";
     
+    convertRateToSpikeCount = false;
 };
 
 IdentConn "16x16ImagesToPost16x16Singleband" = {
@@ -312,6 +314,7 @@ HyPerConn "16x16ImagesToPost16x16Multiband" = {
     numOrientationsPost = 4;
     normalizeMethod = "none";
     
+    convertRateToSpikeCount = false;
 };
 
 IdentConn "32x32ImagesToPost32x32Singleband" = {
@@ -343,6 +346,7 @@ HyPerConn "32x32ImagesToPost32x32Multiband" = {
     numOrientationsPost = 4;
     normalizeMethod = "none";
 
+    convertRateToSpikeCount = false;
 };
 
 //Feed post to mask as well
@@ -368,6 +372,7 @@ HyPerConn "Pre16x16SinglebandToPost16x16Singleband" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
     combine_dW_with_W_flag = false;
+    convertRateToSpikeCount = false;
     
     initialWeightUpdateTime = 0.0;
     weightUpdatePeriod = 1.0;
@@ -398,6 +403,7 @@ HyPerConn "Pre16x16SinglebandToPost16x16Multiband" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
     combine_dW_with_W_flag = false;
+    convertRateToSpikeCount = false;
 
     relaxation = 1.0;
     nonnegConstraintFlag = false;
@@ -430,6 +436,7 @@ HyPerConn "Pre16x16MultibandToPost16x16Singleband" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
     combine_dW_with_W_flag = false;
+    convertRateToSpikeCount = false;
 };
 
 HyPerConn "Pre16x16MultibandToPost16x16Multiband" = {
@@ -457,6 +464,7 @@ HyPerConn "Pre16x16MultibandToPost16x16Multiband" = {
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
     combine_dW_with_W_flag = false;
+    convertRateToSpikeCount = false;
 };
 
 HyPerConn "Pre16x16SinglebandToPost8x8Singleband" = {
@@ -485,6 +493,7 @@ HyPerConn "Pre16x16SinglebandToPost8x8Singleband" = {
     
     relaxation = 1.0;
     nonnegConstraintFlag = false;
+    convertRateToSpikeCount = false;
     imprintingFlag = false;
     weightDecayFlag = false;
 };
@@ -618,6 +627,7 @@ HyPerConn "Pre16x16SinglebandToPost32x32Multiband" = {
     
     relaxation = 1.0;
     nonnegConstraintFlag = false;
+    convertRateToSpikeCount = false;
     imprintingFlag = false;
     weightDecayFlag = false;
 };

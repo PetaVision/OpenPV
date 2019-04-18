@@ -93,6 +93,7 @@ HyPerConn "InputToOutput" = {
     normalizeOnInitialize = true;
     normalizeOnWeightUpdate = true;
     normalize_cutoff = 0;
+    convertRateToSpikeCount = false;
     receiveGpu = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;

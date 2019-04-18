@@ -3,17 +3,24 @@
  */
 
 #include "NormalizeL3.hpp"
+#include <columns/HyPerCol.hpp>
 
 namespace PV {
 
-NormalizeL3::NormalizeL3(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
+NormalizeL3::NormalizeL3(char const *name, HyPerCol *hc) {
+   initialize_base();
+   initialize(name, hc);
 }
 
-NormalizeL3::NormalizeL3() {}
+NormalizeL3::NormalizeL3() { initialize_base(); }
 
-void NormalizeL3::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   NormalizeMultiply::initialize(name, params, comm);
+int NormalizeL3::initialize_base() {
+   minL3NormTolerated = 0.0f;
+   return PV_SUCCESS;
+}
+
+int NormalizeL3::initialize(char const *name, HyPerCol *hc) {
+   return NormalizeMultiply::initialize(name, hc);
 }
 
 int NormalizeL3::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -23,7 +30,7 @@ int NormalizeL3::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeL3::ioParam_minL3NormTolerated(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag,
          name,
          "minL3NormTolerated",
@@ -69,6 +76,8 @@ int NormalizeL3::normalizeWeights() {
                int nxp               = weights->getPatchSizeX();
                int nyp               = weights->getPatchSizeY();
                int nfp               = weights->getPatchSizeF();
+               int xPatchStride      = weights->getPatchStrideX();
+               int yPatchStride      = weights->getPatchStrideY();
                int weights_per_patch = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weights_per_patch;
                for (int k = 0; k < weights_per_patch; k++) {
@@ -106,6 +115,8 @@ int NormalizeL3::normalizeWeights() {
                int nxp               = weights->getPatchSizeX();
                int nyp               = weights->getPatchSizeY();
                int nfp               = weights->getPatchSizeF();
+               int xPatchStride      = weights->getPatchStrideX();
+               int yPatchStride      = weights->getPatchStrideY();
                int weights_per_patch = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weights_per_patch;
                for (int k = 0; k < weights_per_patch; k++) {

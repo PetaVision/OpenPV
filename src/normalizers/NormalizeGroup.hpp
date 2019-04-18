@@ -14,7 +14,7 @@ namespace PV {
 
 class NormalizeGroup : public NormalizeBase {
   public:
-   NormalizeGroup(char const *name, PVParams *params, Communicator const *comm);
+   NormalizeGroup(char const *name, HyPerCol *hc);
    virtual ~NormalizeGroup();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -24,7 +24,7 @@ class NormalizeGroup : public NormalizeBase {
 
   protected:
    NormalizeGroup();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    /**
     * NormalizeGroup does not read the normalizeArborsIndividually parameter, but inherits it from

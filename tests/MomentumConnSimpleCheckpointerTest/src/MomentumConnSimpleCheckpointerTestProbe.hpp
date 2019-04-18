@@ -11,7 +11,6 @@
 #include "probes/ColProbe.hpp"
 
 #include "CorrectState.hpp"
-#include "components/BasePublisherComponent.hpp"
 #include "connections/MomentumConn.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/InputLayer.hpp"
@@ -21,10 +20,7 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    /**
     * Public constructor for the MomentumConnSimpleCheckpointerTestProbe class.
     */
-   MomentumConnSimpleCheckpointerTestProbe(
-         const char *name,
-         PV::PVParams *params,
-         PV::Communicator const *comm);
+   MomentumConnSimpleCheckpointerTestProbe(const char *name, PV::HyPerCol *hc);
 
    /**
     * Destructor for the MomentumConnSimpleCheckpointerTestProbe class.
@@ -40,37 +36,39 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
    bool getTestFailed() const { return mTestFailed; }
 
   protected:
-   void initialize(const char *name, PV::PVParams *params, PV::Communicator const *comm);
+   int initialize(const char *name, PV::HyPerCol *hc);
    virtual void ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) override;
    virtual PV::Response::Status
    communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;
-   virtual PV::Response::Status
-   initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) override;
    virtual PV::Response::Status readStateFromCheckpoint(PV::Checkpointer *checkpointer) override;
    virtual bool needRecalc(double timevalue) override { return true; }
-   virtual double referenceUpdateTime(double simTime) const override { return simTime; }
-   virtual PV::Response::Status outputState(double simTime, double deltaTime) override;
+   virtual double referenceUpdateTime() const override { return parent->simulationTime(); }
+   virtual PV::Response::Status outputState(double timestamp) override;
 
   private:
    MomentumConnSimpleCheckpointerTestProbe();
-
-   /**
-    * Sets the connection data member, and checks that the connection's parameters are
-    * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
-    */
-   PV::Response::Status initConnection(PV::ObserverTable const *componentTable);
+   int initialize_base();
 
    /**
     * Sets the input layer data member, and checks that the input layer's parameters are
     * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
     */
-   PV::Response::Status initInputLayer(PV::ObserverTable const *componentTable);
+   PV::Response::Status
+   initInputLayer(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
 
    /**
     * Sets the output layer data member, and checks that the output layer's parameters are
     * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
     */
-   PV::Response::Status initOutputLayer(PV::ObserverTable const *componentTable);
+   PV::Response::Status
+   initOutputLayer(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
+
+   /**
+    * Sets the connection data member, and checks that the connection's parameters are
+    * consistent with those expected by the test. Returns either SUCCESS or POSTPONE.
+    */
+   PV::Response::Status
+   initConnection(std::shared_ptr<PV::CommunicateInitInfoMessage const> message);
 
    /**
     * Checks whether the given object has finished its communicateInitInfo stage, and
@@ -78,25 +76,25 @@ class MomentumConnSimpleCheckpointerTestProbe : public PV::ColProbe {
     */
    PV::Response::Status checkCommunicatedFlag(PV::BaseObject *dependencyObject);
 
-   void initializeCorrectValues();
+   void initializeCorrectValues(double timevalue);
 
    bool verifyConnection(
-         PV::ComponentBasedObject *connection,
+         PV::MomentumConn *connection,
          CorrectState const *correctState,
          double timevalue);
    bool
    verifyConnValue(double timevalue, float observed, float correct, char const *valueDescription);
-   bool verifyLayer(PV::BasePublisherComponent *layer, float correctValue, double timevalue);
+   bool verifyLayer(PV::HyPerLayer *layer, float correctValue, double timevalue);
 
    // Data members
   protected:
-   int mStartingTimestamp                       = 0;
-   bool mValuesSet                              = false;
-   PV::BasePublisherComponent *mInputPublisher  = nullptr;
-   PV::BasePublisherComponent *mOutputPublisher = nullptr;
-   PV::ComponentBasedObject *mConnection        = nullptr;
-   CorrectState *mCorrectState                  = nullptr;
-   bool mTestFailed                             = false;
+   int mStartingTimestamp        = 0;
+   bool mValuesSet               = false;
+   PV::InputLayer *mInputLayer   = nullptr;
+   PV::HyPerLayer *mOutputLayer  = nullptr;
+   PV::MomentumConn *mConnection = nullptr;
+   CorrectState *mCorrectState   = nullptr;
+   bool mTestFailed              = false;
 };
 
 #endif // MOMENTUMCONNSIMPLECHECKPOINTERTESTPROBE_HPP_

@@ -18,11 +18,11 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
 
   public:
    NonsharedConnDebugInitWeights();
-   NonsharedConnDebugInitWeights(const char *name, PVParams *params, Communicator const *comm);
+   NonsharedConnDebugInitWeights(const char *name, HyPerCol *hc);
    virtual ~NonsharedConnDebugInitWeights();
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
 
    virtual SharedWeights *createSharedWeights() override;
 
@@ -35,12 +35,11 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status
-   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+   virtual Response::Status initializeState() override;
 
    void initializeGaussian2DWeights(float *dataStart, int numPatches);
    void gauss2DCalcWeights(
-         Patch const &wp,
+         Patch const *wp,
          float *dataStart,
          int kPre,
          int noPost,
@@ -58,7 +57,7 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
          float bowtieAngle);
    void initializeCocircWeights(float *dataStart, int numPatches);
    void cocircCalcWeights(
-         Patch const &wp,
+         Patch const *wp,
          float *dataStart,
          int kPre,
          int noPre,
@@ -77,9 +76,9 @@ class NonsharedConnDebugInitWeights : public PV::HyPerConn {
          float r2Max,
          float strength);
    void initializeSmartWeights(float *dataStart, int numPatches);
-   void smartWeights(Patch const &wp, float *dataStart, int k);
+   void smartWeights(Patch const *wp, float *dataStart, int k);
    void gaborWeights(
-         Patch const &wp,
+         Patch const *wp,
          float *dataStart,
          int xScale,
          int yScale,

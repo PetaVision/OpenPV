@@ -9,11 +9,6 @@
 #include <climits>
 #include <cmath>
 
-using PV::kxPos;
-using PV::kyPos;
-using PV::featureIndex;
-using PV::globalIndexFromLocal;
-
 CorrectState::CorrectState(
       int initialUpdateNumber,
       PVLayerLoc const *inputLoc,

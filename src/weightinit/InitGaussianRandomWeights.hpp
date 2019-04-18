@@ -13,20 +13,20 @@
 
 namespace PV {
 
-class InitGaussianRandomWeights : public InitRandomWeights {
+class InitGaussianRandomWeights : public PV::InitRandomWeights {
   protected:
    void ioParam_wGaussMean(enum ParamsIOFlag ioFlag);
    void ioParam_wGaussStdev(enum ParamsIOFlag ioFlag);
 
   public:
-   InitGaussianRandomWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitGaussianRandomWeights(char const *name, HyPerCol *hc);
    virtual ~InitGaussianRandomWeights();
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
    InitGaussianRandomWeights();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
    virtual int initRNGs(bool isKernel) override;
    virtual void randomWeights(float *patchDataStart, int patchIndex) override;
 

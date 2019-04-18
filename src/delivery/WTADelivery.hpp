@@ -38,20 +38,20 @@ class WTADelivery : public BaseDelivery {
    /** @} */ // End of list of WTADelivery parameters.
 
   public:
-   WTADelivery(char const *name, PVParams *params, Communicator const *comm);
+   WTADelivery(char const *name, HyPerCol *hc);
 
    virtual ~WTADelivery() {}
 
-   virtual void deliver(float *destBuffer) override;
+   virtual void deliver() override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
-   virtual bool isAllInputReady() const override;
+   virtual bool isAllInputReady() override;
 
   protected:
    WTADelivery() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 

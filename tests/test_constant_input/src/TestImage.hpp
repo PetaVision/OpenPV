@@ -1,31 +1,41 @@
 /*
- * TestImage.h
+ * TestImage.hpp
  *
- *  Created on: Jul 29, 2008
- *
+ *  Created on: Mar 19, 2010
+ *      Author: Craig Rasmussen
  */
 
 #ifndef TESTIMAGE_HPP_
 #define TESTIMAGE_HPP_
 
-#include "layers/HyPerLayer.hpp"
+#include "../src/layers/HyPerLayer.hpp"
 
 namespace PV {
 
-class TestImage : public PV::HyPerLayer {
+class TestImage : public HyPerLayer {
   public:
-   TestImage(const char *name, PVParams *params, Communicator const *comm);
+   TestImage(const char *name, HyPerCol *hc);
+   virtual Response::Status updateState(double timed, double dt) override;
+   const float getConstantVal() { return val; }
+   virtual bool activityIsSpiking() override { return false; }
    virtual ~TestImage();
-
-   float getConstantVal() const;
 
   protected:
    TestImage();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual ActivityComponent *createActivityComponent() override;
+   int initialize(const char *name, HyPerCol *hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_constantVal(enum ParamsIOFlag ioFlag);
+   virtual void allocateV() override;
+   virtual void initializeActivity() override;
 
-}; // class TestImage
+  private:
+   int initialize_base();
 
-} // namespace PV
+   // Member variables
+  private:
+   float val;
+};
+}
 
 #endif /* TESTIMAGE_HPP_ */

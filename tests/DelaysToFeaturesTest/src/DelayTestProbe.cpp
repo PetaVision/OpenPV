@@ -13,27 +13,26 @@
 
 namespace PV {
 
-DelayTestProbe::DelayTestProbe(const char *name, PVParams *params, Communicator const *comm)
-      : StatsProbe() {
+DelayTestProbe::DelayTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 DelayTestProbe::~DelayTestProbe() {}
 
 int DelayTestProbe::initialize_base() { return PV_SUCCESS; }
 
-void DelayTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
+int DelayTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
-Response::Status DelayTestProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
+Response::Status DelayTestProbe::outputState(double timestamp) {
+   auto status = StatsProbe::outputState(timestamp);
    if (status != Response::SUCCESS) {
       return status;
    }
-   Communicator const *icComm = mCommunicator;
-   int const rcvProc          = 0;
+   Communicator *icComm = parent->getCommunicator();
+   int const rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return status;
    }
@@ -48,25 +47,25 @@ Response::Status DelayTestProbe::outputState(double simTime, double deltaTime) {
    for (int b = 0; b < loc->nbatch; b++) {
       float avgExpected;
       int nnzExpected;
-      if (simTime == 0) {
+      if (timestamp == 0) {
          avgExpected = 0.0f;
-         nnzExpected = (int)std::nearbyint(simTime) * nx * rows * ny * cols;
+         nnzExpected = (int)std::nearbyint(timestamp) * nx * rows * ny * cols;
       }
       else {
-         avgExpected = (float)((simTime - 1.0) / nf);
-         nnzExpected = ((int)std::nearbyint(simTime) - 1) * nx * rows * ny * cols;
+         avgExpected = (float)((timestamp - 1.0) / nf);
+         nnzExpected = ((int)std::nearbyint(timestamp) - 1) * nx * rows * ny * cols;
       }
       FatalIf(
             avg[b] != avgExpected,
             "t = %f: Average for batch element %d: expected %f, received %f\n",
-            simTime,
+            timestamp,
             b,
             (double)avgExpected,
             (double)avg[b]);
       FatalIf(
             nnz[b] != nnzExpected,
             "t = %f: number of nonzero elements for batch element %d: expected %d, received %d\n",
-            simTime,
+            timestamp,
             b,
             nnzExpected,
             nnz[b]);

@@ -6,20 +6,22 @@
  */
 
 #include "SingleArbor.hpp"
-#include "observerpattern/ObserverTable.hpp"
+#include "columns/HyPerCol.hpp"
+#include "columns/ObjectMapComponent.hpp"
+#include "components/OriginalConnNameParam.hpp"
+#include "connections/HyPerConn.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-SingleArbor::SingleArbor(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+SingleArbor::SingleArbor(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 SingleArbor::SingleArbor() {}
 
 SingleArbor::~SingleArbor() {}
 
-void SingleArbor::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   ArborList::initialize(name, params, comm);
+int SingleArbor::initialize(char const *name, HyPerCol *hc) {
+   return ArborList::initialize(name, hc);
 }
 
 void SingleArbor::setObjectType() { mObjectType = "SingleArbor"; }
@@ -31,7 +33,7 @@ int SingleArbor::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void SingleArbor::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       mNumAxonalArbors = 1;
-      parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", mNumAxonalArbors);
+      parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", mNumAxonalArbors);
    }
 }
 

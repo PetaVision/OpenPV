@@ -7,7 +7,7 @@
 #include "columns/Arguments.hpp"
 #include "columns/Communicator.hpp"
 #include "utils/PVLog.hpp"
-#include "utils/conversions.hpp"
+#include "utils/conversions.h"
 #include <sstream>
 #include <string>
 
@@ -54,25 +54,14 @@ void run(std::string configString) {
    PV::Arguments arguments{configStream, false /* do not allow unrecognized arguments */};
    PV::Communicator pvCommunicator{&arguments};
 
-   int const numRows    = arguments.getIntegerArgument("NumRows");
-   int const numColumns = arguments.getIntegerArgument("NumColumns");
-   int const batchWidth = arguments.getIntegerArgument("BatchWidth");
+   int const numRows            = arguments.getIntegerArgument("NumRows");
+   int const numColumns         = arguments.getIntegerArgument("NumColumns");
+   int const batchWidth         = arguments.getIntegerArgument("BatchWidth");
+   int const numNeededProcesses = numRows * numColumns * batchWidth;
 
    int const cellNumRows        = arguments.getIntegerArgument("CheckpointCellNumRows");
    int const cellNumColumns     = arguments.getIntegerArgument("CheckpointCellNumColumns");
    int const cellBatchDimension = arguments.getIntegerArgument("CheckpointCellBatchDimension");
-
-   int globalRank;
-   MPI_Comm_rank(pvCommunicator.globalCommunicator(), &globalRank);
-
-   int const globalRowIndex    = pvCommunicator.commRow();
-   int const globalColumnIndex = pvCommunicator.commColumn();
-   int const globalBatchIndex  = pvCommunicator.commBatch();
-
-   int const blockNumRows        = cellNumRows > 0 ? cellNumRows : 1;
-   int const blockNumColumns     = cellNumColumns > 0 ? cellNumColumns : 1;
-   int const blockBatchDimension = cellBatchDimension > 0 ? cellBatchDimension : 1;
-   int const blockSize           = cellNumRows * cellNumColumns * blockBatchDimension;
 
    PV::MPIBlock mpiBlock{pvCommunicator.globalCommunicator(),
                          pvCommunicator.numCommRows(),
@@ -82,17 +71,15 @@ void run(std::string configString) {
                          cellNumColumns,
                          cellBatchDimension};
 
-   FatalIf(
-         pvCommunicator.globalCommunicator() != mpiBlock.getGlobalComm(),
-         "MPIBlock's global communicator incorrect on global process %d\n",
-         globalRank);
+   int globalRank;
+   MPI_Comm_rank(pvCommunicator.globalCommunicator(), &globalRank);
 
-   // Verify global rank
-   FatalIf(
-         mpiBlock.getGlobalRank() != globalRank,
-         "Global process %d returned GlobalRank %d\n",
-         globalRank,
-         mpiBlock.getGlobalRank());
+   int const globalRowIndex      = pvCommunicator.commRow();
+   int const globalColumnIndex   = pvCommunicator.commColumn();
+   int const globalBatchIndex    = pvCommunicator.commBatch();
+   int const blockNumRows        = cellNumRows > 0 ? cellNumRows : 1;
+   int const blockNumColumns     = cellNumColumns > 0 ? cellNumColumns : 1;
+   int const blockBatchDimension = cellBatchDimension > 0 ? cellBatchDimension : 1;
 
    // Verify MPIBlock rank
    int const blockRowIndex    = globalRowIndex % blockNumRows;
@@ -102,39 +89,19 @@ void run(std::string configString) {
          (blockBatchIndex * blockNumRows + blockRowIndex) * blockNumColumns + blockColumnIndex;
    FatalIf(mpiBlock.getRank() != blockRank, "Rank incorrect on global process %d\n", globalRank);
 
-   // Verify global dimensions
-   FatalIf(
-         mpiBlock.getGlobalNumRows() != numRows,
-         "GlobalNumRows incorrect on global process %d\n",
-         globalRank);
-   FatalIf(
-         mpiBlock.getGlobalNumColumns() != numColumns,
-         "GlobalNumColumns incorrect on global process %d\n",
-         globalRank);
-   FatalIf(
-         mpiBlock.getGlobalBatchDimension() != batchWidth,
-         "GlobalBatchDimension incorrect on global process %d\n",
-         globalRank);
-
-   // Verify NumRows, NumColumns, BatchDimension
+   // Verify SizeRow, SizeColumn, SizeBatch
    FatalIf(
          mpiBlock.getNumRows() != blockNumRows,
-         "NumRows incorrect on global process %d\n",
+         "SizeRow incorrect on global process %d\n",
          globalRank);
    FatalIf(
          mpiBlock.getNumColumns() != blockNumColumns,
-         "NumColumns incorrect on global process %d\n",
+         "SizeColumn incorrect on global process %d\n",
          globalRank);
    FatalIf(
          mpiBlock.getBatchDimension() != blockBatchDimension,
-         "BatchDimension incorrect on global process %d\n",
+         "SizeBatch incorrect on global process %d\n",
          globalRank);
-   FatalIf(
-         mpiBlock.getSize() != blockSize,
-         "BatchDimension incorrect on global process %d: %d versus %d\n",
-         globalRank,
-         mpiBlock.getSize(),
-         blockSize);
 
    // Verify RowIndex, ColumnIndex, BatchIndex
    FatalIf(

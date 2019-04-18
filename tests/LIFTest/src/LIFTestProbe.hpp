@@ -15,17 +15,17 @@ namespace PV {
 
 class LIFTestProbe : public StatsProbe {
   public:
-   LIFTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   LIFTestProbe(const char *name, HyPerCol *hc);
    virtual ~LIFTestProbe();
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
    LIFTestProbe();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_endingTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_tolerance(enum ParamsIOFlag ioFlag);

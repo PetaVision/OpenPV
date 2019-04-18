@@ -19,15 +19,15 @@ namespace PV {
  */
 class TransposePatchSize : public DependentPatchSize {
   public:
-   TransposePatchSize(char const *name, PVParams *params, Communicator const *comm);
+   TransposePatchSize(char const *name, HyPerCol *hc);
    virtual ~TransposePatchSize();
+
+   virtual void setObjectType() override;
 
   protected:
    TransposePatchSize();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
-
-   virtual void setObjectType() override;
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setPatchSize(PatchSize *originalPatchSize) override;
 

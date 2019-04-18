@@ -9,16 +9,15 @@
 
 namespace PV {
 
-InitCocircWeights::InitCocircWeights(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+InitCocircWeights::InitCocircWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 InitCocircWeights::InitCocircWeights() {}
 
 InitCocircWeights::~InitCocircWeights() {}
 
-void InitCocircWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   InitGauss2DWeights::initialize(name, params, comm);
+int InitCocircWeights::initialize(char const *name, HyPerCol *hc) {
+   int status = InitGauss2DWeights::initialize(name, hc);
+   return status;
 }
 
 int InitCocircWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -32,21 +31,21 @@ int InitCocircWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitCocircWeights::ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "sigmaCocirc", &mSigmaCocirc, mSigmaCocirc);
+   parent->parameters()->ioParamValue(ioFlag, name, "sigmaCocirc", &mSigmaCocirc, mSigmaCocirc);
 }
 
 void InitCocircWeights::ioParam_sigmaKurve(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "sigmaKurve", &mSigmaKurve, mSigmaKurve);
+   parent->parameters()->ioParamValue(ioFlag, name, "sigmaKurve", &mSigmaKurve, mSigmaKurve);
 }
 
 void InitCocircWeights::ioParam_cocircSelf(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "cocircSelf", &mCocircSelf, mCocircSelf);
+   parent->parameters()->ioParamValue(ioFlag, name, "cocircSelf", &mCocircSelf, mCocircSelf);
 }
 
 void InitCocircWeights::ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag) {
    // from pv_common.h
    // // DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, name, "deltaRadiusCurvature", &mDeltaRadiusCurvature, mDeltaRadiusCurvature);
 }
 

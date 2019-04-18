@@ -10,31 +10,30 @@
 
 namespace PV {
 
-IndexWeightConn::IndexWeightConn(const char *name, PVParams *params, Communicator const *comm)
-      : HyPerConn() {
-   initialize(name, params, comm);
+IndexWeightConn::IndexWeightConn(const char *name, HyPerCol *hc) : HyPerConn() {
+   initialize(name, hc);
 }
 
 IndexWeightConn::~IndexWeightConn() {}
 
-void IndexWeightConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerConn::initialize(name, params, comm);
+int IndexWeightConn::initialize(const char *name, HyPerCol *hc) {
+   return HyPerConn::initialize(name, hc);
 }
 
 InitWeights *IndexWeightConn::createWeightInitializer() {
-   parameters()->handleUnnecessaryStringParameter(name, "weightInitType", nullptr);
+   parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", nullptr);
    return nullptr;
 }
 
 BaseWeightUpdater *IndexWeightConn::createWeightUpdater() {
-   return new IndexWeightUpdater(name, parameters(), mCommunicator);
+   return new IndexWeightUpdater(name, parent);
 }
 
-Response::Status
-IndexWeightConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   auto *weightUpdater = mTable->lookupByType<IndexWeightUpdater>();
+Response::Status IndexWeightConn::initializeState() {
+   auto *weightUpdater =
+         mapLookupByType<IndexWeightUpdater>(mComponentTable.getObjectMap(), getDescription());
    pvAssert(weightUpdater);
-   weightUpdater->respond(message);
+   weightUpdater->initializeWeights();
    return Response::SUCCESS;
 }
 

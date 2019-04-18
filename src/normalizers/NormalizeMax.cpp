@@ -11,15 +11,15 @@ namespace PV {
 
 NormalizeMax::NormalizeMax() { initialize_base(); }
 
-NormalizeMax::NormalizeMax(const char *name, PVParams *params, Communicator const *comm) {
+NormalizeMax::NormalizeMax(const char *name, HyPerCol *hc) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 int NormalizeMax::initialize_base() { return PV_SUCCESS; }
 
-void NormalizeMax::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   NormalizeMultiply::initialize(name, params, comm);
+int NormalizeMax::initialize(const char *name, HyPerCol *hc) {
+   return NormalizeMultiply::initialize(name, hc);
 }
 
 int NormalizeMax::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -29,7 +29,7 @@ int NormalizeMax::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeMax::ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, name, "minMaxTolerated", &minMaxTolerated, 0.0f, true /*warnIfAbsent*/);
 }
 

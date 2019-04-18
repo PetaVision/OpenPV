@@ -285,6 +285,7 @@ HyPerConn "origConnPrePost" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -295,6 +296,7 @@ TransposeConn "preTransposeConn" = {
     postLayerName = "outputRecvPre";
     channelCode = 0; //Does nothing to the input layer
     originalConnName = "origConnPrePost";
+    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -306,6 +308,7 @@ TransposeConn "postTransposeConn" = {
     postLayerName = "outputRecvPost";
     channelCode = 0;
     originalConnName = "origConnPrePost";
+    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -349,6 +352,7 @@ HyPerConn "origConnKnown" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -359,6 +363,7 @@ TransposeConn "knownTransposeConn" = {
     postLayerName = "outputRecvKnown";
     channelCode = 0;
     originalConnName = "origConnKnown";
+    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -400,6 +405,7 @@ HyPerConn "fakeConn" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 

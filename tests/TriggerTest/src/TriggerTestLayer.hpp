@@ -11,8 +11,9 @@ namespace PV {
 
 class TriggerTestLayer : public PV::HyPerLayer {
   public:
-   TriggerTestLayer(const char *name, PVParams *params, Communicator const *comm);
-   virtual Response::Status checkUpdateState(double simTime, double deltaTime) override;
+   TriggerTestLayer(const char *name, HyPerCol *hc);
+   virtual bool activityIsSpiking() override { return false; }
+   Response::Status virtual updateState(double time, double dt) override;
 };
 }
 #endif /* IMAGETESTPROBE_HPP */

@@ -13,6 +13,6 @@ int TestNonshared(
       int nfPost,
       int patchSizeX,
       int patchSizeY,
-      PV::Communicator const *comm);
+      PV::Communicator *comm);
 
 #endif // TESTNONSHARED_HPP_

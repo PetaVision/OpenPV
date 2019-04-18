@@ -8,8 +8,8 @@
 #ifndef COPYWEIGHTSPAIR_HPP_
 #define COPYWEIGHTSPAIR_HPP_
 
-#include "columns/ComponentBasedObject.hpp"
 #include "components/WeightsPair.hpp"
+#include "connections/HyPerConn.hpp"
 
 namespace PV {
 
@@ -23,7 +23,7 @@ namespace PV {
  */
 class CopyWeightsPair : public WeightsPair {
   public:
-   CopyWeightsPair(char const *name, PVParams *params, Communicator const *comm);
+   CopyWeightsPair(char const *name, HyPerCol *hc);
 
    virtual ~CopyWeightsPair();
 
@@ -51,7 +51,7 @@ class CopyWeightsPair : public WeightsPair {
   protected:
    CopyWeightsPair() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 
@@ -64,8 +64,8 @@ class CopyWeightsPair : public WeightsPair {
    virtual void createPostWeights(std::string const &weightsName) override;
 
   protected:
+   HyPerConn *mOriginalConn          = nullptr;
    WeightsPair *mOriginalWeightsPair = nullptr;
-   ConnectionData *mOriginalConnData = nullptr;
 };
 
 } // namespace PV

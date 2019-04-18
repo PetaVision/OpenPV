@@ -8,91 +8,74 @@
 #ifndef BASEDELIVERY_HPP_
 #define BASEDELIVERY_HPP_
 
-#include "components/BasePublisherComponent.hpp"
+#include "columns/BaseObject.hpp"
 #include "components/ConnectionData.hpp"
-#include "components/LayerInputBuffer.hpp"
-#include "delivery/LayerInputDelivery.hpp"
-
-#ifdef PV_USE_OPENMP_THREADS
-#include <omp.h>
-#endif // PV_USE_OPENMP_THREADS
+#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
-/**
- * BaseDelivery provides the common interface for delivery classes. It extends LayerInputDelivery
- * by providing pre- and post-synaptic layers, and provides functions for handling
- * threaded delivery to avoid collisions when using OpenMP.
- */
-class BaseDelivery : public LayerInputDelivery {
+class BaseDelivery : public BaseObject {
+  protected:
+   /**
+    * List of parameters needed from the BaseDelivery class
+    * @name BaseDelivery Parameters
+    * @{
+    */
+
+   /**
+    * @brief channelCode: Specifies which channel in the post layer this connection is attached to
+    * @details Channels can be -1 for no update, or >= 0 for channel number. <br />
+    * 0 is excitatory, 1 is inhibitory
+    */
+   virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief receiveGpu: If PetaVision was compiled with GPU acceleration and this flag is set to
+    * true, the connection uses the GPU to update the postsynaptic layer's GSyn.
+    * If compiled without GPU acceleration, it is an error to set this flag to true.
+    */
+   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
+   /** @} */ // end of BaseDelivery parameters
+
   public:
-   BaseDelivery(char const *name, PVParams *params, Communicator const *comm);
+   BaseDelivery(char const *name, HyPerCol *hc);
 
    virtual ~BaseDelivery() {}
 
-   BasePublisherComponent *getPreData() const { return mPreData; }
-   LayerInputBuffer *getPostGSyn() const { return mPostGSyn; }
+   virtual void deliver() {}
+
+   virtual void deliverUnitInput(float *recvBuffer) {}
+
+   /**
+    * A virtual method to indicate whether the presynaptic layer's input is ready to be delivered.
+    */
+   virtual bool isAllInputReady() { return true; }
+
+   ChannelType getChannelCode() const { return mChannelCode; }
+   bool getReceiveGpu() const { return mReceiveGpu; }
+   HyPerLayer *getPreLayer() const { return mPreLayer; }
+   HyPerLayer *getPostLayer() const { return mPostLayer; }
 
   protected:
    BaseDelivery() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
+
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-#ifdef PV_USE_OPENMP_THREADS
-   /**
-    * If called, allocates one buffer per openmp thread, where each buffer is the
-    * size of the restricted postsynaptic layer (not including batching).
-    * That is, the size of each openmp thread's buffer is mPostGSyn->getBufferSize().
-    */
-   void allocateThreadGSyn();
-
-   /**
-    * Sets all ThreadGSyn buffers to 0.
-    */
-   void clearThreadGSyn();
-#endif // PV_USE_OPENMP_THREADS
-
-   /**
-    * Accumulates the buffers in ThreadGSyn into the given buffer of size
-    * mPostGSyn->getBufferSize().
-    * That is, if the value of buffer[k] is G0 on entry, its value is
-    *      G0 + sum_n ThreadGSyn[n][k].
-    * If not using OpenMP, or if the ThreadGSyn vector is empty, the routine has no effect.
-    */
-   void accumulateThreadGSyn(float *baseGSynBuffer);
-
-   /**
-    * If not using OpenMP or if there is only one OpenMP thread, returns the
-    * input argument baseGSynBuffer.
-    * If using more than one OpenMP thread, returns the pointer to the
-    * mThreadGSyn element corresponding to the current OpenMP thread.
-    * This way, threads can work in parallel on the GSyn delivery without worrying about
-    * collisions. After each thread has done its work, the accumulateThreadGSyn
-    * function member should be called, with the same argument baseGSynBuffer, to accumulate
-    * the mThreadGSyn elements into that buffer.
-    *
-    */
-   float *setWorkingGSynBuffer(float *baseGSynBuffer);
-   // Note: this gets called in a loop over neuron index. If this function is not inlined by the
-   // compiler, it should probably be unrolled.
-
   protected:
-   ConnectionData *mConnectionData  = nullptr;
-   BasePublisherComponent *mPreData = nullptr;
-   LayerInputBuffer *mPostGSyn      = nullptr;
-// Rather than the layers, should we store the buffers and the PVLayerLoc data?
+   ChannelType mChannelCode = CHANNEL_EXC;
+   bool mReceiveGpu         = false;
 
-#ifdef PV_USE_OPENMP_THREADS
-   // Accumulate buffer, used by some subclasses if numThreads > 1 to avoid
-   // parallelization collisions.
-   std::vector<std::vector<float>> mThreadGSyn;
-   int mNumThreads = 1;
-#endif // PV_USE_OPENMP_THREADS
+   ConnectionData *mConnectionData = nullptr;
+   HyPerLayer *mPreLayer           = nullptr;
+   HyPerLayer *mPostLayer          = nullptr;
+   // Rather than the layers, should we store the buffers and the PVLayerLoc data?
 };
 
 } // namespace PV

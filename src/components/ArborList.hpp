@@ -41,8 +41,10 @@ class ArborList : public BaseObject {
    /** @} */ // end of ArborList parameters
 
   public:
-   ArborList(char const *name, PVParams *params, Communicator const *comm);
+   ArborList(char const *name, HyPerCol *hc);
    virtual ~ArborList();
+
+   virtual void setObjectType() override;
 
    /**
     * Returns the number of arbors in the connection
@@ -54,22 +56,16 @@ class ArborList : public BaseObject {
   protected:
    ArborList();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
-
-   virtual void setObjectType() override;
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   void initializeDelays(double deltaTime);
+   void initializeDelays();
 
-   /**
-    * Converts the given delay, in physical time units, to an integer number of timesteps.
-    * Issues a warning if dely / deltaTime is not exactly an integer.
-    */
-   int convertDelay(double delay, double deltaTime);
+   void setDelay(int arborId, double delay);
 
    int maxDelaySteps();
 

@@ -7,10 +7,10 @@ namespace PV {
 
 class ComparisonLayer : public PV::ANNLayer {
   public:
-   ComparisonLayer(const char *name, PVParams *params, Communicator const *comm);
+   ComparisonLayer(const char *name, HyPerCol *hc);
 
   protected:
-   Response::Status checkUpdateState(double timef, double dt) override;
+   Response::Status updateState(double timef, double dt) override;
 };
 
 } /* namespace PV */

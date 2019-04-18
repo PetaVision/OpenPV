@@ -3,12 +3,7 @@
 
 namespace PV {
 
-KneeTimeScaleProbe::KneeTimeScaleProbe(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
-}
+KneeTimeScaleProbe::KneeTimeScaleProbe(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 int KneeTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = AdaptiveTimeScaleProbe::ioParamsFillGroup(ioFlag);
@@ -18,11 +13,11 @@ int KneeTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void KneeTimeScaleProbe::ioParam_kneeThresh(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "kneeThresh", &mKneeThresh, mKneeThresh);
+   parent->parameters()->ioParamValue(ioFlag, name, "kneeThresh", &mKneeThresh, mKneeThresh);
 }
 
 void KneeTimeScaleProbe::ioParam_kneeSlope(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "kneeSlope", &mKneeSlope, mKneeSlope);
+   parent->parameters()->ioParamValue(ioFlag, name, "kneeSlope", &mKneeSlope, mKneeSlope);
 }
 
 void KneeTimeScaleProbe::allocateTimeScaleController() {
@@ -34,7 +29,7 @@ void KneeTimeScaleProbe::allocateTimeScaleController() {
          tauFactor,
          mGrowthFactor,
          mWriteTimeScaleFieldnames,
-         mCommunicator,
+         parent->getCommunicator(),
          mKneeThresh,
          mKneeSlope);
 }

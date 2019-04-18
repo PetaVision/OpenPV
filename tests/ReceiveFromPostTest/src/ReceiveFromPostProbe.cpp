@@ -10,13 +10,9 @@
 #include <utils/PVLog.hpp>
 
 namespace PV {
-ReceiveFromPostProbe::ReceiveFromPostProbe(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm)
-      : StatsProbe() {
+ReceiveFromPostProbe::ReceiveFromPostProbe(const char *name, HyPerCol *hc) : StatsProbe() {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 int ReceiveFromPostProbe::initialize_base() {
@@ -24,11 +20,8 @@ int ReceiveFromPostProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-void ReceiveFromPostProbe::initialize(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
+int ReceiveFromPostProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 int ReceiveFromPostProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -40,19 +33,39 @@ int ReceiveFromPostProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ReceiveFromPostProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
 void ReceiveFromPostProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
+   parent->parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
 }
 
-Response::Status ReceiveFromPostProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
+Response::Status ReceiveFromPostProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
    if (status != Response::SUCCESS) {
       return status;
    }
-   auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
-   int numExtNeurons        = publisherComponent->getNumExtended();
-   const float *A           = publisherComponent->getLayerData();
-   bool failed              = false;
+   const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
+   int numExtNeurons     = getTargetLayer()->getNumExtended();
+   const float *A        = getTargetLayer()->getLayerData();
+   bool failed           = false;
    for (int i = 0; i < numExtNeurons; i++) {
+      if (fabsf(A[i]) != 0) {
+         int xpos =
+               kxPos(i,
+                     loc->nx + loc->halo.lt + loc->halo.rt,
+                     loc->ny + loc->halo.dn + loc->halo.up,
+                     loc->nf);
+         int ypos =
+               kyPos(i,
+                     loc->nx + loc->halo.lt + loc->halo.rt,
+                     loc->ny + loc->halo.dn + loc->halo.up,
+                     loc->nf);
+         int fpos = featureIndex(
+               i,
+               loc->nx + loc->halo.lt + loc->halo.rt,
+               loc->ny + loc->halo.dn + loc->halo.up,
+               loc->nf);
+         // InfoLog() << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i]
+         // <<
+         // "\n";
+      }
       // For roundoff errors
       if (fabsf(A[i]) >= tolerance) {
          ErrorLog().printf(

@@ -71,7 +71,7 @@ class MomentumUpdater : public HebbianUpdater {
    virtual void ioParam_momentumTau(enum ParamsIOFlag ioFlag);
 
    /**
-    * momentumDecay: The decay rate on the weights, applied after the momentum weight updates.
+    * momentumDecay: The decay rate on the weights, * applied after the momentum weight updates.
     */
    virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
 
@@ -83,7 +83,7 @@ class MomentumUpdater : public HebbianUpdater {
    static constexpr float mDefaultTimeConstantTauViscosity = 100.0f;
    static constexpr float mDefaultTimeConstantTauAlex      = 0.9f;
 
-   MomentumUpdater(char const *name, PVParams *params, Communicator const *comm);
+   MomentumUpdater(char const *name, HyPerCol *hc);
 
    virtual ~MomentumUpdater() {}
 
@@ -94,7 +94,7 @@ class MomentumUpdater : public HebbianUpdater {
   protected:
    MomentumUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 
@@ -104,8 +104,7 @@ class MomentumUpdater : public HebbianUpdater {
 
    virtual Response::Status allocateDataStructures() override;
 
-   virtual Response::Status
-   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 

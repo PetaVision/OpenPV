@@ -8,6 +8,7 @@
 #ifndef DATASTOREDELAYTESTPROBE_HPP_
 #define DATASTOREDELAYTESTPROBE_HPP_
 
+#include "columns/HyPerCol.hpp"
 #include "include/pv_common.h"
 #include "probes/StatsProbe.hpp"
 
@@ -18,14 +19,14 @@ class DatastoreDelayTestProbe : public StatsProbe {
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
   public:
-   DatastoreDelayTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   DatastoreDelayTestProbe(const char *name, HyPerCol *hc);
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timestamp) override;
 
    virtual ~DatastoreDelayTestProbe();
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 

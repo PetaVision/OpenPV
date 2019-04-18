@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
 #include "arch/mpi/mpi.h"
 #include "assert.h"
 #include "columns/HyPerCol.hpp"
+#include "io/io.hpp"
 #include "layers/ANNLayer.hpp"
 
 int buildandverify(PV::PV_Init *initObj);
@@ -87,11 +88,10 @@ int main(int argc, char *argv[]) {
 }
 
 int buildandverify(PV::PV_Init *initObj) {
-   int rows    = initObj->getIntegerArgument("NumRows");
-   int columns = initObj->getIntegerArgument("NumColumns");
-   FatalIf(rows <= 0 or columns <= 0, "Test failed.\n");
    PV::HyPerCol *hc = new PV::HyPerCol(initObj);
-   hc->allocateColumn();
+   int rows         = initObj->getIntegerArgument("NumRows");
+   int columns      = initObj->getIntegerArgument("NumColumns");
+   FatalIf(rows <= 0 or columns <= 0, "Test failed.\n");
    int status = verifyLoc(hc, rows, columns);
    delete hc;
    return status;

@@ -310,6 +310,7 @@ HyPerConn "RetinaToL0" = {
    
    flankShift = 1.5;
    delay = 0;
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -355,6 +356,7 @@ HyPerConn "RetinaToL1" = {
    plasticityFlag = false;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -385,6 +387,7 @@ HyPerConn "RetinaToL2" = {
    plasticityFlag = 0;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -437,6 +440,7 @@ HyPerConn "RetinaToL2" = {
 //    flankShift = 0;
 //    delay = 0;   
 // 
+//    convertRateToSpikeCount = false;
 //   updateGSynFromPostPerspective = false;
 
 // };
@@ -489,6 +493,7 @@ HyPerConn "RetinaToL2" = {
 //    
 //    flankShift = 0;
 //    delay = 0;   
+//    convertRateToSpikeCount = false;
 //    updateGSynFromPostPerspective = false;
 // };
 
@@ -532,6 +537,7 @@ HyPerConn "RetinaToL5" = {
    plasticityFlag = false;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -578,6 +584,7 @@ HyPerConn "RetinaToL6" = {
    plasticityFlag = false;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -602,6 +609,7 @@ HyPerConn "RetinaToL7" = {
    plasticityFlag = 0;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -651,6 +659,7 @@ HyPerConn "RetinaToL8" = {
    
    flankShift = 0;
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -699,6 +708,7 @@ HyPerConn "RetinaToL9" = {
    plasticityFlag = false;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -743,6 +753,7 @@ NonsharedConnDebugInitWeights "RetinaToL0Check" = {
    
    flankShift = 1.5;
    delay = 0;
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -788,6 +799,7 @@ NonsharedConnDebugInitWeights "RetinaToL1Check" = {
    plasticityFlag = false;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -818,6 +830,7 @@ NonsharedConnDebugInitWeights "RetinaToL2Check" = {
    plasticityFlag = false;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -867,6 +880,7 @@ NonsharedConnDebugInitWeights "RetinaToL2Check" = {
 //    
 //    flankShift = 0;
 //    delay = 0;   
+//    convertRateToSpikeCount = false;
 //    updateGSynFromPostPerspective = false;
 // };
 // 
@@ -916,6 +930,7 @@ NonsharedConnDebugInitWeights "RetinaToL2Check" = {
 //    
 //    flankShift = 0;
 //    delay = 0;   
+//    convertRateToSpikeCount = false;
 //    updateGSynFromPostPerspective = false;
 // };
 
@@ -958,6 +973,7 @@ SharedConnDebugInitWeights "RetinaToL5Check" = {
    plasticityFlag = false;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -1003,6 +1019,7 @@ SharedConnDebugInitWeights "RetinaToL6Check" = {
    plasticityFlag = false;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -1026,6 +1043,7 @@ SharedConnDebugInitWeights "RetinaToL7Check" = {
    plasticityFlag = false;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -1066,6 +1084,7 @@ SharedConnDebugInitWeights "RetinaToL8Check" = {
    plasticityFlag = false;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 
@@ -1106,6 +1125,7 @@ SharedConnDebugInitWeights "RetinaToL9Check" = {
    plasticityFlag = false;
    
    delay = 0;   
+   convertRateToSpikeCount = false;
    updateGSynFromPostPerspective = false;
 };
 

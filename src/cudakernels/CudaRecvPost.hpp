@@ -129,6 +129,7 @@ class CudaRecvPost : public CudaKernel {
 
 #ifdef PV_USE_CUDNN
    void permuteDatastorePVToCudnn();
+   void permuteWeightsPVToCudnn();
    void permuteGSynPVToCudnn(int channel);
    void permuteGSynCudnnToPV(int channel);
 #endif

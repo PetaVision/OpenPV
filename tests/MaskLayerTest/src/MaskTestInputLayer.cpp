@@ -1,26 +1,14 @@
 #include "MaskTestInputLayer.hpp"
-#include <components/ActivityBuffer.hpp>
-#include <components/GSynAccumulator.hpp>
-#include <components/HyPerActivityComponent.hpp>
-#include <components/HyPerInternalStateBuffer.hpp>
 
 namespace PV {
 
-MaskTestInputLayer::MaskTestInputLayer(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
-}
-
-ActivityComponent *MaskTestInputLayer::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator, HyPerInternalStateBuffer, ActivityBuffer>(
-         getName(), parameters(), mCommunicator);
+MaskTestInputLayer::MaskTestInputLayer(const char *name, HyPerCol *hc) {
+   ANNLayer::initialize(name, hc);
 }
 
 // Makes a layer such that the restricted space is the index, but with spinning order be [x, y, f]
 // as opposed to [f, x, y]
-Response::Status MaskTestInputLayer::checkUpdateState(double timef, double dt) {
+Response::Status MaskTestInputLayer::updateState(double timef, double dt) {
    // Grab layer size
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
@@ -28,8 +16,10 @@ Response::Status MaskTestInputLayer::checkUpdateState(double timef, double dt) {
    int nf                = loc->nf;
    int nxGlobal          = loc->nxGlobal;
    int nyGlobal          = loc->nyGlobal;
+   int kx0               = loc->kx0;
+   int ky0               = loc->ky0;
 
-   float *A = mActivityComponent->getComponentByType<ActivityBuffer>()->getReadWritePointer();
+   float *A = getActivity();
    // looping over ext
    for (int iY = 0; iY < ny + loc->halo.up + loc->halo.dn; iY++) {
       for (int iX = 0; iX < nx + loc->halo.lt + loc->halo.rt; iX++) {

@@ -5,24 +5,24 @@
  */
 
 #include "FeedbackConn.hpp"
+#include "columns/HyPerCol.hpp"
 #include "components/FeedbackConnectionData.hpp"
 
 namespace PV {
 
-FeedbackConn::FeedbackConn(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+FeedbackConn::FeedbackConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 FeedbackConn::FeedbackConn() {}
 
 FeedbackConn::~FeedbackConn() {}
 
-void FeedbackConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   TransposeConn::initialize(name, params, comm);
+int FeedbackConn::initialize(char const *name, HyPerCol *hc) {
+   int status = TransposeConn::initialize(name, hc);
+   return status;
 }
 
 ConnectionData *FeedbackConn::createConnectionData() {
-   return new FeedbackConnectionData(name, parameters(), mCommunicator);
+   return new FeedbackConnectionData(name, parent);
 }
 
 } // namespace PV

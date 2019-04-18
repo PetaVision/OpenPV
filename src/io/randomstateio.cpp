@@ -19,6 +19,7 @@ double readRandState(
       nyGlobal += loc->halo.dn + loc->halo.up;
    }
    int const nf          = loc->nf;
+   int const numGlobal   = nxGlobal * nyGlobal * nf;
    int const rootProcess = 0; // process that does the I/O.
 
    Buffer<taus_uint4> buffer{nxGlobal, nyGlobal, nf};
@@ -80,18 +81,11 @@ void writeRandState(
    for (int m = 0; m < mpiBlock->getBatchDimension(); m++) {
       for (int b = 0; b < loc->nbatch; b++) {
          auto localData = &randState[b * numLocal];
-         Buffer<taus_uint4> localBuffer{localData, nxLocal, nyLocal, nf};
+         Buffer<taus_uint4> localBuffer{randState, nxLocal, nyLocal, nf};
          Buffer<taus_uint4> globalBuffer =
                BufferUtils::gather(mpiBlock, localBuffer, loc->nx, loc->ny, m, 0);
          if (mpiBlock->getRank() == 0) {
-            if (b == 0) {
-               BufferUtils::writeToPvp<taus_uint4>(
-                     path.c_str(), &globalBuffer, simTime, verifyWrites);
-            }
-            else {
-               BufferUtils::appendToPvp<taus_uint4>(
-                     path.c_str(), &globalBuffer, b, simTime, verifyWrites);
-            }
+            BufferUtils::writeToPvp<taus_uint4>(path.c_str(), &globalBuffer, simTime, verifyWrites);
          }
       }
    }

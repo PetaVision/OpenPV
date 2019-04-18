@@ -12,30 +12,15 @@
 
 namespace PV {
 
-Publisher::Publisher(
-      MPIBlock const &mpiBlock,
-      float const *data,
-      PVLayerLoc const *loc,
-      int numLevels,
-      bool isSparse) {
-   mLayerCube = (PVLayerCube *)malloc(sizeof(PVLayerCube));
+Publisher::Publisher(MPIBlock const &mpiBlock, PVLayerCube *cube, int numLevels, bool isSparse) {
+   this->mLayerCube = cube;
 
-   int const nxExt           = loc->nx + loc->halo.lt + loc->halo.rt;
-   int const nyExt           = loc->ny + loc->halo.dn + loc->halo.up;
-   int const numItemsInBatch = nxExt * nyExt * loc->nf; // number of items in one batch element.
+   int const numBuffers = cube->loc.nbatch;
+   int const numItems   = cube->numItems / numBuffers; // number of items in one batch element.
 
-   mLayerCube->numItems      = numItemsInBatch * loc->nbatch; // number of items across the batch.
-   mLayerCube->data          = data;
-   mLayerCube->loc           = *loc;
-   mLayerCube->isSparse      = isSparse;
-   mLayerCube->numActive     = nullptr;
-   mLayerCube->activeIndices = nullptr;
+   store = new DataStore(numBuffers, numItems, numLevels, isSparse);
 
-   int const numBuffers = loc->nbatch; // DataStore buffers correspond to batch elements
-
-   store = new DataStore(numBuffers, numItemsInBatch, numLevels, isSparse);
-
-   mBorderExchanger = new BorderExchange(mpiBlock, *loc);
+   mBorderExchanger = new BorderExchange(mpiBlock, cube->loc);
 
    mpiRequestsBuffer = new RingBuffer<std::vector<MPI_Request>>(numLevels, 1);
    for (int l = 0; l < numLevels; l++) {
@@ -52,7 +37,6 @@ Publisher::~Publisher() {
    delete mpiRequestsBuffer;
    delete store;
    delete mBorderExchanger;
-   free(mLayerCube);
 }
 
 void Publisher::checkpointDataStore(
@@ -63,11 +47,6 @@ void Publisher::checkpointDataStore(
          std::make_shared<CheckpointEntryDataStore>(
                objectName, bufferName, checkpointer->getMPIBlock(), store, &mLayerCube->loc),
          false /*not constant*/);
-   FatalIf(
-         !registerSucceeded,
-         "%s failed to register %s for checkpointing.\n",
-         objectName,
-         bufferName);
 }
 
 void Publisher::updateAllActiveIndices() {
@@ -140,24 +119,22 @@ int Publisher::exchangeBorders(const PVLayerLoc *loc, int delay /*default 0*/) {
    auto *requestsVector = mpiRequestsBuffer->getBuffer(delay, 0);
    pvAssert(requestsVector->empty());
 
-// Loop through batch.
-// The loop over batch elements probably belongs inside
-// BorderExchange::exchange(), but for this to happen, exchange() would need
-// to know how its data argument is organized with respect to batching.
-#ifndef NDEBUG
+   // Loop through batch.
+   // The loop over batch elements probably belongs inside
+   // BorderExchange::exchange(), but for this to happen, exchange() would need
+   // to know how its data argument is organized with respect to batching.
    int exchangeVectorSize = 2 * (mBorderExchanger->getNumNeighbors() - 1);
-#endif // NDEBUG
    for (int b = 0; b < loc->nbatch; b++) {
       // don't send interior
-      pvAssert(requestsVector->size() == (std::size_t)(b * exchangeVectorSize));
+      pvAssert(requestsVector->size() == b * exchangeVectorSize);
 
       float *data = recvBuffer(b, delay);
       std::vector<MPI_Request> batchElementMPIRequest{};
       mBorderExchanger->exchange(data, batchElementMPIRequest);
-      pvAssert(batchElementMPIRequest.size() == (std::size_t)exchangeVectorSize);
+      pvAssert(batchElementMPIRequest.size() == exchangeVectorSize);
       requestsVector->insert(
             requestsVector->end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
-      pvAssert(requestsVector->size() == (std::size_t)((b + 1) * exchangeVectorSize));
+      pvAssert(requestsVector->size() == (b + 1) * exchangeVectorSize);
    }
 
 #endif // PV_USE_MPI

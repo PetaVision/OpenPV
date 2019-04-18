@@ -27,44 +27,16 @@ namespace PV {
  */
 class Subject {
   public:
-   // No public constructors; only subclasses may be instantiated.
-   virtual ~Subject();
+   Subject() {}
+   virtual ~Subject() {}
 
    /**
-    * Adds an Observer-derived object to the observer table.
-    * Exits with an error if the object is unable to be added.
+    * The virtual method for adding an Observer-derived object.
+    * Derived classes must override this method to add the object to their hierarchy.
     */
-   void addObserver(std::string const &tag, Observer *observer);
-
-   /**
-    * Adds an object to the observer table, subject to the restriction that
-    * no other observer of the specified type is in the table.
-    * Exits with an error if the object is unable to be added, either because
-    * the internal call to addObject failed, or because there already was an
-    * object of the specified type in the table.
-    */
-   template <typename S>
-   void addUniqueComponent(std::string const &tag, S *component);
-
-   template <typename S>
-   S *getComponentByType();
-
-   ObserverTable const *getTable() { return mTable; }
+   virtual void addObserver(Observer *observer) { return; }
 
   protected:
-   /**
-    * The default constructor called by derived classes. Derived classes should
-    * call Subject::initializeTable().
-    */
-   Subject();
-
-   void initializeTable(char const *tableDescription);
-
-   /**
-    * The virtual method for populating the ObserverTable data member, called by initialize().
-    */
-   virtual void fillComponentTable() {}
-
    /**
     * This method calls the respond() method of each object in the given table, using the given
     * vector of messages. If the table consists of objects A, B, and C; and the messages vector
@@ -105,16 +77,19 @@ class Subject {
     *
     * If printFlag is true, the method prints information regarding postponement to standard output.
     */
-   Response::Status
-   notify(std::vector<std::shared_ptr<BaseMessage const>> messages, bool printFlag);
+   Response::Status notify(
+         ObserverTable const &table,
+         std::vector<std::shared_ptr<BaseMessage const>> messages,
+         bool printFlag);
 
    /**
     *
     * A convenience overload of the basic notify method where there is only one message to send to
     * the objects. This overloading handles enclosing the message in a vector of length one.
     */
-   inline Response::Status notify(std::shared_ptr<BaseMessage const> message, bool printFlag) {
-      return notify(std::vector<std::shared_ptr<BaseMessage const>>{message}, printFlag);
+   inline Response::Status
+   notify(ObserverTable const &table, std::shared_ptr<BaseMessage const> message, bool printFlag) {
+      return notify(table, std::vector<std::shared_ptr<BaseMessage const>>{message}, printFlag);
    }
 
    /**
@@ -127,6 +102,7 @@ class Subject {
     * in the table of objects; otherwise the routine will hang.
     */
    void notifyLoop(
+         ObserverTable const &table,
          std::vector<std::shared_ptr<BaseMessage const>> messages,
          bool printFlag,
          std::string const &description);
@@ -136,33 +112,17 @@ class Subject {
     * to the objects. This overloading handles enclosing the message in a vector of length one.
     */
    inline void notifyLoop(
+         ObserverTable const &table,
          std::shared_ptr<BaseMessage const> message,
          bool printFlag,
          std::string const &description) {
-      notifyLoop(std::vector<std::shared_ptr<BaseMessage const>>{message}, printFlag, description);
+      notifyLoop(
+            table,
+            std::vector<std::shared_ptr<BaseMessage const>>{message},
+            printFlag,
+            description);
    }
-
-   void deleteTable();
-
-  protected:
-   ObserverTable *mTable = nullptr;
 };
-
-template <typename S>
-S *Subject::getComponentByType() {
-   return mTable->lookupByType<S>();
-}
-
-template <typename S>
-void Subject::addUniqueComponent(std::string const &tag, S *component) {
-   auto *foundComponent = getComponentByType<S>();
-   FatalIf(
-         foundComponent,
-         "attempt to add %s using addUniqueComponent, but the table already has %s.\n",
-         component->getDescription_c(),
-         foundComponent->getDescription_c());
-   addObserver(tag, component);
-}
 
 } /* namespace PV */
 

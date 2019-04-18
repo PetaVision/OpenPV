@@ -7,7 +7,7 @@ void pvpatch_max_pooling(
       int nk,
       float *RESTRICT v,
       float a,
-      float const *RESTRICT w,
+      float *RESTRICT w,
       void *auxPtr,
       int sf) {
    float *gate = (float *)auxPtr;
@@ -26,8 +26,8 @@ void pvpatch_max_pooling_from_post(
       int kPreGlobalExt,
       int nk,
       float *RESTRICT v,
-      float const *RESTRICT a,
-      float const *RESTRICT w,
+      float *RESTRICT a,
+      float *RESTRICT w,
       void *auxPtr,
       int sf) {
    float vmax  = *v;
@@ -54,7 +54,7 @@ void pvpatch_sum_pooling(
       int nk,
       float *RESTRICT v,
       float a,
-      float const *RESTRICT w,
+      float *RESTRICT w,
       void *auxPtr,
       int sf) {
    for (int k = 0; k < nk; k += sf) {
@@ -66,8 +66,8 @@ void pvpatch_sum_pooling_from_post(
       int kPreExt,
       int nk,
       float *RESTRICT v,
-      float const *RESTRICT a,
-      float const *RESTRICT w,
+      float *RESTRICT a,
+      float *RESTRICT w,
       void *auxPtr,
       int sf) {
    float dv = 0.0f;

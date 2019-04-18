@@ -65,6 +65,7 @@ HyPerConn "test_constant_input_connection" = {
     weightInitType = "UniformWeight";
     weightInit = 1.0;
     connectOnlySameFeatures = false;
+    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;
 
     normalizeMethod = "none";

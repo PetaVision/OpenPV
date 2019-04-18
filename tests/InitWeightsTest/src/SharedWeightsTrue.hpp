@@ -32,14 +32,14 @@ class SharedWeightsTrue : public SharedWeights {
    /** @} */ // end of SharedWeightsTrue parameters
 
   public:
-   SharedWeightsTrue(char const *name, PVParams *params, Communicator const *comm);
+   SharedWeightsTrue(char const *name, HyPerCol *hc);
 
    virtual ~SharedWeightsTrue();
 
   protected:
    SharedWeightsTrue() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 

@@ -4,7 +4,6 @@
 #include "Buffer.hpp"
 #include "utils/PVLog.hpp"
 
-#include <cinttypes>
 #include <vector>
 
 using std::vector;
@@ -39,12 +38,12 @@ class SparseList {
    }
 
    void toBuffer(Buffer<T> &dest, T zeroVal) {
-      uint32_t numElements = dest.getTotalElements();
+      int numElements = dest.getTotalElements();
       vector<T> newData(numElements, zeroVal);
       for (auto entry : mList) {
          FatalIf(
                entry.index > numElements,
-               "Buffer is not large enough to hold index %" PRIu32 " / %" PRIu32 "\n",
+               "Buffer is not large enough to hold index %d / %d\n",
                entry.index,
                numElements);
          newData.at(entry.index) = entry.value;

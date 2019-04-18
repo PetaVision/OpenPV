@@ -5,24 +5,36 @@
  */
 
 #include "MomentumConn.hpp"
+#include "columns/HyPerCol.hpp"
+#include "utils/MapLookupByType.hpp"
 #include "weightupdaters/MomentumUpdater.hpp"
 
 namespace PV {
 
-MomentumConn::MomentumConn(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+MomentumConn::MomentumConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 MomentumConn::MomentumConn() {}
 
 MomentumConn::~MomentumConn() {}
 
-void MomentumConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   HyPerConn::initialize(name, params, comm);
+int MomentumConn::initialize(char const *name, HyPerCol *hc) {
+   return HyPerConn::initialize(name, hc);
 }
 
-BaseWeightUpdater *MomentumConn::createWeightUpdater() {
-   return new MomentumUpdater(name, parameters(), mCommunicator);
+BaseWeightUpdater *MomentumConn::createWeightUpdater() { return new MomentumUpdater(name, parent); }
+
+char const *MomentumConn::getMomentumMethod() const {
+   auto *momentumUpdater =
+         mapLookupByType<MomentumUpdater>(mComponentTable.getObjectMap(), getDescription());
+   pvAssert(momentumUpdater);
+   return momentumUpdater->getMomentumMethod();
+}
+
+float MomentumConn::getTimeConstantTau() const {
+   auto *momentumUpdater =
+         mapLookupByType<MomentumUpdater>(mComponentTable.getObjectMap(), getDescription());
+   pvAssert(momentumUpdater);
+   return momentumUpdater->getTimeConstantTau();
 }
 
 } // namespace PV

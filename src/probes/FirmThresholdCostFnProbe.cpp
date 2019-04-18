@@ -6,21 +6,17 @@
  */
 
 #include "FirmThresholdCostFnProbe.hpp"
-#include "components/ANNActivityBuffer.hpp" // To get VThresh and VWidth from targetLayer if it's an ANNLayer
-#include "components/ActivityComponent.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "columns/HyPerCol.hpp"
+#include "layers/ANNLayer.hpp" // To get VThresh and VWidth from targetLayer if it's an ANNLayer
 
 namespace PV {
 
 FirmThresholdCostFnProbe::FirmThresholdCostFnProbe() : AbstractNormProbe() { initialize_base(); }
 
-FirmThresholdCostFnProbe::FirmThresholdCostFnProbe(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm)
+FirmThresholdCostFnProbe::FirmThresholdCostFnProbe(const char *name, HyPerCol *hc)
       : AbstractNormProbe() {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 int FirmThresholdCostFnProbe::initialize_base() {
@@ -31,11 +27,8 @@ int FirmThresholdCostFnProbe::initialize_base() {
 
 FirmThresholdCostFnProbe::~FirmThresholdCostFnProbe() {}
 
-void FirmThresholdCostFnProbe::initialize(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
-   AbstractNormProbe::initialize(name, params, comm);
+int FirmThresholdCostFnProbe::initialize(const char *name, HyPerCol *hc) {
+   return AbstractNormProbe::initialize(name, hc);
 }
 
 int FirmThresholdCostFnProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -45,15 +38,13 @@ int FirmThresholdCostFnProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-// We do not warn if VThresh and VWidth are absent, because if they are, we
-// try to get the values from the targetLayer.
 void FirmThresholdCostFnProbe::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, name, "VThresh", &VThresh, VThresh /*default*/, false /*warnIfAbsent*/);
 }
 
 void FirmThresholdCostFnProbe::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, name, "VWidth", &VWidth, VWidth /*default*/, false /*warnIfAbsent*/);
 }
 
@@ -67,33 +58,31 @@ Response::Status FirmThresholdCostFnProbe::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *activityComponent = getTargetLayer()->getComponentByType<ActivityComponent>();
-   pvAssert(activityComponent);
-   ANNActivityBuffer *activityBuffer = activityComponent->getComponentByType<ANNActivityBuffer>();
-   if (activityBuffer != nullptr) {
-      if (!parameters()->present(getName(), "VThresh")) {
-         VThresh = activityBuffer->getVThresh();
+   ANNLayer *targetANNLayer = dynamic_cast<ANNLayer *>(getTargetLayer());
+   if (targetANNLayer != nullptr) {
+      if (!parent->parameters()->present(getName(), "VThresh")) {
+         VThresh = targetANNLayer->getVThresh();
       }
-      if (!parameters()->present(getName(), "VWidth")) {
-         VWidth = activityBuffer->getVWidth();
+      if (!parent->parameters()->present(getName(), "VWidth")) {
+         VWidth = targetANNLayer->getVWidth();
       }
    }
    else {
       // Reread VThresh and VWidth commands, this time warning if they are not
       // absent.
-      parameters()->ioParamValue(
+      parent->parameters()->ioParamValue(
             PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh /*default*/, true /*warnIfAbsent*/);
-      parameters()->ioParamValue(
+      parent->parameters()->ioParamValue(
             PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh /*default*/, true /*warnIfAbsent*/);
    }
    return Response::SUCCESS;
 }
 
 double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
-   PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
-   if (index < 0 || index >= loc->nbatch) {
+   if (index < 0 || index >= parent->getNBatch()) {
       return PV_FAILURE;
    }
+   PVLayerLoc const *loc    = getTargetLayer()->getLayerLoc();
    int const nx             = loc->nx;
    int const ny             = loc->ny;
    int const nf             = loc->nf;
@@ -106,18 +95,21 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    double VThreshPlusVWidth = VThresh + VWidth;
    double amax              = 0.5 * VThreshPlusVWidth;
    double a2                = 0.5 / VThreshPlusVWidth;
-   auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
-   int const numExtended    = publisherComponent->getNumExtended();
-   float const *aBuffer     = publisherComponent->getLayerData() + index * numExtended;
+   float const *aBuffer =
+         getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
 
-   if (getMaskLayerData()) {
-      PVLayerLoc const *maskLoc  = getMaskLayerData()->getLayerLoc();
-      int const maskLt           = maskLoc->halo.lt;
-      int const maskRt           = maskLoc->halo.rt;
-      int const maskDn           = maskLoc->halo.dn;
-      int const maskUp           = maskLoc->halo.up;
-      int const maskNumExtended  = getMaskLayerData()->getNumExtended();
-      float const *maskLayerData = getMaskLayerData()->getLayerData() + index * maskNumExtended;
+   if (getMaskLayer()) {
+      PVLayerLoc const *maskLoc = getMaskLayer()->getLayerLoc();
+      PVHalo const *maskHalo    = &maskLoc->halo;
+      float const *maskLayerData =
+            getMaskLayer()->getLayerData()
+            + index * getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the
+      // part of the layer data for a given batch
+      // index?
+      int const maskLt = maskHalo->lt;
+      int const maskRt = maskHalo->rt;
+      int const maskDn = maskHalo->dn;
+      int const maskUp = maskHalo->up;
       if (maskHasSingleFeature()) {
          assert(getTargetLayer()->getNumNeurons() == nx * ny * nf);
          int nxy = nx * ny;
@@ -166,8 +158,8 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
       }
    }
    else {
-      if (publisherComponent->getSparseLayer()) {
-         PVLayerCube cube   = publisherComponent->getPublisher()->createCube();
+      if (getTargetLayer()->getSparseFlag()) {
+         PVLayerCube cube   = getTargetLayer()->getPublisher()->createCube();
          long int numActive = cube.numActive[index];
          int numItems       = cube.numItems / cube.loc.nbatch;
          SparseList<float>::Entry const *activeList =

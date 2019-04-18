@@ -34,7 +34,7 @@ class StrengthParam : public BaseObject {
    /** @} */ // end of StrengthParam parameters
 
   public:
-   StrengthParam(char const *name, PVParams *params, Communicator const *comm);
+   StrengthParam(char const *name, HyPerCol *hc);
 
    virtual ~StrengthParam();
 
@@ -43,7 +43,7 @@ class StrengthParam : public BaseObject {
   protected:
    StrengthParam() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 

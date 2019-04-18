@@ -11,8 +11,8 @@ namespace PV {
 
 class ImageTestLayer : public PV::ImageLayer {
   public:
-   ImageTestLayer(const char *name, PVParams *params, Communicator const *comm);
-   virtual Response::Status checkUpdateState(double time, double dt) override;
+   ImageTestLayer(const char *name, HyPerCol *hc);
+   virtual Response::Status updateState(double time, double dt) override;
 };
 }
 

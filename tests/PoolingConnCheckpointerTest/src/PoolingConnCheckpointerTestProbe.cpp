@@ -6,38 +6,35 @@
  */
 
 #include "PoolingConnCheckpointerTestProbe.hpp"
-#include "components/InputActivityBuffer.hpp"
-#include "components/PatchSize.hpp"
-#include "connections/PoolingConn.hpp"
-#include "utils/BufferUtilsMPI.hpp"
 #include <algorithm>
 #include <climits>
 #include <cmath>
+#include <connections/PoolingConn.hpp>
+#include <utils/BufferUtilsMPI.hpp>
 
-using namespace PV;
-
-PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe() {}
+PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe() { initialize_base(); }
 
 PoolingConnCheckpointerTestProbe::PoolingConnCheckpointerTestProbe(
       const char *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
+      PV::HyPerCol *hc) {
+   initialize_base();
+   initialize(name, hc);
 }
 
 PoolingConnCheckpointerTestProbe::~PoolingConnCheckpointerTestProbe() {}
 
-void PoolingConnCheckpointerTestProbe::initialize(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
-   return ColProbe::initialize(name, params, comm);
+int PoolingConnCheckpointerTestProbe::initialize_base() { return PV_SUCCESS; }
+
+int PoolingConnCheckpointerTestProbe::initialize(const char *name, PV::HyPerCol *hc) {
+   int status = PV::ColProbe::initialize(name, hc);
+   FatalIf(parent->getDeltaTime() != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
+   return status;
 }
 
-void PoolingConnCheckpointerTestProbe::ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) {
+void PoolingConnCheckpointerTestProbe::ioParam_textOutputFlag(enum PV::ParamsIOFlag ioFlag) {
    ColProbe::ioParam_textOutputFlag(ioFlag);
-   if (ioFlag == PARAMS_IO_READ && !getTextOutputFlag()) {
-      if (mCommunicator->globalCommRank() == 0) {
+   if (ioFlag == PV::PARAMS_IO_READ && !getTextOutputFlag()) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog()
                << getDescription()
                << ": PoolingConnCheckpointerTestProbe requires textOutputFlag to be set to true.\n";
@@ -45,123 +42,86 @@ void PoolingConnCheckpointerTestProbe::ioParam_textOutputFlag(enum ParamsIOFlag 
    }
 }
 
-Response::Status PoolingConnCheckpointerTestProbe::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto status = ColProbe::communicateInitInfo(message);
-   if (!Response::completed(status)) {
+PV::Response::Status PoolingConnCheckpointerTestProbe::communicateInitInfo(
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
+   auto status = PV::ColProbe::communicateInitInfo(message);
+   if (!PV::Response::completed(status)) {
       return status;
    }
 
-   auto *componentTable = message->mHierarchy;
-
-   status = mConnection ? status : status + initConnection(componentTable);
-   status = mInputPublisher ? status : status + initInputPublisher(componentTable);
-   status = mOutputPublisher ? status : status + initOutputPublisher(componentTable);
-   if (!Response::completed(status)) {
-      return status;
-   }
-
-   mInitializeFromCheckpointFlag = mInputPublisher->getInitializeFromCheckpointFlag();
-   FatalIf(
-         mInitializeFromCheckpointFlag != mOutputPublisher->getInitializeFromCheckpointFlag(),
-         "%s and %s have different initializeFromCheckpointFlag values.\n",
-         mInputPublisher->getDescription_c(),
-         mOutputPublisher->getDescription_c());
-
-   return Response::SUCCESS;
+   status = status + initInputLayer(message);
+   status = status + initOutputLayer(message);
+   status = status + initConnection(message);
+   return status;
 }
 
-Response::Status
-PoolingConnCheckpointerTestProbe::initConnection(ObserverTable const *componentTable) {
-   auto *connection = componentTable->lookupByName<PoolingConn>(std::string("InputToOutput"));
-   FatalIf(connection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
-   if (checkCommunicatedFlag(connection) == Response::POSTPONE) {
-      return Response::POSTPONE;
-   }
-   mConnection = connection;
-
-   auto *patchSize = mConnection->getComponentByType<PatchSize>();
-   FatalIf(
-         patchSize == nullptr,
-         "%s does not have a PatchSize component.\n",
-         mConnection->getDescription_c());
-   FatalIf(patchSize->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
-   FatalIf(patchSize->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
-   FatalIf(patchSize->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
-   return Response::SUCCESS;
-}
-
-Response::Status
-PoolingConnCheckpointerTestProbe::initInputPublisher(ObserverTable const *componentTable) {
-   auto *inputLayer = componentTable->lookupByName<InputLayer>(std::string("Input"));
-   FatalIf(inputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
-   if (checkCommunicatedFlag(inputLayer) == Response::POSTPONE) {
-      return Response::POSTPONE;
+PV::Response::Status PoolingConnCheckpointerTestProbe::initInputLayer(
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
+   mInputLayer = message->lookup<PV::InputLayer>(std::string("Input"));
+   FatalIf(mInputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
+   if (checkCommunicatedFlag(mInputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
 
-   PVHalo const *halo = &inputLayer->getLayerLoc()->halo;
+   PVHalo const *halo = &mInputLayer->getLayerLoc()->halo;
    FatalIf(
          halo->lt != 0 || halo->rt != 0 || halo->dn != 0 || halo->up != 0,
          "This test assumes that the input layer has no border region.\n");
-
-   auto *activityComponent = inputLayer->getComponentByType<ActivityComponent>();
-   auto *inputBuffer       = activityComponent->getComponentByType<InputActivityBuffer>();
    FatalIf(
-         inputBuffer->getDisplayPeriod() != 4.0,
+         mInputLayer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
-
-   mInputPublisher = inputLayer->getComponentByType<BasePublisherComponent>();
-   FatalIf(
-         mInputPublisher == nullptr,
-         "%s does not have a BasePublisherComponent.\n",
-         inputLayer->getDescription_c());
-   return Response::SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
-Response::Status
-PoolingConnCheckpointerTestProbe::initOutputPublisher(ObserverTable const *componentTable) {
-   auto *outputLayer = componentTable->lookupByName<HyPerLayer>(std::string("Output"));
-   FatalIf(outputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
-   if (checkCommunicatedFlag(outputLayer) == Response::POSTPONE) {
-      return Response::POSTPONE;
+PV::Response::Status PoolingConnCheckpointerTestProbe::initOutputLayer(
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
+   mOutputLayer = message->lookup<PV::HyPerLayer>(std::string("Output"));
+   FatalIf(mOutputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
+   if (checkCommunicatedFlag(mOutputLayer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
+   return PV::Response::SUCCESS;
+}
+
+PV::Response::Status PoolingConnCheckpointerTestProbe::initConnection(
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
+   mConnection = message->lookup<PV::PoolingConn>(std::string("InputToOutput"));
+   FatalIf(mConnection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
+   if (checkCommunicatedFlag(mConnection) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
    }
 
-   mOutputPublisher = outputLayer->getComponentByType<BasePublisherComponent>();
    FatalIf(
-         mOutputPublisher == nullptr,
-         "%s does not have a BasePublisherComponent.\n",
-         outputLayer->getDescription_c());
-   return Response::SUCCESS;
+         mConnection->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
+   FatalIf(
+         mConnection->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
+   FatalIf(
+         mConnection->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
+   return PV::Response::SUCCESS;
 }
 
-Response::Status
-PoolingConnCheckpointerTestProbe::checkCommunicatedFlag(BaseObject *dependencyObject) {
+PV::Response::Status
+PoolingConnCheckpointerTestProbe::checkCommunicatedFlag(PV::BaseObject *dependencyObject) {
    if (!dependencyObject->getInitInfoCommunicatedFlag()) {
-      if (mCommunicator->commRank() == 0) {
+      if (parent->getCommunicator()->commRank() == 0) {
          InfoLog().printf(
                "%s must wait until \"%s\" has finished its communicateInitInfo stage.\n",
                getDescription_c(),
                dependencyObject->getName());
       }
-      return Response::POSTPONE;
+      return PV::Response::POSTPONE;
    }
    else {
-      return Response::SUCCESS;
+      return PV::Response::SUCCESS;
    }
 }
 
-Response::Status PoolingConnCheckpointerTestProbe::initializeState(
-      std::shared_ptr<InitializeStateMessage const> message) {
-   FatalIf(message->mDeltaTime != 1.0, "This test assumes that the HyPerCol dt is 1.0.\n");
-   return Response::SUCCESS;
-}
-
-Response::Status
-PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   Checkpointer::TimeInfo timeInfo;
-   CheckpointEntryData<Checkpointer::TimeInfo> timeInfoCheckpointEntry(
+PV::Response::Status
+PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(PV::Checkpointer *checkpointer) {
+   PV::Checkpointer::TimeInfo timeInfo;
+   PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
-         mCommunicator->getLocalMPIBlock(),
+         parent->getCommunicator()->getLocalMPIBlock(),
          &timeInfo,
          (size_t)1,
          true /*broadcast*/);
@@ -170,7 +130,7 @@ PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(Checkpointer *checkpoi
 
    mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
 
-   return Response::SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
 int PoolingConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
@@ -184,28 +144,28 @@ int PoolingConnCheckpointerTestProbe::calcUpdateNumber(double timevalue) {
 void PoolingConnCheckpointerTestProbe::initializeCorrectValues(double timevalue) {
    int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
    mCorrectState          = new CorrectState(
-         updateNumber - 1, mInputPublisher->getLayerLoc(), mOutputPublisher->getLayerLoc());
+         updateNumber - 1, mInputLayer->getLayerLoc(), mOutputLayer->getLayerLoc());
    // Don't update for the current updateNumber;
    // outputState calls mCorrectState->update() if needed.
 }
 
-Response::Status PoolingConnCheckpointerTestProbe::outputState(double simTime, double deltaTime) {
+PV::Response::Status PoolingConnCheckpointerTestProbe::outputState(double timevalue) {
    if (!mValuesSet) {
-      initializeCorrectValues(simTime);
+      initializeCorrectValues(timevalue);
       mValuesSet = true;
    }
-   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(simTime);
+   int const updateNumber = mStartingUpdateNumber + calcUpdateNumber(timevalue);
    while (updateNumber > mCorrectState->getUpdateNumber()) {
       mCorrectState->update();
    }
 
    bool failed = false;
 
-   failed |= verifyLayer(mInputPublisher, mCorrectState->getCorrectInputBuffer(), simTime);
-   failed |= verifyLayer(mOutputPublisher, mCorrectState->getCorrectOutputBuffer(), simTime);
+   failed |= verifyLayer(mInputLayer, mCorrectState->getCorrectInputBuffer(), timevalue);
+   failed |= verifyLayer(mOutputLayer, mCorrectState->getCorrectOutputBuffer(), timevalue);
 
    if (failed) {
-      std::string errorMsg(getDescription() + " failed at t = " + std::to_string(simTime) + "\n");
+      std::string errorMsg(getDescription() + " failed at t = " + std::to_string(timevalue) + "\n");
       if (!mOutputStreams.empty()) {
          output(0).printf(errorMsg.c_str());
       }
@@ -216,25 +176,26 @@ Response::Status PoolingConnCheckpointerTestProbe::outputState(double simTime, d
    }
    else {
       if (!mOutputStreams.empty()) {
-         output(0).printf("%s found all correct values at time %f\n", getDescription_c(), simTime);
+         output(0).printf(
+               "%s found all correct values at time %f\n", getDescription_c(), timevalue);
       }
    }
    // Test runs all timesteps and then checks the mTestFailed flag at the end.
-   return Response::SUCCESS;
+   return PV::Response::SUCCESS;
 }
 
 bool PoolingConnCheckpointerTestProbe::verifyLayer(
-      BasePublisherComponent *layer,
-      Buffer<float> const &correctValueBuffer,
+      PV::HyPerLayer *layer,
+      PV::Buffer<float> const &correctValueBuffer,
       double timevalue) {
    int failed = 0;
 
+   int const numNeurons   = layer->getNumNeurons();
    float const *layerData = layer->getLayerData();
    PVLayerLoc loc         = *layer->getLayerLoc();
    int const nx           = loc.nx;
    int const ny           = loc.ny;
    int const nf           = loc.nf;
-   int const numNeurons   = nx * ny * nf;
    std::vector<int> badIndices(numNeurons, -1);
    for (int k = 0; k < numNeurons; k++) {
       int const x = kxPos(k, nx, ny, nf);
@@ -246,16 +207,16 @@ bool PoolingConnCheckpointerTestProbe::verifyLayer(
          failed            = 1;
       }
    }
-   Communicator const *comm = mCommunicator;
+   PV::Communicator *comm = parent->getCommunicator();
    std::vector<int> badIndicesGlobal;
    if (comm->commRank() == 0) {
-      badIndicesGlobal.resize(loc.nxGlobal * loc.nyGlobal * loc.nf);
+      badIndicesGlobal.resize(layer->getNumGlobalNeurons());
       std::vector<MPI_Request> requests(comm->commSize() - 1);
       for (int r = 1; r < comm->commSize(); r++) {
          int *recvBuffer = &badIndicesGlobal.at(r * numNeurons);
          MPI_Irecv(recvBuffer, numNeurons, MPI_INT, r, 211, comm->communicator(), &requests[r - 1]);
       }
-      MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
+      int status = MPI_Waitall(requests.size(), requests.data(), MPI_STATUSES_IGNORE);
       badIndicesGlobal.erase(
             std::remove_if(
                   badIndicesGlobal.begin(), badIndicesGlobal.end(), [](int j) { return j < 0; }),

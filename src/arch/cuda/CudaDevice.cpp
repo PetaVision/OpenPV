@@ -50,7 +50,7 @@ int CudaDevice::initialize(int device) {
    int status = 0;
 
 #ifdef PV_USE_CUDA
-   handleError(cudaDeviceReset(), "Device resetting in initialize");
+   handleError(cudaThreadExit(), "Thread exiting in initialize");
 
    handleError(cudaGetDeviceCount(&num_devices), "Getting device count");
    handleError(cudaSetDevice(device), "Setting device");
@@ -91,7 +91,9 @@ int CudaDevice::initialize(int device) {
    return status;
 }
 
-void CudaDevice::syncDevice() { handleError(cudaDeviceSynchronize(), "Synchronizing device"); }
+void CudaDevice::syncDevice() {
+   handleError(cudaDeviceSynchronize(), "Synchronizing device");
+}
 
 int CudaDevice::query_device_info() {
    // query and print information about the devices found
@@ -100,7 +102,7 @@ int CudaDevice::query_device_info() {
    InfoLog().printf("Number of Cuda devices found: %d\n", num_devices);
    InfoLog().printf("\n");
 
-   for (int i = 0; i < num_devices; i++) {
+   for (unsigned int i = 0; i < num_devices; i++) {
       query_device(i);
    }
    return 0;
@@ -117,7 +119,7 @@ CudaBuffer *CudaDevice::createBuffer(size_t size, std::string const *str) {
       InfoLog().flush();
       Fatal().printf("CudaDevice createBuffer: out of memory\n");
    }
-   return (new CudaBuffer(size, &device_props, stream));
+   return (new CudaBuffer(size, this, stream));
 }
 
 void CudaDevice::query_device(int id) {

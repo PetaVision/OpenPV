@@ -14,14 +14,14 @@ namespace PV {
 
 class FeedbackConn : public TransposeConn {
   public:
-   FeedbackConn(char const *name, PVParams *params, Communicator const *comm);
+   FeedbackConn(char const *name, HyPerCol *hc);
 
    virtual ~FeedbackConn();
 
   protected:
    FeedbackConn();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual ConnectionData *createConnectionData() override;
 }; // class FeedbackConn

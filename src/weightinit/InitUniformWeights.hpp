@@ -15,7 +15,7 @@ namespace PV {
 /**
  * A weight initializer that sets each weight to the same value.
  */
-class InitUniformWeights : public InitWeights {
+class InitUniformWeights : public PV::InitWeights {
   protected:
    /**
     * List of parameters needed by InitUniformWeights class
@@ -38,7 +38,7 @@ class InitUniformWeights : public InitWeights {
    /** @} */
 
   public:
-   InitUniformWeights(const char *name, PVParams *params, Communicator const *comm);
+   InitUniformWeights(const char *name, HyPerCol *hc);
    virtual ~InitUniformWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -48,7 +48,7 @@ class InitUniformWeights : public InitWeights {
 
   protected:
    InitUniformWeights();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
    virtual void calcWeights(int patchIndex, int arborId) override;
 
   private:

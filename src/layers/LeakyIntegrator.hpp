@@ -12,16 +12,25 @@
 
 namespace PV {
 
-class LeakyIntegrator : public ANNLayer {
+class LeakyIntegrator : public PV::ANNLayer {
    // Member functions
   public:
-   LeakyIntegrator(const char *name, PVParams *params, Communicator const *comm);
+   LeakyIntegrator(const char *name, HyPerCol *hc);
    virtual ~LeakyIntegrator();
 
   protected:
    LeakyIntegrator();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual ActivityComponent *createActivityComponent() override;
+   int initialize(const char *name, HyPerCol *hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_integrationTime(enum ParamsIOFlag ioFlag);
+   virtual Response::Status updateState(double timed, double dt) override;
+
+  private:
+   int initialize_base();
+
+   // Member Variables
+  protected:
+   float integrationTime;
 }; // class LeakyIntegrator
 
 } /* namespace PV */

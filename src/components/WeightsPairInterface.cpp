@@ -6,26 +6,20 @@
  */
 
 #include "WeightsPairInterface.hpp"
+#include "columns/HyPerCol.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-WeightsPairInterface::WeightsPairInterface(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
-}
+WeightsPairInterface::WeightsPairInterface(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 WeightsPairInterface::~WeightsPairInterface() {
    delete mPreWeights;
    delete mPostWeights;
 }
 
-void WeightsPairInterface::initialize(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+int WeightsPairInterface::initialize(char const *name, HyPerCol *hc) {
+   return BaseObject::initialize(name, hc);
 }
 
 void WeightsPairInterface::setObjectType() { mObjectType = "WeightsPairInterface"; }
@@ -37,12 +31,15 @@ Response::Status WeightsPairInterface::communicateInitInfo(
       return status;
    }
    if (mConnectionData == nullptr) {
-      mConnectionData = message->mHierarchy->lookupByType<ConnectionData>();
-      pvAssert(mConnectionData);
+      mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
    }
+   FatalIf(
+         mConnectionData == nullptr,
+         "%s requires a ConnectionData component.\n",
+         getDescription_c());
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the ConnectionData component has finished its "
                "communicateInitInfo stage.\n",
@@ -52,16 +49,12 @@ Response::Status WeightsPairInterface::communicateInitInfo(
    }
 
    if (mPatchSize == nullptr) {
-      mPatchSize = message->mHierarchy->lookupByType<PatchSize>();
-      FatalIf(
-            mPatchSize == nullptr,
-            "Communicate message to %s has no PatchSize component.\n",
-            getDescription_c());
+      mPatchSize = mapLookupByType<PatchSize>(message->mHierarchy, getDescription());
    }
-   pvAssert(mPatchSize);
+   FatalIf(mPatchSize == nullptr, "%s requires a PatchSize component.\n", getDescription_c());
 
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the PatchSize component has finished its "
                "communicateInitInfo stage.\n",
@@ -70,20 +63,42 @@ Response::Status WeightsPairInterface::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   HyPerLayer *pre  = mConnectionData->getPre();
-   HyPerLayer *post = mConnectionData->getPost();
-   pvAssert(pre and post);
-   LayerGeometry *preGeom  = pre->getComponentByType<LayerGeometry>();
-   LayerGeometry *postGeom = post->getComponentByType<LayerGeometry>();
-   pvAssert(preGeom and postGeom);
-   PVLayerLoc const *preLoc  = preGeom->getLayerLoc();
-   PVLayerLoc const *postLoc = postGeom->getLayerLoc();
+   HyPerLayer *pre           = mConnectionData->getPre();
+   HyPerLayer *post          = mConnectionData->getPost();
+   PVLayerLoc const *preLoc  = pre->getLayerLoc();
+   PVLayerLoc const *postLoc = post->getLayerLoc();
 
    // Margins
+   bool failed = false;
    int xmargin = requiredConvolveMargin(preLoc->nx, postLoc->nx, mPatchSize->getPatchSizeX());
-   preGeom->requireMarginWidth(xmargin, 'x');
+   int receivedxmargin = 0;
+   int statusx         = pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');
+   if (statusx != PV_SUCCESS) {
+      ErrorLog().printf(
+            "Margin Failure for layer %s.  Received x-margin is %d, but %s requires margin of at "
+            "least %d\n",
+            pre->getDescription_c(),
+            receivedxmargin,
+            name,
+            xmargin);
+      failed = true;
+   }
    int ymargin = requiredConvolveMargin(preLoc->ny, postLoc->ny, mPatchSize->getPatchSizeY());
-   preGeom->requireMarginWidth(ymargin, 'y');
+   int receivedymargin = 0;
+   int statusy         = pre->requireMarginWidth(ymargin, &receivedymargin, 'y');
+   if (statusy != PV_SUCCESS) {
+      ErrorLog().printf(
+            "Margin Failure for layer %s.  Received y-margin is %d, but %s requires margin of at "
+            "least %d\n",
+            pre->getDescription_c(),
+            receivedymargin,
+            name,
+            ymargin);
+      failed = true;
+   }
+   if (failed) {
+      exit(EXIT_FAILURE);
+   }
 
    return Response::SUCCESS;
 }

@@ -26,8 +26,8 @@
 static int check_borders(float *buf, PV::BorderExchange *borderExchanger, PVLayerLoc loc);
 
 int main(int argc, char *argv[]) {
-   PV::PV_Init *initObj = new PV::PV_Init(&argc, &argv, true /*allowUnrecognizedArguments*/);
-   PV::Communicator const *comm = initObj->getCommunicator();
+   PV::PV_Init *initObj   = new PV::PV_Init(&argc, &argv, true /*allowUnrecognizedArguments*/);
+   PV::Communicator *comm = initObj->getCommunicator();
    PV::MPIBlock const *mpiBlock = comm->getLocalMPIBlock();
 
    PVLayerLoc loc;
@@ -124,8 +124,9 @@ static int check_borders(float *image, PV::BorderExchange *borderExchanger, PVLa
    int const numRows     = mpiBlock->getNumRows();
    int const numColumns  = mpiBlock->getNumColumns();
 
-   int k0 = columnIndex * nx + rowIndex * ny * loc.nxGlobal;
-   int sy = nx + halo->lt + halo->rt;
+   int k0   = columnIndex * nx + rowIndex * ny * loc.nxGlobal;
+   int sy   = nx + halo->lt + halo->rt;
+   int rank = mpiBlock->getRank();
 
    // northwest
    // Note that if this MPI process is on the northern edge of the MPI quilt,

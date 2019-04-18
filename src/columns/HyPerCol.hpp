@@ -13,7 +13,6 @@
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "columns/PV_Init.hpp"
-#include "columns/ParamsInterface.hpp"
 #include "include/pv_types.h"
 #include "io/PVParams.hpp"
 #include "observerpattern/Observer.hpp"
@@ -36,7 +35,10 @@
 
 namespace PV {
 
-class HyPerCol : public Subject, public ParamsInterface {
+class PV_Init;
+class PVParams;
+
+class HyPerCol : public Subject, public Observer {
 
   private:
    /**
@@ -109,6 +111,8 @@ class HyPerCol : public Subject, public ParamsInterface {
 
    // Public functions
 
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
+
    /**
     * Returns the object in the hierarchy with the given name, if any exists.
     * Returns the null pointer if the string does not match any object.
@@ -133,6 +137,8 @@ class HyPerCol : public Subject, public ParamsInterface {
          std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
          std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
    int processParams(char const *path);
+   int ioParamsFinishGroup(enum ParamsIOFlag);
+   int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char *group_name);
 
    /**
     * This function tells each added object to perform the tasks necessary
@@ -153,6 +159,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    bool getCheckpointWriteFlag() const { return mCheckpointer->getCheckpointWriteFlag(); }
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
    bool getWriteTimescales() const { return mWriteTimescales; }
+   const char *getName() { return mName; }
    const char *getOutputPath() { return mCheckpointer->getOutputPath().c_str(); }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    double getDeltaTime() const { return mDeltaTime; }
@@ -162,8 +169,10 @@ class HyPerCol : public Subject, public ParamsInterface {
    int columnId() { return mCommunicator->commRank(); }
    int getNxGlobal() { return mNumXGlobal; }
    int getNyGlobal() { return mNumYGlobal; }
+   int getNBatch() { return mNumBatch; }
    int getNBatchGlobal() { return mNumBatchGlobal; }
    int getNumThreads() const { return mNumThreads; }
+   int numberOfBorderRegions() const { return MAX_NEIGHBORS; }
    int numberOfColumns() { return mCommunicator->commSize(); }
    int numberOfGlobalColumns() { return mCommunicator->globalCommSize(); }
    int commColumn() { return mCommunicator->commColumn(); }
@@ -174,50 +183,66 @@ class HyPerCol : public Subject, public ParamsInterface {
    int numCommBatches() { return mCommunicator->numCommBatches(); }
    Communicator *getCommunicator() const { return mCommunicator; }
    PV_Init *getPV_InitObj() const { return mPVInitObj; }
+   FileStream *getPrintParamsStream() const { return mPrintParamsStream; }
+   PVParams *parameters() const { return mParams; }
    long int getFinalStep() const { return mFinalStep; }
    unsigned int getRandomSeed() { return mRandomSeed; }
    unsigned int seedRandomFromWallClock();
 
+   // A hack to allow test_cocirc, test_gauss2d, and test_post_weights to send a
+   // CommunicateInitInfoMessage.
+   std::map<std::string, Observer *> *copyObjectMap() {
+      auto objectMap = new std::map<std::string, Observer *>;
+      *objectMap     = mObjectHierarchy.getObjectMap();
+      return objectMap;
+   }
+
+  private:
+   int getAutoGPUDevice();
+
 #ifdef PV_USE_CUDA
+  public:
    PVCuda::CudaDevice *getDevice() { return mCudaDevice; }
 #endif
 
    // Private functions
 
   private:
-   int getAutoGPUDevice();
+   void setDescription();
    int initialize_base();
    int initialize(PV_Init *initObj);
-   virtual void initMessageActionMap() override;
-   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void fillComponentTable() override;
-   void addComponent(BaseObject *component);
+   void ioParams(enum ParamsIOFlag ioFlag);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   void addObject(BaseObject *obj);
+   int checkDirExists(const char *dirname, struct stat *pathstat);
    inline void notifyLoop(std::vector<std::shared_ptr<BaseMessage const>> messages) {
       bool printFlag = getCommunicator()->globalCommRank() == 0;
-      Subject::notifyLoop(messages, printFlag, getDescription());
+      Subject::notifyLoop(mObjectHierarchy, messages, printFlag, description);
    }
    inline void notifyLoop(std::shared_ptr<BaseMessage const> message) {
       notifyLoop(std::vector<std::shared_ptr<BaseMessage const>>{message});
    }
-   Response::Status respondWriteParamsFile(std::shared_ptr<WriteParamsFileMessage const> message);
+   Response::Status
+   respondPrepareCheckpointWrite(std::shared_ptr<PrepareCheckpointWriteMessage const> message);
 #ifdef PV_USE_CUDA
    void initializeCUDA(std::string const &in_device);
    int finalizeCUDA();
 #endif // PV_USE_CUDA
-
-   virtual Response::Status writeParamsFile(std::shared_ptr<WriteParamsFileMessage const> message);
    void outputParams(char const *path);
    void outputParamsHeadComments(FileStream *fileStream, char const *commentToken);
    /**
     * Sets the mNumThreads member variable based on whether PV_USE_OPENMP is set
     * and the NumThreads argument in the ConfigFile (-t option if using the
-    * command line).
+    * command line).  If printMessagesFlag is true, it may print to the output
+    * and/or error stream.
+    * If printMessagesFlag is false, these messages are suppressed.
     */
-   int setNumThreads();
+   int setNumThreads(bool printMessagesFlag);
 
    // Private variables
 
   private:
+   ObserverTable mObjectHierarchy;
    bool mErrorOnNotANumber; // If true, check each layer's activity buffer for
    // not-a-numbers and
    // exit with an error if any appear
@@ -235,6 +260,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    // passed in the
    // constructor
    bool mWriteTimescales;
+   char *mName;
    char *mPrintParamsFilename; // filename for outputting the mParams, including
    // defaults and
    // excluding unread mParams
@@ -247,6 +273,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    int mNumPhases;
    int mNumXGlobal;
    int mNumYGlobal;
+   int mNumBatch;
    int mNumBatchGlobal;
    int mOrigStdOut;
    int mOrigStdErr;
@@ -259,6 +286,8 @@ class HyPerCol : public Subject, public ParamsInterface {
    long int mCurrentStep;
    long int mFinalStep;
    PV_Init *mPVInitObj;
+   FileStream *mPrintParamsStream; // file pointer associated with mPrintParamsFilename
+   FileStream *mLuaPrintParamsStream; // file pointer associated with the output lua file
    PVParams *mParams; // manages input parameters
    size_t mLayerArraySize;
    size_t mConnectionArraySize;

@@ -12,17 +12,17 @@
 
 namespace PV {
 
-class StatsProbe : public LayerProbe {
+class StatsProbe : public PV::LayerProbe {
   public:
-   StatsProbe(const char *name, PVParams *params, Communicator const *comm);
+   StatsProbe(const char *name, HyPerCol *hc);
    virtual ~StatsProbe();
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timef) override;
    virtual int checkpointTimers(PrintStream &timerstream);
 
   protected:
    StatsProbe();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);
@@ -38,10 +38,7 @@ class StatsProbe : public LayerProbe {
     */
    virtual void initNumValues() override;
 
-   virtual Response::Status allocateDataStructures() override;
-
-   virtual Response::Status
-   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    /**
     * Implements needRecalc() for StatsProbe to always return false (getValues
@@ -58,9 +55,6 @@ class StatsProbe : public LayerProbe {
    virtual void calcValues(double timevalue) override {
       Fatal().printf("%s does not use calcValues.\n", getDescription_c());
    }
-
-   float const *retrieveActivityBuffer();
-   float const *retrieveVBuffer();
 
    // Member variables
    PVBufType type;

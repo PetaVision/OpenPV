@@ -9,22 +9,17 @@
 
 namespace PV {
 
-InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
+InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays(char const *name, HyPerCol *hc) {
+   initialize(name, hc);
 }
 
 InitOneToOneWeightsWithDelays::InitOneToOneWeightsWithDelays() {}
 
 InitOneToOneWeightsWithDelays::~InitOneToOneWeightsWithDelays() {}
 
-void InitOneToOneWeightsWithDelays::initialize(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   InitWeights::initialize(name, params, comm);
+int InitOneToOneWeightsWithDelays::initialize(char const *name, HyPerCol *hc) {
+   int status = InitWeights::initialize(name, hc);
+   return status;
 }
 
 void InitOneToOneWeightsWithDelays::calcWeights(int patchIndex, int arborId) {

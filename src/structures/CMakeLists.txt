@@ -10,6 +10,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/RingBuffer.hpp
 )
 
-set (PVLibSrcHpp ${PVLibSrcTpp}
+set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Buffer.tpp
 )

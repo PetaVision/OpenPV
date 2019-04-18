@@ -13,34 +13,30 @@
 
 namespace PV {
 
-InitWeightTestProbe::InitWeightTestProbe(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm)
-      : StatsProbe() {
-   initialize(name, params, comm);
+InitWeightTestProbe::InitWeightTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize(name, hc);
 }
 
 int InitWeightTestProbe::initialize_base() { return PV_SUCCESS; }
 
-void InitWeightTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
+int InitWeightTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 void InitWeightTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
 
-Response::Status InitWeightTestProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
+Response::Status InitWeightTestProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
    if (status != Response::SUCCESS) {
       return status;
    }
-   Communicator const *icComm = mCommunicator;
-   const int rcvProc          = 0;
+   Communicator *icComm = parent->getCommunicator();
+   const int rcvProc    = 0;
    if (icComm->commRank() != rcvProc) {
       return status;
    }
-   for (int b = 0; b < mLocalBatchWidth; b++) {
-      if (simTime > 2.0) {
+   for (int b = 0; b < parent->getNBatch(); b++) {
+      if (timed > 2.0) {
          FatalIf(std::abs(fMin[b]) >= 0.001f, "Test failed.\n");
          FatalIf(std::abs(fMax[b]) >= 0.001f, "Test failed.\n");
          FatalIf(std::abs(avg[b]) >= 0.001f, "Test failed.\n");

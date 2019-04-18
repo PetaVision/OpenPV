@@ -193,6 +193,7 @@ HyPerConn "origConn_1" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -203,6 +204,7 @@ TransposeConn "TransposeConn1_1" = {
     postLayerName = "outputRecv1_1";
     channelCode = 0; 
     originalConnName = "origConn_1";
+    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -215,6 +217,7 @@ TransposeConn "TransposeConn1_2" = {
     postLayerName = "outputRecv1_2";
     channelCode = 0;
     originalConnName = "origConn_1";
+    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -232,6 +235,7 @@ TransposeConn "TransposeConn2_1" = {
     postLayerName = "outputRecv2_1";
     channelCode = 0; 
     originalConnName = "origConn_2";
+    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -287,26 +291,32 @@ IdentConn "RecvTest3_2" = {
     writeStep = -1;
 };
 
+//GPUSystemTestProbe "probe1_1" = {
+//   targetLayer = "outputRecv1_1";
+//   message = "VAL 1_1 ";
+//};
+//
+//GPUSystemTestProbe "probe1_2" = {
+//   targetLayer = "outputRecv1_2";
+//   message = "VAL 1_2 ";
+//};
+//
+//GPUSystemTestProbe "probe2_1" = {
+//   targetLayer = "outputRecv2_1";
+//   message = "VAL 2_1 ";
+//};
+
 GPUSystemTestProbe "testProbe1_1And1_2" = {
    targetLayer = "Test1_1AndTest1_2";
    message = "DIFF 1_1And1_2 ";
-   nnzThreshold = 5.0e-4;
-   exitOnFailure = true;
-   immediateExitOnFailure = false;
 };
 
 GPUSystemTestProbe "testProbe1_1And2_1" = {
    targetLayer = "Test1_1AndTest2_1";
    message = "DIFF 1_1And2_1 ";
-   nnzThreshold = 5.0e-4;
-   exitOnFailure = true;
-   immediateExitOnFailure = false;
 };
 
 GPUSystemTestProbe "testProbe1_2And2_1" = {
    targetLayer = "Test1_2AndTest2_1";
    message = "DIFF 1_2And2_1 ";
-   nnzThreshold = 5.0e-4;
-   exitOnFailure = true;
-   immediateExitOnFailure = false;
 };

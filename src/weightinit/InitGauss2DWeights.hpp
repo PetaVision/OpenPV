@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class InitGauss2DWeights : public InitWeights {
+class InitGauss2DWeights : public PV::InitWeights {
   protected:
    /**
     * List of parameters needed from the InitGauss2DWeight class
@@ -47,19 +47,21 @@ class InitGauss2DWeights : public InitWeights {
    /** @} */
 
   public:
-   InitGauss2DWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitGauss2DWeights(char const *name, HyPerCol *hc);
    virtual ~InitGauss2DWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
    InitGauss2DWeights();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    void calcOtherParams(int patchIndex);
+
+   virtual void calcWeights() override;
 
    virtual void calcWeights(int dataPatchIndex, int arborId) override;
 

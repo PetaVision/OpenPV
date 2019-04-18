@@ -11,10 +11,8 @@
 #include <memory>
 #include <vector>
 
-using namespace PV;
-
 PVLayerLoc setLayerLoc(
-      Communicator const *communicator,
+      PV::Communicator *communicator,
       int nBatchGlobal,
       int nxGlobal,
       int nyGlobal,
@@ -24,25 +22,25 @@ PVLayerLoc setLayerLoc(
       int dn,
       int up);
 
-MPIBlock const setMPIBlock(PV_Init &pv_initObj);
+PV::MPIBlock const setMPIBlock(PV::PV_Init &pv_initObj);
 
-void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock);
+void verifyCheckpointing(PV::Weights &weights, PV::MPIBlock const mpiBlock);
 
 int calcGlobalPatchIndex(
       int localPatchIndex,
-      MPIBlock const &mpiBlock,
+      PV::MPIBlock const &mpiBlock,
       PVLayerLoc const &preLoc,
       PVLayerLoc const &postLoc,
       int nxp,
       int nyp);
 float calcWeight(int patchIndex, int itemIndex, int numItemsInPatch);
 
-bool isActiveWeight(Patch const &patch, int nxp, int nyp, int nfp, int itemIndex);
+bool isActiveWeight(PV::Patch const &patch, int nxp, int nyp, int nfp, int itemIndex);
 
 int main(int argc, char *argv[]) {
-   PV_Init pv_initObj{&argc, &argv, false /*do not allow unrecognized arguments*/};
-   Communicator const *communicator = pv_initObj.getCommunicator();
-   MPIBlock const mpiBlock          = setMPIBlock(pv_initObj);
+   PV::PV_Init pv_initObj{&argc, &argv, false /*do not allow unrecognized arguments*/};
+   PV::Communicator *communicator = pv_initObj.getCommunicator();
+   PV::MPIBlock const mpiBlock    = setMPIBlock(pv_initObj);
 
    int const nxGlobal = 32;
    int const nyGlobal = 32;
@@ -54,7 +52,7 @@ int main(int argc, char *argv[]) {
    PVLayerLoc preLoc  = setLayerLoc(communicator, 1, nxGlobal, nyGlobal, nfPre, 3, 3, 3, 3);
    PVLayerLoc postLoc = setLayerLoc(communicator, 1, nxGlobal, nyGlobal, nfPost, 0, 0, 0, 0);
 
-   Weights weightsShared(
+   PV::Weights weightsShared(
          std::string("shared"),
          nxp,
          nyp,
@@ -67,7 +65,7 @@ int main(int argc, char *argv[]) {
 
    verifyCheckpointing(weightsShared, mpiBlock);
 
-   Weights weightsNonshared(
+   PV::Weights weightsNonshared(
          std::string("nonshared"),
          nxp,
          nyp,
@@ -83,7 +81,7 @@ int main(int argc, char *argv[]) {
    return EXIT_SUCCESS;
 }
 
-void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
+void verifyCheckpointing(PV::Weights &weights, PV::MPIBlock const mpiBlock) {
    // Generate the weight data.
    // The weight value is patchIndex + weightIndex/(nxp*nyp*nfp), where
    // patchIndex is the index of the patch in global coordinates,
@@ -123,9 +121,10 @@ void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
    // values inside a shrunken patch on another.
    if (!shared) {
       for (int a = 0; a < numArbors; a++) {
+         float *arborDataStart = weights.getData(a);
          for (int p = 0; p < numDataPatches; p++) {
-            Patch const &patch = weights.getPatch(p);
-            float *w           = weights.getDataFromDataIndex(a, p);
+            PV::Patch const &patch = weights.getPatch(p);
+            float *w               = weights.getDataFromDataIndex(a, p);
             for (int k = 0; k < numItemsInPatch; k++) {
                if (!isActiveWeight(patch, nxp, nyp, nfp, k)) {
                   w[k] = -1.0f;
@@ -163,11 +162,11 @@ void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
       }
       MPI_Barrier(mpiBlock.getGlobalComm());
    }
-   ensureDirExists(&mpiBlock, checkpointDirectory.c_str());
+   PV::ensureDirExists(&mpiBlock, checkpointDirectory.c_str());
 
    // Create the CheckpointEntry.
    bool const compressFlag = false;
-   auto checkpointEntry    = std::make_shared<CheckpointEntryWeightPvp>(
+   auto checkpointEntry    = std::make_shared<PV::CheckpointEntryWeightPvp>(
          weights.getName(), &mpiBlock, &weights, compressFlag);
 
    double const timestamp = 10.0;
@@ -178,7 +177,7 @@ void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
    for (int a = 0; a < numArbors; a++) {
       float *w            = weights.getData(a);
       int const arborSize = weights.getNumDataPatches() * numItemsInPatch;
-      for (int d = 0; d < arborSize; d++) {
+      for (std::size_t d = 0; d < arborSize; d++) {
          w[d] = std::numeric_limits<float>::infinity();
       }
    }
@@ -203,7 +202,7 @@ void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
          else {
             globalPatchIndex = calcGlobalPatchIndex(p, mpiBlock, preLoc, postLoc, nxp, nyp);
          }
-         Patch const &patch = weights.getPatch(p);
+         PV::Patch const &patch = weights.getPatch(p);
          for (int k = 0; k < numItemsInPatch; k++) {
             if (shared or isActiveWeight(patch, nxp, nyp, nfp, k)) {
                int const indexIntoArbor = p * numItemsInPatch + k;
@@ -228,7 +227,7 @@ void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
 }
 
 PVLayerLoc setLayerLoc(
-      Communicator const *communicator,
+      PV::Communicator *communicator,
       int nBatchGlobal,
       int nxGlobal,
       int nyGlobal,
@@ -277,7 +276,7 @@ PVLayerLoc setLayerLoc(
 
 int calcGlobalPatchIndex(
       int localPatchIndex,
-      MPIBlock const &mpiBlock,
+      PV::MPIBlock const &mpiBlock,
       PVLayerLoc const &preLoc,
       PVLayerLoc const &postLoc,
       int nxp,
@@ -300,11 +299,11 @@ int calcGlobalPatchIndex(
    return patchIndexGlobal;
 }
 
-MPIBlock const setMPIBlock(PV_Init &pv_initObj) {
-   Arguments const *arguments     = pv_initObj.getArguments();
-   MPIBlock const *globalMPIBlock = pv_initObj.getCommunicator()->getGlobalMPIBlock();
-   Checkpointer tempCheckpointer("column", globalMPIBlock, arguments);
-   MPIBlock const mpiBlock = *tempCheckpointer.getMPIBlock();
+PV::MPIBlock const setMPIBlock(PV::PV_Init &pv_initObj) {
+   PV::Arguments const *arguments     = pv_initObj.getArguments();
+   PV::MPIBlock const *globalMPIBlock = pv_initObj.getCommunicator()->getGlobalMPIBlock();
+   PV::Checkpointer tempCheckpointer("column", globalMPIBlock, arguments);
+   PV::MPIBlock const mpiBlock = *tempCheckpointer.getMPIBlock();
    return mpiBlock;
 }
 
@@ -312,7 +311,7 @@ float calcWeight(int patchIndex, int itemIndex, int numItemsInPatch) {
    return (float)patchIndex + (float)itemIndex / (float)numItemsInPatch;
 }
 
-bool isActiveWeight(Patch const &patch, int nxp, int nyp, int nfp, int itemIndex) {
+bool isActiveWeight(PV::Patch const &patch, int nxp, int nyp, int nfp, int itemIndex) {
    int const x = kxPos(itemIndex, nxp, nyp, nfp);
    int const y = kyPos(itemIndex, nxp, nyp, nfp);
 

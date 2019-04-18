@@ -119,6 +119,7 @@ HyPerConn "InputToOutput" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
+    convertRateToSpikeCount = false;
 
     delay = 0;
 

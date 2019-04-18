@@ -29,6 +29,7 @@ HyPerCol "column" = {
 
 
 MPITestLayer "L0" = {
+    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 4;
@@ -37,10 +38,19 @@ MPITestLayer "L0" = {
     mirrorBCflag = false;
     valueBC = 0;
     sparseLayer = false;
+    
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 
-HyPerLayer "Lx1" = {
+ANNLayer "Lx1" = {
+    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 4;
@@ -51,10 +61,16 @@ HyPerLayer "Lx1" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 
-HyPerLayer "Lx2" = {
+ANNLayer "Lx2" = {
+    restart = 0;
     nxScale = 2;
     nyScale = 2;
     nf = 8;
@@ -65,10 +81,16 @@ HyPerLayer "Lx2" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 
-HyPerLayer "Lx4" = {
+ANNLayer "Lx4" = {
+    restart = 0;
     nxScale = 4;
     nyScale = 4;
     nf = 16;
@@ -79,11 +101,17 @@ HyPerLayer "Lx4" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 
 
-HyPerLayer "Lx1_2" = {
+ANNLayer "Lx1_2" = {
+    restart = 0;
     nxScale = 0.5;
     nyScale = 0.5;
     nf = 2;
@@ -94,11 +122,17 @@ HyPerLayer "Lx1_2" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 
 
-HyPerLayer "Lx1_4" = {
+ANNLayer "Lx1_4" = {
+    restart = 0;
     nxScale = 0.25;
     nyScale = 0.25;
     nf = 1;
@@ -109,6 +143,11 @@ HyPerLayer "Lx1_4" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 
@@ -144,6 +183,7 @@ HyPerConn "L0ToLx1" = {
     strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "normalizeSum";
     normalize_cutoff = false;
+    symmetrizeWeights = false;
     normalizeFromPostPerspective = false;
     normalizeArborsIndividually = false;
     minSumTolerated = 0.0;
@@ -154,6 +194,7 @@ HyPerConn "L0ToLx1" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -186,6 +227,7 @@ HyPerConn "L0ToLx2" = {
     strength = 8.0; // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "normalizeSum";
     normalize_cutoff = false;
+    symmetrizeWeights = false;
     normalizeFromPostPerspective = false;
     normalizeArborsIndividually = false;
     minSumTolerated = 0.0;
@@ -196,6 +238,7 @@ HyPerConn "L0ToLx2" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -228,6 +271,7 @@ HyPerConn "L0ToLx4" = {
     strength = 64.0; // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "normalizeSum";
     normalize_cutoff = false;
+    symmetrizeWeights = false;
     normalizeFromPostPerspective = false;
     normalizeArborsIndividually = false;
     minSumTolerated = 0.0;
@@ -238,6 +282,7 @@ HyPerConn "L0ToLx4" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -270,6 +315,7 @@ HyPerConn "L0ToLx1_2" = {
     strength = 0.125; // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "normalizeSum";
     normalize_cutoff = false;
+    symmetrizeWeights = false;
     normalizeFromPostPerspective = false;
     normalizeArborsIndividually = false;
     minSumTolerated = 0.0;
@@ -280,6 +326,7 @@ HyPerConn "L0ToLx1_2" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;
 };
 
@@ -311,6 +358,7 @@ HyPerConn "L0ToLx1_4" = {
     strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "normalizeSum";
     normalize_cutoff = false;
+    symmetrizeWeights = false;
     normalizeFromPostPerspective = false;
     normalizeArborsIndividually = false;
     minSumTolerated = 0.0;
@@ -321,6 +369,7 @@ HyPerConn "L0ToLx1_4" = {
     delay = 0;     
 
     pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;
 };
 

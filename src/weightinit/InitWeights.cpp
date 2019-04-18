@@ -8,24 +8,31 @@
 #include "InitWeights.hpp"
 #include "components/WeightsPair.hpp"
 #include "io/WeightsFileIO.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-InitWeights::InitWeights(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+InitWeights::InitWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 InitWeights::InitWeights() {}
 
-InitWeights::~InitWeights() { free(mWeightInitTypeString); }
+InitWeights::~InitWeights() {}
 
-void InitWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+int InitWeights::initialize(char const *name, HyPerCol *hc) {
+   if (name == nullptr) {
+      Fatal().printf("InitWeights::initialize called with a name argument of null.\n");
+   }
+   if (hc == nullptr) {
+      Fatal().printf("InitWeights::initialize called with a HyPerCol argument of null.\n");
+   }
+   int status = BaseObject::initialize(name, hc);
+
+   return status;
 }
 
 void InitWeights::setObjectType() {
    char const *initType =
-         parameters()->stringValue(name, "weightInitType", false /*do not warn if absent*/);
+         parent->parameters()->stringValue(name, "weightInitType", false /*do not warn if absent*/);
    mObjectType = initType ? initType : "Initializer for";
 }
 
@@ -41,18 +48,19 @@ int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitWeights::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "weightInitType", &mWeightInitTypeString);
+   parent->parameters()->ioParamStringRequired(
+         ioFlag, name, "weightInitType", &mWeightInitTypeString);
 }
 
 void InitWeights::ioParam_initWeightsFile(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
+   parent->parameters()->ioParamString(
          ioFlag, name, "initWeightsFile", &mFilename, mFilename, false /*warnIfAbsent*/);
 }
 
 void InitWeights::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
    if (mFilename and mFilename[0]) {
-      parameters()->ioParamValue(
+      parent->parameters()->ioParamValue(
             ioFlag,
             name,
             "frameNumber",
@@ -80,8 +88,8 @@ void InitWeights::ioParam_combineWeightFiles(enum ParamsIOFlag ioFlag) {
 }
 
 void InitWeights::handleObsoleteFlag(std::string const &flagName) {
-   if (parameters()->present(name, flagName.c_str())) {
-      if (parameters()->value(name, flagName.c_str())) {
+   if (parent->parameters()->present(name, flagName.c_str())) {
+      if (parent->parameters()->value(name, flagName.c_str())) {
          Fatal().printf(
                "%s sets the %s flag, which is obsolete.\n",
                getDescription().c_str(),
@@ -98,7 +106,7 @@ void InitWeights::handleObsoleteFlag(std::string const &flagName) {
 
 Response::Status
 InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *weightsPair = message->mHierarchy->lookupByType<WeightsPair>();
+   auto *weightsPair = mapLookupByType<WeightsPair>(message->mHierarchy, getDescription());
    pvAssert(weightsPair);
    auto status = BaseObject::communicateInitInfo(message);
    if (!Response::completed(status)) {
@@ -117,8 +125,7 @@ InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    return Response::SUCCESS;
 }
 
-Response::Status
-InitWeights::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+Response::Status InitWeights::initializeState() {
    FatalIf(
          mWeights == nullptr,
          "initializeState was called for %s with a null Weights object.\n",
@@ -153,7 +160,7 @@ int InitWeights::readWeights(
       int frameNumber,
       double *timestampPtr /*default=nullptr*/) {
    double timestamp;
-   MPIBlock const *mpiBlock = mCommunicator->getLocalMPIBlock();
+   MPIBlock const *mpiBlock = parent->getCommunicator()->getLocalMPIBlock();
 
    FileStream *fileStream = nullptr;
    if (mpiBlock->getRank() == 0) {

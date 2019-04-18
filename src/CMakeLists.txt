@@ -65,14 +65,7 @@ foreach(SUBDIR ${SRC_SUBDIRS})
   include("${SUBDIR}/CMakeLists.txt")
 endforeach()
 
-set(PVLibSrc
-   ${PVLibSrcCpp}
-   ${PVLibSrcHpp}
-   ${PVLibSrcKpp}
-   ${PVLibSrcTpp}
-   ${PVLibSrcC}
-   ${PVLibSrcH}
-)
+set(PVLibSrc ${PVLibSrcCpp} ${PVLibSrcHpp} ${PVLibSrcTpp} ${PVLibSrcC} ${PVLibSrcH})
 
 # Header file to pass CMake settings to source code
 if(PV_USE_OPENMP)

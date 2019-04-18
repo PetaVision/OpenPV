@@ -12,17 +12,17 @@
 
 namespace PV {
 
-class InitIdentWeights : public InitOneToOneWeights {
+class InitIdentWeights : public PV::InitOneToOneWeights {
   protected:
    virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag) override;
 
   public:
-   InitIdentWeights(char const *name, PVParams *params, Communicator const *comm);
+   InitIdentWeights(char const *name, HyPerCol *hc);
    virtual ~InitIdentWeights();
 
   protected:
    InitIdentWeights();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 }; // class InitIdentWeights
 
 } /* namespace PV */

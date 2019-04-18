@@ -6,27 +6,21 @@
  */
 
 #include "RequireAllZeroActivityProbe.hpp"
-#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
-RequireAllZeroActivityProbe::RequireAllZeroActivityProbe(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
+RequireAllZeroActivityProbe::RequireAllZeroActivityProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 RequireAllZeroActivityProbe::RequireAllZeroActivityProbe() { initialize_base(); }
 
 int RequireAllZeroActivityProbe::initialize_base() { return PV_SUCCESS; }
 
-void RequireAllZeroActivityProbe::initialize(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
+int RequireAllZeroActivityProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = StatsProbe::initialize(name, hc);
+   return status;
 }
 
 int RequireAllZeroActivityProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -41,13 +35,13 @@ void RequireAllZeroActivityProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void RequireAllZeroActivityProbe::ioParam_exitOnFailure(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "exitOnFailure", &exitOnFailure, exitOnFailure);
+   parent->parameters()->ioParamValue(ioFlag, name, "exitOnFailure", &exitOnFailure, exitOnFailure);
 }
 
 void RequireAllZeroActivityProbe::ioParam_immediateExitOnFailure(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "exitOnFailure"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "exitOnFailure"));
    if (exitOnFailure) {
-      parameters()->ioParamValue(
+      parent->parameters()->ioParamValue(
             ioFlag,
             name,
             "immediateExitOnFailure",
@@ -59,21 +53,18 @@ void RequireAllZeroActivityProbe::ioParam_immediateExitOnFailure(enum ParamsIOFl
    }
 }
 
-Response::Status RequireAllZeroActivityProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
+Response::Status RequireAllZeroActivityProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
    if (!Response::completed(status)) {
-      Fatal() << getDescription() << ": StatsProbe::outputState failed at time " << simTime
-              << ".\n";
+      Fatal() << getDescription() << ": StatsProbe::outputState failed at time " << timed << ".\n";
    }
-   int const nbatch = targetLayer->getLayerLoc()->nbatch;
-   for (int b = 0; b < nbatch; b++) {
+   for (int b = 0; b < parent->getNBatch(); b++) {
       if (nnz[b] != 0) {
          if (!nonzeroFound) {
-            nonzeroTime = simTime;
+            nonzeroTime = timed;
          }
          nonzeroFound = true;
-         nonzeroFoundMessage(
-               nonzeroTime, mCommunicator->globalCommRank() == 0, immediateExitOnFailure);
+         nonzeroFoundMessage(nonzeroTime, parent->columnId() == 0, immediateExitOnFailure);
       }
    }
    return Response::SUCCESS;
@@ -94,7 +85,7 @@ void RequireAllZeroActivityProbe::nonzeroFoundMessage(
       }
    }
    if (fatalError) {
-      MPI_Barrier(mCommunicator->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -102,7 +93,7 @@ void RequireAllZeroActivityProbe::nonzeroFoundMessage(
 RequireAllZeroActivityProbe::~RequireAllZeroActivityProbe() {
    // We check for exits on failure in destructor
    if (exitOnFailure && getNonzeroFound()) {
-      nonzeroFoundMessage(nonzeroTime, mCommunicator->globalCommRank() == 0, true /*fatalError*/);
+      nonzeroFoundMessage(nonzeroTime, parent->columnId() == 0, true /*fatalError*/);
    }
 }
 

@@ -2,12 +2,10 @@
 
 namespace PV {
 
-MomentumTestConnProbe::MomentumTestConnProbe(
-      const char *probename,
-      PVParams *params,
-      Communicator const *comm) {
+MomentumTestConnProbe::MomentumTestConnProbe(const char *probename, HyPerCol *hc) {
    initialize_base();
-   initialize(probename, params, comm);
+   int status = initialize(probename, hc);
+   FatalIf(!(status == PV_SUCCESS), "Test failed.\n");
 }
 
 MomentumTestConnProbe::MomentumTestConnProbe() { initialize_base(); }
@@ -18,27 +16,28 @@ int MomentumTestConnProbe::initialize_base() { return PV_SUCCESS; }
 
 void MomentumTestConnProbe::initNumValues() { setNumValues(-1); }
 
-Response::Status MomentumTestConnProbe::outputState(double simTime, double deltaTime) {
-   int numPreExt = getWeights()->getGeometry()->getNumPatches();
-   int syw       = getWeights()->getPatchStrideY(); // stride in patch
+Response::Status MomentumTestConnProbe::outputState(double timed) {
+   HyPerConn *conn = getTargetHyPerConn();
+   int numPreExt   = conn->getPre()->getNumExtended();
+   int syw         = conn->getPatchStrideY(); // stride in patch
 
    for (int kPre = 0; kPre < numPreExt; kPre++) {
-      Patch const &patch = getWeights()->getPatch(kPre);
-      int nk             = getWeights()->getPatchSizeF() * patch.nx;
+      Patch const *patch = conn->getPatch(kPre);
+      int nk             = conn->getPatchSizeF() * patch->nx;
 
-      float *data = getWeights()->getDataFromPatchIndex(0, kPre) + patch.offset;
-      int ny      = patch.ny;
+      float *data = conn->getWeightsData(0, kPre);
+      int ny      = patch->ny;
       float wCorrect;
       for (int y = 0; y < ny; y++) {
          float *dataYStart = data + y * syw;
          for (int k = 0; k < nk; k++) {
             float wObserved = dataYStart[k];
-            if (simTime < 2) {
+            if (timed < 2) {
                wCorrect = 0;
             }
             else {
                wCorrect = 0.0832743f;
-               for (int i = 0; i < (simTime - 2); i++) {
+               for (int i = 0; i < (timed - 2); i++) {
                   wCorrect += 0.0832743f * expf(-(0.25 * (i + 1)));
                }
             }

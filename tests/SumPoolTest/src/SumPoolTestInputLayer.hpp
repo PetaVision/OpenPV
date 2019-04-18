@@ -1,16 +1,18 @@
 #ifndef SUMPOOLTESTINPUTLAYER_HPP_
 #define SUMPOOLTESTINPUTLAYER_HPP_
 
-#include <layers/HyPerLayer.hpp>
+#include <layers/ANNLayer.hpp>
 
 namespace PV {
 
-class SumPoolTestInputLayer : public HyPerLayer {
+class SumPoolTestInputLayer : public PV::ANNLayer {
   public:
-   SumPoolTestInputLayer(const char *name, PVParams *params, Communicator const *comm);
+   SumPoolTestInputLayer(const char *name, HyPerCol *hc);
 
   protected:
-   ActivityComponent *createActivityComponent() override;
+   Response::Status updateState(double timef, double dt) override;
+
+  private:
 }; // end class SumPoolTestInputLayer
 
 } /* namespace PV */

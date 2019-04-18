@@ -2,18 +2,10 @@
  * PatchGeometryTest.cpp
  */
 
-#include <cinttypes>
 #include <components/PatchGeometry.hpp>
 #include <string.h>
 #include <utils/PVLog.hpp>
-#include <utils/conversions.hpp>
-
-using PV::Patch;
-using PV::PatchGeometry;
-using PV::kIndex;
-using PV::kxPos;
-using PV::kyPos;
-using PV::featureIndex;
+#include <utils/conversions.h>
 
 void testOneToOneRestricted() {
    std::string name("One-to-one, patch size 1");
@@ -114,7 +106,8 @@ void testOneToOneExtended() {
    patchGeometry.allocateDataStructures();
 
    int numPatches         = patchGeometry.getNumPatches();
-   int expectedNumPatches = nxExt * nyExt * preLoc.nf;
+   int expectedNumPatches = (preLoc.nx + preLoc.halo.lt + preLoc.halo.rt)
+                            * (preLoc.ny + preLoc.halo.dn + preLoc.halo.up) * preLoc.nf;
    FatalIf(
          numPatches != expectedNumPatches,
          "%s: expected %d patches; there were %d.\n",
@@ -122,8 +115,7 @@ void testOneToOneExtended() {
          preLoc.nx * preLoc.ny * preLoc.nf,
          numPatches);
 
-   std::vector<uint16_t> const correctSizes{1, 2, 3, 4, 5, 5, 5, 5, 5, 5,
-                                            5, 5, 5, 5, 5, 5, 4, 3, 2, 1};
+   std::vector<int> const correctSizes{1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1};
    std::vector<int> const correctStarts{4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
    for (int p = 0; p < numPatches; p++) {
       int numPatchesX = patchGeometry.getNumPatchesX();
@@ -131,19 +123,20 @@ void testOneToOneExtended() {
       int numPatchesF = patchGeometry.getNumPatchesF();
       int xIndex      = kxPos(p, numPatchesX, numPatchesY, numPatchesF);
       int yIndex      = kyPos(p, numPatchesX, numPatchesY, numPatchesF);
+      int fIndex      = featureIndex(p, numPatchesX, numPatchesY, numPatchesF);
 
       auto &patch = patchGeometry.getPatch(p);
 
       int correctNx = correctSizes[xIndex];
       int correctNy = correctSizes[yIndex];
 
-      uint16_t correctStartX = correctStarts[xIndex];
-      uint16_t correctStartY = correctStarts[yIndex];
-      auto correctOffset     = (uint32_t)kIndex(correctStartX, correctStartY, 0, nxp, nyp, nfp);
+      int correctStartX = correctStarts[xIndex];
+      int correctStartY = correctStarts[yIndex];
+      int correctOffset = kIndex(correctStartX, correctStartY, 0, nxp, nyp, nfp);
       FatalIf(
             patch.nx != correctNx or patch.ny != correctNy or patch.offset != correctOffset,
-            "%s: patch %d is (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ") instead of "
-            "expected (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ").\n",
+            "%s: patch %d is (nx=%d, ny=%d, offset=%d) instead of "
+            "expected (nx=%d, ny=%d, offset=%d).\n",
             name.c_str(),
             p,
             patch.nx,
@@ -267,10 +260,10 @@ void testOneToManyExtended() {
    postLoc.nx      = preLoc.nx * tstride;
    postLoc.ny      = preLoc.ny * tstride;
    postLoc.nf      = 10;
-   postLoc.halo.lt = postMargin;
-   postLoc.halo.rt = postMargin;
-   postLoc.halo.dn = postMargin;
-   postLoc.halo.up = postMargin;
+   postLoc.halo.lt = preMargin * tstride;
+   postLoc.halo.rt = preMargin * tstride;
+   postLoc.halo.dn = preMargin * tstride;
+   postLoc.halo.up = preMargin * tstride;
    // Other fields of preLoc, postLoc are not used.
 
    int nxp = (2 * preMargin + 1) * tstride;
@@ -284,7 +277,8 @@ void testOneToManyExtended() {
    patchGeometry.allocateDataStructures();
 
    int numPatches         = patchGeometry.getNumPatches();
-   int expectedNumPatches = nxExt * nyExt * preLoc.nf;
+   int expectedNumPatches = (preLoc.nx + preLoc.halo.lt + preLoc.halo.rt)
+                            * (preLoc.ny + preLoc.halo.dn + preLoc.halo.up) * preLoc.nf;
    FatalIf(
          numPatches != expectedNumPatches,
          "%s: expected %d patches; there were %d.\n",
@@ -292,7 +286,7 @@ void testOneToManyExtended() {
          expectedNumPatches,
          numPatches);
 
-   std::vector<uint16_t> const correctSizes{4, 8, 12, 12, 8, 4};
+   std::vector<int> const correctSizes{4, 8, 12, 12, 8, 4};
    std::vector<int> const correctStarts{8, 4, 0, 0, 0, 0};
    for (int p = 0; p < numPatches; p++) {
       int xIndex =
@@ -305,19 +299,24 @@ void testOneToManyExtended() {
                   patchGeometry.getNumPatchesX(),
                   patchGeometry.getNumPatchesY(),
                   patchGeometry.getNumPatchesF());
+      int fIndex = featureIndex(
+            p,
+            patchGeometry.getNumPatchesX(),
+            patchGeometry.getNumPatchesY(),
+            patchGeometry.getNumPatchesF());
 
       auto &patch = patchGeometry.getPatch(p);
 
-      uint16_t correctNx = correctSizes[xIndex];
-      uint16_t correctNy = correctSizes[yIndex];
+      int correctNx = correctSizes[xIndex];
+      int correctNy = correctSizes[yIndex];
 
-      int correctStartX  = correctStarts[xIndex];
-      int correctStartY  = correctStarts[yIndex];
-      auto correctOffset = (uint32_t)kIndex(correctStartX, correctStartY, 0, nxp, nyp, nfp);
+      int correctStartX = correctStarts[xIndex];
+      int correctStartY = correctStarts[yIndex];
+      int correctOffset = kIndex(correctStartX, correctStartY, 0, nxp, nyp, nfp);
       FatalIf(
             patch.nx != correctNx or patch.ny != correctNy or patch.offset != correctOffset,
-            "%s: patch %d is (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ") instead of "
-            "expected (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ").\n",
+            "%s: patch %d is (nx=%d, ny=%d, offset=%d) instead of "
+            "expected (nx=%d, ny=%d, offset=%d).\n",
             name.c_str(),
             p,
             patch.nx,
@@ -456,6 +455,9 @@ void testManyToOneExtended() {
    int nyp = 2 * postMargin + 1;
    int nfp = 10;
 
+   int xStride = preLoc.nx / postLoc.nx;
+   int yStride = preLoc.ny / postLoc.ny;
+
    int nxExt = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyExt = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
 
@@ -463,7 +465,8 @@ void testManyToOneExtended() {
    patchGeometry.allocateDataStructures();
 
    int numPatches         = patchGeometry.getNumPatches();
-   int expectedNumPatches = nxExt * nyExt * preLoc.nf;
+   int expectedNumPatches = (preLoc.nx + preLoc.halo.lt + preLoc.halo.rt)
+                            * (preLoc.ny + preLoc.halo.dn + preLoc.halo.up) * preLoc.nf;
    FatalIf(
          numPatches != expectedNumPatches,
          "%s: expected %d patches; there were %d.\n",
@@ -471,7 +474,7 @@ void testManyToOneExtended() {
          expectedNumPatches,
          numPatches);
 
-   std::vector<uint16_t> correctSizes(nxExt, nxp);
+   std::vector<int> correctSizes(nxExt, nxp);
    std::vector<int> correctStarts(nxExt, 0);
    for (int k = 0; k < 4; k++) {
       correctSizes[k]      = 1;
@@ -492,19 +495,24 @@ void testManyToOneExtended() {
                   patchGeometry.getNumPatchesX(),
                   patchGeometry.getNumPatchesY(),
                   patchGeometry.getNumPatchesF());
+      int fIndex = featureIndex(
+            p,
+            patchGeometry.getNumPatchesX(),
+            patchGeometry.getNumPatchesY(),
+            patchGeometry.getNumPatchesF());
 
       auto &patch = patchGeometry.getPatch(p);
 
-      uint16_t correctNx = correctSizes[xIndex];
-      uint16_t correctNy = correctSizes[yIndex];
+      int correctNx = correctSizes[xIndex];
+      int correctNy = correctSizes[yIndex];
 
-      int correctStartX  = correctStarts[xIndex];
-      int correctStartY  = correctStarts[yIndex];
-      auto correctOffset = (uint32_t)kIndex(correctStartX, correctStartY, 0, nxp, nyp, nfp);
+      int correctStartX = correctStarts[xIndex];
+      int correctStartY = correctStarts[yIndex];
+      int correctOffset = kIndex(correctStartX, correctStartY, 0, nxp, nyp, nfp);
       FatalIf(
             patch.nx != correctNx or patch.ny != correctNy or patch.offset != correctOffset,
-            "%s: patch %d is (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ") instead of "
-            "expected (nx=%" PRIu16 ", ny=%" PRIu16 ", offset=%" PRIu32 ").\n",
+            "%s: patch %d is (nx=%d, ny=%d, offset=%d) instead of "
+            "expected (nx=%d, ny=%d, offset=%d).\n",
             name.c_str(),
             p,
             patch.nx,

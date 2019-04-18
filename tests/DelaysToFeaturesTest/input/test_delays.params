@@ -111,6 +111,7 @@ HyPerConn "delayArbor" = {
     writeCompressedCheckpoints = true;
     writeCompressedWeights = true;
     updateGSynFromPostPerspective = false;
+    convertRateToSpikeCount   = false;
 };
 
 DelayTestProbe "Output_Stats_File" = {

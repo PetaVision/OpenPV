@@ -100,6 +100,7 @@ PoolingConn "input2sumPoolPre" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 

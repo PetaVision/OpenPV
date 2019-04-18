@@ -10,16 +10,15 @@
 
 namespace PV {
 
-InitGaborWeights::InitGaborWeights(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+InitGaborWeights::InitGaborWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 InitGaborWeights::InitGaborWeights() {}
 
 InitGaborWeights::~InitGaborWeights() {}
 
-void InitGaborWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   InitGauss2DWeights::initialize(name, params, comm);
+int InitGaborWeights::initialize(char const *name, HyPerCol *hc) {
+   int status = InitGauss2DWeights::initialize(name, hc);
+   return status;
 }
 
 int InitGaborWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -31,15 +30,15 @@ int InitGaborWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitGaborWeights::ioParam_lambda(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "lambda", &mLambda, mLambda);
+   parent->parameters()->ioParamValue(ioFlag, name, "lambda", &mLambda, mLambda);
 }
 
 void InitGaborWeights::ioParam_phi(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "phi", &mPhi, mPhi);
+   parent->parameters()->ioParamValue(ioFlag, name, "phi", &mPhi, mPhi);
 }
 
 void InitGaborWeights::ioParam_invert(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "invert", &mInvert, mInvert);
+   parent->parameters()->ioParamValue(ioFlag, name, "invert", &mInvert, mInvert);
 }
 
 void InitGaborWeights::calcOtherParams(int patchIndex) {

@@ -31,22 +31,21 @@ class CopyUpdater : public BaseWeightUpdater {
    /** @} */ // end of CopyUpdater parameters
 
   public:
-   CopyUpdater(char const *name, PVParams *params, Communicator const *comm);
+   CopyUpdater(char const *name, HyPerCol *hc);
 
    virtual ~CopyUpdater() {}
 
   protected:
    CopyUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status
-   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    virtual void updateState(double timestamp, double dt) override;
 

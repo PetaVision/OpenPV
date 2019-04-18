@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <utils/CompareParamsFiles.hpp>
 
-int deleteOutputDirectory(PV::Communicator const *comm);
+int deleteOutputDirectory(PV::Communicator *comm);
 
 int main(int argc, char *argv[]) {
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
-int deleteOutputDirectory(PV::Communicator const *comm) {
+int deleteOutputDirectory(PV::Communicator *comm) {
    int status = PV_SUCCESS;
    if (comm->globalCommRank() == 0) {
       if (system("rm -rf output") != PV_SUCCESS) {

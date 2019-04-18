@@ -6,17 +6,17 @@
  */
 
 #include "PatchSize.hpp"
+#include "columns/HyPerCol.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-PatchSize::PatchSize(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+PatchSize::PatchSize(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 PatchSize::~PatchSize() {}
 
-void PatchSize::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+int PatchSize::initialize(char const *name, HyPerCol *hc) {
+   return BaseObject::initialize(name, hc);
 }
 
 void PatchSize::setObjectType() { mObjectType = "PatchSize"; }
@@ -29,17 +29,17 @@ int PatchSize::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PatchSize::ioParam_nxp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "nxp", &mPatchSizeX, mPatchSizeX);
+   parent->parameters()->ioParamValue(ioFlag, name, "nxp", &mPatchSizeX, mPatchSizeX);
 }
 
 void PatchSize::ioParam_nyp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "nyp", &mPatchSizeY, mPatchSizeY);
+   parent->parameters()->ioParamValue(ioFlag, name, "nyp", &mPatchSizeY, mPatchSizeY);
 }
 
 void PatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "nfp", &mPatchSizeF, mPatchSizeF, false);
-   if (ioFlag == PARAMS_IO_READ && mPatchSizeF < 0 && !parameters()->present(name, "nfp")
-       && mCommunicator->globalCommRank() == 0) {
+   parent->parameters()->ioParamValue(ioFlag, name, "nfp", &mPatchSizeF, mPatchSizeF, false);
+   if (ioFlag == PARAMS_IO_READ && mPatchSizeF < 0 && !parent->parameters()->present(name, "nfp")
+       && parent->getCommunicator()->globalCommRank() == 0) {
       InfoLog().printf(
             "%s: nfp will be set in the communicateInitInfo() stage.\n", getDescription_c());
    }
@@ -51,11 +51,14 @@ PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    if (!Response::completed(status)) {
       return status;
    }
-   mConnectionData = message->mHierarchy->lookupByType<ConnectionData>();
-   pvAssert(mConnectionData);
+   mConnectionData = mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   FatalIf(
+         mConnectionData == nullptr,
+         "%s received CommunicateInitInfo message without a ConnectionData component.\n",
+         getDescription_c());
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the ConnectionData component has finished its "
                "communicateInitInfo stage.\n",
@@ -69,7 +72,7 @@ PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
 
    if (mPatchSizeF < 0) {
       mPatchSizeF = nfPost;
-      if (mWarnDefaultNfp && mCommunicator->globalCommRank() == 0) {
+      if (mWarnDefaultNfp && parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf(
                "%s setting nfp to number of postsynaptic features = %d.\n",
                getDescription_c(),
@@ -77,14 +80,14 @@ PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
       }
    }
    if (mPatchSizeF != nfPost) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog(errorMessage);
          errorMessage.printf(
                "Params file specifies %d features for %s,\n", mPatchSizeF, getDescription_c());
          errorMessage.printf(
                "but %d features for post-synaptic layer %s\n", nfPost, post->getName());
       }
-      MPI_Barrier(mCommunicator->globalCommunicator());
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
       exit(PV_FAILURE);
    }
    // Currently, the only acceptable number for mPatchSizeF is the number of post-synaptic features.

@@ -1,11 +1,10 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/accumulate_functions.cpp
    ${SUBDIR}/BaseDelivery.cpp
-   ${SUBDIR}/CloneDeliveryCreator.cpp
+   ${SUBDIR}/CloneDeliveryFacade.cpp
    ${SUBDIR}/HyPerDelivery.cpp
-   ${SUBDIR}/HyPerDeliveryCreator.cpp
+   ${SUBDIR}/HyPerDeliveryFacade.cpp
    ${SUBDIR}/IdentDelivery.cpp
-   ${SUBDIR}/LayerInputDelivery.cpp
    ${SUBDIR}/PoolingDelivery.cpp
    ${SUBDIR}/PostsynapticPerspectiveConvolveDelivery.cpp
    ${SUBDIR}/PostsynapticPerspectiveStochasticDelivery.cpp
@@ -19,11 +18,10 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/accumulate_functions.hpp
    ${SUBDIR}/BaseDelivery.hpp
-   ${SUBDIR}/CloneDeliveryCreator.hpp
-   ${SUBDIR}/HyPerDeliveryCreator.hpp
+   ${SUBDIR}/CloneDeliveryFacade.hpp
+   ${SUBDIR}/HyPerDeliveryFacade.hpp
    ${SUBDIR}/HyPerDelivery.hpp
    ${SUBDIR}/IdentDelivery.hpp
-   ${SUBDIR}/LayerInputDelivery.hpp
    ${SUBDIR}/PoolingDelivery.hpp
    ${SUBDIR}/PostsynapticPerspectiveConvolveDelivery.hpp
    ${SUBDIR}/PostsynapticPerspectiveStochasticDelivery.hpp

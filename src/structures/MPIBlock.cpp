@@ -1,7 +1,7 @@
 #include "MPIBlock.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
-#include "utils/conversions.hpp"
+#include "utils/conversions.h"
 #include <cmath>
 #include <stdexcept>
 

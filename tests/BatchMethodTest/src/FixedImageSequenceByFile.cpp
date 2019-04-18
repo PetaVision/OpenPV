@@ -1,17 +1,11 @@
 #include "FixedImageSequenceByFile.hpp"
 
-FixedImageSequenceByFile::FixedImageSequenceByFile(
-      char const *name,
-      PV::PVParams *params,
-      PV::Communicator const *comm) {
-   initialize(name, params, comm);
+FixedImageSequenceByFile::FixedImageSequenceByFile(char const *name, PV::HyPerCol *hc) {
+   initialize(name, hc);
 }
 
-void FixedImageSequenceByFile::initialize(
-      char const *name,
-      PV::PVParams *params,
-      PV::Communicator const *comm) {
-   FixedImageSequence::initialize(name, params, comm);
+int FixedImageSequenceByFile::initialize(char const *name, PV::HyPerCol *hc) {
+   return FixedImageSequence::initialize(name, hc);
 }
 
 void FixedImageSequenceByFile::defineImageSequence() {

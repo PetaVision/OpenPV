@@ -13,6 +13,8 @@
 
 namespace PV {
 
+class HyPerCol;
+
 /**
  * ColProbe is the base class for probes that are attached to the column as a
  * whole,
@@ -38,12 +40,14 @@ class ColProbe : public BaseProbe {
    /**
     * Public constructor for the ColProbe class.
     */
-   ColProbe(const char *name, PVParams *params, Communicator const *comm);
+   ColProbe(const char *name, HyPerCol *hc);
 
    /**
     * Destructor for the ColProbe class.
     */
    virtual ~ColProbe();
+
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    /**
     * Calls BaseProbe::communicateInitInfo (which sets up any triggering or
@@ -58,9 +62,7 @@ class ColProbe : public BaseProbe {
     * will fprintf to outputstream->fp, where stream is the BaseProbe member
     * variable.
     */
-   virtual Response::Status outputState(double simTime, double deltaTime) override {
-      return Response::SUCCESS;
-   }
+   virtual Response::Status outputState(double timed) override { return Response::SUCCESS; }
 
   protected:
    /**
@@ -73,13 +75,7 @@ class ColProbe : public BaseProbe {
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-
-   /**
-    * Defines actions for the ColProbeWriteParams and ColProbeOutputState messages,
-    * as well as as the actions recognized by BaseProbe.
-    */
-   virtual void initMessageActionMap() override;
+   int initialize(const char *name, HyPerCol *hc);
 
    /**
     * Reads parameters from the params file/writes parameters to the output

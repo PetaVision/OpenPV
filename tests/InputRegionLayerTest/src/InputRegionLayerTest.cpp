@@ -5,7 +5,6 @@
 
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
-#include <components/BasePublisherComponent.hpp>
 #include <layers/InputLayer.hpp>
 #include <layers/InputRegionLayer.hpp>
 #include <structures/Buffer.hpp>
@@ -17,15 +16,9 @@ T *getObjectFromName(std::string const &objectName, PV::HyPerCol *hc);
 template <typename T>
 char const *objectType();
 
-void verifyLayerLocs(
-      PV::BasePublisherComponent *publisher1,
-      PV::BasePublisherComponent *publisher2);
-void compareLayers(
-      PV::BasePublisherComponent *publisher1,
-      PV::BasePublisherComponent *publisher2,
-      PV::Communicator const *communicator);
-PV::Buffer<float>
-gatherLayer(PV::BasePublisherComponent *publisher, PV::Communicator const *communicator);
+void verifyLayerLocs(PV::HyPerLayer *layer1, PV::HyPerLayer *layer2);
+void compareLayers(PV::HyPerLayer *layer1, PV::HyPerLayer *layer2, PV::Communicator *communicator);
+PV::Buffer<float> gatherLayer(PV::HyPerLayer *layer, PV::Communicator *communicator);
 void dumpLayerActivity(
       PV::Buffer<float> &layerBuffer,
       PVLayerLoc const *loc,
@@ -34,21 +27,19 @@ void dumpLayerActivity(
 int main(int argc, char *argv[]) {
    PV::PV_Init *pv_init =
          new PV::PV_Init(&argc, &argv, false /* do not allow unrecognized arguments */);
-   PV::HyPerCol *hc = new PV::HyPerCol(pv_init);
-   int status       = PV_SUCCESS;
-   hc->run();
+   PV::HyPerCol *hc              = new PV::HyPerCol(pv_init);
+   std::string const &paramsFile = pv_init->getStringArgument(std::string("ParamsFile"));
+   int status                    = PV_SUCCESS;
+   hc->allocateColumn();
 
-   auto *inputLayer      = getObjectFromName<PV::InputLayer>(std::string("Input"), hc);
-   auto *inputPublisher  = inputLayer->getComponentByType<PV::BasePublisherComponent>();
-   auto *regionLayer     = getObjectFromName<PV::InputRegionLayer>(std::string("InputRegion"), hc);
-   auto *regionPublisher = regionLayer->getComponentByType<PV::BasePublisherComponent>();
-   auto *correctRegion   = getObjectFromName<PV::HyPerLayer>(std::string("CorrectInputRegion"), hc);
-   auto *correctPublisher = correctRegion->getComponentByType<PV::BasePublisherComponent>();
+   auto *inputLayer    = getObjectFromName<PV::InputLayer>(std::string("Input"), hc);
+   auto *regionLayer   = getObjectFromName<PV::InputRegionLayer>(std::string("InputRegion"), hc);
+   auto *correctRegion = getObjectFromName<PV::HyPerLayer>(std::string("CorrectInputRegion"), hc);
 
-   verifyLayerLocs(inputPublisher, regionPublisher);
-   verifyLayerLocs(regionPublisher, correctPublisher);
+   verifyLayerLocs(inputLayer, regionLayer);
+   verifyLayerLocs(regionLayer, correctRegion);
 
-   compareLayers(regionPublisher, correctPublisher, hc->getCommunicator());
+   compareLayers(regionLayer, correctRegion, hc->getCommunicator());
    delete hc;
    delete pv_init;
    InfoLog() << "Test passed." << std::endl;
@@ -88,82 +79,77 @@ char const *objectType<PV::HyPerLayer>() {
    return "HyPerLayer";
 }
 
-void verifyLayerLocs(
-      PV::BasePublisherComponent *publisher1,
-      PV::BasePublisherComponent *publisher2) {
-   PVLayerLoc const *loc1 = publisher1->getLayerLoc();
-   PVLayerLoc const *loc2 = publisher2->getLayerLoc();
+void verifyLayerLocs(PV::HyPerLayer *layer1, PV::HyPerLayer *layer2) {
+   PVLayerLoc const *loc1 = layer1->getLayerLoc();
+   PVLayerLoc const *loc2 = layer2->getLayerLoc();
    FatalIf(
          loc1->nbatchGlobal != loc2->nbatchGlobal,
          "%s and %s nbatchGlobal values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->nbatchGlobal,
          loc2->nbatchGlobal);
    FatalIf(
          loc1->nxGlobal != loc2->nxGlobal,
          "%s and %s nxGlobal values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->nxGlobal,
          loc2->nxGlobal);
    FatalIf(
          loc1->nyGlobal != loc2->nyGlobal,
          "%s and %s nyGlobal values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->nyGlobal,
          loc2->nyGlobal);
    FatalIf(
          loc1->nf != loc2->nf,
          "%s and %s nf values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->nf,
          loc2->nf);
    FatalIf(
          loc1->halo.lt != loc2->halo.lt,
          "%s and %s halo.lt values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->halo.lt,
          loc2->halo.lt);
    FatalIf(
          loc1->halo.rt != loc2->halo.rt,
          "%s and %s halo.rt values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->halo.rt,
          loc2->halo.rt);
    FatalIf(
          loc1->halo.dn != loc2->halo.dn,
          "%s and %s halo.dn values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->halo.dn,
          loc2->halo.dn);
    FatalIf(
          loc1->halo.up != loc2->halo.up,
          "%s and %s halo.up values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->halo.up,
          loc2->halo.up);
 }
 
-void compareLayers(
-      PV::BasePublisherComponent *publisher1,
-      PV::BasePublisherComponent *publisher2,
-      PV::Communicator const *communicator) {
-   verifyLayerLocs(publisher1, publisher2);
-   PV::Buffer<float> layer1buffer = gatherLayer(publisher1, communicator);
-   PV::Buffer<float> layer2buffer = gatherLayer(publisher2, communicator);
-   if (communicator->globalCommRank() == 0) {
+void compareLayers(PV::HyPerLayer *layer1, PV::HyPerLayer *layer2, PV::Communicator *communicator) {
+   verifyLayerLocs(layer1, layer2);
+   PV::Buffer<float> layer1buffer = gatherLayer(layer1, communicator);
+   PV::Buffer<float> layer2buffer = gatherLayer(layer2, communicator);
+   if (communicator->commRank() == 0) {
       FatalIf(
             layer1buffer.getTotalElements() != layer2buffer.getTotalElements(),
             "Buffers from %s and %s do not have the same total number of elements.\n",
-            publisher1->getDescription_c(),
-            publisher2->getDescription_c());
+            layer1->getDescription_c(),
+            layer2->getDescription_c());
       int const N = layer1buffer.getTotalElements();
 
       int status = PV_FAILURE;
@@ -175,7 +161,7 @@ void compareLayers(
       }
       if (status != PV_SUCCESS) {
          Fatal().printf(
-               "Layer %s does not have any nonzero activity.\n", publisher1->getDescription_c());
+               "Layer %s does not have any nonzero activity.\n", layer1->getDescription_c());
       }
 
       pvAssert(status == PV_SUCCESS);
@@ -187,26 +173,23 @@ void compareLayers(
       }
       if (status != PV_SUCCESS) {
          InfoLog().printf(
-               "%s and %s do not agree.\n",
-               publisher1->getDescription_c(),
-               publisher2->getDescription_c());
-         dumpLayerActivity(layer1buffer, publisher1->getLayerLoc(), publisher1->getDescription());
-         dumpLayerActivity(layer2buffer, publisher2->getLayerLoc(), publisher2->getDescription());
+               "%s and %s do not agree.\n", layer1->getDescription_c(), layer2->getDescription_c());
+         dumpLayerActivity(layer1buffer, layer1->getLayerLoc(), layer1->getDescription());
+         dumpLayerActivity(layer2buffer, layer2->getLayerLoc(), layer2->getDescription());
          Fatal().printf(
                "Layers %s and %s do not agree.\n",
-               publisher1->getDescription_c(),
-               publisher2->getDescription_c());
+               layer1->getDescription_c(),
+               layer2->getDescription_c());
       }
    }
 }
 
-PV::Buffer<float>
-gatherLayer(PV::BasePublisherComponent *publisher, PV::Communicator const *communicator) {
-   PVLayerLoc const *loc = publisher->getLayerLoc();
+PV::Buffer<float> gatherLayer(PV::HyPerLayer *layer, PV::Communicator *communicator) {
+   PVLayerLoc const *loc = layer->getLayerLoc();
    int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
    int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;
    int const rootProc    = 0;
-   PV::Buffer<float> buffer(publisher->getLayerData(0), nxExt, nyExt, loc->nf);
+   PV::Buffer<float> buffer(layer->getLayerData(0), nxExt, nyExt, loc->nf);
    buffer = PV::BufferUtils::gather(
          communicator->getLocalMPIBlock(), buffer, loc->nx, loc->ny, 0 /*batch index*/, rootProc);
    return buffer;
@@ -216,30 +199,33 @@ void dumpLayerActivity(
       PV::Buffer<float> &layerBuffer,
       PVLayerLoc const *loc,
       std::string const &description) {
-   int nxExtGlobal = loc->nxGlobal + loc->halo.lt + loc->halo.rt;
-   int nyExtGlobal = loc->nyGlobal + loc->halo.dn + loc->halo.up;
-   int nf          = loc->nf;
-   FatalIf(
-         layerBuffer.getTotalElements() != nxExtGlobal * nyExtGlobal * nf,
-         "%s has the wrong number of elements.\n",
-         description.c_str());
-   InfoLog() << description << ":\n";
-   for (int f = 0; f < loc->nf; f++) {
-      InfoLog() << "    Feature index " << f << ":\n";
-      for (int y = 0; y < nyExtGlobal; y++) {
-         if (y == loc->halo.up or y == loc->nyGlobal + loc->halo.up) {
-            InfoLog() << std::string(12, ' ') << std::string(loc->halo.lt * 5, '-') << '+'
-                      << std::string(loc->nxGlobal * 5, '-') << '+'
-                      << std::string(loc->halo.rt * 5, '-') << "\n";
-         }
-         InfoLog().printf("    y = %3d:", y - loc->halo.up);
-         for (int x = 0; x < nxExtGlobal; x++) {
-            if (x == loc->halo.lt or x == loc->nxGlobal + loc->halo.lt) {
-               printf("|");
+   int const rootProc = 0;
+   {
+      int nxExtGlobal = loc->nxGlobal + loc->halo.lt + loc->halo.rt;
+      int nyExtGlobal = loc->nyGlobal + loc->halo.dn + loc->halo.up;
+      int nf          = loc->nf;
+      FatalIf(
+            layerBuffer.getTotalElements() != nxExtGlobal * nyExtGlobal * nf,
+            "%s has the wrong number of elements.\n",
+            description.c_str());
+      InfoLog() << description << ":\n";
+      for (int f = 0; f < loc->nf; f++) {
+         InfoLog() << "    Feature index " << f << ":\n";
+         for (int y = 0; y < nyExtGlobal; y++) {
+            if (y == loc->halo.up or y == loc->nyGlobal + loc->halo.up) {
+               InfoLog() << std::string(12, ' ') << std::string(loc->halo.lt * 5, '-') << '+'
+                         << std::string(loc->nxGlobal * 5, '-') << '+'
+                         << std::string(loc->halo.rt * 5, '-') << "\n";
             }
-            InfoLog().printf(" %3.1f ", (double)layerBuffer.at(x, y, f));
+            InfoLog().printf("    y = %3d:", y - loc->halo.up);
+            for (int x = 0; x < nxExtGlobal; x++) {
+               if (x == loc->halo.lt or x == loc->nxGlobal + loc->halo.lt) {
+                  printf("|");
+               }
+               InfoLog().printf(" %3.1f ", (double)layerBuffer.at(x, y, f));
+            }
+            InfoLog() << "\n";
          }
-         InfoLog() << "\n";
       }
    }
 }

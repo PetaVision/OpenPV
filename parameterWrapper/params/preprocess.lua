@@ -109,7 +109,7 @@ function preprocess.ds2_white_rescale(prefix, inputLayerName, inputLayer, output
       mirrorBCflag                    = true;
       writeStep                       = -1;
       initialWriteTime                = -1;
-      sparseLayer                     = false;
+      writeSparseActivity             = false;
       rescaleMethod                   = "l2";
       patchSize                       = normPatchSize;
       valueBC = 0;

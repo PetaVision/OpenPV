@@ -6,28 +6,24 @@
  */
 
 #include "DependentSharedWeights.hpp"
-#include "columns/ComponentBasedObject.hpp"
+#include "columns/HyPerCol.hpp"
+#include "columns/ObjectMapComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "observerpattern/ObserverTable.hpp"
+#include "connections/BaseConnection.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-DependentSharedWeights::DependentSharedWeights(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
+DependentSharedWeights::DependentSharedWeights(char const *name, HyPerCol *hc) {
+   initialize(name, hc);
 }
 
 DependentSharedWeights::DependentSharedWeights() {}
 
 DependentSharedWeights::~DependentSharedWeights() {}
 
-void DependentSharedWeights::initialize(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   SharedWeights::initialize(name, params, comm);
+int DependentSharedWeights::initialize(char const *name, HyPerCol *hc) {
+   return SharedWeights::initialize(name, hc);
 }
 
 void DependentSharedWeights::setObjectType() { mObjectType = "DependentSharedWeights"; }
@@ -38,59 +34,80 @@ int DependentSharedWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void DependentSharedWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "sharedWeights");
+      parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights");
    }
    // During the communication phase, sharedWeights will be copied from originalConn
 }
 
 Response::Status DependentSharedWeights::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *originalConnNameParam = message->mHierarchy->lookupByType<OriginalConnNameParam>();
-   pvAssert(originalConnNameParam);
+   auto hierarchy = message->mHierarchy;
 
-   if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-      if (mCommunicator->globalCommRank() == 0) {
-         InfoLog().printf(
-               "%s must wait until the OriginalConnNameParam component has finished its "
-               "communicateInitInfo stage.\n",
-               getDescription_c());
-      }
-      return Response::POSTPONE;
-   }
+   char const *originalConnName = getOriginalConnName(hierarchy);
+   pvAssert(originalConnName);
 
-   ComponentBasedObject *originalConn = nullptr;
-   try {
-      originalConn = originalConnNameParam->findLinkedObject(message->mHierarchy);
-   } catch (std::invalid_argument &e) {
-      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-   }
-   pvAssert(originalConn);
-
-   auto *originalSharedWeights = originalConn->getComponentByType<SharedWeights>();
-   FatalIf(
-         originalSharedWeights == nullptr,
-         "%s original connection \"%s\" does not have an SharedWeights.\n",
-         getDescription_c(),
-         originalConn->getName());
+   auto *originalSharedWeights = getOriginalSharedWeights(hierarchy, originalConnName);
+   pvAssert(originalSharedWeights);
 
    if (!originalSharedWeights->getInitInfoCommunicatedFlag()) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConn->getName());
+               originalConnName);
       }
       return Response::POSTPONE;
    }
    mSharedWeights = originalSharedWeights->getSharedWeights();
-   parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
+   parent->parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
 
    auto status = SharedWeights::communicateInitInfo(message);
    if (!Response::completed(status)) {
       return status;
    }
    return Response::SUCCESS;
+}
+
+char const *DependentSharedWeights::getOriginalConnName(
+      std::map<std::string, Observer *> const hierarchy) const {
+   OriginalConnNameParam *originalConnNameParam =
+         mapLookupByType<OriginalConnNameParam>(hierarchy, getDescription());
+   FatalIf(
+         originalConnNameParam == nullptr,
+         "%s requires an OriginalConnNameParam component.\n",
+         getDescription_c());
+   char const *originalConnName = originalConnNameParam->getOriginalConnName();
+   return originalConnName;
+}
+
+SharedWeights *DependentSharedWeights::getOriginalSharedWeights(
+      std::map<std::string, Observer *> const hierarchy,
+      char const *originalConnName) const {
+   ObjectMapComponent *objectMapComponent =
+         mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+   pvAssert(objectMapComponent);
+   BaseConnection *originalConn =
+         objectMapComponent->lookup<BaseConnection>(std::string(originalConnName));
+   if (originalConn == nullptr) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
+         ErrorLog().printf(
+               "%s: originalConnName \"%s\" does not correspond to a BaseConnection in the "
+               "column.\n",
+               getDescription_c(),
+               originalConnName);
+      }
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
+      exit(PV_FAILURE);
+   }
+
+   auto *originalSharedWeights = originalConn->getComponentByType<SharedWeights>();
+   FatalIf(
+         originalSharedWeights == nullptr,
+         "%s original connection \"%s\" does not have an SharedWeights.\n",
+         getDescription_c(),
+         originalConnName);
+   return originalSharedWeights;
 }
 
 } // namespace PV

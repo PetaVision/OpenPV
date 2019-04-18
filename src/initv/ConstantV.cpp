@@ -6,23 +6,25 @@
  */
 
 #include "ConstantV.hpp"
+#include "columns/HyPerCol.hpp"
 #include "include/default_params.h"
 
 namespace PV {
 
 ConstantV::ConstantV() { initialize_base(); }
 
-ConstantV::ConstantV(char const *name, PVParams *params, Communicator const *comm) {
+ConstantV::ConstantV(char const *name, HyPerCol *hc) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 ConstantV::~ConstantV() {}
 
 int ConstantV::initialize_base() { return PV_SUCCESS; }
 
-void ConstantV::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseInitV::initialize(name, params, comm);
+int ConstantV::initialize(char const *name, HyPerCol *hc) {
+   int status = BaseInitV::initialize(name, hc);
+   return status;
 }
 
 int ConstantV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -32,7 +34,7 @@ int ConstantV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ConstantV::ioParam_valueV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "valueV", &mValueV, (float)V_REST);
+   parent->parameters()->ioParamValue(ioFlag, name, "valueV", &mValueV, (float)V_REST);
 }
 
 void ConstantV::calcV(float *V, PVLayerLoc const *loc) {

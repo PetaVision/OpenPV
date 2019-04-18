@@ -6,6 +6,7 @@
  */
 
 #include "QuotientColProbe.hpp"
+#include "columns/HyPerCol.hpp"
 #include <limits>
 
 namespace PV {
@@ -18,13 +19,9 @@ QuotientColProbe::QuotientColProbe()
    initialize_base();
 } // end QuotientColProbe::QuotientColProbe(const char *)
 
-QuotientColProbe::QuotientColProbe(
-      const char *probename,
-      PVParams *params,
-      Communicator const *comm)
-      : ColProbe() {
+QuotientColProbe::QuotientColProbe(const char *probename, HyPerCol *hc) : ColProbe() {
    initialize_base();
-   initialize(probename, params, comm);
+   initializeQuotientColProbe(probename, hc);
 }
 
 QuotientColProbe::~QuotientColProbe() {
@@ -44,11 +41,8 @@ int QuotientColProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-void QuotientColProbe::initialize(
-      const char *probename,
-      PVParams *params,
-      Communicator const *comm) {
-   ColProbe::initialize(probename, params, comm);
+int QuotientColProbe::initializeQuotientColProbe(const char *probename, HyPerCol *hc) {
+   return ColProbe::initialize(probename, hc);
 }
 
 void QuotientColProbe::outputHeader() {
@@ -66,16 +60,16 @@ int QuotientColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void QuotientColProbe::ioParam_valueDescription(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
+   parent->parameters()->ioParamString(
          ioFlag, name, "valueDescription", &valueDescription, "value", true /*warnIfAbsent*/);
 }
 
 void QuotientColProbe::ioParam_numerator(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "numerator", &numerator);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "numerator", &numerator);
 }
 
 void QuotientColProbe::ioParam_denominator(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "denominator", &denominator);
+   parent->parameters()->ioParamStringRequired(ioFlag, name, "denominator", &denominator);
 }
 
 Response::Status
@@ -84,13 +78,12 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    if (!Response::completed(status)) {
       return status;
    }
-   auto *hierarchy = message->mHierarchy;
-   numerProbe      = hierarchy->lookupByName<BaseProbe>(std::string(numerator));
-   denomProbe      = hierarchy->lookupByName<BaseProbe>(std::string(denominator));
-   bool failed     = false;
+   numerProbe  = message->lookup<BaseProbe>(std::string(numerator));
+   denomProbe  = message->lookup<BaseProbe>(std::string(denominator));
+   bool failed = false;
    if (numerProbe == NULL || denomProbe == NULL) {
       failed = true;
-      if (mCommunicator->commRank() == 0) {
+      if (parent->columnId() == 0) {
          if (numerProbe == NULL) {
             ErrorLog().printf(
                   "%s: numerator probe \"%s\" could not be found.\n",
@@ -105,16 +98,12 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
          }
       }
    }
-   if (!numerProbe->getInitInfoCommunicatedFlag() or !denomProbe->getInitInfoCommunicatedFlag()) {
-      return Response::POSTPONE;
-   }
-
    int nNumValues, dNumValues;
    if (!failed) {
       nNumValues = numerProbe->getNumValues();
       dNumValues = denomProbe->getNumValues();
       if (nNumValues != dNumValues) {
-         if (mCommunicator->commRank() == 0) {
+         if (parent->columnId() == 0) {
             ErrorLog().printf(
                   "%s: numerator probe \"%s\" and denominator "
                   "probe \"%s\" have differing numbers "
@@ -132,7 +121,7 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       setNumValues(nNumValues);
    }
    if (failed) {
-      MPI_Barrier(mCommunicator->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    return Response::SUCCESS;
@@ -141,7 +130,7 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
 void QuotientColProbe::calcValues(double timeValue) {
    int numValues        = this->getNumValues();
    double *valuesBuffer = getValuesBuffer();
-   if (timeValue == 0.0) {
+   if (parent->simulationTime() == 0.0) {
       for (int b = 0; b < numValues; b++) {
          valuesBuffer[b] = 1.0;
       }
@@ -156,10 +145,10 @@ void QuotientColProbe::calcValues(double timeValue) {
    }
 }
 
-double QuotientColProbe::referenceUpdateTime(double simTime) const { return simTime; }
+double QuotientColProbe::referenceUpdateTime() const { return parent->simulationTime(); }
 
-Response::Status QuotientColProbe::outputState(double simTime, double deltaTime) {
-   getValues(simTime);
+Response::Status QuotientColProbe::outputState(double timevalue) {
+   getValues(timevalue);
    if (mOutputStreams.empty()) {
       return Response::SUCCESS;
    }
@@ -169,7 +158,7 @@ Response::Status QuotientColProbe::outputState(double simTime, double deltaTime)
       if (isWritingToFile()) {
          output(b) << "\"" << valueDescription << "\",";
       }
-      output(b) << simTime << "," << b << "," << valuesBuffer[b] << std::endl;
+      output(b) << timevalue << "," << b << "," << valuesBuffer[b] << std::endl;
    }
    return Response::SUCCESS;
 } // end QuotientColProbe::outputState(float, HyPerCol *)

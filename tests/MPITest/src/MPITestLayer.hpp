@@ -8,17 +8,21 @@
 #ifndef MPITESTLAYER_HPP_
 #define MPITESTLAYER_HPP_
 
-#include <layers/HyPerLayer.hpp>
+#include <layers/ANNLayer.hpp>
 
 namespace PV {
 
-class MPITestLayer : public PV::HyPerLayer {
+class MPITestLayer : public PV::ANNLayer {
   public:
-   MPITestLayer(const char *name, PVParams *params, Communicator const *comm);
+   MPITestLayer(const char *name, HyPerCol *hc);
+   virtual Response::Status allocateDataStructures() override;
+   virtual Response::Status updateState(double time, double dt) override;
+   virtual int publish(Communicator *comm, double timed) override;
+   int setVtoGlobalPos();
+   int setActivitytoGlobalPos();
 
-  protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual ActivityComponent *createActivityComponent() override;
+  private:
+   int initialize(const char *name, HyPerCol *hc);
 };
 
 } /* namespace PV */

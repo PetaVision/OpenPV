@@ -11,6 +11,7 @@
 // MPITestProbe checks whether he above suppositions are satisfied
 
 #include "columns/buildandrun.hpp"
+#include "io/io.hpp"
 #include <utils/PVLog.hpp>
 
 #define MAIN_USES_CUSTOM_GROUPS

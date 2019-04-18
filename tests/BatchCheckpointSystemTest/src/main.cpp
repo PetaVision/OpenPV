@@ -17,20 +17,20 @@ int main(int argc, char *argv[]) {
    char const *paramFile1 = "input/CheckpointParameters1.params";
    char const *paramFile2 = "input/CheckpointParameters2.params";
    int status             = PV_SUCCESS;
-   if (!initObj.getStringArgument("ParamsFile").empty()) {
+   if (pv_getopt_str(argc, argv, "-p", NULL, NULL) == 0) {
       if (rank == 0) {
          ErrorLog().printf("%s should be run without the params file argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
-   if (!initObj.getStringArgument("CheckpointReadDirectory").empty()) {
+   if (pv_getopt_str(argc, argv, "-c", NULL, NULL) == 0) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the checkpoint directory argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
-   if (initObj.getBooleanArgument("Restart")) {
+   if (pv_getopt(argc, argv, "-r", NULL) == 0) {
       if (rank == 0) {
          ErrorLog().printf("%s should be run without the restart flag.\n", argv[0]);
       }
@@ -93,6 +93,9 @@ int main(int argc, char *argv[]) {
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    // Rank of the checkpointing MPI communicator does is not publicly accessible, so recreate it.
    Arguments const *arguments = hc->getPV_InitObj()->getArguments();
+   int cellNumRows            = arguments->getIntegerArgument("CheckpointCellNumRows");
+   int cellNumColumns         = arguments->getIntegerArgument("CheckpointCellNumColumns");
+   int cellBatchDimension     = arguments->getIntegerArgument("CheckpointCellBatchDimension");
    MPIBlock mpiBlock(
          hc->getCommunicator()->globalCommunicator(),
          arguments->getIntegerArgument("NumRows"),

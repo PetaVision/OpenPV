@@ -1,4 +1,4 @@
-// BatchMethodTest.params
+// BatchMethodTes.params
 //
 // created by peteschultz April 14, 2017.
 //
@@ -136,6 +136,7 @@ HyPerConn "InputByFileToOutputByFile" = {
     delay                               = [0.0];
     numAxonalArbors                     = 1;
     plasticityFlag                      = false;
+    convertRateToSpikeCount             = false;
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "UniformWeight";
@@ -264,6 +265,7 @@ HyPerConn "InputByListToOutputByList" = {
     delay                               = [0.0];
     numAxonalArbors                     = 1;
     plasticityFlag                      = false;
+    convertRateToSpikeCount             = false;
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "UniformWeight";

@@ -77,27 +77,26 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    /** @} */
 
   public:
-   AdaptiveTimeScaleProbe(char const *name, PVParams *params, Communicator const *comm);
+   AdaptiveTimeScaleProbe(char const *name, HyPerCol *hc);
    virtual ~AdaptiveTimeScaleProbe();
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timeValue) override;
 
   protected:
    AdaptiveTimeScaleProbe();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
-   virtual void initMessageActionMap() override;
+   int initialize(char const *name, HyPerCol *hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual Response::Status
-   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
-   virtual Response::Status
-   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
    Response::Status respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message);
-   bool needRecalc(double timeValue) override { return timeValue > getLastUpdateTime(); }
-   double referenceUpdateTime(double timevalue) const override { return timevalue; }
+   bool needRecalc(double timeValue) override {
+      return parent->simulationTime() > getLastUpdateTime();
+   }
+   double referenceUpdateTime() const override { return parent->simulationTime(); }
    virtual void calcValues(double timeValue) override;
-   virtual bool needUpdate(double timeValue, double dt) const override { return true; }
+   virtual bool needUpdate(double timeValue, double dt) override { return true; }
    virtual void allocateTimeScaleController();
 
   protected:
@@ -109,8 +108,6 @@ class AdaptiveTimeScaleProbe : public ColProbe {
 
    BaseProbe *mTargetProbe                                   = nullptr;
    AdaptiveTimeScaleController *mAdaptiveTimeScaleController = nullptr;
-
-   double mBaseDeltaTime = 1.0; // The parent's DeltaTime, set during InitializeState.
 };
 
 } /* namespace PV */

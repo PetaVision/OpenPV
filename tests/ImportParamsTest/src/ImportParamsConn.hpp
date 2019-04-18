@@ -7,7 +7,7 @@ namespace PV {
 
 class ImportParamsConn : public PV::HyPerConn {
   public:
-   ImportParamsConn(const char *name, PVParams *params, Communicator const *comm);
+   ImportParamsConn(const char *name, HyPerCol *hc);
 
   protected:
    virtual Response::Status
@@ -15,7 +15,7 @@ class ImportParamsConn : public PV::HyPerConn {
    virtual Response::Status allocateDataStructures() override;
 
   private:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
    int initialize_base();
 };
 

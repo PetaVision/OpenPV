@@ -28,8 +28,8 @@ debugParsing = false;
 
 HyPerCol "column" = {
     dt                                  = 1;
-    stopTime                            = 1;
-    progressInterval                    = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
     writeProgressToErr                  = false;
     outputPath                          = "output/";
     verifyWrites                        = false;
@@ -132,6 +132,7 @@ HyPerConn "InputToOutput" = {
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
     plasticityFlag                      = false;
+    convertRateToSpikeCount             = false;
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "UniformWeight";
@@ -162,7 +163,7 @@ IdentConn "InputRegionToComparison" = {
 };
 
 IdentConn "CorrectInputRegionToComparison" = {
-   channelCode = 1;
+   channelCode = 0;
    delay = [0.000000];
 };
 

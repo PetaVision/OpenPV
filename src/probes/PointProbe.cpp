@@ -6,7 +6,7 @@
  */
 
 #include "PointProbe.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "../layers/HyPerLayer.hpp"
 #include <string.h>
 
 namespace PV {
@@ -17,10 +17,9 @@ PointProbe::PointProbe() {
    // PointProbe::initialize from their init-method.
 }
 
-PointProbe::PointProbe(const char *name, PVParams *params, Communicator const *comm)
-      : LayerProbe() {
+PointProbe::PointProbe(const char *name, HyPerCol *hc) : LayerProbe() {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 PointProbe::~PointProbe() {}
@@ -33,8 +32,9 @@ int PointProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-void PointProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   LayerProbe::initialize(name, params, comm);
+int PointProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = LayerProbe::initialize(name, hc);
+   return status;
 }
 
 int PointProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -47,19 +47,19 @@ int PointProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PointProbe::ioParam_xLoc(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "xLoc", &xLoc);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "xLoc", &xLoc);
 }
 
 void PointProbe::ioParam_yLoc(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "yLoc", &yLoc);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "yLoc", &yLoc);
 }
 
 void PointProbe::ioParam_fLoc(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "fLoc", &fLoc);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "fLoc", &fLoc);
 }
 
 void PointProbe::ioParam_batchLoc(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "batchLoc", &batchLoc);
+   parent->parameters()->ioParamValueRequired(ioFlag, getName(), "batchLoc", &batchLoc);
 }
 
 void PointProbe::initNumValues() { setNumValues(2); }
@@ -72,7 +72,7 @@ PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    }
    assert(getTargetLayer());
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   bool isRoot           = mCommunicator->commRank() == 0;
+   bool isRoot           = parent->getCommunicator()->commRank() == 0;
    bool failed           = false;
    if ((xLoc < 0 || xLoc > loc->nxGlobal) && isRoot) {
       ErrorLog().printf(
@@ -161,9 +161,9 @@ void PointProbe::initOutputStreams(const char *filename, Checkpointer *checkpoin
  *     writeState is only called by the processor with (xLoc,yLoc) in its
  *     non-extended region.
  */
-Response::Status PointProbe::outputState(double simTime, double deltaTime) {
-   getValues(simTime);
-   writeState(simTime);
+Response::Status PointProbe::outputState(double timef) {
+   getValues(timef);
+   writeState(timef);
    return Response::SUCCESS;
 }
 
@@ -188,41 +188,42 @@ void PointProbe::calcValues(double timevalue) {
    // if in bounds
    if (xLocLocal >= 0 && xLocLocal < nx && yLocLocal >= 0 && yLocLocal < ny && nbatchLocal >= 0
        && nbatchLocal < nbatch) {
-      const int k         = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
-      auto *internalState = getTargetLayer()->getComponentByType<InternalStateBuffer>();
-      if (internalState != nullptr) {
-         float const *V  = internalState->getBufferData();
-         valuesBuffer[0] = V[k + nbatchLocal * internalState->getBufferSize()];
+      const float *V        = getTargetLayer()->getV();
+      const float *activity = getTargetLayer()->getLayerData();
+      // Send V and A to root
+      const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
+      if (V) {
+         valuesBuffer[0] = V[k + nbatchLocal * getTargetLayer()->getNumNeurons()];
       }
       else {
-         valuesBuffer[0] = 0.0f;
+         valuesBuffer[0] = 0.0;
       }
-
-      auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
-      if (publisherComponent) {
-         float const *activity = publisherComponent->getLayerData();
-         const int kex         = kIndexExtended(
+      if (activity) {
+         const int kex = kIndexExtended(
                k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          valuesBuffer[1] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
       }
       else {
          valuesBuffer[1] = 0.0;
       }
-      // If not in root process, send V and A to root process
-      if (mCommunicator->commRank() != 0) {
-         MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, mCommunicator->communicator());
+      // If not in root process, send to root process
+      if (parent->columnId() != 0) {
+         MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, parent->getCommunicator()->communicator());
       }
    }
 
    // Root process
-   if (mCommunicator->commRank() == 0) {
+   if (parent->columnId() == 0) {
       // Calculate which rank target neuron is
       // TODO we need to calculate rank from batch as well
       int xRank = xLoc / nx;
       int yRank = yLoc / ny;
 
       int srcRank = rankFromRowAndColumn(
-            yRank, xRank, mCommunicator->numCommRows(), mCommunicator->numCommColumns());
+            yRank,
+            xRank,
+            parent->getCommunicator()->numCommRows(),
+            parent->getCommunicator()->numCommColumns());
 
       // If srcRank is not root process, MPI_Recv from that rank
       if (srcRank != 0) {
@@ -232,7 +233,7 @@ void PointProbe::calcValues(double timevalue) {
                MPI_DOUBLE,
                srcRank,
                0,
-               mCommunicator->communicator(),
+               parent->getCommunicator()->communicator(),
                MPI_STATUS_IGNORE);
       }
    }
@@ -240,6 +241,7 @@ void PointProbe::calcValues(double timevalue) {
 
 void PointProbe::writeState(double timevalue) {
    if (!mOutputStreams.empty()) {
+      double *valuesBuffer = this->getValuesBuffer();
       output(0).printf("%s t=%.1f V=%6.5f a=%.5f", getMessage(), timevalue, getV(), getA());
       output(0) << std::endl;
    }

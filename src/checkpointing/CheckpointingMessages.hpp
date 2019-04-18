@@ -7,11 +7,12 @@ template <typename T> // In practice, T is always Checkpointer.
 class RegisterDataMessage : public BaseMessage {
   public:
    RegisterDataMessage(T *dataRegistry) {
-      setMessageType("RegisterData");
+      setMessageType("RegisterCheckpointDataMessage");
       mDataRegistry = dataRegistry;
    }
    T *mDataRegistry;
 };
+
 
 template <typename T> // In practice, T is always Checkpointer.
 class ReadStateFromCheckpointMessage : public BaseMessage {
@@ -26,20 +27,15 @@ class ReadStateFromCheckpointMessage : public BaseMessage {
 class ProcessCheckpointReadMessage : public BaseMessage {
   public:
    ProcessCheckpointReadMessage(std::string const &directory) : mDirectory(directory) {
-      setMessageType("ProcessCheckpointRead");
+      setMessageType("ProcessCheckpointReadMessage");
    }
    std::string mDirectory;
 };
 
 class PrepareCheckpointWriteMessage : public BaseMessage {
   public:
-   PrepareCheckpointWriteMessage() { setMessageType("ProcessCheckpointWrite"); }
-};
-
-class WriteParamsFileMessage : public BaseMessage {
-  public:
-   WriteParamsFileMessage(std::string const &directory) : mDirectory(directory) {
-      setMessageType("WriteParamsFile");
+   PrepareCheckpointWriteMessage(std::string const &directory) : mDirectory(directory) {
+      setMessageType("ProcessCheckpointWriteMessage");
    }
    std::string mDirectory;
 };

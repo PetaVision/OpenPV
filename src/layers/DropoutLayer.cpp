@@ -1,29 +1,39 @@
-/*
- * DropoutLayer.cpp
- */
-
 #include "DropoutLayer.hpp"
-#include "components/DropoutActivityBuffer.hpp"
-#include "components/GSynAccumulator.hpp"
-#include "components/HyPerActivityComponent.hpp"
-#include "components/HyPerInternalStateBuffer.hpp"
 
 namespace PV {
 
-DropoutLayer::DropoutLayer(const char *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+DropoutLayer::DropoutLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
 DropoutLayer::~DropoutLayer() {}
 
-void DropoutLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   HyPerLayer::initialize(name, params, comm);
+int DropoutLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_probability(ioFlag);
+   return ANNLayer::ioParamsFillGroup(ioFlag);
 }
 
-ActivityComponent *DropoutLayer::createActivityComponent() {
-   return new HyPerActivityComponent<GSynAccumulator,
-                                     HyPerInternalStateBuffer,
-                                     DropoutActivityBuffer>(getName(), parameters(), mCommunicator);
+void DropoutLayer::ioParam_probability(enum ParamsIOFlag ioFlag) {
+   parent->parameters()->ioParamValue(
+         ioFlag, name, "probability", &mProbability, mProbability, true);
+   if (mProbability > 99) {
+      WarnLog() << getName() << ": probability was set to >= 100%. Changing to 99%.\n";
+      mProbability = 99;
+   }
 }
 
-} // end namespace PV
+Response::Status DropoutLayer::updateState(double timestamp, double dt) {
+   ANNLayer::updateState(timestamp, dt);
+   float *A  = getCLayer()->activity->data;
+   int total = getNumExtendedAllBatches();
+
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+   for (int i = 0; i < total; ++i) {
+      if (rand() % 100 < mProbability) {
+         A[i] = 0.0f;
+      }
+   }
+
+   return Response::SUCCESS;
+}
+}

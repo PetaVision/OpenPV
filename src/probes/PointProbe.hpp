@@ -12,15 +12,15 @@
 
 namespace PV {
 
-class PointProbe : public LayerProbe {
+class PointProbe : public PV::LayerProbe {
   public:
-   PointProbe(const char *name, PVParams *params, Communicator const *comm);
+   PointProbe(const char *name, HyPerCol *hc);
    virtual ~PointProbe();
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timef) override;
 
   protected:
    int xLoc;
@@ -29,7 +29,7 @@ class PointProbe : public LayerProbe {
    int batchLoc;
 
    PointProbe();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_xLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);

@@ -10,8 +10,9 @@ HyPerCol "column" = {
     //Change this
     outputPath = "output/HyPerLCAGpuTest";
     checkpointWrite = true;
-    checkpointWriteDir = "output/HyPerLCAGpuTest/checkpoints/";
+    checkpointWriteDir = "output/checkpoints/";
     checkpointWriteStepInterval = 1;
+    lastCheckpointDir = "output/HyPerLCAGpuTest/Last";
     writeProgressToErr = true;
     nbatch = 2;
 };
@@ -155,6 +156,7 @@ ANNLayer "outputTest" = {
 //     
 //    delay = 0;
 //     
+//    convertRateToSpikeCount = false;
 //
 //    updateGSynFromPostPerspective = false;
 //
@@ -197,6 +199,7 @@ HyPerConn "origConn" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -207,6 +210,7 @@ TransposeConn "TransposeConn" = {
     postLayerName = "outputRecv";
     channelCode = 0; 
     originalConnName = "origConn";
+    convertRateToSpikeCount = false;
     writeStep = -1;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -219,6 +223,7 @@ TransposeConn "gpuTransposeConn" = {
     postLayerName = "outputRecvGpu";
     channelCode = 0;
     originalConnName = "origConn";
+    convertRateToSpikeCount = false;
     writeStep = -1.0;
     delay = 0;
     pvpatchAccumulateType = "convolve";
@@ -259,10 +264,22 @@ IdentConn "RecvPreTest" = {
     writeStep = -1;
 };
 
+//GPUSystemTestProbe "gpuProbe" = {
+//   targetLayer = "outputRecvGpu";
+//   message = "gpuProbe ";
+//};
+//
+//GPUSystemTestProbe "regProbe" = {
+//   targetLayer = "outputRecv";
+//   message = "regProbe ";
+//};
+
 GPUSystemTestProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
-   nnzThreshold = 5.0e-4;
-   exitOnFailure = true;
-   immediateExitOnFailure = false;
 };
+
+//RequireAllZeroActivityProbe "testProbe" = {
+//    targetLayer = "outputTest";
+//    nnzThreshold = 1e-6;
+//};

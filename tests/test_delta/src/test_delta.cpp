@@ -1,10 +1,8 @@
+#include "layers/PVLayerCube.hpp"
 #include "utils/PVLog.hpp"
-#include "utils/conversions.hpp"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
-
-using PV::deltaWithPBC;
 
 static int zero(float x) {
    if (std::fabs(x) < .00001f)

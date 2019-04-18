@@ -5,10 +5,9 @@
  * working of the test is described there.
  */
 
-#include <columns/ComponentBasedObject.hpp>
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
-#include <components/WeightsPair.hpp>
+#include <connections/HyPerConn.hpp>
 
 int checkWeights(HyPerCol *hc, int argc, char *argv[]);
 
@@ -44,28 +43,17 @@ int main(int argc, char *argv[]) {
 }
 
 int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
-   auto *conn = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("InputToOutput"));
-   FatalIf(conn == nullptr, "No connection named \"InputToOutput\" in column.\n");
+   HyPerConn *conn = dynamic_cast<HyPerConn *>(hc->getObjectFromName("InputToOutput"));
+   FatalIf(conn == nullptr, "No HyPerConn named \"InputToOutput\" in column.\n");
    HyPerLayer *correctValuesLayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("SumInputs"));
    FatalIf(correctValuesLayer == nullptr, "No layer named \"SumInputs\" in column.\n");
-   auto *correctValuesPublisher = correctValuesLayer->getComponentByType<BasePublisherComponent>();
-   FatalIf(
-         correctValuesPublisher == nullptr,
-         "%s does not have a BasePublisherComponent.\n",
-         correctValuesLayer->getDescription_c());
 
-   int const N       = correctValuesLayer->getNumExtended();
-   auto *weightsPair = conn->getComponentByType<WeightsPair>();
+   int const N = correctValuesLayer->getNumExtended();
    FatalIf(
-         weightsPair == nullptr,
-         "%s does not have a WeightsPair component.\n",
-         conn->getDescription_c());
-   auto *preWeights = weightsPair->getPreWeights();
-   FatalIf(
-         preWeights->getNumDataPatches() != N,
+         conn->getNumDataPatches() != N,
          "connection InputToOutput and layer SumInputs have different sizes.\n");
-   float const *weights       = preWeights->getData(0);
-   float const *correctValues = correctValuesPublisher->getLayerData(0);
+   float const *weights       = conn->getWeightsDataStart(0);
+   float const *correctValues = correctValuesLayer->getLayerData(0);
    int status                 = PV_SUCCESS;
    for (int k = 0; k < N; k++) {
       if (weights[k] != correctValues[k]) {
@@ -74,5 +62,5 @@ int checkWeights(HyPerCol *hc, int argc, char *argv[]) {
                     << weights[k] << "\n";
       }
    }
-   return status;
+   return PV_SUCCESS;
 }

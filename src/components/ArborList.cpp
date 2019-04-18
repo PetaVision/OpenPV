@@ -6,21 +6,21 @@
  */
 
 #include "ArborList.hpp"
+#include "columns/HyPerCol.hpp"
 #include "components/ConnectionData.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-ArborList::ArborList(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+ArborList::ArborList(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
 ArborList::ArborList() {}
 
 ArborList::~ArborList() { free(mDelaysParams); }
 
-void ArborList::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseObject::initialize(name, params, comm);
+int ArborList::initialize(char const *name, HyPerCol *hc) {
+   return BaseObject::initialize(name, hc);
 }
 
 void ArborList::setObjectType() { mObjectType = "ArborList"; }
@@ -32,10 +32,10 @@ int ArborList::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, this->getName(), "numAxonalArbors", &mNumAxonalArbors, mNumAxonalArbors);
    if (ioFlag == PARAMS_IO_READ) {
-      if (getNumAxonalArbors() <= 0 && mCommunicator->globalCommRank() == 0) {
+      if (getNumAxonalArbors() <= 0 && parent->getCommunicator()->globalCommRank() == 0) {
          WarnLog().printf(
                "Connection %s: Variable numAxonalArbors is set to 0. "
                "No connections will be made.\n",
@@ -47,7 +47,7 @@ void ArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
 void ArborList::ioParam_delay(enum ParamsIOFlag ioFlag) {
    // Grab delays in ms and load into mDelaysParams.
    // initializeDelays() will convert the delays to timesteps store into delays.
-   parameters()->ioParamArray(ioFlag, getName(), "delay", &mDelaysParams, &mNumDelays);
+   parent->parameters()->ioParamArray(ioFlag, getName(), "delay", &mDelaysParams, &mNumDelays);
    if (ioFlag == PARAMS_IO_READ && mNumDelays == 0) {
       assert(mDelaysParams == nullptr);
       mDelaysParams = (double *)pvMallocError(
@@ -57,7 +57,7 @@ void ArborList::ioParam_delay(enum ParamsIOFlag ioFlag) {
             strerror(errno));
       *mDelaysParams = 0.0f; // Default delay
       mNumDelays     = 1;
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf("%s: Using default value of zero for delay.\n", this->getDescription_c());
       }
    }
@@ -65,11 +65,15 @@ void ArborList::ioParam_delay(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *connectionData = message->mHierarchy->lookupByType<ConnectionData>();
-   pvAssert(connectionData);
+   ConnectionData *connectionData =
+         mapLookupByType<ConnectionData>(message->mHierarchy, getDescription());
+   FatalIf(
+         connectionData == nullptr,
+         "%s received CommunicateInitInfo message without a ConnectionData component.\n",
+         getDescription_c());
 
    if (!connectionData->getInitInfoCommunicatedFlag()) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until the ConnectionData component has finished its "
                "communicateInitInfo stage.\n",
@@ -77,14 +81,13 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
       }
       return Response::POSTPONE;
    }
-   HyPerLayer *preLayer            = connectionData->getPre();
-   BasePublisherComponent *preData = preLayer->getComponentByType<BasePublisherComponent>();
+   HyPerLayer *preLayer = connectionData->getPre();
 
-   initializeDelays(message->mDeltaTime);
+   initializeDelays();
    int maxDelay     = maxDelaySteps();
-   int allowedDelay = preData->increaseDelayLevels(maxDelay);
+   int allowedDelay = preLayer->increaseDelayLevels(maxDelay);
    if (allowedDelay < maxDelay) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
                "%s: attempt to set delay to %d, but the maximum "
                "allowed delay is %d.  Exiting\n",
@@ -92,39 +95,52 @@ ArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
                maxDelay,
                allowedDelay);
       }
-      MPI_Barrier(mCommunicator->globalCommunicator());
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
       exit(EXIT_FAILURE);
    }
 
    return Response::SUCCESS;
 }
 
-void ArborList::initializeDelays(double deltaTime) {
-   assert(!parameters()->presentAndNotBeenRead(this->getName(), "numAxonalArbors"));
+void ArborList::initializeDelays() {
+   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "numAxonalArbors"));
    mDelay.resize(getNumAxonalArbors());
 
-   FatalIf(
-         mNumDelays != 1 and mNumDelays != getNumAxonalArbors(),
-         "%s Delay must be either a single value or the same length as the number of arbors\n",
-         getDescription_c());
+   // Initialize delays for each arbor
+   // Using setDelay to convert ms to timesteps
    for (int arborId = 0; arborId < (int)mDelay.size(); arborId++) {
-      int delayIndex  = (mNumDelays == getNumAxonalArbors()) ? arborId : 0;
-      mDelay[arborId] = convertDelay(mDelaysParams[delayIndex], deltaTime);
+      if (mNumDelays == 0) {
+         // No delay
+         setDelay(arborId, 0.0);
+      }
+      else if (mNumDelays == 1) {
+         setDelay(arborId, mDelaysParams[0]);
+      }
+      else if (mNumDelays == getNumAxonalArbors()) {
+         setDelay(arborId, mDelaysParams[arborId]);
+      }
+      else {
+         Fatal().printf(
+               "Delay must be either a single value or the same length "
+               "as the number of arbors\n");
+      }
    }
 }
 
-int ArborList::convertDelay(double delay, double deltaTime) {
-   int intDelay = (int)std::nearbyint(delay / deltaTime);
-   if (std::fmod(delay, deltaTime) != 0) {
-      double actualDelay = intDelay * deltaTime;
+void ArborList::setDelay(int arborId, double delay) {
+   assert(arborId >= 0 && arborId < getNumAxonalArbors());
+   int intDelay = (int)std::nearbyint(delay / parent->getDeltaTime());
+   if (std::fmod(delay, parent->getDeltaTime()) != 0) {
+      double actualDelay = intDelay * parent->getDeltaTime();
       WarnLog() << getName() << ": A delay of " << delay << " will be rounded to " << actualDelay
                 << "\n";
    }
-   return intDelay;
+   mDelay[arborId] = intDelay;
 }
 
 int ArborList::maxDelaySteps() {
-   int maxDelay = 0;
+   int maxDelay        = 0;
+   int const numArbors = getNumAxonalArbors();
    for (auto &d : mDelay) {
       if (d > maxDelay) {
          maxDelay = d;

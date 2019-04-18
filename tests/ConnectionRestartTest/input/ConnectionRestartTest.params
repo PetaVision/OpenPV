@@ -126,6 +126,7 @@ HyPerConn "initializeFromInitWeights" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
+    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false; 
 };
 

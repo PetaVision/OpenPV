@@ -6,28 +6,24 @@
  */
 
 #include "FeedbackConnectionData.hpp"
-#include "columns/ComponentBasedObject.hpp"
+#include "columns/HyPerCol.hpp"
+#include "columns/ObjectMapComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "observerpattern/ObserverTable.hpp"
+#include "connections/HyPerConn.hpp"
+#include "utils/MapLookupByType.hpp"
 
 namespace PV {
 
-FeedbackConnectionData::FeedbackConnectionData(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
+FeedbackConnectionData::FeedbackConnectionData(char const *name, HyPerCol *hc) {
+   initialize(name, hc);
 }
 
 FeedbackConnectionData::FeedbackConnectionData() {}
 
 FeedbackConnectionData::~FeedbackConnectionData() {}
 
-void FeedbackConnectionData::initialize(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   ConnectionData::initialize(name, params, comm);
+int FeedbackConnectionData::initialize(char const *name, HyPerCol *hc) {
+   return ConnectionData::initialize(name, hc);
 }
 
 void FeedbackConnectionData::setObjectType() { mObjectType = "FeedbackConnectionData"; }
@@ -43,29 +39,37 @@ void FeedbackConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {}
 
 Response::Status FeedbackConnectionData::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto hierarchy              = message->mHierarchy;
-   auto *originalConnNameParam = hierarchy->lookupByType<OriginalConnNameParam>();
-   pvAssert(originalConnNameParam);
-   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+   auto hierarchy = message->mHierarchy;
+   auto *originalConnNameParam =
+         mapLookupByType<OriginalConnNameParam>(hierarchy, getDescription());
+   FatalIf(
+         originalConnNameParam == nullptr,
+         "%s requires an OriginalConnNameParam component.\n",
+         getDescription_c());
+   if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
+   char const *originalConnName = originalConnNameParam->getOriginalConnName();
+   pvAssert(originalConnName != nullptr);
 
-   ObserverTable *tableComponent = hierarchy->lookupByType<ObserverTable>();
-   pvAssert(tableComponent);
-   ComponentBasedObject *originalConn =
-         tableComponent->lookupByName<ComponentBasedObject>(std::string(originalConnName));
+   ObjectMapComponent *objectMapComponent =
+         mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+   pvAssert(objectMapComponent);
+   HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
    if (originalConn == nullptr) {
-      if (mCommunicator->globalCommRank() == 0) {
+      if (parent->getCommunicator()->globalCommRank() == 0) {
          ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not correspond to an object in the column.\n",
+               "%s: originalConnName \"%s\" does not correspond to a HyPerConn in the column.\n",
                getDescription_c(),
                originalConnName);
       }
-      MPI_Barrier(mCommunicator->globalCommunicator());
+      MPI_Barrier(parent->getCommunicator()->globalCommunicator());
       exit(PV_FAILURE);
    }
    auto *originalConnectionData = originalConn->getComponentByType<ConnectionData>();
    FatalIf(
          originalConnectionData == nullptr,
-         "%s set original connection to \"%s\", which does not have a ConnectionData component.\n",
+         "%s has original connection \"%s\", which does not have a ConnectionData component.\n",
          getDescription_c(),
          originalConn->getName());
    if (!originalConnectionData->getInitInfoCommunicatedFlag()) {

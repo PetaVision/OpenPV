@@ -72,12 +72,13 @@ LCALIFLayer::LCALIFLayer() {
    // initialize(arguments) should *not* be called by the protected constructor.
 }
 
-LCALIFLayer::LCALIFLayer(const char *name, PVParams *params, Communicator const *comm) {
+LCALIFLayer::LCALIFLayer(const char *name, HyPerCol *hc) {
    initialize_base();
    initialize(name, hc, "LCALIF_update_state");
 }
 
 int LCALIFLayer::initialize_base() {
+   numChannels          = 5;
    tauTHR               = 1000;
    targetRateHz         = 1;
    Vscale               = DEFAULT_DYNVTHSCALE;
@@ -89,24 +90,21 @@ int LCALIFLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-void LCALIFLayer::initialize(const char *name, HyPerCol *hc, const char *kernel_name) {
+int LCALIFLayer::initialize(const char *name, HyPerCol *hc, const char *kernel_name) {
    WarnLog() << "LCALIFLayer has been deprecated.\n";
    LIFGap::initialize(name, hc, kernel_name);
 
    float defaultDynVthScale = lParams.VthRest - lParams.Vrest;
    Vscale                   = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
    if (Vscale <= 0) {
-      if (mCommunicator->commRank() == 0) {
+      if (parent->columnId() == 0) {
          ErrorLog().printf(
                "LCALIFLayer \"%s\": Vscale must be positive (value in params is %f).\n",
                name,
                (double)Vscale);
       }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
+      abort();
    }
-   mLayerInput->requireChannel(4);
-   pvAssert(mLayerInput->getNumChannels() == 5);
 
    return PV_SUCCESS;
 }
@@ -121,25 +119,25 @@ int LCALIFLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LCALIFLayer::ioParam_tauTHR(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "tauTHR", &tauTHR, tauTHR);
+   parent->parameters()->ioParamValue(ioFlag, name, "tauTHR", &tauTHR, tauTHR);
 }
 
 void LCALIFLayer::ioParam_targetRate(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "targetRate", &targetRateHz, targetRateHz);
+   parent->parameters()->ioParamValue(ioFlag, name, "targetRate", &targetRateHz, targetRateHz);
 }
 
 void LCALIFLayer::ioParam_normalizeInput(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, name, "normalizeInput", &normalizeInputFlag, normalizeInputFlag);
 }
 
 void LCALIFLayer::ioParam_Vscale(enum ParamsIOFlag ioFlag) {
-   PVParams *p = parameters();
+   PVParams *p = parent->parameters();
    assert(!p->presentAndNotBeenRead(name, "VthRest"));
    assert(!p->presentAndNotBeenRead(name, "Vrest"));
    float defaultDynVthScale = lParams.VthRest - lParams.Vrest;
    Vscale                   = defaultDynVthScale > 0 ? defaultDynVthScale : DEFAULT_DYNVTHSCALE;
-   parameters()->ioParamValue(ioFlag, name, "Vscale", &Vscale, Vscale);
+   parent->parameters()->ioParamValue(ioFlag, name, "Vscale", &Vscale, Vscale);
 }
 
 LCALIFLayer::~LCALIFLayer() {
@@ -187,13 +185,11 @@ void LCALIFLayer::allocateBuffers() {
    LIFGap::allocateBuffers();
 }
 
-Response::Status
-LCALIFLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = LIFGap::registerData(message);
+Response::Status LCALIFLayer::registerData(Checkpointer *checkpointer) {
+   auto status = LIFGap::registerData(checkpointer);
    if (!Response::completed(status)) {
       return status;
    }
-   auto *checkpointer = message->mDataRegistry;
    checkpointPvpActivityFloat(
          checkpointer, "integratedSpikeCount", integratedSpikeCount, false /*not extended*/);
    checkpointPvpActivityFloat(checkpointer, "Vadpt", Vadpt, false /*not extended*/);
@@ -215,22 +211,22 @@ LCALIFLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> cons
 Response::Status LCALIFLayer::updateState(double timed, double dt) {
    // Calculate_state kernel
    for (int k = 0; k < getNumNeuronsAllBatches(); k++) {
-      G_Norm[k] = mLayerInput->getLayerInput(CHANNEL_NORM)[k];
-      // Copy GSyn buffer on normalizing channel for checkpointing, since LCALIF_update_state will
-      // blank the GSyn buffers
+      G_Norm[k] = GSyn[CHANNEL_NORM][k]; // Copy GSyn buffer on normalizing channel for
+      // checkpointing, since LCALIF_update_state will blank the
+      // GSyn's
    }
    LCALIF_update_state(
-         getLayerLoc()->nbatch,
+         clayer->loc.nbatch,
          getNumNeurons(),
          timed,
          dt,
-         getLayerLoc()->nx,
-         getLayerLoc()->ny,
-         getLayerLoc()->nf,
-         getLayerLoc()->halo.lt,
-         getLayerLoc()->halo.rt,
-         getLayerLoc()->halo.dn,
-         getLayerLoc()->halo.up,
+         clayer->loc.nx,
+         clayer->loc.ny,
+         clayer->loc.nf,
+         clayer->loc.halo.lt,
+         clayer->loc.halo.rt,
+         clayer->loc.halo.dn,
+         clayer->loc.halo.up,
          Vscale,
          Vadpt,
          tauTHR,
@@ -238,13 +234,13 @@ Response::Status LCALIFLayer::updateState(double timed, double dt) {
          integratedSpikeCount,
          &lParams,
          randState->getRNG(0),
-         getV(),
+         clayer->V,
          Vth,
          G_E,
          G_I,
          G_IB,
-         mLayerInput->getLayerInput(),
-         mActivity->getActivity(),
+         GSyn[0],
+         clayer->activity->data,
          getGapStrength(),
          Vattained,
          Vmeminf,
@@ -258,14 +254,18 @@ Response::Status LCALIFLayer::updateState(double timed, double dt) {
 }
 
 Response::Status LCALIFLayer::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   pvAssert(mInitializeFromCheckpointFlag);
-   auto status = LIFGap::readStateFromCheckpoint(checkpointer);
-   if (status != Response::SUCCESS) {
-      return status;
+   if (initializeFromCheckpointFlag) {
+      auto status = LIFGap::readStateFromCheckpoint(checkpointer);
+      if (status != Response::SUCCESS) {
+         return status;
+      }
+      read_integratedSpikeCountFromCheckpoint(checkpointer);
+      readVadptFromCheckpoint(checkpointer);
+      return Response::SUCCESS;
    }
-   read_integratedSpikeCountFromCheckpoint(checkpointer);
-   readVadptFromCheckpoint(checkpointer);
-   return Response::SUCCESS;
+   else {
+      return Response::NO_ACTION;
+   }
 }
 
 void LCALIFLayer::read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer) {

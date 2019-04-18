@@ -5,7 +5,6 @@
 
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
-#include <components/BasePublisherComponent.hpp>
 #include <layers/InputLayer.hpp>
 #include <layers/InputRegionLayer.hpp>
 #include <structures/Buffer.hpp>
@@ -17,11 +16,8 @@ T *getObjectFromName(std::string const &objectName, PV::HyPerCol *hc);
 template <typename T>
 char const *objectType();
 
-void verifyLayerLocs(
-      PV::BasePublisherComponent *publisher1,
-      PV::BasePublisherComponent *publisher2);
-PV::Buffer<float>
-gatherLayerData(PV::BasePublisherComponent *publisher, PV::Communicator const *communicator);
+void verifyLayerLocs(PV::HyPerLayer *layer1, PV::HyPerLayer *layer2);
+PV::Buffer<float> gatherLayer(PV::HyPerLayer *layer, PV::Communicator *communicator);
 void verifyActivity(
       PV::Buffer<float> *inputBuffer,
       std::string const &inputName,
@@ -36,24 +32,22 @@ int main(int argc, char *argv[]) {
    PV::HyPerCol *hc = new PV::HyPerCol(pv_init);
    hc->allocateColumn();
 
-   auto *inputLayer           = getObjectFromName<PV::InputLayer>(std::string("Input"), hc);
-   auto *inputPublisher       = inputLayer->getComponentByType<PV::BasePublisherComponent>();
-   auto *validRegionLayer     = getObjectFromName<PV::InputLayer>(std::string("ValidRegion"), hc);
-   auto *validRegionPublisher = validRegionLayer->getComponentByType<PV::BasePublisherComponent>();
+   auto *inputLayer       = getObjectFromName<PV::InputLayer>(std::string("Input"), hc);
+   auto *validRegionLayer = getObjectFromName<PV::InputLayer>(std::string("ValidRegion"), hc);
 
-   verifyLayerLocs(inputPublisher, validRegionPublisher);
+   verifyLayerLocs(inputLayer, validRegionLayer);
 
    // Gather everything to rank-zero process; nonzero-rank processes are then done.
-   PV::Communicator const *communicator = hc->getCommunicator();
-   auto inputBuffer                     = gatherLayerData(inputPublisher, communicator);
-   auto validRegionBuffer               = gatherLayerData(validRegionPublisher, communicator);
+   PV::Communicator *communicator = hc->getCommunicator();
+   auto inputBuffer               = gatherLayer(inputLayer, communicator);
+   auto validRegionBuffer         = gatherLayer(validRegionLayer, communicator);
 
    if (communicator->commRank() == 0) {
       verifyActivity(
             &inputBuffer,
-            std::string(inputPublisher->getName()),
+            std::string(inputLayer->getName()),
             &validRegionBuffer,
-            std::string(validRegionPublisher->getName()),
+            std::string(validRegionLayer->getName()),
             hc->parameters());
    }
 
@@ -88,76 +82,73 @@ char const *objectType<PV::InputLayer>() {
    return "InputLayer";
 }
 
-void verifyLayerLocs(
-      PV::BasePublisherComponent *publisher1,
-      PV::BasePublisherComponent *publisher2) {
-   PVLayerLoc const *loc1 = publisher1->getLayerLoc();
-   PVLayerLoc const *loc2 = publisher2->getLayerLoc();
+void verifyLayerLocs(PV::HyPerLayer *layer1, PV::HyPerLayer *layer2) {
+   PVLayerLoc const *loc1 = layer1->getLayerLoc();
+   PVLayerLoc const *loc2 = layer2->getLayerLoc();
    FatalIf(
          loc1->nbatchGlobal != loc2->nbatchGlobal,
          "%s and %s nbatchGlobal values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->nbatchGlobal,
          loc2->nbatchGlobal);
    FatalIf(
          loc1->nxGlobal != loc2->nxGlobal,
          "%s and %s nxGlobal values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->nxGlobal,
          loc2->nxGlobal);
    FatalIf(
          loc1->nyGlobal != loc2->nyGlobal,
          "%s and %s nyGlobal values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->nyGlobal,
          loc2->nyGlobal);
    FatalIf(
          loc1->nf != loc2->nf,
          "%s and %s nf values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->nf,
          loc2->nf);
    FatalIf(
          loc1->halo.lt != loc2->halo.lt,
          "%s and %s halo.lt values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->halo.lt,
          loc2->halo.lt);
    FatalIf(
          loc1->halo.rt != loc2->halo.rt,
          "%s and %s halo.rt values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->halo.rt,
          loc2->halo.rt);
    FatalIf(
          loc1->halo.dn != loc2->halo.dn,
          "%s and %s halo.dn values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->halo.dn,
          loc2->halo.dn);
    FatalIf(
          loc1->halo.up != loc2->halo.up,
          "%s and %s halo.up values differ (%d versus %d).\n",
-         publisher1->getName(),
-         publisher2->getName(),
+         layer1->getName(),
+         layer2->getName(),
          loc1->halo.up,
          loc2->halo.up);
 }
 
-PV::Buffer<float>
-gatherLayerData(PV::BasePublisherComponent *publisher, PV::Communicator const *communicator) {
-   PVLayerLoc const *loc = publisher->getLayerLoc();
+PV::Buffer<float> gatherLayer(PV::HyPerLayer *layer, PV::Communicator *communicator) {
+   PVLayerLoc const *loc = layer->getLayerLoc();
    int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
    int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;
    int const rootProc    = 0;
-   PV::Buffer<float> buffer(publisher->getLayerData(0), nxExt, nyExt, loc->nf);
+   PV::Buffer<float> buffer(layer->getLayerData(0), nxExt, nyExt, loc->nf);
    buffer = PV::BufferUtils::gather(
          communicator->getLocalMPIBlock(), buffer, loc->nx, loc->ny, 0 /*batch index*/, rootProc);
    return buffer;
@@ -252,7 +243,7 @@ void verifyActivity(
                                 false /*no warning if absent*/)
                           != 0;
    FatalIf(
-         !normalizeStdDev,
+         !normalizeLuminance,
          "%s has normalizeStdDev set to false. This test requires it to be true.\n",
          inputName.c_str());
    double stddev = 0.0;

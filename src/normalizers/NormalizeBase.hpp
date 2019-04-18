@@ -37,11 +37,12 @@ class NormalizeBase : public BaseObject {
    /** @} */ // end of NormalizeBase parameters
 
   public:
-   NormalizeBase(char const *name, PVParams *params, Communicator const *comm);
+   NormalizeBase(char const *name, HyPerCol *hc);
 
-   virtual ~NormalizeBase();
+   virtual ~NormalizeBase() {}
 
    void addWeightsToList(Weights *weights);
+   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
 
    float getStrength() const { return mStrength; }
    bool getNormalizeArborsIndividuallyFlag() const { return mNormalizeArborsIndividually; }
@@ -51,9 +52,7 @@ class NormalizeBase : public BaseObject {
   protected:
    NormalizeBase() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
-
-   virtual void initMessageActionMap() override;
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 

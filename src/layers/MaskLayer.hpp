@@ -8,22 +8,34 @@
 #ifndef MASKLAYER_HPP_
 #define MASKLAYER_HPP_
 
-#include "HyPerLayer.hpp"
+#include "ANNLayer.hpp"
 
 namespace PV {
 
-class MaskLayer : public HyPerLayer {
+class MaskLayer : public PV::ANNLayer {
   public:
-   MaskLayer(const char *name, PVParams *params, Communicator const *comm);
+   MaskLayer(const char *name, HyPerCol *hc);
+   MaskLayer();
    virtual ~MaskLayer();
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
   protected:
-   MaskLayer() {}
+   virtual Response::Status updateState(double time, double dt) override;
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_maskMethod(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_featureIdxs(enum ParamsIOFlag ioFlag);
+   char *maskMethod;
+   char *maskLayerName;
+   int *features;
+   int numSpecifiedFeatures;
+   HyPerLayer *maskLayer;
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+  private:
+   int initialize_base();
 
-   virtual ActivityComponent *createActivityComponent() override;
-};
+}; // class MaskLayer
 
-} // end namespace PV
-#endif /* MASKLAYER_HPP_ */
+} /* namespace PV */
+#endif /* ANNERRORLAYER_HPP_ */

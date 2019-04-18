@@ -10,7 +10,7 @@ void pvpatch_max_pooling(
       int nk,
       float *RESTRICT v,
       float a,
-      float const *RESTRICT w,
+      float *RESTRICT w,
       void *auxPtr,
       int sf);
 void pvpatch_sum_pooling(
@@ -18,7 +18,7 @@ void pvpatch_sum_pooling(
       int nk,
       float *RESTRICT v,
       float a,
-      float const *RESTRICT w,
+      float *RESTRICT w,
       void *auxPtr,
       int sf);
 
@@ -26,16 +26,16 @@ void pvpatch_max_pooling_from_post(
       int kPreRes,
       int nk,
       float *v,
-      float const *a,
-      float const *w,
+      float *a,
+      float *w,
       void *auxPtr,
       int sf);
 void pvpatch_sum_pooling_from_post(
       int kPreRes,
       int nk,
       float *RESTRICT v,
-      float const *RESTRICT a,
-      float const *RESTRICT w,
+      float *RESTRICT a,
+      float *RESTRICT w,
       void *auxPtr,
       int sf);
 } // namespace PV

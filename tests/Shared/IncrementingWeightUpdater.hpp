@@ -15,16 +15,16 @@ namespace PV {
 
 class IncrementingWeightUpdater : public HebbianUpdater {
   public:
-   IncrementingWeightUpdater(char const *name, PVParams *params, Communicator const *comm);
+   IncrementingWeightUpdater(char const *name, HyPerCol *hc);
 
    virtual ~IncrementingWeightUpdater() {}
 
   protected:
    IncrementingWeightUpdater() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
-   virtual int updateWeights(int arborId) override;
+   virtual int updateWeights(int arborId);
 };
 
 } // namespace PV

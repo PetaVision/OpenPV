@@ -7,22 +7,24 @@
 
 #include "GaussianRandomV.hpp"
 #include "columns/GaussianRandom.hpp"
+#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
 GaussianRandomV::GaussianRandomV() { initialize_base(); }
 
-GaussianRandomV::GaussianRandomV(char const *name, PVParams *params, Communicator const *comm) {
+GaussianRandomV::GaussianRandomV(char const *name, HyPerCol *hc) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 GaussianRandomV::~GaussianRandomV() {}
 
 int GaussianRandomV::initialize_base() { return PV_SUCCESS; }
 
-void GaussianRandomV::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseInitV::initialize(name, params, comm);
+int GaussianRandomV::initialize(char const *name, HyPerCol *hc) {
+   int status = BaseInitV::initialize(name, hc);
+   return status;
 }
 
 int GaussianRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -33,11 +35,11 @@ int GaussianRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void GaussianRandomV::ioParam_meanV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "meanV", &meanV, meanV);
+   parent->parameters()->ioParamValue(ioFlag, name, "meanV", &meanV, meanV);
 }
 
 void GaussianRandomV::ioParam_sigmaV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "maxV", &sigmaV, sigmaV);
+   parent->parameters()->ioParamValue(ioFlag, name, "maxV", &sigmaV, sigmaV);
 }
 
 void GaussianRandomV::calcV(float *V, PVLayerLoc const *loc) {

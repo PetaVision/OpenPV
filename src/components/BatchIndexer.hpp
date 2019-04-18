@@ -28,12 +28,9 @@ class BatchIndexer : public CheckpointerDataInterface {
    void setIndices(const std::vector<int> &indices) { mIndices = indices; }
    void setWrapToStartIndex(bool value) { mWrapToStartIndex = value; }
    bool getWrapToStartIndex() { return mWrapToStartIndex; }
-   int getStartIndex(int b) const { return mStartIndices.at(b); }
-   int getSkipAmount(int b) const { return mSkipAmounts.at(b); }
    std::vector<int> getIndices() { return mIndices; }
 
-   virtual Response::Status
-   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
   protected:
    virtual Response::Status processCheckpointRead() override;
@@ -57,6 +54,12 @@ class BatchIndexer : public CheckpointerDataInterface {
    std::vector<int> mStartIndices;
    std::vector<int> mSkipAmounts;
    BatchMethod mBatchMethod;
+   bool mInitializeFromCheckpointFlag = false;
+   // mInitializeFromCheckpointFlag is a hack.
+   // BatchIndexer should load the indices from checkpoint when the InputLayer's
+   // initializeFromCheckpointFlag is true, and not when it's false.
+   // The problem is that BatchIndexer can't see the InputLayer, where the
+   // initializeFromCheckpointFlag is read.
 };
 }
 

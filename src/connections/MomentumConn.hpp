@@ -11,16 +11,21 @@
 
 namespace PV {
 
+class HyPerCol;
+
 class MomentumConn : public HyPerConn {
   public:
-   MomentumConn(char const *name, PVParams *params, Communicator const *comm);
+   MomentumConn(char const *name, HyPerCol *hc);
 
    virtual ~MomentumConn();
+
+   char const *getMomentumMethod() const;
+   float getTimeConstantTau() const;
 
   protected:
    MomentumConn();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual BaseWeightUpdater *createWeightUpdater() override;
 }; // class MomentumConn

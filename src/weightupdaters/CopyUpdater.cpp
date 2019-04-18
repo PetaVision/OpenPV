@@ -6,19 +6,19 @@
  */
 
 #include "CopyUpdater.hpp"
+#include "columns/HyPerCol.hpp"
+#include "columns/ObjectMapComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
 #include "connections/HyPerConn.hpp"
-#include "observerpattern/ObserverTable.hpp"
+#include "utils/MapLookupByType.hpp"
 #include "utils/TransposeWeights.hpp"
 
 namespace PV {
 
-CopyUpdater::CopyUpdater(char const *name, PVParams *params, Communicator const *comm) {
-   initialize(name, params, comm);
-}
+CopyUpdater::CopyUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
 
-void CopyUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseWeightUpdater::initialize(name, params, comm);
+int CopyUpdater::initialize(char const *name, HyPerCol *hc) {
+   return BaseWeightUpdater::initialize(name, hc);
 }
 
 void CopyUpdater::setObjectType() { mObjectType = "CopyUpdater"; }
@@ -30,9 +30,9 @@ void CopyUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *hierarchy = message->mHierarchy;
+   auto componentMap = message->mHierarchy;
 
-   mCopyWeightsPair = hierarchy->lookupByType<CopyWeightsPair>();
+   mCopyWeightsPair = mapLookupByType<CopyWeightsPair>(componentMap, getDescription());
    FatalIf(
          mCopyWeightsPair == nullptr,
          "%s requires a CopyWeightsPair component.\n",
@@ -42,7 +42,8 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
    mCopyWeightsPair->needPre();
 
-   auto *originalConnNameParam = hierarchy->lookupByType<OriginalConnNameParam>();
+   auto *originalConnNameParam =
+         mapLookupByType<OriginalConnNameParam>(componentMap, getDescription());
    FatalIf(
          originalConnNameParam == nullptr,
          "%s requires a OriginalConnNameParam component.\n",
@@ -51,12 +52,13 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
       return Response::POSTPONE;
    }
 
-   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+   char const *originalConnName = originalConnNameParam->getOriginalConnName();
    pvAssert(originalConnName != nullptr and originalConnName[0] != '\0');
 
-   auto *tableComponent = hierarchy->lookupByType<ObserverTable>();
-   pvAssert(tableComponent);
-   HyPerConn *originalConn = tableComponent->lookupByName<HyPerConn>(std::string(originalConnName));
+   auto hierarchy           = message->mHierarchy;
+   auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
+   pvAssert(objectMapComponent);
+   HyPerConn *originalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
    pvAssert(originalConn);
    auto *originalWeightUpdater = originalConn->getComponentByType<BaseWeightUpdater>();
    if (originalWeightUpdater and !originalWeightUpdater->getInitInfoCommunicatedFlag()) {
@@ -86,14 +88,12 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    return Response::SUCCESS;
 }
 
-Response::Status
-CopyUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = BaseWeightUpdater::registerData(message);
+Response::Status CopyUpdater::registerData(Checkpointer *checkpointer) {
+   auto status = BaseWeightUpdater::registerData(checkpointer);
    if (!Response::completed(status)) {
       return status;
    }
    std::string nameString = std::string(name);
-   auto *checkpointer     = message->mDataRegistry;
    checkpointer->registerCheckpointData(
          nameString,
          "lastUpdateTime",

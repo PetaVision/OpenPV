@@ -9,6 +9,7 @@
 #define TRANSPOSEWEIGHTSPAIR_HPP_
 
 #include "components/WeightsPair.hpp"
+#include "connections/HyPerConn.hpp"
 
 namespace PV {
 
@@ -29,14 +30,14 @@ class TransposeWeightsPair : public WeightsPair {
    /** @} */ // end of TransposeWeightsPair parameters
 
   public:
-   TransposeWeightsPair(char const *name, PVParams *params, Communicator const *comm);
+   TransposeWeightsPair(char const *name, HyPerCol *hc);
 
    virtual ~TransposeWeightsPair();
 
   protected:
    TransposeWeightsPair() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 
@@ -50,12 +51,12 @@ class TransposeWeightsPair : public WeightsPair {
 
    virtual Response::Status allocateDataStructures() override;
 
-   virtual Response::Status
-   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
 
    virtual void finalizeUpdate(double timestamp, double deltaTime) override;
 
   protected:
+   HyPerConn *mOriginalConn          = nullptr;
    WeightsPair *mOriginalWeightsPair = nullptr;
 };
 

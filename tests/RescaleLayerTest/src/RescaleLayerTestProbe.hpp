@@ -8,22 +8,20 @@
 #ifndef RESCALELAYERTESTPROBE_HPP_
 #define RESCALELAYERTESTPROBE_HPP_
 
-#include <probes/StatsProbe.hpp>
-
-#include <components/RescaleActivityBuffer.hpp>
+#include "probes/StatsProbe.hpp"
 
 namespace PV {
 
 class RescaleLayerTestProbe : public PV::StatsProbe {
   public:
-   RescaleLayerTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   RescaleLayerTestProbe(const char *name, HyPerCol *hc);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
    void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    bool colinear(
          int nx,
@@ -37,8 +35,8 @@ class RescaleLayerTestProbe : public PV::StatsProbe {
          double *stdA,
          double *stdB);
 
-  protected:
-   RescaleActivityBuffer *mRescaleBuffer = nullptr;
+  private:
+   int initialize_base();
 
 }; // end class RescaleLayerTestProbe
 

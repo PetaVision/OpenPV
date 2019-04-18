@@ -52,16 +52,23 @@ int main(int argc, char *argv[]) {
 
    HyPerCol *hc = new PV::HyPerCol(initObj);
 
-   const char *l1LayerName = "test_border_activity_layer";
-   ANNLayer *l1            = dynamic_cast<ANNLayer *>(hc->getObjectFromName(l1LayerName));
-   FatalIf(!l1, "Unable to find layer \"%s\"\n", l1LayerName);
+   const char *imageLayerName  = "test_border_activity_image";
+   const char *retinaLayerName = "test_border_activity_retina";
+   const char *l1LayerName     = "test_border_activity_layer";
+
+   PvpLayer *image = dynamic_cast<PvpLayer *>(hc->getObjectFromName(imageLayerName));
+   assert(image);
+   Retina *retina = dynamic_cast<Retina *>(hc->getObjectFromName(retinaLayerName));
+   assert(retina);
+   ANNLayer *l1 = dynamic_cast<ANNLayer *>(hc->getObjectFromName(l1LayerName));
+   assert(l1);
 
    HyPerConn *conn1 =
          dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_border_activity_connection1"));
-   FatalIf(!conn1, "Test failed.\n");
+   FatalIf(!(conn1), "Test failed.\n");
    HyPerConn *conn2 =
          dynamic_cast<HyPerConn *>(hc->getObjectFromName("test_border_activity_connection2"));
-   FatalIf(!conn2, "Test failed.\n");
+   FatalIf(!(conn2), "Test failed.\n");
 
 #ifdef DEBUG_OUTPUT
    PointProbe *p1 = new PointProbe(0, 0, 0, "L1 (0,0,0):");
@@ -85,18 +92,15 @@ int main(int argc, char *argv[]) {
 int check_activity(HyPerLayer *l) {
    int status = 0;
 
-   const int nx = l->getLayerLoc()->nx;
-   const int ny = l->getLayerLoc()->ny;
-   const int nf = l->getLayerLoc()->nf;
+   const int nx = l->clayer->loc.nx;
+   const int ny = l->clayer->loc.ny;
+   const int nf = l->clayer->loc.nf;
 
-   const int nk = l->getNumNeurons();
-   FatalIf(nk != nx * ny * nf, "%s NumNeurons does not match nx*ny*nf.\n", l->getDescription_c());
+   const int nk = l->clayer->numNeurons;
+   FatalIf(!(nk == nx * ny * nf), "Test failed.\n");
 
-   auto *activityComponent = l->getComponentByType<ActivityComponent>();
-   auto *activityBuffer    = activityComponent->getComponentByType<ActivityBuffer>();
-   float const *activity   = activityBuffer->getBufferData();
    for (int k = 0; k < nk; k++) {
-      int a = (int)activity[k];
+      int a = (int)l->clayer->activity->data[k];
       if (a != UNIFORM_ACTIVITY_VALUE) {
          status = -1;
          ErrorLog().printf("test_border_activity: activity==%d != %d\n", a, UNIFORM_ACTIVITY_VALUE);

@@ -1,41 +1,130 @@
 #include "ImageOffsetTestLayer.hpp"
 
-#include "ImageOffsetTestActivityBuffer.hpp"
-#include <components/ActivityComponentActivityOnly.hpp>
-
 namespace PV {
 
-ImageOffsetTestLayer::ImageOffsetTestLayer(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
-}
+ImageOffsetTestLayer::ImageOffsetTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
 
-ImageOffsetTestLayer::~ImageOffsetTestLayer() {}
+double ImageOffsetTestLayer::getDeltaUpdateTime() { return 1; }
 
-void ImageOffsetTestLayer::initialize(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   ImageLayer::initialize(name, params, comm);
-}
+bool ImageOffsetTestLayer::readyForNextFile() { return false; }
 
-ActivityComponent *ImageOffsetTestLayer::createActivityComponent() {
-   return new ActivityComponentActivityOnly<ImageOffsetTestActivityBuffer>(
-         getName(), parameters(), mCommunicator);
-}
-
-Response::Status ImageOffsetTestLayer::communicateInitInfo(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto status = ImageLayer::communicateInitInfo(message);
-   if (!Response::completed(status)) {
-      return status;
-   }
+Response::Status ImageOffsetTestLayer::updateState(double timef, double dt) {
+   // Grab layer size
+   const PVLayerLoc *loc = getLayerLoc();
+   int nx                = loc->nx;
+   int ny                = loc->ny;
+   int nf                = loc->nf;
+   int kx0               = loc->kx0;
+   int ky0               = loc->ky0;
    FatalIf(
-         message->mDeltaTime != 1.0,
-         "This test requires the HyPerCol dt parameter equal 1.0 (value is %f).\n",
-         message->mDeltaTime);
+         !(loc->halo.up == 0 && loc->halo.lt == 0 && loc->halo.rt == 0 && loc->halo.dn == 0),
+         "Test failed.\n");
+
+   bool isCorrect = true;
+   // Grab the activity layer of current layer
+   for (int b = 0; b < loc->nbatch; b++) {
+      const float *A = getActivity() + b * getNumExtended();
+      // We only care about restricted space
+      for (int iY = 0; iY < ny; iY++) {
+         for (int iX = 0; iX < nx; iX++) {
+            for (int iF = 0; iF < nf; iF++) {
+               int idx             = kIndex(iX, iY, iF, nx, ny, nf);
+               int ixGlobal        = kx0 + iX;
+               int iyGlobal        = ky0 + iY;
+               float actualvalue   = A[idx] * 255;
+               float expectedvalue = -1;
+               if (strcmp(name, "crop") == 0) {
+                  expectedvalue = (iyGlobal + 4) * 16 + (ixGlobal + 4);
+               }
+               else if (strcmp(name, "pad") == 0) {
+                  if (ixGlobal < 8 || iyGlobal < 8 || ixGlobal >= 24 || iyGlobal >= 24) {
+                     expectedvalue = 0;
+                  }
+                  else {
+                     expectedvalue = (iyGlobal - 8) * 16 + (ixGlobal - 8);
+                  }
+               }
+               else if (strcmp(name, "TLCorner") == 0) {
+                  if (ixGlobal < 2 && iyGlobal < 2) {
+                     expectedvalue = (iyGlobal + 14) * 16 + (ixGlobal + 14);
+                  }
+                  else {
+                     expectedvalue = 0;
+                  }
+               }
+               else if (strcmp(name, "TRCorner") == 0) {
+                  if (ixGlobal >= 14 && iyGlobal < 2) {
+                     expectedvalue = (iyGlobal + 14) * 16 + (ixGlobal - 14);
+                  }
+                  else {
+                     expectedvalue = 0;
+                  }
+               }
+               else if (strcmp(name, "BLCorner") == 0) {
+                  if (ixGlobal < 2 && iyGlobal >= 14) {
+                     expectedvalue = (iyGlobal - 14) * 16 + (ixGlobal + 14);
+                  }
+                  else {
+                     expectedvalue = 0;
+                  }
+               }
+               else if (strcmp(name, "BRCorner") == 0) {
+                  if (ixGlobal >= 14 && iyGlobal >= 14) {
+                     expectedvalue = (iyGlobal - 14) * 16 + (ixGlobal - 14);
+                  }
+                  else {
+                     expectedvalue = 0;
+                  }
+               }
+               else if (strcmp(name, "TLOver") == 0) {
+                  if (ixGlobal >= 14 || iyGlobal >= 14) {
+                     expectedvalue = 0;
+                  }
+                  else {
+                     expectedvalue = (iyGlobal + 2) * 16 + (ixGlobal + 2);
+                  }
+               }
+               else if (strcmp(name, "TROver") == 0) {
+                  if (ixGlobal < 2 || iyGlobal >= 14) {
+                     expectedvalue = 0;
+                  }
+                  else {
+                     expectedvalue = (iyGlobal + 2) * 16 + (ixGlobal - 2);
+                  }
+               }
+               else if (strcmp(name, "BLOver") == 0) {
+                  if (ixGlobal >= 14 || iyGlobal < 2) {
+                     expectedvalue = 0;
+                  }
+                  else {
+                     expectedvalue = (iyGlobal - 2) * 16 + (ixGlobal + 2);
+                  }
+               }
+               else if (strcmp(name, "BROver") == 0) {
+                  if (ixGlobal < 2 || iyGlobal < 2) {
+                     expectedvalue = 0;
+                  }
+                  else {
+                     expectedvalue = (iyGlobal - 2) * 16 + (ixGlobal - 2);
+                  }
+               }
+               else {
+                  Fatal() << "Layer name " << name << " not recoginzed\n";
+               }
+               float diff = fabs(actualvalue - expectedvalue);
+               if (diff >= 1e-4f) {
+                  ErrorLog() << "Connection " << name << " Mismatch at (" << ixGlobal << ","
+                             << iyGlobal << "," << iF << ") : actual value: " << actualvalue
+                             << " Expected value: " << expectedvalue << "\n";
+                  isCorrect = false;
+               }
+            }
+         }
+      }
+   }
+   if (!isCorrect) {
+      exit(PV_FAILURE);
+   }
    return Response::SUCCESS;
 }
 

@@ -3,28 +3,28 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ANNLayer.cpp
    ${SUBDIR}/ANNSquaredLayer.cpp
    ${SUBDIR}/BackgroundLayer.cpp
+   ${SUBDIR}/InputLayer.cpp
+   ${SUBDIR}/BaseLayer.cpp
    ${SUBDIR}/BinningLayer.cpp
-   ${SUBDIR}/DependentFirmThresholdCostLayer.cpp
    ${SUBDIR}/DropoutLayer.cpp
    ${SUBDIR}/CloneVLayer.cpp
    ${SUBDIR}/ConstantLayer.cpp
    ${SUBDIR}/FilenameParsingGroundTruthLayer.cpp
-   ${SUBDIR}/FirmThresholdCostLayer.cpp
    ${SUBDIR}/GapLayer.cpp
    ${SUBDIR}/HyPerLayer.cpp
    ${SUBDIR}/HyPerLCALayer.cpp
+   ${SUBDIR}/MomentumLCALayer.cpp
    ${SUBDIR}/ImageLayer.cpp
-   ${SUBDIR}/InputLayer.cpp
    ${SUBDIR}/InputRegionLayer.cpp
    ${SUBDIR}/ISTALayer.cpp
    ${SUBDIR}/LeakyIntegrator.cpp
    ${SUBDIR}/LIF.cpp
    ${SUBDIR}/LIFGap.cpp
    ${SUBDIR}/MaskLayer.cpp
-   ${SUBDIR}/MomentumLCALayer.cpp
    ${SUBDIR}/PoolingIndexLayer.cpp
    ${SUBDIR}/PtwiseProductLayer.cpp
    ${SUBDIR}/PtwiseQuotientLayer.cpp
+   ${SUBDIR}/PVLayerCube.cpp
    ${SUBDIR}/PvpLayer.cpp
    ${SUBDIR}/RescaleLayer.cpp
    ${SUBDIR}/Retina.cpp
@@ -38,28 +38,26 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ANNLayer.hpp
    ${SUBDIR}/ANNSquaredLayer.hpp
    ${SUBDIR}/BackgroundLayer.hpp
+   ${SUBDIR}/InputLayer.hpp
+   ${SUBDIR}/BaseLayer.hpp
    ${SUBDIR}/BinningLayer.hpp
    ${SUBDIR}/CloneVLayer.hpp
-   ${SUBDIR}/DependentFirmThresholdCostLayer.hpp
    ${SUBDIR}/DropoutLayer.hpp
    ${SUBDIR}/ConstantLayer.hpp
    ${SUBDIR}/FilenameParsingGroundTruthLayer.hpp
-   ${SUBDIR}/FirmThresholdCostLayer.hpp
    ${SUBDIR}/GapLayer.hpp
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp
    ${SUBDIR}/ImageLayer.hpp
-   ${SUBDIR}/InputLayer.cpp
    ${SUBDIR}/InputRegionLayer.cpp
    ${SUBDIR}/ISTALayer.hpp
    ${SUBDIR}/LeakyIntegrator.hpp
    ${SUBDIR}/LIF.hpp
    ${SUBDIR}/LIFGap.hpp
    ${SUBDIR}/MaskLayer.hpp
-   ${SUBDIR}/MomentumLCALayer.hpp
    ${SUBDIR}/PoolingIndexLayer.hpp
    ${SUBDIR}/PtwiseProductLayer.hpp
-   ${SUBDIR}/PtwiseQuotientLayer.hpp
+   ${SUBDIR}/PVLayerCube.hpp
    ${SUBDIR}/PvpLayer.hpp
    ${SUBDIR}/RescaleLayer.hpp
    ${SUBDIR}/Retina.hpp
@@ -67,3 +65,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/SegmentLayer.hpp
    ${SUBDIR}/SigmoidLayer.hpp
 )
+
+set (PVLibSrcH ${PVLibSrcH}
+   ${SUBDIR}/updateStateFunctions.h
+)
+

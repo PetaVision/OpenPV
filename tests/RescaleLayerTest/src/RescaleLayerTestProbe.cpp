@@ -9,25 +9,19 @@
 #include <include/pv_arch.h>
 #include <layers/HyPerLayer.hpp>
 #include <layers/RescaleLayer.hpp>
-#include <utils/PVLog.hpp>
-
 #include <string.h>
+#include <utils/PVLog.hpp>
 
 namespace PV {
 
-RescaleLayerTestProbe::RescaleLayerTestProbe(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm)
-      : StatsProbe() {
-   initialize(name, params, comm);
+RescaleLayerTestProbe::RescaleLayerTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+   initialize(name, hc);
 }
 
-void RescaleLayerTestProbe::initialize(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
+int RescaleLayerTestProbe::initialize_base() { return PV_SUCCESS; }
+
+int RescaleLayerTestProbe::initialize(const char *name, HyPerCol *hc) {
+   return StatsProbe::initialize(name, hc);
 }
 
 void RescaleLayerTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
@@ -39,91 +33,72 @@ Response::Status RescaleLayerTestProbe::communicateInitInfo(
       return status;
    }
    RescaleLayer *targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
-   if (targetRescaleLayer == nullptr) {
-      if (mCommunicator->commRank() == 0) {
+   if (targetRescaleLayer == NULL) {
+      if (parent->columnId() == 0) {
          ErrorLog().printf(
                "RescaleLayerTestProbe: targetLayer \"%s\" is not a RescaleLayer.\n",
                this->getTargetName());
       }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
-   }
-   auto *targetActivityComponent = targetRescaleLayer->getComponentByType<ActivityComponent>();
-   if (targetActivityComponent == nullptr) {
-      if (mCommunicator->commRank() == 0) {
-         ErrorLog().printf(
-               "RescaleLayerTestProbe: targetLayer \"%s\" does not have an ActivityComponent.\n",
-               this->getTargetName());
-      }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
-   }
-
-   mRescaleBuffer = targetActivityComponent->getComponentByType<RescaleActivityBuffer>();
-   if (mRescaleBuffer == nullptr) {
-      if (mCommunicator->commRank() == 0) {
-         ErrorLog().printf(
-               "RescaleLayerTestProbe: targetLayer \"%s\" does not have a RescaleActivityBuffer.\n",
-               this->getTargetName());
-      }
-      MPI_Barrier(mCommunicator->communicator());
+      MPI_Barrier(parent->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    return Response::SUCCESS;
 }
 
-Response::Status RescaleLayerTestProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
+Response::Status RescaleLayerTestProbe::outputState(double timed) {
+   auto status = StatsProbe::outputState(timed);
    if (status != Response::SUCCESS) {
       return status;
    }
-   if (simTime == 0.0) {
+   if (timed == 0.0) {
       return status;
    }
-   float tolerance = 2.0e-5f;
-   bool isRoot     = mCommunicator->commRank() == 0;
+   float tolerance      = 2.0e-5f;
+   Communicator *icComm = parent->getCommunicator();
+   bool isRoot          = icComm->commRank() == 0;
 
-   pvAssert(mRescaleBuffer);
+   RescaleLayer *targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
+   FatalIf(!targetRescaleLayer, "Test failed.\n");
 
    bool failed = false;
-   if (mRescaleBuffer->getRescaleMethod() == NULL) {
+   if (targetRescaleLayer->getRescaleMethod() == NULL) {
       ErrorLog().printf(
             "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" does not have rescaleMethod set.  "
             "Exiting.\n",
             name,
-            mRescaleBuffer->getName());
+            targetRescaleLayer->getName());
       failed = true;
    }
-   else if (!strcmp(mRescaleBuffer->getRescaleMethod(), "maxmin")) {
+   else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "maxmin")) {
       if (!isRoot) {
          return Response::SUCCESS;
       }
-      for (int b = 0; b < mLocalBatchWidth; b++) {
-         float targetMax = mRescaleBuffer->getTargetMax();
+      for (int b = 0; b < parent->getNBatch(); b++) {
+         float targetMax = targetRescaleLayer->getTargetMax();
          if (fabsf(fMax[b] - targetMax) > tolerance) {
             ErrorLog().printf(
                   "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has max %f instead of target "
                   "max %f\n",
                   getName(),
-                  mRescaleBuffer->getName(),
+                  targetRescaleLayer->getName(),
                   (double)fMax[b],
                   (double)targetMax);
             failed = true;
          }
-         float targetMin = mRescaleBuffer->getTargetMin();
+         float targetMin = targetRescaleLayer->getTargetMin();
          if (fabsf(fMin[b] - targetMin) > tolerance) {
             ErrorLog().printf(
                   "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has min %f instead of target "
                   "min %f\n",
                   getName(),
-                  mRescaleBuffer->getName(),
+                  targetRescaleLayer->getName(),
                   (double)fMin[b],
                   (double)targetMin);
             failed = true;
          }
 
          // Now, check whether rescaled activity and original V are colinear.
-         PVLayerLoc const *rescaleLoc = mRescaleBuffer->getLayerLoc();
+         PVLayerLoc const *rescaleLoc = targetRescaleLayer->getLayerLoc();
          PVHalo const *rescaleHalo    = &rescaleLoc->halo;
          int nk                       = rescaleLoc->nx * rescaleLoc->nf;
          int ny                       = rescaleLoc->ny;
@@ -138,9 +113,10 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                rescaleHalo->rt,
                rescaleHalo->dn,
                rescaleHalo->up);
-         float const *rescaledData = mRescaleBuffer->getBufferData()
-                                     + b * mRescaleBuffer->getBufferSize() + rescaleExtendedOffset;
-         PVLayerLoc const *origLoc = mRescaleBuffer->getOriginalBuffer()->getLayerLoc();
+         float const *rescaledData = targetRescaleLayer->getLayerData()
+                                     + b * targetRescaleLayer->getNumExtended()
+                                     + rescaleExtendedOffset;
+         PVLayerLoc const *origLoc = targetRescaleLayer->getOriginalLayer()->getLayerLoc();
          PVHalo const *origHalo    = &origLoc->halo;
          FatalIf(!(nk == origLoc->nx * origLoc->nf), "Test failed.\n");
          FatalIf(!(ny == origLoc->ny), "Test failed.\n");
@@ -154,8 +130,8 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                rescaleHalo->rt,
                rescaleHalo->dn,
                rescaleHalo->up);
-         float const *origData = mRescaleBuffer->getOriginalBuffer()->getBufferData()
-                                 + b * mRescaleBuffer->getOriginalBuffer()->getBufferSize()
+         float const *origData = targetRescaleLayer->getOriginalLayer()->getLayerData()
+                                 + b * targetRescaleLayer->getOriginalLayer()->getNumExtended()
                                  + origExtendedOffset;
 
          bool iscolinear = colinear(
@@ -173,7 +149,7 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
             ErrorLog().printf(
                   "%s: %s data is not a linear rescaling of original membrane potential.\n",
                   getDescription_c(),
-                  mRescaleBuffer->getDescription_c());
+                  targetRescaleLayer->getDescription_c());
             failed = true;
          }
       }
@@ -181,27 +157,27 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
    // l2 norm with a patch size of 1 (default) should be the same as rescaling with meanstd with
    // target mean 0 and std of 1/sqrt(patchsize)
    else if (
-         !strcmp(mRescaleBuffer->getRescaleMethod(), "meanstd")
-         || !strcmp(mRescaleBuffer->getRescaleMethod(), "l2")) {
+         !strcmp(targetRescaleLayer->getRescaleMethod(), "meanstd")
+         || !strcmp(targetRescaleLayer->getRescaleMethod(), "l2")) {
       if (!isRoot) {
          return Response::SUCCESS;
       }
-      for (int b = 0; b < mLocalBatchWidth; b++) {
+      for (int b = 0; b < parent->getNBatch(); b++) {
          float targetMean, targetStd;
-         if (!strcmp(mRescaleBuffer->getRescaleMethod(), "meanstd")) {
-            targetMean = mRescaleBuffer->getTargetMean();
-            targetStd  = mRescaleBuffer->getTargetStd();
+         if (!strcmp(targetRescaleLayer->getRescaleMethod(), "meanstd")) {
+            targetMean = targetRescaleLayer->getTargetMean();
+            targetStd  = targetRescaleLayer->getTargetStd();
          }
          else {
             targetMean = 0;
-            targetStd  = 1 / sqrtf((float)mRescaleBuffer->getPatchSize());
+            targetStd  = 1 / sqrtf((float)targetRescaleLayer->getL2PatchSize());
          }
 
          if (fabsf(avg[b] - targetMean) > tolerance) {
             ErrorLog().printf(
                   "%s: %s has mean %f instead of target mean %f\n",
                   getDescription_c(),
-                  mRescaleBuffer->getDescription_c(),
+                  targetRescaleLayer->getDescription_c(),
                   (double)avg[b],
                   (double)targetMean);
             failed = true;
@@ -210,14 +186,14 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
             ErrorLog().printf(
                   "%s: %s has std.dev. %f instead of target std.dev. %f\n",
                   getDescription_c(),
-                  mRescaleBuffer->getDescription_c(),
+                  targetRescaleLayer->getDescription_c(),
                   (double)sigma[b],
                   (double)targetStd);
             failed = true;
          }
 
          // Now, check whether rescaled activity and original V are colinear.
-         PVLayerLoc const *rescaleLoc = mRescaleBuffer->getLayerLoc();
+         PVLayerLoc const *rescaleLoc = targetRescaleLayer->getLayerLoc();
          PVHalo const *rescaleHalo    = &rescaleLoc->halo;
          int nk                       = rescaleLoc->nx * rescaleLoc->nf;
          int ny                       = rescaleLoc->ny;
@@ -232,9 +208,10 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                rescaleHalo->rt,
                rescaleHalo->dn,
                rescaleHalo->up);
-         float const *rescaledData = mRescaleBuffer->getBufferData() // should be getLayerData()
-                                     + b * mRescaleBuffer->getBufferSize() + rescaleExtendedOffset;
-         PVLayerLoc const *origLoc = mRescaleBuffer->getOriginalBuffer()->getLayerLoc();
+         float const *rescaledData = targetRescaleLayer->getLayerData()
+                                     + b * targetRescaleLayer->getNumExtended()
+                                     + rescaleExtendedOffset;
+         PVLayerLoc const *origLoc = targetRescaleLayer->getOriginalLayer()->getLayerLoc();
          PVHalo const *origHalo    = &origLoc->halo;
          FatalIf(!(nk == origLoc->nx * origLoc->nf), "Test failed.\n");
          FatalIf(!(ny == origLoc->ny), "Test failed.\n");
@@ -248,8 +225,8 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                rescaleHalo->rt,
                rescaleHalo->dn,
                rescaleHalo->up);
-         float const *origData = mRescaleBuffer->getOriginalBuffer()->getBufferData()
-                                 + b * mRescaleBuffer->getOriginalBuffer()->getBufferSize()
+         float const *origData = targetRescaleLayer->getOriginalLayer()->getLayerData()
+                                 + b * targetRescaleLayer->getOriginalLayer()->getNumExtended()
                                  + origExtendedOffset;
 
          bool iscolinear = colinear(
@@ -267,24 +244,26 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
             ErrorLog().printf(
                   "%s: %s data is not a linear rescaling of original membrane potential.\n",
                   getDescription_c(),
-                  mRescaleBuffer->getDescription_c());
+                  targetRescaleLayer->getDescription_c());
             failed = true;
          }
       }
    }
-   else if (!strcmp(mRescaleBuffer->getRescaleMethod(), "pointmeanstd")) {
-      PVLayerLoc const *loc = mRescaleBuffer->getLayerLoc();
+   else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "pointmeanstd")) {
+      PVLayerLoc const *loc = targetRescaleLayer->getLayerLoc();
       int nf                = loc->nf;
       if (nf < 2) {
          return Response::SUCCESS;
       }
       PVHalo const *halo = &loc->halo;
-      float targetMean   = mRescaleBuffer->getTargetMean();
-      float targetStd    = mRescaleBuffer->getTargetStd();
-      int numNeurons     = loc->nx * loc->ny * loc->nf;
-      for (int b = 0; b < mLocalBatchWidth; b++) {
-         float const *originalData = mRescaleBuffer->getOriginalBuffer()->getBufferData(b);
-         float const *rescaledData = mRescaleBuffer->getBufferData(b);
+      float targetMean   = targetRescaleLayer->getTargetMean();
+      float targetStd    = targetRescaleLayer->getTargetStd();
+      int numNeurons     = targetRescaleLayer->getNumNeurons();
+      for (int b = 0; b < parent->getNBatch(); b++) {
+         float const *originalData =
+               targetRescaleLayer->getV() + b * targetRescaleLayer->getNumNeurons();
+         float const *rescaledData =
+               targetRescaleLayer->getLayerData() + b * targetRescaleLayer->getNumExtended();
          for (int k = 0; k < numNeurons; k += nf) {
             int kExtended = kIndexExtended(
                   k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
@@ -305,8 +284,8 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                      "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, "
                      "starting at restricted neuron %d, has mean %f instead of target mean %f\n",
                      getName(),
-                     mRescaleBuffer->getName(),
-                     mCommunicator->globalCommRank(),
+                     targetRescaleLayer->getName(),
+                     parent->columnId(),
                      k,
                      (double)pointmean,
                      (double)targetMean);
@@ -318,8 +297,8 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                      "starting at restricted neuron %d, has std.dev. %f instead of target std.dev. "
                      "%f\n",
                      getName(),
-                     mRescaleBuffer->getName(),
-                     mCommunicator->globalCommRank(),
+                     targetRescaleLayer->getName(),
+                     parent->columnId(),
                      k,
                      (double)pointstd,
                      (double)targetStd);
@@ -341,27 +320,32 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                      "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, "
                      "starting at restricted neuron %d, is not a linear rescaling.\n",
                      getName(),
-                     mRescaleBuffer->getName(),
-                     mCommunicator->globalCommRank(),
+                     targetRescaleLayer->getName(),
+                     parent->columnId(),
                      k);
                failed = true;
             }
          }
       }
    }
-   else if (!strcmp(mRescaleBuffer->getRescaleMethod(), "zerotonegative")) {
-      PVLayerLoc const *rescaleLoc = mRescaleBuffer->getLayerLoc();
+   else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "zerotonegative")) {
+      int numNeurons = targetRescaleLayer->getNumNeurons();
+      FatalIf(
+            !(numNeurons == targetRescaleLayer->getOriginalLayer()->getNumNeurons()),
+            "Test failed.\n");
+      PVLayerLoc const *rescaleLoc = targetRescaleLayer->getLayerLoc();
       PVHalo const *rescaleHalo    = &rescaleLoc->halo;
       int nf                       = rescaleLoc->nf;
-      auto const *originalBuffer   = mRescaleBuffer->getOriginalBuffer();
-      PVLayerLoc const *origLoc    = originalBuffer->getLayerLoc();
+      HyPerLayer *originalLayer    = targetRescaleLayer->getOriginalLayer();
+      PVLayerLoc const *origLoc    = originalLayer->getLayerLoc();
       PVHalo const *origHalo       = &origLoc->halo;
       FatalIf(!(origLoc->nf == nf), "Test failed.\n");
-      int const numNeurons = rescaleLoc->nx * rescaleLoc->ny * rescaleLoc->nf;
 
-      for (int b = 0; b < mLocalBatchWidth; b++) {
-         float const *rescaledData = mRescaleBuffer->getBufferData(b);
-         float const *originalData = originalBuffer->getBufferData(b);
+      for (int b = 0; b < parent->getNBatch(); b++) {
+         float const *rescaledData =
+               targetRescaleLayer->getLayerData() + b * targetRescaleLayer->getNumExtended();
+         float const *originalData =
+               originalLayer->getLayerData() + b * originalLayer->getNumExtended();
          for (int k = 0; k < numNeurons; k++) {
             int rescale_kExtended = kIndexExtended(
                   k,
@@ -388,8 +372,8 @@ Response::Status RescaleLayerTestProbe::outputState(double simTime, double delta
                      "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", rank %d, restricted "
                      "neuron %d has value %f instead of expected %f\n.",
                      this->getName(),
-                     mRescaleBuffer->getName(),
-                     mCommunicator->globalCommRank(),
+                     targetRescaleLayer->getName(),
+                     parent->columnId(),
                      k,
                      (double)observedval,
                      (double)correctval);

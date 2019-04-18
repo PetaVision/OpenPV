@@ -14,7 +14,7 @@ namespace PV {
 
 class InitOneToOneWeightsWithDelays : public InitOneToOneWeights {
   public:
-   InitOneToOneWeightsWithDelays(char const *name, PVParams *params, Communicator const *comm);
+   InitOneToOneWeightsWithDelays(char const *name, HyPerCol *hc);
    virtual ~InitOneToOneWeightsWithDelays();
 
    virtual void calcWeights(int patchIndex, int arborId) override;
@@ -22,7 +22,7 @@ class InitOneToOneWeightsWithDelays : public InitOneToOneWeights {
 
   protected:
    InitOneToOneWeightsWithDelays();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
    void
    createOneToOneConnectionWithDelays(float *dataStart, int patchIndex, float iWeight, int arborId);
 

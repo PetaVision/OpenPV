@@ -62,24 +62,42 @@ void CheckpointableFileStream::initialize(
    }
 
    mObjName = objName;
-   setDescription(std::string("CheckpointableFileStream \"") + objName + "\"");
-   FileStream::initialize(fullPath.c_str(), std::ios_base::in | std::ios_base::out, verifyWrites);
-   CheckpointerDataInterface::initialize();
+   setDescription();
+   setOutStream(mFStream);
+   openFile(fullPath.c_str(), std::ios_base::in | std::ios_base::out, verifyWrites);
    updateFilePos();
+   registerData(checkpointer);
 }
 
-Response::Status CheckpointableFileStream::processCheckpointRead() {
+void CheckpointableFileStream::setDescription() {
+   description = "CheckpointableFileStream \"";
+   description.append(mObjName).append("\"");
+}
+
+Response::Status CheckpointableFileStream::respond(std::shared_ptr<BaseMessage const> message) {
+   auto status = Response::NO_ACTION;
+   if (message == nullptr) {
+      return status;
+   }
+   else if (
+         ProcessCheckpointReadMessage const *castMessage =
+               dynamic_cast<ProcessCheckpointReadMessage const *>(message.get())) {
+      status = respondProcessCheckpointRead(castMessage);
+   }
+   return status;
+}
+
+Response::Status CheckpointableFileStream::respondProcessCheckpointRead(
+      ProcessCheckpointReadMessage const *message) {
    syncFilePos();
    return Response::SUCCESS;
 }
 
-Response::Status CheckpointableFileStream::registerData(
-      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = CheckpointerDataInterface::registerData(message);
+Response::Status CheckpointableFileStream::registerData(Checkpointer *checkpointer) {
+   auto status = CheckpointerDataInterface::registerData(checkpointer);
    if (!Response::completed(status)) {
       return status;
    }
-   auto *checkpointer = message->mDataRegistry;
    checkpointer->registerCheckpointData<long>(
          mObjName, string("FileStreamRead"), &mFileReadPos, (std::size_t)1, false, false);
    checkpointer->registerCheckpointData<long>(
@@ -116,26 +134,12 @@ void CheckpointableFileStream::read(void *data, long length) {
    updateFilePos();
 }
 
-void CheckpointableFileStream::setOutPos(long pos, std::ios_base::seekdir seekAnchor) {
-   if (seekAnchor != std::ios_base::beg) {
-      syncFilePos();
-   }
-   FileStream::setOutPos(pos, seekAnchor);
-}
-
 void CheckpointableFileStream::setOutPos(long pos, bool fromBeginning) {
    if (!fromBeginning) {
       syncFilePos();
    }
    FileStream::setOutPos(pos, fromBeginning);
    updateFilePos();
-}
-
-void CheckpointableFileStream::setInPos(long pos, std::ios_base::seekdir seekAnchor) {
-   if (seekAnchor != std::ios_base::beg) {
-      syncFilePos();
-   }
-   FileStream::setInPos(pos, seekAnchor);
 }
 
 void CheckpointableFileStream::setInPos(long pos, bool fromBeginning) {

@@ -4,7 +4,6 @@
  */
 
 #include <columns/buildandrun.hpp>
-#include <components/BasePublisherComponent.hpp>
 #include <layers/HyPerLayer.hpp>
 
 int customexit(HyPerCol *hc, int argc, char **argv);
@@ -24,17 +23,16 @@ int customexit(HyPerCol *hc, int argc, char **argv) {
             "Checking whether input layer has all values equal to %f ...\n", (double)correctvalue);
    }
    HyPerLayer *inputlayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("input"));
-   FatalIf(inputlayer == nullptr, "No layer named \"input\".\n");
-   auto *inputpublisher  = inputlayer->getComponentByType<BasePublisherComponent>();
-   PVLayerLoc const *loc = inputpublisher->getLayerLoc();
-   FatalIf(loc->nf != 1, "Layer \"input\" nf must be 1 (values is %d).\n", loc->nf);
-   const int numNeurons = loc->nx * loc->ny * loc->nf;
-   FatalIf(numNeurons <= 0, "Test failed.\n");
+   FatalIf(!(inputlayer), "Test failed.\n");
+   PVLayerLoc const *loc = inputlayer->getLayerLoc();
+   FatalIf(!(loc->nf == 1), "Test failed.\n");
+   const int numNeurons = inputlayer->getNumNeurons();
+   FatalIf(!(numNeurons > 0), "Test failed.\n");
    int status = PV_SUCCESS;
 
-   int numExtended        = inputpublisher->getNumExtended();
+   int numExtended        = inputlayer->getNumExtended();
    Communicator *icComm   = hc->getCommunicator();
-   float const *layerData = inputpublisher->getLayerData();
+   float const *layerData = inputlayer->getLayerData();
    int rootproc           = 0;
    if (icComm->commRank() == rootproc) {
       float *databuffer = (float *)malloc(numExtended * sizeof(float));

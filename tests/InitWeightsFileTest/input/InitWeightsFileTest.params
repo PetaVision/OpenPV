@@ -65,6 +65,7 @@ HyPerConn "InputToOutput" = {
     delay                               = [0.0];
     numAxonalArbors                     = 1;
     plasticityFlag                      = false;
+    convertRateToSpikeCount             = false;
     receiveGpu                          = false;
     sharedWeights                       = false;
     weightInitType                      = "FileWeight";

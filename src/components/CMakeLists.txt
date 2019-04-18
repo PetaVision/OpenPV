@@ -2,83 +2,25 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LogTimeScaleController.cpp
    ${SUBDIR}/KneeTimeScaleController.cpp
    ${SUBDIR}/AdaptiveTimeScaleController.cpp
-   ${SUBDIR}/ActivityBuffer.cpp
-   ${SUBDIR}/ActivityComponent.cpp
-   ${SUBDIR}/ANNActivityBuffer.cpp
    ${SUBDIR}/ArborList.cpp
-   ${SUBDIR}/BackgroundActivityBuffer.cpp
-   ${SUBDIR}/BasePublisherComponent.cpp
    ${SUBDIR}/BatchIndexer.cpp
-   ${SUBDIR}/BinningActivityBuffer.cpp
-   ${SUBDIR}/BoundaryConditions.cpp
-   ${SUBDIR}/CloneInternalStateBuffer.cpp
    ${SUBDIR}/CloneWeightsPair.cpp
-   ${SUBDIR}/ComponentBuffer.cpp
    ${SUBDIR}/ConnectionData.cpp
    ${SUBDIR}/CopyWeightsPair.cpp
-   ${SUBDIR}/DefaultNoOutputComponent.cpp
    ${SUBDIR}/DependentArborList.cpp
-   ${SUBDIR}/DependentBoundaryConditions.cpp
-   ${SUBDIR}/DependentFirmThresholdCostActivityBuffer.cpp
    ${SUBDIR}/DependentPatchSize.cpp
-   ${SUBDIR}/DependentPhaseParam.cpp
    ${SUBDIR}/DependentSharedWeights.cpp
-   ${SUBDIR}/DropoutActivityBuffer.cpp
-   ${SUBDIR}/ErrScaleInternalStateBuffer.cpp
    ${SUBDIR}/FeedbackConnectionData.cpp
-   ${SUBDIR}/FilenameParsingActivityBuffer.cpp
-   ${SUBDIR}/FilenameParsingLayerUpdateController.cpp
-   ${SUBDIR}/FirmThresholdCostActivityBuffer.cpp
-   ${SUBDIR}/GapActivityBuffer.cpp
-   ${SUBDIR}/GSynAccumulator.cpp
-   ${SUBDIR}/HyPerActivityBuffer.cpp
-   ${SUBDIR}/HyPerInternalStateBuffer.cpp
-   ${SUBDIR}/HyPerLCAInternalStateBuffer.cpp
-   ${SUBDIR}/ImageActivityBuffer.cpp
    ${SUBDIR}/ImpliedWeights.cpp
    ${SUBDIR}/ImpliedWeightsPair.cpp
-   ${SUBDIR}/InputActivityBuffer.cpp
-   ${SUBDIR}/InputLayerNameParam.cpp
-   ${SUBDIR}/InputLayerUpdateController.cpp
-   ${SUBDIR}/InputRegionActivityBuffer.cpp
-   ${SUBDIR}/InputRegionActivityComponent.cpp
-   ${SUBDIR}/InternalStateBuffer.cpp
-   ${SUBDIR}/ISTAInternalStateBuffer.cpp
-   ${SUBDIR}/LayerGeometry.cpp
-   ${SUBDIR}/LayerInputBuffer.cpp
-   ${SUBDIR}/LayerOutputComponent.cpp
-   ${SUBDIR}/LayerUpdateController.cpp
-   ${SUBDIR}/LeakyIntegratorBuffer.cpp
-   ${SUBDIR}/LIFActivityComponent.cpp
-   ${SUBDIR}/LIFGapActivityComponent.cpp
-   ${SUBDIR}/LinkedObjectParam.cpp
-   ${SUBDIR}/MaskActivityBuffer.cpp
-   ${SUBDIR}/MomentumLCAActivityComponent.cpp
-   ${SUBDIR}/MomentumLCAInternalStateBuffer.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
-   ${SUBDIR}/OriginalLayerNameParam.cpp
    ${SUBDIR}/PatchGeometry.cpp
    ${SUBDIR}/PatchSize.cpp
-   ${SUBDIR}/PhaseParam.cpp
-   ${SUBDIR}/PoolingIndexLayerInputBuffer.cpp
-   ${SUBDIR}/PtwiseProductGSynAccumulator.cpp
-   ${SUBDIR}/PtwiseQuotientGSynAccumulator.cpp
-   ${SUBDIR}/PublisherComponent.cpp
-   ${SUBDIR}/PvpActivityBuffer.cpp
-   ${SUBDIR}/RescaleActivityBuffer.cpp
-   ${SUBDIR}/RestrictedBuffer.cpp
-   ${SUBDIR}/RetinaActivityBuffer.cpp
-   ${SUBDIR}/SegmentBuffer.cpp
-   ${SUBDIR}/SegmentifyBuffer.cpp
    ${SUBDIR}/SharedWeights.cpp
-   ${SUBDIR}/SigmoidActivityBuffer.cpp
    ${SUBDIR}/SingleArbor.cpp
-   ${SUBDIR}/SingleChannelGSynAccumulator.cpp
-   ${SUBDIR}/SquaredGSynAccumulator.cpp
    ${SUBDIR}/StrengthParam.cpp
    ${SUBDIR}/TransposePatchSize.cpp
    ${SUBDIR}/TransposeWeightsPair.cpp
-   ${SUBDIR}/VInputActivityBuffer.cpp
    ${SUBDIR}/Weights.cpp
    ${SUBDIR}/WeightsPair.cpp
    ${SUBDIR}/WeightsPairInterface.cpp
@@ -88,110 +30,27 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LogTimeScaleController.hpp
    ${SUBDIR}/KneeTimeScaleController.hpp
    ${SUBDIR}/AdaptiveTimeScaleController.hpp
-   ${SUBDIR}/ActivityBuffer.hpp
-   ${SUBDIR}/ActivityComponent.hpp
-   ${SUBDIR}/ActivityComponentActivityOnly.hpp
-   ${SUBDIR}/ANNActivityBuffer.hpp
    ${SUBDIR}/ArborList.hpp
-   ${SUBDIR}/BackgroundActivityBuffer.hpp
-   ${SUBDIR}/BasePublisherComponent.hpp
    ${SUBDIR}/BatchIndexer.hpp
-   ${SUBDIR}/BinningActivityBuffer.hpp
-   ${SUBDIR}/BoundaryConditions.hpp
-   ${SUBDIR}/CloneActivityComponent.hpp
-   ${SUBDIR}/CloneInternalStateBuffer.hpp
    ${SUBDIR}/CloneWeightsPair.hpp
-   ${SUBDIR}/ComponentBuffer.hpp
    ${SUBDIR}/ConnectionData.hpp
    ${SUBDIR}/CopyWeightsPair.hpp
-   ${SUBDIR}/DefaultNoOutputComponent.hpp
    ${SUBDIR}/DependentArborList.hpp
-   ${SUBDIR}/DependentBoundaryConditions.hpp
-   ${SUBDIR}/DependentFirmThresholdCostActivityBuffer.hpp
    ${SUBDIR}/DependentPatchSize.hpp
-   ${SUBDIR}/DependentPhaseParam.hpp
    ${SUBDIR}/DependentSharedWeights.hpp
-   ${SUBDIR}/DropoutActivityBuffer.hpp
-   ${SUBDIR}/ErrScaleInternalStateBuffer.hpp
    ${SUBDIR}/FeedbackConnectionData.hpp
-   ${SUBDIR}/FilenameParsingActivityBuffer.hpp
-   ${SUBDIR}/FilenameParsingLayerUpdateController.hpp
-   ${SUBDIR}/FirmThresholdCostActivityBuffer.hpp
-   ${SUBDIR}/GapActivityBuffer.hpp
-   ${SUBDIR}/GSynAccumulator.hpp
-   ${SUBDIR}/HyPerActivityBuffer.hpp
-   ${SUBDIR}/HyPerActivityComponent.hpp
-   ${SUBDIR}/HyPerInternalStateBuffer.hpp
-   ${SUBDIR}/HyPerLCAInternalStateBuffer.hpp
-   ${SUBDIR}/ImageActivityBuffer.hpp
    ${SUBDIR}/ImpliedWeights.hpp
    ${SUBDIR}/ImpliedWeightsPair.hpp
-   ${SUBDIR}/InputActivityBuffer.hpp
-   ${SUBDIR}/InputLayerNameParam.hpp
-   ${SUBDIR}/InputLayerUpdateController.hpp
-   ${SUBDIR}/InputRegionActivityBuffer.hpp
-   ${SUBDIR}/InputRegionActivityComponent.hpp
-   ${SUBDIR}/InternalStateBuffer.hpp
-   ${SUBDIR}/ISTAInternalStateBuffer.hpp
-   ${SUBDIR}/LayerGeometry.hpp
-   ${SUBDIR}/LayerInputBuffer.hpp
-   ${SUBDIR}/LayerOutputComponent.hpp
-   ${SUBDIR}/LayerUpdateController.hpp
-   ${SUBDIR}/LeakyIntegratorBuffer.hpp
-   ${SUBDIR}/LIFActivityComponent.hpp
-   ${SUBDIR}/LIFGapActivityComponent.hpp
-   ${SUBDIR}/LinkedObjectParam.hpp
-   ${SUBDIR}/MaskActivityBuffer.hpp
-   ${SUBDIR}/MomentumLCAActivityComponent.hpp
-   ${SUBDIR}/MomentumLCAInternalStateBuffer.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
-   ${SUBDIR}/OriginalLayerNameParam.hpp
    ${SUBDIR}/Patch.hpp
    ${SUBDIR}/PatchGeometry.hpp
    ${SUBDIR}/PatchSize.hpp
-   ${SUBDIR}/PhaseParam.hpp
-   ${SUBDIR}/PoolingIndexLayerInputBuffer.hpp
-   ${SUBDIR}/PtwiseProductGSynAccumulator.hpp
-   ${SUBDIR}/PtwiseQuotientGSynAccumulator.hpp
-   ${SUBDIR}/PublisherComponent.hpp
-   ${SUBDIR}/PvpActivityBuffer.hpp
-   ${SUBDIR}/RescaleActivityBuffer.hpp
-   ${SUBDIR}/RestrictedBuffer.hpp
-   ${SUBDIR}/RetinaActivityBuffer.hpp
-   ${SUBDIR}/SegmentBuffer.hpp
-   ${SUBDIR}/SegmentifyBuffer.hpp
    ${SUBDIR}/SharedWeights.hpp
-   ${SUBDIR}/SigmoidActivityBuffer.hpp
    ${SUBDIR}/SingleArbor.hpp
-   ${SUBDIR}/SingleChannelGSynAccumulator.hpp
-   ${SUBDIR}/SquaredGSynAccumulator.hpp
    ${SUBDIR}/StrengthParam.hpp
    ${SUBDIR}/TransposePatchSize.hpp
    ${SUBDIR}/TransposeWeightsPair.hpp
-   ${SUBDIR}/VInputActivityBuffer.hpp
    ${SUBDIR}/Weights.hpp
    ${SUBDIR}/WeightsPair.hpp
    ${SUBDIR}/WeightsPairInterface.hpp
 )
-
-set (PVLibSrcHpp ${PVLibSrcKpp}
-     ${SUBDIR}/ANNActivityBuffer.kpp
-     ${SUBDIR}/GSynAccumulator.kpp
-     ${SUBDIR}/HyPerLCAInternalStateBuffer.kpp
-)
-
-set (PVLibSrcHpp ${PVLibSrcTpp}
-   ${SUBDIR}/ActivityComponentActivityOnly.tpp
-   ${SUBDIR}/CloneActivityComponent.tpp
-   ${SUBDIR}/HyPerActivityComponent.tpp
-)
-
-if(PV_USE_CUDA)
-  set (PVLibSrcCu ${PVLibSrcCu}
-     ${SUBDIR}/ANNActivityBuffer.cu
-     ${SUBDIR}/GSynAccumulator.cu
-     ${SUBDIR}/HyPerLCAInternalStateBuffer.cu
-     ${SUBDIR}/ISTAInternalStateBuffer.cu
-     ${SUBDIR}/MomentumLCAInternalStateBuffer.cu
-  )
-endif(PV_USE_CUDA)

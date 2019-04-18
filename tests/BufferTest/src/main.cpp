@@ -67,7 +67,7 @@ void testAsVector() {
          testVector.size(),
          comparison.size());
 
-   for (std::size_t i = 0; i < testVector.size(); ++i) {
+   for (int i = 0; i < testVector.size(); ++i) {
       FatalIf(
             testVector.at(i) != comparison.at(i),
             "Failed: Expected %f, found %f at index %d.\n",
@@ -168,7 +168,7 @@ void testCrop() {
       testBuffer.set(bufferContents, 4, 4, 1);
       testBuffer.crop(4, 4, anchor);
       std::vector<float> contents = testBuffer.asVector();
-      for (std::size_t i = 0; i < contents.size(); ++i) {
+      for (int i = 0; i < contents.size(); ++i) {
          FatalIf(contents.at(i) != bufferContents.at(i), "Failed (same size crop).");
       }
    }
@@ -298,7 +298,7 @@ void testRescale() {
          "Failed (Size). Expected %d elements, found %d.\n",
          answerNearest.size(),
          nearest.size());
-   for (std::size_t i = 0; i < nearest.size(); ++i) {
+   for (int i = 0; i < nearest.size(); ++i) {
       FatalIf(
             nearest.at(i) != answerNearest.at(i),
             "Failed (Nearest). Expected %f at index %d, found %f.\n",
@@ -317,7 +317,7 @@ void testRescale() {
          "Failed (Size). Expected %d elements, found %d.\n",
          answerCrop.size(),
          cropped.size());
-   for (std::size_t i = 0; i < cropped.size(); ++i) {
+   for (int i = 0; i < cropped.size(); ++i) {
       FatalIf(
             cropped.at(i) != answerCrop.at(i),
             "Failed (Crop). Expected %f at index %d, found %f.\n",
@@ -336,7 +336,7 @@ void testRescale() {
          "Failed (Size). Expected %d elements, found %d.\n",
          answerPad.size(),
          padded.size());
-   for (std::size_t i = 0; i < padded.size(); ++i) {
+   for (int i = 0; i < padded.size(); ++i) {
       FatalIf(
             padded.at(i) != answerPad.at(i),
             "Failed (Pad). Expected %f at index %d, found %f.\n",

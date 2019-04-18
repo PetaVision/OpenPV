@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 
    bool error   = false;
    int showHelp = 0;
-   std::vector<struct option> longopts{
+   vector<struct option> longopts{
          {"help", 0, &showHelp, 1}, {"usage", 0, &showHelp, 1}, {nullptr, 0, nullptr, 0}};
    int result = 0;
    while (result != -1) {

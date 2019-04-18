@@ -14,12 +14,12 @@ namespace PV {
 
 class CloneHyPerConnTestProbe : public PV::StatsProbe {
   public:
-   CloneHyPerConnTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   CloneHyPerConnTestProbe(const char *name, HyPerCol *hc);
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
 
   private:
    int initialize_base();

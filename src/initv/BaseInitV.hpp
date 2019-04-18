@@ -9,27 +9,26 @@
 #define BASEINITV_HPP_
 
 #include "columns/BaseObject.hpp"
-#include <string>
 
 namespace PV {
 
 class BaseInitV : public BaseObject {
   public:
-   BaseInitV(char const *name, PVParams *params, Communicator const *comm);
+   BaseInitV(char const *name, HyPerCol *hc);
    virtual ~BaseInitV();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void calcV(float *V, PVLayerLoc const *loc);
 
   protected:
    BaseInitV();
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
    virtual void setObjectType() override;
 
   private:
    int initialize_base();
 
   public:
-   static std::string const mDefaultInitV;
+   static string const mDefaultInitV;
 }; // end class BaseInitV
 
 } // end namespace PV

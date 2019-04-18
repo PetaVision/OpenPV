@@ -126,6 +126,7 @@ PoolingConn "input2avgPoolPre" = {
      
     delay = 0;
      
+    convertRateToSpikeCount = false;
 
     updateGSynFromPostPerspective = false;
 
@@ -142,6 +143,7 @@ TransposePoolingConn "avgPoolPreToUnpoolPre" = {
     postLayerName = "UnpoolTestPre";
     channelCode = 0;
     originalConnName = "input2avgPoolPre";
+    convertRateToSpikeCount = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
     writeCompressedCheckpoints = false;
     shmget_flag = false;
@@ -154,6 +156,7 @@ TransposePoolingConn "avgPoolPostToUnpoolPost" = {
     postLayerName = "UnpoolTestPost";
     channelCode = 0;
     originalConnName = "input2avgPoolPost";
+    convertRateToSpikeCount = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
     writeCompressedCheckpoints = false;
     shmget_flag = false;

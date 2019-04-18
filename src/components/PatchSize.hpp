@@ -50,7 +50,7 @@ class PatchSize : public BaseObject {
    /** @} */ // end of PatchSize parameters
 
   public:
-   PatchSize(char const *name, PVParams *params, Communicator const *comm);
+   PatchSize(char const *name, HyPerCol *hc);
 
    virtual ~PatchSize();
 
@@ -77,7 +77,7 @@ class PatchSize : public BaseObject {
   protected:
    PatchSize() {}
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual void setObjectType() override;
 

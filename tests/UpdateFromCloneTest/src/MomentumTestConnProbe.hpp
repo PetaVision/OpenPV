@@ -14,9 +14,9 @@ class MomentumTestConnProbe : public BaseHyPerConnProbe {
 
    // Methods
   public:
-   MomentumTestConnProbe(const char *probename, PVParams *params, Communicator const *comm);
+   MomentumTestConnProbe(const char *probename, HyPerCol *hc);
    virtual ~MomentumTestConnProbe();
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timestamp) override;
 
   protected:
    MomentumTestConnProbe(); // Default constructor, can only be called by derived classes

@@ -10,28 +10,30 @@
 #ifndef BACKGROUNDLAYER_HPP_
 #define BACKGROUNDLAYER_HPP_
 
-#include "HyPerLayer.hpp"
-#include "components/OriginalLayerNameParam.hpp"
+#include "CloneVLayer.hpp"
 
 namespace PV {
 
-/**
- * Background layer clones a layer, adds 1 more feature in the 0 feature idx, and sets the activity
- * to the NOR of everything of that feature (none of the above category)
- */
-class BackgroundLayer : public HyPerLayer {
+// CloneLayer can be used to implement Sigmoid junctions between spiking neurons
+class BackgroundLayer : public CloneVLayer {
   public:
-   BackgroundLayer(const char *name, PVParams *params, Communicator const *comm);
+   BackgroundLayer(const char *name, HyPerCol *hc);
    virtual ~BackgroundLayer();
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual void allocateV() override;
+   virtual Response::Status updateState(double timef, double dt) override;
+   virtual int setActivity() override;
 
   protected:
    BackgroundLayer();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   void ioParam_repFeatureNum(enum ParamsIOFlag ioFlag);
 
-   virtual void fillComponentTable() override;
-   virtual LayerInputBuffer *createLayerInput() override;
-   virtual ActivityComponent *createActivityComponent() override;
-   virtual OriginalLayerNameParam *createOriginalLayerNameParam();
+  private:
+   int initialize_base();
+   int repFeatureNum;
 }; // class BackgroundLayer
 
 } // namespace PV

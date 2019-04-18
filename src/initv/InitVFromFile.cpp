@@ -6,22 +6,24 @@
  */
 
 #include "InitVFromFile.hpp"
+#include "columns/HyPerCol.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 
 namespace PV {
 InitVFromFile::InitVFromFile() { initialize_base(); }
 
-InitVFromFile::InitVFromFile(char const *name, PVParams *params, Communicator const *comm) {
+InitVFromFile::InitVFromFile(char const *name, HyPerCol *hc) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 InitVFromFile::~InitVFromFile() { free(mVfilename); }
 
 int InitVFromFile::initialize_base() { return PV_SUCCESS; }
 
-void InitVFromFile::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   BaseInitV::initialize(name, params, comm);
+int InitVFromFile::initialize(char const *name, HyPerCol *hc) {
+   int status = BaseInitV::initialize(name, hc);
+   return status;
 }
 
 int InitVFromFile::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -32,7 +34,7 @@ int InitVFromFile::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
+   parent->parameters()->ioParamString(
          ioFlag, name, "Vfilename", &mVfilename, nullptr, true /*warnIfAbsent*/);
    if (mVfilename == nullptr) {
       Fatal().printf(
@@ -44,7 +46,7 @@ void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
 }
 
 void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(
+   parent->parameters()->ioParamValue(
          ioFlag, name, "frameNumber", &mFrameNumber, mFrameNumber, true /*warnIfAbsent*/);
 }
 
@@ -55,13 +57,13 @@ void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
       FileStream fileStream(mVfilename, std::ios_base::in | std::ios_base::binary, false);
       BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(fileStream);
       int fileType                       = header.fileType;
-      if (fileType == PVP_NONSPIKING_ACT_FILE_TYPE) {
+      if (header.fileType == PVP_NONSPIKING_ACT_FILE_TYPE) {
          readDenseActivityPvp(V, loc, fileStream, header);
       }
       else { // TODO: Handle sparse activity pvp files.
          if (getMPIBlock()->getRank() == 0) {
             ErrorLog() << "InitVFromFile: filename \"" << mVfilename << "\" has fileType "
-                       << fileType << ", which is not supported for InitVFromFile.\n";
+                       << header.fileType << ", which is not supported for InitVFromFile.\n";
          }
          MPI_Barrier(getMPIBlock()->getComm());
          MPI_Finalize();

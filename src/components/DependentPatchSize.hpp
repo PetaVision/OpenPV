@@ -45,21 +45,22 @@ class DependentPatchSize : public PatchSize {
    /** @} */ // end of DependentPatchSize parameters
 
   public:
-   DependentPatchSize(char const *name, PVParams *params, Communicator const *comm);
+   DependentPatchSize(char const *name, HyPerCol *hc);
    virtual ~DependentPatchSize();
+
+   virtual void setObjectType() override;
 
   protected:
    DependentPatchSize();
 
-   void initialize(char const *name, PVParams *params, Communicator const *comm);
-
-   virtual void setObjectType() override;
+   int initialize(char const *name, HyPerCol *hc);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   char const *getOriginalConnName(std::map<std::string, Observer *> const hierarchy) const;
    PatchSize *getOriginalPatchSize(
          std::map<std::string, Observer *> const hierarchy,
          char const *originalConnName) const;

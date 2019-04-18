@@ -16,12 +16,12 @@ namespace PV {
  */
 class L1NormProbe : public AbstractNormProbe {
   public:
-   L1NormProbe(const char *name, PVParams *params, Communicator const *comm);
+   L1NormProbe(const char *name, HyPerCol *hc);
    virtual ~L1NormProbe();
 
   protected:
    L1NormProbe();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
 
    /**
     * For each MPI process, getValueInternal returns the sum of the absolute

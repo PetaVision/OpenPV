@@ -3,10 +3,8 @@
  *
  */
 
-#include "columns/ComponentBasedObject.hpp"
 #include "columns/buildandrun.hpp"
-#include "components/InputActivityBuffer.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "layers/InputLayer.hpp"
 #include "probes/RequireAllZeroActivityProbe.hpp"
 
 #define CORRECT_PVP_NX 1440 // The x-dimension in the "correct.pvp" file.  Needed by generate()
@@ -136,8 +134,7 @@ int generate(PV_Init *initObj, int rank) {
       initObj->printState();
    }
    if (rank == 0) {
-      auto *emptyInputFile =
-            new FileStream("input/correct.pvp", std::ios_base::in, false /*verifyWrites*/);
+      PV_Stream *emptyinfile = PV_fopen("input/correct.pvp", "w", false /*verifyWrites*/);
       // Data for a CORRECT_PVP_NX-by-CORRECT_PVP_NY layer with CORRECT_PVP_NF features.
       // Sparse activity with no active neurons so file size doesn't change with number of features
       int emptydata[] = {80,
@@ -163,8 +160,13 @@ int generate(PV_Init *initObj, int rank) {
                          0,
                          0,
                          0};
-      emptyInputFile->write(emptydata, sizeof(int) * (std::size_t)23);
-      delete emptyInputFile;
+      size_t numwritten = PV_fwrite(emptydata, sizeof(int), 23, emptyinfile);
+      if (numwritten != 23) {
+         ErrorLog().printf(
+               "%s: failure to write placeholder data into input/correct.pvp file.\n",
+               initObj->getProgramName());
+      }
+      PV_fclose(emptyinfile);
    }
    int status = rebuildandrun(initObj, NULL, &copyCorrectOutput);
    return status;
@@ -175,15 +177,10 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
    std::string sourcePathString = hc->getOutputPath();
    sourcePathString += "/"
                        "Reconstruction.pvp";
-   const char *sourcePath = sourcePathString.c_str();
-
-   auto *correctLayer = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("correct"));
+   const char *sourcePath   = sourcePathString.c_str();
+   InputLayer *correctLayer = dynamic_cast<InputLayer *>(hc->getObjectFromName("Correct"));
    assert(correctLayer);
-   auto *correctActivityComponent = correctLayer->getComponentByType<ComponentBasedObject>();
-   pvAssert(correctActivityComponent);
-   auto *correctInputBuffer = correctActivityComponent->getComponentByType<InputActivityBuffer>();
-   pvAssert(correctInputBuffer);
-   const char *destPath = correctInputBuffer->getInputPath().c_str();
+   const char *destPath = correctLayer->getInputPath().c_str();
    if (strcmp(&destPath[strlen(destPath) - 4], ".pvp") != 0) {
       if (hc->columnId() == 0) {
          ErrorLog().printf(
@@ -194,22 +191,25 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
       MPI_Barrier(hc->getCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-
    if (hc->columnId() == 0) {
-      auto *infile = new FileStream(sourcePath, std::ios_base::in, false /*verifyWrites*/);
-      infile->setInPos(0L, std::ios_base::end);
-      long int filelength = infile->getInPos();
-      infile->setInPos(0L, std::ios_base::beg);
-      char *buf = new char[filelength];
-      infile->read(buf, filelength);
-      delete infile;
-      infile        = nullptr;
-      auto *outfile = new FileStream(destPath, std::ios_base::out, false /*verifyWrites*/);
-      outfile->write(buf, filelength);
-      delete outfile;
-      outfile = nullptr;
-      delete[] buf;
-      buf = nullptr;
+      PV_Stream *infile = PV_fopen(sourcePath, "r", false /*verifyWrites*/);
+      FatalIf(!(infile), "Test failed.\n");
+      PV_fseek(infile, 0L, SEEK_END);
+      long int filelength = PV_ftell(infile);
+      PV_fseek(infile, 0L, SEEK_SET);
+      char *buf        = (char *)malloc((size_t)filelength);
+      size_t charsread = PV_fread(buf, sizeof(char), (size_t)filelength, infile);
+      FatalIf(!(charsread == (size_t)filelength), "Test failed.\n");
+      PV_fclose(infile);
+      infile             = NULL;
+      PV_Stream *outfile = PV_fopen(destPath, "w", false /*verifyWrites*/);
+      FatalIf(!(outfile), "Test failed.\n");
+      size_t charswritten = PV_fwrite(buf, sizeof(char), (size_t)filelength, outfile);
+      FatalIf(!(charswritten == (size_t)filelength), "Test failed.\n");
+      PV_fclose(outfile);
+      outfile = NULL;
+      free(buf);
+      buf = NULL;
    }
    return status;
 }

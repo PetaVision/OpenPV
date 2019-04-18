@@ -35,9 +35,8 @@ int KeywordHandler::initialize(char const *kw, ObjectCreateFn creator) {
    return PV_SUCCESS;
 }
 
-BaseObject *
-KeywordHandler::create(char const *name, PVParams *params, Communicator const *comm) const {
-   return (creator)(name, params, comm);
+BaseObject *KeywordHandler::create(char const *name, HyPerCol *hc) const {
+   return (creator)(name, hc);
 }
 
 KeywordHandler::~KeywordHandler() { free(keyword); }

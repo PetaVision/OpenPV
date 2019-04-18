@@ -11,18 +11,18 @@
 namespace PVCuda {
 
 CudaTimer::CudaTimer(double init_time) : PV::Timer(init_time) {
-   handleError(cudaEventCreate(&mStartEvent), "Start event creation");
-   handleError(cudaEventCreate(&mStopEvent), "Stop event creation");
-   mTime   = 0.0f;
-   mStream = nullptr;
+   handleError(cudaEventCreate(&startEvent), "Start event creation");
+   handleError(cudaEventCreate(&stopEvent), "Stop event creation");
+   time   = 0;
+   stream = nullptr;
 }
 
 CudaTimer::CudaTimer(const char *timermessage, double init_time)
       : PV::Timer(timermessage, init_time) {
-   handleError(cudaEventCreate(&mStartEvent), "Start event creation");
-   handleError(cudaEventCreate(&mStopEvent), "Stop event creation");
-   mTime   = 0.0f;
-   mStream = nullptr;
+   handleError(cudaEventCreate(&startEvent), "Start event creation");
+   handleError(cudaEventCreate(&stopEvent), "Stop event creation");
+   time   = 0;
+   stream = nullptr;
 }
 
 CudaTimer::CudaTimer(
@@ -31,53 +31,40 @@ CudaTimer::CudaTimer(
       const char *timertype,
       double init_time)
       : PV::Timer(objname, objtype, timertype, init_time) {
-   handleError(cudaEventCreate(&mStartEvent), "Start event creation");
-   handleError(cudaEventCreate(&mStopEvent), "Stop event creation");
-   mTime   = 0.0f;
-   mStream = nullptr;
+   handleError(cudaEventCreate(&startEvent), "Start event creation");
+   handleError(cudaEventCreate(&stopEvent), "Stop event creation");
+   time   = 0;
+   stream = nullptr;
 }
 
 CudaTimer::~CudaTimer() {
-   handleError(cudaEventDestroy(mStartEvent), "Start event destruction");
-   handleError(cudaEventDestroy(mStopEvent), "Stop event destruction");
+   handleError(cudaEventDestroy(startEvent), "Start event destruction");
+   handleError(cudaEventDestroy(stopEvent), "Stop event destruction");
 }
 
 double CudaTimer::start() {
-   if (mEventPending == true) {
-      WarnLog() << "CudaTimer called start() while event was still pending (timer message = \""
-                << message << "\").\n";
-   }
-   handleError(cudaEventRecord(mStartEvent, mStream), "Recording start event");
+   handleError(cudaEventRecord(startEvent, stream), "Recording start event");
    return 0;
 }
 
 double CudaTimer::stop() {
-   handleError(cudaEventRecord(mStopEvent, mStream), "Recording stop event");
-   if (mEventPending == true) {
-      WarnLog() << "CudaTimer called stop() while event was still pending (timer message = \""
-                << message << "\").\n";
-   }
-   mEventPending = true;
+   handleError(cudaEventRecord(stopEvent, stream), "Recording stop event");
    return 0;
 }
 
 // Note this function is blocking
 double CudaTimer::accumulateTime() {
-   if (mEventPending) {
-      float curTime;
-      handleError(cudaEventSynchronize(mStopEvent), "Synchronizing stop event");
-      handleError(
-            cudaEventElapsedTime(&curTime, mStartEvent, mStopEvent), "Calculating elapsed time");
-      // Roundoff errors?
-      mTime += curTime;
-      mEventPending = false;
-   }
-   return (double)mTime;
+   float curTime;
+   handleError(cudaEventSynchronize(stopEvent), "Synchronizing stop event");
+   handleError(cudaEventElapsedTime(&curTime, startEvent, stopEvent), "Calculating elapsed time");
+   // Roundoff errors?
+   time += curTime;
+   return (double)time;
 }
 
-int CudaTimer::fprint_time(PrintStream &printStream) const {
+int CudaTimer::fprint_time(PrintStream &stream) {
    if (rank == 0) {
-      printStream << message << "processor cycle time == " << mTime << std::endl;
+      stream << message << "processor cycle time == " << time << std::endl;
    }
    return 0;
 }

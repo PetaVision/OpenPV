@@ -1,26 +1,22 @@
-#ifndef DROPOUTLAYER_HPP__
-#define DROPOUTLAYER_HPP__
+#ifndef _DROPOUTLAYER_HPP_
+#define _DROPOUTLAYER_HPP_
 
-#include "HyPerLayer.hpp"
+#include "ANNLayer.hpp"
 
 namespace PV {
 
-/**
- * DropoutLayer is a layer type that uses DropoutActivityBuffer.
- */
-class DropoutLayer : public HyPerLayer {
+class DropoutLayer : public ANNLayer {
+
   public:
-   DropoutLayer(const char *name, PVParams *params, Communicator const *comm);
+   DropoutLayer(const char *name, HyPerCol *hc);
    virtual ~DropoutLayer();
 
   protected:
-   DropoutLayer() {}
+   virtual Response::Status updateState(double timestamp, double dt) override;
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_probability(enum ParamsIOFlag ioFlag);
 
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-
-   virtual ActivityComponent *createActivityComponent() override;
+   int mProbability = 0; // Value from 0-99 indicating per-neuron chance of dropout
 };
-
-} // end namespace PV
-
+}
 #endif

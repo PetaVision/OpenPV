@@ -185,6 +185,7 @@ HyPerConn "Original" = {
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
+    convertRateToSpikeCount = false;
     receiveGpu = false;
 
     delay = 0;
@@ -201,6 +202,7 @@ CloneConn "Clone" = {
 
     channelCode = 0;
 
+    convertRateToSpikeCount = false;
     receiveGpu = false;
 
     delay = 0;

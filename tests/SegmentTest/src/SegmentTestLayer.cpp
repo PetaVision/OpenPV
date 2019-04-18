@@ -1,27 +1,18 @@
 #include "SegmentTestLayer.hpp"
-#include <components/ActivityComponent.hpp>
 
 namespace PV {
 
-SegmentTestLayer::SegmentTestLayer(const char *name, PVParams *params, Communicator const *comm) {
-   SegmentLayer::initialize(name, params, comm);
-
-   FatalIf(
-         mActivityComponent == nullptr,
-         "%s failed to create an ActivityComponent.\n",
-         getDescription_c());
-   mSegmentBuffer = mActivityComponent->getComponentByType<SegmentBuffer>();
-   FatalIf(
-         mSegmentBuffer == nullptr, "%s failed to create an ActivityBuffer.\n", getDescription_c());
+SegmentTestLayer::SegmentTestLayer(const char *name, HyPerCol *hc) {
+   SegmentLayer::initialize(name, hc);
 }
 
-Response::Status SegmentTestLayer::checkUpdateState(double timef, double dt) {
+Response::Status SegmentTestLayer::updateState(double timef, double dt) {
    // Do update state first
-   SegmentLayer::checkUpdateState(timef, dt);
+   SegmentLayer::updateState(timef, dt);
    const PVLayerLoc *loc = getLayerLoc();
 
    for (int bi = 0; bi < loc->nbatch; bi++) {
-      std::map<int, int> idxMap = mSegmentBuffer->getCenterIdxBuf(bi);
+      std::map<int, int> idxMap = centerIdx[bi];
       for (auto &p : idxMap) {
          int label = p.first;
          int idx   = p.second;

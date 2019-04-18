@@ -16,12 +16,9 @@
 #define DEFAULT_DYNVTHSCALE 1.0f
 
 namespace PV {
-class LCALIFLayer : public LIFGap {
+class LCALIFLayer : public PV::LIFGap {
   public:
-   LCALIFLayer(
-         const char *name,
-         PVParams *params,
-         Communicator const *comm); // The constructor called by other methods
+   LCALIFLayer(const char *name, HyPerCol *hc); // The constructor called by other methods
    virtual ~LCALIFLayer();
    virtual Response::Status allocateDataStructures() override;
    virtual Response::Status updateState(double timef, double dt) override;
@@ -41,8 +38,7 @@ class LCALIFLayer : public LIFGap {
    virtual void ioParam_targetRate(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeInput(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vscale(enum ParamsIOFlag ioFlag);
-   virtual Response::Status
-   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual Response::Status registerData(Checkpointer *checkpointer) override;
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
    virtual void read_integratedSpikeCountFromCheckpoint(Checkpointer *checkpointer);
    virtual void readVadptFromCheckpoint(Checkpointer *checkpointer);

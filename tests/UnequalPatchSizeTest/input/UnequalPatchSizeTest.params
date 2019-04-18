@@ -88,7 +88,7 @@ PvpLayer "correct" = {
     offsetY = 0;
 };
 
-HyPerLayer "compare" = {
+ANNLayer "compare" = {
     // nxScale set in parameter sweep
     // nyScale set in parameter sweep
     nf = 1;
@@ -100,6 +100,13 @@ HyPerLayer "compare" = {
     sparseLayer = false;
 
     InitVType = "ZeroV";
+
+
+    VThresh = -infinity;   
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
 HyPerConn "input_to_output" = {
@@ -126,6 +133,7 @@ HyPerConn "input_to_output" = {
     delay = 0;
 
     pvpatchAccumulateType = "Convolve";
+    convertRateToSpikeCount = false;
     updateGSynFromPostPerspective = false;
 };
 

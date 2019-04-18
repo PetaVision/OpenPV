@@ -6,6 +6,7 @@
  */
 
 #include "ColProbe.hpp"
+#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
@@ -15,34 +16,21 @@ ColProbe::ColProbe() { // Default constructor to be called by derived classes.
    initialize_base();
 }
 
-ColProbe::ColProbe(const char *name, PVParams *params, Communicator const *comm) {
+ColProbe::ColProbe(const char *name, HyPerCol *hc) {
    initialize_base();
-   initialize(name, params, comm);
+   initialize(name, hc);
 }
 
 ColProbe::~ColProbe() {}
 
-int ColProbe::initialize_base() { return PV_SUCCESS; }
-
-void ColProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   BaseProbe::initialize(name, params, comm);
+int ColProbe::initialize_base() {
+   parent = NULL;
+   return PV_SUCCESS;
 }
 
-void ColProbe::initMessageActionMap() {
-   BaseProbe::initMessageActionMap();
-   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ColProbeWriteParamsMessage const>(msgptr);
-      return respondColProbeWriteParams(castMessage);
-   };
-   mMessageActionMap.emplace("ColProbeWriteParams", action);
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ColProbeOutputStateMessage const>(msgptr);
-      return respondColProbeOutputState(castMessage);
-   };
-   mMessageActionMap.emplace("ColProbeOutputState", action);
+int ColProbe::initialize(const char *name, HyPerCol *hc) {
+   int status = BaseProbe::initialize(name, hc);
+   return status;
 }
 
 int ColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -59,6 +47,24 @@ void ColProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
 void ColProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
    BaseProbe::initOutputStreams(filename, checkpointer);
    outputHeader();
+}
+
+Response::Status ColProbe::respond(std::shared_ptr<BaseMessage const> message) {
+   Response::Status status = BaseProbe::respond(message);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
+   else if (
+         auto castMessage = std::dynamic_pointer_cast<ColProbeOutputStateMessage const>(message)) {
+      return respondColProbeOutputState(castMessage);
+   }
+   else if (
+         auto castMessage = std::dynamic_pointer_cast<ColProbeWriteParamsMessage const>(message)) {
+      return respondColProbeWriteParams(castMessage);
+   }
+   else {
+      return status;
+   }
 }
 
 Response::Status

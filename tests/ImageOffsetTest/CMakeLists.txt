@@ -1,15 +1,11 @@
 set(SRC_CPP
   src/ImageOffsetTest.cpp
-  src/ImageOffsetTestActivityBuffer.cpp
   src/ImageOffsetTestLayer.cpp
-  src/ImagePvpOffsetTestActivityBuffer.cpp
   src/ImagePvpOffsetTestLayer.cpp
 )
 
 set(SRC_HPP
-  src/ImageOffsetTestActivityBuffer.hpp
   src/ImageOffsetTestLayer.hpp
-  src/ImagePvpOffsetTestActivityBuffer.hpp
   src/ImagePvpOffsetTestLayer.hpp
 )
 

@@ -1,17 +1,16 @@
 #ifndef MASKTESTINPUTLAYER_HPP_
 #define MASKTESTINPUTLAYER_HPP_
 
-#include <layers/HyPerLayer.hpp>
+#include <layers/ANNLayer.hpp>
 
 namespace PV {
 
-class MaskTestInputLayer : public PV::HyPerLayer {
+class MaskTestInputLayer : public PV::ANNLayer {
   public:
-   MaskTestInputLayer(const char *name, PVParams *params, Communicator const *comm);
+   MaskTestInputLayer(const char *name, HyPerCol *hc);
 
   protected:
-   virtual ActivityComponent *createActivityComponent() override;
-   virtual Response::Status checkUpdateState(double timef, double dt) override;
+   virtual Response::Status updateState(double timef, double dt) override;
 
   private:
 };

@@ -17,15 +17,16 @@
 #ifndef REQUIREALLZEROACTIVITYPROBE_HPP_
 #define REQUIREALLZEROACTIVITYPROBE_HPP_
 
+#include "../columns/HyPerCol.hpp"
 #include "StatsProbe.hpp"
 
 namespace PV {
 
-class RequireAllZeroActivityProbe : public StatsProbe {
+class RequireAllZeroActivityProbe : public PV::StatsProbe {
   public:
-   RequireAllZeroActivityProbe(const char *name, PVParams *params, Communicator const *comm);
+   RequireAllZeroActivityProbe(const char *name, HyPerCol *hc);
    virtual ~RequireAllZeroActivityProbe();
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputState(double timed) override;
 
    bool getNonzeroFound() { return nonzeroFound; }
    double getNonzeroTime() { return nonzeroTime; }
@@ -33,7 +34,7 @@ class RequireAllZeroActivityProbe : public StatsProbe {
   protected:
    RequireAllZeroActivityProbe();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
 
    /**

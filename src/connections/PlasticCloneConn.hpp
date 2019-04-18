@@ -26,12 +26,12 @@ class PlasticCloneConn : public CloneConn {
     */
 
   public:
-   PlasticCloneConn(const char *name, PVParams *params, Communicator const *comm);
+   PlasticCloneConn(const char *name, HyPerCol *hc);
    virtual ~PlasticCloneConn();
 
   protected:
    PlasticCloneConn();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   int initialize(const char *name, HyPerCol *hc);
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;

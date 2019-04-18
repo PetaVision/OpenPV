@@ -5,11 +5,9 @@
 #include <utils/PVAssert.hpp>
 #include <utils/PVLog.hpp>
 #include <utils/TransposeWeights.hpp>
-#include <utils/conversions.hpp>
+#include <utils/conversions.h>
 
 #include <cmath>
-
-using namespace PV;
 
 int TestNonshared(
       std::string const &testName,
@@ -21,7 +19,7 @@ int TestNonshared(
       int nfPost,
       int patchSizeXPre,
       int patchSizeYPre,
-      Communicator const *comm) {
+      PV::Communicator *comm) {
    int status = PV_SUCCESS;
 
    // For one-to-one connections, stride and transpose-stride are both one.
@@ -78,8 +76,8 @@ int TestNonshared(
 
    int const patchSizeFPost = nfPre;
 
-   bool const nonShared    = false;
-   Weights originalWeights = createOriginalWeights(
+   bool const nonShared        = false;
+   PV::Weights originalWeights = createOriginalWeights(
          nonShared,
          nxPre,
          nyPre,
@@ -91,11 +89,15 @@ int TestNonshared(
          patchSizeYPre,
          comm);
 
+   int const patchSizeFPre    = originalWeights.getPatchSizeF();
+   int const numPatchItemsPre = originalWeights.getPatchSizeOverall();
+   int const numKernelsPre    = originalWeights.getGeometry()->getNumKernels();
+
    std::string transposeWeightsName("Transpose");
-   Weights transposeWeights(
+   PV::Weights transposeWeights(
          transposeWeightsName,
-         PatchSize::calcPostPatchSize(patchSizeXPre, nxPre, nxPost),
-         PatchSize::calcPostPatchSize(patchSizeYPre, nyPre, nyPost),
+         PV::PatchSize::calcPostPatchSize(patchSizeXPre, nxPre, nxPost),
+         PV::PatchSize::calcPostPatchSize(patchSizeYPre, nyPre, nyPost),
          nfPre,
          &originalWeights.getGeometry()->getPostLoc(),
          &originalWeights.getGeometry()->getPreLoc(),
@@ -133,7 +135,7 @@ int TestNonshared(
 
    transposeWeights.allocateDataStructures();
 
-   TransposeWeights::transpose(&originalWeights, &transposeWeights, comm);
+   PV::TransposeWeights::transpose(&originalWeights, &transposeWeights, comm);
 
    // Check the values
    int const numPatchesXPost = transposeWeights.getNumDataPatchesX();
@@ -148,7 +150,7 @@ int TestNonshared(
    PVLayerLoc const &preLoc  = geometryPost->getPostLoc();
    for (int patchIndexPost = 0; patchIndexPost < numPatchesPost; patchIndexPost++) {
       for (int itemInPatchPost = 0; itemInPatchPost < numPatchItemsPost; itemInPatchPost++) {
-         Patch const &patchPost = transposeWeights.getPatch(patchIndexPost);
+         PV::Patch const &patchPost = transposeWeights.getPatch(patchIndexPost);
 
          int const patchOffsetXPost =
                kxPos(patchPost.offset, patchSizeXPost, patchSizeYPost, patchSizeFPost);
@@ -187,12 +189,12 @@ int TestNonshared(
             int const itemInPatchFPost =
                   featureIndex(itemInPatchPost, patchSizeXPost, patchSizeYPost, patchSizeFPost);
 
-            int const patchStartXInPre = PatchGeometry::calcPatchStartInPost(
+            int const patchStartXInPre = PV::PatchGeometry::calcPatchStartInPost(
                   kxGlobalResPost, patchSizeXPost, postLoc.nxGlobal, preLoc.nxGlobal);
             int const kxGlobalResPre = patchStartXInPre + itemInPatchXPost;
             bool const xInBoundsPre  = kxGlobalResPre >= 0 and kxGlobalResPre < preLoc.nxGlobal;
 
-            int const patchStartYInPre = PatchGeometry::calcPatchStartInPost(
+            int const patchStartYInPre = PV::PatchGeometry::calcPatchStartInPost(
                   kyGlobalResPost, patchSizeYPost, postLoc.nyGlobal, preLoc.nyGlobal);
             int const kyGlobalResPre = patchStartYInPre + itemInPatchYPost;
             bool const yInBoundsPre  = kyGlobalResPre >= 0 and kyGlobalResPre < preLoc.nyGlobal;

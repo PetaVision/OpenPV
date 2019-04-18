@@ -101,6 +101,7 @@ HyPerLCALayer "V1" = {
     writeStep                           = 200;
     initialWriteTime                    = 200;
     sparseLayer                         = true;
+    writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
     VThresh                             = 0.25; // This VThresh is much larger than we usually use, to make the graphs produced by analysis/energy_graph.m comprehensible.

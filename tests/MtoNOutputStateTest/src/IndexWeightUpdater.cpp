@@ -6,44 +6,34 @@
  */
 
 #include "IndexWeightUpdater.hpp"
+#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
-IndexWeightUpdater::IndexWeightUpdater(
-      char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize(name, params, comm);
+IndexWeightUpdater::IndexWeightUpdater(char const *name, HyPerCol *hc) { initialize(name, hc); }
+
+int IndexWeightUpdater::initialize(char const *name, HyPerCol *hc) {
+   return HebbianUpdater::initialize(name, hc);
 }
 
-void IndexWeightUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
-   HebbianUpdater::initialize(name, params, comm);
-}
-
-Response::Status
-IndexWeightUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+void IndexWeightUpdater::initializeWeights() {
    int const numArbors = mArborList->getNumAxonalArbors();
-   updateState(0.0 /*simulationTime*/, message->mDeltaTime);
+   int status          = PV_SUCCESS;
    for (int arbor = 0; arbor < numArbors; arbor++) {
       updateWeights(arbor);
    }
-   return Response::SUCCESS;
 }
 
-void IndexWeightUpdater::updateState(double simTime, double dt) {
+int IndexWeightUpdater::updateWeights(int arborId) {
    int const nPatch         = mWeights->getPatchSizeOverall();
    int const numDataPatches = mWeights->getNumDataPatches();
-   for (int arbor = 0; arbor < mArborList->getNumAxonalArbors(); arbor++) {
-      for (int patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
-         float *Wdata = mWeights->getDataFromDataIndex(arbor, patchIndex);
-         for (int kPatch = 0; kPatch < nPatch; kPatch++) {
-            Wdata[kPatch] = patchIndex * nPatch + kPatch + simTime;
-         }
+   for (int patchIndex = 0; patchIndex < numDataPatches; patchIndex++) {
+      float *Wdata = mWeights->getDataFromDataIndex(arborId, patchIndex);
+      for (int kPatch = 0; kPatch < nPatch; kPatch++) {
+         Wdata[kPatch] = patchIndex * nPatch + kPatch + parent->simulationTime();
       }
    }
-   mLastUpdateTime = simTime;
-   mWeights->setTimestamp(simTime);
-   computeNewWeightUpdateTime(simTime, mWeightUpdateTime);
+   return PV_SUCCESS;
 }
 
 } // namespace PV

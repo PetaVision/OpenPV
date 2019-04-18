@@ -2,14 +2,11 @@
 #include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
-#include <utils/conversions.hpp>
+#include <utils/conversions.h>
 
 /*
  * The preferred patch size is even for a > 1 and odd for a <= 1
  */
-
-using PV::nearby_neighbor;
-using PV::zPatchHead;
 
 // not used, zPatchHead called directly instead
 int test_PatchHead(int kzPre, int nzPatch, int zScaleLog2Pre, int zScaleLog2Post) {
