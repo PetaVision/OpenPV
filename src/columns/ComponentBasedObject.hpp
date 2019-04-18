@@ -40,6 +40,11 @@ class ComponentBasedObject : public BaseObject, public Subject {
      * during instantiation.
      */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
+   virtual Response::Status allocateDataStructures() override;
 }; // class ComponentBasedObject
 
 } // namespace PV

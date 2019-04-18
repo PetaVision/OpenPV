@@ -38,6 +38,51 @@ int ComponentBasedObject::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
+Response::Status ComponentBasedObject::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   // Add a component consisting of a lookup table from the names of the parent's components
+   // to the components themselves. This is needed by, for example, CloneWeightsPair, to find the
+   // original weights pair.
+   // Since communicateInitInfo can be called more than once, we must ensure that the
+   // ObserverTable is only added once.
+   Response::Status status = BaseObject::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *tableComponent = getComponentByType<ObserverTable>();
+   if (!tableComponent) {
+      std::string tableDescription = std::string("ObserverTable \"") + getName() + "\"";
+      tableComponent               = new ObserverTable(tableDescription.c_str());
+      tableComponent->copyTable(message->mHierarchy);
+      addUniqueComponent(tableComponent->getDescription(), tableComponent);
+      // mTable takes ownership of tableComponent, which will therefore be deleted by the
+      // Subject::deleteObserverTable() method during destructor.
+   }
+   pvAssert(tableComponent);
+
+   auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
+         mTable,
+         message->mDeltaTime,
+         message->mNxGlobal,
+         message->mNyGlobal,
+         message->mNBatchGlobal,
+         message->mNumThreads);
+
+   status = status + notify(communicateMessage, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   return status;
+}
+
+Response::Status ComponentBasedObject::allocateDataStructures() {
+   Response::Status status = BaseObject::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   // Pass on the allocate message to the components.
+   auto allocateMessage = std::make_shared<AllocateDataStructuresMessage>();
+   status = notify(allocateMessage, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   return status;
+}
+
 ComponentBasedObject::~ComponentBasedObject() {}
 
 } /* namespace PV */
