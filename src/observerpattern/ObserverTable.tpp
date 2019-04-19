@@ -38,6 +38,7 @@ S *ObserverTable::lookupByType() const {
    return lookupResult;
 }
 
+// Note: the type T must have a getName() function member, but the Observer class doesn't.
 template <typename T>
 T *ObserverTable::findObject(std::string const &name) const {
    T *result = nullptr;

@@ -50,67 +50,77 @@ PV::Response::Status MomentumConnSimpleCheckpointerTestProbe::communicateInitInf
       return status;
    }
 
-   auto *componentTable = message->mHierarchy;
+   auto *allObjects = message->mAllObjects;
 
-   status = mConnection ? status : status + initConnection(componentTable);
+   status = mConnection ? status : status + initConnection(allObjects);
    // initConnection sets InitializeFromCheckpointFlag, and init{In,Out}PutLayer checks
    // against that value, so we have to complete initConnection successively before
    // calling initInputLayer or initOutputLayer.
    if (!PV::Response::completed(status)) {
       return status;
    }
-   status = mInputPublisher ? status : status + initInputLayer(componentTable);
-   status = mOutputPublisher ? status : status + initOutputLayer(componentTable);
-
-   if (PV::Response::completed(status)) {
-      mInitializeFromCheckpointFlag = mConnection->getInitializeFromCheckpointFlag();
-   }
+   status = mInputPublisher ? status : status + initInputLayer(allObjects);
+   status = mOutputPublisher ? status : status + initOutputLayer(allObjects);
 
    return status;
 }
 
 PV::Response::Status
-MomentumConnSimpleCheckpointerTestProbe::initConnection(PV::ObserverTable const *componentTable) {
-   auto *connection =
-         componentTable->lookupByName<PV::ComponentBasedObject>(std::string("InputToOutput"));
-   FatalIf(connection == nullptr, "column does not have a MomentumConn named \"InputToOutput\".\n");
+MomentumConnSimpleCheckpointerTestProbe::initConnection(PV::ObserverTable const *allObjects) {
+   char const *connectionName = "InputToOutput";
+   auto *connection           = allObjects->findObject<PV::ComponentBasedObject>(connectionName);
+   FatalIf(
+         connection == nullptr,
+         "column does not have a MomentumConn named \"%s\".\n",
+         connectionName);
    if (checkCommunicatedFlag(connection) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
    mConnection = connection;
 
-   auto *arborList = mConnection->getComponentByType<PV::ArborList>();
-   FatalIf(
-         arborList == nullptr, "%s does not have an ArborList.\n", mConnection->getDescription_c());
+   auto *arborList = allObjects->findObject<PV::ArborList>(connectionName);
+   FatalIf(arborList == nullptr, "Connection \"%s\" does not have an ArborList.\n", connectionName);
+   if (checkCommunicatedFlag(arborList) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
    FatalIf(
          arborList->getNumAxonalArbors() != 1,
          "This test assumes that the connection has only 1 arbor.\n");
    FatalIf(
          arborList->getDelay(0) != 0.0, "This test assumes that the connection has zero delay.\n");
 
-   auto *sharedWeights = mConnection->getComponentByType<PV::SharedWeights>();
+   auto *sharedWeights = allObjects->findObject<PV::SharedWeights>(connectionName);
    FatalIf(
          sharedWeights == nullptr,
          "%s does not have a SharedWeights component.\n",
          mConnection->getDescription_c());
+   if (checkCommunicatedFlag(sharedWeights) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
    FatalIf(
          !sharedWeights->getSharedWeights(),
          "This test assumes that the connection is using shared weights.\n");
 
-   auto *patchSize = mConnection->getComponentByType<PV::PatchSize>();
+   auto *patchSize = allObjects->findObject<PV::PatchSize>(connectionName);
    FatalIf(
          patchSize == nullptr,
          "%s does not have a PatchSize component.\n",
          mConnection->getDescription_c());
+   if (checkCommunicatedFlag(patchSize) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
    FatalIf(patchSize->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
    FatalIf(patchSize->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(patchSize->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
 
-   auto *momentumUpdater = mConnection->getComponentByType<PV::MomentumUpdater>();
+   auto *momentumUpdater = allObjects->findObject<PV::MomentumUpdater>(connectionName);
    FatalIf(
          momentumUpdater == nullptr,
          "%s does not have a momentumUpdater.\n",
          mConnection->getDescription_c());
+   if (checkCommunicatedFlag(momentumUpdater) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
    FatalIf(
          std::strcmp(momentumUpdater->getMomentumMethod(), "simple"),
          "This test assumes that the connection has momentumMethod=\"simple\".\n");
@@ -119,9 +129,13 @@ MomentumConnSimpleCheckpointerTestProbe::initConnection(PV::ObserverTable const 
 }
 
 PV::Response::Status
-MomentumConnSimpleCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *componentTable) {
-   auto *inputLayer = componentTable->lookupByName<PV::InputLayer>(std::string("Input"));
-   FatalIf(inputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
+MomentumConnSimpleCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *allObjects) {
+   char const *inputLayerName = "Input";
+   auto *inputLayer           = allObjects->findObject<PV::InputLayer>(inputLayerName);
+   FatalIf(
+         inputLayer == nullptr,
+         "column does not have an InputLayer named \"%s\".\n",
+         inputLayerName);
    if (checkCommunicatedFlag(inputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
@@ -131,13 +145,19 @@ MomentumConnSimpleCheckpointerTestProbe::initInputLayer(PV::ObserverTable const 
          inputLayer->getDescription_c(),
          getDescription_c());
 
-   auto *activityComponent = inputLayer->getComponentByType<PV::ActivityComponent>();
-   auto *inputBuffer       = activityComponent->getComponentByType<PV::InputActivityBuffer>();
+   auto *inputBuffer = allObjects->findObject<PV::InputActivityBuffer>(inputLayerName);
+   FatalIf(
+         inputBuffer == nullptr,
+         "%s does not have an InputActivityBuffer.\n",
+         inputLayer->getDescription_c());
+   if (checkCommunicatedFlag(inputBuffer) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
    FatalIf(
          inputBuffer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
 
-   mInputPublisher = inputLayer->getComponentByType<PV::BasePublisherComponent>();
+   mInputPublisher = allObjects->findObject<PV::BasePublisherComponent>(inputLayerName);
    FatalIf(
          mInputPublisher == nullptr,
          "%s does not have a BasePublisherComponent.\n",
@@ -146,9 +166,13 @@ MomentumConnSimpleCheckpointerTestProbe::initInputLayer(PV::ObserverTable const 
 }
 
 PV::Response::Status
-MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *componentTable) {
-   auto *outputLayer = componentTable->lookupByName<PV::HyPerLayer>(std::string("Output"));
-   FatalIf(outputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
+MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *allObjects) {
+   char const *outputLayerName = "Output";
+   auto *outputLayer           = allObjects->findObject<PV::HyPerLayer>(outputLayerName);
+   FatalIf(
+         outputLayer == nullptr,
+         "column does not have a HyPerLayer named \"%s\".\n",
+         outputLayerName);
    if (checkCommunicatedFlag(outputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
@@ -157,7 +181,10 @@ MomentumConnSimpleCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const
          "%s has a different initializeFromCheckpointFlag value from the probe %s.\n",
          outputLayer->getDescription_c(),
          getDescription_c());
-   mOutputPublisher = outputLayer->getComponentByType<PV::BasePublisherComponent>();
+   mOutputPublisher = allObjects->findObject<PV::BasePublisherComponent>(outputLayerName);
+   if (checkCommunicatedFlag(mOutputPublisher) == PV::Response::POSTPONE) {
+      return PV::Response::POSTPONE;
+   }
    FatalIf(
          mOutputPublisher == nullptr,
          "%s does not have a BasePublisherComponent.\n",

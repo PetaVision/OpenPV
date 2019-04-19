@@ -66,7 +66,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    pvAssert(table);
 
    bool failed = false;
-   mPre        = table->lookupByName<HyPerLayer>(std::string(getPreLayerName()));
+   mPre        = table->findObject<HyPerLayer>(getPreLayerName());
    if (getPre() == nullptr) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -77,7 +77,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       failed = true;
    }
 
-   mPost = table->lookupByName<HyPerLayer>(std::string(getPostLayerName()));
+   mPost = table->findObject<HyPerLayer>(getPostLayerName());
    if (getPost() == nullptr) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(

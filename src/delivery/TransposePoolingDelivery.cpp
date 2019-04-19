@@ -69,31 +69,21 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
       return status;
    }
 
-   auto hierarchy = message->mHierarchy;
+   auto *allObjects = message->mAllObjects;
 
-   auto *originalConnNameParam = hierarchy->lookupByType<OriginalConnNameParam>();
+   auto *originalConnNameParam = allObjects->findObject<OriginalConnNameParam>(getName());
    pvAssert(originalConnNameParam);
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
    const char *originalConnName = originalConnNameParam->getLinkedObjectName();
 
-   auto *tableComponent = hierarchy->lookupByType<ObserverTable>();
-   FatalIf(tableComponent == nullptr, "%s requires an ObserverTable.\n", getDescription_c());
-   std::string originalConnString = std::string(originalConnName);
-   PoolingConn *originalConn      = tableComponent->lookupByName<PoolingConn>(originalConnString);
-   if (originalConn == nullptr) {
-      if (mCommunicator->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not correspond to a PoolingConn in the column.\n",
-               getDescription_c(),
-               originalConnName);
-      }
-      MPI_Barrier(mCommunicator->globalCommunicator());
-      exit(EXIT_FAILURE);
-   }
-   auto *originalPoolingDelivery = originalConn->getComponentByType<PoolingDelivery>();
-   pvAssert(originalPoolingDelivery);
+   auto *originalPoolingDelivery = allObjects->findObject<PoolingDelivery>(originalConnName);
+   FatalIf(
+         originalPoolingDelivery == nullptr,
+         "%s: original connection \"%s\" does not have a PoolingDelivery component.\n",
+         getDescription_c(),
+         originalConnName);
    mAccumulateType = originalPoolingDelivery->getAccumulateType();
    mReceiveGpu     = originalPoolingDelivery->getReceiveGpu();
 #ifdef PV_USE_CUDA
@@ -104,8 +94,12 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
       mOriginalPostIndexData = originalPostIndexLayer->getComponentByType<BasePublisherComponent>();
    }
 
-   auto *originalConnectionData = originalConn->getComponentByType<ConnectionData>();
-   pvAssert(originalConnectionData);
+   auto *originalConnectionData = allObjects->findObject<ConnectionData>(originalConnName);
+   FatalIf(
+         originalConnectionData == nullptr,
+         "%s: original connection \"%s\" does not have a ConnectionData component.\n",
+         getDescription_c(),
+         originalConnName);
    mOriginalPreData =
          originalConnectionData->getPre()->getComponentByType<BasePublisherComponent>();
    mOriginalPostGSyn = originalConnectionData->getPost()->getComponentByType<LayerInputBuffer>();
@@ -126,7 +120,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
             name, "updateGSynFromPostPerspective", mUpdateGSynFromPostPerspective);
    }
 
-   mPatchSize = hierarchy->lookupByType<DependentPatchSize>();
+   mPatchSize = allObjects->findObject<DependentPatchSize>(getName());
    FatalIf(
          mPatchSize == nullptr,
          "%s requires a DependentPatchSize component.\n",
@@ -135,7 +129,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   mWeightsPair = hierarchy->lookupByType<ImpliedWeightsPair>();
+   mWeightsPair = allObjects->findObject<ImpliedWeightsPair>(getName());
    FatalIf(
          mWeightsPair == nullptr,
          "%s requires an ImpliedWeightsPair component.\n",

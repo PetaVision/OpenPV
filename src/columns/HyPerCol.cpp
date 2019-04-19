@@ -1216,7 +1216,7 @@ int HyPerCol::finalizeCUDA() {
 void HyPerCol::addComponent(BaseObject *component) { addObserver(component->getName(), component); }
 
 Observer *HyPerCol::getObjectFromName(std::string const &objectName) const {
-   return mTable->lookupByName<Observer>(objectName);
+   return mTable->findObject<BaseObject>(objectName.c_str());
 }
 
 Observer *HyPerCol::getNextObject(Observer const *currentObject) const {

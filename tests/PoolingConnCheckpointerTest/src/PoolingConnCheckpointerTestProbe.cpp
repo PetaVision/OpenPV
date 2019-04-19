@@ -52,11 +52,11 @@ Response::Status PoolingConnCheckpointerTestProbe::communicateInitInfo(
       return status;
    }
 
-   auto *componentTable = message->mHierarchy;
+   auto *allObjects = message->mAllObjects;
 
-   status = mConnection ? status : status + initConnection(componentTable);
-   status = mInputPublisher ? status : status + initInputPublisher(componentTable);
-   status = mOutputPublisher ? status : status + initOutputPublisher(componentTable);
+   status = mConnection ? status : status + initConnection(allObjects);
+   status = mInputPublisher ? status : status + initInputPublisher(allObjects);
+   status = mOutputPublisher ? status : status + initOutputPublisher(allObjects);
    if (!Response::completed(status)) {
       return status;
    }
@@ -71,20 +71,24 @@ Response::Status PoolingConnCheckpointerTestProbe::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-Response::Status
-PoolingConnCheckpointerTestProbe::initConnection(ObserverTable const *componentTable) {
-   auto *connection = componentTable->lookupByName<PoolingConn>(std::string("InputToOutput"));
-   FatalIf(connection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
+Response::Status PoolingConnCheckpointerTestProbe::initConnection(ObserverTable const *allObjects) {
+   char const *connectionName = "InputToOutput";
+   auto *connection           = allObjects->findObject<PoolingConn>(connectionName);
+   FatalIf(
+         connection == nullptr, "column does not have a HyPerConn named \"%s\".\n", connectionName);
    if (checkCommunicatedFlag(connection) == Response::POSTPONE) {
       return Response::POSTPONE;
    }
    mConnection = connection;
 
-   auto *patchSize = mConnection->getComponentByType<PatchSize>();
+   auto *patchSize = allObjects->findObject<PatchSize>(connectionName);
    FatalIf(
          patchSize == nullptr,
          "%s does not have a PatchSize component.\n",
          mConnection->getDescription_c());
+   if (checkCommunicatedFlag(patchSize) == Response::POSTPONE) {
+      return Response::POSTPONE;
+   }
    FatalIf(patchSize->getPatchSizeX() != 1, "This test assumes that the connection has nxp==1.\n");
    FatalIf(patchSize->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(patchSize->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
@@ -92,9 +96,13 @@ PoolingConnCheckpointerTestProbe::initConnection(ObserverTable const *componentT
 }
 
 Response::Status
-PoolingConnCheckpointerTestProbe::initInputPublisher(ObserverTable const *componentTable) {
-   auto *inputLayer = componentTable->lookupByName<InputLayer>(std::string("Input"));
-   FatalIf(inputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
+PoolingConnCheckpointerTestProbe::initInputPublisher(ObserverTable const *allObjects) {
+   char const *inputLayerName = "Input";
+   auto *inputLayer           = allObjects->findObject<InputLayer>(std::string(inputLayerName));
+   FatalIf(
+         inputLayer == nullptr,
+         "column does not have an InputLayer named \"%s\".\n",
+         inputLayerName);
    if (checkCommunicatedFlag(inputLayer) == Response::POSTPONE) {
       return Response::POSTPONE;
    }
@@ -104,13 +112,19 @@ PoolingConnCheckpointerTestProbe::initInputPublisher(ObserverTable const *compon
          halo->lt != 0 || halo->rt != 0 || halo->dn != 0 || halo->up != 0,
          "This test assumes that the input layer has no border region.\n");
 
-   auto *activityComponent = inputLayer->getComponentByType<ActivityComponent>();
-   auto *inputBuffer       = activityComponent->getComponentByType<InputActivityBuffer>();
+   auto *inputBuffer = allObjects->findObject<InputActivityBuffer>(inputLayerName);
+   FatalIf(
+         inputBuffer == nullptr,
+         "%s does not have an InputActivityBuffer.\n",
+         inputLayer->getDescription_c());
+   if (checkCommunicatedFlag(inputBuffer) == Response::POSTPONE) {
+      return Response::POSTPONE;
+   }
    FatalIf(
          inputBuffer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
 
-   mInputPublisher = inputLayer->getComponentByType<BasePublisherComponent>();
+   mInputPublisher = allObjects->findObject<BasePublisherComponent>(inputLayerName);
    FatalIf(
          mInputPublisher == nullptr,
          "%s does not have a BasePublisherComponent.\n",
@@ -119,14 +133,18 @@ PoolingConnCheckpointerTestProbe::initInputPublisher(ObserverTable const *compon
 }
 
 Response::Status
-PoolingConnCheckpointerTestProbe::initOutputPublisher(ObserverTable const *componentTable) {
-   auto *outputLayer = componentTable->lookupByName<HyPerLayer>(std::string("Output"));
-   FatalIf(outputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
+PoolingConnCheckpointerTestProbe::initOutputPublisher(ObserverTable const *allObjects) {
+   char const *outputLayerName = "Output";
+   auto *outputLayer           = allObjects->findObject<HyPerLayer>(outputLayerName);
+   FatalIf(
+         outputLayer == nullptr,
+         "column does not have a HyPerLayer named \"%s\".\n",
+         outputLayerName);
    if (checkCommunicatedFlag(outputLayer) == Response::POSTPONE) {
       return Response::POSTPONE;
    }
 
-   mOutputPublisher = outputLayer->getComponentByType<BasePublisherComponent>();
+   mOutputPublisher = allObjects->findObject<BasePublisherComponent>(outputLayerName);
    FatalIf(
          mOutputPublisher == nullptr,
          "%s does not have a BasePublisherComponent.\n",
