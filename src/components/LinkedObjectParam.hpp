@@ -9,7 +9,6 @@
 #define LINKEDOBJECTPARAM_HPP_
 
 #include "columns/BaseObject.hpp"
-#include "columns/ComponentBasedObject.hpp"
 
 namespace PV {
 
@@ -20,8 +19,6 @@ namespace PV {
  *     OriginalLayerNameParam, used by CloneVLayer, RescaleLayer, etc.
  *     OriginalConnNameParam, used by CloneConn, TransposeConn, etc.
  * The object name (the param's value) is retrieved using the getLinkedObjectName() method.
- * The object itself is retrieved from an ObserverTable (as a pointer to a
- * ComponentBasedObject) using the findLinkedObject function member.
  */
 class LinkedObjectParam : public BaseObject {
   protected:
@@ -44,15 +41,6 @@ class LinkedObjectParam : public BaseObject {
    virtual ~LinkedObjectParam();
 
    char const *getLinkedObjectName() const { return mLinkedObjectName; }
-
-   /**
-    * Searches the given object map for an object whose name matches
-    * the LinkedObjectName. If there is no such object, or if the object
-    * is not a ComponentBasedObject or a ComponentBasedObject-derived class,
-    * an invalid argument exception is thrown, with the message
-    * <ParamName> "<LinkedObjectName>" does not correspond to an object in the column.
-    */
-   ComponentBasedObject *findLinkedObject(ObserverTable const *hierarchy);
 
   protected:
    LinkedObjectParam() {}

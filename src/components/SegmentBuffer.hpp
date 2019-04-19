@@ -33,7 +33,7 @@ class SegmentBuffer : public ActivityBuffer {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   void setOriginalActivity(ObserverTable const *hierarchy);
+   void setOriginalActivity(ObserverTable const *table);
    void checkDimensions();
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 

@@ -38,10 +38,8 @@ Response::Status InputRegionActivityBuffer::communicateInitInfo(
       return status;
    }
 
-   auto *hierarchy   = message->mHierarchy;
-   int maxIterations = 1; // Limits the depth of the recursion when searching for dependencies.
-   auto *originalLayerNameParam =
-         hierarchy->lookupByTypeRecursive<OriginalLayerNameParam>(maxIterations);
+   auto *allObjects             = message->mAllObjects;
+   auto *originalLayerNameParam = allObjects->findObject<OriginalLayerNameParam>(getName());
    FatalIf(
          originalLayerNameParam == nullptr,
          "%s could not find an OriginalLayerName component.\n",
@@ -51,35 +49,20 @@ Response::Status InputRegionActivityBuffer::communicateInitInfo(
    }
 
    if (mOriginalInput == nullptr) {
-      // Retrieve the original ImageLayer (we don't need to cast it as ImageLayer).
-      ComponentBasedObject *originalObject = nullptr;
-      try {
-         originalObject = originalLayerNameParam->findLinkedObject(hierarchy);
-      } catch (std::invalid_argument &e) {
-         Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-      }
-      pvAssert(originalObject);
+      char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
 
       // Synchronize margins between original layer and this layer.
-      auto *thisGeometry = hierarchy->lookupByTypeRecursive<LayerGeometry>(maxIterations);
-      auto *origGeometry = originalObject->getComponentByType<LayerGeometry>();
+      auto *thisGeometry = allObjects->findObject<LayerGeometry>(getName());
+      auto *origGeometry = allObjects->findObject<LayerGeometry>(originalLayerName);
       LayerGeometry::synchronizeMarginWidths(thisGeometry, origGeometry);
 
-      // Retrieve the original layer's ActivityComponent
-      auto *originalActivityComponent = originalObject->getComponentByType<ActivityComponent>();
-      FatalIf(
-            originalActivityComponent == nullptr,
-            "%s could not find an ActivityComponent within %s.\n",
-            getDescription_c(),
-            originalObject->getName());
-
-      // Retrieve original layer's InputActivityBuffer
-      mOriginalInput = originalActivityComponent->getComponentByType<InputActivityBuffer>();
+      // Retrieve the original layer's activity component
+      mOriginalInput = allObjects->findObject<InputActivityBuffer>(originalLayerName);
       FatalIf(
             mOriginalInput == nullptr,
             "%s could not find an InputActivityBuffer within %s.\n",
             getDescription_c(),
-            originalObject->getName());
+            originalLayerName);
    }
 
    if (!mOriginalInput->getInitInfoCommunicatedFlag()) {

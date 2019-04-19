@@ -71,7 +71,7 @@ S *ObserverTable::lookupByTypeRecursive(int maxIterations) const {
 }
 
 template <typename T>
-T *ObserverTable::findObject(std::string &name) {
+T *ObserverTable::findObject(std::string const &name) const {
    T *result = nullptr;
    for (auto iterator = begin(); iterator != end(); iterator++) {
       T *castObject = dynamic_cast<T *>(*iterator);
@@ -84,6 +84,11 @@ T *ObserverTable::findObject(std::string &name) {
       }
    }
    return result;
+}
+
+template <typename T>
+T *ObserverTable::findObject(char const *name) const {
+   return findObject<T>(std::string(name));
 }
 
 } // namespace PV

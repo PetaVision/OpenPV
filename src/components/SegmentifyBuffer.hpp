@@ -38,7 +38,7 @@ class SegmentifyBuffer : public ActivityBuffer {
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-   void setOriginalActivity(ObserverTable const *hierarchy);
+   void setOriginalActivity(ObserverTable const *table);
    void setSegmentBuffer(ObserverTable const *hierarchy);
    void checkDimensions();
 

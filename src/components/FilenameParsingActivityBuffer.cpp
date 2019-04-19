@@ -61,23 +61,18 @@ Response::Status FilenameParsingActivityBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto hierarchy    = message->mHierarchy;
-   int maxIterations = 1;
+   auto *allObjects = message->mAllObjects;
    if (mInputLayer == nullptr) {
-      auto *inputLayerNameParam =
-            hierarchy->lookupByTypeRecursive<InputLayerNameParam>(maxIterations);
-      pvAssert(inputLayerNameParam);
+      auto *inputLayerNameParam = allObjects->findObject<InputLayerNameParam>(getName());
+      FatalIf(
+            inputLayerNameParam == nullptr,
+            "%s could not find an InputLayerNameParam component.\n",
+            getDescription_c());
       if (!inputLayerNameParam->getInitInfoCommunicatedFlag()) {
          return Response::POSTPONE;
       }
-      ComponentBasedObject *inputObject = nullptr;
-      try {
-         inputObject = inputLayerNameParam->findLinkedObject(hierarchy);
-      } catch (std::invalid_argument &e) {
-         Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-      }
-      pvAssert(inputObject);
-      mInputLayer = dynamic_cast<InputLayer *>(inputObject);
+      char const *linkedObjectName = inputLayerNameParam->getLinkedObjectName();
+      mInputLayer                  = allObjects->findObject<InputLayer>(linkedObjectName);
       FatalIf(
             mInputLayer == nullptr,
             "%s inputLayerName \"%s\" points to an object that is not an InputLayer.\n",
@@ -88,19 +83,20 @@ Response::Status FilenameParsingActivityBuffer::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   auto *phaseParam = hierarchy->lookupByTypeRecursive<PhaseParam>(maxIterations);
-   pvAssert(phaseParam);
+   auto *phaseParam = allObjects->findObject<PhaseParam>(getName());
+   FatalIf(phaseParam == nullptr, "%s does not have a PhaseParam component.\n", getDescription_c());
    if (!phaseParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
    int const phase = phaseParam->getPhase();
 
-   int const inputLayerPhase = mInputLayer->getComponentByType<PhaseParam>()->getPhase();
+   auto *inputLayerPhaseParam = allObjects->findObject<PhaseParam>(mInputLayer->getName());
+   int const inputLayerPhase  = inputLayerPhaseParam->getPhase();
    FatalIf(
          inputLayerPhase <= phase,
          "%s: The phase of layer %s (%d) must be greater than the phase of the "
          "FilenameParsingActivityBuffer (%d)\n",
-         getName(),
+         getDescription_c(),
          mInputLayerName,
          inputLayerPhase,
          phase);
