@@ -35,7 +35,8 @@ void DependentPhaseParam::ioParam_phase(enum ParamsIOFlag ioFlag) {
 
 Response::Status DependentPhaseParam::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *originalLayerNameParam = message->mHierarchy->lookupByType<OriginalLayerNameParam>();
+   auto *originalLayerNameParam =
+         message->mAllObjects->findObject<OriginalLayerNameParam>(getName());
    pvAssert(originalLayerNameParam);
 
    if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {

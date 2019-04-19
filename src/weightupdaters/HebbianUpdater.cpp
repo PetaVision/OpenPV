@@ -220,7 +220,7 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
          "%s requires a ConnectionData component.\n",
          getDescription_c());
 
-   mArborList = message->mHierarchy->lookupByType<ArborList>();
+   mArborList = message->mAllObjects->findObject<ArborList>(getName());
    FatalIf(mArborList == nullptr, "%s requires a ArborList component.\n", getDescription_c());
 
    if (mTriggerFlag) {
