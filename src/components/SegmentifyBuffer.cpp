@@ -86,10 +86,10 @@ SegmentifyBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    if (!Response::completed(status)) {
       return status;
    }
-   ObserverTable const *hierarchy = message->mHierarchy;
+   ObserverTable const *allObjects = message->mAllObjects;
 
    if (!mOriginalActivity) {
-      setOriginalActivity(message->mAllObjects);
+      setOriginalActivity(allObjects);
    }
    pvAssert(mOriginalActivity);
    if (mOriginalActivity->getInitInfoCommunicatedFlag() == false) {
@@ -97,7 +97,7 @@ SegmentifyBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    }
 
    if (!mSegmentBuffer) {
-      setSegmentBuffer(hierarchy);
+      setSegmentBuffer(allObjects);
    }
    pvAssert(mSegmentBuffer);
    if (mSegmentBuffer->getInitInfoCommunicatedFlag() == false) {
@@ -130,37 +130,14 @@ void SegmentifyBuffer::setOriginalActivity(ObserverTable const *table) {
          getDescription_c());
 }
 
-void SegmentifyBuffer::setSegmentBuffer(ObserverTable const *hierarchy) {
-   // Get segment layer (we don't need to cast it as such).
-   int maxIterations  = 2; // Limits the depth of the recursion when searching for dependencies.
-   auto *segmentLayer = hierarchy->lookupByNameRecursive<ComponentBasedObject>(
-         std::string(mSegmentLayerName), maxIterations);
-   if (segmentLayer == nullptr) {
-      if (mCommunicator->commRank() == 0) {
-         ErrorLog().printf(
-               "%s: segmentLayerName \"%s\" is not a SegmentLayer.\n",
-               getDescription_c(),
-               mSegmentLayerName);
-      }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
-   }
-
-   // Get ActivityComponent from segment layer
-   auto *segmentActivityComponent = segmentLayer->getComponentByType<ActivityComponent>();
-   FatalIf(
-         segmentActivityComponent == nullptr,
-         "%s could not find an ActivityComponent within segment layer \"%s\".\n",
-         getDescription_c(),
-         segmentLayer->getName());
-
-   // Get SegmentBuffer from activity component
-   mSegmentBuffer = segmentActivityComponent->getComponentByType<SegmentBuffer>();
+void SegmentifyBuffer::setSegmentBuffer(ObserverTable const *table) {
+   // Get SegmentBuffer from segment layer
+   mSegmentBuffer = table->findObject<SegmentBuffer>(mSegmentLayerName);
    FatalIf(
          mSegmentBuffer == nullptr,
          "%s could not find a SegmentBuffer within segment layer \"%s\".\n",
          getDescription_c(),
-         segmentLayer->getName());
+         mSegmentLayerName);
 }
 
 void SegmentifyBuffer::checkDimensions() {
