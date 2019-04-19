@@ -38,22 +38,6 @@ S *ObserverTable::lookupByType() const {
    return lookupResult;
 }
 
-template <typename S>
-S *ObserverTable::lookupByTypeRecursive(int maxIterations) const {
-   int n                               = maxIterations;
-   ObserverTable const *tableComponent = this;
-   S *lookupResult                     = lookupByType<S>();
-   while (lookupResult == nullptr and n != 0) {
-      tableComponent = tableComponent->lookupByType<ObserverTable>();
-      if (tableComponent == nullptr) {
-         break;
-      }
-      lookupResult = tableComponent->lookupByType<S>();
-      n--;
-   }
-   return lookupResult;
-}
-
 template <typename T>
 T *ObserverTable::findObject(std::string const &name) const {
    T *result = nullptr;

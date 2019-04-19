@@ -54,8 +54,7 @@ GSynAccumulator::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    if (!Response::completed(status)) {
       return status;
    }
-   int const maxIterations = 1; // Limits the depth of recursion when searching for dependencies.
-   mLayerInput = message->mHierarchy->lookupByTypeRecursive<LayerInputBuffer>(maxIterations);
+   mLayerInput = message->mAllObjects->findObject<LayerInputBuffer>(getName());
    FatalIf(
          mLayerInput == nullptr,
          "%s could not find a LayerInputBuffer component.\n",

@@ -40,10 +40,9 @@ void ComponentBuffer::setBufferLabel(std::string const &label) {
 
 Response::Status
 ComponentBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto hierarchy = message->mHierarchy;
+   auto *allObjects = message->mAllObjects;
    if (mLayerGeometry == nullptr) {
-      int maxIterations = 1; // Limits the depth of the recursion when searching for dependencies.
-      mLayerGeometry    = hierarchy->lookupByTypeRecursive<LayerGeometry>(maxIterations);
+      mLayerGeometry = allObjects->findObject<LayerGeometry>(getName());
    }
    FatalIf(!mLayerGeometry, "%s requires a LayerGeometry component.\n", getDescription_c());
    return Response::SUCCESS;
