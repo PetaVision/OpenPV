@@ -27,10 +27,6 @@
 // define for debug output
 #define DEBUG_PARSING
 
-#ifdef HAS_MAIN
-extern FILE *yyin;
-#endif // HAS_MAIN
-
 /**
  * @yyin
  * @action_handler
@@ -38,23 +34,6 @@ extern FILE *yyin;
  * @len
  */
 int pv_parseParameters(PV::PVParams *action_handler, const char *paramBuffer, size_t len);
-
-#ifdef HAS_MAIN
-#define INITIALNUMGROUPS 20 // maximum number of groups
-int main() {
-   PV_Stream pvstream    = PV_fopen("parser/params.txt", "r", false);
-   yyin                  = pvstream->fp;
-   PV::PVParams *handler = new PV::PVParams(INITIAL_NUM_GROUPS);
-
-   pv_parseParameters(handler);
-
-   PV_fclose(pvstream);
-   yyin = NULL;
-   delete handler;
-
-   return 0;
-}
-#endif // HAS_MAIN
 
 namespace PV {
 

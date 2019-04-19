@@ -8,7 +8,6 @@
 
 #include "columns/HyPerCol.hpp"
 #include "columns/PV_Init.hpp"
-#include "io/io.hpp"
 #include "layers/HyPerLayer.hpp"
 
 // const int numFeatures = 1;

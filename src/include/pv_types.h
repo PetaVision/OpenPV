@@ -31,19 +31,7 @@ typedef struct PVPatchStrides_ {
 
 enum PVPatchStrideFields { PATCH_SX, PATCH_SY, PATCH_SF };
 
-typedef struct PV_Stream_ {
-   char *name;
-   char *mode;
-   FILE *fp;
-   long filepos;
-   long filelength;
-
-   // True or false, tells whether stream corresponds to a file
-   int isfile;
-
-   // True or false, if true, calls to PV_fwrite will do a readback check
-   int verifyWrites;
-} PV_Stream;
+// PV_Stream eliminated Apr 17, 2019, in favor of FileStream.
 
 /**
  * PVLayerCube is a 3D cube (features,x,y) of a layer's data,

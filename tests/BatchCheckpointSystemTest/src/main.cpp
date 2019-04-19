@@ -17,20 +17,20 @@ int main(int argc, char *argv[]) {
    char const *paramFile1 = "input/CheckpointParameters1.params";
    char const *paramFile2 = "input/CheckpointParameters2.params";
    int status             = PV_SUCCESS;
-   if (pv_getopt_str(argc, argv, "-p", NULL, NULL) == 0) {
+   if (!initObj.getStringArgument("ParamsFile").empty()) {
       if (rank == 0) {
          ErrorLog().printf("%s should be run without the params file argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
-   if (pv_getopt_str(argc, argv, "-c", NULL, NULL) == 0) {
+   if (!initObj.getStringArgument("CheckpointReadDirectory").empty()) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the checkpoint directory argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
-   if (pv_getopt(argc, argv, "-r", NULL) == 0) {
+   if (initObj.getBooleanArgument("Restart")) {
       if (rank == 0) {
          ErrorLog().printf("%s should be run without the restart flag.\n", argv[0]);
       }

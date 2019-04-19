@@ -21,10 +21,9 @@
 #include "columns/buildandrun.hpp"
 #include "components/PatchSize.hpp"
 #include "components/WeightsPair.hpp"
-#include "io/io.hpp"
 #include "weightupdaters/BaseWeightUpdater.hpp"
 
-int dumpweights(HyPerCol *hc, int argc, char *argv[]);
+int dumpweights(HyPerCol *hc, PV_Init &initObj);
 int dumponeweight(ComponentBasedObject *conn);
 
 int main(int argc, char *argv[]) {
@@ -44,7 +43,7 @@ int main(int argc, char *argv[]) {
    return status;
 }
 
-int dumpweights(HyPerCol *hc, int argc, char *argv[]) {
+int dumpweights(HyPerCol *hc, PV_Init &initObj) {
    int status         = PV_SUCCESS;
    bool existsgenconn = false;
    for (Observer *obj = hc->getNextObject(nullptr); obj != nullptr; obj = hc->getNextObject(obj)) {
@@ -67,16 +66,15 @@ int dumpweights(HyPerCol *hc, int argc, char *argv[]) {
       }
       InfoLog().printf("\n");
    }
-   int rank = hc->getCommunicator()->commRank();
-   char *paramsfilename;
-   pv_getopt_str(argc, argv, "-p", &paramsfilename, NULL /*paramusage*/);
+   int rank                   = hc->getCommunicator()->commRank();
+   std::string paramsFilename = initObj.getStringArgument("ParamsFile");
    if (status != PV_SUCCESS) {
-      ErrorLog().printf("Rank %d: %s failed with return code %d.\n", rank, paramsfilename, status);
+      ErrorLog().printf(
+            "Rank %d: %s failed with return code %d.\n", rank, paramsFilename.c_str(), status);
    }
    else {
-      InfoLog().printf("Rank %d: %s succeeded.\n", rank, paramsfilename);
+      InfoLog().printf("Rank %d: %s succeeded.\n", rank, paramsFilename.c_str());
    }
-   free(paramsfilename);
    return status;
 }
 

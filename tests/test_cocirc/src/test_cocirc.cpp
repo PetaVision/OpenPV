@@ -13,7 +13,6 @@
 #include <components/PatchSize.hpp>
 #include <components/SharedWeights.hpp>
 #include <components/WeightsPair.hpp>
-#include <io/io.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <observerpattern/ObserverTable.hpp>
 #include <utils/PVLog.hpp>

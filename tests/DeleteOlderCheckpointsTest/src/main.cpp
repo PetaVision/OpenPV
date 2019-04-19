@@ -3,7 +3,6 @@
 #include "columns/CommandLineArguments.hpp"
 #include "columns/Communicator.hpp"
 #include "io/PVParams.hpp"
-#include "io/io.hpp"
 #include "utils/PVLog.hpp"
 #include <cerrno>
 #include <cstring>

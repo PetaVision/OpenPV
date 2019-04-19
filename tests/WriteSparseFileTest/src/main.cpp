@@ -138,7 +138,8 @@ int generate(PV_Init *initObj, int rank) {
       initObj->printState();
    }
    if (rank == 0) {
-      PV_Stream *emptyinfile = PV_fopen("input/correct.pvp", "w", false /*verifyWrites*/);
+      auto *emptyInputFile =
+            new FileStream("input/correct.pvp", std::ios_base::out, false /*verifyWrites*/);
       // Data for a CORRECT_PVP_NX-by-CORRECT_PVP_NY layer with CORRECT_PVP_NF features.
       // Sparse activity with no active neurons so file size doesn't change with number of features
       int emptydata[] = {80,
@@ -164,13 +165,8 @@ int generate(PV_Init *initObj, int rank) {
                          0,
                          0,
                          0};
-      size_t numwritten = PV_fwrite(emptydata, sizeof(int), 23, emptyinfile);
-      if (numwritten != 23) {
-         ErrorLog().printf(
-               "%s failure to write placeholder data into input/correct.pvp file.\n",
-               initObj->getProgramName());
-      }
-      PV_fclose(emptyinfile);
+      emptyInputFile->write(emptydata, 23L * (long)sizeof(int));
+      delete emptyInputFile;
    }
    int status = rebuildandrun(initObj, NULL, &copyCorrectOutput);
    return status;
@@ -202,24 +198,20 @@ int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]) {
    }
 
    if (hc->columnId() == 0) {
-      PV_Stream *infile = PV_fopen(sourcePath, "r", false /*verifyWrites*/);
-      FatalIf(!(infile), "Test failed.\n");
-      PV_fseek(infile, 0L, SEEK_END);
-      long int filelength = PV_ftell(infile);
-      PV_fseek(infile, 0L, SEEK_SET);
-      char *buf        = (char *)malloc((size_t)filelength);
-      size_t charsread = PV_fread(buf, sizeof(char), (size_t)filelength, infile);
-      FatalIf(!(charsread == (size_t)filelength), "Test failed.\n");
-      PV_fclose(infile);
-      infile             = NULL;
-      PV_Stream *outfile = PV_fopen(destPath, "w", false /*verifyWrites*/);
-      FatalIf(!(outfile), "Test failed.\n");
-      size_t charswritten = PV_fwrite(buf, sizeof(char), (size_t)filelength, outfile);
-      FatalIf(!(charswritten == (size_t)filelength), "Test failed.\n");
-      PV_fclose(outfile);
-      outfile = NULL;
-      free(buf);
-      buf = NULL;
+      auto *infile = new FileStream(sourcePath, std::ios_base::in, false /*verifyWrites*/);
+      infile->setInPos(0L, std::ios_base::end);
+      long int filelength = infile->getOutPos();
+      infile->setInPos(0L, std::ios_base::beg);
+      char *buf = new char[filelength];
+      infile->read(buf, filelength);
+      delete infile;
+      infile        = nullptr;
+      auto *outfile = new FileStream(destPath, std::ios_base::out, false /*verifyWrites*/);
+      outfile->write(buf, filelength);
+      delete outfile;
+      outfile = nullptr;
+      delete[] buf;
+      buf = nullptr;
    }
    return status;
 }

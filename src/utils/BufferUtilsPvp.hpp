@@ -1,6 +1,7 @@
 #ifndef __BUFFERUTILSPVP_HPP__
 #define __BUFFERUTILSPVP_HPP__
 
+#include "include/pv_types.h"
 #include "io/FileStream.hpp"
 #include "structures/Buffer.hpp"
 #include "structures/SparseList.hpp"
@@ -11,6 +12,57 @@
 using std::vector;
 using std::string;
 
+// File type of activities where there are no timestamps in the individual frames.  No longer used
+#define PVP_FILE_TYPE 1
+
+// File type for binary layers (activity is sparse and values are only 1 or 0). No longer used
+#define PVP_ACT_FILE_TYPE 2
+
+// File type for connections without shared weights
+#define PVP_WGT_FILE_TYPE 3
+
+// File type for nonsparse layers and checkpoint files for all layers
+#define PVP_NONSPIKING_ACT_FILE_TYPE 4
+
+// File type for connections with shared weights
+#define PVP_KERNEL_FILE_TYPE 5
+
+// File type for sparse layers. The locations and values of nonzero neurons are stored.
+#define PVP_ACT_SPARSEVALUES_FILE_TYPE 6
+
+#define NUM_BIN_PARAMS (18 + sizeof(double) / sizeof(int))
+
+#define NUM_WGT_EXTRA_PARAMS 6
+#define NUM_WGT_PARAMS (NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS)
+
+#define INDEX_HEADER_SIZE 0
+#define INDEX_NUM_PARAMS 1
+#define INDEX_FILE_TYPE 2
+#define INDEX_NX 3
+#define INDEX_NY 4
+#define INDEX_NF 5
+#define INDEX_NUM_RECORDS 6
+#define INDEX_RECORD_SIZE 7
+#define INDEX_DATA_SIZE 8
+#define INDEX_DATA_TYPE 9
+#define INDEX_NX_PROCS 10
+#define INDEX_NY_PROCS 11
+#define INDEX_NX_EXTENDED 12
+#define INDEX_NY_EXTENDED 13
+#define INDEX_KX0 14
+#define INDEX_KY0 15
+#define INDEX_NBATCH 16
+#define INDEX_NBANDS 17
+#define INDEX_TIME 18
+
+// these are extra parameters used by weight files
+//
+#define INDEX_WGT_NXP 0
+#define INDEX_WGT_NYP 1
+#define INDEX_WGT_NFP 2
+#define INDEX_WGT_MIN 3
+#define INDEX_WGT_MAX 4
+#define INDEX_WGT_NUMPATCHES 5
 namespace PV {
 
 namespace BufferUtils {
