@@ -27,6 +27,19 @@ class ComponentBasedObject : public BaseObject, public Subject {
   public:
    virtual ~ComponentBasedObject();
 
+   template <typename S>
+   S *getComponentByType();
+
+   /**
+    * Adds an object to the observer table, subject to the restriction that
+    * no other observer of the specified type is in the table.
+    * Exits with an error if the object is unable to be added, either because
+    * the internal call to addObject failed, or because there already was an
+    * object of the specified type in the table.
+    */
+   template <typename S>
+   void addUniqueComponent(std::string const &tag, S *component);
+
   protected:
    /** The default constructor for ComponentBasedObject does nothing. Derived classes
     *  should call ComponentBasedObject::initialize() during their own initialization.
@@ -49,6 +62,22 @@ class ComponentBasedObject : public BaseObject, public Subject {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 }; // class ComponentBasedObject
+
+template <typename S>
+S *ComponentBasedObject::getComponentByType() {
+   return mTable->findObject<S>(getName());
+}
+
+template <typename S>
+void ComponentBasedObject::addUniqueComponent(std::string const &tag, S *component) {
+   auto *foundComponent = getComponentByType<S>();
+   FatalIf(
+         foundComponent,
+         "attempt to add %s using addUniqueComponent, but the table already has %s.\n",
+         component->getDescription_c(),
+         foundComponent->getDescription_c());
+   addObserver(tag, component);
+}
 
 } // namespace PV
 

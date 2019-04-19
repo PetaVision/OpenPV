@@ -49,16 +49,6 @@ Response::Status ComponentBasedObject::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *tableComponent = getComponentByType<ObserverTable>();
-   if (!tableComponent) {
-      std::string tableDescription = std::string("ObserverTable \"") + getName() + "\"";
-      tableComponent               = new ObserverTable(tableDescription.c_str());
-      tableComponent->copyTable(message->mHierarchy);
-      addUniqueComponent(tableComponent->getDescription(), tableComponent);
-      // mTable takes ownership of tableComponent, which will therefore be deleted by the
-      // Subject::deleteObserverTable() method during destructor.
-   }
-   pvAssert(tableComponent);
 
    auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
          mTable,
