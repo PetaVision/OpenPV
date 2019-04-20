@@ -68,14 +68,6 @@ void PointLIFProbe::setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessa
    parameters()->ioParamValue(PARAMS_IO_READ, name, "writeStep", &writeStep, writeStep, true);
 }
 
-float const *PointLIFProbe::getBufferData(ObserverTable const *table, char const *label) {
-   std::string lookupString = std::string(label) + " \"" + getTargetLayer()->getName() + "\"";
-   ComponentBuffer *buffer  = table->lookupByName<ComponentBuffer>(lookupString);
-   float const *bufferData  = buffer->getBufferData();
-   pvAssert(bufferData);
-   return bufferData;
-}
-
 void PointLIFProbe::calcValues(double timevalue) {
    // TODO: Reduce duplicated code between PointProbe::calcValues and
    // PointLIFProbe::calcValues.
@@ -83,11 +75,38 @@ void PointLIFProbe::calcValues(double timevalue) {
    LIFActivityComponent *lifActivity = getTargetLayer()->getComponentByType<LIFActivityComponent>();
    pvAssert(lifActivity != nullptr);
    ObserverTable const *activityComponents = lifActivity->getTable();
-   float const *V                          = getBufferData(activityComponents, "V");
-   float const *G_E                        = getBufferData(activityComponents, "G_E");
-   float const *G_I                        = getBufferData(activityComponents, "G_I");
-   float const *G_IB                       = getBufferData(activityComponents, "G_IB");
-   float const *Vth                        = getBufferData(activityComponents, "Vth");
+   auto componentBuffers = activityComponents->findObjects<ComponentBuffer>(getName());
+   float const *V        = nullptr;
+   float const *G_E      = nullptr;
+   float const *G_I      = nullptr;
+   float const *G_IB     = nullptr;
+   float const *Vth      = nullptr;
+   for (auto &buf : componentBuffers) {
+      std::string label = buf->getBufferLabel();
+      if (label == "") {
+         continue;
+      }
+      else if (label == "V") {
+         V = buf->getBufferData();
+         continue;
+      }
+      else if (label == "G_E") {
+         G_E = buf->getBufferData();
+         continue;
+      }
+      else if (label == "G_I") {
+         G_I = buf->getBufferData();
+         continue;
+      }
+      else if (label == "G_IB") {
+         G_IB = buf->getBufferData();
+         continue;
+      }
+      else if (label == "Vth") {
+         Vth = buf->getBufferData();
+         continue;
+      }
+   }
 
    float const *activity =
          getTargetLayer()->getComponentByType<BasePublisherComponent>()->getLayerData();

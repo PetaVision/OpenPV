@@ -21,15 +21,9 @@ void ObserverTable::initialize(char const *description) {
    setDescription(description);
 }
 
-bool ObserverTable::addObject(std::string const &name, Observer *entry) {
-   // auto insertion = mTableAsMap.insert(std::make_pair(std::string(name), entry));
-   auto insertion = mTableAsMap.insert(std::make_pair(name, entry));
-   // map::insert() returns a pair whose second element is whether the insertion was successful.
-   bool addSucceeded = insertion.second;
-   if (addSucceeded) {
-      mTableAsVector.emplace_back(entry);
-   }
-   return addSucceeded;
+void ObserverTable::addObject(std::string const &name, Observer *entry) {
+   mTableAsMultimap.insert(std::make_pair(name, entry));
+   mTableAsVector.emplace_back(entry);
 }
 
 void ObserverTable::copyTable(ObserverTable const *origTable) {
@@ -37,15 +31,15 @@ void ObserverTable::copyTable(ObserverTable const *origTable) {
          !mTableAsVector.empty(),
          "copyTable called for %s but the table was not empty.\n",
          getDescription_c());
-   auto &map = origTable->mTableAsMap;
-   for (auto &p : map) {
+   auto &multimap = origTable->mTableAsMultimap;
+   for (auto &p : multimap) {
       addObject(p.first, p.second);
    }
 }
 
 void ObserverTable::clear() {
    mTableAsVector.clear();
-   mTableAsMap.clear();
+   mTableAsMultimap.clear();
 }
 
 } // end namespace PV

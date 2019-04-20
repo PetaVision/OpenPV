@@ -44,13 +44,6 @@ class PointLIFProbe : public PointProbe {
 
    virtual void writeState(double timevalue) override;
 
-  private:
-   /**
-    * Used by calcValues to get the buffer data for the components in the
-    * target LIF layer's activity component.
-    */
-   float const *getBufferData(ObserverTable const *table, char const *label);
-
   protected:
    double writeTime = 0.0; // time of next output
    double writeStep = 0.0; // output time interval
