@@ -25,7 +25,7 @@ void FilenameParsingGroundTruthLayer::fillComponentTable() {
    HyPerLayer::fillComponentTable();
    mInputLayerNameParam = createInputLayerNameParam();
    if (mInputLayerNameParam) {
-      addUniqueComponent(mInputLayerNameParam->getDescription(), mInputLayerNameParam);
+      addUniqueComponent(mInputLayerNameParam);
    }
 }
 

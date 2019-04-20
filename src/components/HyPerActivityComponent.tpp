@@ -41,11 +41,11 @@ void HyPerActivityComponent<G, V, A>::fillComponentTable() {
    ActivityComponent::fillComponentTable(); // creates Activity
    mInternalState = createInternalState();
    if (mInternalState) {
-      addUniqueComponent(mInternalState->getDescription(), mInternalState);
+      addUniqueComponent(mInternalState);
    }
    mAccumulatedGSyn = createAccumulatedGSyn();
    if (mAccumulatedGSyn) {
-      addUniqueComponent(mAccumulatedGSyn->getDescription(), mAccumulatedGSyn);
+      addUniqueComponent(mAccumulatedGSyn);
    }
 }
 

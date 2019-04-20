@@ -53,18 +53,18 @@ Response::Status MomentumLCAInternalStateBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *allObjects = message->mAllObjects;
-   auto label       = std::string("prevDrive \"") + getName() + "\"";
-   auto buffers     = allObjects->findObjects<RestrictedBuffer>(label);
-   mPrevDrive       = nullptr;
+   auto *allObjects  = message->mAllObjects;
+   char const *label = "prevDrive";
+   auto buffers      = allObjects->findObjects<RestrictedBuffer>(getName());
+   mPrevDrive        = nullptr;
    for (auto &buf : buffers) {
-      if (label == buf->getDescription()) {
+      if (buf->getBufferLabel() == label) {
          FatalIf(
                mPrevDrive != nullptr,
                "%s found multiple buffers with name \%s\" and label \"%s\"\n",
                getDescription_c(),
                getName(),
-               label.c_str());
+               label);
          mPrevDrive = buf;
       }
    }
@@ -73,7 +73,7 @@ Response::Status MomentumLCAInternalStateBuffer::communicateInitInfo(
          "%s could not find a RestrictedBuffer with name \"%s\" and label \"%s\".\n",
          getDescription_c(),
          getName(),
-         label.c_str());
+         label);
    return Response::SUCCESS;
 }
 

@@ -60,7 +60,7 @@ void ActivityComponent::fillComponentTable() {
    ComponentBasedObject::fillComponentTable();
    mActivity = createActivity();
    if (mActivity) {
-      addUniqueComponent(mActivity->getDescription(), mActivity);
+      addUniqueComponent(mActivity);
    }
 }
 

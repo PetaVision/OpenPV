@@ -54,6 +54,9 @@ class ObserverTable : public Observer {
    template <typename T>
    std::vector<T *> findObjects(std::string const &name) const;
 
+   template <typename T>
+   std::vector<T *> findObjects(char const *name) const;
+
    // To iterate over ObserverTable:
    typedef std::vector<Observer *>::iterator iterator;
    typedef std::vector<Observer *>::const_iterator const_iterator;

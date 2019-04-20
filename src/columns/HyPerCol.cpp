@@ -558,8 +558,10 @@ int HyPerCol::setNumThreads() {
 void HyPerCol::expandRecursive(ObserverTable *allObjects, ObserverTable const *table) {
    for (auto iterator = table->begin(); iterator != table->end(); iterator++) {
       auto *obs = *iterator;
-      allObjects->addObject(obs->getDescription(), obs);
-      auto *cbo = dynamic_cast<ComponentBasedObject *>(obs);
+      auto *obj = dynamic_cast<BaseObject *>(obs);
+      pvAssert(obj);
+      allObjects->addObject(obj->getName(), obj);
+      auto *cbo = dynamic_cast<ComponentBasedObject *>(obj);
       if (cbo) {
          auto *cboTable = cbo->getTable();
          expandRecursive(allObjects, cboTable);

@@ -32,7 +32,7 @@ void IdentConn::fillComponentTable() {
    BaseConnection::fillComponentTable();
    mSingleArbor = createSingleArbor();
    if (mSingleArbor) {
-      addUniqueComponent(mSingleArbor->getDescription(), mSingleArbor);
+      addUniqueComponent(mSingleArbor);
    }
 }
 

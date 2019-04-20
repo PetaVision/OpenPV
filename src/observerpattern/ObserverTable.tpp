@@ -11,21 +11,22 @@
 
 namespace PV {
 
-// Note: the type T must have a getName() function member, but the Observer class doesn't.
 template <typename T>
 T *ObserverTable::findObject(std::string const &name) const {
-   T *result = nullptr;
-   for (auto iterator = begin(); iterator != end(); iterator++) {
-      T *castObject = dynamic_cast<T *>(*iterator);
-      if (castObject and name == castObject->getName()) {
-         FatalIf(
-               result,
-               "findObject found more than one object of matching type with name \"%s\".\n",
-               name.c_str());
-         result = castObject;
-      }
+   std::vector<T *> matches = findObjects<T>(name);
+   if (matches.empty()) {
+      return nullptr;
    }
-   return result;
+   FatalIf(
+         matches.size() > (std::size_t)1,
+         "findObject found more than one object of matching type with name \"%s\".\n",
+         name.c_str());
+   return matches[0];
+}
+
+template <typename T>
+T *ObserverTable::findObject(char const *name) const {
+   return findObject<T>(std::string(name));
 }
 
 template <typename T>
@@ -36,7 +37,6 @@ std::vector<T *> ObserverTable::findObjects(std::string const &name) const {
    for (auto &match = matches.first; match != matches.second; match++) {
       T *castObject = dynamic_cast<T *>(match->second);
       if (castObject) {
-         // pvAssert(name == castObject->getName());
          result.emplace_back(castObject);
       }
    }
@@ -44,8 +44,8 @@ std::vector<T *> ObserverTable::findObjects(std::string const &name) const {
 }
 
 template <typename T>
-T *ObserverTable::findObject(char const *name) const {
-   return findObject<T>(std::string(name));
+std::vector<T *> ObserverTable::findObjects(char const *name) const {
+   return findObjects<T>(std::string(name));
 }
 
 } // namespace PV

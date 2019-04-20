@@ -41,7 +41,7 @@ void CloneActivityComponent<V, A>::fillComponentTable() {
    ActivityComponent::fillComponentTable(); // creates Activity
    mInternalState = createInternalState();
    if (mInternalState) {
-      addUniqueComponent(mInternalState->getDescription(), mInternalState);
+      addUniqueComponent(mInternalState);
    }
 }
 

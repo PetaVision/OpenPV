@@ -29,13 +29,13 @@ void CloneConn::fillComponentTable() {
    HyPerConn::fillComponentTable();
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
-      addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
+      addUniqueComponent(mOriginalConnNameParam);
    }
 }
 
 BaseDelivery *CloneConn::createDeliveryObject() {
    auto *deliveryCreator = new CloneDeliveryCreator(name, parameters(), mCommunicator);
-   addUniqueComponent(deliveryCreator->getDescription(), deliveryCreator);
+   addUniqueComponent(deliveryCreator);
    return deliveryCreator->create();
 }
 

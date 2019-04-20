@@ -150,7 +150,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    }
    else {
       strengthParam = new StrengthParam(name, parameters(), mCommunicator);
-      parentConn->addObserver(strengthParam->getDescription(), strengthParam);
+      parentConn->addUniqueComponent(strengthParam);
       status = status + Response::POSTPONE;
    }
    return status;

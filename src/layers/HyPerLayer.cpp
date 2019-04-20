@@ -117,35 +117,35 @@ void HyPerLayer::fillComponentTable() {
    Subject::fillComponentTable();
    mLayerGeometry = createLayerGeometry();
    if (mLayerGeometry) {
-      addUniqueComponent(mLayerGeometry->getDescription(), mLayerGeometry);
+      addUniqueComponent(mLayerGeometry);
    }
    mPhaseParam = createPhaseParam();
    if (mPhaseParam) {
-      addUniqueComponent(mPhaseParam->getDescription(), mPhaseParam);
+      addUniqueComponent(mPhaseParam);
    }
    mBoundaryConditions = createBoundaryConditions();
    if (mBoundaryConditions) {
-      addUniqueComponent(mBoundaryConditions->getDescription(), mBoundaryConditions);
+      addUniqueComponent(mBoundaryConditions);
    }
    mLayerUpdateController = createLayerUpdateController();
    if (mLayerUpdateController) {
-      addUniqueComponent(mLayerUpdateController->getDescription(), mLayerUpdateController);
+      addUniqueComponent(mLayerUpdateController);
    }
    mLayerInput = createLayerInput();
    if (mLayerInput) {
-      addUniqueComponent(mLayerInput->getDescription(), mLayerInput);
+      addUniqueComponent(mLayerInput);
    }
    mActivityComponent = createActivityComponent();
    if (mActivityComponent) {
-      addUniqueComponent(mActivityComponent->getDescription(), mActivityComponent);
+      addUniqueComponent(mActivityComponent);
    }
    mPublisher = createPublisher();
    if (mPublisher) {
-      addUniqueComponent(mPublisher->getDescription(), mPublisher);
+      addUniqueComponent(mPublisher);
    }
    mLayerOutput = createLayerOutput();
    if (mLayerOutput) {
-      addUniqueComponent(mLayerOutput->getDescription(), mLayerOutput);
+      addUniqueComponent(mLayerOutput);
    }
 }
 

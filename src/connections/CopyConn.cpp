@@ -30,7 +30,7 @@ void CopyConn::fillComponentTable() {
    HyPerConn::fillComponentTable();
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
-      addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
+      addUniqueComponent(mOriginalConnNameParam);
    }
 }
 

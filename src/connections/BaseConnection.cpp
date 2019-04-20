@@ -54,11 +54,11 @@ void BaseConnection::fillComponentTable() {
    ComponentBasedObject::fillComponentTable();
    auto *connectionData = createConnectionData();
    if (connectionData) {
-      addUniqueComponent(connectionData->getDescription(), connectionData);
+      addUniqueComponent(connectionData);
    }
    auto *deliveryObject = createDeliveryObject();
    if (deliveryObject) {
-      addUniqueComponent(deliveryObject->getDescription(), deliveryObject);
+      addUniqueComponent(deliveryObject);
    }
 }
 

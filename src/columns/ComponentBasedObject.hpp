@@ -38,7 +38,7 @@ class ComponentBasedObject : public BaseObject, public Subject {
     * object of the specified type in the table.
     */
    template <typename S>
-   void addUniqueComponent(std::string const &tag, S *component);
+   void addUniqueComponent(S *component);
 
   protected:
    /** The default constructor for ComponentBasedObject does nothing. Derived classes
@@ -69,14 +69,14 @@ S *ComponentBasedObject::getComponentByType() {
 }
 
 template <typename S>
-void ComponentBasedObject::addUniqueComponent(std::string const &tag, S *component) {
+void ComponentBasedObject::addUniqueComponent(S *component) {
    auto *foundComponent = getComponentByType<S>();
    FatalIf(
          foundComponent,
          "attempt to add %s using addUniqueComponent, but the table already has %s.\n",
          component->getDescription_c(),
          foundComponent->getDescription_c());
-   addObserver(tag, component);
+   addObserver(component->getName(), component);
 }
 
 } // namespace PV
