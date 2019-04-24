@@ -2,34 +2,34 @@
 package.path = package.path .. ";" .. "../../../parameterWrapper/?.lua";
 local pv = require "PVModule";
 
-local nbatch           = 20;    --Number of images to process in parallel
-local nxSize           = 32;    --CIFAR images are 32 x 32
-local nySize           = 32;
-local patchSize        = 8;
-local stride           = 2
-local displayPeriod    = 400;   --Number of timesteps to find sparse approximation
-local numEpochs        = 1;     --Number of times to run through dataset
-local numImages        = 50000; --Total number of images in dataset
-local stopTime         = math.ceil((numImages  * numEpochs) / nbatch) * displayPeriod;
-local writeStep        = displayPeriod; 
-local initialWriteTime = displayPeriod; 
+local nbatch              = 20;    --Number of images to process in parallel
+local nxSize              = 32;    --CIFAR images are 32 x 32
+local nySize              = 32;
+local patchSize           = 8;
+local stride              = 2
+local displayPeriod       = 400;   --Number of timesteps to find sparse approximation
+local numEpochs           = 1;     --Number of times to run through dataset
+local numImages           = 50000; --Total number of images in dataset
+local stopTime            = math.ceil((numImages  * numEpochs) / nbatch) * displayPeriod;
+local writeStep           = displayPeriod;
+local initialWriteTime    = displayPeriod;
 
-local inputPath        = "../cifar-10-batches-mat/mixed_cifar.txt";
-local outputPath       = "../output/";
-local checkpointPeriod = (displayPeriod * 100); -- How often to write checkpoints
+local inputPath           = "../cifar-10-batches-mat/mixed_cifar.txt";
+local outputPath          = "../output/";
+local checkpointPeriod    = (displayPeriod * 100); -- How often to write checkpoints
 
-local dictionarySize   = 128;   --Number of patches/elements in dictionary 
-local dictionaryFile   = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
-local plasticityFlag   = true;  --Determines if we are learning our dictionary or holding it constant
-local momentumTau      = 500;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
-local dWMax            = 0.05;  --The learning rate
-local VThresh          = 0.55;  --The threshold, or lambda, of the network
-local AMin             = 0;
-local AMax             = infinity;
-local AShift           = VThresh;  --This being equal to VThresh is a soft threshold
-local VWidth           = 0; 
-local timeConstantTau  = 100;   --The integration tau for sparse approximation
-local weightInit       = 1.0;
+local dictionarySize      = 128;   --Number of patches/elements in dictionary 
+local dictionaryFile      = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
+local plasticityFlag      = true;  --Determines if we are learning our dictionary or holding it constant
+local timeConstantTauConn = 500;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
+local dWMax               = 0.05;    --The learning rate
+local VThresh             = 0.55;  --The threshold, or lambda, of the network
+local AMin                = 0;
+local AMax                = infinity;
+local AShift              = VThresh;  --This being equal to VThresh is a soft threshold
+local VWidth              = 0;
+local timeConstantTauV1   = 100;   --The integration tau for sparse approximation
+local weightInit          = 1.0;
 
 -- Base table variable to store
 local pvParameters = {
@@ -145,7 +145,7 @@ local pvParameters = {
       AMax                                = AMax;
       AShift                              = AShift;
       VWidth                              = VWidth;
-      timeConstantTau                     = timeConstantTau;
+      timeConstantTauV1                   = timeConstantTauV1;
       selfInteract                        = true;
       adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
    };
@@ -238,7 +238,7 @@ local pvParameters = {
       normalizeFromPostPerspective        = false;
       minL2NormTolerated                  = 0;
       dWMax                               = dWMax; 
-      momentumTau                         = momentumTau;   --The momentum parameter. A single weight update will last for momentumTau timesteps.
+      timeConstantTauConn                 = momentumTau;   --The momentum parameter. A single weight update will last for momentumTau timesteps.
       momentumMethod                      = "viscosity";
       momentumDecay                       = 0;
    }; 
