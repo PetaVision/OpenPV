@@ -56,8 +56,8 @@ void DependentPatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *allObjects            = message->mAllObjects;
-   auto *originalConnNameParam = allObjects->findObject<OriginalConnNameParam>(getName());
+   auto *objectTable           = message->mObjectTable;
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
    FatalIf(
          originalConnNameParam == nullptr,
          "%s could not find an OriginalConnNameParam.\n",
@@ -73,7 +73,7 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       return Response::POSTPONE;
    }
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
-   auto *originalPatchSize      = allObjects->findObject<PatchSize>(originalConnName);
+   auto *originalPatchSize      = objectTable->findObject<PatchSize>(originalConnName);
    FatalIf(
          originalPatchSize == nullptr,
          "%s original connection \"%s\" does not have a PatchSize.\n",

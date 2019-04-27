@@ -229,12 +229,11 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    mLocalBatchWidth       = nBatchGlobal / mCommunicator->numCommBatches();
    pvAssert(mLocalBatchWidth * mCommunicator->numCommBatches() == nBatchGlobal);
    initNumValues();
-   auto *hierarchy  = message->mHierarchy;
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
 
    // Set up triggering.
    if (triggerFlag) {
-      auto triggerLayer = allObjects->findObject<HyPerLayer>(triggerLayerName);
+      auto triggerLayer = objectTable->findObject<HyPerLayer>(triggerLayerName);
       FatalIf(
             triggerLayer == nullptr,
             "%s triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
@@ -250,7 +249,7 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
 
    // Add the probe to the ColumnEnergyProbe, if there is one.
    if (energyProbe && energyProbe[0]) {
-      auto *probe = allObjects->findObject<ColumnEnergyProbe>(energyProbe);
+      auto *probe = objectTable->findObject<ColumnEnergyProbe>(energyProbe);
       FatalIf(
             probe == nullptr,
             "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the column.\n",

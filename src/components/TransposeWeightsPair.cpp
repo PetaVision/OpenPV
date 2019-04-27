@@ -50,8 +50,8 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    ConnectionData *originalConnData = nullptr;
    if (mOriginalWeightsPair == nullptr) {
-      auto *allObjects            = message->mAllObjects;
-      auto *originalConnNameParam = allObjects->findObject<OriginalConnNameParam>(getName());
+      auto *objectTable           = message->mObjectTable;
+      auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
       FatalIf(
             originalConnNameParam == nullptr,
             "%s could not find an OriginalConnNameParam.\n",
@@ -68,13 +68,13 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
       }
       char const *originalConnName = originalConnNameParam->getLinkedObjectName();
 
-      mOriginalWeightsPair = allObjects->findObject<WeightsPair>(originalConnName);
+      mOriginalWeightsPair = objectTable->findObject<WeightsPair>(originalConnName);
       FatalIf(
             mOriginalWeightsPair == nullptr,
             "%s could not find a WeightsPair in \"%s\".\n",
             getDescription_c(),
             originalConnName);
-      originalConnData = allObjects->findObject<ConnectionData>(originalConnName);
+      originalConnData = objectTable->findObject<ConnectionData>(originalConnName);
       FatalIf(
             originalConnData == nullptr,
             "%s could not find a ConnectionData in \"%s\".\n",

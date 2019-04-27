@@ -36,7 +36,7 @@ void DependentPhaseParam::ioParam_phase(enum ParamsIOFlag ioFlag) {
 Response::Status DependentPhaseParam::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto *originalLayerNameParam =
-         message->mAllObjects->findObject<OriginalLayerNameParam>(getName());
+         message->mObjectTable->findObject<OriginalLayerNameParam>(getName());
    pvAssert(originalLayerNameParam);
 
    if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
@@ -50,7 +50,7 @@ Response::Status DependentPhaseParam::communicateInitInfo(
    }
 
    auto linkedObjectName    = std::string(originalLayerNameParam->getLinkedObjectName());
-   auto *originalPhaseParam = message->mAllObjects->findObject<PhaseParam>(linkedObjectName);
+   auto *originalPhaseParam = message->mObjectTable->findObject<PhaseParam>(linkedObjectName);
    FatalIf(
          originalPhaseParam == nullptr,
          "%s linked object \"%s\" does not have a PhaseParam component.\n",

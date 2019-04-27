@@ -51,7 +51,7 @@ PatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    if (!Response::completed(status)) {
       return status;
    }
-   mConnectionData = message->mAllObjects->findObject<ConnectionData>(getName());
+   mConnectionData = message->mObjectTable->findObject<ConnectionData>(getName());
    pvAssert(mConnectionData);
 
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {

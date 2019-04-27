@@ -194,8 +194,8 @@ void HebbianUpdater::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *allObjects  = message->mAllObjects;
-   auto *weightsPair = allObjects->findObject<WeightsPair>(getName());
+   auto *objectTable = message->mObjectTable;
+   auto *weightsPair = objectTable->findObject<WeightsPair>(getName());
    pvAssert(weightsPair);
    if (!weightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
@@ -214,17 +214,17 @@ HebbianUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
    mWriteCompressedCheckpoints = weightsPair->getWriteCompressedCheckpoints();
 
-   mConnectionData = allObjects->findObject<ConnectionData>(getName());
+   mConnectionData = objectTable->findObject<ConnectionData>(getName());
    FatalIf(
          mConnectionData == nullptr,
          "%s requires a ConnectionData component.\n",
          getDescription_c());
 
-   mArborList = message->mAllObjects->findObject<ArborList>(getName());
+   mArborList = message->mObjectTable->findObject<ArborList>(getName());
    FatalIf(mArborList == nullptr, "%s requires a ArborList component.\n", getDescription_c());
 
    if (mTriggerFlag) {
-      mTriggerControl = allObjects->findObject<LayerUpdateController>(mTriggerLayerName);
+      mTriggerControl = objectTable->findObject<LayerUpdateController>(mTriggerLayerName);
       FatalIf(
             mTriggerControl == nullptr,
             "%s: triggerLayerName \"%s\" does not have a LayerUpdateController.\n",

@@ -49,9 +49,9 @@ void DependentFirmThresholdCostActivityBuffer::ioParam_VWidth(enum ParamsIOFlag 
 
 Response::Status DependentFirmThresholdCostActivityBuffer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
 
-   auto *originalLayerNameParam = allObjects->findObject<OriginalLayerNameParam>(getName());
+   auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
    FatalIf(
          !originalLayerNameParam,
          "%s could not find an OriginalLayerNameParam component.\n",
@@ -68,7 +68,7 @@ Response::Status DependentFirmThresholdCostActivityBuffer::communicateInitInfo(
    }
 
    char const *linkedObjectName = originalLayerNameParam->getLinkedObjectName();
-   auto *originalActivityBuffer = allObjects->findObject<ANNActivityBuffer>(linkedObjectName);
+   auto *originalActivityBuffer = objectTable->findObject<ANNActivityBuffer>(linkedObjectName);
    FatalIf(
          originalActivityBuffer == nullptr,
          "%s original layer \"%s\" does not have an ANNActivityBuffer.\n",

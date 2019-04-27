@@ -37,7 +37,7 @@ Response::Status CloneDeliveryCreator::communicateInitInfo(
       return status;
    }
    if (mUpdateGSynFromPostPerspective) {
-      auto *cloneWeightsPair = message->mAllObjects->findObject<CloneWeightsPair>(getName());
+      auto *cloneWeightsPair = message->mObjectTable->findObject<CloneWeightsPair>(getName());
       if (!cloneWeightsPair->getInitInfoCommunicatedFlag()) {
          return Response::POSTPONE;
       }

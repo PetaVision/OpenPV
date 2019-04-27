@@ -57,17 +57,17 @@ Response::Status ISTAInternalStateBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
    if (mAdaptiveTimeScaleProbeName) {
       mAdaptiveTimeScaleProbe =
-            allObjects->findObject<AdaptiveTimeScaleProbe>(mAdaptiveTimeScaleProbeName);
+            objectTable->findObject<AdaptiveTimeScaleProbe>(mAdaptiveTimeScaleProbeName);
       FatalIf(
             mAdaptiveTimeScaleProbe == nullptr,
             "%s could not find an AdaptiveTimeScaleProbe named \"%s\".\n",
             getDescription_c(),
             mAdaptiveTimeScaleProbeName);
    }
-   mActivity = allObjects->findObject<ANNActivityBuffer>(getName());
+   mActivity = objectTable->findObject<ANNActivityBuffer>(getName());
    FatalIf(mActivity == nullptr, "%s needs an ANNActivityBuffer.\n", getDescription_c());
    return Response::SUCCESS;
 }

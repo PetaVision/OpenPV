@@ -70,7 +70,7 @@ Response::Status BaseConnectionProbe::communicateInitInfo(
    }
 
    bool failed = false;
-   mTargetConn = message->mAllObjects->findObject<ComponentBasedObject>(targetName);
+   mTargetConn = message->mObjectTable->findObject<ComponentBasedObject>(targetName);
    FatalIf(
          mTargetConn == nullptr,
          "%s, rank %d process: targetConnection \"%s\" is not a connection in the column.\n",

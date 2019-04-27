@@ -54,26 +54,26 @@ PV::Response::Status HyPerConnCheckpointerTestProbe::communicateInitInfo(
       return status;
    }
 
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
 
-   status = mPreWeights ? status : status + initConnection(allObjects);
+   status = mPreWeights ? status : status + initConnection(objectTable);
    // initConnection sets InitializeFromCheckpointFlag, and init{In,Out}PutLayer checks
    // against that value, so we have to complete initConnection successively before
    // calling initInputLayer or initOutputLayer.
    if (!PV::Response::completed(status)) {
       return status;
    }
-   status = mInputPublisher ? status : status + initInputLayer(allObjects);
-   status = mOutputPublisher ? status : status + initOutputLayer(allObjects);
+   status = mInputPublisher ? status : status + initInputLayer(objectTable);
+   status = mOutputPublisher ? status : status + initOutputLayer(objectTable);
 
    return status;
 }
 
 PV::Response::Status
-HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *allObjects) {
+HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *objectTable) {
    char const *connectionName = "InputToOutput";
 
-   auto *patchSize = allObjects->findObject<PV::PatchSize>(connectionName);
+   auto *patchSize = objectTable->findObject<PV::PatchSize>(connectionName);
    FatalIf(patchSize == nullptr, "Connection \"%s\" does not have a PatchSize component.\n");
    if (checkCommunicatedFlag(patchSize) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
@@ -82,7 +82,7 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *allObjec
    FatalIf(patchSize->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(patchSize->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
 
-   auto *arborList = allObjects->findObject<PV::ArborList>(connectionName);
+   auto *arborList = objectTable->findObject<PV::ArborList>(connectionName);
    FatalIf(
          arborList == nullptr,
          "Connection \"%s\" does not have an ArborList component.\n",
@@ -96,7 +96,7 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *allObjec
    FatalIf(
          arborList->getDelay(0) != 0.0, "This test assumes that the connection has zero delay.\n");
 
-   auto *sharedWeights = allObjects->findObject<PV::SharedWeights>(connectionName);
+   auto *sharedWeights = objectTable->findObject<PV::SharedWeights>(connectionName);
    FatalIf(
          sharedWeights == nullptr,
          "Connection \"%s\" does not have a SharedWeights component.\n",
@@ -108,7 +108,7 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *allObjec
          !sharedWeights->getSharedWeights(),
          "This test assumes that the connection is using shared weights.\n");
 
-   auto *weightsPair = allObjects->findObject<PV::WeightsPair>(connectionName);
+   auto *weightsPair = objectTable->findObject<PV::WeightsPair>(connectionName);
    FatalIf(
          weightsPair == nullptr,
          "Connection \"%s\" does not have a WeightsPair component.\n",
@@ -122,9 +122,9 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *allObjec
 }
 
 PV::Response::Status
-HyPerConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *allObjects) {
+HyPerConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *objectTable) {
    char const *inputLayerName = "Input";
-   auto *inputLayer           = allObjects->findObject<PV::InputLayer>(inputLayerName);
+   auto *inputLayer           = objectTable->findObject<PV::InputLayer>(inputLayerName);
    FatalIf(inputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(inputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
@@ -134,11 +134,11 @@ HyPerConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *allObjec
          "%s has a different initializeFromCheckpointFlag value from the connection.\n",
          inputLayer->getDescription_c());
 
-   auto *inputBuffer = allObjects->findObject<PV::InputActivityBuffer>(inputLayerName);
+   auto *inputBuffer = objectTable->findObject<PV::InputActivityBuffer>(inputLayerName);
    FatalIf(
          inputBuffer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
-   mInputPublisher = allObjects->findObject<PV::BasePublisherComponent>(inputLayerName);
+   mInputPublisher = objectTable->findObject<PV::BasePublisherComponent>(inputLayerName);
    FatalIf(
          mInputPublisher == nullptr,
          "%s does not have a BasePublisherComponent.\n",
@@ -147,9 +147,9 @@ HyPerConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *allObjec
 }
 
 PV::Response::Status
-HyPerConnCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *allObjects) {
+HyPerConnCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *objectTable) {
    char const *outputLayerName = "Output";
-   auto *outputLayer           = allObjects->findObject<PV::HyPerLayer>(outputLayerName);
+   auto *outputLayer           = objectTable->findObject<PV::HyPerLayer>(outputLayerName);
    FatalIf(outputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(outputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
@@ -158,7 +158,7 @@ HyPerConnCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *allObje
          outputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
          "%s has a different initializeFromCheckpointFlag value from the connection.\n",
          outputLayer->getDescription_c());
-   mOutputPublisher = allObjects->findObject<PV::BasePublisherComponent>(outputLayerName);
+   mOutputPublisher = objectTable->findObject<PV::BasePublisherComponent>(outputLayerName);
    FatalIf(
          mOutputPublisher == nullptr,
          "%s does not have a BasePublisherComponent.\n",

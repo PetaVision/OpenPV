@@ -554,34 +554,33 @@ int HyPerCol::setNumThreads() {
    return threadStatus;
 }
 
-void HyPerCol::expandRecursive(ObserverTable *allObjects, ObserverTable const *table) {
+void HyPerCol::expandRecursive(ObserverTable *objectTable, ObserverTable const *table) {
    for (auto iterator = table->begin(); iterator != table->end(); iterator++) {
       auto *obs = *iterator;
       auto *obj = dynamic_cast<BaseObject *>(obs);
       pvAssert(obj);
-      allObjects->addObject(obj->getName(), obj);
+      objectTable->addObject(obj->getName(), obj);
       auto *cbo = dynamic_cast<ComponentBasedObject *>(obj);
       if (cbo) {
          auto *cboTable = cbo->getTable();
-         expandRecursive(allObjects, cboTable);
+         expandRecursive(objectTable, cboTable);
       }
    }
 }
 
 ObserverTable HyPerCol::getAllObjectsFlat() {
-   auto allObjects = ObserverTable("All objects");
-   expandRecursive(&allObjects, mTable);
-   return allObjects;
+   auto objectTable = ObserverTable("All objects");
+   expandRecursive(&objectTable, mTable);
+   return objectTable;
 }
 
 int HyPerCol::processParams(char const *path) {
-   auto allObjects = getAllObjectsFlat();
+   auto objectTable = getAllObjectsFlat();
 
    if (!mParamsProcessedFlag) {
       notifyLoop(
             std::make_shared<CommunicateInitInfoMessage>(
-                  mTable,
-                  &allObjects,
+                  &objectTable,
                   mDeltaTime,
                   mNumXGlobal,
                   mNumYGlobal,

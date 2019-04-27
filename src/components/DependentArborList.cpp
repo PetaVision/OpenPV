@@ -42,8 +42,8 @@ void DependentArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *allObjects            = message->mAllObjects;
-   auto *originalConnNameParam = allObjects->findObject<OriginalConnNameParam>(getName());
+   auto *objectTable           = message->mObjectTable;
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
    FatalIf(
          originalConnNameParam == nullptr,
          "%s does not have an OriginalConnNameParam.\n",
@@ -60,7 +60,7 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    }
 
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
-   auto *originalArborList      = allObjects->findObject<ArborList>(originalConnName);
+   auto *originalArborList      = objectTable->findObject<ArborList>(originalConnName);
    FatalIf(
          originalArborList == nullptr,
          "%s original connection \"%s\" does not have an ArborList.\n",

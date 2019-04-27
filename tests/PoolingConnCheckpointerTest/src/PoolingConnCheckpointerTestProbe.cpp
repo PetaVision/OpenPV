@@ -52,11 +52,11 @@ Response::Status PoolingConnCheckpointerTestProbe::communicateInitInfo(
       return status;
    }
 
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
 
-   status = mConnection ? status : status + initConnection(allObjects);
-   status = mInputPublisher ? status : status + initInputPublisher(allObjects);
-   status = mOutputPublisher ? status : status + initOutputPublisher(allObjects);
+   status = mConnection ? status : status + initConnection(objectTable);
+   status = mInputPublisher ? status : status + initInputPublisher(objectTable);
+   status = mOutputPublisher ? status : status + initOutputPublisher(objectTable);
    if (!Response::completed(status)) {
       return status;
    }
@@ -71,9 +71,10 @@ Response::Status PoolingConnCheckpointerTestProbe::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-Response::Status PoolingConnCheckpointerTestProbe::initConnection(ObserverTable const *allObjects) {
+Response::Status
+PoolingConnCheckpointerTestProbe::initConnection(ObserverTable const *objectTable) {
    char const *connectionName = "InputToOutput";
-   auto *connection           = allObjects->findObject<PoolingConn>(connectionName);
+   auto *connection           = objectTable->findObject<PoolingConn>(connectionName);
    FatalIf(
          connection == nullptr, "column does not have a HyPerConn named \"%s\".\n", connectionName);
    if (checkCommunicatedFlag(connection) == Response::POSTPONE) {
@@ -81,7 +82,7 @@ Response::Status PoolingConnCheckpointerTestProbe::initConnection(ObserverTable 
    }
    mConnection = connection;
 
-   auto *patchSize = allObjects->findObject<PatchSize>(connectionName);
+   auto *patchSize = objectTable->findObject<PatchSize>(connectionName);
    FatalIf(
          patchSize == nullptr,
          "%s does not have a PatchSize component.\n",
@@ -96,9 +97,9 @@ Response::Status PoolingConnCheckpointerTestProbe::initConnection(ObserverTable 
 }
 
 Response::Status
-PoolingConnCheckpointerTestProbe::initInputPublisher(ObserverTable const *allObjects) {
+PoolingConnCheckpointerTestProbe::initInputPublisher(ObserverTable const *objectTable) {
    char const *inputLayerName = "Input";
-   auto *inputLayer           = allObjects->findObject<InputLayer>(std::string(inputLayerName));
+   auto *inputLayer           = objectTable->findObject<InputLayer>(std::string(inputLayerName));
    FatalIf(
          inputLayer == nullptr,
          "column does not have an InputLayer named \"%s\".\n",
@@ -112,7 +113,7 @@ PoolingConnCheckpointerTestProbe::initInputPublisher(ObserverTable const *allObj
          halo->lt != 0 || halo->rt != 0 || halo->dn != 0 || halo->up != 0,
          "This test assumes that the input layer has no border region.\n");
 
-   auto *inputBuffer = allObjects->findObject<InputActivityBuffer>(inputLayerName);
+   auto *inputBuffer = objectTable->findObject<InputActivityBuffer>(inputLayerName);
    FatalIf(
          inputBuffer == nullptr,
          "%s does not have an InputActivityBuffer.\n",
@@ -124,7 +125,7 @@ PoolingConnCheckpointerTestProbe::initInputPublisher(ObserverTable const *allObj
          inputBuffer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
 
-   mInputPublisher = allObjects->findObject<BasePublisherComponent>(inputLayerName);
+   mInputPublisher = objectTable->findObject<BasePublisherComponent>(inputLayerName);
    FatalIf(
          mInputPublisher == nullptr,
          "%s does not have a BasePublisherComponent.\n",
@@ -133,9 +134,9 @@ PoolingConnCheckpointerTestProbe::initInputPublisher(ObserverTable const *allObj
 }
 
 Response::Status
-PoolingConnCheckpointerTestProbe::initOutputPublisher(ObserverTable const *allObjects) {
+PoolingConnCheckpointerTestProbe::initOutputPublisher(ObserverTable const *objectTable) {
    char const *outputLayerName = "Output";
-   auto *outputLayer           = allObjects->findObject<HyPerLayer>(outputLayerName);
+   auto *outputLayer           = objectTable->findObject<HyPerLayer>(outputLayerName);
    FatalIf(
          outputLayer == nullptr,
          "column does not have a HyPerLayer named \"%s\".\n",
@@ -144,7 +145,7 @@ PoolingConnCheckpointerTestProbe::initOutputPublisher(ObserverTable const *allOb
       return Response::POSTPONE;
    }
 
-   mOutputPublisher = allObjects->findObject<BasePublisherComponent>(outputLayerName);
+   mOutputPublisher = objectTable->findObject<BasePublisherComponent>(outputLayerName);
    FatalIf(
          mOutputPublisher == nullptr,
          "%s does not have a BasePublisherComponent.\n",

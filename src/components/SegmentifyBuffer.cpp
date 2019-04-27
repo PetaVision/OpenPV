@@ -86,10 +86,10 @@ SegmentifyBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    if (!Response::completed(status)) {
       return status;
    }
-   ObserverTable const *allObjects = message->mAllObjects;
+   ObserverTable const *objectTable = message->mObjectTable;
 
    if (!mOriginalActivity) {
-      setOriginalActivity(allObjects);
+      setOriginalActivity(objectTable);
    }
    pvAssert(mOriginalActivity);
    if (mOriginalActivity->getInitInfoCommunicatedFlag() == false) {
@@ -97,7 +97,7 @@ SegmentifyBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    }
 
    if (!mSegmentBuffer) {
-      setSegmentBuffer(allObjects);
+      setSegmentBuffer(objectTable);
    }
    pvAssert(mSegmentBuffer);
    if (mSegmentBuffer->getInitInfoCommunicatedFlag() == false) {

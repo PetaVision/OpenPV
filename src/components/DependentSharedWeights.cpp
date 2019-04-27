@@ -45,8 +45,8 @@ void DependentSharedWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
 
 Response::Status DependentSharedWeights::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *allObjects            = message->mAllObjects;
-   auto *originalConnNameParam = allObjects->findObject<OriginalConnNameParam>(getName());
+   auto *objectTable           = message->mObjectTable;
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
    FatalIf(
          originalConnNameParam == nullptr,
          "%s could not find an OriginalConnNameParam component.\n",
@@ -63,7 +63,7 @@ Response::Status DependentSharedWeights::communicateInitInfo(
    }
 
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
-   auto *originalSharedWeights  = allObjects->findObject<SharedWeights>(originalConnName);
+   auto *originalSharedWeights  = objectTable->findObject<SharedWeights>(originalConnName);
 
    if (!originalSharedWeights->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {

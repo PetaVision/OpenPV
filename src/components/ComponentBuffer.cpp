@@ -39,9 +39,9 @@ void ComponentBuffer::setBufferLabel(std::string const &label) {
 
 Response::Status
 ComponentBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
    if (mLayerGeometry == nullptr) {
-      mLayerGeometry = allObjects->findObject<LayerGeometry>(getName());
+      mLayerGeometry = objectTable->findObject<LayerGeometry>(getName());
    }
    FatalIf(!mLayerGeometry, "%s requires a LayerGeometry component.\n", getDescription_c());
    return Response::SUCCESS;

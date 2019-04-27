@@ -51,25 +51,25 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::communicateInit
       return status;
    }
 
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
 
-   status = mConnection ? status : status + initConnection(allObjects);
+   status = mConnection ? status : status + initConnection(objectTable);
    // initConnection sets InitializeFromCheckpointFlag, and init{In,Out}PutLayer checks
    // against that value, so we have to complete initConnection successively before
    // calling initInputLayer or initOutputLayer.
    if (!PV::Response::completed(status)) {
       return status;
    }
-   status = mInputPublisher ? status : status + initInputLayer(allObjects);
-   status = mOutputPublisher ? status : status + initOutputLayer(allObjects);
+   status = mInputPublisher ? status : status + initInputLayer(objectTable);
+   status = mOutputPublisher ? status : status + initOutputLayer(objectTable);
 
    return status;
 }
 
 PV::Response::Status
-MomentumConnViscosityCheckpointerTestProbe::initConnection(PV::ObserverTable const *allObjects) {
+MomentumConnViscosityCheckpointerTestProbe::initConnection(PV::ObserverTable const *objectTable) {
    char const *connectionName = "InputToOutput";
-   auto *connection           = allObjects->findObject<PV::ComponentBasedObject>(connectionName);
+   auto *connection           = objectTable->findObject<PV::ComponentBasedObject>(connectionName);
    FatalIf(
          connection == nullptr,
          "column does not have a MomentumConn named \"%s\".\n",
@@ -79,7 +79,7 @@ MomentumConnViscosityCheckpointerTestProbe::initConnection(PV::ObserverTable con
    }
    mConnection = connection;
 
-   auto *arborList = allObjects->findObject<PV::ArborList>(connectionName);
+   auto *arborList = objectTable->findObject<PV::ArborList>(connectionName);
    FatalIf(arborList == nullptr, "Connection \"%s\" does not have an ArborList.\n", connectionName);
    if (checkCommunicatedFlag(arborList) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
@@ -90,7 +90,7 @@ MomentumConnViscosityCheckpointerTestProbe::initConnection(PV::ObserverTable con
    FatalIf(
          arborList->getDelay(0) != 0.0, "This test assumes that the connection has zero delay.\n");
 
-   auto *sharedWeights = allObjects->findObject<PV::SharedWeights>(connectionName);
+   auto *sharedWeights = objectTable->findObject<PV::SharedWeights>(connectionName);
    FatalIf(
          sharedWeights == nullptr,
          "%s does not have a SharedWeights component.\n",
@@ -102,7 +102,7 @@ MomentumConnViscosityCheckpointerTestProbe::initConnection(PV::ObserverTable con
          !sharedWeights->getSharedWeights(),
          "This test assumes that the connection is using shared weights.\n");
 
-   auto *patchSize = allObjects->findObject<PV::PatchSize>(connectionName);
+   auto *patchSize = objectTable->findObject<PV::PatchSize>(connectionName);
    FatalIf(
          patchSize == nullptr,
          "%s does not have a PatchSize component.\n",
@@ -114,7 +114,7 @@ MomentumConnViscosityCheckpointerTestProbe::initConnection(PV::ObserverTable con
    FatalIf(patchSize->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(patchSize->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
 
-   auto *momentumUpdater = allObjects->findObject<PV::MomentumUpdater>(connectionName);
+   auto *momentumUpdater = objectTable->findObject<PV::MomentumUpdater>(connectionName);
    FatalIf(
          momentumUpdater == nullptr,
          "%s does not have a momentumUpdater.\n",
@@ -130,9 +130,9 @@ MomentumConnViscosityCheckpointerTestProbe::initConnection(PV::ObserverTable con
 }
 
 PV::Response::Status
-MomentumConnViscosityCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *allObjects) {
+MomentumConnViscosityCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *objectTable) {
    char const *inputLayerName = "Input";
-   auto *inputLayer           = allObjects->findObject<PV::InputLayer>(inputLayerName);
+   auto *inputLayer           = objectTable->findObject<PV::InputLayer>(inputLayerName);
    FatalIf(
          inputLayer == nullptr,
          "column does not have an InputLayer named \"%s\".\n",
@@ -146,7 +146,7 @@ MomentumConnViscosityCheckpointerTestProbe::initInputLayer(PV::ObserverTable con
          inputLayer->getDescription_c(),
          getDescription_c());
 
-   auto *inputBuffer = allObjects->findObject<PV::InputActivityBuffer>(inputLayerName);
+   auto *inputBuffer = objectTable->findObject<PV::InputActivityBuffer>(inputLayerName);
    FatalIf(
          inputBuffer == nullptr,
          "%s does not have an InputActivityBuffer.\n",
@@ -158,7 +158,7 @@ MomentumConnViscosityCheckpointerTestProbe::initInputLayer(PV::ObserverTable con
          inputBuffer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
 
-   mInputPublisher = allObjects->findObject<PV::BasePublisherComponent>(inputLayerName);
+   mInputPublisher = objectTable->findObject<PV::BasePublisherComponent>(inputLayerName);
    FatalIf(
          mInputPublisher == nullptr,
          "%s does not have a BasePublisherComponent.\n",
@@ -167,9 +167,9 @@ MomentumConnViscosityCheckpointerTestProbe::initInputLayer(PV::ObserverTable con
 }
 
 PV::Response::Status
-MomentumConnViscosityCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *allObjects) {
+MomentumConnViscosityCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *objectTable) {
    char const *outputLayerName = "Output";
-   auto *outputLayer           = allObjects->findObject<PV::HyPerLayer>(outputLayerName);
+   auto *outputLayer           = objectTable->findObject<PV::HyPerLayer>(outputLayerName);
    FatalIf(
          outputLayer == nullptr,
          "column does not have a HyPerLayer named \"%s\".\n",
@@ -182,7 +182,7 @@ MomentumConnViscosityCheckpointerTestProbe::initOutputLayer(PV::ObserverTable co
          "%s has a different initializeFromCheckpointFlag value from the probe %s.\n",
          outputLayer->getDescription_c(),
          getDescription_c());
-   mOutputPublisher = allObjects->findObject<PV::BasePublisherComponent>(outputLayerName);
+   mOutputPublisher = objectTable->findObject<PV::BasePublisherComponent>(outputLayerName);
    if (checkCommunicatedFlag(mOutputPublisher) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }

@@ -28,9 +28,9 @@ PlasticCloneConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    if (!Response::completed(status)) {
       return status;
    }
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
 
-   auto *connectionData = allObjects->findObject<ConnectionData>(getName());
+   auto *connectionData = objectTable->findObject<ConnectionData>(getName());
    FatalIf(
          connectionData == nullptr,
          "%s could not find a ConnectionData component.\n",
@@ -39,7 +39,7 @@ PlasticCloneConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       return Response::POSTPONE;
    }
 
-   auto *originalConnNameParam = allObjects->findObject<OriginalConnNameParam>(getName());
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
    FatalIf(
          originalConnNameParam == nullptr,
          "%s requires an OriginalConnNameParam component.\n",
@@ -49,7 +49,7 @@ PlasticCloneConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    }
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
 
-   auto *originalUpdater = allObjects->findObject<HebbianUpdater>(originalConnName);
+   auto *originalUpdater = objectTable->findObject<HebbianUpdater>(originalConnName);
    FatalIf(
          originalUpdater == nullptr,
          "%s specifies originalConnName \"%s\", but this connection does not have a "

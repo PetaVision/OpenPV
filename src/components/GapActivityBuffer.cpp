@@ -40,15 +40,15 @@ GapActivityBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    }
 
    if (mOriginalActivity == nullptr) {
-      auto *allObjects             = message->mAllObjects;
-      auto *originalLayerNameParam = allObjects->findObject<OriginalLayerNameParam>(getName());
+      auto *objectTable            = message->mObjectTable;
+      auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
       if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
          return Response::POSTPONE;
       }
 
       // Retrieve original layer's ActivityBuffer
       char const *linkedObjectName = originalLayerNameParam->getLinkedObjectName();
-      mOriginalActivity            = allObjects->findObject<ActivityBuffer>(linkedObjectName);
+      mOriginalActivity            = objectTable->findObject<ActivityBuffer>(linkedObjectName);
       FatalIf(
             mOriginalActivity == nullptr,
             "%s could not find an InternalStateBuffer within %s.\n",

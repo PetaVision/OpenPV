@@ -32,8 +32,8 @@ Response::Status
 CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mOriginalWeightsPair == nullptr) {
       pvAssert(mOriginalConnData == nullptr);
-      auto *allObjects            = message->mAllObjects;
-      auto *originalConnNameParam = allObjects->findObject<OriginalConnNameParam>(getName());
+      auto *objectTable           = message->mObjectTable;
+      auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
       FatalIf(
             originalConnNameParam == nullptr,
             "%s could not find an OriginalConnNameParam.\n",
@@ -51,14 +51,14 @@ CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
       char const *originalConnName = originalConnNameParam->getLinkedObjectName();
 
-      mOriginalConnData = allObjects->findObject<ConnectionData>(originalConnName);
+      mOriginalConnData = objectTable->findObject<ConnectionData>(originalConnName);
       FatalIf(
             mOriginalConnData == nullptr,
             "%s could not find a ConnectionData component within \"%s\".\n",
             getDescription_c(),
             originalConnName);
 
-      mOriginalWeightsPair = allObjects->findObject<WeightsPair>(originalConnName);
+      mOriginalWeightsPair = objectTable->findObject<WeightsPair>(originalConnName);
       FatalIf(
             mOriginalWeightsPair == nullptr,
             "%s could not find a WeightsPair component within \"%s\".\n",

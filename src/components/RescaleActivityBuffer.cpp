@@ -36,8 +36,8 @@ Response::Status RescaleActivityBuffer::communicateInitInfo(
    }
 
    if (mOriginalBuffer == nullptr) {
-      auto *allObjects             = message->mAllObjects;
-      auto *originalLayerNameParam = allObjects->findObject<OriginalLayerNameParam>(getName());
+      auto *objectTable            = message->mObjectTable;
+      auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
       if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
          return Response::POSTPONE;
       }
@@ -48,7 +48,7 @@ Response::Status RescaleActivityBuffer::communicateInitInfo(
 
       // Retrieve original layer's ActivityBuffer
       char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
-      mOriginalBuffer               = allObjects->findObject<ActivityBuffer>(originalLayerName);
+      mOriginalBuffer               = objectTable->findObject<ActivityBuffer>(originalLayerName);
       FatalIf(
             mOriginalBuffer == nullptr,
             "%s could not find an ActivityBuffer within %s.\n",

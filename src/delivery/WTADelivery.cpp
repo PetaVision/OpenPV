@@ -35,7 +35,7 @@ WTADelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
       return status;
    }
 
-   auto *singleArbor = message->mAllObjects->findObject<SingleArbor>(getName());
+   auto *singleArbor = message->mObjectTable->findObject<SingleArbor>(getName());
    FatalIf(!singleArbor, "%s requires a SingleArbor component.\n", getDescription_c());
    if (!singleArbor->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;

@@ -37,7 +37,7 @@ Response::Status DatastoreDelayTestBuffer::communicateInitInfo(
       return status;
    }
 
-   auto *parentPublisher = message->mAllObjects->findObject<BasePublisherComponent>(getName());
+   auto *parentPublisher = message->mObjectTable->findObject<BasePublisherComponent>(getName());
    FatalIf(
          parentPublisher == nullptr,
          "%s could not find a BasePublisherComponent.\n",

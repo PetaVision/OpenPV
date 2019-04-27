@@ -40,7 +40,7 @@ Response::Status DatastoreDelayTestProbe::communicateInitInfo(
       return status;
    }
    BasePublisherComponent *inputPublisher =
-         message->mAllObjects->findObject<BasePublisherComponent>("input");
+         message->mObjectTable->findObject<BasePublisherComponent>("input");
    pvAssert(inputPublisher);
    mNumDelayLevels = inputPublisher->getNumDelayLevels();
 

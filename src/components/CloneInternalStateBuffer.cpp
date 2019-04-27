@@ -45,8 +45,8 @@ Response::Status CloneInternalStateBuffer::communicateInitInfo(
    }
 
    if (mOriginalBuffer == nullptr) {
-      auto *allObjects             = message->mAllObjects;
-      auto *originalLayerNameParam = allObjects->findObject<OriginalLayerNameParam>(getName());
+      auto *objectTable            = message->mObjectTable;
+      auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
       if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
          return Response::POSTPONE;
       }
@@ -57,7 +57,7 @@ Response::Status CloneInternalStateBuffer::communicateInitInfo(
 
       // Retrieve original layer's InternalStateBuffer
       char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
-      mOriginalBuffer = allObjects->findObject<InternalStateBuffer>(originalLayerName);
+      mOriginalBuffer = objectTable->findObject<InternalStateBuffer>(originalLayerName);
       FatalIf(
             mOriginalBuffer == nullptr,
             "%s could not find an InternalStateBuffer within %s.\n",

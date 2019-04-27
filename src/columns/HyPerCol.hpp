@@ -126,7 +126,7 @@ class HyPerCol : public Subject, public ParamsInterface {
     */
    Observer *getNextObject(Observer const *currentObject) const;
 
-   static void expandRecursive(ObserverTable *allObjects, ObserverTable const *table);
+   static void expandRecursive(ObserverTable *objectTable, ObserverTable const *table);
 
    ObserverTable getAllObjectsFlat();
 

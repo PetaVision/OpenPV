@@ -38,8 +38,8 @@ Response::Status InputRegionActivityBuffer::communicateInitInfo(
       return status;
    }
 
-   auto *allObjects             = message->mAllObjects;
-   auto *originalLayerNameParam = allObjects->findObject<OriginalLayerNameParam>(getName());
+   auto *objectTable            = message->mObjectTable;
+   auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
    FatalIf(
          originalLayerNameParam == nullptr,
          "%s could not find an OriginalLayerName component.\n",
@@ -52,12 +52,12 @@ Response::Status InputRegionActivityBuffer::communicateInitInfo(
       char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
 
       // Synchronize margins between original layer and this layer.
-      auto *thisGeometry = allObjects->findObject<LayerGeometry>(getName());
-      auto *origGeometry = allObjects->findObject<LayerGeometry>(originalLayerName);
+      auto *thisGeometry = objectTable->findObject<LayerGeometry>(getName());
+      auto *origGeometry = objectTable->findObject<LayerGeometry>(originalLayerName);
       LayerGeometry::synchronizeMarginWidths(thisGeometry, origGeometry);
 
       // Retrieve the original layer's activity component
-      mOriginalInput = allObjects->findObject<InputActivityBuffer>(originalLayerName);
+      mOriginalInput = objectTable->findObject<InputActivityBuffer>(originalLayerName);
       FatalIf(
             mOriginalInput == nullptr,
             "%s could not find an InputActivityBuffer within %s.\n",

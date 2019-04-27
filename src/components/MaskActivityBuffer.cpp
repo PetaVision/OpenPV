@@ -89,7 +89,7 @@ MaskActivityBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       return status;
    }
    if (mMaskMethodCode == LAYER or mMaskMethodCode == INVERT_LAYER) {
-      mMaskBuffer = message->mAllObjects->findObject<ActivityBuffer>(std::string(mMaskLayerName));
+      mMaskBuffer = message->mObjectTable->findObject<ActivityBuffer>(std::string(mMaskLayerName));
       FatalIf(
             mMaskBuffer == nullptr,
             "%s: No object with maskLayerName \"%s\" has an ActivityBuffer.\n",

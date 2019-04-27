@@ -43,15 +43,15 @@ void FeedbackConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {}
 
 Response::Status FeedbackConnectionData::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *allObjects            = message->mAllObjects;
-   auto *originalConnNameParam = allObjects->findObject<OriginalConnNameParam>(getName());
+   auto *objectTable           = message->mObjectTable;
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
    FatalIf(
          originalConnNameParam == nullptr,
          "%s could not find an OriginalConnNameParam.\n",
          getDescription_c());
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
 
-   auto *originalConnectionData = allObjects->findObject<ConnectionData>(originalConnName);
+   auto *originalConnectionData = objectTable->findObject<ConnectionData>(originalConnName);
    FatalIf(
          originalConnectionData == nullptr,
          "%s set original connection to \"%s\", which does not have a ConnectionData component.\n",

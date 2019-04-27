@@ -49,8 +49,8 @@ Response::Status BackgroundActivityBuffer::communicateInitInfo(
       return status;
    }
 
-   auto *allObjects             = message->mAllObjects;
-   auto *originalLayerNameParam = allObjects->findObject<OriginalLayerNameParam>(getName());
+   auto *objectTable            = message->mObjectTable;
+   auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
    FatalIf(
          originalLayerNameParam == nullptr,
          "%s could not find an OriginalLayerNameParam component.\n",
@@ -60,7 +60,7 @@ Response::Status BackgroundActivityBuffer::communicateInitInfo(
    }
 
    char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
-   mOriginalData = allObjects->findObject<BasePublisherComponent>(originalLayerName);
+   mOriginalData = objectTable->findObject<BasePublisherComponent>(originalLayerName);
    FatalIf(
          mOriginalData == nullptr,
          "%s originalLayerName \"%s\" does not have a BasePublisherComponent.\n",

@@ -25,16 +25,14 @@ namespace PV {
 class CommunicateInitInfoMessage : public BaseMessage {
   public:
    CommunicateInitInfoMessage(
-         ObserverTable const *hierarchy,
-         ObserverTable const *allObjects,
+         ObserverTable const *objectTable,
          double deltaTime,
          int nxGlobal,
          int nyGlobal,
          int nBatchGlobal,
          int numThreads) {
       setMessageType("CommunicateInitInfo");
-      mHierarchy    = hierarchy;
-      mAllObjects   = allObjects;
+      mObjectTable  = objectTable;
       mDeltaTime    = deltaTime;
       mNxGlobal     = nxGlobal;
       mNyGlobal     = nyGlobal;
@@ -42,8 +40,7 @@ class CommunicateInitInfoMessage : public BaseMessage {
       mNumThreads   = numThreads;
    }
    // For lookup, use the ObserverTable function members.
-   ObserverTable const *mHierarchy;
-   ObserverTable const *mAllObjects;
+   ObserverTable const *mObjectTable;
    double mDeltaTime;
    int mNxGlobal;
    int mNyGlobal;

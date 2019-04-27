@@ -55,7 +55,7 @@ GSynAccumulator::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    if (!Response::completed(status)) {
       return status;
    }
-   mLayerInput = message->mAllObjects->findObject<LayerInputBuffer>(getName());
+   mLayerInput = message->mObjectTable->findObject<LayerInputBuffer>(getName());
    FatalIf(
          mLayerInput == nullptr,
          "%s could not find a LayerInputBuffer component.\n",

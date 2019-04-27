@@ -36,20 +36,19 @@ void WeightComparisonProbe::initialize(
 
 Response::Status WeightComparisonProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *hierarchy  = message->mHierarchy;
-   auto *allObjects = message->mAllObjects;
-   mConnectionList.push_back(allObjects->findObject<ComponentBasedObject>("ConnA"));
-   mConnectionList.push_back(allObjects->findObject<ComponentBasedObject>("ConnB"));
-   mConnectionList.push_back(allObjects->findObject<ComponentBasedObject>("ConnC"));
-   mConnectionList.push_back(allObjects->findObject<ComponentBasedObject>("ConnD"));
+   auto *objectTable = message->mObjectTable;
+   mConnectionList.push_back(objectTable->findObject<ComponentBasedObject>("ConnA"));
+   mConnectionList.push_back(objectTable->findObject<ComponentBasedObject>("ConnB"));
+   mConnectionList.push_back(objectTable->findObject<ComponentBasedObject>("ConnC"));
+   mConnectionList.push_back(objectTable->findObject<ComponentBasedObject>("ConnD"));
 
    for (auto &c : mConnectionList) {
       if (!c->getInitInfoCommunicatedFlag()) {
          return Response::POSTPONE;
       }
-      auto *deliveryCreator = allObjects->findObject<HyPerDeliveryCreator>(c->getName());
+      auto *deliveryCreator = objectTable->findObject<HyPerDeliveryCreator>(c->getName());
       pvAssert(deliveryCreator);
-      auto *weightsPair = allObjects->findObject<WeightsPair>(c->getName());
+      auto *weightsPair = objectTable->findObject<WeightsPair>(c->getName());
       pvAssert(weightsPair);
       bool deliverPostPerspective = deliveryCreator->getUpdateGSynFromPostPerspective();
       if (deliverPostPerspective) {

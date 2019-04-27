@@ -42,7 +42,7 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    if (!Response::completed(status)) {
       return status;
    }
-   originalLayer = message->mAllObjects->findObject<HyPerLayer>(originalLayerName);
+   originalLayer = message->mObjectTable->findObject<HyPerLayer>(originalLayerName);
    FatalIf(
          originalLayer == nullptr,
          "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",

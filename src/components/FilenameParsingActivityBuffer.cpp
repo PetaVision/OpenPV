@@ -61,9 +61,9 @@ Response::Status FilenameParsingActivityBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
    if (mInputLayer == nullptr) {
-      auto *inputLayerNameParam = allObjects->findObject<InputLayerNameParam>(getName());
+      auto *inputLayerNameParam = objectTable->findObject<InputLayerNameParam>(getName());
       FatalIf(
             inputLayerNameParam == nullptr,
             "%s could not find an InputLayerNameParam component.\n",
@@ -72,7 +72,7 @@ Response::Status FilenameParsingActivityBuffer::communicateInitInfo(
          return Response::POSTPONE;
       }
       char const *linkedObjectName = inputLayerNameParam->getLinkedObjectName();
-      mInputLayer                  = allObjects->findObject<InputLayer>(linkedObjectName);
+      mInputLayer                  = objectTable->findObject<InputLayer>(linkedObjectName);
       FatalIf(
             mInputLayer == nullptr,
             "%s inputLayerName \"%s\" points to an object that is not an InputLayer.\n",
@@ -83,14 +83,14 @@ Response::Status FilenameParsingActivityBuffer::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   auto *phaseParam = allObjects->findObject<PhaseParam>(getName());
+   auto *phaseParam = objectTable->findObject<PhaseParam>(getName());
    FatalIf(phaseParam == nullptr, "%s does not have a PhaseParam component.\n", getDescription_c());
    if (!phaseParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
    int const phase = phaseParam->getPhase();
 
-   auto *inputLayerPhaseParam = allObjects->findObject<PhaseParam>(mInputLayer->getName());
+   auto *inputLayerPhaseParam = objectTable->findObject<PhaseParam>(mInputLayer->getName());
    int const inputLayerPhase  = inputLayerPhaseParam->getPhase();
    FatalIf(
          inputLayerPhase <= phase,

@@ -46,9 +46,9 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       return status;
    }
 
-   auto *allObjects         = message->mAllObjects;
-   HyPerConn *groupHeadConn = allObjects->findObject<HyPerConn>(mNormalizeGroupName);
-   mGroupHead               = allObjects->findObject<NormalizeBase>(mNormalizeGroupName);
+   auto *objectTable        = message->mObjectTable;
+   HyPerConn *groupHeadConn = objectTable->findObject<HyPerConn>(mNormalizeGroupName);
+   mGroupHead               = objectTable->findObject<NormalizeBase>(mNormalizeGroupName);
    if (mGroupHead == nullptr) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -60,7 +60,7 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       exit(EXIT_FAILURE);
    }
 
-   WeightsPair *weightsPair = allObjects->findObject<WeightsPair>(getName());
+   WeightsPair *weightsPair = objectTable->findObject<WeightsPair>(getName());
    pvAssert(weightsPair); // NormalizeBase::communicateInitInfo should have checked for this.
    Weights *preWeights = weightsPair->getPreWeights();
    pvAssert(preWeights); // NormalizeBase::communicateInitInfo should have called needPre.

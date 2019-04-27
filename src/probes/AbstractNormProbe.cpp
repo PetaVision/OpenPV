@@ -50,7 +50,7 @@ AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    }
    assert(targetLayer);
    if (maskLayerName && maskLayerName[0]) {
-      mMaskLayerData = message->mAllObjects->findObject<BasePublisherComponent>(maskLayerName);
+      mMaskLayerData = message->mObjectTable->findObject<BasePublisherComponent>(maskLayerName);
       FatalIf(
             mMaskLayerData == nullptr,
             "%s: maskLayerName \"%s\" does not have a BasePublisherComponent.\n",

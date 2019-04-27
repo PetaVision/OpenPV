@@ -84,10 +84,10 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    if (!Response::completed(status)) {
       return status;
    }
-   auto *allObjects = message->mAllObjects;
-   numerProbe       = allObjects->findObject<BaseProbe>(numerator);
-   denomProbe       = allObjects->findObject<BaseProbe>(denominator);
-   bool failed      = false;
+   auto *objectTable = message->mObjectTable;
+   numerProbe        = objectTable->findObject<BaseProbe>(numerator);
+   denomProbe        = objectTable->findObject<BaseProbe>(denominator);
+   bool failed       = false;
    if (numerProbe == NULL || denomProbe == NULL) {
       failed = true;
       if (mCommunicator->commRank() == 0) {

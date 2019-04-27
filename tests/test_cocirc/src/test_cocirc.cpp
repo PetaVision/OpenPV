@@ -20,7 +20,7 @@
 using namespace PV;
 
 void broadcastMessage(
-      ObserverTable const *observerTable,
+      ObserverTable const &objectTable,
       std::shared_ptr<BaseMessage const> messagePtr);
 
 // First argument to check_cocirc_vs_hyper should have sharedWeights = false
@@ -68,24 +68,22 @@ int main(int argc, char *argv[]) {
 
    ensureDirExists(hc->getCommunicator()->getLocalMPIBlock(), hc->getOutputPath());
 
-   auto *observerTable = hc->getTable();
-   auto allObjects     = hc->getAllObjectsFlat();
+   auto objectTable = hc->getAllObjectsFlat();
 
    auto communicateMessagePtr = std::make_shared<CommunicateInitInfoMessage>(
-         observerTable,
-         &allObjects,
+         &objectTable,
          hc->getDeltaTime(),
          hc->getNxGlobal(),
          hc->getNyGlobal(),
          hc->getNBatchGlobal(),
          hc->getNumThreads());
-   broadcastMessage(observerTable, communicateMessagePtr);
+   broadcastMessage(objectTable, communicateMessagePtr);
 
    auto allocateMessagePtr = std::make_shared<AllocateDataStructuresMessage>();
-   broadcastMessage(observerTable, allocateMessagePtr);
+   broadcastMessage(objectTable, allocateMessagePtr);
 
    auto initializeMessagePtr = std::make_shared<InitializeStateMessage>(hc->getDeltaTime());
-   broadcastMessage(observerTable, initializeMessagePtr);
+   broadcastMessage(objectTable, initializeMessagePtr);
 
    const int axonID      = 0;
    int numPreExtended    = pre->getNumExtended();
@@ -108,13 +106,13 @@ int main(int argc, char *argv[]) {
 }
 
 void broadcastMessage(
-      ObserverTable const *observerTable,
+      ObserverTable const &objectTable,
       std::shared_ptr<BaseMessage const> messagePtr) {
    int maxcount = 0;
    Response::Status status;
    do {
       status = Response::SUCCESS;
-      for (auto *obj : *observerTable) {
+      for (auto *obj : objectTable) {
          status = status + obj->respond(messagePtr);
       }
       maxcount++;

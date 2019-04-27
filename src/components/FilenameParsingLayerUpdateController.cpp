@@ -38,9 +38,9 @@ Response::Status FilenameParsingLayerUpdateController::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
 
-   auto *inputLayerNameParam = allObjects->findObject<InputLayerNameParam>(getName());
+   auto *inputLayerNameParam = objectTable->findObject<InputLayerNameParam>(getName());
    FatalIf(
          inputLayerNameParam == nullptr,
          "%s does not have an InputLayerNameParam.\n",
@@ -49,7 +49,7 @@ Response::Status FilenameParsingLayerUpdateController::communicateInitInfo(
       return Response::POSTPONE;
    }
    char const *inputLayerName = inputLayerNameParam->getLinkedObjectName();
-   mInputController           = allObjects->findObject<InputLayerUpdateController>(inputLayerName);
+   mInputController           = objectTable->findObject<InputLayerUpdateController>(inputLayerName);
    FatalIf(
          mInputController == nullptr,
          "%s inputLayerName \"%s\" does not have an InputController.\n",

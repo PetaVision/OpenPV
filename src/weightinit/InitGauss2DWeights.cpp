@@ -131,8 +131,8 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    // It can be added to the connection, but not to the AllObjects data member in the
    // CommunicateInitInfoMessage. So we need to get the StrenghtParam component from the
    // connection, instead of from AllObjects, as we usually would.
-   auto allObjects            = message->mAllObjects;
-   BaseConnection *parentConn = allObjects->findObject<BaseConnection>(getName());
+   auto objectTable           = message->mObjectTable;
+   BaseConnection *parentConn = objectTable->findObject<BaseConnection>(getName());
    FatalIf(
          parentConn == nullptr,
          "%s could not find a connection named \"%s\".\n",

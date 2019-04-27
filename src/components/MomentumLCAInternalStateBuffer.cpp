@@ -53,9 +53,9 @@ Response::Status MomentumLCAInternalStateBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *allObjects  = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
    char const *label = "prevDrive";
-   auto buffers      = allObjects->findObjects<RestrictedBuffer>(getName());
+   auto buffers      = objectTable->findObjects<RestrictedBuffer>(getName());
    mPrevDrive        = nullptr;
    for (auto &buf : buffers) {
       if (buf->getBufferLabel() == label) {

@@ -44,7 +44,7 @@ Response::Status FilenameParsingProbe::communicateInitInfo(
 
    char const *inputLayerName = parameters()->stringValue(getTargetName(), "inputLayerName", false);
    pvAssert(inputLayerName);
-   auto *inputBuffer = message->mAllObjects->findObject<InputActivityBuffer>(inputLayerName);
+   auto *inputBuffer = message->mObjectTable->findObject<InputActivityBuffer>(inputLayerName);
    pvAssert(inputBuffer);
    mInputDisplayPeriod = inputBuffer->getDisplayPeriod();
    return Response::SUCCESS;

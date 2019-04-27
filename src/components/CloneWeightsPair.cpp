@@ -51,9 +51,9 @@ void CloneWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFl
 Response::Status
 CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mOriginalWeightsPair == nullptr) {
-      auto *allObjects = message->mAllObjects;
+      auto *objectTable = message->mObjectTable;
       pvAssert(mOriginalConnData == nullptr);
-      auto *originalConnNameParam = allObjects->findObject<OriginalConnNameParam>(getName());
+      auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
       FatalIf(
             originalConnNameParam == nullptr,
             "%s could not find an OriginalConnNameParam.\n",
@@ -70,13 +70,13 @@ CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
       }
       char const *linkedObjectName = originalConnNameParam->getLinkedObjectName();
 
-      mOriginalConnData = allObjects->findObject<ConnectionData>(linkedObjectName);
+      mOriginalConnData = objectTable->findObject<ConnectionData>(linkedObjectName);
       FatalIf(
             mOriginalConnData == nullptr,
             "%s could not find a ConnectionData component in connection \"%s\"\n",
             getDescription_c());
 
-      mOriginalWeightsPair = allObjects->findObject<WeightsPair>(linkedObjectName);
+      mOriginalWeightsPair = objectTable->findObject<WeightsPair>(linkedObjectName);
       FatalIf(
             mOriginalConnData == nullptr,
             "%s could not find a WeightsPair component in connection \"%s\"\n",

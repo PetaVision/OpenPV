@@ -116,15 +116,15 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       return status;
    }
 
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
 
-   mPatchSize = allObjects->findObject<PatchSize>(getName());
+   mPatchSize = objectTable->findObject<PatchSize>(getName());
    FatalIf(mPatchSize == nullptr, "%s requires a PatchSize component.\n", getDescription_c());
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
 
-   mWeightsPair = allObjects->findObject<ImpliedWeightsPair>(getName());
+   mWeightsPair = objectTable->findObject<ImpliedWeightsPair>(getName());
    FatalIf(
          mWeightsPair == nullptr,
          "%s requires an ImpliedWeightsPair component.\n",
@@ -135,7 +135,7 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
    if (mNeedPostIndexLayer) {
       pvAssert(mPostIndexLayerName);
-      mPostIndexLayer = allObjects->findObject<PoolingIndexLayer>(mPostIndexLayerName);
+      mPostIndexLayer = objectTable->findObject<PoolingIndexLayer>(mPostIndexLayerName);
    }
 
    if (mUpdateGSynFromPostPerspective) {

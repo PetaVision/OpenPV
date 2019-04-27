@@ -69,16 +69,16 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
       return status;
    }
 
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
 
-   auto *originalConnNameParam = allObjects->findObject<OriginalConnNameParam>(getName());
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
    pvAssert(originalConnNameParam);
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
    const char *originalConnName = originalConnNameParam->getLinkedObjectName();
 
-   auto *originalPoolingDelivery = allObjects->findObject<PoolingDelivery>(originalConnName);
+   auto *originalPoolingDelivery = objectTable->findObject<PoolingDelivery>(originalConnName);
    FatalIf(
          originalPoolingDelivery == nullptr,
          "%s: original connection \"%s\" does not have a PoolingDelivery component.\n",
@@ -94,7 +94,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
       mOriginalPostIndexData = originalPostIndexLayer->getComponentByType<BasePublisherComponent>();
    }
 
-   auto *originalConnectionData = allObjects->findObject<ConnectionData>(originalConnName);
+   auto *originalConnectionData = objectTable->findObject<ConnectionData>(originalConnName);
    FatalIf(
          originalConnectionData == nullptr,
          "%s: original connection \"%s\" does not have a ConnectionData component.\n",
@@ -120,7 +120,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
             name, "updateGSynFromPostPerspective", mUpdateGSynFromPostPerspective);
    }
 
-   mPatchSize = allObjects->findObject<DependentPatchSize>(getName());
+   mPatchSize = objectTable->findObject<DependentPatchSize>(getName());
    FatalIf(
          mPatchSize == nullptr,
          "%s requires a DependentPatchSize component.\n",
@@ -129,7 +129,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   mWeightsPair = allObjects->findObject<ImpliedWeightsPair>(getName());
+   mWeightsPair = objectTable->findObject<ImpliedWeightsPair>(getName());
    FatalIf(
          mWeightsPair == nullptr,
          "%s requires an ImpliedWeightsPair component.\n",

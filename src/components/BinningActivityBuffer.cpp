@@ -88,8 +88,8 @@ Response::Status BinningActivityBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *allObjects             = message->mAllObjects;
-   auto *originalLayerNameParam = allObjects->findObject<OriginalLayerNameParam>(getName());
+   auto *objectTable            = message->mObjectTable;
+   auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
    FatalIf(
          originalLayerNameParam == nullptr,
          "%s could not find an OriginalLayerNameParam.\n",
@@ -99,7 +99,7 @@ Response::Status BinningActivityBuffer::communicateInitInfo(
    }
    char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
 
-   mOriginalLayerData = allObjects->findObject<BasePublisherComponent>(originalLayerName);
+   mOriginalLayerData = objectTable->findObject<BasePublisherComponent>(originalLayerName);
    FatalIf(
          mOriginalLayerData == nullptr,
          "%s original layer \"%s\" does not have a BasePublisherComponent.\n",

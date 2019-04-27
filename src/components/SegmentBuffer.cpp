@@ -57,8 +57,7 @@ SegmentBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    }
 
    if (!mOriginalActivity) {
-      ObserverTable const *hierarchy = message->mHierarchy;
-      setOriginalActivity(message->mAllObjects);
+      setOriginalActivity(message->mObjectTable);
    }
    pvAssert(mOriginalActivity);
    if (mOriginalActivity->getInitInfoCommunicatedFlag() == false) {

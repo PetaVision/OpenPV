@@ -66,17 +66,17 @@ Response::Status HyPerLCAInternalStateBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
    if (mAdaptiveTimeScaleProbeName) {
       mAdaptiveTimeScaleProbe =
-            allObjects->findObject<AdaptiveTimeScaleProbe>(mAdaptiveTimeScaleProbeName);
+            objectTable->findObject<AdaptiveTimeScaleProbe>(mAdaptiveTimeScaleProbeName);
       FatalIf(
             mAdaptiveTimeScaleProbe == nullptr,
             "%s adaptiveTimeScaleProbe \"%s\" is not an AdaptiveTimeScaleProbe.\n",
             getDescription_c(),
             mAdaptiveTimeScaleProbeName);
    }
-   mActivity = allObjects->findObject<ActivityBuffer>(getName());
+   mActivity = objectTable->findObject<ActivityBuffer>(getName());
    FatalIf(mActivity == nullptr, "%s could not find an ActivityBuffer.\n", getDescription_c());
    return Response::SUCCESS;
 }

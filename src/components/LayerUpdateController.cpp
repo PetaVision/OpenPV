@@ -150,22 +150,22 @@ Response::Status LayerUpdateController::communicateInitInfo(
       return status;
    }
 
-   auto *allObjects = message->mAllObjects;
+   auto *objectTable = message->mObjectTable;
 
-   mPhaseParam = allObjects->findObject<PhaseParam>(getName());
+   mPhaseParam = objectTable->findObject<PhaseParam>(getName());
    FatalIf(mPhaseParam == nullptr, "%s requires a PhaseParam component.\n", getDescription_c());
 
-   mLayerInput = allObjects->findObject<LayerInputBuffer>(getName());
+   mLayerInput = objectTable->findObject<LayerInputBuffer>(getName());
    // It is not an error for mLayerInput to be null.
 
-   mActivityComponent = allObjects->findObject<ActivityComponent>(getName());
+   mActivityComponent = objectTable->findObject<ActivityComponent>(getName());
    FatalIf(
          mActivityComponent == nullptr, "%s requires an ActivityComponent.\n", getDescription_c());
 
    if (mTriggerFlag) {
-      setTriggerUpdateController(allObjects);
+      setTriggerUpdateController(objectTable);
       if (mTriggerBehaviorType == RESETSTATEONTRIGGER) {
-         setTriggerResetComponent(allObjects);
+         setTriggerResetComponent(objectTable);
          auto *componentV = mActivityComponent->getComponentByType<InternalStateBuffer>();
          FatalIf(
                componentV == nullptr,

@@ -42,8 +42,8 @@ void DependentBoundaryConditions::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
 
 Response::Status DependentBoundaryConditions::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *allObjects             = message->mAllObjects;
-   auto *originalLayerNameParam = allObjects->findObject<OriginalLayerNameParam>(getName());
+   auto *objectTable            = message->mObjectTable;
+   auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
    FatalIf(
          originalLayerNameParam == nullptr,
          "%s could not find an OriginalLayerNameParam.\n",
@@ -59,8 +59,9 @@ Response::Status DependentBoundaryConditions::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   char const *originalLayerName    = originalLayerNameParam->getLinkedObjectName();
-   auto *originalBoundaryConditions = allObjects->findObject<BoundaryConditions>(originalLayerName);
+   char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
+   auto *originalBoundaryConditions =
+         objectTable->findObject<BoundaryConditions>(originalLayerName);
    FatalIf(
          originalBoundaryConditions == nullptr,
          "%s original connection \"%s\" does not have a BoundaryConditions component.\n",

@@ -115,7 +115,7 @@ Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mTargetProbe = message->mAllObjects->findObject<BaseProbe>(targetName);
+   mTargetProbe = message->mObjectTable->findObject<BaseProbe>(targetName);
    FatalIf(
          mTargetProbe == nullptr,
          "%s: targetName \"%s\" is not a probe in the HyPerCol.\n",
