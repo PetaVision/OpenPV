@@ -1,8 +1,8 @@
 debugParsing = true;
 
 HyPerCol "column" = {
-    nx = 8; //1242;  // KITTI synced value
-    ny = 8;  //218;
+    nx = 4; //1242;  // KITTI synced value
+    ny = 4;  //218;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     stopTime = 10.0;       // Depends on number of VINE video frames
@@ -16,6 +16,7 @@ HyPerCol "column" = {
     writeProgressToErr = true;
     verifyWrites = false;
     errorOnNotANumber = false;
+    nbatch = 4;
 };
 
 PvpLayer "Input" = {
@@ -36,37 +37,37 @@ PvpLayer "Input" = {
     phase = 0;
 };
 
-//Testing 4 points, such that when run with mpi, it will test each process
-TestPointProbe "UpLeft" = {
+//Testing 4 points, each with different batchLoc.
+PointProbe "UpLeft" = {
    targetLayer = "Input";
-   xLoc = 1;
-   yLoc = 1;
+   xLoc = 2;
+   yLoc = 0;
    fLoc = 0;
    batchLoc = 0;
 };
 
-TestPointProbe "UpRight" = {
+PointProbe "UpRight" = {
    targetLayer = "Input";
-   xLoc = 6;
+   xLoc = 0;
    yLoc = 1;
    fLoc = 1;
-   batchLoc = 0;
+   batchLoc = 1;
 };
 
-TestPointProbe "DownLeft" = {
+PointProbe "DownLeft" = {
    targetLayer = "Input";
-   xLoc = 1;
-   yLoc = 6;
+   xLoc = 3;
+   yLoc = 1;
    fLoc = 2;
-   batchLoc = 0;
+   batchLoc = 2;
 };
 
-TestPointProbe "DownRight" = {
+PointProbe "DownRight" = {
    targetLayer = "Input";
-   xLoc = 6;
-   yLoc = 6;
+   xLoc = 0;
+   yLoc = 3;
    fLoc = 0;
-   batchLoc = 0;
+   batchLoc = 3;
 };
 
 
