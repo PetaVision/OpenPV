@@ -20,7 +20,8 @@ GSynAccumulator::~GSynAccumulator() {}
 
 void GSynAccumulator::initialize(char const *name, PVParams *params, Communicator const *comm) {
    RestrictedBuffer::initialize(name, params, comm);
-   setBufferLabel(""); // Only used internally; not checkpointed
+   setBufferLabel("GSyn");
+   mCheckpointFlag = false; // Only used internally; not checkpointed
    initializeChannelCoefficients();
 }
 

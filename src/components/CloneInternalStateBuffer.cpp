@@ -26,7 +26,7 @@ void CloneInternalStateBuffer::initialize(
       PVParams *params,
       Communicator const *comm) {
    InternalStateBuffer::initialize(name, params, comm);
-   mBufferLabel = ""; // Turns off checkpointing
+   mCheckpointFlag = false; // Turns off checkpointing
 }
 
 void CloneInternalStateBuffer::setObjectType() { mObjectType = "CloneInternalStateBuffer"; }

@@ -47,6 +47,7 @@ class ComponentBuffer : public BaseObject {
    bool getExtendedFlag() const { return mExtendedFlag; }
    int getNumChannels() const { return mNumChannels; }
    std::string const &getBufferLabel() const { return mBufferLabel; }
+   bool getCheckpointFlag() const { return mCheckpointFlag; }
 
    /**
     * Returns a read-only pointer to the buffer's data.
@@ -162,9 +163,11 @@ class ComponentBuffer : public BaseObject {
    }
 
   protected:
-   bool mExtendedFlag = false;
-   int mNumChannels   = 1;
-   std::string mBufferLabel; // used in checkpointing to create the file name.
+   bool mExtendedFlag   = false;
+   int mNumChannels     = 1;
+   bool mCheckpointFlag = true; // Derived class can set this to false to suppress checkpointing.
+   // See the comments on mBufferLabel for details.
+
    LayerGeometry const *mLayerGeometry = nullptr;
    int mBufferSize                     = 0;
    int mBufferSizeAcrossBatch          = 0;
@@ -174,6 +177,14 @@ class ComponentBuffer : public BaseObject {
    float *mReadWritePointer      = nullptr;
 
   private:
+   // ComponentBuffer initializes mBuffferLabel to the empty string.
+   // Some derived classes set mBufferlabel during instantiation. If mBufferLabel is not set
+   // during instantiation, it can be set by calling setBufferLabel(). Note, however, that
+   // setBufferLabel() cannot be called once the BufferLabel is set.
+   // If mCheckpointFlag is true, the buffer is checkpointed with filename of the form
+   // "[name]_[label].pvp". Note that if label is empty, the file will not be checkpointed
+   // even if mCheckpointFlag is true.
+   std::string mBufferLabel;
    double mTimeLastUpdate = 0.0;
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer *mCudaBuffer = nullptr;

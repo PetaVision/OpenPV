@@ -26,7 +26,7 @@ void InputRegionActivityBuffer::initialize(
       PVParams *params,
       Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
-   mBufferLabel = ""; // Turns off checkpointing
+   mCheckpointFlag = false; // Turns off checkpointing
 }
 
 void InputRegionActivityBuffer::setObjectType() { mObjectType = "InputRegionActivityBuffer"; }

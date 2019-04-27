@@ -35,7 +35,6 @@ void ComponentBuffer::setBufferLabel(std::string const &label) {
          getDescription_c(),
          label.c_str());
    mBufferLabel = label;
-   setDescription(label + " \"" + getName() + "\"");
 }
 
 Response::Status
@@ -105,7 +104,7 @@ ComponentBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
    if (!Response::completed(status)) {
       return status;
    }
-   if (!mBufferLabel.empty()) {
+   if (mCheckpointFlag and !mBufferLabel.empty()) {
       auto *checkpointer   = message->mDataRegistry;
       auto checkpointEntry = std::make_shared<CheckpointEntryPvpBuffer<float>>(
             getName(),
@@ -130,7 +129,7 @@ Response::Status ComponentBuffer::readStateFromCheckpoint(Checkpointer *checkpoi
    if (!Response::completed(status)) {
       return status;
    }
-   if (!mBufferLabel.empty()) {
+   if (mCheckpointFlag and !mBufferLabel.empty()) {
       checkpointer->readNamedCheckpointEntry(std::string(name), mBufferLabel, false);
    }
    return Response::SUCCESS;
