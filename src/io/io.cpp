@@ -8,14 +8,9 @@
 // Shared input and output routines
 
 #include "io.hpp"
-
-#include <assert.h>
-#include <cmath>
-#include <float.h> // FLT_MAX/MIN
-#include <string.h> // memcpy
-#include <string>
-
-#include "utils/PVLog.hpp"
+#include "utils/PVLog.hpp" // InfoLog
+#include <cstdlib> // atoi, strtol, strtoul
+#include <cstring> // strcmp, strdup
 
 namespace PV {
 

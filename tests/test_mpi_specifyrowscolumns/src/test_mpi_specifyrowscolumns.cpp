@@ -20,7 +20,6 @@ int main(int argc, char *argv[]) {
 #include "arch/mpi/mpi.h"
 #include "assert.h"
 #include "columns/HyPerCol.hpp"
-#include "io/io.hpp"
 #include "layers/ANNLayer.hpp"
 
 int buildandverify(PV::PV_Init *initObj);

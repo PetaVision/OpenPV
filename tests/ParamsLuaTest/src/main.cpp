@@ -19,20 +19,20 @@ int main(int argc, char *argv[]) {
    PV::PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
    int rank   = pv_initObj.getWorldRank();
    int status = PV_SUCCESS;
-   if (pv_getopt_str(argc, argv, "-p", NULL, NULL) == 0) {
+   if (!pv_initObj.getStringArgument("ParamsFile").empty()) {
       if (rank == 0) {
          ErrorLog().printf("%s should be run without the params file argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
-   if (pv_getopt_str(argc, argv, "-c", NULL, NULL) == 0) {
+   if (!pv_initObj.getStringArgument("CheckpointReadDirectory").empty()) {
       if (rank == 0) {
          ErrorLog().printf(
                "%s should be run without the checkpoint directory argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
-   if (pv_getopt(argc, argv, "-r", NULL) == 0) {
+   if (pv_initObj.getBooleanArgument("Restart")) {
       if (rank == 0) {
          ErrorLog().printf("%s should be run without the restart flag.\n", argv[0]);
       }

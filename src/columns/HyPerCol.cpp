@@ -14,7 +14,6 @@
 #include "columns/Factory.hpp"
 #include "columns/RandomSeed.hpp"
 #include "io/PrintStream.hpp"
-#include "io/io.hpp"
 #include "pvGitRevision.h"
 #include "utils/ExpandLeadingTilde.hpp"
 
