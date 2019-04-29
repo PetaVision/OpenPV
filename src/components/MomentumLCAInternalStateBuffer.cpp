@@ -53,14 +53,27 @@ Response::Status MomentumLCAInternalStateBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *hierarchy           = message->mHierarchy;
-   std::string prevDriveName = std::string("prevDrive \"") + getName() + "\"";
-   mPrevDrive                = hierarchy->lookupByName<RestrictedBuffer>(prevDriveName);
+   auto *objectTable = message->mObjectTable;
+   char const *label = "prevDrive";
+   auto buffers      = objectTable->findObjects<RestrictedBuffer>(getName());
+   mPrevDrive        = nullptr;
+   for (auto &buf : buffers) {
+      if (buf->getBufferLabel() == label) {
+         FatalIf(
+               mPrevDrive != nullptr,
+               "%s found multiple buffers with name \%s\" and label \"%s\"\n",
+               getDescription_c(),
+               getName(),
+               label);
+         mPrevDrive = buf;
+      }
+   }
    FatalIf(
          mPrevDrive == nullptr,
-         "%s requires a RestrictedBuffer with the label \"prevDrive\" and the name \"%s\".\n",
+         "%s could not find a RestrictedBuffer with name \"%s\" and label \"%s\".\n",
          getDescription_c(),
-         getName());
+         getName(),
+         label);
    return Response::SUCCESS;
 }
 

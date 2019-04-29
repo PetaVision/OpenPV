@@ -126,6 +126,10 @@ class HyPerCol : public Subject, public ParamsInterface {
     */
    Observer *getNextObject(Observer const *currentObject) const;
 
+   static void expandRecursive(ObserverTable *objectTable, ObserverTable const *table);
+
+   ObserverTable getAllObjectsFlat();
+
    void advanceTimeLoop(Clock &runClock, int const runClockStartingStep);
    int advanceTime(double time);
    void nonblockingLayerUpdate(std::shared_ptr<LayerUpdateStateMessage const> updateMessage);

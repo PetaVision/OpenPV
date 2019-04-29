@@ -1,5 +1,5 @@
 /*
- * ObserverTable.hpp
+ * ObserverTable.tpp
  *
  *
  *  Created on Oct 3, 2018
@@ -11,63 +11,41 @@
 
 namespace PV {
 
-template <typename S>
-S *ObserverTable::lookupByName(std::string const &name) const {
-   S *lookupResult = nullptr;
-   auto findResult = mTableAsMap.find(name);
-   if (findResult != mTableAsMap.end()) {
-      auto observerPtr = findResult->second;
-      lookupResult     = dynamic_cast<S *>(observerPtr);
+template <typename T>
+T *ObserverTable::findObject(std::string const &name) const {
+   std::vector<T *> matches = findObjects<T>(name);
+   if (matches.empty()) {
+      return nullptr;
    }
-   return lookupResult;
+   FatalIf(
+         matches.size() > (std::size_t)1,
+         "findObject found more than one object of matching type with name \"%s\".\n",
+         name.c_str());
+   return matches[0];
 }
 
-template <typename S>
-S *ObserverTable::lookupByType() const {
-   S *lookupResult = nullptr;
-   for (auto *obs : mTableAsVector) {
-      auto castObject = dynamic_cast<S *>(obs);
+template <typename T>
+T *ObserverTable::findObject(char const *name) const {
+   return findObject<T>(std::string(name));
+}
+
+template <typename T>
+std::vector<T *> ObserverTable::findObjects(std::string const &name) const {
+   auto matches = mTableAsMultimap.equal_range(name);
+   std::vector<T *> result;
+   result.reserve(std::distance(matches.first, matches.second));
+   for (auto &match = matches.first; match != matches.second; match++) {
+      T *castObject = dynamic_cast<T *>(match->second);
       if (castObject) {
-         FatalIf(
-               lookupResult,
-               "lookupByType called but %s has multiple objects of the given type.\n",
-               getDescription_c());
-         lookupResult = castObject;
+         result.emplace_back(castObject);
       }
    }
-   return lookupResult;
+   return result;
 }
 
-template <typename S>
-S *ObserverTable::lookupByNameRecursive(std::string const &name, int maxIterations) const {
-   int n                               = maxIterations;
-   ObserverTable const *tableComponent = this;
-   S *lookupResult                     = lookupByName<S>(name);
-   while (lookupResult == nullptr and n != 0) {
-      tableComponent = tableComponent->lookupByType<ObserverTable>();
-      if (tableComponent == nullptr) {
-         break;
-      }
-      lookupResult = tableComponent->lookupByName<S>(name);
-      n--;
-   }
-   return lookupResult;
-}
-
-template <typename S>
-S *ObserverTable::lookupByTypeRecursive(int maxIterations) const {
-   int n                               = maxIterations;
-   ObserverTable const *tableComponent = this;
-   S *lookupResult                     = lookupByType<S>();
-   while (lookupResult == nullptr and n != 0) {
-      tableComponent = tableComponent->lookupByType<ObserverTable>();
-      if (tableComponent == nullptr) {
-         break;
-      }
-      lookupResult = tableComponent->lookupByType<S>();
-      n--;
-   }
-   return lookupResult;
+template <typename T>
+std::vector<T *> ObserverTable::findObjects(char const *name) const {
+   return findObjects<T>(std::string(name));
 }
 
 } // namespace PV

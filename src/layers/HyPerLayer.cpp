@@ -117,35 +117,35 @@ void HyPerLayer::fillComponentTable() {
    Subject::fillComponentTable();
    mLayerGeometry = createLayerGeometry();
    if (mLayerGeometry) {
-      addUniqueComponent(mLayerGeometry->getDescription(), mLayerGeometry);
+      addUniqueComponent(mLayerGeometry);
    }
    mPhaseParam = createPhaseParam();
    if (mPhaseParam) {
-      addUniqueComponent(mPhaseParam->getDescription(), mPhaseParam);
+      addUniqueComponent(mPhaseParam);
    }
    mBoundaryConditions = createBoundaryConditions();
    if (mBoundaryConditions) {
-      addUniqueComponent(mBoundaryConditions->getDescription(), mBoundaryConditions);
+      addUniqueComponent(mBoundaryConditions);
    }
    mLayerUpdateController = createLayerUpdateController();
    if (mLayerUpdateController) {
-      addUniqueComponent(mLayerUpdateController->getDescription(), mLayerUpdateController);
+      addUniqueComponent(mLayerUpdateController);
    }
    mLayerInput = createLayerInput();
    if (mLayerInput) {
-      addUniqueComponent(mLayerInput->getDescription(), mLayerInput);
+      addUniqueComponent(mLayerInput);
    }
    mActivityComponent = createActivityComponent();
    if (mActivityComponent) {
-      addUniqueComponent(mActivityComponent->getDescription(), mActivityComponent);
+      addUniqueComponent(mActivityComponent);
    }
    mPublisher = createPublisher();
    if (mPublisher) {
-      addUniqueComponent(mPublisher->getDescription(), mPublisher);
+      addUniqueComponent(mPublisher);
    }
    mLayerOutput = createLayerOutput();
    if (mLayerOutput) {
-      addUniqueComponent(mLayerOutput->getDescription(), mLayerOutput);
+      addUniqueComponent(mLayerOutput);
    }
 }
 
@@ -211,31 +211,11 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
  *****************************************************************/
 Response::Status
 HyPerLayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *hierarchy      = message->mHierarchy;
-   auto *tableComponent = mTable->lookupByType<ObserverTable>();
-   if (!tableComponent) {
-      std::string tableDescription = std::string("ObserverTable \"") + getName() + "\"";
-      tableComponent               = new ObserverTable(tableDescription.c_str());
-      tableComponent->copyTable(hierarchy);
-      addUniqueComponent(tableComponent->getDescription(), tableComponent);
-      // mTable takes ownership of tableComponent, which will therefore be deleted by the
-      // Subject::deleteObserverTable() method during destructor.
-   }
-   pvAssert(tableComponent);
-
-   auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
-         mTable,
-         message->mDeltaTime,
-         message->mNxGlobal,
-         message->mNyGlobal,
-         message->mNBatchGlobal,
-         message->mNumThreads);
-
-   Response::Status status =
-         notify(communicateMessage, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   Response::Status status = ComponentBasedObject::communicateInitInfo(message);
    if (!Response::completed(status)) {
       return status;
    }
+
 #ifdef PV_USE_CUDA
    // Set UsingGPUFlag if any of the components use GPU.
    for (auto *c : *mTable) {
@@ -290,19 +270,14 @@ Response::Status HyPerLayer::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage 
  * AllocateDataStructures stage
  *****************************************************************/
 Response::Status HyPerLayer::allocateDataStructures() {
-   // Once initialize and communicateInitInfo have been called, HyPerLayer has the
-   // information it needs to allocate the membrane potential buffer V, the
-   // activity buffer activity->data, and the data store.
-   auto allocateMessage = std::make_shared<AllocateDataStructuresMessage>();
-   auto status = notify(allocateMessage, mCommunicator->globalCommRank() == 0 /*printFlag*/);
-
    // If not mirroring, fill the boundaries with the value in the valueBC param
+   Response::Status status = ComponentBasedObject::allocateDataStructures();
    if (!mBoundaryConditions->getMirrorBCflag() && mBoundaryConditions->getValueBC() != 0.0f) {
       auto *activityBuffer = mActivityComponent->getComponentByType<ActivityBuffer>();
       auto *activityData   = activityBuffer->getReadWritePointer();
       mBoundaryConditions->applyBoundaryConditions(activityData, getLayerLoc());
+      status = Response::SUCCESS;
    }
-
    return status;
 }
 
@@ -320,7 +295,6 @@ HyPerLayer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const
    if (!Response::completed(status)) {
       return status;
    }
-   notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 
    return Response::SUCCESS;
 }

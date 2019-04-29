@@ -41,21 +41,21 @@ class ObserverTable : public Observer {
     * When iterating in a for loop, the vector is used, to preserve the order
     * in which the objects are called.
     */
-   bool addObject(std::string const &name, Observer *entry);
+   void addObject(std::string const &name, Observer *entry);
 
    void copyTable(ObserverTable const *origTable);
 
-   template <typename S>
-   S *lookupByName(std::string const &name) const;
+   template <typename T>
+   T *findObject(std::string const &name) const;
 
-   template <typename S>
-   S *lookupByType() const;
+   template <typename T>
+   T *findObject(char const *name) const;
 
-   template <typename S>
-   S *lookupByNameRecursive(std::string const &name, int maxIterations) const;
+   template <typename T>
+   std::vector<T *> findObjects(std::string const &name) const;
 
-   template <typename S>
-   S *lookupByTypeRecursive(int maxIterations) const;
+   template <typename T>
+   std::vector<T *> findObjects(char const *name) const;
 
    // To iterate over ObserverTable:
    typedef std::vector<Observer *>::iterator iterator;
@@ -83,7 +83,7 @@ class ObserverTable : public Observer {
 
   protected:
    std::vector<Observer *> mTableAsVector;
-   std::map<std::string, Observer *> mTableAsMap;
+   std::multimap<std::string, Observer *> mTableAsMultimap;
 
 }; // class ObserverTable
 

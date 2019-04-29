@@ -25,9 +25,7 @@ void Subject::initializeTable(char const *tableDescription) {
 }
 
 void Subject::addObserver(std::string const &tag, Observer *observer) {
-   bool succeeded = mTable->addObject(tag, observer);
-   FatalIf(
-         !succeeded, "Adding %s with tag %s failed.\n", tag.c_str(), observer->getDescription_c());
+   mTable->addObject(tag, observer);
 }
 
 Response::Status

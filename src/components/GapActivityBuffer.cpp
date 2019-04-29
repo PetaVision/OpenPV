@@ -40,40 +40,20 @@ GapActivityBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    }
 
    if (mOriginalActivity == nullptr) {
-      auto hierarchy = message->mHierarchy;
-      // Get component holding the original layer name
-      int maxIterations = 1; // Limits depth of recursive lookup.
-      auto *originalLayerNameParam =
-            hierarchy->lookupByTypeRecursive<OriginalLayerNameParam>(maxIterations);
+      auto *objectTable            = message->mObjectTable;
+      auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
       if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
          return Response::POSTPONE;
       }
 
-      // Retrieve the original HyPerLayer (we don't need to cast it as HyPerLayer).
-      ComponentBasedObject *originalObject = nullptr;
-      try {
-         originalObject = originalLayerNameParam->findLinkedObject(hierarchy);
-      } catch (std::invalid_argument &e) {
-         Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-      }
-      pvAssert(originalObject);
-      char const *originalObjectName = originalObject->getName();
-
-      // Retrieve the original layer's ActivityComponent (we don't need to cast it as such)
-      auto *activityComponent = originalObject->getComponentByType<ComponentBasedObject>();
-      FatalIf(
-            activityComponent == nullptr,
-            "%s could not find an ActivityComponent within %s.\n",
-            getDescription_c(),
-            originalObjectName);
-
-      // Retrieve original layer's InternalStateBuffer
-      mOriginalActivity = activityComponent->getComponentByType<ActivityBuffer>();
+      // Retrieve original layer's ActivityBuffer
+      char const *linkedObjectName = originalLayerNameParam->getLinkedObjectName();
+      mOriginalActivity            = objectTable->findObject<ActivityBuffer>(linkedObjectName);
       FatalIf(
             mOriginalActivity == nullptr,
             "%s could not find an InternalStateBuffer within %s.\n",
             getDescription_c(),
-            originalObjectName);
+            linkedObjectName);
    }
 
    if (!mOriginalActivity->getInitInfoCommunicatedFlag()) {

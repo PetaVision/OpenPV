@@ -22,6 +22,10 @@ class PointProbe : public LayerProbe {
 
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
+   float const *getPointV() const { return mPointV; }
+   float const *getPointA() const { return mPointA; }
+   int getPointRank() const { return mPointRank; }
+
   protected:
    int xLoc;
    int yLoc;
@@ -35,6 +39,9 @@ class PointProbe : public LayerProbe {
    virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_fLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_batchLoc(enum ParamsIOFlag ioFlag);
+
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
    /**
     * Overrides initOutputStreams. A process whose restricted region contains
@@ -67,19 +74,11 @@ class PointProbe : public LayerProbe {
   private:
    int initialize_base();
 
-   /**
-    * A convenience method to return probeValues[0] (the membrane potential).
-    * Note that it does not
-    * call needRecalc().
-    */
-   inline double getV();
-
-   /**
-    * A convenience method to return probeValues[0] (the activity).  Note that it
-    * does not call
-    * needRecalc().
-    */
-   inline double getA();
+  private:
+   int mPointRank = 0; // The global rank for which the target point is in the restricted region.
+   // mPointV, mPointA, and mPointRank are set in InitializeState.
+   float const *mPointV = nullptr; // Points to the memory location of the target point's V
+   float const *mPointA = nullptr; // Points to the memory location of the target point's A
 }; // end class PointProbe
 }
 

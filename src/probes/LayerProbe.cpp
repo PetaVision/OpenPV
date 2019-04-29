@@ -73,7 +73,7 @@ LayerProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
       return status;
    }
    // Set target layer
-   targetLayer = message->mHierarchy->lookupByName<HyPerLayer>(std::string(targetName));
+   targetLayer = message->mObjectTable->findObject<HyPerLayer>(targetName);
    FatalIf(
          targetLayer == nullptr,
          "%s targetLayer \"%s\" is not a layer in the column.\n",

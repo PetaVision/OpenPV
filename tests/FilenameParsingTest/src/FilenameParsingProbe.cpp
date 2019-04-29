@@ -44,12 +44,7 @@ Response::Status FilenameParsingProbe::communicateInitInfo(
 
    char const *inputLayerName = parameters()->stringValue(getTargetName(), "inputLayerName", false);
    pvAssert(inputLayerName);
-   std::string inputLayerString(inputLayerName);
-   InputLayer *inputLayer = message->mHierarchy->lookupByName<InputLayer>(inputLayerString);
-   pvAssert(inputLayer);
-   auto *activityComponent = inputLayer->getComponentByType<ActivityComponent>();
-   pvAssert(activityComponent);
-   auto *inputBuffer = activityComponent->getComponentByType<InputActivityBuffer>();
+   auto *inputBuffer = message->mObjectTable->findObject<InputActivityBuffer>(inputLayerName);
    pvAssert(inputBuffer);
    mInputDisplayPeriod = inputBuffer->getDisplayPeriod();
    return Response::SUCCESS;

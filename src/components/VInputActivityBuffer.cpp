@@ -33,7 +33,7 @@ Response::Status VInputActivityBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mInternalState = message->mHierarchy->lookupByType<InternalStateBuffer>();
+   mInternalState = message->mObjectTable->findObject<InternalStateBuffer>(getName());
    FatalIf(
          mInternalState == nullptr,
          "%s could not find an InternalStateBuffer component.\n",

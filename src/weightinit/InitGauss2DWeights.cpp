@@ -124,8 +124,21 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       mNumOrientationsPre = mWeights->getGeometry()->getPreLoc().nf;
    }
 
-   auto hierarchy      = message->mHierarchy;
-   auto *strengthParam = hierarchy->lookupByType<StrengthParam>();
+   // Hacky way of handling Strength parameter, because weight normalizers and InitGauss2DWeights
+   // use the parameter, but a connection that doesn't use either of those classes doesn't need it.
+   // So that HyPerConn does not need to know any details of the InitWeights subclasses,
+   // IntGauss2DWeights creates a StrengthParam object if one doesn't exist.
+   // It can be added to the connection, but not to the AllObjects data member in the
+   // CommunicateInitInfoMessage. So we need to get the StrenghtParam component from the
+   // connection, instead of from AllObjects, as we usually would.
+   auto objectTable           = message->mObjectTable;
+   BaseConnection *parentConn = objectTable->findObject<BaseConnection>(getName());
+   FatalIf(
+         parentConn == nullptr,
+         "%s could not find a connection named \"%s\".\n",
+         getDescription_c(),
+         getName());
+   auto *strengthParam = parentConn->getComponentByType<StrengthParam>();
    if (strengthParam) {
       if (strengthParam->getInitInfoCommunicatedFlag()) {
          mStrength = strengthParam->getStrength();
@@ -136,22 +149,8 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       }
    }
    else {
-      strengthParam       = new StrengthParam(name, parameters(), mCommunicator);
-      auto tableComponent = hierarchy->lookupByType<ObserverTable>();
-      FatalIf(
-            tableComponent == nullptr,
-            "%s unable to add strength component.\n",
-            getDescription_c());
-      BaseConnection *parentConn = tableComponent->lookupByName<BaseConnection>(std::string(name));
-      FatalIf(
-            parentConn == nullptr,
-            "%s tableComponent is missing an object called \"%s\".\n",
-            getDescription_c(),
-            name);
-      parentConn->addObserver(strengthParam->getDescription(), strengthParam);
-      // connection has already components' readParams(); we have to fill the gap here (could
-      // addObserver do it?)
-      strengthParam->readParams();
+      strengthParam = new StrengthParam(name, parameters(), mCommunicator);
+      parentConn->addUniqueComponent(strengthParam);
       status = status + Response::POSTPONE;
    }
    return status;

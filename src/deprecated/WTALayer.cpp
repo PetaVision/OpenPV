@@ -42,17 +42,12 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    if (!Response::completed(status)) {
       return status;
    }
-   originalLayer = message->mHierarchy->lookupByName<HyPerLayer>(std::string(originalLayerName));
-   if (originalLayer == nullptr) {
-      if (mCommunicator->commRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-               getDescription_c(),
-               originalLayerName);
-      }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
-   }
+   originalLayer = message->mObjectTable->findObject<HyPerLayer>(originalLayerName);
+   FatalIf(
+         originalLayer == nullptr,
+         "%s: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
+         getDescription_c(),
+         originalLayerName);
    if (originalLayer->getInitInfoCommunicatedFlag() == false) {
       return Response::POSTPONE;
    }
@@ -60,7 +55,7 @@ WTALayer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    this->synchronizeMarginWidth(originalLayer);
    const PVLayerLoc *srcLoc = originalLayer->getLayerLoc();
    const PVLayerLoc *loc    = getLayerLoc();
-   assert(srcLoc != NULL && loc != NULL);
+   assert(srcLoc != nullptr && loc != nullptr);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
       if (mCommunicator->commRank() == 0) {
          ErrorLog(errorMessage);

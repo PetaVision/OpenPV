@@ -150,22 +150,22 @@ Response::Status LayerUpdateController::communicateInitInfo(
       return status;
    }
 
-   auto *hierarchy = message->mHierarchy;
+   auto *objectTable = message->mObjectTable;
 
-   mPhaseParam = hierarchy->lookupByType<PhaseParam>();
+   mPhaseParam = objectTable->findObject<PhaseParam>(getName());
    FatalIf(mPhaseParam == nullptr, "%s requires a PhaseParam component.\n", getDescription_c());
 
-   mLayerInput = hierarchy->lookupByType<LayerInputBuffer>();
+   mLayerInput = objectTable->findObject<LayerInputBuffer>(getName());
    // It is not an error for mLayerInput to be null.
 
-   mActivityComponent = hierarchy->lookupByType<ActivityComponent>();
+   mActivityComponent = objectTable->findObject<ActivityComponent>(getName());
    FatalIf(
          mActivityComponent == nullptr, "%s requires an ActivityComponent.\n", getDescription_c());
 
    if (mTriggerFlag) {
-      setTriggerUpdateController(hierarchy);
+      setTriggerUpdateController(objectTable);
       if (mTriggerBehaviorType == RESETSTATEONTRIGGER) {
-         setTriggerResetComponent(hierarchy);
+         setTriggerResetComponent(objectTable);
          auto *componentV = mActivityComponent->getComponentByType<InternalStateBuffer>();
          FatalIf(
                componentV == nullptr,
@@ -179,20 +179,11 @@ Response::Status LayerUpdateController::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-void LayerUpdateController::setTriggerUpdateController(ObserverTable const *hierarchy) {
+void LayerUpdateController::setTriggerUpdateController(ObserverTable const *table) {
    if (mTriggerUpdateController != nullptr) {
       return;
    }
-   std::string triggerLayerString = std::string(mTriggerLayerName);
-   int maxIterations              = 2;
-   auto *namedObject =
-         hierarchy->lookupByNameRecursive<ComponentBasedObject>(triggerLayerString, maxIterations);
-   FatalIf(
-         namedObject == nullptr,
-         "%s triggerLayerName \"%s\" is not a layer in the HyPerCol.\n",
-         getDescription_c(),
-         mTriggerLayerName);
-   mTriggerUpdateController = namedObject->getComponentByType<LayerUpdateController>();
+   mTriggerUpdateController = table->findObject<LayerUpdateController>(mTriggerLayerName);
    FatalIf(
          mTriggerUpdateController == nullptr,
          "%s triggerLayerName \"%s\" does not have a LayerUpdateController component.\n",
@@ -200,7 +191,7 @@ void LayerUpdateController::setTriggerUpdateController(ObserverTable const *hier
          mTriggerLayerName);
 }
 
-void LayerUpdateController::setTriggerResetComponent(ObserverTable const *hierarchy) {
+void LayerUpdateController::setTriggerResetComponent(ObserverTable const *table) {
    char const *resetLayerName = nullptr; // Will point to name of actual resetLayer, whether
    // triggerResetLayerName is blank (in which case resetLayerName==triggerLayerName) or not
    if (mTriggerResetLayerName == nullptr or mTriggerResetLayerName[0] == '\0') {
@@ -209,21 +200,13 @@ void LayerUpdateController::setTriggerResetComponent(ObserverTable const *hierar
    else {
       resetLayerName = mTriggerResetLayerName;
    }
-   auto resetLayerString = std::string(resetLayerName);
-   int maxIterations     = 2;
-   auto *resetLayer =
-         hierarchy->lookupByNameRecursive<ComponentBasedObject>(resetLayerString, maxIterations);
-   FatalIf(
-         resetLayer == nullptr,
-         "%s triggerResetLayerName \"%s\" is not a layer in the HyPerCol.\n",
-         getDescription_c(),
-         mTriggerResetLayerName);
-   mTriggerResetComponent = resetLayer->getComponentByType<ActivityComponent>();
+
+   mTriggerResetComponent = table->findObject<ActivityComponent>(resetLayerName);
    FatalIf(
          mTriggerResetComponent == nullptr,
          "%s triggerResetLayerName points to \"%s\", which has no ActivityComponent.\n",
          getDescription_c(),
-         resetLayer->getDescription_c());
+         resetLayerName);
 }
 
 Response::Status LayerUpdateController::registerData(

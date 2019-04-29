@@ -37,37 +37,26 @@ int FeedbackConnectionData::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 // FeedbackConn doesn't use preLayerName or postLayerName
-// If they're present, errors are handled byy setPreAndPostLayerNames
+// If they're present, errors are handled by setPreAndPostLayerNames
 void FeedbackConnectionData::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {}
 void FeedbackConnectionData::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {}
 
 Response::Status FeedbackConnectionData::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto hierarchy              = message->mHierarchy;
-   auto *originalConnNameParam = hierarchy->lookupByType<OriginalConnNameParam>();
-   pvAssert(originalConnNameParam);
+   auto *objectTable           = message->mObjectTable;
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
+   FatalIf(
+         originalConnNameParam == nullptr,
+         "%s could not find an OriginalConnNameParam.\n",
+         getDescription_c());
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
 
-   ObserverTable *tableComponent = hierarchy->lookupByType<ObserverTable>();
-   pvAssert(tableComponent);
-   ComponentBasedObject *originalConn =
-         tableComponent->lookupByName<ComponentBasedObject>(std::string(originalConnName));
-   if (originalConn == nullptr) {
-      if (mCommunicator->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalConnName \"%s\" does not correspond to an object in the column.\n",
-               getDescription_c(),
-               originalConnName);
-      }
-      MPI_Barrier(mCommunicator->globalCommunicator());
-      exit(PV_FAILURE);
-   }
-   auto *originalConnectionData = originalConn->getComponentByType<ConnectionData>();
+   auto *originalConnectionData = objectTable->findObject<ConnectionData>(originalConnName);
    FatalIf(
          originalConnectionData == nullptr,
          "%s set original connection to \"%s\", which does not have a ConnectionData component.\n",
          getDescription_c(),
-         originalConn->getName());
+         originalConnName);
    if (!originalConnectionData->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }

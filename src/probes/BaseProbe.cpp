@@ -229,11 +229,11 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    mLocalBatchWidth       = nBatchGlobal / mCommunicator->numCommBatches();
    pvAssert(mLocalBatchWidth * mCommunicator->numCommBatches() == nBatchGlobal);
    initNumValues();
-   auto *hierarchy = message->mHierarchy;
+   auto *objectTable = message->mObjectTable;
 
    // Set up triggering.
    if (triggerFlag) {
-      auto triggerLayer = hierarchy->lookupByName<HyPerLayer>(std::string(triggerLayerName));
+      auto triggerLayer = objectTable->findObject<HyPerLayer>(triggerLayerName);
       FatalIf(
             triggerLayer == nullptr,
             "%s triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
@@ -249,19 +249,13 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
 
    // Add the probe to the ColumnEnergyProbe, if there is one.
    if (energyProbe && energyProbe[0]) {
-      auto *probe = hierarchy->lookupByName<ColumnEnergyProbe>(std::string(energyProbe));
-      if (probe == NULL) {
-         if (mCommunicator->commRank() == 0) {
-            ErrorLog().printf(
-                  "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the "
-                  "column.\n",
-                  parameters()->groupKeywordFromName(getName()),
-                  getName(),
-                  energyProbe);
-         }
-         MPI_Barrier(mCommunicator->communicator());
-         exit(EXIT_FAILURE);
-      }
+      auto *probe = objectTable->findObject<ColumnEnergyProbe>(energyProbe);
+      FatalIf(
+            probe == nullptr,
+            "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the column.\n",
+            parameters()->groupKeywordFromName(getName()),
+            getName(),
+            energyProbe);
       int termAdded = probe->addTerm(this);
       FatalIf(
             termAdded != PV_SUCCESS,

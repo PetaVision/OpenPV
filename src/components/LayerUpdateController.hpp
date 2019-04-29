@@ -110,8 +110,8 @@ class LayerUpdateController : public BaseObject {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   void setTriggerUpdateController(ObserverTable const *hierarchy);
-   void setTriggerResetComponent(ObserverTable const *hierarchy);
+   void setTriggerUpdateController(ObserverTable const *table);
+   void setTriggerResetComponent(ObserverTable const *table);
 
    Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;

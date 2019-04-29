@@ -723,9 +723,20 @@ CONVERSIONS_SPECIFIER inline float gaussianWeight(float x0, float x, float sigma
 
 CONVERSIONS_SPECIFIER inline int
 rankFromRowAndColumn(int row, int column, int numRows, int numColumns) {
-   return (row >= 0 && row < numRows && column >= 0 && column < numColumns)
-                ? row * numColumns + column
-                : -1;
+   bool inbounds = row >= 0 and row < numRows and column >= 0 and column < numColumns;
+   return inbounds ? row * numColumns + column : -1;
+}
+
+CONVERSIONS_SPECIFIER inline int rankFromRowColumnBatch(
+      int row,
+      int column,
+      int batch,
+      int numRows,
+      int numColumns,
+      int batchWidth) {
+   bool inbounds = row >= 0 and row < numRows and column >= 0 and column < numColumns;
+   inbounds &= batch >= 0 and batch < batchWidth;
+   return inbounds ? column + numColumns * (row + numRows * batch) : -1;
 }
 
 CONVERSIONS_SPECIFIER inline int

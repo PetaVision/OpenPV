@@ -57,8 +57,7 @@ SegmentBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    }
 
    if (!mOriginalActivity) {
-      ObserverTable const *hierarchy = message->mHierarchy;
-      setOriginalActivity(hierarchy);
+      setOriginalActivity(message->mObjectTable);
    }
    pvAssert(mOriginalActivity);
    if (mOriginalActivity->getInitInfoCommunicatedFlag() == false) {
@@ -69,49 +68,21 @@ SegmentBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    return Response::SUCCESS;
 }
 
-void SegmentBuffer::setOriginalActivity(ObserverTable const *hierarchy) {
-   int maxIterations = 1; // Limits the depth of the recursion when searching for dependencies.
-   auto *originalLayerNameParam =
-         hierarchy->lookupByTypeRecursive<OriginalLayerNameParam>(maxIterations);
-
-   ComponentBasedObject *origObject = nullptr; // This is the original layer
-   try {
-      origObject = originalLayerNameParam->findLinkedObject(hierarchy);
-   } catch (std::invalid_argument &e) {
-      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-   }
-   pvAssert(origObject);
+void SegmentBuffer::setOriginalActivity(ObserverTable const *table) {
+   auto *originalLayerNameParam  = table->findObject<OriginalLayerNameParam>(getName());
+   char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
 
    // Sync margins
-   auto *origGeometry = origObject->getComponentByType<LayerGeometry>();
-   auto *thisGeometry = hierarchy->lookupByTypeRecursive<LayerGeometry>(maxIterations);
+   auto *origGeometry = table->findObject<LayerGeometry>(originalLayerName);
+   auto *thisGeometry = table->findObject<LayerGeometry>(getName());
    LayerGeometry::synchronizeMarginWidths(thisGeometry, origGeometry);
 
-   // Find original layer's activity component
-   auto *origActivityComponent = origObject->getComponentByType<ActivityComponent>();
-   if (origActivityComponent == nullptr) {
-      if (mCommunicator->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalLayerName \"%s\" does not have an ActivityComponent.\n",
-               getDescription_c(),
-               origObject->getName());
-      }
-      MPI_Barrier(mCommunicator->globalCommunicator());
-      exit(EXIT_FAILURE);
-   }
-
    // Get original layer's activity buffer
-   mOriginalActivity = origActivityComponent->getComponentByType<ActivityBuffer>();
-   if (mOriginalActivity == nullptr) {
-      if (mCommunicator->globalCommRank() == 0) {
-         ErrorLog().printf(
-               "%s: originalLayerName \"%s\" does not have an ActivityBuffer.\n",
-               getDescription_c(),
-               origObject->getName());
-      }
-      MPI_Barrier(mCommunicator->globalCommunicator());
-      exit(EXIT_FAILURE);
-   }
+   mOriginalActivity = table->findObject<ActivityBuffer>(originalLayerName);
+   FatalIf(
+         mOriginalActivity == nullptr,
+         "%s: no object named \"%s\" with an ActivityBuffer.\n",
+         getDescription_c());
 }
 
 void SegmentBuffer::checkDimensions() {

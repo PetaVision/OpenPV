@@ -61,20 +61,20 @@ Response::Status BasePublisherComponent::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto hierarchy = message->mHierarchy;
+   auto *objectTable = message->mObjectTable;
    if (mActivity == nullptr) {
-      auto *activityComponent = hierarchy->lookupByType<ActivityComponent>();
-      FatalIf(!activityComponent, "%s requires an ActivityComponent.\n", getDescription_c());
-      mActivity = activityComponent->getComponentByType<ActivityBuffer>();
+      mActivity = objectTable->findObject<ActivityBuffer>(getName());
    }
    FatalIf(!mActivity, "%s requires an ActivityBuffer component.\n", getDescription_c());
    if (mBoundaryConditions == nullptr) {
-      mBoundaryConditions = hierarchy->lookupByType<BoundaryConditions>();
+      mBoundaryConditions = objectTable->findObject<BoundaryConditions>(getName());
    }
+   // It is not an error for BoundaryConditions to be null.
    if (mUpdateController == nullptr) {
-      mUpdateController = hierarchy->lookupByType<LayerUpdateController>();
+      mUpdateController = objectTable->findObject<LayerUpdateController>(getName());
    }
-   return status;
+   // It is not an error for UpdateController to be null.
+   return Response::SUCCESS;
 }
 
 int BasePublisherComponent::increaseDelayLevels(int neededDelay) {

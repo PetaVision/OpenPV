@@ -57,25 +57,17 @@ Response::Status ISTAInternalStateBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *hierarchy = message->mHierarchy;
+   auto *objectTable = message->mObjectTable;
    if (mAdaptiveTimeScaleProbeName) {
-      std::string probeNameString = std::string(mAdaptiveTimeScaleProbeName);
-      int maxIterations           = 2;
-      auto *namedObject =
-            hierarchy->lookupByNameRecursive<Observer>(probeNameString, maxIterations);
+      mAdaptiveTimeScaleProbe =
+            objectTable->findObject<AdaptiveTimeScaleProbe>(mAdaptiveTimeScaleProbeName);
       FatalIf(
-            namedObject == nullptr,
-            "%s adaptiveTimeScaleProbe \"%s\" does not point to an adaptive timescale probe.\n",
-            getDescription_c(),
-            mAdaptiveTimeScaleProbeName);
-      mAdaptiveTimeScaleProbe = dynamic_cast<AdaptiveTimeScaleProbe *>(namedObject);
-      FatalIf(
-            namedObject == nullptr,
-            "%s adaptiveTimeScaleProbe \"%s\" is not an AdaptiveTimeScaleProbe.\n",
+            mAdaptiveTimeScaleProbe == nullptr,
+            "%s could not find an AdaptiveTimeScaleProbe named \"%s\".\n",
             getDescription_c(),
             mAdaptiveTimeScaleProbeName);
    }
-   mActivity = hierarchy->lookupByType<ANNActivityBuffer>();
+   mActivity = objectTable->findObject<ANNActivityBuffer>(getName());
    FatalIf(mActivity == nullptr, "%s needs an ANNActivityBuffer.\n", getDescription_c());
    return Response::SUCCESS;
 }

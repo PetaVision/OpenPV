@@ -33,7 +33,7 @@ Response::Status HyPerInternalStateBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mAccumulatedGSyn = message->mHierarchy->lookupByType<GSynAccumulator>();
+   mAccumulatedGSyn = message->mObjectTable->findObject<GSynAccumulator>(getName());
    FatalIf(
          mAccumulatedGSyn == nullptr,
          "%s could not find a GSynAccumulator component.\n",

@@ -54,11 +54,11 @@ void BaseConnection::fillComponentTable() {
    ComponentBasedObject::fillComponentTable();
    auto *connectionData = createConnectionData();
    if (connectionData) {
-      addUniqueComponent(connectionData->getDescription(), connectionData);
+      addUniqueComponent(connectionData);
    }
    auto *deliveryObject = createDeliveryObject();
    if (deliveryObject) {
-      addUniqueComponent(deliveryObject->getDescription(), deliveryObject);
+      addUniqueComponent(deliveryObject);
    }
 }
 
@@ -97,44 +97,20 @@ BaseConnection::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage 
 
 Response::Status
 BaseConnection::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   // Add a component consisting of a lookup table from the names of HyPerCol's components
-   // to the HyPerCol's components themselves. This is needed by, for example, CloneWeightsPair,
-   // to find the original weights pair.
-   // Since communicateInitInfo can be called more than once, we must ensure that the
-   // ObserverTable is only added once.
-   auto *tableComponent = mTable->lookupByType<ObserverTable>();
-   if (!tableComponent) {
-      std::string tableDescription = std::string("ObserverTable \"") + getName() + "\"";
-      tableComponent               = new ObserverTable(tableDescription.c_str());
-      tableComponent->copyTable(message->mHierarchy);
-      addUniqueComponent(tableComponent->getDescription(), tableComponent);
-      // mTable takes ownership of tableComponent, which will therefore be deleted by the
-      // Subject::deleteObserverTable() method during destructor.
+   Response::Status status = ComponentBasedObject::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
    }
-   pvAssert(tableComponent);
 
-   auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
-         mTable,
-         message->mDeltaTime,
-         message->mNxGlobal,
-         message->mNyGlobal,
-         message->mNBatchGlobal,
-         message->mNumThreads);
-
-   Response::Status status =
-         notify(communicateMessage, mCommunicator->globalCommRank() == 0 /*printFlag*/);
-
-   if (Response::completed(status)) {
 #ifdef PV_USE_CUDA
-      for (auto &c : *mTable) {
-         auto *baseObject = dynamic_cast<BaseObject *>(c);
-         if (baseObject) {
-            mUsingGPUFlag |= baseObject->isUsingGPU();
-         }
+   for (auto &c : *mTable) {
+      auto *baseObject = dynamic_cast<BaseObject *>(c);
+      if (baseObject) {
+         mUsingGPUFlag |= baseObject->isUsingGPU();
       }
-#endif // PV_USE_CUDA
-      status = Response::SUCCESS;
    }
+#endif // PV_USE_CUDA
+   status = Response::SUCCESS;
 
    return status;
 }
@@ -151,21 +127,15 @@ BaseConnection::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messag
 }
 #endif // PV_USE_CUDA
 
-Response::Status BaseConnection::allocateDataStructures() {
-   Response::Status status = notify(
-         std::make_shared<AllocateDataStructuresMessage>(),
-         mCommunicator->globalCommRank() == 0 /*printFlag*/);
-   return status;
-}
-
 Response::Status
 BaseConnection::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto *checkpointer = message->mDataRegistry;
-   auto status        = notify(
-         std::make_shared<RegisterDataMessage<Checkpointer>>(checkpointer),
-         mCommunicator->globalCommRank() == 0 /*printFlag*/);
+   auto status = ComponentBasedObject::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+
    mIOTimer = new Timer(getName(), "conn", "io");
-   checkpointer->registerTimer(mIOTimer);
+   message->mDataRegistry->registerTimer(mIOTimer);
    return status;
 }
 

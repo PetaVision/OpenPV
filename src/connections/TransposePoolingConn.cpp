@@ -33,7 +33,7 @@ void TransposePoolingConn::fillComponentTable() {
    PoolingConn::fillComponentTable();
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
-      addUniqueComponent(mOriginalConnNameParam->getDescription(), mOriginalConnNameParam);
+      addUniqueComponent(mOriginalConnNameParam);
    }
 }
 

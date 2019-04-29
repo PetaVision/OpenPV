@@ -34,23 +34,23 @@ void LIFActivityComponent::fillComponentTable() {
    ActivityComponent::fillComponentTable(); // creates A and V buffers
    mInternalState = createInternalState();
    if (mInternalState) {
-      addUniqueComponent(mInternalState->getDescription(), mInternalState);
+      addUniqueComponent(mInternalState);
    }
    mConductanceE = createRestrictedBuffer("G_E");
    if (mConductanceE) {
-      addObserver(mConductanceE->getBufferLabel(), mConductanceE);
+      addObserver(std::string(mConductanceE->getName()), mConductanceE);
    }
    mConductanceI = createRestrictedBuffer("G_I");
    if (mConductanceI) {
-      addObserver(mConductanceI->getBufferLabel(), mConductanceI);
+      addObserver(std::string(mConductanceI->getName()), mConductanceI);
    }
    mConductanceIB = createRestrictedBuffer("G_IB");
    if (mConductanceIB) {
-      addObserver(mConductanceIB->getBufferLabel(), mConductanceIB);
+      addObserver(std::string(mConductanceIB->getName()), mConductanceIB);
    }
    mVth = createRestrictedBuffer("Vth");
    if (mVth) {
-      addObserver(mVth->getBufferLabel(), mVth);
+      addObserver(std::string(mVth->getName()), mVth);
    }
 }
 
@@ -221,7 +221,7 @@ Response::Status LIFActivityComponent::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mLayerInput = message->mHierarchy->lookupByType<LayerInputBuffer>();
+   mLayerInput = message->mObjectTable->findObject<LayerInputBuffer>(getName());
    FatalIf(
          mLayerInput == nullptr,
          "%s could not find a LayerInputBuffer component.\n",

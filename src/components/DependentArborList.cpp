@@ -42,8 +42,12 @@ void DependentArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *originalConnNameParam = message->mHierarchy->lookupByType<OriginalConnNameParam>();
-   pvAssert(originalConnNameParam);
+   auto *objectTable           = message->mObjectTable;
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
+   FatalIf(
+         originalConnNameParam == nullptr,
+         "%s does not have an OriginalConnNameParam.\n",
+         getDescription_c());
 
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -55,20 +59,13 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       return Response::POSTPONE;
    }
 
-   ComponentBasedObject *originalConn = nullptr;
-   try {
-      originalConn = originalConnNameParam->findLinkedObject(message->mHierarchy);
-   } catch (std::invalid_argument &e) {
-      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-   }
-   pvAssert(originalConn);
-
-   auto *originalArborList = originalConn->getComponentByType<ArborList>();
+   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+   auto *originalArborList      = objectTable->findObject<ArborList>(originalConnName);
    FatalIf(
          originalArborList == nullptr,
          "%s original connection \"%s\" does not have an ArborList.\n",
          getDescription_c(),
-         originalConn->getName());
+         originalConnName);
 
    if (!originalArborList->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -76,7 +73,7 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConn->getName());
+               originalConnName);
       }
       return Response::POSTPONE;
    }

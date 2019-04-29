@@ -43,7 +43,9 @@ void ConfigParser::initialize(std::istream &configStream, bool allowUnrecognized
       auto colonPosition = line.find(':', (std::size_t)(start - line.begin()));
       FatalIf(
             colonPosition == std::string::npos,
-            "configuration line \"%s\" does not have the format \"argument:value\".\n");
+            "configuration line %d, \"%s\" does not have the format \"argument:value\".\n",
+            lineNumber,
+            line.c_str());
 
       std::string argument{start, line.begin() + colonPosition};
       argument = stripLeadingTrailingWhitespace(argument);

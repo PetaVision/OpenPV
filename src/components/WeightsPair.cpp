@@ -135,7 +135,7 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
    pvAssert(mConnectionData); // set during WeightsPairInterface::communicateInitInfo()
 
-   mArborList = message->mHierarchy->lookupByType<ArborList>();
+   mArborList = message->mObjectTable->findObject<ArborList>(getName());
    pvAssert(mArborList);
 
    if (!mArborList->getInitInfoCommunicatedFlag()) {
@@ -149,7 +149,7 @@ WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
 
    if (mSharedWeights == nullptr) {
-      mSharedWeights = message->mHierarchy->lookupByType<SharedWeights>();
+      mSharedWeights = message->mObjectTable->findObject<SharedWeights>(getName());
       pvAssert(mSharedWeights);
    }
 

@@ -61,12 +61,10 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       exit(EXIT_FAILURE);
    }
 
-   auto hierarchy = message->mHierarchy;
-   auto *table    = hierarchy->lookupByType<ObserverTable>();
-   pvAssert(table);
+   auto objectTable = message->mObjectTable;
 
    bool failed = false;
-   mPre        = table->lookupByName<HyPerLayer>(std::string(getPreLayerName()));
+   mPre        = objectTable->findObject<HyPerLayer>(getPreLayerName());
    if (getPre() == nullptr) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -77,7 +75,7 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       failed = true;
    }
 
-   mPost = table->lookupByName<HyPerLayer>(std::string(getPostLayerName()));
+   mPost = objectTable->findObject<HyPerLayer>(getPostLayerName());
    if (getPost() == nullptr) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(

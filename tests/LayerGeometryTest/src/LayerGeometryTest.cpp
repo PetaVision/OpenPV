@@ -43,9 +43,9 @@ int main(int argc, char *argv[]) {
    // Test direct construction of the LayerGeometry component.
    lg = new PV::LayerGeometry("Layer", hc->parameters(), hc->getCommunicator());
 
-   auto *observerTable        = hc->getTable();
+   auto objectTable           = hc->getAllObjectsFlat();
    auto communicateMessagePtr = std::make_shared<PV::CommunicateInitInfoMessage>(
-         observerTable,
+         &objectTable,
          hc->getDeltaTime(),
          hc->getNxGlobal(),
          hc->getNyGlobal(),
@@ -114,9 +114,9 @@ PVLayerLoc makeCorrectLoc(PV::HyPerCol *hc) {
 }
 
 void communicateInitInfo(PV::HyPerCol *hc) {
-   auto *observerTable = hc->getTable();
-   auto messagePtr     = std::make_shared<PV::CommunicateInitInfoMessage>(
-         observerTable,
+   auto objectTable = hc->getAllObjectsFlat();
+   auto messagePtr  = std::make_shared<PV::CommunicateInitInfoMessage>(
+         &objectTable,
          hc->getDeltaTime(),
          hc->getNxGlobal(),
          hc->getNyGlobal(),
@@ -127,7 +127,7 @@ void communicateInitInfo(PV::HyPerCol *hc) {
    PV::Response::Status status;
    do {
       status = PV::Response::SUCCESS;
-      for (auto &obj : *observerTable) {
+      for (auto &obj : objectTable) {
          status = status + obj->respond(messagePtr);
       }
       maxcount++;

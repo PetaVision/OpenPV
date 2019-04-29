@@ -116,15 +116,15 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       return status;
    }
 
-   auto &hierarchy = message->mHierarchy;
+   auto *objectTable = message->mObjectTable;
 
-   mPatchSize = hierarchy->lookupByType<PatchSize>();
+   mPatchSize = objectTable->findObject<PatchSize>(getName());
    FatalIf(mPatchSize == nullptr, "%s requires a PatchSize component.\n", getDescription_c());
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
 
-   mWeightsPair = hierarchy->lookupByType<ImpliedWeightsPair>();
+   mWeightsPair = objectTable->findObject<ImpliedWeightsPair>(getName());
    FatalIf(
          mWeightsPair == nullptr,
          "%s requires an ImpliedWeightsPair component.\n",
@@ -135,10 +135,7 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
    if (mNeedPostIndexLayer) {
       pvAssert(mPostIndexLayerName);
-      auto *tableComponent = hierarchy->lookupByType<ObserverTable>();
-      FatalIf(tableComponent == nullptr, "%s requires an ObserverTable.\n", getDescription_c());
-      std::string postIndexLayerString = std::string(mPostIndexLayerName);
-      mPostIndexLayer = tableComponent->lookupByName<PoolingIndexLayer>(postIndexLayerString);
+      mPostIndexLayer = objectTable->findObject<PoolingIndexLayer>(mPostIndexLayerName);
    }
 
    if (mUpdateGSynFromPostPerspective) {

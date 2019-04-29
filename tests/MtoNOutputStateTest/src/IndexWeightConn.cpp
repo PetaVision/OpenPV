@@ -32,7 +32,7 @@ BaseWeightUpdater *IndexWeightConn::createWeightUpdater() {
 
 Response::Status
 IndexWeightConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   auto *weightUpdater = mTable->lookupByType<IndexWeightUpdater>();
+   auto *weightUpdater = getComponentByType<IndexWeightUpdater>();
    pvAssert(weightUpdater);
    weightUpdater->respond(message);
    return Response::SUCCESS;

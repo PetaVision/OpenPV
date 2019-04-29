@@ -68,86 +68,94 @@ void PointLIFProbe::setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessa
    parameters()->ioParamValue(PARAMS_IO_READ, name, "writeStep", &writeStep, writeStep, true);
 }
 
-float const *PointLIFProbe::getBufferData(ObserverTable const *table, char const *label) {
-   std::string lookupString = std::string(label) + " \"" + getTargetLayer()->getName() + "\"";
-   ComponentBuffer *buffer  = table->lookupByName<ComponentBuffer>(lookupString);
-   float const *bufferData  = buffer->getBufferData();
-   pvAssert(bufferData);
-   return bufferData;
-}
+Response::Status
+PointLIFProbe::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   auto status = PointProbe::initializeState(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
 
-void PointLIFProbe::calcValues(double timevalue) {
-   // TODO: Reduce duplicated code between PointProbe::calcValues and
-   // PointLIFProbe::calcValues.
-   assert(this->getNumValues() == NUMBER_OF_VALUES);
-   LIFActivityComponent *lifActivity = getTargetLayer()->getComponentByType<LIFActivityComponent>();
-   pvAssert(lifActivity != nullptr);
-   ObserverTable const *activityComponents = lifActivity->getTable();
-   float const *V                          = getBufferData(activityComponents, "V");
-   float const *G_E                        = getBufferData(activityComponents, "G_E");
-   float const *G_I                        = getBufferData(activityComponents, "G_I");
-   float const *G_IB                       = getBufferData(activityComponents, "G_IB");
-   float const *Vth                        = getBufferData(activityComponents, "Vth");
+   if (getPointRank() == mCommunicator->globalCommRank()) {
+      PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
+      int const nx          = loc->nx;
+      int const ny          = loc->ny;
+      int const nf          = loc->nf;
+      int const nbatch      = loc->nbatch;
+      // Calculate local coords from global
+      int const xLocLocal   = xLoc - loc->kx0;
+      int const yLocLocal   = yLoc - loc->ky0;
+      int const nbatchLocal = batchLoc - loc->kb0;
 
-   float const *activity =
-         getTargetLayer()->getComponentByType<BasePublisherComponent>()->getLayerData();
-   double *valuesBuffer = this->getValuesBuffer();
-   // We need to calculate which mpi process contains the target point, and send
-   // that info to the root process. Each process calculates local index
-   const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   // Calculate local cords from global
-   const int kx0         = loc->kx0;
-   const int ky0         = loc->ky0;
-   const int kb0         = loc->kb0;
-   const int nx          = loc->nx;
-   const int ny          = loc->ny;
-   const int nf          = loc->nf;
-   const int nbatch      = loc->nbatch;
-   const int xLocLocal   = xLoc - kx0;
-   const int yLocLocal   = yLoc - ky0;
-   const int nbatchLocal = batchLoc - kb0;
+      // For the correct rank, target point should be in the local restricted region.
+      pvAssert(xLocLocal >= 0 and xLocLocal < nx and yLocLocal >= 0 and yLocLocal < ny);
+      pvAssert(nbatchLocal >= 0 and nbatchLocal < nbatch);
 
-   // if in bounds
-   if (xLocLocal >= 0 && xLocLocal < nx && yLocLocal >= 0 && yLocLocal < ny && nbatchLocal >= 0
-       && nbatchLocal < nbatch) {
-      // Send V and A to root
-      const int k      = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
-      const int kbatch = k + nbatchLocal * getTargetLayer()->getNumNeurons();
-      valuesBuffer[0]  = G_E[kbatch];
-      valuesBuffer[1]  = G_I[kbatch];
-      valuesBuffer[2]  = G_IB[kbatch];
-      valuesBuffer[3]  = V[kbatch];
-      valuesBuffer[4]  = Vth[kbatch];
-      const int kex =
-            kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-      valuesBuffer[5] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
-      // If not in root process, send to root process
-      if (mCommunicator->commRank() != 0) {
-         MPI_Send(valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, 0, 0, mCommunicator->communicator());
+      int const k                = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
+      int const numNeuronsGlobal = loc->nxGlobal * loc->nyGlobal * loc->nf;
+      int const offsetRestricted = k + nbatchLocal * numNeuronsGlobal;
+
+      auto *activityComponent = getTargetLayer()->getComponentByType<ActivityComponent>();
+      auto buffers = activityComponent->getTable()->findObjects<ComponentBuffer>(getName());
+      for (auto &buf : buffers) {
+         std::string label = buf->getBufferLabel();
+         if (label == "") {
+            continue;
+         }
+         else if (label == "G_E") {
+            mPointG_E = &buf->getBufferData()[offsetRestricted];
+            continue;
+         }
+         else if (label == "G_I") {
+            mPointG_I = &buf->getBufferData()[offsetRestricted];
+            continue;
+         }
+         else if (label == "G_IB") {
+            mPointG_IB = &buf->getBufferData()[offsetRestricted];
+            continue;
+         }
+         else if (label == "Vth") {
+            mPointVth = &buf->getBufferData()[offsetRestricted];
+            continue;
+         }
+         pvAssert(getPointV()); // LIFLayers must have a V component. mPointV set by PointProbe.
       }
    }
 
-   // Root process
-   if (mCommunicator->commRank() == 0) {
-      // Calculate which rank target neuron is
-      // TODO we need to calculate rank from batch as well
-      int xRank = xLoc / nx;
-      int yRank = yLoc / ny;
+   return Response::SUCCESS;
+}
 
-      int srcRank = rankFromRowAndColumn(
-            yRank, xRank, mCommunicator->numCommRows(), mCommunicator->numCommColumns());
+void PointLIFProbe::calcValues(double timevalue) {
+   assert(this->getNumValues() == NUMBER_OF_VALUES);
+   double *valuesBuffer = this->getValuesBuffer();
+   auto *globalComm     = mCommunicator->globalCommunicator();
 
-      // If srcRank is not root process, MPI_Recv from that rank
-      if (srcRank != 0) {
-         MPI_Recv(
-               valuesBuffer,
-               NUMBER_OF_VALUES,
-               MPI_DOUBLE,
-               srcRank,
-               0,
-               mCommunicator->communicator(),
-               MPI_STATUS_IGNORE);
+   // if in bounds
+   if (getPointRank() == mCommunicator->globalCommRank()) {
+      pvAssert(getPointA() and getPointV());
+      pvAssert(getPointG_E() and getPointG_I() and getPointG_IB() and getPointVth());
+      valuesBuffer[0] = *mPointG_E;
+      valuesBuffer[1] = *mPointG_I;
+      valuesBuffer[2] = *mPointG_IB;
+      valuesBuffer[3] = *getPointV();
+      valuesBuffer[4] = *mPointVth;
+      valuesBuffer[5] = *getPointA();
+      // If not in root process, send values to root process
+      if (mCommunicator->globalCommRank() != 0) {
+         MPI_Send(valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, 0, 0, globalComm);
       }
+   }
+
+   // Root process receives from local rank of the target point.
+   if (mCommunicator->globalCommRank() == 0 and getPointRank() != 0) {
+      auto *globalComm = mCommunicator->globalCommunicator();
+      MPI_Recv(
+            valuesBuffer,
+            NUMBER_OF_VALUES,
+            MPI_DOUBLE,
+            getPointRank(),
+            0,
+            globalComm,
+            MPI_STATUS_IGNORE);
    }
 }
 
@@ -171,13 +179,14 @@ void PointLIFProbe::writeState(double timevalue) {
       const int k           = kIndex(xLoc, yLoc, fLoc, loc->nxGlobal, loc->nyGlobal, loc->nf);
       double *valuesBuffer  = getValuesBuffer();
       output(0).printf(
-            "%s t=%.1f %d"
+            "%s t=%.1f index %d batchelement %d "
             "G_E=" CONDUCTANCE_PRINT_FORMAT " G_I=" CONDUCTANCE_PRINT_FORMAT
             " G_IB=" CONDUCTANCE_PRINT_FORMAT " V=" CONDUCTANCE_PRINT_FORMAT
             " Vth=" CONDUCTANCE_PRINT_FORMAT " a=%.1f",
             getMessage(),
             timevalue,
             k,
+            batchLoc,
             valuesBuffer[0],
             valuesBuffer[1],
             valuesBuffer[2],

@@ -30,7 +30,7 @@ void CloneVLayer::fillComponentTable() {
    HyPerLayer::fillComponentTable();
    auto *originalLayerNameParam = createOriginalLayerNameParam();
    if (originalLayerNameParam) {
-      addUniqueComponent(originalLayerNameParam->getDescription(), originalLayerNameParam);
+      addUniqueComponent(originalLayerNameParam);
    }
 }
 

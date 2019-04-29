@@ -36,19 +36,6 @@ class Subject {
     */
    void addObserver(std::string const &tag, Observer *observer);
 
-   /**
-    * Adds an object to the observer table, subject to the restriction that
-    * no other observer of the specified type is in the table.
-    * Exits with an error if the object is unable to be added, either because
-    * the internal call to addObject failed, or because there already was an
-    * object of the specified type in the table.
-    */
-   template <typename S>
-   void addUniqueComponent(std::string const &tag, S *component);
-
-   template <typename S>
-   S *getComponentByType();
-
    ObserverTable const *getTable() { return mTable; }
 
   protected:
@@ -147,22 +134,6 @@ class Subject {
   protected:
    ObserverTable *mTable = nullptr;
 };
-
-template <typename S>
-S *Subject::getComponentByType() {
-   return mTable->lookupByType<S>();
-}
-
-template <typename S>
-void Subject::addUniqueComponent(std::string const &tag, S *component) {
-   auto *foundComponent = getComponentByType<S>();
-   FatalIf(
-         foundComponent,
-         "attempt to add %s using addUniqueComponent, but the table already has %s.\n",
-         component->getDescription_c(),
-         foundComponent->getDescription_c());
-   addObserver(tag, component);
-}
 
 } /* namespace PV */
 

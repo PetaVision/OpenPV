@@ -14,16 +14,15 @@ Response::Status ImageTestLayer::checkUpdateState(double time, double dt) {
    int nf                = loc->nf;
    int nbatch            = loc->nbatch;
 
-   std::string const lookupString = std::string("A \"") + getName() + "\"";
-   ActivityBuffer *A = mActivityComponent->getTable()->lookupByName<ActivityBuffer>(lookupString);
+   float const *activityData = mActivityComponent->getActivity();
    for (int b = 0; b < nbatch; b++) {
-      float const *dataBatch = A->getBufferData(b);
+      float const *activityDataBatch = activityData + b * mActivityComponent->getNumExtended();
       for (int nkRes = 0; nkRes < getNumNeurons(); nkRes++) {
          // Calculate extended index
          int nkExt = kIndexExtended(
                nkRes, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          // checkVal is the value from batch index 0
-         float checkVal = dataBatch[nkExt] * 255;
+         float checkVal = activityDataBatch[nkExt] * 255;
 
          int kxGlobal = kxPos(nkRes, nx, ny, nf) + loc->kx0;
          int kyGlobal = kyPos(nkRes, nx, ny, nf) + loc->ky0;

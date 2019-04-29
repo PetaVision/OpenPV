@@ -49,9 +49,9 @@ void DependentFirmThresholdCostActivityBuffer::ioParam_VWidth(enum ParamsIOFlag 
 
 Response::Status DependentFirmThresholdCostActivityBuffer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   int const maxIterations = 1;
-   auto *originalLayerNameParam =
-         message->mHierarchy->lookupByTypeRecursive<OriginalLayerNameParam>(maxIterations);
+   auto *objectTable = message->mObjectTable;
+
+   auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
    FatalIf(
          !originalLayerNameParam,
          "%s could not find an OriginalLayerNameParam component.\n",
@@ -67,35 +67,20 @@ Response::Status DependentFirmThresholdCostActivityBuffer::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   ComponentBasedObject *originalLayer = nullptr;
-   try {
-      originalLayer = originalLayerNameParam->findLinkedObject(message->mHierarchy);
-   } catch (std::invalid_argument &e) {
-      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-   }
-   pvAssert(originalLayer);
-
-   auto *originalActivityComponent = originalLayer->getComponentByType<ActivityComponent>();
-   FatalIf(
-         originalActivityComponent == nullptr,
-         "%s original layer \"%s\" does not have an ActivityComponent.\n",
-         getDescription_c(),
-         originalLayer->getName());
-
-   auto *originalActivityBuffer =
-         originalActivityComponent->getComponentByType<ANNActivityBuffer>();
+   char const *linkedObjectName = originalLayerNameParam->getLinkedObjectName();
+   auto *originalActivityBuffer = objectTable->findObject<ANNActivityBuffer>(linkedObjectName);
    FatalIf(
          originalActivityBuffer == nullptr,
          "%s original layer \"%s\" does not have an ANNActivityBuffer.\n",
          getDescription_c(),
-         originalLayer->getName());
+         linkedObjectName);
    if (!originalActivityBuffer->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original activity buffer \"%s\" has finished its "
                "communicateInitInfo stage.\n",
                getDescription_c(),
-               originalLayer->getName());
+               linkedObjectName);
       }
       return Response::POSTPONE;
    }
@@ -104,26 +89,26 @@ Response::Status DependentFirmThresholdCostActivityBuffer::communicateInitInfo(
          originalActivityBuffer->usingVerticesListInParams(),
          "%s original layer \"%s\" must specify VThresh and VWidth, not verticesV and verticesA.\n",
          getDescription_c(),
-         originalLayer->getName());
+         linkedObjectName);
    mVThresh = originalActivityBuffer->getVThresh();
    mVWidth  = originalActivityBuffer->getVWidth();
    FatalIf(
          originalActivityBuffer->getAMax() < 0.99f * FLT_MAX,
          "%s requires original layer \"%s\" have AMax = infinity; it is %f\n",
          getDescription_c(),
-         originalLayer->getName(),
+         linkedObjectName,
          (double)originalActivityBuffer->getAMax());
    FatalIf(
          originalActivityBuffer->getAMin() != 0.0f,
          "%s requires original layer \"%s\" have AMin = 0; it is %f\n",
          getDescription_c(),
-         originalLayer->getName(),
+         linkedObjectName,
          (double)originalActivityBuffer->getAMin());
    FatalIf(
          originalActivityBuffer->getAShift() != 0.0f,
          "%s requires original layer \"%s\" have AShift = 0; it is %f\n",
          getDescription_c(),
-         originalLayer->getName(),
+         linkedObjectName,
          (double)originalActivityBuffer->getAShift());
    parameters()->handleUnnecessaryParameter(name, "VThresh", mVThresh);
    parameters()->handleUnnecessaryParameter(name, "VWidth", mVWidth);

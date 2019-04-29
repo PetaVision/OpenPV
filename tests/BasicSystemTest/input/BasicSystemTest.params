@@ -115,17 +115,7 @@ HyPerConn "InputToOutput" = {
     numOrientationsPost = 8;
       
     strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeMethod = "normalizeSum";
-    normalizeArborsIndividually = false;
-    normalizeOnInitialize = true;
-    normalizeOnWeightUpdate = true;
-    normalize_cutoff = 0;
-    receiveGpu = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-    rMinX = 0.0;
-    rMinY = 0.0;
-    nonnegativeConstraintFlag = false;
+    normalizeMethod = "none";
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;

@@ -30,9 +30,9 @@ void CopyUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *hierarchy = message->mHierarchy;
+   auto *objectTable = message->mObjectTable;
 
-   mCopyWeightsPair = hierarchy->lookupByType<CopyWeightsPair>();
+   mCopyWeightsPair = objectTable->findObject<CopyWeightsPair>(getName());
    FatalIf(
          mCopyWeightsPair == nullptr,
          "%s requires a CopyWeightsPair component.\n",
@@ -42,7 +42,7 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    }
    mCopyWeightsPair->needPre();
 
-   auto *originalConnNameParam = hierarchy->lookupByType<OriginalConnNameParam>();
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
    FatalIf(
          originalConnNameParam == nullptr,
          "%s requires a OriginalConnNameParam component.\n",
@@ -54,17 +54,13 @@ CopyUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    char const *originalConnName = originalConnNameParam->getLinkedObjectName();
    pvAssert(originalConnName != nullptr and originalConnName[0] != '\0');
 
-   auto *tableComponent = hierarchy->lookupByType<ObserverTable>();
-   pvAssert(tableComponent);
-   HyPerConn *originalConn = tableComponent->lookupByName<HyPerConn>(std::string(originalConnName));
-   pvAssert(originalConn);
-   auto *originalWeightUpdater = originalConn->getComponentByType<BaseWeightUpdater>();
+   auto *originalWeightUpdater = objectTable->findObject<BaseWeightUpdater>(originalConnName);
    if (originalWeightUpdater and !originalWeightUpdater->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
    mPlasticityFlag = originalWeightUpdater ? originalWeightUpdater->getPlasticityFlag() : false;
 
-   auto *originalWeightsPair = originalConn->getComponentByType<WeightsPair>();
+   auto *originalWeightsPair = objectTable->findObject<WeightsPair>(originalConnName);
    pvAssert(originalWeightsPair);
    if (!originalWeightsPair->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;

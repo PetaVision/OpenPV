@@ -54,30 +54,27 @@ PV::Response::Status HyPerConnCheckpointerTestProbe::communicateInitInfo(
       return status;
    }
 
-   auto *componentTable = message->mHierarchy;
+   auto *objectTable = message->mObjectTable;
 
-   status = mPreWeights ? status : status + initConnection(componentTable);
+   status = mPreWeights ? status : status + initConnection(objectTable);
    // initConnection sets InitializeFromCheckpointFlag, and init{In,Out}PutLayer checks
    // against that value, so we have to complete initConnection successively before
    // calling initInputLayer or initOutputLayer.
    if (!PV::Response::completed(status)) {
       return status;
    }
-   status = mInputPublisher ? status : status + initInputLayer(componentTable);
-   status = mOutputPublisher ? status : status + initOutputLayer(componentTable);
+   status = mInputPublisher ? status : status + initInputLayer(objectTable);
+   status = mOutputPublisher ? status : status + initOutputLayer(objectTable);
 
    return status;
 }
 
 PV::Response::Status
-HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *componentTable) {
-   auto *connection = componentTable->lookupByName<PV::HyPerConn>(std::string("InputToOutput"));
-   FatalIf(connection == nullptr, "column does not have a HyPerConn named \"InputToOutput\".\n");
+HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *objectTable) {
+   char const *connectionName = "InputToOutput";
 
-   auto *patchSize = connection->getComponentByType<PV::PatchSize>();
-   FatalIf(
-         patchSize == nullptr,
-         "Connection \"InputToOutput\" does not have a PatchSize component.\n");
+   auto *patchSize = objectTable->findObject<PV::PatchSize>(connectionName);
+   FatalIf(patchSize == nullptr, "Connection \"%s\" does not have a PatchSize component.\n");
    if (checkCommunicatedFlag(patchSize) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
@@ -85,10 +82,11 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *componen
    FatalIf(patchSize->getPatchSizeY() != 1, "This test assumes that the connection has nyp==1.\n");
    FatalIf(patchSize->getPatchSizeF() != 1, "This test assumes that the connection has nfp==1.\n");
 
-   auto *arborList = connection->getComponentByType<PV::ArborList>();
+   auto *arborList = objectTable->findObject<PV::ArborList>(connectionName);
    FatalIf(
          arborList == nullptr,
-         "Connection \"InputToOutput\" does not have an ArborList component.\n");
+         "Connection \"%s\" does not have an ArborList component.\n",
+         connectionName);
    if (checkCommunicatedFlag(arborList) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
@@ -98,10 +96,11 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *componen
    FatalIf(
          arborList->getDelay(0) != 0.0, "This test assumes that the connection has zero delay.\n");
 
-   auto *sharedWeights = connection->getComponentByType<PV::SharedWeights>();
+   auto *sharedWeights = objectTable->findObject<PV::SharedWeights>(connectionName);
    FatalIf(
          sharedWeights == nullptr,
-         "Connection \"InputToOutput\" does not have a SharedWeights component.\n");
+         "Connection \"%s\" does not have a SharedWeights component.\n",
+         connectionName);
    if (checkCommunicatedFlag(sharedWeights) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
@@ -109,10 +108,11 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *componen
          !sharedWeights->getSharedWeights(),
          "This test assumes that the connection is using shared weights.\n");
 
-   auto *weightsPair = connection->getComponentByType<PV::WeightsPair>();
+   auto *weightsPair = objectTable->findObject<PV::WeightsPair>(connectionName);
    FatalIf(
          weightsPair == nullptr,
-         "Connection \"InputToOutput\" does not have a WeightsPair component.\n");
+         "Connection \"%s\" does not have a WeightsPair component.\n",
+         connectionName);
    if (checkCommunicatedFlag(weightsPair) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
    }
@@ -122,8 +122,9 @@ HyPerConnCheckpointerTestProbe::initConnection(PV::ObserverTable const *componen
 }
 
 PV::Response::Status
-HyPerConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *componentTable) {
-   auto *inputLayer = componentTable->lookupByName<PV::InputLayer>(std::string("Input"));
+HyPerConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *objectTable) {
+   char const *inputLayerName = "Input";
+   auto *inputLayer           = objectTable->findObject<PV::InputLayer>(inputLayerName);
    FatalIf(inputLayer == nullptr, "column does not have an InputLayer named \"Input\".\n");
    if (checkCommunicatedFlag(inputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
@@ -133,12 +134,11 @@ HyPerConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *componen
          "%s has a different initializeFromCheckpointFlag value from the connection.\n",
          inputLayer->getDescription_c());
 
-   auto *activityComponent = inputLayer->getComponentByType<PV::ActivityComponent>();
-   auto *inputBuffer       = activityComponent->getComponentByType<PV::InputActivityBuffer>();
+   auto *inputBuffer = objectTable->findObject<PV::InputActivityBuffer>(inputLayerName);
    FatalIf(
          inputBuffer->getDisplayPeriod() != 4.0,
          "This test assumes that the display period is 4 (should really not be hard-coded.\n");
-   mInputPublisher = inputLayer->getComponentByType<PV::BasePublisherComponent>();
+   mInputPublisher = objectTable->findObject<PV::BasePublisherComponent>(inputLayerName);
    FatalIf(
          mInputPublisher == nullptr,
          "%s does not have a BasePublisherComponent.\n",
@@ -147,8 +147,9 @@ HyPerConnCheckpointerTestProbe::initInputLayer(PV::ObserverTable const *componen
 }
 
 PV::Response::Status
-HyPerConnCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *componentTable) {
-   auto *outputLayer = componentTable->lookupByName<PV::HyPerLayer>(std::string("Output"));
+HyPerConnCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *objectTable) {
+   char const *outputLayerName = "Output";
+   auto *outputLayer           = objectTable->findObject<PV::HyPerLayer>(outputLayerName);
    FatalIf(outputLayer == nullptr, "column does not have a HyPerLayer named \"Output\".\n");
    if (checkCommunicatedFlag(outputLayer) == PV::Response::POSTPONE) {
       return PV::Response::POSTPONE;
@@ -157,7 +158,7 @@ HyPerConnCheckpointerTestProbe::initOutputLayer(PV::ObserverTable const *compone
          outputLayer->getInitializeFromCheckpointFlag() != mInitializeFromCheckpointFlag,
          "%s has a different initializeFromCheckpointFlag value from the connection.\n",
          outputLayer->getDescription_c());
-   mOutputPublisher = outputLayer->getComponentByType<PV::BasePublisherComponent>();
+   mOutputPublisher = objectTable->findObject<PV::BasePublisherComponent>(outputLayerName);
    FatalIf(
          mOutputPublisher == nullptr,
          "%s does not have a BasePublisherComponent.\n",

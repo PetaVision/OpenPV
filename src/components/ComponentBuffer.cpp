@@ -35,15 +35,13 @@ void ComponentBuffer::setBufferLabel(std::string const &label) {
          getDescription_c(),
          label.c_str());
    mBufferLabel = label;
-   setDescription(label + " \"" + getName() + "\"");
 }
 
 Response::Status
 ComponentBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto hierarchy = message->mHierarchy;
+   auto *objectTable = message->mObjectTable;
    if (mLayerGeometry == nullptr) {
-      int maxIterations = 1; // Limits the depth of the recursion when searching for dependencies.
-      mLayerGeometry    = hierarchy->lookupByTypeRecursive<LayerGeometry>(maxIterations);
+      mLayerGeometry = objectTable->findObject<LayerGeometry>(getName());
    }
    FatalIf(!mLayerGeometry, "%s requires a LayerGeometry component.\n", getDescription_c());
    return Response::SUCCESS;
@@ -106,7 +104,7 @@ ComponentBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
    if (!Response::completed(status)) {
       return status;
    }
-   if (!mBufferLabel.empty()) {
+   if (mCheckpointFlag and !mBufferLabel.empty()) {
       auto *checkpointer   = message->mDataRegistry;
       auto checkpointEntry = std::make_shared<CheckpointEntryPvpBuffer<float>>(
             getName(),
@@ -131,7 +129,7 @@ Response::Status ComponentBuffer::readStateFromCheckpoint(Checkpointer *checkpoi
    if (!Response::completed(status)) {
       return status;
    }
-   if (!mBufferLabel.empty()) {
+   if (mCheckpointFlag and !mBufferLabel.empty()) {
       checkpointer->readNamedCheckpointEntry(std::string(name), mBufferLabel, false);
    }
    return Response::SUCCESS;

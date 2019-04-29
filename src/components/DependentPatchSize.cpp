@@ -56,8 +56,12 @@ void DependentPatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *originalConnNameParam = message->mHierarchy->lookupByType<OriginalConnNameParam>();
-   pvAssert(originalConnNameParam);
+   auto *objectTable           = message->mObjectTable;
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
+   FatalIf(
+         originalConnNameParam == nullptr,
+         "%s could not find an OriginalConnNameParam.\n",
+         getDescription_c());
 
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -68,21 +72,13 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       }
       return Response::POSTPONE;
    }
-
-   ComponentBasedObject *originalConn = nullptr;
-   try {
-      originalConn = originalConnNameParam->findLinkedObject(message->mHierarchy);
-   } catch (std::invalid_argument &e) {
-      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-   }
-   pvAssert(originalConn);
-
-   auto *originalPatchSize = originalConn->getComponentByType<PatchSize>();
+   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+   auto *originalPatchSize      = objectTable->findObject<PatchSize>(originalConnName);
    FatalIf(
          originalPatchSize == nullptr,
          "%s original connection \"%s\" does not have a PatchSize.\n",
          getDescription_c(),
-         originalConn->getName());
+         originalConnName);
 
    if (!originalPatchSize->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -90,7 +86,7 @@ DependentPatchSize::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConn->getName());
+               originalConnName);
       }
       return Response::POSTPONE;
    }

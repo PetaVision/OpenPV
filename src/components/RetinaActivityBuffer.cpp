@@ -99,8 +99,7 @@ Response::Status RetinaActivityBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   int maxIterations = 1; // Limits the depth of the recursion when searching for dependencies.
-   mLayerInput       = message->mHierarchy->lookupByTypeRecursive<LayerInputBuffer>(maxIterations);
+   mLayerInput = message->mObjectTable->findObject<LayerInputBuffer>(getName());
    FatalIf(
          mLayerInput == nullptr,
          "%s could not find an LayerInputBuffer component.\n",

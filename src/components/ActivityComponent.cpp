@@ -60,7 +60,7 @@ void ActivityComponent::fillComponentTable() {
    ComponentBasedObject::fillComponentTable();
    mActivity = createActivity();
    if (mActivity) {
-      addUniqueComponent(mActivity->getDescription(), mActivity);
+      addUniqueComponent(mActivity);
    }
 }
 
@@ -74,16 +74,6 @@ ActivityComponent::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    if (!Response::completed(status)) {
       return status;
    }
-   auto *observerTableComponent = getComponentByType<ObserverTable>();
-   if (!observerTableComponent) {
-      auto observerTableTag  = std::string("ObserverTable \"") + getName() + "\"";
-      observerTableComponent = new ObserverTable(observerTableTag.c_str());
-      observerTableComponent->copyTable(message->mHierarchy);
-      addUniqueComponent(observerTableComponent->getDescription(), observerTableComponent);
-      // ObserverTable takes ownership; observerTableComponent will be deleted by
-      // Subject::deleteObserverTable() method during destructor.
-   }
-   pvAssert(observerTableComponent);
 
 #ifdef PV_USE_CUDA
    if (mUpdateGpu) {
@@ -91,37 +81,12 @@ ActivityComponent::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    }
 #endif // PV_USE_CUDA
 
-   auto communicateMessage = std::make_shared<CommunicateInitInfoMessage>(
-         mTable,
-         message->mDeltaTime,
-         message->mNxGlobal,
-         message->mNyGlobal,
-         message->mNBatchGlobal,
-         message->mNumThreads);
-
-   status = status + notify(communicateMessage, mCommunicator->globalCommRank() == 0 /*printFlag*/);
-
-   return status;
-}
-
-Response::Status ActivityComponent::allocateDataStructures() {
-   Response::Status status = ComponentBasedObject::allocateDataStructures();
-   if (!Response::completed(status)) {
-      return status;
-   }
-   auto message = std::make_shared<AllocateDataStructuresMessage>();
-   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
    return Response::SUCCESS;
 }
 
 Response::Status
 ActivityComponent::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto status = ComponentBasedObject::registerData(message);
-   if (!Response::completed(status)) {
-      return status;
-   }
-
-   status = notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
    if (!Response::completed(status)) {
       return status;
    }

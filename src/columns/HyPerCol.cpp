@@ -10,6 +10,7 @@
 
 #include "HyPerCol.hpp"
 #include "columns/Communicator.hpp"
+#include "columns/ComponentBasedObject.hpp"
 #include "columns/Factory.hpp"
 #include "columns/RandomSeed.hpp"
 #include "io/PrintStream.hpp"
@@ -553,11 +554,38 @@ int HyPerCol::setNumThreads() {
    return threadStatus;
 }
 
+void HyPerCol::expandRecursive(ObserverTable *objectTable, ObserverTable const *table) {
+   for (auto iterator = table->begin(); iterator != table->end(); iterator++) {
+      auto *obs = *iterator;
+      auto *obj = dynamic_cast<BaseObject *>(obs);
+      pvAssert(obj);
+      objectTable->addObject(obj->getName(), obj);
+      auto *cbo = dynamic_cast<ComponentBasedObject *>(obj);
+      if (cbo) {
+         auto *cboTable = cbo->getTable();
+         expandRecursive(objectTable, cboTable);
+      }
+   }
+}
+
+ObserverTable HyPerCol::getAllObjectsFlat() {
+   auto objectTable = ObserverTable("All objects");
+   expandRecursive(&objectTable, mTable);
+   return objectTable;
+}
+
 int HyPerCol::processParams(char const *path) {
+   auto objectTable = getAllObjectsFlat();
+
    if (!mParamsProcessedFlag) {
       notifyLoop(
             std::make_shared<CommunicateInitInfoMessage>(
-                  mTable, mDeltaTime, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
+                  &objectTable,
+                  mDeltaTime,
+                  mNumXGlobal,
+                  mNumYGlobal,
+                  mNumBatchGlobal,
+                  mNumThreads));
    }
 
    // Print a cleaned up version of params to the file given by printParamsFilename
@@ -1188,7 +1216,7 @@ int HyPerCol::finalizeCUDA() {
 void HyPerCol::addComponent(BaseObject *component) { addObserver(component->getName(), component); }
 
 Observer *HyPerCol::getObjectFromName(std::string const &objectName) const {
-   return mTable->lookupByName<Observer>(objectName);
+   return mTable->findObject<BaseObject>(objectName.c_str());
 }
 
 Observer *HyPerCol::getNextObject(Observer const *currentObject) const {

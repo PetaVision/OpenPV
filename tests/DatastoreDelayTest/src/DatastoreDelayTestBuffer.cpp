@@ -37,16 +37,11 @@ Response::Status DatastoreDelayTestBuffer::communicateInitInfo(
       return status;
    }
 
-   // Going to the HyPerLayer is a hack to get the number of delay levels, since that's still in
-   // the HyPerLayer itself and not one of the components. Once the publisher is moved to a
-   // component, this should grab NumDelayLevels from that component.
-   int maxIterations = 2;
-   ComponentBasedObject *parentLayer =
-         message->mHierarchy->lookupByNameRecursive<ComponentBasedObject>(getName(), maxIterations);
-   pvAssert(parentLayer);
-   BasePublisherComponent *parentPublisher =
-         parentLayer->getComponentByType<BasePublisherComponent>();
-   pvAssert(parentPublisher);
+   auto *parentPublisher = message->mObjectTable->findObject<BasePublisherComponent>(getName());
+   FatalIf(
+         parentPublisher == nullptr,
+         "%s could not find a BasePublisherComponent.\n",
+         getDescription_c());
    mPeriod = parentPublisher->getNumDelayLevels();
 
    return Response::SUCCESS;

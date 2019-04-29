@@ -98,7 +98,7 @@ void InitWeights::handleObsoleteFlag(std::string const &flagName) {
 
 Response::Status
 InitWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *weightsPair = message->mHierarchy->lookupByType<WeightsPair>();
+   auto *weightsPair = message->mObjectTable->findObject<WeightsPair>(getName());
    pvAssert(weightsPair);
    auto status = BaseObject::communicateInitInfo(message);
    if (!Response::completed(status)) {

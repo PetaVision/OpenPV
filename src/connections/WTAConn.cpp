@@ -32,7 +32,7 @@ void WTAConn::fillComponentTable() {
    BaseConnection::fillComponentTable();
    auto *singleArbor = createSingleArbor();
    if (singleArbor) {
-      addUniqueComponent(singleArbor->getDescription(), singleArbor);
+      addUniqueComponent(singleArbor);
    }
 }
 

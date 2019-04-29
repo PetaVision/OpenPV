@@ -103,11 +103,11 @@ PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
             loc->nf);
       failed = true;
    }
-   if ((batchLoc < 0 || batchLoc > loc->nbatch) && isRoot) {
+   if ((batchLoc < 0 || batchLoc > loc->nbatchGlobal) && isRoot) {
       ErrorLog().printf(
             "PointProbe on layer %s: batchLoc coordinate %d is "
             "out of bounds (layer has %d "
-            "batches.\n",
+            "batch elements.\n",
             getTargetLayer()->getName(),
             batchLoc,
             loc->nbatch);
@@ -151,6 +151,65 @@ void PointProbe::initOutputStreams(const char *filename, Checkpointer *checkpoin
    }
 }
 
+Response::Status
+PointProbe::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   auto status = LayerProbe::initializeState(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   // We need to calculate which mpi process contains the target point, and send
+   // that info to the root process Each process calculates local index
+   const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
+
+   // Compute rank for which target point is in the restricted region.
+   int xRank      = xLoc / loc->nx;
+   int yRank      = yLoc / loc->ny;
+   int bRank      = batchLoc / loc->nbatch;
+   int numRows    = mCommunicator->numCommRows();
+   int numColumns = mCommunicator->numCommColumns();
+   int batchWidth = mCommunicator->numCommBatches();
+   mPointRank     = rankFromRowColumnBatch(yRank, xRank, bRank, numRows, numColumns, batchWidth);
+
+   mPointV = nullptr;
+   mPointA = nullptr;
+
+   if (getPointRank() == mCommunicator->globalCommRank()) {
+      PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
+      int const nx          = loc->nx;
+      int const ny          = loc->ny;
+      int const nf          = loc->nf;
+      int const nbatch      = loc->nbatch;
+      // Calculate local coords from global
+      int const xLocLocal   = xLoc - loc->kx0;
+      int const yLocLocal   = yLoc - loc->ky0;
+      int const nbatchLocal = batchLoc - loc->kb0;
+
+      // For the correct rank, target point should be in the local restricted region.
+      pvAssert(xLocLocal >= 0 and xLocLocal < nx and yLocLocal >= 0 and yLocLocal < ny);
+      pvAssert(nbatchLocal >= 0 and nbatchLocal < nbatch);
+
+      const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
+
+      auto *activityComponent = getTargetLayer()->getComponentByType<ActivityComponent>();
+      auto *internalState     = activityComponent->getComponentByType<InternalStateBuffer>();
+      if (internalState != nullptr) {
+         int offsetV = k + nbatchLocal * internalState->getBufferSize();
+         mPointV     = &internalState->getBufferData()[offsetV];
+      }
+
+      auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
+      if (publisherComponent != nullptr) {
+         float const *activity = publisherComponent->getLayerData();
+         const int kex         = kIndexExtended(
+               k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+         int offsetA = kex + nbatchLocal * getTargetLayer()->getNumExtended();
+         mPointA     = &activity[kex];
+      }
+   }
+
+   return Response::SUCCESS;
+}
+
 /**
  * NOTES:
  *     - Only the activity buffer covers the extended frame - this is the frame
@@ -170,83 +229,34 @@ Response::Status PointProbe::outputState(double simTime, double deltaTime) {
 void PointProbe::calcValues(double timevalue) {
    assert(this->getNumValues() == 2);
    double *valuesBuffer = this->getValuesBuffer();
-   // We need to calculate which mpi process contains the target point, and send
-   // that info to the root process Each process calculates local index
-   const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-   // Calculate local coords from global
-   const int kx0         = loc->kx0;
-   const int ky0         = loc->ky0;
-   const int kb0         = loc->kb0;
-   const int nx          = loc->nx;
-   const int ny          = loc->ny;
-   const int nf          = loc->nf;
-   const int nbatch      = loc->nbatch;
-   const int xLocLocal   = xLoc - kx0;
-   const int yLocLocal   = yLoc - ky0;
-   const int nbatchLocal = batchLoc - kb0;
+   auto *globalComm     = mCommunicator->globalCommunicator();
 
-   // if in bounds
-   if (xLocLocal >= 0 && xLocLocal < nx && yLocLocal >= 0 && yLocLocal < ny && nbatchLocal >= 0
-       && nbatchLocal < nbatch) {
-      const int k         = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
-      auto *internalState = getTargetLayer()->getComponentByType<InternalStateBuffer>();
-      if (internalState != nullptr) {
-         float const *V  = internalState->getBufferData();
-         valuesBuffer[0] = V[k + nbatchLocal * internalState->getBufferSize()];
-      }
-      else {
-         valuesBuffer[0] = 0.0f;
-      }
-
-      auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
-      if (publisherComponent) {
-         float const *activity = publisherComponent->getLayerData();
-         const int kex         = kIndexExtended(
-               k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-         valuesBuffer[1] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
-      }
-      else {
-         valuesBuffer[1] = 0.0;
-      }
+   if (getPointRank() == mCommunicator->globalCommRank()) {
+      pvAssert(mPointA);
+      valuesBuffer[0] = mPointV ? *mPointV : 0.0f; // mPointV can be null if target layer has no V.
+      valuesBuffer[1] = *mPointA;
       // If not in root process, send V and A to root process
-      if (mCommunicator->commRank() != 0) {
-         MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, mCommunicator->communicator());
+      if (mCommunicator->globalCommRank() != 0) {
+         MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, globalComm);
       }
    }
+   else {
+      pvAssert(mPointA == nullptr and mPointV == nullptr);
+   }
 
-   // Root process
-   if (mCommunicator->commRank() == 0) {
-      // Calculate which rank target neuron is
-      // TODO we need to calculate rank from batch as well
-      int xRank = xLoc / nx;
-      int yRank = yLoc / ny;
-
-      int srcRank = rankFromRowAndColumn(
-            yRank, xRank, mCommunicator->numCommRows(), mCommunicator->numCommColumns());
-
-      // If srcRank is not root process, MPI_Recv from that rank
-      if (srcRank != 0) {
-         MPI_Recv(
-               valuesBuffer,
-               2,
-               MPI_DOUBLE,
-               srcRank,
-               0,
-               mCommunicator->communicator(),
-               MPI_STATUS_IGNORE);
-      }
+   // Root process receives from local rank of the target point.
+   if (mCommunicator->globalCommRank() == 0 and getPointRank() != 0) {
+      MPI_Recv(valuesBuffer, 2, MPI_DOUBLE, getPointRank(), 0, globalComm, MPI_STATUS_IGNORE);
    }
 }
 
 void PointProbe::writeState(double timevalue) {
    if (!mOutputStreams.empty()) {
-      output(0).printf("%s t=%.1f V=%6.5f a=%.5f", getMessage(), timevalue, getV(), getA());
+      double const V = getValuesBuffer()[0];
+      double const A = getValuesBuffer()[1];
+      output(0).printf("%s t=%.1f V=%6.5f a=%.5f", getMessage(), timevalue, V, A);
       output(0) << std::endl;
    }
 }
-
-double PointProbe::getV() { return getValuesBuffer()[0]; }
-
-double PointProbe::getA() { return getValuesBuffer()[1]; }
 
 } // namespace PV

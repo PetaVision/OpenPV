@@ -94,7 +94,7 @@ Response::Status LayerOutputComponent::communicateInitInfo(
       return status;
    }
    mWriteTime = mInitialWriteTime;
-   mPublisher = message->mHierarchy->lookupByType<BasePublisherComponent>();
+   mPublisher = message->mObjectTable->findObject<BasePublisherComponent>(getName());
    FatalIf(mPublisher == nullptr, "%s requires a BasePublisherComponent.\n", getDescription_c());
    return Response::SUCCESS;
 }

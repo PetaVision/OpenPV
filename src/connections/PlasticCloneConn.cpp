@@ -28,27 +28,35 @@ PlasticCloneConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    if (!Response::completed(status)) {
       return status;
    }
-   auto *originalConnNameParam = getComponentByType<OriginalConnNameParam>();
+   auto *objectTable = message->mObjectTable;
+
+   auto *connectionData = objectTable->findObject<ConnectionData>(getName());
+   FatalIf(
+         connectionData == nullptr,
+         "%s could not find a ConnectionData component.\n",
+         getDescription_c());
+   if (!connectionData->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
+
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
    FatalIf(
          originalConnNameParam == nullptr,
          "%s requires an OriginalConnNameParam component.\n",
          getDescription_c());
-   auto originalConnName = std::string(originalConnNameParam->getLinkedObjectName());
-   auto *originalConn    = message->mHierarchy->lookupByName<HyPerConn>(originalConnName);
-   pvAssert(originalConn); // CloneConn::communicateInitInfo should have failed if this fails.
-   auto *originalUpdater = originalConn->getComponentByType<HebbianUpdater>();
+   if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
+   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+
+   auto *originalUpdater = objectTable->findObject<HebbianUpdater>(originalConnName);
    FatalIf(
          originalUpdater == nullptr,
-         "%s specifies %s as its original connection, but this connection does not have a "
+         "%s specifies originalConnName \"%s\", but this connection does not have a "
          "Hebbian updater.\n",
          getDescription_c(),
-         originalConn->getDescription_c());
+         originalConnName);
    // Do we need to handle PlasticClones of PlasticClones? Right now, this won't handle that case.
-   auto *connectionData = getComponentByType<ConnectionData>();
-   pvAssert(connectionData); // BaseConnection creates this component
-   pvAssert(connectionData->getInitInfoCommunicatedFlag()); // Set while CloneConn communicates
-   // CloneConn creates this component, and
-   // CloneConn::CommunicateInitInfo shouldn't return until its components have communicated.
    originalUpdater->addClone(connectionData);
 
    return Response::SUCCESS;

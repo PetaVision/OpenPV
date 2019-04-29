@@ -38,28 +38,23 @@ Response::Status FilenameParsingLayerUpdateController::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   auto *inputLayerNameParam = message->mHierarchy->lookupByType<InputLayerNameParam>();
-   pvAssert(inputLayerNameParam);
+   auto *objectTable = message->mObjectTable;
+
+   auto *inputLayerNameParam = objectTable->findObject<InputLayerNameParam>(getName());
+   FatalIf(
+         inputLayerNameParam == nullptr,
+         "%s does not have an InputLayerNameParam.\n",
+         getDescription_c());
    if (!inputLayerNameParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
-   ComponentBasedObject *inputObject = nullptr;
-   try {
-      inputObject = inputLayerNameParam->findLinkedObject(message->mHierarchy);
-   } catch (std::invalid_argument &e) {
-      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-   }
-   FatalIf(
-         inputObject == nullptr,
-         "%s inputLayerName \"%s\" is not a layer in the column.\n",
-         getDescription_c(),
-         inputLayerNameParam->getLinkedObjectName());
-   mInputController = inputObject->getComponentByType<InputLayerUpdateController>();
+   char const *inputLayerName = inputLayerNameParam->getLinkedObjectName();
+   mInputController           = objectTable->findObject<InputLayerUpdateController>(inputLayerName);
    FatalIf(
          mInputController == nullptr,
          "%s inputLayerName \"%s\" does not have an InputController.\n",
          getDescription_c(),
-         inputLayerNameParam->getLinkedObjectName());
+         inputLayerName);
    return Response::SUCCESS;
 }
 

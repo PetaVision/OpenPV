@@ -21,7 +21,7 @@ MaskActivityBuffer::MaskActivityBuffer(
 MaskActivityBuffer::MaskActivityBuffer() {}
 
 MaskActivityBuffer::~MaskActivityBuffer() {
-   free(maskLayerName);
+   free(mMaskLayerName);
    free(mFeatures);
    free(mMaskMethod);
 }
@@ -62,7 +62,7 @@ void MaskActivityBuffer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
 void MaskActivityBuffer::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(name, "maskMethod"));
    if (mMaskMethodCode == LAYER or mMaskMethodCode == INVERT_LAYER) {
-      parameters()->ioParamStringRequired(ioFlag, name, "maskLayerName", &maskLayerName);
+      parameters()->ioParamStringRequired(ioFlag, name, "maskLayerName", &mMaskLayerName);
    }
 }
 
@@ -89,41 +89,12 @@ MaskActivityBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       return status;
    }
    if (mMaskMethodCode == LAYER or mMaskMethodCode == INVERT_LAYER) {
-      int maxIterations = 2;
-      auto *maskObject  = message->mHierarchy->lookupByNameRecursive<ComponentBasedObject>(
-            std::string(maskLayerName), maxIterations);
-      if (maskObject == nullptr) {
-         if (mCommunicator->commRank() == 0) {
-            ErrorLog().printf(
-                  "%s: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                  getDescription_c(),
-                  maskLayerName);
-         }
-         MPI_Barrier(mCommunicator->communicator());
-         exit(EXIT_FAILURE);
-      }
-      auto *maskActivityComponent = maskObject->getComponentByType<ActivityComponent>();
-      if (maskActivityComponent == nullptr) {
-         if (mCommunicator->commRank() == 0) {
-            ErrorLog().printf(
-                  "%s: maskLayerName points to %s, but it does not have an ActivityComponent.\n",
-                  getDescription_c(),
-                  maskObject->getDescription_c());
-         }
-         MPI_Barrier(mCommunicator->communicator());
-         exit(EXIT_FAILURE);
-      }
-      mMaskBuffer = maskActivityComponent->getComponentByType<ActivityBuffer>();
-      if (mMaskBuffer == nullptr) {
-         if (mCommunicator->commRank() == 0) {
-            ErrorLog().printf(
-                  "%s: maskLayerName points to %s, but it does not have an ActivityBuffer.\n",
-                  getDescription_c(),
-                  maskObject->getDescription_c());
-         }
-         MPI_Barrier(mCommunicator->communicator());
-         exit(EXIT_FAILURE);
-      }
+      mMaskBuffer = message->mObjectTable->findObject<ActivityBuffer>(std::string(mMaskLayerName));
+      FatalIf(
+            mMaskBuffer == nullptr,
+            "%s: No object with maskLayerName \"%s\" has an ActivityBuffer.\n",
+            getDescription_c(),
+            mMaskLayerName);
    }
    else {
       pvAssert(mMaskMethodCode == FEATURES or mMaskMethodCode == INVERT_FEATURES);
@@ -157,7 +128,7 @@ Response::Status MaskActivityBuffer::allocateDataStructures() {
             errorMessage.printf(
                   "%s: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
                   getDescription_c(),
-                  maskLayerName);
+                  mMaskLayerName);
             errorMessage.printf(
                   "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                   maskLoc->nxGlobal,
@@ -178,7 +149,7 @@ Response::Status MaskActivityBuffer::allocateDataStructures() {
                   "%s: maskLayerName \"%s\" must either have the same number of features as this "
                   "layer, or one feature.\n",
                   getDescription_c(),
-                  maskLayerName);
+                  mMaskLayerName);
             errorMessage.printf(
                   "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                   maskLoc->nxGlobal,

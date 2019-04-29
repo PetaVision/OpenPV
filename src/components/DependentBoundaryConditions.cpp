@@ -42,8 +42,12 @@ void DependentBoundaryConditions::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
 
 Response::Status DependentBoundaryConditions::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *originalLayerNameParam = message->mHierarchy->lookupByType<OriginalLayerNameParam>();
-   pvAssert(originalLayerNameParam);
+   auto *objectTable            = message->mObjectTable;
+   auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
+   FatalIf(
+         originalLayerNameParam == nullptr,
+         "%s could not find an OriginalLayerNameParam.\n",
+         getDescription_c());
 
    if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -55,20 +59,14 @@ Response::Status DependentBoundaryConditions::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   ComponentBasedObject *originalObject = nullptr;
-   try {
-      originalObject = originalLayerNameParam->findLinkedObject(message->mHierarchy);
-   } catch (std::invalid_argument &e) {
-      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-   }
-   pvAssert(originalObject);
-
-   auto *originalBoundaryConditions = originalObject->getComponentByType<BoundaryConditions>();
+   char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
+   auto *originalBoundaryConditions =
+         objectTable->findObject<BoundaryConditions>(originalLayerName);
    FatalIf(
          originalBoundaryConditions == nullptr,
          "%s original connection \"%s\" does not have a BoundaryConditions component.\n",
          getDescription_c(),
-         originalObject->getName());
+         originalLayerName);
 
    if (!originalBoundaryConditions->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -76,7 +74,7 @@ Response::Status DependentBoundaryConditions::communicateInitInfo(
                "%s must wait until original layer \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalObject->getName());
+               originalLayerName);
       }
       return Response::POSTPONE;
    }

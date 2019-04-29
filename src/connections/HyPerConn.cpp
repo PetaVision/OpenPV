@@ -46,37 +46,37 @@ void HyPerConn::fillComponentTable() {
    BaseConnection::fillComponentTable();
    auto *arborList = createArborList();
    if (arborList) {
-      addUniqueComponent(arborList->getDescription(), arborList);
+      addUniqueComponent(arborList);
    }
    auto *patchSize = createPatchSize();
    if (patchSize) {
-      addUniqueComponent(patchSize->getDescription(), patchSize);
+      addUniqueComponent(patchSize);
    }
    auto *sharedWeights = createSharedWeights();
    if (sharedWeights) {
-      addUniqueComponent(sharedWeights->getDescription(), sharedWeights);
+      addUniqueComponent(sharedWeights);
    }
    auto *weightsPair = createWeightsPair();
    if (weightsPair) {
-      addUniqueComponent(weightsPair->getDescription(), weightsPair);
+      addUniqueComponent(weightsPair);
    }
    auto *weightInitializer = createWeightInitializer();
    if (weightInitializer) {
-      addUniqueComponent(weightInitializer->getDescription(), weightInitializer);
+      addUniqueComponent(weightInitializer);
    }
    auto *weightNormalizer = createWeightNormalizer();
    if (weightNormalizer) {
-      addUniqueComponent(weightNormalizer->getDescription(), weightNormalizer);
+      addUniqueComponent(weightNormalizer);
    }
    auto *weightUpdater = createWeightUpdater();
    if (weightUpdater) {
-      addUniqueComponent(weightUpdater->getDescription(), weightUpdater);
+      addUniqueComponent(weightUpdater);
    }
 }
 
 BaseDelivery *HyPerConn::createDeliveryObject() {
    auto *deliveryCreator = new HyPerDeliveryCreator(name, parameters(), mCommunicator);
-   addUniqueComponent(deliveryCreator->getDescription(), deliveryCreator);
+   addUniqueComponent(deliveryCreator);
    return deliveryCreator->create();
 }
 
@@ -153,7 +153,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    }
    if (strcmp(normalizeMethod, "none")) {
       auto strengthParam = new StrengthParam(name, parameters(), mCommunicator);
-      addUniqueComponent(strengthParam->getDescription(), strengthParam);
+      addUniqueComponent(strengthParam);
    }
    BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, this);
    normalizer          = dynamic_cast<NormalizeBase *>(baseObj);

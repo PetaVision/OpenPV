@@ -20,7 +20,8 @@ GSynAccumulator::~GSynAccumulator() {}
 
 void GSynAccumulator::initialize(char const *name, PVParams *params, Communicator const *comm) {
    RestrictedBuffer::initialize(name, params, comm);
-   setBufferLabel(""); // Only used internally; not checkpointed
+   setBufferLabel("GSyn");
+   mCheckpointFlag = false; // Only used internally; not checkpointed
    initializeChannelCoefficients();
 }
 
@@ -54,8 +55,7 @@ GSynAccumulator::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    if (!Response::completed(status)) {
       return status;
    }
-   int const maxIterations = 1; // Limits the depth of recursion when searching for dependencies.
-   mLayerInput = message->mHierarchy->lookupByTypeRecursive<LayerInputBuffer>(maxIterations);
+   mLayerInput = message->mObjectTable->findObject<LayerInputBuffer>(getName());
    FatalIf(
          mLayerInput == nullptr,
          "%s could not find a LayerInputBuffer component.\n",

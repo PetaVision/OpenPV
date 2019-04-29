@@ -26,7 +26,7 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
       return status;
    }
    if (mConnectionData == nullptr) {
-      mConnectionData = message->mHierarchy->lookupByType<ConnectionData>();
+      mConnectionData = message->mObjectTable->findObject<ConnectionData>(getName());
    }
    FatalIf(mConnectionData == nullptr, "%s could not find a ConnectionData component.\n");
    if (!mConnectionData->getInitInfoCommunicatedFlag()) {

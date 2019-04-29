@@ -35,7 +35,8 @@ void DependentPhaseParam::ioParam_phase(enum ParamsIOFlag ioFlag) {
 
 Response::Status DependentPhaseParam::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *originalLayerNameParam = message->mHierarchy->lookupByType<OriginalLayerNameParam>();
+   auto *originalLayerNameParam =
+         message->mObjectTable->findObject<OriginalLayerNameParam>(getName());
    pvAssert(originalLayerNameParam);
 
    if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
@@ -48,20 +49,13 @@ Response::Status DependentPhaseParam::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   ComponentBasedObject *originalObject = nullptr;
-   try {
-      originalObject = originalLayerNameParam->findLinkedObject(message->mHierarchy);
-   } catch (std::invalid_argument &e) {
-      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-   }
-   pvAssert(originalObject);
-
-   auto *originalPhaseParam = originalObject->getComponentByType<PhaseParam>();
+   auto linkedObjectName    = std::string(originalLayerNameParam->getLinkedObjectName());
+   auto *originalPhaseParam = message->mObjectTable->findObject<PhaseParam>(linkedObjectName);
    FatalIf(
          originalPhaseParam == nullptr,
-         "%s original connection \"%s\" does not have a PhaseParam component.\n",
+         "%s linked object \"%s\" does not have a PhaseParam component.\n",
          getDescription_c(),
-         originalObject->getName());
+         linkedObjectName.c_str());
 
    if (!originalPhaseParam->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -69,7 +63,7 @@ Response::Status DependentPhaseParam::communicateInitInfo(
                "%s must wait until original layer \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalObject->getName());
+               linkedObjectName.c_str());
       }
       return Response::POSTPONE;
    }

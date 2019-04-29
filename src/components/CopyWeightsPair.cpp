@@ -32,9 +32,12 @@ Response::Status
 CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mOriginalWeightsPair == nullptr) {
       pvAssert(mOriginalConnData == nullptr);
-      auto hierarchy              = message->mHierarchy;
-      auto *originalConnNameParam = hierarchy->lookupByType<OriginalConnNameParam>();
-      pvAssert(originalConnNameParam);
+      auto *objectTable           = message->mObjectTable;
+      auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
+      FatalIf(
+            originalConnNameParam == nullptr,
+            "%s could not find an OriginalConnNameParam.\n",
+            getDescription_c());
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
          if (mCommunicator->globalCommRank() == 0) {
@@ -46,31 +49,21 @@ CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
          return Response::POSTPONE;
       }
 
-      ComponentBasedObject *originalConn = nullptr;
-      try {
-         originalConn = originalConnNameParam->findLinkedObject(message->mHierarchy);
-      } catch (std::invalid_argument &e) {
-         Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-      }
-      pvAssert(originalConn); // findLinkedObject() throws instead of returns nullptr
+      char const *originalConnName = originalConnNameParam->getLinkedObjectName();
 
-      if (!originalConn->getInitInfoCommunicatedFlag()) {
-         if (mCommunicator->globalCommRank() == 0) {
-            InfoLog().printf(
-                  "%s must wait until original connection \"%s\" has finished its "
-                  "communicateInitInfo stage.\n",
-                  getDescription_c(),
-                  originalConn->getName());
-         }
-         return Response::POSTPONE;
-      }
+      mOriginalConnData = objectTable->findObject<ConnectionData>(originalConnName);
+      FatalIf(
+            mOriginalConnData == nullptr,
+            "%s could not find a ConnectionData component within \"%s\".\n",
+            getDescription_c(),
+            originalConnName);
 
-      mOriginalConnData = originalConn->getComponentByType<ConnectionData>();
-      pvAssert(mOriginalConnData);
-      pvAssert(mOriginalConnData->getInitInfoCommunicatedFlag());
-      mOriginalWeightsPair = originalConn->getComponentByType<WeightsPair>();
-      pvAssert(mOriginalWeightsPair);
-      pvAssert(mOriginalWeightsPair->getInitInfoCommunicatedFlag());
+      mOriginalWeightsPair = objectTable->findObject<WeightsPair>(originalConnName);
+      FatalIf(
+            mOriginalWeightsPair == nullptr,
+            "%s could not find a WeightsPair component within \"%s\".\n",
+            getDescription_c(),
+            originalConnName);
    }
 
    if (!mOriginalWeightsPair->getInitInfoCommunicatedFlag()) {

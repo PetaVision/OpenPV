@@ -58,19 +58,19 @@ class PoolingConnCheckpointerTestProbe : public PV::ColProbe {
     * Sets the connection data member, and checks that the connection's parameters are
     * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
     */
-   PV::Response::Status initConnection(PV::ObserverTable const *componentTable);
+   PV::Response::Status initConnection(PV::ObserverTable const *objectTable);
 
    /**
     * Sets the input layer data member, and checks that the input layer's parameters are
     * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
     */
-   PV::Response::Status initInputPublisher(PV::ObserverTable const *componentTable);
+   PV::Response::Status initInputPublisher(PV::ObserverTable const *objectTable);
 
    /**
     * Sets the output layer data member, and checks that the output layer's parameters are
     * consistent with those expected by the test. Returns either PV_SUCCESS or PV_POSTPONE.
     */
-   PV::Response::Status initOutputPublisher(PV::ObserverTable const *componentTable);
+   PV::Response::Status initOutputPublisher(PV::ObserverTable const *objectTable);
 
    /**
     * Checks whether the given object has finished its communicateInitInfo stage, and

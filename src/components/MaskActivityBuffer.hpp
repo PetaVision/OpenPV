@@ -35,7 +35,7 @@ class MaskActivityBuffer : public ANNActivityBuffer {
   protected:
    char *mMaskMethod           = nullptr;
    Method mMaskMethodCode      = UNDEFINED;
-   char *maskLayerName         = nullptr;
+   char *mMaskLayerName        = nullptr;
    ActivityBuffer *mMaskBuffer = nullptr;
    int *mFeatures              = nullptr;
    int mNumSpecifiedFeatures   = 0;

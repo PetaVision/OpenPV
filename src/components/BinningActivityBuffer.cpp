@@ -88,26 +88,23 @@ Response::Status BinningActivityBuffer::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   int maxIterations = 1; // Limits the depth of the recursion when searching for dependencies.
-   auto *originalLayerNameParam =
-         message->mHierarchy->lookupByTypeRecursive<OriginalLayerNameParam>(maxIterations);
-   pvAssert(originalLayerNameParam);
+   auto *objectTable            = message->mObjectTable;
+   auto *originalLayerNameParam = objectTable->findObject<OriginalLayerNameParam>(getName());
+   FatalIf(
+         originalLayerNameParam == nullptr,
+         "%s could not find an OriginalLayerNameParam.\n",
+         getDescription_c());
    if (!originalLayerNameParam->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
+   char const *originalLayerName = originalLayerNameParam->getLinkedObjectName();
 
-   ComponentBasedObject *originalObject = nullptr;
-   try {
-      originalObject = originalLayerNameParam->findLinkedObject(message->mHierarchy);
-   } catch (std::invalid_argument &e) {
-      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-   }
-   mOriginalLayerData = originalObject->getComponentByType<BasePublisherComponent>();
+   mOriginalLayerData = objectTable->findObject<BasePublisherComponent>(originalLayerName);
    FatalIf(
          mOriginalLayerData == nullptr,
          "%s original layer \"%s\" does not have a BasePublisherComponent.\n",
          getDescription_c(),
-         originalLayerNameParam->getLinkedObjectName());
+         originalLayerName);
    checkDimensions();
 
    mOriginalLayerData->increaseDelayLevels(mDelay);

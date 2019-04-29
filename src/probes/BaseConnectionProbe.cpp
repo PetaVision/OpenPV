@@ -70,19 +70,13 @@ Response::Status BaseConnectionProbe::communicateInitInfo(
    }
 
    bool failed = false;
-   mTargetConn = message->mHierarchy->lookupByName<ComponentBasedObject>(std::string(targetName));
-   if (mTargetConn == nullptr) {
-      ErrorLog().printf(
-            "%s, rank %d process: targetConnection \"%s\" is not a connection in the column.\n",
-            getDescription_c(),
-            mCommunicator->globalCommRank(),
-            targetName);
-      failed = true;
-   }
-   MPI_Barrier(mCommunicator->communicator());
-   if (failed) {
-      exit(EXIT_FAILURE);
-   }
+   mTargetConn = message->mObjectTable->findObject<ComponentBasedObject>(targetName);
+   FatalIf(
+         mTargetConn == nullptr,
+         "%s, rank %d process: targetConnection \"%s\" is not a connection in the column.\n",
+         getDescription_c(),
+         mCommunicator->globalCommRank(),
+         targetName);
    return Response::SUCCESS;
 }
 

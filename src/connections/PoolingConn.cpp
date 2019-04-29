@@ -27,11 +27,11 @@ void PoolingConn::fillComponentTable() {
    BaseConnection::fillComponentTable();
    mPatchSize = createPatchSize();
    if (mPatchSize) {
-      addUniqueComponent(mPatchSize->getDescription(), mPatchSize);
+      addUniqueComponent(mPatchSize);
    }
    mWeightsPair = createWeightsPair();
    if (mWeightsPair) {
-      addUniqueComponent(mWeightsPair->getDescription(), mWeightsPair);
+      addUniqueComponent(mWeightsPair);
    }
 }
 

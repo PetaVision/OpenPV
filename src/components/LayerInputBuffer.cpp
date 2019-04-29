@@ -23,7 +23,8 @@ LayerInputBuffer::~LayerInputBuffer() {
 void LayerInputBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ComponentBuffer::initialize(name, params, comm);
    mExtendedFlag = false;
-   mBufferLabel  = ""; // GSyn doesn't get checkpointed
+   setBufferLabel("GSyn");
+   mCheckpointFlag = false; // GSyn doesn't get checkpointed
 }
 
 void LayerInputBuffer::initMessageActionMap() {

@@ -45,8 +45,12 @@ void DependentSharedWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
 
 Response::Status DependentSharedWeights::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto *originalConnNameParam = message->mHierarchy->lookupByType<OriginalConnNameParam>();
-   pvAssert(originalConnNameParam);
+   auto *objectTable           = message->mObjectTable;
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
+   FatalIf(
+         originalConnNameParam == nullptr,
+         "%s could not find an OriginalConnNameParam component.\n",
+         getDescription_c());
 
    if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -58,20 +62,8 @@ Response::Status DependentSharedWeights::communicateInitInfo(
       return Response::POSTPONE;
    }
 
-   ComponentBasedObject *originalConn = nullptr;
-   try {
-      originalConn = originalConnNameParam->findLinkedObject(message->mHierarchy);
-   } catch (std::invalid_argument &e) {
-      Fatal().printf("%s: %s\n", getDescription_c(), e.what());
-   }
-   pvAssert(originalConn);
-
-   auto *originalSharedWeights = originalConn->getComponentByType<SharedWeights>();
-   FatalIf(
-         originalSharedWeights == nullptr,
-         "%s original connection \"%s\" does not have an SharedWeights.\n",
-         getDescription_c(),
-         originalConn->getName());
+   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+   auto *originalSharedWeights  = objectTable->findObject<SharedWeights>(originalConnName);
 
    if (!originalSharedWeights->getInitInfoCommunicatedFlag()) {
       if (mCommunicator->globalCommRank() == 0) {
@@ -79,7 +71,7 @@ Response::Status DependentSharedWeights::communicateInitInfo(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
                getDescription_c(),
-               originalConn->getName());
+               originalConnName);
       }
       return Response::POSTPONE;
    }

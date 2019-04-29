@@ -115,15 +115,12 @@ Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mTargetProbe = message->mHierarchy->lookupByName<BaseProbe>(std::string(targetName));
-   if (mTargetProbe == nullptr) {
-      if (mCommunicator->commRank() == 0) {
-         Fatal() << getDescription() << ": targetName \"" << targetName
-                 << "\" is not a probe in the HyPerCol.\n";
-      }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
-   }
+   mTargetProbe = message->mObjectTable->findObject<BaseProbe>(targetName);
+   FatalIf(
+         mTargetProbe == nullptr,
+         "%s: targetName \"%s\" is not a probe in the HyPerCol.\n",
+         getDescription_c(),
+         targetName);
    return Response::SUCCESS;
 }
 

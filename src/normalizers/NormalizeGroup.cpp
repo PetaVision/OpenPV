@@ -46,12 +46,9 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       return status;
    }
 
-   auto *tableComponent = message->mHierarchy->lookupByType<ObserverTable>();
-   pvAssert(tableComponent);
-   std::string groupNameString = std::string(mNormalizeGroupName);
-   HyPerConn *groupHeadConn    = tableComponent->lookupByName<HyPerConn>(groupNameString);
-   mGroupHead                  = groupHeadConn->getComponentByType<NormalizeBase>();
-
+   auto *objectTable        = message->mObjectTable;
+   HyPerConn *groupHeadConn = objectTable->findObject<HyPerConn>(mNormalizeGroupName);
+   mGroupHead               = objectTable->findObject<NormalizeBase>(mNormalizeGroupName);
    if (mGroupHead == nullptr) {
       if (mCommunicator->globalCommRank() == 0) {
          ErrorLog().printf(
@@ -63,9 +60,9 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
       exit(EXIT_FAILURE);
    }
 
-   auto hierarchy           = message->mHierarchy;
-   WeightsPair *weightsPair = hierarchy->lookupByType<WeightsPair>();
-   Weights *preWeights      = weightsPair->getPreWeights();
+   WeightsPair *weightsPair = objectTable->findObject<WeightsPair>(getName());
+   pvAssert(weightsPair); // NormalizeBase::communicateInitInfo should have checked for this.
+   Weights *preWeights = weightsPair->getPreWeights();
    pvAssert(preWeights); // NormalizeBase::communicateInitInfo should have called needPre.
    mGroupHead->addWeightsToList(preWeights);
    return Response::SUCCESS;
