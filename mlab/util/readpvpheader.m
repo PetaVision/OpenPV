@@ -1,14 +1,20 @@
-function hdr = readpvpheader(fid,pos)
-% hdr = readpvpheader(fid,pos)
-% fid is an open file id.  The position in the stream can be anything
-% on entry; on exit it is at the end of the header.
+function hdr = readpvpheader(file,pos)
+% hdr = readpvpheader(file,pos)
+% file specifies the pvp file.
+%     If fid is an integer, it is the file id of a file open for reading.
+%     If file is a string, it refers to a path to the pvpfile. 
 % pos gives the file position.  If absent, use the current position.
-% If a nonnegative integer, use that position, measured forward from the end
-% of the file.
+%     If a nonnegative integer, use that position, measured forward from the
+%     beginning of the file. It is an error to use a negative position.
 %
-% It is an error to use a negative position or a position large enough that
-% there isn't room for a header between the position and the end of the
-% file, although the routine is too lazy to check.
+% If the file was specified by file id, the file remains open and when the
+% routine exits, the position (as returned by ftell) is the end of the header.
+% If the file was specified by path, the file is opened at the start of the
+% routine, and closed at the end of the routine.
+%
+% It is an error to use a negative position or a position close enough to
+% the end of the file that there isn't room for the header, although the
+% routine is too lazy to check.
 %
 % hdr is a struct whose fields are:
 %     headersize
@@ -37,6 +43,22 @@ function hdr = readpvpheader(fid,pos)
 if ~exist('pos','var')
    pos = 0;
 end%if
+
+if pos < 0
+    error('readpvpheader:negpos', 'readpvpheader error: pos argument must be nonnegative.');
+end%if
+
+% Is file a file id (integer) or path (string)?
+if ischar(file)
+    fid = fopen(file, 'r');
+elseif isnumeric(file) && isscalar(file) && round(file)==file
+    fid = double(file);
+else
+    error('readpvpheader:filebad', 'readpvpheader error: file must be either a path or a file id.');
+end%if
+
+if !is_valid_file_id(fid), error('readpvpheader:badfid', 'readpvpheader error: bad file id.'); end;
+% This checks if file id is valid, but not whether the mode allows reading.
 
 status = fseek(fid, 0, 'eof');
 if status ~= 0, error('readpvpheader:seekeof', 'readpvpheader error: seeking to end of file failed.'); end
@@ -75,3 +97,7 @@ if hdr.numparams>20
     end%if
     hdr.additional = fread(fid,hdr.numparams-20,'int32');
 end
+
+if ischar(file) % If we opened the file, close it; otherwise, leave it alone.
+    fclose(fid);
+end%if
