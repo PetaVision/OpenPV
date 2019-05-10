@@ -94,6 +94,23 @@ if hdr.numparams>20
     if numel(hdr.additional) < hdr.numparams-20
         error('readpvpheader:toomanyparams', 'readpvpheader error: numparams is %d but end of file reached before %d parameters could be read.', hdr.numparams, hdr.numparams);
     end%if
+
+    if hdr.filetype == 3 || hdr.filetype == 5 % weight file type or shared-weight file type
+        additional = hdr.additional;
+        if (numel(additional) < 6)
+           error('readpvpheader:toofewwgtparams','readpvpheader error: filetype %d indicates a weight file but numparams %d is fewer than 26.', hdr.filetype, hdr.numparams);
+        end%if
+        hdr = rmfield(hdr, 'additional');
+        hdr.nxp = additional(1);
+        hdr.nyp = additional(2);
+        hdr.nfp = additional(3);
+        hdr.min = double(typecast(int32(additional(4)),'single'));
+        hdr.max = double(typecast(int32(additional(5)),'single'));
+        hdr.numpatches = additional(6);
+        if numel(additional) > 6
+            hdr.additional = additional(7:end);
+        end%if
+    end%if
 end
 
 if ischar(file) % If we opened the file, close it; otherwise, leave it alone.
