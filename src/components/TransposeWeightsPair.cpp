@@ -48,107 +48,89 @@ void TransposeWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag 
 
 Response::Status TransposeWeightsPair::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   ConnectionData *originalConnData = nullptr;
-   if (mOriginalWeightsPair == nullptr) {
-      auto *objectTable           = message->mObjectTable;
-      auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
-      FatalIf(
-            originalConnNameParam == nullptr,
-            "%s could not find an OriginalConnNameParam.\n",
-            getDescription_c());
+   auto status                 = Response::NO_ACTION;
+   auto *objectTable           = message->mObjectTable;
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
+   FatalIf(
+         originalConnNameParam == nullptr,
+         "%s could not find an OriginalConnNameParam.\n",
+         getDescription_c());
 
-      if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-         if (mCommunicator->globalCommRank() == 0) {
-            InfoLog().printf(
-                  "%s must wait until the OriginalConnNameParam component has finished its "
-                  "communicateInitInfo stage.\n",
-                  getDescription_c());
-         }
-         return Response::POSTPONE;
+   if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
+      if (mCommunicator->globalCommRank() == 0) {
+         InfoLog().printf(
+               "%s must wait until the OriginalConnNameParam component has finished its "
+               "communicateInitInfo stage.\n",
+               getDescription_c());
       }
-      char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+      return Response::POSTPONE;
+   }
+   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
 
+   if (mOriginalWeightsPair == nullptr) {
       mOriginalWeightsPair = objectTable->findObject<WeightsPair>(originalConnName);
       FatalIf(
             mOriginalWeightsPair == nullptr,
             "%s could not find a WeightsPair in \"%s\".\n",
             getDescription_c(),
             originalConnName);
-      originalConnData = objectTable->findObject<ConnectionData>(originalConnName);
-      FatalIf(
-            originalConnData == nullptr,
-            "%s could not find a ConnectionData in \"%s\".\n",
-            getDescription_c(),
-            originalConnName);
+      status = status + Response::SUCCESS;
    }
 
-   auto status = WeightsPair::communicateInitInfo(message);
+   ConnectionData *originalConnData = objectTable->findObject<ConnectionData>(originalConnName);
+   FatalIf(
+         originalConnData == nullptr,
+         "%s could not find a ConnectionData component in \"%s\".\n",
+         getDescription_c(),
+         originalConnName);
+   if (!originalConnData->getInitInfoCommunicatedFlag()) {
+      return status + Response::POSTPONE;
+   }
+
+   status = status + WeightsPair::communicateInitInfo(message);
    if (!Response::completed(status)) {
       return status;
    }
 
    int numArbors     = getArborList()->getNumAxonalArbors();
    int origNumArbors = mOriginalWeightsPair->getArborList()->getNumAxonalArbors();
-   if (numArbors != origNumArbors) {
-      if (mCommunicator->globalCommRank() == 0) {
-         Fatal().printf(
-               "%s has %d arbors but original connection %s has %d arbors.\n",
-               mConnectionData->getDescription_c(),
-               numArbors,
-               mOriginalWeightsPair->getConnectionData()->getDescription_c(),
-               origNumArbors);
-      }
-      MPI_Barrier(mCommunicator->globalCommunicator());
-      exit(EXIT_FAILURE);
-   }
+   FatalIf(
+         numArbors != origNumArbors,
+         "%s has %d arbors but original connection %s has %d arbors.\n",
+         mConnectionData->getDescription_c(),
+         numArbors,
+         mOriginalWeightsPair->getConnectionData()->getDescription_c(),
+         origNumArbors);
 
    const PVLayerLoc *preLoc      = mConnectionData->getPre()->getLayerLoc();
    const PVLayerLoc *origPostLoc = originalConnData->getPost()->getLayerLoc();
-   if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny
-       || preLoc->nf != origPostLoc->nf) {
-      if (mCommunicator->globalCommRank() == 0) {
-         ErrorLog(errorMessage);
-         errorMessage.printf(
-               "%s: transpose's pre layer and original connection's post layer must have the same "
-               "dimensions.\n",
-               getDescription_c());
-         errorMessage.printf(
-               "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n",
-               preLoc->nx,
-               preLoc->ny,
-               preLoc->nf,
-               origPostLoc->nx,
-               origPostLoc->ny,
-               origPostLoc->nf);
-      }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
-   }
+   FatalIf(
+         preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny
+               || preLoc->nf != origPostLoc->nf,
+         "%s: transpose's pre and original connection's post must have the same dimensions.\n"
+         "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n",
+         preLoc->nx,
+         preLoc->ny,
+         preLoc->nf,
+         origPostLoc->nx,
+         origPostLoc->ny,
+         origPostLoc->nf);
    originalConnData->getPre()->synchronizeMarginWidth(mConnectionData->getPost());
    mConnectionData->getPost()->synchronizeMarginWidth(originalConnData->getPre());
 
    const PVLayerLoc *postLoc    = mConnectionData->getPost()->getLayerLoc();
    const PVLayerLoc *origPreLoc = originalConnData->getPre()->getLayerLoc();
-   if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny
-       || postLoc->nf != origPreLoc->nf) {
-      if (mCommunicator->globalCommRank() == 0) {
-         ErrorLog(errorMessage);
-         errorMessage.printf(
-               "%s: transpose's post layer and original connection's pre layer must have the same "
-               "dimensions.\n",
-               getDescription_c());
-         errorMessage.printf(
-               "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n",
-               postLoc->nx,
-               postLoc->ny,
-               postLoc->nf,
-               origPreLoc->nx,
-               origPreLoc->ny,
-               origPreLoc->nf);
-      }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
-   }
+   FatalIf(
+         postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny
+               || postLoc->nf != origPreLoc->nf,
+         "%s: transpose's post and original connection's pre must have the same dimensions.\n"
+         "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n",
+         postLoc->nx,
+         postLoc->ny,
+         postLoc->nf,
+         origPreLoc->nx,
+         origPreLoc->ny,
+         origPreLoc->nf);
    originalConnData->getPost()->synchronizeMarginWidth(mConnectionData->getPre());
    mConnectionData->getPre()->synchronizeMarginWidth(originalConnData->getPost());
 
