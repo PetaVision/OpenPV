@@ -5,16 +5,16 @@ function hdr = readpvpheader(file,pos)
 %     If file is a string, it refers to a path to the pvpfile. 
 % pos gives the file position.  If absent, use the current position.
 %     If a nonnegative integer, use that position, measured forward from the
-%     beginning of the file. It is an error to use a negative position.
+%     beginning of the file. If a negative integer, use that position, measured
+%     backward from the end of the file.
 %
 % If the file was specified by file id, the file remains open and when the
 % routine exits, the position (as returned by ftell) is the end of the header.
 % If the file was specified by path, the file is opened at the start of the
 % routine, and closed at the end of the routine.
 %
-% It is an error to use a negative position or a position close enough to
-% the end of the file that there isn't room for the header, although the
-% routine is too lazy to check.
+% It is an error to use a position close enough to the end of the file that
+% there isn't room for the header.
 %
 % hdr is a struct whose fields are:
 %     headersize
@@ -44,10 +44,6 @@ if ~exist('pos','var')
    pos = 0;
 end%if
 
-if pos < 0
-    error('readpvpheader:negpos', 'readpvpheader error: pos argument must be nonnegative.');
-end%if
-
 % Is file a file id (integer) or path (string)?
 if ischar(file)
     fid = fopen(file, 'r');
@@ -62,15 +58,17 @@ if !is_valid_file_id(fid), error('readpvpheader:badfid', 'readpvpheader error: b
 
 status = fseek(fid, 0, 'eof');
 if status ~= 0, error('readpvpheader:seekeof', 'readpvpheader error: seeking to end of file failed.'); end
-fileend = ftell(fid);
-status = fseek(fid, pos, 'bof');
+if (pos < 0)
+    status = fseek(fid, pos, 'eof');
+else
+    status = fseek(fid, pos, 'bof');
+end%if
 if status ~= 0, error('readpvpheader:seekeof', 'readpvpheader error: seeking to position %d failed.', pos); end
 
-if 80 > fileend-pos
-    error('readpvpheader:toofewparams', 'readpvpheader error: File is not long enough to contain a pvp header starting at position %d.', pos);
+headerwords = fread(fid,20,'int32');
+if numel(headerwords) < 20
+    error('readpvpheader:toomanyparams', 'readpvpheader error: numparams is %d but end of file reached before %d parameters could be read.', hdr.numparams, hdr.numparams);
 end%if
-
-headerwords = fread(fid,18,'int32');
 hdr.headersize = headerwords(1);
 hdr.numparams = headerwords(2);
 hdr.filetype = headerwords(3);
@@ -89,13 +87,13 @@ hdr.kx0 = headerwords(15);
 hdr.ky0 = headerwords(16);
 hdr.nbatch = headerwords(17);
 hdr.nbands = headerwords(18);
-hdr.time = fread(fid,1,'float64');
+hdr.time = typecast(int32(headerwords(19:20)), 'double');
 
 if hdr.numparams>20
-    if 4*hdr.numparams > fileend-pos
-        error('readpvpheader:toomanyparams', 'readpvpheader error: numparams %d is too large for the given file.', hdr.numparams);
-    end%if
     hdr.additional = fread(fid,hdr.numparams-20,'int32');
+    if numel(hdr.additional) < hdr.numparams-20
+        error('readpvpheader:toomanyparams', 'readpvpheader error: numparams is %d but end of file reached before %d parameters could be read.', hdr.numparams, hdr.numparams);
+    end%if
 end
 
 if ischar(file) % If we opened the file, close it; otherwise, leave it alone.
