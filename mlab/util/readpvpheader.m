@@ -4,9 +4,8 @@ function hdr = readpvpheader(file,pos)
 %     If fid is an integer, it is the file id of a file open for reading.
 %     If file is a string, it refers to a path to the pvpfile. 
 % pos gives the file position.  If absent, use the current position.
-%     If a nonnegative integer, use that position, measured forward from the
-%     beginning of the file. If a negative integer, use that position, measured
-%     backward from the end of the file.
+%     If pos >= 0, count pos bytes forward from the beginning of the file.
+%     If pos < 0, count -pos bytes backward from the end of the file.
 %
 % If the file was specified by file id, the file remains open and when the
 % routine exits, the position (as returned by ftell) is the end of the header.
@@ -37,8 +36,17 @@ function hdr = readpvpheader(file,pos)
 %     nbands
 %     time
 %
-% If hdr.numparams is bigger than 20, there is a field 'additional'
-% containing an vector of hdr.numparams-20 elements.
+% For weight files (filetype 3 or 5), hdr also has fields
+%     nxp
+%     nyp
+%     nfp
+%     min
+%     max
+%     numpatches
+%
+% If hdr.numparams is bigger than 20 for activity files or 26 for
+% weight files, there is a field 'additional' containing a vector of
+% the remaining parameters.
 
 if ~exist('pos','var')
    pos = 0;
