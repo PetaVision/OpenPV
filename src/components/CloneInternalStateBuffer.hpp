@@ -47,6 +47,8 @@ class CloneInternalStateBuffer : public InternalStateBuffer {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
+   virtual Response::Status allocateDataStructures() override;
+
    /**
     * Sets the read-only pointer to the original layer's read-only pointer.
     */

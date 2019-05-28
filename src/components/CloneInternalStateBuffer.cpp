@@ -72,6 +72,15 @@ Response::Status CloneInternalStateBuffer::communicateInitInfo(
    return Response::SUCCESS;
 }
 
+Response::Status CloneInternalStateBuffer::allocateDataStructures() {
+   if (!mOriginalBuffer->getDataStructuresAllocatedFlag()) {
+      return Response::POSTPONE;
+   }
+   else {
+      return InternalStateBuffer::allocateDataStructures();
+   }
+}
+
 void CloneInternalStateBuffer::setReadOnlyPointer() {
    pvAssert(mBufferData.empty()); // nothing else should have allocated this
    pvAssert(mOriginalBuffer); // set in communicateInitInfo
