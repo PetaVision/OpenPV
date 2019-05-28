@@ -43,13 +43,22 @@ void HyPerActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    PVHalo const *halo = &getLayerLoc()->halo;
 
    int const numNeuronsAcrossBatch = mInternalState->getBufferSizeAcrossBatch();
+   if (V != nullptr) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-   for (int k = 0; k < numNeuronsAcrossBatch; k++) {
-      int kExt = kIndexExtendedBatch(k, nbatch, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-      A[kExt]  = V[k];
+      for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+         int kExt = kIndexExtendedBatch(k, nbatch, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+         A[kExt]  = V[k];
+      }
    }
+   else {
+      for (int k = 0; k < numNeuronsAcrossBatch; k++) {
+         int kExt = kIndexExtendedBatch(k, nbatch, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+         A[kExt]  = 0.0f;
+      }
+   }
+
 }
 
 } // namespace PV
