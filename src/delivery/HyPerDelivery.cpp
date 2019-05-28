@@ -34,11 +34,7 @@ void HyPerDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
       FatalIf(
             receiveGpu != mCorrectReceiveGpu,
             "%s has receiveGpu set to %s in params, but requires %s to be %s.\n",
-            /*
-               This is a hotfix for building on acordar.
-               TODO: Figure out why passing getDescription through ... prevented building
-            */
-            "Connection", //getDescription(),
+            getDescription_c(),
             receiveGpu ? "true" : "false",
             mCorrectReceiveGpu ? "true" : "false");
    }
