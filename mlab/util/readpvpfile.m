@@ -48,8 +48,8 @@ switch hdr.filetype
         numframes = hdr.nbands;
         % framesize is variable
     case 3 % PVP_WGT_FILE_TYPE % HyPerConns that aren't KernelConns
-        patchsize = hdr.additional(1) * hdr.additional(2) * hdr.additional(3);
-        recordsize = (hdr.datasize * patchsize + 8) * hdr.additional(6);
+        patchsize = hdr.nxp * hdr.nyp * hdr.nfp;
+        recordsize = (hdr.datasize * patchsize + 8) * hdr.numPatches;
         numarbors = hdr.numrecords;
         framesize = recordsize*numarbors+hdr.headersize;
         numframes = filedata(1).bytes/framesize;
@@ -59,8 +59,8 @@ switch hdr.filetype
         framesize = hdr.recordsize*hdr.datasize*nxprocs*nyprocs+8;
         numframes = hdr.nbands;
     case 5 % PVP_KERNEL_FILE_TYPE
-        patchsize = hdr.additional(1) * hdr.additional(2) * hdr.additional(3);
-        recordsize = (hdr.datasize * patchsize + 8) * hdr.additional(6);
+        patchsize = hdr.nxp * hdr.nyp * hdr.nfp;
+        recordsize = (hdr.datasize * patchsize + 8) * hdr.numPatches;
         numarbors = hdr.numrecords;
         framesize = recordsize*numarbors+hdr.headersize;
         numframes = filedata(1).bytes/framesize;
@@ -132,20 +132,6 @@ if isempty(errorstring)
             fseek(fid, (start_frame-1)*framesize, 'bof');
             for f=start_frame:lastframe
                 hdr = readpvpheader(fid,ftell(fid));
-                hdr = rmfield(hdr,'additional');
-                numextrabytes = hdr.headersize - 80;
-                fseek(fid,-numextrabytes,'cof');
-                wgt_extra = [fread(fid,3,'int32');fread(fid,2,'float32');fread(fid,1,'int32')];
-                numextra = numextrabytes/4 - 6;
-                hdr.nxp = wgt_extra(1);
-                hdr.nyp = wgt_extra(2);
-                hdr.nfp = wgt_extra(3);
-                hdr.wMin = wgt_extra(4);
-                hdr.wMax = wgt_extra(5);
-                hdr.numPatches = wgt_extra(6);
-                if numextra > 0
-                    hdr.additional = fread(fid,numextra,'int32');
-                end
                 data_tmp = struct('time',hdr.time,'values',[],'nx',[],'ny',[],'offset',[]);
                 data_tmp.values = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
                 data_tmp.nx = cell(hdr.nxprocs,hdr.nyprocs,hdr.nbands);
@@ -231,20 +217,6 @@ if isempty(errorstring)
                 % So go back to the beginning and read the header in each frame.
                 % for f=1:lastframe
                 hdr = readpvpheader(fid,ftell(fid));
-                hdr = rmfield(hdr,'additional');
-                numextrabytes = hdr.headersize - 80;
-                fseek(fid,-numextrabytes,'cof');
-                wgt_extra = [fread(fid,3,'int32');fread(fid,2,'float32');fread(fid,1,'int32')];
-                numextra = numextrabytes/4 - 6;
-                hdr.nxp = wgt_extra(1);
-                hdr.nyp = wgt_extra(2);
-                hdr.nfp = wgt_extra(3);
-                hdr.wMin = wgt_extra(4);
-                hdr.wMax = wgt_extra(5);
-                hdr.numPatches = wgt_extra(6);
-                if numextra > 0
-                    hdr.additional = fread(fid,numextra,'int32');
-                end%if
                 data_tmp = struct('time',hdr.time,'values',[]);
                 data_tmp.values = cell(1,1,hdr.nbands);
                 for arbor=1:hdr.nbands

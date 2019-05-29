@@ -40,9 +40,9 @@ function hdr = readpvpheader(file,pos)
 %     nxp
 %     nyp
 %     nfp
-%     min
-%     max
-%     numpatches
+%     wMin
+%     wMax
+%     numPatches
 %
 % If hdr.numparams is bigger than 20 for activity files or 26 for
 % weight files, there is a field 'additional' containing a vector of
@@ -119,9 +119,9 @@ try
             hdr.nxp = additional(1);
             hdr.nyp = additional(2);
             hdr.nfp = additional(3);
-            hdr.min = double(typecast(int32(additional(4)),'single'));
-            hdr.max = double(typecast(int32(additional(5)),'single'));
-            hdr.numpatches = additional(6);
+            hdr.wMin = double(typecast(int32(additional(4)),'single'));
+            hdr.wMax = double(typecast(int32(additional(5)),'single'));
+            hdr.numPatches = additional(6);
             if numel(additional) > 6
                 hdr.additional = additional(7:end);
             end%if
