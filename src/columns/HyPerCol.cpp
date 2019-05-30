@@ -754,9 +754,11 @@ int HyPerCol::advanceTime(double sim_time) {
 
    notifyLoop(std::make_shared<ColProbeOutputStateMessage>(mSimTime, mDeltaTime));
 
+#ifdef PV_USE_CUDA
    if (getDevice() != nullptr) {
       getDevice()->syncDevice();
    }
+#endif
 
    mRunTimer->stop();
 
