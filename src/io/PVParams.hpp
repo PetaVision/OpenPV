@@ -375,7 +375,7 @@ class PVParams {
    void action_parameter_sweep_values_string(const char *stringval);
    void action_parameter_sweep_values_filename(const char *stringval);
 
-   int numberOfGroups() { return numGroups; }
+   int numberOfGroups() { return (int)mGroups.size(); }
    int numberOfParameterSweeps() { return numParamSweeps; }
    int getParameterSweepSize() { return parameterSweepSize; }
    FileStream *getPrintParamsStream() { return mPrintParamsStream; }
@@ -383,9 +383,7 @@ class PVParams {
 
   private:
    int parseStatus;
-   int numGroups;
-   size_t groupArraySize;
-   ParameterGroup **groups;
+   std::vector<ParameterGroup *> mGroups;
    ParameterStack *stack;
    ParameterArrayStack *arrayStack;
    ParameterStringStack *stringStack;
