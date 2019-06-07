@@ -107,7 +107,8 @@ std::string ConfigParser::createString(
       int numRows,
       int numColumns,
       int batchWidth,
-      bool dryRunFlag) {
+      bool dryRunFlag,
+      unsigned int shuffleParamGroups) {
    std::string configString;
    FatalIf(
          restartFlag && !checkpointReadDir.empty(),
@@ -156,6 +157,10 @@ std::string ConfigParser::createString(
    }
    if (dryRunFlag) {
       configString.append("DryRun:true\n");
+   }
+   if (shuffleParamGroups) {
+      auto argString = std::to_string(shuffleParamGroups);
+      configString.append("ShuffleParamGroups:").append(argString).append("\n");
    }
    return configString;
 }

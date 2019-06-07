@@ -56,7 +56,8 @@ int parse_options(
       int *numRows,
       int *numColumns,
       int *batch_width,
-      int *dryrun);
+      int *dryrun,
+      unsigned int *shuffleParamGroups);
 
 } // end namespace PV
 

@@ -55,7 +55,8 @@ int parse_options(
       int *num_rows,
       int *num_columns,
       int *batch_width,
-      int *dry_run) {
+      int *dry_run,
+      unsigned int *shuffleParamGroups) {
    paramusage[0] = true;
    int arg;
    for (arg = 1; arg < argc; arg++) {
@@ -82,6 +83,7 @@ int parse_options(
    if (pv_getopt(argc, argv, "-n", paramusage) == 0) {
       *dry_run = 1;
    }
+   pv_getopt_unsigned(argc, argv, "-shuffle", shuffleParamGroups, paramusage);
 
    return 0;
 }

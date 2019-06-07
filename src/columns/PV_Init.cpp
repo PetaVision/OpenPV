@@ -193,6 +193,10 @@ int PV_Init::createParams() {
             paramsFile.c_str(),
             2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
             mCommunicator);
+      unsigned int shuffleSeed = arguments->getUnsignedIntArgument("ShuffleParamGroups");
+      if (shuffleSeed) {
+         params->shuffleGroups(shuffleSeed);
+      }
       return PV_SUCCESS;
    }
    else {

@@ -14,14 +14,21 @@ set(TESTS_SHARED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Shared")
 
 set(PV_SYSTEM_TEST_THREADS "" CACHE STRING "Defines the number of threads to use for system tests (empty string for max)")
 set(PV_SYSTEM_TEST_COMMAND "" CACHE STRING "Defines the program that should invoke the test (if empty, ctest calls the test directly)")
+set(PV_SYSTEM_TEST_SHUFFLE "" CACHE STRING "Defines whether to shuffle the order of param groups before running (empty string or \"0\" for no shuffling)")
 
-# Make sure that PV_SYSTEM_TEST_THREADS is a number
-if("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
+# Make sure that PV_SYSTEM_TEST_THREADS is a either a positive integer or the empty string
+if("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([1-9][0-9]*|)$")
    #Do nothing, correct
-else("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
+else("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([1-9][0-9]*|)$")
    message(FATAL_ERROR "PV_SYSTEM_TEST_THREADS must be either a positive integer or the empty string")
-endif("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
+endif("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([1-9][0-9]*|)$")
 
+# Make sure that PV_SYSTEM_TEST_SHUFFLE is either a nonnegative integer or the empty string
+if("${PV_SYSTEM_TEST_SHUFFLE}" MATCHES "^(0|[1-9][0-9]*|)$")
+   #Do nothing, correct
+else("${PV_SYSTEM_TEST_SHUFFLE}" MATCHES "^(0|[1-9][0-9]*|)$")
+   message(FATAL_ERROR "PV_SYSTEM_TEST_SHUFFLE must be either a positive integer or the empty string")
+endif("${PV_SYSTEM_TEST_SHUFFLE}" MATCHES "^(0|[1-9][0-9]*|)$")
 
 # Unit tests for individual classes happen first. If these fail, the rest of the results are unreliable.
 add_subdirectory(BatchIndexerTest)

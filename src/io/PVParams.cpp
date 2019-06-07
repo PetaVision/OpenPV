@@ -8,10 +8,12 @@
 #include "PVParams.hpp"
 #include "include/pv_common.h"
 #include "utils/PVAlloc.hpp"
+#include <algorithm> // shuffle, used in shuffleGroups()
 #include <assert.h>
 #include <climits> // INT_MIN
 #include <cmath> // nearbyint()
 #include <iostream>
+#include <random> // mt19937, used in shuffleGroups()
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1769,6 +1771,13 @@ void PVParams::handleUnnecessaryStringParameter(
    if (status != PV_SUCCESS) {
       MPI_Barrier(icComm->globalCommunicator());
       exit(EXIT_FAILURE);
+   }
+}
+
+void PVParams::shuffleGroups(unsigned int seed) {
+   if (seed and numberOfGroups() > 1) {
+      std::mt19937 shuffleRNG(seed);
+      std::shuffle(mGroups.begin() + 1, mGroups.end(), shuffleRNG);
    }
 }
 

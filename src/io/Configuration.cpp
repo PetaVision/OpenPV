@@ -22,6 +22,7 @@ Configuration::Configuration() {
    registerIntegerArgument("CheckpointCellNumColumns");
    registerIntegerArgument("CheckpointCellBatchDimension");
    registerBooleanArgument("DryRun");
+   registerUnsignedIntArgument("ShuffleParamGroups");
 }
 
 void Configuration::registerArgument(std::string const &name, ConfigurationType type) {

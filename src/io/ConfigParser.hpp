@@ -107,7 +107,8 @@ class ConfigParser {
          int numRows,
          int numColumns,
          int batchWidth,
-         bool dryRunFlag);
+         bool dryRunFlag,
+         unsigned int shuffleParamGroups);
 
    /**
     * Returns a constant reference to the underlying Configuration object.
