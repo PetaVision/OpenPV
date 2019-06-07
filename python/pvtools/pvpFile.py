@@ -465,6 +465,11 @@ class pvpOpen(object):
             #Change nbands for number of frames
             self.updateHeader(data)
 
+        if self.header['numparams'] == 26:
+            hPattern = extendedHeaderPattern
+        else:
+            hPattern = headerPattern
+
         #Write out files based on data
         if self.header['filetype'] == 2:
             raise Exception('Filetype 2 not yet supported for write pvp')
