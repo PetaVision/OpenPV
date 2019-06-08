@@ -79,8 +79,7 @@ LayerProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
          "%s targetLayer \"%s\" is not a layer in the column.\n",
          getDescription_c(),
          targetName);
-
-   return Response::SUCCESS;
+   return targetLayer->getInitInfoCommunicatedFlag() ? Response::SUCCESS : Response::POSTPONE;
 }
 
 Response::Status
