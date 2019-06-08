@@ -207,13 +207,13 @@ Response::Status PoolingDelivery::allocateDataStructures() {
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       if (!mPreData->getDataStructuresAllocatedFlag()) {
-         return Response::POSTPONE;
+         return status + Response::POSTPONE;
       }
       if (!mPostGSyn->getDataStructuresAllocatedFlag()) {
-         return Response::POSTPONE;
+         return status + Response::POSTPONE;
       }
       if (!mWeightsPair->getDataStructuresAllocatedFlag()) {
-         return Response::POSTPONE;
+         return status + Response::POSTPONE;
       }
       initializeDeliverKernelArgs();
    }
@@ -261,8 +261,13 @@ void PoolingDelivery::allocateThreadGateIdxBuffer() {
       mThreadGateIdxBuffer.resize(numThreads);
       // mThreadGateIdxBuffer is only a buffer for one batch element. We're threading over
       // presynaptic neuron index, not batch element; so batch elements will be processed serially.
+
+      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
+      // We could use mPostGSyn->getBufferSize(), but this requires
+      // checking mPostGSyn->getDataStructuresAllocatedFlag().
+      int const numNeurons = postLoc->nx * postLoc->ny * postLoc->nf;
       for (int th = 0; th < numThreads; th++) {
-         mThreadGateIdxBuffer[th].resize(mPostGSyn->getBufferSize());
+         mThreadGateIdxBuffer[th].resize(numNeurons);
       }
    }
 }

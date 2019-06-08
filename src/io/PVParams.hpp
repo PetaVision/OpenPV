@@ -355,6 +355,15 @@ class PVParams {
    }
    int setParameterSweepValues(int n);
 
+   /**
+    * Randomly shuffles the vector of pointers to the ParameterGroup objects.
+    * Used for debugging purposes, to help identify cases where behavior depends
+    * on the order of objects in the params file during debugging.
+    * The shuffling here has no effect on the RNGs managed by the HyPerCol and used
+    * by layers or connections.
+    */
+   void shuffleGroups(unsigned int seed);
+
    void action_pvparams_directive(char *id, double val);
    void action_parameter_group_name(char *keyword, char *name);
    void action_parameter_group();
@@ -375,7 +384,7 @@ class PVParams {
    void action_parameter_sweep_values_string(const char *stringval);
    void action_parameter_sweep_values_filename(const char *stringval);
 
-   int numberOfGroups() { return numGroups; }
+   int numberOfGroups() { return (int)mGroups.size(); }
    int numberOfParameterSweeps() { return numParamSweeps; }
    int getParameterSweepSize() { return parameterSweepSize; }
    FileStream *getPrintParamsStream() { return mPrintParamsStream; }
@@ -383,9 +392,7 @@ class PVParams {
 
   private:
    int parseStatus;
-   int numGroups;
-   size_t groupArraySize;
-   ParameterGroup **groups;
+   std::vector<ParameterGroup *> mGroups;
    ParameterStack *stack;
    ParameterArrayStack *arrayStack;
    ParameterStringStack *stringStack;

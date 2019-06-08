@@ -38,6 +38,7 @@ pv_config_project()
 add_subdirectory(${PV_DIR})
 
 if (${PV_BUILD_TEST})
+  enable_testing()
   add_subdirectory(${PV_TEST_DIR})
 else()
    message(STATUS "Only building the OpenPV library. Set PV_BUILD_TEST=On to build the OpenPV test suite.")
