@@ -206,12 +206,14 @@ int MomentumUpdater::updateWeights(int arborId) {
 
 void MomentumUpdater::applyMomentum(int arborId) {
    // Shared weights done in parallel, parallel in numkernels
+   float momentumFactor = mTimeConstantTau;
    switch (mMethod) {
       case VISCOSITY:
-         applyMomentum(arborId, std::exp(-1.0f / mTimeConstantTau), mMomentumDecay);
+         momentumFactor = mTimeConstantTau ? std::exp(-1.0f / mTimeConstantTau) : 0.0f;
+         applyMomentum(arborId, momentumFactor, mMomentumDecay);
          break;
-      case SIMPLE: applyMomentum(arborId, mTimeConstantTau, mMomentumDecay); break;
-      case ALEX: applyMomentum(arborId, mTimeConstantTau, mMomentumDecay * mDWMax); break;
+      case SIMPLE: applyMomentum(arborId, momentumFactor, mMomentumDecay); break;
+      case ALEX: applyMomentum(arborId, momentumFactor, mMomentumDecay * mDWMax); break;
       default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
    }
 }
