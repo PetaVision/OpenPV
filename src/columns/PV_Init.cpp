@@ -176,6 +176,21 @@ void PV_Init::initLogFile(bool appendFlag) {
    }
 }
 
+int PV_Init::setParamsBuffer(const char *paramsBuffer, long int bufferLen) {
+   arguments->setStringArgument("ParamsFile", "");
+   initialize();
+   params = new PVParams(
+         paramsBuffer,
+         bufferLen,
+         2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
+         mCommunicator);
+   unsigned int shuffleSeed = arguments->getUnsignedIntArgument("ShuffleParamGroups");
+   if (shuffleSeed) {
+      params->shuffleGroups(shuffleSeed);
+   }
+   return PV_SUCCESS;
+}
+
 int PV_Init::setParams(char const *params_file) {
    if (params_file == nullptr) {
       return PV_FAILURE;

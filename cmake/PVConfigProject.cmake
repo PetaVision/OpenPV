@@ -61,6 +61,7 @@ macro(pv_config_project)
   set(PV_BUILD_SHARED_HELP "Build a shared library")
   set(PV_DEBUG_OUTPUT_HELP "Display output from logDebug() in Release builds")
   set(PV_BUILD_TEST_HELP "Build the OpenPV test suite")
+  set(PV_BUILD_PYTHON_HELP "Build the OpenPV python bindings")
   set(PV_COMPILE_OPTIONS_EXTRA_HELP "Any additional flags to pass to the compiler")
 
   ################################################################################

@@ -154,6 +154,15 @@ class PV_Init {
    int setParams(char const *paramsFile);
 
    /**
+    * setParamsBuffer(paramsBuffer) reads the params directly from the buffer
+    * and calls PV_Init::initialize, which deletes the previous params object
+    * if it exists, and creates the new one.
+    * Return value is PV_SUCCESS or PV_FAILURE.
+    * If the routine fails, the params are unchanged.
+    */
+   int setParamsBuffer(const char *paramsBuffer, long int bufferLen);
+
+   /**
     * Sets the log file.  If the string argument is null, logging returns to the
     * default streams (probably cout and cerr).  The previous log file,
     * if any, is closed; and the new file is opened in write mode.

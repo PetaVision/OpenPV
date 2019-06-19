@@ -104,6 +104,13 @@ void HyPerLayer::initMessageActionMap() {
    mMessageActionMap.emplace("LayerCheckNotANumber", action);
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerGetActivityMessage const>(msgptr);
+      return respondLayerGetActivity(castMessage);
+   };
+   mMessageActionMap.emplace("LayerGetActivity", action);
+
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(msgptr);
       return respondLayerOutputState(castMessage);
    };
@@ -411,5 +418,33 @@ Response::Status HyPerLayer::respondLayerCheckNotANumber(
    }
    return status;
 }
+
+Response::Status HyPerLayer::respondLayerGetActivity(
+      std::shared_ptr<LayerGetActivityMessage const> message) {
+   Response::Status status = Response::SUCCESS;
+   if (strcmp(message->mName, getName()) != 0) {
+      return status;
+   }
+
+   // TODO: If using MPI quilting, root probably has to gather here
+
+   message->mData->resize(getNumNeuronsAllBatches());
+   const PVLayerLoc *loc = getLayerLoc();
+   auto layerData = mPublisher->getLayerData();
+   int const N    = getNumExtendedAllBatches();
+   for (int n = 0; n < N; n++) {
+      int idx = kIndexRestricted(n, loc->nx, loc->ny, loc->nf,
+            loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
+      if (idx < 0) {
+         continue;
+      }
+      (*message->mData)[idx] = layerData[n];
+   }
+   *message->mNx = loc->nx;
+   *message->mNy = loc->ny;
+   *message->mNf = loc->nf;
+   return status;
+}
+
 
 } // end of PV namespace

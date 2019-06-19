@@ -429,8 +429,7 @@ void HyPerCol::allocateColumn() {
    mReadyFlag = true;
 }
 
-// typically called by buildandrun via HyPerCol::run()
-int HyPerCol::run(double stopTime, double dt) {
+void HyPerCol::startRun(double stopTime, double dt) {
    mStopTime  = stopTime;
    mDeltaTime = dt;
 
@@ -442,9 +441,25 @@ int HyPerCol::run(double stopTime, double dt) {
    }
    allocateColumn();
    getOutputStream().flush();
+}
 
-   bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
-   if (dryRunFlag) {
+void HyPerCol::finishRun() {
+
+   notifyLoop(std::make_shared<CleanupMessage>());
+
+#ifdef DEBUG_OUTPUT
+   InfoLog().printf("[%d]: HyPerCol: done...\n", mCommunicator->globalCommRank());
+   InfoLog().flush();
+#endif
+
+   mCheckpointer->finalCheckpoint(mSimTime);
+}
+
+// typically called by buildandrun via HyPerCol::run()
+int HyPerCol::run(double stopTime, double dt) {
+   startRun(stopTime, dt);
+
+   if (mPVInitObj->getBooleanArgument("DryRun")) {
       return PV_SUCCESS;
    }
 
@@ -455,14 +470,7 @@ int HyPerCol::run(double stopTime, double dt) {
 
    advanceTimeLoop(runClock, 10 /*runClockStartingStep*/);
 
-   notifyLoop(std::make_shared<CleanupMessage>());
-
-#ifdef DEBUG_OUTPUT
-   InfoLog().printf("[%d]: HyPerCol: done...\n", mCommunicator->globalCommRank());
-   InfoLog().flush();
-#endif
-
-   mCheckpointer->finalCheckpoint(mSimTime);
+   finishRun();
 
 #ifdef TIMER_ON
    runClock.stop_clock();
@@ -604,13 +612,26 @@ int HyPerCol::processParams(char const *path) {
    return PV_SUCCESS;
 }
 
+// TODO: Make this respect mStopTime
+double HyPerCol::multiStep(unsigned int steps) {
+   while (steps-- > 0) {
+      advanceTime(mSimTime);
+   }
+   return mSimTime;
+}
+
+double HyPerCol::singleStep() {
+   mCheckpointer->checkpointWrite(mSimTime);
+   advanceTime(mSimTime);
+   return mSimTime;
+}
+
 void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) {
    // time loop
    //
    long int step = 0;
    while (mSimTime < mStopTime - mDeltaTime / 2.0) {
-      mCheckpointer->checkpointWrite(mSimTime);
-      advanceTime(mSimTime);
+      singleStep();
 
       step += 1;
 #ifdef TIMER_ON
@@ -621,6 +642,7 @@ void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) 
 
    } // end time loop
 }
+
 
 int HyPerCol::advanceTime(double sim_time) {
    if (mSimTime >= mNextProgressTime) {
@@ -763,6 +785,11 @@ int HyPerCol::advanceTime(double sim_time) {
    mRunTimer->stop();
 
    return PV_SUCCESS;
+}
+
+// Hacky, figure out a better interface
+void HyPerCol::externalMessage(std::shared_ptr<BaseMessage const> message) {
+   notifyLoop(message);
 }
 
 void HyPerCol::nonblockingLayerUpdate(

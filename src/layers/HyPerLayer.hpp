@@ -164,6 +164,10 @@ class HyPerLayer : public ComponentBasedObject {
    Response::Status
    respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
 
+   Response::Status
+   respondLayerGetActivity(std::shared_ptr<LayerGetActivityMessage const> message);
+
+
    // Data members
   protected:
    LayerGeometry *mLayerGeometry = nullptr;

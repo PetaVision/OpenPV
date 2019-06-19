@@ -292,6 +292,22 @@ class LayerCheckNotANumberMessage : public BaseMessage {
    int mPhase;
 };
 
+class LayerGetActivityMessage : public BaseMessage {
+  public:
+   LayerGetActivityMessage(const char *name, std::vector<float> *data, int *nx, int *ny, int *nf) {
+      setMessageType("LayerGetActivity");
+      mName = name;
+      mData = data;
+      mNx   = nx;
+      mNy   = ny;
+      mNf   = nf;
+   }
+   const char *mName;
+   std::vector<float> *mData;
+   int *mNx, *mNy, *mNf;
+};
+
+
 class ColProbeOutputStateMessage : public BaseMessage {
   public:
    ColProbeOutputStateMessage(double simTime, double deltaTime) {

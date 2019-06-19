@@ -150,6 +150,10 @@ class HyPerCol : public Subject, public ParamsInterface {
    void allocateColumn();
    int run() { return run(mStopTime, mDeltaTime); }
    int run(double stopTime, double dt);
+   void startRun() { startRun(mStopTime, mDeltaTime); }
+   void startRun(double stopTime, double dt);
+   void finishRun();
+
 
    // Getters and setters
 
@@ -181,6 +185,10 @@ class HyPerCol : public Subject, public ParamsInterface {
    long int getFinalStep() const { return mFinalStep; }
    unsigned int getRandomSeed() { return mRandomSeed; }
    unsigned int seedRandomFromWallClock();
+   double singleStep();
+   double multiStep(unsigned int steps);
+   void externalMessage(std::shared_ptr<BaseMessage const> message); 
+
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaDevice *getDevice() { return mCudaDevice; }
