@@ -92,15 +92,18 @@ class pvpOpen(object):
 
         print("Building frame lookup for sparse pvp file")
         self.activeCount = 0
+        self.activePerFrame = np.empty(self.numFrames, dtype=np.uint32)
         for frame in range(self.numFrames):
             #if(frame % 100 == 0):
             #    print "Frame " + str(frame) + " out of " + str(self.numFrames)
             #Storing beginning of each frame
             outFramePos[frame] = self.pvpFile.tell()
             numActive = np.fromfile(self.pvpFile, np.uint32,3)[-1]
+            
             self.pvpFile.seek(entryPattern.itemsize * numActive, os.SEEK_CUR)
 
-            self.activeCount += numActive
+            self.activePerFrame[frame] = numActive
+
         print("Done")
 
         #Restore file position
@@ -213,13 +216,15 @@ class pvpOpen(object):
         elif self.header['filetype'] == 6:
             entryPattern = np.dtype([('index', np.int32),
                                      ('activation', np.float32)])
+            
+            totalActive = np.sum(self.activePerFrame[start:stop:skip])
 
-            rows     = np.empty(self.activeCount, dtype=np.uint32)
-            cols     = np.empty(self.activeCount, dtype=np.uint32)
-            vals     = np.empty(self.activeCount, dtype=np.float32)
+            rows     = np.empty(totalActive, dtype=np.uint32)
+            cols     = np.empty(totalActive, dtype=np.uint32)
+            vals     = np.empty(totalActive, dtype=np.float32)
             timeList = np.empty(len(frameRange),  dtype=np.float64)
 
-            curOffset = 0
+            curOffset = 0 # offset into row/col/vals array. based on how many active neurons read
             for (frameNum, frame) in enumerate(frameRange):
                 self.pvpFile.seek(self.framePos[frame], os.SEEK_SET)
 
