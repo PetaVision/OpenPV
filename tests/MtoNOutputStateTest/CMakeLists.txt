@@ -3,7 +3,7 @@
 # on the command line, as pv_add_test has been assuming.
 # TODO: cmake/PVAddTest.cmake needs to be config-file aware
 
-if (PV_USE_MPI AND MPI_FOUND)
+if (PV_USE_MPI AND MPI_FOUND AND PV_SYSTEM_TEST_MPIBLOCK)
   set(SRC_CPP
     src/IndexInternalState.cpp
     src/IndexLayer.cpp
@@ -65,4 +65,4 @@ if (PV_USE_MPI AND MPI_FOUND)
     NAME ${TEST_NAME}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 16 ${MPIEXEC_PREFLAGS} ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_CONFIG_FILE})
-endif (PV_USE_MPI AND MPI_FOUND)
+endif (PV_USE_MPI AND MPI_FOUND AND PV_SYSTEM_TEST_MPIBLOCK)
