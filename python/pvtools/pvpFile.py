@@ -91,6 +91,7 @@ class pvpOpen(object):
         outFramePos = np.zeros((self.numFrames)).astype(np.int64)
 
         print("Building frame lookup for sparse pvp file")
+        self.activeCount = 0
         for frame in range(self.numFrames):
             #if(frame % 100 == 0):
             #    print "Frame " + str(frame) + " out of " + str(self.numFrames)
@@ -98,6 +99,8 @@ class pvpOpen(object):
             outFramePos[frame] = self.pvpFile.tell()
             numActive = np.fromfile(self.pvpFile, np.uint32,3)[-1]
             self.pvpFile.seek(entryPattern.itemsize * numActive, os.SEEK_CUR)
+
+            self.activeCount += numActive
         print("Done")
 
         #Restore file position
