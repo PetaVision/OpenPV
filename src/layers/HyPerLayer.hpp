@@ -166,6 +166,11 @@ class HyPerLayer : public ComponentBasedObject {
 
    Response::Status
    respondLayerGetActivity(std::shared_ptr<LayerGetActivityMessage const> message);
+   Response::Status
+   respondLayerSetInternalState(std::shared_ptr<LayerSetInternalStateMessage const> message);
+   Response::Status
+   respondLayerGetInternalState(std::shared_ptr<LayerGetInternalStateMessage const> message);
+
 
 
    // Data members

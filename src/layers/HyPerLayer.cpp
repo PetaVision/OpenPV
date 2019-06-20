@@ -109,6 +109,19 @@ void HyPerLayer::initMessageActionMap() {
    };
    mMessageActionMap.emplace("LayerGetActivity", action);
 
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerGetInternalStateMessage const>(msgptr);
+      return respondLayerGetInternalState(castMessage);
+   };
+   mMessageActionMap.emplace("LayerGetInternalState", action);
+
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerSetInternalStateMessage const>(msgptr);
+      return respondLayerSetInternalState(castMessage);
+   };
+   mMessageActionMap.emplace("LayerSetInternalState", action);
+
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(msgptr);
@@ -419,14 +432,54 @@ Response::Status HyPerLayer::respondLayerCheckNotANumber(
    return status;
 }
 
+Response::Status HyPerLayer::respondLayerSetInternalState(
+      std::shared_ptr<LayerSetInternalStateMessage const> message) {
+   Response::Status status = Response::SUCCESS;
+   if (strcmp(message->mName, getName()) != 0) {
+      return status;
+   }
+
+   const int N = getNumNeuronsAllBatches();
+  
+   if (message->mData == nullptr || N != message->mData->size()) {
+      return status;
+   }
+
+   float *V = getV();
+   for (int i = 0; i < N; i++) {
+      V[i] = (*message->mData)[i];
+   }
+
+   return status;
+}
+
+Response::Status HyPerLayer::respondLayerGetInternalState(
+      std::shared_ptr<LayerGetInternalStateMessage const> message) {
+   Response::Status status = Response::SUCCESS;
+   if (strcmp(message->mName, getName()) != 0) {
+      return status;
+   }
+
+   const int N = getNumNeuronsAllBatches();
+   const PVLayerLoc *loc = getLayerLoc();
+   const float *V = getV();
+   message->mData->resize(N);
+   for (int n = 0; n < N; n++) {
+      (*message->mData)[n] = V[n];
+   }
+   *message->mNx = loc->nx;
+   *message->mNy = loc->ny;
+   *message->mNf = loc->nf;
+   return status;
+}
+
+
 Response::Status HyPerLayer::respondLayerGetActivity(
       std::shared_ptr<LayerGetActivityMessage const> message) {
    Response::Status status = Response::SUCCESS;
    if (strcmp(message->mName, getName()) != 0) {
       return status;
    }
-
-   // TODO: If using MPI quilting, root probably has to gather here
 
    message->mData->resize(getNumNeuronsAllBatches());
    const PVLayerLoc *loc = getLayerLoc();

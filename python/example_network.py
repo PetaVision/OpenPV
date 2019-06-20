@@ -9,7 +9,7 @@ cols           = 1
 
 num_samples    = 50000
 epochs         = 1 
-display_period = 1000 
+display_period = 500 
 stop_time      = num_samples / batch_size * display_period * epochs
 cp_interval    = 5
 
@@ -52,6 +52,20 @@ pvParams = {
         'errorOnNotANumber'                 : False
     }
 }
+
+params.addGroup(pvParams, 'Test',  {
+            'groupType'                     : 'LeakyIntegrator',
+            'nxScale'                       : 1.0,
+            'nyScale'                       : 1.0,
+            'nf'                            : input_features,
+            'phase'                         : 1,
+            'writeStep'                     : -1,
+            'initialWriteTime'              : -1,
+            'integrationTime'               : infinity,
+            'InitVType'                     : 'ZeroV'
+        }
+   )
+
 
 params.addGroup(pvParams, 'Image',  {
             'groupType'                     : 'ImageLayer',
