@@ -213,30 +213,38 @@ class pvpOpen(object):
         elif self.header['filetype'] == 6:
             entryPattern = np.dtype([('index', np.int32),
                                      ('activation', np.float32)])
-            valuesList = []
-            framesList = []
-            idxList = []
-            timeList = []
 
+            rows     = np.empty(self.activeCount, dtype=np.uint32)
+            cols     = np.empty(self.activeCount, dtype=np.uint32)
+            vals     = np.empty(self.activeCount, dtype=np.float32)
+            timeList = np.empty(len(frameRange),  dtype=np.float64)
+
+            curOffset = 0
             for (frameNum, frame) in enumerate(frameRange):
                 self.pvpFile.seek(self.framePos[frame], os.SEEK_SET)
-                time = np.fromfile(self.pvpFile,np.float64,1)[0]
-                timeList.append(time)
-                numActive = np.fromfile(self.pvpFile,np.uint32,1).item()
-                currentData = np.fromfile(self.pvpFile,entryPattern,numActive)
+
+                time = np.fromfile(self.pvpFile, np.float64, 1)[0]
+                timeList[frameNum] = time
+
+                numActive = np.fromfile(self.pvpFile, np.uint32, 1)[0]
+                currentData = np.fromfile(self.pvpFile, entryPattern, numActive)
+
                 dataIdx = currentData['index']
                 dataValues = currentData['activation']
-                idxList.extend(dataIdx)
-                valuesList.extend(dataValues)
-                framesList.extend(np.ones((len(dataIdx)))*frameNum)
 
+                rows[curOffset:curOffset + numActive] = frameNum
+                cols[curOffset:curOffset + numActive] = dataIdx
+                vals[curOffset:curOffset + numActive] = dataValues
+
+                curOffset += numActive
+    
                 if progress:
                     if frameNum % progress == 0:
                         print("File "+self.filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
 
             #Make csrsparsematrix
-            data["time"] = np.array(timeList)
-            data["values"] = sp.csr_matrix((valuesList, (framesList, idxList)), shape=(len(frameRange), self.header["nx"]*self.header["ny"]*self.header["nf"]))
+            data["time"] = timeList
+            data["values"] = sp.csr_matrix( (vals, (rows, cols)) )
 
         return data
 
