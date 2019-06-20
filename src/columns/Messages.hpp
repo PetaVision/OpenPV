@@ -346,6 +346,18 @@ class ColProbeOutputStateMessage : public BaseMessage {
    double mDeltaTime;
 };
 
+class ColumnEnergyProbeGetEnergyMessage : public BaseMessage {
+  public:
+   ColumnEnergyProbeGetEnergyMessage(const char *probeName, std::vector<double> *values) {
+      setMessageType("ColumnEnergyProbeGetEnergy");
+      mName = probeName;
+      mValues = values;
+   }
+   const char *mName;
+   std::vector<double> *mValues;
+};
+
+
 class CleanupMessage : public BaseMessage {
   public:
    CleanupMessage() { setMessageType("Cleanup"); }

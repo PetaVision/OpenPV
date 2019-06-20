@@ -82,6 +82,11 @@ class ColumnEnergyProbe : public ColProbe {
     */
    void initialize(const char *probename, PVParams *params, Communicator const *comm);
 
+   virtual void initMessageActionMap() override;
+   
+   Response::Status
+   respondColumnEnergyProbeGetEnergy(std::shared_ptr<ColumnEnergyProbeGetEnergyMessage const>(message));
+
    virtual void outputHeader() override;
 
    /**

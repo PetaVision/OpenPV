@@ -15,7 +15,9 @@ namespace py = pybind11;
 namespace PV {
 
 struct PythonContext {
-   PythonContext() {}
+   PythonContext() {
+      mIC = nullptr;
+   }
    ~PythonContext() {
       if (mIC != nullptr) {
          delete(mIC);
@@ -31,8 +33,10 @@ void                PyFinishRun(PythonContext *pc);
 py::array_t<float>  PyGetLayerActivity(PythonContext *pc, const char *layerName); 
 py::array_t<float>  PyGetLayerState(PythonContext *pc, const char *layerName); 
 void                PySetLayerState(PythonContext *pc, const char *layerName, py::array_t<float> *data);
+bool                PyIsFinished(PythonContext *pc);
+py::array_t<double> PyGetEnergy(PythonContext *pc, const char *probeName);
 
-}
+} /* namespace PV */
 
 PYBIND11_MODULE( PYTHON_MODULE_NAME, m ) {
    m.doc() = "Python bindings for OpenPV";
@@ -47,6 +51,8 @@ PYBIND11_MODULE( PYTHON_MODULE_NAME, m ) {
    m.def("getLayerActivity", &PV::PyGetLayerActivity);
    m.def("getLayerState",    &PV::PyGetLayerState);
    m.def("setLayerState",    &PV::PySetLayerState);
+   m.def("isFinished",       &PV::PyIsFinished);
+   m.def("getEnergy",        &PV::PyGetEnergy);
 }
 
 

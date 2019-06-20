@@ -22,7 +22,7 @@ input_features = 3
 patch          = 8
 stride         = 2
 dictionary     = 128 
-thresh         = 0.25 
+thresh         = 0.75 
 learning_rate  = 0.1
 
 weights_folder = None; #folder_name + '/weights/';

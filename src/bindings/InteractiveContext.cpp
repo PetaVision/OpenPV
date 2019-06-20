@@ -33,7 +33,7 @@ InteractiveContext::InteractiveContext(std::map<std::string, std::string> args, 
       cliArgs.push_back("-w");
       cliArgs.push_back(args["WorkingDirectory"]);
    }
-   if (args.find("Restart") != args.end()) {
+   if (args.find("Restart") != args.end() && args["Restart"] == "True") {
       cliArgs.push_back("-r");
    }
    if (args.find("CheckpointReadDirectory") != args.end()) {
@@ -56,7 +56,7 @@ InteractiveContext::InteractiveContext(std::map<std::string, std::string> args, 
       cliArgs.push_back("-columns");
       cliArgs.push_back(args["NumColumns"]);
    }
-   if (args.find("DryRun") != args.end()) {
+   if (args.find("DryRun") != args.end() && args["DryRun"] == "True") {
       cliArgs.push_back("-n");
    }
    if (args.find("Shuffle") != args.end()) {
@@ -130,9 +130,15 @@ void InteractiveContext::getLayerState(const char *layerName, std::vector<float>
    mHC->externalMessage(std::make_shared<LayerGetInternalStateMessage>(layerName, data, nx, ny, nf));
 }
 
-
 void InteractiveContext::setLayerState(const char *layerName, std::vector<float> *data) {
    mHC->externalMessage(std::make_shared<LayerSetInternalStateMessage>(layerName, data));
 }
 
+bool InteractiveContext::isFinished() {
+   return mHC->simulationTime() >= mHC->getStopTime() - mHC->getDeltaTime() / 2.0;
+}
+
+void InteractiveContext::getEnergy(const char *probeName, std::vector<double> *data) {
+   mHC->externalMessage(std::make_shared<ColumnEnergyProbeGetEnergyMessage>(probeName, data));
+}
 } /* namespace PV */

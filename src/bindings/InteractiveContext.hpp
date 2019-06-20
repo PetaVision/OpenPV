@@ -18,6 +18,9 @@ class InteractiveContext {
       void   getLayerState(const char *layerName, std::vector<float> *data,
                   int *nx, int *ny, int *nf); 
       void   setLayerState(const char *layerName, std::vector<float> *data);
+      bool   isFinished();
+      void   getEnergy(const char *probeName, std::vector<double> *data);
+
    protected:
       HyPerCol *mHC;
       PV_Init  *mPVI;

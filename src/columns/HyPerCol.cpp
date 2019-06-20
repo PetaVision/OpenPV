@@ -621,8 +621,10 @@ double HyPerCol::multiStep(unsigned int steps) {
 }
 
 double HyPerCol::singleStep() {
-   mCheckpointer->checkpointWrite(mSimTime);
-   advanceTime(mSimTime);
+   if (mSimTime < mStopTime - mDeltaTime / 2.0) {
+      mCheckpointer->checkpointWrite(mSimTime);
+      advanceTime(mSimTime);
+   }
    return mSimTime;
 }
 

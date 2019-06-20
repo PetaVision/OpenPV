@@ -57,6 +57,20 @@ void ColumnEnergyProbe::initialize(
    ColProbe::initialize(probename, params, comm);
 }
 
+void ColumnEnergyProbe::initMessageActionMap() {
+   ColProbe::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ColumnEnergyProbeGetEnergyMessage const>(msgptr);
+      return respondColumnEnergyProbeGetEnergy(castMessage);
+   };
+   mMessageActionMap.emplace("ColumnEnergyProbeGetEnergy", action);
+
+
+}
+
+
 void ColumnEnergyProbe::outputHeader() {
    if (isWritingToFile()) {
       for (auto &s : mOutputStreams) {
@@ -183,5 +197,19 @@ Response::Status ColumnEnergyProbe::outputState(double simTime, double deltaTime
    }
    return Response::SUCCESS;
 } // end ColumnEnergyProbe::outputState(double)
+
+Response::Status ColumnEnergyProbe::respondColumnEnergyProbeGetEnergy(std::shared_ptr<ColumnEnergyProbeGetEnergyMessage const>(message)) {
+   Response::Status status = Response::SUCCESS;
+   if (strcmp(message->mName, getName()) != 0) {
+      return status;
+   }
+   int nbatch = getNumValues();
+   message->mValues->resize(nbatch);
+   for (int i = 0; i < nbatch; i++) {
+      (*message->mValues)[i] = getValuesBuffer()[i];
+   }
+   return status;
+}
+
 
 } // end namespace PV

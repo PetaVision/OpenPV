@@ -53,4 +53,15 @@ void PySetLayerState(PythonContext *pc, const char *layerName, py::array_t<float
    pc->mIC->setLayerState(layerName, &temp);
 }
 
+bool PyIsFinished(PythonContext *pc) {
+   return pc->mIC->isFinished();
+}
+
+py::array_t<double> PyGetEnergy(PythonContext *pc, const char *probeName) {
+   std::vector<double> temp;
+   pc->mIC->getEnergy(probeName, &temp);
+   py::array_t<double> result(temp.size(), temp.data());
+   return result;
+}
+
 } /* namespace PV */
