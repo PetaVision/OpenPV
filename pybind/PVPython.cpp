@@ -21,6 +21,10 @@ void PyBeginRun(PythonContext *pc) {
    pc->mIC->beginRun();
 }
 
+void PyHandleMPI(PythonContext *pc) {
+   pc->mIC->handleMPI();
+}
+
 double PyAdvanceRun(PythonContext *pc, unsigned int steps) {
    return pc->mIC->advanceRun(steps); 
 }
@@ -31,24 +35,24 @@ void PyFinishRun(PythonContext *pc) {
 
 py::array_t<float> PyGetLayerActivity(PythonContext *pc, const char *layerName) {
    std::vector<float> temp;
-   int nx, ny, nf;
-   pc->mIC->getLayerActivity(layerName, &temp, &nx, &ny, &nf);
+   int nx, ny, nf, nb;
+   pc->mIC->getLayerActivity(layerName, &temp, &nx, &ny, &nf, &nb);
    py::array_t<float> result(temp.size(), temp.data());
-   result.resize({nx, ny, nf}, false);
+   result.resize({nb, nx, ny, nf}, false);
    return result;
 }
 
 py::array_t<float> PyGetLayerState(PythonContext *pc, const char *layerName) {
    std::vector<float> temp;
-   int nx, ny, nf;
-   pc->mIC->getLayerState(layerName, &temp, &nx, &ny, &nf);
+   int nx, ny, nf, nb;
+   pc->mIC->getLayerState(layerName, &temp, &nx, &ny, &nf, &nb);
    py::array_t<float> result(temp.size(), temp.data());
-   result.resize({nx, ny, nf}, false);
+   result.resize({nb, nx, ny, nf}, false);
    return result;
 }
 
 void PySetLayerState(PythonContext *pc, const char *layerName, py::array_t<float> *data) {
-   unsigned int N = data->shape()[0]*data->shape()[1]*data->shape()[2];
+   unsigned int N = data->shape()[0]*data->shape()[1]*data->shape()[2]*data->shape()[3];
    std::vector<float> temp(data->data(), data->data() + N);
    pc->mIC->setLayerState(layerName, &temp);
 }
@@ -62,6 +66,10 @@ py::array_t<double> PyGetEnergy(PythonContext *pc, const char *probeName) {
    pc->mIC->getEnergy(probeName, &temp);
    py::array_t<double> result(temp.size(), temp.data());
    return result;
+}
+
+int PyGetMPIRank(PythonContext *pc) {
+   return pc->mIC->getMPIRank();
 }
 
 } /* namespace PV */

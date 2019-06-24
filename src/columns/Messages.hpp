@@ -305,35 +305,37 @@ class LayerSetInternalStateMessage : public BaseMessage {
 
 class LayerGetInternalStateMessage : public BaseMessage {
   public:
-   LayerGetInternalStateMessage(const char *name, std::vector<float> *data, int *nx, int *ny, int *nf) {
+   LayerGetInternalStateMessage(const char *name, std::vector<float> *data) {
       setMessageType("LayerGetInternalState");
       mName = name;
       mData = data;
-      mNx   = nx;
-      mNy   = ny;
-      mNf   = nf;
    }
    const char *mName;
    std::vector<float> *mData;
-   int *mNx, *mNy, *mNf;
 };
 
 
 class LayerGetActivityMessage : public BaseMessage {
   public:
-   LayerGetActivityMessage(const char *name, std::vector<float> *data, int *nx, int *ny, int *nf) {
+   LayerGetActivityMessage(const char *name, std::vector<float> *data) {
       setMessageType("LayerGetActivity");
       mName = name;
       mData = data;
-      mNx   = nx;
-      mNy   = ny;
-      mNf   = nf;
    }
    const char *mName;
    std::vector<float> *mData;
-   int *mNx, *mNy, *mNf;
 };
 
+class LayerGetShapeMessage : public BaseMessage {
+  public:
+   LayerGetShapeMessage(const char *name, PVLayerLoc *loc) {
+      setMessageType("LayerGetShape");
+      mName = name;
+      mLoc  = loc;
+   }
+   const char *mName;
+   PVLayerLoc *mLoc;
+};
 
 class ColProbeOutputStateMessage : public BaseMessage {
   public:

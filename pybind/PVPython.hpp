@@ -35,6 +35,8 @@ py::array_t<float>  PyGetLayerState(PythonContext *pc, const char *layerName);
 void                PySetLayerState(PythonContext *pc, const char *layerName, py::array_t<float> *data);
 bool                PyIsFinished(PythonContext *pc);
 py::array_t<double> PyGetEnergy(PythonContext *pc, const char *probeName);
+int                 PyGetMPIRank(PythonContext *pc);
+void                PyHandleMPI(PythonContext *pc);
 
 } /* namespace PV */
 
@@ -53,6 +55,8 @@ PYBIND11_MODULE( PYTHON_MODULE_NAME, m ) {
    m.def("setLayerState",    &PV::PySetLayerState);
    m.def("isFinished",       &PV::PyIsFinished);
    m.def("getEnergy",        &PV::PyGetEnergy);
+   m.def("getMPIRank",       &PV::PyGetMPIRank);
+   m.def("handleMPI",        &PV::PyHandleMPI);
 }
 
 

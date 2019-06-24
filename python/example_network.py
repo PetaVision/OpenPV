@@ -9,7 +9,7 @@ cols           = 1
 
 num_samples    = 50000
 epochs         = 1 
-display_period = 500 
+display_period = 1000 
 stop_time      = num_samples / batch_size * display_period * epochs
 cp_interval    = 5
 
@@ -21,8 +21,8 @@ input_height   = 32
 input_features = 3
 patch          = 8
 stride         = 2
-dictionary     = 128 
-thresh         = 0.75 
+dictionary     = 256 
+thresh         = 0.5
 learning_rate  = 0.1
 
 weights_folder = None; #folder_name + '/weights/';
@@ -37,7 +37,7 @@ pvParams = {
         'verifyWrites'                      : False,
         'outputPath'                        : folder_name,
         'printParamsFilename'               : folder_name + '.params',
-        'randomSeed'                        : 1234567891,
+        'randomSeed'                        : 1234567892,
         'nx'                                : input_width,
         'ny'                                : input_height,
         'nbatch'                            : batch_size,
@@ -169,7 +169,7 @@ params.addGroup(pvParams, 'S1ToImageError', {
             'wMinInit'                      : -1,
             'wMaxInit'                      : 1,
             'minNNZ'                        : 1,
-            'sparseFraction'                : 0.99,
+            'sparseFraction'                : 0.975,
             'triggerLayerName'              : 'Image',
             'pvpatchAccumulateType'         : 'convolve',
             'nxp'                           : patch,

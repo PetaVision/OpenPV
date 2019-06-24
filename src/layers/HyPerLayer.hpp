@@ -170,6 +170,9 @@ class HyPerLayer : public ComponentBasedObject {
    respondLayerSetInternalState(std::shared_ptr<LayerSetInternalStateMessage const> message);
    Response::Status
    respondLayerGetInternalState(std::shared_ptr<LayerGetInternalStateMessage const> message);
+   Response::Status
+   respondLayerGetShape(std::shared_ptr<LayerGetShapeMessage const> message);
+
 
 
 

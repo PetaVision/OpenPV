@@ -122,6 +122,12 @@ void HyPerLayer::initMessageActionMap() {
    };
    mMessageActionMap.emplace("LayerSetInternalState", action);
 
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerGetShapeMessage const>(msgptr);
+      return respondLayerGetShape(castMessage);
+   };
+   mMessageActionMap.emplace("LayerGetShape", action);
+
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(msgptr);
@@ -463,13 +469,12 @@ Response::Status HyPerLayer::respondLayerGetInternalState(
    const int N = getNumNeuronsAllBatches();
    const PVLayerLoc *loc = getLayerLoc();
    const float *V = getV();
+
    message->mData->resize(N);
+
    for (int n = 0; n < N; n++) {
       (*message->mData)[n] = V[n];
    }
-   *message->mNx = loc->nx;
-   *message->mNy = loc->ny;
-   *message->mNf = loc->nf;
    return status;
 }
 
@@ -481,10 +486,12 @@ Response::Status HyPerLayer::respondLayerGetActivity(
       return status;
    }
 
-   message->mData->resize(getNumNeuronsAllBatches());
    const PVLayerLoc *loc = getLayerLoc();
    auto layerData = mPublisher->getLayerData();
    int const N    = getNumExtendedAllBatches();
+
+   message->mData->resize(getNumNeuronsAllBatches());
+
    for (int n = 0; n < N; n++) {
       int idx = kIndexRestricted(n, loc->nx, loc->ny, loc->nf,
             loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
@@ -493,11 +500,22 @@ Response::Status HyPerLayer::respondLayerGetActivity(
       }
       (*message->mData)[idx] = layerData[n];
    }
-   *message->mNx = loc->nx;
-   *message->mNy = loc->ny;
-   *message->mNf = loc->nf;
    return status;
 }
+
+Response::Status HyPerLayer::respondLayerGetShape(
+      std::shared_ptr<LayerGetShapeMessage const> message) {
+   Response::Status status = Response::SUCCESS;
+   if (strcmp(message->mName, getName()) != 0) {
+      return status;
+   }
+
+   // There's probably a nicer C++11 way to do this
+   memcpy(message->mLoc, getLayerLoc(), sizeof(PVLayerLoc));
+
+   return status;
+}
+
 
 
 } // end of PV namespace
