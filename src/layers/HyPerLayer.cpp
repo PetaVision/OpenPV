@@ -488,18 +488,16 @@ Response::Status HyPerLayer::respondLayerGetActivity(
 
    const PVLayerLoc *loc = getLayerLoc();
    auto layerData = mPublisher->getLayerData();
-   int const N    = getNumExtendedAllBatches();
+   int const N    = getNumNeuronsAllBatches();
 
-   message->mData->resize(getNumNeuronsAllBatches());
+   message->mData->resize(N);
 
-   for (int n = 0; n < N; n++) {
-      int idx = kIndexRestricted(n, loc->nx, loc->ny, loc->nf,
-            loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
-      if (idx < 0) {
-         continue;
-      }
-      (*message->mData)[idx] = layerData[n];
+   for (int n = 0; n < message->mData->size(); n++) {
+      int idx = kIndexExtendedBatch(n, loc->nbatch, loc->nx, loc->ny, loc->nf,
+                     loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+      (*message->mData)[n] = layerData[idx];
    }
+
    return status;
 }
 

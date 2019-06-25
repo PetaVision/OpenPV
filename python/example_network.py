@@ -1,15 +1,11 @@
 from ParameterWrapper import infinity, INFINITY, nil, NULL, null, true, false 
 import ParameterWrapper as params
 
-batch_size     = 1
-batch_width    = 1
-threads        = 4
-rows           = 1
-cols           = 1
+batch_size     = 8 
 
 num_samples    = 50000
 epochs         = 1 
-display_period = 1000 
+display_period = 500 
 stop_time      = num_samples / batch_size * display_period * epochs
 cp_interval    = 5
 

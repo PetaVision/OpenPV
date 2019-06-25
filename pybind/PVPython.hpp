@@ -6,9 +6,8 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
-#include <bindings/InteractiveContext.hpp>
-#include <columns/PV_Init.hpp>
-#include <columns/HyPerCol.hpp>
+#include <bindings/Commander.hpp>
+
 
 namespace py = pybind11;
 
@@ -16,14 +15,14 @@ namespace PV {
 
 struct PythonContext {
    PythonContext() {
-      mIC = nullptr;
+      mCmd = nullptr;
    }
    ~PythonContext() {
-      if (mIC != nullptr) {
-         delete(mIC);
+      if (mCmd != nullptr) {
+         delete(mCmd);
       }
    }
-   InteractiveContext *mIC;
+   Commander *mCmd;
 };
 
 PythonContext      *PyCreateContext(py::dict args, std::string params);
@@ -32,11 +31,11 @@ double              PyAdvanceRun(PythonContext *pc, unsigned int steps);
 void                PyFinishRun(PythonContext *pc);
 py::array_t<float>  PyGetLayerActivity(PythonContext *pc, const char *layerName); 
 py::array_t<float>  PyGetLayerState(PythonContext *pc, const char *layerName); 
-void                PySetLayerState(PythonContext *pc, const char *layerName, py::array_t<float> *data);
+//void                PySetLayerState(PythonContext *pc, const char *layerName, py::array_t<float> *data);
 bool                PyIsFinished(PythonContext *pc);
 py::array_t<double> PyGetEnergy(PythonContext *pc, const char *probeName);
-int                 PyGetMPIRank(PythonContext *pc);
-void                PyHandleMPI(PythonContext *pc);
+bool                PyIsRoot(PythonContext *pc);
+void                PyWaitForCommands(PythonContext *pc);
 
 } /* namespace PV */
 
@@ -52,11 +51,11 @@ PYBIND11_MODULE( PYTHON_MODULE_NAME, m ) {
    m.def("finishRun",        &PV::PyFinishRun);
    m.def("getLayerActivity", &PV::PyGetLayerActivity);
    m.def("getLayerState",    &PV::PyGetLayerState);
-   m.def("setLayerState",    &PV::PySetLayerState);
+//   m.def("setLayerState",    &PV::PySetLayerState);
    m.def("isFinished",       &PV::PyIsFinished);
    m.def("getEnergy",        &PV::PyGetEnergy);
-   m.def("getMPIRank",       &PV::PyGetMPIRank);
-   m.def("handleMPI",        &PV::PyHandleMPI);
+   m.def("isRoot",           &PV::PyIsRoot);
+   m.def("waitForCommands",  &PV::PyWaitForCommands);
 }
 
 
