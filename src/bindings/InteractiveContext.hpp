@@ -18,10 +18,15 @@ class InteractiveContext {
       void   setLayerState(const char *layerName, std::vector<float> *data);
       void   getLayerShape(const char *layerName, PVLayerLoc *loc);
       bool   isFinished();
-      void   getEnergy(const char *probeName, std::vector<double> *data);
+      void   getProbeValues(const char *probeName, std::vector<double> *data);
+      int    getMPIShape(int *rows, int *cols, int *batches);
+      int    getMPILocation(int *row, int *col, int *batch);
+
 
    private:
       void   message(std::shared_ptr<BaseMessage const> message);
+      int    mMPIRows, mMPICols, mMPIBatches;
+      int    mRow, mCol, mBatch, mRank;
 
    protected:
       HyPerCol *mHC;

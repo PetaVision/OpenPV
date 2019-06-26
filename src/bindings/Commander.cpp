@@ -1,7 +1,6 @@
 #include <bindings/Commander.hpp>
 
 
-
 namespace PV {
 
 
@@ -48,8 +47,11 @@ void Commander::waitForCommands() {
          case CMD_GET_STATE:
             remoteGetLayerData(BUF_V);
             break;
-         case CMD_GET_ENERGY:
-            remoteGetEnergy();
+         case CMD_GET_PROBE_VALUES:
+            remoteGetProbeValues();
+            break;
+         case CMD_SET_STATE:
+            remoteSetLayerState();
             break;
          default:
             break;
@@ -67,10 +69,60 @@ void Commander::getLayerState(const char *layerName, std::vector<float> *data,
    getLayerData(layerName, data, nb, ny, nx, nf, BUF_V);
 }
 
-void Commander::getEnergy(const char *probeName, std::vector<double> *data) {
-   FatalIf(getRank() != 0, "Commander::getEnergy can only be called from root process. "
+void Commander::setLayerState(const char *layerName, std::vector<float> *data) {
+   FatalIf(getRank() != 0, "Commander::setLayerState can only be called from root process. "
          "Did you forget to call waitForCommands()?");
-   const Command cmd = CMD_GET_ENERGY;
+   const Command cmd = CMD_SET_STATE;
+   unsigned int len = strlen(layerName) + 1;
+   rootSend(&cmd, 1, MPI_INT);
+   rootSend(&len, 1, MPI_UNSIGNED);
+   rootSend(layerName, len, MPI_CHAR);
+
+   MPI_Status stat;
+   PVLayerLoc loc;
+   mIC->getLayerShape(layerName, &loc);
+
+   unsigned int globalSize = loc.nxGlobal * loc.nyGlobal * loc.nf * loc.nbatchGlobal;
+   unsigned int localSize  = loc.nx * loc.ny * loc.nf * loc.nbatch;
+   int rows, cols, batches;
+   int kb0 = loc.kb0;
+   int kx0 = loc.kx0;
+   int ky0 = loc.ky0;
+
+   FatalIf(data->size() != globalSize, "Commander::setLayerState vector incorrect dimensions");
+
+   for (int r = 0; r < getCommSize(); r++) {
+      if (r > 0) {
+         MPI_Recv(&kb0, 1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+         MPI_Recv(&kx0, 1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+         MPI_Recv(&ky0, 1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+      }
+      std::vector<float> slice;
+      slice.resize(localSize);
+      int dst = 0;
+      for (int b = kb0; b < kb0 + loc.nbatch; b++) {
+         for (int y = ky0; y < ky0 + loc.ny; y++) {
+            for (int x = kx0; x < kx0 + loc.nx; x++) {
+               for (int f = 0; f < loc.nf; f++) {
+                  int src = b * (loc.nxGlobal*loc.nyGlobal*loc.nf) + y * (loc.nxGlobal*loc.nf) + x * loc.nf + f;
+                  slice.at(dst++) = data->at(src);
+               }
+            }
+         }
+      }
+      if (r > 0) {
+         MPI_Send(slice.data(), slice.size(), MPI_FLOAT, r, MPI_TAG, MPI_COMM_WORLD);
+      }
+      else {
+         mIC->setLayerState(layerName, &slice);
+      }
+   }
+}
+
+void Commander::getProbeValues(const char *probeName, std::vector<double> *data) {
+   FatalIf(getRank() != 0, "Commander::getProbeValues can only be called from root process. "
+         "Did you forget to call waitForCommands()?");
+   const Command cmd = CMD_GET_PROBE_VALUES;
    unsigned int len = strlen(probeName) + 1;
    rootSend(&cmd, 1, MPI_INT);
    rootSend(&len, 1, MPI_UNSIGNED);
@@ -78,13 +130,26 @@ void Commander::getEnergy(const char *probeName, std::vector<double> *data) {
 
    MPI_Status stat;
    std::vector<double> tempData;
+   int batches;
+   int batch = getBatch();
+   mIC->getMPIShape(NULL, NULL, &batches);
 
-   mIC->getEnergy(probeName, &tempData);
+   mIC->getProbeValues(probeName, &tempData);
 
-   // TODO: Receive data from other processes
+   len = tempData.size();
+   data->resize(len * batches);
 
-   // Temporary for testing
-   data->assign(tempData.begin(), tempData.end()); 
+   // This does redundant recvs when rows or cols > 1
+   for (int r = 0; r < getCommSize(); r++) {
+      if (r > 0) {
+         MPI_Recv(&batch, 1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+         MPI_Recv(tempData.data(), len, MPI_DOUBLE, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+      }
+      for (int i = 0; i < tempData.size(); i++) {
+         int idx = batch * tempData.size() + i;
+         data->at(idx) = tempData.at(i);
+      }
+   }
 }
 
 void Commander::beginRun() {
@@ -112,7 +177,6 @@ double Commander::advanceRun(unsigned int steps) {
    return mIC->advanceRun(steps); 
 }
 
-
 // Private
 
 
@@ -136,15 +200,29 @@ void Commander::nonRootRecv(void *buf, int num, MPI_Datatype dtype) {
 }
 
 int Commander::getRank() {
-   int r;
-   MPI_Comm_rank(MPI_COMM_WORLD, &r);
-   return r;
+   return mIC->getMPILocation(NULL, NULL, NULL);
 }
 
 int Commander::getCommSize() {
-   int s;
-   MPI_Comm_size(MPI_COMM_WORLD, &s);
-   return s;
+   return mIC->getMPIShape(NULL, NULL, NULL);
+}
+
+int Commander::getRow() {
+   int r;
+   mIC->getMPILocation(&r, NULL, NULL);
+   return r;
+}
+
+int Commander::getCol() {
+   int c;
+   mIC->getMPILocation(NULL, &c, NULL);
+   return c;
+}
+
+int Commander::getBatch() {
+   int b;
+   mIC->getMPILocation(NULL, NULL, &b);
+   return b;
 }
 
 void Commander::getLayerData(const char *layerName, std::vector<float> *data,
@@ -267,7 +345,30 @@ void Commander::remoteGetLayerData(Buffer b) {
    free(layerName);
 }
 
-void Commander::remoteGetEnergy() {
+void Commander::remoteSetLayerState() {
+   std::vector<float> data;
+   PVLayerLoc loc;
+   unsigned int len;
+   char *layerName;
+
+   nonRootRecv(&len, 1, MPI_UNSIGNED);
+   layerName = (char*)calloc(sizeof(char), len);
+   nonRootRecv(layerName, len, MPI_CHAR);
+   mIC->getLayerShape(layerName, &loc);
+
+   len = loc.nx * loc.ny * loc.nf * loc.nbatch;
+   data.resize(len);
+
+   nonRootSend(&loc.kb0, 1, MPI_INT);
+   nonRootSend(&loc.kx0, 1, MPI_INT);
+   nonRootSend(&loc.ky0, 1, MPI_INT);
+   nonRootRecv(data.data(), len, MPI_FLOAT);
+   mIC->setLayerState(layerName, &data);
+   
+   free(layerName);
+}
+
+void Commander::remoteGetProbeValues() {
    std::vector<double> data;
    unsigned int len;
    char *probeName;
@@ -276,9 +377,11 @@ void Commander::remoteGetEnergy() {
    probeName = (char*)calloc(sizeof(char), len);
    nonRootRecv(probeName, len, MPI_CHAR);
 
-   mIC->getEnergy(probeName, &data);
+   int batch = getBatch();
+   nonRootSend(&batch, 1, MPI_INT);
 
-   //TODO: Send data back to root
+   mIC->getProbeValues(probeName, &data);
+   nonRootSend(data.data(), data.size(), MPI_DOUBLE);
 
    free(probeName);
 }

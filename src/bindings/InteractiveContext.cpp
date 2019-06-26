@@ -79,6 +79,15 @@ InteractiveContext::InteractiveContext(std::map<std::string, std::string> args, 
 
    mPVI = new PV_Init(&mArgC, &mArgV, false);
 
+   mMPIRows    = mPVI->getCommunicator()->numCommRows();
+   mMPICols    = mPVI->getCommunicator()->numCommColumns();
+   mMPIBatches = mPVI->getCommunicator()->numCommBatches();
+
+   mRow = mPVI->getCommunicator()->commRow();
+   mCol = mPVI->getCommunicator()->commColumn();
+   mBatch = mPVI->getCommunicator()->commBatch();
+   mRank = mPVI->getCommunicator()->globalCommRank();
+
    // Read params from a string instead of a file
    if (!params.empty()) {
       mPVI->setParamsBuffer(params.c_str(), params.length());
@@ -133,8 +142,35 @@ bool InteractiveContext::isFinished() {
    return mHC->simulationTime() >= mHC->getStopTime() - mHC->getDeltaTime() / 2.0;
 }
 
-void InteractiveContext::getEnergy(const char *probeName, std::vector<double> *data) {
-   message(std::make_shared<ColumnEnergyProbeGetEnergyMessage>(probeName, data));
+void InteractiveContext::getProbeValues(const char *probeName, std::vector<double> *data) {
+   message(std::make_shared<ProbeGetValuesMessage>(probeName, data));
 }
+
+int InteractiveContext::getMPIShape(int *rows, int *cols, int *batches) {
+   if (rows != NULL) {
+      *rows = mMPIRows;
+   }
+   if (cols != NULL) {
+      *cols = mMPICols;
+   }
+   if (batches != NULL) {
+      *batches = mMPIBatches; 
+   }
+   return mMPIRows * mMPICols * mMPIBatches;
+}
+
+int InteractiveContext::getMPILocation(int *row, int *col, int *batch) {
+   if (row != NULL) {
+      *row = mRow;
+   }
+   if (col != NULL) {
+      *col = mCol;
+   }
+   if (batch != NULL) {
+      *batch = mBatch; 
+   }
+   return mRank;
+}
+
 
 } /* namespace PV */

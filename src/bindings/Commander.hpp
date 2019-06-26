@@ -21,7 +21,8 @@ class Commander {
          CMD_FINISH_RUN,
          CMD_GET_ACTIVITY,
          CMD_GET_STATE,
-         CMD_GET_ENERGY
+         CMD_SET_STATE,
+         CMD_GET_PROBE_VALUES
       };
 
    protected:
@@ -38,6 +39,9 @@ class Commander {
       void   nonRootRecv(void *buf, int num, MPI_Datatype dtype);
       int    getRank();
       int    getCommSize();
+      int    getRow();
+      int    getCol();
+      int    getBatch();
 
    public:
       bool   isRoot();
@@ -47,17 +51,18 @@ class Commander {
                   int *nb, int *ny, int *nx, int *nf);
       void   getLayerState(const char *layerName, std::vector<float> *data,
                   int *nb, int *ny, int *nx, int *nf);
-      void   getEnergy(const char *probeName, std::vector<double> *data);
+      void   setLayerState(const char *layerName, std::vector<float> *data);
+      void   getProbeValues(const char *probeName, std::vector<double> *data);
       void   beginRun();
       void   finishRun();
       double advanceRun(unsigned int steps);
-
    private:
       void   getLayerData(const char *layerName, std::vector<float> *data,
                   int *nb, int *ny, int *nx, int *nf, Buffer b);
       void   remoteAdvanceRun();
       void   remoteGetLayerData(Buffer b);
-      void   remoteGetEnergy();
+      void   remoteSetLayerState();
+      void   remoteGetProbeValues();
 
 
 };

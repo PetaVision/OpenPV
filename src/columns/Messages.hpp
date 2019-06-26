@@ -348,10 +348,10 @@ class ColProbeOutputStateMessage : public BaseMessage {
    double mDeltaTime;
 };
 
-class ColumnEnergyProbeGetEnergyMessage : public BaseMessage {
+class ProbeGetValuesMessage : public BaseMessage {
   public:
-   ColumnEnergyProbeGetEnergyMessage(const char *probeName, std::vector<double> *values) {
-      setMessageType("ColumnEnergyProbeGetEnergy");
+   ProbeGetValuesMessage(const char *probeName, std::vector<double> *values) {
+      setMessageType("ProbeGetValues");
       mName = probeName;
       mValues = values;
    }

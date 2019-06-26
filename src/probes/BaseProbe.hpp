@@ -8,6 +8,7 @@
 #define BASEPROBE_HPP_
 
 #include "columns/BaseObject.hpp"
+#include "columns/Messages.hpp"
 #include "components/LayerUpdateController.hpp"
 #include "include/pv_common.h"
 #include "io/FileStream.hpp"
@@ -137,6 +138,11 @@ class BaseProbe : public BaseObject {
   protected:
    BaseProbe();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
+
+   virtual void initMessageActionMap() override;
+
+   Response::Status respondProbeGetValues(std::shared_ptr<ProbeGetValuesMessage const>(message));
+
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 

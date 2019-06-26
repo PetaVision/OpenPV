@@ -64,6 +64,18 @@ void BaseProbe::initialize(const char *name, PVParams *params, Communicator cons
    BaseObject::initialize(name, params, comm);
 }
 
+void BaseProbe::initMessageActionMap() {
+   BaseObject::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ProbeGetValuesMessage const>(msgptr);
+      return respondProbeGetValues(castMessage);
+   };
+   mMessageActionMap.emplace("ProbeGetValues", action);
+}
+
+
 int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_targetName(ioFlag);
    ioParam_message(ioFlag);
@@ -350,5 +362,18 @@ Response::Status BaseProbe::outputStateWrapper(double timef, double dt) {
    }
    return status;
 }
+
+Response::Status BaseProbe::respondProbeGetValues(std::shared_ptr<ProbeGetValuesMessage const>(message)) {
+   if (strcmp(message->mName, getName()) != 0) {
+      return Response::NO_ACTION;
+   }
+   int N = getNumValues();
+   message->mValues->resize(N);
+   for (int i = 0; i < N; i++) {
+      (*message->mValues)[i] = getValuesBuffer()[i];
+   }
+   return Response::SUCCESS;
+}
+
 
 } // namespace PV

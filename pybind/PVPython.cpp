@@ -51,19 +51,19 @@ py::array_t<float> PyGetLayerState(PythonContext *pc, const char *layerName) {
    return result;
 }
 
-//void PySetLayerState(PythonContext *pc, const char *layerName, py::array_t<float> *data) {
-//   unsigned int N = data->shape()[0]*data->shape()[1]*data->shape()[2]*data->shape()[3];
-//   std::vector<float> temp(data->data(), data->data() + N);
-//   pc->mIC->setLayerState(layerName, &temp);
-//}
+void PySetLayerState(PythonContext *pc, const char *layerName, py::array_t<float> *data) {
+   unsigned int N = data->shape()[0]*data->shape()[1]*data->shape()[2]*data->shape()[3];
+   std::vector<float> temp(data->data(), data->data() + N);
+   pc->mCmd->setLayerState(layerName, &temp);
+}
 
 bool PyIsFinished(PythonContext *pc) {
    return pc->mCmd->isFinished();
 }
 
-py::array_t<double> PyGetEnergy(PythonContext *pc, const char *probeName) {
+py::array_t<double> PyGetProbeValues(PythonContext *pc, const char *probeName) {
    std::vector<double> temp;
-   pc->mCmd->getEnergy(probeName, &temp);
+   pc->mCmd->getProbeValues(probeName, &temp);
    py::array_t<double> result(temp.size(), temp.data());
    return result;
 }
