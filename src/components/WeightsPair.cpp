@@ -172,7 +172,20 @@ WeightsPair::respondConnectionSetWeights(std::shared_ptr<ConnectionSetWeightsMes
       return Response::NO_ACTION;
    }
    
-   // TODO
+   float *w = mPreWeights->getData(0);
+   for (int i = 0; i < size; i++) {
+      w[i] = (*message->mValues)[i];
+   }
+
+#ifdef PV_USE_CUDA
+   mPreWeights->copyToGPU();
+#endif // PV_USE_CUDA
+   if (mPostWeights) {
+      TransposeWeights::transpose(mPreWeights, mPostWeights, mCommunicator);
+#ifdef PV_USE_CUDA
+      mPostWeights->copyToGPU();
+#endif // PV_USE_CUDA
+   }
 
    return Response::SUCCESS;
 }

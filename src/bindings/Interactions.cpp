@@ -3,6 +3,9 @@
 
 namespace PV {
 
+
+// Private
+
 Response::Status Interactions::interact(std::shared_ptr<InteractionMessage const> message) {
    return mHC->interact(message);
 }
@@ -17,10 +20,6 @@ void Interactions::error(std::string const err) {
    }
 }
 
-std::string const Interactions::getError() {
-   return mErrMsg;
-}
-
 Interactions::Result Interactions::checkError(std::shared_ptr<InteractionMessage const> message, Response::Status status,
       std::string const funcName, std::string const objName) {
    clearError();
@@ -33,6 +32,12 @@ Interactions::Result Interactions::checkError(std::shared_ptr<InteractionMessage
       return FAILURE;
    }
    return SUCCESS;
+}
+
+// Public
+
+std::string const Interactions::getError() {
+   return mErrMsg;
 }
 
 Interactions::Interactions(std::map<std::string, std::string> args, std::string params) {
