@@ -422,9 +422,8 @@ Response::Status HyPerLayer::checkUpdateState(double simTime, double deltaTime) 
 
 Response::Status HyPerLayer::respondLayerCheckNotANumber(
       std::shared_ptr<LayerCheckNotANumberMessage const> message) {
-   Response::Status status = Response::SUCCESS;
    if (message->mPhase != mPhaseParam->getPhase()) {
-      return status;
+      return Response::NO_ACTION;
    }
    auto layerData = mPublisher->getLayerData();
    int const N    = getNumExtendedAllBatches();
@@ -435,20 +434,20 @@ Response::Status HyPerLayer::respondLayerCheckNotANumber(
             "%s has not-a-number values in the activity buffer.  Exiting.\n",
             getDescription_c());
    }
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status HyPerLayer::respondLayerSetInternalState(
       std::shared_ptr<LayerSetInternalStateMessage const> message) {
-   Response::Status status = Response::SUCCESS;
    if (strcmp(message->mName, getName()) != 0) {
-      return status;
+      return Response::NO_ACTION;
    }
 
    const int N = getNumNeuronsAllBatches();
-  
-   if (message->mData == nullptr || N != message->mData->size()) {
-      return status;
+
+   if (message->mData->size() != N) {
+      message->error("state vector size mismatch");
+      return Response::NO_ACTION;
    }
 
    float *V = getV();
@@ -456,14 +455,13 @@ Response::Status HyPerLayer::respondLayerSetInternalState(
       V[i] = (*message->mData)[i];
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status HyPerLayer::respondLayerGetInternalState(
       std::shared_ptr<LayerGetInternalStateMessage const> message) {
-   Response::Status status = Response::SUCCESS;
    if (strcmp(message->mName, getName()) != 0) {
-      return status;
+      return Response::NO_ACTION;
    }
 
    const int N = getNumNeuronsAllBatches();
@@ -475,15 +473,15 @@ Response::Status HyPerLayer::respondLayerGetInternalState(
    for (int n = 0; n < N; n++) {
       (*message->mData)[n] = V[n];
    }
-   return status;
+
+   return Response::SUCCESS;
 }
 
 
 Response::Status HyPerLayer::respondLayerGetActivity(
       std::shared_ptr<LayerGetActivityMessage const> message) {
-   Response::Status status = Response::SUCCESS;
    if (strcmp(message->mName, getName()) != 0) {
-      return status;
+      return Response::NO_ACTION;
    }
 
    const PVLayerLoc *loc = getLayerLoc();
@@ -498,20 +496,19 @@ Response::Status HyPerLayer::respondLayerGetActivity(
       (*message->mData)[n] = layerData[idx];
    }
 
-   return status;
+   return Response::SUCCESS;
 }
 
 Response::Status HyPerLayer::respondLayerGetShape(
       std::shared_ptr<LayerGetShapeMessage const> message) {
-   Response::Status status = Response::SUCCESS;
    if (strcmp(message->mName, getName()) != 0) {
-      return status;
+      return Response::NO_ACTION;
    }
 
    // There's probably a nicer C++11 way to do this
    memcpy(message->mLoc, getLayerLoc(), sizeof(PVLayerLoc));
 
-   return status;
+   return Response::SUCCESS;
 }
 
 

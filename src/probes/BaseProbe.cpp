@@ -367,7 +367,13 @@ Response::Status BaseProbe::respondProbeGetValues(std::shared_ptr<ProbeGetValues
    if (strcmp(message->mName, getName()) != 0) {
       return Response::NO_ACTION;
    }
+
    int N = getNumValues();
+   if (N <= 0) {
+      message->error("probe does not have any values to retrieve");
+      return Response::NO_ACTION;
+   }
+
    message->mValues->resize(N);
    for (int i = 0; i < N; i++) {
       (*message->mValues)[i] = getValuesBuffer()[i];

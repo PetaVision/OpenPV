@@ -3,13 +3,13 @@
 
 
 #include <mpi.h>
-#include <bindings/InteractiveContext.hpp>
+#include <bindings/Interactions.hpp>
 
 namespace PV {
 
 class Commander {
    public:
-      Commander(std::map<std::string, std::string> args, std::string params);
+      Commander(std::map<std::string, std::string> args, std::string params, void (*errFunc)(std::string const));
       ~Commander();
 
       static const int MPI_TAG = 666;
@@ -26,7 +26,7 @@ class Commander {
       };
 
    protected:
-      InteractiveContext *mIC;
+      Interactions *mIC;
 
    private:
       enum Buffer {
@@ -53,6 +53,9 @@ class Commander {
                   int *nb, int *ny, int *nx, int *nf);
       void   setLayerState(const char *layerName, std::vector<float> *data);
       void   getProbeValues(const char *probeName, std::vector<double> *data);
+      void   getConnectionWeights(const char *connName, std::vector<float> *data,
+                  int *nwp, int *nyp, int *nxp, int *nfp);
+      void   setConnectionWeights(const char *connName, std::vector<float> *data);
       void   beginRun();
       void   finishRun();
       double advanceRun(unsigned int steps);
@@ -63,7 +66,7 @@ class Commander {
       void   remoteGetLayerData(Buffer b);
       void   remoteSetLayerState();
       void   remoteGetProbeValues();
-
+      void   (*mErrFunc)(std::string const);
 
 };
 

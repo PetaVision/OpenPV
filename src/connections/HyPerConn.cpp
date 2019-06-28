@@ -40,6 +40,24 @@ void HyPerConn::initMessageActionMap() {
       return respondConnectionNormalize(castMessage);
    };
    mMessageActionMap.emplace("ConnectionNormalize", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionGetWeightsMessage const>(msgptr);
+      return respondConnectionGetWeights(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionGetWeights", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionSetWeightsMessage const>(msgptr);
+      return respondConnectionSetWeights(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionSetWeights", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionGetPatchGeometryMessage const>(msgptr);
+      return respondConnectionGetPatchGeometry(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionGetPatchGeometry", action);
 }
 
 void HyPerConn::fillComponentTable() {
@@ -206,6 +224,22 @@ HyPerConn::respondConnectionUpdate(std::shared_ptr<ConnectionUpdateMessage const
 
 Response::Status
 HyPerConn::respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message) {
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+}
+
+Response::Status
+HyPerConn::respondConnectionGetWeights(std::shared_ptr<ConnectionGetWeightsMessage const> message) {
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+}
+
+Response::Status
+HyPerConn::respondConnectionSetWeights(std::shared_ptr<ConnectionSetWeightsMessage const> message) {
+   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
+}
+
+
+Response::Status
+HyPerConn::respondConnectionGetPatchGeometry(std::shared_ptr<ConnectionGetPatchGeometryMessage const> message) {
    return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 }
 

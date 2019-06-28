@@ -789,9 +789,8 @@ int HyPerCol::advanceTime(double sim_time) {
    return PV_SUCCESS;
 }
 
-// Hacky, figure out a better interface
-void HyPerCol::externalMessage(std::shared_ptr<BaseMessage const> message) {
-   notifyLoop(message);
+Response::Status HyPerCol::interact(std::shared_ptr<InteractionMessage const> message) {
+   return notify(std::dynamic_pointer_cast<BaseMessage const>(message), false);
 }
 
 void HyPerCol::nonblockingLayerUpdate(

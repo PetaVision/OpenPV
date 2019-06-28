@@ -11,6 +11,7 @@
 #ifndef HYPERLAYER_HPP_
 #define HYPERLAYER_HPP_
 
+#include "bindings/InteractionMessages.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "components/ActivityComponent.hpp"
 #include "components/BasePublisherComponent.hpp"

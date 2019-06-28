@@ -18,8 +18,8 @@ input_features = 3
 patch          = 8
 stride         = 2
 dictionary     = 256 
-thresh         = 0.5
-learning_rate  = 0.1
+thresh         = 0.25
+learning_rate  = 0.01
 
 weights_folder = None; #folder_name + '/weights/';
 
@@ -218,7 +218,7 @@ params.addGroup(pvParams, 'AdaptProbe', {
             'tauFactor'                     : 0.025,
             'growthFactor'                  : 0.025,
             'writeTimeScales'               : True,
-            'kneeThresh'                    : 10,
+            'kneeThresh'                    : 25.0,
             'kneeSlope'                     : 0.025
         }
    )

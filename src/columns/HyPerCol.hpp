@@ -8,6 +8,7 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
+#include "bindings/InteractionMessages.hpp"
 #include "checkpointing/Checkpointer.hpp"
 #include "columns/BaseObject.hpp"
 #include "columns/Communicator.hpp"
@@ -187,7 +188,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    unsigned int seedRandomFromWallClock();
    double singleStep();
    double multiStep(unsigned int steps);
-   void externalMessage(std::shared_ptr<BaseMessage const> message); 
+   Response::Status interact(std::shared_ptr<InteractionMessage const> message); 
 
 
 #ifdef PV_USE_CUDA

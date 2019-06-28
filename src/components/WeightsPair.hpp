@@ -57,6 +57,15 @@ class WeightsPair : public WeightsPairInterface {
 
    Response::Status respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
 
+   Response::Status
+   respondConnectionGetWeights(std::shared_ptr<ConnectionGetWeightsMessage const> message);
+
+   Response::Status
+   respondConnectionSetWeights(std::shared_ptr<ConnectionSetWeightsMessage const> message);
+
+   Response::Status
+   respondConnectionGetPatchGeometry(std::shared_ptr<ConnectionGetPatchGeometryMessage const> message);
+
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 

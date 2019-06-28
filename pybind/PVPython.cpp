@@ -8,12 +8,16 @@ namespace py = pybind11;
 
 namespace PV {
 
+void errCallback(std::string const err) {
+   py::print("[Error] " + err);
+}
+
 PythonContext *PyCreateContext(py::dict args, std::string params) {
    PythonContext *pc = new PythonContext();
    for (auto ent : args) {
       args[ent.first] = py::str(ent.second);
    }
-   pc->mCmd = new Commander(py::cast<std::map<std::string, std::string>>(args), params);
+   pc->mCmd = new Commander(py::cast<std::map<std::string, std::string>>(args), params, &errCallback);
    return pc;
 }
 
@@ -31,6 +35,21 @@ double PyAdvanceRun(PythonContext *pc, unsigned int steps) {
 
 void PyFinishRun(PythonContext *pc) {
    pc->mCmd->finishRun();
+}
+
+py::array_t<float> PyGetConnectionWeights(PythonContext *pc, const char *connName) {
+   std::vector<float> temp;
+   int nwp, nyp, nxp, nfp;
+   pc->mCmd->getConnectionWeights(connName, &temp, &nwp, &nyp, &nxp, &nfp);
+   py::array_t<float> result(temp.size(), temp.data());
+   result.resize({nwp, nyp, nxp, nfp}, false);
+   return result;
+}
+
+void PySetConnectionWeights(PythonContext *pc, const char *connName, py::array_t<float> *data) {
+   unsigned int N = data->shape()[0]*data->shape()[1]*data->shape()[2]*data->shape()[3];
+   std::vector<float> temp(data->data(), data->data() + N);
+   pc->mCmd->setConnectionWeights(connName, &temp);
 }
 
 py::array_t<float> PyGetLayerActivity(PythonContext *pc, const char *layerName) {

@@ -7,6 +7,7 @@
 #ifndef BASEPROBE_HPP_
 #define BASEPROBE_HPP_
 
+#include "bindings/InteractionMessages.hpp"
 #include "columns/BaseObject.hpp"
 #include "columns/Messages.hpp"
 #include "components/LayerUpdateController.hpp"

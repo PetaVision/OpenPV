@@ -292,51 +292,6 @@ class LayerCheckNotANumberMessage : public BaseMessage {
    int mPhase;
 };
 
-class LayerSetInternalStateMessage : public BaseMessage {
-  public:
-   LayerSetInternalStateMessage(const char *name, std::vector<float> *data) {
-      setMessageType("LayerSetInternalState");
-      mName = name;
-      mData = data;
-   }
-   const char *mName;
-   std::vector<float> *mData;
-};
-
-class LayerGetInternalStateMessage : public BaseMessage {
-  public:
-   LayerGetInternalStateMessage(const char *name, std::vector<float> *data) {
-      setMessageType("LayerGetInternalState");
-      mName = name;
-      mData = data;
-   }
-   const char *mName;
-   std::vector<float> *mData;
-};
-
-
-class LayerGetActivityMessage : public BaseMessage {
-  public:
-   LayerGetActivityMessage(const char *name, std::vector<float> *data) {
-      setMessageType("LayerGetActivity");
-      mName = name;
-      mData = data;
-   }
-   const char *mName;
-   std::vector<float> *mData;
-};
-
-class LayerGetShapeMessage : public BaseMessage {
-  public:
-   LayerGetShapeMessage(const char *name, PVLayerLoc *loc) {
-      setMessageType("LayerGetShape");
-      mName = name;
-      mLoc  = loc;
-   }
-   const char *mName;
-   PVLayerLoc *mLoc;
-};
-
 class ColProbeOutputStateMessage : public BaseMessage {
   public:
    ColProbeOutputStateMessage(double simTime, double deltaTime) {
@@ -348,22 +303,12 @@ class ColProbeOutputStateMessage : public BaseMessage {
    double mDeltaTime;
 };
 
-class ProbeGetValuesMessage : public BaseMessage {
-  public:
-   ProbeGetValuesMessage(const char *probeName, std::vector<double> *values) {
-      setMessageType("ProbeGetValues");
-      mName = probeName;
-      mValues = values;
-   }
-   const char *mName;
-   std::vector<double> *mValues;
-};
-
 
 class CleanupMessage : public BaseMessage {
   public:
    CleanupMessage() { setMessageType("Cleanup"); }
 };
+
 
 } /* namespace PV */
 

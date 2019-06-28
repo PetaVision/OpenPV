@@ -58,6 +58,15 @@ class HyPerConn : public BaseConnection {
    Response::Status
    respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage const> message);
 
+   Response::Status
+   respondConnectionGetWeights(std::shared_ptr<ConnectionGetWeightsMessage const> message);
+
+   Response::Status
+   respondConnectionSetWeights(std::shared_ptr<ConnectionSetWeightsMessage const> message);
+
+   Response::Status
+   respondConnectionGetPatchGeometry(std::shared_ptr<ConnectionGetPatchGeometryMessage const> message);
+
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 

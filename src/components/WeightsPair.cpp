@@ -37,6 +37,25 @@ void WeightsPair::initMessageActionMap() {
       return respondConnectionOutput(castMessage);
    };
    mMessageActionMap.emplace("ConnectionOutput", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionGetWeightsMessage const>(msgptr);
+      return respondConnectionGetWeights(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionGetWeights", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionSetWeightsMessage const>(msgptr);
+      return respondConnectionSetWeights(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionSetWeights", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionGetPatchGeometryMessage const>(msgptr);
+      return respondConnectionGetPatchGeometry(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionGetPatchGeometry", action);
+
 }
 
 void WeightsPair::setObjectType() { mObjectType = "WeightsPair"; }
@@ -126,6 +145,53 @@ WeightsPair::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage con
    outputState(message->mTime);
    return Response::SUCCESS;
 }
+
+Response::Status
+WeightsPair::respondConnectionGetWeights(std::shared_ptr<ConnectionGetWeightsMessage const> message) {
+   if (strcmp(message->mName, getName()) != 0) {
+      return Response::NO_ACTION;
+   }
+
+   unsigned int size = mPreWeights->getNumDataPatches() * mPreWeights->getPatchSizeOverall();
+
+   message->mValues->resize(size);
+   message->mValues->assign(mPreWeights->getData(0), mPreWeights->getData(0) + size);
+
+   return Response::SUCCESS;
+}
+
+Response::Status
+WeightsPair::respondConnectionSetWeights(std::shared_ptr<ConnectionSetWeightsMessage const> message) {
+   if (strcmp(message->mName, getName()) != 0) {
+      return Response::NO_ACTION;
+   }
+
+   unsigned int size = mPreWeights->getNumDataPatches() * mPreWeights->getPatchSizeOverall();
+   if (message->mValues->size() != size) {
+      message->error("weight vector size mismatch");
+      return Response::NO_ACTION;
+   }
+   
+   // TODO
+
+   return Response::SUCCESS;
+}
+
+
+Response::Status
+WeightsPair::respondConnectionGetPatchGeometry(std::shared_ptr<ConnectionGetPatchGeometryMessage const> message) {
+   if (strcmp(message->mName, getName()) != 0) {
+      return Response::NO_ACTION;
+   }
+
+   *(message->mNwp) = mPreWeights->getNumDataPatches();
+   *(message->mNyp) = mPreWeights->getPatchSizeY();
+   *(message->mNxp) = mPreWeights->getPatchSizeX();
+   *(message->mNfp) = mPreWeights->getPatchSizeF();
+
+   return Response::SUCCESS;
+}
+
 
 Response::Status
 WeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {

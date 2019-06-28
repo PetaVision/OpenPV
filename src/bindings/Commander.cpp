@@ -6,8 +6,9 @@ namespace PV {
 
 // Public
 
-Commander::Commander(std::map<std::string, std::string> args, std::string params) {
-   mIC = new InteractiveContext(args, params);
+Commander::Commander(std::map<std::string, std::string> args, std::string params, void (*errFunc)(std::string const)) {
+   mIC = new Interactions(args, params);
+   mErrFunc = errFunc;
 }
 
 Commander::~Commander() {
@@ -25,7 +26,8 @@ bool Commander::isFinished() {
 void Commander::waitForCommands() {
    bool finished = false;
    if (getRank() == 0) {
-      Fatal().printf("Commander::waitForCommands can only be called from non root process\n");
+      mErrFunc("waitForCommands can only be called from non-root processes.\n");
+      return;
    }
    while (!finished) {
       Command cmd = CMD_NONE;
@@ -61,17 +63,30 @@ void Commander::waitForCommands() {
 
 void Commander::getLayerActivity(const char *layerName, std::vector<float> *data,
          int *nb, int *ny, int *nx, int *nf) {
+   if(getRank() != 0) {
+      mErrFunc("getLayerActivity only be called from the root process. "
+         "Did you forget to call waitForCommands?");
+      return;
+   }
    getLayerData(layerName, data, nb, ny, nx, nf, BUF_A);
 }
 
 void Commander::getLayerState(const char *layerName, std::vector<float> *data,
          int *nb, int *ny, int *nx, int *nf) {
+   if(getRank() != 0) {
+      mErrFunc("getLayerState can only be called from the root process. "
+         "Did you forget to call waitForCommands?");
+      return;
+   }
    getLayerData(layerName, data, nb, ny, nx, nf, BUF_V);
 }
 
 void Commander::setLayerState(const char *layerName, std::vector<float> *data) {
-   FatalIf(getRank() != 0, "Commander::setLayerState can only be called from root process. "
-         "Did you forget to call waitForCommands()?");
+   if (getRank() != 0) {
+      mErrFunc("setLayerState() can only be called from the root process. "
+         "Did you forget to call waitForCommands?");
+      return;
+   }
    const Command cmd = CMD_SET_STATE;
    unsigned int len = strlen(layerName) + 1;
    rootSend(&cmd, 1, MPI_INT);
@@ -80,7 +95,9 @@ void Commander::setLayerState(const char *layerName, std::vector<float> *data) {
 
    MPI_Status stat;
    PVLayerLoc loc;
-   mIC->getLayerShape(layerName, &loc);
+   if (mIC->getLayerShape(layerName, &loc) == Interactions::FAILURE) {
+      mErrFunc(mIC->getError());
+   }
 
    unsigned int globalSize = loc.nxGlobal * loc.nyGlobal * loc.nf * loc.nbatchGlobal;
    unsigned int localSize  = loc.nx * loc.ny * loc.nf * loc.nbatch;
@@ -89,7 +106,10 @@ void Commander::setLayerState(const char *layerName, std::vector<float> *data) {
    int kx0 = loc.kx0;
    int ky0 = loc.ky0;
 
-   FatalIf(data->size() != globalSize, "Commander::setLayerState vector incorrect dimensions");
+   if(data->size() != globalSize) {
+      mErrFunc("setLayerState() vector has incorrect size");
+      return;
+   }
 
    for (int r = 0; r < getCommSize(); r++) {
       if (r > 0) {
@@ -114,14 +134,19 @@ void Commander::setLayerState(const char *layerName, std::vector<float> *data) {
          MPI_Send(slice.data(), slice.size(), MPI_FLOAT, r, MPI_TAG, MPI_COMM_WORLD);
       }
       else {
-         mIC->setLayerState(layerName, &slice);
+         if (mIC->setLayerState(layerName, &slice) == Interactions::FAILURE) {
+            mErrFunc(mIC->getError());
+         }
       }
    }
 }
 
 void Commander::getProbeValues(const char *probeName, std::vector<double> *data) {
-   FatalIf(getRank() != 0, "Commander::getProbeValues can only be called from root process. "
-         "Did you forget to call waitForCommands()?");
+   if(getRank() != 0) {
+      mErrFunc("getProbeValues can only be called from the root process. "
+         "Did you forget to call waitForCommands?");
+      return;
+   }
    const Command cmd = CMD_GET_PROBE_VALUES;
    unsigned int len = strlen(probeName) + 1;
    rootSend(&cmd, 1, MPI_INT);
@@ -132,9 +157,14 @@ void Commander::getProbeValues(const char *probeName, std::vector<double> *data)
    std::vector<double> tempData;
    int batches;
    int batch = getBatch();
+
    mIC->getMPIShape(NULL, NULL, &batches);
 
-   mIC->getProbeValues(probeName, &tempData);
+   // This should probably happen before the MPI command is sent out
+   if (mIC->getProbeValues(probeName, &tempData) == Interactions::FAILURE) {
+      mErrFunc(mIC->getError());
+      return;
+   }
 
    len = tempData.size();
    data->resize(len * batches);
@@ -152,29 +182,81 @@ void Commander::getProbeValues(const char *probeName, std::vector<double> *data)
    }
 }
 
+void Commander::getConnectionWeights(const char *connName, std::vector<float> *data,
+                  int *nwp, int *nyp, int *nxp, int *nfp) {
+   if(getRank() != 0) {
+      mErrFunc("getConnectionWweights can only be called from the root process. "
+         "Did you forget to call waitForCommands?");
+      return;
+   }
+   // TODO: Verify that this does not need any MPI interaction
+   if (mIC->getConnectionPatchGeometry(connName, nwp, nyp, nxp, nfp) == Interactions::FAILURE) {
+      mErrFunc(mIC->getError());
+      return;
+   }
+   if (mIC->getConnectionWeights(connName, data) == Interactions::FAILURE) {
+      mErrFunc(mIC->getError());
+      return;
+   }
+}
+
+void Commander::setConnectionWeights(const char *connName, std::vector<float> *data) {
+   if(getRank() != 0) {
+      mErrFunc("setConnectionWweights can only be called from the root process. "
+         "Did you forget to call waitForCommands?");
+      return;
+   }
+   // TODO: Verify that this does not need any MPI interaction
+   if (mIC->setConnectionWeights(connName, data) == Interactions::FAILURE) {
+      mErrFunc(mIC->getError());
+      return;
+   }
+}
+
+
 void Commander::beginRun() {
-   FatalIf(getRank() != 0, "Commander::beginRun can only be called from root process. "
-         "Did you forget to call waitForCommands()?");
+   if (getRank() != 0) {
+      mErrFunc("beginRun can only be called from the root process. "
+         "Did you forget to call waitForCommands?");
+      return;
+   }
    const Command cmd = CMD_BEGIN_RUN;
    rootSend(&cmd,   1, MPI_INT);
-   mIC->beginRun();
+   if (mIC->beginRun() == Interactions::FAILURE) {
+      mErrFunc(mIC->getError());
+      return;
+   }
 }
 
 void Commander::finishRun() {
-   FatalIf(getRank() != 0, "Commander::finishRun can only be called from root process. "
-         "Did you forget to call waitForCommands()?");
+   if(getRank() != 0) {
+      mErrFunc("finishRun can only be called from the root process. "
+         "Did you forget to call waitForCommands?");
+      return;
+   }
    const Command cmd = CMD_FINISH_RUN;
    rootSend(&cmd,   1, MPI_INT);
-   mIC->finishRun();
+   if (mIC->finishRun() == Interactions::FAILURE) {
+      mErrFunc(mIC->getError());
+      return;
+   }
 }
 
 double Commander::advanceRun(unsigned int steps) {
-   FatalIf(getRank() != 0, "Commander::advanceRun can only be called from root process. "
-         "Did you forget to call waitForCommands()?");
+   if(getRank() != 0) {
+      mErrFunc("advanceRun can only be called from the root process. "
+         "Did you forget to call waitForCommands?");
+      return 0.0;
+   }
+   double simTime;
    const Command cmd = CMD_ADVANCE_RUN;
    rootSend(&cmd,   1, MPI_INT);
    rootSend(&steps, 1, MPI_UNSIGNED);
-   return mIC->advanceRun(steps); 
+   if (mIC->advanceRun(steps, &simTime) == Interactions::FAILURE) {
+      mErrFunc(mIC->getError());
+      return 0.0;
+   }
+   return simTime;
 }
 
 // Private
@@ -182,20 +264,20 @@ double Commander::advanceRun(unsigned int steps) {
 
 // These wrap some of the repetitive loop writing in a simpler call
 void Commander::rootSend(const void *buf, int num, MPI_Datatype dtype) {
-   FatalIf(getRank() != 0, "Cannot call InteractiveContext::rootSend from non root process.\n");
+   FatalIf(getRank() != 0, "Cannot call rootSend() from non-root processes.\n");
    for (int i = 1; i < getCommSize(); i++) {
       MPI_Send(buf, num, dtype, i, MPI_TAG, MPI_COMM_WORLD);
    }
 }
 
 void Commander::nonRootSend(const void *buf, int num, MPI_Datatype dtype) {
-   FatalIf(getRank() == 0, "Cannot call InteractiveContext::nonRootSend from root process.\n");
+   FatalIf(getRank() == 0, "Cannot call nonRootSend() from the root process.\n");
    MPI_Send(buf, num, dtype, 0, MPI_TAG, MPI_COMM_WORLD);
 }
 
 void Commander::nonRootRecv(void *buf, int num, MPI_Datatype dtype) {
    MPI_Status stat;
-   FatalIf(getRank() == 0, "Cannot call InteractiveContext::nonRootSend from root process.\n");
+   FatalIf(getRank() == 0, "Cannot call nonRootSend() from the root process.\n");
    MPI_Recv(buf, num, dtype, 0, MPI_TAG, MPI_COMM_WORLD, &stat);
 }
 
@@ -227,10 +309,6 @@ int Commander::getBatch() {
 
 void Commander::getLayerData(const char *layerName, std::vector<float> *data,
                   int *nb, int *ny, int *nx, int *nf, Buffer b) {
-
-   FatalIf(getRank() != 0, "Commander::getLayerData can only be called from root process. "
-         "Did you forget to call waitForCommands()?");
-
    Command cmd = CMD_NONE;
    unsigned int len = strlen(layerName) + 1;
    switch(b) {
@@ -258,19 +336,27 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
 
    mIC->getLayerShape(layerName, &loc);
    size = loc.nx * loc.ny * loc.nf * loc.nbatch;
+   auto result = Interactions::SUCCESS;
    switch(b) {
       case BUF_A:
-         mIC->getLayerActivity(layerName, &tempData);
+         result = mIC->getLayerActivity(layerName, &tempData);
          break;
       case BUF_V:
-         mIC->getLayerState(layerName, &tempData);
+         result = mIC->getLayerState(layerName, &tempData);
          break;
       default:
          break;
    }
 
-   FatalIf(size != tempData.size(),
-         "getLayerShape returned a different size than LayerGetData");
+   if (result == Interactions::FAILURE) {
+      mErrFunc(mIC->getError());
+      return;
+   }
+
+   if(size != tempData.size()) {
+      mErrFunc("getLayerShape returned an unexpected value.");
+      return;
+   }
 
    *nx = loc.nxGlobal;
    *ny = loc.nyGlobal;
@@ -312,7 +398,7 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
 void Commander::remoteAdvanceRun() {
    unsigned int steps;
    nonRootRecv(&steps, 1, MPI_UNSIGNED);
-   mIC->advanceRun(steps);
+   mIC->advanceRun(steps, nullptr);
 }
 
 void Commander::remoteGetLayerData(Buffer b) {

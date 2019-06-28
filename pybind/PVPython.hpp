@@ -25,10 +25,14 @@ struct PythonContext {
    Commander *mCmd;
 };
 
+void                errCallback(std::string const err);
+
 PythonContext      *PyCreateContext(py::dict args, std::string params);
 void                PyBeginRun(PythonContext *pc);
 double              PyAdvanceRun(PythonContext *pc, unsigned int steps);
 void                PyFinishRun(PythonContext *pc);
+py::array_t<float>  PyGetConnectionWeights(PythonContext *pc, const char *connName); 
+void                PySetConnectionWeights(PythonContext *pc, const char *connName, py::array_t<float> *data); 
 py::array_t<float>  PyGetLayerActivity(PythonContext *pc, const char *layerName); 
 py::array_t<float>  PyGetLayerState(PythonContext *pc, const char *layerName); 
 void                PySetLayerState(PythonContext *pc, const char *layerName, py::array_t<float> *data);
@@ -45,17 +49,19 @@ PYBIND11_MODULE( PYTHON_MODULE_NAME, m ) {
    py::class_<PV::PythonContext>(m, "PVContext")
       .def(py::init<>());
 
-   m.def("createContext",    &PV::PyCreateContext);
-   m.def("beginRun",         &PV::PyBeginRun);
-   m.def("advanceRun",       &PV::PyAdvanceRun);
-   m.def("finishRun",        &PV::PyFinishRun);
-   m.def("getLayerActivity", &PV::PyGetLayerActivity);
-   m.def("getLayerState",    &PV::PyGetLayerState);
-   m.def("setLayerState",    &PV::PySetLayerState);
-   m.def("isFinished",       &PV::PyIsFinished);
-   m.def("getProbeValues",   &PV::PyGetProbeValues);
-   m.def("isRoot",           &PV::PyIsRoot);
-   m.def("waitForCommands",  &PV::PyWaitForCommands);
+   m.def("createContext",           &PV::PyCreateContext);
+   m.def("beginRun",                &PV::PyBeginRun);
+   m.def("advanceRun",              &PV::PyAdvanceRun);
+   m.def("finishRun",               &PV::PyFinishRun);
+   m.def("getConnectionWeights",    &PV::PyGetConnectionWeights);
+   m.def("setConnectionWeights",    &PV::PySetConnectionWeights);
+   m.def("getLayerActivity",        &PV::PyGetLayerActivity);
+   m.def("getLayerState",           &PV::PyGetLayerState);
+   m.def("setLayerState",           &PV::PySetLayerState);
+   m.def("isFinished",              &PV::PyIsFinished);
+   m.def("getProbeValues",          &PV::PyGetProbeValues);
+   m.def("isRoot",                  &PV::PyIsRoot);
+   m.def("waitForCommands",         &PV::PyWaitForCommands);
 }
 
 
