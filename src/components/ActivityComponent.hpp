@@ -82,8 +82,6 @@ class ActivityComponent : public ComponentBasedObject {
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
-   Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
-
 #ifdef PV_USE_CUDA
    virtual Response::Status
    setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) override;

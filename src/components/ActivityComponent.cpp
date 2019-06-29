@@ -114,15 +114,6 @@ ActivityComponent::initializeState(std::shared_ptr<InitializeStateMessage const>
    return mActivity->respond(message);
 }
 
-Response::Status ActivityComponent::readStateFromCheckpoint(Checkpointer *checkpointer) {
-   Response::Status status = ComponentBasedObject::readStateFromCheckpoint(checkpointer);
-   if (!Response::completed(status)) {
-      return status;
-   }
-   auto message = std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(checkpointer);
-   return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
-}
-
 #ifdef PV_USE_CUDA
 Response::Status
 ActivityComponent::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
