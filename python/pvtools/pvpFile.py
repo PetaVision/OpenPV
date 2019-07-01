@@ -249,7 +249,7 @@ class pvpOpen(object):
 
             #Make csrsparsematrix
             data["time"] = timeList
-            data["values"] = sp.csr_matrix( (vals, (rows, cols)) )
+            data["values"] = sp.csr_matrix( (vals, (rows, cols)), shape=(len(frameRange), self.header["nx"] * self.header["ny"] * self.header["nf"]) )
 
         return data
 
