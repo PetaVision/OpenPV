@@ -16,9 +16,9 @@ class Interactions {
          FAILURE
       };
 
-      Result beginRun();
-      Result advanceRun(unsigned int steps, double *simTime);
-      Result finishRun();
+      Result begin();
+      Result step(double *simTime);
+      Result finish();
       Result getLayerActivity(const char *layerName, std::vector<float> *data);
       Result getLayerState(const char *layerName, std::vector<float> *data);
       Result setLayerState(const char *layerName, std::vector<float> const *data);

@@ -177,6 +177,9 @@ WeightsPair::respondConnectionSetWeights(std::shared_ptr<ConnectionSetWeightsMes
       w[i] = (*message->mValues)[i];
    }
 
+   // This is required for the following calls to work properly
+   mPreWeights->setTimestamp(mPreWeights->getTimestamp() + 1);
+
 #ifdef PV_USE_CUDA
    mPreWeights->copyToGPU();
 #endif // PV_USE_CUDA

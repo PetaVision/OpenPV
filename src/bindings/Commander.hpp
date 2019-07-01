@@ -16,17 +16,18 @@ class Commander {
 
       enum Command {
          CMD_NONE,
-         CMD_BEGIN_RUN,
-         CMD_ADVANCE_RUN,
-         CMD_FINISH_RUN,
+         CMD_BEGIN,
+         CMD_ADVANCE,
+         CMD_FINISH,
          CMD_GET_ACTIVITY,
          CMD_GET_STATE,
          CMD_SET_STATE,
-         CMD_GET_PROBE_VALUES
+         CMD_GET_PROBE_VALUES,
+         CMD_SET_WEIGHTS
       };
 
    protected:
-      Interactions *mIC;
+      Interactions *mInteractions;
 
    private:
       enum Buffer {
@@ -37,6 +38,8 @@ class Commander {
       void   rootSend(const void *buf, int num, MPI_Datatype dtype);
       void   nonRootSend(const void *buf, int num, MPI_Datatype dtype);
       void   nonRootRecv(void *buf, int num, MPI_Datatype dtype);
+      void   rootSendCmdName(Command cmd, const char *name);
+      std::string const nonRootRecvName();
       int    getRank();
       int    getCommSize();
       int    getRow();
@@ -56,17 +59,22 @@ class Commander {
       void   getConnectionWeights(const char *connName, std::vector<float> *data,
                   int *nwp, int *nyp, int *nxp, int *nfp);
       void   setConnectionWeights(const char *connName, std::vector<float> *data);
-      void   beginRun();
-      void   finishRun();
-      double advanceRun(unsigned int steps);
+      void   begin();
+      void   finish();
+      double advance(unsigned int steps);
    private:
       void   getLayerData(const char *layerName, std::vector<float> *data,
                   int *nb, int *ny, int *nx, int *nf, Buffer b);
-      void   remoteAdvanceRun();
+
+      void   remoteAdvance();
       void   remoteGetLayerData(Buffer b);
       void   remoteSetLayerState();
       void   remoteGetProbeValues();
+      void   remoteSetConnectionWeights();
+
+      void   throwError(std::string const err);
       void   (*mErrFunc)(std::string const);
+
 
 };
 

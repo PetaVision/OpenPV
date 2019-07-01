@@ -135,7 +135,7 @@ Interactions::~Interactions() {
    free(mArgV);
 }
 
-Interactions::Result Interactions::beginRun() {
+Interactions::Result Interactions::begin() {
    clearError();
    if (mPVI->isExtraProc()) {
       error("Too many processes were allocated.");
@@ -143,7 +143,7 @@ Interactions::Result Interactions::beginRun() {
    }
 
    PVParams *params = mPVI->getParams();
-   
+ 
    if (params == nullptr) {
       error("beginRun was called without valid params");
       return FAILURE;
@@ -157,16 +157,16 @@ Interactions::Result Interactions::beginRun() {
    return SUCCESS;
 }
 
-Interactions::Result Interactions::advanceRun(unsigned int steps, double *simTime) {
-   double s;
-   if (simTime == nullptr) {
-      simTime = &s;
+Interactions::Result Interactions::step(double *simTime) {
+   double s = 0.0;
+   s = mHC->singleStep(); 
+   if (simTime != nullptr) {
+      *simTime = s;
    }
-   *simTime = mHC->multiStep(steps); 
    return SUCCESS;
 }
 
-Interactions::Result Interactions::finishRun() {
+Interactions::Result Interactions::finish() {
    mHC->finishRun();
    return SUCCESS;
 }

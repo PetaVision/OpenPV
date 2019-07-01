@@ -187,7 +187,6 @@ class HyPerCol : public Subject, public ParamsInterface {
    unsigned int getRandomSeed() { return mRandomSeed; }
    unsigned int seedRandomFromWallClock();
    double singleStep();
-   double multiStep(unsigned int steps);
    Response::Status interact(std::shared_ptr<InteractionMessage const> message); 
 
 

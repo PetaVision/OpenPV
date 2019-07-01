@@ -1,7 +1,7 @@
 #ifndef PVPYTHON_HPP_
 #define PVPYTHON_HPP_
 
-#define PYTHON_MODULE_NAME      PVPython
+#define PYTHON_MODULE_NAME      PVPython 
 #define PYTHON_MODULE_NAME_STR "PVPython"
 
 #include <pybind11/pybind11.h>
@@ -13,33 +13,29 @@ namespace py = pybind11;
 
 namespace PV {
 
-struct PythonContext {
-   PythonContext() {
-      mCmd = nullptr;
-   }
-   ~PythonContext() {
-      if (mCmd != nullptr) {
-         delete(mCmd);
-      }
-   }
+class PythonContext {
+  public:
+   PythonContext(py::dict args, std::string params);
+   ~PythonContext();
+
+  private:
    Commander *mCmd;
+   
+  public:
+   void                Begin();
+   double              Advance(unsigned int steps);
+   void                Finish();
+   py::array_t<float>  GetConnectionWeights(const char *connName); 
+   void                SetConnectionWeights(const char *connName, py::array_t<float> *data); 
+   py::array_t<float>  GetLayerActivity(const char *layerName); 
+   py::array_t<float>  GetLayerState(const char *layerName); 
+   void                SetLayerState(const char *layerName, py::array_t<float> *data);
+   bool                IsFinished();
+   py::array_t<double> GetProbeValues(const char *probeName);
+   bool                IsRoot();
+   void                WaitForCommands();
 };
 
-void                errCallback(std::string const err);
-
-PythonContext      *PyCreateContext(py::dict args, std::string params);
-void                PyBeginRun(PythonContext *pc);
-double              PyAdvanceRun(PythonContext *pc, unsigned int steps);
-void                PyFinishRun(PythonContext *pc);
-py::array_t<float>  PyGetConnectionWeights(PythonContext *pc, const char *connName); 
-void                PySetConnectionWeights(PythonContext *pc, const char *connName, py::array_t<float> *data); 
-py::array_t<float>  PyGetLayerActivity(PythonContext *pc, const char *layerName); 
-py::array_t<float>  PyGetLayerState(PythonContext *pc, const char *layerName); 
-void                PySetLayerState(PythonContext *pc, const char *layerName, py::array_t<float> *data);
-bool                PyIsFinished(PythonContext *pc);
-py::array_t<double> PyGetProbeValues(PythonContext *pc, const char *probeName);
-bool                PyIsRoot(PythonContext *pc);
-void                PyWaitForCommands(PythonContext *pc);
 
 } /* namespace PV */
 
@@ -47,21 +43,20 @@ PYBIND11_MODULE( PYTHON_MODULE_NAME, m ) {
    m.doc() = "Python bindings for OpenPV";
 
    py::class_<PV::PythonContext>(m, "PVContext")
-      .def(py::init<>());
-
-   m.def("createContext",           &PV::PyCreateContext);
-   m.def("beginRun",                &PV::PyBeginRun);
-   m.def("advanceRun",              &PV::PyAdvanceRun);
-   m.def("finishRun",               &PV::PyFinishRun);
-   m.def("getConnectionWeights",    &PV::PyGetConnectionWeights);
-   m.def("setConnectionWeights",    &PV::PySetConnectionWeights);
-   m.def("getLayerActivity",        &PV::PyGetLayerActivity);
-   m.def("getLayerState",           &PV::PyGetLayerState);
-   m.def("setLayerState",           &PV::PySetLayerState);
-   m.def("isFinished",              &PV::PyIsFinished);
-   m.def("getProbeValues",          &PV::PyGetProbeValues);
-   m.def("isRoot",                  &PV::PyIsRoot);
-   m.def("waitForCommands",         &PV::PyWaitForCommands);
+      .def(py::init<py::dict, std::string>())
+      .def("begin",                   &PV::PythonContext::Begin)
+      .def("advance",                 &PV::PythonContext::Advance)
+      .def("finish",                  &PV::PythonContext::Finish)
+      .def("getConnectionWeights",    &PV::PythonContext::GetConnectionWeights)
+      .def("setConnectionWeights",    &PV::PythonContext::SetConnectionWeights)
+      .def("getLayerActivity",        &PV::PythonContext::GetLayerActivity)
+      .def("getLayerState",           &PV::PythonContext::GetLayerState)
+      .def("setLayerState",           &PV::PythonContext::SetLayerState)
+      .def("isFinished",              &PV::PythonContext::IsFinished)
+      .def("getProbeValues",          &PV::PythonContext::GetProbeValues)
+      .def("isRoot",                  &PV::PythonContext::IsRoot)
+      .def("waitForCommands",         &PV::PythonContext::WaitForCommands)
+      ;
 }
 
 

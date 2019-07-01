@@ -612,14 +612,6 @@ int HyPerCol::processParams(char const *path) {
    return PV_SUCCESS;
 }
 
-// TODO: Make this respect mStopTime
-double HyPerCol::multiStep(unsigned int steps) {
-   while (steps-- > 0) {
-      advanceTime(mSimTime);
-   }
-   return mSimTime;
-}
-
 double HyPerCol::singleStep() {
    if (mSimTime < mStopTime - mDeltaTime / 2.0) {
       mCheckpointer->checkpointWrite(mSimTime);
