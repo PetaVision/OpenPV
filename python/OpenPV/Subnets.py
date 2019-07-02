@@ -106,3 +106,40 @@ def addLCASubnet(params,
     }
     pv.addGroup(params, reconLayerName + 'To' + errorLayerName, reconToError)
 
+    if 'EnergyProbe' not in params:
+        pv.addGroup(params, 'EnergyProbe', {
+                    'groupType'                     : 'ColumnEnergyProbe',
+                    'message'                       : None,
+                    'textOutputFlag'                : False,
+                    'probeOutputFile'               : 'EnergyProbe.txt',
+                    'triggerLayerName'              : None,
+                    'energyProbe'                   : None
+                }
+           )
+
+    pv.addGroup(params, lcaLayerName + 'L1Probe', {
+                'groupType'                     : 'L1NormProbe',
+                'targetLayer'                   : lcaLayerName,
+                'message'                       : None,
+                'textOutputFlag'                : False,
+                'probeOutputFile'               : lcaLayerName + 'L1Probe.txt',
+                'energyProbe'                   : 'EnergyProbe',
+                'coefficient'                   : params[lcaLayerName]['VThresh'],
+                'maskLayerName'                 : None
+            }
+        )
+
+    pv.addGroup(params, errorLayerName + 'L2Probe', {
+                'groupType'                     : 'L2NormProbe',
+                'targetLayer'                   : errorLayerName,
+                'message'                       : None,
+                'textOutputFlag'                : True,
+                'probeOutputFile'               : errorLayerName + 'L2Probe.txt',
+                'energyProbe'                   : 'EnergyProbe',
+                'coefficient'                   : 0.5,
+                'maskLayerName'                 : None,
+                'exponent'                      : 2
+            }
+        )
+    
+

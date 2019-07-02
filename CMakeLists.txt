@@ -62,9 +62,9 @@ if (${PV_BUILD_PYTHON})
 #  CUDA_NVCC_FLAGS must have -Xcompiler -fPIC
 #  CUDA_USE_STATIC_CUDA_RUNTIME must be OFF
    set(PYBIND11_CPP_STANDARD -std=c++11)
-   add_subdirectory(pybind/pybind11)
+   add_subdirectory(python/pybind11)
    
-   pybind11_add_module(PVPython pybind/PVPython.cpp)
+   pybind11_add_module(PythonBindings python/PythonBindings.cpp)
    
    include_directories(${PV_INCLUDE_DIR})
    include_directories(${PV_CONFIG_FILE_DIR})
@@ -74,16 +74,16 @@ if (${PV_BUILD_PYTHON})
      include_directories(${CUDNN_INCLUDE_DIR})
    endif()
    
-   target_link_libraries(PVPython PRIVATE "${PV_LIBRARY_DIR}/libpv.so")
+   target_link_libraries(PythonBindings PRIVATE "${PV_LIBRARY_DIR}/libpv.so")
    if (PV_USE_MPI AND MPI_FOUND)
-     target_link_libraries(PVPython PRIVATE ${MPI_CXX_LIBRARIES})
+     target_link_libraries(PythonBindings PRIVATE ${MPI_CXX_LIBRARIES})
    endif()
    if (PV_USE_OPENMP)
-     target_link_libraries(PVPython PRIVATE ${PV_OPENMP_LIBRARIES})
+     target_link_libraries(PythonBindings PRIVATE ${PV_OPENMP_LIBRARIES})
    endif()
    if (PV_USE_CUDA)
-     target_link_libraries(PVPython PRIVATE ${CUDA_LIBRARIES})
-     target_link_libraries(PVPython PRIVATE ${CUDNN_LIBRARIES})
+     target_link_libraries(PythonBindings PRIVATE ${CUDA_LIBRARIES})
+     target_link_libraries(PythonBindings PRIVATE ${CUDNN_LIBRARIES})
    endif()
 endif()
 

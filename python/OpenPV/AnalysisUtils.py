@@ -10,7 +10,7 @@ def printProbeTable(pvContext, energyProbe, errorProbe, activityProbe, adaptProb
     l2_list = pvContext.getProbeValues(errorProbe)
     l1_list = pvContext.getProbeValues(activityProbe)
     ad_list = pvContext.getProbeValues(adaptProbe)
-    print("[Batch]\t[Energy]\t[Error]\t[Activity]\t[Timescale]")
+    print("[Batch]\t[Energy]\t[Error]\t\t[Activity]\t[Timescale]")
     for i in range(len(en_list)):
         print("%d:\t%.2f\t\t%.2f\t\t%.2f\t\t%.2f" %
                 (i,
@@ -31,10 +31,10 @@ def plotRecons(pvContext, imageName, errorName, reconName, fig=1):
     im_row = np.concatenate((img, err, rec), axis=1)
     full = np.concatenate(np.split(im_row, np.shape(im_row)[0], 0), axis=2)
     # normalize to the range of the input image
-#    if np.min(full) != np.max(full):
-#        full = (full - np.min(img)) / (np.max(img) - np.min(img))
     if np.min(full) != np.max(full):
-        full = (full - np.min(full)) / (np.max(full) - np.min(full))
+        full = (full - np.min(img)) / (np.max(img) - np.min(img))
+#    if np.min(full) != np.max(full):
+#        full = (full - np.min(full)) / (np.max(full) - np.min(full))
     plt.figure(fig)
     plt.clf()
     plt.imshow(np.clip(np.squeeze(full), 0.0, 1.0))
