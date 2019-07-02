@@ -15,6 +15,84 @@ Commander::~Commander() {
    delete mInteractions;
 }
 
+// Private helper methods
+
+void Commander::rootSend(const void *buf, int num, MPI_Datatype dtype) {
+   FatalIf(getRank() != 0, "Cannot call rootSend from non-root processes.\n");
+   for (int i = 1; i < getCommSize(); i++) {
+      MPI_Send(buf, num, dtype, i, MPI_TAG, MPI_COMM_WORLD);
+   }
+}
+
+void Commander::nonRootSend(const void *buf, int num, MPI_Datatype dtype) {
+   FatalIf(getRank() == 0, "Cannot call nonRootSend from the root process.\n");
+   MPI_Send(buf, num, dtype, 0, MPI_TAG, MPI_COMM_WORLD);
+}
+
+void Commander::nonRootRecv(void *buf, int num, MPI_Datatype dtype) {
+   MPI_Status stat;
+   FatalIf(getRank() == 0, "Cannot call nonRootRecv from the root process.\n");
+   MPI_Recv(buf, num, dtype, 0, MPI_TAG, MPI_COMM_WORLD, &stat);
+}
+
+void Commander::rootSendCmdName(Command cmd, const char *name) {
+   unsigned int len = strlen(name);
+   rootSend(&cmd, 1, MPI_INT);
+   rootSend(&len, 1, MPI_UNSIGNED);
+   rootSend(name, len, MPI_CHAR);
+}
+
+std::string const Commander::nonRootRecvName() {
+   unsigned int len;
+   char *name;
+   nonRootRecv(&len, 1, MPI_UNSIGNED);
+   name = (char*)calloc(sizeof(char), len);
+   nonRootRecv(name, len, MPI_CHAR);
+   std::string ans(name);
+   free(name); 
+   return ans; 
+}
+
+int Commander::getRank() {
+   return mInteractions->getMPILocation(NULL, NULL, NULL);
+}
+
+int Commander::getCommSize() {
+   return mInteractions->getMPIShape(NULL, NULL, NULL);
+}
+
+int Commander::getRow() {
+   int r;
+   mInteractions->getMPILocation(&r, NULL, NULL);
+   return r;
+}
+
+int Commander::getCol() {
+   int c;
+   mInteractions->getMPILocation(NULL, &c, NULL);
+   return c;
+}
+
+int Commander::getBatch() {
+   int b;
+   mInteractions->getMPILocation(NULL, NULL, &b);
+   return b;
+}
+
+// If an error callback function was provided, call it. Otherwise, throw an exception
+void Commander::throwError(std::string const err) {
+   std::string s = "<error on rank " + std::to_string(getRank()) + "> " + err;
+   if (mErrFunc != nullptr) {
+      mErrFunc(s);
+   }
+   else {
+      throw std::runtime_error(s.c_str());
+   }
+}
+
+
+// Public methods for interacting with PetaVision
+
 bool Commander::isRoot() {
    return getRank() == 0;
 }
@@ -250,72 +328,8 @@ double Commander::advance(unsigned int steps) {
    return simTime;
 }
 
-// Private
-
-
-// These wrap some of the repetitive loop writing in a simpler call
-void Commander::rootSend(const void *buf, int num, MPI_Datatype dtype) {
-   FatalIf(getRank() != 0, "Cannot call rootSend from non-root processes.\n");
-   for (int i = 1; i < getCommSize(); i++) {
-      MPI_Send(buf, num, dtype, i, MPI_TAG, MPI_COMM_WORLD);
-   }
-}
-
-void Commander::nonRootSend(const void *buf, int num, MPI_Datatype dtype) {
-   FatalIf(getRank() == 0, "Cannot call nonRootSend from the root process.\n");
-   MPI_Send(buf, num, dtype, 0, MPI_TAG, MPI_COMM_WORLD);
-}
-
-void Commander::nonRootRecv(void *buf, int num, MPI_Datatype dtype) {
-   MPI_Status stat;
-   FatalIf(getRank() == 0, "Cannot call nonRootRecv from the root process.\n");
-   MPI_Recv(buf, num, dtype, 0, MPI_TAG, MPI_COMM_WORLD, &stat);
-}
-
-void Commander::rootSendCmdName(Command cmd, const char *name) {
-   unsigned int len = strlen(name);
-   rootSend(&cmd, 1, MPI_INT);
-   rootSend(&len, 1, MPI_UNSIGNED);
-   rootSend(name, len, MPI_CHAR);
-}
-
-std::string const Commander::nonRootRecvName() {
-   unsigned int len;
-   char *name;
-   nonRootRecv(&len, 1, MPI_UNSIGNED);
-   name = (char*)calloc(sizeof(char), len);
-   nonRootRecv(name, len, MPI_CHAR);
-   std::string ans(name);
-   free(name); 
-   return ans; 
-}
-
-int Commander::getRank() {
-   return mInteractions->getMPILocation(NULL, NULL, NULL);
-}
-
-int Commander::getCommSize() {
-   return mInteractions->getMPIShape(NULL, NULL, NULL);
-}
-
-int Commander::getRow() {
-   int r;
-   mInteractions->getMPILocation(&r, NULL, NULL);
-   return r;
-}
-
-int Commander::getCol() {
-   int c;
-   mInteractions->getMPILocation(NULL, &c, NULL);
-   return c;
-}
-
-int Commander::getBatch() {
-   int b;
-   mInteractions->getMPILocation(NULL, NULL, &b);
-   return b;
-}
-
+// The only difference between getLayerActivity and getLayerState is the buffer it
+// fetches data from, so most of the implementation is here
 void Commander::getLayerData(const char *layerName, std::vector<float> *data,
                   int *nb, int *ny, int *nx, int *nf, Buffer b) {
    PVLayerLoc loc;
@@ -385,7 +399,7 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
 }
 
 
-// These commands are only called by waitForCommand in reponse to MPI commands from root 
+// Private commands that are only called by waitForCommand in reponse to MPI commands from root 
 
 void Commander::remoteAdvance() {
    unsigned int steps;
@@ -476,16 +490,5 @@ void Commander::remoteSetConnectionWeights() {
    }
 }
 
-
-// If an error callback function was provided, call it. Otherwise, throw an exception
-void Commander::throwError(std::string const err) {
-   std::string s = "<error on rank " + std::to_string(getRank()) + "> " + err;
-   if (mErrFunc != nullptr) {
-      mErrFunc(s);
-   }
-   else {
-      throw std::runtime_error(s.c_str());
-   }
-}
 
 } /* namespace PV */

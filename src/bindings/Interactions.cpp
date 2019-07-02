@@ -3,42 +3,7 @@
 
 namespace PV {
 
-
-// Private
-
-Response::Status Interactions::interact(std::shared_ptr<InteractionMessage const> message) {
-   return mHC->interact(message);
-}
-
-void Interactions::clearError() {
-   mErrMsg = "";
-}
-
-void Interactions::error(std::string const err) {
-   if (mErrMsg == "") {
-      mErrMsg = err;
-   }
-}
-
-Interactions::Result Interactions::checkError(std::shared_ptr<InteractionMessage const> message, Response::Status status,
-      std::string const funcName, std::string const objName) {
-   clearError();
-   if (status != Response::SUCCESS) {
-      if (getError() == "") {
-         error(funcName + ": failed to find object '" + objName + "'");
-         return FAILURE;
-      }
-      error(funcName + ": " + getError());
-      return FAILURE;
-   }
-   return SUCCESS;
-}
-
 // Public
-
-std::string const Interactions::getError() {
-   return mErrMsg;
-}
 
 Interactions::Interactions(std::map<std::string, std::string> args, std::string params) {
    std::vector<std::string> cliArgs;
@@ -115,10 +80,10 @@ Interactions::Interactions(std::map<std::string, std::string> args, std::string 
    mMPICols    = mPVI->getCommunicator()->numCommColumns();
    mMPIBatches = mPVI->getCommunicator()->numCommBatches();
 
-   mRow = mPVI->getCommunicator()->commRow();
-   mCol = mPVI->getCommunicator()->commColumn();
+   mRow   = mPVI->getCommunicator()->commRow();
+   mCol   = mPVI->getCommunicator()->commColumn();
    mBatch = mPVI->getCommunicator()->commBatch();
-   mRank = mPVI->getCommunicator()->globalCommRank();
+   mRank  = mPVI->getCommunicator()->globalCommRank();
 
    // Read params from a string instead of a file
    if (!params.empty()) {
@@ -247,6 +212,40 @@ int Interactions::getMPILocation(int *row, int *col, int *batch) {
       *batch = mBatch; 
    }
    return mRank;
+}
+
+std::string const Interactions::getError() {
+   return mErrMsg;
+}
+
+// Private
+
+Response::Status Interactions::interact(std::shared_ptr<InteractionMessage const> message) {
+   return mHC->interact(message);
+}
+
+void Interactions::clearError() {
+   mErrMsg = "";
+}
+
+void Interactions::error(std::string const err) {
+   if (mErrMsg == "") {
+      mErrMsg = err;
+   }
+}
+
+Interactions::Result Interactions::checkError(std::shared_ptr<InteractionMessage const> message, Response::Status status,
+      std::string const funcName, std::string const objName) {
+   clearError();
+   if (status != Response::SUCCESS) {
+      if (getError() == "") {
+         error(funcName + ": failed to find object '" + objName + "'");
+         return FAILURE;
+      }
+      error(funcName + ": " + getError());
+      return FAILURE;
+   }
+   return SUCCESS;
 }
 
 

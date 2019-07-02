@@ -104,25 +104,25 @@ class ConnectionGetPatchGeometryMessage : public InteractionMessage {
 class ConnectionSetWeightsMessage : public InteractionMessage {
   public:
    ConnectionSetWeightsMessage(std::string *err, const char *connName,
-         std::vector<float> const *values):InteractionMessage(err) {
+         std::vector<float> const *data):InteractionMessage(err) {
       setMessageType("ConnectionSetWeights");
       mName = connName;
-      mValues = values;
+      mData = data;
    }
    const char *mName;
-   std::vector<float> const *mValues;
+   std::vector<float> const *mData;
 };
 
 class ConnectionGetWeightsMessage : public InteractionMessage {
   public:
    ConnectionGetWeightsMessage(std::string *err, const char *connName,
-         std::vector<float> *values):InteractionMessage(err) {
+         std::vector<float> *data):InteractionMessage(err) {
       setMessageType("ConnectionGetWeights");
       mName = connName;
-      mValues = values;
+      mData = data;
    }
    const char *mName;
-   std::vector<float> *mValues;
+   std::vector<float> *mData;
 };
 
 

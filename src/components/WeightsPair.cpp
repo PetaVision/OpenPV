@@ -154,8 +154,8 @@ WeightsPair::respondConnectionGetWeights(std::shared_ptr<ConnectionGetWeightsMes
 
    unsigned int size = mPreWeights->getNumDataPatches() * mPreWeights->getPatchSizeOverall();
 
-   message->mValues->resize(size);
-   message->mValues->assign(mPreWeights->getData(0), mPreWeights->getData(0) + size);
+   message->mData->resize(size);
+   message->mData->assign(mPreWeights->getData(0), mPreWeights->getData(0) + size);
 
    return Response::SUCCESS;
 }
@@ -167,14 +167,14 @@ WeightsPair::respondConnectionSetWeights(std::shared_ptr<ConnectionSetWeightsMes
    }
 
    unsigned int size = mPreWeights->getNumDataPatches() * mPreWeights->getPatchSizeOverall();
-   if (message->mValues->size() != size) {
+   if (message->mData->size() != size) {
       message->error("weight vector size mismatch");
       return Response::NO_ACTION;
    }
    
    float *w = mPreWeights->getData(0);
    for (int i = 0; i < size; i++) {
-      w[i] = (*message->mValues)[i];
+      w[i] = (*message->mData)[i];
    }
 
    // This is required for the following calls to work properly
