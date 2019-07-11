@@ -1,4 +1,4 @@
-import PVPython as pv
+import OpenPV as pv
 
 def addLCASubnet(params,
                  lcaLayerName,

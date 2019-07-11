@@ -1,4 +1,4 @@
-import PVPython as pv
+import OpenPV as pv
 import matplotlib.pyplot as plt
 import math
 import numpy as np

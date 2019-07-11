@@ -47,20 +47,20 @@ class PythonBindings {
 PYBIND11_MODULE( PYTHON_MODULE_NAME, m ) {
    m.doc() = "Python bindings for OpenPV";
 
-   py::class_<PV::PythonBindings>(m, "Petavision")
+   py::class_<PV::PythonBindings>(m, "PetaVision")
       .def(py::init<py::dict, std::string>())
       .def("begin",                   &PV::PythonBindings::begin)
       .def("advance",                 &PV::PythonBindings::advance)
       .def("finish",                  &PV::PythonBindings::finish)
-      .def("getConnectionWeights",    &PV::PythonBindings::getConnectionWeights)
-      .def("setConnectionWeights",    &PV::PythonBindings::setConnectionWeights)
-      .def("getLayerActivity",        &PV::PythonBindings::getLayerActivity)
-      .def("getLayerState",           &PV::PythonBindings::getLayerState)
-      .def("setLayerState",           &PV::PythonBindings::setLayerState)
-      .def("isFinished",              &PV::PythonBindings::isFinished)
-      .def("getProbeValues",          &PV::PythonBindings::getProbeValues)
-      .def("isRoot",                  &PV::PythonBindings::isRoot)
-      .def("waitForCommands",         &PV::PythonBindings::waitForCommands)
+      .def("get_connection_weights",  &PV::PythonBindings::getConnectionWeights)
+      .def("set_connection_weights",  &PV::PythonBindings::setConnectionWeights)
+      .def("get_layer_activity",      &PV::PythonBindings::getLayerActivity)
+      .def("get_layer_state",         &PV::PythonBindings::getLayerState)
+      .def("set_layer_state",         &PV::PythonBindings::setLayerState)
+      .def("is_finished",             &PV::PythonBindings::isFinished)
+      .def("get_probe_values",        &PV::PythonBindings::getProbeValues)
+      .def("is_root",                 &PV::PythonBindings::isRoot)
+      .def("wait_for_commands",       &PV::PythonBindings::waitForCommands)
       ;
 }
 
