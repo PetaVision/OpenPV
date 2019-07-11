@@ -39,7 +39,8 @@ class _CacheEntry:
 class Runner:
    def __init__(
          self,
-         pv,                        # instance of OpenPV.PetaVision
+         args,                      # dictionary passed to PetaVision constructor
+         params,                    # string containing petavision params
          analysis_callback,         # callback function called at end of analysis loop
          analysis_sleep_interval=1, # Seconds to sleep inbetween each analysis loop
          print_memory=False):       # Enables messages that estimate memory usage of each cache entry
@@ -49,12 +50,12 @@ class Runner:
             args=(self, self._stop_event, ))
       self._analysis_callback       = analysis_callback
       self._analysis_sleep_interval = analysis_sleep_interval
-      self._pv = pv
       self._watchlist = []
       self._cache = {}
       self._queue = queue.Queue()
       self._time  = 0
       self._print_memory = print_memory
+      self._pv = OpenPV.PetaVision(args, params)
 
 
    # Advances PetaVision the number of timesteps until the next watch entry update
@@ -75,20 +76,20 @@ class Runner:
          try:
             entry = self._queue.get(block=False)
             self._cache[entry.name].append(entry.data)
-            if len(self._cache[entry.name]) > entry.history:
+            while len(self._cache[entry.name]) > entry.history:
                self._cache[entry.name].pop(0)
          except queue.Empty:   
             break
 
    # Analysis loop thread entry point
    def _analysis_thread(self, stop_event):
-      print('beginning analysis thread with sleep interval of %f seconds'
+      print('Beginning analysis thread with sleep interval of %f seconds'
             % (self._analysis_sleep_interval))
       while not stop_event.is_set():
          self._queue_to_cache()
          self._analysis_callback(self)
          time.sleep(self._analysis_sleep_interval)
-      print('exiting analysis thread')
+      print('Exiting analysis thread')
 
    # Read only access to the current timestep
    def timestep(self):
@@ -101,16 +102,43 @@ class Runner:
          timestep_interval,   # Get data from this object every N timesteps
          pv_type,             # Type of object in PetaVision params
          history=1):          # Keep results of N previous watch queries
-      if name in self._cache:
-         raise ValueError('Object ' + name + ' already has an entry.')
-      self._watchlist.append(_WatchEntry(name, timestep_interval, pv_type, history))
-      self._cache[name] = []
+      if self._pv.is_root():
+         if name in self._cache:
+            raise ValueError('Object ' + name + ' already has an entry.')
+         self._watchlist.append(_WatchEntry(name, timestep_interval, pv_type, history))
+         self._cache[name] = []
 
    # Starts the analysis thread and runs the PetaVision network to completion
    def run(self):
-      self._analysis_thread.start()
-      while self._pv.is_finished() == False:
-         self._advance()
-      self._stop_event.set()
+      if self._pv.is_root():
+         self._pv.begin()
+         # Calculate size of each cache entry and fill each cache entry
+         # with the initial state
+         if self._print_memory:
+            print("Cache memory usage:")
+         for w in self._watchlist:
+            d = w.callback(self._pv, w.name)
+            e = _CacheEntry(w.name, d, w.history)
+            if self._print_memory:
+               b = d.nbytes * w.history
+               suf = " bytes"
+               if b > 1024 * 10:
+                  b /= 1024
+                  suf = " KB"
+               elif b > 1024 * 1024 * 10:
+                  b /= 1024 * 1024
+                  suf = " MB"
+               print("\t" + (str(b) + suf).ljust(24) + w.name)
+            self._cache[w.name].append(d)
 
+         self._analysis_thread.start()
+         while self._pv.is_finished() == False:
+            self._advance()
+         self._stop_event.set()
+         self._pv.finish()
+      else:
+         self._pv.wait_for_commands()
+         sys.exit()
 
+   def get(self, name):
+      return self._cache[name]
