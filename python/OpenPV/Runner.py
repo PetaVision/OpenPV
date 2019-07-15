@@ -7,6 +7,11 @@ import OpenPV
 
 from enum import Enum
 
+
+##############################################################################
+# Enum to wrap function callbacks for fetching PetaVision data
+##############################################################################
+
 class PVType(Enum):
    LAYER_A    = (OpenPV.PetaVision.get_layer_activity,)
    LAYER_V    = (OpenPV.PetaVision.get_layer_state,)
@@ -14,6 +19,11 @@ class PVType(Enum):
    PROBE      = (OpenPV.PetaVision.get_probe_values,)
    def __init__(self, callback):
       self.callback = callback
+
+
+##############################################################################
+#  Entry in the list of PetaVision object watch events
+##############################################################################
 
 class _WatchEntry:
    def __init__(self, name, timestep_interval, pv_type, history=1):
@@ -30,30 +40,96 @@ class _WatchEntry:
       self.history  = history 
       self.callback = pv_type.callback 
 
+
+##############################################################################
+# Entry in the cache of data returned by watch events
+##############################################################################
+
 class _CacheEntry:
-   def __init__(self, name, data, history):
-      self.name    = name
-      self.data    = data
-      self.history = history
+   def __init__(self, name, data, history, timestep):
+      self.name     = name
+      self.data     = data
+      self.history  = history
+      self.timestep = timestep
+
+
+##############################################################################
+# Wrapper for analysis threads that run alongside PetaVision
+##############################################################################
+
+class _AnalysisThread:
+   def __init__(self, callback, seconds, runner):
+      self._callback   = callback
+      self._seconds    = seconds
+      self._stop_event = threading.Event()
+      self._lock       = threading.Lock()
+      self._thread     = threading.Thread(
+            target=_AnalysisThread._run,
+            args=(self, runner))
+      self._thread.setName(str(callback.__name__))
+
+   def stop(self):
+      self._stop_event.set()
+      self._thread.join()
+
+   def start(self):
+      self._thread.start()
+
+   def _run(self, runner):
+      print('Beginning analysis thread \'%s\' with sleep interval of %f sec'
+            % (self._thread.getName(), self._seconds))
+      while not self._stop_event.is_set():
+         runner.get_cache().update()
+         self._callback(runner.timestep(), runner.get_cache())
+         time.sleep(self._seconds)
+      print('Exiting analysis thread \'%s\'' % (str(self._thread.getName())))
+
+
+
+##############################################################################
+# Cache wrapper
+##############################################################################
+
+class _DataCache:
+   def __init__(self):
+      self._cache = {}
+      self._queue = queue.Queue()
+
+   def init_entry(self, name):
+      self._cache[name] = []
+
+   def put(self, entry):
+      self._queue.put(entry)
+
+   def update(self):
+      while self._queue.qsize() > 0:
+         try:
+            entry = self._queue.get(block=False)
+            self._cache[entry.name].append(entry.data)
+            while len(self._cache[entry.name]) > entry.history:
+               self._cache[entry.name].pop(0)
+         except queue.Empty: 
+            break
+   
+   def get(self, name):
+      return self._cache[name]
+
+
+##############################################################################
+# Container object that manages running PetaVision, watching PetaVision objs,
+# and running analysis threads
+##############################################################################
 
 class Runner:
    def __init__(
          self,
          args,                      # dictionary passed to PetaVision constructor
          params,                    # string containing petavision params
-         analysis_callback,         # callback function called at end of analysis loop
-         analysis_sleep_interval=1, # Seconds to sleep inbetween each analysis loop
          print_memory=False):       # Enables messages that estimate memory usage of each cache entry
-      self._stop_event        = threading.Event()
-      self._analysis_thread   = threading.Thread(
-            target=Runner._analysis_thread,
-            args=(self, self._stop_event, ))
-      self._analysis_callback       = analysis_callback
-      self._analysis_sleep_interval = analysis_sleep_interval
+      self._threads   = []
       self._watchlist = []
-      self._cache = {}
-      self._queue = queue.Queue()
-      self._time  = 0
+      self._cache     = _DataCache()
+      self._time      = 0
       self._print_memory = print_memory
       self._pv = OpenPV.PetaVision(args, params)
 
@@ -66,34 +142,37 @@ class Runner:
          w.counter -= min_steps
          if w.counter <= 0:
             w.counter = w.interval
-            e = _CacheEntry(w.name, w.callback(self._pv, w.name), w.history)
-            self._queue.put(e)
+            self._cache.put(
+                  _CacheEntry(
+                     w.name,
+                     w.callback(self._pv, w.name),
+                     w.history,
+                     self._time))
 
 
-   # Moves data from the watch queue into the cache for thread safe access
-   def _queue_to_cache(self):
-      while self._queue.qsize() > 0:
-         try:
-            entry = self._queue.get(block=False)
-            self._cache[entry.name].append(entry.data)
-            while len(self._cache[entry.name]) > entry.history:
-               self._cache[entry.name].pop(0)
-         except queue.Empty:   
-            break
+   def _print_memory_usage(self, name, size):
+      suf = " bytes"
+      if size > 1024 * 10:
+         size /= 1024
+         suf = " KB"
+      elif size > 1024 * 1024 * 10:
+         size /= 1024 * 1024
+         suf = " MB"
+      print("\t" + (str(size) + suf).ljust(24) + name)
 
-   # Analysis loop thread entry point
-   def _analysis_thread(self, stop_event):
-      print('Beginning analysis thread with sleep interval of %f seconds'
-            % (self._analysis_sleep_interval))
-      while not stop_event.is_set():
-         self._queue_to_cache()
-         self._analysis_callback(self)
-         time.sleep(self._analysis_sleep_interval)
-      print('Exiting analysis thread')
 
    # Read only access to the current timestep
    def timestep(self):
       return self._time
+
+   # Adds a thread that runs the given callback at the given interval
+   def analyze(
+         self,
+         callback,
+         seconds):
+      if self._pv.is_root():
+         self._threads.append(_AnalysisThread(callback, seconds, self))
+         print('Added analysis thread \'%s\'' % (str(callback.__name__)))
 
    # Adds a watch entry for the named PetaVision network object
    def watch(
@@ -103,42 +182,44 @@ class Runner:
          pv_type,             # Type of object in PetaVision params
          history=1):          # Keep results of N previous watch queries
       if self._pv.is_root():
-         if name in self._cache:
-            raise ValueError('Object ' + name + ' already has an entry.')
+         # TODO: check for duplicate entry
          self._watchlist.append(_WatchEntry(name, timestep_interval, pv_type, history))
-         self._cache[name] = []
+         self._cache.init_entry(name)
+         print('Added watch entry for object \'%s\'' % (name))
 
    # Starts the analysis thread and runs the PetaVision network to completion
    def run(self):
       if self._pv.is_root():
          self._pv.begin()
+
          # Calculate size of each cache entry and fill each cache entry
          # with the initial state
          if self._print_memory:
             print("Cache memory usage:")
          for w in self._watchlist:
             d = w.callback(self._pv, w.name)
-            e = _CacheEntry(w.name, d, w.history)
+            e = _CacheEntry(w.name, d, w.history, 0)
             if self._print_memory:
-               b = d.nbytes * w.history
-               suf = " bytes"
-               if b > 1024 * 10:
-                  b /= 1024
-                  suf = " KB"
-               elif b > 1024 * 1024 * 10:
-                  b /= 1024 * 1024
-                  suf = " MB"
-               print("\t" + (str(b) + suf).ljust(24) + w.name)
-            self._cache[w.name].append(d)
+               self._print_memory_usage(w.name, d.nbytes * w.history)
+            self._cache.put(e)
+         self._cache.update()
 
-         self._analysis_thread.start()
+         # Start each thread
+         for t in self._threads:
+            t.start()
+
          while self._pv.is_finished() == False:
             self._advance()
-         self._stop_event.set()
+
+         # Stop each thread
+         for t in self._threads:
+            t.stop()
+
          self._pv.finish()
+
       else:
          self._pv.wait_for_commands()
          sys.exit()
 
-   def get(self, name):
-      return self._cache[name]
+   def get_cache(self):
+      return self._cache
