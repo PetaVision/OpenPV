@@ -41,6 +41,8 @@ class PythonBindings {
    void                waitForCommands();
 };
 
+void err(std::string e) { py::print("python error: " + e); }
+
 
 } /* namespace PV */
 

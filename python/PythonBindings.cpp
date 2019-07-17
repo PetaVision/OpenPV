@@ -12,7 +12,7 @@ PythonBindings::PythonBindings(py::dict args, std::string params) {
    for (auto ent : args) {
       args[ent.first] = py::str(ent.second);
    }
-   mCmd = new Commander(py::cast<std::map<std::string, std::string>>(args), params, nullptr);
+   mCmd = new Commander(py::cast<std::map<std::string, std::string>>(args), params, &err);
 }
 
 PythonBindings::~PythonBindings() {

@@ -36,7 +36,7 @@ void Commander::nonRootRecv(void *buf, int num, MPI_Datatype dtype) {
 }
 
 void Commander::rootSendCmdName(Command cmd, const char *name) {
-   unsigned int len = strlen(name);
+   unsigned int len = strlen(name) + 1;
    rootSend(&cmd, 1, MPI_INT);
    rootSend(&len, 1, MPI_UNSIGNED);
    rootSend(name, len, MPI_CHAR);
@@ -82,6 +82,7 @@ int Commander::getBatch() {
 // If an error callback function was provided, call it. Otherwise, throw an exception
 void Commander::throwError(std::string const err) {
    std::string s = "<error on rank " + std::to_string(getRank()) + "> " + err;
+   ErrorLog() << s << std::endl;
    if (mErrFunc != nullptr) {
       mErrFunc(s);
    }

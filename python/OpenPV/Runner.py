@@ -1,5 +1,5 @@
 import time
-import threading
+import multiprocessing 
 import queue
 import sys
 sys.path.append('/home/athresher/projects/OpenPV/python')
@@ -54,35 +54,33 @@ class _CacheEntry:
 
 
 ##############################################################################
-# Wrapper for analysis threads that run alongside PetaVision
+# Wrapper for analysis processes that run alongside PetaVision
 ##############################################################################
 
-class _AnalysisThread:
+class _AnalysisProcess:
    def __init__(self, callback, seconds, runner):
       self._callback   = callback
       self._seconds    = seconds
-      self._stop_event = threading.Event()
-      self._lock       = threading.Lock()
-      self._thread     = threading.Thread(
-            target=_AnalysisThread._run,
-            args=(self, runner))
-      self._thread.setName(str(callback.__name__))
+      self._stop_event = multiprocessing.Event()
+      self._proc     = multiprocessing.Process(
+            target=_AnalysisProcess._run,
+            args=(self, runner),
+            name=str(callback.__name__))
 
    def stop(self):
       self._stop_event.set()
-      self._thread.join()
+      self._proc.join()
 
    def start(self):
-      self._thread.start()
+      self._proc.start()
 
    def _run(self, runner):
-      print('Beginning analysis thread \'%s\' with sleep interval of %f sec'
-            % (self._thread.getName(), self._seconds))
-      while not self._stop_event.is_set():
+      print('Beginning analysis process \'%s\' with interval of %f sec'
+            % (self._proc.name, self._seconds))
+      while not self._stop_event.wait(self._seconds):
          runner.get_cache().update()
          self._callback(runner.timestep(), runner.get_cache())
-         time.sleep(self._seconds)
-      print('Exiting analysis thread \'%s\'' % (str(self._thread.getName())))
+      print('Exiting analysis process \'%s\'' % (str(self._proc.name)))
 
 
 
@@ -117,7 +115,7 @@ class _DataCache:
 
 ##############################################################################
 # Container object that manages running PetaVision, watching PetaVision objs,
-# and running analysis threads
+# and running analysis processes
 ##############################################################################
 
 class Runner:
@@ -126,7 +124,7 @@ class Runner:
          args,                      # dictionary passed to PetaVision constructor
          params,                    # string containing petavision params
          print_memory=False):       # Enables messages that estimate memory usage of each cache entry
-      self._threads   = []
+      self._procs   = []
       self._watchlist = []
       self._cache     = _DataCache()
       self._time      = 0
@@ -136,7 +134,9 @@ class Runner:
 
    # Advances PetaVision the number of timesteps until the next watch entry update
    def _advance(self):
-      min_steps = min(w.counter for w in self._watchlist) 
+      min_steps = 1
+      if len(self._watchlist) > 0:
+         min_steps = min(w.counter for w in self._watchlist) 
       self._time = self._pv.advance(min_steps)
       for w in self._watchlist:
          w.counter -= min_steps
@@ -165,14 +165,14 @@ class Runner:
    def timestep(self):
       return self._time
 
-   # Adds a thread that runs the given callback at the given interval
+   # Adds a process that runs the given callback at the given interval
    def analyze(
          self,
          callback,
          seconds):
       if self._pv.is_root():
-         self._threads.append(_AnalysisThread(callback, seconds, self))
-         print('Added analysis thread \'%s\'' % (str(callback.__name__)))
+         self._procs.append(_AnalysisProcess(callback, seconds, self))
+         print('Added analysis process \'%s\'' % (str(callback.__name__)))
 
    # Adds a watch entry for the named PetaVision network object
    def watch(
@@ -187,7 +187,7 @@ class Runner:
          self._cache.init_entry(name)
          print('Added watch entry for object \'%s\'' % (name))
 
-   # Starts the analysis thread and runs the PetaVision network to completion
+   # Starts the analysis process and runs the PetaVision network to completion
    def run(self):
       if self._pv.is_root():
          self._pv.begin()
@@ -204,22 +204,27 @@ class Runner:
             self._cache.put(e)
          self._cache.update()
 
-         # Start each thread
-         for t in self._threads:
+         # Start each process 
+         for t in self._procs:
             t.start()
 
          while self._pv.is_finished() == False:
             self._advance()
 
-         # Stop each thread
-         for t in self._threads:
+         # Stop each process 
+         for t in self._procs:
             t.stop()
 
          self._pv.finish()
 
       else:
-         self._pv.wait_for_commands()
-         sys.exit()
+         try:
+            self._pv.wait_for_commands()
+         finally:
+            sys.exit()
+
+   def is_root(self):
+      return self._pv.is_root()
 
    def get_cache(self):
       return self._cache
