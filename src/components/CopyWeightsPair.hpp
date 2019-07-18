@@ -44,7 +44,7 @@ class CopyWeightsPair : public WeightsPair {
    /**
     * Copies the weights from the original weights pair.
     */
-   void copy();
+   virtual void copy();
 
    WeightsPair const *getOriginalWeightsPair() const { return mOriginalWeightsPair; }
 

@@ -114,6 +114,11 @@ if (PV_USE_LUA AND LUA_FOUND)
   include_directories(${LUA_INCLUDE_DIR})
 endif()
 
+
+if(PV_USE_OPENCV)
+  include_directories(${OpenCV_INCLUDE_DIRS})
+endif()
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinRelSize")
   list(APPEND CMAKE_CXX_FLAGS ${PV_COMPILE_FLAGS_RELEASE})
 else()
@@ -134,6 +139,8 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PV_CPP_11X_FLAGS}")
   add_library(${PV_LIBRARY_NAME} ${SHARED_FLAG} ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS})
 endif()
+
+
 
 add_custom_target(pvgitrevision ALL)
 add_custom_command(TARGET pvgitrevision COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${PV_SOURCE_DIR}/.. -DPV_CONFIG_FILE_DIR=${PV_CONFIG_FILE_DIR} -P ${PV_SOURCE_DIR}/../cmake/PVGitRevision.cmake)

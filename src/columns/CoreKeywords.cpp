@@ -46,7 +46,7 @@
 // #include "deprecated/RunningAverageLayer.hpp"
 // #include "deprecated/ShuffleLayer.hpp"
 // #include "deprecated/WTALayer.hpp"
-
+#include "connections/AffineCopyConn.hpp"
 #include "connections/CloneConn.hpp"
 #include "connections/CopyConn.hpp"
 #include "connections/FeedbackConn.hpp"
@@ -169,6 +169,7 @@ void registerCoreKeywords() {
    // factory->registerKeyword("WTALayer", Factory::create<WTALayer>);
 
    // Connections
+   factory->registerKeyword("AffineCopyConn", Factory::create<AffineCopyConn>);
    factory->registerKeyword("HyPerConn", Factory::create<HyPerConn>);
    factory->registerKeyword("CloneConn", Factory::create<CloneConn>);
    factory->registerKeyword("CopyConn", Factory::create<CopyConn>);

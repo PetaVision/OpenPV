@@ -4,6 +4,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/AdaptiveTimeScaleController.cpp
    ${SUBDIR}/ActivityBuffer.cpp
    ${SUBDIR}/ActivityComponent.cpp
+   ${SUBDIR}/AffineCopyWeightsPair.cpp
    ${SUBDIR}/ANNActivityBuffer.cpp
    ${SUBDIR}/ArborList.cpp
    ${SUBDIR}/BackgroundActivityBuffer.cpp
@@ -91,6 +92,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ActivityBuffer.hpp
    ${SUBDIR}/ActivityComponent.hpp
    ${SUBDIR}/ActivityComponentActivityOnly.hpp
+   ${SUBDIR}/AffineCopyWeightsPair.hpp
    ${SUBDIR}/ANNActivityBuffer.hpp
    ${SUBDIR}/ArborList.hpp
    ${SUBDIR}/BackgroundActivityBuffer.hpp

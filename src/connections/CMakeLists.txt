@@ -1,4 +1,5 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/AffineCopyConn.cpp
    ${SUBDIR}/BaseConnection.cpp
    ${SUBDIR}/CloneConn.cpp
    ${SUBDIR}/CopyConn.cpp
@@ -16,6 +17,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/AffineCopyConn.hpp
    ${SUBDIR}/BaseConnection.hpp
    ${SUBDIR}/CloneConn.hpp
    ${SUBDIR}/CopyConn.hpp

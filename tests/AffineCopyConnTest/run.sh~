@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./Release/PlasticAffineCopyConnTest data/1.jpg output/rotated.png 
