@@ -31,6 +31,7 @@
 #include "layers/LeakyIntegrator.hpp"
 #include "layers/MaskLayer.hpp"
 #include "layers/MomentumLCALayer.hpp"
+#include "layers/OccludingLayer.hpp"
 #include "layers/PoolingIndexLayer.hpp"
 #include "layers/PtwiseProductLayer.hpp"
 #include "layers/PtwiseQuotientLayer.hpp"
@@ -38,6 +39,7 @@
 #include "layers/RescaleLayer.hpp"
 #include "layers/Retina.hpp"
 #include "layers/SigmoidLayer.hpp"
+#include "layers/WeightedOccludingErrorLayer.hpp"
 
 // #include "deprecated/ANNWhitenedLayer.hpp"
 // #include "deprecated/KmeansLayer.hpp"
@@ -151,6 +153,7 @@ void registerCoreKeywords() {
    factory->registerKeyword("LeakyIntegrator", Factory::create<LeakyIntegrator>);
    factory->registerKeyword("MaskLayer", Factory::create<MaskLayer>);
    factory->registerKeyword("MomentumLCALayer", Factory::create<MomentumLCALayer>);
+   factory->registerKeyword("OccludingLayer", Factory::create<OccludingLayer>);
    factory->registerKeyword("PoolingIndexLayer", Factory::create<PoolingIndexLayer>);
    factory->registerKeyword("PvpLayer", Factory::create<PvpLayer>);
    factory->registerKeyword("PtwiseProductLayer", Factory::create<PtwiseProductLayer>);
@@ -158,6 +161,7 @@ void registerCoreKeywords() {
    factory->registerKeyword("RescaleLayer", Factory::create<RescaleLayer>);
    factory->registerKeyword("Retina", Factory::create<Retina>);
    factory->registerKeyword("SigmoidLayer", Factory::create<SigmoidLayer>);
+   factory->registerKeyword("WeightedOccludingErrorLayer", Factory::create<WeightedOccludingErrorLayer>);
 
    // Deprecated layers
    // factory->registerKeyword("ANNWhitenedLayer", Factory::create<ANNWhitenedLayer>);

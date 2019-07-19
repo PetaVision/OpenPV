@@ -55,6 +55,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/MaskActivityBuffer.cpp
    ${SUBDIR}/MomentumLCAActivityComponent.cpp
    ${SUBDIR}/MomentumLCAInternalStateBuffer.cpp
+   ${SUBDIR}/OccludingGSynAccumulator.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
    ${SUBDIR}/OriginalLayerNameParam.cpp
    ${SUBDIR}/PatchGeometry.cpp
@@ -79,6 +80,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/TransposePatchSize.cpp
    ${SUBDIR}/TransposeWeightsPair.cpp
    ${SUBDIR}/VInputActivityBuffer.cpp
+   ${SUBDIR}/WeightedOccludingInternalStateBuffer.cpp
    ${SUBDIR}/Weights.cpp
    ${SUBDIR}/WeightsPair.cpp
    ${SUBDIR}/WeightsPairInterface.cpp
@@ -144,6 +146,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/MaskActivityBuffer.hpp
    ${SUBDIR}/MomentumLCAActivityComponent.hpp
    ${SUBDIR}/MomentumLCAInternalStateBuffer.hpp
+   ${SUBDIR}/OccludingGSynAccumulator.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
    ${SUBDIR}/OriginalLayerNameParam.hpp
    ${SUBDIR}/Patch.hpp
@@ -169,6 +172,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/TransposePatchSize.hpp
    ${SUBDIR}/TransposeWeightsPair.hpp
    ${SUBDIR}/VInputActivityBuffer.hpp
+   ${SUBDIR}/WeightedOccludingInternalStateBuffer.hpp
    ${SUBDIR}/Weights.hpp
    ${SUBDIR}/WeightsPair.hpp
    ${SUBDIR}/WeightsPairInterface.hpp
@@ -178,6 +182,7 @@ set (PVLibSrcHpp ${PVLibSrcKpp}
      ${SUBDIR}/ANNActivityBuffer.kpp
      ${SUBDIR}/GSynAccumulator.kpp
      ${SUBDIR}/HyPerLCAInternalStateBuffer.kpp
+     ${SUBDIR}/OccludingGSynAccumulator.kpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcTpp}
@@ -193,5 +198,6 @@ if(PV_USE_CUDA)
      ${SUBDIR}/HyPerLCAInternalStateBuffer.cu
      ${SUBDIR}/ISTAInternalStateBuffer.cu
      ${SUBDIR}/MomentumLCAInternalStateBuffer.cu
+     ${SUBDIR}/OccludingGSynAccumulator.cu
   )
 endif(PV_USE_CUDA)

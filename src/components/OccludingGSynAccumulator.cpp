@@ -46,7 +46,10 @@ OccludingGSynAccumulator::communicateInitInfo(std::shared_ptr<CommunicateInitInf
 }
 
 Response::Status OccludingGSynAccumulator::allocateDataStructures() {
+   PVLayerLoc const *loc           = getLayerLoc();
    mNumChannels = mLayerInput->getNumChannels();
+   mContribData.resize(loc->nx * loc->ny * loc->nbatch * mNumChannels, 0.0); 
+   
    return RestrictedBuffer::allocateDataStructures();
 }
 
@@ -59,6 +62,13 @@ void OccludingGSynAccumulator::updateBufferCPU(double simTime, double deltaTime)
    float *contribData              = mContribData.data();
    updateOccludingGSynAccumulatorOnCPU(
          loc->nbatch, loc->nx, loc->ny, loc->nf, mNumChannels, layerInput, bufferData, contribData);
+}
+
+float const* OccludingGSynAccumulator::retrieveContribData() {
+   if (isUsingGPU()) {
+      mCudaContribData->copyFromDevice(mContribData.data());
+   }
+   return mContribData.data();
 }
 
 #ifdef PV_USE_CUDA

@@ -9,27 +9,26 @@
 #define OCCLUDINGGSYNACCUMULATOR_HPP_
 
 #include "components/RestrictedBuffer.hpp"
-
 #include "components/LayerInputBuffer.hpp"
+#include "components/GSynAccumulator.hpp"
 
 namespace PV {
 
 /**
  * A component to contain the internal state (membrane potential) of a HyPerLayer.
  */
-class OccludingGSynAccumulator : public RestrictedBuffer {
-  protected:
-
+class OccludingGSynAccumulator : public GSynAccumulator {
    /** @} */
   public:
-   GSynAccumulator(char const *name, PVParams *params, Communicator const *comm);
+   OccludingGSynAccumulator(char const *name, PVParams *params, Communicator const *comm);
 
-   virtual ~GSynAccumulator();
+   virtual ~OccludingGSynAccumulator();
 
    virtual void updateBufferCPU(double simTime, double deltaTime) override;
 
+   float const* retrieveContribData();
   protected:
-   GSynAccumulator() {}
+   OccludingGSynAccumulator() {}
 
    void initialize(char const *name, PVParams *params, Communicator const *comm);
 
@@ -41,6 +40,7 @@ class OccludingGSynAccumulator : public RestrictedBuffer {
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    virtual Response::Status allocateDataStructures() override;
+
 
 #ifdef PV_USE_CUDA
    virtual void allocateUpdateKernel() override;

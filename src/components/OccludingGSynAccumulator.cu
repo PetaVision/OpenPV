@@ -7,8 +7,7 @@ namespace PV {
 
 void OccludingGSynAccumulator::runKernel() {
    PVLayerLoc const *loc           = getLayerLoc();
-   int const nNeuronsAcrossBatch = loc->nx * loc->ny * loc->nf * loc->nbatch;
-   int const nPixelsAcrossBatch  = loc->nx * loc->ny * loc->nbatch;
+   int const numPixelsAcrossBatch  = loc->nx * loc->ny * loc->nbatch;
    float const *layerInput         = (float const *)mLayerInput->getCudaBuffer()->getPointer();
    float *bufferData               = (float *)getCudaBuffer()->getPointer();
    float *contribData              = (float *)mCudaContribData->getPointer();

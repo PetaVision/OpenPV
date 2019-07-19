@@ -22,6 +22,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LIFGap.cpp
    ${SUBDIR}/MaskLayer.cpp
    ${SUBDIR}/MomentumLCALayer.cpp
+   ${SUBDIR}/OccludingLayer.cpp
    ${SUBDIR}/PoolingIndexLayer.cpp
    ${SUBDIR}/PtwiseProductLayer.cpp
    ${SUBDIR}/PtwiseQuotientLayer.cpp
@@ -31,6 +32,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/Segmentify.cpp
    ${SUBDIR}/SegmentLayer.cpp
    ${SUBDIR}/SigmoidLayer.cpp
+   ${SUBDIR}/WeightedOccludingErrorLayer.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -57,6 +59,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LIFGap.hpp
    ${SUBDIR}/MaskLayer.hpp
    ${SUBDIR}/MomentumLCALayer.hpp
+   ${SUBDIR}/OccludingLayer.hpp
    ${SUBDIR}/PoolingIndexLayer.hpp
    ${SUBDIR}/PtwiseProductLayer.hpp
    ${SUBDIR}/PtwiseQuotientLayer.hpp
@@ -66,4 +69,5 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Segmentify.hpp
    ${SUBDIR}/SegmentLayer.hpp
    ${SUBDIR}/SigmoidLayer.hpp
+   ${SUBDIR}/WeightedOccludingErrorLayer.hpp
 )
