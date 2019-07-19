@@ -32,22 +32,7 @@ void LayerInputDelivery::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       int ch = 0;
       this->parameters()->ioParamValueRequired(ioFlag, this->getName(), "channelCode", &ch);
-      switch (ch) {
-         case CHANNEL_EXC: mChannelCode      = CHANNEL_EXC; break;
-         case CHANNEL_INH: mChannelCode      = CHANNEL_INH; break;
-         case CHANNEL_INHB: mChannelCode     = CHANNEL_INHB; break;
-         case CHANNEL_GAP: mChannelCode      = CHANNEL_GAP; break;
-         case CHANNEL_NORM: mChannelCode     = CHANNEL_NORM; break;
-         case CHANNEL_NOUPDATE: mChannelCode = CHANNEL_NOUPDATE; break;
-         default:
-            if (mCommunicator->globalCommRank() == 0) {
-               ErrorLog().printf(
-                     "%s: channelCode %d is not a valid channel.\n", this->getDescription_c(), ch);
-            }
-            MPI_Barrier(this->mCommunicator->globalCommunicator());
-            exit(EXIT_FAILURE);
-            break;
-      }
+      mChannelCode = ch;
    }
    else if (ioFlag == PARAMS_IO_WRITE) {
       int ch = (int)mChannelCode;

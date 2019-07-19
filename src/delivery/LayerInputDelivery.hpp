@@ -56,7 +56,7 @@ class LayerInputDelivery : public BaseObject {
     */
    virtual bool isAllInputReady() const { return true; }
 
-   ChannelType getChannelCode() const { return mChannelCode; }
+   int getChannelCode() const { return mChannelCode; }
    bool getReceiveGpu() const { return mReceiveGpu; }
 
   protected:
@@ -69,7 +69,7 @@ class LayerInputDelivery : public BaseObject {
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
   protected:
-   ChannelType mChannelCode = CHANNEL_EXC;
+   int mChannelCode         = 0;
    bool mReceiveGpu         = false;
 };
 

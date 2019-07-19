@@ -22,6 +22,7 @@ enum ChannelType {
    CHANNEL_NOUPDATE = -1
 };
 
+
 // PVDatatType enum was removed Mar 29, 2018.
 // Used only for the HyPerLayer dataType param, which has been removed.
 
