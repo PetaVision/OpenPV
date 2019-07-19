@@ -36,7 +36,7 @@ void Commander::nonRootRecv(void *buf, int num, MPI_Datatype dtype) {
 }
 
 void Commander::rootSendCmdName(Command cmd, const char *name) {
-   unsigned int len = strlen(name) + 1;
+   unsigned int len = strlen(name) + 1; /* account for null termination */
    rootSend(&cmd, 1, MPI_INT);
    rootSend(&len, 1, MPI_UNSIGNED);
    rootSend(name, len, MPI_CHAR);
