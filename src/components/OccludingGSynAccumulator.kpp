@@ -10,7 +10,6 @@
 // one is run from the .cu file and the other is run from the .cpp file.
 // The .cu file defines the preprocessor directive PV_RUN_ON_GPU before
 // including this file; the and the .cpp file undefines it.
-
 #ifdef PV_RUN_ON_GPU
 namespace PVCuda {
 __global__ void updateOccludingGSynAccumulatorOnGPU
@@ -23,6 +22,7 @@ inline void updateOccludingGSynAccumulatorOnCPU
        int const ny,
        int const nf,
        int const numChannels,
+       float const opaqueMagnitude,
        float const *layerInput,
        float *bufferData,
        float *contribData) {
@@ -40,25 +40,17 @@ inline void updateOccludingGSynAccumulatorOnCPU
    for (int index = 0; index < numPixelsAcrossBatch; index++)
 #endif // PV_RUN_ON_GPU
    {
-      if (numChannels > 0) {
-         // Unroll first iteration for base case
-         float const *layerInputXYCh0 = &(layerInput[index * nf]); 
+      float filter = 1.0;
+      for (int ch = 0; ch < numChannels; ch++) {
+         float const *layerInputXYCh = &(layerInput[ch * numNeuronsAcrossBatch + index * nf]); 
          float magnitude = 0.0f;
+
          for (int i = 0; i < nf; i++) {
-            magnitude += layerInputXYCh0[i] * layerInputXYCh0[i];
+            magnitude += layerInputXYCh[i] * layerInputXYCh[i];
          }
-         contribData[index] = sqrtf(magnitude);
-      
-         // Inductively compute contribution
-         for (int ch = 1; ch < numChannels; ch++) {
-            float const *layerInputXYCh = &(layerInput[ch * numNeuronsAcrossBatch + index * nf]); 
-            float magnitude = 0.0f;
-            for (int i = 0; i < nf; i++) {
-               magnitude += layerInputXYCh[i] * layerInputXYCh[i];
-            }
-            float prevContrib = contribData[(ch - 1) * numPixelsAcrossBatch + index];
-            contribData[ch * numPixelsAcrossBatch + index] = (1 - prevContrib) * sqrtf(magnitude);
-         }
+
+         contribData[ch * numPixelsAcrossBatch + index] = filter; 
+         filter *= fmaxf(0.0, opaqueMagnitude - sqrtf(magnitude)) / opaqueMagnitude;
       }
       
       // Sum each layer weighted by contribution

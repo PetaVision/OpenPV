@@ -17,7 +17,7 @@ void OccludingGSynAccumulator::runKernel() {
    int currGridSize = (int)ceil(((float)numPixelsAcrossBatch) / currBlockSize);
    // Call function
    PVCuda::updateOccludingGSynAccumulatorOnGPU<<<currGridSize, currBlockSize, 0, cudaStream>>>(
-          loc->nbatch, loc->nx, loc->ny, loc->nf, mNumChannels, layerInput, bufferData, contribData);
+          loc->nbatch, loc->nx, loc->ny, loc->nf, mNumChannels, mOpaqueMagnitude, layerInput, bufferData, contribData);
 }
 
 } // end namespace PV

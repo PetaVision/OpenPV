@@ -18,6 +18,10 @@ namespace PV {
  * A component to contain the internal state (membrane potential) of a HyPerLayer.
  */
 class OccludingGSynAccumulator : public GSynAccumulator {
+  protected:
+
+   void ioParam_opaqueMagnitude(enum ParamsIOFlag ioFlag);
+
    /** @} */
   public:
    OccludingGSynAccumulator(char const *name, PVParams *params, Communicator const *comm);
@@ -56,6 +60,7 @@ class OccludingGSynAccumulator : public GSynAccumulator {
    int mNumChannels              = 0;
    LayerInputBuffer *mLayerInput = nullptr;
    std::vector<float> mContribData;
+   float mOpaqueMagnitude        = 1.0;
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer *mCudaContribData = nullptr;

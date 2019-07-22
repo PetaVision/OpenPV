@@ -32,6 +32,7 @@ void WeightedOccludingInternalStateBuffer::ioParam_occlusionDepth(enum ParamsIOF
 int WeightedOccludingInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = InternalStateBuffer::ioParamsFillGroup(ioFlag);
    ioParam_occludingLayerName(ioFlag);
+   ioParam_occlusionDepth(ioFlag);
    return status;
 }
 

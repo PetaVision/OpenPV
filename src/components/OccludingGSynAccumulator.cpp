@@ -26,7 +26,13 @@ void OccludingGSynAccumulator::initialize(char const *name, PVParams *params, Co
 
 void OccludingGSynAccumulator::setObjectType() { mObjectType = "OccludingGSynAccumulator"; }
 
+void OccludingGSynAccumulator::ioParam_opaqueMagnitude(enum ParamsIOFlag ioFlag) {
+   this->parameters()->ioParamValue(
+           ioFlag, this->getName(), "mOpaqueMagnitude", &mOpaqueMagnitude, mOpaqueMagnitude, true);
+}
+
 int OccludingGSynAccumulator::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_opaqueMagnitude(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -48,7 +54,7 @@ OccludingGSynAccumulator::communicateInitInfo(std::shared_ptr<CommunicateInitInf
 Response::Status OccludingGSynAccumulator::allocateDataStructures() {
    PVLayerLoc const *loc           = getLayerLoc();
    mNumChannels = mLayerInput->getNumChannels();
-   mContribData.resize(loc->nx * loc->ny * loc->nbatch * mNumChannels, 0.0); 
+   mContribData.resize(loc->nx * loc->ny * loc->nbatch * mNumChannels, 1.0); 
    
    return RestrictedBuffer::allocateDataStructures();
 }
@@ -61,7 +67,7 @@ void OccludingGSynAccumulator::updateBufferCPU(double simTime, double deltaTime)
    float *bufferData               = mBufferData.data();
    float *contribData              = mContribData.data();
    updateOccludingGSynAccumulatorOnCPU(
-         loc->nbatch, loc->nx, loc->ny, loc->nf, mNumChannels, layerInput, bufferData, contribData);
+         loc->nbatch, loc->nx, loc->ny, loc->nf, mNumChannels, mOpaqueMagnitude, layerInput, bufferData, contribData);
 }
 
 float const* OccludingGSynAccumulator::retrieveContribData() {
