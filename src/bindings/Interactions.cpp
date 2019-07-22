@@ -136,6 +136,13 @@ Interactions::Result Interactions::finish() {
    return SUCCESS;
 }
 
+Interactions::Result Interactions::getLayerSparseActivity(const char *layerName,
+      std::vector<std::pair<float, int>> *data) {
+   auto message = std::make_shared<LayerGetSparseActivityMessage>(&mErrMsg, layerName, data);
+   auto status  = interact(message);
+   return checkError(message, status, "getLayerSparseActivity", std::string(layerName));
+}
+
 Interactions::Result Interactions::getLayerActivity(const char *layerName, std::vector<float> *data) {
    auto message = std::make_shared<LayerGetActivityMessage>(&mErrMsg, layerName, data);
    auto status  = interact(message);

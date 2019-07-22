@@ -125,6 +125,9 @@ void Commander::waitForCommands() {
          case CMD_ADVANCE:
             remoteAdvance();
             break;
+         case CMD_GET_SPARSE_ACTIVITY:
+            remoteGetLayerSparseActivity();
+            break;
          case CMD_GET_ACTIVITY:
             remoteGetLayerData(BUF_A);
             break;
@@ -147,10 +150,66 @@ void Commander::waitForCommands() {
    }
 }
 
+void Commander::getLayerSparseActivity(const char *layerName,
+              std::vector<std::vector<std::pair<float, int>>> *data, int *ny, int *nx, int *nf) {
+   if (getRank() != 0) {
+      throwError("getLayerSparseActivity can only be called from the root process. "
+            "Did you forget to call waitForCommands?");
+   }
+
+   PVLayerLoc loc;
+   if (mInteractions->getLayerShape(layerName, &loc) == Interactions::FAILURE) {
+      throwError("getLayerSparseActivity: " + mInteractions->getError());
+   }
+
+   *ny = loc.nyGlobal;
+   *nx = loc.nxGlobal;
+   *nf = loc.nf;
+
+   std::vector<std::pair<float, int>> tempData;
+   if (mInteractions->getLayerSparseActivity(layerName, &tempData) == Interactions::FAILURE) {
+      throwError("getLayerSparseActivity: " + mInteractions->getError());
+   }
+
+   rootSendCmdName(CMD_GET_SPARSE_ACTIVITY, layerName);
+
+   int batch, col, row, num;
+   batch = loc.kb0;
+   col   = loc.kx0;
+   row   = loc.ky0;
+   num   = tempData.size();
+
+   data->clear();
+   data->resize(loc.nbatchGlobal);
+   MPI_Status stat;
+
+   for (int r = 0; r < getCommSize(); r++) {
+      if (r > 0) {
+         MPI_Recv(&batch, 1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+         MPI_Recv(&col,   1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+         MPI_Recv(&row,   1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+         MPI_Recv(&num,   1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+         tempData.resize(num);
+         MPI_Recv(tempData.data(), num, MPI_FLOAT_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+      }
+      // Modify our index to start from 0 for each batch
+      // and correct for row / column offsets
+      for (int b = batch; b < batch + loc.nbatch; b++) {
+         int origin = b * (loc.nxGlobal*loc.nyGlobal*loc.nf);
+         int offset = row * (loc.nxGlobal*loc.nf) + col * loc.nf;
+         for (auto& v : tempData) {
+            v.second -= origin;
+            v.second += offset;
+            data->at(b).push_back(v);
+         }
+      }
+   }
+}
+
 void Commander::getLayerActivity(const char *layerName, std::vector<float> *data,
          int *nb, int *ny, int *nx, int *nf) {
-   if(getRank() != 0) {
-      throwError("getLayerActivity only be called from the root process. "
+   if (getRank() != 0) {
+      throwError("getLayerActivity can only be called from the root process. "
          "Did you forget to call waitForCommands?");
    }
    getLayerData(layerName, data, nb, ny, nx, nf, BUF_A);
@@ -158,7 +217,7 @@ void Commander::getLayerActivity(const char *layerName, std::vector<float> *data
 
 void Commander::getLayerState(const char *layerName, std::vector<float> *data,
          int *nb, int *ny, int *nx, int *nf) {
-   if(getRank() != 0) {
+   if (getRank() != 0) {
       throwError("getLayerState can only be called from the root process. "
          "Did you forget to call waitForCommands?");
    }
@@ -410,6 +469,24 @@ void Commander::remoteAdvance() {
          throwError("remoteAdvance: " + mInteractions->getError());
       }
    }
+}
+
+void Commander::remoteGetLayerSparseActivity() {
+   std::string name = nonRootRecvName();
+   PVLayerLoc loc;
+   if (mInteractions->getLayerShape(name.c_str(), &loc) == Interactions::FAILURE) {
+      throwError("remoteGetLayerSparseActivity: " + mInteractions->getError());
+   }
+   std::vector<std::pair<float, int>> data;
+   if (mInteractions->getLayerSparseActivity(name.c_str(), &data) == Interactions::FAILURE) {
+      throwError("remoteGetLayerSparseActivity: " + mInteractions->getError());
+   }
+   int size = data.size();
+   nonRootSend(&loc.kb0, 1, MPI_INT);
+   nonRootSend(&loc.kx0, 1, MPI_INT);
+   nonRootSend(&loc.ky0, 1, MPI_INT);
+   nonRootSend(&size,    1, MPI_INT);
+   nonRootSend(data.data(), size, MPI_FLOAT_INT); 
 }
 
 void Commander::remoteGetLayerData(Buffer b) {

@@ -48,6 +48,19 @@ void PythonBindings::setConnectionWeights(const char *connName, py::array_t<floa
    mCmd->setConnectionWeights(connName, &temp);
 }
 
+// TODO: This is an ugly return, find a better way to do this
+py::tuple PythonBindings::getLayerSparseActivity(const char *layerName) {
+   std::vector<std::vector<std::pair<float, int>>> temp;
+   int nx, ny, nf;
+   py::list result;
+   mCmd->getLayerSparseActivity(layerName, &temp, &ny, &nx, &nf);
+   for (auto v : temp) {
+      result.append(v);
+   }
+   return py::make_tuple(result, nx, ny, nf);
+}
+
+
 py::array_t<float> PythonBindings::getLayerActivity(const char *layerName) {
    std::vector<float> temp;
    int nx, ny, nf, nb;

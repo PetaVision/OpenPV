@@ -46,7 +46,6 @@ class LayerGetInternalStateMessage : public InteractionMessage {
    std::vector<float> *mData;
 };
 
-
 class LayerGetActivityMessage : public InteractionMessage {
   public:
    LayerGetActivityMessage(std::string *err, const char *name,
@@ -57,6 +56,18 @@ class LayerGetActivityMessage : public InteractionMessage {
    }
    const char *mName;
    std::vector<float> *mData;
+};
+
+class LayerGetSparseActivityMessage : public InteractionMessage {
+  public:
+   LayerGetSparseActivityMessage(std::string *err, const char *name,
+         std::vector<std::pair<float, int>> *data):InteractionMessage(err) {
+      setMessageType("LayerGetSparseActivity");
+      mName = name;
+      mData = data;
+   }
+   const char *mName;
+   std::vector<std::pair<float, int>> *mData;
 };
 
 class LayerGetShapeMessage : public InteractionMessage {

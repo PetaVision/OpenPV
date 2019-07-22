@@ -38,6 +38,7 @@ class Commander {
          CMD_BEGIN,
          CMD_ADVANCE,
          CMD_FINISH,
+         CMD_GET_SPARSE_ACTIVITY,
          CMD_GET_ACTIVITY,
          CMD_GET_STATE,
          CMD_SET_STATE,
@@ -74,6 +75,11 @@ class Commander {
       // On non-root processes, wait for the root process to send a message indicating
       // what methods were called. Loops until finish is called on the root process.
       void   waitForCommands();
+      // Fill the data vector with index value pairs of non-zero Activity 
+      // and returns the layer's shape to allow reshaping into the proper dimensions.
+      // The outer std::vector is batch index.
+      void   getLayerSparseActivity(const char *layerName,
+              std::vector<std::vector<std::pair<float, int>>> *data, int *ny, int *nx, int *nf);
       // Fill the data vector with the contents of the named layer's restricted Activity 
       // buffer and returns the layer's shape to allow reshaping into the proper dimensions
       void   getLayerActivity(const char *layerName, std::vector<float> *data,
@@ -109,6 +115,7 @@ class Commander {
       // These are called by waitForCommands to perform the appropriate actions on
       // non-root processes
       void   remoteAdvance();
+      void   remoteGetLayerSparseActivity();
       void   remoteGetLayerData(Buffer b);
       void   remoteSetLayerState();
       void   remoteGetProbeValues();

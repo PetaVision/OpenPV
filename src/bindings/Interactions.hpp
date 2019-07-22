@@ -51,6 +51,8 @@ class Interactions {
       // Calls HyPerCol.finishRun()
       Result finish();
       // Fills the data vector with the restricted contents of the named layer's Activity buffer
+      Result getLayerSparseActivity(const char *layerName, std::vector<std::pair<float, int>> *data);
+      // Fills the data vector with the restricted contents of the named layer's Activity buffer
       Result getLayerActivity(const char *layerName, std::vector<float> *data);
       // Fills the data vector with the contents of the named layer's InternalState buffer
       Result getLayerState(const char *layerName, std::vector<float> *data);

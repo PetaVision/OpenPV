@@ -18,6 +18,8 @@ namespace PV {
    class to be used with Python types and structures.
 */
 
+   // TODO: Wrap getLayerSparseActivity
+
 class PythonBindings {
   public:
    PythonBindings(py::dict args, std::string params);
@@ -32,6 +34,7 @@ class PythonBindings {
    void                finish();
    py::array_t<float>  getConnectionWeights(const char *connName); 
    void                setConnectionWeights(const char *connName, py::array_t<float> *data); 
+   py::tuple           getLayerSparseActivity(const char *layerName);
    py::array_t<float>  getLayerActivity(const char *layerName); 
    py::array_t<float>  getLayerState(const char *layerName); 
    void                setLayerState(const char *layerName, py::array_t<float> *data);
@@ -51,18 +54,19 @@ PYBIND11_MODULE( PYTHON_MODULE_NAME, m ) {
 
    py::class_<PV::PythonBindings>(m, "PetaVision")
       .def(py::init<py::dict, std::string>())
-      .def("begin",                   &PV::PythonBindings::begin)
-      .def("advance",                 &PV::PythonBindings::advance)
-      .def("finish",                  &PV::PythonBindings::finish)
-      .def("get_connection_weights",  &PV::PythonBindings::getConnectionWeights)
-      .def("set_connection_weights",  &PV::PythonBindings::setConnectionWeights)
-      .def("get_layer_activity",      &PV::PythonBindings::getLayerActivity)
-      .def("get_layer_state",         &PV::PythonBindings::getLayerState)
-      .def("set_layer_state",         &PV::PythonBindings::setLayerState)
-      .def("is_finished",             &PV::PythonBindings::isFinished)
-      .def("get_probe_values",        &PV::PythonBindings::getProbeValues)
-      .def("is_root",                 &PV::PythonBindings::isRoot)
-      .def("wait_for_commands",       &PV::PythonBindings::waitForCommands)
+      .def("begin",                     &PV::PythonBindings::begin)
+      .def("advance",                   &PV::PythonBindings::advance)
+      .def("finish",                    &PV::PythonBindings::finish)
+      .def("get_connection_weights",    &PV::PythonBindings::getConnectionWeights)
+      .def("set_connection_weights",    &PV::PythonBindings::setConnectionWeights)
+      .def("get_layer_sparse_activity", &PV::PythonBindings::getLayerSparseActivity)
+      .def("get_layer_activity",        &PV::PythonBindings::getLayerActivity)
+      .def("get_layer_state",           &PV::PythonBindings::getLayerState)
+      .def("set_layer_state",           &PV::PythonBindings::setLayerState)
+      .def("is_finished",               &PV::PythonBindings::isFinished)
+      .def("get_probe_values",          &PV::PythonBindings::getProbeValues)
+      .def("is_root",                   &PV::PythonBindings::isRoot)
+      .def("wait_for_commands",         &PV::PythonBindings::waitForCommands)
       ;
 }
 

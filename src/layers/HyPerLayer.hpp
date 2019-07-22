@@ -166,6 +166,8 @@ class HyPerLayer : public ComponentBasedObject {
    respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
 
    Response::Status
+   respondLayerGetSparseActivity(std::shared_ptr<LayerGetSparseActivityMessage const> message);
+   Response::Status
    respondLayerGetActivity(std::shared_ptr<LayerGetActivityMessage const> message);
    Response::Status
    respondLayerSetInternalState(std::shared_ptr<LayerSetInternalStateMessage const> message);

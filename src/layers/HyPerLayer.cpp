@@ -104,6 +104,12 @@ void HyPerLayer::initMessageActionMap() {
    mMessageActionMap.emplace("LayerCheckNotANumber", action);
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerGetSparseActivityMessage const>(msgptr);
+      return respondLayerGetSparseActivity(castMessage);
+   };
+   mMessageActionMap.emplace("LayerGetActivity", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<LayerGetActivityMessage const>(msgptr);
       return respondLayerGetActivity(castMessage);
    };
@@ -477,7 +483,6 @@ Response::Status HyPerLayer::respondLayerGetInternalState(
    return Response::SUCCESS;
 }
 
-
 Response::Status HyPerLayer::respondLayerGetActivity(
       std::shared_ptr<LayerGetActivityMessage const> message) {
    if (strcmp(message->mName, getName()) != 0) {
@@ -490,10 +495,35 @@ Response::Status HyPerLayer::respondLayerGetActivity(
 
    message->mData->resize(N);
 
-   for (int n = 0; n < message->mData->size(); n++) {
+   for (int n = 0; n < N; n++) {
       int idx = kIndexExtendedBatch(n, loc->nbatch, loc->nx, loc->ny, loc->nf,
                      loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       (*message->mData)[n] = layerData[idx];
+   }
+
+   return Response::SUCCESS;
+}
+
+
+Response::Status HyPerLayer::respondLayerGetSparseActivity(
+      std::shared_ptr<LayerGetSparseActivityMessage const> message) {
+   if (strcmp(message->mName, getName()) != 0) {
+      return Response::NO_ACTION;
+   }
+
+   const PVLayerLoc *loc = getLayerLoc();
+   auto layerData = mPublisher->getLayerData();
+   int const N    = getNumNeuronsAllBatches();
+
+   message->mData->clear();
+
+   for (int n = 0; n < N; n++) {
+      int idx = kIndexExtendedBatch(n, loc->nbatch, loc->nx, loc->ny, loc->nf,
+                     loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+      float d = layerData[idx];
+      if (d != 0.0f) {
+         message->mData->push_back({d, n});
+      }
    }
 
    return Response::SUCCESS;
