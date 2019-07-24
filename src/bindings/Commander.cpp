@@ -150,6 +150,30 @@ void Commander::waitForCommands() {
    }
 }
 
+void Commander::getLayerShape(const char *layerName, int *nb, int *ny, int *nx, int *nf) {
+   if (getRank() != 0) {
+      throwError("getLayerShape can only be called from the root process. "
+            "Did you forget to call waitForCommands?");
+   }
+   PVLayerLoc loc;
+   if (mInteractions->getLayerShape(layerName, &loc) == Interactions::FAILURE) {
+      throwError("getLayerShape: " + mInteractions->getError());
+   }
+
+   if (nb != nullptr) {
+      *nb = loc.nbatchGlobal;
+   }
+   if (ny != nullptr) {
+      *ny = loc.nyGlobal;
+   }
+   if (nx != nullptr) {
+      *nx = loc.nxGlobal;
+   }
+   if (nf != nullptr) {
+      *nf = loc.nf;
+   }
+}
+
 void Commander::getLayerSparseActivity(const char *layerName,
               std::vector<std::vector<std::pair<float, int>>> *data, int *ny, int *nx, int *nf) {
    if (getRank() != 0) {
@@ -162,9 +186,15 @@ void Commander::getLayerSparseActivity(const char *layerName,
       throwError("getLayerSparseActivity: " + mInteractions->getError());
    }
 
-   *ny = loc.nyGlobal;
-   *nx = loc.nxGlobal;
-   *nf = loc.nf;
+   if (ny != nullptr) {
+      *ny = loc.nyGlobal;
+   }
+   if (nx != nullptr) {
+      *nx = loc.nxGlobal;
+   }
+   if (nf != nullptr) {
+      *nf = loc.nf;
+   }
 
    std::vector<std::pair<float, int>> tempData;
    if (mInteractions->getLayerSparseActivity(layerName, &tempData) == Interactions::FAILURE) {
@@ -422,12 +452,20 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
    // Send the command and arguments
    rootSendCmdName(b == BUF_A ? CMD_GET_ACTIVITY : CMD_GET_STATE, layerName);
 
-   *nx = loc.nxGlobal;
-   *ny = loc.nyGlobal;
-   *nf = loc.nf;
-   *nb = loc.nbatchGlobal;
+   if (nx != nullptr) {
+      *nx = loc.nxGlobal;
+   }
+   if (ny != nullptr) {
+      *ny = loc.nyGlobal;
+   }
+   if (nf != nullptr) {
+      *nf = loc.nf;
+   }
+   if (nb != nullptr) {
+      *nb = loc.nbatchGlobal;
+   }
 
-   data->resize((*nx) * (*ny) * (*nf) * (*nb));
+   data->resize(loc.nxGlobal * loc.nyGlobal * loc.nf * loc.nbatchGlobal);
 
    int batch, col, row;
    batch = loc.kb0;

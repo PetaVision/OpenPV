@@ -200,10 +200,18 @@ WeightsPair::respondConnectionGetPatchGeometry(std::shared_ptr<ConnectionGetPatc
       return Response::NO_ACTION;
    }
 
-   *(message->mNwp) = mPreWeights->getNumDataPatches();
-   *(message->mNyp) = mPreWeights->getPatchSizeY();
-   *(message->mNxp) = mPreWeights->getPatchSizeX();
-   *(message->mNfp) = mPreWeights->getPatchSizeF();
+   if (message->mNwp != nullptr) {
+      *(message->mNwp) = mPreWeights->getNumDataPatches();
+   }
+   if (message->mNyp != nullptr) {
+      *(message->mNyp) = mPreWeights->getPatchSizeY();
+   }
+   if (message->mNxp != nullptr) {
+      *(message->mNxp) = mPreWeights->getPatchSizeX();
+   }
+   if (message->mNfp != nullptr) {
+      *(message->mNfp) = mPreWeights->getPatchSizeF();
+   }
 
    return Response::SUCCESS;
 }

@@ -75,6 +75,8 @@ class Commander {
       // On non-root processes, wait for the root process to send a message indicating
       // what methods were called. Loops until finish is called on the root process.
       void   waitForCommands();
+      // Return the dimensions of a layer
+      void   getLayerShape(const char *layerName, int *nb, int *ny, int *nx, int *nf);
       // Fill the data vector with index value pairs of non-zero Activity 
       // and returns the layer's shape to allow reshaping into the proper dimensions.
       // The outer std::vector is batch index.
