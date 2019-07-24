@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
                   + loc.kx0 * loc.nf;
 
    float multiplier = 1.0f;
-   int   timestep   = 1;
+   int   timestep   = 0;
    while (!interact->isFinished()) {
       std::vector<float> src_data, dst_data;
       // create test data for each timestep
@@ -39,6 +39,12 @@ int main(int argc, char *argv[]) {
       // advance by one timestep
       pvAssert(interact->step(nullptr) == PV::Interactions::SUCCESS); 
 
+      // Check the state of the input layer and make sure it did not change
+      pvAssert(interact->getLayerState("Input", &dst_data) == PV::Interactions::SUCCESS);
+      for (int i = 0; i < numNeurons; ++i) {
+         pvAssert(src_data[i] == dst_data[i]);
+      }
+
       // Get the output data and make sure we get the input times the weights
       pvAssert(interact->getLayerActivity("Output", &dst_data) == PV::Interactions::SUCCESS);
       pvAssert(src_data.size() == dst_data.size());
@@ -46,12 +52,6 @@ int main(int argc, char *argv[]) {
          pvAssert(src_data[i] * multiplier == dst_data[i]);
       }
       multiplier *= 2.0f;
-
-      // Check the state of the input layer and make sure it did not change
-      pvAssert(interact->getLayerState("Input", &dst_data) == PV::Interactions::SUCCESS);
-      for (int i = 0; i < numNeurons; ++i) {
-         pvAssert(src_data[i] == dst_data[i]);
-      }
    
       // Double the value of nonzero weights every time
       std::vector<float> weights;
@@ -62,7 +62,9 @@ int main(int argc, char *argv[]) {
          }
       }
       pvAssert(interact->setConnectionWeights("InputToOutput", &weights) == PV::Interactions::SUCCESS);
+
    }
+
 
    pvAssert(interact->finish() == PV::Interactions::SUCCESS);
 

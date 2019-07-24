@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 
    std::map<std::string, std::string> args_dict = {
       {"NumThreads", "1"},
-      {"LogFile",    "InteractionsTest.log"}
+      {"LogFile",    "CommanderTest.log"}
    };
 
    PV::Commander *cmd = new PV::Commander(args_dict, buffer.str(), &err);
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 
       int   numNeurons = nb * ny * nx * nf;
       float multiplier = 1.0f;
-      int   timestep   = 1;
+      int   timestep   = 0;
 
       while (!cmd->isFinished()) {
          std::vector<float> src_data, dst_data;
@@ -43,6 +43,21 @@ int main(int argc, char *argv[]) {
 
          // advance by one timestep
          cmd->advance(1);
+
+         // Test getProbeValues
+         if (timestep > 1) {
+            std::vector<double> values;
+            cmd->getProbeValues("Probe", &values);
+            pvAssert(values.size() == nb);
+            for (int b = 0; b < nb; ++b) {
+               double sum = 0.0;
+               int offset = b * numNeurons / nb;
+               for (int i = 0; i < numNeurons / nb; ++i) {
+                  sum += pow((double)src_data[i + offset], 2.0);
+               }
+               pvAssert(sum == values[b]);
+            }
+         }
 
          // Get the output data and make sure we get the input times the weights
          cmd->getLayerActivity("Output", &dst_data, nullptr, nullptr, nullptr, nullptr);
