@@ -107,7 +107,7 @@ void HyPerLayer::initMessageActionMap() {
       auto castMessage = std::dynamic_pointer_cast<LayerGetSparseActivityMessage const>(msgptr);
       return respondLayerGetSparseActivity(castMessage);
    };
-   mMessageActionMap.emplace("LayerGetActivity", action);
+   mMessageActionMap.emplace("LayerGetSparseActivity", action);
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<LayerGetActivityMessage const>(msgptr);

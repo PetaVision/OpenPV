@@ -1,0 +1,65 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx                          = 8;
+   ny                          = 8;
+   nbatch                      = 1;
+   dt                          = 1.0;
+   randomSeed                  = 1234567890;
+   stopTime                    = 10.0;  
+   errorOnNotANumber           = true;
+   progressInterval            = 10.0;
+   writeProgressToErr          = false;
+   verifyWrites                = false;
+   outputPath                  = "output/";
+   printParamsFilename         = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite             = false;
+   lastCheckpointDir           = "output/Last";
+};
+
+LeakyIntegrator "Input" = {
+    nxScale         = 1;
+    nyScale         = 1;
+    nf              = 1;
+    phase           = 0;
+    writeStep       = -1;
+    integrationTime = infinity;
+    VThresh         = -infinity;
+    AMax            = infinity;
+    AMin            = -infinity;
+    AShift          = 0.0;
+    VWidth          = 0.0;
+};
+
+ANNLayer "Output" = {
+    nxScale          = 1; 
+    nyScale          = 1;
+    nf               = 1;
+    phase            = 1;
+    triggerLayerName = NULL;
+    writeStep        = 1.0;
+    initialWriteTime = 0.0;
+    InitVType        = "ZeroV";
+    VThresh          = 0.0;
+    AMax             = infinity;
+    AMin             = 0.0;
+    AShift           = 0.0;
+    VWidth           = 0.0;
+};
+
+HyPerConn "InputToOutput" = {
+    preLayerName                  = "Input";
+    postLayerName                 = "Output";
+    channelCode                   = 0;
+    sharedWeights                 = true;
+    writeStep                     = -1;
+    nxp                           = 1;
+    nyp                           = 1;
+    weightInitType                = "OneToOneWeights";
+    weightInit                    = 1.0;
+    normalizeMethod               = "none";
+    plasticityFlag                = false;
+    pvpatchAccumulateType         = "convolve";
+    updateGSynFromPostPerspective = false;
+};
