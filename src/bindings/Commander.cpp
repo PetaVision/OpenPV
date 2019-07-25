@@ -382,11 +382,12 @@ void Commander::begin() {
       throwError("begin can only be called from the root process. "
          "Did you forget to call waitForCommands?");
    }
-   const Command cmd = CMD_BEGIN;
-   rootSend(&cmd, 1, MPI_INT);
    if (mInteractions->begin() == Interactions::FAILURE) {
       throwError("begin: " + mInteractions->getError());
    }
+
+   const Command cmd = CMD_BEGIN;
+   rootSend(&cmd, 1, MPI_INT);
 }
 
 void Commander::finish() {
@@ -416,6 +417,16 @@ double Commander::advance(unsigned int steps) {
       }
    }
    return simTime;
+}
+
+void Commander::sendOk(int ok) {
+   rootSend(&ok, 1, MPI_INT); 
+}
+
+int Commander::waitForOk() {
+   int ok;
+   nonRootRecv(&ok, 1, MPI_INT);
+   return ok;
 }
 
 // The only difference between getLayerActivity and getLayerState is the buffer it

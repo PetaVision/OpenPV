@@ -44,7 +44,12 @@ class PythonBindings {
    void                waitForCommands();
 };
 
-void err(std::string e) { py::print("python error: " + e); }
+void err(std::string e) {
+   py::dict d;
+   d["flush"] = true;
+   py::print("python error: " + e, d);
+}
+
 
 
 } /* namespace PV */

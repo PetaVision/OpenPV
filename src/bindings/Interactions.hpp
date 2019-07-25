@@ -88,14 +88,15 @@ class Interactions {
       std::string mErrMsg = "";
 
       // Cache the MPI info for quick retrieval
-      int    mMPIRows, mMPICols, mMPIBatches;
+      int    mMPIRows, mMPICols, mMPIBatches, mMPICommSize;
       int    mRow, mCol, mBatch, mRank;
 
    protected:
-      HyPerCol *mHC;
-      PV_Init  *mPVI;
-      int       mArgC;
-      char    **mArgV;
+      HyPerCol   *mHC;
+      PV_Init    *mPVI;
+      int         mArgC;
+      char      **mArgV;
+      std::string mParams;
 };
 
 

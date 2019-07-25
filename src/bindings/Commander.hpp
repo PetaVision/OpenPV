@@ -57,17 +57,18 @@ class Commander {
       void   nonRootRecv(void *buf, int num, MPI_Datatype dtype);
       void   rootSendCmdName(Command cmd, const char *name);
       std::string const nonRootRecvName();
-      int    getRank();
-      int    getCommSize();
-      int    getRow();
-      int    getCol();
-      int    getBatch();
       // Throws an exception or calls the callback error function, if specified
       void   throwError(std::string const err);
       void   (*mErrFunc)(std::string const);
 
 
    public:
+      // Get MPI info
+      int    getRank();
+      int    getCommSize();
+      int    getRow();
+      int    getCol();
+      int    getBatch();
       // The only MPI info the user must be aware of is if they are the root process or not
       bool   isRoot();
       // Returns true when simTime >= stopTime
@@ -108,6 +109,9 @@ class Commander {
       void   finish();
       // Advances the run a specified number of timesteps. Returns simTime.
       double advance(unsigned int steps);
+
+      void sendOk(int ok);
+      int waitForOk(); 
 
    private:
       // Used by getLayerActivity and getLayerState to avoid code duplication

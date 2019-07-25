@@ -1,4 +1,5 @@
 import time
+import traceback
 from queue import Empty
 from multiprocessing import Process, Queue, Event, Queue, Manager
 import sys
@@ -45,19 +46,25 @@ class _CacheEntry:
 
 
 ##############################################################################
-# Wrapper for analysis processes that run alongside PetaVision
+# On non-root processes, Runner.analyze returns an instance this class instead
+# of AnalysisProcess so that chained .watch calls don't throw an error
 ##############################################################################
-
 class _DummyAnalysisProcess:
     def __init__(self, *args, **kwargs):
         pass
     def watch(self, *args, **kwargs):
         return self
 
+
+##############################################################################
+# Wrapper for analysis processes that run alongside PetaVision
+##############################################################################
+
 class AnalysisProcess:
     def __init__(self, callback, interval, queue):
         self._callback = callback
         self._stop     = Event()
+        self._start    = Event()
         self._proc     = None
         self._queue    = queue 
         self._watches  = []
@@ -65,27 +72,32 @@ class AnalysisProcess:
         self._counter  = 0
         self.name      = callback.__name__
 
+
     def stop(self):
         self._stop.set()
         self._proc.join()
 
 
+
     def start(self):
+        self._start.set()
+
+    def launch(self):
         if len(self._watches) == 0:
             print('Warning, analysis process \'%s\' has no watch entries'
                     % (self.name))
         self._proc = Process(
                 name   = self.name,
                 target = AnalysisProcess._run,
-                args   = (self._queue, self._stop, self._callback))
+                args   = (self._queue, self._start, self._stop, self._callback))
         self._proc.start()
-        print('Beginning analysis process \'%s\' with pid %d'
+        print('Launching analysis process \'%s\' with pid %d'
                 % (self.name, self._proc.pid))
 
     def next_update(self):
         return self._counter
 
-    def update(self, steps, pv):
+    def update(self, steps, pv, timestep):
         self._counter -= steps
         if self._counter <= 0:
             self._counter = self._interval
@@ -95,7 +107,7 @@ class AnalysisProcess:
                 entry_list.append(_CacheEntry(
                     w.name,
                     w.callback(pv, w.name),
-                    0)) #TODO: Set timestep correctly
+                    timestep))
             if len(entry_list) > 0:
                 self._queue.put(entry_list)
 
@@ -111,10 +123,13 @@ class AnalysisProcess:
 
 
     @staticmethod
-    def _run(queue, stop_event, callback):
+    def _run(queue, start_event, stop_event, callback):
         # Store the most recent data from each watch entry in a dictionary
         # passed to the callback function
         kwargs = {'simtime' : 0}
+
+        start_event.wait()
+
         while not stop_event.is_set():
             while queue.empty():
                 time.sleep(0.01)
@@ -129,8 +144,13 @@ class AnalysisProcess:
                         kwargs['simtime'] = max(kwargs['simtime'], e.timestep)
                 except Empty:
                     continue 
-
-            callback(**kwargs)
+            try:
+                callback(**kwargs)
+            except Exception as e:
+                e_name = type(e).__name__
+                trace_str = ''.join(traceback.format_tb(e.__traceback__))
+                print('*** ' + e_name + ' in ' + callback.__name__ + ' process ***\n' + str(e))
+                print(trace_str)
 
         print('Exiting analysis process \'%s\'' % (str(callback.__name__)))
 
@@ -157,7 +177,6 @@ class Runner:
 
 
     # Adds a process that runs the given callback at the given interval
-    # TODO: return some sort of dummy object on non root processes?
     def analyze(
             self,
             callback,
@@ -174,7 +193,7 @@ class Runner:
 
     def _update_processes(self, steps):
         for p in self._procs:
-            self._procs[p].update(steps, self._pv)
+            self._procs[p].update(steps, self._pv, self._time)
 
 
     # Starts the analysis process and runs the PetaVision network to completion
@@ -182,12 +201,14 @@ class Runner:
         if self._pv.is_root():
             self._pv.begin()
 
-            # Start each process 
+            # Launch each process 
             for p in self._procs:
-                self._procs[p].start()
+                self._procs[p].launch()
 
             try:
                 self._update_processes(0)
+                for p in self._procs:
+                    self._procs[p].start()
                 while self._pv.is_finished() == False:
                     min_steps = 1
                     if len(self._procs) > 0:

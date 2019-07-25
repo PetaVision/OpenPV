@@ -1,6 +1,8 @@
 #include "bindings/Interactions.hpp"
 #include "bindings/InteractionMessages.hpp"
 
+#include <arch/mpi/mpi.h>
+
 namespace PV {
 
 // Public
@@ -73,22 +75,19 @@ Interactions::Interactions(std::map<std::string, std::string> args, std::string 
       mArgV[i] = (char*)calloc(cliArgs[i].length()+1, sizeof(char));
       strcpy(mArgV[i], cliArgs[i].c_str());
    }
+   mParams = params;
 
-   mPVI = new PV_Init(&mArgC, &mArgV, false);
-
-   mMPIRows    = mPVI->getCommunicator()->numCommRows();
-   mMPICols    = mPVI->getCommunicator()->numCommColumns();
-   mMPIBatches = mPVI->getCommunicator()->numCommBatches();
-
-   mRow   = mPVI->getCommunicator()->commRow();
-   mCol   = mPVI->getCommunicator()->commColumn();
-   mBatch = mPVI->getCommunicator()->commBatch();
-   mRank  = mPVI->getCommunicator()->globalCommRank();
-
-   // Read params from a string instead of a file
-   if (!params.empty()) {
-      mPVI->setParamsBuffer(params.c_str(), params.length());
+   // Initializing MPI here allows us to report errors from the correct rank
+   int mpiInit;
+   MPI_Initialized(&mpiInit);
+   if (!mpiInit) {
+      MPI_Init(&mArgC, &mArgV);
    }
+
+   MPI_Comm_rank(MPI_COMM_WORLD, &mRank);
+   MPI_Comm_size(MPI_COMM_WORLD, &mMPICommSize);
+
+   mPVI = nullptr;
 }
 
 Interactions::~Interactions() {
@@ -101,6 +100,23 @@ Interactions::~Interactions() {
 }
 
 Interactions::Result Interactions::begin() {
+
+   mPVI = new PV_Init(&mArgC, &mArgV, false);
+
+   // Read params from a string instead of a file
+   if (!mParams.empty()) {
+      mPVI->setParamsBuffer(mParams.c_str(), mParams.length());
+   }
+
+   mMPIRows    = mPVI->getCommunicator()->numCommRows();
+   mMPICols    = mPVI->getCommunicator()->numCommColumns();
+   mMPIBatches = mPVI->getCommunicator()->numCommBatches();
+
+   mRow   = mPVI->getCommunicator()->commRow();
+   mCol   = mPVI->getCommunicator()->commColumn();
+   mBatch = mPVI->getCommunicator()->commBatch();
+   mRank  = mPVI->getCommunicator()->globalCommRank();
+
    clearError();
    if (mPVI->isExtraProc()) {
       error("Too many processes were allocated.");
@@ -110,7 +126,7 @@ Interactions::Result Interactions::begin() {
    PVParams *params = mPVI->getParams();
  
    if (params == nullptr) {
-      error("beginRun was called without valid params");
+      error("begin was called without valid params");
       return FAILURE;
    }
 
@@ -196,27 +212,31 @@ bool Interactions::isFinished() {
 }
 
 int Interactions::getMPIShape(int *rows, int *cols, int *batches) {
-   if (rows != NULL) {
-      *rows = mMPIRows;
+   if (mPVI != nullptr) {
+      if (rows != nullptr) {
+         *rows = mMPIRows;
+      }
+      if (cols != nullptr) {
+         *cols = mMPICols;
+      }
+      if (batches != nullptr) {
+         *batches = mMPIBatches; 
+      }
    }
-   if (cols != NULL) {
-      *cols = mMPICols;
-   }
-   if (batches != NULL) {
-      *batches = mMPIBatches; 
-   }
-   return mMPIRows * mMPICols * mMPIBatches;
+   return mMPICommSize;
 }
 
 int Interactions::getMPILocation(int *row, int *col, int *batch) {
-   if (row != NULL) {
-      *row = mRow;
-   }
-   if (col != NULL) {
-      *col = mCol;
-   }
-   if (batch != NULL) {
-      *batch = mBatch; 
+   if (mPVI != nullptr) {
+      if (row != nullptr) {
+         *row = mRow;
+      }
+      if (col != nullptr) {
+         *col = mCol;
+      }
+      if (batch != nullptr) {
+         *batch = mBatch; 
+      }
    }
    return mRank;
 }

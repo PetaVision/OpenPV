@@ -2,6 +2,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+#include <thread>
+#include <chrono>
 
 
 namespace py = pybind11;
@@ -9,10 +11,37 @@ namespace py = pybind11;
 namespace PV {
 
 PythonBindings::PythonBindings(py::dict args, std::string params) {
+   int np = 1;
    for (auto ent : args) {
       args[ent.first] = py::str(ent.second);
+      std::string first = py::cast<std::string>(py::str(ent.first));
+      if (first == "BatchWidth"
+            || first == "NumRows"
+            || first == "NumCols") {
+         std::string second = py::cast<std::string>(py::str(ent.second));
+         np *= std::stoi(second);
+      }
    }
    mCmd = new Commander(py::cast<std::map<std::string, std::string>>(args), params, &err);
+   py::print("Rank " + std::to_string(mCmd->getRank()+1) + " of " + std::to_string(mCmd->getCommSize()) + " initialized");
+   if (mCmd->getRank() == 0) {
+      if (mCmd->getCommSize() != np) {
+         std::this_thread::sleep_for(std::chrono::seconds(1));
+         py::print("np = " + std::to_string(mCmd->getCommSize())
+               + ", but BatchWidth * NumRows * NumCols = "
+               + std::to_string(np));
+         mCmd->sendOk(false);
+         throw std::runtime_error("Conflicting values for number of MPI processes");
+      }
+      else {
+         mCmd->sendOk(true);
+      }
+   }
+   else {
+      if (!mCmd->waitForOk()) {
+         exit(EXIT_FAILURE);
+      }
+   }
 }
 
 PythonBindings::~PythonBindings() {
