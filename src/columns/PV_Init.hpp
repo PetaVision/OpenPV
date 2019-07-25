@@ -294,7 +294,7 @@ class PV_Init {
    Arguments *arguments;
    int maxThreads;
    Communicator *mCommunicator;
-   bool mDidIInit = false;
+   bool mDidIInit = true;
 };
 }
 

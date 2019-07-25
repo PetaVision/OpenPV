@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
          }
          cmd->setConnectionWeights("InputToOutput", &weights);
       }
-
+      
       cmd->finish();
    }
 

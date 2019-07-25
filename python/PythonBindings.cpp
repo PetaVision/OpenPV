@@ -31,6 +31,7 @@ PythonBindings::PythonBindings(py::dict args, std::string params) {
                + ", but BatchWidth * NumRows * NumCols = "
                + std::to_string(np));
          mCmd->sendOk(false);
+         delete mCmd;
          throw std::runtime_error("Conflicting values for number of MPI processes");
       }
       else {
@@ -39,6 +40,7 @@ PythonBindings::PythonBindings(py::dict args, std::string params) {
    }
    else {
       if (!mCmd->waitForOk()) {
+         delete mCmd;
          exit(EXIT_FAILURE);
       }
    }

@@ -83,6 +83,7 @@ Interactions::Interactions(std::map<std::string, std::string> args, std::string 
    if (!mpiInit) {
       MPI_Init(&mArgC, &mArgV);
    }
+   MPI_Barrier(MPI_COMM_WORLD);
 
    MPI_Comm_rank(MPI_COMM_WORLD, &mRank);
    MPI_Comm_size(MPI_COMM_WORLD, &mMPICommSize);
@@ -97,10 +98,12 @@ Interactions::~Interactions() {
       free(mArgV[i]);
    }
    free(mArgV);
+   MPI_Finalize();
 }
 
 Interactions::Result Interactions::begin() {
 
+   MPI_Barrier(MPI_COMM_WORLD);
    mPVI = new PV_Init(&mArgC, &mArgV, false);
 
    // Read params from a string instead of a file
@@ -148,6 +151,7 @@ Interactions::Result Interactions::step(double *simTime) {
 }
 
 Interactions::Result Interactions::finish() {
+   MPI_Barrier(MPI_COMM_WORLD);
    mHC->finishRun();
    return SUCCESS;
 }

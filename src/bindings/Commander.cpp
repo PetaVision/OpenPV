@@ -317,7 +317,9 @@ void Commander::getProbeValues(const char *probeName, std::vector<double> *data)
          "Did you forget to call waitForCommands?");
    }
    std::vector<double> tempData;
-   // If we get an error, exit before we send out the command to other processes
+
+   // Send the command early so MPI doesn't hang inside calcValues
+   rootSendCmdName(CMD_GET_PROBE_VALUES, probeName);
    if (mInteractions->getProbeValues(probeName, &tempData) == Interactions::FAILURE) {
       throwError("getProbeValues: " + mInteractions->getError());
    }
@@ -326,7 +328,6 @@ void Commander::getProbeValues(const char *probeName, std::vector<double> *data)
       throwError("getProbeValues: no values found");
    }
 
-   rootSendCmdName(CMD_GET_PROBE_VALUES, probeName);
 
    MPI_Status stat;
    int batches = 0;
@@ -382,12 +383,12 @@ void Commander::begin() {
       throwError("begin can only be called from the root process. "
          "Did you forget to call waitForCommands?");
    }
+   const Command cmd = CMD_BEGIN;
+   rootSend(&cmd, 1, MPI_INT);
+
    if (mInteractions->begin() == Interactions::FAILURE) {
       throwError("begin: " + mInteractions->getError());
    }
-
-   const Command cmd = CMD_BEGIN;
-   rootSend(&cmd, 1, MPI_INT);
 }
 
 void Commander::finish() {

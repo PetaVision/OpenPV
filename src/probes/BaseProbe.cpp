@@ -375,9 +375,8 @@ Response::Status BaseProbe::respondProbeGetValues(std::shared_ptr<ProbeGetValues
    }
 
    message->mValues->resize(N);
-   for (int i = 0; i < N; i++) {
-      (*message->mValues)[i] = getValuesBuffer()[i];
-   }
+   getValues(lastUpdateTime+1, message->mValues->data());
+
    return Response::SUCCESS;
 }
 
