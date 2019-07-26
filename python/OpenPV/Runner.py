@@ -238,28 +238,3 @@ class Runner:
     def is_root(self):
         return self._pv.is_root()
 
-
-    def get_cache(self):
-        return self._cache
-
-
-
-
-
-
-
-
-
-
-
-# TODO:
-#   Make "watch" a function of AnalysisProcess. Remove the string argument.
-#   watchlist should be a member of AP instead of Runner
-
-# TODO: make an interactive message to determine the type of a named object
-#       to replace PVType being passed as a parameter
-
-
-
-
-

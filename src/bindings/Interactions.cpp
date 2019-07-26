@@ -98,6 +98,7 @@ Interactions::~Interactions() {
       free(mArgV[i]);
    }
    free(mArgV);
+   
    MPI_Finalize();
 }
 
