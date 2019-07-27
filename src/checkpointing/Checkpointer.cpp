@@ -658,10 +658,14 @@ void Checkpointer::checkpointWrite(double simTime) {
       return;
    }
    bool isScheduled = scheduledCheckpoint(); // Is a checkpoint scheduled to occur here?
-   // If there is both a SIGUSR1 and scheduled checkpoint, we call checkpointWriteSignal
-   // but not checkpointNow, because SIGUSR1-generated checkpoints shouldn't be deleted.
-   if (receivedSignal()) {
-      checkpointWriteSignal();
+   // If there is both a signal and scheduled checkpoint, we call checkpointWriteSignal
+   // but not checkpointNow, because signal-generated checkpoints shouldn't be deleted.
+   int receivedSignal = retrieveSignal();
+   assert(
+         receivedSignal == 0 || receivedSignal == SIGINT || receivedSignal == SIGTERM
+         || receivedSignal == SIGUSR1);
+   if (receivedSignal) {
+      checkpointWriteSignal(receivedSignal);
    }
    else if (isScheduled) {
       checkpointNow();
@@ -670,27 +674,31 @@ void Checkpointer::checkpointWrite(double simTime) {
    // increment step number here so that initial conditions correspond to step zero, etc.
 }
 
-bool Checkpointer::receivedSignal() {
+int Checkpointer::retrieveSignal() {
    int checkpointSignal;
    if (mMPIBlock->getGlobalRank() == 0) {
-      sigset_t pollusr1;
+      sigset_t sigpendingset;
 
-      int sigstatus = sigpending(&pollusr1);
+      int sigstatus = sigpending(&sigpendingset);
       FatalIf(sigstatus, "Signal handling routine sigpending() failed. %s\n", strerror(errno));
-      checkpointSignal = sigismember(&pollusr1, SIGUSR1);
-      assert(checkpointSignal == 0 || checkpointSignal == 1);
+      checkpointSignal = sigismember(&sigpendingset, SIGINT)
+                               ? SIGINT
+                               : sigismember(&sigpendingset, SIGTERM)
+                                       ? SIGTERM
+                                       : sigismember(&sigpendingset, SIGUSR1) ? SIGUSR1 : 0;
+
       if (checkpointSignal) {
-         sigstatus = sigemptyset(&pollusr1);
+         sigstatus = sigemptyset(&sigpendingset);
          assert(sigstatus == 0);
-         sigstatus = sigaddset(&pollusr1, SIGUSR1);
+         sigstatus = sigaddset(&sigpendingset, checkpointSignal);
          assert(sigstatus == 0);
          int result = 0;
-         sigwait(&pollusr1, &result);
-         assert(result == SIGUSR1);
+         sigwait(&sigpendingset, &result);
+         assert(result == checkpointSignal);
       }
    }
    MPI_Bcast(&checkpointSignal, 1 /*count*/, MPI_INT, 0, mMPIBlock->getGlobalComm());
-   return (checkpointSignal != 0);
+   return (checkpointSignal);
 }
 
 bool Checkpointer::scheduledCheckpoint() {
@@ -745,13 +753,28 @@ bool Checkpointer::scheduledWallclock() {
    return isScheduled;
 }
 
-void Checkpointer::checkpointWriteSignal() {
+void Checkpointer::checkpointWriteSignal(int checkpointSignal) {
+   char const *signalName = nullptr;
+   switch (checkpointSignal) {
+      case SIGINT: signalName  = "interrupt"; break;
+      case SIGTERM: signalName = "terminate"; break;
+      case SIGUSR1: signalName = "SIGUSR1"; break;
+      default:
+         pvAssert(0);
+         // checkpointWriteSignal should not be called unless the signal is one of the above
+         break;
+   }
    InfoLog().printf(
-         "Global rank %d: checkpointing in response to SIGUSR1 at time %f.\n",
+         "Global rank %d: checkpointing in response to %s at time %f.\n",
          mMPIBlock->getGlobalRank(),
+         signalName,
          mTimeInfo.mSimTime);
    std::string checkpointDirectory = makeCheckpointDirectoryFromCurrentStep();
    checkpointToDirectory(checkpointDirectory);
+   if (checkpointSignal == SIGINT || checkpointSignal == SIGTERM) {
+      MPI_Finalize();
+      exit(checkpointSignal);
+   }
 }
 
 std::string Checkpointer::makeCheckpointDirectoryFromCurrentStep() {
