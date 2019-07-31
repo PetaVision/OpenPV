@@ -28,7 +28,7 @@ void OccludingGSynAccumulator::setObjectType() { mObjectType = "OccludingGSynAcc
 
 void OccludingGSynAccumulator::ioParam_opaqueMagnitude(enum ParamsIOFlag ioFlag) {
    this->parameters()->ioParamValue(
-           ioFlag, this->getName(), "mOpaqueMagnitude", &mOpaqueMagnitude, mOpaqueMagnitude, true);
+           ioFlag, this->getName(), "opaqueMagnitude", &mOpaqueMagnitude, mOpaqueMagnitude, true);
 }
 
 int OccludingGSynAccumulator::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
