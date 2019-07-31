@@ -114,6 +114,11 @@ void MPIBlock::createBlockComm(MPI_Comm comm) {
 
    MPI_Comm_split(comm, cellIndex, cellRank, &mComm);
    MPI_Comm_rank(mComm, &mRank);
+
+   char commName[256];
+   sprintf(commName, "GlobalRank_%d_CellRank_%d_LocalRank_%d", mGlobalRank, cellRank, mRank);
+   MPI_Comm_set_name(mComm, commName);
+
    if (mRank < numProcsNeeded && mRank != cellRank) {
       Fatal().printf("Global rank %d, cellRank %d, mRank %d\n", mGlobalRank, cellRank, mRank);
    }

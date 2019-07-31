@@ -15,6 +15,8 @@
 #include <omp.h>
 #endif // PV_USE_OPENMP_THREADS
 
+#include "arch/mpi/mpi_debug.h"
+
 namespace PV {
 
 PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {

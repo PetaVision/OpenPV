@@ -1,6 +1,6 @@
 #include "PVAssert.hpp"
 #include "PVLog.hpp"
-#include "arch/mpi/mpi.h"
+#include "arch/mpi/mpi_debug.h"
 #include "conversions.hpp"
 
 namespace PV {

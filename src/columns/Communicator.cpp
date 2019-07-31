@@ -14,6 +14,8 @@
 #include "utils/PVLog.hpp"
 #include "utils/conversions.hpp"
 
+#include "arch/mpi/mpi_debug.h"
+
 namespace PV {
 
 int Communicator::gcd(int a, int b) const {
