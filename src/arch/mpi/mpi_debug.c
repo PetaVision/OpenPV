@@ -17,6 +17,7 @@ static long int debug_mpi_log_call(const char *func, const char *file, const int
         fprintf(mpi_log, "[%ld] %-16s %s:%d\n",
                 t, func, file, line);
     }
+    sleep(1);
     return t;
 }
 
@@ -58,6 +59,11 @@ static void debug_mpi_log_arg_str(const char *arg, const char *str) {
     }
 }
 
+static void debug_mpi_log_ret(const int value) {
+    if (mpi_log != NULL) {
+        fprintf(mpi_log, "  returned %d\n", value);
+    }
+}
 
 int DEBUG_MPI_Init(int *argc, char ***argv, const char *file, const int line) {
     char fname[256];
@@ -69,6 +75,7 @@ int DEBUG_MPI_Init(int *argc, char ***argv, const char *file, const int line) {
     mpi_log = fopen(fname, "w");
 
     debug_mpi_log_call("MPI_Init", file, line);
+    debug_mpi_log_ret(ret);
     return ret;
 }
 
@@ -76,6 +83,7 @@ int DEBUG_MPI_Finalize(const char *file, const int line) {
     int ret = MPI_Finalize();
     debug_mpi_log_call("MPI_Finalize", file, line);
     fclose(mpi_log);
+    debug_mpi_log_ret(ret);
     return ret;
 }
 
@@ -83,6 +91,7 @@ int DEBUG_MPI_Barrier(MPI_Comm comm, const char *file, const int line) {
     int ret = MPI_Barrier(comm);
     debug_mpi_log_call("MPI_Barrier", file, line);
     debug_mpi_log_arg_com("comm", comm);
+    debug_mpi_log_ret(ret);
     return ret;
 }
 
@@ -105,6 +114,7 @@ int DEBUG_MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MP
     fwrite(buffer, dtsize, count, data); 
     fclose(data);
 
+    debug_mpi_log_ret(ret);
     return ret;
 }
 
@@ -147,6 +157,7 @@ int DEBUG_MPI_Iallreduce(
 
     counter++;
 
+    debug_mpi_log_ret(ret);
     return ret;
 }
 
@@ -186,6 +197,7 @@ int DEBUG_MPI_Allreduce(
     }
 
     counter++;
+    debug_mpi_log_ret(ret);
     return ret;
 }
 
@@ -227,6 +239,7 @@ int DEBUG_MPI_Reduce(
     }
 
     counter++;
+    debug_mpi_log_ret(ret);
     return ret;
 }
 
@@ -257,6 +270,7 @@ int DEBUG_MPI_Irecv(
     MPI_Type_size(datatype, &dtsize);
     fwrite(buf, dtsize, count, data); 
     fclose(data);
+    debug_mpi_log_ret(ret);
     return ret;
 }
 
@@ -270,7 +284,11 @@ int DEBUG_MPI_Recv(
       MPI_Status *status,
       const char *file, const int line) {
     static int counter = 0;
-    int ret = MPI_Recv(buf, count, datatype, source, tag, comm, status);
+    MPI_Status debug_stat;
+    int ret = MPI_Recv(buf, count, datatype, source, tag, comm, &debug_stat);
+    if (status != MPI_STATUS_IGNORE) {
+        *status = debug_stat;
+    }
     long int t = debug_mpi_log_call("MPI_Recv", file, line);
     debug_mpi_log_arg_ptr("buf", buf);
     debug_mpi_log_arg_int("count", count);
@@ -287,6 +305,10 @@ int DEBUG_MPI_Recv(
     MPI_Type_size(datatype, &dtsize);
     fwrite(buf, dtsize, count, data); 
     fclose(data);
+    debug_mpi_log_ret(ret);
+    debug_mpi_log_arg_int("status.MPI_SOURCE", debug_stat.MPI_SOURCE);
+    debug_mpi_log_arg_int("status.MPI_TAG",    debug_stat.MPI_TAG);
+    debug_mpi_log_arg_int("status.MPI_ERROR",  debug_stat.MPI_ERROR);
     return ret;
 }
 
@@ -318,6 +340,7 @@ int DEBUG_MPI_Isend(
     fwrite(buf, dtsize, count, data); 
     fclose(data);
 
+    debug_mpi_log_ret(ret);
     return ret;
 }
 
@@ -341,17 +364,27 @@ int DEBUG_MPI_Send(void *buf, int count, MPI_Datatype datatype, int dest, int ta
     fwrite(buf, dtsize, count, data); 
     fclose(data);
 
+    debug_mpi_log_ret(ret);
     return ret;
 }
 
-int DEBUG_MPI_Testall(int count, MPI_Request *reqs, int *flag, MPI_Status *stats,
+int DEBUG_MPI_Testall(int count, MPI_Request *reqs, int *flag, MPI_Status *status,
       const char *file, const int line) {
-    int ret = MPI_Testall(count, reqs, flag, stats);
+    MPI_Status debug_stat;
+    int ret = MPI_Testall(count, reqs, flag, debug_stat);
+    if (status != MPI_STATUS_IGNORE) {
+        *status = debug_stat;
+    }
     debug_mpi_log_call("MPI_Testall", file, line);
     debug_mpi_log_arg_int("count", count);
     debug_mpi_log_arg_ptr("reqs", reqs);
     debug_mpi_log_arg_ptr("flag", flag);
-    debug_mpi_log_arg_ptr("stats", stats);
+    debug_mpi_log_arg_ptr("stats", status);
+
+    debug_mpi_log_ret(ret);
+    debug_mpi_log_arg_int("status.MPI_SOURCE", debug_stat.MPI_SOURCE);
+    debug_mpi_log_arg_int("status.MPI_TAG",    debug_stat.MPI_TAG);
+    debug_mpi_log_arg_int("status.MPI_ERROR",  debug_stat.MPI_ERROR);
     return ret;
 }
 
@@ -362,6 +395,7 @@ int DEBUG_MPI_Waitall(int count, MPI_Request array_of_requests[], MPI_Status arr
     debug_mpi_log_arg_int("count", count);
     debug_mpi_log_arg_ptr("array_of_requests", array_of_requests);
     debug_mpi_log_arg_ptr("array_of_statuses", array_of_statuses);
+    debug_mpi_log_ret(ret);
     return ret;
 }
 
