@@ -27,7 +27,7 @@ static void debug_mpi_log_arg_com(const char *arg, MPI_Comm comm) {
         int len = 0;
         MPI_Comm_get_name(comm, name, &len);
         name[len] = '\0';
-        fprintf(mpi_log, "%16s = %s\n", arg, name);
+        fprintf(mpi_log, "%32s = %s\n", arg, name);
     }
 }
 
@@ -37,31 +37,31 @@ static void debug_mpi_log_arg_typ(const char *arg, MPI_Datatype type) {
         int len = 0;
         MPI_Type_get_name(type, name, &len);
         name[len] = '\0';
-        fprintf(mpi_log, "%16s = %s\n", arg, name);
+        fprintf(mpi_log, "%32s = %s\n", arg, name);
     }
 }
 
 static void debug_mpi_log_arg_ptr(const char *arg, const void *value) {
     if (mpi_log != NULL) {
-        fprintf(mpi_log, "%16s = 0x%016lX\n", arg, (unsigned long int)value);
+        fprintf(mpi_log, "%32s = 0x%016lX\n", arg, (unsigned long int)value);
     }
 }
 
 static void debug_mpi_log_arg_int(const char *arg, const int value) {
     if (mpi_log != NULL) {
-        fprintf(mpi_log, "%16s = %d\n", arg, value);
+        fprintf(mpi_log, "%32s = %d\n", arg, value);
     }
 }
 
 static void debug_mpi_log_arg_str(const char *arg, const char *str) {
     if (mpi_log != NULL) {
-        fprintf(mpi_log, "%16s = %s\n", arg, str);
+        fprintf(mpi_log, "%32s = %s\n", arg, str);
     }
 }
 
 static void debug_mpi_log_ret(const int value) {
-    if (mpi_log != NULL) {
-        fprintf(mpi_log, "  returned %d\n", value);
+    if (mpi_log != NULL && value != 0) {
+        fprintf(mpi_log, "  NON ZERO RETURN: %d\n", value);
     }
 }
 
@@ -371,7 +371,7 @@ int DEBUG_MPI_Send(void *buf, int count, MPI_Datatype datatype, int dest, int ta
 int DEBUG_MPI_Testall(int count, MPI_Request *reqs, int *flag, MPI_Status *status,
       const char *file, const int line) {
     MPI_Status debug_stat;
-    int ret = MPI_Testall(count, reqs, flag, debug_stat);
+    int ret = MPI_Testall(count, reqs, flag, &debug_stat);
     if (status != MPI_STATUS_IGNORE) {
         *status = debug_stat;
     }
