@@ -11,9 +11,11 @@ namespace PV {
 
 class MovieTestLayer : public PV::ImageLayer {
   public:
-   MovieTestLayer(const char *name, HyPerCol *hc);
-   virtual Response::Status updateState(double time, double dt) override;
+   MovieTestLayer(const char *name, PVParams *params, Communicator const *comm);
+   virtual ~MovieTestLayer();
+   virtual ActivityComponent *createActivityComponent() override;
 };
-}
+
+} // end namespace PV
 
 #endif // MOVIETESTLAYER_HPP_

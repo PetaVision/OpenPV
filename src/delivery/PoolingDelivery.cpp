@@ -6,21 +6,22 @@
  */
 
 #include "PoolingDelivery.hpp"
-#include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
+#include "components/PoolingIndexLayerInputBuffer.hpp"
 #include "delivery/accumulate_functions.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
-PoolingDelivery::PoolingDelivery(char const *name, HyPerCol *hc) { initialize(name, hc); }
+PoolingDelivery::PoolingDelivery(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 PoolingDelivery::PoolingDelivery() {}
 
 PoolingDelivery::~PoolingDelivery() {}
 
-int PoolingDelivery::initialize(char const *name, HyPerCol *hc) {
-   return BaseDelivery::initialize(name, hc);
+void PoolingDelivery::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   BaseDelivery::initialize(name, params, comm);
 }
 
 void PoolingDelivery::setObjectType() { mObjectType = "PoolingDelivery"; }
@@ -31,13 +32,11 @@ int PoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_updateGSynFromPostPerspective(ioFlag);
    ioParam_needPostIndexLayer(ioFlag);
    ioParam_postIndexLayerName(ioFlag);
-   return PV_SUCCESS;
+   return status;
 }
 
 void PoolingDelivery::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
-   PVParams *params = parent->parameters();
-
-   parent->parameters()->ioParamStringRequired(
+   parameters()->ioParamStringRequired(
          ioFlag, name, "pvpatchAccumulateType", &mPvpatchAccumulateTypeString);
    if (ioFlag == PARAMS_IO_READ) {
       mAccumulateType = parseAccumulateTypeString(mPvpatchAccumulateTypeString);
@@ -82,7 +81,7 @@ PoolingDelivery::parseAccumulateTypeString(char const *poolingTypeString) {
 }
 
 void PoolingDelivery::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   auto *params = parent->parameters();
+   auto *params = parameters();
    pvAssert(!params->presentAndNotBeenRead(name, "receiveGpu"));
    if (!mReceiveGpu) {
       params->ioParamValue(
@@ -99,15 +98,14 @@ void PoolingDelivery::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag io
 }
 
 void PoolingDelivery::ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "needPostIndexLayer", &mNeedPostIndexLayer, mNeedPostIndexLayer);
 }
 
 void PoolingDelivery::ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "needPostIndexLayer"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "needPostIndexLayer"));
    if (mNeedPostIndexLayer) {
-      parent->parameters()->ioParamStringRequired(
-            ioFlag, name, "postIndexLayerName", &mPostIndexLayerName);
+      parameters()->ioParamStringRequired(ioFlag, name, "postIndexLayerName", &mPostIndexLayerName);
    }
 }
 
@@ -118,15 +116,15 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
       return status;
    }
 
-   auto &hierarchy = message->mHierarchy;
+   auto *objectTable = message->mObjectTable;
 
-   mPatchSize = mapLookupByType<PatchSize>(hierarchy, getDescription());
+   mPatchSize = objectTable->findObject<PatchSize>(getName());
    FatalIf(mPatchSize == nullptr, "%s requires a PatchSize component.\n", getDescription_c());
    if (!mPatchSize->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
 
-   mWeightsPair = mapLookupByType<ImpliedWeightsPair>(hierarchy, getDescription());
+   mWeightsPair = objectTable->findObject<ImpliedWeightsPair>(getName());
    FatalIf(
          mWeightsPair == nullptr,
          "%s requires an ImpliedWeightsPair component.\n",
@@ -137,13 +135,7 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 
    if (mNeedPostIndexLayer) {
       pvAssert(mPostIndexLayerName);
-      auto *objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-      FatalIf(
-            objectMapComponent == nullptr,
-            "%s requires an ObjectMapComponent.\n",
-            getDescription_c());
-      mPostIndexLayer =
-            objectMapComponent->lookup<PoolingIndexLayer>(std::string(mPostIndexLayerName));
+      mPostIndexLayer = objectTable->findObject<PoolingIndexLayer>(mPostIndexLayerName);
    }
 
    if (mUpdateGSynFromPostPerspective) {
@@ -156,15 +148,15 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
       // we need pre datastore, weights, and post gsyn for the channelCode allocated on the GPU.
-      getPreLayer()->setAllocDeviceDatastore();
-      getPostLayer()->setAllocDeviceGSyn();
+      mPreData->setAllocCudaDatastore();
+      mPostGSyn->useCuda();
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
       weights->useGPU();
 
       // If recv from pre and pre layer is sparse, allocate activeIndices
-      if (!mUpdateGSynFromPostPerspective && getPreLayer()->getSparseFlag()) {
-         getPreLayer()->setAllocDeviceActiveIndices();
+      if (!mUpdateGSynFromPostPerspective && mPreData->getSparseLayer()) {
+         mPreData->setAllocCudaActiveIndices();
       }
    }
 #endif // PV_USE_CUDA
@@ -174,11 +166,11 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
 #ifdef PV_USE_CUDA
 Response::Status
 PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
+   auto status = BaseDelivery::setCudaDevice(message);
+   if (status != Response::SUCCESS) {
+      return status;
+   }
    if (mUsingGPUFlag) {
-      auto status = BaseDelivery::setCudaDevice(message);
-      if (status != Response::SUCCESS) {
-         return status;
-      }
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
       weights->setCudaDevice(message->mCudaDevice);
@@ -189,7 +181,7 @@ PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messa
 
 Response::Status PoolingDelivery::allocateDataStructures() {
    if (mPostIndexLayer and !mPostIndexLayer->getDataStructuresAllocatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until postIndexLayer \"%s\" has finished its "
                "allocateDataStructures stage.\n",
@@ -202,48 +194,55 @@ Response::Status PoolingDelivery::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
+   pvAssert(mPreData and mPreData->getLayerLoc());
+   pvAssert(mPostGSyn and mPostGSyn->getLayerLoc());
+   FatalIf(
+         mPreData->getLayerLoc()->nf != mPostGSyn->getLayerLoc()->nf,
+         "%s requires pre layer \"%s\" and post layer \"%s\" have equal nf (%d versus %d).\n",
+         getDescription_c(),
+         mPreData->getName(),
+         mPostGSyn->getName(),
+         mPreData->getLayerLoc()->nf,
+         mPostGSyn->getLayerLoc()->nf);
 #ifdef PV_USE_CUDA
    if (mReceiveGpu) {
-      if (!getPreLayer()->getDataStructuresAllocatedFlag()) {
-         return Response::POSTPONE;
+      if (!mPreData->getDataStructuresAllocatedFlag()) {
+         return status + Response::POSTPONE;
       }
-      if (!getPostLayer()->getDataStructuresAllocatedFlag()) {
-         return Response::POSTPONE;
+      if (!mPostGSyn->getDataStructuresAllocatedFlag()) {
+         return status + Response::POSTPONE;
       }
       if (!mWeightsPair->getDataStructuresAllocatedFlag()) {
-         return Response::POSTPONE;
+         return status + Response::POSTPONE;
       }
       initializeDeliverKernelArgs();
    }
 #endif // PV_USE_CUDA
+#ifdef PV_USE_OPENMP_THREADS
    allocateThreadGSyn();
+   allocateThreadGateIdxBuffer();
+#endif // PV_USE_OPENMP_THREADS
    return Response::SUCCESS;
 }
 
 #ifdef PV_USE_CUDA
 void PoolingDelivery::initializeDeliverKernelArgs() {
-   PVCuda::CudaBuffer *d_preDatastore = getPreLayer()->getDeviceDatastore();
-   PVCuda::CudaBuffer *d_postGSyn     = getPostLayer()->getDeviceGSyn();
+   PVCuda::CudaBuffer *d_preDatastore = mPreData->getCudaDatastore();
+   PVCuda::CudaBuffer *d_postGSyn     = mPostGSyn->getCudaBuffer();
    Weights *weights                   = mWeightsPair->getPostWeights();
    pvAssert(weights);
+   cudnnPoolingMode_t poolingMode = mAccumulateType == MAXPOOLING
+                                          ? CUDNN_POOLING_MAX
+                                          : CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
+
    int const nxpPost = weights->getPatchSizeX();
    int const nypPost = weights->getPatchSizeY();
-   cudnnPoolingMode_t poolingMode;
-   int multiplier = 1;
-   switch (mAccumulateType) {
-      case MAXPOOLING: poolingMode = CUDNN_POOLING_MAX; break;
-      case SUMPOOLING:
-         poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING;
-         multiplier  = nxpPost * nypPost;
-         break;
-      case AVGPOOLING: poolingMode = CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING; break;
-      default: pvAssert(0); break;
-   }
+   int multiplier    = mAccumulateType == SUMPOOLING ? nxpPost * nypPost : 1;
 
-   mRecvKernel = new PVCuda::CudaPoolingDeliverKernel(parent->getDevice());
+   mRecvKernel = new PVCuda::CudaPoolingDeliverKernel(mCudaDevice);
    mRecvKernel->setArgs(
-         getPreLayer()->getLayerLoc(),
-         getPostLayer()->getLayerLoc(),
+         mPreData->getLayerLoc(),
+         mPostGSyn->getLayerLoc(),
          nxpPost,
          nypPost,
          poolingMode,
@@ -254,22 +253,27 @@ void PoolingDelivery::initializeDeliverKernelArgs() {
 }
 #endif // PV_USE_CUDA
 
-void PoolingDelivery::allocateThreadGSyn() {
+#ifdef PV_USE_OPENMP_THREADS
+void PoolingDelivery::allocateThreadGateIdxBuffer() {
    // If multithreaded, allocate a GSyn buffer for each thread, to avoid collisions.
-   int const numThreads = parent->getNumThreads();
-   if (numThreads > 1) {
-      mThreadGSyn.resize(numThreads);
+   int const numThreads = (int)mThreadGSyn.size();
+   if (numThreads > 0) {
       mThreadGateIdxBuffer.resize(numThreads);
-      // mThreadGSyn is only a buffer for one batch element. We're threading over presynaptic
-      // neuron index, not batch element; so batch elements will be processed serially.
+      // mThreadGateIdxBuffer is only a buffer for one batch element. We're threading over
+      // presynaptic neuron index, not batch element; so batch elements will be processed serially.
+
+      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
+      // We could use mPostGSyn->getBufferSize(), but this requires
+      // checking mPostGSyn->getDataStructuresAllocatedFlag().
+      int const numNeurons = postLoc->nx * postLoc->ny * postLoc->nf;
       for (int th = 0; th < numThreads; th++) {
-         mThreadGSyn[th].resize(mPostLayer->getNumNeurons());
-         mThreadGateIdxBuffer[th].resize(mPostLayer->getNumNeurons());
+         mThreadGateIdxBuffer[th].resize(numNeurons);
       }
    }
 }
+#endif // PV_USE_OPENMP_THREADS
 
-void PoolingDelivery::deliver() {
+void PoolingDelivery::deliver(float *destBuffer) {
    // Check if we need to update based on connection's channel
    if (getChannelCode() == CHANNEL_NOUPDATE) {
       return;
@@ -277,32 +281,30 @@ void PoolingDelivery::deliver() {
 
    if (mReceiveGpu) {
 #ifdef PV_USE_CUDA
-      deliverGPU();
+      deliverGPU(destBuffer);
 #endif // PV_USE_CUDA
    }
    else {
       if (mUpdateGSynFromPostPerspective) {
-         deliverPostsynapticPerspective();
+         deliverPostsynapticPerspective(destBuffer);
       }
       else {
-         deliverPresynapticPerspective();
+         deliverPresynapticPerspective(destBuffer);
       }
    }
-#ifdef PV_USE_CUDA
-   mPostLayer->setUpdatedDeviceGSynFlag(!mReceiveGpu);
-#endif // PV_USE_CUDA
 }
 
-void PoolingDelivery::deliverPostsynapticPerspective() {
-   PVLayerLoc const *sourceLoc = mPreLayer->getLayerLoc();
-   PVLayerLoc const *targetLoc = mPostLayer->getLayerLoc();
+void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
+   PVLayerLoc const *sourceLoc = mPreData->getLayerLoc();
+   PVLayerLoc const *targetLoc = mPostGSyn->getLayerLoc();
    Weights *postWeights        = mWeightsPair->getPostWeights();
 
    // Slightly inefficient to define the function pointer each time deliver() is called;
    // but the real inefficiency is calling the function pointer in a tight for-loop.
    // TODO: Use templating instead of function pointer.
    void (*accumulateFunctionPointer)(
-         int kPreRes, int nk, float *v, float *a, float *w, void *auxPtr, int sf) = nullptr;
+         int kPreRes, int nk, float *v, float const *a, float const *w, void *auxPtr, int sf) =
+         nullptr;
    switch (mAccumulateType) {
       case MAXPOOLING: accumulateFunctionPointer = pvpatch_max_pooling_from_post; break;
       case SUMPOOLING: accumulateFunctionPointer = pvpatch_sum_pooling_from_post; break;
@@ -320,20 +322,22 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
 
    float w = 1.0f;
    if (mAccumulateType == AVGPOOLING) {
-      float relative_XScale = pow(2, (getPostLayer()->getXScale() - getPreLayer()->getXScale()));
-      float relative_YScale = pow(2, (getPostLayer()->getYScale() - getPreLayer()->getYScale()));
-      float nxp             = (float)mPatchSize->getPatchSizeX();
-      float nyp             = (float)mPatchSize->getPatchSizeY();
-      w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
+      PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
+      PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
+      float relative_XScale     = (float)preLoc->nx / (float)postLoc->nx;
+      float relative_YScale     = (float)preLoc->ny / (float)postLoc->ny;
+      float nxp                 = (float)mPatchSize->getPatchSizeX();
+      float nyp                 = (float)mPatchSize->getPatchSizeY();
+      w                         = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
    }
 
-   PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(0 /*delay*/);
+   PVLayerCube activityCube = mPreData->getPublisher()->createCube(0 /*delay*/);
 
-   float *gSyn = getPostLayer()->getChannel(getChannelCode());
+   float *gSyn = destBuffer;
    pvAssert(gSyn);
 
    // Get number of neurons restricted target
-   int const numPostRestricted = mPostLayer->getNumNeurons();
+   int const numPostRestricted = mPostGSyn->getBufferSize();
 
    int const sourceNx = sourceLoc->nx;
    int const sourceNy = sourceLoc->ny;
@@ -351,7 +355,8 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
    clearGateIdxBuffer();
    float *gatePatchHead = nullptr;
    if (mNeedPostIndexLayer) {
-      gatePatchHead = mPostIndexLayer->getChannel(CHANNEL_EXC);
+      auto *indexLayerInput = mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
+      gatePatchHead         = indexLayerInput->getIndexBuffer(0);
    }
 
    float resetVal = 0.0f;
@@ -359,14 +364,20 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
       resetVal = -INFINITY;
    }
 
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   int const nbatch = sourceLoc->nbatch;
+   FatalIf(
+         targetLoc->nbatch != nbatch,
+         "%s has different presynaptic and postsynaptic batch sizes.\n",
+         getDescription_c());
+   for (int b = 0; b < nbatch; b++) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
       for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++) {
-         float *activityBatch = activityCube.data
-                                + b * (sourceNx + sourceHalo->rt + sourceHalo->lt)
-                                        * (sourceNy + sourceHalo->up + sourceHalo->dn) * sourceNf;
+         float const *activityBatch = activityCube.data
+                                      + b * (sourceNx + sourceHalo->rt + sourceHalo->lt)
+                                              * (sourceNy + sourceHalo->up + sourceHalo->dn)
+                                              * sourceNf;
          float *gSynBatchHead = gSyn + b * targetNx * targetNy * targetNf;
 
          // Change restricted to extended post neuron
@@ -393,13 +404,13 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
             *gatePatchPos = (float)-1;
          }
 
-         float *activityStartBuf = &(activityBatch[startSourceExt]);
+         float const *activityStartBuf = &(activityBatch[startSourceExt]);
 
          int sf           = postWeights->getPatchSizeF();
          int yPatchSize   = postWeights->getPatchSizeY();
          int numPerStride = postWeights->getPatchSizeX() * postWeights->getPatchSizeF();
 
-         const PVLayerLoc *postLoc = mPostLayer->getLayerLoc();
+         const PVLayerLoc *postLoc = mPostGSyn->getLayerLoc();
          int const kfPost          = featureIndex(
                kTargetExt,
                postLoc->nx + postLoc->halo.lt + postLoc->halo.rt,
@@ -434,7 +445,7 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
                   sourceLoc->nyGlobal + sourceLoc->halo.up + sourceLoc->halo.dn,
                   sourceLoc->nf);
 
-            float *activityY = &(activityStartBuf[ky * sy + offset]);
+            float const *activityY = &(activityStartBuf[ky * sy + offset]);
 
             (accumulateFunctionPointer)(
                   kPreGlobalExt, numPerStride, gSynPatchPos, activityY, &w, gatePatchPos, sf);
@@ -443,16 +454,16 @@ void PoolingDelivery::deliverPostsynapticPerspective() {
    }
 }
 
-void PoolingDelivery::deliverPresynapticPerspective() {
-   PVLayerLoc const *preLoc  = getPreLayer()->getLayerLoc();
-   PVLayerLoc const *postLoc = getPostLayer()->getLayerLoc();
+void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
+   PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
+   PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *preWeights       = mWeightsPair->getPreWeights();
 
    // Slightly inefficient to define the function pointer each time deliver() is called;
    // but the real inefficiency is calling the function pointer in a tight for-loop.
    // TODO: Use templating instead of function pointer.
    void (*accumulateFunctionPointer)(
-         int kPreRes, int nk, float *v, float a, float *w, void *auxPtr, int sf) = nullptr;
+         int kPreRes, int nk, float *v, float a, float const *w, void *auxPtr, int sf) = nullptr;
    switch (mAccumulateType) {
       case MAXPOOLING: accumulateFunctionPointer = pvpatch_max_pooling; break;
       case SUMPOOLING: accumulateFunctionPointer = pvpatch_sum_pooling; break;
@@ -470,16 +481,16 @@ void PoolingDelivery::deliverPresynapticPerspective() {
 
    float w = 1.0f;
    if (mAccumulateType == AVGPOOLING) {
-      float relative_XScale = pow(2, (getPostLayer()->getXScale() - getPreLayer()->getXScale()));
-      float relative_YScale = pow(2, (getPostLayer()->getYScale() - getPreLayer()->getYScale()));
+      float relative_XScale = (float)preLoc->nx / (float)postLoc->nx;
+      float relative_YScale = (float)preLoc->ny / (float)postLoc->ny;
       float nxp             = (float)mPatchSize->getPatchSizeX();
       float nyp             = (float)mPatchSize->getPatchSizeY();
       w                     = 1.0f / (nxp * relative_XScale * nyp * relative_YScale);
    }
 
-   PVLayerCube activityCube = mPreLayer->getPublisher()->createCube(0 /*delay*/);
+   PVLayerCube activityCube = mPreData->getPublisher()->createCube(0 /*delay*/);
 
-   float *gSyn = getPostLayer()->getChannel(getChannelCode());
+   float *gSyn = destBuffer;
    pvAssert(gSyn);
 
    float resetVal = 0;
@@ -488,56 +499,66 @@ void PoolingDelivery::deliverPresynapticPerspective() {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int i = 0; i < getPostLayer()->getNumNeuronsAllBatches(); i++) {
+      for (int i = 0; i < mPostGSyn->getBufferSizeAcrossBatch(); i++) {
          gSyn[i] = resetVal;
       }
    }
 
    clearGateIdxBuffer();
 
-   for (int b = 0; b < mPreLayer->getLayerLoc()->nbatch; b++) {
-      float *activityBatch = activityCube.data
-                             + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
-                                     * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
-                                     * preLoc->nf;
+   for (int b = 0; b < activityCube.loc.nbatch; b++) {
+      float const *activityBatch = activityCube.data
+                                   + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
+                                           * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
+                                           * preLoc->nf;
       float *gSynPatchHeadBatch = gSyn + b * postLoc->nx * postLoc->ny * postLoc->nf;
       float *gatePatchHeadBatch = NULL;
       if (mNeedPostIndexLayer) {
-         gatePatchHeadBatch =
-               mPostIndexLayer->getChannel(CHANNEL_EXC) + b * mPostIndexLayer->getNumNeurons();
+         auto *indexLayerInput =
+               mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
+         gatePatchHeadBatch = indexLayerInput->getIndexBuffer(b);
       }
 
-      SparseList<float>::Entry const *activeIndicesBatch = NULL;
+      SparseList<float>::Entry const *activeIndicesBatch = nullptr;
+      int numLoop;
       if (activityCube.isSparse) {
          activeIndicesBatch = (SparseList<float>::Entry *)activityCube.activeIndices
                               + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt)
                                       * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn)
                                       * preLoc->nf;
+         numLoop = activityCube.numActive[b];
       }
-      int numLoop = activityCube.isSparse ? activityCube.numActive[b] : mPreLayer->getNumExtended();
+      else {
+         numLoop = activityCube.numItems / activityCube.loc.nbatch;
+      }
 
-      if (!mThreadGateIdxBuffer.empty()) {
 #ifdef PV_USE_OPENMP_THREADS
+      int const numThreads = (int)mThreadGateIdxBuffer.size();
+      pvAssert((int)mThreadGSyn.size() == numThreads);
+      if (numThreads > 0) {
 #pragma omp parallel for
-#endif
-         for (int i = 0; i < parent->getNumThreads() * getPostLayer()->getNumNeurons(); i++) {
-            int ti                       = i / getPostLayer()->getNumNeurons();
-            int ni                       = i % getPostLayer()->getNumNeurons();
-            mThreadGateIdxBuffer[ti][ni] = -1;
+         for (int i = 0; i < numThreads * mPostGSyn->getBufferSize(); i++) {
+            int ti                       = i / mPostGSyn->getBufferSize();
+            int ni                       = i % mPostGSyn->getBufferSize();
+            mThreadGateIdxBuffer[ti][ni] = -1.0f;
          }
       }
+#endif // PV_USE_OPENMP_THREADS
 
 #ifdef PV_USE_OPENMP_THREADS
-      // Clear all gsyn buffers
-      if (!mThreadGSyn.empty()) {
-         int numNeurons = getPostLayer()->getNumNeurons();
+      // Reset all thread gsyn buffer (note: the only difference from
+      // BaseDelivery::clearThreadGSyn() is that the former sets the values to zero, while this
+      // method sets them to resetVal (which is -infinity for maxpooling and zero for other types).
+      if (numThreads > 0) {
+         int numNeurons = mPostGSyn->getBufferSize();
+         for (int ti = 0; ti < numThreads; ti++) {
+            float *threadData = mThreadGSyn[ti].data();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for (int i = 0; i < parent->getNumThreads() * numNeurons; i++) {
-            int ti              = i / numNeurons;
-            int ni              = i % numNeurons;
-            mThreadGSyn[ti][ni] = resetVal;
+            for (int ni = 0; ni < numNeurons; ni++) {
+               threadData[ni] = resetVal;
+            }
          }
       }
 #endif // PV_USE_OPENMP_THREADS
@@ -558,11 +579,11 @@ void PoolingDelivery::deliverPresynapticPerspective() {
             a       = activityBatch[kPreExt];
          }
 
-         // If we're using mThreadGSyn, set this here
          float *gSynPatchHead;
          float *gatePatchHead = NULL;
+// If we're using GSyn threads, set this here
 #ifdef PV_USE_OPENMP_THREADS
-         if (!mThreadGSyn.empty()) {
+         if (numThreads > 1) {
             int ti        = omp_get_thread_num();
             gSynPatchHead = mThreadGSyn[ti].data();
          }
@@ -631,41 +652,36 @@ void PoolingDelivery::deliverPresynapticPerspective() {
          }
       }
 #ifdef PV_USE_OPENMP_THREADS
-      // Accumulate back into gSyn // Should this be done in HyPerLayer where it
-      // can be done once,
-      // as opposed to once per connection?
-      if (!mThreadGSyn.empty()) {
-         float *gSynPatchHead = gSynPatchHeadBatch;
-         float *gateIdxBuffer = nullptr;
-         if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
-            gateIdxBuffer = gatePatchHeadBatch;
-         }
-         int numNeurons = getPostLayer()->getNumNeurons();
+      // Accumulate back into gSyn
+      if (mAccumulateType == MAXPOOLING) {
+         if (numThreads > 1) {
+            int numNeurons       = mPostGSyn->getBufferSize();
+            float *gateIdxBuffer = nullptr;
+            if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
+               gateIdxBuffer = gatePatchHeadBatch;
+            }
 // Looping over neurons first to be thread safe
 #pragma omp parallel for
-         for (int ni = 0; ni < numNeurons; ni++) {
-            // Different for maxpooling
-            if (mAccumulateType == MAXPOOLING) {
-               for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-                  if (gSynPatchHead[ni] < mThreadGSyn[ti][ni]) {
-                     gSynPatchHead[ni] = mThreadGSyn[ti][ni];
-                     if (mNeedPostIndexLayer && !mThreadGateIdxBuffer.empty()) {
+            for (int ni = 0; ni < numNeurons; ni++) {
+               for (int ti = 0; ti < numThreads; ti++) {
+                  float *threadData = mThreadGSyn[ti].data();
+                  if (gSynPatchHeadBatch[ni] < threadData[ni]) {
+                     gSynPatchHeadBatch[ni] = threadData[ni];
+                     if (gateIdxBuffer) {
                         gateIdxBuffer[ni] = mThreadGateIdxBuffer[ti][ni];
                      }
                   }
                }
             }
-            else {
-               for (int ti = 0; ti < parent->getNumThreads(); ti++) {
-                  gSynPatchHead[ni] += mThreadGSyn[ti][ni];
-               }
-            }
          }
+      }
+      else {
+         accumulateThreadGSyn(gSynPatchHeadBatch);
       }
 #endif
    }
    if (activityCube.isSparse) {
-      for (int k = 0; k < getPostLayer()->getNumNeuronsAllBatches(); k++) {
+      for (int k = 0; k < mPostGSyn->getBufferSizeAcrossBatch(); k++) {
          if (gSyn[k] == -INFINITY) {
             gSyn[k] = 0.0f;
          }
@@ -676,36 +692,43 @@ void PoolingDelivery::deliverPresynapticPerspective() {
 void PoolingDelivery::clearGateIdxBuffer() {
    if (mNeedPostIndexLayer) {
       // Reset mPostIndexLayer's gsyn
-      resetGSynBuffers_PoolingIndexLayer(
-            mPostIndexLayer->getLayerLoc()->nbatch,
-            mPostIndexLayer->getNumNeurons(),
-            mPostIndexLayer->getNumChannels(),
-            mPostIndexLayer->getChannel(CHANNEL_EXC));
+      auto *indexLayerInput = mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();
+
+      int const numNeuronsAcrossBatch = indexLayerInput->getBufferSizeAcrossBatch();
+      int const numNeuronsAllChannels = numNeuronsAcrossBatch * indexLayerInput->getNumChannels();
+      float *gSynHead                 = indexLayerInput->getIndexBuffer(0);
+
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(static)
+#endif
+      for (int k = 0; k < numNeuronsAllChannels; k++) {
+         gSynHead[k] = -1.0f;
+      }
    }
 }
 
-bool PoolingDelivery::isAllInputReady() {
+bool PoolingDelivery::isAllInputReady() const {
    bool isReady = true;
    if (getChannelCode() != CHANNEL_NOUPDATE) {
-      isReady &= getPreLayer()->isExchangeFinished(0 /*delay*/);
+      isReady &= mPreData->isExchangeFinished(0 /*delay*/);
    }
    return isReady;
 }
 
 #ifdef PV_USE_CUDA
-void PoolingDelivery::deliverGPU() {
+void PoolingDelivery::deliverGPU(float *destBuffer) {
    pvAssert(
          getChannelCode() != CHANNEL_NOUPDATE); // Only called by deliver(), which already checked.
-   pvAssert(mPostLayer->getChannel(getChannelCode()));
+   pvAssert(destBuffer);
 
-   if (mPreLayer->getUpdatedDeviceDatastoreFlag()) {
-      PVLayerCube activityCube           = mPreLayer->getPublisher()->createCube(0 /*delay*/);
-      float *h_preDatastore              = activityCube.data;
-      PVCuda::CudaBuffer *d_preDatastore = mPreLayer->getDeviceDatastore();
+   if (mPreData->getUpdatedCudaDatastoreFlag()) {
+      PVLayerCube activityCube           = mPreData->getPublisher()->createCube(0 /*delay*/);
+      float const *h_preDatastore        = activityCube.data;
+      PVCuda::CudaBuffer *d_preDatastore = mPreData->getCudaDatastore();
       pvAssert(d_preDatastore);
       d_preDatastore->copyToDevice(h_preDatastore);
       // Device now has updated
-      mPreLayer->setUpdatedDeviceDatastoreFlag(false);
+      mPreData->setUpdatedCudaDatastoreFlag(false);
    }
 
    mRecvKernel->run();

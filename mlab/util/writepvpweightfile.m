@@ -108,7 +108,7 @@ function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbP
             wmin = min(wmin,wmincell);
         end%for
         if errorpresent, break; end%if
-        if numel(cell1size<4)
+        if numel(cell1size)<4
             cell1size=[cell1size ones(1,4-numel(cell1size))];
         end%if
         nxp = cell1size(1);
@@ -148,7 +148,7 @@ function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbP
         hdr(23) = nfp;% Number of features in the connection
         hdr(24) = typecast(single(wmin),'uint32'); % Minimum of all weights over all arbors in this frame.
         hdr(25) = typecast(single(wmax),'uint32'); % Maximum of all weights over all arbors in this frame.
-        hdr(26) = numpatches*numcells; % Number of weight patches
+        hdr(26) = numpatches; % Number of weight patches in one arbor
         fwrite(fid,hdr,'uint32');
         if exist('postweightsflag','var') && postweightsflag
             if nbPre ~= 0
@@ -176,8 +176,6 @@ function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbP
                 end%for
             end%for
             assert(patchno==numpatches);
-            for patchno=1:numpatches
-            end%for
         end%for
     end%for
     

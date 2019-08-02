@@ -8,7 +8,7 @@
 #include "cMakeHeader.h"
 #include "columns/CommandLineArguments.hpp"
 #include "columns/ConfigFileArguments.hpp"
-#include "columns/HyPerCol.hpp"
+#include "columns/CoreKeywords.hpp"
 #include "utils/PVLog.hpp"
 #include <csignal>
 #ifdef PV_USE_OPENMP_THREADS
@@ -50,6 +50,7 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
       arguments = new CommandLineArguments(mArgC, mArgV.data(), allowUnrecognizedArguments);
    }
    initLogFile(false /*appendFlag*/);
+   initFactory();
    initialize(); // must be called after initialization of arguments data member.
 }
 
@@ -61,13 +62,13 @@ PV_Init::~PV_Init() {
 }
 
 int PV_Init::initSignalHandler() {
-   // Block SIGUSR1.  root process checks for SIGUSR1 during advanceTime() and
-   // broadcasts sends to all processes,
-   // which saves the result in the checkpointSignal member variable.
-   // When run() checks whether to call checkpointWrite, it looks at
-   // checkpointSignal, and writes a
-   // checkpoint if checkpointWriteFlag is true, regardless of whether the next
-   // scheduled checkpoint time has arrived.
+   // Block SIGUSR1, SIGUSR2, SIGINT, and SIGTERM.  root process checks for
+   // these signals during Checkpointer::checkpointWrite() (typically called
+   // during HyPerCol::advanceTime()) and broadcasts any caught signal to
+   // all processes.
+   // CheckpointWrite() responds to the signals as follows:
+   // SIGUSR1: write a checkpoint and continue.
+   // SIGUSR2, SIGINT or SIGTERM: write a checkpoint and quit.
    //
    // This routine must be called before MPI_Initialize; otherwise a thread
    // created by MPI will not get the signal handler
@@ -75,6 +76,9 @@ int PV_Init::initSignalHandler() {
    sigset_t blockusr1;
    sigemptyset(&blockusr1);
    sigaddset(&blockusr1, SIGUSR1);
+   sigaddset(&blockusr1, SIGUSR2);
+   sigaddset(&blockusr1, SIGINT);
+   sigaddset(&blockusr1, SIGTERM);
    sigprocmask(SIG_BLOCK, &blockusr1, NULL);
    return 0;
 }
@@ -128,6 +132,8 @@ int PV_Init::commInit(int *argc, char ***argv) {
    return 0;
 }
 
+void PV_Init::initFactory() { PV::registerCoreKeywords(); }
+
 void PV_Init::initLogFile(bool appendFlag) {
    // TODO: Under MPI, non-root processes should send messages to root process.
    // Currently, if logFile is directory/filename.txt, the root process writes to
@@ -137,9 +143,7 @@ void PV_Init::initLogFile(bool appendFlag) {
    // the global rank.
    // If filename does not have an extension, _<rank> is appended.
    // Note that the global rank zero process does not insert _<rank>.  This is
-   // deliberate, as the
-   // nonzero ranks
-   // should be MPI-ing the data to the zero rank.
+   // deliberate, as the nonzero ranks should be MPI-ing the data to the zero rank.
    std::string logFile         = arguments->getStringArgument("LogFile");
    int const globalRootProcess = 0;
    int globalRank;
@@ -192,6 +196,10 @@ int PV_Init::createParams() {
             paramsFile.c_str(),
             2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
             mCommunicator);
+      unsigned int shuffleSeed = arguments->getUnsignedIntArgument("ShuffleParamGroups");
+      if (shuffleSeed) {
+         params->shuffleGroups(shuffleSeed);
+      }
       return PV_SUCCESS;
    }
    else {
@@ -222,7 +230,7 @@ int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
 }
 
 void PV_Init::printInitMessage() {
-   Communicator *communicator = getCommunicator();
+   Communicator const *communicator = getCommunicator();
    if (communicator == nullptr or communicator->globalCommRank() == 0) {
       time_t currentTime = time(nullptr);
       InfoLog() << "PetaVision initialized at "

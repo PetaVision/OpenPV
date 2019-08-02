@@ -14,7 +14,7 @@
 namespace PVCuda {
 
 CudaPoolingDeliverKernel::CudaPoolingDeliverKernel(CudaDevice *inDevice) : CudaKernel(inDevice) {
-   kernelName = "CudaPoolingDeliverKernel";
+   mKernelName = "CudaPoolingDeliverKernel";
 }
 
 CudaPoolingDeliverKernel::~CudaPoolingDeliverKernel() {
@@ -105,15 +105,14 @@ void CudaPoolingDeliverKernel::setArgs(
          postLoc->nx); // nx restricted
    cudnnHandleError(status, "Set output tensor descriptor");
 
-   std::string str(kernelName);
+   std::string str(mKernelName);
    mCudnnDataStore = device->createBuffer(dataStoreBuffer->getSize(), &str);
 
    int numGSynNeuronsAcrossBatch = postLoc->nf * postLoc->ny * postLoc->nf * postLoc->nbatch;
    float *gSynHead               = (float *)gSynBuffer->getPointer();
    mGSyn                         = &gSynHead[channel * numGSynNeuronsAcrossBatch];
 
-   size_t gSynSize = gSynBuffer->getSize();
-   mCudnnGSyn      = device->createBuffer(numGSynNeuronsAcrossBatch, &str);
+   mCudnnGSyn = device->createBuffer(numGSynNeuronsAcrossBatch, &str);
 }
 
 int CudaPoolingDeliverKernel::calcBorderExcess(
@@ -164,7 +163,7 @@ int CudaPoolingDeliverKernel::do_run() {
    // Permute the PV-ordered GSyn channel to CUDNN ordering.
    int const nxPost = mPostLoc->nx;
    int const nyPost = mPostLoc->ny;
-   int const nfPost = mPostLoc->nf;
+   pvAssert(mPostLoc->nf == nf);
    pvAssert(mPostLoc->nbatch == mPreLoc->nbatch);
    // Calculate grid and work size
    numNeurons              = nbatch * nxPost * nyPost * nf;

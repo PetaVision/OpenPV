@@ -14,35 +14,32 @@
 namespace PV {
 RunningAverageLayer::RunningAverageLayer() { initialize_base(); }
 
-RunningAverageLayer::RunningAverageLayer(const char *name, HyPerCol *hc) {
+RunningAverageLayer::RunningAverageLayer(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 RunningAverageLayer::~RunningAverageLayer() {}
 
 int RunningAverageLayer::initialize_base() {
-   originalLayer      = NULL;
    numImagesToAverage = 10;
    numUpdateTimes     = 0;
    return PV_SUCCESS;
 }
 
-int RunningAverageLayer::initialize(const char *name, HyPerCol *hc) {
+void RunningAverageLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    WarnLog() << "RunningAverageLayer has been deprecated.\n";
-   int status_init = CloneVLayer::initialize(name, hc);
+   int status_init = CloneVLayer::initialize(name, params, comm);
    return status_init;
 }
 
 Response::Status RunningAverageLayer::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    return CloneVLayer::communicateInitInfo(message);
-   // CloneVLayer sets originalLayer and errors out if originalLayerName is not valid
-}
-
-// RunningAverageLayer does not use the V buffer, so absolutely fine to clone off of an null V layer
-void RunningAverageLayer::allocateV() {
-   // Do nothing
+   // CloneVLayer sets mOriginalLayer and errors out if originalLayerName is not valid
 }
 
 int RunningAverageLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -57,13 +54,13 @@ int RunningAverageLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void RunningAverageLayer::ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "numImagesToAverage", &numImagesToAverage, numImagesToAverage);
 }
 
 int RunningAverageLayer::setActivity() {
-   float *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
+   float *activity = mActivity->getActivity();
+   memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
    return 0;
 }
 
@@ -71,11 +68,11 @@ Response::Status RunningAverageLayer::updateState(double timef, double dt) {
    numUpdateTimes++;
    // Check if an update is needed
    // Done in cloneVLayer
-   int numNeurons                = originalLayer->getNumNeurons();
-   float *A                      = clayer->activity->data;
-   const float *originalA        = originalLayer->getCLayer()->activity->data;
+   int numNeurons                = mOriginalLayer->getNumNeurons();
+   float *A                      = mActivity->getActivity();
+   const float *originalA        = mOriginalLayer->getActivity();
    const PVLayerLoc *loc         = getLayerLoc();
-   const PVLayerLoc *locOriginal = originalLayer->getLayerLoc();
+   const PVLayerLoc *locOriginal = mOriginalLayer->getLayerLoc();
    int nbatch                    = loc->nbatch;
    // Make sure all sizes match
    assert(locOriginal->nx == loc->nx);
@@ -83,7 +80,7 @@ Response::Status RunningAverageLayer::updateState(double timef, double dt) {
    assert(locOriginal->nf == loc->nf);
 
    for (int b = 0; b < nbatch; b++) {
-      const float *originalABatch = originalA + b * originalLayer->getNumExtended();
+      const float *originalABatch = originalA + b * mOriginalLayer->getNumExtended();
       float *ABatch               = A + b * getNumExtended();
       if (numUpdateTimes < numImagesToAverage * dt) {
 #ifdef PV_USE_OPENMP_THREADS

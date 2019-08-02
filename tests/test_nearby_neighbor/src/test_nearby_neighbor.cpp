@@ -1,7 +1,7 @@
 #include "utils/PVLog.hpp"
 #include <stdio.h>
 #include <stdlib.h>
-#include <utils/conversions.h>
+#include <utils/conversions.hpp>
 
 /*
  * The scale factor is a measure of the difference in distance scales between
@@ -19,6 +19,8 @@
  *  post-synaptic layer decreases, there is no ambiguity.
  *
  */
+
+using PV::nearby_neighbor;
 
 int main(int argc, char *argv[]) {
    int kPre, kPost, kBack, a, ans, test;

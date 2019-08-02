@@ -10,7 +10,7 @@
 //
 // Logging with the C++ builder pattern.
 //
-// After PV_Init::initialize has been called, use the following macros instead
+// After PV_Init has been instantiated, use the following macros instead
 // of writing to stdout, stderr, std::cout, std::cerr, etc.
 // This way, the file will go to stdout or stderr if the -l option is not used,
 // but will go to the log file if it is.
@@ -401,8 +401,7 @@ struct Log {
          va_list args1, args2;
          va_start(args1, fmt);
          va_copy(args2, args1);
-         char c;
-         int chars_needed = vsnprintf(&c, 1, fmt, args1);
+         int chars_needed = vsnprintf(nullptr, 0, fmt, args1);
          chars_needed++;
          char output_string[chars_needed];
          chars_printed = vsnprintf(output_string, chars_needed, fmt, args2);

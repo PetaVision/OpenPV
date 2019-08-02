@@ -36,7 +36,7 @@ PvpLayer "Input" = {
     phase = 0;
 };
 
-//Testing 4 points, such that when ran with mpi, it will test each process
+//Testing 4 points, such that when run with mpi, it will test each process
 TestPointProbe "UpLeft" = {
    targetLayer = "Input";
    xLoc = 1;

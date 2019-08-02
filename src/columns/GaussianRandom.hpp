@@ -18,7 +18,7 @@ struct box_muller_data {
 
 namespace PV {
 
-class GaussianRandom : public PV::Random {
+class GaussianRandom : public Random {
   public:
    GaussianRandom(int count);
    GaussianRandom(const PVLayerLoc *locptr, bool isExtended);

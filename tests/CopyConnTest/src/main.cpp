@@ -11,7 +11,6 @@
 int runparamsfile(PV_Init *initObj, char const *paramsfile);
 
 int main(int argc, char *argv[]) {
-   int rank         = 0;
    PV_Init *initObj = new PV_Init(&argc, &argv, false /*allowUnrecognizedArguments*/);
    if (initObj->getParams()) {
       if (initObj->getWorldRank() == 0) {
@@ -80,8 +79,8 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
       return status;
    }
 
-   HyPerConn *origConn = dynamic_cast<HyPerConn *>(hc->getObjectFromName("OriginalConn"));
-   if (origConn == NULL) {
+   auto *origConn = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("OriginalConn"));
+   if (origConn == nullptr) {
       if (rank == 0) {
          ErrorLog().printf(
                "Unable to find connection named \"OriginalConn\" in params file \"%s\".\n",
@@ -89,8 +88,8 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
       }
       status = PV_FAILURE;
    }
-   CopyConn *copyConn = dynamic_cast<CopyConn *>(hc->getObjectFromName("CopyConn"));
-   if (copyConn == NULL) {
+   auto *copyConn = dynamic_cast<ComponentBasedObject *>(hc->getObjectFromName("CopyConn"));
+   if (copyConn == nullptr) {
       if (rank == 0) {
          ErrorLog().printf(
                "Unable to find connection named \"CopyConn\" in params file \"%s\".\n", paramsfile);
@@ -102,42 +101,66 @@ int runparamsfile(PV_Init *initObj, char const *paramsfile) {
       return status;
    }
 
-   float origStrength = origConn->getStrength();
+   float origStrength = origConn->getComponentByType<NormalizeBase>()->getStrength();
+   float copyStrength = copyConn->getComponentByType<NormalizeBase>()->getStrength();
 
-   float copyStrength = copyConn->getStrength();
+   int origNumPatches =
+         origConn->getComponentByType<WeightsPair>()->getPreWeights()->getNumDataPatches();
+   int copyNumPatches =
+         copyConn->getComponentByType<WeightsPair>()->getPreWeights()->getNumDataPatches();
+   FatalIf(
+         origNumPatches != copyNumPatches,
+         "Test failed. OriginalConn has %d patches but CopyConn has %d.\n",
+         origNumPatches,
+         copyNumPatches);
 
-   int origNumPatches = origConn->getNumDataPatches();
-   int copyNumPatches = copyConn->getNumDataPatches();
-   FatalIf(origNumPatches != copyNumPatches, "Test failed.\n");
-   int origNxp = origConn->getPatchSizeX();
-   int copyNxp = copyConn->getPatchSizeX();
-   FatalIf(origNxp != copyNxp, "Test failed.\n");
-   int origNyp = origConn->getPatchSizeY();
-   int copyNyp = copyConn->getPatchSizeY();
-   FatalIf(origNyp != copyNyp, "Test failed.\n");
-   int origNfp = origConn->getPatchSizeF();
-   int copyNfp = copyConn->getPatchSizeF();
-   FatalIf(origNfp != copyNfp, "Test failed.\n");
-   int origNumArbors = origConn->getNumAxonalArbors();
-   int copyNumArbors = copyConn->getNumAxonalArbors();
-   FatalIf(origNumArbors != copyNumArbors, "Test failed.\n");
+   auto *origPatchSize = origConn->getComponentByType<PatchSize>();
+   int origNxp         = origPatchSize->getPatchSizeX();
+   int origNyp         = origPatchSize->getPatchSizeY();
+   int origNfp         = origPatchSize->getPatchSizeF();
 
+   auto *copyPatchSize = copyConn->getComponentByType<PatchSize>();
+   int copyNxp         = copyPatchSize->getPatchSizeX();
+   int copyNyp         = copyPatchSize->getPatchSizeY();
+   int copyNfp         = copyPatchSize->getPatchSizeF();
+   FatalIf(
+         origNxp != copyNxp || origNyp != copyNyp || origNfp != copyNfp,
+         "Test failed. OriginalConn has patchsize %dx%dx%d but CopyConn has %dx%dx%d.\n",
+         origNxp,
+         origNyp,
+         origNfp,
+         copyNxp,
+         copyNyp,
+         copyNfp);
+
+   int origNumArbors = origConn->getComponentByType<ArborList>()->getNumAxonalArbors();
+   int copyNumArbors = copyConn->getComponentByType<ArborList>()->getNumAxonalArbors();
+   FatalIf(
+         origNumArbors != copyNumArbors,
+         "Test failed. OriginalConn has %d arbors, but CopyConn has %d.\n",
+         origNumArbors,
+         copyNumArbors);
+
+   auto *origPreWeights = origConn->getComponentByType<WeightsPair>()->getPreWeights();
+   auto *copyPreWeights = copyConn->getComponentByType<WeightsPair>()->getPreWeights();
    for (int arbor = 0; arbor < origNumArbors; arbor++) {
-      for (int patchindex = 0; patchindex < origNumPatches; patchindex++) {
+      for (int patchIndex = 0; patchIndex < origNumPatches; patchIndex++) {
+         float *origWeightsData = origPreWeights->getDataFromDataIndex(arbor, patchIndex);
+         float *copyWeightsData = copyPreWeights->getDataFromDataIndex(arbor, patchIndex);
          for (int y = 0; y < origNyp; y++) {
             for (int x = 0; x < origNxp; x++) {
                for (int f = 0; f < origNfp; f++) {
                   int indexinpatch = kIndex(x, y, f, origNxp, origNyp, origNfp);
-                  float origWeight = origConn->getWeightsDataHead(arbor, patchindex)[indexinpatch];
-                  float copyWeight = copyConn->getWeightsDataHead(arbor, patchindex)[indexinpatch];
+                  float origWeight = origWeightsData[indexinpatch];
+                  float copyWeight = copyWeightsData[indexinpatch];
                   float discrep    = fabsf(origWeight * copyStrength - copyWeight * origStrength);
                   if (discrep > 1e-6f) {
                      ErrorLog().printf(
-                           "Rank %d: arbor %d, patchindex %d, x=%d, y=%d, f=%d: discrepancy of "
+                           "Rank %d: arbor %d, patchIndex %d, x=%d, y=%d, f=%d: discrepancy of "
                            "%g\n",
                            hc->columnId(),
                            arbor,
-                           patchindex,
+                           patchIndex,
                            x,
                            y,
                            f,

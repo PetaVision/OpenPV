@@ -10,7 +10,6 @@
 
 #include "include/pv_arch.h"
 #include "include/pv_types.h"
-#include "layers/PVLayerCube.hpp"
 #include "structures/RingBuffer.hpp"
 #include "structures/SparseList.hpp"
 #include <cstdlib>

@@ -12,35 +12,34 @@
 
 namespace PV {
 
-KmeansLayer::KmeansLayer(const char *name, HyPerCol *hc) {
+KmeansLayer::KmeansLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 KmeansLayer::~KmeansLayer() {}
 
 KmeansLayer::KmeansLayer() { initialize_base(); }
 
-int KmeansLayer::initialize(const char *name, HyPerCol *hc) {
+void KmeansLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    WarnLog() << "KmeansLayer has been deprecated.\n";
-   int status = HyPerLayer::initialize(name, hc);
+   int status = HyPerLayer::initialize(name, params, comm);
    assert(status == PV_SUCCESS);
    return status;
 }
 
 int KmeansLayer::initialize_base() {
-   numChannels  = 1;
    trainingFlag = false;
    return PV_SUCCESS;
 }
 
 Response::Status KmeansLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = clayer->activity->data;
+   float *A              = mActivity->getActivity();
    float *V              = getV();
    int num_channels      = getNumChannels();
 
-   float *gSynHead = GSyn == NULL ? NULL : GSyn[0];
+   float *gSynHead = mLayerInput->getLayerInput();
    int nx          = loc->nx;
    int ny          = loc->ny;
    int nf          = loc->nf;
@@ -78,7 +77,7 @@ int KmeansLayer::setActivity() {
    status = setActivity_HyPerLayer(
          nbatch,
          num_neurons,
-         getCLayer()->activity->data,
+         getActivity(),
          getV(),
          nx,
          ny,
@@ -92,7 +91,7 @@ int KmeansLayer::setActivity() {
 }
 
 void KmeansLayer::ioParam_TrainingFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "training", &trainingFlag, trainingFlag);
+   parameters()->ioParamValue(ioFlag, name, "training", &trainingFlag, trainingFlag);
 }
 
 int KmeansLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

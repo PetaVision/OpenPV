@@ -6,22 +6,25 @@
  */
 
 #include "InitGauss2DWeights.hpp"
-#include "columns/ObjectMapComponent.hpp"
 #include "components/StrengthParam.hpp"
 #include "connections/BaseConnection.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
-InitGauss2DWeights::InitGauss2DWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
+InitGauss2DWeights::InitGauss2DWeights(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 InitGauss2DWeights::InitGauss2DWeights() {}
 
 InitGauss2DWeights::~InitGauss2DWeights() {}
 
-int InitGauss2DWeights::initialize(char const *name, HyPerCol *hc) {
-   int status = InitWeights::initialize(name, hc);
-   return status;
+void InitGauss2DWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   InitWeights::initialize(name, params, comm);
 }
 
 int InitGauss2DWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -43,15 +46,15 @@ int InitGauss2DWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitGauss2DWeights::ioParam_aspect(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "aspect", &mAspect, mAspect);
+   parameters()->ioParamValue(ioFlag, name, "aspect", &mAspect, mAspect);
 }
 
 void InitGauss2DWeights::ioParam_sigma(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "sigma", &mSigma, mSigma);
+   parameters()->ioParamValue(ioFlag, name, "sigma", &mSigma, mSigma);
 }
 
 void InitGauss2DWeights::ioParam_rMax(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "rMax", &mRMax, mRMax);
+   parameters()->ioParamValue(ioFlag, name, "rMax", &mRMax, mRMax);
    if (ioFlag == PARAMS_IO_READ) {
       double rMaxd = (double)mRMax;
       mRMaxSquared = rMaxd * rMaxd;
@@ -59,7 +62,7 @@ void InitGauss2DWeights::ioParam_rMax(enum ParamsIOFlag ioFlag) {
 }
 
 void InitGauss2DWeights::ioParam_rMin(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "rMin", &mRMin, mRMin);
+   parameters()->ioParamValue(ioFlag, name, "rMin", &mRMin, mRMin);
    if (ioFlag == PARAMS_IO_READ) {
       double rMind = (double)mRMin;
       mRMinSquared = rMind * rMind;
@@ -67,43 +70,41 @@ void InitGauss2DWeights::ioParam_rMin(enum ParamsIOFlag ioFlag) {
 }
 
 void InitGauss2DWeights::ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "numOrientationsPost", &mNumOrientationsPost, -1);
+   parameters()->ioParamValue(ioFlag, name, "numOrientationsPost", &mNumOrientationsPost, -1);
 }
 
 void InitGauss2DWeights::ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "numOrientationsPre", &mNumOrientationsPre, -1);
+   parameters()->ioParamValue(ioFlag, name, "numOrientationsPre", &mNumOrientationsPre, -1);
 }
 
 void InitGauss2DWeights::ioParam_deltaThetaMax(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "deltaThetaMax", &mDeltaThetaMax, mDeltaThetaMax);
+   parameters()->ioParamValue(ioFlag, name, "deltaThetaMax", &mDeltaThetaMax, mDeltaThetaMax);
 }
 
 void InitGauss2DWeights::ioParam_thetaMax(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "thetaMax", &mThetaMax, mThetaMax);
+   parameters()->ioParamValue(ioFlag, name, "thetaMax", &mThetaMax, mThetaMax);
 }
 
 void InitGauss2DWeights::ioParam_numFlanks(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "numFlanks", &mNumFlanks, mNumFlanks);
+   parameters()->ioParamValue(ioFlag, name, "numFlanks", &mNumFlanks, mNumFlanks);
 }
 
 void InitGauss2DWeights::ioParam_flankShift(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "flankShift", &mFlankShift, mFlankShift);
+   parameters()->ioParamValue(ioFlag, name, "flankShift", &mFlankShift, mFlankShift);
 }
 
 void InitGauss2DWeights::ioParam_rotate(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "rotate", &mRotate, mRotate);
+   parameters()->ioParamValue(ioFlag, name, "rotate", &mRotate, mRotate);
 }
 
 void InitGauss2DWeights::ioParam_bowtieFlag(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "bowtieFlag", &mBowtieFlag, mBowtieFlag);
+   parameters()->ioParamValue(ioFlag, name, "bowtieFlag", &mBowtieFlag, mBowtieFlag);
 }
 
 void InitGauss2DWeights::ioParam_bowtieAngle(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "bowtieFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "bowtieFlag"));
    if (mBowtieFlag) {
-      parent->parameters()->ioParamValue(ioFlag, name, "bowtieAngle", &mBowtieAngle, mBowtieAngle);
+      parameters()->ioParamValue(ioFlag, name, "bowtieAngle", &mBowtieAngle, mBowtieAngle);
    }
 }
 
@@ -113,8 +114,31 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    if (!Response::completed(status)) {
       return status;
    }
-   auto hierarchy      = message->mHierarchy;
-   auto *strengthParam = mapLookupByType<StrengthParam>(hierarchy, getDescription());
+   pvAssert(mWeights);
+
+   // set NumOrientationsPre and NumOrientationsPost if they were not set in params
+   if (mNumOrientationsPost <= 0) {
+      mNumOrientationsPost = mWeights->getGeometry()->getPostLoc().nf;
+   }
+   if (mNumOrientationsPre <= 0) {
+      mNumOrientationsPre = mWeights->getGeometry()->getPreLoc().nf;
+   }
+
+   // Hacky way of handling Strength parameter, because weight normalizers and InitGauss2DWeights
+   // use the parameter, but a connection that doesn't use either of those classes doesn't need it.
+   // So that HyPerConn does not need to know any details of the InitWeights subclasses,
+   // IntGauss2DWeights creates a StrengthParam object if one doesn't exist.
+   // It can be added to the connection, but not to the AllObjects data member in the
+   // CommunicateInitInfoMessage. So we need to get the StrenghtParam component from the
+   // connection, instead of from AllObjects, as we usually would.
+   auto objectTable           = message->mObjectTable;
+   BaseConnection *parentConn = objectTable->findObject<BaseConnection>(getName());
+   FatalIf(
+         parentConn == nullptr,
+         "%s could not find a connection named \"%s\".\n",
+         getDescription_c(),
+         getName());
+   auto *strengthParam = parentConn->getComponentByType<StrengthParam>();
    if (strengthParam) {
       if (strengthParam->getInitInfoCommunicatedFlag()) {
          mStrength = strengthParam->getStrength();
@@ -125,36 +149,11 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       }
    }
    else {
-      strengthParam           = new StrengthParam(name, parent);
-      auto objectMapComponent = mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-      FatalIf(
-            objectMapComponent == nullptr,
-            "%s unable to add strength component.\n",
-            getDescription_c());
-      BaseConnection *parentConn = objectMapComponent->lookup<BaseConnection>(std::string(name));
-      FatalIf(
-            parentConn == nullptr,
-            "%s objectMapComponent is missing an object called \"%s\".\n",
-            getDescription_c(),
-            name);
-      parentConn->addObserver(strengthParam);
-      // connection has already components' readParams(); we have to fill the gap here (could
-      // addObserver do it?)
-      strengthParam->readParams();
+      strengthParam = new StrengthParam(name, parameters(), mCommunicator);
+      parentConn->addUniqueComponent(strengthParam);
       status = status + Response::POSTPONE;
    }
    return status;
-}
-
-void InitGauss2DWeights::calcWeights() {
-   pvAssert(mWeights);
-   if (mNumOrientationsPost <= 0) {
-      mNumOrientationsPost = mWeights->getGeometry()->getPostLoc().nf;
-   }
-   if (mNumOrientationsPre <= 0) {
-      mNumOrientationsPre = mWeights->getGeometry()->getPreLoc().nf;
-   }
-   InitWeights::calcWeights();
 }
 
 void InitGauss2DWeights::calcWeights(int dataPatchIndex, int arborId) {

@@ -172,7 +172,7 @@ void testSparseFile(const char *fName) {
 
       int frameOffset = f * 5 * 5;
 
-      for (int i = 0; i < values.size(); ++i) {
+      for (std::size_t i = 0; i < values.size(); ++i) {
          FatalIf(
                values.at(i) != expected.at(i + frameOffset),
                "Failed on frame %d. Expected value %d at index %d, found %d.\n",

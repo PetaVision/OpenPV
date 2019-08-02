@@ -6,17 +6,21 @@
  */
 
 #include "ImpliedWeightsPair.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/ImpliedWeights.hpp"
 
 namespace PV {
 
-ImpliedWeightsPair::ImpliedWeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
+ImpliedWeightsPair::ImpliedWeightsPair(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 ImpliedWeightsPair::~ImpliedWeightsPair() {}
 
-int ImpliedWeightsPair::initialize(char const *name, HyPerCol *hc) {
-   return WeightsPairInterface::initialize(name, hc);
+void ImpliedWeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   WeightsPairInterface::initialize(name, params, comm);
 }
 
 void ImpliedWeightsPair::setObjectType() { mObjectType = "ImpliedWeightsPair"; }

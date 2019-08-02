@@ -19,23 +19,8 @@ namespace PV {
  * with accumulate type "convolve".
  */
 class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
-  protected:
-   /**
-    * List of parameters needed from the PresynapticPerspectiveGPUDelivery class
-    * @name PresynapticPerspectiveGPUDelivery Parameters
-    * @{
-    */
-
-   /**
-    * @brief receiveGpu: PresynapticPerspectiveGPUDelivery always sets receiveGpu to true.
-    * The receiveGpu=false case is handled by the PresynapticPerspectiveConvolveDelivery
-    * and PresynapticPerspectiveStochasticDelivery classes.
-    */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag) override;
-   /** @} */ // End of list of BaseDelivery parameters.
-
   public:
-   PresynapticPerspectiveGPUDelivery(char const *name, HyPerCol *hc);
+   PresynapticPerspectiveGPUDelivery(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~PresynapticPerspectiveGPUDelivery();
 
@@ -45,18 +30,16 @@ class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
     * (to take advantage of sparsity). Each neuron then modifies the region of the post channel
     * that the weights argument specifies for that pre-synaptic neuron.
     */
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
    virtual void deliverUnitInput(float *recvBuffer) override;
 
   protected:
    PresynapticPerspectiveGPUDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
-
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -66,15 +49,14 @@ class PresynapticPerspectiveGPUDelivery : public HyPerDelivery {
 
    virtual Response::Status allocateDataStructures() override;
 
-   void initializeRecvKernelArgs();
+   virtual Response::Status copyInitialStateToGPU() override;
 
-   void allocateThreadGSyn();
+   void initializeRecvKernelArgs();
 
    // Data members
   protected:
-   std::vector<std::vector<float>> mThreadGSyn; // needed since deliverUnitInput is not on the GPU
-   PVCuda::CudaRecvPre *mRecvKernel   = nullptr;
-   PVCuda::CudaBuffer *mDevicePatches = nullptr;
+   PVCuda::CudaRecvPre *mRecvKernel          = nullptr;
+   PVCuda::CudaBuffer *mDevicePatches        = nullptr;
    PVCuda::CudaBuffer *mDeviceGSynPatchStart = nullptr;
 
 }; // end class PresynapticPerspectiveGPUDelivery

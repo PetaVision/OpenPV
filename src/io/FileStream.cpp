@@ -16,7 +16,7 @@ extern "C" {
 #include <vector>
 
 #include "FileStream.hpp"
-#include "io/io.hpp"
+#include "utils/ExpandLeadingTilde.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 
@@ -25,7 +25,11 @@ using std::string;
 namespace PV {
 
 FileStream::FileStream(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
-   setOutStream(mFStream);
+   initialize(path, mode, verifyWrites);
+}
+
+void FileStream::initialize(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
+   PrintStream::initialize(mFStream);
    openFile(path, mode, verifyWrites);
 }
 

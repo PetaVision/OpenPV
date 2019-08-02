@@ -132,10 +132,12 @@ bool WeightsFileIO::isCompressedHeader(BufferUtils::WeightHeader const &header) 
          Fatal().printf(
                "File \"%s\" has dataType INT. Only FLOAT and BYTE are supported.\n",
                mFileStream->getFileName().c_str());
+         exit(EXIT_FAILURE); // suppresses sometimes-uninitialized compiler warning
          break;
       default:
          Fatal().printf(
                "File \"%s\" has unrecognized datatype.\n", mFileStream->getFileName().c_str());
+         exit(EXIT_FAILURE); // suppresses sometimes-uninitialized compiler warning
          break;
    }
    return isCompressed;
@@ -376,14 +378,6 @@ void WeightsFileIO::writeNonsharedWeights(double timestamp, bool compress) {
                      header.baseHeader.nf);
                long lineStartFile = arborStartFile + (long)startFile * (long)patchSizePvpFormat;
                mFileStream->setOutPos(lineStartFile, true /*from beginning of file*/);
-
-               int const startPatchLocal = kIndex(
-                     startPatchX,
-                     y + startPatchY,
-                     0,
-                     mWeights->getNumDataPatchesX(),
-                     mWeights->getNumDataPatchesY(),
-                     mWeights->getNumDataPatchesF());
 
                for (int k = startPatchK; k < endPatchK; k++) {
                   int patchIndexLocal = kIndex(

@@ -1,0 +1,74 @@
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 4; //1242;  // KITTI synced value
+    ny = 4;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    stopTime = 10.0;       // Depends on number of VINE video frames
+    progressInterval = 1.0;
+    outputPath = "output/";
+    printParamsFilename = "pv.params";
+    initializeFromCheckpointDir = "";
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    lastCheckpointDir = "output/Last";
+    writeProgressToErr = true;
+    verifyWrites = false;
+    errorOnNotANumber = false;
+    nbatch = 4;
+};
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    inputPath = "input/Input.pvp";
+    writeStep = -1;
+    sparseLayer = false;
+    displayPeriod = 1;
+    mirrorBCflag = true;
+    useInputBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    phase = 0;
+};
+
+//Testing 4 points, each with different batchLoc.
+PointProbe "UpLeft" = {
+   targetLayer = "Input";
+   xLoc = 2;
+   yLoc = 0;
+   fLoc = 0;
+   batchLoc = 0;
+};
+
+PointProbe "UpRight" = {
+   targetLayer = "Input";
+   xLoc = 0;
+   yLoc = 1;
+   fLoc = 1;
+   batchLoc = 1;
+};
+
+PointProbe "DownLeft" = {
+   targetLayer = "Input";
+   xLoc = 3;
+   yLoc = 1;
+   fLoc = 2;
+   batchLoc = 2;
+};
+
+PointProbe "DownRight" = {
+   targetLayer = "Input";
+   xLoc = 0;
+   yLoc = 3;
+   fLoc = 0;
+   batchLoc = 3;
+};
+
+
+

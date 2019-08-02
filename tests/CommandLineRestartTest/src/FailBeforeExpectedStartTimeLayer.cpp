@@ -3,30 +3,25 @@
 
 FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer(
       char const *name,
-      PV::HyPerCol *hc) {
-   initialize_base();
-   initialize(name, hc);
+      PV::PVParams *params,
+      PV::Communicator const *comm) {
+   initialize(name, params, comm);
 }
 
-FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer() { initialize_base(); }
+FailBeforeExpectedStartTimeLayer::FailBeforeExpectedStartTimeLayer() {}
 
-int FailBeforeExpectedStartTimeLayer::initialize_base() { return PV_SUCCESS; }
-
-int FailBeforeExpectedStartTimeLayer::initialize(char const *name, PV::HyPerCol *hc) {
-   return PV::HyPerLayer::initialize(name, hc);
+void FailBeforeExpectedStartTimeLayer::initialize(
+      char const *name,
+      PV::PVParams *params,
+      PV::Communicator const *comm) {
+   return PV::HyPerLayer::initialize(name, params, comm);
 }
 
-#ifdef PV_USE_CUDA
-PV::Response::Status FailBeforeExpectedStartTimeLayer::updateStateGpu(double simTime, double dt) {
-   return updateState(simTime, dt);
-}
-#endif // PV_USE_CUDA
-
-PV::Response::Status FailBeforeExpectedStartTimeLayer::updateState(double simTime, double dt) {
+PV::Response::Status FailBeforeExpectedStartTimeLayer::checkUpdateState(double simTime, double dt) {
    FatalIf(
          simTime < mExpectedStartTime,
-         "expected starting time is %f, but updateState was called with t=%f\n",
+         "expected starting time is %f, but checkUpdateState was called with t=%f\n",
          mExpectedStartTime,
          simTime);
-   return PV::HyPerLayer::updateState(simTime, dt);
+   return PV::HyPerLayer::checkUpdateState(simTime, dt);
 }

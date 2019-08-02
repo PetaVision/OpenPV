@@ -5,6 +5,7 @@
 
 #include "columns/HyPerCol.hpp"
 #include "columns/PV_Init.hpp"
+#include "components/BasePublisherComponent.hpp"
 #include "layers/HyPerLayer.hpp"
 
 int main(int argc, char *argv[]) {
@@ -72,13 +73,18 @@ int main(int argc, char *argv[]) {
 
    PV::HyPerLayer *outputLayer = dynamic_cast<PV::HyPerLayer *>(hc2->getObjectFromName("Output"));
    FatalIf(outputLayer == nullptr, "No layer named \"Output\".");
+   auto *outputPublisher = outputLayer->getComponentByType<PV::BasePublisherComponent>();
+   FatalIf(
+         outputPublisher == nullptr,
+         "%s does not have a BasePublisherComponent.",
+         outputLayer->getDescription_c());
 
    double const totalTime = stopTime1 + stopTime2;
    PVLayerLoc const *loc  = outputLayer->getLayerLoc();
    for (int b = 0; b < loc->nbatch; b++) {
       int const globalBatchIndex = loc->kb0 + b;
-      int const N                = outputLayer->getNumExtended();
-      float const *A             = &outputLayer->getLayerData()[b * N];
+      int const N                = outputPublisher->getNumExtended();
+      float const *A             = &outputPublisher->getLayerData()[b * N];
       float const correct        = totalTime * (double)(globalBatchIndex + 1);
       for (int k = 0; k < N; k++) {
          if (A[k] != correct) {

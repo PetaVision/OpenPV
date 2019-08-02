@@ -13,23 +13,20 @@ namespace PV {
 
 class NormalizeL3 : public NormalizeMultiply {
   public:
-   NormalizeL3(const char *name, HyPerCol *hc);
+   NormalizeL3(const char *name, PVParams *params, Communicator const *comm);
    ~NormalizeL3();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual int normalizeWeights() override;
 
   protected:
    NormalizeL3();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual void ioParam_minL3NormTolerated(enum ParamsIOFlag ioFlag);
-
-  private:
-   int initialize_base();
 
    // Member variables
   protected:
-   float minL3NormTolerated; // Error if sqrt(sum(|weights|^3)) in any patch is less than this
-   // amount.
+   float minL3NormTolerated = 0.0f;
+   // Error if sqrt(sum(|weights|^3)) in any patch is less than this amount.
 }; // end class NormalizeL3
 
 } // end namespace PV

@@ -6,7 +6,7 @@
  */
 
 #include "BaseObject.hpp"
-#include "columns/HyPerCol.hpp"
+#include "columns/Communicator.hpp"
 #include <cassert>
 #include <cerrno>
 #include <cstdio>
@@ -16,106 +16,62 @@
 namespace PV {
 
 BaseObject::BaseObject() {
-   initialize_base();
    // Note that initialize() is not called in the constructor.
    // Instead, derived classes should call BaseObject::initialize in their own
    // constructor.
 }
 
-int BaseObject::initialize_base() {
-   name   = NULL;
-   parent = NULL;
-   return PV_SUCCESS;
+void BaseObject::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   setCommunicator(comm);
+   ParamsInterface::initialize(name, params);
 }
 
-int BaseObject::initialize(const char *name, HyPerCol *hc) {
-   int status = setName(name);
-   if (status == PV_SUCCESS) {
-      status = setParent(hc);
-   }
-   if (status == PV_SUCCESS) {
-      setDescription();
-   }
-   return status;
+void BaseObject::setCommunicator(Communicator const *comm) {
+   pvAssert(mCommunicator == nullptr);
+   mCommunicator = comm;
 }
 
-char const *BaseObject::lookupKeyword() const {
-   return parent->parameters()->groupKeywordFromName(getName());
-}
+void BaseObject::initMessageActionMap() {
+   ParamsInterface::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
-int BaseObject::setName(char const *name) {
-   pvAssert(this->name == NULL);
-   int status = PV_SUCCESS;
-   this->name = strdup(name);
-   if (this->name == NULL) {
-      ErrorLog().printf("could not set name \"%s\": %s\n", name, strerror(errno));
-      status = PV_FAILURE;
-   }
-   return status;
-}
-
-int BaseObject::setParent(HyPerCol *hc) {
-   pvAssert(parent == NULL);
-   HyPerCol *parentCol = dynamic_cast<HyPerCol *>(hc);
-   int status          = parentCol != NULL ? PV_SUCCESS : PV_FAILURE;
-   if (parentCol) {
-      parent = parentCol;
-   }
-   return status;
-}
-
-void BaseObject::setDescription() {
-   setObjectType();
-   description = getObjectType() + " \"" + getName() + "\"";
-}
-
-void BaseObject::setObjectType() { mObjectType = lookupKeyword(); }
-
-void BaseObject::ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter) {
-   if (printHeader) {
-      parent->ioParamsStartGroup(ioFlag, name);
-   }
-   ioParamsFillGroup(ioFlag);
-   if (printFooter) {
-      parent->ioParamsFinishGroup(ioFlag);
-   }
-}
-
-Response::Status BaseObject::respond(std::shared_ptr<BaseMessage const> message) {
-   // TODO: convert PV_SUCCESS, PV_FAILURE, etc. to enum
-   Response::Status status = CheckpointerDataInterface::respond(message);
-   if (!Response::completed(status)) {
-      return status;
-   }
-   if (message == nullptr) {
-      return Response::NO_ACTION;
-   }
-   else if (
-         auto castMessage = std::dynamic_pointer_cast<CommunicateInitInfoMessage const>(message)) {
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<CommunicateInitInfoMessage const>(msgptr);
       return respondCommunicateInitInfo(castMessage);
-   }
+   };
+   mMessageActionMap.emplace("CommunicateInitInfo", action);
+
 #ifdef PV_USE_CUDA
-   else if (auto castMessage = std::dynamic_pointer_cast<SetCudaDeviceMessage const>(message)) {
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<SetCudaDeviceMessage const>(msgptr);
       return respondSetCudaDevice(castMessage);
-   }
+   };
+   mMessageActionMap.emplace("SetCudaDevice", action);
 #endif // PV_USE_CUDA
-   else if (auto castMessage = std::dynamic_pointer_cast<AllocateDataMessage const>(message)) {
-      return respondAllocateData(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<InitializeStateMessage const>(message)) {
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<AllocateDataStructuresMessage const>(msgptr);
+      return respondAllocateDataStructures(castMessage);
+   };
+   mMessageActionMap.emplace("AllocateDataStructures", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<InitializeStateMessage const>(msgptr);
       return respondInitializeState(castMessage);
-   }
-   else if (
-         auto castMessage =
-               std::dynamic_pointer_cast<CopyInitialStateToGPUMessage const>(message)) {
+   };
+   mMessageActionMap.emplace("InitializeState", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<CopyInitialStateToGPUMessage const>(msgptr);
       return respondCopyInitialStateToGPU(castMessage);
-   }
-   else if (auto castMessage = std::dynamic_pointer_cast<CleanupMessage const>(message)) {
+   };
+   mMessageActionMap.emplace("CopyInitialStateToGPU", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<CleanupMessage const>(msgptr);
       return respondCleanup(castMessage);
-   }
-   else {
-      return Response::SUCCESS;
-   }
+   };
+   mMessageActionMap.emplace("Cleanup", action);
 }
 
 Response::Status
@@ -138,8 +94,8 @@ BaseObject::respondSetCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> mes
 }
 #endif // PV_USE_CUDA
 
-Response::Status
-BaseObject::respondAllocateData(std::shared_ptr<AllocateDataMessage const> message) {
+Response::Status BaseObject::respondAllocateDataStructures(
+      std::shared_ptr<AllocateDataStructuresMessage const> message) {
    Response::Status status = Response::NO_ACTION;
    if (getDataStructuresAllocatedFlag()) {
       return status;
@@ -157,7 +113,7 @@ BaseObject::respondInitializeState(std::shared_ptr<InitializeStateMessage const>
    if (getInitialValuesSetFlag()) {
       return Response::NO_ACTION;
    }
-   status = initializeState();
+   status = initializeState(message);
    if (Response::completed(status)) {
       setInitialValuesSetFlag();
    }
@@ -175,17 +131,15 @@ Response::Status BaseObject::respondCleanup(std::shared_ptr<CleanupMessage const
 
 #ifdef PV_USE_CUDA
 Response::Status BaseObject::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> message) {
-   if (mUsingGPUFlag) {
-      mCudaDevice = message->mCudaDevice;
-      FatalIf(
-            mCudaDevice == nullptr,
-            "%s received SetCudaDevice with null device pointer.\n",
-            getDescription_c());
-   }
+   mCudaDevice = message->mCudaDevice;
+   FatalIf(
+         mCudaDevice == nullptr,
+         "%s received SetCudaDevice with null device pointer.\n",
+         getDescription_c());
    return Response::SUCCESS;
 }
 #endif // PV_USE_CUDA
 
-BaseObject::~BaseObject() { free(name); }
+BaseObject::~BaseObject() {}
 
 } /* namespace PV */

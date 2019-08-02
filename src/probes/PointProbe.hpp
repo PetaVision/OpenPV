@@ -12,15 +12,19 @@
 
 namespace PV {
 
-class PointProbe : public PV::LayerProbe {
+class PointProbe : public LayerProbe {
   public:
-   PointProbe(const char *name, HyPerCol *hc);
+   PointProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~PointProbe();
 
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status outputState(double timef) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
+
+   float const *getPointV() const { return mPointV; }
+   float const *getPointA() const { return mPointA; }
+   int getPointRank() const { return mPointRank; }
 
   protected:
    int xLoc;
@@ -29,12 +33,15 @@ class PointProbe : public PV::LayerProbe {
    int batchLoc;
 
    PointProbe();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_xLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_fLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_batchLoc(enum ParamsIOFlag ioFlag);
+
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
    /**
     * Overrides initOutputStreams. A process whose restricted region contains
@@ -67,19 +74,11 @@ class PointProbe : public PV::LayerProbe {
   private:
    int initialize_base();
 
-   /**
-    * A convenience method to return probeValues[0] (the membrane potential).
-    * Note that it does not
-    * call needRecalc().
-    */
-   inline double getV();
-
-   /**
-    * A convenience method to return probeValues[0] (the activity).  Note that it
-    * does not call
-    * needRecalc().
-    */
-   inline double getA();
+  private:
+   int mPointRank = 0; // The global rank for which the target point is in the restricted region.
+   // mPointV, mPointA, and mPointRank are set in InitializeState.
+   float const *mPointV = nullptr; // Points to the memory location of the target point's V
+   float const *mPointA = nullptr; // Points to the memory location of the target point's A
 }; // end class PointProbe
 }
 

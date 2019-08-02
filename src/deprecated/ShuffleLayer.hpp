@@ -18,7 +18,7 @@ namespace PV {
 
 class ShuffleLayer : public CloneVLayer {
   public:
-   ShuffleLayer(const char *name, HyPerCol *hc);
+   ShuffleLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~ShuffleLayer();
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -28,7 +28,7 @@ class ShuffleLayer : public CloneVLayer {
 
   protected:
    ShuffleLayer();
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_shuffleMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_readFreqFromFile(enum ParamsIOFlag ioFlag);
@@ -36,7 +36,7 @@ class ShuffleLayer : public CloneVLayer {
    virtual void ioParam_freqCollectTime(enum ParamsIOFlag ioFlag);
 
    void randomShuffle(const float *sourceData, float *activity);
-   void rejectionShuffle(const float *sourceData, float *activity);
+   void rejectionShuffle(const float *sourceData, float *activity, double simTime);
    void collectFreq(const float *sourceData);
    void readFreq();
 

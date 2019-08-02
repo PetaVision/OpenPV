@@ -8,6 +8,7 @@
 #ifndef PVPARAMS_HPP_
 #define PVPARAMS_HPP_
 
+#include "FileStream.hpp"
 #include "columns/Communicator.hpp"
 #include "fileio.hpp"
 #include "include/pv_common.h"
@@ -22,9 +23,9 @@
 // TODO - make MAX_PARAMS dynamic
 #define MAX_PARAMS 100 // maximum number of parameters in a group
 
-#undef HAS_MAIN // define if provides a main function
-
 namespace PV {
+
+enum ParamsIOFlag { PARAMS_IO_READ, PARAMS_IO_WRITE };
 
 class Parameter {
   public:
@@ -238,9 +239,13 @@ class ParameterSweep {
 
 class PVParams {
   public:
-   PVParams(size_t initialSize, Communicator *inIcComm);
-   PVParams(const char *filename, size_t initialSize, Communicator *inIcComm);
-   PVParams(const char *buffer, long int bufferLength, size_t initialSize, Communicator *inIcComm);
+   PVParams(size_t initialSize, Communicator const *inIcComm);
+   PVParams(const char *filename, size_t initialSize, Communicator const *inIcComm);
+   PVParams(
+         const char *buffer,
+         long int bufferLength,
+         size_t initialSize,
+         Communicator const *inIcComm);
    virtual ~PVParams();
 
    bool getParseStatus() { return parseStatus; }
@@ -350,6 +355,15 @@ class PVParams {
    }
    int setParameterSweepValues(int n);
 
+   /**
+    * Randomly shuffles the vector of pointers to the ParameterGroup objects.
+    * Used for debugging purposes, to help identify cases where behavior depends
+    * on the order of objects in the params file during debugging.
+    * The shuffling here has no effect on the RNGs managed by the HyPerCol and used
+    * by layers or connections.
+    */
+   void shuffleGroups(unsigned int seed);
+
    void action_pvparams_directive(char *id, double val);
    void action_parameter_group_name(char *keyword, char *name);
    void action_parameter_group();
@@ -370,21 +384,21 @@ class PVParams {
    void action_parameter_sweep_values_string(const char *stringval);
    void action_parameter_sweep_values_filename(const char *stringval);
 
-   int numberOfGroups() { return numGroups; }
+   int numberOfGroups() { return (int)mGroups.size(); }
    int numberOfParameterSweeps() { return numParamSweeps; }
    int getParameterSweepSize() { return parameterSweepSize; }
+   FileStream *getPrintParamsStream() { return mPrintParamsStream; }
+   FileStream *getPrintLuaStream() { return mPrintLuaStream; }
 
   private:
    int parseStatus;
-   int numGroups;
-   size_t groupArraySize;
-   ParameterGroup **groups;
+   std::vector<ParameterGroup *> mGroups;
    ParameterStack *stack;
    ParameterArrayStack *arrayStack;
    ParameterStringStack *stringStack;
    bool debugParsing;
    bool disable;
-   Communicator *icComm;
+   Communicator const *icComm;
    int worldRank;
    int worldSize;
 

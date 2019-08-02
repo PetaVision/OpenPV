@@ -35,24 +35,24 @@ namespace PV {
 
 LabelErrorLayer::LabelErrorLayer() { initialize_base(); }
 
-LabelErrorLayer::LabelErrorLayer(const char *name, HyPerCol *hc) {
+LabelErrorLayer::LabelErrorLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 LabelErrorLayer::~LabelErrorLayer() {}
 
 int LabelErrorLayer::initialize_base() {
-   numChannels = 2;
-   errScale    = 1;
-   isBinary    = 1;
+   errScale = 1;
+   isBinary = 1;
    return PV_SUCCESS;
 }
 
-int LabelErrorLayer::initialize(const char *name, HyPerCol *hc) {
+void LabelErrorLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    WarnLog() << "LabelErrorLayer has been deprecated.\n";
-   int status = ANNLayer::initialize(name, hc);
-   assert(numChannels == 2);
+   int status = ANNLayer::initialize(name, params, comm);
+   mLayerInput->requireChannel(1);
+   assert(mLayerInput->getNumChannels() == 2);
    return status;
 }
 
@@ -64,19 +64,19 @@ int LabelErrorLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LabelErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "errScale", &errScale, errScale);
+   parameters()->ioParamValue(ioFlag, name, "errScale", &errScale, errScale);
 }
 
 void LabelErrorLayer::ioParam_isBinary(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "isBinary", &isBinary, isBinary);
+   parameters()->ioParamValue(ioFlag, name, "isBinary", &isBinary, isBinary);
 }
 
 Response::Status LabelErrorLayer::updateState(double time, double dt) {
    const PVLayerLoc *loc = getLayerLoc();
-   float *A              = clayer->activity->data;
+   float *A              = mActivity->getActivity();
    float *V              = getV();
-   int num_channels      = getNumChannels();
-   float *gSynHead       = GSyn == NULL ? NULL : GSyn[0];
+   int num_channels      = mLayerInput->getNumChannels();
+   float *gSynHead       = mLayerInput->getLayerInput();
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;

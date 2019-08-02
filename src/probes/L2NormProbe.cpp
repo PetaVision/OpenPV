@@ -6,16 +6,16 @@
  */
 
 #include "L2NormProbe.hpp"
-#include "columns/HyPerCol.hpp"
 #include "layers/HyPerLayer.hpp"
 
 namespace PV {
 
 L2NormProbe::L2NormProbe() : AbstractNormProbe() { initialize_base(); }
 
-L2NormProbe::L2NormProbe(const char *name, HyPerCol *hc) : AbstractNormProbe() {
+L2NormProbe::L2NormProbe(const char *name, PVParams *params, Communicator const *comm)
+      : AbstractNormProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 L2NormProbe::~L2NormProbe() {}
@@ -25,8 +25,8 @@ int L2NormProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int L2NormProbe::initialize(const char *name, HyPerCol *hc) {
-   return AbstractNormProbe::initialize(name, hc);
+void L2NormProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   AbstractNormProbe::initialize(name, params, comm);
 }
 
 int L2NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -36,12 +36,12 @@ int L2NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void L2NormProbe::ioParam_exponent(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "exponent", &exponent, 1.0 /*default*/, true /*warnIfAbsent*/);
 }
 
 int L2NormProbe::setNormDescription() {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "exponent"));
+   assert(!parameters()->presentAndNotBeenRead(name, "exponent"));
    int status = PV_SUCCESS;
    if (exponent == 1.0) {
       status = setNormDescriptionToString("L2-norm");
@@ -58,34 +58,31 @@ int L2NormProbe::setNormDescription() {
 };
 
 double L2NormProbe::getValueInternal(double timevalue, int index) {
-   if (index < 0 || index >= parent->getNBatch()) {
+   PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
+   if (index < 0 || index >= loc->nbatch) {
       return PV_FAILURE;
    }
-   PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
-   int const nx          = loc->nx;
-   int const ny          = loc->ny;
-   int const nf          = loc->nf;
-   PVHalo const *halo    = &loc->halo;
-   int const lt          = halo->lt;
-   int const rt          = halo->rt;
-   int const dn          = halo->dn;
-   int const up          = halo->up;
-   double l2normsq       = 0.0;
-   float const *aBuffer =
-         getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
+   int const nx             = loc->nx;
+   int const ny             = loc->ny;
+   int const nf             = loc->nf;
+   PVHalo const *halo       = &loc->halo;
+   int const lt             = halo->lt;
+   int const rt             = halo->rt;
+   int const dn             = halo->dn;
+   int const up             = halo->up;
+   double l2normsq          = 0.0;
+   auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
+   int const numExtended    = (nx + lt + rt) * (ny + dn + up) * nf;
+   float const *aBuffer     = publisherComponent->getLayerData() + index * numExtended;
 
-   if (getMaskLayer()) {
-      PVLayerLoc const *maskLoc = getMaskLayer()->getLayerLoc();
-      PVHalo const *maskHalo    = &maskLoc->halo;
-      float const *maskLayerData =
-            getMaskLayer()->getLayerData()
-            + index * getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the
-      // part of the layer data for a given batch
-      // index?
-      int const maskLt = maskHalo->lt;
-      int const maskRt = maskHalo->rt;
-      int const maskDn = maskHalo->dn;
-      int const maskUp = maskHalo->up;
+   if (getMaskLayerData()) {
+      PVLayerLoc const *maskLoc  = getMaskLayerData()->getLayerLoc();
+      int const maskLt           = maskLoc->halo.lt;
+      int const maskRt           = maskLoc->halo.rt;
+      int const maskDn           = maskLoc->halo.dn;
+      int const maskUp           = maskLoc->halo.up;
+      int const maskNumExtended  = getMaskLayerData()->getNumExtended();
+      float const *maskLayerData = getMaskLayerData()->getLayerData() + index * maskNumExtended;
       if (maskHasSingleFeature()) {
          assert(getTargetLayer()->getNumNeurons() == nx * ny * nf);
          int nxy = nx * ny;
@@ -116,8 +113,8 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
       }
    }
    else {
-      if (getTargetLayer()->getSparseFlag()) {
-         PVLayerCube cube   = getTargetLayer()->getPublisher()->createCube();
+      if (publisherComponent->getSparseLayer()) {
+         PVLayerCube cube   = publisherComponent->getPublisher()->createCube();
          long int numActive = cube.numActive[index];
          int numItems       = cube.numItems / cube.loc.nbatch;
          SparseList<float>::Entry const *activeList =

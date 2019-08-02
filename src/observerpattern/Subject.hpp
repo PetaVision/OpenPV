@@ -27,16 +27,31 @@ namespace PV {
  */
 class Subject {
   public:
-   Subject() {}
-   virtual ~Subject() {}
+   // No public constructors; only subclasses may be instantiated.
+   virtual ~Subject();
 
    /**
-    * The virtual method for adding an Observer-derived object.
-    * Derived classes must override this method to add the object to their hierarchy.
+    * Adds an Observer-derived object to the observer table.
+    * Exits with an error if the object is unable to be added.
     */
-   virtual void addObserver(Observer *observer) { return; }
+   void addObserver(std::string const &tag, Observer *observer);
+
+   ObserverTable const *getTable() { return mTable; }
 
   protected:
+   /**
+    * The default constructor called by derived classes. Derived classes should
+    * call Subject::initializeTable().
+    */
+   Subject();
+
+   void initializeTable(char const *tableDescription);
+
+   /**
+    * The virtual method for populating the ObserverTable data member, called by initialize().
+    */
+   virtual void fillComponentTable() {}
+
    /**
     * This method calls the respond() method of each object in the given table, using the given
     * vector of messages. If the table consists of objects A, B, and C; and the messages vector
@@ -77,19 +92,16 @@ class Subject {
     *
     * If printFlag is true, the method prints information regarding postponement to standard output.
     */
-   Response::Status notify(
-         ObserverTable const &table,
-         std::vector<std::shared_ptr<BaseMessage const>> messages,
-         bool printFlag);
+   Response::Status
+   notify(std::vector<std::shared_ptr<BaseMessage const>> messages, bool printFlag);
 
    /**
     *
     * A convenience overload of the basic notify method where there is only one message to send to
     * the objects. This overloading handles enclosing the message in a vector of length one.
     */
-   inline Response::Status
-   notify(ObserverTable const &table, std::shared_ptr<BaseMessage const> message, bool printFlag) {
-      return notify(table, std::vector<std::shared_ptr<BaseMessage const>>{message}, printFlag);
+   inline Response::Status notify(std::shared_ptr<BaseMessage const> message, bool printFlag) {
+      return notify(std::vector<std::shared_ptr<BaseMessage const>>{message}, printFlag);
    }
 
    /**
@@ -102,7 +114,6 @@ class Subject {
     * in the table of objects; otherwise the routine will hang.
     */
    void notifyLoop(
-         ObserverTable const &table,
          std::vector<std::shared_ptr<BaseMessage const>> messages,
          bool printFlag,
          std::string const &description);
@@ -112,16 +123,16 @@ class Subject {
     * to the objects. This overloading handles enclosing the message in a vector of length one.
     */
    inline void notifyLoop(
-         ObserverTable const &table,
          std::shared_ptr<BaseMessage const> message,
          bool printFlag,
          std::string const &description) {
-      notifyLoop(
-            table,
-            std::vector<std::shared_ptr<BaseMessage const>>{message},
-            printFlag,
-            description);
+      notifyLoop(std::vector<std::shared_ptr<BaseMessage const>>{message}, printFlag, description);
    }
+
+   void deleteTable();
+
+  protected:
+   ObserverTable *mTable = nullptr;
 };
 
 } /* namespace PV */

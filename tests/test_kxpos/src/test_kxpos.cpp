@@ -1,7 +1,9 @@
 #include "utils/PVLog.hpp"
 #include <stdio.h>
 #include <stdlib.h>
-#include <utils/conversions.h>
+#include <utils/conversions.hpp>
+
+using PV::kxPos;
 
 int main(int argc, char *argv[]) {
    int kl;

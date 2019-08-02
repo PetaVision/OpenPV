@@ -11,15 +11,15 @@ namespace PV {
 
 NormalizeL2::NormalizeL2() { initialize_base(); }
 
-NormalizeL2::NormalizeL2(const char *name, HyPerCol *hc) {
+NormalizeL2::NormalizeL2(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 int NormalizeL2::initialize_base() { return PV_SUCCESS; }
 
-int NormalizeL2::initialize(const char *name, HyPerCol *hc) {
-   return NormalizeMultiply::initialize(name, hc);
+void NormalizeL2::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   NormalizeMultiply::initialize(name, params, comm);
 }
 
 int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -29,7 +29,7 @@ int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeL2::ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, name, "minL2NormTolerated", &minL2NormTolerated, 0.0f, true /*warnIfAbsent*/);
 }
 
@@ -105,8 +105,6 @@ int NormalizeL2::normalizeWeights() {
                int nxp               = weights->getPatchSizeX();
                int nyp               = weights->getPatchSizeY();
                int nfp               = weights->getPatchSizeF();
-               int xPatchStride      = weights->getPatchStrideX();
-               int yPatchStride      = weights->getPatchStrideY();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
                accumulateSumSquared(dataStartPatch, weightsPerPatch, &sumsq);

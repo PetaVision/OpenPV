@@ -12,7 +12,7 @@
 
 namespace PV {
 
-class InitCocircWeights : public PV::InitGauss2DWeights {
+class InitCocircWeights : public InitGauss2DWeights {
   protected:
    virtual void ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sigmaKurve(enum ParamsIOFlag ioFlag);
@@ -20,7 +20,7 @@ class InitCocircWeights : public PV::InitGauss2DWeights {
    virtual void ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag);
 
   public:
-   InitCocircWeights(char const *name, HyPerCol *hc);
+   InitCocircWeights(char const *name, PVParams *params, Communicator const *comm);
    virtual ~InitCocircWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -29,7 +29,7 @@ class InitCocircWeights : public PV::InitGauss2DWeights {
 
   protected:
    InitCocircWeights();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
   private:
    float calcKurvePostAndSigmaKurvePost(int kfPost);
@@ -73,7 +73,7 @@ class InitCocircWeights : public PV::InitGauss2DWeights {
    bool mIPosKurvePost;
    bool mISaddlePost;
    float mKurvePost;
-   float mSigmaKurvePre;
+   // float mSigmaKurvePre; // Unused data member
    float mSigmaKurvePre2;
    float mSigmaKurvePost;
    float mSigmaKurvePost2;

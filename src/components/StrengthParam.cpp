@@ -6,16 +6,17 @@
  */
 
 #include "StrengthParam.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
-StrengthParam::StrengthParam(char const *name, HyPerCol *hc) { initialize(name, hc); }
+StrengthParam::StrengthParam(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 StrengthParam::~StrengthParam() {}
 
-int StrengthParam::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void StrengthParam::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void StrengthParam::setObjectType() { mObjectType = "StrengthParam"; }
@@ -26,7 +27,7 @@ int StrengthParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void StrengthParam::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "strength", &mStrength, mStrength);
+   parameters()->ioParamValue(ioFlag, name, "strength", &mStrength, mStrength);
 }
 
 } // namespace PV

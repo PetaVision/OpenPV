@@ -6,16 +6,17 @@
  */
 
 #include "SharedWeights.hpp"
-#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
-SharedWeights::SharedWeights(char const *name, HyPerCol *hc) { initialize(name, hc); }
+SharedWeights::SharedWeights(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 SharedWeights::~SharedWeights() {}
 
-int SharedWeights::initialize(char const *name, HyPerCol *hc) {
-   return BaseObject::initialize(name, hc);
+void SharedWeights::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   BaseObject::initialize(name, params, comm);
 }
 
 void SharedWeights::setObjectType() { mObjectType = "SharedWeights"; }
@@ -26,8 +27,7 @@ int SharedWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void SharedWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
-         ioFlag, name, "sharedWeights", &mSharedWeights, mSharedWeights);
+   parameters()->ioParamValue(ioFlag, name, "sharedWeights", &mSharedWeights, mSharedWeights);
 }
 
 } // namespace PV

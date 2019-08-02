@@ -20,7 +20,7 @@
 namespace PV {
 
 /**
- * The delivery component for PoolingConns.
+ * The delivery component for TransposePoolingConn.
  */
 class TransposePoolingDelivery : public BaseDelivery {
   protected:
@@ -53,20 +53,20 @@ class TransposePoolingDelivery : public BaseDelivery {
    virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);
 
   public:
-   TransposePoolingDelivery(char const *name, HyPerCol *hc);
+   TransposePoolingDelivery(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~TransposePoolingDelivery();
 
    void setConnectionData(ConnectionData *connectionData);
 
-   virtual void deliver() override;
+   virtual void deliver(float *destBuffer) override;
 
-   virtual bool isAllInputReady() override;
+   virtual bool isAllInputReady() const override;
 
   protected:
    TransposePoolingDelivery();
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
 
@@ -86,14 +86,12 @@ class TransposePoolingDelivery : public BaseDelivery {
    void initializeDeliverKernelArgs();
 #endif // PV_USE_CUDA
 
-   void allocateThreadGSyn();
+   void deliverPostsynapticPerspective(float *destBuffer);
 
-   void deliverPostsynapticPerspective();
-
-   void deliverPresynapticPerspective();
+   void deliverPresynapticPerspective(float *destBuffer);
 
 #ifdef PV_USE_CUDA
-   void deliverGPU();
+   void deliverGPU(float *destBuffer);
 #endif // PV_USE_CUDA
 
    // Data members
@@ -101,17 +99,16 @@ class TransposePoolingDelivery : public BaseDelivery {
    PoolingDelivery::AccumulateType mAccumulateType = PoolingDelivery::UNDEFINED;
    bool mUpdateGSynFromPostPerspective             = false;
 
-   DependentPatchSize *mPatchSize             = nullptr;
-   ImpliedWeightsPair *mWeightsPair           = nullptr;
-   PoolingIndexLayer *mOriginalPostIndexLayer = nullptr; // Used by deliverPresynapticPerspective
-   HyPerLayer *mOriginalPreLayer              = nullptr; // Used by deliverGPU
-   HyPerLayer *mOriginalPostLayer             = nullptr; // Used by deliverGPU
+   DependentPatchSize *mPatchSize   = nullptr;
+   ImpliedWeightsPair *mWeightsPair = nullptr;
+   BasePublisherComponent *mOriginalPostIndexData =
+         nullptr; // Used by deliverPresynapticPerspective
+   BasePublisherComponent *mOriginalPreData = nullptr; // Used by deliverGPU
+   LayerInputBuffer *mOriginalPostGSyn      = nullptr; // Used by deliverGPU
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaTransposePoolingDeliverKernel *mDeliverKernel = nullptr;
 #endif // PV_USE_CUDA
-
-   std::vector<std::vector<float>> mThreadGSyn;
 
 }; // end class TransposePoolingDelivery
 

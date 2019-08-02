@@ -1,27 +1,32 @@
 #ifndef FIXEDIMAGESEQUENCE_HPP_
 #define FIXEDIMAGESEQUENCE_HPP_
 
-#include <layers/ImageLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 class FixedImageSequence : public PV::HyPerLayer {
+  protected:
+   /**
+    * List of parameters needed from the HyPerLayer class
+    * @name HyPerLayer Parameters
+    * @{
+    */
+
   public:
-   FixedImageSequence(char const *name, PV::HyPerCol *hc);
+   FixedImageSequence(char const *name, PV::PVParams *params, PV::Communicator const *comm);
    virtual ~FixedImageSequence() {}
 
   protected:
    FixedImageSequence() {}
 
-   /**
-    * This layer type does not use the V buffer.
-    */
-   virtual void allocateV() override;
+   PV::ActivityComponent *createActivityComponent() override;
 
    /**
     * Initializes the activity buffer to zero and calls
-    * the pure virtual method initIndices to set the
+    * the pure virtual method defineImageSequence to set the
     * mIndexStart and mIndexSkip data members.
     */
-   virtual PV::Response::Status initializeState() override;
+   PV::Response::Status
+   initializeState(std::shared_ptr<PV::InitializeStateMessage const> message) override;
 
    /**
     * A pure virtual method where derived classes should set the data members
@@ -37,7 +42,7 @@ class FixedImageSequence : public PV::HyPerLayer {
     * timestamp * globalBatchSize + globalBatchIndex
     * into the activity buffer.
     */
-   virtual PV::Response::Status updateState(double timestamp, double dt) override;
+   virtual PV::Response::Status checkUpdateState(double timestamp, double dt) override;
 
    int getNumImages() const { return mNumImages; }
 
@@ -45,7 +50,8 @@ class FixedImageSequence : public PV::HyPerLayer {
    int mIndexStart;
    int mIndexStepTime;
    int mIndexStepBatch;
-   int const mNumImages = 10;
+   float *mActivityPointer = nullptr;
+   int const mNumImages    = 10;
 }; // end class FixedImageSequence
 
 #endif // FIXEDIMAGESEQUENCE_HPP_

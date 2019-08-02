@@ -27,26 +27,15 @@ class WeightsPair : public WeightsPairInterface {
    virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory
-    * set in HyPerCol.
-    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
-    */
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-
    /** @} */ // end of WeightsPair parameters
 
   public:
-   WeightsPair(char const *name, HyPerCol *hc);
+   WeightsPair(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~WeightsPair();
 
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
-
    Weights *getPreWeights() { return mPreWeights; }
    Weights *getPostWeights() { return mPostWeights; }
-
-   bool getInitializeFromCheckpointFlag() const { return mInitializeFromCheckpointFlag; }
 
    bool getWriteCompressedCheckpoints() const { return mWriteCompressedCheckpoints; }
 
@@ -55,9 +44,11 @@ class WeightsPair : public WeightsPairInterface {
   protected:
    WeightsPair() {}
 
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
    virtual void setObjectType() override;
+
+   virtual void initMessageActionMap() override;
 
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
@@ -71,18 +62,20 @@ class WeightsPair : public WeightsPairInterface {
 
    virtual void createPreWeights(std::string const &weightsName) override;
    virtual void createPostWeights(std::string const &weightsName) override;
+   virtual void setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message);
 
    virtual void allocatePreWeights() override;
 
    virtual void allocatePostWeights() override;
 
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    virtual void finalizeUpdate(double timestamp, double deltaTime);
 
-   void openOutputStateFile(Checkpointer *checkpointer);
+   void openOutputStateFile(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
 
    virtual void outputState(double timestamp);
 
@@ -91,10 +84,6 @@ class WeightsPair : public WeightsPairInterface {
    double mInitialWriteTime         = 0.0;
    bool mWriteCompressedWeights     = false;
    bool mWriteCompressedCheckpoints = false;
-
-   // If this flag is set and HyPerCol sets initializeFromCheckpointDir, load initial state from
-   // the initializeFromCheckpointDir directory.
-   bool mInitializeFromCheckpointFlag = false;
 
    ArborList *mArborList         = nullptr;
    SharedWeights *mSharedWeights = nullptr;

@@ -67,7 +67,6 @@ void DataStore::updateActiveIndices(int bufferId, int level) {
 
 PVLayerCube DataStore::createCube(PVLayerLoc const &loc, int delay) {
    PVLayerCube cube;
-   cube.size     = sizeof(PVLayerCube);
    cube.numItems = mNumItems * mNumBuffers;
    cube.data     = buffer(0 /*batch element*/, delay);
    // All batch elements allocated contiguously, so the numItems and data fields cover all

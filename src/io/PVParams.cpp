@@ -8,10 +8,12 @@
 #include "PVParams.hpp"
 #include "include/pv_common.h"
 #include "utils/PVAlloc.hpp"
+#include <algorithm> // shuffle, used in shuffleGroups()
 #include <assert.h>
 #include <climits> // INT_MIN
 #include <cmath> // nearbyint()
 #include <iostream>
+#include <random> // mt19937, used in shuffleGroups()
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,10 +29,6 @@
 // define for debug output
 #define DEBUG_PARSING
 
-#ifdef HAS_MAIN
-extern FILE *yyin;
-#endif // HAS_MAIN
-
 /**
  * @yyin
  * @action_handler
@@ -38,23 +36,6 @@ extern FILE *yyin;
  * @len
  */
 int pv_parseParameters(PV::PVParams *action_handler, const char *paramBuffer, size_t len);
-
-#ifdef HAS_MAIN
-#define INITIALNUMGROUPS 20 // maximum number of groups
-int main() {
-   PV_Stream pvstream    = PV_fopen("parser/params.txt", "r", false);
-   yyin                  = pvstream->fp;
-   PV::PVParams *handler = new PV::PVParams(INITIAL_NUM_GROUPS);
-
-   pv_parseParameters(handler);
-
-   PV_fclose(pvstream);
-   yyin = NULL;
-   delete handler;
-
-   return 0;
-}
-#endif // HAS_MAIN
 
 namespace PV {
 
@@ -147,8 +128,8 @@ int ParameterArray::pushValue(double value) {
 
 ParameterArray *ParameterArray::copyParameterArray() {
    ParameterArray *returnPA = new ParameterArray(bufferSize);
-   int status               = returnPA->setName(paramName);
-   assert(status == PV_SUCCESS);
+   returnPA->setName(paramName);
+   assert(!strcmp(returnPA->name(), paramName));
    for (int i = 0; i < arraySize; i++) {
       returnPA->pushValue(valuesDbl[i]);
    }
@@ -389,7 +370,7 @@ double ParameterGroup::value(const char *name) {
 
 bool ParameterGroup::arrayPresent(const char *name) {
    bool array_found = false;
-   int count       = arrayStack->size();
+   int count        = arrayStack->size();
    for (int i = 0; i < count; i++) {
       ParameterArray *p = arrayStack->peek(i);
       if (strcmp(name, p->name()) == 0) {
@@ -397,7 +378,9 @@ bool ParameterGroup::arrayPresent(const char *name) {
          break;
       }
    }
-   if (!array_found) { array_found = (present(name) != 0); }
+   if (!array_found) {
+      array_found = (present(name) != 0);
+   }
    return array_found;
 }
 
@@ -784,7 +767,7 @@ const char *ParameterSweep::getStringValue(int n) {
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(const char *filename, size_t initialSize, Communicator *inIcComm) {
+PVParams::PVParams(const char *filename, size_t initialSize, Communicator const *inIcComm) {
    this->icComm = inIcComm;
    initialize(initialSize);
    parseFile(filename);
@@ -794,7 +777,7 @@ PVParams::PVParams(const char *filename, size_t initialSize, Communicator *inIcC
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(size_t initialSize, Communicator *inIcComm) {
+PVParams::PVParams(size_t initialSize, Communicator const *inIcComm) {
    this->icComm = inIcComm;
    initialize(initialSize);
 }
@@ -809,17 +792,16 @@ PVParams::PVParams(
       const char *buffer,
       long int bufferLength,
       size_t initialSize,
-      Communicator *inIcComm) {
+      Communicator const *inIcComm) {
    this->icComm = inIcComm;
    initialize(initialSize);
    parseBuffer(buffer, bufferLength);
 }
 
 PVParams::~PVParams() {
-   for (int i = 0; i < numGroups; i++) {
-      delete groups[i];
+   for (auto &g : mGroups) {
+      delete g;
    }
-   free(groups);
    delete currentParamArray;
    currentParamArray = NULL;
    delete stack;
@@ -837,13 +819,11 @@ PVParams::~PVParams() {
  * @initialSize
  */
 int PVParams::initialize(size_t initialSize) {
-   this->numGroups = 0;
-   groupArraySize  = initialSize;
    // Get world rank and size
    MPI_Comm_rank(icComm->globalCommunicator(), &worldRank);
    MPI_Comm_size(icComm->globalCommunicator(), &worldSize);
 
-   groups      = (ParameterGroup **)malloc(initialSize * sizeof(ParameterGroup *));
+   mGroups.reserve(initialSize);
    stack       = new ParameterStack(MAX_PARAMS);
    arrayStack  = new ParameterArrayStack(PARAMETERARRAYSTACK_INITIALCOUNT);
    stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
@@ -860,7 +840,7 @@ int PVParams::initialize(size_t initialSize) {
 #endif // DEBUG_PARSING
    disable = false;
 
-   return (groups && stack && stringStack && activeParamSweep) ? PV_SUCCESS : PV_FAILURE;
+   return (stack && stringStack && activeParamSweep) ? PV_SUCCESS : PV_FAILURE;
 }
 
 int PVParams::newActiveParamSweep() {
@@ -958,7 +938,7 @@ void PVParams::loadParamBuffer(char const *filename, std::string &paramsFileStri
       if (result != LUA_OK) {
          char const *errorMessage = lua_tostring(lua_state, -1);
          lua_pop(lua_state, 1);
-         Fatal() << errorMessage;
+         Fatal() << errorMessage << "\n";
       }
       lua_getglobal(lua_state, "paramsFileString");
       size_t llength;
@@ -1032,10 +1012,10 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
       if (!hasSweepValue("outputPath")) {
          const char *hypercolgroupname = NULL;
          const char *outputPathName    = NULL;
-         for (int g = 0; g < numGroups; g++) {
-            if (groups[g]->getGroupKeyword(), "HyPerCol") {
-               hypercolgroupname = groups[g]->name();
-               outputPathName    = groups[g]->stringValue("outputPath");
+         for (auto &g : mGroups) {
+            if (g->getGroupKeyword(), "HyPerCol") {
+               hypercolgroupname = g->name();
+               outputPathName    = g->stringValue("outputPath");
                if (outputPathName == NULL) {
                   Fatal().printf(
                         "PVParams::outputPath must be specified if parameterSweep does "
@@ -1049,38 +1029,34 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
             abort();
          }
 
-         char dummy;
-         int lenserialno = snprintf(&dummy, 0, "%d", parameterSweepSize - 1);
-         int len         = snprintf(
-                         &dummy,
-                         0,
-                         "%s/paramsweep_%0*d/",
-                         outputPathName,
-                         lenserialno,
-                         parameterSweepSize - 1)
-                   + 1;
-         char *outputPathStr = (char *)calloc(len, sizeof(char));
-         if (outputPathStr == NULL)
-            abort();
+         // Push the strings "[outputPathName]/paramsweep_[n]/"
+         // to the parameter sweep, where [n] ranges from 0 to parameterSweepSize - 1,
+         // and is zero-padded so that the parameter sweep's outputPath directories
+         // sort the same lexicographically and numerically.
+         auto lenmax = std::to_string(parameterSweepSize - 1).size();
          for (int i = 0; i < parameterSweepSize; i++) {
-            int chars_needed = snprintf(
-                  outputPathStr, len, "%s/paramsweep_%0*d/", outputPathName, lenserialno, i);
-            assert(chars_needed < len);
-            activeParamSweep->pushStringValue(outputPathStr);
+            std::string outputPathStr(outputPathName);
+            outputPathStr.append("/paramsweep_");
+            std::string serialNumberStr = std::to_string(i);
+            auto len                    = serialNumberStr.size();
+            if (len < lenmax) {
+               outputPathStr.append(lenmax - len, '0');
+            }
+            outputPathStr.append(serialNumberStr);
+            outputPathStr.append("/");
+            activeParamSweep->pushStringValue(outputPathStr.c_str());
          }
-         free(outputPathStr);
-         outputPathStr = NULL;
          addActiveParamSweep(hypercolgroupname, "outputPath");
       }
 
       if (!hasSweepValue("checkpointWriteDir")) {
          const char *hypercolgroupname  = NULL;
          const char *checkpointWriteDir = NULL;
-         for (int g = 0; g < numGroups; g++) {
-            if (groups[g]->getGroupKeyword(), "HyPerCol") {
-               hypercolgroupname  = groups[g]->name();
-               checkpointWriteDir = groups[g]->stringValue("checkpointWriteDir");
-               // checkpointWriteDir can be NULL if checkpointWrite is set to false
+         for (auto &g : mGroups) {
+            if (g->getGroupKeyword(), "HyPerCol") {
+               hypercolgroupname  = g->name();
+               checkpointWriteDir = g->stringValue("checkpointWriteDir");
+               // checkpointWriteDir can be nullptr if checkpointWrite is set to false
                break;
             }
          }
@@ -1089,32 +1065,23 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
             abort();
          }
          if (checkpointWriteDir) {
-            char dummy;
-            int lenserialno = snprintf(&dummy, 0, "%d", parameterSweepSize - 1);
-            int len         = snprintf(
-                            &dummy,
-                            0,
-                            "%s/paramsweep_%0*d/",
-                            checkpointWriteDir,
-                            lenserialno,
-                            parameterSweepSize - 1)
-                      + 1;
-            char *checkpointPathStr = (char *)calloc(len, sizeof(char));
-            if (checkpointPathStr == NULL)
-               abort();
+            // Push the strings "[checkpointWriteDir]/paramsweep_[n]/"
+            // to the parameter sweep, where [n] ranges from 0 to parameterSweepSize - 1,
+            // and is zero-padded so that the parameter sweep's checkpointWriteDir directories
+            // sort the same lexicographically and numerically.
+            auto lenmax = std::to_string(parameterSweepSize - 1).size();
             for (int i = 0; i < parameterSweepSize; i++) {
-               int chars_needed = snprintf(
-                     checkpointPathStr,
-                     len,
-                     "%s/paramsweep_%0*d/",
-                     checkpointWriteDir,
-                     lenserialno,
-                     i);
-               assert(chars_needed < len);
-               activeParamSweep->pushStringValue(checkpointPathStr);
+               std::string checkpointWriteDirStr(checkpointWriteDir);
+               checkpointWriteDirStr.append("/paramsweep_");
+               std::string serialNumberStr = std::to_string(i);
+               auto len                    = serialNumberStr.size();
+               if (len < lenmax) {
+                  checkpointWriteDirStr.append(lenmax - len, '0');
+               }
+               checkpointWriteDirStr.append(serialNumberStr);
+               checkpointWriteDirStr.append("/");
+               activeParamSweep->pushStringValue(checkpointWriteDirStr.c_str());
             }
-            free(checkpointPathStr);
-            checkpointPathStr = NULL;
             addActiveParamSweep(hypercolgroupname, "checkpointWriteDir");
          }
       }
@@ -1122,10 +1089,9 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
 
    if (icComm->numCommBatches() > 1) {
       ParameterGroup *hypercolGroup = nullptr;
-      for (int g = 0; g < numGroups; g++) {
-         ParameterGroup *group = groups[g];
-         if (!strcmp(group->getGroupKeyword(), "HyPerCol")) {
-            hypercolGroup = group;
+      for (auto &g : mGroups) {
+         if (!strcmp(g->getGroupKeyword(), "HyPerCol")) {
+            hypercolGroup = g;
             break;
          }
       }
@@ -1554,22 +1520,22 @@ void PVParams::writeParamString(const char *paramName, const char *svalue) {
  * @groupName
  */
 ParameterGroup *PVParams::group(const char *groupName) {
-   for (int i = 0; i < numGroups; i++) {
-      if (strcmp(groupName, groups[i]->name()) == 0) {
-         return groups[i];
+   for (auto &g : mGroups) {
+      if (strcmp(groupName, g->name()) == 0) {
+         return g;
       }
    }
    return NULL;
 }
 
 const char *PVParams::groupNameFromIndex(int index) {
-   bool inbounds = index >= 0 && index < numGroups;
-   return inbounds ? groups[index]->name() : NULL;
+   bool inbounds = index >= 0 && index < numberOfGroups();
+   return inbounds ? mGroups[index]->name() : nullptr;
 }
 
 const char *PVParams::groupKeywordFromIndex(int index) {
-   bool inbounds = index >= 0 && index < numGroups;
-   return inbounds ? groups[index]->getGroupKeyword() : NULL;
+   bool inbounds = index >= 0 && index < numberOfGroups();
+   return inbounds ? mGroups[index]->getGroupKeyword() : nullptr;
 }
 
 const char *PVParams::groupKeywordFromName(const char *name) {
@@ -1586,36 +1552,21 @@ const char *PVParams::groupKeywordFromName(const char *name) {
  * @name
  */
 void PVParams::addGroup(char *keyword, char *name) {
-   assert((size_t)numGroups <= groupArraySize);
-
    // Verify that the new group's name is not an existing group's name
-   for (int k = 0; k < numGroups; k++) {
-      if (!strcmp(name, groups[k]->name())) {
+   for (auto &g : mGroups) {
+      if (!strcmp(name, g->name())) {
          Fatal().printf("Rank %d process: group name \"%s\" duplicated\n", worldRank, name);
       }
    }
 
-   if ((size_t)numGroups == groupArraySize) {
-      groupArraySize += RESIZE_ARRAY_INCR;
-      ParameterGroup **newGroups =
-            (ParameterGroup **)malloc(groupArraySize * sizeof(ParameterGroup *));
-      assert(newGroups);
-      for (int k = 0; k < numGroups; k++) {
-         newGroups[k] = groups[k];
-      }
-      free(groups);
-      groups = newGroups;
-   }
-
-   groups[numGroups] = new ParameterGroup(name, stack, arrayStack, stringStack, worldRank);
-   groups[numGroups]->setGroupKeyword(keyword);
+   auto *newGroup = new ParameterGroup(name, stack, arrayStack, stringStack, worldRank);
+   mGroups.emplace_back(newGroup);
+   newGroup->setGroupKeyword(keyword);
 
    // the parameter group takes over control of the PVParams's stack and stringStack; make new ones.
    stack       = new ParameterStack(MAX_PARAMS);
    arrayStack  = new ParameterArrayStack(PARAMETERARRAYSTACK_INITIALCOUNT);
    stringStack = new ParameterStringStack(PARAMETERSTRINGSTACK_INITIALCOUNT);
-
-   numGroups++;
 }
 
 void PVParams::addActiveParamSweep(const char *group_name, const char *param_name) {
@@ -1650,7 +1601,7 @@ void PVParams::addActiveParamSweep(const char *group_name, const char *param_nam
 int PVParams::warnUnread() {
    int status = PV_SUCCESS;
    for (int i = 0; i < numberOfGroups(); i++) {
-      if (groups[i]->warnUnread() != PV_SUCCESS) {
+      if (mGroups[i]->warnUnread() != PV_SUCCESS) {
          status = PV_FAILURE;
       }
    }
@@ -1679,7 +1630,7 @@ bool PVParams::presentAndNotBeenRead(const char *group_name, const char *param_n
 int PVParams::clearHasBeenReadFlags() {
    int status = PV_SUCCESS;
    for (int i = 0; i < numberOfGroups(); i++) {
-      if (groups[i]->clearHasBeenReadFlags() != PV_SUCCESS) {
+      if (mGroups[i]->clearHasBeenReadFlags() != PV_SUCCESS) {
          status = PV_FAILURE;
       }
    }
@@ -1702,7 +1653,6 @@ void PVParams::handleUnnecessaryParameter(const char *group_name, const char *pa
 }
 
 void PVParams::handleUnnecessaryStringParameter(const char *group_name, const char *param_name) {
-   int status             = PV_SUCCESS;
    const char *class_name = groupKeywordFromName(group_name);
    if (stringPresent(group_name, param_name)) {
       if (worldRank == 0) {
@@ -1713,7 +1663,7 @@ void PVParams::handleUnnecessaryStringParameter(const char *group_name, const ch
                group_name,
                param_name);
       }
-      const char *params_value = stringValue(group_name, param_name, false /*warnIfAbsent*/);
+      stringValue(group_name, param_name, false /*warnIfAbsent*/);
       // marks param as read so that presentAndNotBeenRead doesn't trip up
    }
 }
@@ -1821,6 +1771,13 @@ void PVParams::handleUnnecessaryStringParameter(
    if (status != PV_SUCCESS) {
       MPI_Barrier(icComm->globalCommunicator());
       exit(EXIT_FAILURE);
+   }
+}
+
+void PVParams::shuffleGroups(unsigned int seed) {
+   if (seed and numberOfGroups() > 1) {
+      std::mt19937 shuffleRNG(seed);
+      std::shuffle(mGroups.begin() + 1, mGroups.end(), shuffleRNG);
    }
 }
 
@@ -1958,8 +1915,8 @@ void PVParams::action_parameter_array(char *id) {
       InfoLog().printf("action_parameter_array: %s\n", id);
       InfoLog().flush();
    }
-   int status = currentParamArray->setName(id);
-   assert(status == PV_SUCCESS);
+   currentParamArray->setName(id);
+   assert(!strcmp(currentParamArray->name(), id));
    checkDuplicates(id);
    arrayStack->push(currentParamArray);
    currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
@@ -2016,9 +1973,13 @@ void PVParams::action_parameter_array_value(double val) {
       InfoLog().flush();
       InfoLog().printf("action_parameter_array_value %lf\n", val);
    }
-   int sz      = currentParamArray->getArraySize();
-   int newsize = currentParamArray->pushValue(val);
+#ifdef NDEBUG
+   currentParamArray->pushValue(val);
+#else
+   int sz            = currentParamArray->getArraySize();
+   int newsize       = currentParamArray->pushValue(val);
    assert(newsize == sz + 1);
+#endif // NDEBUG
 }
 
 void PVParams::action_parameter_string_def(const char *id, const char *stringval) {
@@ -2131,10 +2092,10 @@ void PVParams::action_include_directive(const char *stringval) {
    char *param_value = stripQuotationMarks(stringval);
    // Grab the included group's ParameterGroup object
    ParameterGroup *includeGroup = NULL;
-   for (int groupidx = 0; groupidx < numGroups; groupidx++) {
+   for (auto &g : mGroups) {
       // If strings are matching
-      if (strcmp(groups[groupidx]->name(), param_value) == 0) {
-         includeGroup = groups[groupidx];
+      if (strcmp(g->name(), param_value) == 0) {
+         includeGroup = g;
       }
    }
    // If group not found

@@ -6,7 +6,6 @@
  */
 
 #include "UniformRandomV.hpp"
-#include "columns/HyPerCol.hpp"
 #include "columns/Random.hpp"
 #include "utils/PVLog.hpp"
 
@@ -14,18 +13,17 @@ namespace PV {
 
 UniformRandomV::UniformRandomV() { initialize_base(); }
 
-UniformRandomV::UniformRandomV(char const *name, HyPerCol *hc) {
+UniformRandomV::UniformRandomV(char const *name, PVParams *params, Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 UniformRandomV::~UniformRandomV() {}
 
 int UniformRandomV::initialize_base() { return PV_SUCCESS; }
 
-int UniformRandomV::initialize(char const *name, HyPerCol *hc) {
-   int status = BaseInitV::initialize(name, hc);
-   return status;
+void UniformRandomV::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   BaseInitV::initialize(name, params, comm);
 }
 
 int UniformRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -36,12 +34,12 @@ int UniformRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void UniformRandomV::ioParam_minV(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "minV", &minV, minV);
+   parameters()->ioParamValue(ioFlag, name, "minV", &minV, minV);
 }
 
 void UniformRandomV::ioParam_maxV(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "minV"));
-   parent->parameters()->ioParamValue(ioFlag, name, "maxV", &maxV, minV + 1.0f);
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "minV"));
+   parameters()->ioParamValue(ioFlag, name, "maxV", &maxV, minV + 1.0f);
 }
 
 void UniformRandomV::calcV(float *V, PVLayerLoc const *loc) {

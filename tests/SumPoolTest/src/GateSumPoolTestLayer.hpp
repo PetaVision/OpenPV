@@ -1,18 +1,16 @@
 #ifndef GATESUMPOOLTESTLAYER_HPP_
 #define GATESUMPOOLTESTLAYER_HPP_
 
-#include <layers/ANNLayer.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
-class GateSumPoolTestLayer : public PV::ANNLayer {
+class GateSumPoolTestLayer : public HyPerLayer {
   public:
-   GateSumPoolTestLayer(const char *name, HyPerCol *hc);
+   GateSumPoolTestLayer(const char *name, PVParams *params, Communicator const *comm);
 
   protected:
-   Response::Status updateState(double timef, double dt) override;
-
-  private:
+   ActivityComponent *createActivityComponent() override;
 }; // end class GateSumPoolTestLayer
 
 } /* namespace PV */

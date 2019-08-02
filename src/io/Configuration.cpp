@@ -22,6 +22,7 @@ Configuration::Configuration() {
    registerIntegerArgument("CheckpointCellNumColumns");
    registerIntegerArgument("CheckpointCellBatchDimension");
    registerBooleanArgument("DryRun");
+   registerUnsignedIntArgument("ShuffleParamGroups");
 }
 
 void Configuration::registerArgument(std::string const &name, ConfigurationType type) {
@@ -166,7 +167,6 @@ Configuration::printIntOptionalArgument(std::string const &name, IntOptional con
 std::string Configuration::printArgument(std::string const &name) const {
    ConfigurationType type = getType(name);
    std::string returnString;
-   bool status; // Used to verify the result of calling the get*Argument method.
    switch (type) {
       case CONFIG_UNRECOGNIZED: break;
       case CONFIG_BOOL: returnString = printBooleanArgument(name, getBooleanArgument(name)); break;
@@ -192,7 +192,6 @@ std::string Configuration::printConfig() const {
 }
 
 bool Configuration::setArgumentUsingString(std::string const &name, std::string const &value) {
-   bool found;
    switch (getType(name)) {
       case CONFIG_UNRECOGNIZED: return false; break;
       case CONFIG_BOOL: setBooleanArgument(name, parseBoolean(value)); break;

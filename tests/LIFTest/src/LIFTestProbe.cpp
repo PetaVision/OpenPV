@@ -13,9 +13,10 @@
 #define LIFTESTPROBE_BINS 5
 
 namespace PV {
-LIFTestProbe::LIFTestProbe(const char *name, HyPerCol *hc) : StatsProbe() {
+LIFTestProbe::LIFTestProbe(const char *name, PVParams *params, Communicator const *comm)
+      : StatsProbe() {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 LIFTestProbe::LIFTestProbe() : StatsProbe() { initialize_base(); }
@@ -28,9 +29,9 @@ int LIFTestProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LIFTestProbe::initialize(const char *name, HyPerCol *hc) {
+void LIFTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
 
-   int status = StatsProbe::initialize(name, hc);
+   StatsProbe::initialize(name, params, comm);
 
    radii       = (double *)calloc(LIFTESTPROBE_BINS, sizeof(double));
    rates       = (double *)calloc(LIFTESTPROBE_BINS, sizeof(double));
@@ -76,7 +77,6 @@ int LIFTestProbe::initialize(const char *name, HyPerCol *hc) {
       stddevs[k]     = s[k];
       counts[k]      = c[k];
    }
-   return status;
 }
 
 int LIFTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -87,12 +87,12 @@ int LIFTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LIFTestProbe::ioParam_endingTime(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, getName(), "endingTime", &endingTime, LIFTESTPROBE_DEFAULTENDINGTIME);
 }
 
 void LIFTestProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(
+   parameters()->ioParamValue(
          ioFlag, getName(), "tolerance", &tolerance, LIFTESTPROBE_DEFAULTTOLERANCE);
 }
 
@@ -125,7 +125,7 @@ void LIFTestProbe::initOutputStreams(const char *filename, Checkpointer *checkpo
    }
 }
 
-Response::Status LIFTestProbe::outputState(double timed) {
+Response::Status LIFTestProbe::outputState(double simTime, double deltaTime) {
    bool failed = false;
 
    HyPerLayer *l         = getTargetLayer();
@@ -146,8 +146,8 @@ Response::Status LIFTestProbe::outputState(double timed) {
          rates[bin_number] += (double)l->getV()[k];
       }
    }
-   int root_proc        = 0;
-   Communicator *icComm = parent->getCommunicator();
+   int root_proc              = 0;
+   Communicator const *icComm = mCommunicator;
    if (icComm->commRank() == root_proc) {
       MPI_Reduce(
             MPI_IN_PLACE,
@@ -158,14 +158,14 @@ Response::Status LIFTestProbe::outputState(double timed) {
             root_proc,
             icComm->communicator());
       InfoLog(dumpRates);
-      dumpRates.printf("%s t=%f:", getMessage(), timed);
+      dumpRates.printf("%s t=%f:", getMessage(), simTime);
       for (int j = 0; j < LIFTESTPROBE_BINS; j++) {
-         rates[j] /= (double)counts[j] * timed / 1000.0;
+         rates[j] /= (double)counts[j] * simTime / 1000.0;
          dumpRates.printf(" %f", (double)rates[j]);
       }
       dumpRates.printf("\n");
-      if (timed >= endingTime) {
-         double stdfactor = sqrt(timed / 2000.0); // Since the values of std are based on t=2000.
+      if (simTime >= endingTime) {
+         double stdfactor = sqrt(simTime / 2000.0); // Since the values of std are based on t=2000.
          for (int j = 0; j < LIFTESTPROBE_BINS; j++) {
             double scaledstdev = stddevs[j] / stdfactor;
             double observed    = (rates[j] - targetrates[j]) / scaledstdev;
@@ -174,7 +174,7 @@ Response::Status LIFTestProbe::outputState(double timed) {
                      "Bin number %d failed at time %f: %f standard deviations off, with tolerance "
                      "%f.\n",
                      j,
-                     timed,
+                     simTime,
                      observed,
                      tolerance);
                failed = true;

@@ -14,7 +14,7 @@
 int main(int argc, char *argv[]) {
    PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
    MPI_Init(&argc, &argv);
-   PV::Communicator *comm = new PV::Communicator(&arguments);
+   PV::Communicator const *comm = new PV::Communicator(&arguments);
 
    std::string directory("checkpoints");
    auto *mpiBlock = comm->getLocalMPIBlock();

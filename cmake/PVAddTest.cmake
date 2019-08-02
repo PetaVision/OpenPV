@@ -48,8 +48,9 @@
 # MAX_MPI_COPIES - maximum number of MPI copies. Test cases are incremented by powers of two,
 #  First case is 2, next is 4, and so on, until MAX_MPI_COPIES is reached. Default is 4
 #
-# FLAGS - by default, the flags are "-t ${PV_SYSTEM_TEST_THREADS}". Setting FLAGS appends
-#  to this
+# FLAGS - by default, the flags are "-t ${PV_SYSTEM_TEST_THREADS}" or
+#  "-t ${PV_SYSTEM_TEST_THREADS} -shuffle ${PV_SYSTEM_TEST_SHUFFLE}".
+#  Setting FLAGS appends to this
 #
 # BASE_NAME - by default, this is the last component of the path ${CMAKE_CURRENT_SOURCE_DIR}.
 #  Set BASE_NAME to override
@@ -93,9 +94,12 @@ macro(pv_add_test)
 
   # Set the TEST_FLAGS
   set(TEST_FLAGS "-t;${PV_SYSTEM_TEST_THREADS}")
+  if (PV_SYSTEM_TEST_SHUFFLE)
+    set(TEST_FLAGS "${TEST_FLAGS};-shuffle;${PV_SYSTEM_TEST_SHUFFLE}")
+  endif()
   if (PARSED_ARGS_FLAGS)
     string(REPLACE " " ";" FLAG_LIST ${PARSED_ARGS_FLAGS})
-    set(TEST_FLAGS ${TEST_FLAGS};${FLAG_LIST})
+    set(TEST_FLAGS "${TEST_FLAGS};${FLAG_LIST}")
   endif()
 
   # Set the list of params files, if needed
@@ -170,7 +174,7 @@ macro(pv_add_test)
             set(TEST_LOG "${TEST_LOG_DIR}/${TEST_NAME}.log")
             set(TEST_PARAMS "input/${PARAM}.params")
             add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-              COMMAND ${MPIEXEC} -np ${COPIES} ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -p ${TEST_PARAMS} -l ${TEST_LOG})
+              COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${COPIES} ${MPIEXEC_PREFLAGS} ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -p ${TEST_PARAMS} -l ${TEST_LOG})
 
             if (NOT FIRST_TEST)
               set_tests_properties(${TEST_NAME} PROPERTIES DEPENDS ${PREV_TEST_NAME})
@@ -208,7 +212,7 @@ macro(pv_add_test)
           set(TEST_LOG "${TEST_LOG_DIR}/${TEST_NAME}.log")
           
           add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMAND ${MPIEXEC} -np ${COPIES} ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -l ${TEST_LOG})
+            COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${COPIES} ${MPIEXEC_PREFLAGS} ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -l ${TEST_LOG})
           
           if (NOT FIRST_TEST)
             set_tests_properties(${TEST_NAME} PROPERTIES DEPENDS ${PREV_TEST_NAME})

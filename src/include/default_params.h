@@ -35,14 +35,8 @@
 #define SIGMA_DIST_FEEDBACK 2.0
 #define EXCITE_DELAY 0
 #define INHIB_DELAY 0
-//#define EXCITE_VEL 2.0 // 2*RMAX
-//#define INHIB_VEL 1.0
 #define EXCITE_VEL 999999.0 // 2*RMAX
 #define INHIB_VEL 999999.0
-
-// refractory period for neurons (retina for now)
-#define ABS_REFRACTORY_PERIOD 3
-#define REFRACTORY_PERIOD 5
 
 // estimate of maximum activity in a local layer
 #define EST_MAX_ACTIVITY 256

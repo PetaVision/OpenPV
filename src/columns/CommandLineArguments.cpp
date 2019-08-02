@@ -38,21 +38,22 @@ void CommandLineArguments::resetState(
       char const *const *argv,
       bool allowUnrecognizedArguments) {
    bool paramUsage[argc];
-   bool requireReturn        = false;
-   char *outputPath          = nullptr;
-   char *paramsFile          = nullptr;
-   char *logFile             = nullptr;
-   char *gpuDevices          = nullptr;
-   unsigned int randomSeed   = 0U;
-   char *workingDir          = nullptr;
-   int restart               = 0;
-   char *checkpointReadDir   = nullptr;
-   bool useDefaultNumThreads = false;
-   int numThreads            = 0;
-   int numRows               = 0;
-   int numColumns            = 0;
-   int batchWidth            = 0;
-   int dryRun                = 0;
+   bool requireReturn              = false;
+   char *outputPath                = nullptr;
+   char *paramsFile                = nullptr;
+   char *logFile                   = nullptr;
+   char *gpuDevices                = nullptr;
+   unsigned int randomSeed         = 0U;
+   char *workingDir                = nullptr;
+   int restart                     = 0;
+   char *checkpointReadDir         = nullptr;
+   bool useDefaultNumThreads       = false;
+   int numThreads                  = 0;
+   int numRows                     = 0;
+   int numColumns                  = 0;
+   int batchWidth                  = 0;
+   int dryRun                      = 0;
+   unsigned int shuffleParamGroups = 0U;
    parse_options(
          argc,
          argv,
@@ -71,7 +72,23 @@ void CommandLineArguments::resetState(
          &numRows,
          &numColumns,
          &batchWidth,
-         &dryRun);
+         &dryRun,
+         &shuffleParamGroups);
+   if (!allowUnrecognizedArguments) {
+      bool allrecognized = true;
+      for (int argi = 0; argi < argc; argi++) {
+         bool recognized = paramUsage[argi];
+         if (!recognized) {
+            allrecognized = false;
+            ErrorLog().printf(
+                  "Argument %d, \"%s\", is unrecognized and AllowUnrecognizedArguments is set to "
+                  "false.\n",
+                  argi,
+                  argv[argi]);
+         }
+      }
+      FatalIf(!allrecognized, "%s called with unrecognized arguments.\n", argv[0]);
+   }
    std::string configString = ConfigParser::createString(
          requireReturn,
          std::string{outputPath ? outputPath : ""},
@@ -87,7 +104,8 @@ void CommandLineArguments::resetState(
          numRows,
          numColumns,
          batchWidth,
-         (bool)dryRun);
+         (bool)dryRun,
+         shuffleParamGroups);
    std::istringstream configStream{configString};
    Arguments::resetState(configStream, allowUnrecognizedArguments);
    free(outputPath);

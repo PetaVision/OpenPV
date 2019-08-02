@@ -46,7 +46,7 @@ Status operator+(Status const &a, Status const &b);
  * A convenience method to test if a status is either SUCCESS or NO_ACTION. In either
  * case, the message that generated this status would not need to be resent.
  */
-static bool completed(Status &a) { return a == SUCCESS or a == NO_ACTION; }
+inline static bool completed(Status &a) { return a == SUCCESS or a == NO_ACTION; }
 
 } // namespace PV
 

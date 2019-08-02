@@ -10,7 +10,7 @@ KneeTimeScaleController::KneeTimeScaleController(
       double tauFactor,
       double growthFactor,
       bool writeTimeScaleFieldnames,
-      Communicator *comm,
+      Communicator const *comm,
       double kneeThresh,
       double kneeSlope)
       : AdaptiveTimeScaleController(
@@ -32,7 +32,7 @@ KneeTimeScaleController::calcTimesteps(double timeValue, std::vector<double> con
    std::vector<double> timeScales(
          AdaptiveTimeScaleController::calcTimesteps(timeValue, rawTimeScales));
 
-   for (int i = 0; i < timeScales.size(); ++i) {
+   for (std::size_t i = 0; i < timeScales.size(); ++i) {
       // Scale timescalemax if it's above the knee
       if (mTimeScaleInfo.mTimeScaleMax[i] > mKneeThresh) {
          mTimeScaleInfo.mTimeScaleMax[i] =

@@ -6,20 +6,19 @@
  */
 
 #include "CopyWeightsPair.hpp"
-#include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "connections/HyPerConn.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
-CopyWeightsPair::CopyWeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
+CopyWeightsPair::CopyWeightsPair(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 CopyWeightsPair::~CopyWeightsPair() {}
 
-int CopyWeightsPair::initialize(char const *name, HyPerCol *hc) {
-   return WeightsPair::initialize(name, hc);
+void CopyWeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   WeightsPair::initialize(name, params, comm);
 }
 
 void CopyWeightsPair::setObjectType() { mObjectType = "CopyWeightsPair"; }
@@ -31,16 +30,17 @@ int CopyWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   if (mOriginalConn == nullptr) {
-      OriginalConnNameParam *originalConnNameParam =
-            mapLookupByType<OriginalConnNameParam>(message->mHierarchy, getDescription());
+   if (mOriginalWeightsPair == nullptr) {
+      pvAssert(mOriginalConnData == nullptr);
+      auto *objectTable           = message->mObjectTable;
+      auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
       FatalIf(
             originalConnNameParam == nullptr,
-            "%s requires an OriginalConnNameParam component.\n",
+            "%s could not find an OriginalConnNameParam.\n",
             getDescription_c());
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             InfoLog().printf(
                   "%s must wait until the OriginalConnNameParam component has finished its "
                   "communicateInitInfo stage.\n",
@@ -48,29 +48,26 @@ CopyWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
          }
          return Response::POSTPONE;
       }
-      char const *originalConnName = originalConnNameParam->getOriginalConnName();
 
-      auto hierarchy = message->mHierarchy;
-      ObjectMapComponent *objectMapComponent =
-            mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-      pvAssert(objectMapComponent);
-      mOriginalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
-      if (mOriginalConn == nullptr) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
-            ErrorLog().printf(
-                  "%s: originalConnName \"%s\" does not correspond to a HyPerConn in the column.\n",
-                  getDescription_c(),
-                  originalConnName);
-         }
-         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-         exit(PV_FAILURE);
-      }
+      char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+
+      mOriginalConnData = objectTable->findObject<ConnectionData>(originalConnName);
+      FatalIf(
+            mOriginalConnData == nullptr,
+            "%s could not find a ConnectionData component within \"%s\".\n",
+            getDescription_c(),
+            originalConnName);
+
+      mOriginalWeightsPair = objectTable->findObject<WeightsPair>(originalConnName);
+      FatalIf(
+            mOriginalWeightsPair == nullptr,
+            "%s could not find a WeightsPair component within \"%s\".\n",
+            getDescription_c(),
+            originalConnName);
    }
-   mOriginalWeightsPair = mOriginalConn->getComponentByType<WeightsPair>();
-   pvAssert(mOriginalWeightsPair);
 
    if (!mOriginalWeightsPair->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
+      if (mCommunicator->globalCommRank() == 0) {
          InfoLog().printf(
                "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
                "stage.\n",
@@ -106,7 +103,7 @@ void CopyWeightsPair::synchronizeMarginsPre() {
    }
 
    HyPerLayer *origPre = nullptr;
-   if (mOriginalConn == nullptr) {
+   if (mOriginalWeightsPair == nullptr) {
       ErrorLog().printf(
             "synchronzedMarginsPre called for %s, but this connection has not set its "
             "original connection yet.\n",
@@ -114,7 +111,7 @@ void CopyWeightsPair::synchronizeMarginsPre() {
       status = PV_FAILURE;
    }
    else {
-      origPre = mOriginalConn->getPre();
+      origPre = mOriginalConnData->getPre();
       if (origPre == nullptr) {
          ErrorLog().printf(
                "synchronzedMarginsPre called for %s, but the original connection has not set its "
@@ -133,7 +130,6 @@ void CopyWeightsPair::synchronizeMarginsPre() {
 void CopyWeightsPair::synchronizeMarginsPost() {
    int status = PV_SUCCESS;
 
-   pvAssert(mConnectionData);
    auto *thisPost = mConnectionData->getPost();
    if (thisPost == nullptr) {
       ErrorLog().printf(
@@ -144,7 +140,7 @@ void CopyWeightsPair::synchronizeMarginsPost() {
    }
 
    HyPerLayer *origPost = nullptr;
-   if (mOriginalConn == nullptr) {
+   if (mOriginalWeightsPair == nullptr) {
       ErrorLog().printf(
             "synchronzedMarginsPre called for %s, but this connection has not set its "
             "original connection yet.\n",
@@ -152,7 +148,7 @@ void CopyWeightsPair::synchronizeMarginsPost() {
       status = PV_FAILURE;
    }
    else {
-      origPost = mOriginalConn->getPost();
+      origPost = mOriginalConnData->getPost();
       if (origPost == nullptr) {
          ErrorLog().printf(
                "synchronzedMarginsPost called for %s, but the original connection has not set its "

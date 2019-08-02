@@ -21,9 +21,9 @@ using namespace std;
 namespace PV {
 ShuffleLayer::ShuffleLayer() { initialize_base(); }
 
-ShuffleLayer::ShuffleLayer(const char *name, HyPerCol *hc) {
+ShuffleLayer::ShuffleLayer(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 ShuffleLayer::~ShuffleLayer() {
@@ -61,11 +61,10 @@ int ShuffleLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ShuffleLayer::initialize(const char *name, HyPerCol *hc) {
+void ShuffleLayer::initialize(const char *name, PVParams *params, Communicator const *comm) {
    WarnLog() << "ShuffleLayer has been deprecated.\n";
-   int status_init = HyPerLayer::initialize(name, hc);
+   int status_init = HyPerLayer::initialize(name, params, comm);
    // don't need conductance channels
-   freeChannels(); // TODO: Does this need to be here?
    return status_init;
 }
 
@@ -117,7 +116,7 @@ int ShuffleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ShuffleLayer::ioParam_shuffleMethod(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "shuffleMethod", &shuffleMethod, "random", false /*warnIfAbsent*/);
    // ioFlag==PARAMS_IO_READ &&
    if ((strcmp(shuffleMethod, "random") == 0 || strcmp(shuffleMethod, "rejection") == 0)) {
@@ -130,32 +129,31 @@ void ShuffleLayer::ioParam_shuffleMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void ShuffleLayer::ioParam_readFreqFromFile(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "shuffleMethod"));
+   assert(!parameters()->presentAndNotBeenRead(name, "shuffleMethod"));
    if (strcmp(shuffleMethod, "rejection") == 0) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag, name, "readFreqFromFile", &readFreqFromFile, readFreqFromFile);
    }
 }
 
 void ShuffleLayer::ioParam_freqFilename(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "readFreqFromFile"));
+   assert(!parameters()->presentAndNotBeenRead(name, "readFreqFromFile"));
    if (readFreqFromFile) {
-      parent->parameters()->ioParamString(
-            ioFlag, name, "freqFilename", &freqFilename, freqFilename);
+      parameters()->ioParamString(ioFlag, name, "freqFilename", &freqFilename, freqFilename);
    }
 }
 
 void ShuffleLayer::ioParam_freqCollectTime(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "readFreqFromFile"));
+   assert(!parameters()->presentAndNotBeenRead(name, "readFreqFromFile"));
    if (!readFreqFromFile) {
-      parent->parameters()->ioParamValue(
+      parameters()->ioParamValue(
             ioFlag, name, "freqCollectTime", &freqCollectTime, freqCollectTime);
    }
 }
 
 int ShuffleLayer::setActivity() {
-   float *activity = clayer->activity->data;
-   memset(activity, 0, sizeof(float) * clayer->numExtendedAllBatches);
+   float *activity = mActivity->getActivity();
+   memset(activity, 0, sizeof(float) * getNumExtendedAllBatches());
    return 0;
 }
 
@@ -200,7 +198,7 @@ void ShuffleLayer::readFreq() { // TODO: Add MPI Bcast so that only root proc do
 }
 
 void ShuffleLayer::collectFreq(const float *sourceData) {
-   PVHalo const *haloOrig = &originalLayer->getLayerLoc()->halo;
+   PVHalo const *haloOrig = &mOriginalLayer->getLayerLoc()->halo;
    int nx                 = getLayerLoc()->nx;
    int ny                 = getLayerLoc()->ny;
    int nxExt              = nx + haloOrig->lt + haloOrig->rt;
@@ -232,7 +230,7 @@ void ShuffleLayer::collectFreq(const float *sourceData) {
             nf,
             MPI_LONG,
             MPI_SUM,
-            parent->getCommunicator()->communicator());
+            mCommunicator->communicator());
 
       for (int kf = 0; kf < nf; kf++) {
          featureFreqCount[b][kf] += currFeatureFreqCount[b][kf];
@@ -243,9 +241,9 @@ void ShuffleLayer::collectFreq(const float *sourceData) {
    }
 }
 
-void ShuffleLayer::rejectionShuffle(const float *sourceData, float *activity) {
+void ShuffleLayer::rejectionShuffle(const float *sourceData, float *activity, double simTime) {
    const PVLayerLoc *loc  = getLayerLoc();
-   PVHalo const *haloOrig = &originalLayer->getLayerLoc()->halo;
+   PVHalo const *haloOrig = &mOriginalLayer->getLayerLoc()->halo;
    PVHalo const *halo     = &loc->halo;
    int nx                 = loc->nx;
    int ny                 = loc->ny;
@@ -253,7 +251,7 @@ void ShuffleLayer::rejectionShuffle(const float *sourceData, float *activity) {
    int numextended        = getNumExtended();
    int nbatch             = loc->nbatch;
    int rndIdx, rndIdxOrig;
-   if (!readFreqFromFile && parent->simulationTime() <= freqCollectTime) {
+   if (!readFreqFromFile && simTime <= freqCollectTime) {
       // Collect maxVActivity and featureFreq
       collectFreq(sourceData);
    }
@@ -321,7 +319,7 @@ void ShuffleLayer::rejectionShuffle(const float *sourceData, float *activity) {
 
 void ShuffleLayer::randomShuffle(const float *sourceData, float *activity) {
    const PVLayerLoc *loc  = getLayerLoc();
-   PVHalo const *haloOrig = &originalLayer->getLayerLoc()->halo;
+   PVHalo const *haloOrig = &mOriginalLayer->getLayerLoc()->halo;
    PVHalo const *halo     = &loc->halo;
    int nx                 = loc->nx;
    int ny                 = loc->ny;
@@ -374,10 +372,10 @@ void ShuffleLayer::randomShuffle(const float *sourceData, float *activity) {
 
 Response::Status ShuffleLayer::updateState(double timef, double dt) {
    // sourceData is extended
-   const float *sourceData     = originalLayer->getLayerData();
+   const float *sourceData     = mOriginalLayer->getLayerData();
    float *A                    = getActivity();
    const PVLayerLoc *loc       = getLayerLoc();
-   const PVLayerLoc *sourceLoc = originalLayer->getLayerLoc();
+   const PVLayerLoc *sourceLoc = mOriginalLayer->getLayerLoc();
 
    // Make sure layer loc and source layer loc is equivelent
    assert(loc->nx == sourceLoc->nx);
@@ -389,7 +387,7 @@ Response::Status ShuffleLayer::updateState(double timef, double dt) {
       randomShuffle(sourceData, A);
    }
    else if (strcmp(shuffleMethod, "rejection") == 0) {
-      rejectionShuffle(sourceData, A);
+      rejectionShuffle(sourceData, A, timef);
    }
 
    return Response::SUCCESS;

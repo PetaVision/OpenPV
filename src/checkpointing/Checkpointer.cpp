@@ -8,15 +8,14 @@
 #include "Checkpointer.hpp"
 
 #include "checkpointing/CheckpointingMessages.hpp"
+#include "utils/ExpandLeadingTilde.hpp"
 #include <cerrno>
 #include <climits>
-// #include <cmath>
-// #include <cstring>
+#include <cmath>
 #include <fts.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-// #include <unistd.h>
 #define DEFAULT_OUTPUT_PATH "output"
 
 namespace PV {
@@ -26,6 +25,7 @@ Checkpointer::Checkpointer(
       MPIBlock const *globalMPIBlock,
       Arguments const *arguments)
       : mName(name) {
+   Subject::initializeTable(name.c_str());
    initMPIBlock(globalMPIBlock, arguments);
    initBlockDirectoryName();
 
@@ -49,6 +49,9 @@ Checkpointer::~Checkpointer() {
    free(mCheckpointWriteWallclockUnit);
    free(mLastCheckpointDir);
    free(mInitializeFromCheckpointDir);
+
+   // Don't delete the objects in the ObserverComponentTable; Checkpointer doesn't own them.
+   mTable->clear();
    delete mCheckpointTimer;
    delete mMPIBlock;
 }
@@ -453,10 +456,6 @@ void Checkpointer::provideFinalStep(long int finalStep) {
    }
 }
 
-void Checkpointer::addObserver(Observer *observer) {
-   mObserverTable.addObject(observer->getDescription(), observer);
-}
-
 bool Checkpointer::registerCheckpointEntry(
       std::shared_ptr<CheckpointEntry> checkpointEntry,
       bool constantEntireRun) {
@@ -465,7 +464,7 @@ bool Checkpointer::registerCheckpointEntry(
    }
    std::string const &name = checkpointEntry->getName();
    for (auto &c : mCheckpointRegistry) {
-      if (c->getName() == checkpointEntry->getName()) {
+      if (c->getName() == name) {
          return false;
       }
    }
@@ -528,7 +527,7 @@ void Checkpointer::findWarmStartDirectory() {
                for (ftsent = fts_children(fts, 0); ftsent != nullptr; ftsent = ftsent->fts_link) {
                   if (ftsent->fts_statp->st_mode & S_IFDIR) {
                      long int x;
-                     int k = sscanf(ftsent->fts_name, "Checkpoint%ld", &x);
+                     sscanf(ftsent->fts_name, "Checkpoint%ld", &x);
                      if (x > cpIndex) {
                         cpIndex    = x;
                         indexedDir = ftsent->fts_name;
@@ -586,7 +585,6 @@ void Checkpointer::findWarmStartDirectory() {
 void Checkpointer::readStateFromCheckpoint() {
    if (getInitializeFromCheckpointDir() and getInitializeFromCheckpointDir()[0]) {
       notify(
-            mObserverTable,
             std::make_shared<ReadStateFromCheckpointMessage<Checkpointer>>(this),
             mMPIBlock->getRank() == 0 /*printFlag*/);
    }
@@ -649,7 +647,6 @@ void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepP
       *currentStepPointer = mTimeInfo.mCurrentCheckpointStep;
    }
    notify(
-         mObserverTable,
          std::make_shared<ProcessCheckpointReadMessage const>(checkpointReadDirectory),
          mMPIBlock->getRank() == 0 /*printFlag*/);
 }
@@ -657,14 +654,16 @@ void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepP
 void Checkpointer::checkpointWrite(double simTime) {
    mTimeInfo.mSimTime = simTime;
    // set mSimTime here so that it is available in routines called by checkpointWrite.
-   if (!mCheckpointWriteFlag) {
-      return;
-   }
    bool isScheduled = scheduledCheckpoint(); // Is a checkpoint scheduled to occur here?
-   // If there is both a SIGUSR1 and scheduled checkpoint, we call checkpointWriteSignal
-   // but not checkpointNow, because SIGUSR1-generated checkpoints shouldn't be deleted.
-   if (receivedSignal()) {
-      checkpointWriteSignal();
+   // If there is both a signal and scheduled checkpoint, we call checkpointWriteSignal
+   // but not checkpointNow, because signal-generated checkpoints shouldn't be deleted.
+   int receivedSignal = retrieveSignal();
+   assert(
+         receivedSignal == 0 || receivedSignal == SIGUSR1 || receivedSignal == SIGUSR2
+         || receivedSignal == SIGINT
+         || receivedSignal == SIGTERM);
+   if (receivedSignal) {
+      checkpointWriteSignal(receivedSignal);
    }
    else if (isScheduled) {
       checkpointNow();
@@ -673,41 +672,50 @@ void Checkpointer::checkpointWrite(double simTime) {
    // increment step number here so that initial conditions correspond to step zero, etc.
 }
 
-bool Checkpointer::receivedSignal() {
+int Checkpointer::retrieveSignal() {
    int checkpointSignal;
    if (mMPIBlock->getGlobalRank() == 0) {
-      int sigstatus = PV_SUCCESS;
-      sigset_t pollusr1;
+      sigset_t sigpendingset;
 
-      sigstatus = sigpending(&pollusr1);
-      assert(sigstatus == 0);
-      checkpointSignal = sigismember(&pollusr1, SIGUSR1);
-      assert(checkpointSignal == 0 || checkpointSignal == 1);
+      int sigstatus = sigpending(&sigpendingset);
+      FatalIf(sigstatus, "Signal handling routine sigpending() failed. %s\n", strerror(errno));
+      // If somehow both SIGUSR1 and one of the other signals are pending, the checkpoint-and-exit
+      // signal should take priority.
+      checkpointSignal = sigismember(&sigpendingset, SIGINT)
+                               ? SIGINT
+                               : sigismember(&sigpendingset, SIGTERM)
+                                       ? SIGTERM
+                                       : sigismember(&sigpendingset, SIGUSR2)
+                                               ? SIGUSR2
+                                               : sigismember(&sigpendingset, SIGUSR1) ? SIGUSR1 : 0;
+
       if (checkpointSignal) {
-         sigstatus = sigemptyset(&pollusr1);
+         sigstatus = sigemptyset(&sigpendingset);
          assert(sigstatus == 0);
-         sigstatus = sigaddset(&pollusr1, SIGUSR1);
+         sigstatus = sigaddset(&sigpendingset, checkpointSignal);
          assert(sigstatus == 0);
          int result = 0;
-         sigwait(&pollusr1, &result);
-         assert(result == SIGUSR1);
+         sigwait(&sigpendingset, &result);
+         assert(result == checkpointSignal);
       }
    }
    MPI_Bcast(&checkpointSignal, 1 /*count*/, MPI_INT, 0, mMPIBlock->getGlobalComm());
-   return (checkpointSignal != 0);
+   return (checkpointSignal);
 }
 
 bool Checkpointer::scheduledCheckpoint() {
    bool isScheduled = false;
-   switch (mCheckpointWriteTriggerMode) {
-      case NONE:
-         // Only NONE if checkpointWrite is off, in which case this method should not get called
-         pvAssert(0);
-         break;
-      case STEP: isScheduled      = scheduledStep(); break;
-      case SIMTIME: isScheduled   = scheduledSimTime(); break;
-      case WALLCLOCK: isScheduled = scheduledWallclock(); break;
-      default: pvAssert(0); break;
+   if (mCheckpointWriteFlag) {
+      switch (mCheckpointWriteTriggerMode) {
+         case NONE:
+            // Only NONE if checkpointWrite is off, in which case this method should not get called
+            pvAssert(0);
+            break;
+         case STEP: isScheduled      = scheduledStep(); break;
+         case SIMTIME: isScheduled   = scheduledSimTime(); break;
+         case WALLCLOCK: isScheduled = scheduledWallclock(); break;
+         default: pvAssert(0); break;
+      }
    }
    return isScheduled;
 }
@@ -749,23 +757,48 @@ bool Checkpointer::scheduledWallclock() {
    return isScheduled;
 }
 
-void Checkpointer::checkpointWriteSignal() {
+void Checkpointer::checkpointWriteSignal(int checkpointSignal) {
+   char const *signalName = nullptr;
+   switch (checkpointSignal) {
+      case SIGUSR1: signalName = "SIGUSR1 (checkpoint and continue)"; break;
+      case SIGUSR2: signalName = "SIGUSR2 (checkpoint and exit)"; break;
+      case SIGINT: signalName  = "interrupt"; break;
+      case SIGTERM: signalName = "terminate"; break;
+      default:
+         pvAssert(0);
+         // checkpointWriteSignal should not be called unless the signal is one of the above
+         break;
+   }
    InfoLog().printf(
-         "Global rank %d: checkpointing in response to SIGUSR1 at time %f.\n",
+         "Global rank %d: checkpointing in response to %s at time %f.\n",
          mMPIBlock->getGlobalRank(),
+         signalName,
          mTimeInfo.mSimTime);
    std::string checkpointDirectory = makeCheckpointDirectoryFromCurrentStep();
    checkpointToDirectory(checkpointDirectory);
+   if (checkpointSignal == SIGUSR2 || checkpointSignal == SIGINT || checkpointSignal == SIGTERM) {
+      if (mMPIBlock->getGlobalRank() == 0) {
+         InfoLog() << "Exiting.\n";
+      }
+      MPI_Finalize();
+      exit(EXIT_SUCCESS);
+   }
 }
 
 std::string Checkpointer::makeCheckpointDirectoryFromCurrentStep() {
-   std::stringstream checkpointDirStream;
-   checkpointDirStream << mCheckpointWriteDir << "/Checkpoint";
-   int fieldWidth = mCheckpointIndexWidth < 0 ? mWidthOfFinalStepNumber : mCheckpointIndexWidth;
-   checkpointDirStream.fill('0');
-   checkpointDirStream.width(fieldWidth);
-   checkpointDirStream << mTimeInfo.mCurrentCheckpointStep;
-   std::string checkpointDirectory = checkpointDirStream.str();
+   std::string checkpointDirectory;
+   if (mCheckpointWriteFlag) {
+      std::stringstream checkpointDirStream;
+      checkpointDirStream << mCheckpointWriteDir << "/Checkpoint";
+      int fieldWidth = mCheckpointIndexWidth < 0 ? mWidthOfFinalStepNumber : mCheckpointIndexWidth;
+      checkpointDirStream.fill('0');
+      checkpointDirStream.width(fieldWidth);
+      checkpointDirStream << mTimeInfo.mCurrentCheckpointStep;
+      checkpointDirectory = checkpointDirStream.str();
+   }
+   else {
+      checkpointDirectory = mLastCheckpointDir;
+   }
    return checkpointDirectory;
 }
 
@@ -811,11 +844,13 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
          mTimeInfoCheckpointEntry->remove(checkpointDirectory);
       }
    }
-   notify(
-         mObserverTable,
-         std::make_shared<PrepareCheckpointWriteMessage const>(checkpointDirectory),
-         mMPIBlock->getRank() == 0 /*printFlag*/);
    ensureDirExists(mMPIBlock, checkpointDirectory.c_str());
+   notify(
+         std::make_shared<WriteParamsFileMessage const>(checkpointDirectory),
+         mMPIBlock->getRank() == 0 /*printFlag*/);
+   notify(
+         std::make_shared<PrepareCheckpointWriteMessage const>(),
+         mMPIBlock->getRank() == 0 /*printFlag*/);
    for (auto &c : mCheckpointRegistry) {
       c->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWrites);
    }

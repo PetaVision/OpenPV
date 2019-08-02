@@ -9,8 +9,11 @@
 
 namespace PV {
 
-InitGaussianRandomWeights::InitGaussianRandomWeights(char const *name, HyPerCol *hc) {
-   initialize(name, hc);
+InitGaussianRandomWeights::InitGaussianRandomWeights(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   initialize(name, params, comm);
 }
 
 InitGaussianRandomWeights::InitGaussianRandomWeights() {}
@@ -21,9 +24,11 @@ InitGaussianRandomWeights::~InitGaussianRandomWeights() {
    mRandState = nullptr; // Prevents InitRandomWeights destructor from double-deleting
 }
 
-int InitGaussianRandomWeights::initialize(char const *name, HyPerCol *hc) {
-   int status = InitRandomWeights::initialize(name, hc);
-   return status;
+void InitGaussianRandomWeights::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   InitRandomWeights::initialize(name, params, comm);
 }
 
 int InitGaussianRandomWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -34,11 +39,11 @@ int InitGaussianRandomWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitGaussianRandomWeights::ioParam_wGaussMean(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "wGaussMean", &mWGaussMean, mWGaussMean);
+   parameters()->ioParamValue(ioFlag, name, "wGaussMean", &mWGaussMean, mWGaussMean);
 }
 
 void InitGaussianRandomWeights::ioParam_wGaussStdev(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "wGaussStdev", &mWGaussStdev, mWGaussStdev);
+   parameters()->ioParamValue(ioFlag, name, "wGaussStdev", &mWGaussStdev, mWGaussStdev);
 }
 
 int InitGaussianRandomWeights::initRNGs(bool isKernel) {
@@ -56,7 +61,7 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
       Fatal().printf(
             "InitRandomWeights error in rank %d process: unable to create object of class "
             "Random.\n",
-            parent->getCommunicator()->globalCommRank());
+            mCommunicator->globalCommRank());
    }
    mRandState = (Random *)mGaussianRandState;
    return status;

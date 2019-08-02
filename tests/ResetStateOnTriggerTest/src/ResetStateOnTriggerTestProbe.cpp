@@ -1,9 +1,15 @@
 #include "ResetStateOnTriggerTestProbe.hpp"
+#include <components/BasePublisherComponent.hpp>
 #include <layers/HyPerLayer.hpp>
 
-ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc) {
+using namespace PV;
+
+ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe() { initialize_base(); }
@@ -14,23 +20,32 @@ int ResetStateOnTriggerTestProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int ResetStateOnTriggerTestProbe::initialize(char const *name, PV::HyPerCol *hc) {
-   int status = PV_SUCCESS;
-   status     = PV::LayerProbe::initialize(name, hc);
-   return status;
+void ResetStateOnTriggerTestProbe::initialize(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   LayerProbe::initialize(name, params, comm);
+}
+
+Response::Status ResetStateOnTriggerTestProbe::initializeState(
+      std::shared_ptr<InitializeStateMessage const> message) {
+   mDeltaTime = message->mDeltaTime;
+   return Response::SUCCESS;
 }
 
 void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    int nBatch = getNumValues();
    if (timevalue > 0.0) {
-      int N                 = targetLayer->getNumNeurons();
-      int NGlobal           = targetLayer->getNumGlobalNeurons();
+      auto *targetPublisher = targetLayer->getComponentByType<BasePublisherComponent>();
       PVLayerLoc const *loc = targetLayer->getLayerLoc();
+      int N                 = loc->nx * loc->ny * loc->nf;
+      int NGlobal           = loc->nxGlobal * loc->nyGlobal * loc->nf;
+      int numExtended       = targetLayer->getNumExtended();
       PVHalo const *halo    = &loc->halo;
-      int inttime           = (int)nearbyintf(timevalue / parent->getDeltaTime());
+      int inttime           = (int)nearbyintf(timevalue / mDeltaTime);
       for (int b = 0; b < nBatch; b++) {
          int numDiscreps       = 0;
-         float const *activity = targetLayer->getLayerData() + b * targetLayer->getNumExtended();
+         float const *activity = targetPublisher->getLayerData() + b * numExtended;
          for (int k = 0; k < N; k++) {
             int kex = kIndexExtended(
                   k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
@@ -50,7 +65,7 @@ void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
             nBatch,
             MPI_DOUBLE,
             MPI_SUM,
-            parent->getCommunicator()->communicator());
+            mCommunicator->communicator());
       if (probeStatus == 0) {
          for (int k = 0; k < nBatch; k++) {
             if (getValuesBuffer()[k]) {
@@ -67,15 +82,14 @@ void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    }
 }
 
-PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double timevalue) {
-   getValues(timevalue); // calls calcValues
+Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, double deltaTime) {
+   getValues(simTime); // calls calcValues
    if (mOutputStreams.empty()) {
-      return PV::Response::SUCCESS;
+      return Response::SUCCESS;
    }
    if (probeStatus != 0) {
       int nBatch = getNumValues();
-      pvAssert(nBatch == mOutputStreams.size());
-      int batchOffset = nBatch * (getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex());
+      pvAssert((std::size_t)nBatch == mOutputStreams.size());
       int globalBatchSize = nBatch * getMPIBlock()->getGlobalBatchDimension();
       for (int localBatchIndex = 0; localBatchIndex < nBatch; localBatchIndex++) {
          int nnz = (int)nearbyint(getValuesBuffer()[localBatchIndex]);
@@ -85,28 +99,28 @@ PV::Response::Status ResetStateOnTriggerTestProbe::outputState(double timevalue)
                   .printf(
                         "%s t=%f, %d neuron%s the wrong value.\n",
                         getMessage(),
-                        timevalue,
+                        simTime,
                         nnz,
                         nnz == 1 ? " has" : "s have");
          }
          else {
-            int globalBatchIndex = localBatchIndex + batchOffset;
             output(localBatchIndex)
                   .printf(
                         "%s t=%f, batch element %d, %d neuron%s the wrong value.\n",
                         getMessage(),
-                        timevalue,
+                        simTime,
                         localBatchIndex,
                         nnz,
                         nnz == 1 ? " has" : "s have");
          }
       }
    }
-   return PV::Response::SUCCESS;
+   return Response::SUCCESS;
 }
 
 ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {}
 
-PV::BaseObject *createResetStateOnTriggerTestProbe(char const *name, PV::HyPerCol *hc) {
-   return hc ? new ResetStateOnTriggerTestProbe(name, hc) : NULL;
+BaseObject *
+createResetStateOnTriggerTestProbe(char const *name, PVParams *params, Communicator const *comm) {
+   return new ResetStateOnTriggerTestProbe(name, params, comm);
 }

@@ -12,8 +12,6 @@
 
 namespace PV {
 
-class BaseProbe;
-
 /**
  * QuotientColProbe takes two probes (of any type) and reports their quotient.
  * The original motivation for QuotientColProbe was to get total energy of a
@@ -28,7 +26,7 @@ class QuotientColProbe : public ColProbe {
    /**
     * Public constructor for the QuotientColProbe class.
     */
-   QuotientColProbe(const char *probename, HyPerCol *hc);
+   QuotientColProbe(const char *probename, PVParams *params, Communicator const *comm);
 
    /**
     * Destructor for the QuotientColProbe class.
@@ -94,7 +92,7 @@ class QuotientColProbe : public ColProbe {
     * from 0 to
     * getVectorSize()-1.
     */
-   virtual Response::Status outputState(double timevalue) override;
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    /**
@@ -107,11 +105,11 @@ class QuotientColProbe : public ColProbe {
     * depend on other param groups.  It is called by the public constructor
     * and should be called by the initializer of any derived classes.
     */
-   int initializeQuotientColProbe(const char *probename, HyPerCol *hc);
+   void initialize(const char *probename, PVParams *params, Communicator const *comm);
 
    virtual bool needRecalc(double timevalue) override { return true; }
 
-   virtual double referenceUpdateTime() const override;
+   virtual double referenceUpdateTime(double simTime) const override;
 
    /**
     * Implements the needRecalc method.  Always returns true, in the expectation

@@ -7,7 +7,7 @@
 
 int calcStride(int pre, std::string const &preDesc, int post, std::string const &postDesc);
 
-void checkMPICompatibility(PVLayerLoc const &loc, PV::Communicator *comm);
+void checkMPICompatibility(PVLayerLoc const &loc, PV::Communicator const *comm);
 
 PV::Weights createOriginalWeights(
       bool sharedFlag,
@@ -19,12 +19,12 @@ PV::Weights createOriginalWeights(
       int nfPost,
       int patchSizeXPre,
       int patchSizeYPre,
-      PV::Communicator *comm);
+      PV::Communicator const *comm);
 
 int checkTransposeOfTranspose(
       std::string const &testName,
       PV::Weights &originalWeights,
       PV::Weights &transposeWeights,
-      PV::Communicator *comm);
+      PV::Communicator const *comm);
 
 #endif // UTILITYFUNCTIONS_HPP_

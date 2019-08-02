@@ -1,0 +1,165 @@
+//
+// FirmThresholdCostTest.params
+//
+// created by peteschultz: Apr 2, 2019
+//
+
+//  A params file to test FirmThresholdCostActivityBuffer.
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    outputPath                          = "output/FirmThresholdCostTest";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/FirmThresholdCostTest/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 16;
+    ny                                  = 16;
+    nbatch                              = 2;
+    errorOnNotANumber                   = true;
+};
+
+PvpLayer "Input" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 0;
+    inputPath                           = "input/firmthreshinput.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    maxShiftX                           = 0;
+    maxShiftY                           = 0;
+    xFlipEnabled                        = false;
+    yFlipEnabled                        = false;
+    xFlipToggle                         = false;
+    yFlipToggle                         = false;
+    jitterChangeInterval                = 1;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0,0];
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+};
+
+FirmThresholdCostLayer "TestLayer" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    VThresh                             = 0.5;
+    VWidth                              = 0.3;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+};
+
+PvpLayer "CorrectOutput" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 0;
+    inputPath                           = "input/correctoutput.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    maxShiftX                           = 0;
+    maxShiftY                           = 0;
+    xFlipEnabled                        = false;
+    yFlipEnabled                        = false;
+    xFlipToggle                         = false;
+    yFlipToggle                         = false;
+    jitterChangeInterval                = 1;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0,0];
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+};
+
+HyPerLayer "Comparison" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 2;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+};
+
+IdentConn "InputToTestLayer" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Input";
+    postLayerName                       = "TestLayer";
+    channelCode                         = 0;
+    delay                               = 0.0;
+};
+
+IdentConn "TestLayerToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "TestLayer";
+    postLayerName                       = "Comparison";
+    channelCode                         = 0;
+    delay                               = 0.0;
+};
+
+IdentConn "CorrectOutputToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "CorrectOutput";
+    postLayerName                       = "Comparison";
+    channelCode                         = 1;
+    delay                               = 0.0;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer                         = "Comparison";
+    message                             = "Comparison                    ";
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ComparisonProbe.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 1e-7;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = false;
+};

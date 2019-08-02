@@ -3,14 +3,13 @@
 #include "columns/CommandLineArguments.hpp"
 #include "columns/Communicator.hpp"
 #include "io/PVParams.hpp"
-#include "io/io.hpp"
 #include "utils/PVLog.hpp"
 #include <vector>
 
 int main(int argc, char *argv[]) {
    PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
    MPI_Init(&argc, &argv);
-   PV::Communicator *comm       = new PV::Communicator(&arguments);
+   PV::Communicator const *comm = new PV::Communicator(&arguments);
    PV::MPIBlock const *mpiBlock = comm->getLocalMPIBlock();
 
    PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", mpiBlock, &arguments);

@@ -2,23 +2,27 @@
 
 namespace PV {
 
-ImageTestLayer::ImageTestLayer(const char *name, HyPerCol *hc) { initialize(name, hc); }
+ImageTestLayer::ImageTestLayer(const char *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
-Response::Status ImageTestLayer::updateState(double time, double dt) {
-   ImageLayer::updateState(time, dt);
+Response::Status ImageTestLayer::checkUpdateState(double time, double dt) {
+   ImageLayer::checkUpdateState(time, dt);
    const PVLayerLoc *loc = getLayerLoc();
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;
    int nbatch            = loc->nbatch;
+
+   float const *activityData = mActivityComponent->getActivity();
    for (int b = 0; b < nbatch; b++) {
-      float *dataBatch = getActivity() + b * getNumExtended();
+      float const *activityDataBatch = activityData + b * mActivityComponent->getNumExtended();
       for (int nkRes = 0; nkRes < getNumNeurons(); nkRes++) {
          // Calculate extended index
          int nkExt = kIndexExtended(
                nkRes, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          // checkVal is the value from batch index 0
-         float checkVal = dataBatch[nkExt] * 255;
+         float checkVal = activityDataBatch[nkExt] * 255;
 
          int kxGlobal = kxPos(nkRes, nx, ny, nf) + loc->kx0;
          int kyGlobal = kyPos(nkRes, nx, ny, nf) + loc->ky0;
@@ -33,4 +37,5 @@ Response::Status ImageTestLayer::updateState(double time, double dt) {
    }
    return Response::SUCCESS;
 }
-}
+
+} // end namespace PV

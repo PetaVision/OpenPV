@@ -6,22 +6,23 @@
  */
 
 #include "CloneWeightsPair.hpp"
-#include "columns/HyPerCol.hpp"
-#include "columns/ObjectMapComponent.hpp"
+#include "columns/ComponentBasedObject.hpp"
 #include "components/OriginalConnNameParam.hpp"
-#include "utils/MapLookupByType.hpp"
+#include "observerpattern/ObserverTable.hpp"
 
 namespace PV {
 
-CloneWeightsPair::CloneWeightsPair(char const *name, HyPerCol *hc) { initialize(name, hc); }
+CloneWeightsPair::CloneWeightsPair(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 CloneWeightsPair::~CloneWeightsPair() {
    mPreWeights  = nullptr;
    mPostWeights = nullptr;
 }
 
-int CloneWeightsPair::initialize(char const *name, HyPerCol *hc) {
-   return WeightsPair::initialize(name, hc);
+void CloneWeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   WeightsPair::initialize(name, params, comm);
 }
 
 void CloneWeightsPair::setObjectType() { mObjectType = "CloneWeightsPair"; }
@@ -33,7 +34,7 @@ int CloneWeightsPair::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void CloneWeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "writeStep");
+      parameters()->handleUnnecessaryParameter(name, "writeStep");
       mWriteStep = -1;
    }
    // CloneWeightsPair never writes output: set writeStep to -1.
@@ -42,23 +43,24 @@ void CloneWeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 void CloneWeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       mWriteCompressedCheckpoints = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedCheckpoints");
+      parameters()->handleUnnecessaryParameter(name, "writeCompressedCheckpoints");
    }
    // CloneConn never writes checkpoints: set writeCompressedCheckpoints to false.
 }
 
 Response::Status
 CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   if (mOriginalConn == nullptr) {
-      OriginalConnNameParam *originalConnNameParam =
-            mapLookupByType<OriginalConnNameParam>(message->mHierarchy, getDescription());
+   if (mOriginalWeightsPair == nullptr) {
+      auto *objectTable = message->mObjectTable;
+      pvAssert(mOriginalConnData == nullptr);
+      auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
       FatalIf(
             originalConnNameParam == nullptr,
-            "%s requires an OriginalConnNameParam component.\n",
+            "%s could not find an OriginalConnNameParam.\n",
             getDescription_c());
 
       if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
+         if (mCommunicator->globalCommRank() == 0) {
             InfoLog().printf(
                   "%s must wait until the OriginalConnNameParam component has finished its "
                   "communicateInitInfo stage.\n",
@@ -66,36 +68,19 @@ CloneWeightsPair::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
          }
          return Response::POSTPONE;
       }
-      char const *originalConnName = originalConnNameParam->getOriginalConnName();
+      char const *linkedObjectName = originalConnNameParam->getLinkedObjectName();
 
-      auto hierarchy = message->mHierarchy;
-      ObjectMapComponent *objectMapComponent =
-            mapLookupByType<ObjectMapComponent>(hierarchy, getDescription());
-      pvAssert(objectMapComponent);
-      mOriginalConn = objectMapComponent->lookup<HyPerConn>(std::string(originalConnName));
-      if (mOriginalConn == nullptr) {
-         if (parent->getCommunicator()->globalCommRank() == 0) {
-            ErrorLog().printf(
-                  "%s: originalConnName \"%s\" does not correspond to a HyPerConn in the column.\n",
-                  getDescription_c(),
-                  originalConnName);
-         }
-         MPI_Barrier(parent->getCommunicator()->globalCommunicator());
-         exit(PV_FAILURE);
-      }
-   }
-   mOriginalWeightsPair = mOriginalConn->getComponentByType<WeightsPair>();
-   pvAssert(mOriginalWeightsPair);
+      mOriginalConnData = objectTable->findObject<ConnectionData>(linkedObjectName);
+      FatalIf(
+            mOriginalConnData == nullptr,
+            "%s could not find a ConnectionData component in connection \"%s\"\n",
+            getDescription_c());
 
-   if (!mOriginalWeightsPair->getInitInfoCommunicatedFlag()) {
-      if (parent->getCommunicator()->globalCommRank() == 0) {
-         InfoLog().printf(
-               "%s must wait until original connection \"%s\" has finished its communicateInitInfo "
-               "stage.\n",
-               getDescription_c(),
-               mOriginalWeightsPair->getName());
-      }
-      return Response::POSTPONE;
+      mOriginalWeightsPair = objectTable->findObject<WeightsPair>(linkedObjectName);
+      FatalIf(
+            mOriginalConnData == nullptr,
+            "%s could not find a WeightsPair component in connection \"%s\"\n",
+            getDescription_c());
    }
 
    Response::Status status = WeightsPair::communicateInitInfo(message);
@@ -124,7 +109,7 @@ void CloneWeightsPair::synchronizeMarginsPre() {
    }
 
    HyPerLayer *origPre = nullptr;
-   if (mOriginalConn == nullptr) {
+   if (mOriginalWeightsPair == nullptr) {
       ErrorLog().printf(
             "synchronzedMarginsPre called for %s, but this connection has not set its "
             "original connection yet.\n",
@@ -132,7 +117,7 @@ void CloneWeightsPair::synchronizeMarginsPre() {
       status = PV_FAILURE;
    }
    else {
-      origPre = mOriginalConn->getPre();
+      origPre = mOriginalConnData->getPre();
       if (origPre == nullptr) {
          ErrorLog().printf(
                "synchronzedMarginsPre called for %s, but the original connection has not set its "
@@ -162,7 +147,7 @@ void CloneWeightsPair::synchronizeMarginsPost() {
    }
 
    HyPerLayer *origPost = nullptr;
-   if (mOriginalConn == nullptr) {
+   if (mOriginalWeightsPair == nullptr) {
       ErrorLog().printf(
             "synchronzedMarginsPre called for %s, but this connection has not set its "
             "original connection yet.\n",
@@ -170,7 +155,7 @@ void CloneWeightsPair::synchronizeMarginsPost() {
       status = PV_FAILURE;
    }
    else {
-      origPost = mOriginalConn->getPost();
+      origPost = mOriginalConnData->getPost();
       if (origPost == nullptr) {
          ErrorLog().printf(
                "synchronzedMarginsPost called for %s, but the original connection has not set its "
@@ -196,9 +181,15 @@ void CloneWeightsPair::createPostWeights(std::string const &weightsName) {
    mPostWeights = mOriginalWeightsPair->getPostWeights();
 }
 
+void CloneWeightsPair::setDefaultWriteStep(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   pvAssert(mWriteStep < 0); // CloneWeightsPair doesn't use WriteStep.
+}
+
 Response::Status CloneWeightsPair::allocateDataStructures() { return Response::SUCCESS; }
 
-Response::Status CloneWeightsPair::registerData(Checkpointer *checkpointer) {
+Response::Status
+CloneWeightsPair::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    return Response::NO_ACTION;
 }
 

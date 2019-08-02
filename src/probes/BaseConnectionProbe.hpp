@@ -8,7 +8,8 @@
 #ifndef BASECONNECTIONPROBE_HPP_
 #define BASECONNECTIONPROBE_HPP_
 
-#include "../connections/BaseConnection.hpp"
+#include "columns/ComponentBasedObject.hpp"
+#include "probes/BaseProbe.hpp"
 
 enum PatchIDMethod { INDEX_METHOD, COORDINATE_METHOD };
 
@@ -18,17 +19,16 @@ class BaseConnectionProbe : public BaseProbe {
 
    // Methods
   public:
-   BaseConnectionProbe(const char *name, HyPerCol *hc);
+   BaseConnectionProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~BaseConnectionProbe();
 
-   virtual Response::Status respond(std::shared_ptr<BaseMessage const> message) override;
-
-   BaseConnection *getTargetConn() { return mTargetConn; }
+   ComponentBasedObject *getTargetConn() { return mTargetConn; }
 
   protected:
    BaseConnectionProbe(); // Default constructor, can only be called by derived
    // classes
-   int initialize(const char *name, HyPerCol *hc);
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual void initMessageActionMap() override;
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
    Response::Status respondConnectionProbeWriteParams(
@@ -39,7 +39,8 @@ class BaseConnectionProbe : public BaseProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    /**
     * The root process of each MPIBlock sets the vector of PrintStreams to
@@ -50,8 +51,8 @@ class BaseConnectionProbe : public BaseProbe {
 
    // Member Variables
   protected:
-   BaseConnection *mTargetConn = nullptr; // The connection being probed.
-   Timer *mIOTimer             = nullptr;
+   ComponentBasedObject *mTargetConn = nullptr; // The connection being probed.
+   Timer *mIOTimer                   = nullptr;
 };
 
 } // end of namespace PV block

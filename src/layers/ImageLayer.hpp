@@ -1,41 +1,23 @@
-#ifndef IMAGELAYER_HPP_
-#define IMAGELAYER_HPP_
+#ifndef IMAGELAYER_HPP__
+#define IMAGELAYER_HPP__
 
 #include "InputLayer.hpp"
-#include "structures/Image.hpp"
 
 namespace PV {
 
 class ImageLayer : public InputLayer {
 
+  public:
+   ImageLayer(char const *name, PVParams *params, Communicator const *comm);
+   virtual ~ImageLayer();
+
   protected:
    ImageLayer() {}
-   virtual int countInputImages() override;
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
-   void populateFileList();
-   virtual Buffer<float> retrieveData(int inputIndex) override;
-   virtual std::string describeInput(int index) override;
-   void readImage(std::string filename);
 
-  public:
-   ImageLayer(const char *name, HyPerCol *hc);
-   virtual ~ImageLayer() {}
-   virtual std::string const &
-   getCurrentFilename(int localBatchElement, int mpiBatchIndex) const override;
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
 
-  protected:
-   std::unique_ptr<Image> mImage = nullptr;
+   virtual ActivityComponent *createActivityComponent() override;
+};
+}
 
-   // Automatically set if the inputPath ends in .txt. Determines whether this layer represents a
-   // collection of files.
-   bool mUsingFileList = false;
-
-   // List of filenames to iterate over
-   std::vector<std::string> mFileList;
-
-   // Template for a temporary path for downloading URLs that appear in file list.
-   std::string mURLDownloadTemplate;
-}; // end class ImageLayer
-} // end namespace PV
-
-#endif // IMAGELAYER_HPP_
+#endif // IMAGELAYER_HPP__

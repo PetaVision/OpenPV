@@ -10,38 +10,21 @@
 
 #include "LIF.hpp"
 
-#define NUM_LIFGAP_EVENTS 1 + NUM_LIF_EVENTS // ???
-//#define EV_LIF_GSYN_GAP     NUM_LIF_EVENTS + 1
-#define EV_LIFGAP_GSYN_GAP 3
-//#define EV_LIFGAP_ACTIVITY  4
-
 namespace PV {
 
-class LIFGap : public PV::LIF {
+class LIFGap : public LIF {
   public:
-   LIFGap(const char *name, HyPerCol *hc);
+   LIFGap(const char *name, PVParams *params, Communicator const *comm);
    virtual ~LIFGap();
-
-   virtual Response::Status updateState(double time, double dt) override;
-
-   virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
-
-   const float *getGapStrength() { return gapStrength; }
 
   protected:
    LIFGap();
-   int initialize(const char *name, HyPerCol *hc, const char *kernel_name);
-   virtual void allocateConductances(int num_channels) override;
-   virtual Response::Status registerData(Checkpointer *checkpointer) override;
-   virtual void readGapStrengthFromCheckpoint(Checkpointer *checkpointer);
 
-  private:
-   int initialize_base();
-   float *gapStrength;
-   bool gapStrengthInitialized;
-   void calcGapStrength();
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 
-}; // class LIFGap
+   virtual ActivityComponent *createActivityComponent() override;
+};
 
-} /* namespace PV */
+} // namespace PV
+
 #endif /* LIFGAP_HPP_ */

@@ -18,7 +18,7 @@ class InitOneToOneWeights : public InitWeights {
    virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
 
   public:
-   InitOneToOneWeights(char const *name, HyPerCol *hc);
+   InitOneToOneWeights(char const *name, PVParams *params, Communicator const *comm);
    virtual ~InitOneToOneWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -28,7 +28,7 @@ class InitOneToOneWeights : public InitWeights {
 
   protected:
    InitOneToOneWeights();
-   int initialize(char const *name, HyPerCol *hc);
+   void initialize(char const *name, PVParams *params, Communicator const *comm);
    int createOneToOneConnection(float *dataStart, int patchIndex, float weightInit);
 
   protected:

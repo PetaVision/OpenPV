@@ -107,6 +107,8 @@ class Weights {
     */
    void allocateDataStructures();
 
+   bool getDataStructuresAllocatedFlag() const { return mDataStructuresAllocatedFlag; }
+
    void checkpointWeightPvp(
          Checkpointer *checkpointer,
          char const *objectName,
@@ -192,6 +194,12 @@ class Weights {
     * given patch index
     */
    float *getDataFromPatchIndex(int arbor, int patchIndex);
+
+   /**
+    * Returns a pointer to the start of the active area of the patch data for
+    * the given patch index (that is, it includes the patch offset).
+    */
+   float *getDataFromPatchIndexWithOffset(int arbor, int patchIndex);
 
    /**
     * Returns a modifiable pointer to the patch data for the given arbor, and sets the timestamp to
@@ -315,6 +323,7 @@ class Weights {
 #endif // PV_USE_CUDNN
    double mTimestampGPU;
 #endif // PV_USE_CUDA
+   bool mDataStructuresAllocatedFlag = false;
 }; // end class Weights
 
 } // end namespace PV

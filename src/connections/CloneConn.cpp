@@ -5,43 +5,55 @@
  */
 
 #include "CloneConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/CloneWeightsPair.hpp"
 #include "components/DependentArborList.hpp"
 #include "components/DependentPatchSize.hpp"
 #include "components/DependentSharedWeights.hpp"
-#include "delivery/CloneDeliveryFacade.hpp"
+#include "delivery/CloneDeliveryCreator.hpp"
 
 namespace PV {
 
-CloneConn::CloneConn(char const *name, HyPerCol *hc) { initialize(name, hc); }
+CloneConn::CloneConn(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 CloneConn::CloneConn() {}
 
 CloneConn::~CloneConn() {}
 
-int CloneConn::initialize(char const *name, HyPerCol *hc) {
-   int status = HyPerConn::initialize(name, hc);
-   return status;
+void CloneConn::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   HyPerConn::initialize(name, params, comm);
 }
 
-void CloneConn::defineComponents() {
-   HyPerConn::defineComponents();
+void CloneConn::fillComponentTable() {
+   HyPerConn::fillComponentTable();
    mOriginalConnNameParam = createOriginalConnNameParam();
    if (mOriginalConnNameParam) {
-      addObserver(mOriginalConnNameParam);
+      addUniqueComponent(mOriginalConnNameParam);
    }
 }
 
-BaseDelivery *CloneConn::createDeliveryObject() { return new CloneDeliveryFacade(name, parent); }
+BaseDelivery *CloneConn::createDeliveryObject() {
+   auto *deliveryCreator = new CloneDeliveryCreator(name, parameters(), mCommunicator);
+   addUniqueComponent(deliveryCreator);
+   return deliveryCreator->create();
+}
 
-ArborList *CloneConn::createArborList() { return new DependentArborList(name, parent); }
+ArborList *CloneConn::createArborList() {
+   return new DependentArborList(name, parameters(), mCommunicator);
+}
 
-PatchSize *CloneConn::createPatchSize() { return new DependentPatchSize(name, parent); }
+PatchSize *CloneConn::createPatchSize() {
+   return new DependentPatchSize(name, parameters(), mCommunicator);
+}
 
-SharedWeights *CloneConn::createSharedWeights() { return new DependentSharedWeights(name, parent); }
+SharedWeights *CloneConn::createSharedWeights() {
+   return new DependentSharedWeights(name, parameters(), mCommunicator);
+}
 
-WeightsPairInterface *CloneConn::createWeightsPair() { return new CloneWeightsPair(name, parent); }
+WeightsPairInterface *CloneConn::createWeightsPair() {
+   return new CloneWeightsPair(name, parameters(), mCommunicator);
+}
 
 InitWeights *CloneConn::createWeightInitializer() { return nullptr; }
 
@@ -50,9 +62,11 @@ NormalizeBase *CloneConn::createWeightNormalizer() { return nullptr; }
 BaseWeightUpdater *CloneConn::createWeightUpdater() { return nullptr; }
 
 OriginalConnNameParam *CloneConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(name, parent);
+   return new OriginalConnNameParam(name, parameters(), mCommunicator);
 }
 
-Response::Status CloneConn::initializeState() { return Response::NO_ACTION; }
+Response::Status CloneConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   return Response::NO_ACTION;
+}
 
 } // namespace PV

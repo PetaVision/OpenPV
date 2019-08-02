@@ -5,7 +5,6 @@
  */
 
 #include "PlasticCloneConn.hpp"
-#include "columns/HyPerCol.hpp"
 #include "components/OriginalConnNameParam.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
 
@@ -13,13 +12,14 @@ namespace PV {
 
 PlasticCloneConn::PlasticCloneConn() {}
 
-PlasticCloneConn::PlasticCloneConn(const char *name, HyPerCol *hc) { initialize(name, hc); }
+PlasticCloneConn::PlasticCloneConn(const char *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 PlasticCloneConn::~PlasticCloneConn() {}
 
-int PlasticCloneConn::initialize(const char *name, HyPerCol *hc) {
-   int status = CloneConn::initialize(name, hc);
-   return status;
+void PlasticCloneConn::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   CloneConn::initialize(name, params, comm);
 }
 
 Response::Status
@@ -28,27 +28,35 @@ PlasticCloneConn::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    if (!Response::completed(status)) {
       return status;
    }
-   auto *originalConnNameParam = getComponentByType<OriginalConnNameParam>();
+   auto *objectTable = message->mObjectTable;
+
+   auto *connectionData = objectTable->findObject<ConnectionData>(getName());
+   FatalIf(
+         connectionData == nullptr,
+         "%s could not find a ConnectionData component.\n",
+         getDescription_c());
+   if (!connectionData->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
+
+   auto *originalConnNameParam = objectTable->findObject<OriginalConnNameParam>(getName());
    FatalIf(
          originalConnNameParam == nullptr,
          "%s requires an OriginalConnNameParam component.\n",
          getDescription_c());
-   auto *originalConnName = originalConnNameParam->getOriginalConnName();
-   auto *originalConn     = message->lookup<HyPerConn>(std::string(originalConnName));
-   pvAssert(originalConn); // CloneConn::communicateInitInfo should have failed if this fails.
-   auto *originalUpdater = originalConn->getComponentByType<HebbianUpdater>();
+   if (!originalConnNameParam->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
+   char const *originalConnName = originalConnNameParam->getLinkedObjectName();
+
+   auto *originalUpdater = objectTable->findObject<HebbianUpdater>(originalConnName);
    FatalIf(
          originalUpdater == nullptr,
-         "%s specifies %s as its original connection, but this connection does not have a "
+         "%s specifies originalConnName \"%s\", but this connection does not have a "
          "Hebbian updater.\n",
          getDescription_c(),
-         originalConn->getDescription_c());
+         originalConnName);
    // Do we need to handle PlasticClones of PlasticClones? Right now, this won't handle that case.
-   auto *connectionData = getComponentByType<ConnectionData>();
-   pvAssert(connectionData); // BaseConnection creates this component
-   pvAssert(connectionData->getInitInfoCommunicatedFlag()); // Set while CloneConn communicates
-   // CloneConn creates this component, and
-   // CloneConn::CommunicateInitInfo shouldn't return until its components have communicated.
    originalUpdater->addClone(connectionData);
 
    return Response::SUCCESS;

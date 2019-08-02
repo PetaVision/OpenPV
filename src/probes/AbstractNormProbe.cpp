@@ -6,17 +6,16 @@
  */
 
 #include "AbstractNormProbe.hpp"
-#include "columns/HyPerCol.hpp"
 #include "layers/HyPerLayer.hpp"
 #include <limits>
 
 namespace PV {
 
-AbstractNormProbe::AbstractNormProbe() : LayerProbe() { initialize_base(); }
+AbstractNormProbe::AbstractNormProbe() : LayerProbe() {}
 
-AbstractNormProbe::AbstractNormProbe(const char *name, HyPerCol *hc) : LayerProbe() {
-   initialize_base();
-   initialize(name, hc);
+AbstractNormProbe::AbstractNormProbe(const char *name, PVParams *params, Communicator const *comm)
+      : LayerProbe() {
+   initialize(name, params, comm);
 }
 
 AbstractNormProbe::~AbstractNormProbe() {
@@ -24,24 +23,12 @@ AbstractNormProbe::~AbstractNormProbe() {
    normDescription = NULL;
    free(maskLayerName);
    maskLayerName = NULL;
-   // Don't free maskLayer, which belongs to the HyPerCol.
+   // Don't free mMaskLayerData, which belongs to the layer named by maskLayerName.
 }
 
-int AbstractNormProbe::initialize_base() {
-   normDescription   = NULL;
-   maskLayerName     = NULL;
-   maskLayer         = NULL;
-   singleFeatureMask = false;
-   timeLastComputed  = -std::numeric_limits<double>::infinity();
-   return PV_SUCCESS;
-}
-
-int AbstractNormProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = LayerProbe::initialize(name, hc);
-   if (status == PV_SUCCESS) {
-      status = setNormDescription();
-   }
-   return status;
+void AbstractNormProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   LayerProbe::initialize(name, params, comm);
+   setNormDescription();
 }
 
 int AbstractNormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -51,7 +38,7 @@ int AbstractNormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void AbstractNormProbe::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, name, "maskLayerName", &maskLayerName, NULL, false /*warnIfAbsent*/);
 }
 
@@ -63,64 +50,43 @@ AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessag
    }
    assert(targetLayer);
    if (maskLayerName && maskLayerName[0]) {
-      maskLayer = message->lookup<HyPerLayer>(std::string(maskLayerName));
-      if (maskLayer == NULL) {
-         if (parent->columnId() == 0) {
-            ErrorLog().printf(
-                  "%s: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                  getDescription_c(),
-                  maskLayerName);
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
+      mMaskLayerData = message->mObjectTable->findObject<BasePublisherComponent>(maskLayerName);
+      FatalIf(
+            mMaskLayerData == nullptr,
+            "%s: maskLayerName \"%s\" does not have a BasePublisherComponent.\n",
+            getDescription_c(),
+            maskLayerName);
 
-      const PVLayerLoc *maskLoc = maskLayer->getLayerLoc();
-      const PVLayerLoc *loc     = targetLayer->getLayerLoc();
-      assert(maskLoc != NULL && loc != NULL);
-      if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
-         if (parent->columnId() == 0) {
-            ErrorLog(maskLayerBadSize);
-            maskLayerBadSize.printf(
-                  "%s: maskLayerName \"%s\" does not have the "
-                  "same x and y dimensions.\n",
-                  getDescription_c(),
-                  maskLayerName);
-            maskLayerBadSize.printf(
-                  "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
-                  maskLoc->nxGlobal,
-                  maskLoc->nyGlobal,
-                  maskLoc->nf,
-                  loc->nxGlobal,
-                  loc->nyGlobal,
-                  loc->nf);
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
+      PVLayerLoc const *maskLoc = mMaskLayerData->getLayerLoc();
+      PVLayerLoc const *loc     = targetLayer->getLayerLoc();
+      pvAssert(maskLoc != nullptr && loc != nullptr);
+      FatalIf(
+            maskLoc->nxGlobal != loc->nxGlobal or maskLoc->nyGlobal != loc->nyGlobal,
+            "%s: maskLayerName \"%s\" does not have the same x and y dimensions.\n"
+            "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+            getDescription_c(),
+            maskLayerName,
+            maskLoc->nxGlobal,
+            maskLoc->nyGlobal,
+            maskLoc->nf,
+            loc->nxGlobal,
+            loc->nyGlobal,
+            loc->nf);
 
-      if (maskLoc->nf != 1 && maskLoc->nf != loc->nf) {
-         if (parent->columnId() == 0) {
-            ErrorLog(maskLayerBadSize);
-            maskLayerBadSize.printf(
-                  "%s: maskLayerName \"%s\" must either have the "
-                  "same number of features as this "
-                  "layer, or one feature.\n",
-                  getDescription_c(),
-                  maskLayerName);
-            maskLayerBadSize.printf(
-                  "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
-                  maskLoc->nxGlobal,
-                  maskLoc->nyGlobal,
-                  maskLoc->nf,
-                  loc->nxGlobal,
-                  loc->nyGlobal,
-                  loc->nf);
-         }
-         MPI_Barrier(parent->getCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-      assert(maskLoc->nx == loc->nx && maskLoc->ny == loc->ny);
+      FatalIf(
+            maskLoc->nf != 1 and maskLoc->nf != loc->nf,
+            "%s: maskLayerName \"%s\" must either have the same number of features as this layer, "
+            "or one feature.\n",
+            "    mask (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+            getDescription_c(),
+            maskLayerName,
+            maskLoc->nxGlobal,
+            maskLoc->nyGlobal,
+            maskLoc->nf,
+            loc->nxGlobal,
+            loc->nyGlobal,
+            loc->nf);
+      pvAssert(maskLoc->nx == loc->nx && maskLoc->ny == loc->ny);
       singleFeatureMask = maskLoc->nf == 1 && loc->nf != 1;
    }
    return Response::SUCCESS;
@@ -144,17 +110,17 @@ void AbstractNormProbe::calcValues(double timeValue) {
          getNumValues(),
          MPI_DOUBLE,
          MPI_SUM,
-         parent->getCommunicator()->communicator());
+         mCommunicator->communicator());
 }
 
-Response::Status AbstractNormProbe::outputState(double timevalue) {
-   getValues(timevalue);
+Response::Status AbstractNormProbe::outputState(double simTime, double deltaTime) {
+   getValues(simTime);
    double *valuesBuffer = this->getValuesBuffer();
    if (!mOutputStreams.empty()) {
       int nBatch = getNumValues();
       int nk     = getTargetLayer()->getNumGlobalNeurons();
       for (int b = 0; b < nBatch; b++) {
-         output(b).printf("%6.3f, %d, %8d, %f", timevalue, b, nk, valuesBuffer[b]);
+         output(b).printf("%6.3f, %d, %8d, %f", simTime, b, nk, valuesBuffer[b]);
          output(b) << std::endl;
       }
    }

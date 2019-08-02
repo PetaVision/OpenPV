@@ -1,0 +1,62 @@
+/*
+ * HyPerLCAInternalStateBuffer.kpp
+ *
+ *  Created on: Dec 11, 2018
+ *      Author: Pete Schultz
+ */
+
+// Creates functions updateHyPerLCAOnGPU and updateHyPerLCAOnCPU,
+// that take the same argument list and use the same core code, except that
+// one is run from the .cu file and the other is run from the .cpp file.
+// The .cu file defines the preprocessor directive PV_RUN_ON_GPU before
+// including this file; the and the .cpp file undefines it.
+
+#include "utils/conversions.hpp"
+#ifdef PV_RUN_ON_GPU
+namespace PVCuda {
+__global__ void updateHyPerLCAOnGPU
+#else
+namespace PV {
+inline void updateHyPerLCAOnCPU
+#endif // PV_RUN_ON_GPU
+      (int const nbatch,
+       int const numNeurons,
+       int const nx,
+       int const ny,
+       int const nf,
+       int const lt,
+       int const rt,
+       int const dn,
+       int const up,
+       bool const selfInteract,
+       double const *dtAdapt,
+       float const tau,
+       float const *accumulatedGSyn,
+       float const *A,
+       float *V) {
+#ifdef PV_RUN_ON_GPU
+   int index = (blockIdx.x * blockDim.x) + threadIdx.x;
+   if (index < numNeurons * nbatch)
+#else
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(static)
+#endif
+   for (int index = 0; index < numNeurons * nbatch; index++)
+#endif // PV_RUN_ON_GPU
+   {
+      int b = index / numNeurons; // batch index
+      int k = index % numNeurons; // neuron index within batch element
+
+      float exp_tau                     = (float)std::exp(-dtAdapt[b] / (double)tau);
+      float *VBatch                     = V + b * numNeurons;
+      float const *accumulatedGSynBatch = accumulatedGSyn + b * numNeurons;
+      float const gSyn                  = accumulatedGSynBatch[k];
+      // Activity is an extended buffer.
+      float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
+
+      int kex   = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (gSyn + selfInteract * ABatch[kex]);
+   }
+}
+
+} // namespace (PV or PVCuda)

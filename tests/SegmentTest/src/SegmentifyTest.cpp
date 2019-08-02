@@ -2,7 +2,23 @@
 
 namespace PV {
 
-SegmentifyTest::SegmentifyTest(const char *name, HyPerCol *hc) { Segmentify::initialize(name, hc); }
+SegmentifyTest::SegmentifyTest(const char *name, PVParams *params, Communicator const *comm) {
+   Segmentify::initialize(name, params, comm);
+}
+
+void SegmentifyTest::fillComponentTable() {
+   Segmentify::fillComponentTable();
+   FatalIf(
+         mActivityComponent == nullptr,
+         "%s failed to create an ActivityComponent.\n",
+         getDescription_c());
+
+   mSegmentifyBuffer = mActivityComponent->getComponentByType<SegmentifyBuffer>();
+   FatalIf(
+         mSegmentifyBuffer == nullptr,
+         "%s failed to create a SegmentifyBuffer.\n",
+         getDescription_c());
+}
 
 /*
  * Segment values are such:
@@ -16,12 +32,12 @@ SegmentifyTest::SegmentifyTest(const char *name, HyPerCol *hc) { Segmentify::ini
  * 7 7 7 8 8 8 9 9
  */
 float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
-   const PVLayerLoc *loc = getLayerLoc();
    // We can convert yi and xi to an index between 0 and 2
-   int newYi        = yi / 3;
-   int newXi        = xi / 3;
-   int segmentLabel = newYi * 3 + newXi + 1;
-   int returnLabel  = -1;
+   int newYi               = yi / 3;
+   int newXi               = xi / 3;
+   int segmentLabel        = newYi * 3 + newXi + 1;
+   int returnLabel         = -1;
+   char const *inputMethod = mSegmentifyBuffer->getInputMethod();
    if (strcmp(inputMethod, "sum") == 0) {
       // Account for edge cases
       if (segmentLabel == 3 || segmentLabel == 6 || segmentLabel == 7 || segmentLabel == 8) {
@@ -45,32 +61,15 @@ float SegmentifyTest::getTargetVal(int yi, int xi, int fi) {
 }
 
 int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, float actualVal) {
-   const PVLayerLoc *loc = getLayerLoc();
    // We can convert yi and xi to an index between 0 and 2
-   int newYi        = yi / 3;
-   int newXi        = xi / 3;
-   int segmentLabel = newYi * 3 + newXi + 1;
+   int newYi                = yi / 3;
+   int newXi                = xi / 3;
+   char const *outputMethod = mSegmentifyBuffer->getOutputMethod();
 
    if (strcmp(outputMethod, "centroid") == 0) {
-      int centX, centY;
-      if (newXi == 0) {
-         centX = 1;
-      }
-      else if (newXi == 1) {
-         centX = 4;
-      }
-      else if (newXi == 2) {
-         centX = 6;
-      }
-      if (newYi == 0) {
-         centY = 1;
-      }
-      else if (newYi == 1) {
-         centY = 4;
-      }
-      else if (newYi == 2) {
-         centY = 6;
-      }
+      int centX = newXi == 0 ? 1 : newXi == 1 ? 4 : newXi == 2 ? 6 : -1;
+      int centY = newYi == 0 ? 1 : newYi == 1 ? 4 : newYi == 2 ? 6 : -1;
+      FatalIf(centX < 0 or centY < 0, "Test failed.\n");
 
       if (xi == centX && yi == centY) {
          FatalIf(!(actualVal == targetVal), "Test failed.\n");
@@ -85,15 +84,25 @@ int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, flo
    return PV_SUCCESS;
 }
 
-Response::Status SegmentifyTest::updateState(double timef, double dt) {
+Response::Status SegmentifyTest::checkUpdateState(double timef, double dt) {
    // Do update state first
-   Segmentify::updateState(timef, dt);
-   const PVLayerLoc *loc = getLayerLoc();
-   float *A              = getActivity();
-   FatalIf(!(A), "Test failed.\n");
+   Segmentify::checkUpdateState(timef, dt);
+   PVLayerLoc const *loc = getLayerLoc();
+
+   ActivityComponent *activityComponent = getComponentByType<ActivityComponent>();
+   FatalIf(
+         activityComponent == nullptr,
+         "%s does not contain an ActivityComponent.\n",
+         getDescription_c());
+   ActivityBuffer *activityBuffer = activityComponent->getComponentByType<ActivityBuffer>();
+   FatalIf(
+         activityBuffer == nullptr, "%s does not contain an ActivityBuffer.\n", getDescription_c());
 
    for (int bi = 0; bi < loc->nbatch; bi++) {
-      float *batchA = A + bi * getNumExtended();
+      float const *batchA = activityBuffer->getBufferData(bi);
+      FatalIf(
+            batchA == nullptr, "%s ActivityBuffer->getBufferData() failed.\n", getDescription_c());
+
       for (int yi = 0; yi < loc->ny; yi++) {
          for (int xi = 0; xi < loc->nx; xi++) {
             for (int fi = 0; fi < loc->nf; fi++) {

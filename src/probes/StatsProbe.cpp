@@ -12,9 +12,9 @@
 
 namespace PV {
 
-StatsProbe::StatsProbe(const char *name, HyPerCol *hc) {
+StatsProbe::StatsProbe(const char *name, PVParams *params, Communicator const *comm) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, params, comm);
 }
 
 StatsProbe::StatsProbe() : LayerProbe() {
@@ -23,7 +23,7 @@ StatsProbe::StatsProbe() : LayerProbe() {
 }
 
 StatsProbe::~StatsProbe() {
-   int rank = parent->columnId();
+   int rank = mCommunicator->commRank();
    if (rank == 0 and !mOutputStreams.empty()) {
       iotimer->fprint_time(output(0));
       mpitimer->fprint_time(output(0));
@@ -58,27 +58,12 @@ int StatsProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-int StatsProbe::initialize(const char *name, HyPerCol *hc) {
-   int status = LayerProbe::initialize(name, hc);
-
-   assert(status == PV_SUCCESS);
-
-   int nbatch = parent->getNBatch();
-
-   fMin  = (float *)malloc(sizeof(float) * nbatch);
-   fMax  = (float *)malloc(sizeof(float) * nbatch);
-   sum   = (double *)malloc(sizeof(double) * nbatch);
-   sum2  = (double *)malloc(sizeof(double) * nbatch);
-   avg   = (float *)malloc(sizeof(float) * nbatch);
-   sigma = (float *)malloc(sizeof(float) * nbatch);
-   nnz   = (int *)malloc(sizeof(int) * nbatch);
-   resetStats();
-
-   return status;
+void StatsProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   LayerProbe::initialize(name, params, comm);
 }
 
 void StatsProbe::resetStats() {
-   for (int b = 0; b < parent->getNBatch(); b++) {
+   for (int b = 0; b < mLocalBatchWidth; b++) {
       fMin[b]  = FLT_MAX;
       fMax[b]  = -FLT_MAX;
       sum[b]   = 0.0f;
@@ -97,7 +82,7 @@ int StatsProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void StatsProbe::requireType(PVBufType requiredType) {
-   PVParams *params = parent->parameters();
+   PVParams *params = parameters();
    if (params->stringPresent(getName(), "buffer")) {
       params->handleUnnecessaryStringParameter(getName(), "buffer");
       StatsProbe::ioParam_buffer(PARAMS_IO_READ);
@@ -109,7 +94,7 @@ void StatsProbe::requireType(PVBufType requiredType) {
             default: assert(0); break;
          }
          if (type != BufV) {
-            if (parent->columnId() == 0) {
+            if (mCommunicator->globalCommRank() == 0) {
                ErrorLog().printf(
                      "   Value \"%s\" is inconsistent with allowed values %s.\n",
                      params->stringValue(getName(), "buffer"),
@@ -131,7 +116,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          case BufActivity: buffer = strdup("Activity");
       }
    }
-   parent->parameters()->ioParamString(
+   parameters()->ioParamString(
          ioFlag, getName(), "buffer", &buffer, "Activity", true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       assert(buffer);
@@ -146,13 +131,13 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          type = BufActivity;
       }
       else {
-         if (parent->columnId() == 0) {
-            const char *bufnameinparams = parent->parameters()->stringValue(getName(), "buffer");
+         if (mCommunicator->commRank() == 0) {
+            const char *bufnameinparams = parameters()->stringValue(getName(), "buffer");
             assert(bufnameinparams);
             ErrorLog().printf(
                   "%s: buffer \"%s\" is not recognized.\n", getDescription_c(), bufnameinparams);
          }
-         MPI_Barrier(parent->getCommunicator()->communicator());
+         MPI_Barrier(mCommunicator->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -161,16 +146,38 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, 0.0f);
+   parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, 0.0f);
 }
 
 void StatsProbe::initNumValues() { setNumValues(-1); }
 
-Response::Status StatsProbe::registerData(Checkpointer *checkpointer) {
-   auto status = LayerProbe::registerData(checkpointer);
+Response::Status StatsProbe::allocateDataStructures() {
+   auto status = LayerProbe::allocateDataStructures();
    if (!Response::completed(status)) {
       return status;
    }
+
+   int const nbatch = mLocalBatchWidth;
+
+   fMin  = (float *)malloc(sizeof(float) * nbatch);
+   fMax  = (float *)malloc(sizeof(float) * nbatch);
+   sum   = (double *)malloc(sizeof(double) * nbatch);
+   sum2  = (double *)malloc(sizeof(double) * nbatch);
+   avg   = (float *)malloc(sizeof(float) * nbatch);
+   sigma = (float *)malloc(sizeof(float) * nbatch);
+   nnz   = (int *)malloc(sizeof(int) * nbatch);
+   resetStats();
+
+   return Response::SUCCESS;
+}
+
+Response::Status
+StatsProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = LayerProbe::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer = message->mDataRegistry;
 
    std::string timermessagehead;
    timermessagehead.append("StatsProbe ").append(getName());
@@ -190,16 +197,16 @@ Response::Status StatsProbe::registerData(Checkpointer *checkpointer) {
    return Response::SUCCESS;
 }
 
-Response::Status StatsProbe::outputState(double timed) {
+Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
 #ifdef PV_USE_MPI
-   Communicator *icComm = parent->getCommunicator();
-   MPI_Comm comm        = icComm->communicator();
-   int rank             = icComm->commRank();
-   const int rcvProc    = 0;
+   Communicator const *icComm = mCommunicator;
+   MPI_Comm comm              = icComm->communicator();
+   int rank                   = icComm->commRank();
+   const int rcvProc          = 0;
 #endif // PV_USE_MPI
 
    int nk;
-   const float *buf;
+   float const *baseBuffer;
    resetStats();
 
    nk = getTargetLayer()->getNumNeurons();
@@ -209,8 +216,9 @@ Response::Status StatsProbe::outputState(double timed) {
    comptimer->start();
    switch (type) {
       case BufV:
+         baseBuffer = retrieveVBuffer();
          for (int b = 0; b < nbatch; b++) {
-            buf = getTargetLayer()->getV() + b * getTargetLayer()->getNumNeurons();
+            float const *buf = baseBuffer + b * getTargetLayer()->getNumNeurons();
             if (buf == NULL) {
 #ifdef PV_USE_MPI
                if (rank != rcvProc) {
@@ -237,9 +245,9 @@ Response::Status StatsProbe::outputState(double timed) {
          }
          break;
       case BufActivity:
+         baseBuffer = retrieveActivityBuffer();
          for (int b = 0; b < nbatch; b++) {
-            buf = getTargetLayer()->getLayerData() + b * getTargetLayer()->getNumExtended();
-            assert(buf != NULL);
+            float const *buf = baseBuffer + b * getTargetLayer()->getNumExtended();
             for (int k = 0; k < nk; k++) {
                const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
                int kex               = kIndexExtended(
@@ -258,7 +266,7 @@ Response::Status StatsProbe::outputState(double timed) {
                sum[b] += (double)a;
                sum2[b] += (double)(a * a);
                if (fabsf(a) > nnzThreshold) {
-                  nnz[b]++; // Optimize for different datatypes of a?
+                  nnz[b]++;
                }
                if (a < fMin[b]) {
                   fMin[b] = a;
@@ -275,15 +283,14 @@ Response::Status StatsProbe::outputState(double timed) {
 
 #ifdef PV_USE_MPI
    mpitimer->start();
-   int ierr;
 
    // In place reduction to prevent allocating a temp recv buffer
-   ierr = MPI_Allreduce(MPI_IN_PLACE, sum, nbatch, MPI_DOUBLE, MPI_SUM, comm);
-   ierr = MPI_Allreduce(MPI_IN_PLACE, sum2, nbatch, MPI_DOUBLE, MPI_SUM, comm);
-   ierr = MPI_Allreduce(MPI_IN_PLACE, nnz, nbatch, MPI_INT, MPI_SUM, comm);
-   ierr = MPI_Allreduce(MPI_IN_PLACE, fMin, nbatch, MPI_FLOAT, MPI_MIN, comm);
-   ierr = MPI_Allreduce(MPI_IN_PLACE, fMax, nbatch, MPI_FLOAT, MPI_MAX, comm);
-   ierr = MPI_Allreduce(MPI_IN_PLACE, &nk, 1, MPI_INT, MPI_SUM, comm);
+   MPI_Allreduce(MPI_IN_PLACE, sum, nbatch, MPI_DOUBLE, MPI_SUM, comm);
+   MPI_Allreduce(MPI_IN_PLACE, sum2, nbatch, MPI_DOUBLE, MPI_SUM, comm);
+   MPI_Allreduce(MPI_IN_PLACE, nnz, nbatch, MPI_INT, MPI_SUM, comm);
+   MPI_Allreduce(MPI_IN_PLACE, fMin, nbatch, MPI_FLOAT, MPI_MIN, comm);
+   MPI_Allreduce(MPI_IN_PLACE, fMax, nbatch, MPI_FLOAT, MPI_MAX, comm);
+   MPI_Allreduce(MPI_IN_PLACE, &nk, 1, MPI_INT, MPI_SUM, comm);
 
    mpitimer->stop();
    if (rank != rcvProc) {
@@ -299,7 +306,8 @@ Response::Status StatsProbe::outputState(double timed) {
       sigma[b]            = sqrtf((float)sum2[b] / divisor - avg[b] * avg[b]);
       float avgval        = 0.0f;
       char const *avgnote = nullptr;
-      if (type == BufActivity && getTargetLayer()->getSparseFlag()) {
+      if (type == BufActivity
+          and getTargetLayer()->getComponentByType<BasePublisherComponent>()->getSparseLayer()) {
          avgval  = 1000.0f * avg[b]; // convert spikes per millisecond to hertz.
          avgnote = " Hz (/dt ms)";
       }
@@ -311,7 +319,7 @@ Response::Status StatsProbe::outputState(double timed) {
             "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f%s "
             "Max==%f sigma==%f nnz==%d",
             getMessage(),
-            (double)timed,
+            (double)simTime,
             (int)b,
             (int)divisor,
             (double)sum[b],
@@ -327,6 +335,27 @@ Response::Status StatsProbe::outputState(double timed) {
    iotimer->stop();
 
    return Response::SUCCESS;
+}
+
+float const *StatsProbe::retrieveVBuffer() {
+   auto *activityComponent = getTargetLayer()->getComponentByType<ActivityComponent>();
+   auto *internalState     = activityComponent->getComponentByType<InternalStateBuffer>();
+   FatalIf(
+         internalState == nullptr,
+         "%s target layer \"%s\" does not have a V buffer.\n",
+         getDescription_c(),
+         getTargetLayer()->getName());
+   return internalState->getBufferData();
+}
+
+float const *StatsProbe::retrieveActivityBuffer() {
+   auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
+   FatalIf(
+         publisherComponent == nullptr,
+         "%s target layer \"%s\" does not have an A buffer.\n",
+         getDescription_c(),
+         getTargetLayer()->getName());
+   return publisherComponent->getLayerData();
 }
 
 int StatsProbe::checkpointTimers(PrintStream &timerstream) {

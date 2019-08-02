@@ -3,7 +3,9 @@
 
 namespace PV {
 
-LogTimeScaleProbe::LogTimeScaleProbe(char const *name, HyPerCol *hc) { initialize(name, hc); }
+LogTimeScaleProbe::LogTimeScaleProbe(char const *name, PVParams *params, Communicator const *comm) {
+   initialize(name, params, comm);
+}
 
 int LogTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = AdaptiveTimeScaleProbe::ioParamsFillGroup(ioFlag);
@@ -13,11 +15,11 @@ int LogTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LogTimeScaleProbe::ioParam_logThresh(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "logThresh", &mLogThresh, mLogThresh);
+   parameters()->ioParamValue(ioFlag, name, "logThresh", &mLogThresh, mLogThresh);
 }
 
 void LogTimeScaleProbe::ioParam_logSlope(enum ParamsIOFlag ioFlag) {
-   parent->parameters()->ioParamValue(ioFlag, name, "logSlope", &mLogSlope, mLogSlope);
+   parameters()->ioParamValue(ioFlag, name, "logSlope", &mLogSlope, mLogSlope);
 }
 
 void LogTimeScaleProbe::allocateTimeScaleController() {
@@ -29,7 +31,7 @@ void LogTimeScaleProbe::allocateTimeScaleController() {
          tauFactor,
          mGrowthFactor,
          mWriteTimeScaleFieldnames,
-         parent->getCommunicator(),
+         mCommunicator,
          mLogThresh,
          mLogSlope);
 }
