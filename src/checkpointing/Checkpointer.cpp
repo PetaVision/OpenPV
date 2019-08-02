@@ -778,8 +778,11 @@ void Checkpointer::checkpointWriteSignal(int checkpointSignal) {
    std::string checkpointDirectory = makeCheckpointDirectoryFromCurrentStep();
    checkpointToDirectory(checkpointDirectory);
    if (checkpointSignal == SIGUSR2 || checkpointSignal == SIGINT || checkpointSignal == SIGTERM) {
+      if (mMPIBlock->getGlobalRank() == 0) {
+         InfoLog() << "Exiting.\n";
+      }
       MPI_Finalize();
-      exit(checkpointSignal);
+      exit(EXIT_SUCCESS);
    }
 }
 
