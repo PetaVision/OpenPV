@@ -654,9 +654,6 @@ void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepP
 void Checkpointer::checkpointWrite(double simTime) {
    mTimeInfo.mSimTime = simTime;
    // set mSimTime here so that it is available in routines called by checkpointWrite.
-   if (!mCheckpointWriteFlag) {
-      return;
-   }
    bool isScheduled = scheduledCheckpoint(); // Is a checkpoint scheduled to occur here?
    // If there is both a signal and scheduled checkpoint, we call checkpointWriteSignal
    // but not checkpointNow, because signal-generated checkpoints shouldn't be deleted.
@@ -708,15 +705,17 @@ int Checkpointer::retrieveSignal() {
 
 bool Checkpointer::scheduledCheckpoint() {
    bool isScheduled = false;
-   switch (mCheckpointWriteTriggerMode) {
-      case NONE:
-         // Only NONE if checkpointWrite is off, in which case this method should not get called
-         pvAssert(0);
-         break;
-      case STEP: isScheduled      = scheduledStep(); break;
-      case SIMTIME: isScheduled   = scheduledSimTime(); break;
-      case WALLCLOCK: isScheduled = scheduledWallclock(); break;
-      default: pvAssert(0); break;
+   if (mCheckpointWriteFlag) {
+      switch (mCheckpointWriteTriggerMode) {
+         case NONE:
+            // Only NONE if checkpointWrite is off, in which case this method should not get called
+            pvAssert(0);
+            break;
+         case STEP: isScheduled      = scheduledStep(); break;
+         case SIMTIME: isScheduled   = scheduledSimTime(); break;
+         case WALLCLOCK: isScheduled = scheduledWallclock(); break;
+         default: pvAssert(0); break;
+      }
    }
    return isScheduled;
 }
@@ -787,13 +786,19 @@ void Checkpointer::checkpointWriteSignal(int checkpointSignal) {
 }
 
 std::string Checkpointer::makeCheckpointDirectoryFromCurrentStep() {
-   std::stringstream checkpointDirStream;
-   checkpointDirStream << mCheckpointWriteDir << "/Checkpoint";
-   int fieldWidth = mCheckpointIndexWidth < 0 ? mWidthOfFinalStepNumber : mCheckpointIndexWidth;
-   checkpointDirStream.fill('0');
-   checkpointDirStream.width(fieldWidth);
-   checkpointDirStream << mTimeInfo.mCurrentCheckpointStep;
-   std::string checkpointDirectory = checkpointDirStream.str();
+   std::string checkpointDirectory;
+   if (mCheckpointWriteFlag) {
+      std::stringstream checkpointDirStream;
+      checkpointDirStream << mCheckpointWriteDir << "/Checkpoint";
+      int fieldWidth = mCheckpointIndexWidth < 0 ? mWidthOfFinalStepNumber : mCheckpointIndexWidth;
+      checkpointDirStream.fill('0');
+      checkpointDirStream.width(fieldWidth);
+      checkpointDirStream << mTimeInfo.mCurrentCheckpointStep;
+      checkpointDirectory = checkpointDirStream.str();
+   }
+   else {
+      checkpointDirectory = mLastCheckpointDir;
+   }
    return checkpointDirectory;
 }
 
