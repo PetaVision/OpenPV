@@ -62,21 +62,23 @@ PV_Init::~PV_Init() {
 }
 
 int PV_Init::initSignalHandler() {
-   // Block SIGINT, SIGTERM and SIGUSR1.  root process checks for these signals
-   // during Checkpointer::checkpointWrite() (typically called during HyPerCol::advanceTime())
-   // and broadcasts any caught signal to all processes.
+   // Block SIGUSR1, SIGUSR2, SIGINT, and SIGTERM.  root process checks for
+   // these signals during Checkpointer::checkpointWrite() (typically called
+   // during HyPerCol::advanceTime()) and broadcasts any caught signal to
+   // all processes.
    // CheckpointWrite() responds to the signals as follows:
-   // SIGINT or SIGTERM: write a checkpoint and quit.
    // SIGUSR1: write a checkpoint and continue.
+   // SIGUSR2, SIGINT or SIGTERM: write a checkpoint and quit.
    //
    // This routine must be called before MPI_Initialize; otherwise a thread
    // created by MPI will not get the signal handler
    // but will get the signal and the job will terminate.
    sigset_t blockusr1;
    sigemptyset(&blockusr1);
+   sigaddset(&blockusr1, SIGUSR1);
+   sigaddset(&blockusr1, SIGUSR2);
    sigaddset(&blockusr1, SIGINT);
    sigaddset(&blockusr1, SIGTERM);
-   sigaddset(&blockusr1, SIGUSR1);
    sigprocmask(SIG_BLOCK, &blockusr1, NULL);
    return 0;
 }
