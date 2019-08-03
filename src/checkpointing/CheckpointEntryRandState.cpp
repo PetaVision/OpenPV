@@ -26,7 +26,7 @@ void CheckpointEntryRandState::read(std::string const &checkpointDirectory, doub
 }
 
 void CheckpointEntryRandState::remove(std::string const &checkpointDirectory) const {
-   deleteFile(checkpointDirectory, "bin");
+   deleteFile(checkpointDirectory, "pvp");
 }
 
 } // namespace PV
