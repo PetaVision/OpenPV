@@ -21,6 +21,7 @@
 #include "layers/FilenameParsingGroundTruthLayer.hpp"
 #include "layers/FirmThresholdCostLayer.hpp"
 #include "layers/GapLayer.hpp"
+#include "layers/GaussianNoiseLayer.hpp"
 #include "layers/HyPerLCALayer.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "layers/ISTALayer.hpp"
@@ -141,6 +142,7 @@ void registerCoreKeywords() {
          "FilenameParsingGroundTruthLayer", Factory::create<FilenameParsingGroundTruthLayer>);
    factory->registerKeyword("FirmThresholdCostLayer", Factory::create<FirmThresholdCostLayer>);
    factory->registerKeyword("GapLayer", Factory::create<GapLayer>);
+   factory->registerKeyword("GaussianNoiseLayer", Factory::create<GaussianNoiseLayer>);
    factory->registerKeyword("HyPerLayer", Factory::create<HyPerLayer>);
    factory->registerKeyword("HyPerLCALayer", Factory::create<HyPerLCALayer>);
    factory->registerKeyword("ISTALayer", Factory::create<ISTALayer>);
