@@ -112,13 +112,22 @@ void CheckpointEntryPvp<T>::read(std::string const &checkpointDirectory, double 
       path = generatePath(checkpointDirectory, "pvp");
       FileStream fileStream(path.c_str(), std::ios_base::in, false);
       struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(fileStream);
-      FatalIf(
-            header.nBands != numFrames,
-            "CheckpointEntryDataStore::read error reading \"%s\": delays*batchwidth in file is %d, "
-            "but delays*batchwidth in layer is %d\n",
-            path.c_str(),
-            header.nBands,
-            numFrames);
+      if (numFrames < header.nBands) {
+         WarnLog().printf(
+               "CheckpointEntryPvp reading \"%s\" expects %d bands, but the file has %d bands. "
+               "Extra bands will be ignored.\n",
+               path.c_str(),
+               numFrames,
+               header.nBands);
+      }
+      else if (numFrames > header.nBands) {
+         WarnLog().printf(
+               "CheckpointEntryPvp reading \"%s\" expects %d bands, but the file only has "
+               "%d bands. Bands will be repeated cyclically.\n",
+               path.c_str(),
+               numFrames,
+               header.nBands);
+      }
    }
    Buffer<T> pvpBuffer;
    std::vector<double> frameTimestamps;
