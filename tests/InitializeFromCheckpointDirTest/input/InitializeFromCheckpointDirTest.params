@@ -17,92 +17,90 @@
 debugParsing = false;    // Debug the reading of this parameter file.
 
 HyPerCol "column" = {
-   nx = 8;
-   ny = 8;
-   nbatch = 4;
-   dt = 1.0;
-   randomSeed = 1234567890;
-   stopTime = 10.0;  
-   errorOnNotANumber = true;
-   progressInterval = 10.0;
-   writeProgressToErr = false;
-   verifyWrites = false;
-   outputPath = "output-InitializeFromCheckpointDir/";
-   printParamsFilename = "pv.params";
-   initializeFromCheckpointDir = "output-BaseRun/checkpoints/Checkpoint10";
-   checkpointWrite = true;
-   checkpointWriteDir = "output-InitializeFromCheckpointDir/checkpoints";
-   checkpointIndexWidth = -1;
-   suppressNonplasticCheckpoints = true;
-   deleteOlderCheckpoints = false;
-   checkpointWriteTriggerMode = "step";
-   checkpointWriteStepInterval = 1;
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 4;
+    errorOnNotANumber                   = true;
+    outputPath                          = "output-InitializeFromCheckpointDir/";
+    verifyWrites                        = false;
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "output-InitializeFromCheckpointDir/checkpoints";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 1;
+    checkpointIndexWidth                = -1;
+    suppressNonplasticCheckpoints       = true;
+    deleteOlderCheckpoints              = false;
+    initializeFromCheckpointDir         = "output-BaseRun/checkpoints/Checkpoint10";
 };
 
-//
-// layers
-//
-
 PvpLayer "Input" = {
-    nxScale = 1;
-    nyScale = 1;
-    	      	
-    inputPath = "input/input.pvp";
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    sparseLayer = false;
-    mirrorBCflag = false;
-    valueBC = 0.0;
-    useInputBCflag = false;
-    updateGpu = false;
-    initializeFromCheckpointFlag = false;
-    inverseFlag = false; 
-    normalizeLuminanceFlag = false;
-    autoResizeFlag = false;
-    offsetAnchor = "tl";
-    offsetX = 0;
-    offsetY = 0;
-    padValue = false;
-    displayPeriod = 100;
-    batchMethod = "bySpecified";
-    start_frame_index = [0, 1, 2, 3];
-    skip_frame_index = [1, 1, 1, 1];
-    writeFrameToTimestamp = true;
-    resetToStartOnLoop = false;
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 100;
+    inputPath                           = "input/input.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    maxShiftX                           = 0;
+    maxShiftY                           = 0;
+    xFlipEnabled                        = false;
+    yFlipEnabled                        = false;
+    xFlipToggle                         = false;
+    yFlipToggle                         = false;
+    jitterChangeInterval                = 1;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "bySpecified";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0, 1, 2, 3];
+    skip_frame_index                    = [1, 1, 1, 1];
+    resetToStartOnLoop                  = false;
+    writeFrameToTimestamp               = true;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
 };
 
 LeakyIntegrator "Output" = {
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 1;
-    triggerLayerName = NULL;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = 1;
-    sparseLayer = false;
-    updateGpu = false;
-    initializeFromCheckpointFlag = true;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;   
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
-
-    integrationTime = infinity;
+    initializeFromCheckpointFlag        = true;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    triggerLayerName                    = NULL;
+    VThresh                             = -infinity;
+    AMin                                = -infinity;
+    AMax                                = infinity;
+    AShift                              = 0;
+    VWidth                              = 0;
+    InitVType                           = "ZeroV";
+    integrationTime                     = infinity;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
 };
 
-//HyPerConns are connections between two layers
-
 IdentConn "InputToOutput" = {
-    preLayerName = "Input";
-    postLayerName = "Output";
-    channelCode = 0;
-
-    delay = 0;
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Input";
+    postLayerName                       = "Output";
+    channelCode                         = 0;
+    delay                               = 0;
 };

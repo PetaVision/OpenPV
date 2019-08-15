@@ -63,12 +63,19 @@ void ImageActivityBuffer::populateFileList() {
       FatalIf(
             infile.fail(), "Unable to open \"%s\": %s\n", getInputPath().c_str(), strerror(errno));
       while (getline(infile, line, '\n')) {
-         std::string noWhiteSpace = line;
-         noWhiteSpace.erase(
-               std::remove_if(noWhiteSpace.begin(), noWhiteSpace.end(), ::isspace),
-               noWhiteSpace.end());
-         if (!noWhiteSpace.empty()) {
-            mFileList.push_back(noWhiteSpace);
+         auto firstNonWhitespace = (std::string::size_type)0;
+         while (firstNonWhitespace < line.size() and isspace(line[firstNonWhitespace])) {
+            firstNonWhitespace++;
+         }
+         auto firstTrailingWhitespace = line.size();
+         while (firstTrailingWhitespace > firstNonWhitespace
+                and isspace(line[firstTrailingWhitespace - 1])) {
+            firstTrailingWhitespace--;
+         }
+         if (firstTrailingWhitespace > firstNonWhitespace) {
+            auto trimmedLength      = firstTrailingWhitespace - firstNonWhitespace;
+            std::string trimmedLine = line.substr(firstNonWhitespace, trimmedLength);
+            mFileList.push_back(trimmedLine);
          }
       }
       FatalIf(

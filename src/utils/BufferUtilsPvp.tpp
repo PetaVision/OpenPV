@@ -207,12 +207,20 @@ double readActivityFromPvp(
       int frameReadIndex,
       BufferUtils::SparseFileTable *sparseFileTable) {
    double timestamp;
-   int fileType;
+   struct BufferUtils::ActivityHeader header;
    {
       FileStream headerStream(fName, std::ios_base::in | std::ios_base::binary, false);
-      struct BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(headerStream);
-      fileType                                  = header.fileType;
+      header = BufferUtils::readActivityHeader(headerStream);
    }
+   int fileType    = header.fileType;
+   int nbands      = header.nBands;
+   int frameToRead = frameReadIndex;
+   if (frameReadIndex >= nbands or frameReadIndex < 0) {
+      frameToRead = frameReadIndex % nbands + (frameReadIndex < 0) * nbands;
+      WarnLog().printf(
+            "Reading frame %d of \"%s\" for index %d\n", frameToRead, fName, frameReadIndex);
+   }
+   pvAssert(frameToRead < nbands and frameReadIndex >= 0);
    switch (fileType) {
       case PVP_NONSPIKING_ACT_FILE_TYPE:
          timestamp = BufferUtils::readDenseFromPvp<T>(fName, buffer, frameReadIndex);
