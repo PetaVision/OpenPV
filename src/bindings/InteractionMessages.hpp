@@ -85,13 +85,15 @@ class LayerGetShapeMessage : public InteractionMessage {
 class ProbeGetValuesMessage : public InteractionMessage {
   public:
    ProbeGetValuesMessage(std::string *err, const char *probeName,
-         std::vector<double> *values):InteractionMessage(err) {
+         std::vector<double> *values, double simTime):InteractionMessage(err) {
       setMessageType("ProbeGetValues");
-      mName = probeName;
-      mValues = values;
+      mName    = probeName;
+      mValues  = values;
+      mSimTime = simTime;
    }
    const char *mName;
    std::vector<double> *mValues;
+   double mSimTime;
 };
 
 class ConnectionGetPatchGeometryMessage : public InteractionMessage {

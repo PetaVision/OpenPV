@@ -189,7 +189,7 @@ Interactions::Result Interactions::getLayerShape(const char *layerName, PVLayerL
 }
 
 Interactions::Result Interactions::getProbeValues(const char *probeName, std::vector<double> *data) {
-   auto message = std::make_shared<ProbeGetValuesMessage>(&mErrMsg, probeName, data);
+   auto message = std::make_shared<ProbeGetValuesMessage>(&mErrMsg, probeName, data, mHC->simulationTime());
    auto status  = interact(message);
    return checkError(message, status, "getProbeValues", std::string(probeName));
 }
