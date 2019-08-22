@@ -15,6 +15,7 @@ set(TESTS_SHARED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Shared")
 set(PV_SYSTEM_TEST_THREADS "" CACHE STRING "Defines the number of threads to use for system tests (empty string for max)")
 set(PV_SYSTEM_TEST_COMMAND "" CACHE STRING "Defines the program that should invoke the test (if empty, ctest calls the test directly)")
 set(PV_SYSTEM_TEST_SHUFFLE "" CACHE STRING "Defines whether to shuffle the order of param groups before running (empty string or \"0\" for no shuffling)")
+set(PV_SYSTEM_TEST_MPIBLOCK ON CACHE BOOL "Defines whether to run system tests that use MPIBlocks with large numbers of processes")
 
 # Make sure that PV_SYSTEM_TEST_THREADS is a either a positive integer or the empty string
 if("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([1-9][0-9]*|)$")

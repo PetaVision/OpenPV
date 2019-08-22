@@ -68,9 +68,8 @@ Timer::Timer(const char *timermessage, double init_time) {
 Timer::Timer(const char *objname, const char *objtype, const char *timertype, double init_time) {
    rank = 0;
    reset(init_time);
-   char dummy;
    int charsneeded =
-         snprintf(&dummy, 1, "%32s: total time in %6s %10s: ", objname, objtype, timertype) + 1;
+         snprintf(nullptr, 0, "%32s: total time in %6s %10s: ", objname, objtype, timertype) + 1;
    message = (char *)malloc(charsneeded);
    FatalIf(
          message == nullptr,

@@ -386,6 +386,12 @@ void LayerUpdateController::applyTrigger(double simTime, double deltaTime) {
          }
       }
    }
+#ifdef PV_USE_CUDA
+   if (componentV->isUsingGPU()) {
+      componentV->copyToCuda();
+      // Need to do a copyToCuda here.
+   }
+#endif // PV_USE_CUDA
 }
 
 } // namespace PV

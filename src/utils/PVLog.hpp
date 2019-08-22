@@ -401,8 +401,7 @@ struct Log {
          va_list args1, args2;
          va_start(args1, fmt);
          va_copy(args2, args1);
-         char c;
-         int chars_needed = vsnprintf(&c, 1, fmt, args1);
+         int chars_needed = vsnprintf(nullptr, 0, fmt, args1);
          chars_needed++;
          char output_string[chars_needed];
          chars_printed = vsnprintf(output_string, chars_needed, fmt, args2);
