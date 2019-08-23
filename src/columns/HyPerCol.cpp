@@ -323,8 +323,7 @@ void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
-   // Make sure numCommBatches is a divisor of nBatch specified in the params
-   // file
+   // Make sure numCommBatches is a divisor of nBatch specified in the params // file
    FatalIf(
          mNumBatchGlobal % mCommunicator->numCommBatches() != 0,
          "The total number of batches (%d) must be a multiple of the batch "
@@ -1058,8 +1057,7 @@ int HyPerCol::getAutoGPUDevice() {
 
       // rankToHost now is an array such that the index is the rank, and the value
       // is the host
-      // Convert to a map of vectors, such that the key is the host name and the
-      // value
+      // Convert to a map of vectors, such that the key is the host name and the value
       // is a vector of mpi ranks that is running on that host
       std::map<std::string, std::vector<int>> hostMap;
       for (int rank = 0; rank < numMpi; rank++) {
@@ -1183,8 +1181,7 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
       }
       // Check length of deviceVec
       // Allowed cases are 1 device specified or greater than or equal to number
-      // of mpi processes
-      // devices specified
+      // of mpi processes devices specified
       if (deviceVec.size() == 1) {
          device = deviceVec[0];
       }
