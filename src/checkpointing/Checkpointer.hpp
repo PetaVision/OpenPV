@@ -293,6 +293,7 @@ class Checkpointer : public Subject {
     * old checkpoint directories, and adds the new checkpoint directory to the list.
     */
    void rotateOldCheckpoints(std::string const &newCheckpointDirectory);
+   void deleteFileFromDir(std::string const &targetDir, std::string const &targetFile) const;
    void writeTimers(std::string const &directory);
    std::string generateBlockPath(std::string const &baseDirectory);
    void verifyDirectory(char const *directory, std::string const &description);
