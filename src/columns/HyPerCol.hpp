@@ -186,6 +186,10 @@ class HyPerCol : public Subject, public ParamsInterface {
    PVCuda::CudaDevice *getDevice() { return mCudaDevice; }
 #endif
 
+  protected:
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+
    // Private functions
 
   private:
@@ -244,6 +248,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    double mProgressInterval; // Output progress after mSimTime increases by this amount.
    double mNextProgressTime; // Next time to output a progress message
    int mNumPhases;
+   std::vector<int> mIdleCounts; // How many times each phase had to wait for data to arrive
    int mNumXGlobal;
    int mNumYGlobal;
    int mNumBatchGlobal;

@@ -370,6 +370,7 @@ void HyPerCol::allocateColumn() {
 
    notifyLoop(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
    mNumPhases++;
+   mIdleCounts.resize(mNumPhases);
 
    mPhaseRecvTimers.clear();
    for (int phase = 0; phase < mNumPhases; phase++) {
@@ -380,7 +381,9 @@ void HyPerCol::allocateColumn() {
       mCheckpointer->registerTimer(phaseRecvTimer);
    }
 
-   notifyLoop(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
+   auto registerDataMessage = std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer);
+   respond(registerDataMessage);
+   notifyLoop(registerDataMessage);
 
 #ifdef DEBUG_OUTPUT
    InfoLog().printf("[%d]: HyPerCol: running...\n", mCommunicator->globalCommRank());
@@ -426,6 +429,23 @@ void HyPerCol::allocateColumn() {
       }
    }
    mReadyFlag = true;
+}
+
+Response::Status
+HyPerCol::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = ParamsInterface::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer = message->mDataRegistry;
+   checkpointer->registerCheckpointData<int>(
+         std::string(name),
+         std::string("IdleCounts"),
+         mIdleCounts.data(),
+         mIdleCounts.size(),
+         true /*broadcast*/,
+         false /*constantEntireRun*/);
+   return Response::SUCCESS;
 }
 
 // typically called by buildandrun via HyPerCol::run()
@@ -777,17 +797,8 @@ void HyPerCol::nonblockingLayerUpdate(
       notifyLoop(updateMessage);
 
       if (!*(updateMessage->mSomeLayerHasActed)) {
-         idleCounter++;
+         mIdleCounts.at(updateMessage->mPhase)++;
       }
-   }
-
-   if (idleCounter > 1L) {
-      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
-#ifdef PV_USE_CUDA
-                << ", recvGpu" << updateMessage->mRecvOnGpuFlag << ", updateGpu"
-                << updateMessage->mUpdateOnGpuFlag
-#endif // PV_USE_CUDA
-                << ", idle count " << idleCounter << "\n";
    }
 }
 
