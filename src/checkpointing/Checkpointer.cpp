@@ -658,10 +658,7 @@ void Checkpointer::checkpointWrite(double simTime) {
    // If there is both a signal and scheduled checkpoint, we call checkpointWriteSignal
    // but not checkpointNow, because signal-generated checkpoints shouldn't be deleted.
    int receivedSignal = retrieveSignal();
-   assert(
-         receivedSignal == 0 || receivedSignal == SIGUSR1 || receivedSignal == SIGUSR2
-         || receivedSignal == SIGINT
-         || receivedSignal == SIGTERM);
+   assert(receivedSignal == 0 || receivedSignal == SIGUSR1 || receivedSignal == SIGUSR2);
    if (receivedSignal) {
       checkpointWriteSignal(receivedSignal);
    }
@@ -681,11 +678,7 @@ int Checkpointer::retrieveSignal() {
       FatalIf(sigstatus, "Signal handling routine sigpending() failed. %s\n", strerror(errno));
       // If somehow both SIGUSR1 and one of the other signals are pending, the checkpoint-and-exit
       // signal should take priority.
-      checkpointSignal = sigismember(&sigpendingset, SIGINT)
-                               ? SIGINT
-                               : sigismember(&sigpendingset, SIGTERM)
-                                       ? SIGTERM
-                                       : sigismember(&sigpendingset, SIGUSR2)
+      checkpointSignal = sigismember(&sigpendingset, SIGUSR2)
                                                ? SIGUSR2
                                                : sigismember(&sigpendingset, SIGUSR1) ? SIGUSR1 : 0;
 
@@ -762,8 +755,6 @@ void Checkpointer::checkpointWriteSignal(int checkpointSignal) {
    switch (checkpointSignal) {
       case SIGUSR1: signalName = "SIGUSR1 (checkpoint and continue)"; break;
       case SIGUSR2: signalName = "SIGUSR2 (checkpoint and exit)"; break;
-      case SIGINT: signalName  = "interrupt"; break;
-      case SIGTERM: signalName = "terminate"; break;
       default:
          pvAssert(0);
          // checkpointWriteSignal should not be called unless the signal is one of the above
@@ -776,7 +767,7 @@ void Checkpointer::checkpointWriteSignal(int checkpointSignal) {
          mTimeInfo.mSimTime);
    std::string checkpointDirectory = makeCheckpointDirectoryFromCurrentStep();
    checkpointToDirectory(checkpointDirectory);
-   if (checkpointSignal == SIGUSR2 || checkpointSignal == SIGINT || checkpointSignal == SIGTERM) {
+   if (checkpointSignal == SIGUSR2) {
       if (mMPIBlock->getGlobalRank() == 0) {
          InfoLog() << "Exiting.\n";
       }

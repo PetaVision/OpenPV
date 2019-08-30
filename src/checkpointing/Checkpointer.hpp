@@ -229,7 +229,7 @@ class Checkpointer : public Subject {
    /**
      * If a meaningful signal has been received by the global root process, clears the signal
      * and returns its value. Otherwise returns 0.
-     * Currently, the meaningful signals are SIGINT, SIGTERM and SIGUSR1.
+     * Currently, the meaningful signals are SIGUSR1 and SIGUSR2
      */
    int retrieveSignal();
 
@@ -267,8 +267,8 @@ class Checkpointer : public Subject {
     * It writes a checkpoint, indexed by the current timestep. If the deleteOlderCheckpoints param
     * was set, it does not cause a checkpoint to be deleted, and does not rotate the checkpoint
     * into the list of directories that will be deleted.
-    * If the signal was SIGINT (Interrupt) or SIGTERM (Terminate), the program exits,
-    * returning the integer code corresponding to the signal.
+    * If the signal was SIGUSR2, the program exits, returning the integer code corresponding
+    * to the signal.
     */
    void checkpointWriteSignal(int checkpointSignal);
 
