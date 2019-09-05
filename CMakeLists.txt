@@ -66,8 +66,10 @@ if (${PV_BUILD_PYTHON})
    
    pybind11_add_module(PythonBindings python/PythonBindings.cpp)
    
+   find_package(MPI)
    include_directories(${PV_INCLUDE_DIR})
    include_directories(${PV_CONFIG_FILE_DIR})
+   include_directories(${MPI_INCLUDE_PATH})
    
    if (PV_USE_CUDA AND CUDNN_FOUND)
      include_directories(${CUDA_TOOLKIT_INCLUDE})
