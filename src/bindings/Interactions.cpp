@@ -89,11 +89,16 @@ Interactions::Interactions(std::map<std::string, std::string> args, std::string 
    MPI_Comm_size(MPI_COMM_WORLD, &mMPICommSize);
 
    mPVI = nullptr;
+   mHC  = nullptr;
 }
 
 Interactions::~Interactions() {
-   delete(mHC);
-   delete(mPVI);
+   if (mPVI != nullptr) {
+      delete(mPVI);
+   }
+   if (mHC != nullptr) {
+      delete(mHC);
+   }
    for (int i = 0; i < mArgC; i++) {
       free(mArgV[i]);
    }
@@ -143,10 +148,9 @@ Interactions::Result Interactions::begin() {
 }
 
 Interactions::Result Interactions::step(double *simTime) {
-   double s = 0.0;
-   s = mHC->singleStep(); 
+   mSimTime = mHC->singleStep(); 
    if (simTime != nullptr) {
-      *simTime = s;
+      *simTime = mSimTime;
    }
    return SUCCESS;
 }
@@ -155,6 +159,15 @@ Interactions::Result Interactions::finish() {
    MPI_Barrier(MPI_COMM_WORLD);
    mHC->finishRun();
    return SUCCESS;
+}
+
+Interactions::Result Interactions::checkpoint() {
+   mHC->checkpointNow();
+   return lastCheckpointTime() == mSimTime ? Interactions::SUCCESS : Interactions::FAILURE;
+}
+
+double Interactions::lastCheckpointTime() {
+   return mHC->getLastCheckpointTime();
 }
 
 Interactions::Result Interactions::getLayerSparseActivity(const char *layerName,

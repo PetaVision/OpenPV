@@ -135,5 +135,13 @@ void PythonBindings::waitForCommands() {
    mCmd->waitForCommands();
 }
 
+double PythonBindings::getLastCheckpointTime() {
+   return mCmd->getLastCheckpointTime();
+}
+
+void PythonBindings::checkpoint() {
+   mCmd->checkpoint();
+}
+
 
 } /* namespace PV */

@@ -613,10 +613,8 @@ int HyPerCol::processParams(char const *path) {
 }
 
 double HyPerCol::singleStep() {
-   if (mSimTime < mStopTime - mDeltaTime / 2.0) {
-      mCheckpointer->checkpointWrite(mSimTime);
-      advanceTime(mSimTime);
-   }
+   mCheckpointer->checkpointWrite(mSimTime);
+   advanceTime(mSimTime);
    return mSimTime;
 }
 
@@ -624,7 +622,8 @@ void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) 
    // time loop
    //
    long int step = 0;
-   while (mSimTime < mStopTime - mDeltaTime / 2.0) {
+   // StopTime negative means run until interrupted externally
+   while (mStopTime < 0.0 || mSimTime < mStopTime - mDeltaTime / 2.0) {
       singleStep();
 
       step += 1;

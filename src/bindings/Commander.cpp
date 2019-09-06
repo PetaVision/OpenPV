@@ -102,6 +102,10 @@ bool Commander::isFinished() {
    return mInteractions->isFinished();
 }
 
+double Commander::getLastCheckpointTime() {
+   return mInteractions->lastCheckpointTime();
+}
+
 void Commander::waitForCommands() {
    bool finished = false;
    if (getRank() == 0) {
@@ -143,10 +147,27 @@ void Commander::waitForCommands() {
          case CMD_SET_WEIGHTS:
             remoteSetConnectionWeights();
             break;
+         case CMD_CHECKPOINT:
+            if (mInteractions->checkpoint() == Interactions::FAILURE) {
+               throwError("checkpoint: " + mInteractions->getError());
+            }
+            break;
          default:
             throwError("waitForCommands: unknown command received");
             break;
       }
+   }
+}
+
+void Commander::checkpoint() {
+   if (getRank() != 0) {
+      throwError("checkpoint can only be called from the root process. "
+            "Did you forget to call waitForCommands?");
+   }
+   const Command cmd = CMD_CHECKPOINT;
+   rootSend(&cmd, 1, MPI_INT);
+   if (mInteractions->checkpoint() == Interactions::FAILURE) {
+      throwError("checkpoint: " + mInteractions->getError());
    }
 }
 

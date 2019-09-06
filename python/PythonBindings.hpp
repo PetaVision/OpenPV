@@ -42,6 +42,8 @@ class PythonBindings {
    py::array_t<double> getProbeValues(const char *probeName);
    bool                isRoot();
    void                waitForCommands();
+   double              getLastCheckpointTime();
+   void                checkpoint();
 };
 
 void err(std::string e) {
@@ -72,6 +74,8 @@ PYBIND11_MODULE( PYTHON_MODULE_NAME, m ) {
       .def("get_probe_values",          &PV::PythonBindings::getProbeValues)
       .def("is_root",                   &PV::PythonBindings::isRoot)
       .def("wait_for_commands",         &PV::PythonBindings::waitForCommands)
+      .def("last_checkpoint_time",      &PV::PythonBindings::getLastCheckpointTime());
+      .def("checkpoint",                &PV::PythonBindings::checkpoint());
       ;
 }
 

@@ -154,6 +154,8 @@ class HyPerCol : public Subject, public ParamsInterface {
    void startRun() { startRun(mStopTime, mDeltaTime); }
    void startRun(double stopTime, double dt);
    void finishRun();
+   void checkpointNow() { mCheckpointer->checkpointNow(); }
+   double getLastCheckpointTime() const { return mCheckpointer->getLastCheckpointTime(); }
 
 
    // Getters and setters

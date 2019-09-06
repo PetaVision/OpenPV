@@ -116,7 +116,7 @@ int buildandrun1paramset(
       }
    }
 
-   if (status == PV_SUCCESS && hc->getFinalStep() > 0L) {
+   if (status == PV_SUCCESS) {
       status = hc->run();
       if (status != PV_SUCCESS) {
          ErrorLog().printf("HyPerCol::run() returned with error code %d\n", status);

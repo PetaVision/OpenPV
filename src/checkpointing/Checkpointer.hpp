@@ -162,6 +162,16 @@ class Checkpointer : public Subject {
     */
    std::string makeOutputPathFilename(std::string const &path);
 
+   /**
+    * Called by checkpointWrite() (if there was not a SIGUSR1 signal pending) and finalCheckpoint().
+    * Writes a checkpoint, indexed by the current timestep. If the deleteOlderCheckpoints param
+    * was set, and the number of checkpoints exceeds numCheckpointsKept, the oldest checkpoint is
+    * deleted, and the just-written checkpoint is rotated onto the list of checkpoints that will
+    * be deleted.
+    */
+   void checkpointNow();
+
+
    void ioParams(enum ParamsIOFlag ioFlag, PVParams *params);
    void provideFinalStep(long int finalStep);
 
@@ -207,6 +217,7 @@ class Checkpointer : public Subject {
    char const *getLastCheckpointDir() const { return mLastCheckpointDir; }
    char const *getInitializeFromCheckpointDir() const { return mInitializeFromCheckpointDir; }
    std::string const &getBlockDirectoryName() const { return mBlockDirectoryName; }
+   double getLastCheckpointTime() const { return mLastCheckpointTime; }
 
   private:
    void initMPIBlock(MPIBlock const *globalMPIBlock, Arguments const *arguments);
@@ -273,15 +284,6 @@ class Checkpointer : public Subject {
    void checkpointWriteSignal(int checkpointSignal);
 
    /**
-    * Called by checkpointWrite() (if there was not a SIGUSR1 signal pending) and finalCheckpoint().
-    * Writes a checkpoint, indexed by the current timestep. If the deleteOlderCheckpoints param
-    * was set, and the number of checkpoints exceeds numCheckpointsKept, the oldest checkpoint is
-    * deleted, and the just-written checkpoint is rotated onto the list of checkpoints that will
-    * be deleted.
-    */
-   void checkpointNow();
-
-   /**
     * Creates a checkpoint based at the given directory. If the checkpoint directory already exists,
     * it issues a warning, and deletes the timeinfo.bin file in the checkpooint. This way, the
     * presence of the timeinfo.bin file indicates that the checkpoint is complete.
@@ -338,6 +340,7 @@ class Checkpointer : public Subject {
    Timer *mCheckpointTimer = nullptr;
 
    static std::string const mDefaultOutputPath;
+   double mLastCheckpointTime = 0.0;
 };
 
 } // namespace PV

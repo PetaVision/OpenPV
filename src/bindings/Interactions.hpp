@@ -50,6 +50,10 @@ class Interactions {
       Result step(double *simTime);
       // Calls HyPerCol.finishRun()
       Result finish();
+      // Tell PetaVision to write a checkpoint now
+      Result checkpoint();
+      // Returns the last timestep a checkpoint was written by PetaVision
+      double lastCheckpointTime();
       // Fills the data vector with the restricted contents of the named layer's Activity buffer
       Result getLayerSparseActivity(const char *layerName, std::vector<std::pair<float, int>> *data);
       // Fills the data vector with the restricted contents of the named layer's Activity buffer
@@ -97,6 +101,7 @@ class Interactions {
       int         mArgC;
       char      **mArgV;
       std::string mParams;
+      double      mSimTime = 0;
 };
 
 

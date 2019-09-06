@@ -781,7 +781,7 @@ void Checkpointer::checkpointWriteSignal(int checkpointSignal) {
          InfoLog() << "Exiting.\n";
       }
       MPI_Finalize();
-      exit(EXIT_SUCCESS);
+      exit(-checkpointSignal);
    }
 }
 
@@ -863,6 +863,7 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
       InfoLog().printf("checkpointWrite complete. simTime = %f\n", mTimeInfo.mSimTime);
       InfoLog().flush();
    }
+   mLastCheckpointTime = mTimeInfo.mSimTime;
 }
 
 void Checkpointer::finalCheckpoint(double simTime) {

@@ -43,7 +43,8 @@ class Commander {
          CMD_GET_STATE,
          CMD_SET_STATE,
          CMD_GET_PROBE_VALUES,
-         CMD_SET_WEIGHTS
+         CMD_SET_WEIGHTS,
+         CMD_CHECKPOINT
       };
 
       enum Buffer {
@@ -73,9 +74,13 @@ class Commander {
       bool   isRoot();
       // Returns true when simTime >= stopTime
       bool   isFinished();
+      // Allows external interfaces to synchronize checkpointing with PetaVision
+      double getLastCheckpointTime();
       // On non-root processes, wait for the root process to send a message indicating
       // what methods were called. Loops until finish is called on the root process.
       void   waitForCommands();
+      // Force PetaVision to write a checkpoint on the next timestep
+      void   checkpoint();
       // Return the dimensions of a layer
       void   getLayerShape(const char *layerName, int *nb, int *ny, int *nx, int *nf);
       // Fill the data vector with index value pairs of non-zero Activity 

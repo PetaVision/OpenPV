@@ -66,10 +66,13 @@ if (${PV_BUILD_PYTHON})
    
    pybind11_add_module(PythonBindings python/PythonBindings.cpp)
    
-   find_package(MPI)
+   if (PV_USE_MPI)
+      find_package(MPI)
+      include_directories(${MPI_INCLUDE_PATH})
+   endif()
+
    include_directories(${PV_INCLUDE_DIR})
    include_directories(${PV_CONFIG_FILE_DIR})
-   include_directories(${MPI_INCLUDE_PATH})
    
    if (PV_USE_CUDA AND CUDNN_FOUND)
      include_directories(${CUDA_TOOLKIT_INCLUDE})
@@ -77,7 +80,7 @@ if (${PV_BUILD_PYTHON})
    endif()
    
    target_link_libraries(PythonBindings PRIVATE "${PV_LIBRARY_DIR}/libpv.so")
-   if (PV_USE_MPI AND MPI_FOUND)
+   if (PV_USE_MPI)
      target_link_libraries(PythonBindings PRIVATE ${MPI_CXX_LIBRARIES})
    endif()
    if (PV_USE_OPENMP)
