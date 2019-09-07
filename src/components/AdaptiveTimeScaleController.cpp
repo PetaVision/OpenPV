@@ -118,59 +118,85 @@ void CheckpointEntryTimeScaleInfo::write(
       std::string const &checkpointDirectory,
       double simTime,
       bool verifyWritesFlag) const {
+   int mpiTag = 150; // chosen arbitrarily; there's no significance to this number
    if (getMPIBlock()->getRank() == 0) {
-      std::size_t batchWidth = mTimeScaleInfoPtr->mTimeScale.size();
-      std::string path       = generatePath(checkpointDirectory, "bin");
+      std::size_t processBatchSize = mTimeScaleInfoPtr->mTimeScale.size();
+      std::string path             = generatePath(checkpointDirectory, "bin");
       FileStream fileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
-      for (std::size_t b = 0; b < batchWidth; b++) {
-         fileStream.write(&mTimeScaleInfoPtr->mTimeScale.at(b), sizeof(double));
-         fileStream.write(&mTimeScaleInfoPtr->mTimeScaleTrue.at(b), sizeof(double));
-         fileStream.write(&mTimeScaleInfoPtr->mTimeScaleMax.at(b), sizeof(double));
+      int numBatchProcesses = getMPIBlock()->getBatchDimension();
+      std::vector<double> gatheredData(3 * processBatchSize * numBatchProcesses);
+      for (std::size_t b = 0; b < processBatchSize; b++) {
+         gatheredData[3 * b]     = mTimeScaleInfoPtr->mTimeScale.at(b);
+         gatheredData[3 * b + 1] = mTimeScaleInfoPtr->mTimeScaleTrue.at(b);
+         gatheredData[3 * b + 2] = mTimeScaleInfoPtr->mTimeScaleMax.at(b);
       }
+      for (int m = 1; m < numBatchProcesses; m++) {
+         int sourceRank = getMPIBlock()->calcRankFromRowColBatch(0, 0, m);
+         MPI_Recv(
+               &gatheredData[3 * processBatchSize * m],
+               3 * processBatchSize,
+               MPI_DOUBLE,
+               sourceRank,
+               mpiTag,
+               getMPIBlock()->getComm(),
+               MPI_STATUS_IGNORE);
+      }
+      fileStream.write(gatheredData.data(), sizeof(double) * gatheredData.size());
       path = generatePath(checkpointDirectory, "txt");
       FileStream txtFileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
-      int kb0 = getMPIBlock()->getBatchIndex() * batchWidth;
-      for (std::size_t b = 0; b < batchWidth; b++) {
+      int kb0 = getMPIBlock()->getBatchIndex() * processBatchSize;
+      for (std::size_t b = 0; b < processBatchSize * numBatchProcesses; b++) {
          txtFileStream << "batch index = " << b + kb0 << "\n";
          txtFileStream << "time = " << simTime << "\n";
-         txtFileStream << "timeScale = " << mTimeScaleInfoPtr->mTimeScale[b] << "\n";
-         txtFileStream << "timeScaleTrue = " << mTimeScaleInfoPtr->mTimeScaleTrue[b] << "\n";
-         txtFileStream << "timeScaleMax = " << mTimeScaleInfoPtr->mTimeScaleMax[b] << "\n";
+         txtFileStream << "timeScale = " << gatheredData[3 * b] << "\n";
+         txtFileStream << "timeScaleTrue = " << gatheredData[3 * b + 1] << "\n";
+         txtFileStream << "timeScaleMax = " << gatheredData[3 * b + 2] << "\n";
       }
+   }
+   else if (getMPIBlock()->getRowIndex() == 0 and getMPIBlock()->getColumnIndex() == 0) {
+      pvAssert(getMPIBlock()->getBatchIndex() != 0); // getBatchIndex()==0 case in if-block above
+      std::size_t processBatchSize = mTimeScaleInfoPtr->mTimeScale.size();
+      std::vector<double> dataToSend(3 * processBatchSize);
+      for (std::size_t b = 0; b < processBatchSize; b++) {
+         dataToSend[3 * b]     = mTimeScaleInfoPtr->mTimeScale.at(b);
+         dataToSend[3 * b + 1] = mTimeScaleInfoPtr->mTimeScaleTrue.at(b);
+         dataToSend[3 * b + 2] = mTimeScaleInfoPtr->mTimeScaleMax.at(b);
+      }
+      MPI_Send(
+            dataToSend.data(),
+            3 * processBatchSize,
+            MPI_DOUBLE,
+            0,
+            mpiTag,
+            getMPIBlock()->getComm());
+   }
+}
+
+void CheckpointEntryTimeScaleInfo::read(std::string const &checkpointDirectory, double *simTimePtr)
+      const {
+   int mpiTag                   = 150; // chosen arbitrarily; there's no significance to this number
+   std::size_t processBatchSize = (int)mTimeScaleInfoPtr->mTimeScale.size();
+   int numBatchProcesses        = getMPIBlock()->getBatchDimension();
+   std::vector<double> gatheredData(3 * (int)processBatchSize * numBatchProcesses);
+   if (getMPIBlock()->getRank() == 0) {
+      std::string path = generatePath(checkpointDirectory, "bin");
+      FileStream fileStream{path.c_str(), std::ios_base::in, false};
+      fileStream.read(gatheredData.data(), sizeof(double) * gatheredData.size());
+   }
+   MPI_Bcast(gatheredData.data(), gatheredData.size(), MPI_DOUBLE, 0, getMPIBlock()->getComm());
+   int batchProcessIndex = getMPIBlock()->getBatchIndex();
+   pvAssert(batchProcessIndex >= 0 and batchProcessIndex < numBatchProcesses);
+   for (std::size_t b = 0; b < processBatchSize; b++) {
+      int blockBatchIndex                     = batchProcessIndex * processBatchSize + b;
+      mTimeScaleInfoPtr->mTimeScale.at(b)     = gatheredData[3 * blockBatchIndex];
+      mTimeScaleInfoPtr->mTimeScaleTrue.at(b) = gatheredData[3 * blockBatchIndex + 1];
+      mTimeScaleInfoPtr->mTimeScaleMax.at(b)  = gatheredData[3 * blockBatchIndex + 2];
    }
 }
 
 void CheckpointEntryTimeScaleInfo::remove(std::string const &checkpointDirectory) const {
    deleteFile(checkpointDirectory, "bin");
    deleteFile(checkpointDirectory, "txt");
-}
-
-void CheckpointEntryTimeScaleInfo::read(std::string const &checkpointDirectory, double *simTimePtr)
-      const {
-   std::size_t batchWidth = (int)mTimeScaleInfoPtr->mTimeScale.size();
-   if (getMPIBlock()->getRank() == 0) {
-      std::string path = generatePath(checkpointDirectory, "bin");
-      FileStream fileStream{path.c_str(), std::ios_base::in, false};
-      for (std::size_t b = 0; b < batchWidth; b++) {
-         fileStream.read(&mTimeScaleInfoPtr->mTimeScale.at(b), sizeof(double));
-         fileStream.read(&mTimeScaleInfoPtr->mTimeScaleTrue.at(b), sizeof(double));
-         fileStream.read(&mTimeScaleInfoPtr->mTimeScaleMax.at(b), sizeof(double));
-      }
-   }
-   MPI_Bcast(
-         mTimeScaleInfoPtr->mTimeScale.data(), batchWidth, MPI_DOUBLE, 0, getMPIBlock()->getComm());
-   MPI_Bcast(
-         mTimeScaleInfoPtr->mTimeScaleTrue.data(),
-         batchWidth,
-         MPI_DOUBLE,
-         0,
-         getMPIBlock()->getComm());
-   MPI_Bcast(
-         mTimeScaleInfoPtr->mTimeScaleMax.data(),
-         batchWidth,
-         MPI_DOUBLE,
-         0,
-         getMPIBlock()->getComm());
 }
 
 } /* namespace PV */
