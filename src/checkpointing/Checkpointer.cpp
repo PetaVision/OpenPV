@@ -884,7 +884,7 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
          struct stat lcp_stat;
          int statstatus = stat(targetDirectory.c_str(), &lcp_stat);
          if (statstatus != 0 || !(lcp_stat.st_mode & S_IFDIR)) {
-            if (statstatus == 0) {
+            if (statstatus) {
                ErrorLog().printf(
                      "Failed to delete older checkpoint: failed to stat \"%s\": %s.\n",
                      targetDirectory.c_str(),
@@ -897,14 +897,13 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
             }
          }
          sync();
-         std::string rmrf_string("");
-         rmrf_string     = rmrf_string + "rm -r '" + targetDirectory + "'";
-         int rmrf_result = system(rmrf_string.c_str());
-         if (rmrf_result != 0) {
-            WarnLog().printf(
-                  "unable to delete older checkpoint \"%s\": rm command returned %d\n",
-                  targetDirectory.c_str(),
-                  WEXITSTATUS(rmrf_result));
+         mTimeInfoCheckpointEntry->remove(targetDirectory);
+         deleteFileFromDir(targetDirectory, std::string("timers.txt"));
+         deleteFileFromDir(targetDirectory, std::string("pv.params"));
+         deleteFileFromDir(targetDirectory, std::string("pv.params.lua"));
+
+         for (auto &c : mCheckpointRegistry) {
+            c->remove(targetDirectory);
          }
       }
       MPI_Barrier(mMPIBlock->getGlobalComm());
@@ -929,6 +928,19 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
    mOldCheckpointDirectoriesIndex++;
    if (mOldCheckpointDirectoriesIndex == mNumCheckpointsKept) {
       mOldCheckpointDirectoriesIndex = 0;
+   }
+}
+
+void Checkpointer::deleteFileFromDir(std::string const &targetDir, std::string const &targetFile)
+      const {
+   std::string targetPath(targetDir + "/" + targetFile);
+   struct stat targetStat;
+   int status = stat(targetPath.c_str(), &targetStat);
+   if (status == 0) {
+      status = unlink(targetPath.c_str());
+   }
+   if (status != 0) {
+      ErrorLog().printf("Failure deleting \"%s\": %s\n", targetPath.c_str(), strerror(errno));
    }
 }
 

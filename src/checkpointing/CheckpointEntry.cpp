@@ -19,7 +19,10 @@ std::string CheckpointEntry::generatePath(
       std::string const &checkpointDirectory,
       std::string const &extension) const {
    std::string path{checkpointDirectory};
-   path.append("/").append(getName()).append(".").append(extension);
+   path.append("/").append(getName());
+   if (!extension.empty()) {
+      path.append(".").append(extension);
+   }
    return path;
 }
 
