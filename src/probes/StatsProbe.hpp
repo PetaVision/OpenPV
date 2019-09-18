@@ -17,13 +17,17 @@ class StatsProbe : public LayerProbe {
    StatsProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~StatsProbe();
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
    virtual int checkpointTimers(PrintStream &timerstream);
 
   protected:
    StatsProbe();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   /**
+    * @brief statsFlag: StatsProbe does not use statsFlag.
+    */
+   virtual void ioParam_statsFlag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);
    void requireType(PVBufType requiredType);
@@ -61,6 +65,9 @@ class StatsProbe : public LayerProbe {
 
    float const *retrieveActivityBuffer();
    float const *retrieveVBuffer();
+
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputStateStats(double simTime, double deltaTime) override;
 
    // Member variables
    PVBufType type;

@@ -57,16 +57,6 @@ class ColumnEnergyProbe : public ColProbe {
     */
    int addTerm(BaseProbe *probe);
 
-   /**
-    * Prints the energies to the output stream, formatted as a comma-separated
-    * value:
-    * "Name of probe",timevalue,index,energy
-    * The number of lines printed is equal to getVectorSize(), and index goes
-    * from 0 to
-    * getVectorSize()-1.
-    */
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
    virtual void calcValues(double timevalue) override;
 
   protected:
@@ -81,6 +71,16 @@ class ColumnEnergyProbe : public ColProbe {
     * and should be called by the initializer of any derived classes.
     */
    void initialize(const char *probename, PVParams *params, Communicator const *comm);
+
+   /**
+    * Prints the energies to the output stream, formatted as a comma-separated
+    * value:
+    * "Name of probe",timevalue,index,energy
+    * The number of lines printed is equal to getVectorSize(), and index goes
+    * from 0 to
+    * getVectorSize()-1.
+    */
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
    virtual void outputHeader() override;
 

@@ -77,4 +77,36 @@ ColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
    return BaseProbe::communicateInitInfo(message);
 }
 
+Response::Status ColProbe::outputStateStats(double simTime, double deltaTime) {
+   getValues(simTime);
+   double *valuesBuffer = getValuesBuffer();
+   int nbatch           = getNumValues();
+   double min = std::numeric_limits<double>::infinity();
+   double max = -std::numeric_limits<double>::infinity();
+   double sum = 0.0;
+   for (int k=0; k < getNumValues(); k++) {
+      double v = (double)valuesBuffer[k];
+      min = min < v ? min : valuesBuffer[k];
+      max = max > v ? max : valuesBuffer[k];
+      sum += v;
+   }
+   MPI_Comm const batchComm = mCommunicator->batchCommunicator();
+   MPI_Allreduce(MPI_IN_PLACE, &min, 1, MPI_DOUBLE, MPI_MIN, batchComm);
+   MPI_Allreduce(MPI_IN_PLACE, &max, 1, MPI_DOUBLE, MPI_MAX, batchComm);
+   MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_DOUBLE, MPI_SUM, batchComm);
+   if (!mOutputStreams.empty()) {
+      pvAssert(mCommunicator->globalCommRank() == 0);
+      pvAssert(mOutputStreams.size() == (std::size_t)1);
+      double mean = sum/(getNumValues() * mCommunicator->numCommBatches());
+      if (!isWritingToFile()) {
+         output(0) << "\"" << name << "\","; // lack of \n is deliberate
+      }
+      output(0).printf("t=%10f, min=%10.9f, max=%10.9f, mean=%10.9f\n", simTime, min, max, mean);
+   }
+   else {
+      pvAssert(mCommunicator->globalCommRank() != 0);
+   }
+   return Response::SUCCESS;
+}
+
 } // end namespace PV

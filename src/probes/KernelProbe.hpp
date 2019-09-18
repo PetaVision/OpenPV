@@ -22,7 +22,6 @@ class KernelProbe : public BaseHyPerConnProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
    PatchSize const *getPatchSize() const { return mPatchSize; }
    Weights const *getWeights() const { return mWeights; }
@@ -51,6 +50,7 @@ class KernelProbe : public BaseHyPerConnProbe {
    bool getOutputWeights() { return outputWeights; }
    bool getOutputPlasticIncr() { return outputPlasticIncr; }
    bool getOutputPatchIndices() { return outputPatchIndices; }
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   private:
    int initialize_base();

@@ -84,16 +84,6 @@ class QuotientColProbe : public ColProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   /**
-    * Prints the energies to the output stream, formatted as a comma-separated
-    * value:
-    * "Name of probe",timevalue,index,energy
-    * The number of lines printed is equal to getVectorSize(), and index goes
-    * from 0 to
-    * getVectorSize()-1.
-    */
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
   protected:
    /**
     * The constructor without arguments should be used by derived classes.
@@ -116,6 +106,17 @@ class QuotientColProbe : public ColProbe {
     * that the hard work is done by the probes in the numerator and denominator.
     */
    virtual void calcValues(double timeValue) override;
+
+   /**
+    * Prints the energies to the output stream, formatted as a comma-separated
+    * value:
+    * "Name of probe",timevalue,index,energy
+    * The number of lines printed is equal to getVectorSize(), and index goes
+    * from 0 to
+    * getVectorSize()-1.
+    */
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputStateStats(double simTime, double deltaTime) override;
 
    virtual void outputHeader() override;
 

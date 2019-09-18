@@ -174,12 +174,11 @@ Response::Status ColumnEnergyProbe::outputState(double simTime, double deltaTime
    int nbatch           = this->getNumValues();
    pvAssert(nbatch == (int)mOutputStreams.size());
    for (int b = 0; b < nbatch; b++) {
-      auto stream = *mOutputStreams[b];
       if (!isWritingToFile()) {
-         stream << "\"" << name << "\","; // lack of \n is deliberate
+         output(b) << "\"" << name << "\","; // lack of \n is deliberate
       }
-      stream.printf("%10f, %d, %10.9f\n", simTime, b, valuesBuffer[b]);
-      stream.flush();
+      output(b).printf("%10f, %d, %10.9f\n", simTime, b, valuesBuffer[b]);
+      output(b).flush();
    }
    return Response::SUCCESS;
 } // end ColumnEnergyProbe::outputState(double)

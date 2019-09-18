@@ -122,11 +122,9 @@ class AbstractNormProbe : public LayerProbe {
    bool maskHasSingleFeature() { return singleFeatureMask; }
 
    /**
-    * Implements the outputState method required by classes derived from
-    * BaseProbe.
+    * Implements the outputState method required by classes derived from BaseProbe.
     * Prints to the outputFile the probe message, timestamp, number of neurons,
-    * and norm value for
-    * each batch element.
+    * and norm value for each batch element.
     */
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
