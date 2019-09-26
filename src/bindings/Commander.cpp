@@ -462,13 +462,13 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
 
    unsigned int size = loc.nx * loc.ny * loc.nf * loc.nbatch;
    auto result = Interactions::SUCCESS;
-   float **tempData = nullptr;
+   float *tempData = nullptr;
    switch(b) {
       case BUF_A:
-         result = mInteractions->getLayerActivity(layerName, tempData);
+         result = mInteractions->getLayerActivity(layerName, &tempData);
          break;
       case BUF_V:
-         result = mInteractions->getLayerState(layerName, tempData);
+         result = mInteractions->getLayerState(layerName, &tempData);
          break;
       default:
          break;
@@ -509,7 +509,7 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
          MPI_Recv(&batch, 1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
          MPI_Recv(&col,   1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
          MPI_Recv(&row,   1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
-         MPI_Recv(*tempData, size, MPI_FLOAT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+         MPI_Recv(tempData, size, MPI_FLOAT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
       }
       int src = 0;
       for (int b = batch; b < batch + loc.nbatch; b++) {
@@ -517,7 +517,7 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
             for (int x = col; x < col + loc.nx; x++) {
                for (int f = 0; f < loc.nf; f++) {
                   int dst = b * (loc.nxGlobal*loc.nyGlobal*loc.nf) + y * (loc.nxGlobal*loc.nf) + x * loc.nf + f;
-                  data->at(dst) = (*tempData)[src++]; 
+                  data->at(dst) = tempData[src++]; 
                }
             }
          }
@@ -564,13 +564,13 @@ void Commander::remoteGetLayerData(Buffer b) {
    }
 
    auto result = Interactions::SUCCESS;
-   float **data = nullptr;
+   float *data = nullptr;
    switch(b) {
       case BUF_A:
-         result = mInteractions->getLayerActivity(name.c_str(), data);
+         result = mInteractions->getLayerActivity(name.c_str(), &data);
          break;
       case BUF_V:
-         result = mInteractions->getLayerState(name.c_str(), data);
+         result = mInteractions->getLayerState(name.c_str(), &data);
          break;
       default:
          break;
@@ -583,7 +583,7 @@ void Commander::remoteGetLayerData(Buffer b) {
    nonRootSend(&loc.kb0, 1, MPI_INT);
    nonRootSend(&loc.kx0, 1, MPI_INT);
    nonRootSend(&loc.ky0, 1, MPI_INT);
-   nonRootSend(*data, loc.nbatch * loc.ny * loc.nx * loc.nf, MPI_FLOAT); 
+   nonRootSend(data, loc.nbatch * loc.ny * loc.nx * loc.nf, MPI_FLOAT); 
 }
 
 void Commander::remoteSetLayerState() {

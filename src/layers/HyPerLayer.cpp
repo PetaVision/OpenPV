@@ -470,7 +470,7 @@ Response::Status HyPerLayer::respondLayerGetInternalState(
       return Response::NO_ACTION;
    }
 
-   *message->mData = getV();
+   *(message->mData) = getV();
 
    return Response::SUCCESS;
 }
@@ -481,7 +481,7 @@ Response::Status HyPerLayer::respondLayerGetActivity(
       return Response::NO_ACTION;
    }
 
-   *message->mData = (float*)mPublisher->getLayerData();
+   *(message->mData) = (float*)mPublisher->getLayerData();
 
    return Response::SUCCESS;
 }

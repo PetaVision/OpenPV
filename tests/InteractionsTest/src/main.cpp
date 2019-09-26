@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
       }
       timestep++;
 
-      float **dst_data = nullptr;
+      float *dst_data = nullptr;
 
       // put the test data in the input layer
       result = interact->setLayerState("Input", &src_data);
@@ -49,33 +49,33 @@ int main(int argc, char *argv[]) {
       pvAssert(result == PV::Interactions::SUCCESS); 
 
       // Check the state of the input layer and make sure it did not change
-      result = interact->getLayerState("Input", dst_data);
+      result = interact->getLayerState("Input", &dst_data);
       pvAssert(result == PV::Interactions::SUCCESS && dst_data != nullptr);
       for (int i = 0; i < numNeurons; ++i) {
-         pvAssert(src_data[i] == (*dst_data)[i]);
+         pvAssert(src_data[i] == dst_data[i]);
       }
 
       // Get the output data and make sure we get the input times the weights
       dst_data = nullptr;
-      interact->getLayerActivity("Output", dst_data);
+      interact->getLayerActivity("Output", &dst_data);
       pvAssert(result == PV::Interactions::SUCCESS );
       for (int i = 0; i < numNeurons; ++i) {
-         pvAssert(src_data[i] * multiplier == (*dst_data)[i]);
+         pvAssert(src_data[i] * multiplier == dst_data[i]);
       }
       multiplier *= 2.0f;
    
       // Double the value of nonzero weights every time
-      float **weights;
-      result = interact->getConnectionWeights("InputToOutput", weights);
+      float *weights = nullptr;
+      result = interact->getConnectionWeights("InputToOutput", &weights);
       pvAssert(result == PV::Interactions::SUCCESS);
       int nwp = 0, nyp = 0, nxp = 0, nfp = 0; 
       result = interact->getConnectionPatchGeometry("InputToOutput", &nwp, &nyp, &nxp, &nfp);
       for (int i = 0; i < nwp*nyp*nxp*nfp; ++i) {
-         if ((*weights)[i] != 0.0f) {
-            (*weights)[i] *= 2.0f;
+         if (weights[i] != 0.0f) {
+            weights[i] *= 2.0f;
          }
       }
-      std::vector<float> w(*weights, *weights+nwp*nyp*nxp*nfp);
+      std::vector<float> w(weights, weights+nwp*nyp*nxp*nfp);
 
       result = interact->setConnectionWeights("InputToOutput", &w);
       pvAssert(result == PV::Interactions::SUCCESS);

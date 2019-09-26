@@ -12,4 +12,6 @@ lib
 *.pyc
 src/include/cMakeHeader.h
 subdirectories.txt
-
+tags
+.*.*.swp
+build
