@@ -152,10 +152,7 @@ WeightsPair::respondConnectionGetWeights(std::shared_ptr<ConnectionGetWeightsMes
       return Response::NO_ACTION;
    }
 
-   unsigned int size = mPreWeights->getNumDataPatches() * mPreWeights->getPatchSizeOverall();
-
-   message->mData->resize(size);
-   message->mData->assign(mPreWeights->getData(0), mPreWeights->getData(0) + size);
+   *message->mData = mPreWeights->getData(0);
 
    return Response::SUCCESS;
 }

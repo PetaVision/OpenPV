@@ -39,6 +39,7 @@ macro(pv_add_executable TARGET)
 
   if (PV_USE_MPI AND MPI_FOUND)
     include_directories(${MPI_CXX_INCLUDE_PATH})
+    include_directories(${MPI_INCLUDE_PATH})
   endif()
 
   if (PV_USE_LUA AND LUA_FOUND)

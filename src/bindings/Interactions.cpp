@@ -177,13 +177,13 @@ Interactions::Result Interactions::getLayerSparseActivity(const char *layerName,
    return checkError(message, status, "getLayerSparseActivity", std::string(layerName));
 }
 
-Interactions::Result Interactions::getLayerActivity(const char *layerName, std::vector<float> *data) {
+Interactions::Result Interactions::getLayerActivity(const char *layerName, float **data) {
    auto message = std::make_shared<LayerGetActivityMessage>(&mErrMsg, layerName, data);
    auto status  = interact(message);
    return checkError(message, status, "getLayerActivity", std::string(layerName));
 }
 
-Interactions::Result Interactions::getLayerState(const char *layerName, std::vector<float> *data) {
+Interactions::Result Interactions::getLayerState(const char *layerName, float **data) {
    auto message = std::make_shared<LayerGetInternalStateMessage>(&mErrMsg, layerName, data);
    auto status  = interact(message);
    return checkError(message, status, "getLayerState", std::string(layerName));
@@ -207,7 +207,7 @@ Interactions::Result Interactions::getProbeValues(const char *probeName, std::ve
    return checkError(message, status, "getProbeValues", std::string(probeName));
 }
 
-Interactions::Result Interactions::getConnectionWeights(const char *connName, std::vector<float> *data) {
+Interactions::Result Interactions::getConnectionWeights(const char *connName, float **data) {
    auto message = std::make_shared<ConnectionGetWeightsMessage>(&mErrMsg, connName, data);
    auto status  = interact(message);
    return checkError(message, status, "getConnectionWeights", std::string(connName));

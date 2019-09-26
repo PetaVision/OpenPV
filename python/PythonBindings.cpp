@@ -65,12 +65,15 @@ void PythonBindings::finish() {
 }
 
 py::array_t<float> PythonBindings::getConnectionWeights(const char *connName) {
-   std::vector<float> temp;
+   float **temp = nullptr;
    int nwp, nyp, nxp, nfp;
-   mCmd->getConnectionWeights(connName, &temp, &nwp, &nyp, &nxp, &nfp);
-   py::array_t<float> result(temp.size(), temp.data());
-   result.resize({nwp, nyp, nxp, nfp}, false);
-   return result;
+   mCmd->getConnectionWeights(connName, temp, &nwp, &nyp, &nxp, &nfp);
+   if (temp != nullptr) {
+       py::array_t<float> result(nwp*nyp*nxp*nfp, *temp);
+       result.resize({nwp, nyp, nxp, nfp}, false);
+       return result;
+   }
+   return py::array_t<float>();
 }
 
 void PythonBindings::setConnectionWeights(const char *connName, py::array_t<float> *data) {

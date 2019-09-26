@@ -470,15 +470,7 @@ Response::Status HyPerLayer::respondLayerGetInternalState(
       return Response::NO_ACTION;
    }
 
-   const int N = getNumNeuronsAllBatches();
-   const PVLayerLoc *loc = getLayerLoc();
-   const float *V = getV();
-
-   message->mData->resize(N);
-
-   for (int n = 0; n < N; n++) {
-      (*message->mData)[n] = V[n];
-   }
+   *message->mData = getV();
 
    return Response::SUCCESS;
 }
@@ -489,17 +481,7 @@ Response::Status HyPerLayer::respondLayerGetActivity(
       return Response::NO_ACTION;
    }
 
-   const PVLayerLoc *loc = getLayerLoc();
-   auto layerData = mPublisher->getLayerData();
-   int const N    = getNumNeuronsAllBatches();
-
-   message->mData->resize(N);
-
-   for (int n = 0; n < N; n++) {
-      int idx = kIndexExtendedBatch(n, loc->nbatch, loc->nx, loc->ny, loc->nf,
-                     loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-      (*message->mData)[n] = layerData[idx];
-   }
+   *message->mData = (float*)mPublisher->getLayerData();
 
    return Response::SUCCESS;
 }

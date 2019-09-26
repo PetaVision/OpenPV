@@ -103,7 +103,7 @@ class Commander {
       void   getProbeValues(const char *probeName, std::vector<double> *data);
       // Fills data with the patch data for the named connection's preweights and returns the
       // connection's patch geometry to allow reshaping
-      void   getConnectionWeights(const char *connName, std::vector<float> *data,
+      void   getConnectionWeights(const char *connName, float **data,
                   int *nwp, int *nyp, int *nxp, int *nfp);
       // Sets the preweight patch data for the named connection to data, and updates the
       // postweights and GPU

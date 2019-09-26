@@ -37,25 +37,25 @@ class LayerSetInternalStateMessage : public InteractionMessage {
 class LayerGetInternalStateMessage : public InteractionMessage {
   public:
    LayerGetInternalStateMessage(std::string *err, const char *name,
-         std::vector<float> *data):InteractionMessage(err) {
+         float **data):InteractionMessage(err) {
       setMessageType("LayerGetInternalState");
       mName = name;
       mData = data;
    }
    const char *mName;
-   std::vector<float> *mData;
+   float **mData;
 };
 
 class LayerGetActivityMessage : public InteractionMessage {
   public:
    LayerGetActivityMessage(std::string *err, const char *name,
-         std::vector<float> *data):InteractionMessage(err) {
+         float **data):InteractionMessage(err) {
       setMessageType("LayerGetActivity");
       mName = name;
       mData = data;
    }
    const char *mName;
-   std::vector<float> *mData;
+   float **mData;
 };
 
 class LayerGetSparseActivityMessage : public InteractionMessage {
@@ -129,13 +129,13 @@ class ConnectionSetWeightsMessage : public InteractionMessage {
 class ConnectionGetWeightsMessage : public InteractionMessage {
   public:
    ConnectionGetWeightsMessage(std::string *err, const char *connName,
-         std::vector<float> *data):InteractionMessage(err) {
+         float **data):InteractionMessage(err) {
       setMessageType("ConnectionGetWeights");
       mName = connName;
       mData = data;
    }
    const char *mName;
-   std::vector<float> *mData;
+   float **mData;
 };
 
 

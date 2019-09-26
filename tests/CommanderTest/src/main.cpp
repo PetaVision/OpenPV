@@ -74,14 +74,16 @@ int main(int argc, char *argv[]) {
          }
       
          // Double the value of nonzero weights every time
-         std::vector<float> weights;
-         cmd->getConnectionWeights("InputToOutput", &weights, nullptr, nullptr, nullptr, nullptr);
-         for (int i = 0; i < weights.size(); ++i) {
-            if (weights[i] != 0.0f) {
-               weights[i] *= 2.0f;
+         float **weights;
+         int nwp = 0, nyp = 0, nxp = 0, nfp = 0; 
+         cmd->getConnectionWeights("InputToOutput", weights, &nwp, &nyp, &nxp, &nfp);
+         for (int i = 0; i < nwp*nyp*nxp*nfp; ++i) {
+            if ((*weights)[i] != 0.0f) {
+               (*weights)[i] *= 2.0f;
             }
          }
-         cmd->setConnectionWeights("InputToOutput", &weights);
+         std::vector<float> w(*weights, *weights+nwp*nyp*nxp*nfp);
+         cmd->setConnectionWeights("InputToOutput", &w);
       }
       
       cmd->finish();

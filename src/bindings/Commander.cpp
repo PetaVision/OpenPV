@@ -49,8 +49,8 @@ std::string const Commander::nonRootRecvName() {
    name = (char*)calloc(sizeof(char), len);
    nonRootRecv(name, len, MPI_CHAR);
    std::string ans(name);
-   free(name); 
-   return ans; 
+   free(name);
+   return ans;
 }
 
 int Commander::getRank() {
@@ -370,7 +370,7 @@ void Commander::getProbeValues(const char *probeName, std::vector<double> *data)
    }
 }
 
-void Commander::getConnectionWeights(const char *connName, std::vector<float> *data,
+void Commander::getConnectionWeights(const char *connName, float **data,
                   int *nwp, int *nyp, int *nxp, int *nfp) {
    if(getRank() != 0) {
       throwError("getConnectionWeights can only be called from the root process. "
@@ -386,7 +386,7 @@ void Commander::getConnectionWeights(const char *connName, std::vector<float> *d
 
 void Commander::setConnectionWeights(const char *connName, std::vector<float> *data) {
    if(getRank() != 0) {
-      throwError("setConnectionWweights can only be called from the root process. "
+      throwError("setConnectionWeights can only be called from the root process. "
          "Did you forget to call waitForCommands?");
    }
 
@@ -462,24 +462,20 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
 
    unsigned int size = loc.nx * loc.ny * loc.nf * loc.nbatch;
    auto result = Interactions::SUCCESS;
-   std::vector<float> tempData;
+   float **tempData = nullptr;
    switch(b) {
       case BUF_A:
-         result = mInteractions->getLayerActivity(layerName, &tempData);
+         result = mInteractions->getLayerActivity(layerName, tempData);
          break;
       case BUF_V:
-         result = mInteractions->getLayerState(layerName, &tempData);
+         result = mInteractions->getLayerState(layerName, tempData);
          break;
       default:
          break;
    }
 
-   if (result == Interactions::FAILURE) {
+   if (result == Interactions::FAILURE || tempData == nullptr) {
       throwError("getLayerData: " + mInteractions->getError());
-   }
-
-   if(size != tempData.size()) {
-      throwError("getLayerData: getLayerShape returned an unexpected value.");
    }
 
    // Send the command and arguments
@@ -513,7 +509,7 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
          MPI_Recv(&batch, 1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
          MPI_Recv(&col,   1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
          MPI_Recv(&row,   1, MPI_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
-         MPI_Recv(tempData.data(), size, MPI_FLOAT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
+         MPI_Recv(*tempData, size, MPI_FLOAT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
       }
       int src = 0;
       for (int b = batch; b < batch + loc.nbatch; b++) {
@@ -521,7 +517,7 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
             for (int x = col; x < col + loc.nx; x++) {
                for (int f = 0; f < loc.nf; f++) {
                   int dst = b * (loc.nxGlobal*loc.nyGlobal*loc.nf) + y * (loc.nxGlobal*loc.nf) + x * loc.nf + f;
-                  data->at(dst) = tempData.at(src++); 
+                  data->at(dst) = (*tempData)[src++]; 
                }
             }
          }
@@ -568,26 +564,26 @@ void Commander::remoteGetLayerData(Buffer b) {
    }
 
    auto result = Interactions::SUCCESS;
-   std::vector<float> data;
+   float **data = nullptr;
    switch(b) {
       case BUF_A:
-         result = mInteractions->getLayerActivity(name.c_str(), &data);
+         result = mInteractions->getLayerActivity(name.c_str(), data);
          break;
       case BUF_V:
-         result = mInteractions->getLayerState(name.c_str(), &data);
+         result = mInteractions->getLayerState(name.c_str(), data);
          break;
       default:
          break;
    }
 
-   if (result == Interactions::FAILURE) {
+   if (result == Interactions::FAILURE || data == nullptr) {
       throwError("remoteGetLayerData: " + mInteractions->getError());
    }
 
    nonRootSend(&loc.kb0, 1, MPI_INT);
    nonRootSend(&loc.kx0, 1, MPI_INT);
    nonRootSend(&loc.ky0, 1, MPI_INT);
-   nonRootSend(data.data(), data.size(), MPI_FLOAT); 
+   nonRootSend(*data, loc.nbatch * loc.ny * loc.nx * loc.nf, MPI_FLOAT); 
 }
 
 void Commander::remoteSetLayerState() {
