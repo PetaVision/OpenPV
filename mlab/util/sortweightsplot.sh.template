@@ -1,0 +1,4 @@
+#!/bin/sh
+
+command="sortweightsplot('../output','V1.pvp' ,'../output/Checkpoints',{'V1ToInputError_W.pvp',},'percentActive',true);"
+octave --eval "$command";
