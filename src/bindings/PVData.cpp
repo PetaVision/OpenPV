@@ -1,6 +1,17 @@
 #include "bindings/PVData.hpp"
 
 namespace PV {
+   
+SparsePack::SparsePack(int nbatch, int ny, int nx, int nf) {
+   mData.resize(nbatch);
+   mNB = nbatch;
+   mNY = ny;
+   mNX = nx;
+   mNF = nf;
+}
+
+SparsePack::~SparsePack() {
+}
 
 float SparsePack::get(int batch, int y, int x, int f) {
    int i = index(y, x, f);
@@ -9,20 +20,19 @@ float SparsePack::get(int batch, int y, int x, int f) {
       return 0.0f;
    }
    
-   SparseVector *vec = mData[batch];
+   SparseVector& vec = mData[batch];
    int L = 0;
-   int R = vec->size() - 1;
+   int R = vec.size() - 1;
 
    // Nothing is active
-   if (vec->empty()) {
+   if (vec.empty()) {
       return 0.0f;
    }
-   vec = mData[batch];
 
    // Single element, only one valid index
    if (L == R) {
-      if (i == (*vec)[0].second) {
-         return (*vec)[0].first;
+      if (i == vec[0].first) {
+         return vec[0].second;
       }
       return 0.0f;
    }
@@ -30,14 +40,14 @@ float SparsePack::get(int batch, int y, int x, int f) {
    // Binary search for index in sparse list
    do {
       int m = (L + R) >> 1; 
-      if ((*vec)[m].second < i) {
+      if (vec[m].first < i) {
          L = m + 1;
       }
-      else if ((*vec)[m].second > i) {
+      else if (vec[m].first > i) {
          R = m - 1;
       }
       else {
-         return (*vec)[m].first;
+         return vec[m].second;
       }
    } while (L <= R);
 
@@ -51,27 +61,27 @@ bool SparsePack::set(int batch, int y, int x, int f, float v) {
       return false;
    }
 
-   SparseVector *vec = mData[batch];
+   SparseVector &vec = mData[batch];
    int L = 0;
-   int R = vec->size() - 1;
+   int R = vec.size() - 1;
 
    // Nothing is active
-   if (vec->empty()) {
-      vec->push_back({v, i});
+   if (vec.empty()) {
+      vec.push_back({i, v});
       return true;
    }
 
    // Single element, only one valid index
    if (L == R) {
-      if (i > (*vec)[0].second) {
-         vec->push_back({v, i});
+      if (i > vec[0].first) {
+         vec.push_back({i, v});
          return true;
       }
-      if (i < (*vec)[0].second) {
-         vec->insert(vec->begin(), {v, i});
+      if (i < vec[0].first) {
+         vec.insert(vec.begin(), {i, v});
          return true;
       }
-      (*vec)[0].first = v;
+      vec[0].second = v;
       return true;
    }
 
@@ -79,19 +89,19 @@ bool SparsePack::set(int batch, int y, int x, int f, float v) {
    int m;
    do {
       m = (L + R) >> 1; 
-      if ((*vec)[m].second < i) {
+      if (vec[m].second < i) {
          L = m + 1;
       }
-      else if ((*vec)[m].second > i) {
+      else if (vec[m].second > i) {
          R = m - 1;
       }
       else {
-         (*vec)[m].first = v;
+         vec[m].second = v;
          return true;
       }
    } while (L <= R);
 
-   vec->insert(vec->begin()+m, {v, i}); 
+   vec.insert(vec.begin()+m, {i, v}); 
    return true;
 }
 
@@ -99,7 +109,7 @@ bool SparsePack::set(int batch, SparseVector *v) {
    if (!batchOk(batch)) {
       return false;
    }
-   mData[batch] = v;
+   mData[batch] = *v;
    return true;
 }
 
@@ -109,47 +119,58 @@ bool SparsePack::set(int batch, DenseVector *v) {
       return false;
    } 
 
-   SparseVector *sv = new SparseVector();
+   SparseVector& sv = mData[batch];
+   sv.clear();
 
    for (int i = 0; i < n; i++) {
       if ((*v)[i] != 0) {
-         sv->push_back({(*v)[i], i});
+         sv.push_back({i, (*v)[i]});
       }
    }
-
-   if (mData[batch] != nullptr) {
-      delete mData[batch];
-   }
-   mData[batch] = sv;
 
    return true;
 }
 
-SparseVector SparsePack::asSparse(int batch) {
+SparseVector SparsePack::asSparse(int batch) const {
    if (!batchOk(batch)) {
       return SparseVector();
    }
-   return *mData[batch];
+   return mData[batch];
 }
 
-DenseVector SparsePack::asDense(int batch) {
+DenseVector SparsePack::asDense(int batch) const {
    DenseVector dv;
    if (!batchOk(batch)) {
       return dv;
    }
    dv.resize(elements());
-   for (auto p : *mData[batch]) {
-      dv[p.second] = p.first;
+   for (auto p : mData[batch]) {
+      dv[p.first] = p.second;
    }
    return dv;
 }
+
+DensePack::DensePack(int nbatch, int ny, int nx, int nf) {
+   mData.resize(nbatch);
+   mNB = nbatch;
+   mNY = ny;
+   mNX = nx;
+   mNF = nf;
+   for (int i = 0; i < nbatch; i++) {
+      mData[i].resize(elements());
+   }
+}
+
+DensePack::~DensePack() {
+}
+
 
 float DensePack::get(int batch, int y, int x, int f) {
    int i = index(y, x, f);
    if (!batchOk(batch) || !indexOk(i)) {
       return 0.0f;
    }
-   return (*mData[batch])[i];
+   return mData[batch][i];
 }
 
 bool DensePack::set(int batch, int y, int x, int f, float v) {
@@ -157,7 +178,7 @@ bool DensePack::set(int batch, int y, int x, int f, float v) {
    if (!batchOk(batch) || !indexOk(i)) {
       return false;
    }
-   (*mData[batch])[i] = v;
+   mData[batch][i] = v;
    return true;
 }
 
@@ -165,15 +186,11 @@ bool DensePack::set(int batch, SparseVector *v) {
    if (!batchOk(batch)) {
       return false;
    }
-   DenseVector *dv = new DenseVector();
-   dv->resize(elements());
+   DenseVector& dv = mData[batch];
+   dv.resize(elements());
    for (auto p : *v) {
-      (*dv)[p.second] = p.first;
+      dv[p.first] = p.second;
    }
-   if (mData[batch] != nullptr) {
-      delete mData[batch];
-   }
-   mData[batch] = dv;
    return true;
 }
 
@@ -181,28 +198,28 @@ bool DensePack::set(int batch, DenseVector *v) {
    if (!batchOk(batch)) {
       return false;
    }
-   mData[batch] = v;
+   mData[batch] = *v;
    return true;
 }
 
-SparseVector DensePack::asSparse(int batch) {
+SparseVector DensePack::asSparse(int batch) const {
    SparseVector sv;
    if (!batchOk(batch)) {
       return sv;
    }
    for (int i = 0; i < elements(); i++) {
-      if ((*mData[batch])[i] != 0.0f) {
-         sv.push_back({(*mData[batch])[i], i});
+      if (mData[batch][i] != 0.0f) {
+         sv.push_back({i, mData[batch][i]});
       }
    }
    return sv;
 }
 
-DenseVector DensePack::asDense(int batch) {
+DenseVector DensePack::asDense(int batch) const {
    if (!batchOk(batch)) {
       return DenseVector();
    }
-   return *mData[batch];
+   return mData[batch];
 }
 
 }; /* namespace PV */

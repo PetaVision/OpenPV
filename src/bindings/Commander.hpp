@@ -4,6 +4,7 @@
 
 #include <mpi.h>
 #include <bindings/Interactions.hpp>
+#include <bindings/PVData.hpp>
 
 namespace PV {
 
@@ -86,19 +87,18 @@ class Commander {
       // Fill the data vector with index value pairs of non-zero Activity 
       // and returns the layer's shape to allow reshaping into the proper dimensions.
       // The outer std::vector is batch index.
-      void   getLayerSparseActivity(const char *layerName,
-              std::vector<std::vector<std::pair<float, int>>> *data, int *ny, int *nx, int *nf);
+      void   getLayerSparseActivity(const char *layerName, std::shared_ptr<DataPack> &data);
       // Fill the data vector with the contents of the named layer's restricted Activity 
       // buffer and returns the layer's shape to allow reshaping into the proper dimensions
-      void   getLayerActivity(const char *layerName, std::vector<float> *data,
+      void   getLayerActivity(const char *layerName, std::shared_ptr<DataPack> &data,
                   int *nb, int *ny, int *nx, int *nf);
       // Fill the data vector with the contents of the named layer's InternalState 
       // buffer and returns the layer's shape to allow reshaping into the proper dimensions
-      void   getLayerState(const char *layerName, std::vector<float> *data,
+      void   getLayerState(const char *layerName, std::shared_ptr<DataPack> &data,
                   int *nb, int *ny, int *nx, int *nf);
       // Sets the InternalState buffer of the named layer to the contents of the data
       // vector, which should be the same size as the one returned by getLayerState
-      void   setLayerState(const char *layerName, std::vector<float> *data);
+      void   setLayerState(const char *layerName, std::shared_ptr<DataPack> data);
       // Fills data with the vector of values returned by calling getValues on the named probe
       void   getProbeValues(const char *probeName, std::vector<double> *data);
       // Fills data with the patch data for the named connection's preweights and returns the
@@ -120,7 +120,7 @@ class Commander {
 
    private:
       // Used by getLayerActivity and getLayerState to avoid code duplication
-      void   getLayerData(const char *layerName, std::vector<float> *data,
+      void   getLayerData(const char *layerName, std::shared_ptr<DataPack> &data,
                   int *nb, int *ny, int *nx, int *nf, Buffer b);
 
       // These are called by waitForCommands to perform the appropriate actions on

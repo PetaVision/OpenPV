@@ -5,6 +5,7 @@
 #include <thread>
 #include <chrono>
 
+#include <bindings/PVData.hpp>
 
 namespace py = pybind11;
 
@@ -82,41 +83,30 @@ void PythonBindings::setConnectionWeights(const char *connName, py::array_t<floa
    mCmd->setConnectionWeights(connName, &temp);
 }
 
-// TODO: This is an ugly return, find a better way to do this
-py::tuple PythonBindings::getLayerSparseActivity(const char *layerName) {
-   std::vector<std::vector<std::pair<float, int>>> temp;
-   int nx, ny, nf;
-   py::list result;
-   mCmd->getLayerSparseActivity(layerName, &temp, &ny, &nx, &nf);
-   for (auto v : temp) {
-      result.append(v);
-   }
-   return py::make_tuple(result, nx, ny, nf);
+std::shared_ptr<DataPack> PythonBindings::getLayerSparseActivity(const char *layerName) {
+   std::shared_ptr<DataPack> data = nullptr;
+   mCmd->getLayerSparseActivity(layerName, data);
+   return data;
 }
 
-
-py::array_t<float> PythonBindings::getLayerActivity(const char *layerName) {
+std::shared_ptr<DataPack> PythonBindings::getLayerActivity(const char *layerName) {
+   std::shared_ptr<DataPack> dp_ptr;
    std::vector<float> temp;
    int nx, ny, nf, nb;
-   mCmd->getLayerActivity(layerName, &temp, &nb, &ny, &nx, &nf);
-   py::array_t<float> result(temp.size(), temp.data());
-   result.resize({nb, ny, nx, nf}, false);
-   return result;
+   mCmd->getLayerActivity(layerName, dp_ptr, &nb, &ny, &nx, &nf);
+   return dp_ptr;
 }
 
-py::array_t<float> PythonBindings::getLayerState(const char *layerName) {
+std::shared_ptr<DataPack> PythonBindings::getLayerState(const char *layerName) {
+   std::shared_ptr<DataPack> dp_ptr;
    std::vector<float> temp;
    int nx, ny, nf, nb;
-   mCmd->getLayerState(layerName, &temp, &nb, &ny, &nx, &nf);
-   py::array_t<float> result(temp.size(), temp.data());
-   result.resize({nb, ny, nx, nf}, false);
-   return result;
+   mCmd->getLayerState(layerName, dp_ptr, &nb, &ny, &nx, &nf);
+   return dp_ptr;
 }
 
-void PythonBindings::setLayerState(const char *layerName, py::array_t<float> *data) {
-   unsigned int N = data->shape()[0]*data->shape()[1]*data->shape()[2]*data->shape()[3];
-   std::vector<float> temp(data->data(), data->data() + N);
-   mCmd->setLayerState(layerName, &temp);
+void PythonBindings::setLayerState(const char *layerName, std::shared_ptr<DataPack> data) {
+   mCmd->setLayerState(layerName, data);
 }
 
 bool PythonBindings::isFinished() {

@@ -217,7 +217,7 @@ class Runner:
                     self._update_processes(min_steps)
 
             except Exception as e:
-                print('*** Error ***\n' + str(e))
+                print('*** Error ***\n' + str(type(e)) + '\n' + str(e))
                 raise e
 
             finally:
@@ -229,7 +229,7 @@ class Runner:
             try:
                 self._pv.wait_for_commands()
             except Exception as e:
-                print('*** Error ***\n' + str(e))
+                print('*** Error ***\n' + str(type(e)) + '\n' + str(e))
                 raise e
             finally:
                 sys.exit()

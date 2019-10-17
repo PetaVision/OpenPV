@@ -195,8 +195,7 @@ void Commander::getLayerShape(const char *layerName, int *nb, int *ny, int *nx, 
    }
 }
 
-void Commander::getLayerSparseActivity(const char *layerName,
-              std::vector<std::vector<std::pair<float, int>>> *data, int *ny, int *nx, int *nf) {
+void Commander::getLayerSparseActivity(const char *layerName, std::shared_ptr<DataPack> &data) {
    if (getRank() != 0) {
       throwError("getLayerSparseActivity can only be called from the root process. "
             "Did you forget to call waitForCommands?");
@@ -205,16 +204,6 @@ void Commander::getLayerSparseActivity(const char *layerName,
    PVLayerLoc loc;
    if (mInteractions->getLayerShape(layerName, &loc) == Interactions::FAILURE) {
       throwError("getLayerSparseActivity: " + mInteractions->getError());
-   }
-
-   if (ny != nullptr) {
-      *ny = loc.nyGlobal;
-   }
-   if (nx != nullptr) {
-      *nx = loc.nxGlobal;
-   }
-   if (nf != nullptr) {
-      *nf = loc.nf;
    }
 
    std::vector<std::pair<float, int>> tempData;
@@ -230,8 +219,7 @@ void Commander::getLayerSparseActivity(const char *layerName,
    row   = loc.ky0;
    num   = tempData.size();
 
-   data->clear();
-   data->resize(loc.nbatchGlobal);
+   data = std::shared_ptr<DataPack>(new SparsePack(loc.nbatchGlobal, loc.nyGlobal, loc.nxGlobal, loc.nf));
    MPI_Status stat;
 
    for (int r = 0; r < getCommSize(); r++) {
@@ -244,20 +232,21 @@ void Commander::getLayerSparseActivity(const char *layerName,
          MPI_Recv(tempData.data(), num, MPI_FLOAT_INT, r, MPI_TAG, MPI_COMM_WORLD, &stat);
       }
       // Modify our index to start from 0 for each batch
-      // and correct for row / column offsets
+      // and correct for row / column offsets.
+      // Also switch order to (index, value) since MPI needed the opposite
       for (int b = batch; b < batch + loc.nbatch; b++) {
+         std::vector<std::pair<int, float>> correctedData;
          int origin = b * (loc.nxGlobal*loc.nyGlobal*loc.nf);
          int offset = row * (loc.nxGlobal*loc.nf) + col * loc.nf;
          for (auto& v : tempData) {
-            v.second -= origin;
-            v.second += offset;
-            data->at(b).push_back(v);
+            correctedData.push_back({v.second - origin + offset, v.first});
          }
+         data->set(b, &correctedData);
       }
    }
 }
 
-void Commander::getLayerActivity(const char *layerName, std::vector<float> *data,
+void Commander::getLayerActivity(const char *layerName, std::shared_ptr<DataPack> &data,
          int *nb, int *ny, int *nx, int *nf) {
    if (getRank() != 0) {
       throwError("getLayerActivity can only be called from the root process. "
@@ -266,7 +255,7 @@ void Commander::getLayerActivity(const char *layerName, std::vector<float> *data
    getLayerData(layerName, data, nb, ny, nx, nf, BUF_A);
 }
 
-void Commander::getLayerState(const char *layerName, std::vector<float> *data,
+void Commander::getLayerState(const char *layerName, std::shared_ptr<DataPack> &data,
          int *nb, int *ny, int *nx, int *nf) {
    if (getRank() != 0) {
       throwError("getLayerState can only be called from the root process. "
@@ -275,7 +264,7 @@ void Commander::getLayerState(const char *layerName, std::vector<float> *data,
    getLayerData(layerName, data, nb, ny, nx, nf, BUF_V);
 }
 
-void Commander::setLayerState(const char *layerName, std::vector<float> *data) {
+void Commander::setLayerState(const char *layerName, std::shared_ptr<DataPack> data) {
    if (getRank() != 0) {
       throwError("setLayerState() can only be called from the root process. "
          "Did you forget to call waitForCommands?");
@@ -293,8 +282,8 @@ void Commander::setLayerState(const char *layerName, std::vector<float> *data) {
    int kx0 = loc.kx0;
    int ky0 = loc.ky0;
 
-   if(data->size() != globalSize) {
-      throwError("setLayerState: vector has incorrect size. Got " + std::to_string(data->size())
+   if(data->elements() * data->getNB() != globalSize) {
+      throwError("setLayerState: DataPack has incorrect size. Got " + std::to_string(data->elements() * data->getNB())
             + ", expected " + std::to_string(globalSize));
    }
 
@@ -315,8 +304,7 @@ void Commander::setLayerState(const char *layerName, std::vector<float> *data) {
          for (int y = ky0; y < ky0 + loc.ny; y++) {
             for (int x = kx0; x < kx0 + loc.nx; x++) {
                for (int f = 0; f < loc.nf; f++) {
-                  int src = b * (loc.nxGlobal*loc.nyGlobal*loc.nf) + y * (loc.nxGlobal*loc.nf) + x * loc.nf + f;
-                  slice.at(dst++) = data->at(src);
+                  slice.at(dst++) = data->get(b, y, x, f);
                }
             }
          }
@@ -453,7 +441,7 @@ int Commander::waitForOk() {
 
 // The only difference between getLayerActivity and getLayerState is the buffer it
 // fetches data from, so most of the implementation is here
-void Commander::getLayerData(const char *layerName, std::vector<float> *data,
+void Commander::getLayerData(const char *layerName, std::shared_ptr<DataPack> &data,
                   int *nb, int *ny, int *nx, int *nf, Buffer b) {
    PVLayerLoc loc;
    if (mInteractions->getLayerShape(layerName, &loc) == Interactions::FAILURE) {
@@ -494,7 +482,7 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
       *nb = loc.nbatchGlobal;
    }
 
-   data->resize(loc.nxGlobal * loc.nyGlobal * loc.nf * loc.nbatchGlobal);
+   data = std::shared_ptr<DataPack>(new DensePack(loc.nbatch, loc.ny, loc.nx, loc.nf));
 
    int batch, col, row;
    batch = loc.kb0;
@@ -516,8 +504,7 @@ void Commander::getLayerData(const char *layerName, std::vector<float> *data,
          for (int y = row; y < row + loc.ny; y++) {
             for (int x = col; x < col + loc.nx; x++) {
                for (int f = 0; f < loc.nf; f++) {
-                  int dst = b * (loc.nxGlobal*loc.nyGlobal*loc.nf) + y * (loc.nxGlobal*loc.nf) + x * loc.nf + f;
-                  data->at(dst) = tempData[src++]; 
+                  data->set(b, y, x, f, tempData[src++]);
                }
             }
          }
