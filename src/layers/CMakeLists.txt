@@ -11,6 +11,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FilenameParsingGroundTruthLayer.cpp
    ${SUBDIR}/FirmThresholdCostLayer.cpp
    ${SUBDIR}/GapLayer.cpp
+   ${SUBDIR}/GaussianNoiseLayer.cpp
    ${SUBDIR}/HyPerLayer.cpp
    ${SUBDIR}/HyPerLCALayer.cpp
    ${SUBDIR}/ImageLayer.cpp
@@ -46,6 +47,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FilenameParsingGroundTruthLayer.hpp
    ${SUBDIR}/FirmThresholdCostLayer.hpp
    ${SUBDIR}/GapLayer.hpp
+   ${SUBDIR}/GaussianNoiseLayer.hpp
    ${SUBDIR}/HyPerLayer.hpp
    ${SUBDIR}/HyPerLCALayer.hpp
    ${SUBDIR}/ImageLayer.hpp

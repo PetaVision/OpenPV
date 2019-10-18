@@ -30,6 +30,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FilenameParsingLayerUpdateController.cpp
    ${SUBDIR}/FirmThresholdCostActivityBuffer.cpp
    ${SUBDIR}/GapActivityBuffer.cpp
+   ${SUBDIR}/GaussianNoiseActivityBuffer.cpp
    ${SUBDIR}/GSynAccumulator.cpp
    ${SUBDIR}/HyPerActivityBuffer.cpp
    ${SUBDIR}/HyPerInternalStateBuffer.cpp
@@ -118,6 +119,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FilenameParsingLayerUpdateController.hpp
    ${SUBDIR}/FirmThresholdCostActivityBuffer.hpp
    ${SUBDIR}/GapActivityBuffer.hpp
+   ${SUBDIR}/GaussianNoiseActivityBuffer.hpp
    ${SUBDIR}/GSynAccumulator.hpp
    ${SUBDIR}/HyPerActivityBuffer.hpp
    ${SUBDIR}/HyPerActivityComponent.hpp

@@ -1,143 +1,134 @@
 //
-// LCATest.params
+// ResetStateOnTriggerTest.params
 //
-// created by peteschultz: Aug 15, 2014
+// created by peteschultz: Sep 3, 2015
 //
 
-//  A test of LCA in the GenericSystemTest paradigm
-//  An input->error<->V1 LCA module, using random initial weights
-//  and a correct-values movie being compared to the Reconstruction layer.
+// A params file for testing the triggerBehavior = "resetStateOnTrigger".
+// A movie layer ("TriggeringLayer") with a display period of 5 is the
+// trigger layer.
+// A LeakyIntegrator layer ("TestLayer") gets input from a ConstantLayer,
+// ("InputLayer") but every five timesteps it triggers to be reset to
+// the values in the movie "ResetLayer", which has a display period of 1.
 //
+// All layers are 8x8x1 so there are 64 neurons.  No layers have margins
+// so restricted index and extended index are equal for all neurons.
+//
+// The value of the InputLayer with global neuron index n is 4*n.
+//
+// At time t, the resetLayer is all zeros except for a one at the
+// neuron whose global index is the same as mod(t,64).
+//
+// At time t=5n+1, n=0,1,..., the movie layer triggers to reset it
+// to the value of resetLayer, and then adds the InputLayer.
+// (updateState is still called on trigger steps when using resetStateOnTrigger)
+// At time t=5n+2, 5n+3, 5n+4, 5n+5, the InputLayer is added to TestLayer.
+//
+// Hence at time t=5n+k, with n=0,1,..., and k=1,2,3,4,5,
+// most neurons have the value 4*k*(globalIndex),
+// except for the neuron whose globalIndex is mod(5n+1,64), whose
+// value is one greater.
 
 debugParsing = false;
-
 HyPerCol "column" = {
-   nx = 60;
-   ny = 60;
-   nbatch = 4;
-   dt = 1.0;
-   randomSeed = 1234567890;
-   stopTime = 10.0;  
-   progressInterval = 1.0;
-   errorOnNotANumber = false;
-   writeProgressToErr = false;  
-   verifyWrites = true;
-   outputPath = "output/";
-   printParamsFilename = "pv.params";
-   checkpointWrite = false;
-   checkpointWriteDir = "checkpoints";
-   checkpointWriteTriggerMode = "step";
-   checkpointWriteStepInterval = 1;
-   deleteOlderCheckpoints = false;
-   suppressNonplasticCheckpoints = false;
-   checkpointIndexWidth = -1;
+    dt                                  = 1;
+    stopTime                            = 100;
+    progressInterval                    = 5;
+    writeProgressToErr                  = false;
+    verifyWrites                        = false;
+    outputPath                          = "output/";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 1;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    errorOnNotANumber                   = true;
 };
 
-//
-// layers
-//
-
-PvpLayer "Input" = {
-    nxScale = 1;
-    nyScale = 1;
-    inputPath = "input/testimage.pvp";
-    nf = 1;
-    phase = 0;
-    writeStep = 1;
-    sparseLayer = false;
-    updateGpu = false;
-    mirrorBCflag = false;
-    valueBC = 0.0;
-    useInputBCflag = false;
-    inverseFlag = false; 
-    normalizeLuminanceFlag = false;
-    padValue = 0.0;
-    autoResizeFlag = false;
-    offsetAnchor = "tl";
-    offsetX = 0;
-    offsetY = 0;
+PvpLayer "TriggeringLayer" = {
+    nxScale                             = 0.25;
+    nyScale                             = 0.25;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    inputPath                           = "input/blink.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    displayPeriod                       = 5;
+    batchMethod                         = "bySpecified";
+    start_frame_index                   = [1.000000];
+    skip_frame_index                    = [0.000000];
+    writeFrameToTimestamp               = true;
+    resetToStartOnLoop                  = false;
 };
 
-ConstantLayer "onesLayer" = {
-    restart = 0;
-    nxScale = .5; 
-    nyScale = .5;
-    nf = 32;
-    writeStep = 1;
-    initialWriteTime = 0.0;
-    mirrorBCflag = 0;
-    sparseLayer = false;
-    InitVType = "ConstantV";
-    valueV    = .5;
-    phase = 0;
-};
-
-ANNErrorLayer "Residual" = {
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    phase = 1;
-    mirrorBCflag = true;
-    triggerLayerName = NULL;
-    writeStep = 1;
-    initialWriteTime = 0;
-    sparseLayer = false;
-    updateGpu = false;
-
-    InitVType = "ZeroV";
-
-    VThresh = -infinity;   
-    
-    errScale = 1.0;
-};
-
-HyPerLCALayer "V1" = {
-    nxScale                             = 0.5;
-    nyScale                             = 0.5;
-    nf                                  = 32;
-    phase                               = 2;
+ConstantLayer "InputLayer" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
     mirrorBCflag                        = false;
     valueBC                             = 0;
-    InitVType = "ConstantV";
-    valueV    = .5;
-
-    triggerLayerName                    = "Residual";
-    triggerBehavior                     = "resetStateOnTrigger";
-    triggerResetLayerName               = "onesLayer";
-    
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/inputLayer.pvp";
     writeStep                           = 1;
-    initialWriteTime                    = 0; // 1.44e+06;
-    sparseLayer                         = true;
+    initialWriteTime                    = 100;
+    sparseLayer                         = false;
     updateGpu                           = false;
-    VThresh                             = 0.025;
-    AMin                                = 0;
-    AMax                                = infinity;
-    AShift                              = 0;
-    VWidth                              = 0.025;
-    timeConstantTau                     = 100;
-    selfInteract                        = true;
 };
 
-ANNErrorLayer "ResidualGpu" = {
-    #include "Residual";
+PvpLayer "ResetLayer" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    inputPath                           = "input/dotmovie.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    autoResizeFlag                      = false;
+    displayPeriod                       = 1;
+    batchMethod                         = "bySpecified";
+    start_frame_index                   = [1.000000];
+    skip_frame_index                    = [0.000000];
+    writeFrameToTimestamp               = true;
+    resetToStartOnLoop                  = false;
 };
 
-HyPerLCALayer "V1Gpu" = {
-    #include "V1";
-    @updateGpu                           = true;
-};
-
-ANNLayer "Comparison" = {
-    nxScale                             = .5;
-    nyScale                             = .5;
-    nf                                  = 32;
-    phase                               = 3;
+HyPerLCALayer "TestLayerCPU" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
     mirrorBCflag                        = false;
     valueBC                             = 0;
     InitVType                           = "ZeroV";
-    triggerLayerName                    = NULL;
-    writeStep                           = 1.0;
-    initialWriteTime                    = 1.0;
+    triggerLayerName                    = "TriggeringLayer";
+    triggerOffset                       = 0;
+    triggerBehavior                     = "resetStateOnTrigger";
+    triggerResetLayerName               = "ResetLayer";
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
     VThresh                             = -infinity;
@@ -145,113 +136,63 @@ ANNLayer "Comparison" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
+    integrationTime                     = infinity;
 };
 
-// connections
-
-IdentConn "InputToResidual" = {
-    preLayerName = "Input";
-    postLayerName = "Residual";
-    channelCode = 0;
-    delay = 0;
-    writeStep = -1;
+HyPerLCALayer "TestLayerGPU" = {
+    #include "TestLayerCPU";
+    @updateGpu                          = true;
 };
 
-IdentConn "InputToResidualGpu" = {
-    preLayerName = "Input";
-    postLayerName = "ResidualGpu";
-    channelCode = 0;
-    delay = 0;
-    writeStep = -1;
-};
-
-HyPerConn "V1ToResidual" = {
-    preLayerName                        = "V1";
-    postLayerName                       = "Residual";
-    channelCode                         = 1;
-    sharedWeights                       = true;
-    weightInitType                      = "UniformRandomWeight";
-    // initWeightsFile                     was set to (NULL);
-    wMinInit                            = -1;
-    wMaxInit                            = 1;
-    sparseFraction                      = 0.9;
-    numAxonalArbors                     = 1;
-    plasticityFlag                      = false;
-    receiveGpu                          = false;
-    pvpatchAccumulateType               = "convolve";
+HyPerLayer "Comparison" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    phase                               = 2;
     writeStep                           = 1;
     initialWriteTime                    = 0;
-    writeCompressedWeights              = false;
-    writeCompressedCheckpoints          = false;
-    delay                               = [0.0];
-    nxp                                 = 18;
-    nyp                                 = 18;
-    nfp                                 = 1;
-    updateGSynFromPostPerspective       = false;
-    normalizeMethod                     = "normalizeL2";
-    strength                            = 1;
-    normalizeFromPostPerspective        = false;
-    normalizeArborsIndividually         = false;
-    normalizeOnInitialize               = true;
-    normalizeOnWeightUpdate             = true;
-    rMinX                               = 0;
-    rMinY                               = 0;
-    nonnegativeConstraintFlag           = false;
-    normalize_cutoff                    = 0;
-    minL2NormTolerated                  = 0;
+    sparseLayer                         = 0;
+    updateGpu                           = false;
 };
 
-CloneConn "V1GpuToResidualGpu" = {
-    preLayerName                        = "V1Gpu";
-    postLayerName                       = "ResidualGpu";
-    channelCode                         = 1;
-    pvpatchAccumulateType               = "convolve";
-    delay                               = [0.0];
-    receiveGpu                          = false;
-    updateGSynFromPostPerspective       = false;
-    originalConnName                    = "V1ToResidual";
-};
-
-TransposeConn "ResidualToV1" = {
-    preLayerName                        = "Residual";
-    postLayerName                       = "V1";
+IdentConn "InputLayerToTestLayerCPU" = {
+    preLayerName                        = "InputLayer";
+    postLayerName                       = "TestLayerCPU";
     channelCode                         = 0;
-    pvpatchAccumulateType               = "convolve";
-    writeStep                           = -1;
-    writeCompressedCheckpoints          = false;
-    delay                               = [0.0];
-    receiveGpu                          = false;
-    updateGSynFromPostPerspective       = true;
-    originalConnName                    = "V1ToResidual";
+    delay                               = [0.000000];
 };
 
-TransposeConn "ResidualGpuToV1Gpu" = {
-    #include "ResidualToV1";
-    @preLayerName = "ResidualGpu";
-    @postLayerName = "V1Gpu";
-    @originalConnName                    = "V1GpuToResidualGpu";
+IdentConn "InputLayerToTestLayerGPU" = {
+    preLayerName                        = "InputLayer";
+    postLayerName                       = "TestLayerGPU";
+    channelCode                         = 0;
+    delay                               = [0.000000];
 };
 
-IdentConn "V1ToComparison" = {
-    preLayerName = "V1";
-    postLayerName = "Comparison";
-    channelCode = 0;
-    writeStep = -1;
-    delay = 0;
+IdentConn "TestLayerGPUToComparison" = {
+    preLayerName                        = "TestLayerGPU";
+    postLayerName                       = "Comparison";
+    channelCode                         = 0;
+    delay                               = [0.000000];
 };
 
-IdentConn "V1GpuToComparison" = {
-    preLayerName = "V1Gpu";
-    postLayerName = "Comparison";
-    channelCode = 1;
-    writeStep = -1;
-    delay = 0;
+IdentConn "TestLayerCPUToComparison" = {
+    preLayerName                        = "TestLayerCPU";
+    postLayerName                       = "Comparison";
+    channelCode                         = 1;
+    delay                               = [0.000000];
 };
 
-RequireAllZeroActivityProbe "ComparisonTest" = {
-    targetLayer = "Comparison";
-    exitOnFailure = true;
-    immediateExitOnFailure = true;
-    nnzThreshold = 1e-6;
+RequireAllZeroActivityProbe "TestProbe" = {
+    targetName                          = "Comparison";
+    message                             = "TestProbe";
+    textOutputFlag                      = true;
+    probeOutputFile                     = "TestProbe.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 0;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = false;
 };
-

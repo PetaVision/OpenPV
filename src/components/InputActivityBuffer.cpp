@@ -442,6 +442,11 @@ Response::Status InputActivityBuffer::communicateInitInfo(
    return Response::SUCCESS;
 }
 
+void InputActivityBuffer::makeInputRegionsPointer(ActivityBuffer *activityBuffer) {
+   mNeedInputRegionsPointer = true;
+   mInputRegionTargets.emplace_back(activityBuffer);
+}
+
 Response::Status InputActivityBuffer::allocateDataStructures() {
    auto status = ActivityBuffer::allocateDataStructures();
    if (!Response::completed(status)) {
@@ -618,6 +623,13 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
          }
          // Each MPIBlock sends the local portions.
          scatterInput(b, m);
+      }
+   }
+   for (auto &r : mInputRegionTargets) {
+      auto *targetBufferData = r->getReadWritePointer();
+      pvAssert(r->getBufferSizeAcrossBatch() == getBufferSizeAcrossBatch());
+      for (int n = 0; n < getBufferSizeAcrossBatch(); n++) {
+         targetBufferData[n] = getInputRegionsAllBatchElements()[n];
       }
    }
 }
