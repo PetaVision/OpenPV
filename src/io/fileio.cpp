@@ -92,15 +92,16 @@ void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
    struct stat pathstat;
    int statresult = stat(expandedDirName.c_str(), &pathstat);
 
+   // If path exists and is a directory, nothing to do.
    // If path exists but is not a directory, fatal error.
-   FatalIf(
-         statresult == 0 and !(pathstat.st_mode & S_IFDIR),
-         "Path \"%s\" exists but is not a directory\n",
-         dirname);
+   if (statresult == 0) {
+      FatalIf(!S_ISDIR(pathstat.st_mode), "Path \"%s\" exists but is not a directory\n", dirname);
+      return;
+   }
 
    // Fatal error if checking the path gave an error other than No such file or directory
    FatalIf(
-         statresult != 0 and errno != ENOENT,
+         errno != ENOENT,
          "Checking status of directory \"%s\" gave error \"%s\".\n",
          dirname,
          strerror(errno));
