@@ -70,22 +70,8 @@ Response::Status InputRegionActivityBuffer::communicateInitInfo(
    }
    checkDimensionsEqual(mOriginalInput, this);
 
-   mOriginalInput->makeInputRegionsPointer();
+   mOriginalInput->makeInputRegionsPointer(this);
    return Response::SUCCESS;
-}
-
-Response::Status InputRegionActivityBuffer::allocateDataStructures() {
-   // original layer's InputActivityComponent must allocate first, since setReadOnlyPointer()
-   // will copy the original layer's pointer.
-   if (!mOriginalInput->getDataStructuresAllocatedFlag()) {
-      return Response::POSTPONE;
-   }
-   return ActivityBuffer::allocateDataStructures();
-}
-
-void InputRegionActivityBuffer::setReadOnlyPointer() {
-   pvAssert(mOriginalInput);
-   mReadOnlyPointer = mOriginalInput->getInputRegionsAllBatchElements();
 }
 
 } // namespace PV
