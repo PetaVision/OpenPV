@@ -69,6 +69,7 @@ int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_message(ioFlag);
    ioParam_textOutputFlag(ioFlag);
    ioParam_probeOutputFile(ioFlag);
+   ioParam_statsFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerFlag(ioFlag);
    ioParam_triggerOffset(ioFlag);
@@ -110,6 +111,14 @@ void BaseProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
    if (textOutputFlag) {
       parameters()->ioParamString(
             ioFlag, name, "probeOutputFile", &probeOutputFilename, NULL, false /*warnIfAbsent*/);
+   }
+}
+
+void BaseProbe::ioParam_statsFlag(enum ParamsIOFlag ioFlag) {
+   assert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   if (textOutputFlag) {
+      parameters()->ioParamValue(
+            ioFlag, name, "statsFlag", &mStatsFlag, mStatsFlag, false /*warnIfAbsent*/);
    }
 }
 
@@ -160,45 +169,66 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
 
 void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
    MPIBlock const *mpiBlock = checkpointer->getMPIBlock();
-   int blockColumnIndex     = mpiBlock->getColumnIndex();
-   int blockRowIndex        = mpiBlock->getRowIndex();
-   if (blockColumnIndex == 0 and blockRowIndex == 0) {
-      int mpiBatchIndex    = mpiBlock->getStartBatch() + mpiBlock->getBatchIndex();
-      int localBatchOffset = mLocalBatchWidth * mpiBatchIndex;
-      mOutputStreams.resize(mLocalBatchWidth);
-      char const *probeOutputFilename = getProbeOutputFilename();
-      if (probeOutputFilename) {
-         std::string path(probeOutputFilename);
-         auto extensionStart = path.rfind('.');
-         std::string extension;
-         if (extensionStart != std::string::npos) {
-            extension = path.substr(extensionStart);
-            path      = path.substr(0, extensionStart);
+   if (mStatsFlag) {
+      int globalRank = mpiBlock->getGlobalRank();
+      if (globalRank == 0) {
+         mOutputStreams.resize(1);
+         if (probeOutputFilename) {
+            std::ios_base::openmode mode = std::ios_base::out;
+            auto outputPathFilename = checkpointer->makeOutputPathFilename(std::string(filename));
+	    bool doesVerify         = checkpointer->doesVerifyWrites();
+            mOutputStreams[0] =
+                  new FileStream(outputPathFilename.c_str(), mode, doesVerify);
          }
-         std::ios_base::openmode mode = std::ios_base::out;
-         if (!checkpointer->getCheckpointReadDirectory().empty()) {
-            mode |= std::ios_base::app;
-         }
-         for (int b = 0; b < mLocalBatchWidth; b++) {
-            int globalBatchIndex         = b + localBatchOffset;
-            std::string batchPath        = path;
-            std::string batchIndexString = std::to_string(globalBatchIndex);
-            batchPath.append("_batchElement_").append(batchIndexString).append(extension);
-            if (batchPath[0] != '/') {
-               batchPath = checkpointer->makeOutputPathFilename(batchPath);
-            }
-            auto fs = new FileStream(batchPath.c_str(), mode, checkpointer->doesVerifyWrites());
-            mOutputStreams[b] = fs;
+         else {
+            mOutputStreams[0] = new PrintStream(PV::getOutputStream());
          }
       }
       else {
-         for (int b = 0; b < mLocalBatchWidth; b++) {
-            mOutputStreams[b] = new PrintStream(PV::getOutputStream());
-         }
+         mOutputStreams.clear();
       }
    }
    else {
-      mOutputStreams.clear();
+      int blockColumnIndex     = mpiBlock->getColumnIndex();
+      int blockRowIndex        = mpiBlock->getRowIndex();
+      if (blockColumnIndex == 0 and blockRowIndex == 0) {
+         int mpiBatchIndex    = mpiBlock->getStartBatch() + mpiBlock->getBatchIndex();
+         int localBatchOffset = mLocalBatchWidth * mpiBatchIndex;
+         mOutputStreams.resize(mLocalBatchWidth);
+         char const *probeOutputFilename = getProbeOutputFilename();
+         if (probeOutputFilename) {
+            std::string path(probeOutputFilename);
+            auto extensionStart = path.rfind('.');
+            std::string extension;
+            if (extensionStart != std::string::npos) {
+               extension = path.substr(extensionStart);
+               path      = path.substr(0, extensionStart);
+            }
+            std::ios_base::openmode mode = std::ios_base::out;
+            if (!checkpointer->getCheckpointReadDirectory().empty()) {
+               mode |= std::ios_base::app;
+            }
+            for (int b = 0; b < mLocalBatchWidth; b++) {
+               int globalBatchIndex         = b + localBatchOffset;
+               std::string batchPath        = path;
+               std::string batchIndexString = std::to_string(globalBatchIndex);
+               batchPath.append("_batchElement_").append(batchIndexString).append(extension);
+               if (batchPath[0] != '/') {
+                  batchPath = checkpointer->makeOutputPathFilename(batchPath);
+               }
+               auto fs = new FileStream(batchPath.c_str(), mode, checkpointer->doesVerifyWrites());
+               mOutputStreams[b] = fs;
+            }
+         }
+         else {
+            for (int b = 0; b < mLocalBatchWidth; b++) {
+               mOutputStreams[b] = new PrintStream(PV::getOutputStream());
+            }
+         }
+      }
+      else {
+         mOutputStreams.clear();
+      }
    }
 }
 
@@ -346,7 +376,12 @@ double BaseProbe::getValue(double timevalue, int index) {
 Response::Status BaseProbe::outputStateWrapper(double timef, double dt) {
    auto status = Response::NO_ACTION;
    if (textOutputFlag && needUpdate(timef, dt)) {
-      status = outputState(timef, dt);
+      if (mStatsFlag) {
+         status = outputStateStats(timef, dt);
+      }
+      else {
+         status = outputState(timef, dt);
+      }
    }
    return status;
 }

@@ -20,8 +20,6 @@ class PointProbe : public LayerProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
    float const *getPointV() const { return mPointV; }
    float const *getPointA() const { return mPointA; }
    int getPointRank() const { return mPointRank; }
@@ -35,6 +33,11 @@ class PointProbe : public LayerProbe {
    PointProbe();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   /**
+    * @brief statsFlag: PointProbe does not use statsFlag.
+    */
+   virtual void ioParam_statsFlag(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_xLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_fLoc(enum ParamsIOFlag ioFlag);
@@ -70,6 +73,9 @@ class PointProbe : public LayerProbe {
     * the values.
     */
    virtual void calcValues(double timevalue) override;
+
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputStateStats(double simTime, double deltaTime) override;
 
   private:
    int initialize_base();

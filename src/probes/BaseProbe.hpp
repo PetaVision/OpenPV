@@ -23,6 +23,86 @@ namespace PV {
 class BaseProbe : public BaseObject {
 
    // Methods
+
+  protected:
+   /**
+    * List of parameters for the BaseProbe class
+    * @name BaseProbe Parameters
+    * @{
+    */
+
+   /**
+    * @brief targetName: the name of the object that the probe attaches to.
+    * In LayerProbe, targetName is used to define the targetLayer, and in
+    * BaseConnectionProbe, targetName is used to define the targetConn.
+    */
+   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief message: A string parameter that is typically included in the lines
+    * output by the
+    * outputState method
+    */
+   virtual void ioParam_message(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief textOutputFlag: A boolean parameter that sets whether to generate an
+    * output file.
+    * Defaults to true.
+    */
+   virtual void ioParam_textOutputFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief probeOutputFile: If textOutputFlag is true, probeOutputFile
+    * specifies the name of the file that the outputState method writes to.
+    * If blank, the output is sent to the output stream.
+    */
+   virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
+
+   /*
+    * @brief statsFlag: Meaningful if textOutputFlag is true.
+    * If statsFlag is false, outputState produces one output file for each
+    * batch element. If statsFlag is true, outputState produces one output
+    * file overall, which reports the min, max and average.
+    */
+   virtual void ioParam_statsFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerFlag: If false, the needUpdate method always returns true,
+    * so that outputState is called every timestep.  If true, the needUpdate
+    * method uses triggerLayerName and triggerOffset to determine if the probe
+    * should be triggered.
+    */
+   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerLayerName: If triggerFlag is true, triggerLayerName specifies
+    * the layer to check for triggering.
+    */
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerOffset: If triggerFlag is true, triggerOffset specifies the
+    * time interval *before* the triggerLayer's nextUpdate time that needUpdate()
+    * returns true.
+    */
+   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief energyProbe: If nonblank, specifies the name of a ColumnEnergyProbe
+    * that this probe contributes an energy term to.
+    */
+   virtual void ioParam_energyProbe(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief coefficient: If energyProbe is set, the coefficient parameter
+    * specifies that ColumnEnergyProbe multiplies the result of this probe's
+    * getValues() method by coefficient when computing the error.
+    * @details Note that coefficient does not affect the value returned by the
+    * getValue() or getValues() method.
+    */
+   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag);
+   /** @} */
   public:
    virtual ~BaseProbe();
 
@@ -64,11 +144,6 @@ class BaseProbe : public BaseObject {
     * if needed.
     */
    virtual Response::Status outputStateWrapper(double timef, double dt);
-
-   /**
-    * A pure virtual method for writing output to the output file.
-    */
-   virtual Response::Status outputState(double simTime, double deltaTime) = 0;
    virtual int writeTimer(PrintStream &stream) { return PV_SUCCESS; }
 
    /**
@@ -139,79 +214,6 @@ class BaseProbe : public BaseObject {
    void initialize(const char *name, PVParams *params, Communicator const *comm);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-
-   /**
-    * List of parameters for the BaseProbe class
-    * @name BaseProbe Parameters
-    * @{
-    */
-
-   /**
-    * @brief targetName: the name of the object that the probe attaches to.
-    * In LayerProbe, targetName is used to define the targetLayer, and in
-    * BaseConnectionProbe, targetName is used to define the targetConn.
-    */
-   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief message: A string parameter that is typically included in the lines
-    * output by the
-    * outputState method
-    */
-   virtual void ioParam_message(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief textOutputFlag: A boolean parameter that sets whether to generate an
-    * output file.
-    * Defaults to true.
-    */
-   virtual void ioParam_textOutputFlag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief probeOutputFile: If textOutputFlag is true, probeOutputFile
-    * specifies
-    * the name of the file that the outputState method writes to.
-    * If blank, the output is sent to the output stream.
-    */
-   virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief triggerFlag: If false, the needUpdate method always returns true,
-    * so that outputState is called every timestep.  If true, the needUpdate
-    * method uses triggerLayerName and triggerOffset to determine if the probe
-    * should be triggered.
-    */
-   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief triggerLayerName: If triggerFlag is true, triggerLayerName specifies
-    * the layer
-    * to check for triggering.
-    */
-   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief triggerOffset: If triggerFlag is true, triggerOffset specifies the
-    * time interval *before* the triggerLayer's nextUpdate time that needUpdate()
-    * returns true.
-    */
-   virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief energyProbe: If nonblank, specifies the name of a ColumnEnergyProbe
-    * that this probe contributes an energy term to.
-    */
-   virtual void ioParam_energyProbe(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief coefficient: If energyProbe is set, the coefficient parameter
-    * specifies that ColumnEnergyProbe multiplies the result of this probe's
-    * getValues() method by coefficient when computing the error.
-    * @details Note that coefficient does not affect the value returned by the
-    * getValue() or getValues() method.
-    */
-   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag);
-   /** @} */
 
    /**
     * Called by registerData. If the MPIBlock row index and column index are
@@ -335,6 +337,16 @@ class BaseProbe : public BaseObject {
     */
    virtual bool needUpdate(double time, double dt) const;
 
+   /**
+    * A pure virtual method for writing output to the output file when statsFlag is false.
+    */
+   virtual Response::Status outputState(double simTime, double deltaTime) = 0;
+
+   /**
+    * A pure virtual method for writing output to the output file when statsFlag is true.
+    */
+   virtual Response::Status outputStateStats(double simTime, double deltaTime) = 0;
+
   private:
    int initialize_base();
 
@@ -362,6 +374,7 @@ class BaseProbe : public BaseObject {
    double *probeValues;
    double lastUpdateTime; // The time of the last time calcValues was called.
    bool textOutputFlag;
+   bool mStatsFlag = false; // Whether or not to take min, max or average over the batch
 };
 }
 

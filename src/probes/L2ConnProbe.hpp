@@ -18,10 +18,10 @@ class L2ConnProbe : public KernelProbe {
   public:
    L2ConnProbe(const char *probename, PVParams *params, Communicator const *comm);
    virtual ~L2ConnProbe();
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    L2ConnProbe();
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
 }; // end of class L2ConnProbe block
 

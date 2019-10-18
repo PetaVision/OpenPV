@@ -46,6 +46,12 @@ int PointProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+void PointProbe::ioParam_statsFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parameters()->handleUnnecessaryParameter(name, "statsFlag");
+   }
+}
+
 void PointProbe::ioParam_xLoc(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValueRequired(ioFlag, getName(), "xLoc", &xLoc);
 }
@@ -257,6 +263,11 @@ void PointProbe::writeState(double timevalue) {
       output(0).printf("%s t=%.1f V=%6.5f a=%.5f", getMessage(), timevalue, V, A);
       output(0) << std::endl;
    }
+}
+
+Response::Status PointProbe::outputStateStats(double simTime, double deltaTime) {
+   Fatal() << "PointProbe::outputStateStats() should never be called.\n";
+   return Response::NO_ACTION; // to suppress compiler warnings
 }
 
 } // namespace PV
