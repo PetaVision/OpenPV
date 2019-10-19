@@ -229,7 +229,7 @@ Response::Status PointProbe::outputState(double simTime, double deltaTime) {
 void PointProbe::calcValues(double timevalue) {
    assert(this->getNumValues() == 2);
    double *valuesBuffer = this->getValuesBuffer();
-   auto *globalComm     = mCommunicator->globalCommunicator();
+   auto globalComm     = mCommunicator->globalCommunicator();
 
    if (getPointRank() == mCommunicator->globalCommRank()) {
       pvAssert(mPointA);
