@@ -919,12 +919,16 @@ void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comm
          OMPI_RELEASE_VERSION,
          MPI_VERSION,
          MPI_SUBVERSION);
-#else
-      fileStream->printf(
-         "%s Compiled with (MPI Standard %d.%d).\n",
+#elif defined(MPICH_VERSION)
+   fileStream->printf(
+         "%s Compiled with MPICH %s (MPI Standard %d.%d).\n",
          commentToken,
+         MPICH_VERSION,
          MPI_VERSION,
          MPI_SUBVERSION);
+#else
+   fileStream->printf(
+         "%s Compiled with MPI Standard %d.%d.\n", commentToken, MPI_VERSION, MPI_SUBVERSION);
 #endif
    fileStream->printf(
          "%s MPI configuration has %d rows, %d columns, and batch dimension %d.\n",
