@@ -310,7 +310,14 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
          // One recv per buffer
          for (int recvRank = 1; recvRank < numMpi; recvRank++) {
             int numRecvLabels = 0;
-            MPI_Recv(&numRecvLabels, 1, MPI_INT, recvRank, recvRank, icComm->communicator(), NULL);
+            MPI_Recv(
+                  &numRecvLabels,
+                  1,
+                  MPI_INT,
+                  recvRank,
+                  recvRank,
+                  icComm->communicator(),
+                  MPI_STATUS_IGNORE);
             checkLabelBufSize(numRecvLabels);
 
             MPI_Recv(
@@ -320,7 +327,7 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   recvRank,
                   recvRank,
                   icComm->communicator(),
-                  NULL);
+                  MPI_STATUS_IGNORE);
             MPI_Recv(
                   mMaxXBuf,
                   numRecvLabels,
@@ -328,7 +335,7 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   recvRank,
                   recvRank,
                   icComm->communicator(),
-                  NULL);
+                  MPI_STATUS_IGNORE);
             MPI_Recv(
                   mMaxYBuf,
                   numRecvLabels,
@@ -336,7 +343,7 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   recvRank,
                   recvRank,
                   icComm->communicator(),
-                  NULL);
+                  MPI_STATUS_IGNORE);
             MPI_Recv(
                   mMinXBuf,
                   numRecvLabels,
@@ -344,7 +351,7 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   recvRank,
                   recvRank,
                   icComm->communicator(),
-                  NULL);
+                  MPI_STATUS_IGNORE);
             MPI_Recv(
                   mMinYBuf,
                   numRecvLabels,
@@ -352,7 +359,7 @@ void SegmentBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   recvRank,
                   recvRank,
                   icComm->communicator(),
-                  NULL);
+                  MPI_STATUS_IGNORE);
 
             for (int i = 0; i < numRecvLabels; i++) {
                int label = mLabelBuf[i];
