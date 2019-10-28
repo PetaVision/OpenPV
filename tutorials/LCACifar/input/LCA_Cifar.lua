@@ -145,7 +145,7 @@ local pvParameters = {
       AMax                                = AMax;
       AShift                              = AShift;
       VWidth                              = VWidth;
-      timeConstantTauV1                   = timeConstantTauV1;
+      timeConstantTau                     = timeConstantTauV1;
       selfInteract                        = true;
       adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
    };
