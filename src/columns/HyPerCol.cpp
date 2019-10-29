@@ -323,8 +323,7 @@ void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
-   // Make sure numCommBatches is a divisor of nBatch specified in the params
-   // file
+   // Make sure numCommBatches is a divisor of nBatch specified in the params // file
    FatalIf(
          mNumBatchGlobal % mCommunicator->numCommBatches() != 0,
          "The total number of batches (%d) must be a multiple of the batch "
@@ -371,6 +370,7 @@ void HyPerCol::allocateColumn() {
 
    notifyLoop(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
    mNumPhases++;
+   mIdleCounts.resize(mNumPhases);
 
    mPhaseRecvTimers.clear();
    for (int phase = 0; phase < mNumPhases; phase++) {
@@ -381,7 +381,9 @@ void HyPerCol::allocateColumn() {
       mCheckpointer->registerTimer(phaseRecvTimer);
    }
 
-   notifyLoop(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
+   auto registerDataMessage = std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer);
+   respond(registerDataMessage);
+   notifyLoop(registerDataMessage);
 
 #ifdef DEBUG_OUTPUT
    InfoLog().printf("[%d]: HyPerCol: running...\n", mCommunicator->globalCommRank());
@@ -427,6 +429,23 @@ void HyPerCol::allocateColumn() {
       }
    }
    mReadyFlag = true;
+}
+
+Response::Status
+HyPerCol::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = ParamsInterface::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer = message->mDataRegistry;
+   checkpointer->registerCheckpointData<int>(
+         std::string(name),
+         std::string("IdleCounts"),
+         mIdleCounts.data(),
+         mIdleCounts.size(),
+         true /*broadcast*/,
+         false /*constantEntireRun*/);
+   return Response::SUCCESS;
 }
 
 // typically called by buildandrun via HyPerCol::run()
@@ -778,17 +797,8 @@ void HyPerCol::nonblockingLayerUpdate(
       notifyLoop(updateMessage);
 
       if (!*(updateMessage->mSomeLayerHasActed)) {
-         idleCounter++;
+         mIdleCounts.at(updateMessage->mPhase)++;
       }
-   }
-
-   if (idleCounter > 1L) {
-      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
-#ifdef PV_USE_CUDA
-                << ", recvGpu" << updateMessage->mRecvOnGpuFlag << ", updateGpu"
-                << updateMessage->mUpdateOnGpuFlag
-#endif // PV_USE_CUDA
-                << ", idle count " << idleCounter << "\n";
    }
 }
 
@@ -1058,8 +1068,7 @@ int HyPerCol::getAutoGPUDevice() {
 
       // rankToHost now is an array such that the index is the rank, and the value
       // is the host
-      // Convert to a map of vectors, such that the key is the host name and the
-      // value
+      // Convert to a map of vectors, such that the key is the host name and the value
       // is a vector of mpi ranks that is running on that host
       std::map<std::string, std::vector<int>> hostMap;
       for (int rank = 0; rank < numMpi; rank++) {
@@ -1183,8 +1192,7 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
       }
       // Check length of deviceVec
       // Allowed cases are 1 device specified or greater than or equal to number
-      // of mpi processes
-      // devices specified
+      // of mpi processes devices specified
       if (deviceVec.size() == 1) {
          device = deviceVec[0];
       }
