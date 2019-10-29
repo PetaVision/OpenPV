@@ -14,7 +14,7 @@
 // All layers are 8x8x1 so there are 64 neurons.  No layers have margins
 // so restricted index and extended index are equal for all neurons.
 //
-// The value of the InputLayer with global neuron index n is 4*n.
+// The value of the InputLayer with global neuron index n is 4*(n+1).
 //
 // At time t, the resetLayer is all zeros except for a one at the
 // neuron whose global index is the same as mod(t,64).
@@ -144,13 +144,26 @@ HyPerLCALayer "TestLayerGPU" = {
     @updateGpu                          = true;
 };
 
-HyPerLayer "Comparison" = {
+HyPerLayer "Difference" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
     phase                               = 2;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = 0;
+    updateGpu                           = false;
+};
+
+PtwiseQuotientLayer "RelativeError" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    phase                               = 3;
     writeStep                           = 1;
     initialWriteTime                    = 0;
     sparseLayer                         = 0;
@@ -171,28 +184,42 @@ IdentConn "InputLayerToTestLayerGPU" = {
     delay                               = [0.000000];
 };
 
-IdentConn "TestLayerGPUToComparison" = {
+IdentConn "TestLayerGPUToDifference" = {
     preLayerName                        = "TestLayerGPU";
-    postLayerName                       = "Comparison";
+    postLayerName                       = "Difference";
     channelCode                         = 0;
     delay                               = [0.000000];
 };
 
-IdentConn "TestLayerCPUToComparison" = {
+IdentConn "TestLayerCPUToDifference" = {
     preLayerName                        = "TestLayerCPU";
-    postLayerName                       = "Comparison";
+    postLayerName                       = "Difference";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+};
+
+IdentConn "DifferenceToRelativeError" = {
+    preLayerName                        = "Difference";
+    postLayerName                       = "RelativeError";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "TestLayerCPUToRelativeError" = {
+    preLayerName                        = "TestLayerCPU";
+    postLayerName                       = "RelativeError";
     channelCode                         = 1;
     delay                               = [0.000000];
 };
 
 RequireAllZeroActivityProbe "TestProbe" = {
-    targetName                          = "Comparison";
+    targetName                          = "RelativeError";
     message                             = "TestProbe";
     textOutputFlag                      = true;
     probeOutputFile                     = "TestProbe.txt";
     triggerLayerName                    = NULL;
     energyProbe                         = NULL;
-    nnzThreshold                        = 0;
+    nnzThreshold                        = 1e-6;
     exitOnFailure                       = true;
     immediateExitOnFailure              = false;
 };
