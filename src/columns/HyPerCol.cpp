@@ -447,13 +447,14 @@ int HyPerCol::run(double stopTime, double dt) {
             "Warning: more MPI processes than available threads.  "
             "Processors may be oversubscribed.\n");
    }
-   allocateColumn();
-   getOutputStream().flush();
-
+   processParams(mPrintParamsFilename);
    bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
    if (dryRunFlag) {
       return PV_SUCCESS;
    }
+
+   allocateColumn();
+   getOutputStream().flush();
 
 #ifdef TIMER_ON
    Clock runClock;
