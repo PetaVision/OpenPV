@@ -362,7 +362,8 @@ class BaseProbe : public BaseObject {
    char *targetName;
    char *energyProbe; // the name of the ColumnEnergyProbe to attach to, if any.
    double coefficient;
-   int mLocalBatchWidth = 1; // the value of loc->nbatch
+   bool mAddedToEnergyProbe = false; // Set to true when it calls energy probe's addTerm()
+   int mLocalBatchWidth     = 1; // the value of loc->nbatch
 
   private:
    char *msgparams; // the message parameter in the params

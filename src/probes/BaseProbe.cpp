@@ -176,9 +176,8 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
          if (probeOutputFilename) {
             std::ios_base::openmode mode = std::ios_base::out;
             auto outputPathFilename = checkpointer->makeOutputPathFilename(std::string(filename));
-	    bool doesVerify         = checkpointer->doesVerifyWrites();
-            mOutputStreams[0] =
-                  new FileStream(outputPathFilename.c_str(), mode, doesVerify);
+            bool doesVerify         = checkpointer->doesVerifyWrites();
+            mOutputStreams[0]       = new FileStream(outputPathFilename.c_str(), mode, doesVerify);
          }
          else {
             mOutputStreams[0] = new PrintStream(PV::getOutputStream());
@@ -189,8 +188,8 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
       }
    }
    else {
-      int blockColumnIndex     = mpiBlock->getColumnIndex();
-      int blockRowIndex        = mpiBlock->getRowIndex();
+      int blockColumnIndex = mpiBlock->getColumnIndex();
+      int blockRowIndex    = mpiBlock->getRowIndex();
       if (blockColumnIndex == 0 and blockRowIndex == 0) {
          int mpiBatchIndex    = mpiBlock->getStartBatch() + mpiBlock->getBatchIndex();
          int localBatchOffset = mLocalBatchWidth * mpiBatchIndex;
@@ -278,7 +277,7 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
    }
 
    // Add the probe to the ColumnEnergyProbe, if there is one.
-   if (energyProbe && energyProbe[0]) {
+   if (!mAddedToEnergyProbe and energyProbe and energyProbe[0]) {
       auto *probe = objectTable->findObject<ColumnEnergyProbe>(energyProbe);
       FatalIf(
             probe == nullptr,
@@ -292,6 +291,7 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
             "Failed to add %s to %s.\n",
             getDescription_c(),
             probe->getDescription_c());
+      mAddedToEnergyProbe = (termAdded == PV_SUCCESS);
    }
    return Response::SUCCESS;
 }
