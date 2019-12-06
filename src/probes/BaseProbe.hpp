@@ -307,7 +307,7 @@ class BaseProbe : public BaseObject {
    /**
     * Returns the probeOutputFilename parameter
     */
-   char const *getProbeOutputFilename() { return probeOutputFilename; }
+   char const *getProbeOutputFilename() { return mProbeOutputFilename; }
 
    /**
     * Returns a pointer to the buffer containing the probeValues.
@@ -323,7 +323,7 @@ class BaseProbe : public BaseObject {
     * Returns true if a probeOutputFile is being used.
     * Otherwise, returns false (indicating output is going to getOutputStream().
     */
-   inline bool isWritingToFile() const { return probeOutputFilename != nullptr; }
+   inline bool isWritingToFile() const { return !mProbeOutputFilename or !mProbeOutputFilename[0]; }
 
    /**
     * If there is a triggering layer, needUpdate returns true when the triggering
@@ -370,7 +370,7 @@ class BaseProbe : public BaseObject {
    char *msgstring; // the string that gets printed by outputState ("" if message
    // is empty or null;
    // message + ":" if nonempty
-   char *probeOutputFilename;
+   char *mProbeOutputFilename = nullptr;
    int numValues;
    double *probeValues;
    double lastUpdateTime; // The time of the last time calcValues was called.

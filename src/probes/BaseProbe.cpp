@@ -24,35 +24,34 @@ BaseProbe::~BaseProbe() {
    }
    mOutputStreams.clear();
    free(targetName);
-   targetName = NULL;
+   targetName = nullptr;
    free(msgparams);
-   msgparams = NULL;
+   msgparams = nullptr;
    free(msgstring);
-   msgstring = NULL;
-   free(probeOutputFilename);
-   probeOutputFilename = NULL;
+   msgstring = nullptr;
+   free(mProbeOutputFilename);
+   mProbeOutputFilename = nullptr;
    if (triggerLayerName) {
       free(triggerLayerName);
-      triggerLayerName = NULL;
+      triggerLayerName = nullptr;
    }
    free(energyProbe);
    free(probeValues);
 }
 
 int BaseProbe::initialize_base() {
-   targetName          = NULL;
-   msgparams           = NULL;
-   msgstring           = NULL;
-   textOutputFlag      = true;
-   probeOutputFilename = NULL;
-   triggerFlag         = false;
-   triggerLayerName    = NULL;
-   triggerOffset       = 0;
-   energyProbe         = NULL;
-   coefficient         = 1.0;
-   numValues           = 0;
-   probeValues         = NULL;
-   lastUpdateTime      = 0.0;
+   targetName       = nullptr;
+   msgparams        = nullptr;
+   msgstring        = nullptr;
+   textOutputFlag   = true;
+   triggerFlag      = false;
+   triggerLayerName = nullptr;
+   triggerOffset    = 0;
+   energyProbe      = nullptr;
+   coefficient      = 1.0;
+   numValues        = 0;
+   probeValues      = nullptr;
+   lastUpdateTime   = 0.0;
    return PV_SUCCESS;
 }
 
@@ -110,7 +109,12 @@ void BaseProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
    assert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
    if (textOutputFlag) {
       parameters()->ioParamString(
-            ioFlag, name, "probeOutputFile", &probeOutputFilename, NULL, false /*warnIfAbsent*/);
+            ioFlag,
+            name,
+            "probeOutputFile",
+            &mProbeOutputFilename,
+            nullptr,
+            false /*warnIfAbsent*/);
    }
 }
 
@@ -173,7 +177,7 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
       int globalRank = mpiBlock->getGlobalRank();
       if (globalRank == 0) {
          mOutputStreams.resize(1);
-         if (probeOutputFilename) {
+         if (mProbeOutputFilename and mProbeOutputFilename[0]) {
             std::ios_base::openmode mode = std::ios_base::out;
             auto outputPathFilename = checkpointer->makeOutputPathFilename(std::string(filename));
             bool doesVerify         = checkpointer->doesVerifyWrites();
@@ -194,9 +198,8 @@ void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpoint
          int mpiBatchIndex    = mpiBlock->getStartBatch() + mpiBlock->getBatchIndex();
          int localBatchOffset = mLocalBatchWidth * mpiBatchIndex;
          mOutputStreams.resize(mLocalBatchWidth);
-         char const *probeOutputFilename = getProbeOutputFilename();
-         if (probeOutputFilename) {
-            std::string path(probeOutputFilename);
+         if (mProbeOutputFilename and mProbeOutputFilename[0]) {
+            std::string path(mProbeOutputFilename);
             auto extensionStart = path.rfind('.');
             std::string extension;
             if (extensionStart != std::string::npos) {
@@ -340,7 +343,7 @@ BaseProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const>
    if (!Response::completed(status)) {
       return status;
    }
-   initOutputStreams(probeOutputFilename, message->mDataRegistry);
+   initOutputStreams(mProbeOutputFilename, message->mDataRegistry);
    return Response::SUCCESS;
 }
 

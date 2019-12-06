@@ -94,7 +94,7 @@ Response::Status BaseConnectionProbe::registerData(
 void BaseConnectionProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
    if (getMPIBlock()->getRank() == 0) {
       char const *probeOutputFilename = getProbeOutputFilename();
-      if (probeOutputFilename) {
+      if (probeOutputFilename and probeOutputFilename[0]) {
          std::string path(probeOutputFilename);
          std::ios_base::openmode mode = std::ios_base::out;
          if (!checkpointer->getCheckpointReadDirectory().empty()) {
