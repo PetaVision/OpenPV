@@ -7,10 +7,10 @@ HyPerCol "column" = {
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     stopTime = 100.0;       // Depends on number of VINE video frames
     progressInterval = 1.0;
-    outputPath = "output/";
+    outputPath = "output/maskTestFeatures";
     printParamsFilename = "pv.params";
     checkpointWrite = false;
-    lastCheckpointDir = "output/Last";
+    lastCheckpointDir = "output/maskTestFeatures/Last";
     writeProgressToErr = true;
     verifyWrites = false;
     errorOnNotANumber = false;
@@ -18,7 +18,6 @@ HyPerCol "column" = {
 
 // value is equal to restricted index into extended layer (with negative values) index, with order [x, y, f] from fastest to slowest
 ConstantLayer "input" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
@@ -35,7 +34,6 @@ ConstantLayer "input" = {
 };
 
 MaskLayer "maskOut" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
@@ -57,7 +55,6 @@ MaskLayer "maskOut" = {
 };
 
 MaskTestLayer "test" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
@@ -82,8 +79,6 @@ IdentConn "inputToMaskOut" = {
    postLayerName                       = "maskOut";
    channelCode                         = 0;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
-   writeStep                           = -1;
 };
 
 IdentConn "maskOutToTest" = {
@@ -91,8 +86,6 @@ IdentConn "maskOutToTest" = {
    postLayerName                       = "test";
    channelCode                         = 0;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
-   writeStep                           = -1;
 };
 
 IdentConn "inputToTest" = {
@@ -100,7 +93,5 @@ IdentConn "inputToTest" = {
    postLayerName                       = "test";
    channelCode                         = 1;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
-   writeStep                           = -1;
 };
 
