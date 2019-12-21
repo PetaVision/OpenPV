@@ -73,7 +73,7 @@ local pvParameters = {
       tauFactor                           = 0.03;  -- Percent of tau used as growth target
       growthFactor                        = 0.025; -- Exponential growth factor. The smaller value between this and the above is chosen. 
       writeTimeScalesFieldnames           = false;
-      kneeThresh                          = 3.50;
+      kneeThresh                          = 3.4;
       kneeSlope                           = 0.01;
    };
 
