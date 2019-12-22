@@ -15,7 +15,7 @@ local writeStep           = displayPeriod;
 local initialWriteTime    = displayPeriod;
 
 local inputPath           = "../cifar-10-batches-mat/mixed_cifar.txt";
-local outputPath          = "../output/";
+local outputPath          = "../output";
 local checkpointPeriod    = (displayPeriod * 100); -- How often to write checkpoints
 
 local dictionarySize      = 128;   --Number of patches/elements in dictionary 
@@ -38,7 +38,6 @@ local pvParameters = {
    --------------------------------------------------------------------   
    column = {
       groupType = "HyPerCol";
-      startTime                           = 0;
       dt                                  = 1;
       stopTime                            = stopTime;
       progressInterval                    = (displayPeriod * 10);
@@ -74,7 +73,7 @@ local pvParameters = {
       tauFactor                           = 0.03;  -- Percent of tau used as growth target
       growthFactor                        = 0.025; -- Exponential growth factor. The smaller value between this and the above is chosen. 
       writeTimeScalesFieldnames           = false;
-      kneeThresh                          = 1.0;
+      kneeThresh                          = 3.4;
       kneeSlope                           = 0.01;
    };
 
@@ -102,7 +101,6 @@ local pvParameters = {
       displayPeriod                       = displayPeriod;
       batchMethod                         = "byImage";
       writeFrameToTimestamp               = true;
-      resetToStartOnLoop                  = false;
    };
 
    InputError = {
@@ -186,13 +184,10 @@ local pvParameters = {
       postLayerName                       = "V1";
       channelCode                         = 0;
       delay                               = {0.000000};
-      convertRateToSpikeCount             = false;
       receiveGpu                          = true;
       updateGSynFromPostPerspective       = true;
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
-      writeCompressedCheckpoints          = false;
-      gpuGroupIdx                         = -1;
       originalConnName                    = "V1ToInputError";
    };
 
@@ -204,7 +199,6 @@ local pvParameters = {
       delay                               = {0.000000};
       numAxonalArbors                     = 1;
       plasticityFlag                      = plasticityFlag;
-      convertRateToSpikeCount             = false;
       receiveGpu                          = false; -- non-sparse -> non-sparse
       sharedWeights                       = true;
       weightInitType                      = "UniformRandomWeight";
@@ -212,7 +206,6 @@ local pvParameters = {
       wMaxInit                            = 1;
       sparseFraction                      = 0.9;
       minNNZ                              = 0;
-      combineWeightFiles                  = false;
       initializeFromCheckpointFlag        = false;
       triggerLayerName                    = "Input";
       triggerOffset                       = 1;
@@ -238,7 +231,7 @@ local pvParameters = {
       normalizeFromPostPerspective        = false;
       minL2NormTolerated                  = 0;
       dWMax                               = dWMax; 
-      timeConstantTauConn                 = momentumTau;   --The momentum parameter. A single weight update will last for momentumTau timesteps.
+      timeConstantTau                     = timeConstantTauConn;   --The momentum parameter. A single weight update will last for momentumTau timesteps.
       momentumMethod                      = "viscosity";
       momentumDecay                       = 0;
    }; 
@@ -249,11 +242,9 @@ local pvParameters = {
       postLayerName                       = "InputRecon";
       channelCode                         = 0;
       delay                               = {0.000000};
-      convertRateToSpikeCount             = false;
       receiveGpu                          = false;
       updateGSynFromPostPerspective       = false;
       pvpatchAccumulateType               = "convolve";
-      writeCompressedCheckpoints          = false;
       originalConnName                    = "V1ToInputError";
    };
 
@@ -291,13 +282,12 @@ local pvParameters = {
    };
 
    V1L1NormEnergyProbe = {
-      groupType = "L1NormProbe";
+      groupType = "L1NormLCAProbe";
       targetLayer                         = "V1";
       message                             = nil;
       textOutputFlag                      = true;
       probeOutputFile                     = "V1L1NormEnergyProbe.txt";
       energyProbe                         = "V1EnergyProbe";
-      coefficient                         = VThresh;
       maskLayerName                       = nil;
    };
 
