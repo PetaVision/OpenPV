@@ -342,20 +342,8 @@ void HyPerCol::allocateColumn() {
       return;
    }
 
-   // processParams function does communicateInitInfo stage, sets up adaptive
-   // time step, and prints params
-   pvAssert(mPrintParamsFilename && mPrintParamsFilename[0]);
-   if (mPrintParamsFilename[0] != '/') {
-      std::string printParamsFilename(mPrintParamsFilename);
-      std::string printParamsPath = mCheckpointer->makeOutputPathFilename(printParamsFilename);
-      processParams(printParamsPath.c_str());
-   }
-   else {
-      // If using absolute path, only global rank 0 writes, to avoid collisions.
-      if (mCheckpointer->getMPIBlock()->getGlobalRank() == 0) {
-         processParams(mPrintParamsFilename);
-      }
-   }
+   // processParams function does communicateInitInfo stage and prints params
+   processParams(mPrintParamsFilename);
 
 #ifdef PV_USE_CUDA
    // Needs to go between CommunicateInitInfo (called by processParams) and
@@ -459,13 +447,14 @@ int HyPerCol::run(double stopTime, double dt) {
             "Warning: more MPI processes than available threads.  "
             "Processors may be oversubscribed.\n");
    }
-   allocateColumn();
-   getOutputStream().flush();
-
+   processParams(mPrintParamsFilename);
    bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
    if (dryRunFlag) {
       return PV_SUCCESS;
    }
+
+   allocateColumn();
+   getOutputStream().flush();
 
 #ifdef TIMER_ON
    Clock runClock;
@@ -593,7 +582,11 @@ ObserverTable HyPerCol::getAllObjectsFlat() {
    return objectTable;
 }
 
-int HyPerCol::processParams(char const *path) {
+void HyPerCol::processParams(char const *path) {
+   if (mParamsProcessedFlag) {
+      return;
+   }
+
    auto objectTable = getAllObjectsFlat();
 
    if (!mParamsProcessedFlag) {
@@ -606,11 +599,24 @@ int HyPerCol::processParams(char const *path) {
                   mNumBatchGlobal,
                   mNumThreads));
    }
+   parameters()->warnUnread();
 
    // Print a cleaned up version of params to the file given by printParamsFilename
-   parameters()->warnUnread();
    if (path != nullptr && path[0] != '\0') {
-      outputParams(path);
+      std::string printParamsPath;
+      if (path[0] != '/') {
+         // If using relative path, create a path for each MPIBlock.
+         printParamsPath = mCheckpointer->makeOutputPathFilename(std::string(path));
+      }
+      else {
+         // If using absolute path, only global rank 0 writes, to avoid collisions.
+         if (mCheckpointer->getMPIBlock()->getGlobalRank() != 0) {
+            return;
+         }
+         printParamsPath = path;
+      }
+
+      outputParams(printParamsPath.c_str());
    }
    else {
       if (globalRank() == 0) {
@@ -620,7 +626,7 @@ int HyPerCol::processParams(char const *path) {
       }
    }
    mParamsProcessedFlag = true;
-   return PV_SUCCESS;
+   return;
 }
 
 void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) {

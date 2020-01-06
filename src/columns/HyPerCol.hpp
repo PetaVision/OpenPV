@@ -136,7 +136,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    void nonblockingLayerUpdate(
          std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
          std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
-   int processParams(char const *path);
+   void processParams(char const *path);
 
    /**
     * This function tells each added object to perform the tasks necessary
@@ -231,8 +231,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    bool mCheckpointReadFlag; // whether to load from a checkpoint directory
    bool mReadyFlag; // Initially false; set to true when communicateInitInfo,
    // allocateDataStructures, and initializeState stages are completed
-   bool mParamsProcessedFlag; // Initially false; set to true when processParams
-   // is called.
+   bool mParamsProcessedFlag = false; // Set to true when processParams() is called.
    bool mWriteTimeScaleFieldnames; // determines whether fieldnames are written to
    // HyPerCol_timescales file
    bool mWriteProgressToErr; // Whether to write progress step to standard error
