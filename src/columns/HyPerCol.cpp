@@ -613,7 +613,7 @@ int HyPerCol::processParams(char const *path) {
 }
 
 double HyPerCol::singleStep() {
-   if (mSimTime < mStopTime - mDeltaTime / 2.0) {
+   if (mSimTime < mStopTime - mDeltaTime / 2.0 || mStopTime < 0.0) {
       mCheckpointer->checkpointWrite(mSimTime);
       advanceTime(mSimTime);
    }
