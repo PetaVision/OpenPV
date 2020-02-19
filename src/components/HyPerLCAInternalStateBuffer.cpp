@@ -67,7 +67,7 @@ Response::Status HyPerLCAInternalStateBuffer::communicateInitInfo(
       return status;
    }
    auto *objectTable = message->mObjectTable;
-   if (mAdaptiveTimeScaleProbeName) {
+   if (mAdaptiveTimeScaleProbeName and mAdaptiveTimeScaleProbeName[0]) {
       mAdaptiveTimeScaleProbe =
             objectTable->findObject<AdaptiveTimeScaleProbe>(mAdaptiveTimeScaleProbeName);
       FatalIf(

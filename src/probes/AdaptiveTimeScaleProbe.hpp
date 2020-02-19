@@ -82,7 +82,6 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual Response::Status allocateDataStructures() override;
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    AdaptiveTimeScaleProbe();
@@ -99,6 +98,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    virtual void calcValues(double timeValue) override;
    virtual bool needUpdate(double timeValue, double dt) const override { return true; }
    virtual void allocateTimeScaleController();
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
    double mBaseMax                = 1.0;

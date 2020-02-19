@@ -52,16 +52,6 @@ class ColProbe : public BaseProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   /**
-    * The virtual method for outputting the quantities measured by the ColProbe.
-    * Derived classes should override this method.  Typically, outputState
-    * will fprintf to outputstream->fp, where stream is the BaseProbe member
-    * variable.
-    */
-   virtual Response::Status outputState(double simTime, double deltaTime) override {
-      return Response::SUCCESS;
-   }
-
   protected:
    /**
     * The constructor without arguments should be used by derived classes.
@@ -113,6 +103,18 @@ class ColProbe : public BaseProbe {
     * Calls BaseProbe::initOutputStreams and then calls outputHeader()
     */
    virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
+
+   /**
+    * The virtual method for outputting the quantities measured by the ColProbe.
+    * Derived classes should override this method.  Typically, outputState
+    * will fprintf to outputstream->fp, where stream is the BaseProbe member
+    * variable.
+    */
+   virtual Response::Status outputState(double simTime, double deltaTime) override {
+      return Response::SUCCESS;
+   }
+
+   virtual Response::Status outputStateStats(double simTime, double deltaTime) override;
 
    /**
     * Called by initialize_stream after opening the stream member variable.

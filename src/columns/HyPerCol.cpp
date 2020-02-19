@@ -323,8 +323,7 @@ void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
-   // Make sure numCommBatches is a divisor of nBatch specified in the params
-   // file
+   // Make sure numCommBatches is a divisor of nBatch specified in the params file
    FatalIf(
          mNumBatchGlobal % mCommunicator->numCommBatches() != 0,
          "The total number of batches (%d) must be a multiple of the batch "
@@ -343,20 +342,8 @@ void HyPerCol::allocateColumn() {
       return;
    }
 
-   // processParams function does communicateInitInfo stage, sets up adaptive
-   // time step, and prints params
-   pvAssert(mPrintParamsFilename && mPrintParamsFilename[0]);
-   if (mPrintParamsFilename[0] != '/') {
-      std::string printParamsFilename(mPrintParamsFilename);
-      std::string printParamsPath = mCheckpointer->makeOutputPathFilename(printParamsFilename);
-      processParams(printParamsPath.c_str());
-   }
-   else {
-      // If using absolute path, only global rank 0 writes, to avoid collisions.
-      if (mCheckpointer->getMPIBlock()->getGlobalRank() == 0) {
-         processParams(mPrintParamsFilename);
-      }
-   }
+   // processParams function does communicateInitInfo stage and prints params
+   processParams(mPrintParamsFilename);
 
 #ifdef PV_USE_CUDA
    // Needs to go between CommunicateInitInfo (called by processParams) and
@@ -371,6 +358,7 @@ void HyPerCol::allocateColumn() {
 
    notifyLoop(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
    mNumPhases++;
+   mIdleCounts.resize(mNumPhases);
 
    mPhaseRecvTimers.clear();
    for (int phase = 0; phase < mNumPhases; phase++) {
@@ -381,7 +369,9 @@ void HyPerCol::allocateColumn() {
       mCheckpointer->registerTimer(phaseRecvTimer);
    }
 
-   notifyLoop(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
+   auto registerDataMessage = std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer);
+   respond(registerDataMessage);
+   notifyLoop(registerDataMessage);
 
 #ifdef DEBUG_OUTPUT
    InfoLog().printf("[%d]: HyPerCol: running...\n", mCommunicator->globalCommRank());
@@ -429,6 +419,23 @@ void HyPerCol::allocateColumn() {
    mReadyFlag = true;
 }
 
+Response::Status
+HyPerCol::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = ParamsInterface::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer = message->mDataRegistry;
+   checkpointer->registerCheckpointData<int>(
+         std::string(name),
+         std::string("IdleCounts"),
+         mIdleCounts.data(),
+         mIdleCounts.size(),
+         true /*broadcast*/,
+         false /*constantEntireRun*/);
+   return Response::SUCCESS;
+}
+
 void HyPerCol::startRun(double stopTime, double dt) {
    mStopTime  = stopTime;
    mDeltaTime = dt;
@@ -439,6 +446,12 @@ void HyPerCol::startRun(double stopTime, double dt) {
             "Warning: more MPI processes than available threads.  "
             "Processors may be oversubscribed.\n");
    }
+   processParams(mPrintParamsFilename);
+   bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
+   if (dryRunFlag) {
+      return;
+   }
+
    allocateColumn();
    getOutputStream().flush();
 }
@@ -459,7 +472,9 @@ void HyPerCol::finishRun() {
 int HyPerCol::run(double stopTime, double dt) {
    startRun(stopTime, dt);
 
-   if (mPVInitObj->getBooleanArgument("DryRun")) {
+   // TODO: Find a way to only have to do the dryRunFlag check once (we also did it in startRun()
+   bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
+   if (dryRunFlag) {
       return PV_SUCCESS;
    }
 
@@ -582,7 +597,11 @@ ObserverTable HyPerCol::getAllObjectsFlat() {
    return objectTable;
 }
 
-int HyPerCol::processParams(char const *path) {
+void HyPerCol::processParams(char const *path) {
+   if (mParamsProcessedFlag) {
+      return;
+   }
+
    auto objectTable = getAllObjectsFlat();
 
    if (!mParamsProcessedFlag) {
@@ -595,11 +614,24 @@ int HyPerCol::processParams(char const *path) {
                   mNumBatchGlobal,
                   mNumThreads));
    }
+   parameters()->warnUnread();
 
    // Print a cleaned up version of params to the file given by printParamsFilename
-   parameters()->warnUnread();
    if (path != nullptr && path[0] != '\0') {
-      outputParams(path);
+      std::string printParamsPath;
+      if (path[0] != '/') {
+         // If using relative path, create a path for each MPIBlock.
+         printParamsPath = mCheckpointer->makeOutputPathFilename(std::string(path));
+      }
+      else {
+         // If using absolute path, only global rank 0 writes, to avoid collisions.
+         if (mCheckpointer->getMPIBlock()->getGlobalRank() != 0) {
+            return;
+         }
+         printParamsPath = path;
+      }
+
+      outputParams(printParamsPath.c_str());
    }
    else {
       if (globalRank() == 0) {
@@ -609,7 +641,7 @@ int HyPerCol::processParams(char const *path) {
       }
    }
    mParamsProcessedFlag = true;
-   return PV_SUCCESS;
+   return;
 }
 
 double HyPerCol::singleStep() {
@@ -798,17 +830,8 @@ void HyPerCol::nonblockingLayerUpdate(
       notifyLoop(updateMessage);
 
       if (!*(updateMessage->mSomeLayerHasActed)) {
-         idleCounter++;
+         mIdleCounts.at(updateMessage->mPhase)++;
       }
-   }
-
-   if (idleCounter > 1L) {
-      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
-#ifdef PV_USE_CUDA
-                << ", recvGpu" << updateMessage->mRecvOnGpuFlag << ", updateGpu"
-                << updateMessage->mUpdateOnGpuFlag
-#endif // PV_USE_CUDA
-                << ", idle count " << idleCounter << "\n";
    }
 }
 
@@ -886,7 +909,7 @@ void HyPerCol::outputParams(char const *path) {
       outputParamsHeadComments(printLuaStream, "--");
       // Load util module based on PVPath
       printLuaStream->printf(
-            "package.path = package.path .. \";\" .. \"" PV_DIR "/../parameterWrapper/?.lua\"\n");
+            "package.path = package.path .. \";\" .. \"" PV_DIR "/../tools/lua/?.lua\"\n");
       printLuaStream->printf("local pv = require \"PVModule\"\n\n");
       printLuaStream->printf(
             "NULL = function() end; -- to allow string parameters to be set to NULL\n\n");
@@ -930,6 +953,7 @@ void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comm
 #ifdef PV_USE_MPI
    MPIBlock const *mpiBlock = mCheckpointer->getMPIBlock();
 
+#ifdef OMPI_MAJOR_VERSION
    fileStream->printf(
          "%s Compiled with Open MPI %d.%d.%d (MPI Standard %d.%d).\n",
          commentToken,
@@ -938,6 +962,17 @@ void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comm
          OMPI_RELEASE_VERSION,
          MPI_VERSION,
          MPI_SUBVERSION);
+#elif defined(MPICH_VERSION)
+   fileStream->printf(
+         "%s Compiled with MPICH %s (MPI Standard %d.%d).\n",
+         commentToken,
+         MPICH_VERSION,
+         MPI_VERSION,
+         MPI_SUBVERSION);
+#else
+   fileStream->printf(
+         "%s Compiled with MPI Standard %d.%d.\n", commentToken, MPI_VERSION, MPI_SUBVERSION);
+#endif
    fileStream->printf(
          "%s MPI configuration has %d rows, %d columns, and batch dimension %d.\n",
          commentToken,
@@ -1066,8 +1101,7 @@ int HyPerCol::getAutoGPUDevice() {
 
       // rankToHost now is an array such that the index is the rank, and the value
       // is the host
-      // Convert to a map of vectors, such that the key is the host name and the
-      // value
+      // Convert to a map of vectors, such that the key is the host name and the value
       // is a vector of mpi ranks that is running on that host
       std::map<std::string, std::vector<int>> hostMap;
       for (int rank = 0; rank < numMpi; rank++) {
@@ -1191,8 +1225,7 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
       }
       // Check length of deviceVec
       // Allowed cases are 1 device specified or greater than or equal to number
-      // of mpi processes
-      // devices specified
+      // of mpi processes devices specified
       if (deviceVec.size() == 1) {
          device = deviceVec[0];
       }

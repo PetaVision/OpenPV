@@ -25,7 +25,6 @@ class RequireAllZeroActivityProbe : public StatsProbe {
   public:
    RequireAllZeroActivityProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~RequireAllZeroActivityProbe();
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
    bool getNonzeroFound() { return nonzeroFound; }
    double getNonzeroTime() { return nonzeroTime; }
@@ -66,6 +65,8 @@ class RequireAllZeroActivityProbe : public StatsProbe {
     */
    virtual void ioParam_immediateExitOnFailure(enum ParamsIOFlag ioFlag);
    /** @} */ // End of list of RequireAllZeroActivityProbe parameters.
+
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   private:
    int initialize_base();

@@ -2,34 +2,34 @@
 package.path = package.path .. ";" .. "../../../parameterWrapper/?.lua";
 local pv = require "PVModule";
 
-local nbatch           = 20;    --Number of images to process in parallel
-local nxSize           = 32;    --CIFAR images are 32 x 32
-local nySize           = 32;
-local patchSize        = 8;
-local stride           = 2
-local displayPeriod    = 250;   --Number of timesteps to find sparse approximation
-local numEpochs        = 1;     --Number of times to run through dataset
-local numImages        = 50000; --Total number of images in dataset
-local stopTime         = math.ceil((numImages  * numEpochs) / nbatch) * displayPeriod;
-local writeStep        = displayPeriod; 
-local initialWriteTime = displayPeriod; 
+local nbatch              = 20;    --Number of images to process in parallel
+local nxSize              = 32;    --CIFAR images are 32 x 32
+local nySize              = 32;
+local patchSize           = 8;
+local stride              = 2
+local displayPeriod       = 400;   --Number of timesteps to find sparse approximation
+local numEpochs           = 1;     --Number of times to run through dataset
+local numImages           = 50000; --Total number of images in dataset
+local stopTime            = math.ceil((numImages  * numEpochs) / nbatch) * displayPeriod;
+local writeStep           = displayPeriod;
+local initialWriteTime    = displayPeriod;
 
-local inputPath        = "../cifar-10-batches-mat/mixed_cifar.txt";
-local outputPath       = "../output/";
-local checkpointPeriod = (displayPeriod * 100); -- How often to write checkpoints
+local inputPath           = "../cifar-10-batches-mat/mixed_cifar.txt";
+local outputPath          = "../output";
+local checkpointPeriod    = (displayPeriod * 100); -- How often to write checkpoints
 
-local dictionarySize   = 128;   --Number of patches/elements in dictionary 
-local dictionaryFile   = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
-local plasticityFlag   = true;  --Determines if we are learning our dictionary or holding it constant
-local momentumTau      = 500;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
-local dWMax            = 0.05;    --The learning rate
-local VThresh          = 0.1;  -- .005; --The threshold, or lambda, of the network
-local AMin             = 0;
-local AMax             = infinity;
-local AShift           = VThresh;  --This being equal to VThresh is a soft threshold
-local VWidth           = 0; 
-local timeConstantTau  = 100;   --The integration tau for sparse approximation
-local weightInit       = 1.0;
+local dictionarySize      = 128;   --Number of patches/elements in dictionary 
+local dictionaryFile      = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
+local plasticityFlag      = true;  --Determines if we are learning our dictionary or holding it constant
+local timeConstantTauConn = 500;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
+local dWMax               = 0.05;    --The learning rate
+local VThresh             = 0.55;  --The threshold, or lambda, of the network
+local AMin                = 0;
+local AMax                = infinity;
+local AShift              = VThresh;  --This being equal to VThresh is a soft threshold
+local VWidth              = 0;
+local timeConstantTauV1   = 100;   --The integration tau for sparse approximation
+local weightInit          = 1.0;
 
 -- Base table variable to store
 local pvParameters = {
@@ -38,7 +38,6 @@ local pvParameters = {
    --------------------------------------------------------------------   
    column = {
       groupType = "HyPerCol";
-      startTime                           = 0;
       dt                                  = 1;
       stopTime                            = stopTime;
       progressInterval                    = (displayPeriod * 10);
@@ -62,7 +61,7 @@ local pvParameters = {
    };
 
    AdaptiveTimeScales = {
-      groupType = "AdaptiveTimeScaleProbe";
+      groupType = "KneeTimeScaleProbe";
       targetName                          = "V1EnergyProbe";
       message                             = nil;
       textOutputFlag                      = true;
@@ -74,6 +73,8 @@ local pvParameters = {
       tauFactor                           = 0.03;  -- Percent of tau used as growth target
       growthFactor                        = 0.025; -- Exponential growth factor. The smaller value between this and the above is chosen. 
       writeTimeScalesFieldnames           = false;
+      kneeThresh                          = 3.4;
+      kneeSlope                           = 0.01;
    };
 
    Input = {
@@ -100,7 +101,6 @@ local pvParameters = {
       displayPeriod                       = displayPeriod;
       batchMethod                         = "byImage";
       writeFrameToTimestamp               = true;
-      resetToStartOnLoop                  = false;
    };
 
    InputError = {
@@ -143,7 +143,7 @@ local pvParameters = {
       AMax                                = AMax;
       AShift                              = AShift;
       VWidth                              = VWidth;
-      timeConstantTau                     = timeConstantTau;
+      timeConstantTau                     = timeConstantTauV1;
       selfInteract                        = true;
       adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
    };
@@ -184,13 +184,10 @@ local pvParameters = {
       postLayerName                       = "V1";
       channelCode                         = 0;
       delay                               = {0.000000};
-      convertRateToSpikeCount             = false;
       receiveGpu                          = true;
       updateGSynFromPostPerspective       = true;
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
-      writeCompressedCheckpoints          = false;
-      gpuGroupIdx                         = -1;
       originalConnName                    = "V1ToInputError";
    };
 
@@ -202,7 +199,6 @@ local pvParameters = {
       delay                               = {0.000000};
       numAxonalArbors                     = 1;
       plasticityFlag                      = plasticityFlag;
-      convertRateToSpikeCount             = false;
       receiveGpu                          = false; -- non-sparse -> non-sparse
       sharedWeights                       = true;
       weightInitType                      = "UniformRandomWeight";
@@ -210,10 +206,9 @@ local pvParameters = {
       wMaxInit                            = 1;
       sparseFraction                      = 0.9;
       minNNZ                              = 0;
-      combineWeightFiles                  = false;
       initializeFromCheckpointFlag        = false;
       triggerLayerName                    = "Input";
-      triggerOffset                       = 0;
+      triggerOffset                       = 1;
       immediateWeightUpdate               = true;
       updateGSynFromPostPerspective       = false; -- Should be false from V1 (sparse layer) to Error (not sparse). Otherwise every input from pre will be calculated (Instead of only active ones)
       pvpatchAccumulateType               = "convolve";
@@ -236,7 +231,7 @@ local pvParameters = {
       normalizeFromPostPerspective        = false;
       minL2NormTolerated                  = 0;
       dWMax                               = dWMax; 
-      momentumTau                         = momentumTau;   --The momentum parameter. A single weight update will last for momentumTau timesteps.
+      timeConstantTau                     = timeConstantTauConn;   --The momentum parameter. A single weight update will last for momentumTau timesteps.
       momentumMethod                      = "viscosity";
       momentumDecay                       = 0;
    }; 
@@ -247,11 +242,9 @@ local pvParameters = {
       postLayerName                       = "InputRecon";
       channelCode                         = 0;
       delay                               = {0.000000};
-      convertRateToSpikeCount             = false;
       receiveGpu                          = false;
       updateGSynFromPostPerspective       = false;
       pvpatchAccumulateType               = "convolve";
-      writeCompressedCheckpoints          = false;
       originalConnName                    = "V1ToInputError";
    };
 
@@ -289,13 +282,12 @@ local pvParameters = {
    };
 
    V1L1NormEnergyProbe = {
-      groupType = "L1NormProbe";
+      groupType = "L1NormLCAProbe";
       targetLayer                         = "V1";
       message                             = nil;
       textOutputFlag                      = true;
       probeOutputFile                     = "V1L1NormEnergyProbe.txt";
       energyProbe                         = "V1EnergyProbe";
-      coefficient                         = VThresh;
       maskLayerName                       = nil;
    };
 

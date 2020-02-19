@@ -33,10 +33,6 @@ class InputRegionActivityBuffer : public ActivityBuffer {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status allocateDataStructures() override;
-
-   virtual void setReadOnlyPointer() override;
-
   protected:
    InputActivityBuffer *mOriginalInput = nullptr;
 };

@@ -1,11 +1,9 @@
 set(SRC_CPP
   src/MaskTest.cpp
-  src/MaskTestInputLayer.cpp
   src/MaskTestLayer.cpp
 )
 
 set(SRC_HPP
-  src/MaskTestInputLayer.hpp
   src/MaskTestLayer.hpp
 )
 

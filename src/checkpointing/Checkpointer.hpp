@@ -192,6 +192,12 @@ class Checkpointer : public Subject {
    void finalCheckpoint(double simTime);
    void writeTimers(PrintStream &stream) const;
 
+   /**
+    * Returns true if the argument identifies a directory that appears to be a complete checkpoint
+    * (currently, checks for the presence of timeinfo.bin).
+    */
+   bool isCompleteCheckpoint(std::string const &candidateCheckpoint) const;
+
    MPIBlock const *getMPIBlock() { return mMPIBlock; }
    bool doesVerifyWrites() { return mVerifyWrites; }
    std::string const &getOutputPath() { return mOutputPath; }
@@ -229,7 +235,7 @@ class Checkpointer : public Subject {
    /**
      * If a meaningful signal has been received by the global root process, clears the signal
      * and returns its value. Otherwise returns 0.
-     * Currently, the meaningful signals are SIGINT, SIGTERM and SIGUSR1.
+     * Currently, the meaningful signals are SIGUSR1 and SIGUSR2
      */
    int retrieveSignal();
 
@@ -267,8 +273,8 @@ class Checkpointer : public Subject {
     * It writes a checkpoint, indexed by the current timestep. If the deleteOlderCheckpoints param
     * was set, it does not cause a checkpoint to be deleted, and does not rotate the checkpoint
     * into the list of directories that will be deleted.
-    * If the signal was SIGINT (Interrupt) or SIGTERM (Terminate), the program exits,
-    * returning the integer code corresponding to the signal.
+    * If the signal was SIGUSR2, the program exits, returning the integer code corresponding
+    * to the signal.
     */
    void checkpointWriteSignal(int checkpointSignal);
 
@@ -293,9 +299,17 @@ class Checkpointer : public Subject {
     * old checkpoint directories, and adds the new checkpoint directory to the list.
     */
    void rotateOldCheckpoints(std::string const &newCheckpointDirectory);
+   void deleteFileFromDir(std::string const &targetDir, std::string const &targetFile) const;
    void writeTimers(std::string const &directory);
    std::string generateBlockPath(std::string const &baseDirectory);
-   void verifyDirectory(char const *directory, std::string const &description);
+
+   /**
+    * Checks whether the specified directory is a checkpoint directory. If the process is the
+    * root process of the MPIBlock, it is a fatal error if the directory does not pass
+    * isCompleteCheckpoint().
+    * The description argument is used in error messages.
+    */
+   void verifyCheckpointDirectory(char const *directory, std::string const &description);
 
   private:
    std::string mName;

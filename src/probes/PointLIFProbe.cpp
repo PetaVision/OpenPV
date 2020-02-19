@@ -127,7 +127,7 @@ PointLIFProbe::initializeState(std::shared_ptr<InitializeStateMessage const> mes
 void PointLIFProbe::calcValues(double timevalue) {
    assert(this->getNumValues() == NUMBER_OF_VALUES);
    double *valuesBuffer = this->getValuesBuffer();
-   auto *globalComm     = mCommunicator->globalCommunicator();
+   auto globalComm     = mCommunicator->globalCommunicator();
 
    // if in bounds
    if (getPointRank() == mCommunicator->globalCommRank()) {
@@ -147,7 +147,7 @@ void PointLIFProbe::calcValues(double timevalue) {
 
    // Root process receives from local rank of the target point.
    if (mCommunicator->globalCommRank() == 0 and getPointRank() != 0) {
-      auto *globalComm = mCommunicator->globalCommunicator();
+      auto globalComm = mCommunicator->globalCommunicator();
       MPI_Recv(
             valuesBuffer,
             NUMBER_OF_VALUES,

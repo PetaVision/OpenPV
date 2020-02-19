@@ -137,7 +137,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    void nonblockingLayerUpdate(
          std::shared_ptr<LayerRecvSynapticInputMessage const> recvMessage,
          std::shared_ptr<LayerUpdateStateMessage const> updateMessage);
-   int processParams(char const *path);
+   void processParams(char const *path);
 
    /**
     * This function tells each added object to perform the tasks necessary
@@ -194,6 +194,10 @@ class HyPerCol : public Subject, public ParamsInterface {
    PVCuda::CudaDevice *getDevice() { return mCudaDevice; }
 #endif
 
+  protected:
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+
    // Private functions
 
   private:
@@ -231,32 +235,27 @@ class HyPerCol : public Subject, public ParamsInterface {
 
   private:
    bool mErrorOnNotANumber; // If true, check each layer's activity buffer for
-   // not-a-numbers and
-   // exit with an error if any appear
+   // not-a-numbers and exit with an error if any appear
    bool mCheckpointReadFlag; // whether to load from a checkpoint directory
    bool mReadyFlag; // Initially false; set to true when communicateInitInfo,
    // allocateDataStructures, and initializeState stages are completed
-   bool mParamsProcessedFlag; // Initially false; set to true when processParams
-   // is called.
+   bool mParamsProcessedFlag = false; // Set to true when processParams() is called.
    bool mWriteTimeScaleFieldnames; // determines whether fieldnames are written to
    // HyPerCol_timescales file
    bool mWriteProgressToErr; // Whether to write progress step to standard error
-   // (True) or standard
-   // output (False) (default is output)
+   // (True) or standard output (False) (default is output)
    bool mOwnsCommunicator; // True if icComm was created by initialize, false if
-   // passed in the
-   // constructor
+   // passed in the constructor
    bool mWriteTimescales;
    char *mPrintParamsFilename; // filename for outputting the mParams, including
-   // defaults and
-   // excluding unread mParams
+   // defaults and excluding unread mParams
    double mSimTime;
    double mStopTime; // time to stop time
    double mDeltaTime; // time step interval
-   double mProgressInterval; // Output progress after mSimTime increases by this
-   // amount.
+   double mProgressInterval; // Output progress after mSimTime increases by this amount.
    double mNextProgressTime; // Next time to output a progress message
    int mNumPhases;
+   std::vector<int> mIdleCounts; // How many times each phase had to wait for data to arrive
    int mNumXGlobal;
    int mNumYGlobal;
    int mNumBatchGlobal;

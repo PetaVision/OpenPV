@@ -124,7 +124,7 @@ class ComponentBuffer : public BaseObject {
 
    /**
     * The method, called by allocateDataStructures, to set the pointer returned by
-    * getReadOnlyPointer(). The default allocates the buffer data and sets the pointer to the
+    * getBufferData(). The default allocates the buffer data and sets the pointer to the
     * start of the data buffer. It can be overridden (e.g. by clones), however, it should always
     * set the pointer to a buffer whose size is at least BufferSizeAcrossChannels.
     */
@@ -132,7 +132,7 @@ class ComponentBuffer : public BaseObject {
 
    /**
     * The method, called by allocateDataStructures, to set the pointer returned by
-    * getBufferData(). The default returns the pointer to the start of the data buffer,
+    * getReadWritePointer(). The default returns the pointer to the start of the data buffer,
     * if the data buffer is non-empty, but the null pointer if it is empty (e.g. for
     * cloned membrane potentials, which use another layer's data buffer instead.)
     */

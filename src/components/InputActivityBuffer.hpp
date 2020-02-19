@@ -173,7 +173,7 @@ class InputActivityBuffer : public ActivityBuffer {
 
    virtual ~InputActivityBuffer();
 
-   void makeInputRegionsPointer() { mNeedInputRegionsPointer = true; }
+   void makeInputRegionsPointer(ActivityBuffer *activityBuffer);
 
    virtual std::string const &getCurrentFilename(int localBatchIndex, int mpiBatchIndex) const;
 
@@ -399,6 +399,10 @@ class InputActivityBuffer : public ActivityBuffer {
    // Will not be allocated unless the makeInputRegionsPointer() method is called before the
    // AllocateData stage.
    std::vector<float> mInputRegionsAllBatchElements;
+
+   // A vector containing the ActivityBuffer objects that the InputRegion buffers will be
+   // copied to.
+   std::vector<ActivityBuffer *> mInputRegionTargets;
 
    // Filepointer to output file used when mWriteFrameToTimestamp == true
    CheckpointableFileStream *mTimestampStream = nullptr;

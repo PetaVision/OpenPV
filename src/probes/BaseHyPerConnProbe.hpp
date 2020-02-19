@@ -27,6 +27,7 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
   protected:
    BaseHyPerConnProbe();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual void ioParam_statsFlag(enum ParamsIOFlag ioFlag) override;
    virtual bool needRecalc(double timevalue) override;
 
    /**
@@ -35,6 +36,8 @@ class BaseHyPerConnProbe : public BaseConnectionProbe {
     * HyPerConn.
     */
    virtual double referenceUpdateTime(double simTime) const override;
+
+   virtual Response::Status outputStateStats(double simTime, double deltaTime) override;
 
   protected:
    Weights *mWeights; // should be const but Weights and PatchGeometry are not const-correct yet

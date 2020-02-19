@@ -23,6 +23,12 @@ void BaseHyPerConnProbe::initialize(const char *name, PVParams *params, Communic
    BaseConnectionProbe::initialize(name, params, comm);
 }
 
+void BaseHyPerConnProbe::ioParam_statsFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parameters()->handleUnnecessaryParameter(name, "statsFlag");
+   }
+}
+
 Response::Status
 BaseHyPerConnProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    auto status = BaseConnectionProbe::communicateInitInfo(message);
@@ -60,6 +66,11 @@ bool BaseHyPerConnProbe::needRecalc(double timevalue) {
 
 double BaseHyPerConnProbe::referenceUpdateTime(double simTime) const {
    return mWeights->getTimestamp();
+}
+
+Response::Status BaseHyPerConnProbe::outputStateStats(double simTime, double deltaTime) {
+   Fatal() << "BaseHyPerConnProbe::outputStateStats() should never be called.\n";
+   return Response::NO_ACTION; // to suppress compiler warnings
 }
 
 BaseHyPerConnProbe::~BaseHyPerConnProbe() {}
