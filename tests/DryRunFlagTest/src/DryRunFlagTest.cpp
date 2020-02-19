@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 
    FatalIf(
          pv_obj.getParams() != nullptr,
-         "%s should be called without the -p argument; the necessary params file is hard-coded.\n");
+         "%s should be called without the -p argument; the necessary params file is hard-coded.\n", argv[0]);
    pv_obj.setParams("input/DryRunFlagTest.params");
 
    int rank = pv_obj.getCommunicator()->globalCommRank();
