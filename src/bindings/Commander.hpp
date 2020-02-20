@@ -30,7 +30,7 @@ class Commander {
       static const int MPI_TAG = 666;
 
    protected:
-      Interactions *mInteractions;
+      Interactions *mInteractions = nullptr;
 
    private:
       enum Command {

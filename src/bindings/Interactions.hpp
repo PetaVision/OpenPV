@@ -92,10 +92,10 @@ class Interactions {
       int    mRow, mCol, mBatch, mRank;
 
    protected:
-      HyPerCol   *mHC;
-      PV_Init    *mPVI;
-      int         mArgC;
-      char      **mArgV;
+      HyPerCol   *mHC   = nullptr;
+      PV_Init    *mPVI  = nullptr;
+      int         mArgC = 0;
+      char      **mArgV = nullptr;
       std::string mParams;
 };
 

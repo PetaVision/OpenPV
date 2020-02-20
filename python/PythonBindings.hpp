@@ -26,7 +26,7 @@ class PythonBindings {
    ~PythonBindings();
 
   private:
-   Commander *mCmd;
+   Commander *mCmd = nullptr;
    
   public:
    void                begin();
