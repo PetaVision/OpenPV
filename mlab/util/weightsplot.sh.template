@@ -1,0 +1,3 @@
+#!/bin/sh
+
+octave --eval "weightsplot('../output','../output/Checkpoints',{'V1ToInputError_W.pvp'});";
