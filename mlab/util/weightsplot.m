@@ -1,12 +1,15 @@
+% weightsplot(output_dir,checkpoint_dir,weights_files,ind,cols,prefix)
+%
 % Make basis vector images
 %  output_dir: where to place a directory "weights_movie". Plots will be located here.
 %  checkpoint_dir: where to find the weight files
 %  weight_files: string of weightfile name. 
 %       If more than one weight (e.g. stereo) input is a cell of strings.
 %       Cell arrangement also specifies sub arangement of kernels (e.g. 4x1, 2x2)
+%  Optional inputs:
 %  ind: vector of indices to plot kernels in this order. "Used by sortweightsplot.m"
 %  cols: number of columns (for overriding standard aspect ratio)
-%  prefix: file name prefix (e.g. sorted)
+%  prefix: file name prefix (e.g. "sorted")
 function weightsplot(output_dir,checkpoint_dir,weights_files,ind,cols,prefix)
 
 if ~exist('ind','var')
@@ -23,7 +26,25 @@ end
 
 wfolder=dir(checkpoint_dir);
 if isempty(dir(fullfile(output_dir,'weights_movie')))
-    mkdir(fullfile(output_dir,'weights_movie'));
+    weights_movie_path = fullfile(output_dir,'weights_movie');
+    mkdir_result = mkdir(weights_movie_path);
+    if (~mkdir_result)
+        % Older versions of Octave do not create intermediate directories
+        containing_dirs = {};
+        curpath = weights_movie_path;
+        oldpath = -1;
+        while ~isempty(curpath) && ~isequal(curpath, oldpath)
+            containing_dirs{numel(containing_dirs) + 1} = curpath;
+            oldpath = curpath;
+            curpath = fileparts(curpath);
+        end%while
+        for k=numel(containing_dirs):-1:1
+            [mkdir_result, mkdir_msg] = mkdir(containing_dirs{k});
+            if ~mkdir_result
+                error('weightsplot:mkdirfailed', 'weightsplot: unable to mkdir \"%s\": %s', containing_dirs{k}, mkdir_msg);
+            end%if
+        end%for
+    end%if
 end
 
 outdir=fullfile(output_dir,'weights_movie');

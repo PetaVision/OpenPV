@@ -1,4 +1,6 @@
-% Sort the weigth vectors by their overall activities in the training or testing process
+% ind=sortweightsplot(output_dir,activity_file,checkpoint_dir,weights_files,sortby,showActivityPlots,pauseflag,nLookBack)
+%
+% Sort the weight vectors by their overall activities in the training or testing process
 %  output_dir: 
 %       where to find the pvp-activity file  
 %       also, the weights_move folder with the plots will be placed here

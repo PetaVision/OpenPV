@@ -11,7 +11,7 @@ displayPeriod=150;
 errorFileDir='../output';
 L1Filename='V1L1NormEnergyProbe_batchElement_0.txt';
 L2Filename='InputErrorL2NormEnergyProbe_batchElement_0.txt';
-EnergyFilename='V1L1NormEnergyProbe_batchElement_0.txt';
+EnergyFilename='V1EnergyProbe_batchElement_0.txt';
  
 command="errorcurve('"$errorFileDir"', {'$L1Filename','$L2Filename','$EnergyFilename'},[$plotLimitLow,$plotLimitHigh],$displayPeriod);"
 octave --eval "$command";

@@ -1,12 +1,14 @@
-% Used to visulize how the L2, L1 error and total energy of the network
-% changes during training. First n, last m timesteps are plotted as well as
-% all settled values and a running mean of the latter. Will also save figures
-% as png files in errorFileDir
+% errorcurve(errorFileDir, filenames, plotLimits, displayPeriod)
 %
-% errorFileDir: usually ../output
+% Used to visualize how the L2, L1 error and total energy of the network
+% change during training. First n, last m display periods are plotted as well as
+% all settled values and a running mean of the latter. Will also save figures
+% as pdf files in errorFileDir
+%
+% errorFileDir: usually the directory set in the outputPath param
 % filenames: cell containing the filenames for files containing the 
 %    L1-Error, L2-Error, Combined Energy (in that order)
-% plotLimits: 2-Vector specifying first n and last m timesteps to plot
+% plotLimits: 2-Vector specifying first n and last m display periods to plot
 % displayPeriod: set in params file
 %
 %ToDo: extract display Period automatically
@@ -19,22 +21,14 @@ isOctave = exist('OCTAVE_VERSION', 'builtin') ~= 0; % for compatibility
 
 %% settings
 
-displayPeriodDetailedPlotLimit_first = plotLimits(1); % detailed data will only be plotted starting with this value
-displayPeriodDetailedPlotLimit_last = plotLimits(2); % detailed data will only be plotted up to this value
+displayPeriodDetailedPlotLimit_first = plotLimits(1); % detailed data will be plotted for this many display periods at the beginning
+displayPeriodDetailedPlotLimit_last = plotLimits(2); % detailed data will be plotted for this many display periods at the end
 plotDetailed    = true; % the first plot
-% displayPeriod   = 1000; % how many timesteps to settle the network
 
 
 L1Filename      = filenames{1};
 L2Filename      = filenames{2};
 EnergyFilename  = filenames{3};
-
-
-% L1Filename      = 'V1L1NormEnergyProbe_batchElement_0.txt';
-% L2Filename      = 'LeftErrorL2NormEnergyProbe_batchElement_0.txt';
-% EnergyFilename  = 'V1EnergyProbe_batchElement_0.txt';
-% errorFileDir    = '../output';
-
 
 % minor settings
 plotColors{1}=[1,0,0];
@@ -105,13 +99,13 @@ while true
         error('Error: No Data. Exiting.')
     end
     
-    % plot firts n data
+    % plot first n data
     if plotDetailed ...
             && displayPeriodDetailedPlotLimit_first > 0 ...
             && displayPeriod_current == displayPeriodDetailedPlotLimit_first
         
         figName = ['First ',num2str(displayPeriodDetailedPlotLimit_first),' Error Probes, every time step'];
-        detailedEnergyFigure_first = figure ('Name',figName,'NumberTitle','off','units','normalized','outerposition',[0 0 1 1]);
+        detailedEnergyFigure_first = figure ('Name',figName,'NumberTitle','off');
         hold on;
         legend Location northeast
         for j = 1 : size(fid,1)
@@ -153,11 +147,11 @@ if plotDetailed ...
     
     if displayPeriod_current <= displayPeriodDetailedPlotLimit_last
         figName = [num2str(displayPeriod_current),' Error Probes (+ offset), every time step'];
-        detailedEnergyFigure_last = figure ('Name',figName,'NumberTitle','off','units','normalized','outerposition',[0 0 1 1]);
+        detailedEnergyFigure_last = figure ('Name',figName,'NumberTitle','off');
         last_n_reached=false;% size(displayPeriodData_complete{1},1)-1;
     else
         figName = ['Last ',num2str(displayPeriodDetailedPlotLimit_last),' Error Probes (+ offset), every time step'];
-        detailedEnergyFigure_last = figure ('Name',figName,'NumberTitle','off','units','normalized','outerposition',[0 0 1 1]);
+        detailedEnergyFigure_last = figure ('Name',figName,'NumberTitle','off');
         last_n_reached=true;% displayPeriodDetailedPlotLimit_last*displayPeriod;
     end
     hold on;
@@ -203,8 +197,8 @@ if size(settledData{1},1)>1
     if windowSize >= size(settledData{1},1)
         windowSize = size(settledData{1},1)-1;
     end
-    figName = 'Error Probes, only last value of display period.';
-    learningEnergyFigure = figure ('Name',figName,'NumberTitle','off','units','normalized','outerposition',[0 0 1 1]);
+    figName = 'Error Probes, only last value of display period';
+    learningEnergyFigure = figure ('Name',figName,'NumberTitle','off');
     hold on;
     smoothed=cell(3,1);
     for j = 1 : size(fid,1)
@@ -244,5 +238,8 @@ end
 if isOctave
   disp('Hit any key to exit and close all windows');
   pause
+  close(detailedEnergyFigure_first);
+  close(detailedEnergyFigure_last);
+  close(learningEnergyFigure);
 end
-end
+end%function
