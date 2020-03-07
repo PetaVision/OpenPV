@@ -323,7 +323,7 @@ class BaseProbe : public BaseObject {
     * Returns true if a probeOutputFile is being used.
     * Otherwise, returns false (indicating output is going to getOutputStream().
     */
-   inline bool isWritingToFile() const { return !mProbeOutputFilename or !mProbeOutputFilename[0]; }
+inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutputFilename[0]; }
 
    /**
     * If there is a triggering layer, needUpdate returns true when the triggering
