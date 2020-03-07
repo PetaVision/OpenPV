@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# Used to visulize how the L2, L1 error and total energy of the network
+# First 30 and last 30 display periods in order to evaluate how well optimization settles.
+# Additionally, plot only settled values in order to monitor improvement.
+
+plotLimitLow=15;
+plotLimitHigh=15;
+displayPeriod=150;
+
+errorFileDir='../output';
+L1Filename='V1L1NormEnergyProbe_batchElement_0.txt';
+L2Filename='InputErrorL2NormEnergyProbe_batchElement_0.txt';
+EnergyFilename='V1EnergyProbe_batchElement_0.txt';
+ 
+command="errorcurve('"$errorFileDir"', {'$L1Filename','$L2Filename','$EnergyFilename'},[$plotLimitLow,$plotLimitHigh],$displayPeriod);"
+octave --eval "$command";
+
