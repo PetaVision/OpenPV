@@ -143,7 +143,7 @@ void HebbianUpdater::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
 void HebbianUpdater::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "dWMax"));
       parameters()->ioParamValue(
             ioFlag, name, "dWMaxDecayFactor", &mDWMaxDecayFactor, mDWMaxDecayFactor, false);
       FatalIf(
