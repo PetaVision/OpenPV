@@ -5,7 +5,7 @@
 macro(pv_config_project)
 
   # The default build type if CMAKE_BUILD_TYPE is empty
-  set(CMAKE_DEFAULT_BUILD_TYPE "Release")
+  set(PV_DEFAULT_BUILD_TYPE "Release")
 
   # Intel Compiler defaults
   set(ICC_OPT_REPORT_LEVEL "-qopt-report=2")
@@ -189,7 +189,7 @@ macro(pv_config_project)
   
   # Ensure that CMAKE_BUILD_TYPE is set
   if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "${CMAKE_DEFAULT_BUILD_TYPE}")
+    set(CMAKE_BUILD_TYPE "${PV_DEFAULT_BUILD_TYPE}")
   endif()
   
   # Set up PV_SOURCE and INCLUDE_DIR.
