@@ -41,7 +41,8 @@ macro(pv_config_project)
   set(GCC_LINK_LIBRARIES m)
   
   # CUDA flags
-  set(CUDA_BASE_FLAGS "-arch=sm_30 -std=c++11")
+  # set(CUDA_BASE_FLAGS "-arch=sm_30 -std=c++11") # sm_30 is obsolete as of CUDA version 11.0.
+  set(CUDA_BASE_FLAGS "-arch=sm_52 -std=c++11")
   set(CUDA_RELEASE_FLAGS "${CUDA_BASE_FLAGS};-O3")
   set(CUDA_DEBUG_FLAGS "${CUDA_BASE_FLAGS};-Xptxas;-v;-keep;-lineinfo;-g;-G")
   
