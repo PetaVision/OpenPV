@@ -1,6 +1,6 @@
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 
-cmake_minimum_required(VERSION 2.8.10)
+cmake_minimum_required(VERSION 3.0.0)
 
 get_filename_component(PV_PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 project(${PV_PROJECT_NAME})

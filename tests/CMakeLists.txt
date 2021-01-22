@@ -4,7 +4,7 @@
 enable_testing()
 
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.8.10)
+cmake_minimum_required(VERSION 3.0.0)
 
 # Include the pv_add_test macro
 include(PVAddTest)
