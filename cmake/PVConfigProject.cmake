@@ -4,6 +4,11 @@
 
 macro(pv_config_project)
 
+  # set policy to use CUDA_ROOT and CUDNN_ROOT variables
+  if (${CMAKE_VERSION} VERSION_GREATER "3.16.0")
+    cmake_policy(SET CMP0074 NEW)
+  endif()
+
   # The default build type if CMAKE_BUILD_TYPE is empty
   set(PV_DEFAULT_BUILD_TYPE "Release")
 
@@ -40,22 +45,14 @@ macro(pv_config_project)
   set(GCC_RELEASE_FLAGS "")
   set(GCC_LINK_LIBRARIES m)
   
-  # CUDA flags
-  # set(CUDA_BASE_FLAGS "-arch=sm_30 -std=c++11") # sm_30 is obsolete as of CUDA version 11.0.
-  set(CUDA_BASE_FLAGS "-arch=sm_52 -std=c++11")
-  set(CUDA_RELEASE_FLAGS "${CUDA_BASE_FLAGS};-O3")
-  set(CUDA_DEBUG_FLAGS "${CUDA_BASE_FLAGS};-Xptxas;-v;-keep;-lineinfo;-g;-G")
-  
-  # CUDNN path hints
-  set(CUDNN_PATH_HINT "/usr/local/cudnn")
-  
   # Help strings
   set(PV_DIR_HELP "The core PetaVision directory")
   set(PV_OPENMP_HELP "Defines if PetaVision uses OpenMP")
   set(PV_OPENMP_FLAG_HELP "Compiler flag for compiling with OpenMP")
   set(PV_USE_MPI_HELP "Defines whether PetaVision uses MPI")
   set(PV_USE_CUDA_HELP "Defines if PetaVision uses CUDA GPU")
-  set(PV_CUDA_RELEASE_HELP "Defines if Cuda compiles with optimization")
+  set(PV_CUDA_RELEASE_HELP "Defines if CUDA compiles with optimization")
+  set(PV_CUDA_ARCHITECTURE_HELP "Defines CUDA architecture to compile for")
   set(PV_USE_LUA_HELP "Enable using a lua program as the params file")
   set(PV_CUDNN_PATH_HELP "Location of cuDNN libraries. Optional")
   set(PV_ADDRESS_SANITIZE_HELP "Add compiler flags for sanitizing addresses")
@@ -157,7 +154,8 @@ macro(pv_config_project)
   set(PV_USE_OPENMP ON CACHE BOOL "${PV_USE_OPENMP_HELP}")
   set(PV_OPENMP_FLAG "${PV_OPENMP_FLAG}" CACHE STRING "${PV_OPENMP_FLAG_HELP}")
   set(PV_USE_CUDA ON CACHE BOOL "${PV_USE_CUDA_HELP}")
-  set(PV_CUDA_RELEASE ON CACHE BOOL ${PV_CUDA_RELEASE_HELP})
+  set(PV_CUDA_RELEASE ON CACHE BOOL "${PV_CUDA_RELEASE_HELP}")
+  set(PV_CUDA_ARCHITECTURE "Auto" CACHE STRING "${PV_CUDA_ARCHITECTURE_HELP}")
   set(PV_USE_LUA OFF CACHE BOOL "${PV_USE_LUA_HELP}")
   set(PV_ADDRESS_SANITIZE OFF CACHE BOOL "${PV_ADDRESS_SANITIZE_HELP}")
   set(PV_BUILD_SHARED OFF CACHE BOOL "${PV_BUILD_SHARED_HELP}")
@@ -219,6 +217,8 @@ macro(pv_config_project)
       message(WARNING "-- CUDA cannot be used with the Intel compiler. Disabling CUDA build")
       set(PV_USE_CUDA OFF)
     else()
+  
+      set(CUDNN_PATH_HINT "/usr/local/cudnn")
       set(CUDNN_PATH ${CUDNN_PATH_HINT} CACHE PATH "${PV_CUDNN_PATH_HELP}")
       
       find_package(CUDA)
@@ -230,6 +230,15 @@ macro(pv_config_project)
         # Without this, none of the CUDNN code will be compiled and all
         # CUDA code will fail
         set(PV_USE_CUDNN ON)
+
+        if(NOT "${PV_CUDA_ARCHITECTURE}" STREQUAL "")
+          cuda_select_nvcc_arch_flags(CUDA_ARCH_FLAGS "${PV_CUDA_ARCHITECTURE}")
+          set(CUDA_BASE_FLAGS "${CUDA_BASE_FLAGS};${CUDA_ARCH_FLAGS}")
+        endif(NOT "${PV_CUDA_ARCHITECTURE}" STREQUAL "")
+        # set(CUDA_BASE_FLAGS "-arch=sm_30 -std=c++11") # sm_30 is obsolete as of CUDA version 11.0.
+        set(CUDA_BASE_FLAGS "${CUDA_BASE_FLAGS};-std=c++11")
+        set(CUDA_RELEASE_FLAGS "${CUDA_BASE_FLAGS};-O3")
+        set(CUDA_DEBUG_FLAGS "${CUDA_BASE_FLAGS};-Xptxas;-v;-keep;-g;--generate-line-info")
         
         if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinRelSize")
           set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};${CUDA_RELEASE_FLAGS}")

@@ -78,6 +78,7 @@ static inline int makeDirectory(char const *dir) {
    if (errno == EEXIST) {
       status = 0;
    }
+   free(workingDir);
    return status;
 }
 

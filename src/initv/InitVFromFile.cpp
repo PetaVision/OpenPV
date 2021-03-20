@@ -94,7 +94,7 @@ void InitVFromFile::readDenseActivityPvp(
          Buffer<float> pvpBuffer;
          if (isRootProc) {
             int frameIndex = (mFrameNumber + globalBatchIndex) % numFrames;
-            fileStream.setOutPos(sizeof(header) + frameIndex * sizeof(float) * frameSize, true);
+            fileStream.setOutPos(sizeof(header) + frameIndex * frameSize, true);
             int xStart = header.nx * mpiBlock->getStartColumn() / mpiBlock->getNumColumns();
             int yStart = header.ny * mpiBlock->getStartRow() / mpiBlock->getNumRows();
             pvpBuffer.resize(header.nx, header.ny, header.nf);
