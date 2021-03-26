@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
 
    /* First param file has 5% dropout. From there, it's 25%, 50%, 75%, and 95% */
 
+   initObj.setParams("input/DropoutLayerTest_05.params");
    targetAvg = 95.0f;
    status    = rebuildandrun(&initObj, NULL, &customexit);
    if (status != PV_SUCCESS) {
@@ -70,12 +71,14 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
       count += checkData[k];
    }
 
+   float observedAvg = count / (float)numNeurons;
    FatalIf(
-         fabsf((float)(count / numNeurons) - targetAvg) > 1,
-         "Test failed: value out of acceptable range\n");
+         fabsf(observedAvg - targetAvg) > 1,
+         "Test failed: expected average %f, observed average %f\n",
+         (double)targetAvg, (double)observedAvg);
 
    if (hc->columnId() == 0) {
-      InfoLog().printf("%s passed.\n", argv[0]);
+      InfoLog().printf("%s passed for dropout probability %.1f%%.\n", argv[0], 100.0 - (double)targetAvg);
    }
    return PV_SUCCESS;
 }

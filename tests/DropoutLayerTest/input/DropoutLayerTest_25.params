@@ -11,11 +11,11 @@ HyPerCol "column" = {
    progressInterval = 1000.0; 
    writeProgressToErr = false;
    verifyWrites = false;
-   outputPath = "output/";
+   outputPath = "output/dropoutprob25";
    printParamsFilename = "pv.params"; 
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
-   lastCheckpointDir = "output/Last"; 
+   lastCheckpointDir = "output/dropoutprob25/Last"; 
 };
 
 
