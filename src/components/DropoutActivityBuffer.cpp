@@ -16,7 +16,7 @@ DropoutActivityBuffer::DropoutActivityBuffer(
    initialize(name, params, comm);
 }
 
-DropoutActivityBuffer::~DropoutActivityBuffer() {}
+DropoutActivityBuffer::~DropoutActivityBuffer() { delete mRandState; }
 
 void DropoutActivityBuffer::initialize(
       char const *name,
@@ -44,6 +44,15 @@ void DropoutActivityBuffer::ioParam_probability(enum ParamsIOFlag ioFlag) {
    }
 }
 
+Response::Status DropoutActivityBuffer::allocateDataStructures() {
+   auto status = ActivityBuffer::allocateDataStructures();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   mRandState = new Random(getLayerLoc(), true /*extended*/);
+   return Response::SUCCESS;
+}
+
 void DropoutActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    ANNActivityBuffer::updateBufferCPU(simTime, deltaTime);
    float *A  = mBufferData.data();
@@ -53,7 +62,9 @@ void DropoutActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
 #pragma omp parallel for
 #endif
    for (int i = 0; i < total; ++i) {
-      if (rand() % 100 < mProbability) {
+      taus_uint4 *rng = mRandState->getRNG(i);
+      *rng            = cl_random_get(*rng);
+      if (rng->s0 % 100 < mProbability) {
          A[i] = 0.0f;
       }
    }

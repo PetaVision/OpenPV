@@ -8,6 +8,7 @@
 #ifndef DROPOUTACTIVITYBUFFER_HPP_
 #define DROPOUTACTIVITYBUFFER_HPP_
 
+#include "columns/Random.hpp"
 #include "components/ANNActivityBuffer.hpp"
 
 namespace PV {
@@ -48,6 +49,8 @@ class DropoutActivityBuffer : public ANNActivityBuffer {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
+   virtual Response::Status allocateDataStructures() override;
+
    /**
     * Updates as ANNActivityBuffer updates, and then applies random dropout based on
     * the Probability parameter.
@@ -56,6 +59,8 @@ class DropoutActivityBuffer : public ANNActivityBuffer {
 
   protected:
    int mProbability = 0; // Value from 0-99 indicating per-neuron chance of dropout
+
+   Random *mRandState = nullptr; // array of RNGs
 };
 
 } // namespace PV
