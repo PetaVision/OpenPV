@@ -1,6 +1,9 @@
-# pv_add_test([ONLY_MPI | NO_MPI] [MAX_MPI_COPIES] [FLAGS] [BASE_NAME])
+# pv_add_test([PARAMS | NO_PARAMS] [MPI_ONLY | NO_MPI] [MIN_MPI_COPIES] [MAX_MPI_COPIES] [FLAGS] [BASE_NAME] [SRCFILES])
 #
-# All arguments are optional
+# All arguments except SRCFILES are optional.
+# SRCFILES and PARAMS each take one or more string arguments.
+# MIN_MPI_COPIES and MAX_MPI_COPIES each take one numerical argument.
+# FLAGS and BASE_NAME each take one string argument.
 #
 # Add a test case for the OpenPV library. This creates the binary and adds
 # test tests. Multiple test cases are added by default.
@@ -9,7 +12,7 @@
 #
 # Most files will have a single line:
 #
-#   pv_add_test()
+#   pv_add_test(SRCFILES main.cpp file1.cpp file2.cpp file1.hpp file2.hpp)
 # 
 #   This will add a test with a base name based on the test's directory name. The params file
 #   will be named input/directory_name.params
@@ -18,26 +21,33 @@
 #
 # No params files:
 #
-#   pv_add_test(NO_PARAMS)
+#   pv_add_test(NO_PARAMS SRCFILES main.cpp)
 #
 # Alternate param files:
 #
-#   pv_add_test(PARAMS test_kernel test_kernel_normalizepost test_kernel_normalizepost_shrunken)
+#   pv_add_test(PARAMS test_kernel test_kernel_normalizepost test_kernel_normalizepost_shrunken SRCFILES main.cpp)
 #
 # No params files, no MPI:
 #
-#   pv_add_test(NO_PARAMS NO_MPI)
+#   pv_add_test(NO_PARAMS NO_MPI SRCFILES main.cpp)
 #
 # Append special flags to the command line
 #
-#   pv_add_test(FLAGS "-c checkpoints/Checkpoint06 --testall")
+#   pv_add_test(FLAGS "-c checkpoints/Checkpoint06 --testall" SRCFILES main.cpp)
 #
 # Specify the number of MPI copies, only test MPI, and special flags
 #
-#   pv_add_test(MIN_MPI_COPIES 4 MPI_ONLY FLAGS "-batchwidth 4")
+#   pv_add_test(MIN_MPI_COPIES 4 MPI_ONLY FLAGS "-batchwidth 4" SRCFILES main.cpp)
 #
 # --------------------------------------------------------------------------------
 # Options:
+#
+# PARAMS - by default, this is set to BASE_NAME and a params file of name input/BASE_NAME.params
+#   is searched for. If multiple params files are specified, then a separate set of tests
+#   will be run for each of the params files
+#
+# NO_PARAMS - if set, then no params files will be used for this test. Setting PARAMS and
+#   NO_PARAMS will result in an error
 #
 # MPI_ONLY and NO_MPI are mutually exclusive. Both arguments are options.
 # By default, one non-MPI test case is created, and two MPI test cases are created, for
@@ -55,13 +65,8 @@
 # BASE_NAME - by default, this is the last component of the path ${CMAKE_CURRENT_SOURCE_DIR}.
 #  Set BASE_NAME to override
 #
-# PARAMS - by default, this is set to BASE_NAME and a params file of name input/BASE_NAME.params
-#   is searched for. If multiple params files are specified, then a separate set of tests
-#   will be run for each of the params files
-#
-# NO_PARAMS - if set, then no params files will be used for this test. Setting PARAMS and
-#   NO_PARAMS will result in an error
-#
+# SRCFILES - The list source files for the executable that this test runs. There must be
+#  at least one source file. This list of files will be passed to pv_add_executable().
 
 function(pv_add_test_error TEST_NAME MESSAGE)
     message(ERROR "Cannot add OpenPV test ${TEST_NAME}. ${MESSAGE}")
@@ -78,7 +83,7 @@ macro(pv_add_test)
   endif()
 
   if (PARSED_ARGS_MPI_ONLY AND PARSED_ARGS_NO_MPI)
-    pv_add_test_error(${BASE_NAME} "ONLY_MPI and NO_MPI are both set. These options are mutually exclusive.")
+    pv_add_test_error(${BASE_NAME} "MPI_ONLY and NO_MPI are both set. These options are mutually exclusive.")
     set(ERROR_STATE ON)
   endif()
 
