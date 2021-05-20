@@ -136,7 +136,7 @@ ActivityHeader buildActivityHeader(int width, int height, int features, int numF
    result.ny         = height;
    result.nf         = features;
    result.numRecords = 1;
-   result.recordSize = width * height * features;
+   result.recordSize = width * height * features; // don't use this value; it can overflow
    result.dataSize   = sizeof(T);
    result.dataType   = dataType;
    result.nxProcs    = 1;
@@ -194,7 +194,10 @@ void appendToPvp(
    // fStream is now pointing at the first frame. Each frame is
    // the size of the timestamp (double) plus the size of the
    // frame's data (numElements * sizeof(T))
-   long frameOffset = frameWriteIndex * (header.recordSize * header.dataSize + sizeof(double));
+   long recordSize =
+         static_cast<long>(header.nx) * static_cast<long>(header.ny) * static_cast<long>(header.nf);
+   long frameOffset =
+         frameWriteIndex * (recordSize * header.dataSize + static_cast<long>(sizeof(double)));
 
    fStream.setOutPos(frameOffset, false);
    writeFrame<T>(fStream, buffer, timeStamp);
@@ -256,7 +259,10 @@ double readDenseFromPvp(const char *fName, Buffer<T> *buffer, int frameReadIndex
    FatalIf(header.nBands <= 0, "\"%s\" header does not have a positive nbands field.\n", fName);
    buffer->resize(header.nx, header.ny, header.nf);
    int frameIndex   = frameReadIndex % header.nBands;
-   long frameOffset = frameIndex * (header.recordSize * header.dataSize + sizeof(double));
+   long recordSize =
+         static_cast<long>(header.nx) * static_cast<long>(header.ny) * static_cast<long>(header.nf);
+   long frameOffset =
+         frameIndex * (recordSize * header.dataSize + static_cast<long>(sizeof(double)));
    fStream.setInPos(frameOffset, false);
    return readFrame<T>(fStream, buffer);
 }

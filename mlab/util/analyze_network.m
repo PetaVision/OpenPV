@@ -349,7 +349,9 @@ for i = 1:size(weightspvps,2)
    weightsheader = readpvpheader(fid);
    fclose(fid);
    weightsfiledata=dir(weightspvps{i});
-   weightsframesize = weightsheader.recordsize*weightsheader.numrecords+weightsheader.headersize;
+   patchsize = weightsheader.weightsheader.nxp * weightsheader.nyp * weightsheader.nfp * weightsheader.datasize + 8;
+   recordsize = weightsheader.numpatches * patchsize;
+   weightsframesize = recordsize*weightsheader.numrecords+weightsheader.headersize;
    weightsnumframes = weightsfiledata(1).bytes/weightsframesize;
    weightsdata = readpvpfile(weightspvps{i},100,weightsnumframes,weightsnumframes);
    numcolors = size(weightsdata{1}.values{1})(3);

@@ -482,8 +482,13 @@ void WeightsFileIO::moveToFrame(
             fileStream.getFileName(),
             frameNumber,
             static_cast<unsigned>(header.baseHeader.headerSize));
-      long recordSize = (long)(header.baseHeader.recordSize * header.baseHeader.numRecords);
-      fileStream.setInPos(recordSize, false /*relative to current point*/);
+      long numPatchValues  = static_cast<long>(header.nxp * header.nyp * header.nfp);
+      auto patchDataSize   = static_cast<long>(header.baseHeader.dataSize) * numPatchValues;
+      auto patchHeaderSize = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t);
+      auto patchTotalSize  = patchDataSize + static_cast<long>(patchHeaderSize);
+      long recordSize      = patchTotalSize * static_cast<long>(header.numPatches);
+      long arborSizeBytes  = recordSize * static_cast<long>(header.baseHeader.numRecords);
+      fileStream.setInPos(arborSizeBytes, false /*relative to current position*/);
    }
    fileStream.read(&header, sizeof(header));
    FatalIf(header.baseHeader.headerSize != static_cast<uint32_t>(104U),

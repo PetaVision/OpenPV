@@ -23,7 +23,7 @@ function hdr = readpvpheader(file,pos)
 %     ny
 %     nf
 %     numrecords
-%     recordsize
+%     recordsize (susceptible to arithmetic overflow; do not use)
 %     datasize
 %     datatype
 %     nxprocs

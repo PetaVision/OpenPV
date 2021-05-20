@@ -84,7 +84,10 @@ void InitVFromFile::readDenseActivityPvp(
       BufferUtils::ActivityHeader const &header) {
    auto mpiBlock           = getMPIBlock();
    bool isRootProc         = mpiBlock->getRank() == 0;
-   std::size_t frameSize   = (std::size_t)header.recordSize * sizeof(float) + sizeof(double);
+   std::size_t recordSize  = static_cast<std::size_t>(header.nx) *
+                             static_cast<std::size_t>(header.ny) *
+                             static_cast<std::size_t>(header.nf);
+   std::size_t frameSize   = recordSize * sizeof(float) + sizeof(double);
    int numFrames           = header.nBands;
    int blockBatchDimension = mpiBlock->getBatchDimension();
    for (int m = 0; m < blockBatchDimension; m++) {
@@ -94,7 +97,8 @@ void InitVFromFile::readDenseActivityPvp(
          Buffer<float> pvpBuffer;
          if (isRootProc) {
             int frameIndex = (mFrameNumber + globalBatchIndex) % numFrames;
-            fileStream.setOutPos(sizeof(header) + frameIndex * frameSize, true);
+            auto outPos    = sizeof(header) + static_cast<std::size_t>(frameIndex) * frameSize;
+            fileStream.setOutPos(static_cast<long>(outPos), true);
             int xStart = header.nx * mpiBlock->getStartColumn() / mpiBlock->getNumColumns();
             int yStart = header.ny * mpiBlock->getStartRow() / mpiBlock->getNumRows();
             pvpBuffer.resize(header.nx, header.ny, header.nf);

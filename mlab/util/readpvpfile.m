@@ -56,7 +56,7 @@ switch hdr.filetype
     case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
         nxprocs = hdr.nxExtended/hdr.nx;
         nyprocs = hdr.nyExtended/hdr.ny;
-        framesize = hdr.recordsize*hdr.datasize*nxprocs*nyprocs+8;
+        framesize = hdr.nx*hdr.ny*hdr.nf*hdr.datasize*nxprocs*nyprocs+8;
         numframes = hdr.nbands;
     case 5 % PVP_KERNEL_FILE_TYPE
         patchsize = hdr.nxp * hdr.nyp * hdr.nfp;
@@ -184,7 +184,8 @@ if isempty(errorstring)
                 data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
             end  %% last_frame
         case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
-            fseek(fid,(start_frame-1)*(hdr.recordsize*4 + 8), 'cof');
+            recordsize = hdr.nx * hdr.ny * hdr.nf;
+            fseek(fid,(start_frame-1)*(recordsize*4 + 8), 'cof');
             for f=start_frame:lastframe
                 data_tmp = struct('time',0,'values',zeros(hdr.nxExtended,hdr.nyExtended,hdr.nf));
                 data_tmp.time = fread(fid,1,'float64');
@@ -192,7 +193,7 @@ if isempty(errorstring)
                     yidx = (1:hdr.ny)+(y-1)*hdr.ny;
                     for x=1:nxprocs
                         xidx = (1:hdr.nx)+(x-1)*hdr.nx;
-                        Z = fread(fid,hdr.recordsize,precision);
+                        Z = fread(fid,recordsize,precision);
                         data_tmp.values(xidx,yidx,:) = permute(reshape(Z,hdr.nf,hdr.nx,hdr.ny),[2 3 1]);
                     end%for
                 end%for
