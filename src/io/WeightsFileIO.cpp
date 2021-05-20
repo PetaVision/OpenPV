@@ -477,10 +477,20 @@ void WeightsFileIO::moveToFrame(
    fileStream.setInPos(0L, true /*from beginning*/);
    for (int f = 0; f < frameNumber; f++) {
       fileStream.read(&header, sizeof(header));
+      FatalIf(header.baseHeader.headerSize != static_cast<uint32_t>(104U),
+            "%s frame number %d has incorrect headerSize of %u instead of 104)\n",
+            fileStream.getFileName(),
+            frameNumber,
+            static_cast<unsigned>(header.baseHeader.headerSize));
       long recordSize = (long)(header.baseHeader.recordSize * header.baseHeader.numRecords);
       fileStream.setInPos(recordSize, false /*relative to current point*/);
    }
    fileStream.read(&header, sizeof(header));
+   FatalIf(header.baseHeader.headerSize != static_cast<uint32_t>(104U),
+         "%s frame number %d has incorrect headerSize of %u instead of 104)\n",
+         fileStream.getFileName().c_str(),
+         frameNumber,
+         static_cast<unsigned>(header.baseHeader.headerSize));
 }
 
 long WeightsFileIO::calcArborSizeFile(bool compressed) {
