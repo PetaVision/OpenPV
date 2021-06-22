@@ -103,6 +103,8 @@ class MomentumUpdater : public HebbianUpdater {
    float getTimeConstantTau() const { return mTimeConstantTau; }
    bool isUsingDeprecatedMomentumTau() const { return mUsingDeprecatedMomentumTau; }
 
+   Weights const *getPrevDeltaWeights() const { return mPrevDeltaWeights; }
+
   protected:
    MomentumUpdater() {}
 
