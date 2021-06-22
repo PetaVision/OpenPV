@@ -37,6 +37,10 @@ class WeightsPair : public WeightsPairInterface {
    Weights *getPreWeights() { return mPreWeights; }
    Weights *getPostWeights() { return mPostWeights; }
 
+   // param accessor methods
+   double getWriteStep() const { return mWriteStep; }
+   double getInitialWriteTime() const { return mInitialWriteTime; }
+   bool getWriteCompressedWeights() const { return mWriteCompressedWeights; }
    bool getWriteCompressedCheckpoints() const { return mWriteCompressedCheckpoints; }
 
    ArborList const *getArborList() const { return mArborList; }
