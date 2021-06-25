@@ -39,9 +39,18 @@ class WeightsFileIO {
 
    bool isCompressedHeader(BufferUtils::WeightHeader const &header);
 
-   double readSharedWeights(int frameNumber, BufferUtils::WeightHeader const &header);
+   /**
+    * On entry, the fileStream's file pointer points to the start of the header of a frame.
+    * The function moves the file pointer to the end of the frame; that is, the start of
+    * the header of the next frame.
+    */
+   static void moveToNextFrame(FileStream &fileStream);
 
-   double readNonsharedWeights(int frameNumber, BufferUtils::WeightHeader const &header);
+   // readSharedWeights and readNonsharedWeights assume that the file pointer
+   // is at the end of the frame's header
+   double readSharedWeights(BufferUtils::WeightHeader const &header);
+
+   double readNonsharedWeights(BufferUtils::WeightHeader const &header);
 
    void writeSharedWeights(double timestamp, bool compress);
 
