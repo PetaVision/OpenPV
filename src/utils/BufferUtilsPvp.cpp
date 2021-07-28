@@ -152,7 +152,7 @@ ActivityHeader readActivityHeader(FileStream &fStream) {
    fStream.read(&headerSize, sizeof(uint32_t));
    FatalIf(headerSize != static_cast<uint32_t>(80U),
          "%s is not an activity PVP file (headerSize is %u instead of 80)\n",
-         fStream.getFileName(), static_cast<unsigned>(headerSize));
+         fStream.getFileName().c_str(), static_cast<unsigned>(headerSize));
    fStream.setInPos(0L, true);
    ActivityHeader header;
    fStream.read(&header, 80L);

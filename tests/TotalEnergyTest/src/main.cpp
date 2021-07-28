@@ -292,8 +292,8 @@ int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
    RequireAllZeroActivityProbe *allzeroProbe = dynamic_cast<RequireAllZeroActivityProbe *>(object);
    FatalIf(
          allzeroProbe == nullptr,
-         "Probe \%s\" is not a RequireAllZeroActivityProbe.\n",
-         allzeroProbe);
+         "Probe \"%s\" is not a RequireAllZeroActivityProbe.\n",
+         object);
    FatalIf(
          allzeroProbe->getNonzeroFound(),
          "%s had at least one nonzero activity value, beginning at time %f\n",

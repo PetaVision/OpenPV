@@ -90,7 +90,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(
          std::fabs(observedAvg-targetAvg) > tolerance,
          "%s failed: expected average %.5f, observed average %.5f, allowed tolerance %.5f\n",
-         programName,
+         programName.c_str(),
          (double)targetAvg,
          (double)observedAvg,
          (double)tolerance);
