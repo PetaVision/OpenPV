@@ -210,13 +210,16 @@ void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
                float v                  = calcWeight(globalPatchIndex, k, numItemsInPatch);
                FatalIf(
                      arborDataStart[indexIntoArbor] != v,
-                     "Rank %d, patch %d (global %d), patch item %d: expected %f; observed %f\n",
+                     "%s, Rank %d, patch %d (global %d), patch item %d: "
+                     "expected %f; observed %f (discrepancy %f)\n",
+                     weights.getName().c_str(),
                      mpiBlock.getGlobalRank(),
                      p,
                      globalPatchIndex,
                      k,
                      (double)v,
-                     (double)arborDataStart[indexIntoArbor]);
+                     (double)arborDataStart[indexIntoArbor],
+                     (double)(v - arborDataStart[indexIntoArbor]));
             }
          }
       }
