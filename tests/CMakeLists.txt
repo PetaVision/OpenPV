@@ -12,6 +12,7 @@ include(PVAddExecutable)
 
 set(TESTS_SHARED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Shared")
 
+set(PV_MPI_SINGLE_PROCESS_TEST OFF CACHE BOOL "Defines whether single-process tests are run under MPI")
 set(PV_SYSTEM_TEST_THREADS "" CACHE STRING "Defines the number of threads to use for system tests (empty string for max)")
 set(PV_SYSTEM_TEST_COMMAND "" CACHE STRING "Defines the program that should invoke the test (if empty, ctest calls the test directly)")
 set(PV_SYSTEM_TEST_SHUFFLE "" CACHE STRING "Defines whether to shuffle the order of param groups before running (empty string or \"0\" for no shuffling)")

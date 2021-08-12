@@ -158,14 +158,20 @@ macro(pv_add_test)
           set(TEST_BASE_NAME ${BASE_NAME})
         endif()
 
-        # Run non-mpi-test
+        # Run single-process test
         if (NOT PARSED_ARGS_MPI_ONLY)
           # One process, no MPI
           set(TEST_NAME "${TEST_BASE_NAME}_1")
           set(TEST_LOG "${TEST_LOG_DIR}/${TEST_NAME}.log")
           set(TEST_PARAMS "input/${PARAM}.params")
-          add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMAND ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -p ${TEST_PARAMS} -l ${TEST_LOG})
+          if (PV_MPI_SINGLE_PROCESS_TEST)
+            set(COPIES 1)
+            add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+              COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${COPIES} ${MPIEXEC_PREFLAGS} ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -p ${TEST_PARAMS} -l ${TEST_LOG})
+          else()
+            add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+              COMMAND ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -p ${TEST_PARAMS} -l ${TEST_LOG})
+          endif()
           set(FIRST_TEST OFF)
           set(PREV_TEST_NAME ${TEST_NAME})
         endif()
@@ -197,13 +203,19 @@ macro(pv_add_test)
       # factored out and code reuse be made to happen.
       set(TEST_BASE_NAME ${BASE_NAME})
 
-      # Run non-mpi-test
+      # Run single-process test
       if (NOT PARSED_ARGS_MPI_ONLY)
         # One process, no MPI
         set(TEST_NAME "${TEST_BASE_NAME}_1")
         set(TEST_LOG "${TEST_LOG_DIR}/${TEST_NAME}.log")
-        add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-          COMMAND ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -l ${TEST_LOG})
+        if (PV_MPI_SINGLE_PROCESS_TEST)
+          set(COPIES 1)
+          add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${COPIES} ${MPIEXEC_PREFLAGS} ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -l ${TEST_LOG})
+        else()
+          add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMAND ${PV_SYSTEM_TEST_COMMAND} ${TEST_BINARY} ${TEST_FLAGS} -l ${TEST_LOG})
+        endif()
         set(FIRST_TEST OFF)
         set(PREV_TEST_NAME ${TEST_NAME})
       endif()
