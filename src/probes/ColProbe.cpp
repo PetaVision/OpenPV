@@ -56,9 +56,10 @@ void ColProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void ColProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
-   BaseProbe::initOutputStreams(filename, checkpointer);
-   outputHeader();
+void ColProbe::initOutputStreams(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   BaseProbe::initOutputStreams(message);
+   auto *checkpointer = message->mDataRegistry;
+   outputHeader(checkpointer);
 }
 
 Response::Status

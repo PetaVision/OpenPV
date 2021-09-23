@@ -44,6 +44,31 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
          bool newFile,
          Checkpointer *checkpointer,
          string const &objName);
+   virtual int printf(const char *fmt, ...) override;
+   virtual PrintStream &operator<<(std::string &s) override;
+   virtual PrintStream &operator<<(char c) override;
+   virtual PrintStream &operator<<(signed char c) override;
+   virtual PrintStream &operator<<(unsigned char c) override;
+   virtual PrintStream &operator<<(const char *c) override;
+   virtual PrintStream &operator<<(const signed char *c) override;
+   virtual PrintStream &operator<<(const unsigned char *c) override;
+   virtual PrintStream &operator<<(short x) override;
+   virtual PrintStream &operator<<(unsigned short x) override;
+   virtual PrintStream &operator<<(int x) override;
+   virtual PrintStream &operator<<(unsigned int x) override;
+   virtual PrintStream &operator<<(long x) override;
+   virtual PrintStream &operator<<(unsigned long x) override;
+   virtual PrintStream &operator<<(long long x) override;
+   virtual PrintStream &operator<<(unsigned long long x) override;
+   virtual PrintStream &operator<<(float x) override;
+   virtual PrintStream &operator<<(double x) override;
+   virtual PrintStream &operator<<(long double x) override;
+   virtual PrintStream &operator<<(bool x) override;
+   virtual PrintStream &operator<<(void const *x) override;
+   virtual PrintStream &operator<<(std::streambuf *x) override;
+   virtual PrintStream &operator<<(std::ostream &(*f)(std::ostream &)) override;
+   virtual PrintStream &operator<<(std::ostream &(*f)(std::ios &)) override;
+   virtual PrintStream &operator<<(std::ostream &(*f)(std::ios_base &)) override;
    virtual void write(void const *data, long length) override;
    virtual void read(void *data, long length) override;
    virtual void setOutPos(long pos, std::ios_base::seekdir seekAnchor) override;

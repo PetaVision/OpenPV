@@ -6,6 +6,7 @@
  */
 
 #include "BaseConnectionProbe.hpp"
+#include "checkpointing/CheckpointableFileStream.hpp"
 
 namespace PV {
 
@@ -91,19 +92,18 @@ Response::Status BaseConnectionProbe::registerData(
    return Response::SUCCESS;
 }
 
-void BaseConnectionProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
+void BaseConnectionProbe::initOutputStreams(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    if (getMPIBlock()->getRank() == 0) {
+      auto *checkpointer = message->mDataRegistry;
       char const *probeOutputFilename = getProbeOutputFilename();
       if (probeOutputFilename and probeOutputFilename[0]) {
          std::string path(probeOutputFilename);
-         std::ios_base::openmode mode = std::ios_base::out;
-         if (!checkpointer->getCheckpointReadDirectory().empty()) {
-            mode |= std::ios_base::app;
-         }
-         if (path[0] != '/') {
-            path = checkpointer->makeOutputPathFilename(path);
-         }
-         auto stream = new FileStream(path.c_str(), mode, checkpointer->doesVerifyWrites());
+         bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
+         std::string filePosName(getProbeOutputFilename());
+         filePosName.append("_filepos");
+         auto stream = new CheckpointableFileStream(
+               path.c_str(), createFlag, checkpointer, filePosName);
          mOutputStreams.push_back(stream);
       }
       else {
