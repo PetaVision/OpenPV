@@ -57,7 +57,7 @@ void ColumnEnergyProbe::initialize(
    ColProbe::initialize(probename, params, comm);
 }
 
-void ColumnEnergyProbe::outputHeader() {
+void ColumnEnergyProbe::outputHeader(Checkpointer *checkpointer) {
    if (isWritingToFile()) {
       for (auto &s : mOutputStreams) {
          *s << "time,index,energy\n";

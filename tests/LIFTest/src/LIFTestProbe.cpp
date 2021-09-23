@@ -114,8 +114,9 @@ LIFTestProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    return status;
 }
 
-void LIFTestProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
-   StatsProbe::initOutputStreams(filename, checkpointer);
+void LIFTestProbe::initOutputStreams(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   StatsProbe::initOutputStreams(message);
    if (!mOutputStreams.empty()) {
       output(0).printf("%s Correct: ", getMessage());
       for (int k = 0; k < LIFTESTPROBE_BINS; k++) {

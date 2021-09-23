@@ -10,7 +10,6 @@
 #include "columns/BaseObject.hpp"
 #include "components/LayerUpdateController.hpp"
 #include "include/pv_common.h"
-#include "io/FileStream.hpp"
 #include <stdio.h>
 #include <vector>
 
@@ -225,7 +224,7 @@ class BaseProbe : public BaseObject {
     * are not both zero, the vector of PrintStreams will be empty - these
     * processes should communicate with the row=0,column=0 as needed.
     */
-   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer);
+   virtual void initOutputStreams(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
 
    /**
     * A pure virtual method for that should return true if the quantities being
