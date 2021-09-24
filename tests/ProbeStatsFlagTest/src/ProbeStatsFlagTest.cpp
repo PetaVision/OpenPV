@@ -8,6 +8,9 @@
 
 #include <cmath>
 
+int checkValue(
+      float observed, float expected, float tolerance, int lineno, char const *valueDescription);
+
 int main(int argc, char *argv[]) {
    PV::PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
    int status = buildandrun(&pv_initObj);
@@ -24,9 +27,9 @@ int main(int argc, char *argv[]) {
       FatalIf(!checkfp, "Unable to open checkfile \"%s\": %s\n", checkFile, strerror(errno));
 
       int linenumber      = 0;
-      float mintolerance  = 1e-6f;
-      float maxtolerance  = 1e-6f;
-      float meantolerance = 1e-6f;
+      float mintolerance  = 2e-7f;
+      float maxtolerance  = 2e-7f;
+      float meantolerance = 2e-7f;
       while (true) {
          float probet, checkt, probemin, checkmin, probemax, checkmax, probemean, checkmean;
 
@@ -59,40 +62,44 @@ int main(int argc, char *argv[]) {
             status = PV_FAILURE;
             break;
          }
-         if (probet != checkt) {
-            ErrorLog().printf(
-                  "Line %d time value %f does not match expected value %f.\n",
-                  linenumber,
-                  (double)probet,
-                  (double)checkt);
+         if (checkValue(probet, checkt, 0.0f, linenumber, "time") != PV_SUCCESS) {
             status = PV_FAILURE;
          }
-         if (std::fabs(probemin - checkmin) > mintolerance) {
-            ErrorLog().printf(
-                  "Line %d min value %f does not match expected value %f.\n",
-                  linenumber,
-                  (double)probemin,
-                  (double)checkmin);
+         if (checkValue(probemin, checkmin, mintolerance, linenumber, "min") != PV_SUCCESS) {
             status = PV_FAILURE;
          }
-         if (std::fabs(probemax - checkmax) > maxtolerance) {
-            ErrorLog().printf(
-                  "Line %d max value %f does not match expected value %f.\n",
-                  linenumber,
-                  (double)probemax,
-                  (double)checkmax);
+         if (checkValue(probemax, checkmax, maxtolerance, linenumber, "max") != PV_SUCCESS) {
             status = PV_FAILURE;
          }
-         if (std::fabs(probemean - checkmean) > meantolerance) {
-            ErrorLog().printf(
-                  "Line %d mean value %f does not match expected value %f.\n",
-                  linenumber,
-                  (double)probemean,
-                  (double)checkmean);
+         if (checkValue(probemean, checkmean, meantolerance, linenumber, "mean") != PV_SUCCESS) {
             status = PV_FAILURE;
          }
       }
    }
 
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+int checkValue(
+      float observed, float expected, float tolerance, int lineno, char const *valueDescription) {
+   int status = PV_SUCCESS;
+   if (expected) {
+      float discrepancy = std::fabs(observed - expected);
+      float relError    = discrepancy / relError;
+      if (relError > tolerance) {
+         ErrorLog().printf(
+               "Line %d %s value %f does not match expected value %f (discrepancy %g).\n",
+               lineno, valueDescription, (double)observed, (double)expected, (double)discrepancy);
+         status = PV_FAILURE;
+      }
+   }
+   else {
+      if (observed) {
+         ErrorLog().printf(
+               "Line %d %s value %g does not match expected value of zero.\n",
+               lineno, valueDescription, (double)observed);
+         status = PV_FAILURE;
+      }
+   }
+   return status;
 }

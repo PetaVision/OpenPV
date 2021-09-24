@@ -12,7 +12,7 @@
 #
 # MPI_FOUND, MPI_CXX_INCLUDE_PATH and MPI_CXX_LIBRARIES. Can be set with find_package(MPI)
 # CUDA_FOUND. Can be set with find_package(CUDA). Requires CUDNN
-# CUDNN_FOUND, CUDNN_INCLUDE_DIR, CUDNN_LIBRARIES. Can be set with find_package(CUDNN).
+# CUDNN_FOUND, CUDNN_INCLUDE_DIR, CUDNN_LIBRARY. Can be set with find_package(CUDNN).
 #  FindCUDNN.cmake is provided in ${PV_SOURCE_DIR}/cmake
 # LUA_FOUND, LUA_INCLUDE_DIR, LUA_LIBRARIES.  These can be set with find_package(Lua).
 #  FindLua.cmake is a standard CMake module from version 3 on.  To accommodate older

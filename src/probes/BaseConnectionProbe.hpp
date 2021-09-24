@@ -47,7 +47,8 @@ class BaseConnectionProbe : public BaseProbe {
     * size one, since all batch elements use the same weights. The output file
     * is the probeOutputFile name, if that is set; otherwise it is the logfile.
     */
-   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
+   virtual void initOutputStreams(
+        std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    // Member Variables
   protected:

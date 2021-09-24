@@ -26,7 +26,10 @@ PVLayerLoc setLayerLoc(
 
 MPIBlock const setMPIBlock(PV_Init &pv_initObj);
 
-void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock);
+void verifyCheckpointing(
+      int nxp, int nyp, int nfp,
+      PVLayerLoc const &preLoc, PVLayerLoc const &postLoc,
+      bool sharedFlag, MPIBlock const mpiBlock);
 
 int calcGlobalPatchIndex(
       int localPatchIndex,
@@ -54,56 +57,36 @@ int main(int argc, char *argv[]) {
    PVLayerLoc preLoc  = setLayerLoc(communicator, 1, nxGlobal, nyGlobal, nfPre, 3, 3, 3, 3);
    PVLayerLoc postLoc = setLayerLoc(communicator, 1, nxGlobal, nyGlobal, nfPost, 0, 0, 0, 0);
 
-   Weights weightsShared(
-         std::string("shared"),
-         nxp,
-         nyp,
-         nfPost,
-         &preLoc,
-         &postLoc,
-         1 /* numArbors */,
-         true /*sharedWeights */,
-         0.0 /*timestamp*/);
+   verifyCheckpointing(nxp, nyp, nfPost, preLoc, postLoc, true /*sharedFlag*/, mpiBlock);
 
-   verifyCheckpointing(weightsShared, mpiBlock);
-
-   Weights weightsNonshared(
-         std::string("nonshared"),
-         nxp,
-         nyp,
-         nfPost,
-         &preLoc,
-         &postLoc,
-         1 /* numArbors */,
-         false /*sharedWeights */,
-         0.0 /*timestamp*/);
-
-   verifyCheckpointing(weightsNonshared, mpiBlock);
+   verifyCheckpointing(nxp, nyp, nfPost, preLoc, postLoc, false /*sharedFlag*/, mpiBlock);
 
    return EXIT_SUCCESS;
 }
 
-void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
+void verifyCheckpointing(
+      int nxp, int nyp, int nfp,
+      PVLayerLoc const &preLoc, PVLayerLoc const &postLoc,
+      bool sharedFlag, MPIBlock const mpiBlock) {
+   // Create the weights
+   std::string label(sharedFlag ? "shared" : "nonshared");
+   int const numArbors = 1;
+   Weights weights(
+         label, nxp, nyp, nfp, &preLoc, &postLoc, numArbors, sharedFlag, 0.0 /*timestamp*/);
+
    // Generate the weight data.
    // The weight value is patchIndex + weightIndex/(nxp*nyp*nfp), where
    // patchIndex is the index of the patch in global coordinates,
    // and weightIndex is the index of the location in the patch (in the range
    // 0 to nxp*nyp*nfp-1).
    weights.allocateDataStructures();
-   int const nxp             = weights.getPatchSizeX();
-   int const nyp             = weights.getPatchSizeY();
-   int const nfp             = weights.getPatchSizeF();
    int const numItemsInPatch = nxp * nyp * nfp;
-   bool const shared         = weights.getSharedFlag();
-   int const numArbors       = weights.getNumArbors();
    int const numDataPatches  = weights.getNumDataPatches();
-   PVLayerLoc const &preLoc  = weights.getGeometry()->getPreLoc();
-   PVLayerLoc const &postLoc = weights.getGeometry()->getPostLoc();
    for (int a = 0; a < numArbors; a++) {
       float *arborDataStart = weights.getData(a);
       for (int p = 0; p < numDataPatches; p++) {
          int globalPatchIndex;
-         if (shared) {
+         if (sharedFlag) {
             globalPatchIndex = p;
          }
          else {
@@ -121,7 +104,7 @@ void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
    // This allows us to check that, when a patch is split among more than one
    // process, values outside a shrunken patch on one process are not clobbeing
    // values inside a shrunken patch on another.
-   if (!shared) {
+   if (!sharedFlag) {
       for (int a = 0; a < numArbors; a++) {
          for (int p = 0; p < numDataPatches; p++) {
             Patch const &patch = weights.getPatch(p);
@@ -167,25 +150,31 @@ void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
 
    // Create the CheckpointEntry.
    bool const compressFlag = false;
-   auto checkpointEntry    = std::make_shared<CheckpointEntryWeightPvp>(
+   auto checkpointWriter   = std::make_shared<CheckpointEntryWeightPvp>(
          weights.getName(), &mpiBlock, &weights, compressFlag);
 
    double const timestamp = 10.0;
    bool verifyWritesFlag  = false;
-   checkpointEntry->write(checkpointDirectory.c_str(), timestamp, verifyWritesFlag);
+   checkpointWriter->write(checkpointDirectory.c_str(), timestamp, verifyWritesFlag);
 
-   // Overwrite the data
+   // Create a Weights object to read the checkpoint into
+   Weights readBack(
+         label, nxp, nyp, nfp, &preLoc, &postLoc, numArbors, sharedFlag, 0.0 /*timestamp*/);
+   readBack.allocateDataStructures();
+   // Initialize readBack values to infinity, to catch errors where checkpoint read does nothing.
    for (int a = 0; a < numArbors; a++) {
-      float *w            = weights.getData(a);
-      int const arborSize = weights.getNumDataPatches() * numItemsInPatch;
+      float *w            = readBack.getData(a);
+      int const arborSize = readBack.getNumDataPatches() * numItemsInPatch;
       for (int d = 0; d < arborSize; d++) {
          w[d] = std::numeric_limits<float>::infinity();
       }
    }
 
    // Read the data back and verify timestamp.
+   auto checkpointReader = std::make_shared<CheckpointEntryWeightPvp>(
+         readBack.getName(), &mpiBlock, &readBack, compressFlag);
    double readTime = (double)(timestamp == 0.0);
-   checkpointEntry->read(checkpointDirectory.c_str(), &readTime);
+   checkpointReader->read(checkpointDirectory.c_str(), &readTime);
    FatalIf(
          readTime != timestamp,
          "Timestamp read from checkpoint was %f; expected %f\n",
@@ -194,10 +183,11 @@ void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
 
    // Compare the weight data
    for (int a = 0; a < numArbors; a++) {
-      float *arborDataStart = weights.getData(a);
+      float *weightsArborStart = weights.getData(a);
+      float *readBackArborStart = readBack.getData(a);
       for (int p = 0; p < numDataPatches; p++) {
          int globalPatchIndex;
-         if (shared) {
+         if (sharedFlag) {
             globalPatchIndex = p;
          }
          else {
@@ -205,25 +195,29 @@ void verifyCheckpointing(Weights &weights, MPIBlock const mpiBlock) {
          }
          Patch const &patch = weights.getPatch(p);
          for (int k = 0; k < numItemsInPatch; k++) {
-            if (shared or isActiveWeight(patch, nxp, nyp, nfp, k)) {
+            if (sharedFlag or isActiveWeight(patch, nxp, nyp, nfp, k)) {
                int const indexIntoArbor = p * numItemsInPatch + k;
-               float v                  = calcWeight(globalPatchIndex, k, numItemsInPatch);
+               float weightValue = weightsArborStart[indexIntoArbor];
+               float readBackValue = readBackArborStart[indexIntoArbor];
                FatalIf(
-                     arborDataStart[indexIntoArbor] != v,
-                     "Rank %d, patch %d (global %d), patch item %d: expected %f; observed %f\n",
+                     readBackValue != weightValue,
+                     "%s, Rank %d, patch %d (global %d), patch item %d: "
+                     "expected %f; observed %f (discrepancy %g)\n",
+                     label.c_str(),
                      mpiBlock.getGlobalRank(),
                      p,
                      globalPatchIndex,
                      k,
-                     (double)v,
-                     (double)arborDataStart[indexIntoArbor]);
+                     (double)weightValue,
+                     (double)readBackValue,
+                     (double)(readBackValue - weightValue));
             }
          }
       }
    }
 
    if (mpiBlock.getRank() == 0) {
-      InfoLog().printf("%s passed.\n", weights.getName().c_str());
+      InfoLog().printf("%s passed.\n", label.c_str());
    }
 }
 

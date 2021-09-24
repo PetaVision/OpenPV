@@ -18,7 +18,7 @@ class PrintStream {
    PrintStream(std::ostream &stream) { initialize(stream); }
    virtual ~PrintStream() {}
 
-   int printf(const char *fmt, ...) {
+   virtual int printf(const char *fmt, ...) {
       va_list args1, args2;
       va_start(args1, fmt);
       va_copy(args2, args1);
@@ -39,20 +39,36 @@ class PrintStream {
    void flush() { mOutStream->flush(); }
 
    // Operator overloads to allow using << like cout
-   template <typename T>
-   PrintStream &operator<<(const T &x) {
-      (*mOutStream) << x;
-      return *this;
-   }
-   PrintStream &operator<<(std::ostream &(*f)(std::ostream &)) {
+   virtual PrintStream &operator<<(std::string &s) { (*mOutStream) << s; return *this; }
+   virtual PrintStream &operator<<(char c) { (*mOutStream) << c; return *this; }
+   virtual PrintStream &operator<<(signed char c) { (*mOutStream) << c; return *this; }
+   virtual PrintStream &operator<<(unsigned char c) { (*mOutStream) << c; return *this; }
+   virtual PrintStream &operator<<(const char *c) { (*mOutStream) << c; return *this; }
+   virtual PrintStream &operator<<(const signed char *c) { (*mOutStream) << c; return *this; }
+   virtual PrintStream &operator<<(const unsigned char *c) { (*mOutStream) << c; return *this; }
+   virtual PrintStream &operator<<(short x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(unsigned short x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(int x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(unsigned int x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(long x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(unsigned long x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(long long x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(unsigned long long x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(float x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(double x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(long double x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(bool x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(void const *x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(std::streambuf *x) { (*mOutStream) << x; return *this; }
+   virtual PrintStream &operator<<(std::ostream &(*f)(std::ostream &)) {
       f(*mOutStream);
       return *this;
    }
-   PrintStream &operator<<(std::ostream &(*f)(std::ios &)) {
+   virtual PrintStream &operator<<(std::ostream &(*f)(std::ios &)) {
       f(*mOutStream);
       return *this;
    }
-   PrintStream &operator<<(std::ostream &(*f)(std::ios_base &)) {
+   virtual PrintStream &operator<<(std::ostream &(*f)(std::ios_base &)) {
       f(*mOutStream);
       return *this;
    }
