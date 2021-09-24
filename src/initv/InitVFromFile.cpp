@@ -97,6 +97,8 @@ void InitVFromFile::readDenseActivityPvp(
          Buffer<float> pvpBuffer;
          if (isRootProc) {
             int frameIndex = (mFrameNumber + globalBatchIndex) % numFrames;
+            frameIndex += frameIndex < 0 ? numFrames : 0;
+            pvAssert(frameIndex >= 0 and frameIndex < numFrames);
             auto outPos    = sizeof(header) + static_cast<std::size_t>(frameIndex) * frameSize;
             fileStream.setOutPos(static_cast<long>(outPos), true);
             int xStart = header.nx * mpiBlock->getStartColumn() / mpiBlock->getNumColumns();

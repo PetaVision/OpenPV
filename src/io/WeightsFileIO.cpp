@@ -28,10 +28,10 @@ double WeightsFileIO::readWeights(int frameNumber) {
 
    double timestamp;
    if (mWeights->getSharedFlag()) {
-      timestamp = readSharedWeights(frameNumber, header);
+      timestamp = readSharedWeights(header);
    }
    else {
-      timestamp = readNonsharedWeights(frameNumber, header);
+      timestamp = readNonsharedWeights(header);
    }
    mWeights->setTimestamp(timestamp);
    return timestamp;
@@ -143,7 +143,7 @@ bool WeightsFileIO::isCompressedHeader(BufferUtils::WeightHeader const &header) 
    return isCompressed;
 }
 
-double WeightsFileIO::readSharedWeights(int frameNumber, BufferUtils::WeightHeader const &header) {
+double WeightsFileIO::readSharedWeights(BufferUtils::WeightHeader const &header) {
    bool compressed          = isCompressedHeader(header);
    double timestamp         = header.baseHeader.timestamp;
    long arborSizeInPvpFile  = calcArborSizeLocal(compressed);
@@ -163,7 +163,7 @@ double WeightsFileIO::readSharedWeights(int frameNumber, BufferUtils::WeightHead
 }
 
 double
-WeightsFileIO::readNonsharedWeights(int frameNumber, BufferUtils::WeightHeader const &header) {
+WeightsFileIO::readNonsharedWeights(BufferUtils::WeightHeader const &header) {
    bool compressed          = isCompressedHeader(header);
    long arborSizeInPvpFile  = calcArborSizeFile(compressed);
    long arborSizeInPvpLocal = calcArborSizeLocal(compressed);
@@ -475,20 +475,27 @@ void WeightsFileIO::moveToFrame(
       FileStream &fileStream,
       int frameNumber) {
    fileStream.setInPos(0L, true /*from beginning*/);
-   for (int f = 0; f < frameNumber; f++) {
-      fileStream.read(&header, sizeof(header));
-      FatalIf(header.baseHeader.headerSize != static_cast<uint32_t>(104U),
-            "%s frame number %d has incorrect headerSize of %u instead of 104)\n",
-            fileStream.getFileName().c_str(),
-            frameNumber,
-            static_cast<unsigned>(header.baseHeader.headerSize));
-      long numPatchValues  = static_cast<long>(header.nxp * header.nyp * header.nfp);
-      auto patchDataSize   = static_cast<long>(header.baseHeader.dataSize) * numPatchValues;
-      auto patchHeaderSize = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t);
-      auto patchTotalSize  = patchDataSize + static_cast<long>(patchHeaderSize);
-      long recordSize      = patchTotalSize * static_cast<long>(header.numPatches);
-      long arborSizeBytes  = recordSize * static_cast<long>(header.baseHeader.numRecords);
-      fileStream.setInPos(arborSizeBytes, false /*relative to current position*/);
+   if (frameNumber >= 0) {
+      for (int f = 0; f < frameNumber; f++) {
+         moveToNextFrame(fileStream);
+      }
+   }
+   else {
+      fileStream.setInPos(0L, std::ios_base::end);
+      long endPos = fileStream.getInPos();
+      fileStream.setInPos(0L, std::ios_base::beg);
+      int numFrames = 0;
+      while (fileStream.getInPos() < endPos) {
+         moveToNextFrame(fileStream);
+         numFrames++;
+      }
+      fileStream.setInPos(0L, std::ios_base::beg);
+      int trueFrameNumber = (frameNumber % numFrames);
+      trueFrameNumber +=  trueFrameNumber < 0 ?  numFrames : 0;
+      pvAssert(trueFrameNumber >= 0 and trueFrameNumber < numFrames);
+      for (int f = 0; f < trueFrameNumber; f++) {
+         moveToNextFrame(fileStream);
+      }
    }
    fileStream.read(&header, sizeof(header));
    FatalIf(header.baseHeader.headerSize != static_cast<uint32_t>(104U),
@@ -496,6 +503,24 @@ void WeightsFileIO::moveToFrame(
          fileStream.getFileName().c_str(),
          frameNumber,
          static_cast<unsigned>(header.baseHeader.headerSize));
+}
+
+void WeightsFileIO::moveToNextFrame(FileStream &fileStream) {
+   BufferUtils::WeightHeader header;
+   long startPos = fileStream.getInPos();
+   fileStream.read(&header, sizeof(header));
+   FatalIf(header.baseHeader.headerSize != static_cast<uint32_t>(104U),
+         "%s frame starting at file position %ld has incorrect headerSize of %u instead of 104)\n",
+         fileStream.getFileName().c_str(),
+         startPos,
+         static_cast<unsigned>(header.baseHeader.headerSize));
+   long numPatchValues  = static_cast<long>(header.nxp * header.nyp * header.nfp);
+   auto patchDataSize   = static_cast<long>(header.baseHeader.dataSize) * numPatchValues;
+   auto patchHeaderSize = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t);
+   auto patchTotalSize  = patchDataSize + static_cast<long>(patchHeaderSize);
+   long recordSize      = patchTotalSize * static_cast<long>(header.numPatches);
+   long arborSizeBytes  = recordSize * static_cast<long>(header.baseHeader.numRecords);
+   fileStream.setInPos(arborSizeBytes, false /*relative to current position*/);
 }
 
 long WeightsFileIO::calcArborSizeFile(bool compressed) {

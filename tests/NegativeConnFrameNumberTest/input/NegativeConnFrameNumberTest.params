@@ -1,0 +1,173 @@
+//
+// BasicSystemTest.params
+//
+// created by peteschultz: Jun 25, 2021
+//
+
+//  A params file for to test using negative frame numbers
+//  when initializing a connection from file.
+//
+//  An input layer of constant ones is connected to a
+//  HyPerLayer output, by a connection whose weight
+//  is initialized from the file weights.pvp.
+//  That file has four frames, with weights
+//  1, 2, 3, and 4, respectively.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 394455601;
+    nx                                  = 16;
+    ny                                  = 16;
+    nbatch                              = 1;
+    errorOnNotANumber                   = false;
+    // outputPath is handled by parameter sweep
+    verifyWrites                        = true;
+    checkpointWrite                     = false;
+    // lastCheckpointDir is handled by parameter sweep
+    initializeFromCheckpointDir         = "";
+};
+
+ConstantLayer "Input" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ConstantV";
+    valueV                              = 1;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = -1;
+};
+
+HyPerLayer "Output" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+ConstantLayer "Correct" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    InitVType                           = "ConstantV";
+    // valueV is handled by parameter sweep
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+HyPerLayer "Comparison" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 2;
+    mirrorBCflag                        = true;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ConstantV";
+    valueV                              = 0;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+HyPerConn "InputToOutput" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Input";
+    postLayerName                       = "Output";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    numAxonalArbors                     = 1;
+    delay                               = 0.0;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 1;
+    sharedWeights                       = true;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "FileWeight";
+    initWeightsFile                     = "input/weights.pvp";
+    // frameNumber is handled by parameter sweep
+    normalizeMethod                     = "none";
+    plasticityFlag                      = false;
+};
+
+IdentConn "OutputToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Output";
+    postLayerName                       = "Comparison";
+    channelCode                         = 0;
+    delay                               = 0.0;
+};
+
+IdentConn "CorrectToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Correct";
+    postLayerName                       = "Comparison";
+    channelCode                         = 1;
+    delay                               = 0.0;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer                         = "Comparison";
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ComparisonProbe.txt";
+    nnzThreshold                        = 0;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = true;
+};
+
+ParameterSweep "Correct":valueV = {
+    4; 3; 2; 1; 4; 3; 2; 1;
+};
+
+ParameterSweep "InputToOutput":frameNumber = {
+    3; 2; 1; 0; -1; -2; -3; -4;
+};
+
+ParameterSweep "column":outputPath = {
+    "output_frameNumber_p3/";
+    "output_frameNumber_p2/";
+    "output_frameNumber_p1/";
+    "output_frameNumber_z0/";
+    "output_frameNumber_n1/";
+    "output_frameNumber_n2/";
+    "output_frameNumber_n3/";
+    "output_frameNumber_n4/";
+};
+
+ParameterSweep "column":lastCheckpointDir = {
+    "output_frameNumber_p3/Last";
+    "output_frameNumber_p2/Last";
+    "output_frameNumber_p1/Last";
+    "output_frameNumber_z0/Last";
+    "output_frameNumber_n1/Last";
+    "output_frameNumber_n2/Last";
+    "output_frameNumber_n3/Last";
+    "output_frameNumber_n4/Last";
+};
