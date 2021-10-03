@@ -205,7 +205,7 @@ void BaseProbe::initOutputStreams(
          int mpiBatchIndex    = mpiBlock->getStartBatch() + mpiBlock->getBatchIndex();
          int localBatchOffset = mLocalBatchWidth * mpiBatchIndex;
          mOutputStreams.resize(mLocalBatchWidth);
-         if (mpiBlock->getRank() == 0 and mProbeOutputFilename and mProbeOutputFilename[0]) {
+         if (mProbeOutputFilename and mProbeOutputFilename[0]) {
             std::string path(mProbeOutputFilename);
             auto extensionStart = path.rfind('.');
             std::string extension;
