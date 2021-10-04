@@ -82,7 +82,7 @@ class ColumnEnergyProbe : public ColProbe {
     */
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
-   virtual void outputHeader(Checkpointer *checkpointer) override;
+   virtual void outputHeader() override;
 
    /**
     * Implements the needRecalc method.  Always returns true, in the expectation

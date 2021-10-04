@@ -831,10 +831,15 @@ std::string Checkpointer::makeCheckpointDirectoryFromCurrentStep() {
 
 void Checkpointer::checkpointNow() {
    std::string checkpointDirectory = makeCheckpointDirectoryFromCurrentStep();
-   if (checkpointDirectory == mCheckpointReadDirectory) {
-      /* Note: the equality comparison isn't perfect, since there are multiple ways to specify a
-       * path that points to the same directory. Should use realpath, but that breaks under OS X.
-       */
+   if (checkpointDirectory != mCheckpointReadDirectory) {
+      /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that
+       * points to the same directory.  Should use realpath, but that breaks under OS X. */
+      if (mMPIBlock->getGlobalRank() == 0) {
+         InfoLog() << "Checkpointing to \"" << checkpointDirectory
+                   << "\", simTime = " << mTimeInfo.mSimTime << "\n";
+      }
+   }
+   else {
       if (mMPIBlock->getGlobalRank() == 0) {
          InfoLog().printf(
                "Skipping checkpoint to \"%s\","

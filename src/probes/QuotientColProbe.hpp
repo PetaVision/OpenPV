@@ -50,7 +50,7 @@ class QuotientColProbe : public ColProbe {
     * @brief valueDescription: a short description of what the quantities
     * computed by getValues()
     * represent.
-    * @details when outputHeader() is called, it prints a line to the output file
+    * @details when outputHeader is called, it prints a line to the output file
     * consisting of the string "Probe_name,time,index," followed by the
     * valueDescription.
     * Defaults to "value".
@@ -118,7 +118,7 @@ class QuotientColProbe : public ColProbe {
    virtual Response::Status outputState(double simTime, double deltaTime) override;
    virtual Response::Status outputStateStats(double simTime, double deltaTime) override;
 
-   virtual void outputHeader(Checkpointer *checkpointer) override;
+   virtual void outputHeader() override;
 
   private:
    /**
@@ -130,7 +130,8 @@ class QuotientColProbe : public ColProbe {
    // Member variables
   protected:
    char *valueDescription; // A string description of the quantity calculated by
-   // the probe, used by outputHeader()
+   // the probe, used by
+   // outputHeader
    char *numerator; // The name of the probe that supplies the numerator
    char *denominator; // The name of the probe that supplies the denominator
    BaseProbe *numerProbe; // A pointer to the probe that supplies the numerator.

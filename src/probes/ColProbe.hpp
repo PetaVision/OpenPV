@@ -102,8 +102,7 @@ class ColProbe : public BaseProbe {
    /**
     * Calls BaseProbe::initOutputStreams and then calls outputHeader()
     */
-   virtual void initOutputStreams(
-         std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
 
    /**
     * The virtual method for outputting the quantities measured by the ColProbe.
@@ -122,7 +121,7 @@ class ColProbe : public BaseProbe {
     * Derived classes can override this method to write header data to the output
     * file.
     */
-   virtual void outputHeader(Checkpointer *checkpointer) {}
+   virtual void outputHeader() {}
 
   private:
    /**

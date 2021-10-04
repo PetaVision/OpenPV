@@ -29,8 +29,7 @@ class LIFTestProbe : public StatsProbe {
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_endingTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_tolerance(enum ParamsIOFlag ioFlag);
-   virtual void initOutputStreams(
-         std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
 
   private:
    int initialize_base();

@@ -51,8 +51,7 @@ class PointProbe : public LayerProbe {
     * the indicated point has an mOutputStreams vector whose length is the
     * local batch width. Other processes have an empty mOutputStreams vector.
     */
-   virtual void initOutputStreams(
-         std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
 
    virtual void writeState(double timevalue);
 

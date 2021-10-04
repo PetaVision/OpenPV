@@ -124,8 +124,7 @@ PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    return Response::SUCCESS;
 }
 
-void PointProbe::initOutputStreams(
-      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+void PointProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
    PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
    int xRank             = xLoc / loc->nx; // integer division
    int yRank             = yLoc / loc->ny; // integer division
@@ -137,14 +136,15 @@ void PointProbe::initOutputStreams(
 
    if (xRank == blockColumnIndex and yRank == blockRowIndex and batchRank == blockBatchIndex) {
       if (getProbeOutputFilename()) {
-         auto *checkpointer = message->mDataRegistry;
-         char const *probeOutputFilename = getProbeOutputFilename();
-         std::string path(probeOutputFilename);
-         bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
-         std::string filePosName(probeOutputFilename);
-         filePosName.append("_filepos");
-         auto stream = new CheckpointableFileStream(
-               path.c_str(), createFlag, checkpointer, filePosName);
+         std::string path(getProbeOutputFilename());
+         std::ios_base::openmode mode = std::ios_base::out;
+         if (!checkpointer->getCheckpointReadDirectory().empty()) {
+            mode |= std::ios_base::app;
+         }
+         if (path[0] != '/') {
+            path = checkpointer->makeOutputPathFilename(path);
+         }
+         auto stream = new FileStream(path.c_str(), mode, checkpointer->doesVerifyWrites());
          mOutputStreams.push_back(stream);
       }
       else {

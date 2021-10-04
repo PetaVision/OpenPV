@@ -7,7 +7,6 @@
 
 #include "BaseProbe.hpp"
 #include "ColumnEnergyProbe.hpp"
-#include "checkpointing/CheckpointableFileStream.hpp"
 #include "layers/HyPerLayer.hpp"
 #include <float.h>
 #include <limits>
@@ -172,23 +171,17 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void BaseProbe::initOutputStreams(
-      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto *checkpointer = message->mDataRegistry;
+void BaseProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
    MPIBlock const *mpiBlock = checkpointer->getMPIBlock();
    if (mStatsFlag) {
       int globalRank = mpiBlock->getGlobalRank();
       if (globalRank == 0) {
          mOutputStreams.resize(1);
-         char const *probeOutputFilename = getProbeOutputFilename();
-         if (probeOutputFilename and probeOutputFilename[0]) {
-            bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
-            std::string filePosName(probeOutputFilename);
-            filePosName.append("_filepos");
-            auto *cpFileStream = new CheckpointableFileStream(
-                  probeOutputFilename, createFlag, checkpointer, filePosName);
-            cpFileStream->respond(message); // CheckpointableFileStream needs to register data
-            mOutputStreams[0] = cpFileStream;
+         if (mProbeOutputFilename and mProbeOutputFilename[0]) {
+            std::ios_base::openmode mode = std::ios_base::out;
+            auto outputPathFilename = checkpointer->makeOutputPathFilename(std::string(filename));
+            bool doesVerify         = checkpointer->doesVerifyWrites();
+            mOutputStreams[0]       = new FileStream(outputPathFilename.c_str(), mode, doesVerify);
          }
          else {
             mOutputStreams[0] = new PrintStream(PV::getOutputStream());
@@ -213,18 +206,20 @@ void BaseProbe::initOutputStreams(
                extension = path.substr(extensionStart);
                path      = path.substr(0, extensionStart);
             }
+            std::ios_base::openmode mode = std::ios_base::out;
+            if (!checkpointer->getCheckpointReadDirectory().empty()) {
+               mode |= std::ios_base::app;
+            }
             for (int b = 0; b < mLocalBatchWidth; b++) {
                int globalBatchIndex         = b + localBatchOffset;
                std::string batchPath        = path;
                std::string batchIndexString = std::to_string(globalBatchIndex);
                batchPath.append("_batchElement_").append(batchIndexString).append(extension);
-               bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
-               std::string filePosName(mProbeOutputFilename);
-               filePosName.append("_filepos");
-               auto fs = new CheckpointableFileStream(
-                     batchPath.c_str(), createFlag, checkpointer, filePosName);
+               if (batchPath[0] != '/') {
+                  batchPath = checkpointer->makeOutputPathFilename(batchPath);
+               }
+               auto fs = new FileStream(batchPath.c_str(), mode, checkpointer->doesVerifyWrites());
                mOutputStreams[b] = fs;
-               fs->respond(message); // CheckpointableFileStream needs to register data
             }
          }
          else {
@@ -348,7 +343,7 @@ BaseProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const>
    if (!Response::completed(status)) {
       return status;
    }
-   initOutputStreams(message);
+   initOutputStreams(mProbeOutputFilename, message->mDataRegistry);
    return Response::SUCCESS;
 }
 

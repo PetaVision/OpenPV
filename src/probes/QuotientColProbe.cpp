@@ -51,7 +51,7 @@ void QuotientColProbe::initialize(
    ColProbe::initialize(probename, params, comm);
 }
 
-void QuotientColProbe::outputHeader(Checkpointer *checkpointer) {
+void QuotientColProbe::outputHeader() {
    for (auto &s : mOutputStreams) {
       *s << "Probe_name,time,index," << valueDescription;
    }
