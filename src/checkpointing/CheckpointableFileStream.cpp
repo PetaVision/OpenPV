@@ -103,6 +103,166 @@ void CheckpointableFileStream::updateFilePos() {
    mFileReadPos  = getInPos();
    mFileWritePos = getOutPos();
 }
+int CheckpointableFileStream::printf(const char *fmt, ...) {
+   syncFilePos();
+   va_list args1, args2;
+   va_start(args1, fmt);
+   va_copy(args2, args1);
+   int chars_needed = vsnprintf(nullptr, 0, fmt, args1) + 1; // +1 for null terminator
+   char output_string[chars_needed];
+   int chars_printed = vsnprintf(output_string, chars_needed, fmt, args2) + 1;
+   pvAssert(chars_printed == chars_needed);
+   FileStream::operator<<(output_string);
+   va_end(args1);
+   va_end(args2);
+   updateFilePos();
+   return chars_needed;
+}
+
+PrintStream &CheckpointableFileStream::operator<<(std::string &s) {
+   syncFilePos();
+   PrintStream::operator<<(s);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(char c) {
+   syncFilePos();
+   PrintStream::operator<<(c);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(signed char c) {
+   syncFilePos();
+   PrintStream::operator<<(c);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(unsigned char c) {
+   syncFilePos();
+   PrintStream::operator<<(c);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(const char *c) {
+   syncFilePos();
+   PrintStream::operator<<(c);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(const signed char *c) {
+   syncFilePos();
+   PrintStream::operator<<(c);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(const unsigned char *c) {
+   syncFilePos();
+   PrintStream::operator<<(c);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(short x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(unsigned short x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(int x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(unsigned int x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(long x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(unsigned long x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(long long x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(unsigned long long x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(float x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(double x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(long double x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(bool x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(void const *x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(std::streambuf *x) {
+   syncFilePos();
+   PrintStream::operator<<(x);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(std::ostream &(*f)(std::ostream &)) {
+   syncFilePos();
+   PrintStream::operator<<(f);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(std::ostream &(*f)(std::ios &)) {
+   syncFilePos();
+   PrintStream::operator<<(f);
+   updateFilePos();
+   return *this;
+}
+PrintStream &CheckpointableFileStream::operator<<(std::ostream &(*f)(std::ios_base &)) {
+   syncFilePos();
+   PrintStream::operator<<(f);
+   updateFilePos();
+   return *this;
+}
 
 void CheckpointableFileStream::write(void const *data, long length) {
    syncFilePos();
