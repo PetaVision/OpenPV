@@ -20,7 +20,7 @@ namespace PV {
 
 class Communicator {
   public:
-   Communicator(Arguments *argumentList);
+   Communicator(Arguments const *argumentList);
    virtual ~Communicator();
 
    // Previous names of MPI getter functions now default to local ranks and sizes

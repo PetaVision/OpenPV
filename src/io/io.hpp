@@ -8,6 +8,9 @@
 #ifndef IO_HPP_
 #define IO_HPP_
 
+#include "columns/Arguments.hpp" // Return value of parse_arguments
+#include <memory> // shared_ptr returned by parse_arguments
+
 namespace PV {
 
 int pv_getopt(int argc, char const *const *argv, const char *opt, bool *paramusage);
@@ -37,6 +40,9 @@ int pv_getopt_unsigned(
       const char *opt,
       unsigned int *uVal,
       bool *paramusage);
+
+std::shared_ptr<Arguments> parse_arguments(
+      int argc, char *argv[], bool allowUnrecognizedArguments);
 
 int parse_options(
       int argc,

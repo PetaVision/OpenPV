@@ -4,13 +4,13 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BufferUtilsRescale.cpp
    ${SUBDIR}/Clock.cpp
    ${SUBDIR}/CompareParamsFiles.cpp
-   ${SUBDIR}/conversions.hpp
    ${SUBDIR}/ExpandLeadingTilde.cpp
    ${SUBDIR}/PVAssert.cpp
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
    ${SUBDIR}/Timer.cpp
    ${SUBDIR}/TransposeWeights.cpp
+   ${SUBDIR}/WaitForReturn.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -20,12 +20,14 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BufferUtilsRescale.hpp
    ${SUBDIR}/Clock.hpp
    ${SUBDIR}/CompareParamsFiles.hpp
+   ${SUBDIR}/conversions.hpp
    ${SUBDIR}/ExpandLeadingTilde.hpp
    ${SUBDIR}/PVAssert.hpp
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp
    ${SUBDIR}/Timer.hpp
    ${SUBDIR}/TransposeWeights.hpp
+   ${SUBDIR}/WaitForReturn.hpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcTpp}

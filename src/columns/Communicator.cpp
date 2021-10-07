@@ -12,6 +12,7 @@
 #include "Communicator.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
+#include "utils/WaitForReturn.hpp"
 #include "utils/conversions.hpp"
 
 namespace PV {
@@ -26,7 +27,7 @@ int Communicator::gcd(int a, int b) const {
    return b;
 }
 
-Communicator::Communicator(Arguments *argumentList) {
+Communicator::Communicator(Arguments const *argumentList) {
    int totalSize;
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
    MPI_Comm_size(MPI_COMM_WORLD, &totalSize);
@@ -87,17 +88,7 @@ Communicator::Communicator(Arguments *argumentList) {
    // If RequireReturn was set, wait until global root process gets keyboard input.
    bool requireReturn = argumentList->getBooleanArgument("RequireReturn");
    if (requireReturn) {
-      fflush(stdout);
-      MPI_Barrier(globalCommunicator());
-      if (globalRank == 0) {
-         std::printf("Hit enter to begin! ");
-         fflush(stdout);
-         int charhit = -1;
-         while (charhit != '\n') {
-            charhit = std::getc(stdin);
-         }
-      }
-      MPI_Barrier(globalCommunicator());
+      WaitForReturn(globalCommunicator());
    }
 
    // Grab globalSize now that extra processes have been exited
