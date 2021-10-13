@@ -9,7 +9,6 @@
 
 #ifdef MAIN_USES_CUSTOM_GROUPS
 #include "PlasticConnTestLayer.hpp"
-#include "PlasticConnTestProbe.hpp"
 #include "PlasticTestConn.hpp"
 #include <columns/PV_Init.hpp>
 #endif // MAIN_USES_CUSTOM_GROUPS
@@ -35,7 +34,6 @@ int main(int argc, char *argv[]) {
    // etc.
    //
    pv_initObj.registerKeyword("PlasticConnTestLayer", Factory::create<PlasticConnTestLayer>);
-   pv_initObj.registerKeyword("PlasticConnTestProbe", Factory::create<PlasticConnTestProbe>);
    pv_initObj.registerKeyword("PlasticTestConn", Factory::create<PlasticTestConn>);
    int status = buildandrun(&pv_initObj, NULL, NULL);
 #endif // MAIN_USES_CUSTOM_GROUPS

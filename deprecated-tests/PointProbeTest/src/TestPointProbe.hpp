@@ -6,7 +6,7 @@
 #ifndef TESTPOINTPROBE_HPP_
 #define TESTPOINTPROBE_HPP_
 
-#include "probes/PointProbe.hpp"
+#include "deprecated/PointProbe.hpp"
 
 namespace PV {
 

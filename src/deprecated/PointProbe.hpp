@@ -8,7 +8,7 @@
 #ifndef POINTPROBE_HPP_
 #define POINTPROBE_HPP_
 
-#include "LayerProbe.hpp"
+#include "probes/LayerProbe.hpp"
 
 namespace PV {
 

@@ -1,25 +1,28 @@
 //
-// MPI_test.params
-//
-// created by garkenyon: August 4, 2011
+// PlasticConnTest.params
 //
 
-//  - input parameters for test_kernel.cpp for system level testing of kernels
+//  - input parameters for PlasticConnTest for system level testing of plastic conns
 //
 
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx = 32;   
-   ny = 32;
-   dt = 1.0;
-   randomSeed = 1364931845;  // if not set here,  clock time is used to generate seed
-   stopTime = 100.0;
-   progressInterval = 100.0;
-   writeProgressToErr = false;
-   outputPath = "output/";
-   checkpointWrite = false;
-   lastCheckpointDir = "output/Last";
+    dt                                  = 1;
+    stopTime                            = 100;
+    progressInterval                    = 100;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1364931845;
+    nx                                  = 32;
+    ny                                  = 32;
+    nbatch                              = 1;
+    errorOnNotANumber                   = false;
+    outputPath                          = "output/";
+    verifyWrites                        = true;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
 };
 
 //
@@ -27,71 +30,210 @@ HyPerCol "column" = {
 //
 
 PlasticConnTestLayer "Pre" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = false;
-    valueBC = 0.0;
-    sparseLayer = false;
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
 };
-
 
 PlasticConnTestLayer "Post" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = false;
-    valueBC = 0.0;
-    sparseLayer = false;
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
 };
-//  connections: 
 
+PvpLayer "TestInput" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 0;
+    inputPath                           = "input/TestInput.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    maxShiftX                           = 0;
+    maxShiftY                           = 0;
+    xFlipEnabled                        = false;
+    yFlipEnabled                        = false;
+    xFlipToggle                         = false;
+    yFlipToggle                         = false;
+    jitterChangeInterval                = 1;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0.000000];
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
 
+HyPerLayer "TestOutput" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+PvpLayer "CorrectValues" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 1;
+    inputPath                           = "input/CorrectValues.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    maxShiftX                           = 0;
+    maxShiftY                           = 0;
+    xFlipEnabled                        = false;
+    yFlipEnabled                        = false;
+    xFlipToggle                         = false;
+    yFlipToggle                         = false;
+    jitterChangeInterval                = 1;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0.000000];
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+HyPerLayer "Comparison" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 2;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+//
+// connections
+//
 
 PlasticTestConn "PreToPost" = {
-    channelCode = 0;
-    sharedWeights = true;
-    nxp = 5;
-    nyp = 5;
-    nfp = 1;
-    numAxonalArbors = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    
-    weightInitType = "UniformWeight";
-    weightInit = 0.0;
-
-    normalizeMethod = "none";
-
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = true;
-    weightUpdatePeriod = 1.0;
-    initialWeightUpdateTime = 0.0;
-
-    delay = 0;     
-
-    pvpatchAccumulateType = "convolve";
-    combine_dW_with_W_flag = false;
-    dWMax = 1.0;
-    updateGSynFromPostPerspective = false;
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Pre";
+    postLayerName                       = "Post";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    numAxonalArbors                     = 1;
+    delay                               = [0.000000];
+    nxp                                 = 5;
+    nyp                                 = 5;
+    nfp                                 = 1;
+    sharedWeights                       = true;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 0;
+    connectOnlySameFeatures             = false;
+    normalizeMethod                     = "none";
+    plasticityFlag                      = true;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 1;
+    initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
+    dWMax                               = 1;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    normalizeDw                         = true;
+    combine_dW_with_W_flag              = false;
 };
 
-// PlasticConnTestProbe "probe"
-PlasticConnTestProbe "Probe" = {
-    targetConnection = "PreToPost";
-    probeOutputFile = "PreToPostProbe.txt";
-    kernelIndex = 0;
-    arborId = 0;
-    outputWeights = true;
-    outputPlasticIncr = true;
-    outputPatchIndices = false;
+CloneConn "TestInputToTestOutput" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "TestInput";
+    postLayerName                       = "TestOutput";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    originalConnName                    = "PreToPost";
+};
+
+IdentConn "TestOutputToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "TestOutput";
+    postLayerName                       = "Comparison";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "CorrectValuesToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "CorrectValues";
+    postLayerName                       = "Comparison";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer                         = "Comparison";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ComparisonProbe.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = NULL;
+    nnzThreshold                        = 0.0;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = true;
 };
