@@ -1,7 +1,7 @@
 #ifndef MPIRECVSTREAM_HPP_
 #define MPIRECVSTREAM_HPP_
 
-#include "io/PrintStream.hpp"
+#include "io/FileStream.hpp"
 #include <fstream>
 #include <memory>
 #include <mpi.h>
@@ -20,7 +20,7 @@ class MPIRecvStream {
   public:
    /**
     * The constructor for MPIRecvStream. Internally, it uses the path to create
-    * PrintStream object that the receive() function member uses to print the received data.
+    * FileStream object that the receive() function member uses to print the received data.
     */
    MPIRecvStream(std::string &path, MPI_Comm mpi_comm, int sendRank);
    ~MPIRecvStream();
@@ -34,9 +34,14 @@ class MPIRecvStream {
     */
    int receive(int tag);
 
+   // Get-methods and set-methods that are passed on to the FileStream
+   long getInPos() const { return mFileStream->getInPos(); }
+   long getOutPos() const { return mFileStream->getOutPos(); }
+   void setInPos(long p) { mFileStream->setInPos(p, std::ios_base::beg); }
+   void setOutPos(long p) { mFileStream->setOutPos(p, std::ios_base::beg); }
+
   private:
-   std::ofstream *mFile      = nullptr;
-   PrintStream *mPrintStream = nullptr;
+   FileStream *mFileStream = nullptr;
    MPI_Comm mMPI_Comm;
    int mSendRank;
 

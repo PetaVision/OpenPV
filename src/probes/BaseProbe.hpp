@@ -10,7 +10,8 @@
 #include "columns/BaseObject.hpp"
 #include "components/LayerUpdateController.hpp"
 #include "include/pv_common.h"
-#include "io/FileStream.hpp"
+#include "io/MPIRecvStream.hpp"
+#include "structures/MPIBlock.hpp"
 #include <stdio.h>
 #include <vector>
 
@@ -225,7 +226,7 @@ class BaseProbe : public BaseObject {
     * are not both zero, the vector of PrintStreams will be empty - these
     * processes should communicate with the row=0,column=0 as needed.
     */
-   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer);
+   virtual void initOutputStreams(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
 
    /**
     * A pure virtual method for that should return true if the quantities being
@@ -350,10 +351,18 @@ inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutp
   private:
    int initialize_base();
 
+   /**
+    * Returns true if the Communicator has row 0, column 0, false otherwise.
+    * Hence it is the base process for whichever batch elements live on the process.
+    */
+   bool isBatchBaseProc() const;
+   void syncMPIStreams();
+
    // Member variables
   protected:
    // A vector of PrintStreams, one for each batch element.
    std::vector<PrintStream *> mOutputStreams;
+   std::vector<MPIRecvStream> mMPIRecvStreams;
 
    bool triggerFlag;
    char *triggerLayerName;
@@ -366,10 +375,10 @@ inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutp
    int mLocalBatchWidth     = 1; // the value of loc->nbatch
 
   private:
+   MPIBlock const *mMPIBlock = nullptr;
    char *msgparams; // the message parameter in the params
-   char *msgstring; // the string that gets printed by outputState ("" if message
-   // is empty or null;
-   // message + ":" if nonempty
+   char *msgstring; // the string that gets printed by outputState ("" if message is empty or null;
+                    // message + ":" if nonempty
    char *mProbeOutputFilename = nullptr;
    int numValues;
    double *probeValues;
