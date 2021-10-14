@@ -39,7 +39,6 @@ BaseProbe::~BaseProbe() {
       triggerLayerName = nullptr;
    }
    free(energyProbe);
-   free(probeValues);
    mMPIRecvStreams.clear();
 }
 
@@ -53,9 +52,8 @@ int BaseProbe::initialize_base() {
    triggerOffset    = 0;
    energyProbe      = nullptr;
    coefficient      = 1.0;
-   numValues        = 0;
-   probeValues      = nullptr;
    lastUpdateTime   = 0.0;
+   mProbeValues.clear();
    return PV_SUCCESS;
 }
 
@@ -277,19 +275,10 @@ void BaseProbe::initNumValues() { setNumValues(mLocalBatchWidth); }
 
 void BaseProbe::setNumValues(int n) {
    if (n > 0) {
-      double *newValuesBuffer = (double *)realloc(probeValues, (size_t)n * sizeof(*probeValues));
-      FatalIf(
-            newValuesBuffer == nullptr,
-            "%s unable to set number of values to %d\n",
-            getDescription_c(),
-            n);
-      // realloc() succeeded
-      probeValues = newValuesBuffer;
-      numValues   = n;
+      mProbeValues.resize(n);
    }
    else {
-      free(probeValues);
-      probeValues = nullptr;
+      mProbeValues.clear();
    }
 }
 
@@ -396,24 +385,12 @@ void BaseProbe::getValues(double timevalue) {
 
 void BaseProbe::getValues(double timevalue, double *values) {
    getValues(timevalue);
-   memcpy(values, probeValues, sizeof(*probeValues) * (size_t)getNumValues());
+   memcpy(values, mProbeValues.data(), sizeof(*mProbeValues.data()) * mProbeValues.size());
 }
 
 void BaseProbe::getValues(double timevalue, std::vector<double> *valuesVector) {
    valuesVector->resize(this->getNumValues());
    getValues(timevalue, &valuesVector->front());
-}
-
-double BaseProbe::getValue(double timevalue, int index) {
-   if (index < 0 || index >= getNumValues()) {
-      return std::numeric_limits<double>::signaling_NaN();
-   }
-   else {
-      if (needRecalc(timevalue)) {
-         getValues(timevalue);
-      }
-   }
-   return probeValues[index];
 }
 
 Response::Status BaseProbe::outputStateWrapper(double timef, double dt) {

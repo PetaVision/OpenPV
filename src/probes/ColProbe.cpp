@@ -80,15 +80,16 @@ ColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
 
 Response::Status ColProbe::outputStateStats(double simTime, double deltaTime) {
    getValues(simTime);
-   double *valuesBuffer = getValuesBuffer();
+   auto &valuesVector = getProbeValues();
    int nbatch           = getNumValues();
+   pvAssert(static_cast<int>(valuesVector.size()) == nbatch);
    double min = std::numeric_limits<double>::infinity();
    double max = -std::numeric_limits<double>::infinity();
    double sum = 0.0;
    for (int k=0; k < getNumValues(); k++) {
-      double v = (double)valuesBuffer[k];
-      min = min < v ? min : valuesBuffer[k];
-      max = max > v ? max : valuesBuffer[k];
+      double v = valuesVector[k];
+      min = min < v ? min : valuesVector[k];
+      max = max > v ? max : valuesVector[k];
       sum += v;
    }
    MPI_Comm const batchComm = mCommunicator->batchCommunicator();

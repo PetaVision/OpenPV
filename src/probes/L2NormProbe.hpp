@@ -58,10 +58,10 @@ class L2NormProbe : public AbstractNormProbe {
 
    /**
     * @brief exponent: The exponent on the L2-norm.
-    * getValue(t, index) returns (L2-Norm)^exponent.
-    * @details (e.g. when exponent=2, getValue returns the sum of the squares;
-    * when exponent=1, getValue returns the square root of the sum of the
-    * squares.)
+    * getValues() returns the (L2-Norm)^exponent of each batch element.
+    * @details (e.g. when exponent=2, getValues() returns the sum of the
+    * squares; when exponent=1, getValues() returns the square root of the
+    * sum of the squares.)
     * default is 1.
     */
    virtual void ioParam_exponent(enum ParamsIOFlag ioFlag);

@@ -100,7 +100,7 @@ class BaseProbe : public BaseObject {
     * specifies that ColumnEnergyProbe multiplies the result of this probe's
     * getValues() method by coefficient when computing the error.
     * @details Note that coefficient does not affect the value returned by the
-    * getValue() or getValues() method.
+    * getValues() methods.
     */
    virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag);
    /** @} */
@@ -116,26 +116,22 @@ class BaseProbe : public BaseObject {
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    /**
-    * Called during HyPerCol::run, during the allocateDataStructures stage.
-    * BaseProbe::allocateDataStructures sets up the output stream.
+    * Called during HyPerCol::run, during the RegisterData stage.
+    * BaseProbe::registerData sets up the output stream.
     * Derived classes that override this method should make sure to
-    * call this method in their own allocateDataStructures methods.
+    * call this method in their own registerData methods.
     */
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    /**
-    * Returns the number of value indices the probe can compute (typically the
-    * value
-    * of the parent HyPerCol's nBatch parameter).
-    * BaseProbe::getNumValues() returns the parent HyPerCol's getNBatch(), which
-    * can be overridden.
-    * Probes derived from BaseProbe can set numValues to zero or a negative
-    * number to indicate that
-    * getValues() and getNumValues()
-    * are not fully implemented for that probe.
+    * Returns the number of value indices the probe can compute.
+    * For BaseProbe, this is the parent HyPerCol's getNBatch(); this can be
+    * overridden. A probe class can keep the ProbeValues vector empty, in
+    * which case getValues() and getNumValues() are not fully implemented
+    * for that probe.
     */
-   int getNumValues() { return numValues; }
+   int getNumValues() { return static_cast<int>(mProbeValues.size()); }
 
    /**
     * The public interface for calling the outputState method.
@@ -168,8 +164,7 @@ class BaseProbe : public BaseObject {
 
    /**
     * Returns the time that calcValues was last called.
-    * BaseProbe updates the last update time in getValues() and getValue(),
-    * based on the result of needRecalc.
+    * BaseProbe updates the last update time in getValues(), based on the result of needRecalc.
     */
    double getLastUpdateTime() { return lastUpdateTime; }
 
@@ -183,7 +178,7 @@ class BaseProbe : public BaseObject {
     * those values are not returned.
     * Internally, getValues() calls calcValues() if needRecalc() is true.  It
     * then
-    * copies the probeValues buffer to the input argument buffer 'values'.
+    * copies the mProbeValues vector to the input argument buffer 'values'.
     * Derived classes should not override or hide this method.  Instead, they
     * should override
     * calcValues.
@@ -197,18 +192,6 @@ class BaseProbe : public BaseObject {
     * by getValues.
     */
    void getValues(double timevalue, std::vector<double> *valuesVector);
-   /**
-    * getValue() is meant for situations where the caller needs one value
-    * that would be returned by getValues(), not the whole buffer.
-    * getValue() returns a signaling NaN if index is out of bounds.  If index is
-    * valid,
-    * getValue() calls calcValues() if needRecalc() returns true, and then
-    * returns probeValues[index].
-    * Derived classes should not override or hide this method.  Instead, they
-    * should override
-    * calcValues.
-    */
-   double getValue(double timevalue, int index);
 
   protected:
    BaseProbe();
@@ -235,8 +218,7 @@ class BaseProbe : public BaseObject {
     * Typically, an implementation of needRecalc() will check the lastUpdateTime
     * of the object being probed, and return true if that value is greater than
     * the lastUpdateTime member variable.
-    * needRecalc() is called by getValues(double) (and hence by getValue() and
-    * the other flavors of getValues).
+    * needRecalc() is called by getValues().
     * Note that there is a single needRecalc that applies to all getNumValues()
     * quantities.
     */
@@ -259,14 +241,13 @@ class BaseProbe : public BaseObject {
    /**
     * A pure virtual method to calculate the values of the probe.  calcValues()
     * can assume that needRecalc() has been called and returned true.
-    * It should write the computed values into the buffer of member variable
-    * 'probeValues'.
+    * It should write the computed values into the vector mProbeValues
     */
    virtual void calcValues(double timevalue) = 0;
 
    /**
-    * If needRecalc() returns true, getValues(double) updates the probeValues
-    * buffer (by calling calcValues) and sets lastUpdateTime to the timevalue
+    * If needRecalc() returns true, getValues(double) updates the mProbeValues
+    * vector (by calling calcValues) and sets lastUpdateTime to the timevalue
     * input argument.
     */
    void getValues(double timevalue);
@@ -288,20 +269,20 @@ class BaseProbe : public BaseObject {
    PrintStream &output(int b) { return *mOutputStreams.at(b); }
 
    /**
-    * initNumValues is called by initialize.
-    * BaseProbe::initNumValues sets numValues to the parent HyPerCol's
-    * getNBatch().
-    * Derived classes can override initNumValues to initialize numValues to a
+    * initNumValues() is called by initialize().
+    * BaseProbe::initNumValues() sets size of the ProbeValues vector to the
+    * parent HyPerCol's getNBatch(), by calling setNumValues(). Derived classes
+    * can override initNumValues() to initialize the ProbeValues vector to a
     * different value.
     */
    virtual void initNumValues();
 
    /**
-    * Sets the numValues member variable (returned by getNumValues()) and
-    * reallocates the probeValues member variable to hold numValues
-    * double-precision values. If the reallocation fails, the probeValues
-    * buffer is left unchanged, errno is set (by a realloc() call),
-    * and PV_FAILURE is returned. Otherwise, PV_SUCCESS is returned.
+    * Sets the size of the ProbeValues vector (returned by getNumValues())
+    * If the argument is negative, the mProbeValues vector is cleared
+    * and getNumValues() will return zero. If the size is already positive
+    * when setNumValues() is called with a positive value, the previous values
+    * in the ProbeValues vector are not guaranteed to be preserved.
     */
    void setNumValues(int n);
 
@@ -311,9 +292,10 @@ class BaseProbe : public BaseObject {
    char const *getProbeOutputFilename() { return mProbeOutputFilename; }
 
    /**
-    * Returns a pointer to the buffer containing the probeValues.
+    * Returns a reference to the vector containing the probeValues.
     */
-   double *getValuesBuffer() { return probeValues; }
+   std::vector<double> const &getProbeValues() const { return mProbeValues; }
+   std::vector<double> &getProbeValues() { return mProbeValues; }
 
    /**
     * Returns the value of the textOutputFlag parameter
@@ -380,8 +362,7 @@ inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutp
    char *msgstring; // the string that gets printed by outputState ("" if message is empty or null;
                     // message + ":" if nonempty
    char *mProbeOutputFilename = nullptr;
-   int numValues;
-   double *probeValues;
+   std::vector<double> mProbeValues;
    double lastUpdateTime; // The time of the last time calcValues was called.
    bool textOutputFlag;
    bool mStatsFlag = false; // Whether or not to take min, max or average over the batch

@@ -126,22 +126,22 @@ PointLIFProbe::initializeState(std::shared_ptr<InitializeStateMessage const> mes
 
 void PointLIFProbe::calcValues(double timevalue) {
    assert(this->getNumValues() == NUMBER_OF_VALUES);
-   double *valuesBuffer = this->getValuesBuffer();
+   auto &valuesVector  = getProbeValues();
    auto globalComm     = mCommunicator->globalCommunicator();
 
    // if in bounds
    if (getPointRank() == mCommunicator->globalCommRank()) {
       pvAssert(getPointA() and getPointV());
       pvAssert(getPointG_E() and getPointG_I() and getPointG_IB() and getPointVth());
-      valuesBuffer[0] = *mPointG_E;
-      valuesBuffer[1] = *mPointG_I;
-      valuesBuffer[2] = *mPointG_IB;
-      valuesBuffer[3] = *getPointV();
-      valuesBuffer[4] = *mPointVth;
-      valuesBuffer[5] = *getPointA();
+      valuesVector[0] = *mPointG_E;
+      valuesVector[1] = *mPointG_I;
+      valuesVector[2] = *mPointG_IB;
+      valuesVector[3] = *getPointV();
+      valuesVector[4] = *mPointVth;
+      valuesVector[5] = *getPointA();
       // If not in root process, send values to root process
       if (mCommunicator->globalCommRank() != 0) {
-         MPI_Send(valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, 0, 0, globalComm);
+         MPI_Send(valuesVector.data(), NUMBER_OF_VALUES, MPI_DOUBLE, 0, 0, globalComm);
       }
    }
 
@@ -149,7 +149,7 @@ void PointLIFProbe::calcValues(double timevalue) {
    if (mCommunicator->globalCommRank() == 0 and getPointRank() != 0) {
       auto globalComm = mCommunicator->globalCommunicator();
       MPI_Recv(
-            valuesBuffer,
+            valuesVector.data(),
             NUMBER_OF_VALUES,
             MPI_DOUBLE,
             getPointRank(),
@@ -177,7 +177,8 @@ void PointLIFProbe::writeState(double timevalue) {
       writeTime += writeStep;
       PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
       const int k           = kIndex(xLoc, yLoc, fLoc, loc->nxGlobal, loc->nyGlobal, loc->nf);
-      double *valuesBuffer  = getValuesBuffer();
+      auto &valuesVector    = getProbeValues();
+      pvAssert(static_cast<int>(valuesVector.size()) == 6);
       output(0).printf(
             "%s t=%.1f index %d batchelement %d "
             "G_E=" CONDUCTANCE_PRINT_FORMAT " G_I=" CONDUCTANCE_PRINT_FORMAT
@@ -187,12 +188,12 @@ void PointLIFProbe::writeState(double timevalue) {
             timevalue,
             k,
             batchLoc,
-            valuesBuffer[0],
-            valuesBuffer[1],
-            valuesBuffer[2],
-            valuesBuffer[3],
-            valuesBuffer[4],
-            valuesBuffer[5]);
+            valuesVector[0],
+            valuesVector[1],
+            valuesVector[2],
+            valuesVector[3],
+            valuesVector[4],
+            valuesVector[5]);
       output(0) << std::endl;
    }
 }

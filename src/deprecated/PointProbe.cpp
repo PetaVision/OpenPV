@@ -234,16 +234,16 @@ Response::Status PointProbe::outputState(double simTime, double deltaTime) {
 
 void PointProbe::calcValues(double timevalue) {
    assert(this->getNumValues() == 2);
-   double *valuesBuffer = this->getValuesBuffer();
+   auto &valuesVector = getProbeValues();
    auto globalComm     = mCommunicator->globalCommunicator();
 
    if (getPointRank() == mCommunicator->globalCommRank()) {
       pvAssert(mPointA);
-      valuesBuffer[0] = mPointV ? *mPointV : 0.0f; // mPointV can be null if target layer has no V.
-      valuesBuffer[1] = *mPointA;
+      valuesVector[0] = mPointV ? *mPointV : 0.0f; // mPointV can be null if target layer has no V.
+      valuesVector[1] = *mPointA;
       // If not in root process, send V and A to root process
       if (mCommunicator->globalCommRank() != 0) {
-         MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, globalComm);
+         MPI_Send(valuesVector.data(), 2, MPI_DOUBLE, 0, 0, globalComm);
       }
    }
    else {
@@ -252,14 +252,14 @@ void PointProbe::calcValues(double timevalue) {
 
    // Root process receives from local rank of the target point.
    if (mCommunicator->globalCommRank() == 0 and getPointRank() != 0) {
-      MPI_Recv(valuesBuffer, 2, MPI_DOUBLE, getPointRank(), 0, globalComm, MPI_STATUS_IGNORE);
+      MPI_Recv(valuesVector.data(), 2, MPI_DOUBLE, getPointRank(), 0, globalComm, MPI_STATUS_IGNORE);
    }
 }
 
 void PointProbe::writeState(double timevalue) {
    if (!mOutputStreams.empty()) {
-      double const V = getValuesBuffer()[0];
-      double const A = getValuesBuffer()[1];
+      double const V = getProbeValues()[0];
+      double const A = getProbeValues()[1];
       output(0).printf("%s t=%.1f V=%6.5f a=%.5f", getMessage(), timevalue, V, A);
       output(0) << std::endl;
    }
