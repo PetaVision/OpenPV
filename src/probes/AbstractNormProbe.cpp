@@ -122,7 +122,8 @@ Response::Status AbstractNormProbe::outputState(double simTime, double deltaTime
       pvAssert(static_cast<int>(valuesVector.size()) == nBatch);
       int nk     = getTargetLayer()->getNumGlobalNeurons();
       for (int b = 0; b < nBatch; b++) {
-         output(b).printf("%6.3f, %d, %8d, %f", simTime, b, nk, valuesVector[b]);
+         int globalBatchIndex = calcGlobalBatchOffset() + b;
+         output(b).printf("%6.3f, %d, %8d, %f", simTime, globalBatchIndex, nk, valuesVector[b]);
          output(b) << std::endl;
       }
    }

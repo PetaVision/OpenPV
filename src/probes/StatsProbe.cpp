@@ -321,12 +321,13 @@ Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
          avgval  = avg[b];
          avgnote = "";
       }
+      int globalBatchIndex = calcGlobalBatchOffset() + b;
       output(b).printf(
             "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f%s "
             "Max==%f sigma==%f nnz==%d",
             getMessage(),
             (double)simTime,
-            (int)b,
+            globalBatchIndex,
             (int)divisor,
             (double)sum[b],
             (double)fMin[b],

@@ -12,7 +12,8 @@ void printRankAndPid(MPI_Comm comm) {
    MPI_Comm_size(comm, &size);
    for (int r=0; r < size; ++r) {
       if (r==rank) {
-         printf("Rank %d, pid %d\n", rank, static_cast<int>(getpid()));
+         std::printf("Rank %d, pid %d\n", rank, static_cast<int>(getpid()));
+         std::fflush(stdout);
       }
       MPI_Barrier(comm);
    }
@@ -21,8 +22,7 @@ void printRankAndPid(MPI_Comm comm) {
 void WaitForReturn(MPI_Comm comm) {
    int rank;
    MPI_Comm_rank(comm, &rank);
-printRankAndPid(comm);
-   std::fflush(stdout);
+   printRankAndPid(comm);
    MPI_Barrier(comm);
    if (rank == 0) {
       std::printf("Hit enter to begin! ");

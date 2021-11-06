@@ -179,7 +179,8 @@ Response::Status ColumnEnergyProbe::outputState(double simTime, double deltaTime
       if (!isWritingToFile()) {
          output(b) << "\"" << name << "\","; // lack of \n is deliberate
       }
-      output(b).printf("%10f, %d, %10.9f\n", simTime, b, valuesVector[b]);
+      int globalBatchIndex = calcGlobalBatchOffset() + b;
+      output(b).printf("%10f, %d, %10.9f\n", simTime, globalBatchIndex, valuesVector[b]);
       output(b).flush();
    }
    return Response::SUCCESS;

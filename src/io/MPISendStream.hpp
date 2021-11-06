@@ -32,7 +32,8 @@ class MPISendStream : public PrintStream {
    ~MPISendStream();
 
    /**
-    * Sends the buffer over MPI with the indicated tag, and clears the buffer.
+    * If the buffer is nonempty, sends the buffer over MPI with the indicated tag,
+    * and clears the buffer.
     */
    int send(int tag);
 

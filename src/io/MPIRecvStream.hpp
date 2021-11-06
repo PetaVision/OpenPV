@@ -26,6 +26,11 @@ class MPIRecvStream {
    ~MPIRecvStream();
 
    /**
+    * The flush() function member is passed on to the FileStream.
+    */
+   void flush() { mFileStream->flush(); }
+
+   /**
     * Checks whether there is an MPI message with the given tag. If not, returns zero.
     * If there is a message, receives it with MPI_Recv, and prints it as a string to the
     * given output stream. It returns the number of characters received.

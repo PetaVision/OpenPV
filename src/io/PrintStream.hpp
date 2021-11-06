@@ -39,7 +39,10 @@ class PrintStream {
    void flush() { mOutStream->flush(); }
 
    // Operator overloads to allow using << like cout
-   virtual PrintStream &operator<<(std::string &s) { (*mOutStream) << s; return *this; }
+   virtual PrintStream &operator<<(std::string &s) {
+      (*mOutStream) << s;
+      return *this;
+   }
    virtual PrintStream &operator<<(char c) { (*mOutStream) << c; return *this; }
    virtual PrintStream &operator<<(signed char c) { (*mOutStream) << c; return *this; }
    virtual PrintStream &operator<<(unsigned char c) { (*mOutStream) << c; return *this; }

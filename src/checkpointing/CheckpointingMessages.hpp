@@ -33,7 +33,7 @@ class ProcessCheckpointReadMessage : public BaseMessage {
 
 class PrepareCheckpointWriteMessage : public BaseMessage {
   public:
-   PrepareCheckpointWriteMessage() { setMessageType("ProcessCheckpointWrite"); }
+   PrepareCheckpointWriteMessage() { setMessageType("PrepareCheckpointWrite"); }
 };
 
 class WriteParamsFileMessage : public BaseMessage {

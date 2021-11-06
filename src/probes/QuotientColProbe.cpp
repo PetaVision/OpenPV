@@ -171,7 +171,8 @@ Response::Status QuotientColProbe::outputState(double simTime, double deltaTime)
       if (isWritingToFile()) {
          output(b) << "\"" << valueDescription << "\","; // lack of \n is deliberate
       }
-      output(b) << simTime << "," << b << "," << valuesVector[b] << std::endl;
+      int globalBatchIndex = calcGlobalBatchOffset() + b;
+      output(b) << simTime << "," << globalBatchIndex << "," << valuesVector[b] << std::endl;
    }
    return Response::SUCCESS;
 } // end QuotientColProbe::outputState(float, HyPerCol *)
