@@ -143,8 +143,11 @@ void MomentumUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumUpdater::ioParam_initPrev_dWFile(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, name, "initPrev_dWFile", &mInitPrev_dWFile, "");
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (mPlasticityFlag) {
+      parameters()->ioParamString(
+            ioFlag, name, "initPrev_dWFile", &mInitPrev_dWFile, "");
+   }
 }
 
 void MomentumUpdater::ioParam_prev_dWFrameNumber(enum ParamsIOFlag ioFlag) {
@@ -233,7 +236,7 @@ MomentumUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
 Response::Status
 MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
    Response::Status status = Response::SUCCESS;
-   if (mInitPrev_dWFile and mInitPrev_dWFile[0]) {
+   if (mPlasticityFlag and mInitPrev_dWFile and mInitPrev_dWFile[0]) {
       FileStream prevDeltaWeightsStream(
             mInitPrev_dWFile, std::ios_base::in | std::ios_base::binary);
       WeightsFileIO prev_dWFile(&prevDeltaWeightsStream, getMPIBlock(), mPrevDeltaWeights);
