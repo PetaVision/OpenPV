@@ -110,8 +110,10 @@ void InitVFromFile::readDenseActivityPvp(
             pvpBuffer.resize(loc->nx, loc->ny, loc->nf);
          }
          BufferUtils::scatter(mpiBlock, pvpBuffer, loc->nx, loc->ny, m, 0);
-         std::vector<float> bufferData = pvpBuffer.asVector();
-         std::memcpy(Vbatch, bufferData.data(), sizeof(float) * pvpBuffer.getTotalElements());
+         if (mpiBlock->getBatchIndex() == m) {
+            std::vector<float> bufferData = pvpBuffer.asVector();
+            std::memcpy(Vbatch, bufferData.data(), sizeof(float) * pvpBuffer.getTotalElements());
+         }
       }
    }
 }
