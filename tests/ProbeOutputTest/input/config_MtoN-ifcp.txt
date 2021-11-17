@@ -1,7 +1,7 @@
 RequireReturn:false
 OutputPath:
 ParamsFile:input/initfromchkpt.params
-LogFile:MtoN_initfromchkpt.log
+LogFile:ProbeOutputTest_MtoN_initfromchkpt.log
 GPUDevices:
 RandomSeed:0
 WorkingDirectory:

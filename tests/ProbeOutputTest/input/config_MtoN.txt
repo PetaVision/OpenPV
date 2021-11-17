@@ -1,7 +1,7 @@
 RequireReturn:false
 OutputPath:
 ParamsFile:input/baserun.params
-LogFile:MtoN.log
+LogFile:ProbeOutputTest_MtoN.log
 GPUDevices:
 RandomSeed:0
 WorkingDirectory:

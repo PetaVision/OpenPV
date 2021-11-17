@@ -1,7 +1,7 @@
 RequireReturn:false
 OutputPath:
 ParamsFile:input/baserun.params
-LogFile:MtoN2_restartfromchkpt.log
+LogFile:ProbeOutputTest_MtoN2_restartfromchkpt.log
 GPUDevices:
 RandomSeed:0
 WorkingDirectory:

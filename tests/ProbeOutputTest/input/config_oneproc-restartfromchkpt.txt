@@ -1,7 +1,7 @@
 RequireReturn:false
 OutputPath:
 ParamsFile:input/baserun.params
-LogFile:BasicSystemTest-restart.log
+LogFile:ProbeOutputTest_oneproc_restartfromchkpt.log
 GPUDevices:
 RandomSeed:0
 WorkingDirectory:

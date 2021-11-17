@@ -1,7 +1,7 @@
 RequireReturn:false
 OutputPath:
 ParamsFile:input/longerstoptime.params
-LogFile:BasicSystemTest-restart.log
+LogFile:ProbeOutputTest_batchMPI_restartfromend.log
 GPUDevices:
 RandomSeed:0
 WorkingDirectory:

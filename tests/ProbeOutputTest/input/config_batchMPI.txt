@@ -1,7 +1,7 @@
 RequireReturn:false
 OutputPath:
 ParamsFile:input/baserun.params
-LogFile:BasicSystemTest.log
+LogFile:ProbeOutputTest_batchMPI.log
 GPUDevices:
 RandomSeed:0
 WorkingDirectory:

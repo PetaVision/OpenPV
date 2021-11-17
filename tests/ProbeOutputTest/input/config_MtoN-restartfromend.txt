@@ -1,7 +1,7 @@
 RequireReturn:false
 OutputPath:
 ParamsFile:input/longerstoptime.params
-LogFile:MtoN.log
+LogFile:ProbeOutputTest_MtoN_restartfromend.log
 GPUDevices:
 RandomSeed:0
 WorkingDirectory:
