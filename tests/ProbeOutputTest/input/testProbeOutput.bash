@@ -15,7 +15,7 @@
 #                from checkpoint, in order to simulate restarting from a previous interruped run.
 
 function toldiff() {
-   python input/compareProbeOutput.py "$@";
+   python3 input/compareProbeOutput.py "$@";
 }
 
 function toldiffloop() {
@@ -36,6 +36,12 @@ function toldiffloop() {
     done
     return $status
 }
+
+type python3
+if test $? -ne 0
+then
+    exit 1
+fi
 
 echo "RUNNAME is ${RUNNAME}"
 
