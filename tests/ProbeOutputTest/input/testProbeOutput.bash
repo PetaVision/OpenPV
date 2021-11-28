@@ -8,6 +8,7 @@
 # This script requires several environmental variables to be set.
 # MPICOMMAND     is the mpiexec or mpirun command, together with options, e.g. "mpiexec -n 4"
 #                It can be empty for single process runs.
+# PVEXECUTABLE   The PetaVision program, typically Debug/ProbeOutputTest or Release/ProbeOutputTest
 # RUNNAME        is the name of the run, appearing in the config filename and output directories.
 #                Currently, the allowable RUNNAME values are "oneproc", "batchMPI", "MtoN", "MtoN2".
 # RUNDESC        is a brief description of the run, used in informational messages.
@@ -50,7 +51,7 @@ test -e output && rm -r output
 ### Base run ###
 echo "${RUNDESC} test, base run..."
 test -e output_${RUNNAME} && rm -r output_${RUNNAME}
-${MPICOMMAND} Debug/ProbeOutputTest input/config_${RUNNAME}.txt
+${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}.txt
 mv -i ProbeOutputTest_${RUNNAME}*.log output/
 toldiffloop base
 status="$?"
@@ -85,7 +86,7 @@ while read f
 do
     truncate -s ${OUTPUTPVPTRUNC} "$f"
 done
-${MPICOMMAND} Debug/ProbeOutputTest input/config_${RUNNAME}-ifcp.txt
+${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}-ifcp.txt
 mv -i ProbeOutputTest_${RUNNAME}_initfromchkpt*.log output/
 toldiffloop initfromchkpt
 if test $? -ne 0
@@ -118,7 +119,7 @@ while read f
 do
     truncate -s ${OUTPUTPVPTRUNC} "$f"
 done
-${MPICOMMAND} Debug/ProbeOutputTest input/config_${RUNNAME}-restartfromchkpt.txt
+${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}-restartfromchkpt.txt
 mv -i ProbeOutputTest_${RUNNAME}_restartfromchkpt*.log output/
 toldiffloop restartfromchkpt
 if test $? -ne 0
@@ -136,7 +137,7 @@ mv -i output output_${RUNNAME}_restartfromchkpt
 echo "${RUNDESC} test, restarting from end..."
 cp -pr output_${RUNNAME} output
 rm output/*.log
-${MPICOMMAND} Debug/ProbeOutputTest input/config_${RUNNAME}-restartfromend.txt
+${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}-restartfromend.txt
 mv -i ProbeOutputTest_${RUNNAME}_restartfromend*.log output/
 toldiffloop restartfromend
 if test $? -ne 0

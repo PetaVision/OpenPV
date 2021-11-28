@@ -7,6 +7,7 @@
 test -e output && rm -r output
 
 export MPICOMMAND="mpiexec -n 16 --oversubscribe"
+export PVEXECUTABLE="${1}"
 export RUNNAME=MtoN
 export RUNDESC="16 processes, M-to-N"
 export OUTPUTPVPTRUNC=3344048

@@ -45,7 +45,7 @@ namespace PV {
 class CheckpointerDataInterface : public Observer {
   public:
    bool getInitializeFromCheckpointFlag() const { return mInitializeFromCheckpointFlag; }
-   MPIBlock const *getMPIBlock() { return mMPIBlock; }
+   MPIBlock const *getMPIBlock() const { return mMPIBlock; }
 
   protected:
    CheckpointerDataInterface() {}
