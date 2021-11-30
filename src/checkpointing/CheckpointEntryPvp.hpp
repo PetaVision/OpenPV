@@ -20,13 +20,13 @@ class CheckpointEntryPvp : public CheckpointEntry {
   public:
    CheckpointEntryPvp(
          std::string const &name,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          PVLayerLoc const *layerLoc,
          bool extended);
    CheckpointEntryPvp(
          std::string const &objName,
          std::string const &dataName,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          PVLayerLoc const *layerLoc,
          bool extended);
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)

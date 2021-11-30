@@ -21,7 +21,7 @@ namespace PV {
 template <typename T>
 CheckpointEntryPvp<T>::CheckpointEntryPvp(
       std::string const &name,
-      MPIBlock const *mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       PVLayerLoc const *layerLoc,
       bool extended)
       : CheckpointEntry(name, mpiBlock) {
@@ -32,7 +32,7 @@ template <typename T>
 CheckpointEntryPvp<T>::CheckpointEntryPvp(
       std::string const &objName,
       std::string const &dataName,
-      MPIBlock const *mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       PVLayerLoc const *layerLoc,
       bool extended)
       : CheckpointEntry(objName, dataName, mpiBlock) {

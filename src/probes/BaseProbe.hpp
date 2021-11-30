@@ -11,7 +11,6 @@
 #include "components/LayerUpdateController.hpp"
 #include "include/pv_common.h"
 #include "io/MPIRecvStream.hpp"
-#include "structures/MPIBlock.hpp"
 #include <stdio.h>
 #include <vector>
 
@@ -444,7 +443,6 @@ inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutp
    int mLocalBatchWidth     = 1; // the value of loc->nbatch
 
   private:
-   MPIBlock *mIOMPIBlock = nullptr; // The MPIBlock of the input/output communicator
    char *msgparams; // the message parameter in the params
    char *msgstring; // the string that gets printed by outputState ("" if message is empty or null;
                     // message + ":" if nonempty

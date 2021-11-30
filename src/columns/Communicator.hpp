@@ -10,6 +10,7 @@
 #include "include/pv_types.h"
 #include "structures/MPIBlock.hpp"
 #include <cstdio>
+#include <memory>
 #include <vector>
 
 #include "arch/mpi/mpi.h"
@@ -29,13 +30,15 @@ class Communicator {
    int commSize() const { return localSize; }
    int globalCommSize() const { return globalSize; }
 
-   MPI_Comm communicator() const { return localMPIBlock->getComm(); }
-   MPI_Comm batchCommunicator() const { return batchMPIBlock->getComm(); }
-   MPI_Comm globalCommunicator() const { return globalMPIBlock->getComm(); }
+   MPI_Comm communicator() const { return mLocalMPIBlock->getComm(); }
+   MPI_Comm batchCommunicator() const { return mBatchMPIBlock->getComm(); }
+   MPI_Comm globalCommunicator() const { return mGlobalMPIBlock->getComm(); }
+   MPI_Comm ioCommunicator() const { return mIOMPIBlock->getComm(); }
 
-   MPIBlock const *getLocalMPIBlock() const { return localMPIBlock; }
-   MPIBlock const *getBatchMPIBlock() const { return batchMPIBlock; }
-   MPIBlock const *getGlobalMPIBlock() const { return globalMPIBlock; }
+   std::shared_ptr<MPIBlock const> getLocalMPIBlock() const { return mLocalMPIBlock; }
+   std::shared_ptr<MPIBlock const> getBatchMPIBlock() const { return mBatchMPIBlock; }
+   std::shared_ptr<MPIBlock const> getGlobalMPIBlock() const { return mGlobalMPIBlock; }
+   std::shared_ptr<MPIBlock const> getIOMPIBlock() const { return mIOMPIBlock; }
 
    int numberOfNeighbors(); // includes interior (self) as a neighbor
 
@@ -95,9 +98,10 @@ class Communicator {
    int numCols;
    int batchWidth;
 
-   MPIBlock *localMPIBlock  = nullptr;
-   MPIBlock *batchMPIBlock  = nullptr;
-   MPIBlock *globalMPIBlock = nullptr;
+   std::shared_ptr<MPIBlock> mLocalMPIBlock  = nullptr;
+   std::shared_ptr<MPIBlock> mBatchMPIBlock  = nullptr;
+   std::shared_ptr<MPIBlock> mGlobalMPIBlock = nullptr;
+   std::shared_ptr<MPIBlock> mIOMPIBlock     = nullptr;
 
    // These methods are private for now, move to public as needed
 

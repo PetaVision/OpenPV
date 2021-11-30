@@ -7,7 +7,7 @@
 
 using namespace PV;
 
-void testPvpExtended(MPIBlock const *mpiBlock, std::string const &directory) {
+void testPvpExtended(std::shared_ptr<MPIBlock const> mpiBlock, std::string const &directory) {
    PVLayerLoc loc;
    loc.nbatchGlobal = mpiBlock->getBatchDimension();
    loc.nxGlobal     = 16;

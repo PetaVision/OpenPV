@@ -43,7 +43,6 @@ BaseProbe::~BaseProbe() {
    }
    free(energyProbe);
    mMPIRecvStreams.clear();
-   delete mIOMPIBlock;
 }
 
 int BaseProbe::initialize_base() {
@@ -178,7 +177,7 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
 }
 
 int BaseProbe::calcGlobalBatchOffset() {
-   return (mIOMPIBlock->getStartBatch() + mIOMPIBlock->getBatchIndex()) * mLocalBatchWidth;
+   return (getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex()) * mLocalBatchWidth;
 }
 
 void BaseProbe::initMessageActionMap() {
@@ -205,7 +204,7 @@ void BaseProbe::initOutputStreams(
 void BaseProbe::initOutputStreamsStatsFlag(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto *checkpointer = message->mDataRegistry;
-   if (mIOMPIBlock->getGlobalRank() == 0) {
+   if (getMPIBlock()->getGlobalRank() == 0) {
       mOutputStreams.resize(1);
       char const *probeOutputFilename = getProbeOutputFilename();
       if (probeOutputFilename and probeOutputFilename[0]) {
@@ -230,7 +229,7 @@ void BaseProbe::initOutputStreamsByBatchElement(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto *checkpointer = message->mDataRegistry;
    if (isBatchBaseProc()) {
-      int mpiBatchIndex    = mIOMPIBlock->getStartBatch() + mIOMPIBlock->getBatchIndex();
+      int mpiBatchIndex    = getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex();
       int localBatchOffset = mLocalBatchWidth * mpiBatchIndex;
       mOutputStreams.resize(mLocalBatchWidth);
       if (mProbeOutputFilename and mProbeOutputFilename[0]) {
@@ -243,15 +242,15 @@ void BaseProbe::initOutputStreamsByBatchElement(
                path      = path.substr(0, extensionStart);
             }
 
-            int blockBatchSize = mIOMPIBlock->getBatchDimension() * mLocalBatchWidth;
+            int blockBatchSize = getMPIBlock()->getBatchDimension() * mLocalBatchWidth;
             // set up MPIRecvStream objects for batch elements that are not on the root process
             mMPIRecvStreams.reserve(blockBatchSize - mLocalBatchWidth);
             initializeTagVectors(blockBatchSize - mLocalBatchWidth, mTagSpacing);
 
             for (int b = 0; b < blockBatchSize; ++b) {
                int batchProcessIndex = b / mLocalBatchWidth; // integer division
-               int sendingRank = mIOMPIBlock->calcRankFromRowColBatch(0, 0, batchProcessIndex);
-               if (sendingRank == mIOMPIBlock->getRank()) {
+               int sendingRank = getMPIBlock()->calcRankFromRowColBatch(0, 0, batchProcessIndex);
+               if (sendingRank == getMPIBlock()->getRank()) {
                   int localBatchIndex          = b % mLocalBatchWidth;
                   int globalBatchIndex         = localBatchIndex + localBatchOffset;
                   std::string batchPath        = path;
@@ -270,23 +269,23 @@ void BaseProbe::initOutputStreamsByBatchElement(
                   batchPath.append("_batchElement_").append(std::to_string(globalBatchIndex));
                   batchPath.append(extension);
                   batchPath = checkpointer->makeOutputPathFilename(batchPath);
-                  mMPIRecvStreams.emplace_back(batchPath, mIOMPIBlock->getComm(), sendingRank);
+                  mMPIRecvStreams.emplace_back(batchPath, getMPIBlock()->getComm(), sendingRank);
                   std::string checkpointPath(path);
                   checkpointPath.append("_batchElement_");
                   checkpointPath.append(std::to_string(globalBatchIndex));
                   checkpointPath.append(extension);
                   checkpointPath.append("_filepos");
                   auto checkpointEntry = std::make_shared<CheckpointEntryMPIRecvStream>(
-                        checkpointPath, mIOMPIBlock, mMPIRecvStreams.back());
+                        checkpointPath, getMPIBlock(), mMPIRecvStreams.back());
                   bool constantEntireRunFlag = false;
                   checkpointer->registerCheckpointEntry(checkpointEntry, constantEntireRunFlag);
                }
             }
          }
-         else { // mIOMPIBlock->getRank() != 0; use MPISendStream
+         else { // getMPIBlock()->getRank() != 0; use MPISendStream
             initializeTagVectors(mLocalBatchWidth, mTagSpacing);
             for (int b = 0; b < mLocalBatchWidth; b++) {
-               mOutputStreams[b] = new MPISendStream(mIOMPIBlock->getComm(), 0/*receiving rank*/);
+               mOutputStreams[b] = new MPISendStream(getMPIBlock()->getComm(), 0/*receiving rank*/);
             }
          }
       }
@@ -401,15 +400,7 @@ BaseProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const>
    if (!Response::completed(status)) {
       return status;
    }
-   auto *checkpointerMPIBlock = message->mDataRegistry->getMPIBlock();
-   mIOMPIBlock = new MPIBlock(
-         checkpointerMPIBlock->getGlobalComm(),
-         checkpointerMPIBlock->getGlobalNumRows(),
-         checkpointerMPIBlock->getGlobalNumColumns(),
-         checkpointerMPIBlock->getGlobalBatchDimension(),
-         checkpointerMPIBlock->getNumRows(),
-         checkpointerMPIBlock->getNumColumns(),
-         checkpointerMPIBlock->getBatchDimension());
+   FatalIf(getMPIBlock() == nullptr, "\"%s\" called with null I/O MPIBlock\n", getDescription());
    initOutputStreams(message);
    return Response::SUCCESS;
 }
@@ -451,10 +442,10 @@ void BaseProbe::flushOutputStreams() {
    if (isBatchBaseProc()) {
       if (isRootProc()) {
          std::vector<int> nonRootTags(mCurrentTag.size());
-         for (int p = 0; p < mIOMPIBlock->getBatchDimension(); ++p) {
-            int sendingRank = mIOMPIBlock->calcRankFromRowColBatch(0, 0, p);
-            if (p == mIOMPIBlock->getBatchIndex()) { continue; }
-            int tagVectorOffset = p - (p > mIOMPIBlock->getBatchIndex() ? 1 : 0);
+         for (int p = 0; p < getMPIBlock()->getBatchDimension(); ++p) {
+            int sendingRank = getMPIBlock()->calcRankFromRowColBatch(0, 0, p);
+            if (p == getMPIBlock()->getBatchIndex()) { continue; }
+            int tagVectorOffset = p - (p > getMPIBlock()->getBatchIndex() ? 1 : 0);
             tagVectorOffset *= mLocalBatchWidth;
             pvAssert(tagVectorOffset < static_cast<int>(nonRootTags.size()));
             MPI_Recv(
@@ -463,7 +454,7 @@ void BaseProbe::flushOutputStreams() {
                   MPI_INT,
                   sendingRank,
                   4999 /*tag*/,
-                  mIOMPIBlock->getComm(),
+                  getMPIBlock()->getComm(),
                   MPI_STATUS_IGNORE);
          }
          auto vsize = nonRootTags.size();
@@ -485,7 +476,7 @@ void BaseProbe::flushOutputStreams() {
                MPI_INT,
                0 /*destination rank*/,
                4999 /*tag*/,
-               mIOMPIBlock->getComm());
+               getMPIBlock()->getComm());
       }
    }
 }
@@ -519,14 +510,14 @@ bool BaseProbe::isBatchBaseProc() const {
 }
 
 bool BaseProbe::isRootProc() const {
-   return mIOMPIBlock->getRank() == 0;
+   return getMPIBlock()->getRank() == 0;
 }
 
 void BaseProbe::receive(int batchProcessIndex, int localBatchIndex) {
    pvAssert(isRootProc());
    int blockBatchIndex = batchProcessIndex * mLocalBatchWidth + localBatchIndex;
    int streamIndex = blockBatchIndex;
-   streamIndex -= (batchProcessIndex > mIOMPIBlock->getBatchIndex() ? mLocalBatchWidth : 0);
+   streamIndex -= (batchProcessIndex > getMPIBlock()->getBatchIndex() ? mLocalBatchWidth : 0);
    int tag = mCurrentTag[streamIndex];
    auto &recvStream = mMPIRecvStreams[streamIndex];
    int bytesReceived = recvStream.receive(tag);
@@ -549,10 +540,10 @@ void BaseProbe::transferMPIOutput() {
       }
    }
    if (isBatchBaseProc() and isRootProc()) {
-      int blockBatchSize = mIOMPIBlock->getBatchDimension() * mLocalBatchWidth;
+      int blockBatchSize = getMPIBlock()->getBatchDimension() * mLocalBatchWidth;
       for (int b = 0; b < blockBatchSize; ++b) {
          int batchProcessIndex = b / mLocalBatchWidth; // integer division
-         if (batchProcessIndex == mIOMPIBlock->getBatchIndex()) { continue; }
+         if (batchProcessIndex == getMPIBlock()->getBatchIndex()) { continue; }
          int localBatchIndex = b % mLocalBatchWidth;
          receive(batchProcessIndex, localBatchIndex);
       }

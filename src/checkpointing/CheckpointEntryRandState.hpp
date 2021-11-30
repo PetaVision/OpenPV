@@ -17,7 +17,7 @@ class CheckpointEntryRandState : public CheckpointEntry {
   public:
    CheckpointEntryRandState(
          std::string const &dataName,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          taus_uint4 *dataPointer,
          PVLayerLoc *layerLoc,
          bool extendedFlag)
@@ -28,7 +28,7 @@ class CheckpointEntryRandState : public CheckpointEntry {
    CheckpointEntryRandState(
          std::string const &objName,
          std::string const &dataName,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          taus_uint4 *dataPointer,
          PVLayerLoc const *layerLoc,
          bool extendedFlag)

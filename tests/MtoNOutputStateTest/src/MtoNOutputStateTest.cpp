@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
    // directory that outputState will write to, and the rank within the
    // MPIBlock.
    Checkpointer *tempCheckpoint = new Checkpointer(
-         "column", pv_init.getCommunicator()->getGlobalMPIBlock(), pv_init.getArguments());
+         "column", pv_init.getCommunicator(), pv_init.getArguments());
    tempCheckpoint->ioParams(PARAMS_IO_READ, pv_init.getParams());
    std::string outputDirectory(tempCheckpoint->getOutputPath());
    std::string const &blockDirectory = tempCheckpoint->getBlockDirectoryName();

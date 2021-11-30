@@ -10,12 +10,12 @@ class CheckpointEntryMPIRecvStream : public CheckpointEntry {
   public:
    CheckpointEntryMPIRecvStream(
          std::string const &name,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          MPIRecvStream &mpiRecvStream);
    CheckpointEntryMPIRecvStream(
          std::string const &objName,
          std::string const &dataName,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          MPIRecvStream &mpiRecvStream);
    virtual void write(
          std::string const &checkpointDirectory,

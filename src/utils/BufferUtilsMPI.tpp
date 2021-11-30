@@ -8,7 +8,7 @@ namespace BufferUtils {
 
 template <typename T>
 void scatter(
-      MPIBlock const *mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       Buffer<T> &buffer,
       unsigned int localWidth,
       unsigned int localHeight,
@@ -89,7 +89,7 @@ void scatter(
 
 template <typename T>
 Buffer<T> gather(
-      MPIBlock const *mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       Buffer<T> buffer,
       unsigned int localWidth,
       unsigned int localHeight,
@@ -169,8 +169,11 @@ Buffer<T> gather(
 }
 
 template <typename T>
-SparseList<T>
-gatherSparse(MPIBlock const *mpiBlock, SparseList<T> list, int mpiBatchIndex, int destProcess) {
+SparseList<T> gatherSparse(
+      std::shared_ptr<MPIBlock const> mpiBlock,
+      SparseList<T> list,
+      int mpiBatchIndex,
+      int destProcess) {
    size_t entrySize = sizeof(typename SparseList<T>::Entry);
    if (mpiBlock->getRank() == destProcess) {
       SparseList<T> globalList;

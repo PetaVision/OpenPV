@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
    PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
    MPI_Init(&argc, &argv);
    PV::Communicator const *comm = new PV::Communicator(&arguments);
-   PV::MPIBlock const *mpiBlock = comm->getLocalMPIBlock();
+   auto mpiBlock = comm->getLocalMPIBlock();
 
    // Params file
    PV::PVParams *params = new PV::PVParams("input/DeleteOldCheckpointsTest.params", 1, comm);
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
    std::size_t const numKept = (std::size_t)params->valueInt("checkpointer", "numCheckpointsKept");
 
    // Initialize Checkpointer object
-   PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", mpiBlock, &arguments);
+   PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", comm, &arguments);
    checkpointer->ioParams(PV::PARAMS_IO_READ, params);
    delete params;
 

@@ -5,14 +5,14 @@ namespace PV {
 
 CheckpointEntryMPIRecvStream::CheckpointEntryMPIRecvStream(
       std::string const &name,
-      MPIBlock const *mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       MPIRecvStream &mpiRecvStream)
       : CheckpointEntry(name, mpiBlock), mMPIRecvStream(&mpiRecvStream) {}
 
 CheckpointEntryMPIRecvStream::CheckpointEntryMPIRecvStream(
       std::string const &objName,
       std::string const &dataName,
-      MPIBlock const *mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       MPIRecvStream &mpiRecvStream)
       : CheckpointEntry(objName, dataName, mpiBlock), mMPIRecvStream(&mpiRecvStream) {}
 

@@ -22,11 +22,11 @@ namespace PV {
 
 Checkpointer::Checkpointer(
       std::string const &name,
-      MPIBlock const *globalMPIBlock,
+      Communicator const *communicator,
       Arguments const *arguments)
       : mName(name) {
    Subject::initializeTable(name.c_str());
-   initMPIBlock(globalMPIBlock, arguments);
+   mMPIBlock = communicator->getIOMPIBlock();
    initBlockDirectoryName();
 
    mOutputPath              = arguments->getStringArgument("OutputPath");
@@ -53,23 +53,6 @@ Checkpointer::~Checkpointer() {
    // Don't delete the objects in the ObserverComponentTable; Checkpointer doesn't own them.
    mTable->clear();
    delete mCheckpointTimer;
-   delete mMPIBlock;
-}
-
-void Checkpointer::initMPIBlock(MPIBlock const *globalMPIBlock, Arguments const *arguments) {
-   pvAssert(mMPIBlock == nullptr);
-   int cellNumRows        = arguments->getIntegerArgument("CheckpointCellNumRows");
-   int cellNumColumns     = arguments->getIntegerArgument("CheckpointCellNumColumns");
-   int cellBatchDimension = arguments->getIntegerArgument("CheckpointCellBatchDimension");
-   // If using batching, mCheckpointReadDir might be a comma-separated list of directories
-   mMPIBlock = new MPIBlock(
-         globalMPIBlock->getComm(),
-         globalMPIBlock->getNumRows(),
-         globalMPIBlock->getNumColumns(),
-         globalMPIBlock->getBatchDimension(),
-         cellNumRows,
-         cellNumColumns,
-         cellBatchDimension);
 }
 
 void Checkpointer::initBlockDirectoryName() {

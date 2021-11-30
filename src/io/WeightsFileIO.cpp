@@ -3,7 +3,8 @@
 
 namespace PV {
 
-WeightsFileIO::WeightsFileIO(FileStream *fileStream, MPIBlock const *mpiBlock, Weights *weights)
+WeightsFileIO::WeightsFileIO(
+      FileStream *fileStream, std::shared_ptr<MPIBlock const> mpiBlock, Weights *weights)
       : mFileStream(fileStream), mMPIBlock(mpiBlock), mWeights(weights) {
    if (mMPIBlock == nullptr) {
       throw std::invalid_argument("WeightsFileIO instantiated with a null MPIBlock");

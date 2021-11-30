@@ -28,7 +28,7 @@ static int check_borders(float *buf, PV::BorderExchange *borderExchanger, PVLaye
 int main(int argc, char *argv[]) {
    PV::PV_Init *initObj = new PV::PV_Init(&argc, &argv, true /*allowUnrecognizedArguments*/);
    PV::Communicator const *comm = initObj->getCommunicator();
-   PV::MPIBlock const *mpiBlock = comm->getLocalMPIBlock();
+   auto mpiBlock = comm->getLocalMPIBlock();
 
    PVLayerLoc loc;
 

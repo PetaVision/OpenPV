@@ -18,14 +18,14 @@ class CheckpointEntryDataStore : public CheckpointEntryPvp<float> {
   public:
    CheckpointEntryDataStore(
          std::string const &name,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          DataStore *dataStore,
          PVLayerLoc const *layerLoc)
          : CheckpointEntryPvp<float>(name, mpiBlock, layerLoc, true), mDataStore(dataStore) {}
    CheckpointEntryDataStore(
          std::string const &objName,
          std::string const &dataName,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          DataStore *dataStore,
          PVLayerLoc const *layerLoc)
          : CheckpointEntryPvp<float>(objName, dataName, mpiBlock, layerLoc, true),

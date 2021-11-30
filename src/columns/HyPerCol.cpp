@@ -162,7 +162,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
    }
 
    mCheckpointer = new Checkpointer(
-         std::string(group0Name), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
+         std::string(group0Name), mCommunicator, mPVInitObj->getArguments());
    mCheckpointer->addObserver(this->getName(), this);
    mCheckpointer->ioParams(PARAMS_IO_READ, parameters());
 
@@ -278,10 +278,10 @@ void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
          ioFlag, getName(), "printParamsFilename", &mPrintParamsFilename, "pv.params");
    if (mPrintParamsFilename == nullptr || mPrintParamsFilename[0] == '\0') {
-      if (mCheckpointer->getMPIBlock()->getRank() == 0) {
+      if (mCommunicator->getIOMPIBlock()->getRank() == 0) {
          ErrorLog().printf("printParamsFilename cannot be null or the empty string.\n");
       }
-      MPI_Barrier(mCheckpointer->getMPIBlock()->getComm());
+      MPI_Barrier(mCommunicator->ioCommunicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -924,7 +924,7 @@ void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comm
    fileStream->printf("%s PetaVision, " PV_GIT_REVISION "\n", commentToken);
    fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
 #ifdef PV_USE_MPI
-   MPIBlock const *mpiBlock = mCheckpointer->getMPIBlock();
+   auto mpiBlock = mCheckpointer->getMPIBlock();
 
 #ifdef OMPI_MAJOR_VERSION
    fileStream->printf(

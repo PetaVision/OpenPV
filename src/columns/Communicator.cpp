@@ -36,6 +36,10 @@ Communicator::Communicator(Arguments const *argumentList) {
    numCols    = argumentList->getIntegerArgument("NumColumns");
    batchWidth = argumentList->getIntegerArgument("BatchWidth");
 
+   int cellRows       = argumentList->getIntegerArgument("CheckpointCellNumRows");
+   int cellCols       = argumentList->getIntegerArgument("CheckpointCellNumColumns");
+   int cellBatchProcs = argumentList->getIntegerArgument("CheckpointCellBatchDimension");
+
    bool rowsDefined  = numRows != 0;
    bool colsDefined  = numCols != 0;
    bool batchDefined = batchWidth != 0;
@@ -75,15 +79,15 @@ Communicator::Communicator(Arguments const *argumentList) {
               << totalSize << ")\n";
    }
 
-   globalMPIBlock =
-         new MPIBlock(MPI_COMM_WORLD, numRows, numCols, batchWidth, numRows, numCols, batchWidth);
+   mGlobalMPIBlock = std::make_shared<MPIBlock>(
+         MPI_COMM_WORLD, numRows, numCols, batchWidth, numRows, numCols, batchWidth);
    isExtra = (globalRank >= commSize);
    if (isExtra) {
       WarnLog() << "Global process rank " << globalRank << " is extra, as only " << commSize
                 << " mpiProcesses are required. Process exiting\n";
       return;
    }
-   // globalMPIBlock's communicator now has only useful mpi processes
+   // mGlobalMPIBlock's communicator now has only useful mpi processes
 
    // If RequireReturn was set, wait until global root process gets keyboard input.
    bool requireReturn = argumentList->getBooleanArgument("RequireReturn");
@@ -95,13 +99,16 @@ Communicator::Communicator(Arguments const *argumentList) {
    MPI_Comm_size(globalCommunicator(), &globalSize);
 
    // Make new local communicator
-   localMPIBlock =
-         new MPIBlock{globalCommunicator(), numRows, numCols, batchWidth, numRows, numCols, 1};
+   mLocalMPIBlock =
+         std::make_shared<MPIBlock>(globalCommunicator(), numRows, numCols, batchWidth, numRows, numCols, 1);
    // Set local rank
-   localRank = localMPIBlock->getRank();
+   localRank = mLocalMPIBlock->getRank();
    // Make new batch communicator
-   batchMPIBlock =
-         new MPIBlock{globalCommunicator(), numRows, numCols, batchWidth, 1, 1, batchWidth};
+   mBatchMPIBlock =
+         std::make_shared<MPIBlock>(globalCommunicator(), numRows, numCols, batchWidth, 1, 1, batchWidth);
+
+   mIOMPIBlock = std::make_shared<MPIBlock>(
+         globalCommunicator(), numRows, numCols, batchWidth, cellRows, cellCols, cellBatchProcs);
 
    //#ifdef DEBUG_OUTPUT
    //      DebugLog().printf("[%2d]: Formed resized communicator, size==%d
@@ -126,9 +133,6 @@ Communicator::~Communicator() {
 #ifdef PV_USE_MPI
    MPI_Barrier(globalCommunicator());
 #endif
-   delete localMPIBlock;
-   delete batchMPIBlock;
-   delete globalMPIBlock;
 }
 
 /**

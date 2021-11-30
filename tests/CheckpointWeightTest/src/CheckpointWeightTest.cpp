@@ -24,16 +24,16 @@ PVLayerLoc setLayerLoc(
       int dn,
       int up);
 
-MPIBlock const setMPIBlock(PV_Init &pv_initObj);
+std::shared_ptr<MPIBlock const> setMPIBlock(PV_Init &pv_initObj);
 
 void verifyCheckpointing(
       int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc,
-      bool sharedFlag, MPIBlock const mpiBlock);
+      bool sharedFlag, std::shared_ptr<MPIBlock const> mpiBlock);
 
 int calcGlobalPatchIndex(
       int localPatchIndex,
-      MPIBlock const &mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       PVLayerLoc const &preLoc,
       PVLayerLoc const &postLoc,
       int nxp,
@@ -45,7 +45,7 @@ bool isActiveWeight(Patch const &patch, int nxp, int nyp, int nfp, int itemIndex
 int main(int argc, char *argv[]) {
    PV_Init pv_initObj{&argc, &argv, false /*do not allow unrecognized arguments*/};
    Communicator const *communicator = pv_initObj.getCommunicator();
-   MPIBlock const mpiBlock          = setMPIBlock(pv_initObj);
+   auto mpiBlock          = setMPIBlock(pv_initObj);
 
    int const nxGlobal = 32;
    int const nyGlobal = 32;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 void verifyCheckpointing(
       int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc,
-      bool sharedFlag, MPIBlock const mpiBlock) {
+      bool sharedFlag, std::shared_ptr<MPIBlock const> mpiBlock) {
    // Create the weights
    std::string label(sharedFlag ? "shared" : "nonshared");
    int const numArbors = 1;
@@ -123,9 +123,9 @@ void verifyCheckpointing(
    std::string const checkpointDirectory("checkpoint");
 
    int globalSize;
-   MPI_Comm_size(mpiBlock.getGlobalComm(), &globalSize);
+   MPI_Comm_size(mpiBlock->getGlobalComm(), &globalSize);
    for (int globalRank = 0; globalRank < globalSize; globalRank++) {
-      if (mpiBlock.getGlobalRank() == globalRank and mpiBlock.getRank() == 0) {
+      if (mpiBlock->getGlobalRank() == globalRank and mpiBlock->getRank() == 0) {
          struct stat checkpointStat;
          int statStatus = stat(checkpointDirectory.c_str(), &checkpointStat);
          if (statStatus == -1) {
@@ -144,14 +144,14 @@ void verifyCheckpointing(
          int status = system(rmrfcommand.c_str());
          FatalIf(status, "Failed to delete %s\n", checkpointDirectory.c_str());
       }
-      MPI_Barrier(mpiBlock.getGlobalComm());
+      MPI_Barrier(mpiBlock->getGlobalComm());
    }
-   ensureDirExists(&mpiBlock, checkpointDirectory.c_str());
+   ensureDirExists(mpiBlock, checkpointDirectory.c_str());
 
    // Create the CheckpointEntry.
    bool const compressFlag = false;
    auto checkpointWriter   = std::make_shared<CheckpointEntryWeightPvp>(
-         weights.getName(), &mpiBlock, &weights, compressFlag);
+         weights.getName(), mpiBlock, &weights, compressFlag);
 
    double const timestamp = 10.0;
    bool verifyWritesFlag  = false;
@@ -172,7 +172,7 @@ void verifyCheckpointing(
 
    // Read the data back and verify timestamp.
    auto checkpointReader = std::make_shared<CheckpointEntryWeightPvp>(
-         readBack.getName(), &mpiBlock, &readBack, compressFlag);
+         readBack.getName(), mpiBlock, &readBack, compressFlag);
    double readTime = (double)(timestamp == 0.0);
    checkpointReader->read(checkpointDirectory.c_str(), &readTime);
    FatalIf(
@@ -204,7 +204,7 @@ void verifyCheckpointing(
                      "%s, Rank %d, patch %d (global %d), patch item %d: "
                      "expected %f; observed %f (discrepancy %g)\n",
                      label.c_str(),
-                     mpiBlock.getGlobalRank(),
+                     mpiBlock->getGlobalRank(),
                      p,
                      globalPatchIndex,
                      k,
@@ -216,7 +216,7 @@ void verifyCheckpointing(
       }
    }
 
-   if (mpiBlock.getRank() == 0) {
+   if (mpiBlock->getRank() == 0) {
       InfoLog().printf("%s passed.\n", label.c_str());
    }
 }
@@ -271,7 +271,7 @@ PVLayerLoc setLayerLoc(
 
 int calcGlobalPatchIndex(
       int localPatchIndex,
-      MPIBlock const &mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       PVLayerLoc const &preLoc,
       PVLayerLoc const &postLoc,
       int nxp,
@@ -285,20 +285,17 @@ int calcGlobalPatchIndex(
    int numPatchesYGlobal = preLoc.nyGlobal + marginY + marginY;
 
    int x = kxPos(localPatchIndex, numPatchesX, numPatchesY, nf);
-   x += preLoc.nx * (mpiBlock.getStartColumn() + mpiBlock.getColumnIndex());
+   x += preLoc.nx * (mpiBlock->getStartColumn() + mpiBlock->getColumnIndex());
    int y = kyPos(localPatchIndex, numPatchesX, numPatchesY, nf);
-   y += preLoc.ny * (mpiBlock.getStartRow() + mpiBlock.getRowIndex());
+   y += preLoc.ny * (mpiBlock->getStartRow() + mpiBlock->getRowIndex());
    int f = featureIndex(localPatchIndex, numPatchesX, numPatchesY, nf);
 
    int patchIndexGlobal = kIndex(x, y, f, numPatchesXGlobal, numPatchesYGlobal, nf);
    return patchIndexGlobal;
 }
 
-MPIBlock const setMPIBlock(PV_Init &pv_initObj) {
-   Arguments const *arguments     = pv_initObj.getArguments();
-   MPIBlock const *globalMPIBlock = pv_initObj.getCommunicator()->getGlobalMPIBlock();
-   Checkpointer tempCheckpointer("column", globalMPIBlock, arguments);
-   MPIBlock const mpiBlock = *tempCheckpointer.getMPIBlock();
+std::shared_ptr<MPIBlock const> setMPIBlock(PV_Init &pv_initObj) {
+   std::shared_ptr<MPIBlock const> mpiBlock = pv_initObj.getCommunicator()->getIOMPIBlock();
    return mpiBlock;
 }
 

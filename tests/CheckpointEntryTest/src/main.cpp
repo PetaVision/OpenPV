@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
    PV::Communicator const *comm = new PV::Communicator(&arguments);
 
    std::string directory("checkpoints");
-   auto *mpiBlock = comm->getLocalMPIBlock();
+   auto mpiBlock = comm->getLocalMPIBlock();
    ensureDirExists(mpiBlock, directory.c_str());
    if (mpiBlock->getRank() == 0) {
       std::string rmcommand("rm -rf " + directory + "/*");
