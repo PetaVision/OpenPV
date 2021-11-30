@@ -232,7 +232,7 @@ void BaseProbe::initOutputStreamsByBatchElement(
       int mpiBatchIndex    = getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex();
       int localBatchOffset = mLocalBatchWidth * mpiBatchIndex;
       mOutputStreams.resize(mLocalBatchWidth);
-      if (mProbeOutputFilename and mProbeOutputFilename[0]) {
+      if (isWritingToFile()) {
          if (isRootProc()) {
             std::string path(mProbeOutputFilename);
             auto extensionStart = path.rfind('.');
@@ -438,6 +438,7 @@ Response::Status BaseProbe::outputStateWrapper(double simTime, double dt) {
 
 void BaseProbe::flushOutputStreams() {
    if (mStatsFlag) { return; }
+   if (!isWritingToFile()) { return; }
    transferMPIOutput();
    if (isBatchBaseProc()) {
       if (isRootProc()) {
@@ -528,24 +529,27 @@ void BaseProbe::receive(int batchProcessIndex, int localBatchIndex) {
 
 void BaseProbe::transferMPIOutput() {
    if (mStatsFlag) { return; }
-   if (isBatchBaseProc() and !isRootProc()) {
-      for (int b = 0; b < mLocalBatchWidth; ++b) {
-         auto *stream = dynamic_cast<MPISendStream*>(&output(b));
-         pvAssert(stream != nullptr);
-         int tag = mCurrentTag[b];
-         int bytesSent = stream->send(tag);
-         if (bytesSent > 0) {
-            incrementTag(b);
+   if (!isWritingToFile()) { return; }
+   if (isBatchBaseProc()) {
+      if (isRootProc()) {
+         int blockBatchSize = getMPIBlock()->getBatchDimension() * mLocalBatchWidth;
+         for (int b = 0; b < blockBatchSize; ++b) {
+            int batchProcessIndex = b / mLocalBatchWidth; // integer division
+            if (batchProcessIndex == getMPIBlock()->getBatchIndex()) { continue; }
+            int localBatchIndex = b % mLocalBatchWidth;
+            receive(batchProcessIndex, localBatchIndex);
          }
       }
-   }
-   if (isBatchBaseProc() and isRootProc()) {
-      int blockBatchSize = getMPIBlock()->getBatchDimension() * mLocalBatchWidth;
-      for (int b = 0; b < blockBatchSize; ++b) {
-         int batchProcessIndex = b / mLocalBatchWidth; // integer division
-         if (batchProcessIndex == getMPIBlock()->getBatchIndex()) { continue; }
-         int localBatchIndex = b % mLocalBatchWidth;
-         receive(batchProcessIndex, localBatchIndex);
+      else {
+         for (int b = 0; b < mLocalBatchWidth; ++b) {
+            auto *stream = dynamic_cast<MPISendStream*>(&output(b));
+            pvAssert(stream != nullptr);
+            int tag = mCurrentTag[b];
+            int bytesSent = stream->send(tag);
+            if (bytesSent > 0) {
+               incrementTag(b);
+            }
+         }
       }
    }
 }
