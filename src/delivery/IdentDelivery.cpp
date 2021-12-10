@@ -164,6 +164,9 @@ void IdentDelivery::deliver(float *destBuffer) {
 }
 
 void IdentDelivery::deliverUnitInput(float *recvBuffer) {
+   if (mChannelCode == CHANNEL_NOUPDATE) {
+      return;
+   }
    const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for

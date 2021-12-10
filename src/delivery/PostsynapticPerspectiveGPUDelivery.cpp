@@ -45,6 +45,7 @@ Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
    // HyPerDelivery::communicateInitInfo() postpones until mWeightsPair communicates.
    pvAssert(mWeightsPair and mWeightsPair->getInitInfoCommunicatedFlag());
    mWeightsPair->needPost();
@@ -61,11 +62,12 @@ Response::Status PostsynapticPerspectiveGPUDelivery::communicateInitInfo(
 
 Response::Status PostsynapticPerspectiveGPUDelivery::setCudaDevice(
       std::shared_ptr<SetCudaDeviceMessage const> message) {
-   pvAssert(mUsingGPUFlag);
    auto status = HyPerDelivery::setCudaDevice(message);
    if (status != Response::SUCCESS) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
+   pvAssert(mUsingGPUFlag);
    mWeightsPair->getPostWeights()->setCudaDevice(message->mCudaDevice);
    // Increment number of postKernels for cuDNN workspace memory
    mCudaDevice->incrementConvKernels();
@@ -77,10 +79,10 @@ Response::Status PostsynapticPerspectiveGPUDelivery::allocateDataStructures() {
          mCudaDevice == nullptr,
          "%s received AllocateData without having received SetCudaDevice.\n",
          getDescription_c());
-   if (!mWeightsPair->getDataStructuresAllocatedFlag()) {
+   if (mWeightsPair and !mWeightsPair->getDataStructuresAllocatedFlag()) {
       return Response::POSTPONE;
    }
-   if (!mPostGSyn->getDataStructuresAllocatedFlag()) {
+   if (mPostGSyn and !mPostGSyn->getDataStructuresAllocatedFlag()) {
       return Response::POSTPONE;
    }
 
@@ -88,6 +90,7 @@ Response::Status PostsynapticPerspectiveGPUDelivery::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
 
    int const numPostRestricted = mPostGSyn->getBufferSize();
    mDevicePostToPreActivity =
@@ -106,6 +109,7 @@ Response::Status PostsynapticPerspectiveGPUDelivery::copyInitialStateToGPU() {
 }
 
 void PostsynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return; }
    PVCuda::CudaDevice *device = mCudaDevice;
    Weights *postWeights       = mWeightsPair->getPostWeights();
    mRecvKernel                = new PVCuda::CudaRecvPost(device);
@@ -280,8 +284,12 @@ void PostsynapticPerspectiveGPUDelivery::deliver(float *destBuffer) {
 // The spirit of this class says we should put this method on the GPU,
 // but the priority for doing so is rather low.
 void PostsynapticPerspectiveGPUDelivery::deliverUnitInput(
-
       float *recvBuffer) {
+   // Check if we need to update based on connection's channel
+   if (getChannelCode() == CHANNEL_NOUPDATE) {
+      return;
+   }
+
    // Get number of neurons restricted target
    const int numPostRestricted = mPostGSyn->getBufferSize();
 

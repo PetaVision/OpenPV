@@ -46,6 +46,7 @@ HyPerDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
    mWeightsPair = message->mObjectTable->findObject<WeightsPair>(getName());
    pvAssert(mWeightsPair);
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {

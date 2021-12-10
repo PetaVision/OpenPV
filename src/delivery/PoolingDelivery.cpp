@@ -115,6 +115,7 @@ PoolingDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage 
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
 
    auto *objectTable = message->mObjectTable;
 
@@ -170,6 +171,7 @@ PoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage const> messa
    if (status != Response::SUCCESS) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
    if (mUsingGPUFlag) {
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
@@ -194,6 +196,7 @@ Response::Status PoolingDelivery::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
    pvAssert(mPreData and mPreData->getLayerLoc());
    pvAssert(mPostGSyn and mPostGSyn->getLayerLoc());
    FatalIf(
@@ -295,6 +298,7 @@ void PoolingDelivery::deliver(float *destBuffer) {
 }
 
 void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
+   pvAssert(getChannelCode() != CHANNEL_NOUPDATE);
    PVLayerLoc const *sourceLoc = mPreData->getLayerLoc();
    PVLayerLoc const *targetLoc = mPostGSyn->getLayerLoc();
    Weights *postWeights        = mWeightsPair->getPostWeights();
@@ -455,6 +459,7 @@ void PoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
 }
 
 void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
+   pvAssert(getChannelCode() != CHANNEL_NOUPDATE);
    PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *preWeights       = mWeightsPair->getPreWeights();
@@ -690,6 +695,7 @@ void PoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
 }
 
 void PoolingDelivery::clearGateIdxBuffer() {
+   pvAssert(getChannelCode() != CHANNEL_NOUPDATE);
    if (mNeedPostIndexLayer) {
       // Reset mPostIndexLayer's gsyn
       auto *indexLayerInput = mPostIndexLayer->getComponentByType<PoolingIndexLayerInputBuffer>();

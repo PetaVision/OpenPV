@@ -25,6 +25,7 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
    if (mConnectionData == nullptr) {
       mConnectionData = message->mObjectTable->findObject<ConnectionData>(getName());
    }
@@ -53,7 +54,7 @@ BaseDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage con
             mPostGSyn == nullptr,
             "%s post layer \"%s\" does not have a LayerInputBuffer component.\n",
             getDescription_c(),
-            mPostGSyn->getName());
+            postLayer->getName());
       mPostGSyn->requireChannel(channelAsInt);
       int numChannelsCheck = postLayerInputBuffer->getNumChannels();
       FatalIf(

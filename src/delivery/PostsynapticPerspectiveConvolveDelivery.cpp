@@ -38,6 +38,7 @@ Response::Status PostsynapticPerspectiveConvolveDelivery::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
    // HyPerDelivery::communicateInitInfo() postpones until mWeightsPair communicates.
    pvAssert(mWeightsPair and mWeightsPair->getInitInfoCommunicatedFlag());
    if (!mWeightsPair->getInitInfoCommunicatedFlag()) {
@@ -150,8 +151,10 @@ void PostsynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
 }
 
 void PostsynapticPerspectiveConvolveDelivery::deliverUnitInput(
-
       float *recvBuffer) {
+   // Check if we need to update based on connection's channel
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return; }
+
    // Get number of neurons restricted target
    const int numPostRestricted = mPostGSyn->getBufferSize();
 
