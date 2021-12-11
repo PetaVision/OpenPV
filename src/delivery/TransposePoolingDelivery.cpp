@@ -68,6 +68,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
 
    auto *objectTable = message->mObjectTable;
 
@@ -171,6 +172,7 @@ TransposePoolingDelivery::setCudaDevice(std::shared_ptr<SetCudaDeviceMessage con
    if (status != Response::SUCCESS) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
    if (mUsingGPUFlag) {
       Weights *weights = mWeightsPair->getPostWeights();
       pvAssert(weights);
@@ -185,6 +187,7 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
    pvAssert(mPreData and mPreData->getLayerLoc());
    pvAssert(mPostGSyn and mPostGSyn->getLayerLoc());
    FatalIf(
@@ -224,6 +227,7 @@ Response::Status TransposePoolingDelivery::allocateDataStructures() {
 
 #ifdef PV_USE_CUDA
 void TransposePoolingDelivery::initializeDeliverKernelArgs() {
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return; }
    PVCuda::CudaBuffer *d_preDatastore         = mPreData->getCudaDatastore();
    PVCuda::CudaBuffer *d_postGSyn             = mPostGSyn->getCudaBuffer();
    PVCuda::CudaBuffer *d_originalPreDatastore = mOriginalPreData->getCudaDatastore();
@@ -277,11 +281,13 @@ void TransposePoolingDelivery::deliver(float *destBuffer) {
 }
 
 void TransposePoolingDelivery::deliverPostsynapticPerspective(float *destBuffer) {
+   pvAssert(getChannelCode() != CHANNEL_NOUPDATE);
    Fatal() << "Delivering from PostSynapticPerspective for TransposePoolingDelivery has not been "
               "implemented yet.\n";
 }
 
 void TransposePoolingDelivery::deliverPresynapticPerspective(float *destBuffer) {
+   pvAssert(getChannelCode() != CHANNEL_NOUPDATE);
    PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
    PVLayerLoc const *postLoc = mPostGSyn->getLayerLoc();
    Weights *preWeights       = mWeightsPair->getPreWeights();
@@ -498,6 +504,8 @@ bool TransposePoolingDelivery::isAllInputReady() const {
 
 #ifdef PV_USE_CUDA
 void TransposePoolingDelivery::deliverGPU(float *destBuffer) {
+   pvAssert(
+         getChannelCode() != CHANNEL_NOUPDATE); // Only called by deliver(), which already checked.
    pvAssert(destBuffer);
 
    if (mPreData->getUpdatedCudaDatastoreFlag()) {
