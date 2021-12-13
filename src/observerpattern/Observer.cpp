@@ -6,6 +6,7 @@
  */
 
 #include "Observer.hpp"
+#include "utils/PVLog.hpp"
 
 namespace PV {
 

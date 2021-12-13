@@ -15,7 +15,6 @@
 #include "layers/ANNLayer.hpp"
 #include "layers/PvpLayer.hpp"
 #include "layers/Retina.hpp"
-#include "probes/PointProbe.hpp"
 #include "utils/PVLog.hpp"
 #include "weightinit/InitUniformWeights.hpp"
 

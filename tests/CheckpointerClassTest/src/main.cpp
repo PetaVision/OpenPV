@@ -10,9 +10,8 @@ int main(int argc, char *argv[]) {
    PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
    MPI_Init(&argc, &argv);
    PV::Communicator const *comm = new PV::Communicator(&arguments);
-   PV::MPIBlock const *mpiBlock = comm->getLocalMPIBlock();
 
-   PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", mpiBlock, &arguments);
+   PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", comm, &arguments);
 
    PV::PVParams *params = new PV::PVParams("input/CheckpointerClassTest.params", 1, comm);
 
@@ -21,6 +20,8 @@ int main(int argc, char *argv[]) {
          checkpointWriteDir == nullptr,
          "Group \"checkpointer\" must have a checkpointWriteDir string parameter.\n");
    std::string checkpointWriteDirectory(checkpointWriteDir);
+
+   auto mpiBlock = comm->getIOMPIBlock();
    ensureDirExists(mpiBlock, checkpointWriteDirectory.c_str()); // Must be called by all processes,
    // because it broadcasts the result of
    // the stat() call.
@@ -85,7 +86,7 @@ int main(int argc, char *argv[]) {
    std::string checkpointReadDir(checkpointWriteDirectory);
    checkpointReadDir.append("/Checkpoint04");
    arguments.setStringArgument("CheckpointReadDirectory", checkpointReadDir);
-   checkpointer = new PV::Checkpointer("checkpointer", mpiBlock, &arguments);
+   checkpointer = new PV::Checkpointer("checkpointer", comm, &arguments);
    checkpointer->registerCheckpointEntry(
          floatingpointCheckpointEntry, false /*treat as non-constant*/);
    checkpointer->registerCheckpointEntry(integerCheckpointEntry, false /*treat as non-constant*/);

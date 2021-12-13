@@ -100,13 +100,14 @@ int AbstractNormProbe::setNormDescriptionToString(char const *s) {
 }
 
 void AbstractNormProbe::calcValues(double timeValue) {
-   double *valuesBuffer = this->getValuesBuffer();
+   auto &valuesVector = this->getProbeValues();
+   pvAssert(static_cast<int>(valuesVector.size()) == this->getNumValues());
    for (int b = 0; b < this->getNumValues(); b++) {
-      valuesBuffer[b] = getValueInternal(timeValue, b);
+      valuesVector[b] = getValueInternal(timeValue, b);
    }
    MPI_Allreduce(
          MPI_IN_PLACE,
-         valuesBuffer,
+         valuesVector.data(),
          getNumValues(),
          MPI_DOUBLE,
          MPI_SUM,
@@ -115,12 +116,14 @@ void AbstractNormProbe::calcValues(double timeValue) {
 
 Response::Status AbstractNormProbe::outputState(double simTime, double deltaTime) {
    getValues(simTime);
-   double *valuesBuffer = this->getValuesBuffer();
+   auto &valuesVector = this->getProbeValues();
    if (!mOutputStreams.empty()) {
       int nBatch = getNumValues();
+      pvAssert(static_cast<int>(valuesVector.size()) == nBatch);
       int nk     = getTargetLayer()->getNumGlobalNeurons();
       for (int b = 0; b < nBatch; b++) {
-         output(b).printf("%6.3f, %d, %8d, %f", simTime, b, nk, valuesBuffer[b]);
+         int globalBatchIndex = calcGlobalBatchOffset() + b;
+         output(b).printf("%6.3f, %d, %8d, %f", simTime, globalBatchIndex, nk, valuesVector[b]);
          output(b) << std::endl;
       }
    }

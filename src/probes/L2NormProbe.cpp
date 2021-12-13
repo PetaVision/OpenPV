@@ -147,11 +147,11 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
 void L2NormProbe::calcValues(double timevalue) {
    AbstractNormProbe::calcValues(timevalue);
    if (exponent != 2.0) {
-      double *valBuf = getValuesBuffer();
+      auto &valVector = getProbeValues();
       int numVals    = this->getNumValues();
       for (int b = 0; b < numVals; b++) {
-         double v  = valBuf[b];
-         valBuf[b] = pow(v, exponent / 2.0);
+         double v  = valVector[b];
+         valVector[b] = pow(v, exponent / 2.0);
       }
    }
 }

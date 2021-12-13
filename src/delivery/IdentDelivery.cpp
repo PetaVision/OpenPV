@@ -34,6 +34,7 @@ IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
    if (status != Response::SUCCESS) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
 
    mSingleArbor = message->mObjectTable->findObject<SingleArbor>(getName());
    pvAssert(mSingleArbor);
@@ -43,6 +44,7 @@ IdentDelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
 }
 
 void IdentDelivery::checkPreAndPostDimensions() {
+   pvAssert(getChannelCode() != CHANNEL_NOUPDATE);
    int status = PV_SUCCESS;
    pvAssert(mPreData and mPostGSyn); // Only call this after BaseDelivery::communicateInitInfo().
    PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
@@ -164,6 +166,9 @@ void IdentDelivery::deliver(float *destBuffer) {
 }
 
 void IdentDelivery::deliverUnitInput(float *recvBuffer) {
+   if (mChannelCode == CHANNEL_NOUPDATE) {
+      return;
+   }
    const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for

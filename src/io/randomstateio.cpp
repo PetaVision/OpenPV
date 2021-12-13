@@ -3,12 +3,13 @@
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/BufferUtilsPvp.hpp"
+#include <memory>
 
 namespace PV {
 
 double readRandState(
       std::string const &path,
-      MPIBlock const *mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       taus_uint4 *randState,
       PVLayerLoc const *loc,
       bool extended) {
@@ -63,7 +64,7 @@ double readRandState(
 
 void writeRandState(
       std::string const &path,
-      MPIBlock const *mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       taus_uint4 const *randState,
       PVLayerLoc const *loc,
       bool extended,

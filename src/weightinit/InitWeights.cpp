@@ -153,7 +153,16 @@ int InitWeights::readWeights(
       int frameNumber,
       double *timestampPtr /*default=nullptr*/) {
    double timestamp;
-   MPIBlock const *mpiBlock = mCommunicator->getLocalMPIBlock();
+
+   // Is LocalMPIBlock really correct? It seems I/O operations should always use the IOMPIBlock
+   auto mpiBlock = std::make_shared<MPIBlock>(
+         mCommunicator->globalCommunicator(),
+         mCommunicator->numCommRows(),
+         mCommunicator->numCommColumns(),
+         mCommunicator->numCommBatches(),
+         mCommunicator->numCommRows(),
+         mCommunicator->numCommColumns(),
+         1);
 
    FileStream *fileStream = nullptr;
    if (mpiBlock->getRank() == 0) {

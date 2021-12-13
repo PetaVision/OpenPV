@@ -3,7 +3,7 @@
 #include "utils/PVLog.hpp"
 #include <vector>
 
-void testDataWithBroadcast(PV::MPIBlock const *mpiBlock, std::string const &directory) {
+void testDataWithBroadcast(std::shared_ptr<PV::MPIBlock const> mpiBlock, std::string const &directory) {
    int const vectorLength = 32;
    std::vector<float> correctData(vectorLength, 0);
    for (int i = 0; i < vectorLength; i++) {

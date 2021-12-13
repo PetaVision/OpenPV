@@ -136,4 +136,8 @@ void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
    }
 }
 
+void ensureDirExists(std::shared_ptr<MPIBlock const> mpiBlock, char const *dirname) {
+   ensureDirExists(mpiBlock.get(), dirname);
+}
+
 } // namespace PV

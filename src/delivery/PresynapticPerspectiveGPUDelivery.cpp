@@ -41,6 +41,7 @@ Response::Status PresynapticPerspectiveGPUDelivery::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
    // HyPerDelivery::communicateInitInfo() postpones until mWeightsPair communicates.
    pvAssert(mWeightsPair and mWeightsPair->getInitInfoCommunicatedFlag());
    mWeightsPair->needPre();
@@ -62,11 +63,12 @@ Response::Status PresynapticPerspectiveGPUDelivery::communicateInitInfo(
 
 Response::Status PresynapticPerspectiveGPUDelivery::setCudaDevice(
       std::shared_ptr<SetCudaDeviceMessage const> message) {
-   pvAssert(mUsingGPUFlag);
    auto status = HyPerDelivery::setCudaDevice(message);
    if (status != Response::SUCCESS) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
+   pvAssert(mUsingGPUFlag);
    mWeightsPair->getPreWeights()->setCudaDevice(message->mCudaDevice);
    mCudaDevice = message->mCudaDevice;
    return status;
@@ -77,7 +79,7 @@ Response::Status PresynapticPerspectiveGPUDelivery::allocateDataStructures() {
          mCudaDevice == nullptr,
          "%s received AllocateData without having received SetCudaDevice.\n",
          getDescription_c());
-   if (!mWeightsPair->getDataStructuresAllocatedFlag()) {
+   if (mWeightsPair and !mWeightsPair->getDataStructuresAllocatedFlag()) {
       return Response::POSTPONE;
    }
 
@@ -85,6 +87,7 @@ Response::Status PresynapticPerspectiveGPUDelivery::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
 
    // We create mDevicePatches and mDeviceGSynPatchStart here, as opposed to creating them in
    // the Weights object, because they are only needed by presynaptic-perspective delivery.
@@ -115,6 +118,7 @@ Response::Status PresynapticPerspectiveGPUDelivery::copyInitialStateToGPU() {
 }
 
 void PresynapticPerspectiveGPUDelivery::initializeRecvKernelArgs() {
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return; }
    PVCuda::CudaDevice *device = mCudaDevice;
    Weights *preWeights        = mWeightsPair->getPreWeights();
    mRecvKernel                = new PVCuda::CudaRecvPre(device);

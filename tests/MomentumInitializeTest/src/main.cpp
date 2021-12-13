@@ -110,21 +110,10 @@ int cleanOutputFiles(PV_Init *pv_init) {
    // the block directory. The currently-in-progress I/O refactoring for M-to-N
    // should it more convenient to do M-to-N properly.
    auto *pv_comm          = pv_init->getCommunicator();
-   int cellNumRows        = pv_init->getIntegerArgument("CheckpointCellNumRows");
-   int cellNumColumns     = pv_init->getIntegerArgument("CheckpointCellNumColumns");
-   int cellBatchDimension = pv_init->getIntegerArgument("CheckpointCellBatchDimension");
-   auto *globalMPIBlock   = pv_comm->getGlobalMPIBlock();
-   MPIBlock mpiBlock(
-         globalMPIBlock->getComm(),
-         globalMPIBlock->getNumRows(),
-         globalMPIBlock->getNumColumns(),
-         globalMPIBlock->getBatchDimension(),
-         cellNumRows,
-         cellNumColumns,
-         cellBatchDimension);
+   auto mpiBlock = pv_comm->getIOMPIBlock();
 
    int status = PV_SUCCESS;
-   if (mpiBlock.getRank() == 0) {
+   if (mpiBlock->getRank() == 0) {
       if (status == PV_SUCCESS) {
          status = deleteIfPresent(weights_initialrun);
       }

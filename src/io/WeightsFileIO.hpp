@@ -5,6 +5,7 @@
 #include "io/FileStream.hpp"
 #include "structures/MPIBlock.hpp"
 #include "utils/BufferUtilsPvp.hpp"
+#include <memory>
 #include <vector>
 
 namespace PV {
@@ -16,7 +17,7 @@ namespace PV {
 
 class WeightsFileIO {
   public:
-   WeightsFileIO(FileStream *fileStream, MPIBlock const *mpiBlock, Weights *weights);
+   WeightsFileIO(FileStream *fileStream, std::shared_ptr<MPIBlock const> mpiBlock, Weights *weights);
 
    ~WeightsFileIO() {}
 
@@ -141,8 +142,9 @@ class WeightsFileIO {
    // Data members
   private:
    FileStream *mFileStream   = nullptr;
-   MPIBlock const *mMPIBlock = nullptr;
    Weights *mWeights         = nullptr;
+
+   std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
 
    int const mRootProcess = 0;
    int const tagbase      = 500;

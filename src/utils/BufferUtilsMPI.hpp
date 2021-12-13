@@ -20,7 +20,7 @@ namespace BufferUtils {
  */
 template <typename T>
 void scatter(
-      MPIBlock const *mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       Buffer<T> &buffer,
       unsigned int localWidth, // These values should be the
       unsigned int localHeight, // layer's local nx and ny
@@ -37,7 +37,7 @@ void scatter(
  */
 template <typename T>
 Buffer<T> gather(
-      MPIBlock const *mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       Buffer<T> buffer,
       unsigned int localWidth,
       unsigned int localHeight,
@@ -45,8 +45,11 @@ Buffer<T> gather(
       int destProcess);
 
 template <typename T>
-SparseList<T>
-gatherSparse(MPIBlock const *mpiBlock, SparseList<T> list, int mpiBatchIndex, int rootProcess);
+SparseList<T> gatherSparse(
+      std::shared_ptr<MPIBlock const> mpiBlock,
+      SparseList<T> list,
+      int mpiBatchIndex,
+      int rootProcess);
 
 } // end namespace BufferUtils
 

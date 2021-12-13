@@ -33,12 +33,9 @@ class StatsProbe : public LayerProbe {
    void requireType(PVBufType requiredType);
 
    /**
-    * StatsProbe sets numValues to -1, indicating that the getValues and getValue
-    * methods don't
-    * work.
-    * StatsProbe is an old probe that might be deprecated in favor of more
-    * getValues-friendly
-    * probes.
+    * StatsProbe sets numValues to -1, indicating that the getValues methods don't work.
+    * StatsProbe is an old probe that might eventually be deprecated in favor of more
+    * getValues-friendly probes.
     */
    virtual void initNumValues() override;
 
@@ -48,16 +45,14 @@ class StatsProbe : public LayerProbe {
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    /**
-    * Implements needRecalc() for StatsProbe to always return false (getValues
-    * and getValue methods
-    * should not be used).
+    * Implements needRecalc() for StatsProbe to always return false
+    * (the getValues() function member should not be used).
     */
    virtual bool needRecalc(double timevalue) override { return false; }
 
    /**
-    * Implements calcValues() for StatsProbe to always fail (getValues and
-    * getValue methods should
-    * not be used).
+    * Implements calcValues() for StatsProbe to always fail
+    * (the getValues() function member should not be used).
     */
    virtual void calcValues(double timevalue) override {
       Fatal().printf("%s does not use calcValues.\n", getDescription_c());

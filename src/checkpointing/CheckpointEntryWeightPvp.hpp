@@ -19,7 +19,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
   public:
    CheckpointEntryWeightPvp(
          std::string const &name,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          Weights *weights,
          bool compressFlag)
          : CheckpointEntry(name, mpiBlock) {
@@ -28,7 +28,7 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
    CheckpointEntryWeightPvp(
          std::string const &objName,
          std::string const &dataName,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          Weights *weights,
          bool compressFlag)
          : CheckpointEntry(objName, dataName, mpiBlock) {

@@ -135,15 +135,16 @@ Response::Status LayerProbe::outputStateWrapper(double simTime, double deltaTime
 
 Response::Status LayerProbe::outputStateStats(double simTime, double deltaTime) {
    getValues(simTime);
-   double *valuesBuffer = this->getValuesBuffer();
+   auto &valuesVector = getProbeValues();
+   pvAssert(static_cast<int>(valuesVector.size()) == getNumValues());
 
    double min = std::numeric_limits<double>::infinity();
    double max = -std::numeric_limits<double>::infinity();
    double sum = 0.0;
    for (int k=0; k < getNumValues(); k++) {
-      double v = (double)valuesBuffer[k];
-      min = min < v ? min : valuesBuffer[k];
-      max = max > v ? max : valuesBuffer[k];
+      double v = valuesVector[k];
+      min = min < v ? min : valuesVector[k];
+      max = max > v ? max : valuesVector[k];
       sum += v;
    }
    MPI_Comm const batchComm = mCommunicator->batchCommunicator();

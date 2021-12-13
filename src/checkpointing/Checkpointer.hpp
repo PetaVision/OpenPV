@@ -10,9 +10,9 @@
 
 #include "checkpointing/CheckpointEntry.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
+#include "columns/Communicator.hpp"
 #include "io/PVParams.hpp"
 #include "observerpattern/Subject.hpp"
-#include "structures/MPIBlock.hpp"
 #include "utils/Timer.hpp"
 #include <ctime>
 
@@ -150,7 +150,7 @@ class Checkpointer : public Subject {
    };
    Checkpointer(
          std::string const &name,
-         MPIBlock const *globalMPIBlock,
+         Communicator const *communicator,
          Arguments const *arguments);
    ~Checkpointer();
 
@@ -198,7 +198,7 @@ class Checkpointer : public Subject {
     */
    bool isCompleteCheckpoint(std::string const &candidateCheckpoint) const;
 
-   MPIBlock const *getMPIBlock() { return mMPIBlock; }
+   std::shared_ptr<MPIBlock const> getMPIBlock() { return mMPIBlock; }
    bool doesVerifyWrites() { return mVerifyWrites; }
    std::string const &getOutputPath() { return mOutputPath; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
@@ -215,7 +215,6 @@ class Checkpointer : public Subject {
    std::string const &getBlockDirectoryName() const { return mBlockDirectoryName; }
 
   private:
-   void initMPIBlock(MPIBlock const *globalMPIBlock, Arguments const *arguments);
    void initBlockDirectoryName();
    void ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params);
 
@@ -313,7 +312,7 @@ class Checkpointer : public Subject {
 
   private:
    std::string mName;
-   MPIBlock *mMPIBlock = nullptr;
+   std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
    std::string mBlockDirectoryName;
    std::vector<std::shared_ptr<CheckpointEntry>> mCheckpointRegistry; // Needs to be a vector so
    // that each MPI process

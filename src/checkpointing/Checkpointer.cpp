@@ -22,11 +22,11 @@ namespace PV {
 
 Checkpointer::Checkpointer(
       std::string const &name,
-      MPIBlock const *globalMPIBlock,
+      Communicator const *communicator,
       Arguments const *arguments)
       : mName(name) {
    Subject::initializeTable(name.c_str());
-   initMPIBlock(globalMPIBlock, arguments);
+   mMPIBlock = communicator->getIOMPIBlock();
    initBlockDirectoryName();
 
    mOutputPath              = arguments->getStringArgument("OutputPath");
@@ -53,23 +53,6 @@ Checkpointer::~Checkpointer() {
    // Don't delete the objects in the ObserverComponentTable; Checkpointer doesn't own them.
    mTable->clear();
    delete mCheckpointTimer;
-   delete mMPIBlock;
-}
-
-void Checkpointer::initMPIBlock(MPIBlock const *globalMPIBlock, Arguments const *arguments) {
-   pvAssert(mMPIBlock == nullptr);
-   int cellNumRows        = arguments->getIntegerArgument("CheckpointCellNumRows");
-   int cellNumColumns     = arguments->getIntegerArgument("CheckpointCellNumColumns");
-   int cellBatchDimension = arguments->getIntegerArgument("CheckpointCellBatchDimension");
-   // If using batching, mCheckpointReadDir might be a comma-separated list of directories
-   mMPIBlock = new MPIBlock(
-         globalMPIBlock->getComm(),
-         globalMPIBlock->getNumRows(),
-         globalMPIBlock->getNumColumns(),
-         globalMPIBlock->getBatchDimension(),
-         cellNumRows,
-         cellNumColumns,
-         cellBatchDimension);
 }
 
 void Checkpointer::initBlockDirectoryName() {
@@ -831,15 +814,10 @@ std::string Checkpointer::makeCheckpointDirectoryFromCurrentStep() {
 
 void Checkpointer::checkpointNow() {
    std::string checkpointDirectory = makeCheckpointDirectoryFromCurrentStep();
-   if (checkpointDirectory != mCheckpointReadDirectory) {
-      /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that
-       * points to the same directory.  Should use realpath, but that breaks under OS X. */
-      if (mMPIBlock->getGlobalRank() == 0) {
-         InfoLog() << "Checkpointing to \"" << checkpointDirectory
-                   << "\", simTime = " << mTimeInfo.mSimTime << "\n";
-      }
-   }
-   else {
+   if (checkpointDirectory == mCheckpointReadDirectory) {
+      /* Note: the equality comparison isn't perfect, since there are multiple ways to specify a
+       * path that points to the same directory. Should use realpath, but that breaks under OS X.
+       */
       if (mMPIBlock->getGlobalRank() == 0) {
          InfoLog().printf(
                "Skipping checkpoint to \"%s\","

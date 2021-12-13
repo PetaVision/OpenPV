@@ -2,7 +2,6 @@ set(SRC_CPP
   src/main.cpp
   src/PlasticConnTestActivityBuffer.cpp
   src/PlasticConnTestLayer.cpp
-  src/PlasticConnTestProbe.cpp
   src/PlasticTestConn.cpp
   src/PlasticTestUpdater.cpp
 )
@@ -10,7 +9,6 @@ set(SRC_CPP
 set(SRC_HPP
   src/PlasticConnTestActivityBuffer.hpp
   src/PlasticConnTestLayer.hpp
-  src/PlasticConnTestProbe.hpp
   src/PlasticTestConn.hpp
   src/PlasticTestUpdater.hpp
 )

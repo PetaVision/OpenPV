@@ -57,18 +57,18 @@ void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
                numDiscreps++;
             }
          }
-         getValuesBuffer()[b] = (double)numDiscreps;
+         getProbeValues()[b] = (double)numDiscreps;
       }
       MPI_Allreduce(
             MPI_IN_PLACE,
-            getValuesBuffer(),
+            getProbeValues().data(),
             nBatch,
             MPI_DOUBLE,
             MPI_SUM,
             mCommunicator->communicator());
       if (probeStatus == 0) {
          for (int k = 0; k < nBatch; k++) {
-            if (getValuesBuffer()[k]) {
+            if (getProbeValues()[k]) {
                probeStatus      = 1;
                firstFailureTime = timevalue;
             }
@@ -77,7 +77,7 @@ void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
    }
    else {
       for (int b = 0; b < nBatch; b++) {
-         getValuesBuffer()[b] = 0.0;
+         getProbeValues()[b] = 0.0;
       }
    }
 }
@@ -92,7 +92,7 @@ Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, doubl
       pvAssert((std::size_t)nBatch == mOutputStreams.size());
       int globalBatchSize = nBatch * getMPIBlock()->getGlobalBatchDimension();
       for (int localBatchIndex = 0; localBatchIndex < nBatch; localBatchIndex++) {
-         int nnz = (int)nearbyint(getValuesBuffer()[localBatchIndex]);
+         int nnz = (int)nearbyint(getProbeValues()[localBatchIndex]);
          if (globalBatchSize == 1) {
             pvAssert(localBatchIndex == 0);
             output(localBatchIndex)
