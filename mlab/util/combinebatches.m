@@ -79,7 +79,7 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
       return;
    end
 
-   if total_found != total_frames
+   if total_found ~= total_frames
       printf("Warning: Found %d frames, expected %d.\n", total_found, total_frames);
       fflush(stdout);
    endif

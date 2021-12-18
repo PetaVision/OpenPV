@@ -23,7 +23,7 @@ function conv2weights (input_pvps,weights_1_pvps,weights_2_pvps)
       for j = 1:weights_2_header.numPatches 
          percentDone = 100*j/weights_2_header.numPatches;
          msg = sprintf('Convolving. Percent done: %3.0f', percentDone);
-         if(j!=1)
+         if(j~=1)
             fprintf([reverseStr, msg]);
             fflush(1);
          end

@@ -60,7 +60,7 @@ if ischar(file)
     openedfile = true;
 elseif isnumeric(file) && isscalar(file) && round(file)==file
     fid = double(file);
-    if !is_valid_file_id(fid), error('readpvpheader:badfid', 'readpvpheader error: bad file id.'); end;
+    if isempty(fopen(fid)), error('readpvpheader:badfid', 'readpvpheader error: bad file id.'); end;
     % This checks if file id is valid, but not whether the mode allows reading.
 else
     error('readpvpheader:filebad', 'readpvpheader error: file must be either a path or a file id.');
@@ -83,7 +83,7 @@ try
     end%if
     hdr.headersize = headerwords(1);
     hdr.numparams = headerwords(2);
-    if hdr.headersize < 80 || hdr.headersize != 4 * hdr.numparams
+    if hdr.headersize < 80 || hdr.headersize ~= 4 * hdr.numparams
         error('readpvpheader:badheadersize', 'readpvpheader error: headersize (%d) must be at least 80 and must be exactly 4 times numparams (%d).', hdr.headersize, hdr.numparams);
     end%if
     hdr.filetype = headerwords(3);
