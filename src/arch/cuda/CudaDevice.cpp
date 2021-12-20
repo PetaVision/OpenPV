@@ -53,6 +53,8 @@ int CudaDevice::initialize(int device) {
    handleError(cudaDeviceReset(), "Device resetting in initialize");
 
    handleError(cudaGetDeviceCount(&num_devices), "Getting device count");
+   FatalIf(num_devices == 0, "No CUDA device found.\n");
+
    handleError(cudaSetDevice(device), "Setting device");
 
    handleError(cudaStreamCreate(&stream), "Creating stream");
