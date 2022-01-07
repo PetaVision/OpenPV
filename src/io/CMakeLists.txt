@@ -4,6 +4,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/fileio.cpp
    ${SUBDIR}/FileManager.cpp
    ${SUBDIR}/FileStream.cpp
+   ${SUBDIR}/FileStreamBuilder.cpp
    ${SUBDIR}/io.cpp
    ${SUBDIR}/MPIRecvStream.cpp
    ${SUBDIR}/MPISendStream.cpp
@@ -18,6 +19,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/fileio.hpp
    ${SUBDIR}/FileManager.hpp
    ${SUBDIR}/FileStream.hpp
+   ${SUBDIR}/FileStreamBuilder.hpp
    ${SUBDIR}/io.hpp
    ${SUBDIR}/MPIRecvStream.hpp
    ${SUBDIR}/MPISendStream.hpp
