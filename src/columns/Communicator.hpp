@@ -8,6 +8,7 @@
 #include "Arguments.hpp"
 #include "include/pv_arch.h"
 #include "include/pv_types.h"
+#include "io/FileManager.hpp"
 #include "structures/MPIBlock.hpp"
 #include <cstdio>
 #include <memory>
@@ -39,6 +40,9 @@ class Communicator {
    std::shared_ptr<MPIBlock const> getBatchMPIBlock() const { return mBatchMPIBlock; }
    std::shared_ptr<MPIBlock const> getGlobalMPIBlock() const { return mGlobalMPIBlock; }
    std::shared_ptr<MPIBlock const> getIOMPIBlock() const { return mIOMPIBlock; }
+
+   std::shared_ptr<FileManager const> getOutputFileManager() const { return mOutputFileManager; }
+   std::shared_ptr<FileManager> getOutputFileManager() { return mOutputFileManager; }
 
    int numberOfNeighbors(); // includes interior (self) as a neighbor
 
@@ -102,8 +106,7 @@ class Communicator {
    std::shared_ptr<MPIBlock> mBatchMPIBlock  = nullptr;
    std::shared_ptr<MPIBlock> mGlobalMPIBlock = nullptr;
    std::shared_ptr<MPIBlock> mIOMPIBlock     = nullptr;
-
-   // These methods are private for now, move to public as needed
+   std::shared_ptr<FileManager> mOutputFileManager = nullptr;
 
    int neighborInit();
 

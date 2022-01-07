@@ -110,11 +110,8 @@ Communicator::Communicator(Arguments const *argumentList) {
    mIOMPIBlock = std::make_shared<MPIBlock>(
          globalCommunicator(), numRows, numCols, batchWidth, cellRows, cellCols, cellBatchProcs);
 
-   //#ifdef DEBUG_OUTPUT
-   //      DebugLog().printf("[%2d]: Formed resized communicator, size==%d
-   //      cols==%d rows==%d\n",
-   //      icRank, icSize, numCols, numRows);
-   //#endif // DEBUG_OUTPUT
+   std::string const &outputDirectory = argumentList->getStringArgument("OutputPath");
+   mOutputFileManager = std::make_shared<FileManager>(mIOMPIBlock, outputDirectory);
 
    // Grab local rank and check for errors
    int tmpLocalRank;
