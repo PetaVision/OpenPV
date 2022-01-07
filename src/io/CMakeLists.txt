@@ -13,6 +13,9 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/MPISendStream.cpp
    ${SUBDIR}/PVParams.cpp
    ${SUBDIR}/randomstateio.cpp
+   ${SUBDIR}/SparseLayerBatchGatherScatter.cpp
+   ${SUBDIR}/SparseLayerFile.cpp
+   ${SUBDIR}/SparseLayerIO.cpp
    ${SUBDIR}/WeightsFileIO.cpp
 )
 
@@ -32,5 +35,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PrintStream.hpp
    ${SUBDIR}/PVParams.hpp
    ${SUBDIR}/randomstateio.hpp
+   ${SUBDIR}/SparseLayerBatchGatherScatter.hpp
+   ${SUBDIR}/SparseLayerFile.hpp
+   ${SUBDIR}/SparseLayerIO.hpp
    ${SUBDIR}/WeightsFileIO.hpp
 )

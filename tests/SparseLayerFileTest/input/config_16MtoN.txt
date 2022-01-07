@@ -1,0 +1,11 @@
+# Configuration file for SparseLayerFileTest
+OutputPath:output/config_16MtoN
+ParamsFile:
+NumThreads:-
+LogFile:SparseLayerFileTest_16MtoN.log
+NumRows:4
+NumColumns:4
+BatchWidth:1
+CheckpointCellNumRows:2
+CheckpointCellNumColumns:2
+CheckpointCellBatchDimension:1

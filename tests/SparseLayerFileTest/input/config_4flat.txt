@@ -1,0 +1,11 @@
+# Configuration file for SparseLayerFileTest
+OutputPath:output/config_4flat
+ParamsFile:
+NumThreads:-
+LogFile:SparseLayerFileTest_4flat.log
+NumRows:2
+NumColumns:2
+BatchWidth:1
+CheckpointCellNumRows:2
+CheckpointCellNumColumns:2
+CheckpointCellBatchDimension:1
