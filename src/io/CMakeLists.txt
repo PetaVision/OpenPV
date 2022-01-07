@@ -6,6 +6,9 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FileStream.cpp
    ${SUBDIR}/FileStreamBuilder.cpp
    ${SUBDIR}/io.cpp
+   ${SUBDIR}/LayerBatchGatherScatter.cpp
+   ${SUBDIR}/LayerFile.cpp
+   ${SUBDIR}/LayerIO.cpp
    ${SUBDIR}/MPIRecvStream.cpp
    ${SUBDIR}/MPISendStream.cpp
    ${SUBDIR}/PVParams.cpp
@@ -21,6 +24,9 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FileStream.hpp
    ${SUBDIR}/FileStreamBuilder.hpp
    ${SUBDIR}/io.hpp
+   ${SUBDIR}/LayerBatchGatherScatter.hpp
+   ${SUBDIR}/LayerFile.hpp
+   ${SUBDIR}/LayerIO.hpp
    ${SUBDIR}/MPIRecvStream.hpp
    ${SUBDIR}/MPISendStream.hpp
    ${SUBDIR}/PrintStream.hpp
