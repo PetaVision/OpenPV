@@ -1,0 +1,11 @@
+# Configuration file for LocalPatchFileTest
+OutputPath:output/config_16MtoNbatch
+ParamsFile:
+NumThreads:-
+LogFile:LocalPatchFileTest_16MtoNbatch.log
+NumRows:2
+NumColumns:2
+BatchWidth:4
+CheckpointCellNumRows:2
+CheckpointCellNumColumns:2
+CheckpointCellBatchDimension:1

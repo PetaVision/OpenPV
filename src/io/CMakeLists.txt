@@ -9,6 +9,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LayerBatchGatherScatter.cpp
    ${SUBDIR}/LayerFile.cpp
    ${SUBDIR}/LayerIO.cpp
+   ${SUBDIR}/LocalPatchWeightsFile.cpp
+   ${SUBDIR}/LocalPatchWeightsIO.cpp
    ${SUBDIR}/MPIRecvStream.cpp
    ${SUBDIR}/MPISendStream.cpp
    ${SUBDIR}/PVParams.cpp
@@ -32,6 +34,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LayerBatchGatherScatter.hpp
    ${SUBDIR}/LayerFile.hpp
    ${SUBDIR}/LayerIO.hpp
+   ${SUBDIR}/LocalPatchWeightsFile.hpp
+   ${SUBDIR}/LocalPatchWeightsIO.hpp
    ${SUBDIR}/MPIRecvStream.hpp
    ${SUBDIR}/MPISendStream.hpp
    ${SUBDIR}/PrintStream.hpp
