@@ -30,16 +30,16 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
    params        = nullptr;
    mCommunicator = nullptr;
 
-   arguments = parse_arguments(*argc, *argv, allowUnrecognizedArguments);
+   mArguments = parse_arguments(*argc, *argv, allowUnrecognizedArguments);
    initLogFile(false /*appendFlag*/);
    initFactory();
-   initialize(); // must be called after initialization of arguments data member.
+   initialize(); // must be called after initialization of Arguments data member.
 }
 
 PV_Init::~PV_Init() {
    delete params;
    delete mCommunicator;
-   arguments = nullptr;
+   mArguments = nullptr;
    commFinalize();
 }
 
@@ -65,13 +65,13 @@ int PV_Init::initSignalHandler() {
 
 int PV_Init::initialize() {
    delete mCommunicator;
-   mCommunicator = new Communicator(arguments.get());
+   mCommunicator = new Communicator(mArguments.get());
    int status    = PV_SUCCESS;
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
    delete params;
    params                 = nullptr;
-   std::string paramsFile = arguments->getStringArgument("ParamsFile");
+   std::string paramsFile = mArguments->getStringArgument("ParamsFile");
    if (!paramsFile.empty()) {
       status = createParams();
    }
@@ -124,7 +124,7 @@ void PV_Init::initLogFile(bool appendFlag) {
    // If filename does not have an extension, _<rank> is appended.
    // Note that the global rank zero process does not insert _<rank>.  This is
    // deliberate, as the nonzero ranks should be MPI-ing the data to the zero rank.
-   std::string logFile         = arguments->getStringArgument("LogFile");
+   std::string logFile         = mArguments->getStringArgument("LogFile");
    int const globalRootProcess = 0;
    int globalRank;
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
@@ -163,20 +163,20 @@ int PV_Init::setParams(char const *params_file) {
    if (params_file == nullptr) {
       return PV_FAILURE;
    }
-   arguments->setStringArgument("ParamsFile", std::string{params_file});
+   mArguments->setStringArgument("ParamsFile", std::string{params_file});
    initialize();
    return createParams();
 }
 
 int PV_Init::createParams() {
-   std::string paramsFile = arguments->getStringArgument("ParamsFile");
+   std::string paramsFile = mArguments->getStringArgument("ParamsFile");
    if (!paramsFile.empty()) {
       delete params;
       params = new PVParams(
             paramsFile.c_str(),
             2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
             mCommunicator);
-      unsigned int shuffleSeed = arguments->getUnsignedIntArgument("ShuffleParamGroups");
+      unsigned int shuffleSeed = mArguments->getUnsignedIntArgument("ShuffleParamGroups");
       if (shuffleSeed) {
          params->shuffleGroups(shuffleSeed);
       }
@@ -189,7 +189,7 @@ int PV_Init::createParams() {
 
 int PV_Init::setLogFile(char const *logFile, bool appendFlag) {
    std::string logFileString{logFile};
-   arguments->setStringArgument("LogFile", logFileString);
+   mArguments->setStringArgument("LogFile", logFileString);
    initLogFile(appendFlag);
    printInitMessage();
    return PV_SUCCESS;
@@ -197,13 +197,13 @@ int PV_Init::setLogFile(char const *logFile, bool appendFlag) {
 
 int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
    if (rows >= 0) {
-      arguments->setIntegerArgument("NumRows", rows);
+      mArguments->setIntegerArgument("NumRows", rows);
    }
    if (columns >= 0) {
-      arguments->setIntegerArgument("NumColumns", columns);
+      mArguments->setIntegerArgument("NumColumns", columns);
    }
    if (batchWidth >= 0) {
-      arguments->setIntegerArgument("BatchWidth", batchWidth);
+      mArguments->setIntegerArgument("BatchWidth", batchWidth);
    }
    initialize();
    return PV_SUCCESS;
@@ -222,7 +222,7 @@ void PV_Init::printInitMessage() {
 }
 
 int PV_Init::resetState() {
-   arguments->resetState();
+   mArguments->resetState();
    return PV_SUCCESS;
 }
 

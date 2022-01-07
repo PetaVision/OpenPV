@@ -1,3 +1,4 @@
+#include "include/pv_common.h"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsRescale.hpp"
 #include "utils/PVLog.hpp"
@@ -346,6 +347,102 @@ void testRescale() {
    }
 }
 
+void testExtract() {
+   // Create an 8x8x3 buffer and then extract a 2x2x3 buffer from it.
+   int const nf = 3;
+
+   int const nxMain = 8;
+   int const nyMain = 8;
+
+   int const nxExtracted = 3;
+   int const nyExtracted = 3;
+
+   int const numMain      = nf * nxMain * nyMain;
+   int const numExtracted = nf * nxExtracted * nyExtracted;
+
+   int const xStart = 1;
+   int const yStart = 2;
+
+   Buffer<float> mainBuffer(nxMain, nyMain, nf);
+   for (int k = 0; k < mainBuffer.getTotalElements(); ++k) {
+      mainBuffer.set(k, static_cast<float>(k));
+   }
+
+   Buffer<float> extractedBuffer = mainBuffer.extract(xStart, yStart, nxExtracted, nyExtracted);
+
+   std::vector<float>correctValues(numExtracted);
+   for (int k = 0; k < numExtracted; ++k) {
+      int f = k % nf;
+      int x = ((k / nf)) % nxExtracted;
+      int y = (k / (nf * nxExtracted)) % nyExtracted;
+      int value = f + nf * ( (x + xStart) + nxMain * (y + yStart));
+      correctValues[k] = static_cast<float>(value);
+   }
+
+   int status = PV_SUCCESS;
+   for (int k = 0; k < numExtracted; ++k) {
+      if (extractedBuffer.at(k) != correctValues[k]) {
+         ErrorLog().printf("Buffer::extract() failed: entry %d should be %f but is %f.\n",
+               k,
+               static_cast<double>(correctValues[k]),
+               static_cast<double>(extractedBuffer.at(k)));
+         if (status == PV_SUCCESS) { InfoLog() << "\n"; }
+         status = PV_FAILURE;
+      }
+   }
+   FatalIf(status != PV_SUCCESS, "Buffer::extract() failed.\n");
+}
+
+void testInsert() {
+   // Create an 8x8x3 buffer and then insert a 2x2x3 buffer into it.
+   int const nf = 3;
+
+   int const nxMain = 8;
+   int const nyMain = 8;
+
+   int const nxInsert = 3;
+   int const nyInsert = 3;
+
+   int const numMain      = nf * nxMain * nyMain;
+   int const numInsert = nf * nxInsert * nyInsert;
+
+   int const xStart = 1;
+   int const yStart = 2;
+
+   Buffer<float> mainBuffer(nxMain, nyMain, nf);
+   for (int k = 0; k < mainBuffer.getTotalElements(); ++k) {
+      mainBuffer.set(k, static_cast<float>(k));
+   }
+
+   Buffer<float> bufferToInsert(nxInsert, nyInsert, nf);
+   for (int k = 0; k < bufferToInsert.getTotalElements(); ++k) {
+      bufferToInsert.set(k, static_cast<float>(k + 1000));
+   }
+
+   mainBuffer.insert(bufferToInsert, xStart, yStart);
+
+   std::vector<float>correctValues(numMain);
+   for (int k = 0; k < numMain; ++k) {
+      int f = k % nf;
+      int x = ((k / nf)) % nxMain;
+      int y = (k / (nf * nxMain)) % nyMain;
+      bool inserted =
+            (x >= xStart and x < xStart + nxInsert and y >= yStart and y < yStart + nyInsert);
+      int value = inserted ? f + nf * (x - xStart + nxInsert * (y - yStart)) + 1000 : k;
+      correctValues[k] = static_cast<float>(value);
+   }
+
+   int status = PV_SUCCESS;
+   for (int k = 0; k < numMain; ++k) {
+      if (mainBuffer.at(k) != correctValues[k]) {
+         ErrorLog().printf("Buffer::insert() failed: entry %d should be %f but is %f.\n",
+               k, static_cast<double>(correctValues[k]), static_cast<double>(mainBuffer.at(k)));
+         status = PV_FAILURE;
+      }
+   }
+   FatalIf(status != PV_SUCCESS, "Buffer::insert() failed.\n");
+}
+
 int main(int argc, char **argv) {
    InfoLog() << "Testing Buffer::at(): ";
    testAtSet();
@@ -369,6 +466,14 @@ int main(int argc, char **argv) {
 
    InfoLog() << "Testing BufferUtils::rescale(): ";
    testRescale();
+   InfoLog() << "Completed.\n";
+
+   InfoLog() << "Testing Buffer::extract(): ";
+   testExtract();
+   InfoLog() << "Completed.\n";
+
+   InfoLog() << "Testing Buffer::insert(): ";
+   testInsert();
    InfoLog() << "Completed.\n";
 
    InfoLog() << "Buffer tests completed successfully!\n";

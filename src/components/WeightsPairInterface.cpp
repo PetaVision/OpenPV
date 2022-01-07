@@ -7,6 +7,8 @@
 
 #include "WeightsPairInterface.hpp"
 
+#include "utils/requiredConvolveMargin.hpp"
+
 namespace PV {
 
 WeightsPairInterface::WeightsPairInterface(

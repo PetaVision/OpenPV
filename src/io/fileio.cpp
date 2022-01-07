@@ -6,12 +6,12 @@
  */
 
 #include "fileio.hpp"
-#include "connections/weight_conversions.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/ExpandLeadingTilde.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.hpp"
+#include "utils/weight_conversions.hpp"
 
 #include <assert.h>
 #include <iostream>

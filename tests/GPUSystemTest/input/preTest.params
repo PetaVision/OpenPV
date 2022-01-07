@@ -32,7 +32,7 @@ ConstantLayer "input" = {
     phase = 1; 
 };
 
-ANNLayer "outputRecv" = {
+HyPerLayer "outputRecv" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -43,16 +43,11 @@ ANNLayer "outputRecv" = {
     sparseLayer= 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
-    // 
     phase = 2; 
     triggerLayerName = NULL;
 };
 
-ANNLayer "outputRecvGpu" = {
+HyPerLayer "outputRecvGpu" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -63,31 +58,21 @@ ANNLayer "outputRecvGpu" = {
     sparseLayer= 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
-    // 
     phase = 2; 
     triggerLayerName = NULL;
 };
 
-ANNLayer "outputTest" = {
+HyPerLayer "outputTest" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    writeStep = -1.0;
+    writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     sparseLayer= 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
-    // 
     phase = 3; 
     triggerLayerName = NULL;
 };

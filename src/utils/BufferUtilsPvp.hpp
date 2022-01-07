@@ -1,5 +1,5 @@
-#ifndef __BUFFERUTILSPVP_HPP__
-#define __BUFFERUTILSPVP_HPP__
+#ifndef BUFFERUTILSPVP_HPP_
+#define BUFFERUTILSPVP_HPP_
 
 #include "include/pv_types.h"
 #include "io/FileStream.hpp"
@@ -86,7 +86,6 @@ typedef enum HeaderDataTypeEnum {
 struct SparseFileTable {
    vector<long> frameStartOffsets;
    vector<long> frameLengths;
-   bool valuesIncluded;
 };
 
 struct ActivityHeader {
@@ -362,4 +361,4 @@ void calcNumberOfPatches(
 
 #include "BufferUtilsPvp.tpp"
 
-#endif
+#endif // BUFFERUTILSPVP_HPP_

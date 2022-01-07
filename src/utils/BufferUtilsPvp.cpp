@@ -1,5 +1,5 @@
 #include "BufferUtilsPvp.hpp"
-#include "utils/conversions.hpp"
+#include "utils/requiredConvolveMargin.hpp"
 
 namespace PV {
 
@@ -168,7 +168,6 @@ SparseFileTable buildSparseFileTable(FileStream &fStream, int upToIndex) {
          header.nBands);
 
    SparseFileTable result;
-   result.valuesIncluded = header.fileType != PVP_ACT_FILE_TYPE;
    int dataSize          = header.dataSize;
    result.frameLengths.resize(upToIndex + 1, 0);
    result.frameStartOffsets.resize(upToIndex + 1, 0);

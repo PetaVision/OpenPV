@@ -89,6 +89,10 @@ int parseheader(FILE *fid) {
       fprintf(stderr, "Unable to read headersize\n");
       return PARSE_NOHEADER;
    }
+   if (headersize < 80) {
+      fprintf(stderr, "Header size (%d) is inconsistent with .pvp format\n", headersize);
+      return PARSE_BADHEADERSIZE;
+   }
    int *params = (int *)calloc(headersize, 1);
    if (params == NULL) {
       fprintf(stderr, "Unable to allocate memory for header (header size=%d bytes)\n", headersize);

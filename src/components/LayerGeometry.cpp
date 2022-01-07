@@ -83,96 +83,111 @@ void LayerGeometry::setLayerLoc(
 
    Communicator const *icComm = mCommunicator;
 
-   float nxglobalfloat = mNxScale * message->mNxGlobal;
-   layerLoc->nxGlobal  = (int)nearbyintf(nxglobalfloat);
-   if (std::fabs(nxglobalfloat - layerLoc->nxGlobal) > 0.0001f) {
-      if (icComm->globalCommRank() == 0) {
-         ErrorLog(errorMessage);
-         errorMessage.printf(
-               "nxScale of layer \"%s\" is incompatible with size of column.\n", getName());
-         errorMessage.printf(
-               "Column nx %d multiplied by nxScale %f must be an integer.\n",
-               (double)message->mNxGlobal,
-               (double)mNxScale);
-      }
-      status = PV_FAILURE;
+   int nxLayer, nyLayer;
+   if (status == PV_SUCCESS) {
+      status = calculateScaledSize(&nxLayer, mNxScale, message->mNxGlobal, 'x');
+      status = calculateScaledSize(&nyLayer, mNyScale, message->mNyGlobal, 'y');
+   }
+   if (status == PV_SUCCESS) {
+      layerLoc->nbatchGlobal = message->mNBatchGlobal;
+      layerLoc->nxGlobal     = nxLayer;
+      layerLoc->nyGlobal     = nyLayer;
+      layerLoc->nf           = mNumFeatures;
+
+      // partition input space based on the number of processor columns and rows
+      status = setLocalLayerLocFields(layerLoc, icComm, std::string(getName()));
+
+      // halo is initialized to zero in constructor, and can be changed by calls
+      // to requireMarginWidth. We don't change the values here.
    }
 
-   float nyglobalfloat = mNyScale * message->mNyGlobal;
-   layerLoc->nyGlobal  = (int)nearbyintf(nyglobalfloat);
-   if (std::fabs(nyglobalfloat - layerLoc->nyGlobal) > 0.0001f) {
-      if (icComm->globalCommRank() == 0) {
-         ErrorLog(errorMessage);
-         errorMessage.printf(
-               "nyScale of layer \"%s\" is incompatible with size of column.\n", getName());
-         errorMessage.printf(
-               "Column ny %d multiplied by nyScale %f must be an integer.\n",
-               (double)message->mNyGlobal,
-               (double)mNyScale);
-      }
-      status = PV_FAILURE;
-   }
-
-   // partition input space based on the number of processor
-   // columns and rows
-   //
-
-   if (layerLoc->nxGlobal % icComm->numCommColumns() != 0) {
-      if (icComm->globalCommRank() == 0) {
-         ErrorLog(errorMessage);
-         errorMessage.printf(
-               "Size of HyPerLayer \"%s\" is not compatible with the mpi configuration.\n", name);
-         errorMessage.printf(
-               "The layer has %d pixels horizontally, and there are %d mpi processes in a row, but "
-               "%d does not divide %d.\n",
-               layerLoc->nxGlobal,
-               icComm->numCommColumns(),
-               icComm->numCommColumns(),
-               layerLoc->nxGlobal);
-      }
-      status = PV_FAILURE;
-   }
-   if (layerLoc->nyGlobal % icComm->numCommRows() != 0) {
-      if (icComm->globalCommRank() == 0) {
-         ErrorLog(errorMessage);
-         errorMessage.printf(
-               "Size of HyPerLayer \"%s\" is not compatible with the mpi configuration.\n", name);
-         errorMessage.printf(
-               "The layer has %d pixels vertically, and there are %d mpi processes in a column, "
-               "but %d does not divide %d.\n",
-               layerLoc->nyGlobal,
-               icComm->numCommRows(),
-               icComm->numCommRows(),
-               layerLoc->nyGlobal);
-      }
-      status = PV_FAILURE;
-   }
-   MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the
-   // run before process 0 reports the error.
+   // If there is an error, make sure that MPI doesn't kill the run before process 0 reports
+   // the error.
+   MPI_Barrier(icComm->communicator());
    if (status != PV_SUCCESS) {
       if (icComm->globalCommRank() == 0) {
-         ErrorLog().printf("setLayerLoc failed for %s.\n", getDescription_c());
+         ErrorLog().printf("setLayerLoc failed for %s.\n", getName());
       }
       exit(EXIT_FAILURE);
    }
-   layerLoc->nx = layerLoc->nxGlobal / icComm->numCommColumns();
-   layerLoc->ny = layerLoc->nyGlobal / icComm->numCommRows();
-   assert(layerLoc->nxGlobal == layerLoc->nx * icComm->numCommColumns());
-   assert(layerLoc->nyGlobal == layerLoc->ny * icComm->numCommRows());
+}
 
-   layerLoc->kx0 = layerLoc->nx * icComm->commColumn();
-   layerLoc->ky0 = layerLoc->ny * icComm->commRow();
+int LayerGeometry::calculateScaledSize(int *scaledSize, float scaleFactor, int baseSize, char axis) {
+   float scaledSizeFloat = scaleFactor * static_cast<float>(baseSize);
+   float closestInt      = std::nearbyint(scaledSizeFloat);
+   float discrep         = scaledSizeFloat - closestInt;
+   int status = PV_SUCCESS;
+   if (discrep and std::abs(discrep) > 0.0001f) {
+      ErrorLog(errorMessage);
+      errorMessage.printf(
+            "n%cScale of layer \"%s\" is incompatible with size of column.\n",
+            axis,
+            getName());
+      errorMessage.printf(
+            "Column n%c=%d multiplied by n%cScale=%f must be an integer.\n",
+            axis,
+            baseSize,
+            axis,
+            (double)scaleFactor);
+      status = PV_FAILURE;
+   }
+   *scaledSize = static_cast<int>(closestInt);
+   return status;
+}
 
-   layerLoc->nf = mNumFeatures;
+int LayerGeometry::setLocalLayerLocFields(PVLayerLoc *layerLoc, Communicator const *icComm, std::string const &label) {
+   int status = PV_SUCCESS;
 
-   layerLoc->nbatchGlobal = message->mNBatchGlobal;
+   bool isRoot = icComm->globalCommRank() == 0;
+   if (checkRemainder(layerLoc->nxGlobal, icComm->numCommColumns(), std::string("x"), label, isRoot)) {
+      status = PV_FAILURE;
+   }
+   if (checkRemainder(layerLoc->nyGlobal, icComm->numCommRows(), std::string("y"), label, isRoot)) {
+      status = PV_FAILURE;
+   }
+   if (checkRemainder(layerLoc->nbatchGlobal, icComm->numCommBatches(), std::string("batch"), label, isRoot)) {
+      status = PV_FAILURE;
+   }
 
-   int const nBatch = message->mNBatchGlobal / icComm->numCommBatches(); // integer arithmetic
-   pvAssert(nBatch * icComm->numCommBatches() == message->mNBatchGlobal); // checked in HyPerCol
-   layerLoc->nbatch = nBatch;
-   layerLoc->kb0    = icComm->commBatch() * nBatch;
-   // halo is initialized to zero in constructor, and can be changed by calls
-   // to requireMarginWidth. We don't change the values here.
+   if (status == PV_SUCCESS) {
+      layerLoc->nx = layerLoc->nxGlobal / icComm->numCommColumns();
+      assert(layerLoc->nxGlobal == layerLoc->nx * icComm->numCommColumns());
+
+      layerLoc->ny = layerLoc->nyGlobal / icComm->numCommRows();
+      assert(layerLoc->nyGlobal == layerLoc->ny * icComm->numCommRows());
+
+      layerLoc->nbatch = layerLoc->nbatchGlobal / icComm->numCommBatches();
+      assert(layerLoc->nbatchGlobal == layerLoc->nbatch * icComm->numCommBatches());
+
+      layerLoc->kx0 = layerLoc->nx * icComm->commColumn();
+      layerLoc->ky0 = layerLoc->ny * icComm->commRow();
+      layerLoc->kb0 = layerLoc->nbatch * icComm->commBatch();
+   }
+
+   return status;
+}
+
+bool LayerGeometry::checkRemainder(
+      int globalSize, int numProcesses, std::string axis, std::string const &label, bool printErr) {
+   bool hasRemainder = false;
+
+   if (globalSize % numProcesses != 0) {
+      if (printErr) {
+         ErrorLog(errorMessage);
+         errorMessage.printf(
+               "Size of layer \"%s\" is not compatible with the mpi configuration.\n",
+               label.c_str());
+         errorMessage.printf(
+               "The layer has %d pixels in the %s dimension, and there are %d mpi processes\n",
+               globalSize,
+               axis.c_str(),
+               numProcesses);
+         errorMessage.printf(
+               "in that dimension, but %d does not divide %d.\n", numProcesses, globalSize);
+      }
+      hasRemainder = true;
+   }
+   return hasRemainder;
 }
 
 void LayerGeometry::requireMarginWidth(int marginWidthNeeded, char axis) {

@@ -9,7 +9,7 @@
 #define FILEIO_HPP_
 
 #include "arch/mpi/mpi.h"
-#include "components/Patch.hpp"
+#include "structures/Patch.hpp"
 #include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
 #include "structures/MPIBlock.hpp"
@@ -24,7 +24,7 @@ namespace PV {
 
 int PV_stat(const char *path, struct stat *buf);
 void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname);
-void ensureDirExists(std::shared_ptr<MPIBlock const>, char const *dirname);
+void ensureDirExists(std::shared_ptr<MPIBlock const> mpiBlock, char const *dirname);
 
 } // namespace PV
 

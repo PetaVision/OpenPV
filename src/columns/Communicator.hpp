@@ -22,14 +22,14 @@ namespace PV {
 
 class Communicator {
   public:
-   Communicator(Arguments const *argumentList);
+   Communicator(Arguments const *arguments);
    virtual ~Communicator();
 
    // Previous names of MPI getter functions now default to local ranks and sizes
-   int commRank() const { return localRank; }
-   int globalCommRank() const { return globalRank; }
-   int commSize() const { return localSize; }
-   int globalCommSize() const { return globalSize; }
+   int commRank() const { return mLocalRank; }
+   int globalCommRank() const { return mGlobalRank; }
+   int commSize() const { return mLocalSize; }
+   int globalCommSize() const { return mGlobalSize; }
 
    MPI_Comm communicator() const { return mLocalMPIBlock->getComm(); }
    MPI_Comm batchCommunicator() const { return mBatchMPIBlock->getComm(); }
@@ -50,15 +50,15 @@ class Communicator {
    int neighborIndex(int commId, int index) const;
    int reverseDirection(int commId, int direction) const;
 
-   int commRow() const { return commRow(localRank); }
-   int commColumn() const { return commColumn(localRank); }
-   int commBatch() const { return commBatch(globalRank); }
-   int numCommRows() const { return numRows; }
-   int numCommColumns() const { return numCols; }
-   int numCommBatches() const { return batchWidth; }
+   int commRow() const { return commRow(mLocalRank); }
+   int commColumn() const { return commColumn(mLocalRank); }
+   int commBatch() const { return commBatch(mGlobalRank); }
+   int numCommRows() const { return mNumRows; }
+   int numCommColumns() const { return mNumCols; }
+   int numCommBatches() const { return mBatchWidth; }
 
    int getTag(int neighbor) const { return tags[neighbor]; }
-   int getReverseTag(int neighbor) const { return tags[reverseDirection(localRank, neighbor)]; }
+   int getReverseTag(int neighbor) const { return tags[reverseDirection(mLocalRank, neighbor)]; }
 
    bool isExtraProc() const { return isExtra; }
 
@@ -78,6 +78,23 @@ class Communicator {
    int commBatch(int commId) const;
    int commIdFromRowColumn(int commRow, int commColumn) const;
 
+   /**
+    * Sets number of rows, number of columns, and batch width in the communicator
+    * Uses values of NumRows, NumColumns, and BatchWidth from the arguments, and if any of them are
+    * nonpositive, fills in default values so that all of the Communicator's NumRows, NumCols,
+    * and BatchWidth values are positive.
+    * The default value of BatchWidth is one.
+    * If the argument object's NumRows is nonpositive but NumColumns is positive, the Communicator's
+    * NumRows is the number of processes divided by BatchWidth, divided by NumColumns.
+    * If the argument's object NumColumns is nonpositive but NumRows is positive, the Communicator's
+    * NumColumns is the number of processes divided by BatchWidth, divided by NumRows.
+    * If the argument's NumRows and NumColumns are both nonpositive, NumRows is the square root
+    * of the number of processes divided by the batch width, rounded down, and NumCols is then
+    * computed from the batch width and the new NumRows as above. 
+    * setDimensions does not
+    */
+   void setDimensions(Arguments const *arguments, int totalProcs);
+
    int numNeighbors; // # of remote neighbors plus local.  NOT the size of the
    // neighbors array,
    // which uses negative values to mark directions where there is no remote
@@ -94,13 +111,13 @@ class Communicator {
   private:
    int gcd(int a, int b) const;
 
-   int localRank;
-   int localSize;
-   int globalRank;
-   int globalSize;
-   int numRows;
-   int numCols;
-   int batchWidth;
+   int mLocalRank;
+   int mLocalSize;
+   int mGlobalRank;
+   int mGlobalSize;
+   int mNumRows;
+   int mNumCols;
+   int mBatchWidth;
 
    std::shared_ptr<MPIBlock> mLocalMPIBlock  = nullptr;
    std::shared_ptr<MPIBlock> mBatchMPIBlock  = nullptr;

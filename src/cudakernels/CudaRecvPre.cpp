@@ -50,7 +50,7 @@ void CudaRecvPre::setArgs(
    params.sharedWeights = sharedWeights;
    params.channelCode   = channelCode;
 
-   params.patches        = (Patch *)patches->getPointer();
+   params.patches        = (PV::Patch *)patches->getPointer();
    params.gSynPatchStart = (size_t *)gSynPatchStart->getPointer();
 
    params.preData               = (float *)preData->getPointer();

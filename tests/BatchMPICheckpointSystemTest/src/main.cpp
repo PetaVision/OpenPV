@@ -119,7 +119,7 @@ int diffDirs(const char *cpdir1, const char *cpdir2, int index) {
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    // Rank of the checkpointing MPI communicator does is not publicly accessible, so recreate it.
-   Arguments const *arguments = hc->getPV_InitObj()->getArguments();
+   auto arguments = hc->getPV_InitObj()->getArguments();
    MPIBlock mpiBlock(
          hc->getCommunicator()->globalCommunicator(),
          arguments->getIntegerArgument("NumRows"),

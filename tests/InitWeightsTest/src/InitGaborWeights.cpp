@@ -6,7 +6,7 @@
  */
 
 #include "InitGaborWeights.hpp"
-#include <connections/weight_conversions.hpp>
+#include <utils/weight_conversions.hpp>
 
 namespace PV {
 

@@ -8,21 +8,12 @@
 #ifndef CUDARECVPRE_HPP_
 #define CUDARECVPRE_HPP_
 
-#include "../arch/cuda/CudaBuffer.hpp"
-#include "../arch/cuda/CudaKernel.hpp"
-#include "../structures/SparseList.hpp"
-//#include "../arch/cuda/Cuda3dFloatTextureBuffer.hpp"
-//#include "../utils/conversions.hpp"
-//#include "../layers/accumulate_functions.h"
+#include "arch/cuda/CudaBuffer.hpp"
+#include "arch/cuda/CudaKernel.hpp"
+#include "structures/Patch.hpp"
+#include "structures/SparseList.hpp"
 
 namespace PVCuda {
-#include <builtin_types.h>
-
-typedef struct PVPatch_ {
-   // float * __attribute__ ((aligned)) data;
-   unsigned int offset;
-   unsigned short nx, ny;
-} Patch;
 
 // Parameter structure
 struct recv_pre_params {
@@ -40,7 +31,7 @@ struct recv_pre_params {
    int sharedWeights;
    int channelCode;
 
-   Patch *patches;
+   PV::Patch *patches;
    size_t *gSynPatchStart;
 
    float *preData;

@@ -23,7 +23,7 @@ namespace PV {
 Checkpointer::Checkpointer(
       std::string const &name,
       Communicator const *communicator,
-      Arguments const *arguments)
+      std::shared_ptr<Arguments const> arguments)
       : mName(name) {
    Subject::initializeTable(name.c_str());
    mMPIBlock = communicator->getIOMPIBlock();

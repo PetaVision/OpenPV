@@ -148,7 +148,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/MomentumLCAInternalStateBuffer.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
    ${SUBDIR}/OriginalLayerNameParam.hpp
-   ${SUBDIR}/Patch.hpp
    ${SUBDIR}/PatchGeometry.hpp
    ${SUBDIR}/PatchSize.hpp
    ${SUBDIR}/PhaseParam.hpp

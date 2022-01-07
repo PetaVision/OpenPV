@@ -81,7 +81,7 @@ void Weights::setMargins(PVHalo const &preHalo, PVHalo const &postHalo) {
 }
 
 void Weights::allocateDataStructures() {
-   if (!mData.empty()) {
+   if (mData) {
       return;
    }
    FatalIf(mGeometry == nullptr, "%s has not been initialized.\n", mName.c_str());
@@ -90,10 +90,10 @@ void Weights::allocateDataStructures() {
    int numDataPatches = mNumDataPatchesX * mNumDataPatchesY * mNumDataPatchesF;
    if (numDataPatches != 0) {
       int numItemsPerPatch = getPatchSizeOverall();
-      mData.resize(mNumArbors);
-      for (int arbor = 0; arbor < mNumArbors; arbor++) {
-         mData[arbor].resize(numDataPatches * numItemsPerPatch);
-      }
+      mData = std::make_shared<WeightData>(
+            mNumArbors,
+            getPatchSizeX(), getPatchSizeY(), getPatchSizeF(),
+            getNumDataPatchesX(), getNumDataPatchesY(), getNumDataPatchesF());
    }
    if (mSharedFlag and getNumDataPatches() > 0) {
       int const numPatches = mGeometry->getNumPatches();
@@ -194,13 +194,12 @@ void Weights::setNumDataPatches(int numDataPatchesX, int numDataPatchesY, int nu
 
 Patch const &Weights::getPatch(int patchIndex) const { return mGeometry->getPatch(patchIndex); }
 
-float *Weights::getData(int arbor) { return &mData[arbor][0]; }
+float *Weights::getData(int arbor) { return mData->getData(arbor); }
 
-float const *Weights::getDataReadOnly(int arbor) const { return &mData[arbor][0]; }
+float const *Weights::getData(int arbor) const { return mData->getData(arbor); }
 
 float *Weights::getDataFromDataIndex(int arbor, int dataIndex) {
-   int numItemsPerPatch = getPatchSizeX() * getPatchSizeY() * getPatchSizeF();
-   return &mData[arbor][dataIndex * numItemsPerPatch];
+   return mData->getDataFromDataIndex(arbor, dataIndex);
 }
 
 float *Weights::getDataFromPatchIndex(int arbor, int patchIndex) {
@@ -254,7 +253,10 @@ float Weights::calcMinWeight() {
 float Weights::calcMinWeight(int arbor) {
    float arborMin = FLT_MAX;
    if (getSharedFlag()) {
-      for (auto &w : mData[arbor]) {
+      float *arborStart = getData(arbor);
+      float *arborEnd = &arborStart[getNumDataPatches() * getPatchSizeOverall()];
+      for (float *wPtr = arborStart; wPtr < arborEnd; ++wPtr) {
+         float w = *wPtr;
          if (w < arborMin) {
             arborMin = w;
          }
@@ -263,12 +265,13 @@ float Weights::calcMinWeight(int arbor) {
    else {
       pvAssert(getNumDataPatches() == getGeometry()->getNumPatches());
       for (int p = 0; p < getNumDataPatches(); p++) {
+         float *patchDataStart = getDataFromDataIndex(arbor, p);
          Patch const &patch = getPatch(p);
          int const nk       = patch.nx * getPatchSizeF();
          int const sy       = getPatchSizeX() * getPatchSizeF();
          for (int y = 0; y < patch.ny; y++) {
             for (int k = 0; k < nk; k++) {
-               float w = getDataFromDataIndex(arbor, p)[patch.offset + y * sy + k];
+               float w = patchDataStart[patch.offset + y * sy + k];
                if (w < arborMin) {
                   arborMin = w;
                }
@@ -293,7 +296,10 @@ float Weights::calcMaxWeight() {
 float Weights::calcMaxWeight(int arbor) {
    float arborMax = -FLT_MAX;
    if (getSharedFlag()) {
-      for (auto &w : mData[arbor]) {
+      float *arborStart = getData(arbor);
+      float *arborEnd = &arborStart[getNumDataPatches() * getPatchSizeOverall()];
+      for (float *wPtr = arborStart; wPtr < arborEnd; ++wPtr) {
+         float w = *wPtr;
          if (w > arborMax) {
             arborMax = w;
          }
@@ -302,12 +308,13 @@ float Weights::calcMaxWeight(int arbor) {
    else {
       pvAssert(getNumDataPatches() == getGeometry()->getNumPatches());
       for (int p = 0; p < getNumDataPatches(); p++) {
+         float *patchDataStart = getDataFromDataIndex(arbor, p);
          Patch const &patch = getPatch(p);
          int const nk       = patch.nx * getPatchSizeF();
          int const sy       = getPatchSizeX() * getPatchSizeF();
          for (int y = 0; y < patch.ny; y++) {
             for (int k = 0; k < nk; k++) {
-               float w = getDataFromDataIndex(arbor, p)[patch.offset + y * sy + k];
+               float w = patchDataStart[patch.offset + y * sy + k];
                if (w > arborMax) {
                   arborMax = w;
                }
@@ -329,7 +336,8 @@ void Weights::copyToGPU() {
    std::size_t const arborSize = (std::size_t)numDataPatches * (std::size_t)getPatchSizeOverall();
    std::size_t const numArbors = (std::size_t)mNumArbors;
    for (std::size_t a = 0; a < numArbors; a++) {
-      mDeviceData->copyToDevice(mData[a].data(), arborSize * sizeof(mData[a][0]), a * arborSize);
+      mDeviceData->copyToDevice(
+            mData->getData(a), arborSize * sizeof(mData->getData(a)[0]), a * arborSize);
    }
 #ifdef PV_USE_CUDNN
    mCUDNNData->permuteWeightsPVToCudnn(

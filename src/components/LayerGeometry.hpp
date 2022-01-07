@@ -50,14 +50,29 @@ class LayerGeometry : public BaseObject {
    virtual ~LayerGeometry();
 
    /**
-    * If axis is 'x', sets the PVLayerLoc's halo.lt and halo.rt to the
-    * larger of their current value and the value of marginWidthNeeded.
-    * If axis is 'y', does the same but for halo.dn and halo.up.
+    * If axis is 'x', sets the PVLayerLoc's halo.lt and halo.rt to the larger of their current
+    * value and the value of marginWidthNeeded. If axis is 'y', does the same but for halo.dn and
+    * halo.up.  If the margin is thereby increased, any other LayerGeometry that was earlier
+    * synchronized through a call to synchronizeMarginWidth() or synchronizeMarginWidths() has its 
+    * margin requireMarginWidth() method called as well.
     */
    void requireMarginWidth(int marginWidthNeeded, char axis);
 
+   /**
+    * Sets each margin of each geometry to the max of that margin between the two geometries.
+    * Additionally registers each geometry with the other, so that going forward, increasing
+    * a margin of one geometry will cause the corresponding margin of the other to increase to
+    * the same amount.
+    */
    static void synchronizeMarginWidths(LayerGeometry *geometry1, LayerGeometry *geometry2);
 
+   /**
+    * Sets each margin of this object and the LayerGeometry specified by the otherGeometry
+    * argument to the max of that margin between the two geometries.
+    * Additionally registers otherGeometry with current object, so that going forward, increasing
+    * a margin for this object will cause the corresponding margin of the other object to increase
+    * to the same amount.
+    */
    void synchronizeMarginWidth(LayerGeometry *otherGeometry);
 
    /**
@@ -88,6 +103,14 @@ class LayerGeometry : public BaseObject {
     */
    int getYScale() const { return mYScale; }
 
+
+   /**
+    * Sets nBatch, nx, ny, kb0, kx0, ky0 of the given layerLoc,
+    * based on nBatchGlobal, nxGlobal, nyGlobal, and the MPI arrangement given in the communicator.
+    * The label argument is used only in error messages, to identify the source of the layerLoc.
+    */
+   static int setLocalLayerLocFields(PVLayerLoc *layerLoc, Communicator const *icComm, std::string const &label);
+
   protected:
    LayerGeometry();
 
@@ -116,6 +139,30 @@ class LayerGeometry : public BaseObject {
 
    void
    setLayerLoc(PVLayerLoc *layerLoc, std::shared_ptr<CommunicateInitInfoMessage const> message);
+
+   /**
+    * Multiplies scaleFactor and baseSize, and rounds to an integer.
+    * If the product of scaleFactor and baseSize is an integer to a tolerance of 0.0001,
+    * the result is put in scaledSize and the function returns PV_SUCCESS.
+    * Otherwise, an error message is printed, an error message is printed and scaledSize is not set.
+    * A return value of PV_SUCCESS indicates success and the scaledSize was set; otherwise the 
+    * return value is PV_FAILURE and scaledSize is not changed.
+    */
+   int calculateScaledSize(int *scaledSize, float scaleFactor, int baseSize, char axis);
+
+   /**
+    * Returns true if globalSize divided by numProcesses gives a nonzero remainder, false otherwise.
+    * If there is a remainder, and printErr is true, the process prints an error message
+    * (but not a fatal error) on the assumption that globalSize is one of the dimensions,
+    * in pixels, of a layer, and that numProcesses is the number of MPI processes in that direction.
+    * The argument label is used to identify the layer in the error message, and is not used
+    * if there is no remainder or if printErr is false.
+    *
+    * In the motivating use case, printErr is true for the global root process and false for the
+    * other processes.
+    */
+   static bool checkRemainder(
+      int globalSize, int numProcesses, std::string axis, std::string const &label, bool printErr);
 
   protected:
    float mNxScale   = 1.0;

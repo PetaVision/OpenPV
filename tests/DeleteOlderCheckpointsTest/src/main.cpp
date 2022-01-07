@@ -14,9 +14,10 @@
 
 int main(int argc, char *argv[]) {
    // Initialize PetaVision environment
-   PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
+   auto arguments = std::make_shared<PV::CommandLineArguments>(
+         argc, argv, false /*do not allow unrecognized arguments*/);
    MPI_Init(&argc, &argv);
-   PV::Communicator const *comm = new PV::Communicator(&arguments);
+   PV::Communicator const *comm = new PV::Communicator(arguments.get());
    auto mpiBlock = comm->getLocalMPIBlock();
 
    // Params file
@@ -47,7 +48,7 @@ int main(int argc, char *argv[]) {
    std::size_t const numKept = (std::size_t)params->valueInt("checkpointer", "numCheckpointsKept");
 
    // Initialize Checkpointer object
-   PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", comm, &arguments);
+   PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", comm, arguments);
    checkpointer->ioParams(PV::PARAMS_IO_READ, params);
    delete params;
 

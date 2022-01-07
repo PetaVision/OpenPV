@@ -7,6 +7,7 @@
 #include "columns/HyPerCol.hpp"
 #include "columns/PV_Init.hpp"
 #include "connections/HyPerConn.hpp"
+#include "utils/requiredConvolveMargin.hpp"
 #include <cstdlib>
 #include <memory>
 #include <vector>
@@ -24,7 +25,7 @@ PVLayerLoc setLayerLoc(
       int dn,
       int up);
 
-std::shared_ptr<MPIBlock const> setMPIBlock(PV_Init &pv_initObj);
+MPIBlock const setMPIBlock(PV_Init &pv_initObj);
 
 void verifyCheckpointing(
       int nxp, int nyp, int nfp,
@@ -45,7 +46,7 @@ bool isActiveWeight(Patch const &patch, int nxp, int nyp, int nfp, int itemIndex
 int main(int argc, char *argv[]) {
    PV_Init pv_initObj{&argc, &argv, false /*do not allow unrecognized arguments*/};
    Communicator const *communicator = pv_initObj.getCommunicator();
-   auto mpiBlock          = setMPIBlock(pv_initObj);
+   std::shared_ptr<MPIBlock const> mpiBlock = communicator->getIOMPIBlock();
 
    int const nxGlobal = 32;
    int const nyGlobal = 32;
@@ -294,8 +295,11 @@ int calcGlobalPatchIndex(
    return patchIndexGlobal;
 }
 
-std::shared_ptr<MPIBlock const> setMPIBlock(PV_Init &pv_initObj) {
-   std::shared_ptr<MPIBlock const> mpiBlock = pv_initObj.getCommunicator()->getIOMPIBlock();
+MPIBlock const setMPIBlock(PV_Init &pv_initObj) {
+   std::shared_ptr<Arguments const> arguments     = pv_initObj.getArguments();
+   auto globalMPIBlock = pv_initObj.getCommunicator()->getGlobalMPIBlock();
+   Checkpointer tempCheckpointer("column", pv_initObj.getCommunicator(), arguments);
+   MPIBlock const mpiBlock = *tempCheckpointer.getMPIBlock();
    return mpiBlock;
 }
 

@@ -8,6 +8,7 @@
 extern "C" {
 #include <unistd.h>
 }
+#include <cerrno>
 #include <cinttypes>
 #include <cstdarg>
 #include <cstdio>
@@ -47,7 +48,7 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
          break;
       }
       attempts++;
-      WarnLog() << "Failed to open \"" << fullPath << "\" on attempt " << attempts << "\n";
+      WarnLog() << "Failed to open \"" << fullPath << "\" on attempt " << attempts << ": " << strerror(errno) << "\n";
       if (attempts < mMaxAttempts) {
          sleep(1);
       }

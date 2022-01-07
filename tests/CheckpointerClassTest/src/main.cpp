@@ -4,14 +4,18 @@
 #include "columns/Communicator.hpp"
 #include "io/PVParams.hpp"
 #include "utils/PVLog.hpp"
+#include <memory>
 #include <vector>
 
 int main(int argc, char *argv[]) {
-   PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
+   bool allowUnrecognizedArgumentsFlag = false;
+   auto arguments =
+         std::make_shared<PV::CommandLineArguments>(argc, argv, allowUnrecognizedArgumentsFlag);
    MPI_Init(&argc, &argv);
-   PV::Communicator const *comm = new PV::Communicator(&arguments);
+   PV::Communicator const *comm = new PV::Communicator(arguments.get());
 
-   PV::Checkpointer *checkpointer = new PV::Checkpointer("checkpointer", comm, &arguments);
+   PV::Checkpointer *checkpointer = new PV::Checkpointer(
+         std::string("checkpointer"), comm, arguments);
 
    PV::PVParams *params = new PV::PVParams("input/CheckpointerClassTest.params", 1, comm);
 
@@ -85,8 +89,8 @@ int main(int argc, char *argv[]) {
    // Create a new checkpointer for reading from the checkpoint.
    std::string checkpointReadDir(checkpointWriteDirectory);
    checkpointReadDir.append("/Checkpoint04");
-   arguments.setStringArgument("CheckpointReadDirectory", checkpointReadDir);
-   checkpointer = new PV::Checkpointer("checkpointer", comm, &arguments);
+   arguments->setStringArgument("CheckpointReadDirectory", checkpointReadDir);
+   checkpointer = new PV::Checkpointer(std::string("checkpointer"), comm, arguments);
    checkpointer->registerCheckpointEntry(
          floatingpointCheckpointEntry, false /*treat as non-constant*/);
    checkpointer->registerCheckpointEntry(integerCheckpointEntry, false /*treat as non-constant*/);

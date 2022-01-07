@@ -12,6 +12,7 @@
 #include "components/PatchGeometry.hpp"
 #include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
+#include "structures/WeightData.hpp"
 #include <memory>
 #include <string>
 #include <vector>
@@ -33,6 +34,10 @@ namespace PV {
  * specified. Afterward, the allocateDataStructures() method must be called before the weights
  * object is ready. If the Weights is constructed with sharedWeights off, NumDataPatchesX and
  * NumDataPatchesY are the same as the PatchGeometry object's numPatchesX and numPatchesY.
+ *
+ * If instantiating with a constructor that takes more than just the name argument, the
+ * constructor calls initialize(). However, the allocateDataStructures() method must still
+ * be called before the weights object is ready to use.
  *
  * If sharedWeights is on, NumDataPatchesX is PreLoc.nx / PostLoc.nx if this quantity is
  * greater than one, and 1 otherwise. Note that the PatchGeometry object requires that
@@ -180,11 +185,17 @@ class Weights {
    /** Returns a nonmutable reference to the patch info for the given patch index. */
    Patch const &getPatch(int patchIndex) const;
 
+   /** Returns a shared pointer to the WeightData structure holding the weights */
+   std::shared_ptr<WeightData> getData() { return mData; }
+
+   /** Returns a read-only shared pointer to the WeightData structure holding the weights */
+   std::shared_ptr<WeightData const> getData() const { return mData; }
+
    /** Returns a pointer to the patch data for the given arbor */
    float *getData(int arbor);
 
    /** Returns a read-only pointer to the patch data for the given arbor */
-   float const *getDataReadOnly(int arbor) const;
+   float const *getData(int arbor) const;
 
    /** Returns a pointer to the patch data for the given data index */
    float *getDataFromDataIndex(int arbor, int dataIndex);
@@ -308,7 +319,7 @@ class Weights {
    int mNumDataPatchesY;
    int mNumDataPatchesF;
 
-   std::vector<std::vector<float>> mData;
+   std::shared_ptr<WeightData> mData = nullptr;
    std::vector<int> dataIndexLookupTable;
 
    bool mWeightsArePlastic = false;

@@ -151,7 +151,7 @@ class Checkpointer : public Subject {
    Checkpointer(
          std::string const &name,
          Communicator const *communicator,
-         Arguments const *arguments);
+         std::shared_ptr<Arguments const> arguments);
    ~Checkpointer();
 
    /**

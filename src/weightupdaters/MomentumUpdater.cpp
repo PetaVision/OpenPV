@@ -272,7 +272,7 @@ int MomentumUpdater::updateWeights(int arborId) {
    pvAssert(mPrevDeltaWeights);
    std::memcpy(
          mPrevDeltaWeights->getData(arborId),
-         mDeltaWeights->getDataReadOnly(arborId),
+         mDeltaWeights->getData(arborId),
          sizeof(float) * mDeltaWeights->getPatchSizeOverall() * mDeltaWeights->getNumDataPatches());
 
    // add dw to w
