@@ -31,6 +31,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/Timer.hpp
    ${SUBDIR}/TransposeWeights.hpp
    ${SUBDIR}/WaitForReturn.hpp
+   ${SUBDIR}/weight_conversions.hpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcTpp}

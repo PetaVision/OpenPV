@@ -5,8 +5,8 @@
  *      Author: pschultz
  */
 
-#ifndef __FILESTREAM_HPP__
-#define __FILESTREAM_HPP__
+#ifndef FILESTREAM_HPP__
+#define FILESTREAM_HPP__
 
 #include "PrintStream.hpp"
 
@@ -50,4 +50,4 @@ class FileStream : public PrintStream {
 
 } /* namespace PV */
 
-#endif
+#endif // FILESTREAM_HPP__

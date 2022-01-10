@@ -5,8 +5,8 @@
  *      Author: kpeterson
  */
 
-#ifndef InitWeightTestProbe_HPP_
-#define InitWeightTestProbe_HPP_
+#ifndef INITWEIGHTTESTPROBE_HPP_
+#define INITWEIGHTTESTPROBE_HPP_
 
 #include "probes/StatsProbe.hpp"
 
@@ -27,4 +27,4 @@ class InitWeightTestProbe : public PV::StatsProbe {
 };
 
 } /* namespace PV */
-#endif /* ArborTestProbe_HPP_ */
+#endif // INITWEIGHTTESTPROBE_HPP_

@@ -5,8 +5,8 @@
  *      Author: rasmussn
  */
 
-#ifndef CONVERSIONS_H_
-#define CONVERSIONS_H_
+#ifndef CONVERSIONS_HPP_
+#define CONVERSIONS_HPP_
 
 #include "include/PVLayerLoc.h"
 #include <assert.h>
@@ -770,4 +770,4 @@ batchFromRank(int rank, int batchWidth, int numRows, int numColumns) {
 
 } // end namespace PV
 
-#endif /* CONVERSIONS_H_ */
+#endif // CONVERSIONS_HPP_

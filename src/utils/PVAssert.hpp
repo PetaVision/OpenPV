@@ -1,5 +1,5 @@
-#ifndef _pv_assert_h
-#define _pv_assert_h
+#ifndef PVASSERT_HPP_
+#define PVASSERT_HPP_
 
 /**
  * Replacement for the assert() macro. By default, assert() is compiled out in non-release builds.
@@ -61,4 +61,4 @@ void pv_assert_failed_message(
 void print_stacktrace(FILE *out = stderr, unsigned int max_frames = 63);
 } // end namespace PV
 
-#endif
+#endif // PVASSERT_HPP_

@@ -1,5 +1,5 @@
-#ifndef __CHECKPOINTABLEFILESTREAM_HPP__
-#define __CHECKPOINTABLEFILESTREAM_HPP__
+#ifndef CHECKPOINTABLEFILESTREAM_HPP__
+#define CHECKPOINTABLEFILESTREAM_HPP__
 
 #include "CheckpointerDataInterface.hpp"
 #include "io/FileStream.hpp"
@@ -94,4 +94,4 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
 };
 }
 
-#endif
+#endif // CHECKPOINTABLEFILESTREAM_HPP_

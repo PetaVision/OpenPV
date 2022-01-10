@@ -5,8 +5,8 @@
  *      Author: Craig Rasmussen
  */
 
-#ifndef WEIGHT_CONVERSIONS_H_
-#define WEIGHT_CONVERSIONS_H_
+#ifndef WEIGHT_CONVERSIONS_HPP_
+#define WEIGHT_CONVERSIONS_HPP_
 
 namespace PV {
 
@@ -29,4 +29,4 @@ static inline float uncompressWeight(float w, float minVal, float maxVal) { retu
 
 } // end namespace PV
 
-#endif /* WEIGHT_CONVERSIONS_H_ */
+#endif /* WEIGHT_CONVERSIONS_HPP_ */

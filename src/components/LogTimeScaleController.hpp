@@ -1,5 +1,5 @@
-#ifndef _LOGTIMESCALECONTROLLER_HPP_
-#define _LOGTIMESCALECONTROLLER_HPP_
+#ifndef LOGTIMESCALECONTROLLER_HPP_
+#define LOGTIMESCALECONTROLLER_HPP_
 
 #include "AdaptiveTimeScaleController.hpp"
 #include <cfloat>
@@ -29,4 +29,4 @@ class LogTimeScaleController : public AdaptiveTimeScaleController {
 };
 }
 
-#endif
+#endif // LOGTIMESCALECONTROLLER_HPP_

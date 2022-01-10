@@ -5,8 +5,8 @@
  *      Author: kpeterson
  */
 
-#ifndef ArborTestProbe_HPP_
-#define ArborTestProbe_HPP_
+#ifndef ARBORTESTPROBE_HPP_
+#define ARBORTESTPROBE_HPP_
 
 #include "probes/StatsProbe.hpp"
 
@@ -28,4 +28,4 @@ class ArborTestProbe : public PV::StatsProbe {
 };
 
 } /* namespace PV */
-#endif /* ArborTestProbe_HPP_ */
+#endif // ARBORTESTPROBE_HPP_

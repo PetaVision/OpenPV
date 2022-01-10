@@ -1,5 +1,5 @@
-#ifndef _KNEETIMESCALECONTROLLER_HPP_
-#define _KNEETIMESCALECONTROLLER_HPP_
+#ifndef KNEETIMESCALECONTROLLER_HPP_
+#define KNEETIMESCALECONTROLLER_HPP_
 
 #include "AdaptiveTimeScaleController.hpp"
 
@@ -28,4 +28,4 @@ class KneeTimeScaleController : public AdaptiveTimeScaleController {
 };
 }
 
-#endif
+#endif // KNEETIMESCALECONTROLLER_HPP_

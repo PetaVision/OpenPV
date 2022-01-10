@@ -5,8 +5,8 @@
  *      Author: wchavez
  */
 
-#ifndef DelayTestProbe_HPP_
-#define DelayTestProbe_HPP_
+#ifndef DELAYTESTPROBE_HPP_
+#define DELAYTESTPROBE_HPP_
 
 #include "probes/StatsProbe.hpp"
 
@@ -27,4 +27,4 @@ class DelayTestProbe : public PV::StatsProbe {
 };
 
 } /* namespace PV */
-#endif /* DelayTestProbe_HPP_ */
+#endif // DELAYTESTPROBE_HPP_

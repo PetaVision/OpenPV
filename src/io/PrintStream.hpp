@@ -1,5 +1,5 @@
-#ifndef __PRINTSTREAM_HPP_
-#define __PRINTSTREAM_HPP_
+#ifndef PRINTSTREAM_HPP_
+#define PRINTSTREAM_HPP_
 
 extern "C" {
 #include <unistd.h>
@@ -85,4 +85,4 @@ class PrintStream {
 };
 } /* namespace PV */
 
-#endif
+#endif // PRINTSTREAM_HPP_

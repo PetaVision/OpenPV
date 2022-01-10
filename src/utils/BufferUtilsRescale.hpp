@@ -1,5 +1,5 @@
-#ifndef __BUFFERUTILSRESCALE_HPP__
-#define __BUFFERUTILSRESCALE_HPP__
+#ifndef BUFFERUTILSRESCALE_HPP__
+#define BUFFERUTILSRESCALE_HPP__
 
 #include "structures/Buffer.hpp"
 
@@ -20,4 +20,4 @@ void rescale(
 
 } // End BufferUtils namespace
 } // End PV namespace
-#endif
+#endif // BUFFERUTILSRESCALE_HPP__
