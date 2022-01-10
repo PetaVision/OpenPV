@@ -50,10 +50,7 @@ int main(int argc, char *argv[]) {
 }
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
-   char *programPathC = strdup(argv[0]);
-   char *programNameC = basename(programPathC);
-   std::string programName(programNameC);
-   free(programPathC);
+   std::string programName = baseName(argv[0]);
 
    int probability;
    hc->parameters()->ioParamValueRequired(PARAMS_IO_READ, "Output", "probability", &probability);

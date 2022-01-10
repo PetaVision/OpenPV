@@ -7,6 +7,7 @@
 
 #include "InitVFromFile.hpp"
 #include "utils/BufferUtilsMPI.hpp"
+#include "utils/PathComponents.hpp"
 
 namespace PV {
 InitVFromFile::InitVFromFile() { initialize_base(); }
@@ -49,8 +50,8 @@ void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
 }
 
 void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
-   char const *ext = strrchr(mVfilename, '.');
-   bool isPvpFile  = (ext && strcmp(ext, ".pvp") == 0);
+   std::string ext = extension(mVfilename);
+   bool isPvpFile  = (ext == ".pvp");
    if (isPvpFile) {
       FileStream fileStream(mVfilename, std::ios_base::in | std::ios_base::binary, false);
       BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(fileStream);

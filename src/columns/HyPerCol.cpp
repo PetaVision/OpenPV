@@ -16,6 +16,7 @@
 #include "io/PrintStream.hpp"
 #include "pvGitRevision.h"
 #include "utils/ExpandLeadingTilde.hpp"
+#include "utils/PathComponents.hpp"
 
 #include <assert.h>
 #include <cmath>
@@ -857,13 +858,8 @@ void HyPerCol::outputParams(char const *path) {
    int rank = mCheckpointer->getMPIBlock()->getRank();
    pvAssert(parameters()->getPrintParamsStream() == nullptr);
    pvAssert(parameters()->getPrintLuaStream() == nullptr);
-   char *tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
-   if (tmp == nullptr) {
-      Fatal().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
-   }
-   char *containingdir = dirname(tmp);
-   ensureDirExists(mCheckpointer->getMPIBlock(), containingdir);
-   free(tmp);
+   std::string containingdir = dirName(std::string(path));
+   ensureDirExists(mCheckpointer->getMPIBlock(), containingdir.c_str());
    FileStream *printParamsStream = nullptr;
    FileStream *printLuaStream    = nullptr;
    if (rank == 0) {

@@ -3,6 +3,7 @@
  */
 
 #include <components/WeightsPair.hpp>
+#include <utils/PathComponents.hpp> // PV::baseName
 #include <utils/PVLog.hpp>
 
 #include <string.h>
@@ -66,9 +67,7 @@ int main(int argc, char *argv[]) {
    testOneToOne();
    testOneToMany();
    testManyToOne();
-   char *programPath = strdup(argv[0]);
-   char *programName = basename(programPath);
+   std::string programName = PV::baseName(argv[0]);
    InfoLog() << programName << " passed.\n";
-   free(programPath);
    return 0;
 }

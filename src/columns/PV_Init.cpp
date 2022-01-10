@@ -116,14 +116,12 @@ void PV_Init::initFactory() { PV::registerCoreKeywords(); }
 
 void PV_Init::initLogFile(bool appendFlag) {
    // TODO: Under MPI, non-root processes should send messages to root process.
-   // Currently, if logFile is directory/filename.txt, the root process writes to
-   // that path,
-   // and nonroot processes write to directory/filename_<rank>.txt, where <rank>
-   // is replaced with
+   // Currently, if logFile is directory/filename.txt, the root process writes to that path,
+   // and nonroot processes write to directory/filename_<rank>.txt, where <rank> is replaced with
    // the global rank.
    // If filename does not have an extension, _<rank> is appended.
-   // Note that the global rank zero process does not insert _<rank>.  This is
-   // deliberate, as the nonzero ranks should be MPI-ing the data to the zero rank.
+   // Note that the global rank zero process does not insert _<rank>.  This is deliberate, as the
+   // nonzero ranks should be MPI-ing the data to the zero rank.
    std::string logFile         = mArguments->getStringArgument("LogFile");
    int const globalRootProcess = 0;
    int globalRank;
@@ -131,27 +129,15 @@ void PV_Init::initLogFile(bool appendFlag) {
    std::ios_base::openmode mode =
          appendFlag ? std::ios_base::out | std::ios_base::app : std::ios_base::out;
    if (!logFile.empty() && globalRank != globalRootProcess) {
-      // To prevent collisions caused by multiple processes opening the same file
-      // for logging,
-      // processes with global rank other than zero append the rank to the log
-      // filename.
-      // If the logfile has an extension (e.g. ".log", ".txt"), the rank is
-      // appended before the
+      // To prevent collisions caused by multiple processes opening the same file for logging,
+      // processes with global rank other than zero append the rank to the log filename.
+      // If the logfile has an extension (e.g. ".log", ".txt"), the rank is appended before the
       // period separating the extension.
-      std::string logFileString(logFile);
-      size_t finalSlash = logFileString.rfind('/');
-      size_t finalDot   = logFileString.rfind('.');
-      size_t insertionPoint;
-      if (finalDot == std::string::npos
-          || (finalSlash != std::string::npos && finalDot < finalSlash)) {
-         insertionPoint = logFileString.length();
-      }
-      else {
-         insertionPoint = finalDot;
-      }
-      std::string insertion("_");
-      insertion.append(std::to_string(globalRank));
-      logFileString.insert(insertionPoint, insertion);
+      std::string directory     = dirName(logFile);
+      std::string stripExt      = stripExtension(logFile);
+      std::string fileExt       = extension(logFile);
+      std::string logFileString =
+            directory + '/' + stripExt + '_' + std::to_string(globalRank) + fileExt;
       PV::setLogFile(logFileString, mode);
    }
    else {

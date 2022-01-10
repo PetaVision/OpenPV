@@ -1,4 +1,5 @@
 #include "CheckpointableFileStream.hpp"
+#include "utils/PathComponents.hpp"
 
 namespace PV {
 
@@ -53,11 +54,8 @@ void CheckpointableFileStream::initialize(
       }
    }
    if (createFile) {
-      char fullPathCopy[fullPath.size() + 1];
-      std::memcpy(fullPathCopy, fullPath.c_str(), fullPath.size());
-      fullPathCopy[fullPath.size()] = '\0';
-      char *dirName                 = dirname(fullPathCopy);
-      ensureDirExists(checkpointer->getMPIBlock(), dirName);
+      std::string directory = dirName(fullPath);
+      ensureDirExists(checkpointer->getMPIBlock(), directory.c_str());
       FileStream fileStream(fullPath.c_str(), std::ios_base::out, verifyWrites);
    }
 
