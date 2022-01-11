@@ -22,6 +22,7 @@ LocalPatchWeightsFile::LocalPatchWeightsFile(
       bool compressedFlag,
       bool readOnlyFlag,
       bool verifyWrites) :
+      CheckpointerDataInterface(),
       mFileManager(fileManager),
       mPath(path),
       mPatchSizeX(patchSizeX),
@@ -37,6 +38,7 @@ LocalPatchWeightsFile::LocalPatchWeightsFile(
       mCompressedFlag(compressedFlag),
       mReadOnly(readOnlyFlag),
       mVerifyWrites(verifyWrites) {
+   initializeCheckpointerDataInterface();
    initializeLocalPatchWeightsIO();
 }
 
@@ -143,6 +145,44 @@ void LocalPatchWeightsFile::setIndex(int index) {
       frameNumber = index % mLocalPatchWeightsIO->getNumFrames();
    }
    mLocalPatchWeightsIO->setFrameNumber(frameNumber);
+   mFileStreamReadPos = mLocalPatchWeightsIO->getFileStream()->getInPos();
+   if (!mReadOnly) {
+      mFileStreamWritePos = mLocalPatchWeightsIO->getFileStream()->getOutPos();
+   }
+   else {
+      mFileStreamWritePos = mFileStreamReadPos;
+   }
+}
+
+Response::Status LocalPatchWeightsFile::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = CheckpointerDataInterface::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer = message->mDataRegistry;
+   std::string dir  = dirName(mPath);
+   std::string base = stripExtension(mPath);
+   std::string objName = dir + "/" + base;
+   checkpointer->registerCheckpointData(
+         objName,
+         std::string("filepos_FileStreamRead"),
+         &mFileStreamReadPos,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   checkpointer->registerCheckpointData(
+         objName,
+         std::string("filepos_FileStreamWrite"),
+         &mFileStreamWritePos,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   return Response::SUCCESS;
+}
+
+int LocalPatchWeightsFile::initializeCheckpointerDataInterface() {
+   return CheckpointerDataInterface::initialize();
 }
 
 void LocalPatchWeightsFile::initializeLocalPatchWeightsIO() {

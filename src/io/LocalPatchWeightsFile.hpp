@@ -8,6 +8,7 @@
 #ifndef LOCALPATCHWEIGHTSFILE_HPP_
 #define LOCALPATCHWEIGHTSFILE_HPP_
 
+#include "checkpointing/CheckpointerDataInterface.hpp"
 #include "io/FileManager.hpp"
 #include "io/LocalPatchWeightsIO.hpp"
 #include "utils/BufferUtilsPvp.hpp" // WeightHeader
@@ -31,7 +32,7 @@ namespace PV {
  * for the buffer height and NyRestrictedPre. Also, the margins must be at least as large as
  * required by the patch sizes and FileExtended setting.
  */
-class LocalPatchWeightsFile {
+class LocalPatchWeightsFile : public CheckpointerDataInterface{
   public:
    LocalPatchWeightsFile(
       std::shared_ptr<FileManager const> fileManager,
@@ -90,7 +91,12 @@ class LocalPatchWeightsFile {
          return mLocalPatchWeightsIO->getFileStream();
    }
 
+  protected:
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+
   private:
+   int initializeCheckpointerDataInterface();
    void initializeLocalPatchWeightsIO();
 
    bool isRoot() { return mFileManager->isRoot(); }
@@ -123,6 +129,9 @@ class LocalPatchWeightsFile {
    int mIndex = 0;
 
    std::unique_ptr<LocalPatchWeightsIO> mLocalPatchWeightsIO;
+
+   long mFileStreamReadPos  = 0L; // Input file position of the LayerIO's FileStream
+   long mFileStreamWritePos = 0L; // Output file position of the LayerIO's FileStream
 };
 
 } // namespacePV

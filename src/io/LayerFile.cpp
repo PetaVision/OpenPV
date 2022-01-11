@@ -115,7 +115,6 @@ void LayerFile::setIndex(int index) {
    else {
       mFileStreamWritePos = mFileStreamReadPos;
    }
-   
 }
 
 Response::Status

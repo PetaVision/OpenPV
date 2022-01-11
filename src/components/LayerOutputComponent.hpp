@@ -10,7 +10,6 @@
 
 #include "columns/BaseObject.hpp"
 
-#include "checkpointing/CheckpointableFileStream.hpp"
 #include "components/BasePublisherComponent.hpp"
 #include "components/LayerGeometry.hpp"
 #include "io/LayerFile.hpp"
@@ -98,7 +97,6 @@ class LayerOutputComponent : public BaseObject {
 
    LayerGeometry *mLayerGeometry                = nullptr;
    BasePublisherComponent *mPublisher           = nullptr;
-   CheckpointableFileStream *mOutputStateStream = nullptr; // file stream for the pvp file
    std::shared_ptr<LayerFile> mDenseFile        = nullptr; // output if SparseLayer flag is false
    std::shared_ptr<SparseLayerFile> mSparseFile = nullptr; // output if SparseLayer flag is true
    std::vector<SparseList<float> > mSparseListVector;

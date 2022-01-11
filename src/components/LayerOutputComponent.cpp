@@ -21,7 +21,6 @@ LayerOutputComponent::LayerOutputComponent() {}
 
 LayerOutputComponent::~LayerOutputComponent() {
    delete mIOTimer;
-   delete mOutputStateStream;
 }
 
 void LayerOutputComponent::initialize(
@@ -123,15 +122,6 @@ Response::Status LayerOutputComponent::registerData(
          false /*not constant*/);
    if (mWriteStep >= 0.0) {
       openOutputStateFile(message);
-      if (mSparseFile) {
-         checkpointer->registerCheckpointData(
-               std::string(getName()),
-               std::string("numframes_sparse"),
-               &mWriteActivitySparseCalls,
-               (std::size_t)1,
-               true /*broadcast*/,
-               false /*not constant*/);
-      }
    }
 
    // Timers

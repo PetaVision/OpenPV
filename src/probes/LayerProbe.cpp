@@ -6,7 +6,7 @@
  */
 
 #include "LayerProbe.hpp"
-#include "../layers/HyPerLayer.hpp"
+#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 

@@ -5,8 +5,8 @@
  *      Author: peteschultz
  */
 
-#ifndef WEIGHTSIO_HPP_
-#define WEIGHTSIO_HPP_
+#ifndef LOCALPATCHWEIGHTSIO_HPP_
+#define LOCALPATCHWEIGHTSIO_HPP_
 
 #include "io/FileStream.hpp"
 #include "utils/BufferUtilsPvp.hpp" // struct WeightHeader
@@ -213,4 +213,4 @@ class LocalPatchWeightsIO {
 
 } // namespacePV
 
-#endif // WEIGHTSIO_HPP_
+#endif // LOCALPATCHWEIGHTSIO_HPP_

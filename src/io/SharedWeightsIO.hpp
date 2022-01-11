@@ -5,8 +5,8 @@
  *      Author: peteschultz
  */
 
-#ifndef WEIGHTSIO_HPP_
-#define WEIGHTSIO_HPP_
+#ifndef SHAREDWEIGHTSIO_HPP_
+#define SHAREDWEIGHTSIO_HPP_
 
 #include "io/FileStream.hpp"
 #include "utils/BufferUtilsPvp.hpp" // struct WeightHeader
@@ -111,4 +111,4 @@ class SharedWeightsIO {
 
 } // namespacePV
 
-#endif // WEIGHTSIO_HPP_
+#endif // SHAREDWEIGHTSIO_HPP_

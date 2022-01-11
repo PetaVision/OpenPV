@@ -11,6 +11,9 @@
 #include "components/ArborList.hpp"
 #include "components/SharedWeights.hpp"
 #include "components/WeightsPairInterface.hpp"
+#include "io/LocalPatchWeightsFile.hpp"
+#include "io/SharedWeightsFile.hpp"
+#include <memory>
 
 namespace PV {
 
@@ -93,7 +96,8 @@ class WeightsPair : public WeightsPairInterface {
    SharedWeights *mSharedWeights = nullptr;
    double mWriteTime             = 0.0;
 
-   CheckpointableFileStream *mOutputStateStream = nullptr; // weights file written by outputState
+   std::shared_ptr<SharedWeightsFile> mSharedWeightsFile;
+   std::shared_ptr<LocalPatchWeightsFile> mLocalPatchWeightsFile;
 };
 
 } // namespace PV

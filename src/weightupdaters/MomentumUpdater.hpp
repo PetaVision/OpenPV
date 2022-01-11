@@ -10,6 +10,8 @@
 
 #include "weightupdaters/HebbianUpdater.hpp"
 
+#include "checkpointing/CheckpointableFileStream.hpp"
+
 namespace PV {
 
 class MomentumUpdater : public HebbianUpdater {

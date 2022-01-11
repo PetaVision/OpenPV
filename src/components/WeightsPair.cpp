@@ -16,7 +16,7 @@ WeightsPair::WeightsPair(char const *name, PVParams *params, Communicator const 
    initialize(name, params, comm);
 }
 
-WeightsPair::~WeightsPair() { delete mOutputStateStream; }
+WeightsPair::~WeightsPair() {}
 
 void WeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
    WeightsPairInterface::initialize(name, params, comm);
@@ -277,24 +277,56 @@ void WeightsPair::finalizeUpdate(double timestamp, double deltaTime) {
 
 void WeightsPair::openOutputStateFile(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   if (mWriteStep >= 0) {
-      auto *checkpointer = message->mDataRegistry;
-      if (checkpointer->getMPIBlock()->getRank() == 0) {
-         std::string outputStatePath(getName());
-         outputStatePath.append(".pvp");
+   if (mWriteStep < 0) { return; }
 
-         std::string checkpointLabel(getName());
-         checkpointLabel.append("_filepos");
+   auto *checkpointer = message->mDataRegistry;
+   auto outputFileManager = getCommunicator()->getOutputFileManager();
+   std::string outputStatePath(getName());
+   outputStatePath.append(".pvp");
 
-         bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
-         mOutputStateStream = new CheckpointableFileStream(
-               outputStatePath.c_str(),
-               createFlag,
-               getCommunicator()->getOutputFileManager(),
-               checkpointLabel,
-               checkpointer->doesVerifyWrites());
-         mOutputStateStream->respond(message); // CheckpointableFileStream needs to register data
-      }
+   // If the file exists and CheckpointReadDirectory is empty, we need to
+   // clobber the file.
+   if (checkpointer->getCheckpointReadDirectory().empty()) {
+      outputFileManager->open(
+            outputStatePath, std::ios_base::out, checkpointer->doesVerifyWrites());
+   }
+
+   if (mPreWeights->getSharedFlag()) {
+      mSharedWeightsFile = std::make_shared<SharedWeightsFile>(
+            outputFileManager,
+            outputStatePath,
+            mPreWeights->getPatchSizeX(),
+            mPreWeights->getPatchSizeY(),
+            mPreWeights->getPatchSizeF(),
+            mPreWeights->getNumDataPatchesX(),
+            mPreWeights->getNumDataPatchesY(),
+            mPreWeights->getNumDataPatchesF(),
+            mPreWeights->getNumArbors(),
+            getWriteCompressedWeights(),
+            false /*readOnlyFlag*/,
+            checkpointer->doesVerifyWrites());
+      mSharedWeightsFile->respond(message); // SharedWeightsFile needs to register file position
+   }
+   else {
+      auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
+      auto *postLoc = mConnectionData->getPost()->getLayerLoc();
+      mLocalPatchWeightsFile = std::make_shared<LocalPatchWeightsFile>(
+            outputFileManager,
+            outputStatePath,
+            mPreWeights->getPatchSizeX(),
+            mPreWeights->getPatchSizeY(),
+            mPreWeights->getPatchSizeF(),
+            preLoc->nx,
+            preLoc->ny,
+            preLoc->nf,
+            postLoc->nx,
+            postLoc->ny,
+            mPreWeights->getNumArbors(),
+            true /*fileExtendedFlag*/,
+            getWriteCompressedWeights(),
+            false /*readOnlyFlag*/,
+            checkpointer->doesVerifyWrites());
+      mLocalPatchWeightsFile->respond(message); // LocalPatchWeightsFile needs to register filepos
    }
 }
 
@@ -313,9 +345,14 @@ void WeightsPair::outputState(double timestamp) {
    if ((mWriteStep >= 0) && (timestamp >= mWriteTime)) {
       mWriteTime += mWriteStep;
 
-      WeightsFileIO weightsFileIO(
-            mOutputStateStream, getCommunicator()->getIOMPIBlock(), mPreWeights);
-      weightsFileIO.writeWeights(timestamp, mWriteCompressedWeights);
+      if (mPreWeights->getSharedFlag()) {
+         pvAssert(!mLocalPatchWeightsFile and mSharedWeightsFile);
+         mSharedWeightsFile->write(*mPreWeights->getData().get(), timestamp);
+      }
+      else {
+         pvAssert(mLocalPatchWeightsFile and !mSharedWeightsFile);
+         mLocalPatchWeightsFile->write(*mPreWeights->getData().get(), timestamp);
+      }
    }
    else if (mWriteStep < 0) {
       // If writeStep is negative, we never call writeWeights, but someone might restart from a

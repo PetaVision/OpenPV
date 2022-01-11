@@ -17,6 +17,7 @@ SharedWeightsFile::SharedWeightsFile(
       bool compressedFlag,
       bool readOnlyFlag,
       bool verifyWrites) :
+      CheckpointerDataInterface(),
       mFileManager(fileManager),
       mPath(path),
       mPatchSizeX(patchSizeX),
@@ -29,6 +30,7 @@ SharedWeightsFile::SharedWeightsFile(
       mCompressedFlag(compressedFlag),
       mReadOnly(readOnlyFlag),
       mVerifyWrites(verifyWrites) {
+   initializeCheckpointerDataInterface();
    initializeSharedWeightsIO();
 }
 
@@ -81,6 +83,44 @@ void SharedWeightsFile::setIndex(int index) {
       frameNumber = index % mSharedWeightsIO->getNumFrames();
    }
    mSharedWeightsIO->setFrameNumber(frameNumber);
+   mFileStreamReadPos = mSharedWeightsIO->getFileStream()->getInPos();
+   if (!mReadOnly) {
+      mFileStreamWritePos = mSharedWeightsIO->getFileStream()->getOutPos();
+   }
+   else {
+      mFileStreamWritePos = mFileStreamReadPos;
+   }
+}
+
+Response::Status
+SharedWeightsFile::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = CheckpointerDataInterface::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer = message->mDataRegistry;
+   std::string dir  = dirName(mPath);
+   std::string base = stripExtension(mPath);
+   std::string objName = dir + "/" + base;
+   checkpointer->registerCheckpointData(
+         objName,
+         std::string("filepos_FileStreamRead"),
+         &mFileStreamReadPos,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   checkpointer->registerCheckpointData(
+         objName,
+         std::string("filepos_FileStreamWrite"),
+         &mFileStreamWritePos,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   return Response::SUCCESS;
+}
+
+int SharedWeightsFile::initializeCheckpointerDataInterface() {
+   return CheckpointerDataInterface::initialize();
 }
 
 void SharedWeightsFile::initializeSharedWeightsIO() {

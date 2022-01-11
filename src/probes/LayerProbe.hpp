@@ -9,10 +9,11 @@
 #define LAYERPROBE_HPP_
 
 #include "BaseProbe.hpp"
-#include "io/fileio.hpp"
+#include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "observerpattern/Response.hpp"
 #include "utils/Timer.hpp"
-#include <stdio.h>
+#include <memory>
 
 namespace PV {
 
