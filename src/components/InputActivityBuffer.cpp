@@ -465,10 +465,10 @@ Response::Status InputActivityBuffer::registerData(
       return status;
    }
    auto *checkpointer = message->mDataRegistry;
-   if (checkpointer->getMPIBlock()->getRank() == 0) {
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
       mRNG.seed(mRandomSeed);
       int numBatch = getLayerLoc()->nbatch;
-      int nBatch   = getMPIBlock()->getBatchDimension() * numBatch;
+      int nBatch   = getCommunicator()->getIOMPIBlock()->getBatchDimension() * numBatch;
       mRandomShiftX.resize(nBatch);
       mRandomShiftY.resize(nBatch);
       mMirrorFlipX.resize(nBatch);
@@ -485,8 +485,9 @@ Response::Status InputActivityBuffer::registerData(
          std::string cpFileStreamLabel(getName());
          cpFileStreamLabel.append("_TimestampState");
          bool needToCreateFile = checkpointer->getCheckpointReadDirectory().empty();
+         auto fileManager = getCommunicator()->getOutputFileManager();
          mTimestampStream      = new CheckpointableFileStream(
-               timestampFilename, needToCreateFile, checkpointer, cpFileStreamLabel);
+               timestampFilename, needToCreateFile, fileManager, cpFileStreamLabel, checkpointer->doesVerifyWrites());
          mTimestampStream->respond(message); // CheckpointableFileStream needs to register data
       }
    }
@@ -495,13 +496,13 @@ Response::Status InputActivityBuffer::registerData(
 
 void InputActivityBuffer::initializeBatchIndexer() {
    // TODO: move check of size of mStartFrameIndex and mSkipFrameIndex here.
-   pvAssert(getMPIBlock());
-   pvAssert(getMPIBlock()->getRank() == 0);
+   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+   pvAssert(ioMPIBlock and ioMPIBlock->getRank() == 0);
    int localBatchCount  = getLayerLoc()->nbatch;
-   int mpiGlobalCount   = getMPIBlock()->getGlobalBatchDimension();
+   int mpiGlobalCount   = ioMPIBlock->getGlobalBatchDimension();
    int globalBatchCount = localBatchCount * mpiGlobalCount;
-   int batchOffset      = localBatchCount * getMPIBlock()->getStartBatch();
-   int blockBatchCount  = localBatchCount * getMPIBlock()->getBatchDimension();
+   int batchOffset      = localBatchCount * ioMPIBlock->getStartBatch();
+   int blockBatchCount  = localBatchCount * ioMPIBlock->getBatchDimension();
    int fileCount        = countInputImages();
    mBatchIndexer        = std::unique_ptr<BatchIndexer>(
          new BatchIndexer(
@@ -547,7 +548,7 @@ void InputActivityBuffer::writeToTimestampStream(double simTime) {
       outStrStream.precision(15);
       PVLayerLoc const *loc = getLayerLoc();
       int kb0               = loc->kb0;
-      int blockBatchCount   = loc->nbatch * getMPIBlock()->getBatchDimension();
+      int blockBatchCount   = loc->nbatch * getCommunicator()->getIOMPIBlock()->getBatchDimension();
       for (int b = 0; b < blockBatchCount; ++b) {
          int index = mBatchIndexer->getIndex(b);
          outStrStream << "[" << getName() << "] time: " << simTime << ", batch element: " << b + kb0
@@ -566,7 +567,8 @@ void InputActivityBuffer::writeToTimestampStream(double simTime) {
 void InputActivityBuffer::retrieveInputAndAdvanceIndex(double timef, double dt) {
    retrieveInput(timef, dt);
    if (mBatchIndexer) {
-      int blockBatchCount = getLayerLoc()->nbatch * getMPIBlock()->getBatchDimension();
+      int blockBatchDimension = getCommunicator()->getIOMPIBlock()->getBatchDimension();
+      int blockBatchCount = getLayerLoc()->nbatch * blockBatchDimension;
       for (int b = 0; b < blockBatchCount; b++) {
          mBatchIndexer->nextIndex(b);
       }
@@ -582,7 +584,8 @@ bool InputActivityBuffer::readyForNextFile(double simTime, double deltaT) {
 }
 
 void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
-   if (getMPIBlock()->getRank() == 0) {
+   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+   if (ioMPIBlock->getRank() == 0) {
       int displayPeriodIndex = std::floor(simTime / (mDisplayPeriod * deltaTime));
       if (displayPeriodIndex % mJitterChangeInterval == 0) {
          for (std::size_t b = 0; b < mRandomShiftX.size(); b++) {
@@ -599,9 +602,9 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
    }
 
    int localNBatch = getLayerLoc()->nbatch;
-   for (int m = 0; m < getMPIBlock()->getBatchDimension(); m++) {
+   for (int m = 0; m < ioMPIBlock->getBatchDimension(); m++) {
       for (int b = 0; b < localNBatch; b++) {
-         if (getMPIBlock()->getRank() == 0) {
+         if (ioMPIBlock->getRank() == 0) {
             int blockBatchElement = b + localNBatch * m;
             int inputIndex        = mBatchIndexer->getIndex(blockBatchElement);
             mInputData.at(b)      = retrieveData(inputIndex);
@@ -638,7 +641,7 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
 }
 
 void InputActivityBuffer::fitBufferToGlobalLayer(Buffer<float> &buffer, int blockBatchElement) {
-   pvAssert(getMPIBlock()->getRank() == 0);
+   pvAssert(getCommunicator()->getIOMPIBlock()->getRank() == 0);
    const PVLayerLoc *loc  = getLayerLoc();
    int const xMargins     = mUseInputBCflag ? loc->halo.lt + loc->halo.rt : 0;
    int const yMargins     = mUseInputBCflag ? loc->halo.dn + loc->halo.up : 0;
@@ -789,18 +792,20 @@ void InputActivityBuffer::normalizePixels(int batchElement) {
 
 void InputActivityBuffer::cropToMPIBlock(Buffer<float> &buffer) {
    const PVLayerLoc *loc = getLayerLoc();
-   int const startX      = getMPIBlock()->getStartColumn() * loc->nx;
-   int const startY      = getMPIBlock()->getStartRow() * loc->ny;
+   auto ioMPIBlock       = getCommunicator()->getIOMPIBlock();
+   int const startX      = ioMPIBlock->getStartColumn() * loc->nx;
+   int const startY      = ioMPIBlock->getStartRow() * loc->ny;
    buffer.translate(-startX, -startY);
    int const xMargins    = mUseInputBCflag ? loc->halo.lt + loc->halo.rt : 0;
    int const yMargins    = mUseInputBCflag ? loc->halo.dn + loc->halo.up : 0;
-   int const blockWidth  = getMPIBlock()->getNumColumns() * loc->nx + xMargins;
-   int const blockHeight = getMPIBlock()->getNumRows() * loc->ny + yMargins;
+   int const blockWidth  = ioMPIBlock->getNumColumns() * loc->nx + xMargins;
+   int const blockHeight = ioMPIBlock->getNumRows() * loc->ny + yMargins;
    buffer.crop(blockWidth, blockHeight, Buffer<float>::NORTHWEST);
 }
 
 void InputActivityBuffer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
-   int const procBatchIndex = getMPIBlock()->getBatchIndex();
+   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+   int const procBatchIndex = ioMPIBlock->getBatchIndex();
    if (procBatchIndex != 0 and procBatchIndex != mpiBatchIndex) {
       return;
    }
@@ -822,7 +827,7 @@ void InputActivityBuffer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
    Buffer<float> dataBuffer;
    Buffer<float> regionBuffer;
 
-   if (getMPIBlock()->getRank() == 0) {
+   if (ioMPIBlock->getRank() == 0) {
       dataBuffer   = mInputData.at(localBatchIndex);
       regionBuffer = mInputRegion.at(localBatchIndex);
    }
@@ -830,8 +835,8 @@ void InputActivityBuffer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
       dataBuffer.resize(activityWidth, activityHeight, loc->nf);
       regionBuffer.resize(activityWidth, activityHeight, loc->nf);
    }
-   BufferUtils::scatter<float>(getMPIBlock(), dataBuffer, loc->nx, loc->ny, mpiBatchIndex, 0);
-   BufferUtils::scatter<float>(getMPIBlock(), regionBuffer, loc->nx, loc->ny, mpiBatchIndex, 0);
+   BufferUtils::scatter<float>(ioMPIBlock, dataBuffer, loc->nx, loc->ny, mpiBatchIndex, 0);
+   BufferUtils::scatter<float>(ioMPIBlock, regionBuffer, loc->nx, loc->ny, mpiBatchIndex, 0);
    if (procBatchIndex != mpiBatchIndex) {
       return;
    }

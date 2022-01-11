@@ -12,7 +12,13 @@
 
 #include "checkpointing/CheckpointableFileStream.hpp"
 #include "components/BasePublisherComponent.hpp"
+#include "components/LayerGeometry.hpp"
+#include "io/LayerFile.hpp"
+#include "io/SparseLayerFile.hpp"
+#include "structures/SparseList.hpp"
 #include "utils/Timer.hpp"
+#include <memory>
+#include <vector>
 
 namespace PV {
 
@@ -85,16 +91,20 @@ class LayerOutputComponent : public BaseObject {
     */
    virtual void writeActivitySparse(double simTime, PVLayerCube &cube);
 
-   void updateNBands(int numCalls);
-
   protected:
    double mInitialWriteTime = 0.0; // time of first output
    double mWriteTime        = 0.0; // time of next output
    double mWriteStep        = 0.0; // output time interval
 
+   LayerGeometry *mLayerGeometry                = nullptr;
    BasePublisherComponent *mPublisher           = nullptr;
    CheckpointableFileStream *mOutputStateStream = nullptr; // file stream for the pvp file
+   std::shared_ptr<LayerFile> mDenseFile        = nullptr; // output if SparseLayer flag is false
+   std::shared_ptr<SparseLayerFile> mSparseFile = nullptr; // output if SparseLayer flag is true
+   std::vector<SparseList<float> > mSparseListVector;
 
+   // WriteActivityCalls and WriteActivitySparseCalls are maintained for backwards compatibility
+   // of checkpoints, but are not used.
    int mWriteActivityCalls       = 0; // No. of frames in pvp file (written to nBands in pvp header)
    int mWriteActivitySparseCalls = 0; // No. of frames in pvp file (written to nBands in pvp header)
 

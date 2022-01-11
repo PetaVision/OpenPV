@@ -8,6 +8,7 @@
 #ifndef LAYERFILE_HPP_
 #define LAYERFILE_HPP_
 
+#include "checkpointing/CheckpointerDataInterface.hpp"
 #include "include/PVLayerLoc.h"
 #include "io/FileManager.hpp"
 #include "io/LayerBatchGatherScatter.hpp"
@@ -23,7 +24,7 @@ namespace PV {
  * operations, M-to-N communication, and PVP file format details. All file operations treat
  * the layer state, i.e. the data of all batch elements at a single timestep, as a unit.
  */
-class LayerFile {
+class LayerFile : public CheckpointerDataInterface {
   public:
    LayerFile(
       std::shared_ptr <FileManager const> fileManager,
@@ -53,7 +54,14 @@ class LayerFile {
    float *getDataLocation(int index) { return mDataLocations.at(index); }
    void setDataLocation(float *location, int index) { mDataLocations.at(index) = location; }
 
+  protected:
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+
+   virtual Response::Status processCheckpointRead() override;
+
   private:
+   int initializeCheckpointerDataInterface();
    void initializeGatherScatter();
    void initializeLayerIO();
 
@@ -75,6 +83,14 @@ class LayerFile {
 
    std::unique_ptr<LayerBatchGatherScatter> mGatherScatter;
    std::unique_ptr<LayerIO> mLayerIO;
+
+   // The following values are written during checkpointing.
+   // It would be more logical to write the value of mIndex, but for reasons of
+   // backward compatibility, we continue to write the old values.
+   int mNumFrames = 0; // number of batch elements handled by an MPIBlock;
+   // that is, Index * MPIBlock->BatchDimension * loc->nbatch;
+   long mFileStreamReadPos  = 0L; // Input file position of the LayerIO's FileStream
+   long mFileStreamWritePos = 0L; // Output file position of the LayerIO's FileStream
 };
 
 } // namespacePV

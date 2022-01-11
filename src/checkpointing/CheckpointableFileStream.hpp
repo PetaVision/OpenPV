@@ -2,8 +2,10 @@
 #define CHECKPOINTABLEFILESTREAM_HPP__
 
 #include "CheckpointerDataInterface.hpp"
+#include "io/FileManager.hpp"
 #include "io/FileStream.hpp"
 
+#include <memory>
 #include <string>
 
 using std::string;
@@ -16,13 +18,13 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
    /**
     * Constructor for CheckpointableFileStream. Opens a file for reading and
     * writing at the path indicated, and registers its file positions with the
-    * given checkpointer. The path must be a relative path; it is
+    * checkpointer during the RegisterData stage. The path must be a relative path; it is
     * relative to the checkpointer's OutputPath directory.
     * If newFile is true, the file is created (clobbering the file if it
     * already exists). If newFile is false and the file does not exist, a
     * warning is issued and the file is created.
     * A CheckpointableFileStream can only be instantiated by the root process
-    * of the Checkpointer's MPIBlock; all other processes generate a fatal
+    * of the FileManager's MPIBlock; all other processes generate a fatal
     * error. objName is the object name used when registering the file
     * positions with the checkpointer.
     * verifyWrites has the same meaning as in the FileStream constructor.
@@ -30,20 +32,10 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
    CheckpointableFileStream(
          string const &path,
          bool newFile,
-         Checkpointer *checkpointer,
+         std::shared_ptr<FileManager const> fileManager,
          string const &objName,
          bool verifyWrites);
 
-   /**
-    * This constructor is identical to the previous constructor, except that
-    * the checkpointer's verifyWrites flag is used in place of an explicit
-    * argument.
-    */
-   CheckpointableFileStream(
-         string const &path,
-         bool newFile,
-         Checkpointer *checkpointer,
-         string const &objName);
    virtual int printf(const char *fmt, ...) override;
    virtual PrintStream &operator<<(std::string &s) override;
    virtual PrintStream &operator<<(char c) override;
@@ -80,7 +72,7 @@ class CheckpointableFileStream : public FileStream, public CheckpointerDataInter
    void initialize(
          string const &path,
          bool newFile,
-         Checkpointer *checkpointer,
+         std::shared_ptr<FileManager const> fileManager,
          string const &objName,
          bool verifyWrites);
    virtual Response::Status

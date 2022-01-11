@@ -119,7 +119,7 @@ ComponentBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
       auto checkpointEntry = std::make_shared<CheckpointEntryPvpBuffer<float>>(
             getName(),
             mBufferLabel.c_str(),
-            getMPIBlock(),
+            getCommunicator()->getIOMPIBlock(),
             mBufferData.data(),
             getLayerLoc(),
             getExtendedFlag());

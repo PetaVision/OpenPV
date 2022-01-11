@@ -12,6 +12,7 @@ SparseLayerFile::SparseLayerFile(
       bool fileExtendedFlag,
       bool readOnlyFlag,
       bool verifyWrites) :
+      CheckpointerDataInterface(),
       mFileManager(fileManager),
       mPath(path),
       mLayerLoc(layerLoc),
@@ -27,6 +28,7 @@ SparseLayerFile::SparseLayerFile(
       mLayerLoc.halo.up = 0;
    }
    mSparseListLocations.resize(mLayerLoc.nbatch);
+   initializeCheckpointerDataInterface();
    initializeGatherScatter();
    initializeSparseLayerIO();
 }
@@ -43,9 +45,14 @@ void SparseLayerFile::read(double &timestamp) {
 }
 
 void SparseLayerFile::write(double timestamp) {
-   int mpiBatchDimension = mFileManager->getMPIBlock()->getBatchDimension();
    if (isRoot()) {
+      if (mSparseLayerIO->getFrameNumber() < mSparseLayerIO->getNumFrames()) {
+         WarnLog() << "Truncating \"" << getPath() << "\" to "
+                   << mSparseLayerIO->getFrameNumber() << " frames.\n";
+         truncate(mIndex);
+      }
       SparseList<float> rootSparseList;
+      int mpiBatchDimension = mFileManager->getMPIBlock()->getBatchDimension();
       for (int mpiBatchIndex = 0; mpiBatchIndex < mpiBatchDimension; ++mpiBatchIndex) {
          for (int b = 0; b < mLayerLoc.nbatch; ++b) {
             mGatherScatter->gather(mpiBatchIndex, &rootSparseList, getListLocation(b));
@@ -87,6 +94,40 @@ void SparseLayerFile::truncate(int index) {
    }
 }
 
+Response::Status
+SparseLayerFile::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = CheckpointerDataInterface::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer = message->mDataRegistry;
+   std::string dir  = dirName(mPath);
+   std::string base = stripExtension(mPath);
+   std::string objName = dir + "/" + base;
+   checkpointer->registerCheckpointData(
+         objName,
+         std::string("numframes_sparse"),
+         &mNumFramesSparse,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   checkpointer->registerCheckpointData(
+         objName,
+         std::string("filepos_FileStreamRead"),
+         &mFileStreamReadPos,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   checkpointer->registerCheckpointData(
+         objName,
+         std::string("filepos_FileStreamWrite"),
+         &mFileStreamWritePos,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   return Response::SUCCESS;
+}
+
 void SparseLayerFile::setIndex(int index) {
    mIndex = index;
    if (!isRoot()) { return; }
@@ -95,6 +136,21 @@ void SparseLayerFile::setIndex(int index) {
       frameNumber = frameNumber % mSparseLayerIO->getNumFrames();
    }
    mSparseLayerIO->setFrameNumber(frameNumber);
+}
+
+Response::Status SparseLayerFile::processCheckpointRead() {
+   auto status = CheckpointerDataInterface::processCheckpointRead();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   int index =
+         mNumFramesSparse / (mFileManager->getMPIBlock()->getBatchDimension() * mLayerLoc.nbatch);
+   setIndex(index);
+   return Response::SUCCESS;
+}
+
+int SparseLayerFile::initializeCheckpointerDataInterface() {
+   return CheckpointerDataInterface::initialize();
 }
 
 void SparseLayerFile::initializeGatherScatter() {

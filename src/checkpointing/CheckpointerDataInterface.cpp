@@ -72,15 +72,16 @@ Response::Status CheckpointerDataInterface::respondPrepareCheckpointWrite(
 
 Response::Status CheckpointerDataInterface::registerData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   if (mMPIBlock) {
+   if (mAddedToCheckpointer) {
       return Response::NO_ACTION;
    }
    else {
-      auto *checkpointer = message->mDataRegistry;
-      mMPIBlock          = checkpointer->getMPIBlock();
+      auto *checkpointer   = message->mDataRegistry;
+      mAddedToCheckpointer = true;
       checkpointer->addObserver(this->getDescription(), this);
       return Response::SUCCESS;
    }
+   return Response::SUCCESS;
 }
 
 } // namespace PV

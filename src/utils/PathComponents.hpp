@@ -23,10 +23,10 @@ std::string extension(std::string const &path);
 /** Returns the extension of a filename (everything after the final dot) */
 std::string extension(char const *path);
 
-/** Returns the part of a filename from the final dot on (empty if there is no dot) */
+/** Returns the part of the basename from the final dot on (empty if there is no dot) */
 std::string stripExtension(std::string const &path);
 
-/** Returns the part of a filename from the final dot on (empty if there is no dot) */
+/** Returns the part of the basename from the final dot on (empty if there is no dot) */
 std::string stripExtension(char const *path);
 
 } // namespace PV

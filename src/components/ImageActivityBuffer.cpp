@@ -28,11 +28,13 @@ void ImageActivityBuffer::setObjectType() { mObjectType = "ImageActivityBuffer";
 Response::Status ImageActivityBuffer::registerData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto status = InputActivityBuffer::registerData(message);
+   // This can be moved to AllocateDataStructures stage, or even CommunicateInitInfo,
+   // since it only requires the OutputFileManager have the correct OutputPath string.
    if (!Response::completed(status)) {
       return status;
    }
-   auto *checkpointer   = message->mDataRegistry;
-   mURLDownloadTemplate = checkpointer->getOutputPath() + "/temp.XXXXXX";
+   mURLDownloadTemplate =
+         getCommunicator()->getOutputFileManager()->makeBlockFilename(std::string("temp.XXXXXX"));
    return Response::SUCCESS;
 }
 
@@ -55,7 +57,7 @@ int ImageActivityBuffer::countInputImages() {
 }
 
 void ImageActivityBuffer::populateFileList() {
-   if (getMPIBlock()->getRank() == 0) {
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
       std::string line;
       mFileList.clear();
       InfoLog() << "Reading list: " << getInputPath() << "\n";

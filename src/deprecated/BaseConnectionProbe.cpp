@@ -94,7 +94,7 @@ Response::Status BaseConnectionProbe::registerData(
 
 void BaseConnectionProbe::initOutputStreams(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   if (getMPIBlock()->getRank() == 0) {
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
       auto *checkpointer = message->mDataRegistry;
       char const *probeOutputFilename = getProbeOutputFilename();
       if (probeOutputFilename and probeOutputFilename[0]) {
@@ -103,7 +103,11 @@ void BaseConnectionProbe::initOutputStreams(
          std::string filePosName(getProbeOutputFilename());
          filePosName.append("_filepos");
          auto stream = new CheckpointableFileStream(
-               path.c_str(), createFlag, checkpointer, filePosName);
+               path.c_str(),
+               createFlag,
+               getCommunicator()->getOutputFileManager(),
+               filePosName,
+               checkpointer->doesVerifyWrites());
          mOutputStreams.push_back(stream);
       }
       else {

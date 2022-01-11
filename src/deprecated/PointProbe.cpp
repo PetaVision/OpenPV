@@ -131,9 +131,10 @@ void PointProbe::initOutputStreams(
    int yRank             = yLoc / loc->ny; // integer division
    int batchRank         = batchLoc / loc->nbatch; // integer division
 
-   int blockColumnIndex = getMPIBlock()->getStartColumn() + getMPIBlock()->getColumnIndex();
-   int blockRowIndex    = getMPIBlock()->getStartRow() + getMPIBlock()->getRowIndex();
-   int blockBatchIndex  = getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex();
+   auto ioMPIBlock      = getCommunicator()->getIOMPIBlock();
+   int blockColumnIndex = ioMPIBlock->getStartColumn() + ioMPIBlock->getColumnIndex();
+   int blockRowIndex    = ioMPIBlock->getStartRow() + ioMPIBlock->getRowIndex();
+   int blockBatchIndex  = ioMPIBlock->getStartBatch() + ioMPIBlock->getBatchIndex();
 
    if (xRank == blockColumnIndex and yRank == blockRowIndex and batchRank == blockBatchIndex) {
       if (getProbeOutputFilename()) {
@@ -144,7 +145,11 @@ void PointProbe::initOutputStreams(
          std::string filePosName(probeOutputFilename);
          filePosName.append("_filepos");
          auto stream = new CheckpointableFileStream(
-               path.c_str(), createFlag, checkpointer, filePosName);
+               path.c_str(),
+               createFlag,
+               getCommunicator()->getOutputFileManager(),
+               filePosName,
+               checkpointer->doesVerifyWrites());
          mOutputStreams.push_back(stream);
       }
       else {

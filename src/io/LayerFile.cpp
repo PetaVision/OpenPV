@@ -1,6 +1,7 @@
 #include "LayerFile.hpp"
 
 #include "io/FileStreamBuilder.hpp"
+#include "utils/PathComponents.hpp"
 
 namespace PV {
 
@@ -12,6 +13,7 @@ LayerFile::LayerFile(
       bool fileExtendedFlag,
       bool readOnlyFlag,
       bool verifyWrites) :
+      CheckpointerDataInterface(),
       mFileManager(fileManager),
       mPath(path),
       mLayerLoc(layerLoc),
@@ -27,6 +29,7 @@ LayerFile::LayerFile(
    }
    int mpiBatchDimension = mFileManager->getMPIBlock()->getBatchDimension();
    mDataLocations.resize(mLayerLoc.nbatch);
+   initializeCheckpointerDataInterface();
    initializeGatherScatter();
    initializeLayerIO();
 }
@@ -45,6 +48,11 @@ void LayerFile::read(double &timestamp) {
 void LayerFile::write(double timestamp) {
    auto mpiBlock = mFileManager->getMPIBlock();
    if (isRoot()) {
+      if (mLayerIO->getFrameNumber() < mLayerIO->getNumFrames()) {
+         WarnLog() << "Truncating \"" << getPath() << "\" to "
+                   << mLayerIO->getFrameNumber() << " frames.\n";
+         truncate(mIndex);
+      }
       int nfRoot = mLayerLoc.nf;
       int nxRoot = mLayerLoc.nx * mpiBlock->getNumColumns();
       int nyRoot = mLayerLoc.ny * mpiBlock->getNumRows();
@@ -99,6 +107,63 @@ void LayerFile::setIndex(int index) {
       frameNumber = frameNumber % mLayerIO->getNumFrames();
    }
    mLayerIO->setFrameNumber(frameNumber);
+   mNumFrames = frameNumber;
+   mFileStreamReadPos = mLayerIO->getFileStream()->getInPos();
+   if (!mReadOnly) {
+      mFileStreamWritePos = mLayerIO->getFileStream()->getOutPos();
+   }
+   else {
+      mFileStreamWritePos = mFileStreamReadPos;
+   }
+   
+}
+
+Response::Status
+LayerFile::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = CheckpointerDataInterface::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer = message->mDataRegistry;
+   std::string dir  = dirName(mPath);
+   std::string base = stripExtension(mPath);
+   std::string objName = dir + "/" + base;
+   checkpointer->registerCheckpointData(
+         objName,
+         std::string("numframes"),
+         &mNumFrames,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   checkpointer->registerCheckpointData(
+         objName,
+         std::string("filepos_FileStreamRead"),
+         &mFileStreamReadPos,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   checkpointer->registerCheckpointData(
+         objName,
+         std::string("filepos_FileStreamWrite"),
+         &mFileStreamWritePos,
+         (std::size_t)1,
+         true /*broadcast*/,
+         false /*not constant*/);
+   return Response::SUCCESS;
+}
+
+Response::Status LayerFile::processCheckpointRead() {
+   auto status = CheckpointerDataInterface::processCheckpointRead();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   int index = mNumFrames / (mFileManager->getMPIBlock()->getBatchDimension() * mLayerLoc.nbatch);
+   setIndex(index);
+   return Response::SUCCESS;
+}
+
+int LayerFile::initializeCheckpointerDataInterface() {
+   return CheckpointerDataInterface::initialize();
 }
 
 void LayerFile::initializeGatherScatter() {

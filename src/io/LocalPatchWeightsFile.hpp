@@ -86,6 +86,10 @@ class LocalPatchWeightsFile {
    int getIndex() const { return mIndex; }
    void setIndex(int index);
 
+   std::shared_ptr<FileStream> getFileStream() const {
+         return mLocalPatchWeightsIO->getFileStream();
+   }
+
   private:
    void initializeLocalPatchWeightsIO();
 

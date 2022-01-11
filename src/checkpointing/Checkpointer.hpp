@@ -37,12 +37,6 @@ class Checkpointer : public Subject {
    virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
-    * @brief mOutputPath: Specifies the absolute or relative output path of the
-    * run
-    */
-   virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params);
-
-   /**
     * @brief checkpointWrite: Flag to determine if the run writes checkpoints.
     */
    void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
@@ -154,14 +148,6 @@ class Checkpointer : public Subject {
          std::shared_ptr<Arguments const> arguments);
    ~Checkpointer();
 
-   /**
-    * Given a relative path, returns a full path consisting of the effective
-    * output directory for the process's checkpoint cell, followed by "/",
-    * followed by the given relative path. It is a fatal error for the path to
-    * be an absolute path (i.e. starting with '/').
-    */
-   std::string makeOutputPathFilename(std::string const &path);
-
    void ioParams(enum ParamsIOFlag ioFlag, PVParams *params);
    void provideFinalStep(long int finalStep);
 
@@ -200,7 +186,6 @@ class Checkpointer : public Subject {
 
    std::shared_ptr<MPIBlock const> getMPIBlock() { return mMPIBlock; }
    bool doesVerifyWrites() { return mVerifyWrites; }
-   std::string const &getOutputPath() { return mOutputPath; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
    char const *getCheckpointWriteDir() const { return mCheckpointWriteDir; }
    enum CheckpointWriteTriggerMode getCheckpointWriteTriggerMode() const {
@@ -322,7 +307,6 @@ class Checkpointer : public Subject {
    std::shared_ptr<CheckpointEntryData<TimeInfo>> mTimeInfoCheckpointEntry = nullptr;
    bool mWarmStart                                                         = false;
    bool mVerifyWrites                                                      = true;
-   std::string mOutputPath                                                 = "";
    bool mCheckpointWriteFlag                                               = false;
    char *mCheckpointWriteDir                                               = nullptr;
    char *mCheckpointWriteTriggerModeString                                 = nullptr;

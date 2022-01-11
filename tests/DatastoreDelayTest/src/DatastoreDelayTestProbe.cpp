@@ -55,8 +55,9 @@ Response::Status DatastoreDelayTestProbe::outputState(double simTime, double del
    int status          = PV_SUCCESS;
    float correctValue  = mNumDelayLevels * (mNumDelayLevels + 1) / 2;
    int localBatchWidth = getTargetLayer()->getLayerLoc()->nbatch;
+   auto ioMPIBlock     = getCommunicator()->getIOMPIBlock();
    int globalBatchOffset =
-         localBatchWidth * (getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex());
+         localBatchWidth * (ioMPIBlock->getStartBatch() + ioMPIBlock->getBatchIndex());
    for (int b = 0; b < localBatchWidth; b++) {
       int globalBatchIndex = b + globalBatchOffset;
       if (fMax[b] > correctValue) {

@@ -118,6 +118,8 @@ int HyPerCol::initialize(PV_Init *initObj) {
       exit(EXIT_FAILURE);
    }
 
+   mOutputPath = strdup(mPVInitObj->getStringArgument("OutputPath").c_str());
+
    std::string paramsFile = mPVInitObj->getStringArgument("ParamsFile");
    if (mParams->numberOfGroups() == 0) {
       ErrorLog() << "Params \"" << paramsFile << "\" does not define any groups.\n";
@@ -249,6 +251,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_ny(ioFlag);
    ioParam_nBatch(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
+   ioParam_outputPath(ioFlag);
    if (ioFlag == PARAMS_IO_WRITE) {
       pvAssert(mCheckpointer);
       mCheckpointer->ioParams(ioFlag, parameters());
@@ -336,6 +339,27 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag, getName(), "errorOnNotANumber", &mErrorOnNotANumber, mErrorOnNotANumber);
+}
+
+void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
+   // If mOutputPath is set in the configuration, it overrides params file.
+   switch (ioFlag) {
+      case PARAMS_IO_READ:
+         pvAssert(mOutputPath); // should have been set to non-null in initialize()
+         // If non-empty, keep what was set in configuration; otherwise read from params
+         if (mOutputPath[0] == '\0') {
+             free(mOutputPath);
+             mOutputPath = nullptr;
+             parameters()->ioParamString(
+                   ioFlag, getName(), "outputPath", &mOutputPath, mDefaultOutputPath.c_str(), true);
+         }
+         getCommunicator()->getOutputFileManager()->changeBaseDirectory(std::string(mOutputPath));
+         break;
+      case PARAMS_IO_WRITE:
+         parameters()->ioParamStringRequired(ioFlag, getName(), "outputPath", &mOutputPath);
+         break;
+      default: break;
+   }
 }
 
 void HyPerCol::allocateColumn() {
@@ -607,11 +631,12 @@ void HyPerCol::processParams(char const *path) {
       std::string printParamsPath;
       if (path[0] != '/') {
          // If using relative path, create a path for each MPIBlock.
-         printParamsPath = mCheckpointer->makeOutputPathFilename(std::string(path));
+         printParamsPath =
+               getCommunicator()->getOutputFileManager()->makeBlockFilename(std::string(path));
       }
       else {
          // If using absolute path, only global rank 0 writes, to avoid collisions.
-         if (mCheckpointer->getMPIBlock()->getGlobalRank() != 0) {
+         if (getCommunicator()->globalCommRank() != 0) {
             return;
          }
          printParamsPath = path;
@@ -1278,5 +1303,7 @@ unsigned int HyPerCol::seedRandomFromWallClock() {
    MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, mCommunicator->globalCommunicator());
    return t;
 }
+
+std::string const HyPerCol::mDefaultOutputPath = "output";
 
 } // PV namespace

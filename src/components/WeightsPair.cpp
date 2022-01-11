@@ -288,7 +288,11 @@ void WeightsPair::openOutputStateFile(
 
          bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
          mOutputStateStream = new CheckpointableFileStream(
-               outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
+               outputStatePath.c_str(),
+               createFlag,
+               getCommunicator()->getOutputFileManager(),
+               checkpointLabel,
+               checkpointer->doesVerifyWrites());
          mOutputStateStream->respond(message); // CheckpointableFileStream needs to register data
       }
    }
@@ -309,7 +313,8 @@ void WeightsPair::outputState(double timestamp) {
    if ((mWriteStep >= 0) && (timestamp >= mWriteTime)) {
       mWriteTime += mWriteStep;
 
-      WeightsFileIO weightsFileIO(mOutputStateStream, getMPIBlock(), mPreWeights);
+      WeightsFileIO weightsFileIO(
+            mOutputStateStream, getCommunicator()->getIOMPIBlock(), mPreWeights);
       weightsFileIO.writeWeights(timestamp, mWriteCompressedWeights);
    }
    else if (mWriteStep < 0) {

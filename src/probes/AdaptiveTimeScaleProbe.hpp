@@ -11,7 +11,6 @@
 #include "BaseProbe.hpp"
 #include "ColProbe.hpp"
 #include "components/AdaptiveTimeScaleController.hpp"
-#include "layers/HyPerLayer.hpp"
 
 namespace PV {
 

@@ -103,6 +103,12 @@ class HyPerCol : public Subject, public ParamsInterface {
     */
    virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
 
+   /**
+    * @brief mOutputPath: Specifies the absolute or relative output path of the
+    * run
+    */
+   virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag);
+
   public:
    HyPerCol(PV_Init *initObj);
    virtual ~HyPerCol();
@@ -157,7 +163,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    bool getCheckpointWriteFlag() const { return mCheckpointer->getCheckpointWriteFlag(); }
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
    bool getWriteTimescales() const { return mWriteTimescales; }
-   const char *getOutputPath() { return mCheckpointer->getOutputPath().c_str(); }
+   const char *getOutputPath() { return mOutputPath; }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    double getDeltaTime() const { return mDeltaTime; }
    double simulationTime() const { return mSimTime; }
@@ -239,8 +245,9 @@ class HyPerCol : public Subject, public ParamsInterface {
    bool mOwnsCommunicator; // True if icComm was created by initialize, false if
    // passed in the constructor
    bool mWriteTimescales;
-   char *mPrintParamsFilename; // filename for outputting the mParams, including
+   char *mPrintParamsFilename = nullptr; // filename for outputting the mParams, including
    // defaults and excluding unread mParams
+   char *mOutputPath = nullptr;
    double mSimTime;
    double mStopTime; // time to stop time
    double mDeltaTime; // time step interval
@@ -273,6 +280,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    PVCuda::CudaDevice *mCudaDevice; // object for running kernels on OpenCL device
 #endif
 
+   static std::string const mDefaultOutputPath;
 }; // class HyPerCol
 
 // July 7, 2017: Functionality of createHyPerCol() moved into HyPerCol::initialize()

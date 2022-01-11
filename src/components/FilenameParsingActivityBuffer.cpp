@@ -105,29 +105,28 @@ Response::Status FilenameParsingActivityBuffer::communicateInitInfo(
 
 Response::Status FilenameParsingActivityBuffer::registerData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   // Fill the mClasses vector.
-   // This needs to go in registerData and not allocateDataStructures because the default path
-   // for the class list is the output path, which is available only in registerData through
-   // the checkpointer argument. But is that the best default?
+   // Fill the mClasses vector. // Should this be moved to allocate?
+   // Because the OutputFileManager is available to objects through
+   // the getCommunicator() accessor, there is no longer a dependence
+   // on the Checkpointer object to get the OutputPath.
    auto status = ActivityBuffer::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
 
    std::ifstream inputFile;
-   std::string outPath("");
+   std::string classListPath("");
 
    if (mClassListFileName != nullptr) {
-      outPath += std::string(mClassListFileName);
+      classListPath += std::string(mClassListFileName);
    }
    else {
-      auto *checkpointer = message->mDataRegistry;
-      outPath += checkpointer->getOutputPath();
-      outPath += "/classes.txt";
+      auto fileManager = getCommunicator()->getOutputFileManager();
+      classListPath += fileManager->makeBlockFilename(std::string("classes.txt"));
    }
 
-   inputFile.open(outPath.c_str(), std::ifstream::in);
-   FatalIf(!inputFile.is_open(), "%s: Unable to open file %s\n", getName(), outPath.c_str());
+   inputFile.open(classListPath.c_str(), std::ifstream::in);
+   FatalIf(!inputFile.is_open(), "%s: Unable to open file %s\n", getName(), classListPath.c_str());
 
    mClasses.clear();
    std::string line;
@@ -142,23 +141,24 @@ Response::Status FilenameParsingActivityBuffer::registerData(
          "%s has %d features but classList \"%s\" has %zu categories.\n",
          getDescription_c(),
          getLayerLoc()->nf,
-         outPath.c_str(),
+         classListPath.c_str(),
          mClasses.size());
    return Response::SUCCESS;
 }
 
 void FilenameParsingActivityBuffer::updateBufferCPU(double time, double dt) {
    float *A                  = mBufferData.data();
+   auto ioMPIBlock           = getCommunicator()->getIOMPIBlock();
    const PVLayerLoc *loc     = getLayerLoc();
    int numNeurons            = loc->nx * loc->ny * loc->nf;
    int const localBatchWidth = getLayerLoc()->nbatch;
-   int const blockBatchWidth = getMPIBlock()->getBatchDimension() * localBatchWidth;
+   int const blockBatchWidth = ioMPIBlock->getBatchDimension() * localBatchWidth;
    for (int b = 0; b < blockBatchWidth; b++) {
       int const mpiBlockBatchIndex = b / localBatchWidth; // integer division
       int const localBatchIndex    = b % localBatchWidth;
 
       std::vector<float> fileMatches(mClasses.size());
-      if (getMPIBlock()->getRank() == 0) {
+      if (ioMPIBlock->getRank() == 0) {
          auto *inputActivityComponent = mInputLayer->getComponentByType<ActivityComponent>();
          pvAssert(inputActivityComponent);
          auto *inputActivityBuffer =
@@ -174,9 +174,9 @@ void FilenameParsingActivityBuffer::updateBufferCPU(double time, double dt) {
       // It seems clunky to send each process all the fileMatches, when
       // they'll only use only the fileMatches for the correct MPIBlock
       // batch index.  Use MPI_Send/MPI_Recv?  Create more MPI_Comm's?
-      MPI_Bcast(fileMatches.data(), fileMatches.size(), MPI_FLOAT, 0, getMPIBlock()->getComm());
+      MPI_Bcast(fileMatches.data(), fileMatches.size(), MPI_FLOAT, 0, ioMPIBlock->getComm());
 
-      if (getMPIBlock()->getBatchIndex() != mpiBlockBatchIndex) {
+      if (ioMPIBlock->getBatchIndex() != mpiBlockBatchIndex) {
          continue;
       }
 

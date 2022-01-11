@@ -6,31 +6,23 @@ namespace PV {
 CheckpointableFileStream::CheckpointableFileStream(
       string const &path,
       bool newFile,
-      Checkpointer *checkpointer,
+      std::shared_ptr<FileManager const> fileManager,
       string const &objName,
       bool verifyWrites) {
-   initialize(path, newFile, checkpointer, objName, verifyWrites);
-}
-
-CheckpointableFileStream::CheckpointableFileStream(
-      string const &path,
-      bool newFile,
-      Checkpointer *checkpointer,
-      string const &objName) {
-   initialize(path, newFile, checkpointer, objName, checkpointer->doesVerifyWrites());
+   initialize(path, newFile, fileManager, objName, verifyWrites);
 }
 
 void CheckpointableFileStream::initialize(
       string const &path,
       bool newFile,
-      Checkpointer *checkpointer,
+      std::shared_ptr<FileManager const> fileManager,
       string const &objName,
       bool verifyWrites) {
    FatalIf(
-         checkpointer->getMPIBlock()->getRank() != 0,
+         !fileManager->isRoot(),
          "CheckpointableFileStream (path \"%s\") called by non-root process.\n",
          path.c_str());
-   string fullPath = checkpointer->makeOutputPathFilename(path);
+   string fullPath = fileManager->makeBlockFilename(path);
 
    bool createFile = newFile;
    if (!newFile) {
@@ -55,7 +47,7 @@ void CheckpointableFileStream::initialize(
    }
    if (createFile) {
       std::string directory = dirName(fullPath);
-      ensureDirExists(checkpointer->getMPIBlock(), directory.c_str());
+      ensureDirExists(fileManager->getMPIBlock(), directory.c_str());
       FileStream fileStream(fullPath.c_str(), std::ios_base::out, verifyWrites);
    }
 

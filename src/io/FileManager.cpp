@@ -237,7 +237,7 @@ int FileManager::truncate(std::string const &path, long length) const {
    int status = 0;
    if (isRoot()) {
       std::string modifiedPath = modifyPathForMtoN(path);
-      status = truncate(modifiedPath.c_str(), static_cast<off_t>(length));
+      status = ::truncate(modifiedPath.c_str(), static_cast<off_t>(length));
       FatalIf(status, "Unable to truncate \"%s\" to length %ld: %s\n",
             path.c_str(), length, strerror(errno));
    }

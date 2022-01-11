@@ -239,7 +239,8 @@ MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> m
    if (mPlasticityFlag and mInitPrev_dWFile and mInitPrev_dWFile[0]) {
       FileStream prevDeltaWeightsStream(
             mInitPrev_dWFile, std::ios_base::in | std::ios_base::binary);
-      WeightsFileIO prev_dWFile(&prevDeltaWeightsStream, getMPIBlock(), mPrevDeltaWeights);
+      auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+      WeightsFileIO prev_dWFile(&prevDeltaWeightsStream, ioMPIBlock, mPrevDeltaWeights);
       prev_dWFile.readWeights(mPrev_dWFrameNumber);
    }
    return status;
@@ -360,7 +361,11 @@ void MomentumUpdater::openOutputStateFile(
 
          bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
          mOutputStateStream = new CheckpointableFileStream(
-               outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
+               outputStatePath.c_str(),
+               createFlag,
+               getCommunicator()->getOutputFileManager(),
+               checkpointLabel,
+               checkpointer->doesVerifyWrites());
          mOutputStateStream->respond(message); // CheckpointableFileStream needs to register data
       }
    }
@@ -370,7 +375,8 @@ void MomentumUpdater::outputMomentum(double timestamp) {
    if ((mWriteStep >= 0) && (timestamp >= mWriteTime)) {
       mWriteTime += mWriteStep;
 
-      WeightsFileIO weightsFileIO(mOutputStateStream, getMPIBlock(), mPrevDeltaWeights);
+      auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+      WeightsFileIO weightsFileIO(mOutputStateStream, ioMPIBlock, mPrevDeltaWeights);
       weightsFileIO.writeWeights(timestamp, mWriteCompressedWeights);
    }
    else if (mWriteStep < 0) {

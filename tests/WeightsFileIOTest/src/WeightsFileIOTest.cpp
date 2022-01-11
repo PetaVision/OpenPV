@@ -103,11 +103,10 @@ void testWeights(Weights &weights, PV_Init &pv_init, bool sharedFlag, bool compr
    double const timestamp = 10.0;
 
    // Create a checkpointer in order to use the MPIBlock and block-dependent path name
-   Checkpointer tempCheckpointer(
-         weights.getName(), pv_init.getCommunicator(), pv_init.getArguments());
+   Communicator *comm   = pv_init.getCommunicator();
    std::string filename = weights.getName() + std::string(".pvp");
-   std::string path     = tempCheckpointer.makeOutputPathFilename(filename);
-   auto mpiBlock        = tempCheckpointer.getMPIBlock();
+   std::string path     = comm->getOutputFileManager()->makeBlockFilename(filename);
+   auto mpiBlock        = comm->getIOMPIBlock();
 
    std::string dirString = dirName(path);
    ensureDirExists(mpiBlock, dirString.c_str());

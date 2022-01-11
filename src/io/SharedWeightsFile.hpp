@@ -62,6 +62,8 @@ class SharedWeightsFile {
    int getIndex() const { return mIndex; }
    void setIndex(int index);
 
+   std::shared_ptr<FileStream> getFileStream() const { return mSharedWeightsIO->getFileStream(); }
+
   private:
    void initializeSharedWeightsIO();
 

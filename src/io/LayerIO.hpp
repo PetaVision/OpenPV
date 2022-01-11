@@ -51,8 +51,6 @@ class LayerIO {
    void write(Buffer<float> const &buffer, double timestamp);
    void write(Buffer<float> const &buffer, double timestamp, int frameNumber);
 
-   std::shared_ptr<FileStream> getFileStream() const { return mFileStream; }
-
    int getWidth() const { return mWidth; }
    int getHeight() const { return mHeight; }
    int getNumFeatures() const { return mNumFeatures; }
@@ -60,6 +58,8 @@ class LayerIO {
    int getFrameNumber() const { return mFrameNumber; }
    void setFrameNumber(int frame);
    int getNumFrames() const { return mNumFrames; }
+
+   std::shared_ptr<FileStream> getFileStream() const { return mFileStream; }
 
   private:
    long calcValuesPerPVPFrame() const;

@@ -50,6 +50,7 @@ void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
 }
 
 void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
+   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
    std::string ext = extension(mVfilename);
    bool isPvpFile  = (ext == ".pvp");
    if (isPvpFile) {
@@ -60,20 +61,20 @@ void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
          readDenseActivityPvp(V, loc, fileStream, header);
       }
       else { // TODO: Handle sparse activity pvp files.
-         if (getMPIBlock()->getRank() == 0) {
+         if (ioMPIBlock->getRank() == 0) {
             ErrorLog() << "InitVFromFile: filename \"" << mVfilename << "\" has fileType "
                        << fileType << ", which is not supported for InitVFromFile.\n";
          }
-         MPI_Barrier(getMPIBlock()->getComm());
+         MPI_Barrier(ioMPIBlock->getComm());
          MPI_Finalize();
          exit(EXIT_FAILURE);
       }
    }
    else { // TODO: Treat as an image file
-      if (getMPIBlock()->getRank() == 0) {
+      if (ioMPIBlock->getRank() == 0) {
          ErrorLog().printf("InitVFromFile: file \"%s\" is not a pvp file.\n", this->mVfilename);
       }
-      MPI_Barrier(getMPIBlock()->getComm());
+      MPI_Barrier(ioMPIBlock->getComm());
       exit(EXIT_FAILURE);
    }
 }
@@ -83,7 +84,7 @@ void InitVFromFile::readDenseActivityPvp(
       PVLayerLoc const *loc,
       FileStream &fileStream,
       BufferUtils::ActivityHeader const &header) {
-   auto mpiBlock           = getMPIBlock();
+   auto mpiBlock           = getCommunicator()->getIOMPIBlock();
    bool isRootProc         = mpiBlock->getRank() == 0;
    std::size_t recordSize  = static_cast<std::size_t>(header.nx) *
                              static_cast<std::size_t>(header.ny) *

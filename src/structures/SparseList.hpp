@@ -62,7 +62,7 @@ class SparseList {
       dest.set(newData, dest.getWidth(), dest.getHeight(), dest.getFeatures());
    }
 
-   void addEntry(Entry entry) {
+   void addEntry(Entry const &entry) {
       auto pos = std::find_if(
             mContents.begin(), mContents.end(), [entry](Entry a) { return a.index > entry.index; });
       mContents.insert(pos, entry);

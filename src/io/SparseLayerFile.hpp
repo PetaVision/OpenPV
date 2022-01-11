@@ -8,6 +8,7 @@
 #ifndef SPARSELAYERFILE_HPP_
 #define SPARSELAYERFILE_HPP_
 
+#include "checkpointing/CheckpointerDataInterface.hpp"
 #include "include/PVLayerLoc.h"
 #include "io/FileManager.hpp"
 #include "io/SparseLayerBatchGatherScatter.hpp"
@@ -24,7 +25,7 @@ namespace PV {
  * operations, M-to-N communication, and PVP file format details. All file operations treat
  * the layer state, i.e. the data of all batch elements at a single timestep, as a unit.
  */
-class SparseLayerFile {
+class SparseLayerFile : public CheckpointerDataInterface {
   public:
    SparseLayerFile(
          std::shared_ptr<FileManager const> fileManager,
@@ -54,7 +55,14 @@ class SparseLayerFile {
    void setListLocation(
          SparseList<float> *listPtr, int index) { mSparseListLocations.at(index) = listPtr; }
 
+  protected:
+   virtual Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+
+   virtual Response::Status processCheckpointRead() override;
+
   private:
+   int initializeCheckpointerDataInterface();
    void initializeGatherScatter();
    void initializeSparseLayerIO();
 
@@ -76,6 +84,14 @@ class SparseLayerFile {
 
    std::unique_ptr<SparseLayerBatchGatherScatter> mGatherScatter;
    std::unique_ptr<SparseLayerIO> mSparseLayerIO;
+
+   // The following values are written during checkpointing.
+   // It would be more logical to write the value of mIndex, but for reasons of
+   // backward compatibility, we continue to write the old values.
+   int mNumFramesSparse = 0; // number of batch elements handled by an MPIBlock;
+   // that is, Index * MPIBlock->BatchDimension * loc->nbatch;
+   long mFileStreamReadPos  = 0L; // Input file position of the LayerIO's FileStream
+   long mFileStreamWritePos = 0L; // Output file position of the LayerIO's FileStream
 };
 
 } // namespacePV

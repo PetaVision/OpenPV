@@ -90,7 +90,7 @@ Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, doubl
    if (probeStatus != 0) {
       int nBatch = getNumValues();
       pvAssert((std::size_t)nBatch == mOutputStreams.size());
-      int globalBatchSize = nBatch * getMPIBlock()->getGlobalBatchDimension();
+      int globalBatchSize = nBatch * getCommunicator()->getIOMPIBlock()->getGlobalBatchDimension();
       for (int localBatchIndex = 0; localBatchIndex < nBatch; localBatchIndex++) {
          int nnz = (int)nearbyint(getProbeValues()[localBatchIndex]);
          if (globalBatchSize == 1) {

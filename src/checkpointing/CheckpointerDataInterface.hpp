@@ -46,7 +46,7 @@ namespace PV {
 class CheckpointerDataInterface : public Observer {
   public:
    bool getInitializeFromCheckpointFlag() const { return mInitializeFromCheckpointFlag; }
-   std::shared_ptr<MPIBlock const> getMPIBlock() const { return mMPIBlock; }
+   // std::shared_ptr<MPIBlock const> getMPIBlock() const { return mMPIBlock; }
 
   protected:
    CheckpointerDataInterface() {}
@@ -81,7 +81,9 @@ class CheckpointerDataInterface : public Observer {
    bool mInitializeFromCheckpointFlag = false;
 
   private:
-   std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
+   // std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
+   bool mAddedToCheckpointer = false; // semaphore to prevent object from being registered with
+         // checkpointer more than once
 };
 
 } // namespace PV

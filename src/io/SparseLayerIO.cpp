@@ -165,10 +165,10 @@ void SparseLayerIO::initializeFrameStarts() {
       FatalIf(
             eofPosition - curPosition < needed,
             "SparseLayerIO \"%s\" has numActive=%d in frame %zu, and therefore needs "
-            "%d bytes to hold the values, but there are only %ld bytes left in the file.\n",
-            getFileStream()->getFileName(),
-            mFrameStarts.size(),
-            numActive * static_cast<int>(mSparseValueEntrySize),
+            "%ld bytes to hold the values, but there are only %ld bytes left in the file.\n",
+            getFileStream()->getFileName().c_str(),
+            numActive,
+            needed,
             eofPosition - curPosition);
 
       mNumEntries.push_back(numActive);
