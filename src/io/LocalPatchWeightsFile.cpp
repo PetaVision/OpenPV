@@ -181,6 +181,17 @@ Response::Status LocalPatchWeightsFile::registerData(
    return Response::SUCCESS;
 }
 
+Response::Status LocalPatchWeightsFile::processCheckpointRead() {
+   auto status = CheckpointerDataInterface::processCheckpointRead();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   long pos  = mReadOnly ? mFileStreamReadPos : mFileStreamWritePos;
+   int index = mLocalPatchWeightsIO->calcFrameNumberFromFilePosition(pos);
+   setIndex(index);
+   return Response::SUCCESS;
+}
+
 int LocalPatchWeightsFile::initializeCheckpointerDataInterface() {
    return CheckpointerDataInterface::initialize();
 }

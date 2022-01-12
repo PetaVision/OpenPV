@@ -6,7 +6,8 @@
  */
 
 #include "InitVFromFile.hpp"
-#include "utils/BufferUtilsMPI.hpp"
+#include "io/FileManager.hpp"
+#include "io/LayerFile.hpp"
 #include "utils/PathComponents.hpp"
 
 namespace PV {
@@ -50,25 +51,31 @@ void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
 }
 
 void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
-   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
-   std::string ext = extension(mVfilename);
-   bool isPvpFile  = (ext == ".pvp");
+   auto ioMPIBlock  = getCommunicator()->getIOMPIBlock();
+   std::string dir  = dirName(mVfilename);
+   std::string base = baseName(mVfilename);
+   std::string ext  = extension(mVfilename);
+   auto fileManager = std::make_shared<FileManager>(getCommunicator()->getGlobalMPIBlock(), dir);
+
+   bool isPvpFile   = (ext == ".pvp");
    if (isPvpFile) {
-      FileStream fileStream(mVfilename, std::ios_base::in | std::ios_base::binary, false);
-      BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(fileStream);
-      int fileType                       = header.fileType;
-      if (fileType == PVP_NONSPIKING_ACT_FILE_TYPE) {
-         readDenseActivityPvp(V, loc, fileStream, header);
+      auto inputFile = fileManager->open(base, std::ios_base::in, false);
+      if (fileManager->isRoot()) {
+         BufferUtils::ActivityHeader header = BufferUtils::readActivityHeader(*inputFile);
+         int fileType                       = header.fileType;
+         FatalIf(
+               fileType != PVP_NONSPIKING_ACT_FILE_TYPE,
+               "filename \"%s\" has fileType %d,  which is not supported for InitVFromFile.\n",
+               mVfilename, fileType);
       }
-      else { // TODO: Handle sparse activity pvp files.
-         if (ioMPIBlock->getRank() == 0) {
-            ErrorLog() << "InitVFromFile: filename \"" << mVfilename << "\" has fileType "
-                       << fileType << ", which is not supported for InitVFromFile.\n";
-         }
-         MPI_Barrier(ioMPIBlock->getComm());
-         MPI_Finalize();
-         exit(EXIT_FAILURE);
+      LayerFile inputLayerFile(fileManager, base, *loc, false, false, true, false);
+      // booleans are dataExtended=false, fileExtended=false, readOnly=true, verifyWrites=false
+      for (int b = 0; b < loc->nbatch; ++b) {
+         float *Vbatch = &V[b * loc->nx * loc->ny * loc->nf];
+         inputLayerFile.setDataLocation(Vbatch, b);
       }
+      inputLayerFile.setIndex(mFrameNumber);
+      inputLayerFile.read();
    }
    else { // TODO: Treat as an image file
       if (ioMPIBlock->getRank() == 0) {
@@ -76,47 +83,6 @@ void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
       }
       MPI_Barrier(ioMPIBlock->getComm());
       exit(EXIT_FAILURE);
-   }
-}
-
-void InitVFromFile::readDenseActivityPvp(
-      float *V,
-      PVLayerLoc const *loc,
-      FileStream &fileStream,
-      BufferUtils::ActivityHeader const &header) {
-   auto mpiBlock           = getCommunicator()->getIOMPIBlock();
-   bool isRootProc         = mpiBlock->getRank() == 0;
-   std::size_t recordSize  = static_cast<std::size_t>(header.nx) *
-                             static_cast<std::size_t>(header.ny) *
-                             static_cast<std::size_t>(header.nf);
-   std::size_t frameSize   = recordSize * sizeof(float) + sizeof(double);
-   int numFrames           = header.nBands;
-   int blockBatchDimension = mpiBlock->getBatchDimension();
-   for (int m = 0; m < blockBatchDimension; m++) {
-      for (int b = 0; b < loc->nbatch; b++) {
-         int globalBatchIndex = (mpiBlock->getStartBatch() + m) * loc->nbatch + b;
-         float *Vbatch        = V + b * (loc->nx * loc->ny * loc->nf);
-         Buffer<float> pvpBuffer;
-         if (isRootProc) {
-            int frameIndex = (mFrameNumber + globalBatchIndex) % numFrames;
-            frameIndex += frameIndex < 0 ? numFrames : 0;
-            pvAssert(frameIndex >= 0 and frameIndex < numFrames);
-            auto outPos    = sizeof(header) + static_cast<std::size_t>(frameIndex) * frameSize;
-            fileStream.setOutPos(static_cast<long>(outPos), true);
-            int xStart = header.nx * mpiBlock->getStartColumn() / mpiBlock->getNumColumns();
-            int yStart = header.ny * mpiBlock->getStartRow() / mpiBlock->getNumRows();
-            pvpBuffer.resize(header.nx, header.ny, header.nf);
-            BufferUtils::readFrameWindow(fileStream, &pvpBuffer, header, xStart, yStart, 0);
-         }
-         else {
-            pvpBuffer.resize(loc->nx, loc->ny, loc->nf);
-         }
-         BufferUtils::scatter(mpiBlock, pvpBuffer, loc->nx, loc->ny, m, 0);
-         if (mpiBlock->getBatchIndex() == m) {
-            std::vector<float> bufferData = pvpBuffer.asVector();
-            std::memcpy(Vbatch, bufferData.data(), sizeof(float) * pvpBuffer.getTotalElements());
-         }
-      }
    }
 }
 

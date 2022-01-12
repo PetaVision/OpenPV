@@ -155,6 +155,7 @@ class LocalPatchWeightsIO {
       std::string const &functionName);
    void checkHeader(BufferUtils::WeightHeader const &header) const;
 
+   void initializeFrameSize();
    void initializeMargins();
    void initializeNumFrames();
 

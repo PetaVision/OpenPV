@@ -69,6 +69,8 @@ class SharedWeightsFile  : public CheckpointerDataInterface {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
+   virtual Response::Status processCheckpointRead() override;
+
   private:
    int initializeCheckpointerDataInterface();
    void initializeSharedWeightsIO();

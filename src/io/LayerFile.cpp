@@ -102,9 +102,20 @@ void LayerFile::truncate(int index) {
 void LayerFile::setIndex(int index) {
    mIndex = index;
    if (!isRoot()) { return; }
-   int frameNumber = index * mFileManager->getMPIBlock()->getBatchDimension() * mLayerLoc.nbatch;
+   int blockBatchDim = mFileManager->getMPIBlock()->getBatchDimension() * mLayerLoc.nbatch;
+   int frameNumber = index * blockBatchDim;
    if (mReadOnly) {
       frameNumber = frameNumber % mLayerIO->getNumFrames();
+   }
+   if (frameNumber < 0) {
+      frameNumber += mLayerIO->getNumFrames();
+   }
+   if (frameNumber < 0 or frameNumber > mLayerIO->getNumFrames()) {
+      int maxIndex = mLayerIO->getNumFrames() / blockBatchDim; 
+      Fatal().printf(
+            "LayerFile::setIndex called with index %d out of bounds. Allowed values for this file "
+            "are 0 through %d (or -%d through 0, counting backwards from the end.)\n",
+            index, maxIndex, maxIndex);
    }
    mLayerIO->setFrameNumber(frameNumber);
    mNumFrames = frameNumber;

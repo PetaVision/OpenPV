@@ -35,9 +35,10 @@ LocalPatchWeightsIO::LocalPatchWeightsIO(
 
    mDataSize = static_cast<long>(mCompressedFlag ? sizeof(uint8_t) : sizeof(float));
    initializeMargins(); // initializes XMargin and YMargin
+   initializeFrameSize();
+   initializeNumFrames();
 
    if (!getFileStream()) { return; }
-   initializeNumFrames(); // initializes FrameSize and NumFrames
 
    // If writeable, initialize position at end of file.
    // If read-only, initialize position at beginning.
@@ -513,6 +514,10 @@ void LocalPatchWeightsIO::checkHeader(BufferUtils::WeightHeader const &header) c
    FatalIf(status != PV_SUCCESS, "checkHeader failed.\n");
 }
 
+void LocalPatchWeightsIO::initializeFrameSize() {
+   mFrameSize = mHeaderSize + static_cast<long>(mNumArbors) * calcArborSizeBytes();
+}
+
 void LocalPatchWeightsIO::initializeMargins() {
    if (getFileExtendedFlag()) {
       mXMargin = requiredConvolveMargin(getNxRestrictedPre(), getNxRestrictedPost(), getPatchSizeX());
@@ -525,8 +530,7 @@ void LocalPatchWeightsIO::initializeMargins() {
 }
 
 void LocalPatchWeightsIO::initializeNumFrames() {
-   pvAssert(mFileStream);
-   mFrameSize = calcFrameSizeBytes();
+   if (!getFileStream()) { return; }
 
    long curPos = getFileStream()->getInPos();
    getFileStream()->setInPos(0L, std::ios_base::end);

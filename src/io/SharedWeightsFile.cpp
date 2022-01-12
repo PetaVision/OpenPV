@@ -119,6 +119,17 @@ SharedWeightsFile::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer
    return Response::SUCCESS;
 }
 
+Response::Status SharedWeightsFile::processCheckpointRead() {
+   auto status = CheckpointerDataInterface::processCheckpointRead();
+   if (!Response::completed(status)) {
+      return status;
+   }
+   long pos  = mReadOnly ? mFileStreamReadPos : mFileStreamWritePos;
+   int index = mSharedWeightsIO->calcFrameNumberFromFilePosition(pos);
+   setIndex(index);
+   return Response::SUCCESS;
+}
+
 int SharedWeightsFile::initializeCheckpointerDataInterface() {
    return CheckpointerDataInterface::initialize();
 }

@@ -24,11 +24,11 @@ SharedWeightsIO::SharedWeightsIO(
          fileStream and !fileStream->readable(),
          "FileStream \"%s\" is not readable and can't be used in a LayerIO object.\n",
          fileStream->getFileName());
+   mDataSize = static_cast<long>(mCompressedFlag ? sizeof(uint8_t) : sizeof(float));
+   initializeFrameSize();
+   initializeNumFrames();
 
    if (!getFileStream()) { return; }
-
-   mDataSize = static_cast<long>(mCompressedFlag ? sizeof(uint8_t) : sizeof(float));
-   initializeNumFrames(); // initializes FrameSize and NumFrames
 
    // If writeable, initialize position at end of file.
    // If read-only, initialize position at beginning.
@@ -206,14 +206,6 @@ void SharedWeightsIO::checkDimensions(WeightData const &weightData) {
    FatalIf(status != PV_SUCCESS, "checkArborListDimensions failed.\n");
 }
 
-long SharedWeightsIO::calcFrameSizeBytes() const {
-   long patchSizeBytes = mDataSize * static_cast<long>(mPatchSizeX * mPatchSizeY * mPatchSizeF);
-   patchSizeBytes += static_cast<long>(sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t));
-   long numPatches = getNumPatchesOverall();
-   long sizeBytes = mHeaderSize + static_cast<long>(mNumArbors) * numPatches * patchSizeBytes;
-   return sizeBytes;
-}
-
 void SharedWeightsIO::checkHeader(BufferUtils::WeightHeader const &header) const {
    int status = PV_SUCCESS;
    if (header.baseHeader.numRecords != mNumArbors) {
@@ -249,9 +241,15 @@ void SharedWeightsIO::checkHeader(BufferUtils::WeightHeader const &header) const
    FatalIf(status != PV_SUCCESS, "checkHeader failed.\n");
 }
 
+void SharedWeightsIO::initializeFrameSize() {
+   long patchSizeBytes = mDataSize * static_cast<long>(mPatchSizeX * mPatchSizeY * mPatchSizeF);
+   patchSizeBytes += static_cast<long>(sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t));
+   long numPatches = getNumPatchesOverall();
+   mFrameSize      = mHeaderSize + static_cast<long>(mNumArbors) * numPatches * patchSizeBytes;
+}
+
 void SharedWeightsIO::initializeNumFrames() {
-   pvAssert(mFileStream);
-   mFrameSize = calcFrameSizeBytes();
+   if (!getFileStream()) { return; }
 
    long curPos = getFileStream()->getInPos();
    getFileStream()->setInPos(0L, std::ios_base::end);

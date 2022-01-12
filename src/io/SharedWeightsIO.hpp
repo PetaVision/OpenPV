@@ -78,11 +78,11 @@ class SharedWeightsIO {
 
   private:
    void calcExtremeWeights(WeightData const &weightData, float &minWeight, float &maxWeight) const;
-   long calcFrameSizeBytes() const;
 
    void checkDimensions(WeightData const &weightData);
    void checkHeader(BufferUtils::WeightHeader const &header) const;
 
+   void initializeFrameSize();
    void initializeNumFrames();
    double readInternal(WeightData &weightData);
    // void setHeaderNBands(); // We might do this for weights as we do for layers; for now we don't
