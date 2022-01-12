@@ -85,7 +85,7 @@ int checkValue(
    int status = PV_SUCCESS;
    if (expected) {
       float discrepancy = std::fabs(observed - expected);
-      float relError    = discrepancy / relError;
+      float relError    = discrepancy / expected;
       if (relError > tolerance) {
          ErrorLog().printf(
                "Line %d %s value %f does not match expected value %f (discrepancy %g).\n",
