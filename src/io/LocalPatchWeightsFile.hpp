@@ -11,6 +11,7 @@
 #include "checkpointing/CheckpointerDataInterface.hpp"
 #include "io/FileManager.hpp"
 #include "io/LocalPatchWeightsIO.hpp"
+#include "structures/WeightData.hpp"
 #include "utils/BufferUtilsPvp.hpp" // WeightHeader
 
 namespace PV {
@@ -37,16 +38,9 @@ class LocalPatchWeightsFile : public CheckpointerDataInterface{
    LocalPatchWeightsFile(
       std::shared_ptr<FileManager const> fileManager,
       std::string const &path,
-      int patchSizeX,
-      int patchSizeY,
-      int patchSizeF,
-      int nxRestrictedPre,
-      int nyRestrictedPre,
-      int nfRestrictedPre,
-      int nxRestrictedPost,
-      int nyRestrictedPost,
-      // nfRestrictedPost would be the same as patchSizeF
-      int numArbors,
+      std::shared_ptr<WeightData> weightData,
+      PVLayerLoc const *preLayerLoc,
+      PVLayerLoc const *postLayerLoc,
       bool fileExtendedFlag,
       bool compressedFlag,
       bool readOnlyFlag,

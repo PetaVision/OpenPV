@@ -22,19 +22,19 @@
 
 using namespace PV;
 
-WeightData allocateWeights(
+std::shared_ptr<WeightData> allocateWeights(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc);
 
-float calcMinVal(WeightData const &weightData);
-float calcMaxVal(WeightData const &weightData);
+float calcMinVal(std::shared_ptr<WeightData const> weightData);
+float calcMaxVal(std::shared_ptr<WeightData const> weightData);
 
 // Recursively deletes the contents of the directory specified by path, and removes the directory
 // itself, unless path is "." or ends in "/."
 int cleanDirectory(std::shared_ptr<FileManager const> fileManager, std::string const &path);
 
 int compareWeights(
-      WeightData const &weights1, WeightData const &weights2,
+      std::shared_ptr<WeightData const> weights1, std::shared_ptr<WeightData const> weights2,
       int nxRestrictedPre, int nyRestrictedPre, int nxRestrictedPost, int nyRestrictedPost,
       std::string const &label);
 
@@ -42,28 +42,28 @@ PVLayerLoc createLayerLoc(
       PV_Init const &pv_Init,
       int nxGlobal, int nyGlobal, int nf, int xMargin, int yMargin, std::string const &label);
 
-WeightData createWgts1(
+std::shared_ptr<WeightData> createWgts1(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc);
-WeightData createWgts2(
+std::shared_ptr<WeightData> createWgts2(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc);
-WeightData createWgts3(
+std::shared_ptr<WeightData> createWgts3(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc);
-WeightData createWgts4(
+std::shared_ptr<WeightData> createWgts4(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc);
 
 std::shared_ptr<FileManager> createFileManager(PV_Init &pv_init_obj);
 
-WeightData readFromFileStream(
+std::shared_ptr<WeightData> readFromFileStream(
       std::shared_ptr<FileStream> fileStream,
       int frameNumber,
       std::shared_ptr<FileManager const> fileManager);
 void writeToFileStream(
       std::shared_ptr<FileStream> &fileStream,
-      WeightData const &weightData,
+      std::shared_ptr<WeightData const> weightData,
       PVLayerLoc const &preLayerLoc, PVLayerLoc const &postLayerLoc,
       double timestamp,
       std::shared_ptr<FileManager const> fileManager);
@@ -139,25 +139,26 @@ int run(
    // using primitive FileStream functions, and compare the result.
    fileManager->ensureDirectoryExists(directory); // path is relative to FileManager's baseDir.
    std::string testWritePath = directory + "/testWrite.pvp";
+
+   std::shared_ptr<WeightData> weights1 = createWgts1(numArbors, nxp, nyp, nfp, preLoc, postLoc);
+
    std::unique_ptr<LocalPatchWeightsFile> wgtFile(new LocalPatchWeightsFile(
       fileManager,
       testWritePath,
-      nxp, nyp, nfp,
-      preLoc.nx, preLoc.ny, preLoc.nf,
-      postLoc.nx, postLoc.ny,
-      numArbors /*numArbors*/,
+      weights1,
+      &preLoc,
+      &postLoc,
       true /*fileExtendedFlag*/,
       false /*compressedFlag*/,
       false /*readOnlyFlag*/,
       false /*verifyWrites*/));
 
-   WeightData weights1 = createWgts1(numArbors, nxp, nyp, nfp, preLoc, postLoc);
    timestamp = 10.0;
-   wgtFile->write(weights1, timestamp);
+   wgtFile->write(*weights1, timestamp);
 
-   WeightData weights2 = createWgts2(numArbors, nxp, nyp, nfp, preLoc, postLoc);
+   std::shared_ptr<WeightData> weights2 = createWgts2(numArbors, nxp, nyp, nfp, preLoc, postLoc);
    timestamp = 15.0;
-   wgtFile->write(weights2, timestamp);
+   wgtFile->write(*weights2, timestamp);
 
    wgtFile = std::unique_ptr<LocalPatchWeightsFile>();
 
@@ -198,19 +199,18 @@ int run(
    wgtFile = std::unique_ptr<LocalPatchWeightsFile>(new LocalPatchWeightsFile(
       fileManager,
       testReadPath,
-      nxp, nyp, nfp,
-      preLoc.nx, preLoc.ny, preLoc.nf,
-      postLoc.nx, postLoc.ny,
-      numArbors,
+      weights3,
+      &preLoc,
+      &postLoc,
       true /*fileExtendedFlag*/,
       false /*compressedFlag*/,
       true /*readOnlyFlag*/,
       false /*verifyWrites*/));
    double readTimestamp3;
    if (status == PV_SUCCESS) {
-      WeightData readWeights3(
+      auto readWeights3 = std::make_shared<WeightData>(
          numArbors, nxp, nyp, nfp, preLoc.nx + 2*xMargin, preLoc.ny + 2*yMargin, nfPre);
-      wgtFile->read(readWeights3, readTimestamp3);
+      wgtFile->read(*readWeights3, readTimestamp3);
       status = compareWeights(
             weights3, readWeights3, preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
             std::string("Read test, frame 0"));
@@ -224,9 +224,9 @@ int run(
    }
    double readTimestamp4;
    if (status == PV_SUCCESS) {
-      WeightData readWeights4(
+      auto readWeights4 = std::make_shared<WeightData>(
          numArbors, nxp, nyp, nfp, nxPre + 2*xMargin, nyPre + 2*yMargin, nfPre);
-      wgtFile->read(readWeights4, readTimestamp4);
+      wgtFile->read(*readWeights4, readTimestamp4);
       status = compareWeights(
             weights4, readWeights4, preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
             std::string("Read test, frame 1"));
@@ -248,7 +248,7 @@ int run(
    return status;
 }
 
-WeightData allocateWeights(
+std::shared_ptr<WeightData> allocateWeights(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) {
    int nxPreRestricted = preLoc.nx;
@@ -259,15 +259,16 @@ WeightData allocateWeights(
    int nyPost          = postLoc.ny;
    int yMargin         = requiredConvolveMargin(nyPreRestricted, nyPost, nyp);
    int nyPreExtended   = nyPreRestricted + 2 * yMargin;
-   WeightData weightData(numArbors, nxp, nyp, nfp, nxPreExtended, nyPreExtended, preLoc.nf);
+   auto weightData     = std::make_shared<WeightData>(
+         numArbors, nxp, nyp, nfp, nxPreExtended, nyPreExtended, preLoc.nf);
    return weightData;
 }
 
-float calcMinVal(WeightData const &weightData) {
+float calcMinVal(std::shared_ptr<WeightData const> weightData) {
    float minVal = std::numeric_limits<float>::infinity();
-   long numElements = weightData.getPatchSizeOverall() * weightData.getNumDataPatchesOverall();
-   for (int a = 0; a < weightData.getNumArbors(); ++a) {
-      float const *firstElement = weightData.getData(a);
+   long numElements = weightData->getPatchSizeOverall() * weightData->getNumDataPatchesOverall();
+   for (int a = 0; a < weightData->getNumArbors(); ++a) {
+      float const *firstElement = weightData->getData(a);
       float const *lastElement = &firstElement[numElements];
       auto minLoc = std::min_element(firstElement, lastElement);
       if (minLoc != lastElement) {
@@ -278,11 +279,11 @@ float calcMinVal(WeightData const &weightData) {
    return minVal;
 }
 
-float calcMaxVal(WeightData const &weightData) {
+float calcMaxVal(std::shared_ptr<WeightData const> weightData) {
    float maxVal = -std::numeric_limits<float>::infinity();
-   long numElements = weightData.getPatchSizeOverall() * weightData.getNumDataPatchesOverall();
-   for (int a = 0; a < weightData.getNumArbors(); ++a) {
-      float const *firstElement = weightData.getData(a);
+   long numElements = weightData->getPatchSizeOverall() * weightData->getNumDataPatchesOverall();
+   for (int a = 0; a < weightData->getNumArbors(); ++a) {
+      float const *firstElement = weightData->getData(a);
       float const *lastElement = &firstElement[numElements];
       auto maxLoc = std::max_element(firstElement, lastElement);
       if (maxLoc != lastElement) {
@@ -328,91 +329,91 @@ int cleanDirectory(std::shared_ptr<FileManager const> fileManager, std::string c
 }
 
 int compareWeights(
-      WeightData const &weights1, WeightData const &weights2,
+      std::shared_ptr<WeightData const> weights1, std::shared_ptr<WeightData const> weights2,
       int nxRestrictedPre, int nyRestrictedPre, int nxRestrictedPost, int nyRestrictedPost,
       std::string const &label) {
    int status = PV_SUCCESS;
-   if (weights1.getNumArbors() != weights2.getNumArbors()) {
+   if (weights1->getNumArbors() != weights2->getNumArbors()) {
       ErrorLog().printf(
             "compareWeights: numbers of arbors differ (%d versus %d)\n",
-            weights1.getNumArbors(), weights2.getNumArbors());
+            weights1->getNumArbors(), weights2->getNumArbors());
       status = PV_FAILURE;
    }
-   int numArbors = weights1.getNumArbors();
+   int numArbors = weights1->getNumArbors();
 
-   if (weights1.getPatchSizeX() != weights2.getPatchSizeX()) {
+   if (weights1->getPatchSizeX() != weights2->getPatchSizeX()) {
       ErrorLog().printf(
             "compareWeights: PatchSizeX differs (%d versus %d)\n",
-            weights1.getPatchSizeX(), weights2.getPatchSizeX());
+            weights1->getPatchSizeX(), weights2->getPatchSizeX());
       status = PV_FAILURE;
    }
-   int patchSizeX = weights1.getPatchSizeX();
-   if (weights1.getPatchSizeY() != weights2.getPatchSizeY()) {
+   int patchSizeX = weights1->getPatchSizeX();
+   if (weights1->getPatchSizeY() != weights2->getPatchSizeY()) {
       ErrorLog().printf(
             "compareWeights: PatchSizeY differs (%d versus %d)\n",
-            weights1.getPatchSizeY(), weights2.getPatchSizeY());
+            weights1->getPatchSizeY(), weights2->getPatchSizeY());
       status = PV_FAILURE;
    }
-   int patchSizeY = weights1.getPatchSizeY();
-   if (weights1.getPatchSizeF() != weights2.getPatchSizeF()) {
+   int patchSizeY = weights1->getPatchSizeY();
+   if (weights1->getPatchSizeF() != weights2->getPatchSizeF()) {
       ErrorLog().printf(
             "compareWeights: PatchSizeF differs (%d versus %d)\n",
-            weights1.getPatchSizeF(), weights2.getPatchSizeF());
+            weights1->getPatchSizeF(), weights2->getPatchSizeF());
       status = PV_FAILURE;
    }
-   int patchSizeF = weights1.getPatchSizeF();
+   int patchSizeF = weights1->getPatchSizeF();
 
    int xMargin = requiredConvolveMargin(nxRestrictedPre, nxRestrictedPost, patchSizeX);
    int yMargin = requiredConvolveMargin(nyRestrictedPre, nyRestrictedPost, patchSizeY);
-   if (weights1.getNumDataPatchesX() < nxRestrictedPre + 2 * xMargin) {
+   if (weights1->getNumDataPatchesX() < nxRestrictedPre + 2 * xMargin) {
       ErrorLog().printf(
             "compareWeights, %s: weights1 does not have enough patches in the x-direction "
             "(nxRestricted = %d, required margins %d, but weights1 is only %d patches wide)\n",
-            label.c_str(), nxRestrictedPre, xMargin, weights1.getNumDataPatchesX());
+            label.c_str(), nxRestrictedPre, xMargin, weights1->getNumDataPatchesX());
       status = PV_FAILURE;
    }
-   if (weights1.getNumDataPatchesY() < nyRestrictedPre + 2 * yMargin) {
+   if (weights1->getNumDataPatchesY() < nyRestrictedPre + 2 * yMargin) {
       ErrorLog().printf(
             "compareWeights, %s: weights1 does not have enough patches in the y-direction "
             "(nyRestricted = %d, required margins %d, but weights1 is only %d patches high)\n",
-            label.c_str(), nyRestrictedPre, yMargin, weights1.getNumDataPatchesY());
+            label.c_str(), nyRestrictedPre, yMargin, weights1->getNumDataPatchesY());
       status = PV_FAILURE;
    }
-   if (weights2.getNumDataPatchesX() < nxRestrictedPre + 2 * xMargin) {
+   if (weights2->getNumDataPatchesX() < nxRestrictedPre + 2 * xMargin) {
       ErrorLog().printf(
             "compareWeights, %s: weights2 does not have enough patches in the x-direction "
             "(nxRestricted = %d, required margins %d, but weights2 is only %d patches wide)\n",
-            label.c_str(), nxRestrictedPre, xMargin, weights2.getNumDataPatchesX());
+            label.c_str(), nxRestrictedPre, xMargin, weights2->getNumDataPatchesX());
       status = PV_FAILURE;
    }
-   if (weights2.getNumDataPatchesY() < nyRestrictedPre + 2 * yMargin) {
+   if (weights2->getNumDataPatchesY() < nyRestrictedPre + 2 * yMargin) {
       ErrorLog().printf(
             "compareWeights, %s: weights2 does not have enough patches in the y-direction "
             "(nyRestricted = %d, required margins %d, but weights2 is only %d patches high)\n",
-            label.c_str(), nyRestrictedPre, yMargin, weights2.getNumDataPatchesY());
+            label.c_str(), nyRestrictedPre, yMargin, weights2->getNumDataPatchesY());
       status = PV_FAILURE;
    }
-   if (weights1.getNumDataPatchesF() != weights2.getNumDataPatchesF()) {
+   if (weights1->getNumDataPatchesF() != weights2->getNumDataPatchesF()) {
       ErrorLog().printf(
             "compareWeights: NumDataPatchesF differs (%d versus %d)\n",
-            weights1.getNumDataPatchesF(), weights2.getNumDataPatchesF());
+            weights1->getNumDataPatchesF(), weights2->getNumDataPatchesF());
       status = PV_FAILURE;
    }
-   int nf = weights1.getNumDataPatchesF();
+   int nf = weights1->getNumDataPatchesF();
 
-   int xStartIndex1 = (weights1.getNumDataPatchesX() - nxRestrictedPre) / 2;
-   int yStartIndex1 = (weights1.getNumDataPatchesY() - nyRestrictedPre) / 2;
-   int xStartIndex2 = (weights2.getNumDataPatchesX() - nxRestrictedPre) / 2;
-   int yStartIndex2 = (weights2.getNumDataPatchesY() - nyRestrictedPre) / 2;
+   int xStartIndex1 = (weights1->getNumDataPatchesX() - nxRestrictedPre) / 2;
+   int yStartIndex1 = (weights1->getNumDataPatchesY() - nyRestrictedPre) / 2;
+   int xStartIndex2 = (weights2->getNumDataPatchesX() - nxRestrictedPre) / 2;
+   int yStartIndex2 = (weights2->getNumDataPatchesY() - nyRestrictedPre) / 2;
 
    for (int a = 0; a < numArbors; ++a) {
       for (int y = 0; y < nyRestrictedPre + 2 * yMargin; ++y) {
          for (int x = 0; x < nxRestrictedPre + 2 * xMargin; ++x) {
             for (int f = 0; f < nf; ++f) {
                float const *patch1 =
-                     weights1.getDataFromXYF(a, x + xStartIndex1, y + yStartIndex1, f);
+                     weights1->getDataFromXYF(a, x + xStartIndex1, y + yStartIndex1, f);
                float const *patch2 =
-                     weights2.getDataFromXYF(a, x + xStartIndex2, y + yStartIndex2, f);
+                     weights2->getDataFromXYF(a, x + xStartIndex2, y + yStartIndex2, f);
                // Need to compute valid region; should be same for weights 1 and 2
                int xPatchDim, xPatchStart, yPatchDim, yPatchStart, dummy1, dummy2, dummy3;
                PatchGeometry::calcPatchData(
@@ -474,10 +475,10 @@ PVLayerLoc createLayerLoc(
    return loc;
 }
 
-WeightData createWgts1(
+std::shared_ptr<WeightData> createWgts1(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) {
-   WeightData weightData = allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
+   auto weightData       = allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
    int nxLocalExt        = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyLocalExt        = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
    int nf                = preLoc.nf;
@@ -485,7 +486,7 @@ WeightData createWgts1(
    int nyGlobalExt       = preLoc.nyGlobal + preLoc.halo.dn + preLoc.halo.up;
    long numPatchesGlobal = static_cast<long>(nxGlobalExt * nyGlobalExt * nf);
    long numPatchesLocal  = static_cast<long>(nxLocalExt * nyLocalExt * nf); 
-   long patchSizeOverall = static_cast<long>(weightData.getPatchSizeOverall());
+   long patchSizeOverall = static_cast<long>(weightData->getPatchSizeOverall());
    long numValuesOverall = patchSizeOverall * numPatchesGlobal * numArbors;
    for (int a = 0; a < numArbors; ++a) {
       for (long k = 0; k < numPatchesLocal; ++k) {
@@ -496,7 +497,7 @@ WeightData createWgts1(
          int yGlobal           = yLocal + preLoc.ky0;
          int kGlobal           = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
          long baseIndexGlobal  = patchSizeOverall * (a * numPatchesGlobal + kGlobal);
-         float *patchLocation  = weightData.getDataFromDataIndex(a, k);
+         float *patchLocation  = weightData->getDataFromDataIndex(a, k);
          for (long p = 0; p < patchSizeOverall; ++p) {
             float indexGlobal = static_cast<float>(baseIndexGlobal + p + 1); 
             patchLocation[p] = indexGlobal;
@@ -506,10 +507,10 @@ WeightData createWgts1(
    return weightData;
 }
 
-WeightData createWgts2(
+std::shared_ptr<WeightData> createWgts2(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) {
-   WeightData weightData = allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
+   auto weightData       = allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
    int nxLocalExt        = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyLocalExt        = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
    int nf                = preLoc.nf;
@@ -517,7 +518,7 @@ WeightData createWgts2(
    int nyGlobalExt       = preLoc.nyGlobal + preLoc.halo.dn + preLoc.halo.up;
    long numPatchesGlobal = static_cast<long>(nxGlobalExt * nyGlobalExt * nf);
    long numPatchesLocal  = static_cast<long>(nxLocalExt * nyLocalExt * nf); 
-   long patchSizeOverall = static_cast<long>(weightData.getPatchSizeOverall());
+   long patchSizeOverall = static_cast<long>(weightData->getPatchSizeOverall());
    long numValuesOverall = patchSizeOverall * numPatchesGlobal * numArbors;
    for (int a = 0; a < numArbors; ++a) {
       for (long k = 0; k < numPatchesLocal; ++k) {
@@ -528,7 +529,7 @@ WeightData createWgts2(
          int yGlobal           = yLocal + preLoc.ky0;
          int kGlobal           = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
          long baseIndexGlobal  = patchSizeOverall * (a * numPatchesGlobal + kGlobal);
-         float *patchLocation  = weightData.getDataFromDataIndex(a, k);
+         float *patchLocation  = weightData->getDataFromDataIndex(a, k);
          for (long p = 0; p < patchSizeOverall; ++p) {
             float indexGlobal = static_cast<float>(baseIndexGlobal + p + 1); 
             patchLocation[p] = std::sqrt(indexGlobal);
@@ -538,10 +539,10 @@ WeightData createWgts2(
    return weightData;
 }
 
-WeightData createWgts3(
+std::shared_ptr<WeightData> createWgts3(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) {
-   WeightData weightData = allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
+   auto weightData       = allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
    int nxLocalExt        = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyLocalExt        = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
    int nf                = preLoc.nf;
@@ -549,7 +550,7 @@ WeightData createWgts3(
    int nyGlobalExt       = preLoc.nyGlobal + preLoc.halo.dn + preLoc.halo.up;
    long numPatchesGlobal = static_cast<long>(nxGlobalExt * nyGlobalExt * nf);
    long numPatchesLocal  = static_cast<long>(nxLocalExt * nyLocalExt * nf); 
-   long patchSizeOverall = static_cast<long>(weightData.getPatchSizeOverall());
+   long patchSizeOverall = static_cast<long>(weightData->getPatchSizeOverall());
    long numValuesOverall = patchSizeOverall * numPatchesGlobal * numArbors;
    for (int a = 0; a < numArbors; ++a) {
       for (long k = 0; k < numPatchesLocal; ++k) {
@@ -560,7 +561,7 @@ WeightData createWgts3(
          int yGlobal           = yLocal + preLoc.ky0;
          int kGlobal           = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
          long baseIndexGlobal  = patchSizeOverall * (a * numPatchesGlobal + kGlobal);
-         float *patchLocation  = weightData.getDataFromDataIndex(a, k);
+         float *patchLocation  = weightData->getDataFromDataIndex(a, k);
          for (long p = 0; p < patchSizeOverall; ++p) {
             float indexGlobal = static_cast<float>(baseIndexGlobal + p + 1); 
             patchLocation[p] = 1.0f - (indexGlobal - 1) / static_cast<float>(numValuesOverall);
@@ -570,10 +571,10 @@ WeightData createWgts3(
    return weightData;
 }
 
-WeightData createWgts4(
+std::shared_ptr<WeightData> createWgts4(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc) {
-   WeightData weightData = allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
+   auto weightData       = allocateWeights(numArbors, nxp, nyp, nfp, preLoc, postLoc);
    int nxLocalExt        = preLoc.nx + preLoc.halo.lt + preLoc.halo.rt;
    int nyLocalExt        = preLoc.ny + preLoc.halo.dn + preLoc.halo.up;
    int nf                = preLoc.nf;
@@ -581,7 +582,7 @@ WeightData createWgts4(
    int nyGlobalExt       = preLoc.nyGlobal + preLoc.halo.dn + preLoc.halo.up;
    long numPatchesGlobal = static_cast<long>(nxGlobalExt * nyGlobalExt * nf);
    long numPatchesLocal  = static_cast<long>(nxLocalExt * nyLocalExt * nf); 
-   long patchSizeOverall = static_cast<long>(weightData.getPatchSizeOverall());
+   long patchSizeOverall = static_cast<long>(weightData->getPatchSizeOverall());
    long numValuesOverall = patchSizeOverall * numPatchesGlobal * numArbors;
    for (int a = 0; a < numArbors; ++a) {
       for (long k = 0; k < numPatchesLocal; ++k) {
@@ -592,7 +593,7 @@ WeightData createWgts4(
          int yGlobal           = yLocal + preLoc.ky0;
          int kGlobal           = kIndex(xGlobal, yGlobal, fIndex, nxGlobalExt, nyGlobalExt, nf);
          long baseIndexGlobal  = patchSizeOverall * (a * numPatchesGlobal + kGlobal);
-         float *patchLocation  = weightData.getDataFromDataIndex(a, k);
+         float *patchLocation  = weightData->getDataFromDataIndex(a, k);
          for (long p = 0; p < patchSizeOverall; ++p) {
             float indexGlobal = static_cast<float>(baseIndexGlobal + p + 1); 
             patchLocation[p] = -indexGlobal / static_cast<float>(numValuesOverall);
@@ -612,7 +613,7 @@ std::shared_ptr<FileManager> createFileManager(PV_Init &pv_init_obj) {
    return fileManager;
 }
 
-WeightData readFromFileStream(
+std::shared_ptr<WeightData> readFromFileStream(
       std::shared_ptr<FileStream> fileStream,
       int frameNumber,
       std::shared_ptr<FileManager const> fileManager) {
@@ -638,24 +639,25 @@ WeightData readFromFileStream(
    int nfPre      = header.baseHeader.nf;
    int patchSize  = header.nxp * header.nyp * header.nfp;
    pvAssert(header.baseHeader.dataSize == static_cast<int>(sizeof(float))); // TODO: compressed
-   long patchSizeBytes = static_cast<long>(patchSize * header.baseHeader.dataSize);
-   long numPatches = static_cast<long>(blockNxExt * blockNyExt * nfPre);
-   WeightData blockWeightData(
+   long patchSizeBytes  = static_cast<long>(patchSize * header.baseHeader.dataSize);
+   long numPatches      = static_cast<long>(blockNxExt * blockNyExt * nfPre);
+   auto blockWeightData = std::make_shared<WeightData>(
          numArbors, header.nxp, header.nyp, header.nfp, blockNxExt, blockNyExt, nfPre);
-   int marginLeft  = (blockNxExt - header.baseHeader.nx) / 2;
-   int marginRight = blockNxExt - header.baseHeader.nx - marginLeft;
-   int marginDown  = (blockNyExt - header.baseHeader.ny) / 2;
-   int marginUp    = blockNyExt - header.baseHeader.ny - marginDown;
-   int localNx     = header.baseHeader.nx / mpiBlock->getNumColumns();
-   int localNy     = header.baseHeader.ny / mpiBlock->getNumRows();
-   int localNxExt  = localNx + marginLeft + marginRight;
-   int localNyExt  = localNy + marginDown + marginUp;
-   WeightData localWeightData(
+
+   int marginLeft       = (blockNxExt - header.baseHeader.nx) / 2;
+   int marginRight      = blockNxExt - header.baseHeader.nx - marginLeft;
+   int marginDown       = (blockNyExt - header.baseHeader.ny) / 2;
+   int marginUp         = blockNyExt - header.baseHeader.ny - marginDown;
+   int localNx          = header.baseHeader.nx / mpiBlock->getNumColumns();
+   int localNy          = header.baseHeader.ny / mpiBlock->getNumRows();
+   int localNxExt       = localNx + marginLeft + marginRight;
+   int localNyExt       = localNy + marginDown + marginUp;
+   auto localWeightData = std::make_shared<WeightData>(
          numArbors, header.nxp, header.nyp, header.nfp, localNxExt, localNyExt, nfPre);
    for (int a = 0; a < numArbors; ++a) {
       if (fileManager->isRoot()) {
          for (long p = 0; p < numPatches; ++p) {
-            float *patchAddress = blockWeightData.getDataFromDataIndex(a, p);
+            float *patchAddress = blockWeightData->getDataFromDataIndex(a, p);
             fileStream->setInPos(8L, std::ios_base::cur);
             fileStream->read(patchAddress, patchSizeBytes);
          }
@@ -664,7 +666,7 @@ WeightData readFromFileStream(
       // Root process broadcasts the entire block's weights.
       // Inefficient, but easier to code, and this part is used only in the test.
       long blockArborSizeBytes = numPatches * patchSizeBytes;
-      float *blockArborPointer = blockWeightData.getData(a);
+      float *blockArborPointer = blockWeightData->getData(a);
       MPI_Bcast(blockArborPointer, blockArborSizeBytes, MPI_BYTE, rootProc, mpiBlock->getComm());
 
       // Each process extracts its part of the weights from the entire block
@@ -673,9 +675,9 @@ WeightData readFromFileStream(
       int lineSize  = localNxExt * nfPre * patchSize;
       for (int ky = 0; ky < localNyExt; ++ky) {
          int blockStartIndex = kIndex(xStart, yStart + ky, 0, blockNxExt, blockNyExt, nfPre);
-         float *blockLinePointer = blockWeightData.getDataFromDataIndex(a, blockStartIndex);
+         float *blockLinePointer = blockWeightData->getDataFromDataIndex(a, blockStartIndex);
          int localStartIndex = ky * localNxExt * nfPre;
-         float *localLinePointer = localWeightData.getDataFromDataIndex(a, localStartIndex);
+         float *localLinePointer = localWeightData->getDataFromDataIndex(a, localStartIndex);
          for (int k = 0; k < lineSize; ++k) {
             localLinePointer[k] = blockLinePointer[k];
          }
@@ -686,25 +688,25 @@ WeightData readFromFileStream(
 
 void writeToFileStream(
       std::shared_ptr<FileStream> &fileStream,
-      WeightData const &weightData,
+      std::shared_ptr<WeightData const> weightData,
       PVLayerLoc const &preLayerLoc, PVLayerLoc const &postLayerLoc,
       double timestamp,
       std::shared_ptr<FileManager const> fileManager) {
-   int numArbors = weightData.getNumArbors();
+   int numArbors = weightData->getNumArbors();
    FatalIf(numArbors == 0, "writeToFileStream() called with empty weights\n");
-   int nxp         = weightData.getPatchSizeX();
-   int nyp         = weightData.getPatchSizeY();
-   int nfp         = weightData.getPatchSizeF();
-   int numPatchesX = weightData.getNumDataPatchesX();
-   int numPatchesY = weightData.getNumDataPatchesY();
-   int numPatchesF = weightData.getNumDataPatchesF();
+   int nxp         = weightData->getPatchSizeX();
+   int nyp         = weightData->getPatchSizeY();
+   int nfp         = weightData->getPatchSizeF();
+   int numPatchesX = weightData->getNumDataPatchesX();
+   int numPatchesY = weightData->getNumDataPatchesY();
+   int numPatchesF = weightData->getNumDataPatchesF();
    float minVal    = calcMinVal(weightData);
    float maxVal    = calcMaxVal(weightData);
    auto mpiBlock   = fileManager->getMPIBlock();
    int nxExtendedLocal   = preLayerLoc.nx + preLayerLoc.halo.lt + preLayerLoc.halo.rt;
    int nyExtendedLocal   = preLayerLoc.ny + preLayerLoc.halo.dn + preLayerLoc.halo.up;
    int numPatchesPerLine = preLayerLoc.nf * nxExtendedLocal;
-   long patchSizeOverall = static_cast<long>(weightData.getPatchSizeOverall());
+   long patchSizeOverall = static_cast<long>(weightData->getPatchSizeOverall());
    long lineSize         = static_cast<long>(numPatchesPerLine) * patchSizeOverall;
    long bufferSize       = lineSize * static_cast<long>(nyExtendedLocal);
    if (fileManager->isRoot()) {
@@ -748,7 +750,7 @@ void writeToFileStream(
                long arborStartInFile    = dataStartInFile + static_cast<long>(a) * arborSizeInFile;
                if (rank == mpiBlock->getRank()) {
                   size_t numBytes = sizeof(float) * static_cast<size_t>(bufferSize);
-                  memcpy(mpiBuffer.data(), weightData.getData(a), numBytes);
+                  memcpy(mpiBuffer.data(), weightData->getData(a), numBytes);
                }
                else {
                      MPI_Recv(
@@ -785,7 +787,7 @@ void writeToFileStream(
    } // if isRoot()
    else {
       for (int a = 0; a < numArbors; ++a) {
-         MPI_Send(weightData.getData(a), static_cast<int>(bufferSize), MPI_FLOAT,
+         MPI_Send(weightData->getData(a), static_cast<int>(bufferSize), MPI_FLOAT,
          0 /*receiving rank*/, 140 + a /*tag*/, mpiBlock->getComm());
       }  
    }
