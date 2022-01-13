@@ -366,25 +366,19 @@ void MomentumUpdater::openOutputStateFile(
             outputStatePath, std::ios_base::out, checkpointer->doesVerifyWrites());
    }
 
+   auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
+   auto *postLoc = mConnectionData->getPost()->getLayerLoc();
    if (mPrevDeltaWeights->getSharedFlag()) {
       mSharedWeightsFile = std::make_shared<SharedWeightsFile>(
             outputFileManager,
             outputStatePath,
-            mPrevDeltaWeights->getPatchSizeX(),
-            mPrevDeltaWeights->getPatchSizeY(),
-            mPrevDeltaWeights->getPatchSizeF(),
-            mPrevDeltaWeights->getNumDataPatchesX(),
-            mPrevDeltaWeights->getNumDataPatchesY(),
-            mPrevDeltaWeights->getNumDataPatchesF(),
-            mPrevDeltaWeights->getNumArbors(),
+            mPrevDeltaWeights->getData(),
             mWriteCompressedWeights,
             false /*readOnlyFlag*/,
             checkpointer->doesVerifyWrites());
       mSharedWeightsFile->respond(message); // SharedWeightsFile needs to register file position
    }
    else {
-      auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
-      auto *postLoc = mConnectionData->getPost()->getLayerLoc();
       mLocalPatchWeightsFile = std::make_shared<LocalPatchWeightsFile>(
             outputFileManager,
             outputStatePath,

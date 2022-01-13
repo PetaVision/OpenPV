@@ -294,13 +294,7 @@ void WeightsPair::openOutputStateFile(
       mSharedWeightsFile = std::make_shared<SharedWeightsFile>(
             outputFileManager,
             outputStatePath,
-            mPreWeights->getPatchSizeX(),
-            mPreWeights->getPatchSizeY(),
-            mPreWeights->getPatchSizeF(),
-            mPreWeights->getNumDataPatchesX(),
-            mPreWeights->getNumDataPatchesY(),
-            mPreWeights->getNumDataPatchesF(),
-            mPreWeights->getNumArbors(),
+            mPreWeights->getData(),
             getWriteCompressedWeights(),
             false /*readOnlyFlag*/,
             checkpointer->doesVerifyWrites());

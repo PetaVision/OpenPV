@@ -24,13 +24,7 @@ class SharedWeightsFile  : public CheckpointerDataInterface {
    SharedWeightsFile(
       std::shared_ptr<FileManager const> fileManager,
       std::string const &path,
-      int patchSizeX,
-      int patchSizeY,
-      int patchSizeF,
-      long numPatchesX,
-      long numPatchesY,
-      long numPatchesF,
-      int numArbors,
+      std::shared_ptr<WeightData> weightData,
       bool compressedFlag,
       bool readOnlyFlag,
       bool verifyWrites);

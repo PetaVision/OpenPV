@@ -258,36 +258,4 @@ void SharedWeightsIO::initializeNumFrames() {
    getFileStream()->setInPos(curPos, std::ios_base::beg);
 }
 
-double SharedWeightsIO::readInternal(WeightData &weightData) {
-   pvAssert(mFileStream);
-   
-   checkDimensions(weightData);
-   BufferUtils::WeightHeader header;
-   mFileStream->read(&header, mHeaderSize);
-   checkHeader(header);
-
-   Patch patchHeader;
-   long numValuesInPatch = getPatchSizeOverall();
-   for (int a = 0; a < mNumArbors; ++a) {
-      for (int p = 0; p < getNumPatchesOverall(); ++p) {
-         mFileStream->read(&patchHeader, mPatchHeaderSize);
-         long sizeInFile = numValuesInPatch * mDataSize;
-         float *dataStart = weightData.getDataFromDataIndex(a, p);
-         if (mCompressedFlag) {
-             uint8_t compressedData[numValuesInPatch];
-             mFileStream->read(compressedData, numValuesInPatch); 
-             for (long k = 0; k < numValuesInPatch; ++k) {
-               dataStart[k] = uncompressWeight(compressedData[k], header.minVal, header.maxVal);
-             }
-         }
-         else {
-             mFileStream->read(dataStart, sizeInFile);
-         }
-      }
-   }
-   setFrameNumber(getFrameNumber() + 1);
-
-   return header.baseHeader.timestamp;
-}
-
 } // namespace PV

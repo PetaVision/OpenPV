@@ -84,7 +84,6 @@ class SharedWeightsIO {
 
    void initializeFrameSize();
    void initializeNumFrames();
-   double readInternal(WeightData &weightData);
    // void setHeaderNBands(); // We might do this for weights as we do for layers; for now we don't
    void writeHeader();
 
