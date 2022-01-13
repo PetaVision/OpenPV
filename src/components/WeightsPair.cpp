@@ -6,7 +6,6 @@
  */
 
 #include "WeightsPair.hpp"
-#include "io/WeightsFileIO.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "utils/TransposeWeights.hpp"
 
@@ -347,11 +346,11 @@ void WeightsPair::outputState(double timestamp) {
 
       if (mPreWeights->getSharedFlag()) {
          pvAssert(!mLocalPatchWeightsFile and mSharedWeightsFile);
-         mSharedWeightsFile->write(*mPreWeights->getData().get(), timestamp);
+         mSharedWeightsFile->write(*mPreWeights->getData(), timestamp);
       }
       else {
          pvAssert(mLocalPatchWeightsFile and !mSharedWeightsFile);
-         mLocalPatchWeightsFile->write(*mPreWeights->getData().get(), timestamp);
+         mLocalPatchWeightsFile->write(*mPreWeights->getData(), timestamp);
       }
    }
    else if (mWriteStep < 0) {

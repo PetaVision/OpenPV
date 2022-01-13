@@ -9,6 +9,8 @@
 
 #include "components/WeightsPair.hpp"
 #include "io/WeightsFileIO.hpp"
+#include <cmath> // exp()
+#include <cstring> // memcpy(), strcmp()
 
 namespace PV {
 
@@ -37,13 +39,13 @@ void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
       parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &mMomentumMethod);
-      if (strcmp(mMomentumMethod, "viscosity") == 0) {
+      if (std::strcmp(mMomentumMethod, "viscosity") == 0) {
          mMethod = VISCOSITY;
       }
-      else if (strcmp(mMomentumMethod, "simple") == 0) {
+      else if (std::strcmp(mMomentumMethod, "simple") == 0) {
          mMethod = SIMPLE;
       }
-      else if (strcmp(mMomentumMethod, "alex") == 0) {
+      else if (std::strcmp(mMomentumMethod, "alex") == 0) {
          mMethod = ALEX;
       }
       else {
@@ -350,24 +352,56 @@ void MomentumUpdater::applyMomentumDeprecated(int arborId, float dwFactor, float
 
 void MomentumUpdater::openOutputStateFile(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   if (mWriteStep >= 0) {
-      auto *checkpointer = message->mDataRegistry;
-      if (checkpointer->getMPIBlock()->getRank() == 0) {
-         std::string outputStatePath(getName());
-         outputStatePath.append(".prevDelta.pvp");
+   if (mWriteStep < 0) { return; }
 
-         std::string checkpointLabel(getName());
-         checkpointLabel.append("_prevDelta_filepos");
+   auto *checkpointer = message->mDataRegistry;
+   auto outputFileManager = getCommunicator()->getOutputFileManager();
+   std::string outputStatePath(getName());
+   outputStatePath.append(".prevDelta.pvp");
 
-         bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
-         mOutputStateStream = new CheckpointableFileStream(
-               outputStatePath.c_str(),
-               createFlag,
-               getCommunicator()->getOutputFileManager(),
-               checkpointLabel,
-               checkpointer->doesVerifyWrites());
-         mOutputStateStream->respond(message); // CheckpointableFileStream needs to register data
-      }
+   // If the file exists and CheckpointReadDirectory is empty, we need to
+   // clobber the file.
+   if (checkpointer->getCheckpointReadDirectory().empty()) {
+      outputFileManager->open(
+            outputStatePath, std::ios_base::out, checkpointer->doesVerifyWrites());
+   }
+
+   if (mPrevDeltaWeights->getSharedFlag()) {
+      mSharedWeightsFile = std::make_shared<SharedWeightsFile>(
+            outputFileManager,
+            outputStatePath,
+            mPrevDeltaWeights->getPatchSizeX(),
+            mPrevDeltaWeights->getPatchSizeY(),
+            mPrevDeltaWeights->getPatchSizeF(),
+            mPrevDeltaWeights->getNumDataPatchesX(),
+            mPrevDeltaWeights->getNumDataPatchesY(),
+            mPrevDeltaWeights->getNumDataPatchesF(),
+            mPrevDeltaWeights->getNumArbors(),
+            mWriteCompressedWeights,
+            false /*readOnlyFlag*/,
+            checkpointer->doesVerifyWrites());
+      mSharedWeightsFile->respond(message); // SharedWeightsFile needs to register file position
+   }
+   else {
+      auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
+      auto *postLoc = mConnectionData->getPost()->getLayerLoc();
+      mLocalPatchWeightsFile = std::make_shared<LocalPatchWeightsFile>(
+            outputFileManager,
+            outputStatePath,
+            mPrevDeltaWeights->getPatchSizeX(),
+            mPrevDeltaWeights->getPatchSizeY(),
+            mPrevDeltaWeights->getPatchSizeF(),
+            preLoc->nx,
+            preLoc->ny,
+            preLoc->nf,
+            postLoc->nx,
+            postLoc->ny,
+            mPrevDeltaWeights->getNumArbors(),
+            true /*fileExtendedFlag*/,
+            mWriteCompressedWeights,
+            false /*readOnlyFlag*/,
+            checkpointer->doesVerifyWrites());
+      mLocalPatchWeightsFile->respond(message); // LocalPatchWeightsFile needs to register filepos
    }
 }
 
@@ -375,9 +409,14 @@ void MomentumUpdater::outputMomentum(double timestamp) {
    if ((mWriteStep >= 0) && (timestamp >= mWriteTime)) {
       mWriteTime += mWriteStep;
 
-      auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
-      WeightsFileIO weightsFileIO(mOutputStateStream, ioMPIBlock, mPrevDeltaWeights);
-      weightsFileIO.writeWeights(timestamp, mWriteCompressedWeights);
+      if (mPrevDeltaWeights->getSharedFlag()) {
+         pvAssert(!mLocalPatchWeightsFile and mSharedWeightsFile);
+         mSharedWeightsFile->write(*mPrevDeltaWeights->getData(), timestamp);
+      }
+      else {
+         pvAssert(mLocalPatchWeightsFile and !mSharedWeightsFile);
+         mLocalPatchWeightsFile->write(*mPrevDeltaWeights->getData(), timestamp);
+      }
    }
    else if (mWriteStep < 0) {
       // If writeStep is negative, we never call writeWeights, but someone might restart from a

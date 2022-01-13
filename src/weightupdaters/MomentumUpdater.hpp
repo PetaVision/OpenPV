@@ -10,7 +10,8 @@
 
 #include "weightupdaters/HebbianUpdater.hpp"
 
-#include "checkpointing/CheckpointableFileStream.hpp"
+#include "io/LocalPatchWeightsFile.hpp"
+#include "io/SharedWeightsFile.hpp"
 
 namespace PV {
 
@@ -157,7 +158,7 @@ class MomentumUpdater : public HebbianUpdater {
    float mMomentumTau       = 0.25f; // Deprecated in favor of mTimeConstantTau Nov 19, 2018.
    float mTimeConstantTau   = mDefaultTimeConstantTauViscosity;
    float mMomentumDecay     = 0.0f;
-   char *mInitPrev_dWFile   = NULL;
+   char *mInitPrev_dWFile   = nullptr;
    int  mPrev_dWFrameNumber = 0;
 
    Weights *mPrevDeltaWeights       = nullptr;
@@ -168,7 +169,8 @@ class MomentumUpdater : public HebbianUpdater {
    double mWriteTime = 0.0;
    bool mWriteCompressedWeights = false;
 
-   CheckpointableFileStream *mOutputStateStream = nullptr; // weights file written by outputState
+   std::shared_ptr<SharedWeightsFile> mSharedWeightsFile;
+   std::shared_ptr<LocalPatchWeightsFile> mLocalPatchWeightsFile;
 };
 
 } // namespace PV
