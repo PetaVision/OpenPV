@@ -113,9 +113,9 @@ void LayerFile::setIndex(int index) {
    if (frameNumber < 0 or frameNumber > mLayerIO->getNumFrames()) {
       int maxIndex = mLayerIO->getNumFrames() / blockBatchDim; 
       Fatal().printf(
-            "LayerFile::setIndex called with index %d out of bounds. Allowed values for this file "
+            "LayerFile::setIndex called for \"%s\" with index %d out of bounds. Allowed values for this file "
             "are 0 through %d (or -%d through 0, counting backwards from the end.)\n",
-            index, maxIndex, maxIndex);
+            mFileManager->makeBlockFilename(getPath()).c_str(), index, maxIndex, maxIndex);
    }
    mLayerIO->setFrameNumber(frameNumber);
    mNumFrames = frameNumber;

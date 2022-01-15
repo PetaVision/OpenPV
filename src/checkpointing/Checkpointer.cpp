@@ -545,6 +545,10 @@ bool Checkpointer::isCompleteCheckpoint(std::string const &candidateCheckpoint) 
    errno                   = 0;
    struct stat pathstat;
    int statstatus = stat(blockDirectory.c_str(), &pathstat);
+   if (statstatus != 0) {
+      ErrorLog().printf("Failed to stat \"%s\": %s\n", blockDirectory.c_str(), strerror(errno));
+      return false;
+   }
    if (statstatus == 0 and S_ISDIR(pathstat.st_mode)) {
       std::string timeinfopath = blockDirectory + "/timeinfo.bin";
       statstatus               = stat(timeinfopath.c_str(), &pathstat);
@@ -608,7 +612,7 @@ void Checkpointer::extractCheckpointReadDirectory() {
 
    if (getMPIBlock()->getGlobalRank() == 0) {
       InfoLog().printf(
-            "Setting CheckpointReadDirectory to %s.\n",
+            "Global rank %d process setting CheckpointReadDirectory to %s.\n",
             mMPIBlock->getGlobalRank(),
             mCheckpointReadDirectory.c_str());
    }
