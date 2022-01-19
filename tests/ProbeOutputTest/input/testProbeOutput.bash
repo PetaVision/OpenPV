@@ -44,6 +44,12 @@ then
     exit 1
 fi
 
+if test -z "${PVEXECUTABLE}"
+then
+    >&2 echo "${0} requires the PVEXECUTABLE environment variable"
+    exit 1
+fi
+
 echo "RUNNAME is ${RUNNAME}"
 
 test -e output && rm -r output

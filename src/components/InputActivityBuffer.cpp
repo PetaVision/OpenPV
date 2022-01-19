@@ -6,8 +6,11 @@
  */
 
 #include "InputActivityBuffer.hpp"
+#include "checkpointing/CheckpointEntryFilePosition.hpp"
 #include "columns/RandomSeed.hpp"
+#include "io/FileStreamBuilder.hpp"
 #include "utils/BufferUtilsMPI.hpp"
+#include <memory>
 
 namespace PV {
 
@@ -18,7 +21,7 @@ InputActivityBuffer::InputActivityBuffer(
    initialize(name, params, comm);
 }
 
-InputActivityBuffer::~InputActivityBuffer() { delete mTimestampStream; }
+InputActivityBuffer::~InputActivityBuffer() {};
 
 void InputActivityBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
@@ -465,6 +468,30 @@ Response::Status InputActivityBuffer::registerData(
       return status;
    }
    auto *checkpointer = message->mDataRegistry;
+   if (mWriteFrameToTimestamp) {
+      auto fileManager = getCommunicator()->getOutputFileManager();
+      std::string timestampsDir("timestamps/");
+      fileManager->ensureDirectoryExists(timestampsDir);
+      std::string timestampPath = timestampsDir + getName() + ".txt";
+
+      mTimestampStream = FileStreamBuilder(
+            fileManager,
+            timestampPath,
+            true /*text*/,
+            false /*not read-only*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*whether to clobber existing file*/,
+            checkpointer->doesVerifyWrites()).get();
+      auto checkpointEntry = std::make_shared<CheckpointEntryFilePosition>(
+            getName(), std::string("TimestampState"), mTimestampStream);
+      bool registerSucceeded = checkpointer->registerCheckpointEntry(
+            checkpointEntry, false /*not constant for entire run*/);
+      FatalIf(
+            !registerSucceeded,
+            "%s failed to register %s for checkpointing.\n",
+            getDescription_c(),
+            checkpointEntry->getName().c_str());
+   }
+
    if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
       mRNG.seed(mRandomSeed);
       int numBatch = getLayerLoc()->nbatch;
@@ -479,17 +506,6 @@ Response::Status InputActivityBuffer::registerData(
       mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
       mBatchIndexer->registerData(message);
 
-      if (mWriteFrameToTimestamp) {
-         std::string timestampFilename = std::string("timestamps/");
-         timestampFilename += name + std::string(".txt");
-         std::string cpFileStreamLabel(getName());
-         cpFileStreamLabel.append("_TimestampState");
-         bool needToCreateFile = checkpointer->getCheckpointReadDirectory().empty();
-         auto fileManager = getCommunicator()->getOutputFileManager();
-         mTimestampStream      = new CheckpointableFileStream(
-               timestampFilename, needToCreateFile, fileManager, cpFileStreamLabel, checkpointer->doesVerifyWrites());
-         mTimestampStream->respond(message); // CheckpointableFileStream needs to register data
-      }
    }
    return Response::SUCCESS;
 }

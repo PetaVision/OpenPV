@@ -68,7 +68,15 @@ void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
                "filename \"%s\" has fileType %d,  which is not supported for InitVFromFile.\n",
                mVfilename, fileType);
       }
-      LayerFile inputLayerFile(fileManager, base, *loc, false, false, true, false);
+      LayerFile inputLayerFile(
+            fileManager,
+            base,
+            *loc,
+            false /*dataExtendedFlag*/,
+            false /*fileExtendedFlag*/,
+            true /*readOnlyFlag*/,
+            false /*clobberFlag*/,
+            false /*verifyWritesFlag*/);
       // booleans are dataExtended=false, fileExtended=false, readOnly=true, verifyWrites=false
       for (int b = 0; b < loc->nbatch; ++b) {
          float *Vbatch = &V[b * loc->nx * loc->ny * loc->nf];

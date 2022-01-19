@@ -141,13 +141,6 @@ int LayerOutputComponent::openOutputStateFile(
    std::string outputStatePath(getName());
    outputStatePath.append(".pvp");
 
-   // If the file exists and CheckpointReadDirectory is empty, we need to
-   // clobber the file.
-   if (checkpointer->getCheckpointReadDirectory().empty()) {
-      outputFileManager->open(
-            outputStatePath, std::ios_base::out, checkpointer->doesVerifyWrites());
-   }
-
    PVLayerLoc const *loc = mLayerGeometry->getLayerLoc();
    if (mPublisher->getSparseLayer()) {
       mDenseFile  = nullptr;
@@ -158,6 +151,7 @@ int LayerOutputComponent::openOutputStateFile(
             true /*dataExtendedFlag*/,
             false /*fileExtendedFlag*/,
             false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
             checkpointer->doesVerifyWrites());
       mSparseListVector.resize(loc->nbatch);
       mSparseFile->respond(message); // SparseLayerFile needs to register data
@@ -170,6 +164,7 @@ int LayerOutputComponent::openOutputStateFile(
             true /*dataExtendedFlag*/,
             false /*fileExtendedFlag*/,
             false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
             checkpointer->doesVerifyWrites());
       mDenseFile->respond(message); // LayerFile needs to register data
       mSparseFile  = nullptr;

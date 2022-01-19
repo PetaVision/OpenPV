@@ -52,6 +52,7 @@ void CheckpointEntryPvp<T>::write(
          mExtended,
          false /*fileExtendedFlag*/,
          false /*readOnlyFlag*/,
+         true /*clobberFlag*/,
          verifyWritesFlag);
    int const numIndices = getNumIndices();
    for (int i = 0; i < numIndices; ++i) {
@@ -74,6 +75,7 @@ void CheckpointEntryPvp<T>::read(
          mExtended,
          false /*fileExtendedFlag*/,
          true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
          false /*verifyWrites*/);
    int const numIndices = getNumIndices();
    std::vector<double> timeStamps(numIndices);

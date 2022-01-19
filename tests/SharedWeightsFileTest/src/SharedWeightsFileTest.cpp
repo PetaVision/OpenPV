@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
       weights1,
       false /*compressedFlag*/,
       false /*readOnlyFlag*/,
+      false /*clobberFlag*/,
       false /*verifyWrites*/));
 
    timestamp = 10.0;
@@ -121,6 +122,7 @@ int main(int argc, char *argv[]) {
       weights3,
       false /*compressedFlag*/,
       true /*readOnlyFlag*/,
+      false /*clobberFlag*/,
       false /*verifyWrites*/));
    auto readWeights3 = std::make_shared<WeightData>(
       numArbors,

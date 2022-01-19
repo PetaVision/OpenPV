@@ -1,5 +1,6 @@
 #include "SparseLayerFile.hpp"
 
+#include "checkpointing/CheckpointEntryFilePosition.hpp"
 #include "io/FileStreamBuilder.hpp"
 
 namespace PV {
@@ -11,6 +12,7 @@ SparseLayerFile::SparseLayerFile(
       bool dataExtendedFlag,
       bool fileExtendedFlag,
       bool readOnlyFlag,
+      bool clobberFlag,
       bool verifyWrites) :
       CheckpointerDataInterface(),
       mFileManager(fileManager),
@@ -30,7 +32,7 @@ SparseLayerFile::SparseLayerFile(
    mSparseListLocations.resize(mLayerLoc.nbatch);
    initializeCheckpointerDataInterface();
    initializeGatherScatter();
-   initializeSparseLayerIO();
+   initializeSparseLayerIO(clobberFlag);
 }
 
 SparseLayerFile::~SparseLayerFile() {}
@@ -89,7 +91,7 @@ void SparseLayerFile::truncate(int index) {
       long filePosition = mSparseLayerIO->calcFilePositionFromFrameNumber(newFrameNumber);
       mSparseLayerIO = std::unique_ptr<SparseLayerIO>(); // closes existing file
       mFileManager->truncate(mPath, filePosition);
-      initializeSparseLayerIO(); // reopens existing file with same mode.
+      initializeSparseLayerIO(false /*do not clobber*/); // reopens existing file with same mode.
       mSparseLayerIO->setFrameNumber(newFrameNumber);
    }
 }
@@ -111,20 +113,8 @@ SparseLayerFile::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
          (std::size_t)1,
          true /*broadcast*/,
          false /*not constant*/);
-   checkpointer->registerCheckpointData(
-         objName,
-         std::string("filepos_FileStreamRead"),
-         &mFileStreamReadPos,
-         (std::size_t)1,
-         true /*broadcast*/,
-         false /*not constant*/);
-   checkpointer->registerCheckpointData(
-         objName,
-         std::string("filepos_FileStreamWrite"),
-         &mFileStreamWritePos,
-         (std::size_t)1,
-         true /*broadcast*/,
-         false /*not constant*/);
+   auto filePosEntry = std::make_shared<CheckpointEntryFilePosition>(
+         objName, std::string("filepos"), mSparseLayerIO->getFileStream());
    return Response::SUCCESS;
 }
 
@@ -163,9 +153,9 @@ void SparseLayerFile::initializeGatherScatter() {
                mFileExtended));
 }
 
-void SparseLayerFile::initializeSparseLayerIO() {
+void SparseLayerFile::initializeSparseLayerIO(bool clobberFlag) {
    auto fileStream = FileStreamBuilder(
-         mFileManager, mPath, false /* not text */, mReadOnly, mVerifyWrites).get();
+         mFileManager, mPath, false /* not text */, mReadOnly, clobberFlag, mVerifyWrites).get();
 
    auto mpiBlock = mFileManager->getMPIBlock();
    int nx = mLayerLoc.nx * mpiBlock->getNumColumns();

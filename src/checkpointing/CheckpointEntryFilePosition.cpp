@@ -33,7 +33,7 @@ void CheckpointEntryFilePosition::read(
    long writePosition;
    readValueFromBin(
          fileManager, std::string("FileStreamWrite"), &writePosition);
-   mFileStream->setInPos(writePosition, std::ios_base::beg);
+   mFileStream->setOutPos(writePosition, std::ios_base::beg);
 }
 
 void CheckpointEntryFilePosition::remove(std::shared_ptr<FileManager const> fileManager) const {

@@ -22,12 +22,13 @@ namespace PV {
 class SharedWeightsFile  : public CheckpointerDataInterface {
   public:
    SharedWeightsFile(
-      std::shared_ptr<FileManager const> fileManager,
-      std::string const &path,
-      std::shared_ptr<WeightData> weightData,
-      bool compressedFlag,
-      bool readOnlyFlag,
-      bool verifyWrites);
+         std::shared_ptr<FileManager const> fileManager,
+         std::string const &path,
+         std::shared_ptr<WeightData> weightData,
+         bool compressedFlag,
+         bool readOnlyFlag,
+         bool clobberFlag,
+         bool verifyWrites);
 
    SharedWeightsFile() = delete;
 
@@ -67,7 +68,7 @@ class SharedWeightsFile  : public CheckpointerDataInterface {
 
   private:
    int initializeCheckpointerDataInterface();
-   void initializeSharedWeightsIO();
+   void initializeSharedWeightsIO(bool clobberFlag);
 
    bool isRoot() { return mFileManager->isRoot(); }
 

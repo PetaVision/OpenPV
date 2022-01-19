@@ -15,14 +15,15 @@ class FileStreamBuilder {
       std::string const &path,
       bool isText,
       bool readOnlyFlag,
-      bool verifyWrites = false);
+      bool clobberFlag,
+      bool verifyWrites);
 
    ~FileStreamBuilder();
 
    std::shared_ptr<FileStream> get() { return mFileStream; }
 
   private:
-   std::shared_ptr<FileStream> mFileStream;
+   std::shared_ptr<FileStream> mFileStream = nullptr;
 };  // class FileStreamBuilder
 
 } // namespace PV

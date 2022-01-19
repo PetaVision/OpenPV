@@ -44,6 +44,7 @@ class LocalPatchWeightsFile : public CheckpointerDataInterface{
       bool fileExtendedFlag,
       bool compressedFlag,
       bool readOnlyFlag,
+      bool clobberFlag,
       bool verifyWrites);
 
    LocalPatchWeightsFile() = delete;
@@ -93,7 +94,7 @@ class LocalPatchWeightsFile : public CheckpointerDataInterface{
 
   private:
    int initializeCheckpointerDataInterface();
-   void initializeLocalPatchWeightsIO();
+   void initializeLocalPatchWeightsIO(bool clobberFlag);
 
    bool isRoot() { return mFileManager->isRoot(); }
 

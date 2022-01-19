@@ -33,6 +33,7 @@ class LayerFile : public CheckpointerDataInterface {
       bool dataExtendedFlag,
       bool fileExtendedFlag,
       bool readOnlyFlag,
+      bool clobberFlag,
       bool verifyWrites);
 
    LayerFile() = delete;
@@ -63,7 +64,7 @@ class LayerFile : public CheckpointerDataInterface {
   private:
    int initializeCheckpointerDataInterface();
    void initializeGatherScatter();
-   void initializeLayerIO();
+   void initializeLayerIO(bool clobberFlag);
 
    bool isRoot() { return mFileManager->isRoot(); }
 

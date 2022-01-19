@@ -8,10 +8,11 @@
 #ifndef INPUTACTIVITYBUFFER_HPP_
 #define INPUTACTIVITYBUFFER_HPP_
 
-#include "checkpointing/CheckpointableFileStream.hpp"
 #include "components/ActivityBuffer.hpp"
 #include "components/BatchIndexer.hpp"
+#include "io/FileStream.hpp"
 #include "utils/BufferUtilsRescale.hpp"
+#include <memory>
 #include <random>
 
 namespace PV {
@@ -404,8 +405,8 @@ class InputActivityBuffer : public ActivityBuffer {
    // copied to.
    std::vector<ActivityBuffer *> mInputRegionTargets;
 
-   // Filepointer to output file used when mWriteFrameToTimestamp == true
-   CheckpointableFileStream *mTimestampStream = nullptr;
+   // FileStream to output file used when mWriteFrameToTimestamp == true
+   std::shared_ptr<FileStream> mTimestampStream;
 };
 
 } // namespace PV

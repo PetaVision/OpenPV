@@ -151,6 +151,7 @@ int run(
       true /*fileExtendedFlag*/,
       false /*compressedFlag*/,
       false /*readOnlyFlag*/,
+      false /*clobberFlag*/,
       false /*verifyWrites*/));
 
    timestamp = 10.0;
@@ -205,6 +206,7 @@ int run(
       true /*fileExtendedFlag*/,
       false /*compressedFlag*/,
       true /*readOnlyFlag*/,
+      false /*clobberFlag*/,
       false /*verifyWrites*/));
    double readTimestamp3;
    if (status == PV_SUCCESS) {

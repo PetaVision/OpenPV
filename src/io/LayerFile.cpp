@@ -1,5 +1,6 @@
 #include "LayerFile.hpp"
 
+#include "checkpointing/CheckpointEntryFilePosition.hpp"
 #include "io/FileStreamBuilder.hpp"
 #include "utils/PathComponents.hpp"
 
@@ -12,6 +13,7 @@ LayerFile::LayerFile(
       bool dataExtendedFlag,
       bool fileExtendedFlag,
       bool readOnlyFlag,
+      bool clobberFlag,
       bool verifyWrites) :
       CheckpointerDataInterface(),
       mFileManager(fileManager),
@@ -31,7 +33,7 @@ LayerFile::LayerFile(
    mDataLocations.resize(mLayerLoc.nbatch);
    initializeCheckpointerDataInterface();
    initializeGatherScatter();
-   initializeLayerIO();
+   initializeLayerIO(clobberFlag);
 }
 
 void LayerFile::read() {
@@ -94,7 +96,7 @@ void LayerFile::truncate(int index) {
       long eofPosition = mLayerIO->calcFilePositionFromFrameNumber(newFrameNumber);
       mLayerIO = std::unique_ptr<LayerIO>(); // closes existing file
       mFileManager->truncate(mPath, eofPosition);
-      initializeLayerIO(); // reopens existing file with same mode.
+      initializeLayerIO(false /*do not clobber*/); // reopens existing file with same mode.
       mLayerIO->setFrameNumber(newFrameNumber);
    }
 }
@@ -145,20 +147,15 @@ LayerFile::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const>
          (std::size_t)1,
          true /*broadcast*/,
          false /*not constant*/);
-   checkpointer->registerCheckpointData(
-         objName,
-         std::string("filepos_FileStreamRead"),
-         &mFileStreamReadPos,
-         (std::size_t)1,
-         true /*broadcast*/,
-         false /*not constant*/);
-   checkpointer->registerCheckpointData(
-         objName,
-         std::string("filepos_FileStreamWrite"),
-         &mFileStreamWritePos,
-         (std::size_t)1,
-         true /*broadcast*/,
-         false /*not constant*/);
+   auto filePosEntry = std::make_shared<CheckpointEntryFilePosition>(
+         objName, std::string("filepos"), mLayerIO->getFileStream());
+   bool registerSucceeded = checkpointer->registerCheckpointEntry(
+         filePosEntry, false /*not constant for entire run*/);
+   FatalIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         mPath.c_str(),
+         filePosEntry->getName().c_str());
    return Response::SUCCESS;
 }
 
@@ -183,9 +180,14 @@ void LayerFile::initializeGatherScatter() {
          mpiBlock, mLayerLoc, rootRank, mDataExtended, mFileExtended));
 }
 
-void LayerFile::initializeLayerIO() {
+void LayerFile::initializeLayerIO(bool clobberFlag) {
    auto fileStream = FileStreamBuilder(
-         mFileManager, mPath, false /* not text */, mReadOnly, mVerifyWrites).get();
+         mFileManager,
+         mPath,
+         false /*not text*/,
+         mReadOnly,
+         clobberFlag,
+         mVerifyWrites).get();
 
    auto mpiBlock = mFileManager->getMPIBlock();
    int nx = mLayerLoc.nx * mpiBlock->getNumColumns();

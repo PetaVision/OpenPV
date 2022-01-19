@@ -10,6 +10,7 @@ SharedWeightsFile::SharedWeightsFile(
       std::shared_ptr<WeightData> weightData,
       bool compressedFlag,
       bool readOnlyFlag,
+      bool clobberFlag,
       bool verifyWrites) :
       CheckpointerDataInterface(),
       mFileManager(fileManager),
@@ -25,7 +26,7 @@ SharedWeightsFile::SharedWeightsFile(
       mReadOnly(readOnlyFlag),
       mVerifyWrites(verifyWrites) {
    initializeCheckpointerDataInterface();
-   initializeSharedWeightsIO();
+   initializeSharedWeightsIO(clobberFlag);
 }
 
 SharedWeightsFile::~SharedWeightsFile() {}
@@ -64,7 +65,7 @@ void SharedWeightsFile::truncate(int index) {
       long eofPosition = mSharedWeightsIO->calcFilePositionFromFrameNumber(index);
       mSharedWeightsIO = std::unique_ptr<SharedWeightsIO>(); // closes existing file
       mFileManager->truncate(mPath, eofPosition);
-      initializeSharedWeightsIO(); // reopens existing file with same mode.
+      initializeSharedWeightsIO(false /*do not clobber*/); // reopens existing file with same mode.
       mSharedWeightsIO->setFrameNumber(newFrameNumber);
    }
 }
@@ -128,9 +129,9 @@ int SharedWeightsFile::initializeCheckpointerDataInterface() {
    return CheckpointerDataInterface::initialize();
 }
 
-void SharedWeightsFile::initializeSharedWeightsIO() {
+void SharedWeightsFile::initializeSharedWeightsIO(bool clobberFlag) {
    auto fileStream = FileStreamBuilder(
-         mFileManager, mPath, false /*not text*/, mReadOnly, mVerifyWrites).get();
+         mFileManager, mPath, false /*not text*/, mReadOnly, clobberFlag, mVerifyWrites).get();
 
    mSharedWeightsIO = std::unique_ptr<SharedWeightsIO>(new SharedWeightsIO(
          fileStream,

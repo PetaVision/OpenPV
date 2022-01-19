@@ -283,13 +283,6 @@ void WeightsPair::openOutputStateFile(
    std::string outputStatePath(getName());
    outputStatePath.append(".pvp");
 
-   // If the file exists and CheckpointReadDirectory is empty, we need to
-   // clobber the file.
-   if (checkpointer->getCheckpointReadDirectory().empty()) {
-      outputFileManager->open(
-            outputStatePath, std::ios_base::out, checkpointer->doesVerifyWrites());
-   }
-
    if (mPreWeights->getSharedFlag()) {
       mSharedWeightsFile = std::make_shared<SharedWeightsFile>(
             outputFileManager,
@@ -297,6 +290,7 @@ void WeightsPair::openOutputStateFile(
             mPreWeights->getData(),
             getWriteCompressedWeights(),
             false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
             checkpointer->doesVerifyWrites());
       mSharedWeightsFile->respond(message); // SharedWeightsFile needs to register file position
    }
@@ -312,6 +306,7 @@ void WeightsPair::openOutputStateFile(
             true /*fileExtendedFlag*/,
             getWriteCompressedWeights(),
             false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
             checkpointer->doesVerifyWrites());
       mLocalPatchWeightsFile->respond(message); // LocalPatchWeightsFile needs to register filepos
    }

@@ -34,6 +34,7 @@ class SparseLayerFile : public CheckpointerDataInterface {
          bool dataExtendedFlag,
          bool fileExtendedFlag,
          bool readOnlyFlag,
+         bool clobberFlag,
          bool verifyWrites);
 
    SparseLayerFile() = delete;
@@ -64,7 +65,7 @@ class SparseLayerFile : public CheckpointerDataInterface {
   private:
    int initializeCheckpointerDataInterface();
    void initializeGatherScatter();
-   void initializeSparseLayerIO();
+   void initializeSparseLayerIO(bool clobberFlag);
 
    bool isRoot() { return mFileManager->isRoot(); }
 

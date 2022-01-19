@@ -14,6 +14,7 @@ LocalPatchWeightsFile::LocalPatchWeightsFile(
       bool fileExtendedFlag,
       bool compressedFlag,
       bool readOnlyFlag,
+      bool clobberFlag,
       bool verifyWrites) :
       CheckpointerDataInterface(),
       mFileManager(fileManager),
@@ -32,7 +33,7 @@ LocalPatchWeightsFile::LocalPatchWeightsFile(
       mReadOnly(readOnlyFlag),
       mVerifyWrites(verifyWrites) {
    initializeCheckpointerDataInterface();
-   initializeLocalPatchWeightsIO();
+   initializeLocalPatchWeightsIO(clobberFlag);
 }
 
 LocalPatchWeightsFile::~LocalPatchWeightsFile() {}
@@ -125,7 +126,7 @@ void LocalPatchWeightsFile::truncate(int index) {
       long eofPosition = mLocalPatchWeightsIO->calcFilePositionFromFrameNumber(index);
       mLocalPatchWeightsIO = std::unique_ptr<LocalPatchWeightsIO>(); // closes existing file
       mFileManager->truncate(mPath, eofPosition);
-      initializeLocalPatchWeightsIO(); // reopens existing file with same mode.
+      initializeLocalPatchWeightsIO(false /*do not clobber*/); // reopens existing file with same mode.
       mLocalPatchWeightsIO->setFrameNumber(newFrameNumber);
    }
 }
@@ -189,9 +190,9 @@ int LocalPatchWeightsFile::initializeCheckpointerDataInterface() {
    return CheckpointerDataInterface::initialize();
 }
 
-void LocalPatchWeightsFile::initializeLocalPatchWeightsIO() {
+void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
    auto fileStream = FileStreamBuilder(
-         mFileManager, mPath, false /*not text*/, mReadOnly, mVerifyWrites).get();
+         mFileManager, mPath, false /*not text*/, mReadOnly, clobberFlag, mVerifyWrites).get();
    auto mpiBlock             = mFileManager->getMPIBlock();
    int nxRestrictedPreBlock  = mNxRestrictedPre * mpiBlock->getNumColumns();
    int nyRestrictedPreBlock  = mNyRestrictedPre * mpiBlock->getNumRows();

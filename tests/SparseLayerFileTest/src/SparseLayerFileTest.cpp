@@ -612,6 +612,7 @@ std::vector<SparseList<float>> readFrame2(
          dataExtendedFlag,
          fileExtendedFlag,
          true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
          false /*verifyWrites*/);
    int positionIndex = 1; // Position index is zero-based, so this is the second frame
    sparseLayerFile.setIndex(positionIndex);
@@ -905,6 +906,7 @@ int writeFrameToSparseLayerFile(
         dataExtendedFlag,
         fileExtendedFlag,
         false /* readOnlyFlag */,
+        false /* clobberFlag */,
         false /* verifyWrites */));
 
    // Write layer data

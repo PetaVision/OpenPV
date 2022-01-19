@@ -375,6 +375,7 @@ void MomentumUpdater::openOutputStateFile(
             mPrevDeltaWeights->getData(),
             mWriteCompressedWeights,
             false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
             checkpointer->doesVerifyWrites());
       mSharedWeightsFile->respond(message); // SharedWeightsFile needs to register file position
    }
@@ -388,6 +389,7 @@ void MomentumUpdater::openOutputStateFile(
             true /*fileExtendedFlag*/,
             mWriteCompressedWeights,
             false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
             checkpointer->doesVerifyWrites());
       mLocalPatchWeightsFile->respond(message); // LocalPatchWeightsFile needs to register filepos
    }
