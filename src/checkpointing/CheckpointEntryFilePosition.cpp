@@ -1,71 +1,74 @@
 #include "CheckpointEntryFilePosition.hpp"
 
+#include "utils/PVAssert.hpp"
+
 namespace PV {
 
 void CheckpointEntryFilePosition::write(
-      std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag) const {
-   if (getMPIBlock()->getRank() != 0) { return; }
-   std::string path;
+      std::shared_ptr<FileManager const> fileManager, double simTime, bool verifyWritesFlag) const {
+   if (!fileManager->isRoot()) { return; }
 
    writeValueToBinAndTxt(
-         checkpointDirectory,
+         fileManager,
          std::string("FileStreamRead"),
          mFileStream->getInPos(),
          verifyWritesFlag);
 
    writeValueToBinAndTxt(
-         checkpointDirectory,
+         fileManager,
          std::string("FileStreamWrite"),
          mFileStream->getOutPos(),
          verifyWritesFlag);
 }
 
 void CheckpointEntryFilePosition::read(
-      std::string const &checkpointDirectory, double *simTimePtr) const {
-   if (getMPIBlock()->getRank() != 0) { return; }
+      std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const {
+   if (!fileManager->isRoot()) { return; }
 
    long readPosition;
    readValueFromBin(
-         checkpointDirectory, std::string("FileStreamRead"), &readPosition);
+         fileManager, std::string("FileStreamRead"), &readPosition);
    mFileStream->setInPos(readPosition, std::ios_base::beg);
 
    long writePosition;
    readValueFromBin(
-         checkpointDirectory, std::string("FileStreamWrite"), &writePosition);
+         fileManager, std::string("FileStreamWrite"), &writePosition);
    mFileStream->setInPos(writePosition, std::ios_base::beg);
 }
 
-void CheckpointEntryFilePosition::remove(std::string const &checkpointDirectory) const {
-   if (getMPIBlock()->getRank() != 0) { return; }
-
+void CheckpointEntryFilePosition::remove(std::shared_ptr<FileManager const> fileManager) const {
+   deleteFile(fileManager, std::string("FileStreamRead"));
+   deleteFile(fileManager, std::string("FileStreamWrite"));
 }
 
 void CheckpointEntryFilePosition::readValueFromBin(
-      std::string const &checkpointDirectory,
+      std::shared_ptr<FileManager const> fileManager,
       std::string const &label,
       long *value) const {
-   std::string pathBase(checkpointDirectory);
-   pathBase.append("/").append(getName()).append("_").append(label);
-   std::string path;
-   path = pathBase + ".bin";
-   FileStream binFileStream(path.c_str(), std::ios_base::in);
-   binFileStream.read(value, sizeof(*value));
+   pvAssert(fileManager->isRoot());
+   std::string filenamebase(getName());
+   filenamebase.append("_").append(label);
+   std::string filename = filenamebase + ".bin";
+   auto fileStream = fileManager->open(filename.c_str(), std::ios_base::in, false);
+   fileStream->read(value, sizeof(*value));
 }
 
 void CheckpointEntryFilePosition::writeValueToBinAndTxt(
-      std::string const &checkpointDirectory,
+      std::shared_ptr<FileManager const> fileManager,
       std::string const &label,
       long value,
       bool verifyWritesFlag) const {
-   std::string pathBase(checkpointDirectory);
-   pathBase.append("/").append(getName()).append("_").append(label);
-   std::string path;
-   path = pathBase + ".bin";
-   FileStream binFileStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
-   binFileStream.write(&value, sizeof(value));
-   path = pathBase + ".txt";
-   FileStream txtFileStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
-   txtFileStream << value << "\n";
+   pvAssert(fileManager->isRoot());
+   std::string filenamebase(getName());
+   filenamebase.append("_").append(label);
+
+   std::string filename = filenamebase + ".bin";
+   auto fileStream = fileManager->open(filename.c_str(), std::ios_base::out, verifyWritesFlag);
+   fileStream->write(&value, sizeof(value));
+
+   filename = filenamebase + ".txt";
+   fileStream = fileManager->open(filename.c_str(), std::ios_base::out, verifyWritesFlag);
+   *fileStream << value << "\n";
 }
 
 } // namespace PV

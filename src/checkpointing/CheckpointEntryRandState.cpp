@@ -11,22 +11,33 @@
 namespace PV {
 
 void CheckpointEntryRandState::write(
-      std::string const &checkpointDirectory,
+      std::shared_ptr<FileManager const> fileManager,
       double simTime,
       bool verifyWritesFlag) const {
-   std::string path = generatePath(checkpointDirectory, "pvp");
+   std::string filename = generateFilename(std::string("pvp"));
    writeRandState(
-         path, getMPIBlock(), mDataPointer, mLayerLoc, mExtendedFlag, simTime, verifyWritesFlag);
+         filename,
+         fileManager->getMPIBlock(),
+         mDataPointer,
+         mLayerLoc,
+         mExtendedFlag,
+         simTime,
+         verifyWritesFlag);
 }
 
-void CheckpointEntryRandState::read(std::string const &checkpointDirectory, double *simTimePtr)
-      const {
-   std::string path = generatePath(checkpointDirectory, "pvp");
-   *simTimePtr      = readRandState(path, getMPIBlock(), mDataPointer, mLayerLoc, mExtendedFlag);
+void CheckpointEntryRandState::read(
+      std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const {
+   std::string filename = generateFilename(std::string("pvp"));
+   *simTimePtr          = readRandState(
+         filename,
+         fileManager->getMPIBlock(),
+         mDataPointer,
+         mLayerLoc,
+         mExtendedFlag);
 }
 
-void CheckpointEntryRandState::remove(std::string const &checkpointDirectory) const {
-   deleteFile(checkpointDirectory, "pvp");
+void CheckpointEntryRandState::remove(std::shared_ptr<FileManager const> fileManager) const {
+   deleteFile(fileManager, std::string("pvp"));
 }
 
 } // namespace PV

@@ -15,30 +15,25 @@
 
 namespace PV {
 
+std::string CheckpointEntry::generateFilename(std::string const &extension) const {
+   std::string filename = getName();
+   if (!extension.empty()) { filename.append(".").append(extension); }
+   return filename;
+}
+
 std::string CheckpointEntry::generatePath(
-      std::string const &checkpointDirectory,
+      std::shared_ptr<FileManager const> fileManager,
       std::string const &extension) const {
-   std::string path{checkpointDirectory};
-   path.append("/").append(getName());
-   if (!extension.empty()) {
-      path.append(".").append(extension);
-   }
+   std::string filename = generateFilename(extension);
+   std::string path = fileManager->makeBlockFilename(filename);
    return path;
 }
 
 void CheckpointEntry::deleteFile(
-      std::string const &checkpointDirectory,
+      std::shared_ptr<FileManager const> fileManager,
       std::string const &extension) const {
-   if (getMPIBlock()->getRank() == 0) {
-      std::string path = generatePath(checkpointDirectory, extension);
-      struct stat pathStat;
-      int statstatus = stat(path.c_str(), &pathStat);
-      if (statstatus == 0) {
-         int unlinkstatus = unlink(path.c_str());
-         if (unlinkstatus != 0) {
-            Fatal().printf("Failure deleting \"%s\": %s\n", path.c_str(), strerror(errno));
-         }
-      }
-   }
+   std::string filename = generateFilename(extension);
+   fileManager->deleteFile(filename);
 }
+
 } // end namespace PV

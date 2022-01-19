@@ -62,19 +62,19 @@ class CheckpointEntryTimeScaleInfo : public CheckpointEntry {
   public:
    CheckpointEntryTimeScaleInfo(
          std::string const &name,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
-         : CheckpointEntry(name, mpiBlock), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
+         : CheckpointEntry(name), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
    CheckpointEntryTimeScaleInfo(
          std::string const &objName,
          std::string const &dataName,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
-         : CheckpointEntry(objName, dataName, mpiBlock), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
-   virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
+         : CheckpointEntry(objName, dataName), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
+   virtual void write(
+         std::shared_ptr<FileManager const> fileManager, double simTime, bool verifyWritesFlag)
          const override;
-   virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
-   virtual void remove(std::string const &checkpointDirectory) const override;
+   virtual void read(
+         std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const override;
+   virtual void remove(std::shared_ptr<FileManager const> fileManager) const override;
 
   private:
    AdaptiveTimeScaleController::TimeScaleInfo *mTimeScaleInfoPtr;

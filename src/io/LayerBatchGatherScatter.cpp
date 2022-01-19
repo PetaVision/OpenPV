@@ -48,9 +48,6 @@ void LayerBatchGatherScatter::gather(
       }
    }
    else if (mpiBatchIndex == mMPIBlock->getBatchIndex()) {
-      int nxExt = mLayerLoc.nx + mLayerLoc.halo.lt + mLayerLoc.halo.rt;
-      int nyExt = mLayerLoc.ny + mLayerLoc.halo.dn + mLayerLoc.halo.up;
-      int nf = mLayerLoc.nf;
       Buffer<float> localBuffer(localDataLocation, nxExt, nyExt, nf);
       BufferUtils::gather(
             mMPIBlock, localBuffer, mLayerLoc.nx, mLayerLoc.ny, mpiBatchIndex, mRootProcessRank);
@@ -60,34 +57,34 @@ void LayerBatchGatherScatter::gather(
 void LayerBatchGatherScatter::scatter(
       int mpiBatchIndex, float const *rootDataLocation, float *localDataLocation) {
 
+   Buffer<float> dataBuffer;
    if (mMPIBlock->getRank() == mRootProcessRank) {
-      int nfRoot = mLayerLoc.nf;
       int nxRoot = mLayerLoc.nx * mMPIBlock->getNumColumns();
       int nyRoot = mLayerLoc.ny * mMPIBlock->getNumRows();
       if (mRootExtended) {
          nxRoot += mLayerLoc.halo.lt + mLayerLoc.halo.rt;
          nyRoot += mLayerLoc.halo.dn + mLayerLoc.halo.up;
       }
-      Buffer<float> rootBuffer(rootDataLocation, nxRoot, nyRoot, nfRoot);
-      BufferUtils::scatter(
-            mMPIBlock, rootBuffer, mLayerLoc.nx, mLayerLoc.ny, mpiBatchIndex, mRootProcessRank);
-      if (mpiBatchIndex == mMPIBlock->getBatchIndex()) {
-         copyToDataLocation(localDataLocation, rootBuffer);
+      dataBuffer = Buffer<float>(rootDataLocation, nxRoot, nyRoot, mLayerLoc.nf);
+      if (!mRootExtended) {
+         nxRoot += mLayerLoc.halo.lt + mLayerLoc.halo.rt;
+         nyRoot += mLayerLoc.halo.dn + mLayerLoc.halo.up;
+         dataBuffer.grow(nxRoot, nyRoot, Buffer<float>::CENTER);
       }
+      BufferUtils::scatter(
+            mMPIBlock, dataBuffer, mLayerLoc.nx, mLayerLoc.ny, mpiBatchIndex, mRootProcessRank);
    }
    else if (mpiBatchIndex == mMPIBlock->getBatchIndex()) {
       int nf = mLayerLoc.nf;
-      int nx = mLayerLoc.nx;
-      int ny = mLayerLoc.ny;
-      if (mRootExtended) {
-         nx += mLayerLoc.halo.lt + mLayerLoc.halo.rt;
-         ny += mLayerLoc.halo.dn + mLayerLoc.halo.up;
-      }
-      Buffer<float> localDataBuffer(nx, ny, nf);
+      int nx = mLayerLoc.nx + mLayerLoc.halo.lt + mLayerLoc.halo.rt;
+      int ny = mLayerLoc.ny + mLayerLoc.halo.dn + mLayerLoc.halo.up;
+      dataBuffer = Buffer<float>(nx, ny, nf);
       int batchIndex = mMPIBlock->getBatchIndex();
       BufferUtils::scatter(
-            mMPIBlock, localDataBuffer, mLayerLoc.nx, mLayerLoc.ny, batchIndex, mRootProcessRank);
-      copyToDataLocation(localDataLocation, localDataBuffer);
+            mMPIBlock, dataBuffer, mLayerLoc.nx, mLayerLoc.ny, mpiBatchIndex, mRootProcessRank);
+   }
+   if (mpiBatchIndex == mMPIBlock->getBatchIndex()) {
+      copyToDataLocation(localDataLocation, dataBuffer);
    }
 }
 
@@ -97,29 +94,16 @@ void LayerBatchGatherScatter::copyToDataLocation(
       float *dataLocation, Buffer<float> const &localDataBuffer) {
    int dataLocationWidth  = mLayerLoc.nx + mLayerLoc.halo.lt + mLayerLoc.halo.rt;
    int dataLocationHeight = mLayerLoc.ny + mLayerLoc.halo.dn + mLayerLoc.halo.up;
-   int dataLocationStartX = mRootExtended ? 0 : mLayerLoc.halo.lt;
-   int dataLocationStartY = mRootExtended ? 0 : mLayerLoc.halo.up;
-
-   int bufferWidth  = mRootExtended ? dataLocationWidth : mLayerLoc.nx;
-   int bufferHeight = mRootExtended ? dataLocationHeight : mLayerLoc.ny;
 
    int numFeatures = mLayerLoc.nf;
 
-   pvAssert(localDataBuffer.getWidth() == bufferWidth);
-   pvAssert(localDataBuffer.getHeight() == bufferHeight);
+   pvAssert(localDataBuffer.getWidth() == dataLocationWidth);
+   pvAssert(localDataBuffer.getHeight() == dataLocationHeight);
    pvAssert(localDataBuffer.getFeatures() == numFeatures);
-   // Probably better to use Buffer::at(int,int,int) and not need bufferWidth etc.
 
-   for (int y = 0; y < bufferHeight; ++y) {
-      for (int x = 0; x < bufferWidth; ++x) {
-         for (int f = 0; f < numFeatures; ++f) {
-            int dataLocationOffset = kIndex(
-                  x + dataLocationStartX, y + dataLocationStartY, f,
-                  dataLocationWidth, dataLocationHeight, numFeatures);
-            int bufferOffset = kIndex(x, y, f, bufferWidth, bufferHeight, numFeatures);
-            dataLocation[dataLocationOffset] = localDataBuffer.at(bufferOffset);
-         }
-      }
+   int const nk = dataLocationWidth * dataLocationHeight * numFeatures;
+   for (int k = 0; k < nk; ++k) {
+      dataLocation[k] = localDataBuffer.at(k);
    }
 }
 

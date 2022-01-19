@@ -1,10 +1,10 @@
 #ifndef TESTDATANOBROADCAST_HPP_
 #define TESTDATANOBROADCAST_HPP_
 
-#include "structures/MPIBlock.hpp"
+#include "io/FileManager.hpp"
 #include <memory>
 #include <string>
 
-void testDataNoBroadcast(std::shared_ptr<PV::MPIBlock const> mpiBlock, std::string const &directory);
+void testDataNoBroadcast(std::shared_ptr<PV::FileManager const> fileManager);
 
 #endif // TESTDATANOBROADCAST_HPP_

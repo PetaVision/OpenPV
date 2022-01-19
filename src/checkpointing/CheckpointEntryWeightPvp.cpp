@@ -21,23 +21,18 @@ void CheckpointEntryWeightPvp::initialize(Weights *weights, bool compressFlag) {
 }
 
 void CheckpointEntryWeightPvp::write(
-      std::string const &checkpointDirectory,
+      std::shared_ptr<FileManager const> fileManager,
       double simTime,
       bool verifyWritesFlag) const {
-   std::string path(checkpointDirectory);
-   path.append("/").append(getName()).append(".pvp");
-   FileStream *fileStream = nullptr;
-   if (getMPIBlock()->getRank() == 0) {
-      fileStream = new FileStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
-   }
-
-   WeightsFileIO weightFileIO(fileStream, getMPIBlock(), mWeights);
+   std::string filename = generateFilename(std::string("pvp"));
+   
+   auto fileStream = fileManager->open(filename, std::ios_base::out, verifyWritesFlag);
+   WeightsFileIO weightFileIO(fileStream.get(), fileManager->getMPIBlock(), mWeights);
    weightFileIO.writeWeights(simTime, mCompressFlag);
-   delete fileStream;
 }
 
-void CheckpointEntryWeightPvp::read(std::string const &checkpointDirectory, double *simTimePtr)
-      const {
+void CheckpointEntryWeightPvp::read(
+      std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const {
    // Need to clear weights before reading because reading weights is increment-add, not assignment.
    int const numArbors = mWeights->getNumArbors();
    for (int arbor = 0; arbor < numArbors; arbor++) {
@@ -52,23 +47,18 @@ void CheckpointEntryWeightPvp::read(std::string const &checkpointDirectory, doub
       memset(weightData, 0, numWeightsInArbor * sizeof(*weightData));
    }
 
-   std::string path(checkpointDirectory);
-   path.append("/").append(getName()).append(".pvp");
-   FileStream *fileStream = nullptr;
-   if (getMPIBlock()->getRank() == 0) {
-      fileStream = new FileStream(path.c_str(), std::ios_base::in, false);
-   }
+   std::string filename = generateFilename(std::string("pvp"));
+   auto fileStream = fileManager->open(filename, std::ios_base::in, false);
 
-   WeightsFileIO weightFileIO(fileStream, getMPIBlock(), mWeights);
+   WeightsFileIO weightFileIO(fileStream.get(), fileManager->getMPIBlock(), mWeights);
    double simTime = weightFileIO.readWeights(0 /*frameNumber*/);
    if (simTimePtr) {
       *simTimePtr = simTime;
    }
-   delete fileStream;
 }
 
-void CheckpointEntryWeightPvp::remove(std::string const &checkpointDirectory) const {
-   deleteFile(checkpointDirectory, "pvp");
+void CheckpointEntryWeightPvp::remove(std::shared_ptr<FileManager const> fileManager) const {
+   deleteFile(fileManager, std::string("pvp"));
 }
 
 } // end namespace PV

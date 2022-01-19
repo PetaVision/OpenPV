@@ -11,6 +11,7 @@
 #include "checkpointing/CheckpointEntry.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
 #include "columns/Communicator.hpp"
+#include "io/FileManager.hpp"
 #include "io/PVParams.hpp"
 #include "observerpattern/Subject.hpp"
 #include "utils/Timer.hpp"
@@ -175,8 +176,9 @@ class Checkpointer : public Subject {
    void readStateFromCheckpoint();
    void checkpointRead(double *simTimePointer, long int *currentStepPointer);
    void checkpointWrite(double simTime);
+   void checkpointDelete(std::shared_ptr<FileManager const> fileManager);
    void finalCheckpoint(double simTime);
-   void writeTimers(PrintStream &stream) const;
+   void writeTimers(std::shared_ptr<PrintStream> stream) const;
 
    /**
     * Returns true if the argument identifies a directory that appears to be a complete checkpoint
@@ -272,9 +274,10 @@ class Checkpointer : public Subject {
    void checkpointNow();
 
    /**
-    * Creates a checkpoint based at the given directory. If the checkpoint directory already exists,
-    * it issues a warning, and deletes the timeinfo.bin file in the checkpooint. This way, the
-    * presence of the timeinfo.bin file indicates that the checkpoint is complete.
+    * Creates a checkpoint based at the directory managed by the given FileManager. If the
+    * checkpoint directory already exists, it issues a warning, and deletes the timeinfo.bin file
+    * in the checkpooint. This way, the presence of the timeinfo.bin file indicates that the
+    * checkpoint is complete.
     */
    void checkpointToDirectory(std::string const &checkpointDirectory);
 
@@ -283,8 +286,8 @@ class Checkpointer : public Subject {
     * old checkpoint directories, and adds the new checkpoint directory to the list.
     */
    void rotateOldCheckpoints(std::string const &newCheckpointDirectory);
-   void deleteFileFromDir(std::string const &targetDir, std::string const &targetFile) const;
    void writeTimers(std::string const &directory);
+   void writeTimers(std::shared_ptr<FileManager const> fileManager);
    std::string generateBlockPath(std::string const &baseDirectory);
 
    /**
@@ -322,6 +325,7 @@ class Checkpointer : public Subject {
    int mNumCheckpointsKept                                                 = 2;
    char *mLastCheckpointDir                                                = nullptr;
    char *mInitializeFromCheckpointDir                                      = nullptr;
+   std::shared_ptr<FileManager> mInitializeFromCheckpointFileManager       = nullptr;
    std::string mCheckpointReadDirectory;
    long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol
    double mNextCheckpointSimtime        = 0.0;

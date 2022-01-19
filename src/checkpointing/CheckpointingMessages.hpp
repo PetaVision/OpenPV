@@ -1,4 +1,6 @@
+#include "io/FileManager.hpp"
 #include "observerpattern/BaseMessage.hpp"
+#include <memory>
 
 namespace PV {
 
@@ -25,10 +27,11 @@ class ReadStateFromCheckpointMessage : public BaseMessage {
 
 class ProcessCheckpointReadMessage : public BaseMessage {
   public:
-   ProcessCheckpointReadMessage(std::string const &directory) : mDirectory(directory) {
+   ProcessCheckpointReadMessage(std::shared_ptr<FileManager const> fileManager) :
+         mFileManager(fileManager) {
       setMessageType("ProcessCheckpointRead");
    }
-   std::string mDirectory;
+   std::shared_ptr<FileManager const> mFileManager;
 };
 
 class PrepareCheckpointWriteMessage : public BaseMessage {
@@ -38,10 +41,17 @@ class PrepareCheckpointWriteMessage : public BaseMessage {
 
 class WriteParamsFileMessage : public BaseMessage {
   public:
-   WriteParamsFileMessage(std::string const &directory) : mDirectory(directory) {
+   enum Action { WRITE, DELETE };
+   WriteParamsFileMessage(
+         std::shared_ptr<FileManager const> fileManager,
+         std::string const &path,
+         Action action) :
+         mFileManager(fileManager), mParamsFilePath(path), mAction(action) {
       setMessageType("WriteParamsFile");
    }
-   std::string mDirectory;
+   std::shared_ptr<FileManager const> mFileManager;
+   std::string mParamsFilePath;
+   Action mAction;
 };
 
 } // end namespace PV

@@ -149,7 +149,6 @@ int run(int argc, char *argv[]) {
 
    auto checkpointEntry = std::make_shared<PV::CheckpointEntryPvpBuffer<float>>(
          std::string("TestBuffer"),
-         checkpointer->getMPIBlock(),
          testValues.data(),
          &loc,
          false /*not extended*/);

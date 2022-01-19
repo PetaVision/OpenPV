@@ -22,7 +22,7 @@ bool Checkpointer::registerCheckpointData(
       bool constantEntireRun) {
    return registerCheckpointEntry(
          std::make_shared<CheckpointEntryData<T>>(
-               objName, dataName, getMPIBlock(), dataPointer, numValues, broadcast),
+               objName, dataName, dataPointer, numValues, broadcast),
          constantEntireRun);
 }
 

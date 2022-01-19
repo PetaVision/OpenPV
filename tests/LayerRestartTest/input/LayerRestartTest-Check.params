@@ -21,7 +21,7 @@ HyPerCol "column" = {
     lastCheckpointDir = "output/Last";
 };
 
-ANNLayer "Comparison" = {
+HyPerLayer "Comparison" = {
     initializeFromCheckpointFlag = true;
     nxScale = 1;
     nyScale = 1;
@@ -35,12 +35,6 @@ ANNLayer "Comparison" = {
     sparseLayer = 0;
 
     InitVType = "ZeroV";
-
-    VThresh = -infinity;
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
 };
 
 IdentConn "MaintainComparison" = {

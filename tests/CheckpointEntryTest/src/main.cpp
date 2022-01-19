@@ -8,16 +8,24 @@
 #include "columns/CommandLineArguments.hpp"
 #include "columns/Communicator.hpp"
 #include "io/fileio.hpp"
+#include "io/FileManager.hpp"
 #include "structures/MPIBlock.hpp"
 #include "utils/PVLog.hpp"
 
+int run(PV::Arguments const &arguments);
+
 int main(int argc, char *argv[]) {
-   PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
    MPI_Init(&argc, &argv);
-   PV::Communicator const *comm = new PV::Communicator(&arguments);
+   PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
+   int status = run(arguments);
+   MPI_Finalize();
+}
+
+int run(PV::Arguments const &arguments) {
+   PV::Communicator const comm = PV::Communicator(&arguments);
 
    std::string directory("checkpoints");
-   auto mpiBlock = comm->getLocalMPIBlock();
+   auto mpiBlock = comm.getLocalMPIBlock();
    ensureDirExists(mpiBlock, directory.c_str());
    if (mpiBlock->getRank() == 0) {
       std::string rmcommand("rm -rf " + directory + "/*");
@@ -29,18 +37,16 @@ int main(int argc, char *argv[]) {
             rmcommand.c_str(),
             WEXITSTATUS(rmstatus));
    }
-   if (comm->numCommBatches() > 1) {
-      directory.append("/batchsweep_").append(std::to_string(comm->commBatch()));
-      ensureDirExists(mpiBlock, directory.c_str());
+   if (comm.numCommBatches() > 1) {
+      directory.append("/batchsweep_").append(std::to_string(comm.commBatch()));
    }
 
+   auto fileManager = std::make_shared<PV::FileManager>(mpiBlock, directory);
    testSeparatedName(mpiBlock);
-   testDataNoBroadcast(mpiBlock, directory);
-   testDataWithBroadcast(mpiBlock, directory);
-   testPvpRestricted(mpiBlock, directory);
-   testPvpExtended(mpiBlock, directory);
-   testPvpBatch(mpiBlock, directory);
-
-   delete comm;
-   MPI_Finalize();
+   testDataNoBroadcast(fileManager);
+   testDataWithBroadcast(fileManager);
+   testPvpRestricted(fileManager);
+   testPvpExtended(fileManager);
+   testPvpBatch(fileManager);
+   return PV_SUCCESS;
 }

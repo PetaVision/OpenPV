@@ -126,6 +126,37 @@ Buffer<T> gather(
             unsigned int sliceX = localWidth * columnFromRank(sliceRank, numRows, numColumns);
             unsigned int sliceY = localHeight * rowFromRank(sliceRank, numRows, numColumns);
 
+          // crop out the border regions of small buffer, unless the rank sits on the edge
+          // of the MPI quilt
+          int topMargin  = yMargins / 2; // integer division, although usu. margins are even
+          int leftMargin = xMargins / 2;
+          if (recvRow > 0) {
+             sliceY += topMargin;
+             smallBuffer.crop(
+                   smallBuffer.getWidth(),
+                   smallBuffer.getHeight() - topMargin,
+                   Buffer<T>::SOUTH);
+          }
+          if (recvRow < numRows - 1) {
+             smallBuffer.crop(
+                   smallBuffer.getWidth(),
+                   smallBuffer.getHeight() - (yMargins - topMargin),
+                   Buffer<T>::NORTH);
+          }
+          if (recvColumn > 0) {
+             sliceX += leftMargin;
+             smallBuffer.crop(
+                   smallBuffer.getWidth() - leftMargin,
+                   smallBuffer.getHeight(),
+                   Buffer<T>::EAST);
+          }
+          if (recvColumn < numColumns - 1) {
+             smallBuffer.crop(
+                   smallBuffer.getWidth() - (xMargins - leftMargin),
+                   smallBuffer.getHeight(),
+                   Buffer<T>::WEST);
+          }
+
             globalBuffer.insert(smallBuffer, sliceX, sliceY);
          }
       }
@@ -208,5 +239,7 @@ SparseList<T> gatherSparse(
    }
    return list;
 }
+
 } // end namespace BufferUtils
+
 } // end namespace PV

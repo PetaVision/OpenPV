@@ -108,8 +108,13 @@ int checkComparisonNonzero(HyPerCol *hc, int argc, char *argv[]) {
    for (int k = 0; k < layer->getNumNeurons(); k++) {
       if (V[k]) {
          status = PV_SUCCESS;
+         InfoLog().printf(
+               "checkComparisonNonzero passed: at least one neuron (k=%d) is nonzero\n", k);
          break;
       }
+   }
+   if (status != PV_SUCCESS) {
+      ErrorLog().printf("checkComparisonNonzero failed: Comparison layer is all zero.\n");
    }
    return status;
 }
@@ -121,9 +126,13 @@ int checkComparisonZero(HyPerCol *hc, int argc, char *argv[]) {
    float *V = layer->getV();
    for (int k = 0; k < layer->getNumNeurons(); k++) {
       if (V[k]) {
-         ErrorLog().printf("Neuron %d: discrepancy %f\n", k, (double)V[k]);
+         ErrorLog().printf(
+               "checkComparisonZero failed: Neuron %d: discrepancy %f\n", k, (double)V[k]);
          status = PV_FAILURE;
       }
+   }
+   if (status == PV_SUCCESS) {
+      InfoLog().printf("checkComparisonZero passed: Comparison layer is all zero.\n");
    }
    return status;
 }

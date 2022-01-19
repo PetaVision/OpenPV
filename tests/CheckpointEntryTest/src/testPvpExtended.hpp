@@ -1,10 +1,9 @@
 #ifndef TESTPVPEXTENDED_HPP_
 #define TESTPVPEXTENDED_HPP_
 
-#include "structures/MPIBlock.hpp"
+#include "io/FileManager.hpp"
 #include <memory>
-#include <string>
 
-void testPvpExtended(std::shared_ptr<PV::MPIBlock const> mpiBlock, std::string const &directory);
+void testPvpExtended(std::shared_ptr<PV::FileManager const> fileManager);
 
 #endif // TESTPVPEXTENDED_HPP_

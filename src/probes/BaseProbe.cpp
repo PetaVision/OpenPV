@@ -287,7 +287,7 @@ void BaseProbe::initOutputStreamsByBatchElement(
                   checkpointPath.append(extension);
                   checkpointPath.append("_filepos");
                   auto checkpointEntry = std::make_shared<CheckpointEntryMPIRecvStream>(
-                        checkpointPath, ioMPIBlock, mMPIRecvStreams.back());
+                        checkpointPath, mMPIRecvStreams.back());
                   bool constantEntireRunFlag = false;
                   checkpointer->registerCheckpointEntry(checkpointEntry, constantEntireRunFlag);
                }

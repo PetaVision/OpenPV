@@ -9,7 +9,7 @@ void testSeparatedName(std::shared_ptr<PV::MPIBlock const> mpiBlock) {
    std::string const correctName("separated_name");
 
    PV::CheckpointEntryData<float> separatedNameEntryData{
-         "separated", "name", mpiBlock, (float *)nullptr, (size_t)0, false /*no broadcast*/};
+         "separated", "name", (float *)nullptr, (size_t)0, false /*no broadcast*/};
 
    std::string const &entryDataName = separatedNameEntryData.getName();
    FatalIf(
@@ -20,7 +20,6 @@ void testSeparatedName(std::shared_ptr<PV::MPIBlock const> mpiBlock) {
 
    PV::CheckpointEntryPvpBuffer<float> separatedNameEntryPvp{"separated",
                                                              "name",
-                                                             mpiBlock,
                                                              (float *)nullptr,
                                                              (PVLayerLoc const *)nullptr,
                                                              false /*no broadcast*/};

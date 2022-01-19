@@ -23,6 +23,8 @@ namespace PV {
 class FileManager {
   public:
    FileManager(std::shared_ptr<MPIBlock const> mpiBlock, std::string const &baseDirectory);
+   static std::shared_ptr<FileManager> build(
+         std::shared_ptr<MPIBlock const> mpiBlock, std::string const &baseDirectory);
    virtual ~FileManager();
 
    std::shared_ptr<FileStream> open(
@@ -63,10 +65,12 @@ class FileManager {
     * output directory for the process's checkpoint cell, followed by "/",
     * followed by the given relative path. It is a fatal error for the path to
     * be an absolute path (i.e. starting with '/').
-    * This is deprecated, as objects should never need to know the paths
-    * managed by the FileManager object
+    * This is deprecated, as objects should never need to know the full paths
+    * of the files managed by the FileManager object
     */
    std::string makeBlockFilename(std::string const &path) const;
+
+   std::string const &getBaseDirectory() const { return mBaseDirectory; }
 
    std::shared_ptr<MPIBlock const> getMPIBlock() const { return mMPIBlock; }
 
@@ -78,8 +82,9 @@ class FileManager {
    void createBlockDirectoryName(std::string const &baseDirectory);
 
   private:
-   std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
+   std::string mBaseDirectory;
    std::string mBlockDirectoryName;
+   std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
    int const mMaxAttempts = 5;
    int mRootProcessRank = 0;
 };

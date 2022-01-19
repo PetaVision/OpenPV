@@ -22,20 +22,14 @@ namespace PV {
 // Read, write and remove methods inherited from CheckpointEntryPvp.
 
 template <typename T>
-int CheckpointEntryPvpBuffer<T>::getNumFrames() const {
-   return this->getMPIBlock()->getBatchDimension() * this->getLayerLoc()->nbatch;
-}
+int CheckpointEntryPvpBuffer<T>::getNumIndices() const { return 1; }
 
 template <typename T>
-T *CheckpointEntryPvpBuffer<T>::calcBatchElementStart(int frame) const {
-   int const localBatchIndex = frame % this->getLayerLoc()->nbatch;
-   int const nx              = this->getLayerLoc()->nx + this->getXMargins();
-   int const ny              = this->getLayerLoc()->ny + this->getYMargins();
-   return &getDataPointer()[localBatchIndex * nx * ny * this->getLayerLoc()->nf];
+T *CheckpointEntryPvpBuffer<T>::calcBatchElementStart(int batchElement, int index) const {
+   PVLayerLoc const *loc = this->getLayerLoc();
+   int const nx = loc->nx + (this->getExtended() ? loc->halo.lt + loc->halo.rt : 0);
+   int const ny = loc->ny + (this->getExtended() ? loc->halo.dn + loc->halo.up : 0);
+   return &getDataPointer()[batchElement * nx * ny * loc->nf];
 }
 
-template <typename T>
-int CheckpointEntryPvpBuffer<T>::calcMPIBatchIndex(int frame) const {
-   return frame / this->getLayerLoc()->nbatch; // Integer division
-}
 } // end namespace PV

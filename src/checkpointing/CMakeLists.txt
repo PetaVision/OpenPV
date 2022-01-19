@@ -3,6 +3,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/CheckpointEntryDataStore.cpp
    ${SUBDIR}/CheckpointEntryFilePosition.cpp
    ${SUBDIR}/CheckpointEntryMPIRecvStream.cpp
+   ${SUBDIR}/CheckpointEntryParamsFileWriter.cpp
    ${SUBDIR}/CheckpointEntryRandState.cpp
    ${SUBDIR}/CheckpointEntryWeightPvp.cpp
    ${SUBDIR}/CheckpointableFileStream.cpp
@@ -16,6 +17,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CheckpointEntryDataStore.hpp
    ${SUBDIR}/CheckpointEntryFilePosition.hpp
    ${SUBDIR}/CheckpointEntryMPIRecvStream.hpp
+   ${SUBDIR}/CheckpointEntryParamsFileWriter.hpp
    ${SUBDIR}/CheckpointEntryPvp.hpp
    ${SUBDIR}/CheckpointEntryPvpBuffer.hpp
    ${SUBDIR}/CheckpointEntryRandState.hpp

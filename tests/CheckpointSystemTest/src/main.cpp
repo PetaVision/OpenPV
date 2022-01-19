@@ -104,7 +104,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
       const char *cpdir2    = hc->parameters()->stringValue("column", "checkpointWriteDir");
       const int max_buf_len = 1024;
       char shellcommand[max_buf_len];
-      const char *fmtstr = "diff -r -q -x timers.txt -x pv.params -x pv.params.lua %s/Checkpoint%d "
+      const char *fmtstr = "diff -r -q -x timers.txt -x pv?.params -x pv?.params.lua %s/Checkpoint%d "
                            "%s/Checkpoint%d";
       snprintf(shellcommand, max_buf_len, fmtstr, cpdir1, index, cpdir2, index);
       status = system(shellcommand);

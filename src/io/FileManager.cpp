@@ -11,12 +11,16 @@
 #include <unistd.h>    // sleep
 
 namespace PV {
-
 FileManager::FileManager(
       std::shared_ptr<MPIBlock const> mpiBlock, std::string const &baseDirectory) {
    mRootProcessRank = 0;
    mMPIBlock = mpiBlock;
    createBlockDirectoryName(baseDirectory);
+}
+
+std::shared_ptr<FileManager> FileManager::build(
+         std::shared_ptr<MPIBlock const> mpiBlock, std::string const &baseDirectory) {
+   return std::make_shared<FileManager>(mpiBlock, baseDirectory);
 }
 
 FileManager::~FileManager() {}
@@ -252,6 +256,7 @@ std::string FileManager::modifyPathForMtoN(std::string const &path) const {
 }
 
 void FileManager::createBlockDirectoryName(std::string const &baseDirectory) {
+   mBaseDirectory      = baseDirectory;
    mBlockDirectoryName = baseDirectory.empty() ? "." : expandLeadingTilde(baseDirectory);
    assert(!mBlockDirectoryName.empty());
 

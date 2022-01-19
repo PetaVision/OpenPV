@@ -61,7 +61,7 @@ void Publisher::checkpointDataStore(
       char const *bufferName) {
    bool registerSucceeded = checkpointer->registerCheckpointEntry(
          std::make_shared<CheckpointEntryDataStore>(
-               objectName, bufferName, checkpointer->getMPIBlock(), store, &mLayerCube->loc),
+               objectName, bufferName, store, &mLayerCube->loc),
          false /*not constant*/);
    FatalIf(
          !registerSucceeded,

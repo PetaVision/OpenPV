@@ -26,9 +26,10 @@ int main(int argc, char *argv[]) {
    // Create checkpointing directory and delete any existing files inside it.
    char const *checkpointWriteDir = params->stringValue("checkpointer", "checkpointWriteDir");
    FatalIf(
-         checkpointWriteDir == nullptr,
+         checkpointWriteDir == nullptr or checkpointWriteDir[0] == '\0',
          "Group \"checkpointer\" must have a checkpointWriteDir string parameter.\n");
    std::string checkpointWriteDirectory(checkpointWriteDir);
+   pvAssert(!checkpointWriteDirectory.empty());
    ensureDirExists(mpiBlock, checkpointWriteDirectory.c_str());
    if (mpiBlock->getRank() == 0) {
       std::string rmcommand("rm -rf ");
@@ -81,6 +82,9 @@ int main(int argc, char *argv[]) {
                      ErrorLog() << "stat " << (i->c_str()) << " returned \"" << std::strerror(errno)
                                 << "\".\n";
                      status = PV_FAILURE;
+                  }
+                  else {
+                     InfoLog() << (i->c_str()) << " was successfully deleted.\n";
                   }
                }
             }

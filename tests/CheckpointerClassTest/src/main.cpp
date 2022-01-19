@@ -53,13 +53,12 @@ int main(int argc, char *argv[]) {
 
    auto floatingpointCheckpointEntry = std::make_shared<PV::CheckpointEntryData<double>>(
          std::string("floatingpoint"),
-         mpiBlock,
          fpCheckpoint.data(),
          fpCheckpoint.size(),
          true /*broadcasting*/);
 
    auto integerCheckpointEntry = std::make_shared<PV::CheckpointEntryData<int>>(
-         std::string("integer"), mpiBlock, &integerCheckpoint, (size_t)1, true /*broadcasting*/);
+         std::string("integer"), &integerCheckpoint, (size_t)1, true /*broadcasting*/);
 
    checkpointer->registerCheckpointEntry(
          floatingpointCheckpointEntry, false /*treat as non-constant*/);

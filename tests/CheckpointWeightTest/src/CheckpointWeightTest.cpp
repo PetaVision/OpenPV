@@ -7,6 +7,7 @@
 #include "columns/HyPerCol.hpp"
 #include "columns/PV_Init.hpp"
 #include "connections/HyPerConn.hpp"
+#include "io/FileManager.hpp"
 #include "utils/requiredConvolveMargin.hpp"
 #include <cstdlib>
 #include <memory>
@@ -122,6 +123,7 @@ void verifyCheckpointing(
    // Delete checkpointDirectory and create it, if present; and then create an
    // empty checkpoint directory, to start fresh.
    std::string const checkpointDirectory("checkpoint");
+   auto fileManager = std::make_shared<FileManager>(mpiBlock, checkpointDirectory);
 
    int globalSize;
    MPI_Comm_size(mpiBlock->getGlobalComm(), &globalSize);
@@ -152,11 +154,11 @@ void verifyCheckpointing(
    // Create the CheckpointEntry.
    bool const compressFlag = false;
    auto checkpointWriter   = std::make_shared<CheckpointEntryWeightPvp>(
-         weights.getName(), mpiBlock, &weights, compressFlag);
+         weights.getName(), &weights, compressFlag);
 
    double const timestamp = 10.0;
    bool verifyWritesFlag  = false;
-   checkpointWriter->write(checkpointDirectory.c_str(), timestamp, verifyWritesFlag);
+   checkpointWriter->write(fileManager, timestamp, verifyWritesFlag);
 
    // Create a Weights object to read the checkpoint into
    Weights readBack(
@@ -173,9 +175,9 @@ void verifyCheckpointing(
 
    // Read the data back and verify timestamp.
    auto checkpointReader = std::make_shared<CheckpointEntryWeightPvp>(
-         readBack.getName(), mpiBlock, &readBack, compressFlag);
+         readBack.getName(), &readBack, compressFlag);
    double readTime = (double)(timestamp == 0.0);
-   checkpointReader->read(checkpointDirectory.c_str(), &readTime);
+   checkpointReader->read(fileManager, &readTime);
    FatalIf(
          readTime != timestamp,
          "Timestamp read from checkpoint was %f; expected %f\n",

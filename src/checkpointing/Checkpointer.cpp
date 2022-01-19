@@ -35,7 +35,7 @@ Checkpointer::Checkpointer(
    }
 
    mTimeInfoCheckpointEntry = std::make_shared<CheckpointEntryData<Checkpointer::TimeInfo>>(
-         std::string("timeinfo"), mMPIBlock, &mTimeInfo, (size_t)1, true /*broadcast*/);
+         std::string("timeinfo"), &mTimeInfo, (size_t)1, true /*broadcast*/);
    // This doesn't get put into mCheckpointRegistry because we handle the timeinfo separately.
    mCheckpointTimer = new Timer(mName.c_str(), "column", "checkpoint");
    registerTimer(mCheckpointTimer);
@@ -388,6 +388,8 @@ void Checkpointer::ioParam_initializeFromCheckpointDir(enum ParamsIOFlag ioFlag,
    if (ioFlag == PARAMS_IO_READ and mInitializeFromCheckpointDir != nullptr
        and mInitializeFromCheckpointDir[0] != '\0') {
       verifyCheckpointDirectory(mInitializeFromCheckpointDir, "InitializeFromCheckpointDir.\n");
+      mInitializeFromCheckpointFileManager =
+            std::make_shared<FileManager>(getMPIBlock(), mInitializeFromCheckpointDir);
    }
 }
 
@@ -433,11 +435,10 @@ void Checkpointer::readNamedCheckpointEntry(
    if (mSuppressNonplasticCheckpoints and constantEntireRun) {
       return;
    }
-   std::string checkpointDirectory = generateBlockPath(mInitializeFromCheckpointDir);
    for (auto &c : mCheckpointRegistry) {
       if (c->getName() == checkpointEntryName) {
          double timestamp = 0.0; // not used
-         c->read(checkpointDirectory, &timestamp);
+         c->read(mInitializeFromCheckpointFileManager, &timestamp);
          return;
       }
    }
@@ -620,12 +621,13 @@ void Checkpointer::extractCheckpointReadDirectory() {
 
 void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepPointer) {
    verifyCheckpointDirectory(mCheckpointReadDirectory.c_str(), "CheckpointReadDirectory");
-   std::string checkpointReadDirectory = generateBlockPath(mCheckpointReadDirectory);
+   auto cpreadFileManager =
+         std::make_shared<FileManager>(getMPIBlock(), getCheckpointReadDirectory());
    double readTime;
    for (auto &c : mCheckpointRegistry) {
-      c->read(checkpointReadDirectory, &readTime);
+      c->read(cpreadFileManager, &readTime);
    }
-   mTimeInfoCheckpointEntry->read(checkpointReadDirectory.c_str(), &readTime);
+   mTimeInfoCheckpointEntry->read(cpreadFileManager, &readTime);
    if (simTimePointer) {
       *simTimePointer = mTimeInfo.mSimTime;
    }
@@ -633,8 +635,8 @@ void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepP
       *currentStepPointer = mTimeInfo.mCurrentCheckpointStep;
    }
    notify(
-         std::make_shared<ProcessCheckpointReadMessage const>(checkpointReadDirectory),
-         mMPIBlock->getRank() == 0 /*printFlag*/);
+         std::make_shared<ProcessCheckpointReadMessage const>(cpreadFileManager),
+         getMPIBlock()->getRank() == 0 /*printFlag*/);
 }
 
 void Checkpointer::checkpointWrite(double simTime) {
@@ -653,6 +655,17 @@ void Checkpointer::checkpointWrite(double simTime) {
    }
    mTimeInfo.mCurrentCheckpointStep++;
    // increment step number here so that initial conditions correspond to step zero, etc.
+}
+
+void Checkpointer::checkpointDelete(std::shared_ptr<FileManager const> fileManager) {
+   sync();
+   mTimeInfoCheckpointEntry->remove(fileManager);
+   fileManager->deleteFile(std::string("timers.txt"));
+
+   for (auto &c : mCheckpointRegistry) {
+      c->remove(fileManager);
+   }
+   fileManager->deleteDirectory(std::string(""));
 }
 
 int Checkpointer::retrieveSignal() {
@@ -801,38 +814,33 @@ void Checkpointer::checkpointNow() {
 }
 
 void Checkpointer::checkpointToDirectory(std::string const &directory) {
-   std::string checkpointDirectory = generateBlockPath(directory);
    mCheckpointTimer->start();
+   auto fileManager = std::make_shared<FileManager>(getMPIBlock(), directory);
    if (mMPIBlock->getRank() == 0) {
-      InfoLog() << "Checkpointing to directory \"" << checkpointDirectory
+      InfoLog() << "Checkpointing to directory \"" << directory
                 << "\" at simTime = " << mTimeInfo.mSimTime << "\n";
       struct stat timeinfostat;
-      std::string timeinfoFilename(checkpointDirectory);
-      timeinfoFilename.append("/timeinfo.bin");
-      int statstatus = stat(timeinfoFilename.c_str(), &timeinfostat);
+      int statstatus = fileManager->stat(std::string("timeinfo.bin"), timeinfostat);
       if (statstatus == 0) {
-         WarnLog() << "Checkpoint directory \"" << checkpointDirectory
+         WarnLog() << "Checkpoint directory \"" << directory
                    << "\" has existing timeinfo.bin, which is now being deleted.\n";
-         mTimeInfoCheckpointEntry->remove(checkpointDirectory);
+         mTimeInfoCheckpointEntry->remove(fileManager);
       }
    }
-   ensureDirExists(mMPIBlock, checkpointDirectory.c_str());
-   notify(
-         std::make_shared<WriteParamsFileMessage const>(checkpointDirectory),
-         mMPIBlock->getRank() == 0 /*printFlag*/);
+   fileManager->ensureDirectoryExists(std::string("."));
    notify(
          std::make_shared<PrepareCheckpointWriteMessage const>(),
          mMPIBlock->getRank() == 0 /*printFlag*/);
    for (auto &c : mCheckpointRegistry) {
-      c->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWrites);
+      c->write(fileManager, mTimeInfo.mSimTime, mVerifyWrites);
    }
    mCheckpointTimer->stop();
    mCheckpointTimer->start();
-   writeTimers(checkpointDirectory);
+   writeTimers(fileManager);
 
    // mTimeInfoCheckpointEntry should be the last thing that gets written to the checkpoint,
    // since its presence is used by isCompleteCheckpoint to confirm that a checkpoint is complete.
-   mTimeInfoCheckpointEntry->write(checkpointDirectory, mTimeInfo.mSimTime, mVerifyWrites);
+   mTimeInfoCheckpointEntry->write(fileManager, mTimeInfo.mSimTime, mVerifyWrites);
    mCheckpointTimer->stop();
    if (mMPIBlock->getRank() == 0) {
       InfoLog().printf("checkpointWrite complete. simTime = %f\n", mTimeInfo.mSimTime);
@@ -853,48 +861,30 @@ void Checkpointer::finalCheckpoint(double simTime) {
 void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirectory) {
    std::string &oldestCheckpointDir = mOldCheckpointDirectories[mOldCheckpointDirectoriesIndex];
    if (!oldestCheckpointDir.empty()) {
-      if (mMPIBlock->getRank() == 0) {
-         std::string targetDirectory = generateBlockPath(oldestCheckpointDir);
+      auto fileManager = std::make_shared<FileManager>(getMPIBlock(), oldestCheckpointDir);
+      if (fileManager->isRoot()) {
          struct stat lcp_stat;
-         int statstatus = stat(targetDirectory.c_str(), &lcp_stat);
-         if (statstatus != 0 || !(lcp_stat.st_mode & S_IFDIR)) {
-            if (statstatus) {
-               ErrorLog().printf(
-                     "Failed to delete older checkpoint: failed to stat \"%s\": %s.\n",
-                     targetDirectory.c_str(),
-                     strerror(errno));
-            }
-            else {
-               ErrorLog().printf(
-                     "Deleting older checkpoint: \"%s\" exists but is not a directory.\n",
-                     targetDirectory.c_str());
-            }
+         int statstatus = fileManager->stat(std::string("."), lcp_stat);
+         if (statstatus) {
+            ErrorLog().printf(
+                  "Failed to delete older checkpoint: failed to stat \"%s\": %s.\n",
+                  oldestCheckpointDir.c_str(),
+                  strerror(errno));
          }
-         sync();
-         mTimeInfoCheckpointEntry->remove(targetDirectory);
-         deleteFileFromDir(targetDirectory, std::string("timers.txt"));
-         deleteFileFromDir(targetDirectory, std::string("pv.params"));
-         deleteFileFromDir(targetDirectory, std::string("pv.params.lua"));
+         else if (!(lcp_stat.st_mode & S_IFDIR)) {
+            ErrorLog().printf(
+                  "Failed to delete older checkpoint: \"%s\" exists but is not a directory.\n",
+                  oldestCheckpointDir.c_str());
+         }
+         else {
+            sync();
+            mTimeInfoCheckpointEntry->remove(fileManager);
+            fileManager->deleteFile(std::string("timers.txt"));
 
-         for (auto &c : mCheckpointRegistry) {
-            c->remove(targetDirectory);
-         }
-      }
-      MPI_Barrier(mMPIBlock->getGlobalComm());
-      if (mMPIBlock->getGlobalRank() == 0) {
-         sync();
-         struct stat oldcp_stat;
-         int statstatus = stat(oldestCheckpointDir.c_str(), &oldcp_stat);
-         if (statstatus == 0 && (oldcp_stat.st_mode & S_IFDIR)) {
-            int rmdirstatus = rmdir(oldestCheckpointDir.c_str());
-            if (rmdirstatus) {
-               ErrorLog().printf(
-                     "Unable to delete older checkpoint \"%s\": rmdir command returned %d "
-                     "(%s)\n",
-                     oldestCheckpointDir.c_str(),
-                     errno,
-                     std::strerror(errno));
+            for (auto &c : mCheckpointRegistry) {
+               c->remove(fileManager);
             }
+            fileManager->deleteDirectory(std::string(""));
          }
       }
    }
@@ -905,22 +895,10 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
    }
 }
 
-void Checkpointer::deleteFileFromDir(std::string const &targetDir, std::string const &targetFile)
-      const {
-   std::string targetPath(targetDir + "/" + targetFile);
-   struct stat targetStat;
-   int status = stat(targetPath.c_str(), &targetStat);
-   if (status == 0) {
-      status = unlink(targetPath.c_str());
-   }
-   if (status != 0) {
-      ErrorLog().printf("Failure deleting \"%s\": %s\n", targetPath.c_str(), strerror(errno));
-   }
-}
-
-void Checkpointer::writeTimers(PrintStream &stream) const {
+void Checkpointer::writeTimers(std::shared_ptr<PrintStream> stream) const {
+   if (!stream) { return; }
    for (auto timer : mTimers) {
-      timer->fprint_time(stream);
+      timer->fprint_time(*stream);
    }
 }
 
@@ -952,14 +930,10 @@ void Checkpointer::verifyCheckpointDirectory(
    }
 }
 
-void Checkpointer::writeTimers(std::string const &directory) {
-   if (mMPIBlock->getRank() == 0) {
-      std::string timerpathstring = directory;
-      timerpathstring += "/";
-      timerpathstring += "timers.txt";
-
-      const char *timerpath = timerpathstring.c_str();
-      FileStream timerstream(timerpath, std::ios_base::out, mVerifyWrites);
+void Checkpointer::writeTimers(std::shared_ptr<FileManager const> fileManager) {
+   if (fileManager->isRoot()) {
+      std::string timersfilename("timers.txt");
+      auto timerstream = fileManager->open(timersfilename, std::ios_base::out, mVerifyWrites);
       writeTimers(timerstream);
    }
 }

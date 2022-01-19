@@ -17,29 +17,29 @@ class CheckpointEntryRandState : public CheckpointEntry {
   public:
    CheckpointEntryRandState(
          std::string const &dataName,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          taus_uint4 *dataPointer,
          PVLayerLoc *layerLoc,
          bool extendedFlag)
-         : CheckpointEntry(dataName, mpiBlock),
+         : CheckpointEntry(dataName),
            mDataPointer(dataPointer),
            mLayerLoc(layerLoc),
            mExtendedFlag(extendedFlag) {}
    CheckpointEntryRandState(
          std::string const &objName,
          std::string const &dataName,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          taus_uint4 *dataPointer,
          PVLayerLoc const *layerLoc,
          bool extendedFlag)
-         : CheckpointEntry(objName, dataName, mpiBlock),
+         : CheckpointEntry(objName, dataName),
            mDataPointer(dataPointer),
            mLayerLoc(layerLoc),
            mExtendedFlag(extendedFlag) {}
-   virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
+   virtual void
+   write(std::shared_ptr<FileManager const> fileManager, double simTime, bool verifyWritesFlag)
          const override;
-   virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
-   virtual void remove(std::string const &checkpointDirectory) const override;
+   virtual void
+   read(std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const override;
+   virtual void remove(std::shared_ptr<FileManager const> fileManager) const override;
 
   private:
    taus_uint4 *mDataPointer;

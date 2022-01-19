@@ -264,7 +264,6 @@ void LIFActivityComponent::registerRandState(Checkpointer *checkpointer) {
    auto checkpointEntry = std::make_shared<CheckpointEntryRandState>(
          getName(),
          "rand_state",
-         checkpointer->getMPIBlock(),
          mRandState->getRNG(0),
          getLayerLoc(),
          false /*restricted buffer*/);

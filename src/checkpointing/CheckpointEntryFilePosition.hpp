@@ -11,30 +11,30 @@ class CheckpointEntryFilePosition : public CheckpointEntry {
   public:
    CheckpointEntryFilePosition(
          std::string const &name,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          std::shared_ptr<FileStream> fileStream)
-         : CheckpointEntry(name, mpiBlock),
+         : CheckpointEntry(name),
            mFileStream(fileStream) {}
    CheckpointEntryFilePosition(
          std::string const &objName,
          std::string const &dataName,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          std::shared_ptr<FileStream> fileStream)
-         : CheckpointEntry(objName, dataName, mpiBlock),
+         : CheckpointEntry(objName, dataName),
            mFileStream(fileStream) {}
-   virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
+   virtual void write(
+         std::shared_ptr<FileManager const> fileManager, double simTime, bool verifyWritesFlag)
          const override;
-   virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
-   virtual void remove(std::string const &checkpointDirectory) const override;
+   virtual void read(
+         std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const override;
+   virtual void remove(std::shared_ptr<FileManager const> fileManager) const override;
 
   private:
    void readValueFromBin(
-      std::string const &checkpointDirectory,
+      std::shared_ptr<FileManager const> fileManager,
       std::string const &label,
       long *value) const;
 
    void writeValueToBinAndTxt(
-      std::string const &checkpointDirectory,
+      std::shared_ptr<FileManager const> fileManager,
       std::string const &label,
       long value,
       bool verifyWritesFlag) const;

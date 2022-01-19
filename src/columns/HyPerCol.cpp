@@ -9,6 +9,7 @@
 #define DEFAULT_DELTA_T 1.0 // time step size (msec)
 
 #include "HyPerCol.hpp"
+#include "checkpointing/CheckpointEntryParamsFileWriter.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/Factory.hpp"
@@ -58,7 +59,7 @@ HyPerCol::~HyPerCol() {
    finalizeCUDA();
 #endif // PV_USE_CUDA
    if (getCommunicator()->globalCommRank() == 0) {
-      PrintStream pStream(getOutputStream());
+      auto pStream = std::make_shared<PrintStream>(getOutputStream());
       mCheckpointer->writeTimers(pStream);
    }
    delete mCheckpointer;
@@ -458,6 +459,16 @@ HyPerCol::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> 
          mIdleCounts.size(),
          true /*broadcast*/,
          false /*constantEntireRun*/);
+      auto checkpointEntry = std::make_shared<CheckpointEntryParamsFileWriter>(
+            getPrintParamsFilename(), this);
+      bool registerSucceeded =
+            checkpointer->registerCheckpointEntry(checkpointEntry, false /*not constant*/);
+      FatalIf(
+            !registerSucceeded,
+            "%s failed to register %s for checkpointing.\n",
+            getDescription_c(),
+            getPrintParamsFilename());
+   
    return Response::SUCCESS;
 }
 
@@ -872,9 +883,17 @@ HyPerCol::respondWriteParamsFile(std::shared_ptr<WriteParamsFileMessage const> m
 }
 
 Response::Status HyPerCol::writeParamsFile(std::shared_ptr<WriteParamsFileMessage const> message) {
-   std::string path(message->mDirectory);
-   path.append("/").append("pv.params");
-   outputParams(path.c_str());
+   auto fileManager = message->mFileManager;
+   auto path = fileManager->makeBlockFilename(message->mParamsFilePath);
+   switch (message->mAction) {
+      case WriteParamsFileMessage::WRITE:
+         outputParams(path.c_str());
+         break;
+      case WriteParamsFileMessage::DELETE:
+         fileManager->deleteFile(message->mParamsFilePath);
+         fileManager->deleteFile(message->mParamsFilePath + ".lua");
+   }
+       
    return Response::SUCCESS;
 }
 
