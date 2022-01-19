@@ -16,7 +16,7 @@ LocalPatchWeightsFile::LocalPatchWeightsFile(
       bool readOnlyFlag,
       bool clobberFlag,
       bool verifyWrites) :
-      CheckpointerDataInterface(),
+      WeightsFile(),
       mFileManager(fileManager),
       mPath(path),
       mPatchSizeX(weightData->getPatchSizeX()),
@@ -105,7 +105,7 @@ void LocalPatchWeightsFile::write(WeightData const &weightData, double timestamp
          MPI_Send(arbor, numValues, MPI_FLOAT, root, tag, mpiBlock->getComm());
       }
    }
-   setIndex(mIndex + 1);
+   setIndex(getIndex() + 1);
 }
 
 void LocalPatchWeightsFile::truncate(int index) {
@@ -132,7 +132,7 @@ void LocalPatchWeightsFile::truncate(int index) {
 }
 
 void LocalPatchWeightsFile::setIndex(int index) {
-   mIndex = index;
+   WeightsFile::setIndex(index);
    if (!isRoot()) { return; }
    int frameNumber = index;
    if (mReadOnly) {
@@ -254,7 +254,7 @@ void LocalPatchWeightsFile::readInternal(WeightData &weightData, double &timesta
          MPI_Recv(arbor, numValues, MPI_FLOAT, root, tag, mpiBlock->getComm(), MPI_STATUS_IGNORE);
       }
    }
-   setIndex(mIndex + 1);
+   setIndex(getIndex() + 1);
 }
 
 BufferUtils::WeightHeader

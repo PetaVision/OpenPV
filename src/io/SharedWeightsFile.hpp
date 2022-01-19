@@ -11,6 +11,7 @@
 #include "checkpointing/CheckpointerDataInterface.hpp"
 #include "io/FileManager.hpp"
 #include "io/SharedWeightsIO.hpp"
+#include "io/WeightsFile.hpp"
 
 namespace PV {
 
@@ -19,7 +20,7 @@ namespace PV {
  * operations, M-to-N communication, and PVP file format details. All file operations treat
  * the connection state, i.e. all weights at a single timestep, as a unit.
  */
-class SharedWeightsFile  : public CheckpointerDataInterface {
+class SharedWeightsFile  : public WeightsFile  {
   public:
    SharedWeightsFile(
          std::shared_ptr<FileManager const> fileManager,
@@ -55,8 +56,7 @@ class SharedWeightsFile  : public CheckpointerDataInterface {
    bool getReadOnly() const { return mReadOnly; }
    bool getVerifyWrites() const { return mVerifyWrites; }
 
-   int getIndex() const { return mIndex; }
-   void setIndex(int index);
+   void setIndex(int index) override;
 
    std::shared_ptr<FileStream> getFileStream() const { return mSharedWeightsIO->getFileStream(); }
 
@@ -87,8 +87,6 @@ class SharedWeightsFile  : public CheckpointerDataInterface {
    bool mCompressedFlag;
    bool mReadOnly;
    bool mVerifyWrites;
-
-   int mIndex = 0;
 
    std::unique_ptr<SharedWeightsIO> mSharedWeightsIO;
 

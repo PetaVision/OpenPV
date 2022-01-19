@@ -10,8 +10,8 @@
 
 #include "weightupdaters/HebbianUpdater.hpp"
 
-#include "io/LocalPatchWeightsFile.hpp"
-#include "io/SharedWeightsFile.hpp"
+#include "io/WeightsFile.hpp"
+#include <memory>
 
 namespace PV {
 
@@ -169,8 +169,7 @@ class MomentumUpdater : public HebbianUpdater {
    double mWriteTime = 0.0;
    bool mWriteCompressedWeights = false;
 
-   std::shared_ptr<SharedWeightsFile> mSharedWeightsFile;
-   std::shared_ptr<LocalPatchWeightsFile> mLocalPatchWeightsFile;
+   std::shared_ptr<WeightsFile> mWeightsFile;
 };
 
 } // namespace PV

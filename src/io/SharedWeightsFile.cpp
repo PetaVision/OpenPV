@@ -12,7 +12,7 @@ SharedWeightsFile::SharedWeightsFile(
       bool readOnlyFlag,
       bool clobberFlag,
       bool verifyWrites) :
-      CheckpointerDataInterface(),
+      WeightsFile(),
       mFileManager(fileManager),
       mPath(path),
       mPatchSizeX(weightData->getPatchSizeX()),
@@ -44,7 +44,7 @@ void SharedWeightsFile::read(WeightData &weightData, double &timestamp) {
 
 void SharedWeightsFile::write(WeightData const &weightData, double timestamp) {
    if (isRoot()) { mSharedWeightsIO->write(weightData, timestamp); }
-   setIndex(mIndex + 1);
+   setIndex(getIndex() + 1);
 }
 
 void SharedWeightsFile::truncate(int index) {
@@ -71,7 +71,7 @@ void SharedWeightsFile::truncate(int index) {
 }
 
 void SharedWeightsFile::setIndex(int index) {
-   mIndex = index;
+   WeightsFile::setIndex(index);
    if (!isRoot()) { return; }
    int frameNumber = index;
    if (mReadOnly) {
@@ -152,7 +152,7 @@ void SharedWeightsFile::readInternal(WeightData &weightData, double &timestamp) 
       float *weightsData = weightData.getData(a);
       MPI_Bcast(weightsData, numElements, MPI_FLOAT, rootProc, mpiComm);
    }
-   setIndex(mIndex + 1);
+   setIndex(getIndex() + 1);
 }
 
 } // namespace PV

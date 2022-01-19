@@ -8,6 +8,8 @@
 #include "MomentumUpdater.hpp"
 
 #include "components/WeightsPair.hpp"
+#include "io/LocalPatchWeightsFile.hpp"
+#include "io/SharedWeightsFile.hpp"
 #include "io/WeightsFileIO.hpp"
 #include <cmath> // exp()
 #include <cstring> // memcpy(), strcmp()
@@ -369,7 +371,7 @@ void MomentumUpdater::openOutputStateFile(
    auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
    auto *postLoc = mConnectionData->getPost()->getLayerLoc();
    if (mPrevDeltaWeights->getSharedFlag()) {
-      mSharedWeightsFile = std::make_shared<SharedWeightsFile>(
+      mWeightsFile = std::make_shared<SharedWeightsFile>(
             outputFileManager,
             outputStatePath,
             mPrevDeltaWeights->getData(),
@@ -377,10 +379,9 @@ void MomentumUpdater::openOutputStateFile(
             false /*readOnlyFlag*/,
             checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
             checkpointer->doesVerifyWrites());
-      mSharedWeightsFile->respond(message); // SharedWeightsFile needs to register file position
    }
    else {
-      mLocalPatchWeightsFile = std::make_shared<LocalPatchWeightsFile>(
+      mWeightsFile = std::make_shared<LocalPatchWeightsFile>(
             outputFileManager,
             outputStatePath,
             mPrevDeltaWeights->getData(),
@@ -391,22 +392,14 @@ void MomentumUpdater::openOutputStateFile(
             false /*readOnlyFlag*/,
             checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
             checkpointer->doesVerifyWrites());
-      mLocalPatchWeightsFile->respond(message); // LocalPatchWeightsFile needs to register filepos
    }
+   mWeightsFile->respond(message); // WeightsFile needs to register filepos
 }
 
 void MomentumUpdater::outputMomentum(double timestamp) {
    if ((mWriteStep >= 0) && (timestamp >= mWriteTime)) {
       mWriteTime += mWriteStep;
-
-      if (mPrevDeltaWeights->getSharedFlag()) {
-         pvAssert(!mLocalPatchWeightsFile and mSharedWeightsFile);
-         mSharedWeightsFile->write(*mPrevDeltaWeights->getData(), timestamp);
-      }
-      else {
-         pvAssert(mLocalPatchWeightsFile and !mSharedWeightsFile);
-         mLocalPatchWeightsFile->write(*mPrevDeltaWeights->getData(), timestamp);
-      }
+      mWeightsFile->write(*mPrevDeltaWeights->getData(), timestamp);
    }
    else if (mWriteStep < 0) {
       // If writeStep is negative, we never call writeWeights, but someone might restart from a

@@ -6,6 +6,8 @@
  */
 
 #include "WeightsPair.hpp"
+#include "io/LocalPatchWeightsFile.hpp"
+#include "io/SharedWeightsFile.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "utils/TransposeWeights.hpp"
 
@@ -284,7 +286,7 @@ void WeightsPair::openOutputStateFile(
    outputStatePath.append(".pvp");
 
    if (mPreWeights->getSharedFlag()) {
-      mSharedWeightsFile = std::make_shared<SharedWeightsFile>(
+      mWeightsFile = std::make_shared<SharedWeightsFile>(
             outputFileManager,
             outputStatePath,
             mPreWeights->getData(),
@@ -292,12 +294,11 @@ void WeightsPair::openOutputStateFile(
             false /*readOnlyFlag*/,
             checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
             checkpointer->doesVerifyWrites());
-      mSharedWeightsFile->respond(message); // SharedWeightsFile needs to register file position
    }
    else {
       auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
       auto *postLoc = mConnectionData->getPost()->getLayerLoc();
-      mLocalPatchWeightsFile = std::make_shared<LocalPatchWeightsFile>(
+      mWeightsFile = std::make_shared<LocalPatchWeightsFile>(
             outputFileManager,
             outputStatePath,
             mPreWeights->getData(),
@@ -308,8 +309,8 @@ void WeightsPair::openOutputStateFile(
             false /*readOnlyFlag*/,
             checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
             checkpointer->doesVerifyWrites());
-      mLocalPatchWeightsFile->respond(message); // LocalPatchWeightsFile needs to register filepos
    }
+   mWeightsFile->respond(message); // LocalPatchWeightsFile needs to register filepos
 }
 
 Response::Status WeightsPair::readStateFromCheckpoint(Checkpointer *checkpointer) {
@@ -326,15 +327,7 @@ Response::Status WeightsPair::readStateFromCheckpoint(Checkpointer *checkpointer
 void WeightsPair::outputState(double timestamp) {
    if ((mWriteStep >= 0) && (timestamp >= mWriteTime)) {
       mWriteTime += mWriteStep;
-
-      if (mPreWeights->getSharedFlag()) {
-         pvAssert(!mLocalPatchWeightsFile and mSharedWeightsFile);
-         mSharedWeightsFile->write(*mPreWeights->getData(), timestamp);
-      }
-      else {
-         pvAssert(mLocalPatchWeightsFile and !mSharedWeightsFile);
-         mLocalPatchWeightsFile->write(*mPreWeights->getData(), timestamp);
-      }
+      mWeightsFile->write(*mPreWeights->getData(), timestamp);
    }
    else if (mWriteStep < 0) {
       // If writeStep is negative, we never call writeWeights, but someone might restart from a

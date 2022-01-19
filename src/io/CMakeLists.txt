@@ -46,5 +46,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/SparseLayerBatchGatherScatter.hpp
    ${SUBDIR}/SparseLayerFile.hpp
    ${SUBDIR}/SparseLayerIO.hpp
+   ${SUBDIR}/WeightsFile.hpp
    ${SUBDIR}/WeightsFileIO.hpp
 )
