@@ -34,7 +34,6 @@
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
 #include <connections/MomentumConn.hpp>
-#include <io/WeightsFileIO.hpp>
 #include <weightupdaters/MomentumUpdater.hpp>
 
 #include <errno.h>

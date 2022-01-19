@@ -36,16 +36,16 @@ namespace PV {
 class LocalPatchWeightsFile : public CheckpointerDataInterface{
   public:
    LocalPatchWeightsFile(
-      std::shared_ptr<FileManager const> fileManager,
-      std::string const &path,
-      std::shared_ptr<WeightData> weightData,
-      PVLayerLoc const *preLayerLoc,
-      PVLayerLoc const *postLayerLoc,
-      bool fileExtendedFlag,
-      bool compressedFlag,
-      bool readOnlyFlag,
-      bool clobberFlag,
-      bool verifyWrites);
+         std::shared_ptr<FileManager const> fileManager,
+         std::string const &path,
+         std::shared_ptr<WeightData> weightData,
+         PVLayerLoc const *preLayerLoc,
+         PVLayerLoc const *postLayerLoc,
+         bool fileExtendedFlag,
+         bool compressedFlag,
+         bool readOnlyFlag,
+         bool clobberFlag,
+         bool verifyWrites);
 
    LocalPatchWeightsFile() = delete;
 
@@ -53,7 +53,7 @@ class LocalPatchWeightsFile : public CheckpointerDataInterface{
 
    void read(WeightData &weightData);
    void read(WeightData &weightData, double &timestamp);
-   void write(WeightData &weightData, double timestamp);
+   void write(WeightData const &weightData, double timestamp);
 
    void truncate(int index);
 

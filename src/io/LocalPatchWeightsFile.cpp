@@ -50,7 +50,7 @@ void LocalPatchWeightsFile::read(WeightData &weightData, double &timestamp) {
          &timestamp, 1, MPI_DOUBLE, mFileManager->getRootProcessRank(), mpiComm);
 }
 
-void LocalPatchWeightsFile::write(WeightData &weightData, double timestamp) {
+void LocalPatchWeightsFile::write(WeightData const &weightData, double timestamp) {
    float extremeValues[2]; // extremeValues[0] is the min; extremeValues[1] is the max.
    mLocalPatchWeightsIO->calcExtremeWeights(
          weightData, getNxRestrictedPre(), getNyRestrictedPre(),
@@ -100,7 +100,7 @@ void LocalPatchWeightsFile::write(WeightData &weightData, double timestamp) {
    else {
       int root = mFileManager->getRootProcessRank();
       for (int a = 0; a < getNumArbors(); ++a) {
-         float *arbor = weightData.getData(a);
+         float const *arbor = weightData.getData(a);
          int tag = 136;
          MPI_Send(arbor, numValues, MPI_FLOAT, root, tag, mpiBlock->getComm());
       }

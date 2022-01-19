@@ -51,7 +51,6 @@ void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
 }
 
 void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
-   auto ioMPIBlock  = getCommunicator()->getIOMPIBlock();
    std::string dir  = dirName(mVfilename);
    std::string base = baseName(mVfilename);
    std::string ext  = extension(mVfilename);
@@ -86,10 +85,10 @@ void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {
       inputLayerFile.read();
    }
    else { // TODO: Treat as an image file
-      if (ioMPIBlock->getRank() == 0) {
+      if (fileManager->isRoot()) {
          ErrorLog().printf("InitVFromFile: file \"%s\" is not a pvp file.\n", this->mVfilename);
       }
-      MPI_Barrier(ioMPIBlock->getComm());
+      MPI_Barrier(fileManager->getMPIBlock()->getComm());
       exit(EXIT_FAILURE);
    }
 }
