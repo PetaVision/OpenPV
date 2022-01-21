@@ -90,8 +90,8 @@ class SharedWeightsFile  : public WeightsFile  {
 
    std::unique_ptr<SharedWeightsIO> mSharedWeightsIO;
 
-   long mFileStreamReadPos  = 0L; // Input file position of the LayerIO's FileStream
-   long mFileStreamWritePos = 0L; // Output file position of the LayerIO's FileStream
+   long mFileStreamReadPos  = 0L; // Input file position of the SharedWeightsIO's FileStream
+   long mFileStreamWritePos = 0L; // Output file position of the SharedWeightsIO's FileStream
 };
 
 } // namespacePV

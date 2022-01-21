@@ -125,8 +125,8 @@ class LocalPatchWeightsFile : public WeightsFile {
 
    std::unique_ptr<LocalPatchWeightsIO> mLocalPatchWeightsIO;
 
-   long mFileStreamReadPos  = 0L; // Input file position of the LayerIO's FileStream
-   long mFileStreamWritePos = 0L; // Output file position of the LayerIO's FileStream
+   long mFileStreamReadPos  = 0L; // Input file position of the LocalPatchWeightsIO's FileStream
+   long mFileStreamWritePos = 0L; // Output file position of the LocalPatchWeightsIO's FileStream
 };
 
 } // namespacePV

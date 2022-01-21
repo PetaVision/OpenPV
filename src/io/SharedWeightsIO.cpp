@@ -22,7 +22,7 @@ SharedWeightsIO::SharedWeightsIO(
       mNumArbors(numArbors), mCompressedFlag(compressedFlag) {
    FatalIf(
          fileStream and !fileStream->readable(),
-         "FileStream \"%s\" is not readable and can't be used in a LayerIO object.\n",
+         "FileStream \"%s\" is not readable and can't be used in a SharedWeightsIO object.\n",
          fileStream->getFileName());
    mDataSize = static_cast<long>(mCompressedFlag ? sizeof(uint8_t) : sizeof(float));
    initializeFrameSize();

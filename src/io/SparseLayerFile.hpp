@@ -91,8 +91,8 @@ class SparseLayerFile : public CheckpointerDataInterface {
    // backward compatibility, we continue to write the old values.
    int mNumFramesSparse = 0; // number of batch elements handled by an MPIBlock;
    // that is, Index * MPIBlock->BatchDimension * loc->nbatch;
-   long mFileStreamReadPos  = 0L; // Input file position of the LayerIO's FileStream
-   long mFileStreamWritePos = 0L; // Output file position of the LayerIO's FileStream
+   long mFileStreamReadPos  = 0L; // Input file position of the SparseLayerIO's FileStream
+   long mFileStreamWritePos = 0L; // Output file position of the SparseLayerIO's FileStream
 };
 
 } // namespacePV
