@@ -6,6 +6,8 @@
  */
 
 #include "PointProbe.hpp"
+#include "checkpointing/CheckpointEntryFilePosition.hpp"
+#include "io/FileStreamBuilder.hpp"
 #include "layers/HyPerLayer.hpp"
 #include <string.h>
 
@@ -142,18 +144,26 @@ void PointProbe::initOutputStreams(
          char const *probeOutputFilename = getProbeOutputFilename();
          std::string path(probeOutputFilename);
          bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
-         std::string filePosName(probeOutputFilename);
-         filePosName.append("_filepos");
-         auto stream = new CheckpointableFileStream(
-               path.c_str(),
-               createFlag,
+         auto stream = FileStreamBuilder(
                getCommunicator()->getOutputFileManager(),
-               filePosName,
-               checkpointer->doesVerifyWrites());
+               getProbeOutputFilename(),
+               true /*text*/,
+               false /*not read-only*/,
+               createFlag,
+               checkpointer->doesVerifyWrites()).get();
+         auto checkpointEntry = std::make_shared<CheckpointEntryFilePosition>(
+               getProbeOutputFilename(), stream);
+         bool registerSucceeded = checkpointer->registerCheckpointEntry(
+               checkpointEntry, false /*not constant for entire run*/);
+         FatalIf(
+               !registerSucceeded,
+               "%s failed to register %s for checkpointing.\n",
+               getDescription_c(),
+               checkpointEntry->getName().c_str());
          mOutputStreams.push_back(stream);
       }
       else {
-         auto stream = new PrintStream(PV::getOutputStream());
+         auto stream = std::make_shared<PrintStream>(PV::getOutputStream());
          mOutputStreams.push_back(stream);
       }
    }

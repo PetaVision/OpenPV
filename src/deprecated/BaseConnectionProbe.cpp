@@ -6,7 +6,8 @@
  */
 
 #include "BaseConnectionProbe.hpp"
-#include "checkpointing/CheckpointableFileStream.hpp"
+#include "checkpointing/CheckpointEntryFilePosition.hpp"
+#include "io/FileStreamBuilder.hpp"
 
 namespace PV {
 
@@ -99,19 +100,28 @@ void BaseConnectionProbe::initOutputStreams(
       char const *probeOutputFilename = getProbeOutputFilename();
       if (probeOutputFilename and probeOutputFilename[0]) {
          std::string path(probeOutputFilename);
+         auto fileManager = getCommunicator()->getOutputFileManager();
          bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
-         std::string filePosName(getProbeOutputFilename());
-         filePosName.append("_filepos");
-         auto stream = new CheckpointableFileStream(
-               path.c_str(),
+         auto stream = FileStreamBuilder(
+               fileManager,
+               path,
+               true /*textFile*/,
+               false /*readOnlyFlag*/,
                createFlag,
-               getCommunicator()->getOutputFileManager(),
-               filePosName,
-               checkpointer->doesVerifyWrites());
+               checkpointer->doesVerifyWrites()).get();
+         auto checkpointEntry = std::make_shared<CheckpointEntryFilePosition>(
+               getProbeOutputFilename(), stream);
+         bool registerSucceeded = checkpointer->registerCheckpointEntry(
+               checkpointEntry, false /*not constant for entire run*/);
+         FatalIf(
+               !registerSucceeded,
+               "%s failed to register %s for checkpointing.\n",
+               getDescription_c(),
+               checkpointEntry->getName().c_str());
          mOutputStreams.push_back(stream);
       }
       else {
-         auto stream = new PrintStream(PV::getOutputStream());
+         auto stream = std::make_shared<PrintStream>(PV::getOutputStream());
          mOutputStreams.push_back(stream);
       }
    }

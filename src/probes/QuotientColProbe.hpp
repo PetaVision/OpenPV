@@ -118,7 +118,7 @@ class QuotientColProbe : public ColProbe {
    virtual Response::Status outputState(double simTime, double deltaTime) override;
    virtual Response::Status outputStateStats(double simTime, double deltaTime) override;
 
-   virtual void outputHeader(Checkpointer *checkpointer) override;
+   virtual void outputHeader() override;
 
   private:
    /**

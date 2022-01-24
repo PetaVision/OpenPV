@@ -40,7 +40,7 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual std::vector<double>
    calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales);
-   void writeTimestepInfo(double timeValue, std::vector<PrintStream *> &streams);
+   void writeTimestepInfo(double timeValue, std::vector<std::shared_ptr<PrintStream>> &streams);
 
    // Data members
   protected:

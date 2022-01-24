@@ -6,7 +6,6 @@
  */
 
 #include "LayerOutputComponent.hpp"
-#include "checkpointing/CheckpointEntryFilePosition.hpp"
 
 namespace PV {
 

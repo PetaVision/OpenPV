@@ -6,11 +6,13 @@
  */
 
 #include "BaseProbe.hpp"
-#include "checkpointing/CheckpointableFileStream.hpp"
+#include "checkpointing/CheckpointEntryFilePosition.hpp"
 #include "checkpointing/CheckpointEntryMPIRecvStream.hpp"
+#include "io/FileStreamBuilder.hpp"
 #include "io/MPISendStream.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "probes/ColumnEnergyProbe.hpp"
+#include "utils/PathComponents.hpp"
 #include <float.h>
 #include <limits>
 
@@ -25,9 +27,6 @@ BaseProbe::BaseProbe() {
 
 BaseProbe::~BaseProbe() {
    flushOutputStreams();
-   for (auto &s : mOutputStreams) {
-      delete s;
-   }
    mOutputStreams.clear();
    free(targetName);
    targetName = nullptr;
@@ -205,24 +204,33 @@ void BaseProbe::initOutputStreams(
 void BaseProbe::initOutputStreamsStatsFlag(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto *checkpointer = message->mDataRegistry;
-   if (getCommunicator()->getIOMPIBlock()->getGlobalRank() == 0) {
+   auto globalFileManager = std::make_shared<FileManager>(
+         getCommunicator()->getIOMPIBlock(),
+         getCommunicator()->getOutputFileManager()->getBaseDirectory());
+   if (globalFileManager->isRoot()) {
       mOutputStreams.resize(1);
-      char const *probeOutputFilename = getProbeOutputFilename();
-      if (probeOutputFilename and probeOutputFilename[0]) {
+      if (getProbeOutputFilename() and getProbeOutputFilename()[0]) {
          bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
-         std::string filePosName(probeOutputFilename);
-         filePosName.append("_filepos");
-         auto *cpFileStream = new CheckpointableFileStream(
-               probeOutputFilename,
+         auto fileStream = FileStreamBuilder(
+               globalFileManager,
+               getProbeOutputFilename(),
+               true /*text*/,
+               false /*not read-only*/,
                createFlag,
-               getCommunicator()->getOutputFileManager(),
-               filePosName,
-               checkpointer->doesVerifyWrites());
-         cpFileStream->respond(message); // CheckpointableFileStream needs to register data
-         mOutputStreams[0] = cpFileStream;
+               checkpointer->doesVerifyWrites()).get();
+         auto checkpointEntry = std::make_shared<CheckpointEntryFilePosition>(
+               getProbeOutputFilename(), std::string("filepos"), fileStream);
+         bool registerSucceeded = checkpointer->registerCheckpointEntry(
+               checkpointEntry, false /*not constant for entire run*/);
+         FatalIf(
+               !registerSucceeded,
+               "%s failed to register %s for checkpointing.\n",
+               getDescription_c(),
+               checkpointEntry->getName().c_str());
+         mOutputStreams[0] = fileStream;
       }
       else {
-         mOutputStreams[0] = new PrintStream(PV::getOutputStream());
+         mOutputStreams[0] = std::make_shared<PrintStream>(PV::getOutputStream());
       }
    }
    else {
@@ -240,52 +248,51 @@ void BaseProbe::initOutputStreamsByBatchElement(
       mOutputStreams.resize(mLocalBatchWidth);
       if (isWritingToFile()) {
          if (isRootProc()) {
-            std::string path(mProbeOutputFilename);
-            auto extensionStart = path.rfind('.');
-            std::string extension;
-            if (extensionStart != std::string::npos) {
-               extension = path.substr(extensionStart);
-               path      = path.substr(0, extensionStart);
-            }
+            std::string probeOutputFilename(mProbeOutputFilename);
+            std::string dir  = dirName(probeOutputFilename);
+            std::string base = stripExtension(probeOutputFilename);
+            std::string ext  = extension(probeOutputFilename);
+            std::string pathRoot = dir + "/" + base + "_batchElement_";
 
             int blockBatchSize = ioMPIBlock->getBatchDimension() * mLocalBatchWidth;
             // set up MPIRecvStream objects for batch elements that are not on the root process
             mMPIRecvStreams.reserve(blockBatchSize - mLocalBatchWidth);
             initializeTagVectors(blockBatchSize - mLocalBatchWidth, mTagSpacing);
+            auto fileManager = getCommunicator()->getOutputFileManager();
 
             for (int b = 0; b < blockBatchSize; ++b) {
                int batchProcessIndex = b / mLocalBatchWidth; // integer division
                int sendingRank = ioMPIBlock->calcRankFromRowColBatch(0, 0, batchProcessIndex);
                if (sendingRank == ioMPIBlock->getRank()) {
-                  int localBatchIndex          = b % mLocalBatchWidth;
-                  int globalBatchIndex         = localBatchIndex + localBatchOffset;
-                  std::string batchPath        = path;
-                  std::string batchIndexString = std::to_string(globalBatchIndex);
-                  batchPath.append("_batchElement_").append(batchIndexString).append(extension);
-                  bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
-                  std::string filePosName(batchPath + "_filepos");
-                  auto fs = new CheckpointableFileStream(
-                        batchPath.c_str(),
-                        createFlag,
-                        getCommunicator()->getOutputFileManager(),
-                        filePosName,
-                        checkpointer->doesVerifyWrites());
-                  mOutputStreams[localBatchIndex] = fs;
-                  fs->respond(message); // CheckpointableFileStream needs to register data
+                  int localBatchIndex  = b % mLocalBatchWidth;
+                  int globalBatchIndex = localBatchIndex + localBatchOffset;
+                  auto path            = pathRoot + std::to_string(globalBatchIndex) + ext;
+                  bool createFlag      = checkpointer->getCheckpointReadDirectory().empty();
+                  bool verifyWrites    = checkpointer->doesVerifyWrites();
+                  auto fileStream      = FileStreamBuilder(
+                       fileManager,
+                       path,
+                       true /*text*/,
+                       false /*not read-only*/,
+                       createFlag,
+                       verifyWrites).get();
+                  auto checkpointEntry =
+                        std::make_shared<CheckpointEntryFilePosition>(path, "filepos", fileStream);
+                  bool registerSucceeded = checkpointer->registerCheckpointEntry(
+                        checkpointEntry, false /*not constant for entire run*/);
+                  FatalIf(
+                        !registerSucceeded,
+                        "%s failed to register %s for checkpointing.\n",
+                        getDescription_c(),
+                        checkpointEntry->getName().c_str());
+                  mOutputStreams[localBatchIndex] = fileStream;
                }
                else {
                   int globalBatchIndex  = b + localBatchOffset;
-                  std::string batchPath(path);
-                  batchPath.append("_batchElement_").append(std::to_string(globalBatchIndex));
-                  batchPath.append(extension);
-                  batchPath =
-                        getCommunicator()->getOutputFileManager()->makeBlockFilename(batchPath);
+                  auto batchPath        = pathRoot + std::to_string(globalBatchIndex) + ext;
+                  std::string checkpointPath(batchPath + "_filepos");
+                  batchPath = fileManager->makeBlockFilename(batchPath);
                   mMPIRecvStreams.emplace_back(batchPath, ioMPIBlock->getComm(), sendingRank);
-                  std::string checkpointPath(path);
-                  checkpointPath.append("_batchElement_");
-                  checkpointPath.append(std::to_string(globalBatchIndex));
-                  checkpointPath.append(extension);
-                  checkpointPath.append("_filepos");
                   auto checkpointEntry = std::make_shared<CheckpointEntryMPIRecvStream>(
                         checkpointPath, mMPIRecvStreams.back());
                   bool constantEntireRunFlag = false;
@@ -296,13 +303,14 @@ void BaseProbe::initOutputStreamsByBatchElement(
          else { // ioMPIBlock->getRank() != 0; use MPISendStream
             initializeTagVectors(mLocalBatchWidth, mTagSpacing);
             for (int b = 0; b < mLocalBatchWidth; b++) {
-               mOutputStreams[b] = new MPISendStream(ioMPIBlock->getComm(), 0/*receiving rank*/);
+               mOutputStreams[b] =
+                     std::make_shared<MPISendStream>(ioMPIBlock->getComm(), 0/*receiving rank*/);
             }
          }
       }
       else { // no ProbeOutputFilename; use default output stream.
          for (int b = 0; b < mLocalBatchWidth; b++) {
-            mOutputStreams[b] = new PrintStream(PV::getOutputStream());
+            mOutputStreams[b] = std::make_shared<PrintStream>(PV::getOutputStream());
          }
       }
    }

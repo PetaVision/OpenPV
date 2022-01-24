@@ -117,7 +117,7 @@ class ColProbe : public BaseProbe {
     * Derived classes can override this method to write header data to the output
     * file.
     */
-   virtual void outputHeader(Checkpointer *checkpointer) {}
+   virtual void outputHeader() {}
 
   private:
    /**

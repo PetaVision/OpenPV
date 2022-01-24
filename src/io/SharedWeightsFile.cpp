@@ -122,6 +122,11 @@ Response::Status SharedWeightsFile::processCheckpointRead() {
    long pos  = mReadOnly ? mFileStreamReadPos : mFileStreamWritePos;
    int index = mSharedWeightsIO->calcFrameNumberFromFilePosition(pos);
    setIndex(index);
+   if (isRoot() and mSharedWeightsIO->getFrameNumber() < mSharedWeightsIO->getNumFrames()) {
+      WarnLog() << "Truncating \"" << getPath() << "\" to "
+                << mSharedWeightsIO->getFrameNumber() << " frames.\n";
+      truncate(getIndex());
+   }
    return Response::SUCCESS;
 }
 

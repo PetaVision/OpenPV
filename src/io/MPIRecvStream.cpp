@@ -16,12 +16,14 @@ MPIRecvStream::MPIRecvStream(
    // We set the output position to zero; if we are indeed restoring from checkpoint, the
    // CheckpointEntryMPIRecvStream object will move the output pointer to the correct position.
    struct stat existingstat;
+   errno = 0;
    int status = stat(path.c_str(), &existingstat);
    FatalIf(
          status != 0 and errno != ENOENT,
          "Unable to check status of \"%s\": %s\n",
          path.c_str(), std::strerror(errno));
-   if (errno == ENOENT) {
+   if (status != 0) {
+      pvAssert(errno == ENOENT);
       std::ofstream emptyFile(path.c_str());
    }
    auto mode = std::ios_base::out | std::ios_base::in;

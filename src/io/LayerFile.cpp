@@ -50,11 +50,6 @@ void LayerFile::read(double &timestamp) {
 void LayerFile::write(double timestamp) {
    auto mpiBlock = mFileManager->getMPIBlock();
    if (isRoot()) {
-      if (mLayerIO->getFrameNumber() < mLayerIO->getNumFrames()) {
-         WarnLog() << "Truncating \"" << getPath() << "\" to "
-                   << mLayerIO->getFrameNumber() << " frames.\n";
-         truncate(mIndex);
-      }
       int nfRoot = mLayerLoc.nf;
       int nxRoot = mLayerLoc.nx * mpiBlock->getNumColumns();
       int nyRoot = mLayerLoc.ny * mpiBlock->getNumRows();
@@ -166,6 +161,11 @@ Response::Status LayerFile::processCheckpointRead() {
    }
    int index = mNumFrames / (mFileManager->getMPIBlock()->getBatchDimension() * mLayerLoc.nbatch);
    setIndex(index);
+   if (isRoot() and mLayerIO->getFrameNumber() < mLayerIO->getNumFrames()) {
+      WarnLog() << "Truncating \"" << getPath() << "\" to "
+                << mLayerIO->getFrameNumber() << " frames.\n";
+      truncate(mIndex);
+   }
    return Response::SUCCESS;
 }
 

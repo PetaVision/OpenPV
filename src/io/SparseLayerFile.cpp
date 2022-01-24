@@ -48,6 +48,10 @@ void SparseLayerFile::read(double &timestamp) {
 
 void SparseLayerFile::write(double timestamp) {
    if (isRoot()) {
+      // TODO: If writing to the middle of the file, move the tail end of the
+      // file as necessary, instead of truncating. This is necessary for
+      // SparseLayerFile but not for other PVP file classes because
+      // frames in sparse format have variable sizes.
       if (mSparseLayerIO->getFrameNumber() < mSparseLayerIO->getNumFrames()) {
          WarnLog() << "Truncating \"" << getPath() << "\" to "
                    << mSparseLayerIO->getFrameNumber() << " frames.\n";
@@ -136,6 +140,11 @@ Response::Status SparseLayerFile::processCheckpointRead() {
    int index =
          mNumFramesSparse / (mFileManager->getMPIBlock()->getBatchDimension() * mLayerLoc.nbatch);
    setIndex(index);
+   if (isRoot() and mSparseLayerIO->getFrameNumber() < mSparseLayerIO->getNumFrames()) {
+      WarnLog() << "Truncating \"" << getPath() << "\" to "
+                << mSparseLayerIO->getFrameNumber() << " frames.\n";
+      truncate(mIndex);
+   }
    return Response::SUCCESS;
 }
 

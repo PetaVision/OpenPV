@@ -12,6 +12,7 @@
 #include "include/pv_common.h"
 #include "io/MPIRecvStream.hpp"
 #include <stdio.h>
+#include <memory>
 #include <vector>
 
 namespace PV {
@@ -429,7 +430,7 @@ inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutp
    // Member variables
   protected:
    // A vector of PrintStreams, one for each batch element.
-   std::vector<PrintStream *> mOutputStreams;
+   std::vector<std::shared_ptr<PrintStream>> mOutputStreams;
    std::vector<MPIRecvStream> mMPIRecvStreams;
 
    bool triggerFlag;

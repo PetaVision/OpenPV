@@ -85,7 +85,7 @@ std::vector<double> AdaptiveTimeScaleController::calcTimesteps(
 
 void AdaptiveTimeScaleController::writeTimestepInfo(
       double timeValue,
-      std::vector<PrintStream *> &streams) {
+      std::vector<std::shared_ptr<PrintStream>> &streams) {
    for (int b = 0; b < mBatchWidth; b++) {
       auto stream = *streams.at(b);
       if (mWriteTimeScaleFieldnames) {

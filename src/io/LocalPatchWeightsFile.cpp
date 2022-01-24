@@ -183,6 +183,11 @@ Response::Status LocalPatchWeightsFile::processCheckpointRead() {
    long pos  = mReadOnly ? mFileStreamReadPos : mFileStreamWritePos;
    int index = mLocalPatchWeightsIO->calcFrameNumberFromFilePosition(pos);
    setIndex(index);
+   if (isRoot() and mLocalPatchWeightsIO->getFrameNumber() < mLocalPatchWeightsIO->getNumFrames()) {
+      WarnLog() << "Truncating \"" << getPath() << "\" to "
+                << mLocalPatchWeightsIO->getFrameNumber() << " frames.\n";
+      truncate(getIndex());
+   }
    return Response::SUCCESS;
 }
 

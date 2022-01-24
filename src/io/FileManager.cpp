@@ -212,7 +212,6 @@ void FileManager::deleteFile(std::string const &path) const {
 
 int FileManager::stat(std::string const &path, struct stat &statbuf) const {
    if (!isRoot()) { return 0; }
-
    std::string modifiedPath = modifyPathForMtoN(path);
    int status = ::stat(modifiedPath.c_str(), &statbuf);
    return status;

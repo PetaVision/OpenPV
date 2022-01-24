@@ -10,8 +10,6 @@
 
 #include "probes/LayerProbe.hpp"
 
-#include "checkpointing/CheckpointableFileStream.hpp"
-
 namespace PV {
 
 class PointProbe : public LayerProbe {
