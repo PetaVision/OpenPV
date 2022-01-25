@@ -63,10 +63,11 @@ void SharedWeightsFile::truncate(int index) {
       }
       int newFrameNumber = curFrameNumber > index ? index : curFrameNumber;
       long eofPosition = mSharedWeightsIO->calcFilePositionFromFrameNumber(index);
-      mSharedWeightsIO = std::unique_ptr<SharedWeightsIO>(); // closes existing file
+      mSharedWeightsIO->close();
       mFileManager->truncate(mPath, eofPosition);
-      initializeSharedWeightsIO(false /*do not clobber*/); // reopens existing file with same mode.
-      mSharedWeightsIO->setFrameNumber(newFrameNumber);
+      mSharedWeightsIO->open();
+      int newIndex = index < getIndex() ? index : getIndex();
+      setIndex(newIndex);
    }
 }
 

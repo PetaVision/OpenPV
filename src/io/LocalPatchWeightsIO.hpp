@@ -112,6 +112,9 @@ class LocalPatchWeightsIO {
 
    std::shared_ptr<FileStream> getFileStream() const { return mFileStream; }
 
+   void open();
+   void close();
+
    int getPatchSizeX() const { return mPatchSizeX; }
    int getPatchSizeY() const { return mPatchSizeY; }
    int getPatchSizeF() const { return mPatchSizeF; }

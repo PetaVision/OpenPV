@@ -93,10 +93,11 @@ void SparseLayerFile::truncate(int index) {
       }
       int newFrameNumber = curFrameNumber > targetFrameNumber ? targetFrameNumber : curFrameNumber;
       long filePosition = mSparseLayerIO->calcFilePositionFromFrameNumber(newFrameNumber);
-      mSparseLayerIO = std::unique_ptr<SparseLayerIO>(); // closes existing file
+      mSparseLayerIO->close();
       mFileManager->truncate(mPath, filePosition);
-      initializeSparseLayerIO(false /*do not clobber*/); // reopens existing file with same mode.
-      mSparseLayerIO->setFrameNumber(newFrameNumber);
+      mSparseLayerIO->open();
+      int newIndex = index < getIndex() ? index : getIndex();
+      setIndex(newIndex);
    }
 }
 

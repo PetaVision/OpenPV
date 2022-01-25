@@ -153,6 +153,13 @@ void SharedWeightsIO::write(WeightData const &weightData, double timestamp, int 
    write(weightData, timestamp);
 }
 
+void SharedWeightsIO::open() {
+   mFileStream->open();
+}
+
+void SharedWeightsIO::close() {
+   mFileStream->close();
+}
 
 void SharedWeightsIO::setFrameNumber(int frameNumber) {
    pvAssert(mFileStream);

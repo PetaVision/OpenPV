@@ -345,6 +345,14 @@ void LocalPatchWeightsIO::writeRegion(
    setFrameNumber(getFrameNumber());
 }
 
+void LocalPatchWeightsIO::open() {
+   mFileStream->open();
+}
+
+void LocalPatchWeightsIO::close() {
+   mFileStream->close();
+}
+
 long LocalPatchWeightsIO::getNumPatchesFile() const {
    long nx = getNxRestrictedPre() + 2 * getXMargin();
    long ny = getNyRestrictedPre() + 2 * getYMargin();

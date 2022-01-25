@@ -57,6 +57,9 @@ class SharedWeightsIO {
    void write(WeightData const &weightData, double timestamp);
    void write(WeightData const &weightData, double timestamp, int frameNumber);
 
+   void open();
+   void close();
+
    std::shared_ptr<FileStream> getFileStream() const { return mFileStream; }
 
    int getPatchSizeX() const { return mPatchSizeX; }

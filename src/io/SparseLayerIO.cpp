@@ -123,6 +123,17 @@ void SparseLayerIO::write(SparseList<float> const &sparseList, double timestamp,
    write(sparseList, timestamp);
 }
 
+void SparseLayerIO::open() {
+   if (mFileStream) {
+      mFileStream->open();
+      initializeFrameStarts();
+   }
+}
+
+void SparseLayerIO::close() {
+   if (mFileStream) { mFileStream->close(); }
+}
+
 void SparseLayerIO::setFrameNumber(int frame) {
    if (!mFileStream) { return; }
    mFrameNumber = frame;
@@ -132,17 +143,19 @@ void SparseLayerIO::setFrameNumber(int frame) {
 }
 
 void SparseLayerIO::initializeFrameStarts() {
-   // Should only be called by constructor, after nonroot process have returned
+   // Should only be called by root process, either by constructor or on (re-)opening the file
    pvAssert(getFileStream());
 
    getFileStream()->setInPos(0L, std::ios_base::end);
    long eofPosition = getFileStream()->getInPos();
    FatalIf(
          eofPosition < mHeaderSize,
-         "SparseLayerIO \"%s\" is too shore (%ld bytes) to contain an activity header.\n",
+         "SparseLayerIO \"%s\" is too short (%ld bytes) to contain an activity header.\n",
          getFileStream()->getFileName(), eofPosition);
    long curPosition = mHeaderSize;
    getFileStream()->setInPos(curPosition, std::ios_base::beg);
+   mFrameStarts.clear();
+   mNumEntries.clear();
    while (curPosition < eofPosition) {
       mFrameStarts.push_back(curPosition);
 

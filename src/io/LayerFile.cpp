@@ -2,6 +2,7 @@
 
 #include "checkpointing/CheckpointEntryFilePosition.hpp"
 #include "io/FileStreamBuilder.hpp"
+#include "utils/BorderExchange.hpp"
 #include "utils/PathComponents.hpp"
 
 namespace PV {
@@ -92,7 +93,7 @@ void LayerFile::truncate(int index) {
       mLayerIO->close();
       mFileManager->truncate(mPath, eofPosition);
       mLayerIO->open();
-      int newIndex = index < mIndex ? index : mIndex;
+      int newIndex = index < getIndex() ? index : getIndex();
       setIndex(newIndex);
    }
 }
@@ -238,6 +239,27 @@ void LayerFile::readInternal(double &timestamp, bool checkTimestampConsistency) 
          mGatherScatter->scatter(mpiBlock->getBatchIndex(), nullptr, getDataLocation(b));
       }
    }
+
+   auto localMPIBlock  = mFileManager->getMPIBlock();
+   auto globalMPIBlock = MPIBlock(
+      localMPIBlock->getGlobalComm(),
+      localMPIBlock->getGlobalNumRows(),
+      localMPIBlock->getGlobalNumColumns(),
+      localMPIBlock->getGlobalBatchDimension(),
+      localMPIBlock->getGlobalNumRows(),
+      localMPIBlock->getGlobalNumColumns(),
+      localMPIBlock->getGlobalBatchDimension());
+   auto borderExchange = BorderExchange(globalMPIBlock, mLayerLoc);
+   std::vector<MPI_Request> requestsVector;
+   for (int b = 0; b < mLayerLoc.nbatch; b++) {
+      float *data = getDataLocation(b);
+      std::vector<MPI_Request> batchElementMPIRequest;
+      borderExchange.exchange(data, batchElementMPIRequest);
+      requestsVector.insert(
+            requestsVector.end(), batchElementMPIRequest.begin(), batchElementMPIRequest.end());
+   }
+   borderExchange.wait(requestsVector);
+
    setIndex(mIndex + 1);
 }
 

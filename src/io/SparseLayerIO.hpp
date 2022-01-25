@@ -52,6 +52,9 @@ class SparseLayerIO {
    void write(SparseList<float> const &sparseList, double timestamp);
    void write(SparseList<float> const &sparseList, double timestamp, int frameNumber);
 
+   void open();
+   void close();
+
    std::shared_ptr<FileStream> getFileStream() const { return mFileStream; }
 
    int getWidth() const { return mWidth; }

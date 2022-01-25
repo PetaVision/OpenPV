@@ -124,10 +124,11 @@ void LocalPatchWeightsFile::truncate(int index) {
       }
       int newFrameNumber = curFrameNumber > index ? index : curFrameNumber;
       long eofPosition = mLocalPatchWeightsIO->calcFilePositionFromFrameNumber(index);
-      mLocalPatchWeightsIO = std::unique_ptr<LocalPatchWeightsIO>(); // closes existing file
+      mLocalPatchWeightsIO->close();
       mFileManager->truncate(mPath, eofPosition);
-      initializeLocalPatchWeightsIO(false /*do not clobber*/); // reopens existing file with same mode.
-      mLocalPatchWeightsIO->setFrameNumber(newFrameNumber);
+      mLocalPatchWeightsIO->open();
+      int newIndex = index < getIndex() ? index : getIndex();
+      setIndex(newIndex);
    }
 }
 
