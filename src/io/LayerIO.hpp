@@ -51,6 +51,9 @@ class LayerIO {
    void write(Buffer<float> const &buffer, double timestamp);
    void write(Buffer<float> const &buffer, double timestamp, int frameNumber);
 
+   void open();
+   void close();
+
    int getWidth() const { return mWidth; }
    int getHeight() const { return mHeight; }
    int getNumFeatures() const { return mNumFeatures; }

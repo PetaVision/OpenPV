@@ -89,10 +89,11 @@ void LayerFile::truncate(int index) {
       }
       int newFrameNumber = curFrameNumber > targetFrameNumber ? targetFrameNumber : curFrameNumber;
       long eofPosition = mLayerIO->calcFilePositionFromFrameNumber(newFrameNumber);
-      mLayerIO = std::unique_ptr<LayerIO>(); // closes existing file
+      mLayerIO->close();
       mFileManager->truncate(mPath, eofPosition);
-      initializeLayerIO(false /*do not clobber*/); // reopens existing file with same mode.
-      mLayerIO->setFrameNumber(newFrameNumber);
+      mLayerIO->open();
+      int newIndex = index < mIndex ? index : mIndex;
+      setIndex(newIndex);
    }
 }
 

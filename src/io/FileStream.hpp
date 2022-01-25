@@ -16,18 +16,23 @@ namespace PV {
 
 class FileStream : public PrintStream {
   public:
+   FileStream(char const *path);
    FileStream(char const *path, std::ios_base::openmode mode, bool verifyWrites = false);
    virtual ~FileStream();
-   virtual void write(void const *data, long length);
-   virtual void read(void *data, long length);
-   virtual void setOutPos(long pos, std::ios_base::seekdir seekAnchor);
-   virtual void setOutPos(long pos, bool fromBeginning);
-   virtual void setInPos(long pos, std::ios_base::seekdir seekAnchor);
-   virtual void setInPos(long pos, bool fromBeginning);
+   void open(std::ios_base::openmode mode, bool verifyWrites);
+   void open();
+   void write(void const *data, long length);
+   void read(void *data, long length);
+   void close();
+   void setOutPos(long pos, std::ios_base::seekdir seekAnchor);
+   void setOutPos(long pos, bool fromBeginning);
+   void setInPos(long pos, std::ios_base::seekdir seekAnchor);
+   void setInPos(long pos, bool fromBeginning);
    bool readable() const { return mMode & std::ios_base::in; }
    bool writeable() const { return mMode & std::ios_base::out; }
    bool binary() const { return mFStream.flags() & std::ios_base::binary; }
    bool readwrite() const { return readable() && writeable(); }
+   bool isOpen() const { return mFStream.is_open(); }
    operator bool() const { return mFStream ? true : false; }
    long getOutPos();
    long getInPos();
@@ -35,16 +40,17 @@ class FileStream : public PrintStream {
 
   protected:
    FileStream() {}
-   void initialize(char const *path, std::ios_base::openmode mode, bool verifyWrites);
    void verifyFlags(const char *caller);
-   void openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites);
-
-   std::fstream mFStream;
-   std::string mFileName;
 
   private:
+   void initializePath(char const *path);
+
+  private:
+   std::fstream mFStream;
+   std::string mFileName;
    std::ios_base::openmode mMode;
    bool mVerifyWrites     = false;
+
    int const mMaxAttempts = 5;
 };
 
