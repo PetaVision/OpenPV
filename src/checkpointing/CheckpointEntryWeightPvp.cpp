@@ -6,8 +6,9 @@
  */
 
 #include "CheckpointEntryWeightPvp.hpp"
-#include "io/WeightsFileIO.hpp"
 #include "io/fileio.hpp"
+#include "io/LocalPatchWeightsFile.hpp"
+#include "io/SharedWeightsFile.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/BufferUtilsPvp.hpp"
@@ -25,10 +26,34 @@ void CheckpointEntryWeightPvp::write(
       double simTime,
       bool verifyWritesFlag) const {
    std::string filename = generateFilename(std::string("pvp"));
-   
-   auto fileStream = fileManager->open(filename, std::ios_base::out, verifyWritesFlag);
-   WeightsFileIO weightFileIO(fileStream.get(), fileManager->getMPIBlock(), mWeights);
-   weightFileIO.writeWeights(simTime, mCompressFlag);
+
+   bool sharedFlag = mWeights->getSharedFlag();
+   std::shared_ptr<WeightsFile> weightsFile;
+   if (sharedFlag) {
+      weightsFile = std::make_shared<SharedWeightsFile>(
+         fileManager,
+         filename,
+         mWeights->getData(),
+         mCompressFlag,
+         false /*readOnlyFlag*/,
+         true /*clobberFlag*/,
+         verifyWritesFlag);
+
+   }
+   else {
+      weightsFile = std::make_shared<LocalPatchWeightsFile>(
+         fileManager,
+         filename,
+         mWeights->getData(),
+         &mWeights->getGeometry()->getPreLoc(),
+         &mWeights->getGeometry()->getPostLoc(),
+         true /*fileExtendedFlag*/,
+         mCompressFlag,
+         false /*readOnlyFlag*/,
+         true /*clobberFlag*/,
+         verifyWritesFlag);
+   }
+   weightsFile->write(*mWeights->getData(), simTime);
 }
 
 void CheckpointEntryWeightPvp::read(
@@ -48,10 +73,34 @@ void CheckpointEntryWeightPvp::read(
    }
 
    std::string filename = generateFilename(std::string("pvp"));
-   auto fileStream = fileManager->open(filename, std::ios_base::in, false);
+   bool sharedFlag = mWeights->getSharedFlag();
+   std::shared_ptr<WeightsFile> weightsFile;
+   if (sharedFlag) {
+      weightsFile = std::make_shared<SharedWeightsFile>(
+         fileManager,
+         filename,
+         mWeights->getData(),
+         mCompressFlag,
+         true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
+         false /*verifyWritesFlag*/);
 
-   WeightsFileIO weightFileIO(fileStream.get(), fileManager->getMPIBlock(), mWeights);
-   double simTime = weightFileIO.readWeights(0 /*frameNumber*/);
+   }
+   else {
+      weightsFile = std::make_shared<LocalPatchWeightsFile>(
+         fileManager,
+         filename,
+         mWeights->getData(),
+         &mWeights->getGeometry()->getPreLoc(),
+         &mWeights->getGeometry()->getPostLoc(),
+         true /*fileExtendedFlag*/,
+         mCompressFlag,
+         true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
+         false /*verifyWritesFlag*/);
+   }
+   double simTime;
+   weightsFile->read(*mWeights->getData(), simTime);
    if (simTimePtr) {
       *simTimePtr = simTime;
    }

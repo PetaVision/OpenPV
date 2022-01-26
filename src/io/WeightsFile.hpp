@@ -8,6 +8,8 @@
 #ifndef WEIGHTSFILE_HPP_
 #define WEIGHTSFILE_HPP_
 
+#include "structures/WeightData.hpp"
+
 namespace PV {
 
 /**
