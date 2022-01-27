@@ -10,7 +10,6 @@
 #include "components/WeightsPair.hpp"
 #include "io/LocalPatchWeightsFile.hpp"
 #include "io/SharedWeightsFile.hpp"
-#include "io/WeightsFileIO.hpp"
 #include <cmath> // exp()
 #include <cstring> // memcpy(), strcmp()
 
@@ -239,13 +238,39 @@ MomentumUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
 
 Response::Status
 MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   Response::Status status = Response::SUCCESS;
+   Response::Status status = HebbianUpdater::initializeState(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (mPlasticityFlag and mInitPrev_dWFile and mInitPrev_dWFile[0]) {
-      FileStream prevDeltaWeightsStream(
-            mInitPrev_dWFile, std::ios_base::in | std::ios_base::binary);
-      auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
-      WeightsFileIO prev_dWFile(&prevDeltaWeightsStream, ioMPIBlock, mPrevDeltaWeights);
-      prev_dWFile.readWeights(mPrev_dWFrameNumber);
+      auto globalMPIBlock = getCommunicator()->getGlobalMPIBlock();
+      auto fileManager = std::make_shared<FileManager>(globalMPIBlock, ".");
+      std::shared_ptr<WeightsFile> weightsFile;
+      if (mPrevDeltaWeights->getSharedFlag()) {
+         weightsFile = std::make_shared<SharedWeightsFile>(
+               fileManager,
+               std::string(mInitPrev_dWFile),
+               mPrevDeltaWeights->getData(),
+               false /* compressedFlag */,
+               true /* readOnlyFlag */,
+               false /* clobberFlag */,
+               false /* verifyWritesFlag */);
+      }
+      else {
+         weightsFile = std::make_shared<LocalPatchWeightsFile>(
+               fileManager,
+               std::string(mInitPrev_dWFile),
+               mPrevDeltaWeights->getData(),
+               &mPrevDeltaWeights->getGeometry()->getPreLoc(),
+               &mPrevDeltaWeights->getGeometry()->getPostLoc(),
+               true /* fileExtendedFlag */,
+               false /* compressedFlag */,
+               true /* readOnlyFlag */,
+               false /* clobberFlag */,
+               false /* verifyWritesFlag */);
+      }
+      weightsFile->setIndex(mPrev_dWFrameNumber);
+      weightsFile->read(*mPrevDeltaWeights->getData());
    }
    return status;
 }
