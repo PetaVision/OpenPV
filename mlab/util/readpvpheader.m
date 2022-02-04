@@ -129,7 +129,7 @@ try
     end
 catch
     errordetected = true;
-end_try_catch
+end%try_catch
 
 if openedfile, fclose(fid); end % Close file if we opened it but not if we didn't
 
