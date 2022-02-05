@@ -233,6 +233,7 @@ void BaseProbe::initOutputStreamsByBatchElement(
       int localBatchOffset = mLocalBatchWidth * mpiBatchIndex;
       mOutputStreams.resize(mLocalBatchWidth);
       if (isWritingToFile()) {
+         MPI_Comm mpiComm = getMPIBlock()->getComm();
          if (isRootProc()) {
             std::string path(mProbeOutputFilename);
             auto extensionStart = path.rfind('.');
@@ -247,6 +248,7 @@ void BaseProbe::initOutputStreamsByBatchElement(
             mMPIRecvStreams.reserve(blockBatchSize - mLocalBatchWidth);
             initializeTagVectors(blockBatchSize - mLocalBatchWidth, mTagSpacing);
 
+            bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
             for (int b = 0; b < blockBatchSize; ++b) {
                int batchProcessIndex = b / mLocalBatchWidth; // integer division
                int sendingRank = getMPIBlock()->calcRankFromRowColBatch(0, 0, batchProcessIndex);
@@ -256,7 +258,6 @@ void BaseProbe::initOutputStreamsByBatchElement(
                   std::string batchPath        = path;
                   std::string batchIndexString = std::to_string(globalBatchIndex);
                   batchPath.append("_batchElement_").append(batchIndexString).append(extension);
-                  bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
                   std::string filePosName(batchPath + "_filepos");
                   auto fs = new CheckpointableFileStream(
                         batchPath.c_str(), createFlag, checkpointer, filePosName);
@@ -269,7 +270,7 @@ void BaseProbe::initOutputStreamsByBatchElement(
                   batchPath.append("_batchElement_").append(std::to_string(globalBatchIndex));
                   batchPath.append(extension);
                   batchPath = checkpointer->makeOutputPathFilename(batchPath);
-                  mMPIRecvStreams.emplace_back(batchPath, getMPIBlock()->getComm(), sendingRank);
+                  mMPIRecvStreams.emplace_back(batchPath, mpiComm, sendingRank, createFlag);
                   std::string checkpointPath(path);
                   checkpointPath.append("_batchElement_");
                   checkpointPath.append(std::to_string(globalBatchIndex));
@@ -285,7 +286,7 @@ void BaseProbe::initOutputStreamsByBatchElement(
          else { // getMPIBlock()->getRank() != 0; use MPISendStream
             initializeTagVectors(mLocalBatchWidth, mTagSpacing);
             for (int b = 0; b < mLocalBatchWidth; b++) {
-               mOutputStreams[b] = new MPISendStream(getMPIBlock()->getComm(), 0/*receiving rank*/);
+               mOutputStreams[b] = new MPISendStream(mpiComm, 0/*receiving rank*/);
             }
          }
       }

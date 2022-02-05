@@ -194,12 +194,11 @@ void runOnSameProcs(int rank) {
 
 void runReceive(int recvRank, int sendRank) {
    auto path = generatePath(recvRank, sendRank);
-   PV::MPIRecvStream stream(path, MPI_COMM_WORLD, sendRank);
+   PV::MPIRecvStream stream(path, MPI_COMM_WORLD, sendRank, false /*clobberFlag*/);
    int count = 0;
    int numPolls = 0;
    while(count == 0) {
       count = stream.receive(400 + recvRank + 20 * sendRank);
-      // nanosleep(&sleeptime, nullptr);
       ++numPolls;
    }
    InfoLog() << "MPIRecvStream::receive() from rank " << sendRank <<

@@ -22,7 +22,7 @@ class MPIRecvStream {
     * The constructor for MPIRecvStream. Internally, it uses the path to create
     * FileStream object that the receive() function member uses to print the received data.
     */
-   MPIRecvStream(std::string &path, MPI_Comm mpi_comm, int sendRank);
+   MPIRecvStream(std::string &path, MPI_Comm mpi_comm, int sendRank, bool clobberFlag);
    ~MPIRecvStream();
 
    /**
