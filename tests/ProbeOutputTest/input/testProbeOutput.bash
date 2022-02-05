@@ -26,12 +26,27 @@ function toldiffloop() {
     do
         targetfile="OutputL2Norm_batchElement_${k}.txt"
         targetpath="$(find output -name ${targetfile})"
+        correctfile="${correctdir}/correct_OutputL2Norm_${k}.txt"
         if test "$(echo "$targetpath" | wc -l)" -ne 1
         then
             >&2 echo "${RUNDESC}, file \"${targetfile}\" not found"
             status=1
         else
-            toldiff "${correctdir}/correct_${k}.txt" "$targetpath" || status=1
+            toldiff "$correctfile" "$targetpath" 3
+            if test $? -ne 0 ; then status=1 ; fi
+        fi
+    done
+    for k in {0..7}
+    do
+        targetfile="TotalEnergy_batchElement_${k}.txt"
+        targetpath="$(find output -name ${targetfile})"
+        correctfile="${correctdir}/correct_TotalEnergy_${k}.txt"
+        if test "$(echo "$targetpath" | wc -l)" -ne 1
+        then
+            >&2 echo "${RUNDESC}, file \"${targetfile}\" not found"
+            status=1
+        else
+            toldiff "$correctfile" "$targetpath" 2
             if test $? -ne 0 ; then status=1 ; fi
         fi
     done
@@ -69,23 +84,37 @@ failure=0
 
 ### Initializing from checkpoint ###
 echo "${RUNDESC} test, initializing from checkpoint..."
+if test -d initializing_checkpoint ; then rm -r initializing_checkpoint ; fi
+cp -pr output_${RUNNAME}/checkpoints/Checkpoint040 initializing_checkpoint
+# New, experimental code
 cp -pr output_${RUNNAME} output
-rm output/*.log
-for k in {0..7}
-do
-    targetfile=OutputL2Norm_batchElement_${k}.txt
-    filepospath="$(find output/checkpoints/Checkpoint040 -name "${targetfile}_filepos_FileStreamRead.txt")"
-    truncat="$(cat ${filepospath})"
-    truncat=$(($truncat + 100))
-    targetpath="$(find output -name "${targetfile}")"
-    truncate -s $truncat "${targetpath}"
-    echo "xxxxxxxxxx" >> "${targetpath}"
-done
-find output -name Output.pvp |
+find output -type f -delete
+find output_${RUNNAME} -name TotalEnergy_batchElement_\*.txt \! -path \*filepos\* |
 while read f
 do
-    truncate -s ${OUTPUTPVPTRUNC} "$f"
+    copyname="$(echo "$f" | sed -e '1,$s|^output_'"${RUNNAME}"'/|output/|')"
+    cp -p "$f" "$copyname"
+    echo "There's no fire in the fireplace" >> "$copyname"
+    echo "There's no carpet on the floor" >> "$copyname"
+    echo "Don't try to order dinner there's no kitchen any more" >> "$copyname"
 done
+#cp -pr output_${RUNNAME} output
+#rm output/*.log
+#for k in {0..7}
+#do
+#    targetfile=OutputL2Norm_batchElement_${k}.txt
+#    filepospath="$(find output/checkpoints/Checkpoint040 -name "${targetfile}_filepos_FileStreamRead.txt")"
+#    truncat="$(cat ${filepospath})"
+#    truncat=$(($truncat + 100))
+#    targetpath="$(find output -name "${targetfile}")"
+#    truncate -s $truncat "${targetpath}"
+#    echo "xxxxxxxxxx" >> "${targetpath}"
+#done
+#find output -name Output.pvp |
+#while read f
+#do
+#    truncate -s ${OUTPUTPVPTRUNC} "$f"
+#done
 ${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}-ifcp.txt
 mv -i ProbeOutputTest_${RUNNAME}_initfromchkpt*.log output/
 toldiffloop initfromchkpt

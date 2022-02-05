@@ -145,8 +145,8 @@ L2NormProbe "OutputProbe" = {
     textOutputFlag                      = true;
     probeOutputFile                     = "OutputL2Norm.txt";
     triggerLayerName                    = NULL;
-    energyProbe                         = NULL; // "TotalEnergyProbe";
-    // coefficient                      = 0.5; // only used if energyProbe is set
+    energyProbe                         = "TotalEnergyProbe";
+    coefficient                         = 0.5; // only used if energyProbe is set
     maskLayerName                       = NULL;
     exponent                            = 2;
 };
