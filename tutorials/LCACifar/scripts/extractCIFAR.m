@@ -8,7 +8,7 @@ mixed_file_pathname = [cifarPath, '/mixed_cifar.txt'];
 if exist(mixed_file_pathname, "file") == 2
     printf("WARNING: %s exists and is being deleted to prevent duplicate entries.\n", mixed_file_pathname);
     unlink(mixed_file_pathname);
-endif
+end%if
 
 printf("Extracting Images..");
 extractImagesOctave([cifarPath, '/data_batch_1.mat'], 1);
