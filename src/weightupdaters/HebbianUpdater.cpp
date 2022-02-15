@@ -16,7 +16,13 @@ HebbianUpdater::HebbianUpdater(char const *name, PVParams *params, Communicator 
    initialize(name, params, comm);
 }
 
-HebbianUpdater::~HebbianUpdater() { cleanup(); }
+HebbianUpdater::~HebbianUpdater() {
+   cleanup();
+   if (mNumKernelActivations) {
+      free(mNumKernelActivations[0]);
+      free(mNumKernelActivations);
+   }
+}
 
 void HebbianUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseWeightUpdater::initialize(name, params, comm);

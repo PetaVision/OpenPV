@@ -10,7 +10,9 @@
 
 namespace PV {
 
-LinkedObjectParam::~LinkedObjectParam() {}
+LinkedObjectParam::~LinkedObjectParam() {
+   free(mLinkedObjectName);
+}
 
 void LinkedObjectParam::initialize(
       char const *name,

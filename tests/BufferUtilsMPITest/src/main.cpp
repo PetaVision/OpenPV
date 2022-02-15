@@ -231,9 +231,10 @@ int main(int argc, char **argv) {
    testExtended(comm);
    InfoLog() << "Rank " << rank << ": Completed.\n";
 
-   MPI_Finalize();
-
+   delete comm;
    delete args;
+
+   MPI_Finalize();
 
    InfoLog() << "BufferUtilsMPI tests completed successfully!\n";
    return EXIT_SUCCESS;

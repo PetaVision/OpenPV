@@ -128,6 +128,13 @@ std::vector<std::string> FileManager::listDirectory(std::string const &path) con
          path.c_str(),
          mBlockDirectoryName.c_str()); 
 
+   status = closedir(dir);
+   FatalIf(
+         status != 0,
+         "FileManager failed to close directory \"%s\" in \"%s\": %s\n",
+         path.c_str(),
+         mBlockDirectoryName.c_str(),
+         strerror(errno));
    return result;
 }
 

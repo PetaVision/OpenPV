@@ -71,6 +71,7 @@ HyPerCol::~HyPerCol() {
    delete mRunTimer;
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
+   free(mOutputPath);
 }
 
 int HyPerCol::initialize_base() {
