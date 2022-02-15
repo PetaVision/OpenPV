@@ -22,6 +22,8 @@
 
 using namespace PV;
 
+const float tolerance = 2.5e-7f; // relative error tolerance in comparing weights 
+
 std::shared_ptr<WeightData> allocateWeights(
       int numArbors, int nxp, int nyp, int nfp,
       PVLayerLoc const &preLoc, PVLayerLoc const &postLoc);
@@ -440,14 +442,15 @@ int compareWeights(
                   for (int kx = xPatchStart; kx < xPatchStart + xPatchDim; ++kx) {
                      for (int kf = 0; kf < patchSizeF; ++kf) {
                         int index = kIndex(kx, ky, kf, patchSizeX, patchSizeY, patchSizeF);
-                        if (patch1[index] != patch2[index]) {
+                        float discrepancy = patch2[index] - patch1[index];
+                        if (std::abs(discrepancy) > tolerance * std::abs(patch1[index])) {
                            ErrorLog().printf(
                                  "compareWeights, %s: weights do not agree at patch with "
                                  "arbor %d, restricted index x=%d, y=%d, f=%d, patch element at "
                                  "x=%d, y=%d, f=%d (%f versus %f, discrepancy %g)\n",
                                  label.c_str(), a, x, y, f, kx, ky, kf,
                                  (double)patch1[index], (double)patch2[index],
-                                 (double)(patch2[index] - patch1[index]));
+                                 (double)discrepancy);
                            status = PV_FAILURE;
                         }
                      }
