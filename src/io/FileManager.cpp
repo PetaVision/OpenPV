@@ -139,13 +139,13 @@ std::vector<std::string> FileManager::listDirectory(std::string const &path) con
 }
 
 int FileManager::makeDirectory(std::string const &path) const {
-   int status     = 0;
+   int status = 0;
    if (!isRoot()) { return status; }
 
    mode_t dirmode = S_IRWXU | S_IRWXG | S_IRWXO;
    std::string modifiedPath = modifyPathForMtoN(path);
    pvAssert(!modifiedPath.empty());
-   std::string::size_type pos = modifiedPath.find('/');
+   std::string::size_type pos = modifiedPath.find('/', 1);
    while (pos != std::string::npos) {
       std::string workingDir = modifiedPath.substr(0, pos);
       status = mkdir(workingDir.c_str(), dirmode);
