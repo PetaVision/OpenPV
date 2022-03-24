@@ -211,6 +211,9 @@ class MPIBlock {
          int const blockNumColumns,
          int const globalBatchDimension);
 
+   void dimensionSanityCheck();
+
+
    /**
     * Used internally by the constructor to set the StartRow, RowIndex,
     * StartColumn, ColumnIndex, StartBatch, and BatchIndex data members.
