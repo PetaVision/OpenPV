@@ -26,7 +26,6 @@ FilenameParsingActivityBuffer::FilenameParsingActivityBuffer(
 }
 
 FilenameParsingActivityBuffer::~FilenameParsingActivityBuffer() {
-   free(mInputLayerName);
    free(mClassListFileName);
 }
 
@@ -97,7 +96,7 @@ Response::Status FilenameParsingActivityBuffer::communicateInitInfo(
          "%s: The phase of layer %s (%d) must be greater than the phase of the "
          "FilenameParsingActivityBuffer (%d)\n",
          getDescription_c(),
-         mInputLayerName,
+         mInputLayer->getName(),
          inputLayerPhase,
          phase);
    return Response::SUCCESS;
