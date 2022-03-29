@@ -14,9 +14,10 @@ void CheckpointEntryRandState::write(
       std::shared_ptr<FileManager const> fileManager,
       double simTime,
       bool verifyWritesFlag) const {
-   std::string filename = generateFilename(std::string("pvp"));
+   std::string filename  = generateFilename(std::string("pvp"));
+   std::string blockPath = fileManager->makeBlockFilename(filename);
    writeRandState(
-         filename,
+         blockPath,
          fileManager->getMPIBlock(),
          mDataPointer,
          mLayerLoc,
@@ -27,9 +28,10 @@ void CheckpointEntryRandState::write(
 
 void CheckpointEntryRandState::read(
       std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const {
-   std::string filename = generateFilename(std::string("pvp"));
-   *simTimePtr          = readRandState(
-         filename,
+   std::string filename  = generateFilename(std::string("pvp"));
+   std::string blockPath = fileManager->makeBlockFilename(filename);
+   *simTimePtr           = readRandState(
+         blockPath,
          fileManager->getMPIBlock(),
          mDataPointer,
          mLayerLoc,
