@@ -5,7 +5,6 @@
  *      Author: Craig Rasmussen
  */
 
-#define TIMER_ON
 #define DEFAULT_DELTA_T 1.0 // time step size (msec)
 
 #include "HyPerCol.hpp"
@@ -493,11 +492,8 @@ int HyPerCol::run(double stopTime, double dt) {
    allocateColumn();
    getOutputStream().flush();
 
-#ifdef TIMER_ON
    Clock runClock;
    runClock.start_clock();
-#endif
-
    advanceTimeLoop(runClock, 10 /*runClockStartingStep*/);
 
    notifyLoop(std::make_shared<CleanupMessage>());
@@ -509,12 +505,10 @@ int HyPerCol::run(double stopTime, double dt) {
 
    mCheckpointer->finalCheckpoint(mSimTime);
 
-#ifdef TIMER_ON
    runClock.stop_clock();
    if (getCommunicator()->globalCommRank() == 0) {
       runClock.print_elapsed(getOutputStream());
    }
-#endif
 
    return PV_SUCCESS;
 }
@@ -676,11 +670,9 @@ void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) 
       advanceTime(mSimTime);
 
       step += 1;
-#ifdef TIMER_ON
       if (step == runClockStartingStep) {
          runClock.start_clock();
       }
-#endif
 
    } // end time loop
 }

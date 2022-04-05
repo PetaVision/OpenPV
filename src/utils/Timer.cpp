@@ -20,7 +20,7 @@
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #else
-#include <sys/time.h>
+#include <time.h>
 #endif // USE_MACH_TIMER
 
 /**
@@ -30,9 +30,9 @@ uint64_t get_cpu_time() {
 #ifdef USE_MACH_TIMER
    return mach_absolute_time();
 #else
-   struct timeval tim;
-   gettimeofday(&tim, NULL);
-   return ((uint64_t)tim.tv_sec) * 1000000 + (uint64_t)tim.tv_usec;
+   struct timespec tim;
+   clock_gettime(CLOCK_REALTIME,&tim);
+   return ((uint64_t)tim.tv_sec) * 1000000 + (uint64_t)((tim.tv_nsec+500L)/1000L);
 #endif
 }
 
