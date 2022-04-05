@@ -24,7 +24,7 @@ LayerProbe::LayerProbe(const char *name, PVParams *params, Communicator const *c
    initialize(name, params, comm);
 }
 
-LayerProbe::~LayerProbe() { delete mIOTimer; }
+LayerProbe::~LayerProbe() {}
 
 int LayerProbe::initialize_base() {
    targetLayer = NULL;
@@ -82,21 +82,6 @@ LayerProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const
    return targetLayer->getInitInfoCommunicatedFlag() ? Response::SUCCESS : Response::POSTPONE;
 }
 
-Response::Status
-LayerProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = BaseProbe::registerData(message);
-   if (!Response::completed(status)) {
-      return status;
-   }
-
-   auto *checkpointer = message->mDataRegistry;
-
-   mIOTimer = new Timer(getName(), "layer", "io     ");
-   checkpointer->registerTimer(mIOTimer);
-
-   return Response::SUCCESS;
-}
-
 bool LayerProbe::needRecalc(double timevalue) {
    auto *updateController = targetLayer->getComponentByType<LayerUpdateController>();
    pvAssert(updateController);
@@ -123,13 +108,6 @@ LayerProbe::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage cons
       return status;
    }
    status = outputStateWrapper(message->mTime, message->mDeltaTime);
-   return status;
-}
-
-Response::Status LayerProbe::outputStateWrapper(double simTime, double deltaTime) {
-   mIOTimer->start();
-   auto status = BaseProbe::outputStateWrapper(simTime, deltaTime);
-   mIOTimer->stop();
    return status;
 }
 

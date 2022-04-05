@@ -11,6 +11,7 @@
 #include "components/LayerUpdateController.hpp"
 #include "include/pv_common.h"
 #include "io/MPIRecvStream.hpp"
+#include "utils/Timer.hpp"
 #include <stdio.h>
 #include <memory>
 #include <vector>
@@ -486,6 +487,7 @@ inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutp
    // handled?
    int mProbeIndex;
    static int mNumProbes;
+   Timer *mIOTimer = nullptr;
 }; // class BaseProbe
 
 } // namespace PV

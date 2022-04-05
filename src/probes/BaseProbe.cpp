@@ -42,6 +42,7 @@ BaseProbe::~BaseProbe() {
    }
    free(energyProbe);
    mMPIRecvStreams.clear();
+   delete mIOTimer;
 }
 
 int BaseProbe::initialize_base() {
@@ -424,6 +425,11 @@ BaseProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const>
           "\"%s\" called with null I/O MPIBlock\n",
           getDescription());
    initOutputStreams(message);
+
+   auto *checkpointer = message->mDataRegistry;
+   mIOTimer = new Timer(getName(), "probe", "io     ");
+   checkpointer->registerTimer(mIOTimer);
+
    return Response::SUCCESS;
 }
 
@@ -445,6 +451,7 @@ void BaseProbe::getValues(double timevalue, std::vector<double> *valuesVector) {
 }
 
 Response::Status BaseProbe::outputStateWrapper(double simTime, double dt) {
+   mIOTimer->start();
    auto status = Response::NO_ACTION;
    if (textOutputFlag && needUpdate(simTime, dt)) {
       if (mStatsFlag) {
@@ -455,6 +462,7 @@ Response::Status BaseProbe::outputStateWrapper(double simTime, double dt) {
          transferMPIOutput();
       }
    }
+   mIOTimer->stop();
    return status;
 }
 

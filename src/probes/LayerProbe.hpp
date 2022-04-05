@@ -12,7 +12,6 @@
 #include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Response.hpp"
-#include "utils/Timer.hpp"
 #include <memory>
 
 namespace PV {
@@ -54,17 +53,12 @@ class LayerProbe : public BaseProbe {
    respondLayerProbeWriteParams(std::shared_ptr<LayerProbeWriteParamsMessage const> message);
    Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
 
-   virtual Response::Status outputStateWrapper(double simTime, double deltaTime) override;
-
    HyPerLayer *getTargetLayer() { return targetLayer; }
 
   protected:
    LayerProbe();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual void initMessageActionMap() override;
-
-   virtual Response::Status
-   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    /**
     * Implements the needRecalc method.  Returns true if the target layer's
@@ -87,7 +81,6 @@ class LayerProbe : public BaseProbe {
    // Member variables
   protected:
    HyPerLayer *targetLayer = nullptr;
-   Timer *mIOTimer         = nullptr;
 };
 }
 
