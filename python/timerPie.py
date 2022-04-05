@@ -5,9 +5,21 @@
 import matplotlib.pyplot as plt
 import pdb
 import numpy as np
+import sys
+import os.path
 
-timersFile = "/home/sheng/mountData/KITTI/KITTI_Deep_2X3frames/benchmark0/output.txt"
-outputDirectory = "/home/sheng/mountData/KITTI/KITTI_Deep_2X3frames/benchmark0/"
+if (len(sys.argv) == 1):
+    print("timerPie.py path/to/timers.txt")
+    print("Creates PNG pie charts of the times in the specified timers.txt file.")
+    print("layerTimes.png shows the time spent in each object.")
+    print("timerTimes.png shows the time spent in each timer type.")
+    print("These files are written to the same directory the timers.txt file is in.")
+    exit(0)
+
+timersFile = sys.argv[1]
+outputDirectory = os.path.dirname(timersFile);
+if len(outputDirectory) == 0:
+    outputDirectory = '.'
 
 f = open(timersFile, 'r')
 fileLines = f.readlines()
@@ -27,6 +39,8 @@ times = []
 #labels.pop(0)
 
 for l in fileLines:
+    if len(l) > 10 and l[:10] == 'StatsProbe':
+        continue
     #Split via colon
     split = l.split(":")
     #Grab first split, which contains the name of the timer
