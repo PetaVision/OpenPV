@@ -10,6 +10,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/DataStore.cpp
    ${SUBDIR}/Factory.cpp
    ${SUBDIR}/GaussianRandom.cpp
+   ${SUBDIR}/GitRevision.cpp
    ${SUBDIR}/HyPerCol.cpp
    ${SUBDIR}/KeywordHandler.cpp
    ${SUBDIR}/ParamsInterface.cpp
@@ -31,6 +32,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/DataStore.hpp
    ${SUBDIR}/Factory.hpp
    ${SUBDIR}/GaussianRandom.hpp
+   ${SUBDIR}/GitRevision.hpp
    ${SUBDIR}/HyPerCol.hpp
    ${SUBDIR}/KeywordHandler.hpp
    ${SUBDIR}/Messages.hpp

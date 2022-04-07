@@ -200,7 +200,6 @@ class HyPerCol : public Subject, public ParamsInterface {
 
   private:
    int getAutoGPUDevice();
-   int initialize_base();
    int initialize(PV_Init *initObj);
    virtual void initMessageActionMap() override;
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -232,58 +231,57 @@ class HyPerCol : public Subject, public ParamsInterface {
    // Private variables
 
   private:
-   bool mErrorOnNotANumber; // If true, check each layer's activity buffer for
+   bool mErrorOnNotANumber = false; // If true, check each layer's activity buffer for
    // not-a-numbers and exit with an error if any appear
-   bool mCheckpointReadFlag; // whether to load from a checkpoint directory
-   bool mReadyFlag; // Initially false; set to true when communicateInitInfo,
+   bool mCheckpointReadFlag = false; // whether to load from a checkpoint directory
+   bool mReadyFlag = false; // Initially false; set to true when communicateInitInfo,
    // allocateDataStructures, and initializeState stages are completed
    bool mParamsProcessedFlag = false; // Set to true when processParams() is called.
-   bool mWriteTimeScaleFieldnames; // determines whether fieldnames are written to
-   // HyPerCol_timescales file
-   bool mWriteProgressToErr; // Whether to write progress step to standard error
+   bool mWriteTimeScaleFieldnames = true; // determines whether fieldnames are
+   // written to HyPerCol_timescales file
+   bool mWriteProgressToErr = false; // Whether to write progress step to standard error
    // (True) or standard output (False) (default is output)
-   bool mOwnsCommunicator; // True if icComm was created by initialize, false if
-   // passed in the constructor
+   bool mOwnsCommunicator = true; // True if icComm was created by initialize,
+   // false if passed in the constructor
    bool mWriteTimescales;
    char *mPrintParamsFilename = nullptr; // filename for outputting the mParams, including
    // defaults and excluding unread mParams
    char *mOutputPath = nullptr;
    double mSimTime;
-   double mStopTime; // time to stop time
-   double mDeltaTime; // time step interval
-   double mProgressInterval; // Output progress after mSimTime increases by this amount.
+   double mStopTime = 0.0; // time to stop time
+   double mDeltaTime = mDefaultDeltaTime; // time step interval
+   double mProgressInterval = 1.0; // Output progress after mSimTime increases by this amount.
    double mNextProgressTime; // Next time to output a progress message
-   int mNumPhases;
+   int mNumPhases = 0;
    std::vector<int> mIdleCounts; // How many times each phase had to wait for data to arrive
-   int mNumXGlobal;
-   int mNumYGlobal;
-   int mNumBatchGlobal;
-   int mOrigStdOut;
-   int mOrigStdErr;
-   int mNumThreads;
-   int *mLayerStatus;
-   int *mConnectionStatus;
-   Communicator *mCommunicator; // manages communication between HyPerColumns};
+   int mNumXGlobal     = 0;
+   int mNumYGlobal     = 0;
+   int mNumBatchGlobal = 1;
+   int mOrigStdOut             = -1;
+   int mOrigStdErr             = -1;
+   int mNumThreads             = 1;
+   int *mLayerStatus           = nullptr;
+   int *mConnectionStatus      = nullptr;
+   Communicator *mCommunicator = nullptr; // manages communication between MPI processes;
 
    Checkpointer *mCheckpointer = nullptr; // manages checkpointing and outputState output
    long int mCurrentStep;
    long int mFinalStep;
    PV_Init *mPVInitObj;
-   PVParams *mParams; // manages input parameters
+   PVParams *mParams = nullptr; // manages input parameters
    size_t mLayerArraySize;
    size_t mConnectionArraySize;
    std::ofstream mTimeScaleStream;
-   Timer *mRunTimer;
+   Timer *mRunTimer = nullptr;
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
-   unsigned int mRandomSeed;
+   unsigned int mRandomSeed = 0U;
 #ifdef PV_USE_CUDA
-   PVCuda::CudaDevice *mCudaDevice; // object for running kernels on OpenCL device
+   PVCuda::CudaDevice *mCudaDevice = nullptr; // object for running kernels on OpenCL device
 #endif
 
    static std::string const mDefaultOutputPath;
+   static double const mDefaultDeltaTime;
 }; // class HyPerCol
-
-// July 7, 2017: Functionality of createHyPerCol() moved into HyPerCol::initialize()
 
 } // namespace PV
 

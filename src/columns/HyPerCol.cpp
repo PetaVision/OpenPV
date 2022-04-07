@@ -5,16 +5,14 @@
  *      Author: Craig Rasmussen
  */
 
-#define DEFAULT_DELTA_T 1.0 // time step size (msec)
-
 #include "HyPerCol.hpp"
 #include "checkpointing/CheckpointEntryParamsFileWriter.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/Factory.hpp"
+#include "columns/GitRevision.hpp"
 #include "columns/RandomSeed.hpp"
 #include "io/PrintStream.hpp"
-#include "pvGitRevision.h"
 #include "utils/ExpandLeadingTilde.hpp"
 #include "utils/PathComponents.hpp"
 
@@ -48,7 +46,6 @@
 namespace PV {
 
 HyPerCol::HyPerCol(PV_Init *initObj) {
-   initialize_base();
    int status = initialize(initObj);
    FatalIf(status != PV_SUCCESS, "Initializing HyPerCol failed.\n");
 }
@@ -71,40 +68,6 @@ HyPerCol::~HyPerCol() {
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
    free(mOutputPath);
-}
-
-int HyPerCol::initialize_base() {
-   // Initialize all member variables to safe values.  They will be set to their
-   // actual values in initialize()
-   mReadyFlag                = false;
-   mParamsProcessedFlag      = false;
-   mNumPhases                = 0;
-   mCheckpointReadFlag       = false;
-   mStopTime                 = 0.0;
-   mDeltaTime                = DEFAULT_DELTA_T;
-   mWriteTimeScaleFieldnames = true;
-   mProgressInterval         = 1.0;
-   mWriteProgressToErr       = false;
-   mOrigStdOut               = -1;
-   mOrigStdErr               = -1;
-   mLayerStatus              = nullptr;
-   mConnectionStatus         = nullptr;
-   mPrintParamsFilename      = nullptr;
-   mNumXGlobal               = 0;
-   mNumYGlobal               = 0;
-   mNumBatchGlobal           = 1;
-   mOwnsCommunicator         = true;
-   mParams                   = nullptr;
-   mCommunicator             = nullptr;
-   mRunTimer                 = nullptr;
-   mPhaseRecvTimers.clear();
-   mRandomSeed        = 0U;
-   mErrorOnNotANumber = false;
-   mNumThreads        = 1;
-#ifdef PV_USE_CUDA
-   mCudaDevice = nullptr;
-#endif
-   return PV_SUCCESS;
 }
 
 int HyPerCol::initialize(PV_Init *initObj) {
@@ -954,7 +917,7 @@ void HyPerCol::outputParams(char const *path) {
 
 void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *commentToken) {
    time_t t = time(nullptr);
-   fileStream->printf("%s PetaVision, " PV_GIT_REVISION "\n", commentToken);
+   fileStream->printf("%s PetaVision, %s\n", commentToken, GitRevision::print().c_str());
    fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
 #ifdef PV_USE_MPI
    auto mpiBlock = mCheckpointer->getMPIBlock();
@@ -1317,5 +1280,7 @@ unsigned int HyPerCol::seedRandomFromWallClock() {
 }
 
 std::string const HyPerCol::mDefaultOutputPath = "output";
+
+double const HyPerCol::mDefaultDeltaTime = 1.0;
 
 } // PV namespace
