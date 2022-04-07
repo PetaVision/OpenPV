@@ -23,6 +23,8 @@
 #include <time.h>
 #endif // USE_MACH_TIMER
 
+namespace PV {
+
 /**
  * Convert to milliseconds
  */
@@ -49,14 +51,6 @@ static double cpu_time_to_sec(uint64_t cpu_elapsed) {
    us = (double)cpu_elapsed;
 #endif
    return us / 1000.0;
-}
-
-namespace PV {
-
-Timer::Timer(double init_time) {
-   rank = 0;
-   reset(init_time);
-   message = strdup("");
 }
 
 Timer::Timer(const char *timermessage, double init_time) {
@@ -97,15 +91,22 @@ void Timer::reset(double init_time) {
    time_elapsed = init_time;
 }
 
-double Timer::start() { return (double)(time_start = get_cpu_time()); }
+double Timer::start() {
+   time_start = get_cpu_time();
+   running    = true;
+   return (double)time_start;
+}
 
 double Timer::stop() {
+   running = false;
    time_end = get_cpu_time();
    time_elapsed += time_end - time_start;
    return (double)time_end;
 }
 
-double Timer::elapsed_time() const { return (double)time_elapsed; }
+double Timer::elapsed_time() const {
+   return (double)(time_elapsed + (running ? get_cpu_time()-time_start : (uint64_t)0));
+}
 
 int Timer::fprint_time(PrintStream &stream) const {
    if (rank == 0) {

@@ -25,7 +25,6 @@ namespace PVCuda {
  */
 class CudaTimer : public PV::Timer {
   public:
-   CudaTimer(double init_time = 0.0);
    CudaTimer(const char *timermessage, double init_time = 0.0);
    CudaTimer(
          const char *objname,

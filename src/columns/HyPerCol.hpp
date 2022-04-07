@@ -272,7 +272,9 @@ class HyPerCol : public Subject, public ParamsInterface {
    size_t mLayerArraySize;
    size_t mConnectionArraySize;
    std::ofstream mTimeScaleStream;
-   Timer *mRunTimer = nullptr;
+   Timer *mBuildAndRunTimer = nullptr;
+   Timer *mBuildTimer = nullptr;
+   Timer *mRunTimer =   nullptr;
    std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
    unsigned int mRandomSeed = 0U;
 #ifdef PV_USE_CUDA

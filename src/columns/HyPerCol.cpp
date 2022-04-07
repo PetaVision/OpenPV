@@ -65,6 +65,8 @@ HyPerCol::~HyPerCol() {
    }
 
    delete mRunTimer;
+   delete mBuildTimer;
+   delete mBuildAndRunTimer;
    // TODO: Change these old C strings into std::string
    free(mPrintParamsFilename);
    free(mOutputPath);
@@ -149,7 +151,11 @@ int HyPerCol::initialize(PV_Init *initObj) {
       exit(EXIT_FAILURE);
    }
 
-   mRunTimer = new Timer(getName(), "column", "run    ");
+   mBuildAndRunTimer = new Timer(getName(), "column", "buildrun");
+   mCheckpointer->registerTimer(mBuildAndRunTimer);
+   mBuildTimer = new Timer(getName(), "column", "build   ");
+   mCheckpointer->registerTimer(mBuildTimer);
+   mRunTimer = new Timer(getName(), "column", "run     ");
    mCheckpointer->registerTimer(mRunTimer);
    mCheckpointer->registerCheckpointData(
          getName(),
@@ -437,6 +443,8 @@ HyPerCol::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> 
 
 // typically called by buildandrun via HyPerCol::run()
 int HyPerCol::run(double stopTime, double dt) {
+   mBuildAndRunTimer->start();
+   mBuildTimer->start();
    mStopTime  = stopTime;
    mDeltaTime = dt;
 
@@ -454,6 +462,7 @@ int HyPerCol::run(double stopTime, double dt) {
 
    allocateColumn();
    getOutputStream().flush();
+   mBuildTimer->stop();
 
    Clock runClock;
    runClock.start_clock();
@@ -473,6 +482,7 @@ int HyPerCol::run(double stopTime, double dt) {
       runClock.print_elapsed(getOutputStream());
    }
 
+   mBuildAndRunTimer->stop();
    return PV_SUCCESS;
 }
 

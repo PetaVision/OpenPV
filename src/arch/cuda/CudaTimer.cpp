@@ -10,13 +10,6 @@
 
 namespace PVCuda {
 
-CudaTimer::CudaTimer(double init_time) : PV::Timer(init_time) {
-   handleError(cudaEventCreate(&mStartEvent), "Start event creation");
-   handleError(cudaEventCreate(&mStopEvent), "Stop event creation");
-   mTime   = 0.0f;
-   mStream = nullptr;
-}
-
 CudaTimer::CudaTimer(const char *timermessage, double init_time)
       : PV::Timer(timermessage, init_time) {
    handleError(cudaEventCreate(&mStartEvent), "Start event creation");
