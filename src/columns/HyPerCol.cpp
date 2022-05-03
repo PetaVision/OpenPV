@@ -59,10 +59,6 @@ HyPerCol::~HyPerCol() {
       mCheckpointer->writeTimers(pStream);
    }
    delete mCheckpointer;
-   for (auto iterator = mPhaseRecvTimers.begin(); iterator != mPhaseRecvTimers.end();) {
-      delete *iterator;
-      iterator = mPhaseRecvTimers.erase(iterator);
-   }
 
    delete mRunTimer;
    delete mBuildTimer;
@@ -354,15 +350,6 @@ void HyPerCol::allocateColumn() {
    notifyLoop(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
    mNumPhases++;
    mIdleCounts.resize(mNumPhases);
-
-   mPhaseRecvTimers.clear();
-   for (int phase = 0; phase < mNumPhases; phase++) {
-      std::string timerTypeString("phRecv");
-      timerTypeString.append(std::to_string(phase));
-      Timer *phaseRecvTimer = new Timer(getName(), "column", timerTypeString.c_str());
-      mPhaseRecvTimers.push_back(phaseRecvTimer);
-      mCheckpointer->registerTimer(phaseRecvTimer);
-   }
 
    auto registerDataMessage = std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer);
    respond(registerDataMessage);
@@ -690,7 +677,6 @@ int HyPerCol::advanceTime(double sim_time) {
       // update rest
       auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
             phase,
-            mPhaseRecvTimers.at(phase),
             true /*recvGpuFlag*/,
             mSimTime,
             mDeltaTime,
@@ -708,7 +694,6 @@ int HyPerCol::advanceTime(double sim_time) {
 
       recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
             phase,
-            mPhaseRecvTimers.at(phase),
             false /*recvGpuFlag*/,
             mSimTime,
             mDeltaTime,
@@ -736,7 +721,7 @@ int HyPerCol::advanceTime(double sim_time) {
                   &someLayerHasActed));
 
       if (getDevice() != nullptr) {
-         notifyLoop(std::make_shared<LayerCopyFromGpuMessage>(phase, mPhaseRecvTimers.at(phase)));
+         notifyLoop(std::make_shared<LayerCopyFromGpuMessage>(phase));
       }
 
       // Update for gpu recv and non gpu update
@@ -752,7 +737,6 @@ int HyPerCol::advanceTime(double sim_time) {
 #else
       auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
             phase,
-            mPhaseRecvTimers.at(phase),
             mSimTime,
             mDeltaTime,
             &someLayerIsPending,

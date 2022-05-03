@@ -13,7 +13,6 @@
 #include "cMakeHeader.h"
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/ObserverTable.hpp"
-#include "utils/Timer.hpp"
 #include <string>
 
 #ifdef PV_USE_CUDA
@@ -170,7 +169,6 @@ class LayerRecvSynapticInputMessage : public BaseMessage {
   public:
    LayerRecvSynapticInputMessage(
          int phase,
-         Timer *timer,
 #ifdef PV_USE_CUDA
          bool recvOnGpuFlag,
 #endif // PV_USE_CUDA
@@ -180,7 +178,6 @@ class LayerRecvSynapticInputMessage : public BaseMessage {
          bool *someLayerHasActed) {
       setMessageType("LayerRecvSynapticInput");
       mPhase = phase;
-      mTimer = timer;
 #ifdef PV_USE_CUDA
       mRecvOnGpuFlag = recvOnGpuFlag;
 #endif // PV_USE_CUDA
@@ -190,7 +187,6 @@ class LayerRecvSynapticInputMessage : public BaseMessage {
       mSomeLayerHasActed  = someLayerHasActed;
    }
    int mPhase;
-   Timer *mTimer;
 #ifdef PV_USE_CUDA
    bool mRecvOnGpuFlag;
 #endif // PV_USE_CUDA
@@ -240,13 +236,11 @@ class LayerUpdateStateMessage : public BaseMessage {
 #ifdef PV_USE_CUDA
 class LayerCopyFromGpuMessage : public BaseMessage {
   public:
-   LayerCopyFromGpuMessage(int phase, Timer *timer) {
+   LayerCopyFromGpuMessage(int phase) {
       setMessageType("LayerCopyFromGpu");
       mPhase = phase;
-      mTimer = timer;
    }
    int mPhase;
-   Timer *mTimer;
 };
 #endif // PV_USE_CUDA
 

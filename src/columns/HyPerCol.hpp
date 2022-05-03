@@ -275,7 +275,6 @@ class HyPerCol : public Subject, public ParamsInterface {
    Timer *mBuildAndRunTimer = nullptr;
    Timer *mBuildTimer = nullptr;
    Timer *mRunTimer =   nullptr;
-   std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
    unsigned int mRandomSeed = 0U;
 #ifdef PV_USE_CUDA
    PVCuda::CudaDevice *mCudaDevice = nullptr; // object for running kernels on OpenCL device
