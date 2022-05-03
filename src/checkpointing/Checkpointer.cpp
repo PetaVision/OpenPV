@@ -470,7 +470,7 @@ void Checkpointer::findWarmStartDirectory() {
                   if (ftsent->fts_statp->st_mode & S_IFDIR) {
                      long unsigned int x;
                      int scanstatus = sscanf(ftsent->fts_name, "Checkpoint%lu", &x);
-                     if (scanstatus == 1 and x > cpIndex) {
+                     if (scanstatus == 1 and (x > cpIndex or latestCheckpoint.empty())) {
                         std::string candidateCheckpoint = cpDirString + ftsent->fts_name;
                         if (isCompleteCheckpoint(candidateCheckpoint)) {
                            cpIndex          = x;
