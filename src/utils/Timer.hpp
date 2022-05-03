@@ -9,6 +9,8 @@
 #ifndef TIMER_HPP_
 #define TIMER_HPP_
 
+#include "io/PrintStream.hpp"
+
 #include <assert.h>
 #include <ostream>
 #include <stddef.h>
@@ -17,11 +19,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "io/PrintStream.hpp"
-
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace PV {
+
+uint64_t get_cpu_time();
+static double cpu_time_to_sec(uint64_t cpu_elapsed);
 
 class Timer {
   public:
@@ -42,6 +45,10 @@ class Timer {
    bool running = false; // start() sets running flag to true; stop() sets it to false.
    uint64_t time_start, time_end;
    uint64_t time_elapsed = (uint64_t)0;
+
+#ifdef PV_TIMER_VERBOSE
+   static uint64_t mEpoch;
+#endif // PV_TIMER_VERBOSE
 };
 
 } // namespace PV

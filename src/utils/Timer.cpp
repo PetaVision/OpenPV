@@ -11,6 +11,10 @@
 #include "utils/PVLog.hpp"
 #include <stdio.h>
 
+#ifdef PV_TIMER_VERBOSE
+#include <inttypes.h> // PRIu64 printf directive
+#endif // PV_TIMER_VERBOSE
+
 #ifdef __APPLE__
 #define USE_MACH_TIMER
 #endif
@@ -34,7 +38,7 @@ uint64_t get_cpu_time() {
 #else
    struct timespec tim;
    clock_gettime(CLOCK_REALTIME,&tim);
-   return ((uint64_t)tim.tv_sec) * 1000000 + (uint64_t)((tim.tv_nsec+500L)/1000L);
+   return (uint64_t)tim.tv_sec * (uint64_t)1000000 + (uint64_t)((tim.tv_nsec+500L)/1000L);
 #endif
 }
 
@@ -54,12 +58,23 @@ static double cpu_time_to_sec(uint64_t cpu_elapsed) {
 }
 
 Timer::Timer(const char *timermessage, double init_time) {
+#ifdef PV_TIMER_VERBOSE
+   if (mEpoch == (uint64_t)0) { // Fix this Y2K-like problem before 586438 AD.
+      mEpoch = get_cpu_time();
+   }
+#endif // PV_TIMER_VERBOSE
+
    rank = 0;
    reset(init_time);
    message = strdup(timermessage ? timermessage : "");
 }
 
 Timer::Timer(const char *objname, const char *objtype, const char *timertype, double init_time) {
+#ifdef PV_TIMER_VERBOSE
+   if (mEpoch == (uint64_t)0) {
+      mEpoch = get_cpu_time();
+   }
+#endif // PV_TIMER_VERBOSE
    rank = 0;
    reset(init_time);
    int charsneeded =
@@ -94,13 +109,19 @@ void Timer::reset(double init_time) {
 double Timer::start() {
    time_start = get_cpu_time();
    running    = true;
+#ifdef PV_TIMER_VERBOSE
+   InfoLog().printf("%12" PRIu64 " Start %s\n", time_start - mEpoch, message);
+#endif // PV_TIMER_VERBOSE
    return (double)time_start;
 }
 
 double Timer::stop() {
-   running = false;
+   running  = false;
    time_end = get_cpu_time();
    time_elapsed += time_end - time_start;
+#ifdef PV_TIMER_VERBOSE
+   InfoLog().printf("%12" PRIu64 " Stop  %s\n", time_end - mEpoch, message);
+#endif // PV_TIMER_VERBOSE
    return (double)time_end;
 }
 
@@ -115,5 +136,9 @@ int Timer::fprint_time(PrintStream &stream) const {
    }
    return 0;
 }
+
+#ifdef PV_TIMER_VERBOSE
+   uint64_t Timer::mEpoch = (int64_t)0;
+#endif // PV_TIMER_VERBOSE
 
 } // namespace PV
