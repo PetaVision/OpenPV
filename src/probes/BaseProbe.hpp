@@ -487,7 +487,10 @@ inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutp
    // handled?
    int mProbeIndex;
    static int mNumProbes;
+   Timer *mInitialIOTimer = nullptr;
+   Timer *mInitialIOWaitTimer = nullptr;
    Timer *mIOTimer = nullptr;
+   Timer *mIOWaitTimer = nullptr;
 }; // class BaseProbe
 
 } // namespace PV

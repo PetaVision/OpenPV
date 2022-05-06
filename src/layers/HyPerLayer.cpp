@@ -357,7 +357,7 @@ HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> messa
    if (message->mPhase != mPhaseParam->getPhase()) {
       return Response::NO_ACTION;
    }
-   mPublisher->publish(mCommunicator, message->mTime);
+   mPublisher->respond(message);
    return Response::SUCCESS;
 }
 

@@ -139,6 +139,10 @@ add_custom_target(pvgitrevision ALL)
 add_custom_command(TARGET pvgitrevision COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${PV_SOURCE_DIR}/.. -DPV_CONFIG_FILE_DIR=${PV_CONFIG_FILE_DIR} -P ${PV_SOURCE_DIR}/../cmake/PVGitRevision.cmake)
 add_dependencies(${PV_LIBRARY_NAME} pvgitrevision)
 
+if (PV_TIMER_VERBOSE)
+  target_compile_options(${PV_LIBRARY_NAME} PUBLIC "-DPV_TIMER_VERBOSE")
+endif()
+
 # The following is needed to make the Xcode generator put libpv.a into the correct place.
 # Without this, Xcode appends a Debug to the end of the output path, regardless of 
 # whether or not a Debug build is being created

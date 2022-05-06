@@ -97,6 +97,7 @@ class ActivityComponent : public ComponentBasedObject {
 
    Timer *mUpdateTimer = nullptr;
 #ifdef PV_USE_CUDA
+   Timer *mCopyFromCudaTimer           = nullptr;
    PVCuda::CudaTimer *mUpdateCudaTimer = nullptr;
 #endif // PV_USE_CUA
 };

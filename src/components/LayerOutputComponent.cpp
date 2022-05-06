@@ -19,6 +19,7 @@ LayerOutputComponent::LayerOutputComponent(
 LayerOutputComponent::LayerOutputComponent() {}
 
 LayerOutputComponent::~LayerOutputComponent() {
+   delete mInitialIOTimer;
    delete mIOTimer;
 }
 
@@ -125,6 +126,8 @@ Response::Status LayerOutputComponent::registerData(
 
    // Timers
 
+   mInitialIOTimer = new Timer(getName(), "layer", "initialio ");
+   checkpointer->registerTimer(mInitialIOTimer);
    mIOTimer = new Timer(getName(), "layer", "io     ");
    checkpointer->registerTimer(mIOTimer);
 
@@ -173,9 +176,10 @@ int LayerOutputComponent::openOutputStateFile(
 
 Response::Status LayerOutputComponent::respondLayerOutputState(
       std::shared_ptr<LayerOutputStateMessage const> message) {
-   mIOTimer->start();
+   Timer *timer = message->mTime ? mIOTimer : mInitialIOTimer;
+   timer->start();
    auto status = outputState(message->mTime, message->mDeltaTime);
-   mIOTimer->stop();
+   timer->stop();
    return status;
 }
 

@@ -78,7 +78,7 @@ Timer::Timer(const char *objname, const char *objtype, const char *timertype, do
    rank = 0;
    reset(init_time);
    int charsneeded =
-         snprintf(nullptr, 0, "%32s: total time in %6s %10s: ", objname, objtype, timertype) + 1;
+         snprintf(nullptr, 0, "%32s: total time in %-10s %-10s : ", objname, objtype, timertype) + 1;
    message = (char *)malloc(charsneeded);
    FatalIf(
          message == nullptr,
@@ -88,11 +88,11 @@ Timer::Timer(const char *objname, const char *objtype, const char *timertype, do
          objtype,
          timertype);
 #ifdef NDEBUG
-   snprintf(message, charsneeded, "%32s: total time in %6s %10s: ", objname, objtype, timertype);
+   snprintf(message, charsneeded, "%32s: total time in %-10s %-10s : ", objname, objtype, timertype);
 #else
    int chars_used =
          snprintf(
-               message, charsneeded, "%32s: total time in %6s %10s: ", objname, objtype, timertype)
+               message, charsneeded, "%32s: total time in %-10s %-10s : ", objname, objtype, timertype)
          + 1;
    assert(chars_used <= charsneeded);
 #endif // NDEBUG

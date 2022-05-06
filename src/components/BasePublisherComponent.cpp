@@ -19,6 +19,7 @@ BasePublisherComponent::BasePublisherComponent(
 BasePublisherComponent::BasePublisherComponent() {}
 
 BasePublisherComponent::~BasePublisherComponent() {
+   delete mInitialPublishTimer;
    delete mPublishTimer;
    delete mPublisher;
 }
@@ -90,6 +91,7 @@ Response::Status BasePublisherComponent::allocateDataStructures() {
       return Response::POSTPONE;
    }
    mPublisher = new Publisher(
+         getName(),
          *mCommunicator->getLocalMPIBlock(),
          mActivity->getBufferData(),
          mActivity->getLayerLoc(),
@@ -135,8 +137,13 @@ Response::Status BasePublisherComponent::registerData(
 
    // Timers
 
+   mInitialPublishTimer = new Timer(getName(), "layer", "initpub");
+   checkpointer->registerTimer(mInitialPublishTimer);
    mPublishTimer = new Timer(getName(), "layer", "publish");
    checkpointer->registerTimer(mPublishTimer);
+
+   checkpointer->registerTimer(mPublisher->getIncreaseLevelTimer());
+   checkpointer->registerTimer(mPublisher->getIncreaseLevelWaitTimer());
 
    return Response::SUCCESS;
 }
@@ -165,9 +172,10 @@ void BasePublisherComponent::advanceDataStore() { mPublisher->increaseTimeLevel(
 
 Response::Status
 BasePublisherComponent::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message) {
-   mPublishTimer->start();
+   Timer *timer = message->mTime ? mPublishTimer : mInitialPublishTimer;
+   timer->start();
    publish(mCommunicator, message->mTime);
-   mPublishTimer->stop();
+   timer->stop();
    return Response::SUCCESS;
 }
 
@@ -197,17 +205,6 @@ bool BasePublisherComponent::isExchangeFinished(int delay) {
    return mPublisher->isExchangeFinished(delay);
 }
 
-int BasePublisherComponent::waitOnPublish(Communicator const *comm) {
-   mPublishTimer->start();
-
-   // wait for MPI border transfers to complete
-   //
-   int status = mPublisher->wait();
-
-   mPublishTimer->stop();
-   return status;
-}
-
 Response::Status BasePublisherComponent::respondLayerCheckNotANumber(
       std::shared_ptr<LayerCheckNotANumberMessage const> message) {
    Response::Status status = Response::SUCCESS;
@@ -226,6 +223,10 @@ Response::Status BasePublisherComponent::respondLayerCheckNotANumber(
 float const *BasePublisherComponent::getLayerData(int delay) const {
    PVLayerCube cube = mPublisher->createCube(delay);
    return cube.data;
+}
+
+Response::Status BasePublisherComponent::cleanup() {
+   return mPublisher->cleanup();
 }
 
 } // namespace PV

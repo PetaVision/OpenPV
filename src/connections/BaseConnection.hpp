@@ -67,6 +67,7 @@ class BaseConnection : public ComponentBasedObject {
    virtual Response::Status copyInitialStateToGPU() override;
 
   private:
+   Timer *mInitialIOTimer = nullptr;
    Timer *mIOTimer = nullptr;
 
 }; // class BaseConnection

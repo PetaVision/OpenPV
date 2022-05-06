@@ -126,8 +126,13 @@ int HyPerCol::initialize(PV_Init *initObj) {
       exit(parsedStatus);
    }
 
+   mBuildAndRunTimer = new Timer(getName(), "column", "buildrun");
+   mBuildTimer = new Timer(getName(), "column", "build   ");
+   mRunTimer = new Timer(getName(), "column", "run     ");
+   std::vector<Timer const *> columnTimers{mBuildAndRunTimer, mBuildTimer, mRunTimer};
+
    mCheckpointer = new Checkpointer(
-         std::string(group0Name), mCommunicator, mPVInitObj->getArguments());
+         std::string(group0Name), mCommunicator, mPVInitObj->getArguments(), columnTimers);
    mCheckpointer->addObserver(this->getName(), this);
    mCheckpointer->ioParams(PARAMS_IO_READ, parameters());
 
@@ -147,12 +152,6 @@ int HyPerCol::initialize(PV_Init *initObj) {
       exit(EXIT_FAILURE);
    }
 
-   mBuildAndRunTimer = new Timer(getName(), "column", "buildrun");
-   mCheckpointer->registerTimer(mBuildAndRunTimer);
-   mBuildTimer = new Timer(getName(), "column", "build   ");
-   mCheckpointer->registerTimer(mBuildTimer);
-   mRunTimer = new Timer(getName(), "column", "run     ");
-   mCheckpointer->registerTimer(mRunTimer);
    mCheckpointer->registerCheckpointData(
          getName(),
          "nextProgressTime",

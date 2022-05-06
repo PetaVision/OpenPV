@@ -22,7 +22,8 @@ namespace PV {
 Checkpointer::Checkpointer(
       std::string const &name,
       Communicator const *communicator,
-      std::shared_ptr<Arguments const> arguments)
+      std::shared_ptr<Arguments const> arguments,
+      std::vector<Timer const *> const &timers)
       : mName(name) {
    Subject::initializeTable(name.c_str());
    mMPIBlock = communicator->getIOMPIBlock();
@@ -37,7 +38,10 @@ Checkpointer::Checkpointer(
    mTimeInfoCheckpointEntry = std::make_shared<CheckpointEntryData<Checkpointer::TimeInfo>>(
          std::string("timeinfo"), &mTimeInfo, (size_t)1, true /*broadcast*/);
    // This doesn't get put into mCheckpointRegistry because we handle the timeinfo separately.
-   mCheckpointTimer = new Timer(mName.c_str(), "column", "checkpoint");
+   mCheckpointTimer = new Timer(mName.c_str(), "checkpoint", "checkpoint");
+   for (auto t : timers) {
+      registerTimer(t);
+   }
    registerTimer(mCheckpointTimer);
 }
 

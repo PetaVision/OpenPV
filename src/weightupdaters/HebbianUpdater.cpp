@@ -17,7 +17,6 @@ HebbianUpdater::HebbianUpdater(char const *name, PVParams *params, Communicator 
 }
 
 HebbianUpdater::~HebbianUpdater() {
-   cleanup();
    if (mNumKernelActivations) {
       free(mNumKernelActivations[0]);
       free(mNumKernelActivations);

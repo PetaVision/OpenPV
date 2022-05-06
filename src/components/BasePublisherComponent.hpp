@@ -44,10 +44,6 @@ class BasePublisherComponent : public BaseObject {
 
    virtual void publish(Communicator const *comm, double simTime);
 
-   // mpi public wait method to ensure all targets have received synaptic input before proceeding to
-   // next time step
-   int waitOnPublish(Communicator const *comm);
-
    void updateAllActiveIndices();
    void updateActiveIndices();
 
@@ -128,6 +124,8 @@ class BasePublisherComponent : public BaseObject {
 #ifdef PV_USE_CUDA
    virtual void allocateCudaBuffers();
 #endif // PV_USE_CUDA
+   
+   virtual Response::Status cleanup() override;
 
   protected:
    bool mSparseLayer = false; // If true, Publisher uses sparse representation.
@@ -142,6 +140,7 @@ class BasePublisherComponent : public BaseObject {
    // The number of delay levels. Objects that need layer data with a delay should call
    // the increaseDelayLevels() method.
 
+   Timer *mInitialPublishTimer = nullptr;
    Timer *mPublishTimer = nullptr;
 
 #ifdef PV_USE_CUDA
@@ -158,6 +157,8 @@ class BasePublisherComponent : public BaseObject {
 
    bool mUpdatedCudaDatastore = true;
 #endif // PV_USE_CUDA
+
+   Timer *mAdvanceDataStoreTimer = nullptr;
 
 }; // class BasePublisherComponent
 

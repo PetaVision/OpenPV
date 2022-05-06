@@ -146,7 +146,8 @@ class Checkpointer : public Subject {
    Checkpointer(
          std::string const &name,
          Communicator const *communicator,
-         std::shared_ptr<Arguments const> arguments);
+         std::shared_ptr<Arguments const> arguments,
+         std::vector<Timer const *> const &timers = std::vector<Timer const *>());
    ~Checkpointer();
 
    void ioParams(enum ParamsIOFlag ioFlag, PVParams *params);

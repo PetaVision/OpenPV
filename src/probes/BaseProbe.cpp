@@ -42,7 +42,10 @@ BaseProbe::~BaseProbe() {
    }
    free(energyProbe);
    mMPIRecvStreams.clear();
+   delete mInitialIOTimer;
+   delete mInitialIOWaitTimer;
    delete mIOTimer;
+   delete mIOWaitTimer;
 }
 
 int BaseProbe::initialize_base() {
@@ -427,8 +430,14 @@ BaseProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const>
    initOutputStreams(message);
 
    auto *checkpointer = message->mDataRegistry;
+   mInitialIOTimer = new Timer(getName(), "probe", "initialio ");
+   checkpointer->registerTimer(mInitialIOTimer);
+   mInitialIOWaitTimer = new Timer(getName(), "probe", "initiowait");
+   checkpointer->registerTimer(mInitialIOWaitTimer);
    mIOTimer = new Timer(getName(), "probe", "io     ");
    checkpointer->registerTimer(mIOTimer);
+   mIOWaitTimer = new Timer(getName(), "probe", "iowait ");
+   checkpointer->registerTimer(mIOWaitTimer);
 
    return Response::SUCCESS;
 }
@@ -451,18 +460,24 @@ void BaseProbe::getValues(double timevalue, std::vector<double> *valuesVector) {
 }
 
 Response::Status BaseProbe::outputStateWrapper(double simTime, double dt) {
-   mIOTimer->start();
    auto status = Response::NO_ACTION;
-   if (textOutputFlag && needUpdate(simTime, dt)) {
+   if (textOutputFlag && needUpdate(simTime, dt)) { // Hopefully don't need a Timer on needUpdate
+      Timer *timer = simTime ? mIOTimer : mInitialIOTimer;
       if (mStatsFlag) {
+         timer->start();
          status = outputStateStats(simTime, dt);
+         timer->stop();
       }
       else {
+         timer->start();
          status = outputState(simTime, dt);
+         timer->stop();
+         Timer *timer = simTime ? mIOWaitTimer : mInitialIOWaitTimer;
+         timer->start();
          transferMPIOutput();
+         timer->stop();
       }
    }
-   mIOTimer->stop();
    return status;
 }
 

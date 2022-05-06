@@ -106,6 +106,7 @@ class LayerOutputComponent : public BaseObject {
    int mWriteActivityCalls       = 0; // No. of frames in pvp file (written to nBands in pvp header)
    int mWriteActivitySparseCalls = 0; // No. of frames in pvp file (written to nBands in pvp header)
 
+   Timer *mInitialIOTimer = nullptr;
    Timer *mIOTimer = nullptr;
 }; // class LayerOutputComponent
 
