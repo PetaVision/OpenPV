@@ -77,6 +77,10 @@ int run(
       std::string const &directory);
 
 int main(int argc, char *argv[]) {
+   FatalIf(
+         tolerance < 0.0f,
+         "LocalPatchWeightsFileTest has tolerance set to %g, but tolerance must be positive.\n",
+         (double)tolerance);
    int status = PV_SUCCESS;
 
    PV_Init pv_init(&argc, &argv, false /* do not allow extra arguments */);
@@ -446,11 +450,12 @@ int compareWeights(
                         if (std::abs(discrepancy) > tolerance * std::abs(patch1[index])) {
                            ErrorLog().printf(
                                  "compareWeights, %s: weights do not agree at patch with "
-                                 "arbor %d, restricted index x=%d, y=%d, f=%d, patch element at "
-                                 "x=%d, y=%d, f=%d (%f versus %f, discrepancy %g)\n",
+                                 "arbor %d, restricted index x=%d, y=%d, f=%d, "
+                                 "patch element at x=%d, y=%d, f=%d "
+                                 "%f versus %f, discrepancy %g, relative error %g)\n",
                                  label.c_str(), a, x, y, f, kx, ky, kf,
                                  (double)patch1[index], (double)patch2[index],
-                                 (double)discrepancy);
+                                 (double)discrepancy, (double)std::abs(discrepancy/patch1[index]));
                            status = PV_FAILURE;
                         }
                      }
