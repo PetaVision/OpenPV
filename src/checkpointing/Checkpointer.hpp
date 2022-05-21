@@ -10,9 +10,9 @@
 
 #include "checkpointing/CheckpointEntry.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
+#include "columns/Communicator.hpp"
 #include "io/PVParams.hpp"
 #include "observerpattern/Subject.hpp"
-#include "structures/MPIBlock.hpp"
 #include "utils/Timer.hpp"
 #include <ctime>
 
@@ -150,7 +150,7 @@ class Checkpointer : public Subject {
    };
    Checkpointer(
          std::string const &name,
-         MPIBlock const *globalMPIBlock,
+         Communicator const *communicator,
          Arguments const *arguments);
    ~Checkpointer();
 
@@ -192,7 +192,13 @@ class Checkpointer : public Subject {
    void finalCheckpoint(double simTime);
    void writeTimers(PrintStream &stream) const;
 
-   MPIBlock const *getMPIBlock() { return mMPIBlock; }
+   /**
+    * Returns true if the argument identifies a directory that appears to be a complete checkpoint
+    * (currently, checks for the presence of timeinfo.bin).
+    */
+   bool isCompleteCheckpoint(std::string const &candidateCheckpoint) const;
+
+   std::shared_ptr<MPIBlock const> getMPIBlock() { return mMPIBlock; }
    bool doesVerifyWrites() { return mVerifyWrites; }
    std::string const &getOutputPath() { return mOutputPath; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
@@ -209,7 +215,6 @@ class Checkpointer : public Subject {
    std::string const &getBlockDirectoryName() const { return mBlockDirectoryName; }
 
   private:
-   void initMPIBlock(MPIBlock const *globalMPIBlock, Arguments const *arguments);
    void initBlockDirectoryName();
    void ioParamsFillGroup(enum ParamsIOFlag ioFlag, PVParams *params);
 
@@ -229,7 +234,7 @@ class Checkpointer : public Subject {
    /**
      * If a meaningful signal has been received by the global root process, clears the signal
      * and returns its value. Otherwise returns 0.
-     * Currently, the meaningful signals are SIGINT, SIGTERM and SIGUSR1.
+     * Currently, the meaningful signals are SIGUSR1 and SIGUSR2
      */
    int retrieveSignal();
 
@@ -267,8 +272,8 @@ class Checkpointer : public Subject {
     * It writes a checkpoint, indexed by the current timestep. If the deleteOlderCheckpoints param
     * was set, it does not cause a checkpoint to be deleted, and does not rotate the checkpoint
     * into the list of directories that will be deleted.
-    * If the signal was SIGINT (Interrupt) or SIGTERM (Terminate), the program exits,
-    * returning the integer code corresponding to the signal.
+    * If the signal was SIGUSR2, the program exits, returning the integer code corresponding
+    * to the signal.
     */
    void checkpointWriteSignal(int checkpointSignal);
 
@@ -296,11 +301,18 @@ class Checkpointer : public Subject {
    void deleteFileFromDir(std::string const &targetDir, std::string const &targetFile) const;
    void writeTimers(std::string const &directory);
    std::string generateBlockPath(std::string const &baseDirectory);
-   void verifyDirectory(char const *directory, std::string const &description);
+
+   /**
+    * Checks whether the specified directory is a checkpoint directory. If the process is the
+    * root process of the MPIBlock, it is a fatal error if the directory does not pass
+    * isCompleteCheckpoint().
+    * The description argument is used in error messages.
+    */
+   void verifyCheckpointDirectory(char const *directory, std::string const &description);
 
   private:
    std::string mName;
-   MPIBlock *mMPIBlock = nullptr;
+   std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
    std::string mBlockDirectoryName;
    std::vector<std::shared_ptr<CheckpointEntry>> mCheckpointRegistry; // Needs to be a vector so
    // that each MPI process

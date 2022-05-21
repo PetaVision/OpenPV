@@ -8,6 +8,8 @@
 // Shared input and output routines
 
 #include "io.hpp"
+#include "columns/ConfigFileArguments.hpp"
+#include "columns/CommandLineArguments.hpp"
 #include "utils/PVLog.hpp" // InfoLog
 #include <cstdlib> // atoi, strtol, strtoul
 #include <cstring> // strcmp, strdup
@@ -27,6 +29,27 @@ void usage() {
    InfoLog().printf(" [-t [number of threads]\n");
    InfoLog().printf(" [-n]\n");
 #endif // PV_USE_OPENMP_THREADS
+}
+
+std::shared_ptr<Arguments> parse_arguments(
+      int argc, char *argv[], bool allowUnrecognizedArguments) {
+   // If first argument starts with a non-hyphen character, take it to be a config file.
+   // Otherwise, assume config options are being set on the command line.
+   char *firstArgument = argv[1];
+   std::shared_ptr<Arguments> parsedArguments;
+   if (argc >= 2 && firstArgument != nullptr && firstArgument[0] != '-') {
+      parsedArguments = std::make_shared<ConfigFileArguments>(
+            std::string(firstArgument), MPI_COMM_WORLD, allowUnrecognizedArguments);
+      // Check if "--require-return" was set.
+      if (pv_getopt(argc, argv, "--require-return", nullptr) == 0) {
+         parsedArguments->setBooleanArgument("RequireReturn", true);
+      }
+   }
+   else {
+      parsedArguments =
+            std::make_shared<CommandLineArguments>(argc, argv, allowUnrecognizedArguments);
+   }
+   return parsedArguments;
 }
 
 /**

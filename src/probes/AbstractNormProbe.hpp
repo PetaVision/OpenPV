@@ -14,15 +14,14 @@
 namespace PV {
 
 /**
- * An abstract layer probe where getValue and getValues return a norm-like
- * quantity where the quantity over the entire column is the sum of
- * subquantities computed over each MPI process.
+ * An abstract layer probe where getValues return a norm-like quantity where
+ * the quantity over the entire column is the sum of subquantities computed
+ * over each MPI process.
  *
  * Derived classes must implement getValueInternal(double, int).  Each MPI
  * process should return its own contribution to the norm.
- * getValues() and getValue() call getValueInternal() and apply MPI_Allreduce
- * to the result, so that getValueInternal() typically does not have to call
- * any MPI processes.
+ * getValues() call getValueInternal() and apply MPI_Allreduce to the result,
+ * so that getValueInternal() typically does not have to call any MPI processes.
  */
 class AbstractNormProbe : public LayerProbe {
   public:
@@ -122,11 +121,9 @@ class AbstractNormProbe : public LayerProbe {
    bool maskHasSingleFeature() { return singleFeatureMask; }
 
    /**
-    * Implements the outputState method required by classes derived from
-    * BaseProbe.
+    * Implements the outputState method required by classes derived from BaseProbe.
     * Prints to the outputFile the probe message, timestamp, number of neurons,
-    * and norm value for
-    * each batch element.
+    * and norm value for each batch element.
     */
    virtual Response::Status outputState(double simTime, double deltaTime) override;
 
@@ -143,7 +140,7 @@ class AbstractNormProbe : public LayerProbe {
 
    double timeLastComputed = -std::numeric_limits<double>::infinity();
    // the value of the input argument timevalue for the most recent
-   // getValues() call.  Calls to getValue() do not set or refer to this time.
+   // getValues() call.  Calls to getValues() do not set or refer to this time.
 
 }; // end class AbstractNormProbe
 

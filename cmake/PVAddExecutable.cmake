@@ -12,7 +12,7 @@
 #
 # MPI_FOUND, MPI_CXX_INCLUDE_PATH and MPI_CXX_LIBRARIES. Can be set with find_package(MPI)
 # CUDA_FOUND. Can be set with find_package(CUDA). Requires CUDNN
-# CUDNN_FOUND, CUDNN_INCLUDE_DIR, CUDNN_LIBRARIES. Can be set with find_package(CUDNN).
+# CUDNN_FOUND, CUDNN_INCLUDE_DIR, CUDNN_LIBRARY. Can be set with find_package(CUDNN).
 #  FindCUDNN.cmake is provided in ${PV_SOURCE_DIR}/cmake
 # LUA_FOUND, LUA_INCLUDE_DIR, LUA_LIBRARIES.  These can be set with find_package(Lua).
 #  FindLua.cmake is a standard CMake module from version 3 on.  To accommodate older
@@ -61,7 +61,7 @@ macro(pv_add_executable TARGET)
     # cuda_add_executable to get a cuda enabled executable.
     # This was changed for c++11 support. 
     add_executable(${TARGET} ${PARSED_ARGS_SRC})
-    target_link_libraries(${TARGET} ${CUDNN_LIBRARIES})
+    target_link_libraries(${TARGET} ${CUDNN_LIBRARY})
   else()
     # Add  PetaVision library target, no CUDA
     STRING(REGEX REPLACE ";" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -93,7 +93,7 @@ macro(pv_add_executable TARGET)
   # these a second time is a bit of a hack, but it can fix things in some cases
   if (PV_USE_CUDA)
     target_link_libraries(${TARGET} ${CUDA_LIBRARIES})
-    target_link_libraries(${TARGET} ${CUDNN_LIBRARIES})
+    target_link_libraries(${TARGET} ${CUDNN_LIBRARY})
   endif()
 
   if (PV_USE_LUA)

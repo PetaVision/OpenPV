@@ -5,6 +5,7 @@
 #include "io/FileStream.hpp"
 #include "structures/MPIBlock.hpp"
 #include "utils/BufferUtilsPvp.hpp"
+#include <memory>
 #include <vector>
 
 namespace PV {
@@ -16,7 +17,7 @@ namespace PV {
 
 class WeightsFileIO {
   public:
-   WeightsFileIO(FileStream *fileStream, MPIBlock const *mpiBlock, Weights *weights);
+   WeightsFileIO(FileStream *fileStream, std::shared_ptr<MPIBlock const> mpiBlock, Weights *weights);
 
    ~WeightsFileIO() {}
 
@@ -39,9 +40,18 @@ class WeightsFileIO {
 
    bool isCompressedHeader(BufferUtils::WeightHeader const &header);
 
-   double readSharedWeights(int frameNumber, BufferUtils::WeightHeader const &header);
+   /**
+    * On entry, the fileStream's file pointer points to the start of the header of a frame.
+    * The function moves the file pointer to the end of the frame; that is, the start of
+    * the header of the next frame.
+    */
+   static void moveToNextFrame(FileStream &fileStream);
 
-   double readNonsharedWeights(int frameNumber, BufferUtils::WeightHeader const &header);
+   // readSharedWeights and readNonsharedWeights assume that the file pointer
+   // is at the end of the frame's header
+   double readSharedWeights(BufferUtils::WeightHeader const &header);
+
+   double readNonsharedWeights(BufferUtils::WeightHeader const &header);
 
    void writeSharedWeights(double timestamp, bool compress);
 
@@ -132,8 +142,9 @@ class WeightsFileIO {
    // Data members
   private:
    FileStream *mFileStream   = nullptr;
-   MPIBlock const *mMPIBlock = nullptr;
    Weights *mWeights         = nullptr;
+
+   std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
 
    int const mRootProcess = 0;
    int const tagbase      = 500;

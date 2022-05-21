@@ -56,9 +56,12 @@ void ColProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void ColProbe::initOutputStreams(const char *filename, Checkpointer *checkpointer) {
-   BaseProbe::initOutputStreams(filename, checkpointer);
-   outputHeader();
+void ColProbe::initOutputStreams(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   BaseProbe::initOutputStreams(message);
+   auto *checkpointer = message->mDataRegistry;
+   if (checkpointer->getCheckpointReadDirectory().empty()) {
+      outputHeader(checkpointer);
+   }
 }
 
 Response::Status
@@ -75,6 +78,39 @@ ColProbe::respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage 
 Response::Status
 ColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    return BaseProbe::communicateInitInfo(message);
+}
+
+Response::Status ColProbe::outputStateStats(double simTime, double deltaTime) {
+   getValues(simTime);
+   auto &valuesVector = getProbeValues();
+   int nbatch           = getNumValues();
+   pvAssert(static_cast<int>(valuesVector.size()) == nbatch);
+   double min = std::numeric_limits<double>::infinity();
+   double max = -std::numeric_limits<double>::infinity();
+   double sum = 0.0;
+   for (int k=0; k < getNumValues(); k++) {
+      double v = valuesVector[k];
+      min = min < v ? min : valuesVector[k];
+      max = max > v ? max : valuesVector[k];
+      sum += v;
+   }
+   MPI_Comm const batchComm = mCommunicator->batchCommunicator();
+   MPI_Allreduce(MPI_IN_PLACE, &min, 1, MPI_DOUBLE, MPI_MIN, batchComm);
+   MPI_Allreduce(MPI_IN_PLACE, &max, 1, MPI_DOUBLE, MPI_MAX, batchComm);
+   MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_DOUBLE, MPI_SUM, batchComm);
+   if (!mOutputStreams.empty()) {
+      pvAssert(mCommunicator->globalCommRank() == 0);
+      pvAssert(mOutputStreams.size() == (std::size_t)1);
+      double mean = sum/(getNumValues() * mCommunicator->numCommBatches());
+      if (!isWritingToFile()) {
+         output(0) << "\"" << name << "\","; // lack of \n is deliberate
+      }
+      output(0).printf("t=%10f, min=%10.9f, max=%10.9f, mean=%10.9f\n", simTime, min, max, mean);
+   }
+   else {
+      pvAssert(mCommunicator->globalCommRank() != 0);
+   }
+   return Response::SUCCESS;
 }
 
 } // end namespace PV

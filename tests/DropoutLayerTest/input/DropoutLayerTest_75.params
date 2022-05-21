@@ -11,11 +11,11 @@ HyPerCol "column" = {
    progressInterval = 1000.0; 
    writeProgressToErr = false;
    verifyWrites = false;
-   outputPath = "output/";
+   outputPath = "output/dropoutprob75";
    printParamsFilename = "pv.params"; 
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
-   lastCheckpointDir = "output/Last"; 
+   lastCheckpointDir = "output/dropoutprob75/Last"; 
 };
 
 
@@ -50,12 +50,12 @@ DropoutLayer "Output" = {
     probability         = 75; 
 };
 
-LeakyIntegrator "Average" = {
+LeakyIntegrator "Counts" = {
     nxScale             = 1; 
     nyScale             = 1;
     nf                  = 1; 
     phase               = 2;
-    integrationTime     = 100;
+    integrationTime     = infinity;
     writeStep           = -1;
     initialWriteTime    = -1;
     InitVType           = "ZeroV";
@@ -67,8 +67,8 @@ IdentConn "InputToOutput" = {
     channelCode         = 0;
 };
 
-IdentConn "OutputToAverage" = {
+IdentConn "OutputToCounts" = {
     preLayerName        = "Output";
-    postLayerName       = "Average";
+    postLayerName       = "Counts";
     channelCode         = 0;
 };

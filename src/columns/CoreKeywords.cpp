@@ -40,14 +40,6 @@
 #include "layers/Retina.hpp"
 #include "layers/SigmoidLayer.hpp"
 
-// #include "deprecated/ANNWhitenedLayer.hpp"
-// #include "deprecated/KmeansLayer.hpp"
-// #include "deprecated/LCALIFLayer.hpp"
-// #include "deprecated/LabelErrorLayer.hpp"
-// #include "deprecated/RunningAverageLayer.hpp"
-// #include "deprecated/ShuffleLayer.hpp"
-// #include "deprecated/WTALayer.hpp"
-
 #include "connections/CloneConn.hpp"
 #include "connections/CopyConn.hpp"
 #include "connections/FeedbackConn.hpp"
@@ -66,17 +58,13 @@
 #include "probes/ColumnEnergyProbe.hpp"
 #include "probes/FirmThresholdCostFnLCAProbe.hpp"
 #include "probes/FirmThresholdCostFnProbe.hpp"
-#include "probes/KernelProbe.hpp"
 #include "probes/KneeTimeScaleProbe.hpp"
 #include "probes/L0NormLCAProbe.hpp"
 #include "probes/L0NormProbe.hpp"
 #include "probes/L1NormLCAProbe.hpp"
 #include "probes/L1NormProbe.hpp"
-#include "probes/L2ConnProbe.hpp"
 #include "probes/L2NormProbe.hpp"
 #include "probes/LogTimeScaleProbe.hpp"
-#include "probes/PointLIFProbe.hpp"
-#include "probes/PointProbe.hpp"
 #include "probes/QuotientColProbe.hpp"
 #include "probes/RequireAllZeroActivityProbe.hpp"
 #include "probes/StatsProbe.hpp"
@@ -121,6 +109,14 @@
 #include "normalizers/NormalizeNone.hpp"
 #include "normalizers/NormalizeSum.hpp"
 
+// Deprecated Oct 7, 2021.
+// These probes currently are not being used, and maintaining them would
+// complicate refactoring.
+#include "deprecated/KernelProbe.hpp"
+#include "deprecated/L2ConnProbe.hpp"
+#include "deprecated/PointLIFProbe.hpp"
+#include "deprecated/PointProbe.hpp"
+
 namespace PV {
 
 void registerCoreKeywords() {
@@ -161,15 +157,6 @@ void registerCoreKeywords() {
    factory->registerKeyword("Retina", Factory::create<Retina>);
    factory->registerKeyword("SigmoidLayer", Factory::create<SigmoidLayer>);
 
-   // Deprecated layers
-   // factory->registerKeyword("ANNWhitenedLayer", Factory::create<ANNWhitenedLayer>);
-   // factory->registerKeyword("KmeansLayer", Factory::create<KmeansLayer>);
-   // factory->registerKeyword("LCALIFLayer", Factory::create<LCALIFLayer>);
-   // factory->registerKeyword("LabelErrorLayer", Factory::create<LabelErrorLayer>);
-   // factory->registerKeyword("RunningAverageLayer", Factory::create<RunningAverageLayer>);
-   // factory->registerKeyword("ShuffleLayer", Factory::create<ShuffleLayer>);
-   // factory->registerKeyword("WTALayer", Factory::create<WTALayer>);
-
    // Connections
    factory->registerKeyword("HyPerConn", Factory::create<HyPerConn>);
    factory->registerKeyword("CloneConn", Factory::create<CloneConn>);
@@ -193,15 +180,11 @@ void registerCoreKeywords() {
    factory->registerKeyword(
          "FirmThresholdCostFnLCAProbe", Factory::create<FirmThresholdCostFnLCAProbe>);
    factory->registerKeyword("FirmThresholdCostFnProbe", Factory::create<FirmThresholdCostFnProbe>);
-   factory->registerKeyword("KernelProbe", Factory::create<KernelProbe>);
    factory->registerKeyword("L0NormLCAProbe", Factory::create<L0NormLCAProbe>);
    factory->registerKeyword("L0NormProbe", Factory::create<L0NormProbe>);
    factory->registerKeyword("L1NormLCAProbe", Factory::create<L1NormLCAProbe>);
    factory->registerKeyword("L1NormProbe", Factory::create<L1NormProbe>);
-   factory->registerKeyword("L2ConnProbe", Factory::create<L2ConnProbe>);
    factory->registerKeyword("L2NormProbe", Factory::create<L2NormProbe>);
-   factory->registerKeyword("PointLIFProbe", Factory::create<PointLIFProbe>);
-   factory->registerKeyword("PointProbe", Factory::create<PointProbe>);
    factory->registerKeyword("QuotientColProbe", Factory::create<QuotientColProbe>);
    factory->registerKeyword(
          "RequireAllZeroActivityProbe", Factory::create<RequireAllZeroActivityProbe>);
@@ -261,6 +244,14 @@ void registerCoreKeywords() {
    factory->registerKeyword("none", Factory::create<NormalizeNone>);
    factory->registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
    factory->registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
+
+// Deprecated Oct 7, 2021.
+// These probes currently are not being used, and maintaining them would
+// complicate refactoring.
+   factory->registerKeyword("KernelProbe", Factory::create<KernelProbe>);
+   factory->registerKeyword("L2ConnProbe", Factory::create<L2ConnProbe>);
+   factory->registerKeyword("PointLIFProbe", Factory::create<PointLIFProbe>);
+   factory->registerKeyword("PointProbe", Factory::create<PointProbe>);
 }
 
 } // end namespace PV

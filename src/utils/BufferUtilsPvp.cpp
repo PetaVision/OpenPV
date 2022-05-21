@@ -147,12 +147,15 @@ void writeActivityHeader(FileStream &fStream, ActivityHeader const &header) {
 }
 
 ActivityHeader readActivityHeader(FileStream &fStream) {
-   fStream.setInPos(0, true);
-   int headerSize = -1;
-   fStream.read(&headerSize, sizeof(int));
-   fStream.setInPos(0, true);
+   fStream.setInPos(0L, true);
+   uint32_t headerSize = 0U;
+   fStream.read(&headerSize, sizeof(uint32_t));
+   FatalIf(headerSize != static_cast<uint32_t>(80U),
+         "%s is not an activity PVP file (headerSize is %u instead of 80)\n",
+         fStream.getFileName().c_str(), static_cast<unsigned>(headerSize));
+   fStream.setInPos(0L, true);
    ActivityHeader header;
-   fStream.read(&header, headerSize);
+   fStream.read(&header, 80L);
    return header;
 }
 

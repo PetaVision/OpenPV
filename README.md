@@ -35,13 +35,20 @@ make
 ~~~~~~~~~~~~~~~~~~~~
 ####Other build options:
 ~~~~~~~~~~~~~~~~~~~~{.sh}
+# Debug build (Release is the default)
+cmake -DCMAKE_BUILD_TYPE:String=Debug ../OpenPV
+
 # If CUDA is installed but you don't want CUDA support
 cmake -DPV_USE_CUDA:Bool=OFF ../OpenPV
-# Build with clang address santization
+
+# To specify a particular CUDA architecture
+cmake -DPV_CUDA_ARCHITECTURE:String=[arch]
+# [arch] can be a compute capability e.g. 7.0, an architecture name e.g. Volta,
+# "Auto" to detect and use the compute capability of the current GPU,
+# or left blank to use the default choice for the CUDA version
+
+# Build with clang address sanitization
 cmake -DPV_ADDRESS_SANITIZE:Bool=ON ../OpenPV
-# Debug build (Release is the default)
-#  OpenPV must be compiled as Debug to successfully run the system tests
-cmake -DCMAKE_BUILD_TYPE:String=Debug ../OpenPV
 ~~~~~~~~~~~~~~~~~~~~
 
 ####Running the system tests:

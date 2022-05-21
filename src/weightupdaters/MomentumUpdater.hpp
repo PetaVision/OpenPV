@@ -75,6 +75,18 @@ class MomentumUpdater : public HebbianUpdater {
     */
    virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
 
+   /**
+    * initPrev_dWFile: The .pvp file to read initial values of prev_dW used when applying momentum.
+    * NULL or the empty string initialzies prev_dW to all zeroes.
+    */
+   virtual void ioParam_initPrev_dWFile(enum ParamsIOFlag ioFlag);
+
+   /**
+    * prev_dWFrameNumber: The frame number (zero-indexed) to use when reading initial prev_dW.
+    * default is zero.
+    */
+   virtual void ioParam_prev_dWFrameNumber(enum ParamsIOFlag ioFlag);
+
    /** @} */ // end of MomentumUpdater parameters
 
   public:
@@ -91,6 +103,8 @@ class MomentumUpdater : public HebbianUpdater {
    float getTimeConstantTau() const { return mTimeConstantTau; }
    bool isUsingDeprecatedMomentumTau() const { return mUsingDeprecatedMomentumTau; }
 
+   Weights const *getPrevDeltaWeights() const { return mPrevDeltaWeights; }
+
   protected:
    MomentumUpdater() {}
 
@@ -102,10 +116,20 @@ class MomentumUpdater : public HebbianUpdater {
 
    void checkTimeConstantTau();
 
+   virtual void initMessageActionMap() override;
+
+   Response::Status respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
+
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+
    virtual Response::Status allocateDataStructures() override;
 
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
@@ -119,17 +143,30 @@ class MomentumUpdater : public HebbianUpdater {
 
    void applyMomentumDeprecated(int arborId, float dwFactor, float wFactor);
 
+   void openOutputStateFile(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
+
+   virtual void outputMomentum(double timestamp);
+
   protected:
    enum Method { UNDEFINED_METHOD, VISCOSITY, SIMPLE, ALEX };
 
-   char *mMomentumMethod  = nullptr;
-   Method mMethod         = UNDEFINED_METHOD;
-   float mMomentumTau     = 0.25f; // Deprecated in favor of mTimeConstantTau Nov 19, 2018.
-   float mTimeConstantTau = mDefaultTimeConstantTauViscosity;
-   float mMomentumDecay   = 0.0f;
+   char *mMomentumMethod    = nullptr;
+   Method mMethod           = UNDEFINED_METHOD;
+   float mMomentumTau       = 0.25f; // Deprecated in favor of mTimeConstantTau Nov 19, 2018.
+   float mTimeConstantTau   = mDefaultTimeConstantTauViscosity;
+   float mMomentumDecay     = 0.0f;
+   char *mInitPrev_dWFile   = NULL;
+   int  mPrev_dWFrameNumber = 0;
 
    Weights *mPrevDeltaWeights       = nullptr;
    bool mUsingDeprecatedMomentumTau = false;
+
+   // Copied from WeightsPair for use by outputMomentum
+   double mWriteStep = 0.0;
+   double mWriteTime = 0.0;
+   bool mWriteCompressedWeights = false;
+
+   CheckpointableFileStream *mOutputStateStream = nullptr; // weights file written by outputState
 };
 
 } // namespace PV

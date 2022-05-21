@@ -1,3 +1,21 @@
+// Params file for the ForwardPoolingTest part of PoolingGPUTest
+// The params define a parameter sweep of size 6.
+// For each of the three pooling methods (max, sum, avg), the test is
+// performed with a one-to-one PoolingConn, and a many-to-one PoolingConn
+// where the post-layer has nxScale, nyScale=0.5.
+//
+// The pooling is performed two ways, once on the CPU and once on the GPU.
+// The CPU output is taken to be ground truth (PoolingConns on the CPU are
+// verified in other tests). The CPU and GPU results are subtracted, and
+// the relative error of the GPU result is computed as
+//               (OutputGPU - OutputCPU) / OutputCPU.
+// For maxpooling, this error should be zero, since the pooling selects
+// from a set of values.
+// For average pooling or sum pooling, there is the potential for
+// floating-point discrepancies. The nnzThreshold parameter in the probe
+// sets a value consistent with an error in the least-significant bit
+// of a single-precision floating point value.
+
 debugParsing = false;
 
 HyPerCol "Column" = {
@@ -113,23 +131,49 @@ HyPerLayer "Comparison" = {
     dataType                            = NULL;
 };
 
-// Evaluation probe.  Fails if activity in "Comparison" is ever nonzero.
-RequireAllZeroActivityProbe "ComparisonVerify" = {
-    targetLayer = "Comparison";
+IdentConn "ComparisonToRelativeDiscrepancy" = {
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "OutputCPUToRelativeDiscrepancy" = {
+    channelCode                         = 1;
+    delay                               = [0.000000];
+};
+
+PtwiseQuotientLayer "RelativeDiscrepancy" = {
+    // nxScale is set in parameter sweep
+    // nyScale is set in parameter sweep
+    nf                                  = 4;
+    phase                               = 3;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+};
+
+// Evaluation probe.  Fails if activity in "Comparison" is ever above threshold.
+RequireAllZeroActivityProbe "Verify" = {
+    targetLayer = "RelativeDiscrepancy";
     textOutputFlag = true;
-    probeOutputFile = "ComparisonVerify.txt";
+    probeOutputFile = "RelativeDiscrepancy.txt";
     // nnzThreshold is set in parameter sweep
     exitOnFailure = true;
     immediateExitOnFailure = false;
 };
 
 ParameterSweep "Column":outputPath = {
-    "maxpooling-samescale";
-    "maxpooling-smallerscale";
-    "sumpooling-samescale";
-    "sumpooling-smallerscale";
-    "avgpooling-samescale";
-    "avgpooling-smallerscale";
+    "output/maxpooling-samescale";
+    "output/maxpooling-smallerscale";
+    "output/sumpooling-samescale";
+    "output/sumpooling-smallerscale";
+    "output/avgpooling-samescale";
+    "output/avgpooling-smallerscale";
 };
 
 
@@ -184,6 +228,14 @@ ParameterSweep "Comparison":nyScale = {
     1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
 };
 
-ParameterSweep "ComparisonVerify":nnzThreshold = {
-    0.0; 0.0; 0.0; 0.0; 2.0e-5; 2.0e-5;
+ParameterSweep "RelativeDiscrepancy":nxScale = {
+    1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
+};
+
+ParameterSweep "RelativeDiscrepancy":nyScale = {
+    1.0; 0.5; 1.0; 0.5; 1.0; 0.5;
+};
+
+ParameterSweep "Verify":nnzThreshold = {
+    0.0; 0.0; 1.2e-7; 1.2e-7; 1.2e-7; 1.2e-7;
 };

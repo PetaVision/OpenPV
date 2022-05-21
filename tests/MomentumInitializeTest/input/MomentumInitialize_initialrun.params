@@ -1,0 +1,97 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 100;
+    progressInterval                    = 100;
+    writeProgressToErr                  = true;
+    outputPath                          = "output_initialrun/";
+    verifyWrites                        = true;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output_initialrun/Last";
+    initializeFromCheckpointDir         = "";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 1;
+    errorOnNotANumber                   = false;
+};
+
+ConstantLayer "Output" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    InitVType                           = "ConstantV";
+    valueV                              = 1;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+};
+
+PvpLayer "Input" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    displayPeriod                       = 1;
+    inputPath                           = "input/Input.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    writeFrameToTimestamp               = true;
+};
+
+MomentumConn "MomentumConn" = {
+    preLayerName                        = "Input";
+    postLayerName                       = "Output";
+    channelCode                         = -1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 1;
+    connectOnlySameFeatures             = false;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 5;
+    initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 5;
+    nyp                                 = 5;
+    nfp                                 = 1;
+    normalizeMethod                     = "none";
+    dWMax                               = 1;
+    normalizeDw                         = false;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    momentumMethod                      = "viscosity";
+    timeConstantTau                     = 100.0;
+    momentumDecay                       = 0.0;
+    initPrev_dWFile                     = NULL;
+};

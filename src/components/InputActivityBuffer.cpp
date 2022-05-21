@@ -610,6 +610,9 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
             int features          = mInputData.at(b).getFeatures();
             mInputRegion.at(b)    = Buffer<float>(width, height, features);
             int const N           = mInputRegion.at(b).getTotalElements();
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif // PV_USE_OPENMP_THREADS
             for (int k = 0; k < N; k++) {
                mInputRegion.at(b).set(k, 1.0f);
             }

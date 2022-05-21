@@ -36,8 +36,8 @@ class L0NormProbe : public AbstractNormProbe {
 
    /**
     * @brief nnzThreshold: The threshold for computing the L0-norm.
-    * getValue(t, index) returns the number of targetLayer neurons whose
-    * absolute value is greater than nnzThreshold.
+    * getValues() returns for each batch element the number of targetLayer
+    * neurons whose absolute value is greater than nnzThreshold.
     */
    virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);
    /** @} */

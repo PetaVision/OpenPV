@@ -38,6 +38,7 @@ Response::Status PresynapticPerspectiveConvolveDelivery::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
    // HyPerDelivery::communicateInitInfo() postpones until mWeightsPair communicates.
    pvAssert(mWeightsPair and mWeightsPair->getInitInfoCommunicatedFlag());
    mWeightsPair->needPre();
@@ -50,6 +51,7 @@ Response::Status PresynapticPerspectiveConvolveDelivery::allocateDataStructures(
    if (!Response::completed(status)) {
       return status;
    }
+   if (getChannelCode() == CHANNEL_NOUPDATE) { return status; }
 #ifdef PV_USE_OPENMP_THREADS
    allocateThreadGSyn();
 #endif // PV_USE_OPENMP_THREADS
@@ -190,6 +192,10 @@ void PresynapticPerspectiveConvolveDelivery::deliver(float *destBuffer) {
 }
 
 void PresynapticPerspectiveConvolveDelivery::deliverUnitInput(float *recvBuffer) {
+   // Check if we need to update based on connection's channel
+   if (getChannelCode() == CHANNEL_NOUPDATE) {
+      return;
+   }
    PVLayerLoc const *preLoc = mPreData->getLayerLoc();
    int const nxPreExt       = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
    int const nyPreExt       = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;

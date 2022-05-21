@@ -7,6 +7,9 @@
 
 #include "MomentumUpdater.hpp"
 
+#include "components/WeightsPair.hpp"
+#include "io/WeightsFileIO.hpp"
+
 namespace PV {
 
 MomentumUpdater::MomentumUpdater(char const *name, PVParams *params, Communicator const *comm) {
@@ -25,6 +28,8 @@ int MomentumUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_timeConstantTau(ioFlag);
    ioParam_momentumTau(ioFlag);
    ioParam_momentumDecay(ioFlag);
+   ioParam_initPrev_dWFile(ioFlag);
+   ioParam_prev_dWFrameNumber(ioFlag);
    return status;
 }
 
@@ -137,6 +142,61 @@ void MomentumUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void MomentumUpdater::ioParam_initPrev_dWFile(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (mPlasticityFlag) {
+      parameters()->ioParamString(
+            ioFlag, name, "initPrev_dWFile", &mInitPrev_dWFile, "");
+   }
+}
+
+void MomentumUpdater::ioParam_prev_dWFrameNumber(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(name, "initPrev_dWFile"));
+   if (mInitPrev_dWFile and mInitPrev_dWFile[0]) {
+      parameters()->ioParamValue(
+            ioFlag, name, "prev_dWFrameNumber", &mPrev_dWFrameNumber, mPrev_dWFrameNumber);
+   }
+}
+
+void MomentumUpdater::initMessageActionMap() {
+   HebbianUpdater::initMessageActionMap();
+
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<InitializeStateMessage const>(msgptr);
+      return respondInitializeState(castMessage);
+   };
+   mMessageActionMap.emplace("InitializeState", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(msgptr);
+      return respondConnectionOutput(castMessage);
+   };
+   mMessageActionMap.emplace("ConnectionOutput", action);
+}
+
+Response::Status
+MomentumUpdater::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
+   outputMomentum(message->mTime);
+   return Response::SUCCESS;
+}
+
+Response::Status
+MomentumUpdater::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = HebbianUpdater::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   
+   auto *objectTable = message->mObjectTable;
+   auto *weightsPair = objectTable->findObject<WeightsPair>(getName());
+   mWriteStep = weightsPair->getWriteStep();
+   mWriteTime = weightsPair->getInitialWriteTime();
+   mWriteCompressedWeights = weightsPair->getWriteCompressedWeights();
+   return Response::SUCCESS;
+}
+
 Response::Status MomentumUpdater::allocateDataStructures() {
    auto status = HebbianUpdater::allocateDataStructures();
    if (!Response::completed(status)) {
@@ -166,8 +226,23 @@ MomentumUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
       auto *checkpointer = message->mDataRegistry;
       mPrevDeltaWeights->checkpointWeightPvp(
             checkpointer, name, "prev_dW", mWriteCompressedCheckpoints);
+      // Don't need to checkpoint the next write time because it will always be the same
+      // as the WeightsPair's nextWrite.
+      openOutputStateFile(message);
    }
    return Response::SUCCESS;
+}
+
+Response::Status
+MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   Response::Status status = Response::SUCCESS;
+   if (mPlasticityFlag and mInitPrev_dWFile and mInitPrev_dWFile[0]) {
+      FileStream prevDeltaWeightsStream(
+            mInitPrev_dWFile, std::ios_base::in | std::ios_base::binary);
+      WeightsFileIO prev_dWFile(&prevDeltaWeightsStream, getMPIBlock(), mPrevDeltaWeights);
+      prev_dWFile.readWeights(mPrev_dWFrameNumber);
+   }
+   return status;
 }
 
 Response::Status MomentumUpdater::readStateFromCheckpoint(Checkpointer *checkpointer) {
@@ -270,6 +345,39 @@ void MomentumUpdater::applyMomentumDeprecated(int arborId, float dwFactor, float
    }
    // Since weights data is allocated with all patches of a given arbor in a single vector,
    // these two for-loops can probably be collapsed. --pschultz 2017-12-16
+}
+
+void MomentumUpdater::openOutputStateFile(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   if (mWriteStep >= 0) {
+      auto *checkpointer = message->mDataRegistry;
+      if (checkpointer->getMPIBlock()->getRank() == 0) {
+         std::string outputStatePath(getName());
+         outputStatePath.append(".prevDelta.pvp");
+
+         std::string checkpointLabel(getName());
+         checkpointLabel.append("_prevDelta_filepos");
+
+         bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
+         mOutputStateStream = new CheckpointableFileStream(
+               outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
+         mOutputStateStream->respond(message); // CheckpointableFileStream needs to register data
+      }
+   }
+}
+
+void MomentumUpdater::outputMomentum(double timestamp) {
+   if ((mWriteStep >= 0) && (timestamp >= mWriteTime)) {
+      mWriteTime += mWriteStep;
+
+      WeightsFileIO weightsFileIO(mOutputStateStream, getMPIBlock(), mPrevDeltaWeights);
+      weightsFileIO.writeWeights(timestamp, mWriteCompressedWeights);
+   }
+   else if (mWriteStep < 0) {
+      // If writeStep is negative, we never call writeWeights, but someone might restart from a
+      // checkpoint with a different writeStep, so we maintain writeTime.
+      mWriteTime = timestamp;
+   }
 }
 
 } // namespace PV

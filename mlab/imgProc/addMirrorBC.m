@@ -20,28 +20,28 @@ function [pad_image] = addMirrorBC(original_image, pad)
       pad_image;
     %% NW
     extended_image(1:pad_max, 1:pad_max) = ...
-	rotdim(pad_image(1:pad_max, 1:pad_max), 2);
+        rotdim(pad_image(1:pad_max, 1:pad_max), 2);
     %% N
     extended_image(1:pad_max, pad_max+1:end-pad_max) = ...
-	flipud(pad_image(1:pad_max, :));
+        flipud(pad_image(1:pad_max, :));
     %% NE
     extended_image(1:pad_max, end-pad_max+1:end) = ...
-	rotdim(pad_image(1:pad_max, end-pad_max+1:end), 2);
+        rotdim(pad_image(1:pad_max, end-pad_max+1:end), 2);
     %% W
     extended_image(pad_max+1:end-pad_max, 1:pad_max) = ...
-	fliplr(pad_image(:,1 :pad_max));
+        fliplr(pad_image(:,1 :pad_max));
     %% E
     extended_image(pad_max+1:end-pad_max, end-pad_max+1:end) = ...
-	fliplr(pad_image(:, end-pad_max+1:end));
+        fliplr(pad_image(:, end-pad_max+1:end));
     %% SW
     extended_image(end-pad_max+1:end, 1:pad_max) = ...
-	rotdim(pad_image(end-pad_max+1:end, 1:pad_max), 2);
+        rotdim(pad_image(end-pad_max+1:end, 1:pad_max), 2);
     %% S
     extended_image(end-pad_max+1:end, pad_max+1:end-pad_max) = ...
-	flipud(pad_image(end-pad_max+1:end, :));
+        flipud(pad_image(end-pad_max+1:end, :));
     %% SE
     extended_image(end-pad_max+1:end, end-pad_max+1:end) = ...
-	rotdim(pad_image(end-pad_max+1:end, end-pad_max+1:end), 2);
+        rotdim(pad_image(end-pad_max+1:end, end-pad_max+1:end), 2);
 
     pad_image = extended_image;
     pad_max = min( [pad - pad_cum, extended_size(1), extended_size(2)] );
@@ -49,4 +49,4 @@ function [pad_image] = addMirrorBC(original_image, pad)
     pad_cum = pad_cum + pad_max;
 
 
-endwhile%%pad_mas
+end%while%%pad_mas

@@ -1,10 +1,10 @@
-# Try and find cudNN
+# Try and find cuDNN
 #
 # Once done, this will define
 #
 #  CUDNN_FOUND - system has CUDNN
 #  CUDNN_INCLUDE_DIRS - the CUDNN include directories
-#  CUDNN_LIBRARIES - link these to use cudNN
+#  CUDNN_LIBRARY - link these to use cuDNN
 #
 # A CUDNN_PATH variable can be set prior find_package(CUDNN)
 # to specify exactly where to search

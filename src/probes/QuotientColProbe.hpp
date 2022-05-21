@@ -50,7 +50,7 @@ class QuotientColProbe : public ColProbe {
     * @brief valueDescription: a short description of what the quantities
     * computed by getValues()
     * represent.
-    * @details when outputHeader is called, it prints a line to the output file
+    * @details when outputHeader() is called, it prints a line to the output file
     * consisting of the string "Probe_name,time,index," followed by the
     * valueDescription.
     * Defaults to "value".
@@ -84,16 +84,6 @@ class QuotientColProbe : public ColProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   /**
-    * Prints the energies to the output stream, formatted as a comma-separated
-    * value:
-    * "Name of probe",timevalue,index,energy
-    * The number of lines printed is equal to getVectorSize(), and index goes
-    * from 0 to
-    * getVectorSize()-1.
-    */
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
   protected:
    /**
     * The constructor without arguments should be used by derived classes.
@@ -117,7 +107,18 @@ class QuotientColProbe : public ColProbe {
     */
    virtual void calcValues(double timeValue) override;
 
-   virtual void outputHeader() override;
+   /**
+    * Prints the energies to the output stream, formatted as a comma-separated
+    * value:
+    * "Name of probe",timevalue,index,energy
+    * The number of lines printed is equal to getVectorSize(), and index goes
+    * from 0 to
+    * getVectorSize()-1.
+    */
+   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   virtual Response::Status outputStateStats(double simTime, double deltaTime) override;
+
+   virtual void outputHeader(Checkpointer *checkpointer) override;
 
   private:
    /**
@@ -129,8 +130,7 @@ class QuotientColProbe : public ColProbe {
    // Member variables
   protected:
    char *valueDescription; // A string description of the quantity calculated by
-   // the probe, used by
-   // outputHeader
+   // the probe, used by outputHeader()
    char *numerator; // The name of the probe that supplies the numerator
    char *denominator; // The name of the probe that supplies the denominator
    BaseProbe *numerProbe; // A pointer to the probe that supplies the numerator.

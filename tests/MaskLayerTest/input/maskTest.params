@@ -7,16 +7,16 @@ HyPerCol "column" = {
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     stopTime = 100.0;       // Depends on number of VINE video frames
     progressInterval = 1.0;
-    outputPath = "output/";
+    outputPath = "output/maskTest";
     printParamsFilename = "pv.params";
     initializeFromCheckpointDir = "";
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
-    lastCheckpointDir = "output/Last";
+    lastCheckpointDir = "output/maskTest/Last";
     writeProgressToErr = true;
     verifyWrites = false;
     errorOnNotANumber = false;
-    nbatch = 2;
+    nbatch = 4;
 };
 
 // this is a input layer
@@ -42,8 +42,7 @@ PvpLayer "mask" = {
 };
 
 // value is equal to restricted index into extended layer (with negative values) index, with order [x, y, f] from fastest to slowest
-MaskTestInputLayer "input" = {
-    restart = 0;
+PvpLayer "input" = {
     nxScale = 1;
     nyScale = 1;
     nf = 3;
@@ -52,16 +51,11 @@ MaskTestInputLayer "input" = {
     mirrorBCflag = false;
     valueBC = 0.0;
     sparseLayer = 0;
-    //
-    InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
     phase = 0; 
+    inputPath = "input/input.pvp";
 };
 
 MaskLayer "maskOut" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
@@ -83,7 +77,6 @@ MaskLayer "maskOut" = {
 };
 
 MaskTestLayer "test" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
@@ -108,8 +101,6 @@ IdentConn "inputToMaskOut" = {
    postLayerName                       = "maskOut";
    channelCode                         = 0;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
-   writeStep                           = -1;
 };
 
 IdentConn "maskOutToTest" = {
@@ -117,8 +108,6 @@ IdentConn "maskOutToTest" = {
    postLayerName                       = "test";
    channelCode                         = 0;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
-   writeStep                           = -1;
 };
 
 IdentConn "inputToTest" = {
@@ -126,8 +115,6 @@ IdentConn "inputToTest" = {
    postLayerName                       = "test";
    channelCode                         = 1;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
-   writeStep                           = -1;
 };
 
 IdentConn "maskToTest" = {
@@ -135,8 +122,6 @@ IdentConn "maskToTest" = {
    postLayerName                       = "test";
    channelCode                         = 2;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
-   writeStep                           = -1;
 };
 
 

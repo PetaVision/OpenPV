@@ -30,25 +30,7 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
    params        = nullptr;
    mCommunicator = nullptr;
 
-   // If first argument starts with a non-hyphen character, take it to be a config file.
-   // Otherwise, assume config options are being set on the command line.
-   if (mArgC >= 2 && mArgV[1] != nullptr && mArgV[1][0] != '-') {
-      // Communicator doesn't get set until call to initialize(), which we can't call until rows,
-      // columns, etc.
-      // are set. We therefore need to use MPI_COMM_WORLD as the MPI communicator.
-      arguments = new ConfigFileArguments(
-            std::string{mArgV[1]}, MPI_COMM_WORLD, allowUnrecognizedArguments);
-
-      // Check if "--require-return" was set.
-      for (int arg = 2; arg < mArgC; arg++) {
-         if (pv_getopt(mArgC, mArgV.data(), "--require-return", nullptr) == 0) {
-            arguments->setBooleanArgument("RequireReturn", true);
-         }
-      }
-   }
-   else {
-      arguments = new CommandLineArguments(mArgC, mArgV.data(), allowUnrecognizedArguments);
-   }
+   arguments = parse_arguments(*argc, *argv, allowUnrecognizedArguments);
    initLogFile(false /*appendFlag*/);
    initFactory();
    initialize(); // must be called after initialization of arguments data member.
@@ -57,18 +39,18 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
 PV_Init::~PV_Init() {
    delete params;
    delete mCommunicator;
-   delete arguments;
+   arguments = nullptr;
    commFinalize();
 }
 
 int PV_Init::initSignalHandler() {
-   // Block SIGUSR1, SIGUSR2, SIGINT, and SIGTERM.  root process checks for
+   // Block SIGUSR1, SIGUSR2.  root process checks for
    // these signals during Checkpointer::checkpointWrite() (typically called
    // during HyPerCol::advanceTime()) and broadcasts any caught signal to
    // all processes.
    // CheckpointWrite() responds to the signals as follows:
    // SIGUSR1: write a checkpoint and continue.
-   // SIGUSR2, SIGINT or SIGTERM: write a checkpoint and quit.
+   // SIGUSR2: write a checkpoint and quit.
    //
    // This routine must be called before MPI_Initialize; otherwise a thread
    // created by MPI will not get the signal handler
@@ -77,15 +59,13 @@ int PV_Init::initSignalHandler() {
    sigemptyset(&blockusr1);
    sigaddset(&blockusr1, SIGUSR1);
    sigaddset(&blockusr1, SIGUSR2);
-   sigaddset(&blockusr1, SIGINT);
-   sigaddset(&blockusr1, SIGTERM);
    sigprocmask(SIG_BLOCK, &blockusr1, NULL);
    return 0;
 }
 
 int PV_Init::initialize() {
    delete mCommunicator;
-   mCommunicator = new Communicator(arguments);
+   mCommunicator = new Communicator(arguments.get());
    int status    = PV_SUCCESS;
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.

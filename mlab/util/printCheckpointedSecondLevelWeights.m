@@ -20,7 +20,7 @@ function printCheckpointedSecondLevelWeights(input_pvps, weights_1_pvps, weights
 %% weights_2_pvps = {'V1BToErrorDelay0_W.pvp' 'V1BToErrorDelay100_W.pvp' 'V1BToErrorDelay200_W.pvp' 'V1BToErrorDelay300_W.pvp'};
 %% printCheckpointedSecondLevelWeights(input_pvps, weights_1_pvps, weights_2_pvps, 4);
 
-   if !(size(input_pvps) == size(weights_1_pvps) == size(weights_2_pvps))
+   if ~(size(input_pvps) == size(weights_1_pvps) == size(weights_2_pvps))
       disp("Make sure your pvp cell arrays are the same size.");
       exit;
    end

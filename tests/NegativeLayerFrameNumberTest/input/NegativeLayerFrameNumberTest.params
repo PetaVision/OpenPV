@@ -1,0 +1,139 @@
+//
+// BasicSystemTest.params
+//
+// created by peteschultz: Jun 25, 2021
+//
+
+//  A params file for to test using negative frame numbers
+//  when initializing a layer from file.
+//
+//  A constant layer is initialized from the file input/Input.pvp
+//  with frameNumber controlled by a parameter sweep. The frameNumber
+//  entries include both positive and negative values. This input
+//  layer is compared with a constant layer initialized with ConstantV,
+//  whose valueV parameter is controlled by a parameter sweep, and
+//  corresponds to the correct value for the input layer.
+//  These two layers are then compared using a
+//  RequireAllZeroActivityProbe.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 2055372108;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 1;
+    errorOnNotANumber                   = false;
+    // outputPath is handled by parameter sweep
+    verifyWrites                        = true;
+    checkpointWrite                     = false;
+    // lastCheckpointDir is handled by parameter sweep
+    initializeFromCheckpointDir         = "";
+};
+
+ConstantLayer "Input" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/Input.pvp";
+    // frameNumber is handled by parameter sweep
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = -1;
+};
+
+ConstantLayer "Correct" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    InitVType                           = "ConstantV";
+    // valueV is handled by parameter sweep
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+HyPerLayer "Comparison" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 2;
+    mirrorBCflag                        = true;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ConstantV";
+    valueV                              = 0;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+IdentConn "InputToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Input";
+    postLayerName                       = "Comparison";
+    channelCode                         = 0;
+    delay                               = 0.0;
+};
+
+IdentConn "CorrectToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Correct";
+    postLayerName                       = "Comparison";
+    channelCode                         = 1;
+    delay                               = 0.0;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer                         = "Comparison";
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ComparisonProbe.txt";
+    nnzThreshold                        = 0;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = true;
+};
+
+ParameterSweep "Input":frameNumber = {
+    3; 2; 1; 0; -1; -2; -3; -4;
+};
+
+ParameterSweep "Correct":valueV = {
+    4; 3; 2; 1; 4; 3; 2; 1;
+};
+
+ParameterSweep "column":outputPath = {
+    "output_frameNumber_p3/";
+    "output_frameNumber_p2/";
+    "output_frameNumber_p1/";
+    "output_frameNumber_z0/";
+    "output_frameNumber_n1/";
+    "output_frameNumber_n2/";
+    "output_frameNumber_n3/";
+    "output_frameNumber_n4/";
+};
+
+ParameterSweep "column":lastCheckpointDir = {
+    "output_frameNumber_p3/Last";
+    "output_frameNumber_p2/Last";
+    "output_frameNumber_p1/Last";
+    "output_frameNumber_z0/Last";
+    "output_frameNumber_n1/Last";
+    "output_frameNumber_n2/Last";
+    "output_frameNumber_n3/Last";
+    "output_frameNumber_n4/Last";
+};

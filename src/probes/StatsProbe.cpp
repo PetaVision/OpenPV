@@ -81,6 +81,12 @@ int StatsProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+void StatsProbe::ioParam_statsFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parameters()->handleUnnecessaryParameter(name, "statsFlag");
+   }
+}
+
 void StatsProbe::requireType(PVBufType requiredType) {
    PVParams *params = parameters();
    if (params->stringPresent(getName(), "buffer")) {
@@ -315,12 +321,13 @@ Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
          avgval  = avg[b];
          avgnote = "";
       }
+      int globalBatchIndex = calcGlobalBatchOffset() + b;
       output(b).printf(
             "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f%s "
             "Max==%f sigma==%f nnz==%d",
             getMessage(),
             (double)simTime,
-            (int)b,
+            globalBatchIndex,
             (int)divisor,
             (double)sum[b],
             (double)fMin[b],
@@ -356,6 +363,11 @@ float const *StatsProbe::retrieveActivityBuffer() {
          getDescription_c(),
          getTargetLayer()->getName());
    return publisherComponent->getLayerData();
+}
+
+Response::Status StatsProbe::outputStateStats(double simTime, double deltaTime) {
+   Fatal() << "StatsProbe::outputStateStats() should never be called.\n";
+   return Response::NO_ACTION; // to suppress compiler warnings
 }
 
 int StatsProbe::checkpointTimers(PrintStream &timerstream) {

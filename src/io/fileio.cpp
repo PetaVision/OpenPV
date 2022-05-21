@@ -78,6 +78,7 @@ static inline int makeDirectory(char const *dir) {
    if (errno == EEXIST) {
       status = 0;
    }
+   free(workingDir);
    return status;
 }
 
@@ -133,6 +134,10 @@ void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname) {
          break;
       }
    }
+}
+
+void ensureDirExists(std::shared_ptr<MPIBlock const> mpiBlock, char const *dirname) {
+   ensureDirExists(mpiBlock.get(), dirname);
 }
 
 } // namespace PV

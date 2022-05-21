@@ -14,6 +14,7 @@
 #include "include/pv_types.h"
 #include "structures/MPIBlock.hpp"
 
+#include <memory>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -23,6 +24,7 @@ namespace PV {
 
 int PV_stat(const char *path, struct stat *buf);
 void ensureDirExists(MPIBlock const *mpiBlock, char const *dirname);
+void ensureDirExists(std::shared_ptr<MPIBlock const>, char const *dirname);
 
 } // namespace PV
 

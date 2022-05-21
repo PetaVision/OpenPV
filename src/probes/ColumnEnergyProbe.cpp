@@ -57,7 +57,7 @@ void ColumnEnergyProbe::initialize(
    ColProbe::initialize(probename, params, comm);
 }
 
-void ColumnEnergyProbe::outputHeader() {
+void ColumnEnergyProbe::outputHeader(Checkpointer *checkpointer) {
    if (isWritingToFile()) {
       for (auto &s : mOutputStreams) {
          *s << "time,index,energy\n";
@@ -150,16 +150,17 @@ void ColumnEnergyProbe::calcValues(double timevalue) {
       return;
    }
    mSkipTimer           = mSkipInterval + 1;
-   double *valuesBuffer = getValuesBuffer();
+   auto &valuesVector   = getProbeValues();
    int numValues        = this->getNumValues();
-   memset(valuesBuffer, 0, numValues * sizeof(*valuesBuffer));
+   pvAssert(static_cast<int>(valuesVector.size()) == numValues);
+   memset(valuesVector.data(), 0, valuesVector.size() * sizeof(*valuesVector.data()));
    double energy1[numValues];
    for (std::size_t n = 0; n < numTerms; n++) {
       BaseProbe *p = terms[n];
       p->getValues(timevalue, energy1);
       double coeff = p->getCoefficient();
       for (int b = 0; b < numValues; b++) {
-         valuesBuffer[b] += coeff * energy1[b];
+         valuesVector[b] += coeff * energy1[b];
       }
    }
 }
@@ -170,16 +171,17 @@ Response::Status ColumnEnergyProbe::outputState(double simTime, double deltaTime
       return Response::SUCCESS;
    }
 
-   double *valuesBuffer = getValuesBuffer();
+   auto &valuesVector = getProbeValues();
    int nbatch           = this->getNumValues();
+   pvAssert(nbatch == static_cast<int>(valuesVector.size()));
    pvAssert(nbatch == (int)mOutputStreams.size());
    for (int b = 0; b < nbatch; b++) {
-      auto stream = *mOutputStreams[b];
       if (!isWritingToFile()) {
-         stream << "\"" << name << "\","; // lack of \n is deliberate
+         output(b) << "\"" << name << "\","; // lack of \n is deliberate
       }
-      stream.printf("%10f, %d, %10.9f\n", simTime, b, valuesBuffer[b]);
-      stream.flush();
+      int globalBatchIndex = calcGlobalBatchOffset() + b;
+      output(b).printf("%10f, %d, %10.9f\n", simTime, globalBatchIndex, valuesVector[b]);
+      output(b).flush();
    }
    return Response::SUCCESS;
 } // end ColumnEnergyProbe::outputState(double)

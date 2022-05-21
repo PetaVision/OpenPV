@@ -6,7 +6,7 @@
 
 using namespace PV;
 
-void testPvpRestricted(MPIBlock const *mpiBlock, std::string const &directory) {
+void testPvpRestricted(std::shared_ptr<MPIBlock const> mpiBlock, std::string const &directory) {
    PVLayerLoc loc;
    loc.nbatchGlobal = mpiBlock->getBatchDimension();
    loc.nxGlobal     = 16;

@@ -315,20 +315,22 @@ void CudaRecvPost::setArgs(
    params.v_outputDescriptor = (void *)outputDescriptor;
 
    // Calculate and set up best forward conv algorithm to use
-   cudnnHandle_t handle                = (cudnnHandle_t)device->getCudnnHandle();
-   cudnnConvolutionFwdAlgo_t *convAlgo = new cudnnConvolutionFwdAlgo_t();
+   cudnnHandle_t handle                        = (cudnnHandle_t)device->getCudnnHandle();
+   cudnnConvolutionFwdAlgoPerf_t *convAlgoPerf = new cudnnConvolutionFwdAlgoPerf_t();
 
-   status = cudnnGetConvolutionForwardAlgorithm(
+
+   int returnedAlgoCount;
+   status = cudnnGetConvolutionForwardAlgorithm_v7(
          handle,
          inputDescriptor,
          filterDescriptor,
          convDescriptor,
          outputDescriptor,
-         CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT,
-         workspaceMem,
-         convAlgo);
+         1,
+         &returnedAlgoCount,
+         convAlgoPerf);
    cudnnHandleError(status, "Get convolution forward algorithm");
-   params.v_convAlgo = (void *)convAlgo;
+   params.v_convAlgo = (void *)(&convAlgoPerf->algo);
 
    // Based on algorithm, allocate workspace memory for GPU
    size_t *temp = new size_t();
@@ -338,7 +340,7 @@ void CudaRecvPost::setArgs(
          filterDescriptor,
          convDescriptor,
          outputDescriptor,
-         *convAlgo,
+         convAlgoPerf->algo,
          temp);
    params.workspaceSize = temp;
    cudnnHandleError(status, "Get convolution forward workspace size");

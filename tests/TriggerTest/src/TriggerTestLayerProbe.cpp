@@ -21,10 +21,11 @@ TriggerTestLayerProbe::initializeState(std::shared_ptr<InitializeStateMessage co
 }
 
 void TriggerTestLayerProbe::calcValues(double timevalue) {
-   double v             = needUpdate(timevalue, mDeltaTime) ? 1.0 : 0.0;
-   double *valuesBuffer = this->getValuesBuffer();
+   double v           = needUpdate(timevalue, mDeltaTime) ? 1.0 : 0.0;
+   auto &valuesVector = this->getProbeValues();
+   pvAssert(static_cast<int>(valuesVector.size()) == this->getNumValues());
    for (int n = 0; n < this->getNumValues(); n++) {
-      valuesBuffer[n] = v;
+      valuesVector[n] = v;
    }
 }
 
@@ -38,8 +39,9 @@ Response::Status TriggerTestLayerProbe::outputStateWrapper(double simTime, doubl
    // No trigger, always update
    const char *name = getName();
    getValues(simTime);
-   FatalIf(!(this->getNumValues() > 0), "Test failed.\n");
-   int updateNeeded = (int)getValuesBuffer()[0];
+   FatalIf(this->getNumValues() <= 0, "Test failed.\n");
+   FatalIf(getProbeValues().empty(), "Test failed.\n");
+   int updateNeeded = (int)getProbeValues()[0];
    InfoLog().printf(
          "%s: time=%f, dt=%f, needUpdate=%d, triggerOffset=%f\n",
          name,

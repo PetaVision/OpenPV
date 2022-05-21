@@ -29,7 +29,7 @@ int run(int argc, char *argv[]) {
          std::string{argv[1]}, MPI_COMM_WORLD, false /*do not allow unrecognized arguments*/);
 
    PV::Communicator pvComm(&arguments);
-   PV::MPIBlock const *globalMPIBlock = pvComm.getGlobalMPIBlock();
+   auto globalMPIBlock = pvComm.getGlobalMPIBlock();
 
    std::string logFile = arguments.getStringArgument("LogFile");
    if (!logFile.empty()) {
@@ -54,7 +54,7 @@ int run(int argc, char *argv[]) {
    int const globalMPIBatchWidth = globalMPIBlock->getBatchDimension();
 
    auto checkpointer =
-         new PV::Checkpointer(std::string("checkpointer"), globalMPIBlock, &arguments);
+         new PV::Checkpointer(std::string("checkpointer"), &pvComm, &arguments);
 
    PV::PVParams params("input/CheckpointerMPIBlockTest.params", 1, &pvComm);
    checkpointer->ioParams(PV::PARAMS_IO_READ, &params);
@@ -172,7 +172,7 @@ int run(int argc, char *argv[]) {
    arguments.setStringArgument("CheckpointReadDirectory", checkpointReadDir);
 
    auto checkpointReader =
-         new PV::Checkpointer(std::string("checkpointer"), globalMPIBlock, &arguments);
+         new PV::Checkpointer(std::string("checkpointer"), &pvComm, &arguments);
 
    registerSucceeded = checkpointReader->registerCheckpointEntry(
          checkpointEntry, false /*treat as non-constant*/);

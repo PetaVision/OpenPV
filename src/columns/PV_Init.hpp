@@ -85,7 +85,7 @@ class PV_Init {
     * Returns a pointer to the Arguments. Declared const, so the arguments
     * cannot be changed using the result of this function.
     */
-   Arguments const *getArguments() const { return arguments; }
+   Arguments const *getArguments() const { return arguments.get(); }
 
    bool const &getBooleanArgument(std::string const &name) const {
       return arguments->getBooleanArgument(name);
@@ -282,7 +282,7 @@ class PV_Init {
    int mArgC = 0;
    std::vector<char const *> mArgV;
    PVParams *params;
-   Arguments *arguments;
+   std::shared_ptr<Arguments> arguments;
    int maxThreads;
    Communicator *mCommunicator;
 };

@@ -22,7 +22,7 @@ function printCheckpointedThirdLevelWeights(input_pvps, weights_1_pvps, weights_
 %% weights_3_pvps = {'V14BToV14BError_W.pvp' 'V14BToV14BError_W.pvp' 'V14BToV14BError_W.pvp' 'V14BToV14BError_W.pvp'};
 %% printCheckpointedThirdLevelWeights(input_pvps, weights_1_pvps, weights_2_pvps, weights_3_pvps, 4);
 
-   if !(size(input_pvps) == size(weights_1_pvps) == size(weights_2_pvps) == size(weights_3_pvps))
+   if ~(size(input_pvps) == size(weights_1_pvps) == size(weights_2_pvps) == size(weights_3_pvps))
       disp("Make sure your pvp cell arrays are the same size.");
       exit;
    end

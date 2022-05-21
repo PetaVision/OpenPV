@@ -133,4 +133,34 @@ Response::Status LayerProbe::outputStateWrapper(double simTime, double deltaTime
    return status;
 }
 
+Response::Status LayerProbe::outputStateStats(double simTime, double deltaTime) {
+   getValues(simTime);
+   auto &valuesVector = getProbeValues();
+   pvAssert(static_cast<int>(valuesVector.size()) == getNumValues());
+
+   double min = std::numeric_limits<double>::infinity();
+   double max = -std::numeric_limits<double>::infinity();
+   double sum = 0.0;
+   for (int k=0; k < getNumValues(); k++) {
+      double v = valuesVector[k];
+      min = min < v ? min : valuesVector[k];
+      max = max > v ? max : valuesVector[k];
+      sum += v;
+   }
+   MPI_Comm const batchComm = mCommunicator->batchCommunicator();
+   MPI_Allreduce(MPI_IN_PLACE, &min, 1, MPI_DOUBLE, MPI_MIN, batchComm);
+   MPI_Allreduce(MPI_IN_PLACE, &max, 1, MPI_DOUBLE, MPI_MAX, batchComm);
+   MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_DOUBLE, MPI_SUM, batchComm);
+   if (!mOutputStreams.empty()) {
+      pvAssert(mCommunicator->globalCommRank() == 0);
+      pvAssert(mOutputStreams.size() == (std::size_t)1);
+      double mean = sum/(getNumValues() * mCommunicator->numCommBatches());
+      output(0).printf("t=%6.3f, min=%f, max=%f, mean=%f\n", simTime, min, max, mean);
+   }
+   else {
+      pvAssert(mCommunicator->globalCommRank() != 0);
+   }
+   return Response::SUCCESS;
+}
+
 } // namespace PV

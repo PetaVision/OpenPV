@@ -51,7 +51,7 @@ void QuotientColProbe::initialize(
    ColProbe::initialize(probename, params, comm);
 }
 
-void QuotientColProbe::outputHeader() {
+void QuotientColProbe::outputHeader(Checkpointer *checkpointer) {
    for (auto &s : mOutputStreams) {
       *s << "Probe_name,time,index," << valueDescription;
    }
@@ -140,10 +140,11 @@ QuotientColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
 
 void QuotientColProbe::calcValues(double timeValue) {
    int numValues        = this->getNumValues();
-   double *valuesBuffer = getValuesBuffer();
+   auto &valuesVector = getProbeValues();
+   pvAssert(numValues == static_cast<int>(valuesVector.size()));
    if (timeValue == 0.0) {
       for (int b = 0; b < numValues; b++) {
-         valuesBuffer[b] = 1.0;
+         valuesVector[b] = 1.0;
       }
       return;
    }
@@ -152,7 +153,7 @@ void QuotientColProbe::calcValues(double timeValue) {
    double d[numValues];
    denomProbe->getValues(timeValue, d);
    for (int b = 0; b < numValues; b++) {
-      valuesBuffer[b] = n[b] / d[b];
+      valuesVector[b] = n[b] / d[b];
    }
 }
 
@@ -163,15 +164,50 @@ Response::Status QuotientColProbe::outputState(double simTime, double deltaTime)
    if (mOutputStreams.empty()) {
       return Response::SUCCESS;
    }
-   double *valuesBuffer = getValuesBuffer();
+   auto &valuesVector = getProbeValues();
    int numValues        = this->getNumValues();
+   pvAssert(numValues == static_cast<int>(valuesVector.size()));
    for (int b = 0; b < numValues; b++) {
       if (isWritingToFile()) {
-         output(b) << "\"" << valueDescription << "\",";
+         output(b) << "\"" << valueDescription << "\","; // lack of \n is deliberate
       }
-      output(b) << simTime << "," << b << "," << valuesBuffer[b] << std::endl;
+      int globalBatchIndex = calcGlobalBatchOffset() + b;
+      output(b) << simTime << "," << globalBatchIndex << "," << valuesVector[b] << std::endl;
    }
    return Response::SUCCESS;
 } // end QuotientColProbe::outputState(float, HyPerCol *)
+
+Response::Status QuotientColProbe::outputStateStats(double simTime, double deltaTime) {
+   getValues(simTime);
+   auto &valuesVector = getProbeValues();
+   int nbatch           = getNumValues();
+   pvAssert(nbatch == static_cast<int>(valuesVector.size()));
+   double min = std::numeric_limits<double>::infinity();
+   double max = -std::numeric_limits<double>::infinity();
+   double sum = 0.0;
+   for (int k=0; k < getNumValues(); k++) {
+      double v = valuesVector[k];
+      min = min < v ? min : valuesVector[k];
+      max = max > v ? max : valuesVector[k];
+      sum += v;
+   }
+   MPI_Comm const batchComm = mCommunicator->batchCommunicator();
+   MPI_Allreduce(MPI_IN_PLACE, &min, 1, MPI_DOUBLE, MPI_MIN, batchComm);
+   MPI_Allreduce(MPI_IN_PLACE, &max, 1, MPI_DOUBLE, MPI_MAX, batchComm);
+   MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_DOUBLE, MPI_SUM, batchComm);
+   if (!mOutputStreams.empty()) {
+      pvAssert(mCommunicator->globalCommRank() == 0);
+      pvAssert(mOutputStreams.size() == (std::size_t)1);
+      double mean = sum/(getNumValues() * mCommunicator->numCommBatches());
+      if (isWritingToFile()) {
+         output(0) << "\"" << valueDescription << "\","; // lack of \n is deliberate
+      }
+      output(0).printf("t=%10f, min=%10.9f, max=%10.9f, mean=%10.9f\n", simTime, min, max, mean);
+   }
+   else {
+      pvAssert(mCommunicator->globalCommRank() != 0);
+   }
+   return Response::SUCCESS;
+}
 
 } // end namespace PV

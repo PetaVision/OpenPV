@@ -162,7 +162,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
    }
 
    mCheckpointer = new Checkpointer(
-         std::string(group0Name), mCommunicator->getGlobalMPIBlock(), mPVInitObj->getArguments());
+         std::string(group0Name), mCommunicator, mPVInitObj->getArguments());
    mCheckpointer->addObserver(this->getName(), this);
    mCheckpointer->ioParams(PARAMS_IO_READ, parameters());
 
@@ -278,10 +278,10 @@ void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
          ioFlag, getName(), "printParamsFilename", &mPrintParamsFilename, "pv.params");
    if (mPrintParamsFilename == nullptr || mPrintParamsFilename[0] == '\0') {
-      if (mCheckpointer->getMPIBlock()->getRank() == 0) {
+      if (mCommunicator->getIOMPIBlock()->getRank() == 0) {
          ErrorLog().printf("printParamsFilename cannot be null or the empty string.\n");
       }
-      MPI_Barrier(mCheckpointer->getMPIBlock()->getComm());
+      MPI_Barrier(mCommunicator->ioCommunicator());
       exit(EXIT_FAILURE);
    }
 }
@@ -323,8 +323,7 @@ void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, getName(), "nbatch", &mNumBatchGlobal, mNumBatchGlobal);
-   // Make sure numCommBatches is a divisor of nBatch specified in the params
-   // file
+   // Make sure numCommBatches is a divisor of nBatch specified in the params // file
    FatalIf(
          mNumBatchGlobal % mCommunicator->numCommBatches() != 0,
          "The total number of batches (%d) must be a multiple of the batch "
@@ -343,20 +342,8 @@ void HyPerCol::allocateColumn() {
       return;
    }
 
-   // processParams function does communicateInitInfo stage, sets up adaptive
-   // time step, and prints params
-   pvAssert(mPrintParamsFilename && mPrintParamsFilename[0]);
-   if (mPrintParamsFilename[0] != '/') {
-      std::string printParamsFilename(mPrintParamsFilename);
-      std::string printParamsPath = mCheckpointer->makeOutputPathFilename(printParamsFilename);
-      processParams(printParamsPath.c_str());
-   }
-   else {
-      // If using absolute path, only global rank 0 writes, to avoid collisions.
-      if (mCheckpointer->getMPIBlock()->getGlobalRank() == 0) {
-         processParams(mPrintParamsFilename);
-      }
-   }
+   // processParams function does communicateInitInfo stage and prints params
+   processParams(mPrintParamsFilename);
 
 #ifdef PV_USE_CUDA
    // Needs to go between CommunicateInitInfo (called by processParams) and
@@ -371,6 +358,7 @@ void HyPerCol::allocateColumn() {
 
    notifyLoop(std::make_shared<LayerSetMaxPhaseMessage>(&mNumPhases));
    mNumPhases++;
+   mIdleCounts.resize(mNumPhases);
 
    mPhaseRecvTimers.clear();
    for (int phase = 0; phase < mNumPhases; phase++) {
@@ -381,7 +369,9 @@ void HyPerCol::allocateColumn() {
       mCheckpointer->registerTimer(phaseRecvTimer);
    }
 
-   notifyLoop(std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer));
+   auto registerDataMessage = std::make_shared<RegisterDataMessage<Checkpointer>>(mCheckpointer);
+   respond(registerDataMessage);
+   notifyLoop(registerDataMessage);
 
 #ifdef DEBUG_OUTPUT
    InfoLog().printf("[%d]: HyPerCol: running...\n", mCommunicator->globalCommRank());
@@ -429,6 +419,23 @@ void HyPerCol::allocateColumn() {
    mReadyFlag = true;
 }
 
+Response::Status
+HyPerCol::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = ParamsInterface::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer = message->mDataRegistry;
+   checkpointer->registerCheckpointData<int>(
+         std::string(name),
+         std::string("IdleCounts"),
+         mIdleCounts.data(),
+         mIdleCounts.size(),
+         true /*broadcast*/,
+         false /*constantEntireRun*/);
+   return Response::SUCCESS;
+}
+
 // typically called by buildandrun via HyPerCol::run()
 int HyPerCol::run(double stopTime, double dt) {
    mStopTime  = stopTime;
@@ -440,13 +447,14 @@ int HyPerCol::run(double stopTime, double dt) {
             "Warning: more MPI processes than available threads.  "
             "Processors may be oversubscribed.\n");
    }
-   allocateColumn();
-   getOutputStream().flush();
-
+   processParams(mPrintParamsFilename);
    bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
    if (dryRunFlag) {
       return PV_SUCCESS;
    }
+
+   allocateColumn();
+   getOutputStream().flush();
 
 #ifdef TIMER_ON
    Clock runClock;
@@ -574,7 +582,11 @@ ObserverTable HyPerCol::getAllObjectsFlat() {
    return objectTable;
 }
 
-int HyPerCol::processParams(char const *path) {
+void HyPerCol::processParams(char const *path) {
+   if (mParamsProcessedFlag) {
+      return;
+   }
+
    auto objectTable = getAllObjectsFlat();
 
    if (!mParamsProcessedFlag) {
@@ -587,11 +599,24 @@ int HyPerCol::processParams(char const *path) {
                   mNumBatchGlobal,
                   mNumThreads));
    }
+   parameters()->warnUnread();
 
    // Print a cleaned up version of params to the file given by printParamsFilename
-   parameters()->warnUnread();
    if (path != nullptr && path[0] != '\0') {
-      outputParams(path);
+      std::string printParamsPath;
+      if (path[0] != '/') {
+         // If using relative path, create a path for each MPIBlock.
+         printParamsPath = mCheckpointer->makeOutputPathFilename(std::string(path));
+      }
+      else {
+         // If using absolute path, only global rank 0 writes, to avoid collisions.
+         if (mCheckpointer->getMPIBlock()->getGlobalRank() != 0) {
+            return;
+         }
+         printParamsPath = path;
+      }
+
+      outputParams(printParamsPath.c_str());
    }
    else {
       if (globalRank() == 0) {
@@ -601,7 +626,7 @@ int HyPerCol::processParams(char const *path) {
       }
    }
    mParamsProcessedFlag = true;
-   return PV_SUCCESS;
+   return;
 }
 
 void HyPerCol::advanceTimeLoop(Clock &runClock, int const runClockStartingStep) {
@@ -778,17 +803,8 @@ void HyPerCol::nonblockingLayerUpdate(
       notifyLoop(updateMessage);
 
       if (!*(updateMessage->mSomeLayerHasActed)) {
-         idleCounter++;
+         mIdleCounts.at(updateMessage->mPhase)++;
       }
-   }
-
-   if (idleCounter > 1L) {
-      InfoLog() << "t = " << mSimTime << ", phase " << updateMessage->mPhase
-#ifdef PV_USE_CUDA
-                << ", recvGpu" << updateMessage->mRecvOnGpuFlag << ", updateGpu"
-                << updateMessage->mUpdateOnGpuFlag
-#endif // PV_USE_CUDA
-                << ", idle count " << idleCounter << "\n";
    }
 }
 
@@ -908,7 +924,7 @@ void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comm
    fileStream->printf("%s PetaVision, " PV_GIT_REVISION "\n", commentToken);
    fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
 #ifdef PV_USE_MPI
-   MPIBlock const *mpiBlock = mCheckpointer->getMPIBlock();
+   auto mpiBlock = mCheckpointer->getMPIBlock();
 
 #ifdef OMPI_MAJOR_VERSION
    fileStream->printf(
@@ -1058,8 +1074,7 @@ int HyPerCol::getAutoGPUDevice() {
 
       // rankToHost now is an array such that the index is the rank, and the value
       // is the host
-      // Convert to a map of vectors, such that the key is the host name and the
-      // value
+      // Convert to a map of vectors, such that the key is the host name and the value
       // is a vector of mpi ranks that is running on that host
       std::map<std::string, std::vector<int>> hostMap;
       for (int rank = 0; rank < numMpi; rank++) {
@@ -1183,8 +1198,7 @@ void HyPerCol::initializeCUDA(std::string const &in_device) {
       }
       // Check length of deviceVec
       // Allowed cases are 1 device specified or greater than or equal to number
-      // of mpi processes
-      // devices specified
+      // of mpi processes devices specified
       if (deviceVec.size() == 1) {
          device = deviceVec[0];
       }

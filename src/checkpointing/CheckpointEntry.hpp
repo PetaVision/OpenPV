@@ -9,18 +9,19 @@
 #define CHECKPOINTENTRY_HPP_
 
 #include "structures/MPIBlock.hpp"
+#include <memory>
 #include <string>
 
 namespace PV {
 
 class CheckpointEntry {
   public:
-   CheckpointEntry(std::string const &name, MPIBlock const *mpiBlock)
+   CheckpointEntry(std::string const &name, std::shared_ptr<MPIBlock const> mpiBlock)
          : mName(name), mMPIBlock(mpiBlock) {}
    CheckpointEntry(
          std::string const &objName,
          std::string const &dataName,
-         MPIBlock const *mpiBlock) {
+         std::shared_ptr<MPIBlock const> mpiBlock) {
       mName = objName;
       if (!(objName.empty() || dataName.empty())) {
          mName.append("_");
@@ -40,12 +41,12 @@ class CheckpointEntry {
    std::string
    generatePath(std::string const &checkpointDirectory, std::string const &extension) const;
    void deleteFile(std::string const &checkpointDirectory, std::string const &extension) const;
-   MPIBlock const *getMPIBlock() const { return mMPIBlock; }
+   std::shared_ptr<MPIBlock const> getMPIBlock() const { return mMPIBlock; }
 
    // data members
   private:
    std::string mName;
-   MPIBlock const *mMPIBlock;
+   std::shared_ptr<MPIBlock const> mMPIBlock;
 };
 
 } // end namespace PV

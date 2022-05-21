@@ -67,10 +67,14 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
 }
 
 void FileStream::verifyFlags(const char *caller) {
-   FatalIf(mFStream.fail(), "%s %s: Logical error.\n", mFileName.c_str(), caller);
-   FatalIf(mFStream.bad(), "%s %s: Read / Write error.\n", mFileName.c_str(), caller);
-   FatalIf(writeable() && getOutPos() == -1, "%s %s: out pos == -1\n", mFileName.c_str(), caller);
-   FatalIf(readable() && getInPos() == -1, "%s %s: in pos == -1\n", mFileName.c_str(), caller);
+   bool failed = false;
+   std::string errMsg(mFileName + " " + caller);
+   if (mFStream.fail()) { errMsg.append(", failbit set"); failed = true; }
+   if (mFStream.bad()) { errMsg.append(", badbit set"); failed = true; }
+   if (mFStream.eof()) { errMsg.append(", eofbit set"); failed = true; }
+   if (writeable() and getOutPos() == -1) { errMsg.append(", out pos == -1"); failed = true; }
+   if (readable() and getInPos() == -1) { errMsg.append(", in pos == -1"); failed = true; }
+   FatalIf(failed, "%s\n", errMsg.c_str());
 }
 
 void FileStream::write(void const *data, long length) {

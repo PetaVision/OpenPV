@@ -19,7 +19,7 @@ class CheckpointEntryPvpBuffer : public CheckpointEntryPvp<T> {
   public:
    CheckpointEntryPvpBuffer(
          std::string const &name,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          T *dataPtr,
          PVLayerLoc const *layerLoc,
          bool extended)
@@ -27,7 +27,7 @@ class CheckpointEntryPvpBuffer : public CheckpointEntryPvp<T> {
    CheckpointEntryPvpBuffer(
          std::string const &objName,
          std::string const &dataName,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          T *dataPtr,
          PVLayerLoc const *layerLoc,
          bool extended)

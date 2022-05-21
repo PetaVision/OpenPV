@@ -4,6 +4,8 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/fileio.cpp
    ${SUBDIR}/FileStream.cpp
    ${SUBDIR}/io.cpp
+   ${SUBDIR}/MPIRecvStream.cpp
+   ${SUBDIR}/MPISendStream.cpp
    ${SUBDIR}/PVParams.cpp
    ${SUBDIR}/randomstateio.cpp
    ${SUBDIR}/WeightsFileIO.cpp
@@ -16,6 +18,8 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PrintStream.hpp
    ${SUBDIR}/FileStream.hpp
    ${SUBDIR}/io.hpp
+   ${SUBDIR}/MPIRecvStream.hpp
+   ${SUBDIR}/MPISendStream.hpp
    ${SUBDIR}/PVParams.hpp
    ${SUBDIR}/randomstateio.hpp
    ${SUBDIR}/WeightsFileIO.hpp

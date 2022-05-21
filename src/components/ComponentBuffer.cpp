@@ -53,6 +53,16 @@ Response::Status ComponentBuffer::allocateDataStructures() {
       return status;
    }
    setBufferSize();
+
+   FatalIf(
+         getBufferSizeAcrossBatch() <= 0,
+         "Buffer \"%s\" does not have a positive buffer size (nx=%d, ny=%d, nf=%d, nb=%d)\n",
+         getName(),
+         getLayerLoc()->nx,
+         getLayerLoc()->ny,
+         getLayerLoc()->nf,
+         getLayerLoc()->nbatch);
+
    setReadOnlyPointer();
    setReadWritePointer();
 #ifdef PV_USE_CUDA

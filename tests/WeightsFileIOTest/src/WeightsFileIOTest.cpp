@@ -5,6 +5,7 @@
 #include <columns/PV_Init.hpp>
 #include <io/WeightsFileIO.hpp>
 #include <utils/PVLog.hpp>
+#include <memory>
 
 using namespace PV;
 
@@ -45,7 +46,7 @@ Weights makeWeights(PV_Init &pv_init, std::string const &name, bool sharedFlag) 
    return weightsObject;
 }
 
-int convertLocalIndexToGlobal(int patchIndex, Weights &weights, MPIBlock const *mpiBlock) {
+int convertLocalIndexToGlobal(int patchIndex, Weights &weights, std::shared_ptr<MPIBlock const> mpiBlock) {
    int numDataPatchesX = weights.getNumDataPatchesX();
    int numDataPatchesY = weights.getNumDataPatchesY();
    int numDataPatchesF = weights.getNumDataPatchesF();
@@ -102,10 +103,10 @@ void testWeights(Weights &weights, PV_Init &pv_init, bool sharedFlag, bool compr
 
    // Create a checkpointer in order to use the MPIBlock and block-dependent path name
    Checkpointer tempCheckpointer(
-         weights.getName(), pv_init.getCommunicator()->getGlobalMPIBlock(), pv_init.getArguments());
-   std::string filename     = weights.getName() + std::string(".pvp");
-   std::string path         = tempCheckpointer.makeOutputPathFilename(filename);
-   MPIBlock const *mpiBlock = tempCheckpointer.getMPIBlock();
+         weights.getName(), pv_init.getCommunicator(), pv_init.getArguments());
+   std::string filename = weights.getName() + std::string(".pvp");
+   std::string path     = tempCheckpointer.makeOutputPathFilename(filename);
+   auto mpiBlock        = tempCheckpointer.getMPIBlock();
 
    char pathCopy[path.size() + 1];
    std::memcpy(pathCopy, path.c_str(), path.size());

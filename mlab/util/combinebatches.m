@@ -39,10 +39,10 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
             else
                per_batch_left = per_batch;
                result_index += num_batch - per_batch + 1;
-            endif
-         endfor
+            end%if
+         end%for
          i--;
-      endwhile
+      end%while
 
    elseif strcmp(batch_method, "byList") == 1
       i = batch_width - 1;
@@ -70,19 +70,19 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
             result{result_index}.time   = source_data{source_index}.time;
             result_index++;
             source_index++;
-        endfor
+        end%for
          i--;
-      endwhile
+      end%while
 
    else
       disp("Supported batch methods are byFile or byList. Exiting.");
       return;
-   end
+   end%if
 
-   if total_found != total_frames
+   if total_found ~= total_frames
       printf("Warning: Found %d frames, expected %d.\n", total_found, total_frames);
       fflush(stdout);
-   endif
+   end%if
 
    disp("Writing output file...");
    fflush(stdout);
@@ -94,7 +94,7 @@ function combinebatches(directory, layer_name, num_batch, batch_method, batch_wi
    else
       printf("Error: Unsupported filetype %d\n", file_type);
       return;
-   endif
+   end%if
 
    printf("Finished assembling %s\n", [layer_name, ".pvp"]);
    fflush(stdout);

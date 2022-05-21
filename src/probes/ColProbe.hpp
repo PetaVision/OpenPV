@@ -19,16 +19,11 @@ namespace PV {
  * as opposed to an individual layer or connection.
  * Derived classes must implement the needRecalc and calcValues methods.
  *
- *
  * The original motivation for ColProbe was for computing total energy of a
- * sparse-coding
- * hierarchy.  In this situation, the energy is a sum of contributions from the
- * residual
- * layer and the sparse representation layer, and we need the energy for each
- * element
- * of the batch.  The getValues() method would compute the energy for each
- * element of the
- * batch.  The getValue() method returns the energy for a single batch element.
+ * sparse-coding hierarchy.  In this situation, the energy is a sum of
+ * contributions from the residual layer and the sparse representation layer,
+ * and we need the energy for each element of the batch.  The getValues()
+ * method computes the energy for each element of the batch.
  *
  * An AdaptiveTimeScaleProbe with targetName set to a ColProbe
  * uses a ColProbe::getValues() call to compute the timeScaleTrue vector.
@@ -51,16 +46,6 @@ class ColProbe : public BaseProbe {
     */
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
-   /**
-    * The virtual method for outputting the quantities measured by the ColProbe.
-    * Derived classes should override this method.  Typically, outputState
-    * will fprintf to outputstream->fp, where stream is the BaseProbe member
-    * variable.
-    */
-   virtual Response::Status outputState(double simTime, double deltaTime) override {
-      return Response::SUCCESS;
-   }
 
   protected:
    /**
@@ -112,14 +97,27 @@ class ColProbe : public BaseProbe {
    /**
     * Calls BaseProbe::initOutputStreams and then calls outputHeader()
     */
-   virtual void initOutputStreams(const char *filename, Checkpointer *checkpointer) override;
+   virtual void initOutputStreams(
+         std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+
+   /**
+    * The virtual method for outputting the quantities measured by the ColProbe.
+    * Derived classes should override this method.  Typically, outputState
+    * will fprintf to outputstream->fp, where stream is the BaseProbe member
+    * variable.
+    */
+   virtual Response::Status outputState(double simTime, double deltaTime) override {
+      return Response::SUCCESS;
+   }
+
+   virtual Response::Status outputStateStats(double simTime, double deltaTime) override;
 
    /**
     * Called by initialize_stream after opening the stream member variable.
     * Derived classes can override this method to write header data to the output
     * file.
     */
-   virtual void outputHeader() {}
+   virtual void outputHeader(Checkpointer *checkpointer) {}
 
   private:
    /**

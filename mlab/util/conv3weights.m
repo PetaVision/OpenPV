@@ -28,7 +28,7 @@ function conv3weights (input_pvps,weights_1_pvps,weights_2_pvps,weights_3_pvps)
    for j = 1:weights_2_header.numPatches % Convolve 2nd level weights with 1st level weights
       percentDone = 100*j/weights_2_header.numPatches;
       msg = sprintf('Convolving 2nd level. Percent done: %3.0f', percentDone);
-      if(j!=1)
+      if(j~=1)
          fprintf([reverseStr, msg]);
          fflush(1);
       end

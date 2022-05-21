@@ -28,6 +28,7 @@ class FileStream : public PrintStream {
    bool writeable() const { return mMode & std::ios_base::out; }
    bool binary() const { return mFStream.flags() & std::ios_base::binary; }
    bool readwrite() const { return readable() && writeable(); }
+   operator bool() const { return mFStream ? true : false; }
    long getOutPos();
    long getInPos();
    std::string const &getFileName() const { return mFileName; }

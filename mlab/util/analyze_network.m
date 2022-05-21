@@ -202,7 +202,7 @@ for i = 1:size(errpvps,2)
    [startSuffix,endSuffix] = regexp(errpvps{i},suffix);
    syncedtimes = 0;
    if (input_flag)
-      if !(isempty(t_input{i}))
+      if ~(isempty(t_input{i}))
          for j = 1:min([size(errdata,1) size(t_input{i},2)])  % If PetaVision implementation is still running, errdata might contain more frames, even if synced with input, since errpvp is read after inputpvp. 
             if (errdata{j}.time == t_input{i}(j))
                syncedtimes = 1;
@@ -302,7 +302,7 @@ disp('------Analyzing Sparsity vs Error------');
 if(err_flag && sparse_flag)
    for i = 1:size(errpvps,2)
       syncedtimes1{i} = 0;
-      if !((isempty(t_sparse{i}))||(isempty(t_err{i})))
+      if ~((isempty(t_sparse{i}))||(isempty(t_err{i})))
          for j = 1:  min([size(t_sparse{i},2) size(t_err{i},2)])  % If PetaVision implementation is still running, sparse data might contain more frames, even if synced with input, since sparse pvps are read after error pvps.
             if (t_sparse{i}(j) == t_err{i}(j))
                syncedtimes1{i} = 1;
@@ -349,11 +349,13 @@ for i = 1:size(weightspvps,2)
    weightsheader = readpvpheader(fid);
    fclose(fid);
    weightsfiledata=dir(weightspvps{i});
-   weightsframesize = weightsheader.recordsize*weightsheader.numrecords+weightsheader.headersize;
+   patchsize = weightsheader.weightsheader.nxp * weightsheader.nyp * weightsheader.nfp * weightsheader.datasize + 8;
+   recordsize = weightsheader.numpatches * patchsize;
+   weightsframesize = recordsize*weightsheader.numrecords+weightsheader.headersize;
    weightsnumframes = weightsfiledata(1).bytes/weightsframesize;
    weightsdata = readpvpfile(weightspvps{i},100,weightsnumframes,weightsnumframes);
    numcolors = size(weightsdata{1}.values{1})(3);
-   if !((numcolors == 1) || (numcolors == 3))
+   if ~((numcolors == 1) || (numcolors == 3))
       display(['Not writing ' weightspvps{i}(endPrefix+1:startSuffix-1) ' weights; nfp currently needs to be 1 or 3 for visualization.']);
       continue;
    end
@@ -391,7 +393,7 @@ for i = 1:size(weightspvps,2)
 
    outFile = ['Analysis/' weightspvps{i}(endPrefix+1:startSuffix-1) '_WeightsByFeatureIndex_' sprintf('%.08d',t) '.png']
    imwrite(dictionary,outFile);
-   if ((sparse_flag) && !(isempty(sparsemeanfeaturevals{i})))
+   if ((sparse_flag) && ~(isempty(sparsemeanfeaturevals{i})))
       [dontcare sortedindex] = sort(sparsemeanfeaturevals{i});
       sortedindex = fliplr(sortedindex);
       dictionary = uint8(zeros(dicsize_y,dicsize_x,numcolors));

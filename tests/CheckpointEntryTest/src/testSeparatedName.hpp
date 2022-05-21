@@ -2,8 +2,9 @@
 #define TESTSEPARATEDNAME_HPP_
 
 #include "structures/MPIBlock.hpp"
+#include <memory>
 #include <string>
 
-void testSeparatedName(PV::MPIBlock const *mpiBlock);
+void testSeparatedName(std::shared_ptr<PV::MPIBlock const> mpiBlock);
 
 #endif // TESTSEPARATEDNAME_HPP_

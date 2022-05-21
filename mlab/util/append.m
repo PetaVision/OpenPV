@@ -9,14 +9,14 @@
 function append(inputFileNameA, inputFileNameB, outputFileName, progressInterval = 100)
 
    [data, headerA] = readpvpfile(inputFileNameA, 0, 1, 1);
-   if headerA.filetype != 4 && headerA.filetype != 6
+   if headerA.filetype ~= 4 && headerA.filetype ~= 6
       error('Unsupported filetype. Must be type 4 or 6.');
    end
    [data, headerB] = readpvpfile(inputFileNameB, 0, 1, 1);
-   if headerA.filetype != headerB.filetype
+   if headerA.filetype ~= headerB.filetype
       error('Both files must be the same filetype.');
    end
-   if headerA.nx != headerB.nx || headerA.ny != headerB.ny || headerA.nf != headerB.nf
+   if headerA.nx ~= headerB.nx || headerA.ny ~= headerB.ny || headerA.nf ~= headerB.nf
       error('Both files must have the same dimensions (nx, ny, nf).');
    end
 

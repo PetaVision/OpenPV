@@ -78,6 +78,8 @@ class LayerProbe : public BaseProbe {
     */
    virtual double referenceUpdateTime(double simTime) const override;
 
+   virtual Response::Status outputStateStats(double simTime, double deltaTime) override;
+
   private:
    int initialize_base();
 

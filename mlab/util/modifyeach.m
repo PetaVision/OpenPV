@@ -26,7 +26,7 @@
 function modifyeach(inputFileName, outputFileName, callbackFunction, progressInterval = 10)
 
    [data, header] = readpvpfile(inputFileName, 0, 1, 1);
-   if header.filetype != 4
+   if header.filetype ~= 4
       error('Unsupported filetype. Must be type 4.');
    end
 

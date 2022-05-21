@@ -12,6 +12,7 @@
 
 #include "Checkpointer.hpp"
 #include "checkpointing/CheckpointingMessages.hpp"
+#include <memory>
 
 namespace PV {
 
@@ -45,7 +46,7 @@ namespace PV {
 class CheckpointerDataInterface : public Observer {
   public:
    bool getInitializeFromCheckpointFlag() const { return mInitializeFromCheckpointFlag; }
-   MPIBlock const *getMPIBlock() { return mMPIBlock; }
+   std::shared_ptr<MPIBlock const> getMPIBlock() const { return mMPIBlock; }
 
   protected:
    CheckpointerDataInterface() {}
@@ -80,7 +81,7 @@ class CheckpointerDataInterface : public Observer {
    bool mInitializeFromCheckpointFlag = false;
 
   private:
-   MPIBlock const *mMPIBlock = nullptr;
+   std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
 };
 
 } // namespace PV

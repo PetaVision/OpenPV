@@ -143,8 +143,8 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    // dWMax is required if plasticityFlag is true
    float mDWMax                     = std::numeric_limits<float>::quiet_NaN();
-   int mDWMaxDecayFactor            = 0;
-   float mDWMaxDecayInterval        = 0.0f;
+   float mDWMaxDecayFactor            = 0;
+   int mDWMaxDecayInterval        = 0.0f;
    bool mNormalizeDw                = true;
    bool mCombine_dWWithWFlag        = false;
    bool mWriteCompressedCheckpoints = false;

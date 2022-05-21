@@ -34,6 +34,7 @@ WTADelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
    if (status != Response::SUCCESS) {
       return status;
    }
+   if (getChannelCode() != CHANNEL_NOUPDATE) { return status; }
 
    auto *singleArbor = message->mObjectTable->findObject<SingleArbor>(getName());
    FatalIf(!singleArbor, "%s requires a SingleArbor component.\n", getDescription_c());
@@ -46,6 +47,7 @@ WTADelivery::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage cons
 }
 
 void WTADelivery::checkPreAndPostDimensions() {
+   pvAssert(getChannelCode() != CHANNEL_NOUPDATE);
    int status = PV_SUCCESS;
    pvAssert(mPreData and mPostGSyn); // Only call this after BaseDelivery::communicateInitInfo().
    PVLayerLoc const *preLoc  = mPreData->getLayerLoc();
@@ -144,6 +146,9 @@ void WTADelivery::deliver(float *destBuffer) {
 }
 
 void WTADelivery::deliverUnitInput(float *recvBuffer) {
+   if (mChannelCode == CHANNEL_NOUPDATE) {
+      return;
+   }
    const int numNeuronsPost = mPostGSyn->getBufferSizeAcrossBatch();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for

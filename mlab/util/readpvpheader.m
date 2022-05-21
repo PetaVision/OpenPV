@@ -1,7 +1,7 @@
 function hdr = readpvpheader(file,pos)
 % hdr = readpvpheader(file,pos)
 % file specifies the pvp file.
-%     If fid is an integer, it is the file id of a file open for reading.
+%     If file is an integer, it is the file id of a file open for reading.
 %     If file is a string, it refers to a path to the pvpfile. 
 % pos gives the file position.  If absent, use the current position.
 %     If pos >= 0, count pos bytes forward from the beginning of the file.
@@ -23,7 +23,7 @@ function hdr = readpvpheader(file,pos)
 %     ny
 %     nf
 %     numrecords
-%     recordsize
+%     recordsize (susceptible to arithmetic overflow; do not use)
 %     datasize
 %     datatype
 %     nxprocs
@@ -60,7 +60,7 @@ if ischar(file)
     openedfile = true;
 elseif isnumeric(file) && isscalar(file) && round(file)==file
     fid = double(file);
-    if !is_valid_file_id(fid), error('readpvpheader:badfid', 'readpvpheader error: bad file id.'); end;
+    if isempty(fopen(fid)), error('readpvpheader:badfid', 'readpvpheader error: bad file id.'); end;
     % This checks if file id is valid, but not whether the mode allows reading.
 else
     error('readpvpheader:filebad', 'readpvpheader error: file must be either a path or a file id.');
@@ -75,7 +75,7 @@ try
     end%if
     if status ~= 0
         error('readpvpheader:seekeof', 'readpvpheader error: seeking to position %d failed.', pos);
-    end%endif
+    end%if
 
     headerwords = fread(fid,20,'int32');
     if numel(headerwords) < 20
@@ -83,7 +83,7 @@ try
     end%if
     hdr.headersize = headerwords(1);
     hdr.numparams = headerwords(2);
-    if hdr.headersize < 80 || hdr.headersize != 4 * hdr.numparams
+    if hdr.headersize < 80 || hdr.headersize ~= 4 * hdr.numparams
         error('readpvpheader:badheadersize', 'readpvpheader error: headersize (%d) must be at least 80 and must be exactly 4 times numparams (%d).', hdr.headersize, hdr.numparams);
     end%if
     hdr.filetype = headerwords(3);
@@ -129,7 +129,7 @@ try
     end
 catch
     errordetected = true;
-end_try_catch
+end%try_catch
 
 if openedfile, fclose(fid); end % Close file if we opened it but not if we didn't
 

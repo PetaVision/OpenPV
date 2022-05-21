@@ -195,7 +195,9 @@ void AdaptiveTimeScaleProbe::calcValues(double timeValue) {
    // In allocateDataStructures, we checked that mTargetProbe has a compatible size.
    std::vector<double> timeSteps =
          mAdaptiveTimeScaleController->calcTimesteps(timeValue, rawProbeValues);
-   memcpy(getValuesBuffer(), timeSteps.data(), sizeof(double) * getNumValues());
+   for (int b = 0; b < getNumValues(); ++b) {
+      getProbeValues()[b] = timeSteps[b];
+   }
 }
 
 Response::Status AdaptiveTimeScaleProbe::outputState(double simTime, double deltaTime) {

@@ -12,24 +12,24 @@ function [pad_image] = padGray(gray_chip, pad_size, gray_val)
   if row_start < 1
     chip_row_start = -row_start + 2;
     row_start = 1;
-  endif
+  end%if
   chip_row_end = num_rows_chip;
   if row_end > pad_size(1)
     chip_row_end = num_rows_chip - (row_end - pad_size(1));
     row_end = pad_size(1);
-  endif
+  end%if
   chip_col_start = 1;
   if col_start < 1
     chip_col_start = -col_start + 2;
     col_start = 1;
-  endif
+  end%if
   chip_col_end = num_cols_chip;
   if col_end > pad_size(2)
     chip_col_end = num_cols_chip - (col_end - pad_size(2));
     col_end = pad_size(2);
-  endif
+  end%if
   pad_image(row_start:row_end, ...
-	    col_start:col_end) = ...
+            col_start:col_end) = ...
       gray_chip(chip_row_start:chip_row_end, ...
-		chip_col_start:chip_col_end);
+                chip_col_start:chip_col_end);
   

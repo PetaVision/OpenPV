@@ -1,9 +1,10 @@
 #include "testDataNoBroadcast.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
 #include "utils/PVLog.hpp"
+#include <memory>
 #include <vector>
 
-void testDataNoBroadcast(PV::MPIBlock const *mpiBlock, std::string const &directory) {
+void testDataNoBroadcast(std::shared_ptr<PV::MPIBlock const> mpiBlock, std::string const &directory) {
    int const vectorLength = 32;
    std::vector<float> checkpointData(vectorLength, 0);
    int const rank = mpiBlock->getRank();

@@ -13,6 +13,7 @@
 #include "columns/Communicator.hpp"
 #include "io/PrintStream.hpp"
 #include "structures/MPIBlock.hpp"
+#include <memory>
 #include <vector>
 
 namespace PV {
@@ -61,13 +62,13 @@ class CheckpointEntryTimeScaleInfo : public CheckpointEntry {
   public:
    CheckpointEntryTimeScaleInfo(
          std::string const &name,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
          : CheckpointEntry(name, mpiBlock), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
    CheckpointEntryTimeScaleInfo(
          std::string const &objName,
          std::string const &dataName,
-         MPIBlock const *mpiBlock,
+         std::shared_ptr<MPIBlock const> mpiBlock,
          AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
          : CheckpointEntry(objName, dataName, mpiBlock), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
    virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)

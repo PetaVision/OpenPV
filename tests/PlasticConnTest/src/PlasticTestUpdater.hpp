@@ -12,6 +12,11 @@
 
 namespace PV {
 
+/**
+ * A weight updater used in PlasticConnTest. The update rule pre*post is replaced with pre - post.
+ * This allows the plastic conn to be tested over several timesteps without the weights increasing
+ * astronomically.
+ */
 class PlasticTestUpdater : public HebbianUpdater {
   public:
    PlasticTestUpdater(const char *name, PVParams *params, Communicator const *comm);
