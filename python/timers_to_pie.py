@@ -4,11 +4,15 @@
 #Written by Sheng Lundquist
 #Updated by Pete Schultz
 
+import matplotlib
 import matplotlib.pyplot as plt
 import pdb
 import numpy as np
 import sys
 import os.path
+
+pltdefault = plt.rcParams
+basefontsize = plt.rcParams.get('font.size')
 
 if (len(sys.argv) == 1):
     print("timerPie.py path/to/timers.txt")
@@ -82,36 +86,65 @@ for l in f:
 
 f.close()
 
+# For each pie chart, values less than this percentage of the total will be lumped into
+# an "other" category
+cutoffpct = 0.02
+
+labeltimecutoffpct = 0.04
+# For each pie chart, the execution time for each category will be labeled only if the
+# percentage exceeds this value.
+
+# Default for autopct is to label wedges as percent.
+# The function time_seconds_string recovers the absolute value and
+# expresses it as a string, for autopct to draw in the wedge
+def time_seconds_string(pct, values):
+    total = 0.001 * sum(values) # values will be in milliseconds; convert to seconds
+    quantity = pct/100.0 * total
+    if pct >= 100.0 * labeltimecutoffpct:
+       label_string = '{:.0f} s'.format(quantity)
+    else:
+       label_string = ''
+    print('pct = {:f}, total = {:f}, label_string = {:s}'.format(pct, total, label_string))
+    return label_string
+
 if np.isnan(buildruntime) or np.isnan(buildtime) or np.isnan(runtime) or np.isnan(chkpointtime):
     print("build+run timers were not found; skipping buildrun pie chart.", file=sys.stderr)
     exit(1)
-else:
-    overheadtime = buildruntime - buildtime - runtime - chkpointtime
-    f = plt.figure()
-    buildRunTimes = {}
-    buildRunTimes['initializing'] = buildtime
-    buildRunTimes['runloop'] = runtime
-    buildRunTimes['checkpointing'] = chkpointtime
-    buildRunTimes['untimed overhead'] = overheadtime
 
-    pieceThreshold = 0.02 * buildruntime
+overheadtime = buildruntime - buildtime - runtime - chkpointtime
+buildRunTimes = {}
+buildRunTimes['initializing'] = buildtime
+buildRunTimes['runloop'] = runtime
+buildRunTimes['checkpointing'] = chkpointtime
+buildRunTimes['untimed overhead'] = overheadtime
 
-    otherTimes = 0.0
-    significantBuildRunTimes = {}
-    for tname in buildRunTimes:
-        ttime = buildRunTimes[tname]
-        if ttime < pieceThreshold:
-            otherTimes += buildRunTimes[tname]
-        else:
-            significantBuildRunTimes[tname] = ttime
+pieceThreshold = cutoffpct * buildruntime
 
-    significantBuildRunTimes["Other"] = otherTimes
+otherTimes = 0.0
+significantBuildRunTimes = {}
+for tname in buildRunTimes:
+    ttime = buildRunTimes[tname]
+    if ttime < pieceThreshold:
+        otherTimes += buildRunTimes[tname]
+    else:
+        significantBuildRunTimes[tname] = ttime
 
-    sortedBuildRunTimes = dict(sorted(significantBuildRunTimes.items(), key=lambda p:p[1], reverse=True))
+significantBuildRunTimes["Other"] = otherTimes
 
-    plt.title('Overall Times')
-    plt.pie(sortedBuildRunTimes.values(), labels = sortedBuildRunTimes.keys())
-    plt.savefig(outputDirectory + "/buildrunTimes.png")
+sortedBuildRunTimes = dict(sorted(significantBuildRunTimes.items(), key=lambda p:p[1], reverse=True))
+
+f = plt.figure()
+plt.title('Overall Times', fontsize=basefontsize+6.0)
+plt.pie(
+    sortedBuildRunTimes.values(),
+    labels = sortedBuildRunTimes.keys(),
+    autopct = lambda pct: time_seconds_string(pct, sortedBuildRunTimes.values()),
+    wedgeprops = {'edgecolor':'k'})
+f.text(0.5, 0.02,
+       'Total execution time {t:.0f} seconds'.format(t=0.001*buildruntime),
+       horizontalalignment='center',
+       fontsize=basefontsize+2.0)
+plt.savefig(outputDirectory + "/buildrunTimes.png")
 
 sumTimerTimes = sum(timerTimes)
 runoverhead = runtime - sumTimerTimes
@@ -133,7 +166,7 @@ for objname, ttype, ttime in zip(objectNames, timerTypes, timerTimes):
 timesByObject["Untimed Overhead"] = runoverhead
 timesByType["untimed overhead"] = runoverhead
 
-pieceThreshold = 0.02 * runtime;
+pieceThreshold = cutoffpct * runtime;
 
 otherObjectTimes = 0.0
 significantTimesByObject = {}
@@ -160,11 +193,29 @@ sortedTimesByType = dict(sorted(significantTimesByType.items(), key=lambda p:p[1
 sortedTimesByType["Other"] = otherTypeTimes
 
 f = plt.figure()
-plt.title('Run Time by Object')
-plt.pie(sortedTimesByObject.values(), labels=sortedTimesByObject.keys())
+plt.title('Run Time by Object', fontsize=basefontsize+6.0)
+plt.pie(
+    sortedTimesByObject.values(),
+    labels=sortedTimesByObject.keys(),
+    autopct = lambda pct: time_seconds_string(pct, sortedTimesByObject.values()),
+    wedgeprops = {'edgecolor': 'k'})
+
+f.text(0.5, 0.02,
+       'Total runtime {t:.0f} seconds'.format(t=0.001*runtime),
+       horizontalalignment='center',
+       fontsize=basefontsize+2.0)
+
 plt.savefig(outputDirectory + "/objectTimes.png")
 
 f = plt.figure()
-plt.title('Run Time by Action Type')
-plt.pie(sortedTimesByType.values(), labels=sortedTimesByType.keys())
+plt.title('Run Time by Action Type', fontsize=basefontsize+6.0)
+plt.pie(
+    sortedTimesByType.values(),
+    labels=sortedTimesByType.keys(),
+    autopct = lambda pct: time_seconds_string(pct, sortedTimesByType.values()),
+    wedgeprops = {'edgecolor': 'k'})
+f.text(0.5, 0.02,
+       'Total runtime {t:.0f} seconds'.format(t=0.001*runtime),
+       horizontalalignment='center',
+       fontsize=basefontsize+2.0)
 plt.savefig(outputDirectory + "/timerTimes.png")
