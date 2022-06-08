@@ -425,8 +425,8 @@ BaseProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const>
    }
    FatalIf(
          getCommunicator()->getIOMPIBlock() == nullptr,
-          "\"%s\" called with null I/O MPIBlock\n",
-          getDescription());
+         "\"%s\" called with null I/O MPIBlock\n",
+         getDescription().c_str());
    initOutputStreams(message);
 
    auto *checkpointer = message->mDataRegistry;
