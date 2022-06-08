@@ -401,7 +401,10 @@ BaseProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const>
    if (!Response::completed(status)) {
       return status;
    }
-   FatalIf(getMPIBlock() == nullptr, "\"%s\" called with null I/O MPIBlock\n", getDescription());
+   FatalIf(
+         getMPIBlock() == nullptr,
+         "\"%s\" called with null I/O MPIBlock\n",
+         getDescription().c_str());
    initOutputStreams(message);
    return Response::SUCCESS;
 }
