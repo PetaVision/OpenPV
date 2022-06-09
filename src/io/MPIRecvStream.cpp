@@ -7,30 +7,36 @@
 namespace PV {
 
 MPIRecvStream::MPIRecvStream(
-      std::string &path, MPI_Comm mpi_comm, int sendRank) {
-   // We don't want to clobber an existing file, in case we are restoring from checkpoint.
-   // If we are, we need to be able to move the file pointer to earlier in the file.
-   // Therefore, the open mode must be out|in ("r+" in FILE*-speak), but that means the file
-   // must exist when we open it. Check if file exists; if not open it with mode "w" to
-   // create an empty file and immediately close it. Then, open in read/write/no-append mode.
-   // We set the output position to zero; if we are indeed restoring from checkpoint, the
-   // CheckpointEntryMPIRecvStream object will move the output pointer to the correct position.
-   struct stat existingstat;
-   errno = 0;
-   int status = stat(path.c_str(), &existingstat);
-   FatalIf(
-         status != 0 and errno != ENOENT,
-         "Unable to check status of \"%s\": %s\n",
-         path.c_str(), std::strerror(errno));
-   if (status != 0) {
-      pvAssert(errno == ENOENT);
-      std::ofstream emptyFile(path.c_str());
+      std::string &path, MPI_Comm mpi_comm, int sendRank, bool clobberFlag) {
+   // If clobberFlag is true or the file does not exist, we need to create the
+   // file in write mode, and then close it, so that the file exists with
+   // length 0 and we can open it in out|in mode ("r+" in FILE*-speak).
+   // If clobberFlag is false and the file exists, we open in out|in mode as is.
+   // We set the file position to zero; it is up to the caller to move the file
+   // position if needed (e.g. restoring from checkpoint).
+   bool createFile = clobberFlag;
+   if (!clobberFlag) {
+      struct stat existingstat;
+      int status = stat(path.c_str(), &existingstat);
+      FatalIf(
+            status != 0 and errno != ENOENT,
+            "Unable to check status of \"%s\": %s\n",
+            path.c_str(), std::strerror(errno));
+      if (status != 0) {
+         pvAssert(errno == ENOENT);
+         createFile = true;
+      }
    }
+   if (createFile) {
+      std::ofstream emptyFile(path.c_str());
+   } // file closes when we exit the scope of emptyFile.
+
    auto mode = std::ios_base::out | std::ios_base::in;
    mFileStream = new FileStream(path.c_str(), mode, false /*do not verify writes*/);
+   mFileStream->setInPos(0L, std::ios_base::beg);
    mFileStream->setOutPos(0L, std::ios_base::beg);
-   mMPI_Comm    = mpi_comm;
-   mSendRank    = sendRank;
+   mMPI_Comm = mpi_comm;
+   mSendRank = sendRank;
 }
 
 MPIRecvStream::~MPIRecvStream() {

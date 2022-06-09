@@ -1,7 +1,7 @@
 function hdr = readpvpheader(file,pos)
 % hdr = readpvpheader(file,pos)
 % file specifies the pvp file.
-%     If fid is an integer, it is the file id of a file open for reading.
+%     If file is an integer, it is the file id of a file open for reading.
 %     If file is a string, it refers to a path to the pvpfile. 
 % pos gives the file position.  If absent, use the current position.
 %     If pos >= 0, count pos bytes forward from the beginning of the file.
@@ -75,7 +75,7 @@ try
     end%if
     if status ~= 0
         error('readpvpheader:seekeof', 'readpvpheader error: seeking to position %d failed.', pos);
-    end%endif
+    end%if
 
     headerwords = fread(fid,20,'int32');
     if numel(headerwords) < 20
@@ -129,7 +129,7 @@ try
     end
 catch
     errordetected = true;
-end_try_catch
+end%try_catch
 
 if openedfile, fclose(fid); end % Close file if we opened it but not if we didn't
 

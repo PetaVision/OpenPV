@@ -7,6 +7,6 @@ function ret = col2gray(im)
         +.1140*im(:,:,3);
   else
     ret = im;
-  endif
+  end%if
 
 end
