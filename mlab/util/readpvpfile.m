@@ -1,10 +1,13 @@
 function [data,hdr] = readpvpfile(filename,progressperiod, last_frame, start_frame, skip_frames)
-% Usage:[data,hdr] = readpvpfile(filename,progressperiod, last_frame, start_frame)
+% Usage:[data,hdr] = readpvpfile(filename,progressperiod, last_frame, start_frame, skip_frames)
 % filename is a pvp file (any type)
 % progressperiod is an optional integer argument.  A message is printed
 %     to the screen every progressperiod frames.
 % last_frame is the index of the last frame to read.  Default is all frames.
-% start_frame is the starting frame.  Default is 1.
+% start_frame is the starting frame.  Default is 1. The frame numbering is one-indexed.
+% skip_frames is the interval of frames read. For example, if skip_frames is 3
+%     and start_frame is 5, then frames 3, 8, 5, 13, ... will be read.
+%     The default is 1.
 %
 % data is a cell array containing the data.
 %     In general, data has one element for each time step written.
@@ -80,7 +83,7 @@ if (exist('last_frame','var') && ~isempty(last_frame))
 else
     lastframe = numframes;
 end%if
-tot_frames = ceil((lastframe-start_frame+1)/skip_frames);
+tot_frames = floor((lastframe - start_frame) / skip_frames + 1);
 
 if isempty(errorstring)
     if(lastframe ~= round(lastframe) || lastframe <= 0)
@@ -123,10 +126,10 @@ if isempty(errorstring)
                         end%if
                     end%if
                 end%if
-                if f < start_frame || mod(f,skip_frames)~=0
+                if f < start_frame || mod(f - start_frame, skip_frames)~=0
                     continue;
                 end%if
-                data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
+                data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end%for %% last_frame
         case 3 % PVP_WGT_FILE_TYPE
             fseek(fid, (start_frame-1)*framesize, 'bof');
@@ -178,10 +181,10 @@ if isempty(errorstring)
                         end%if
                     end%if
                 end%if
-                if f < start_frame || mod(f,skip_frames)~=0
+                if f < start_frame || mod(f - start_frame, skip_frames) ~= 0
                     continue;
                 end%if
-                data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
+                data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end  %% last_frame
         case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
             recordsize = hdr.nx * hdr.ny * hdr.nf;
@@ -205,10 +208,10 @@ if isempty(errorstring)
                         end%if
                     end%if
                 end%if
-                if f < start_frame || mod(f,skip_frames)~=0
+                if f < start_frame || mod(f - start_frame, skip_frames) ~= 0
                     continue;
                 end%if
-                data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
+                data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end%for %% lastframe
         case 5 % PVP_KERNEL_FILE_TYPE
             %keyboard;
@@ -250,10 +253,10 @@ if isempty(errorstring)
                         end%if
                     end%if
                 end%if
-                if f < start_frame || mod(f,skip_frames)~=0
+                if f < start_frame || mod(f - start_frame, skip_frames)~=0
                     continue;
                 end%if
-                data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
+                data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end%for %% last_frame
         case 6 % PVP_ACT_SPARSEVALUES_FILE_TYPE
             for f=1:lastframe
@@ -272,10 +275,10 @@ if isempty(errorstring)
                         end%if
                     end%if
                 end%if
-                if f < start_frame || mod(f,skip_frames)~=0
+                if f < start_frame || mod(f - start_frame, skip_frames) ~= 0
                     continue;
                 end%if
-                data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
+                data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end%for %% last_frame
         otherwise
             assert(0); % This possibility should have been weeded out above
