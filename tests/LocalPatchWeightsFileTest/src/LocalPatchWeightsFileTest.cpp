@@ -176,7 +176,7 @@ int run(
       auto checkWeights1 = readFromFileStream(checkWriteFile, 0/*frame number*/, fileManager);
       status = compareWeights(
             weights1, checkWeights1, preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
-            std::string(directory + "write test, frame 0"));
+            std::string(directory + " write test, frame 0"));
    }
    if (status == PV_SUCCESS) {
       auto checkWeights2 = readFromFileStream(checkWriteFile, 1/*frame number*/, fileManager);
