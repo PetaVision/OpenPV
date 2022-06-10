@@ -176,13 +176,13 @@ int run(
       auto checkWeights1 = readFromFileStream(checkWriteFile, 0/*frame number*/, fileManager);
       status = compareWeights(
             weights1, checkWeights1, preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
-            std::string("Write test, frame 0"));
+            std::string(directory + "write test, frame 0"));
    }
    if (status == PV_SUCCESS) {
       auto checkWeights2 = readFromFileStream(checkWriteFile, 1/*frame number*/, fileManager);
       status = compareWeights(
             weights2, checkWeights2, preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
-            std::string("Write test, frame 1"));
+            std::string(directory + " write test, frame 1"));
    }
    if (status != PV_SUCCESS) { return EXIT_FAILURE; }
 
@@ -221,12 +221,12 @@ int run(
       wgtFile->read(*readWeights3, readTimestamp3);
       status = compareWeights(
             weights3, readWeights3, preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
-            std::string("Read test, frame 0"));
+            std::string(directory + " read test, frame 0"));
    }
    if (status == PV_SUCCESS) {
       if (readTimestamp3 != timestamp3) {
-         ErrorLog().printf("Read test, frame 0, expected timestamp %f, received %f\n",
-               timestamp3, readTimestamp3);
+         ErrorLog().printf("%s read test, frame 0, expected timestamp %f, received %f\n",
+               directory.c_str(), timestamp3, readTimestamp3);
          status = PV_FAILURE;
       }
    }
@@ -237,12 +237,12 @@ int run(
       wgtFile->read(*readWeights4, readTimestamp4);
       status = compareWeights(
             weights4, readWeights4, preLoc.nx, preLoc.ny, postLoc.nx, postLoc.ny,
-            std::string("Read test, frame 1"));
+            std::string(directory + " read test, frame 1"));
    }
    if (status == PV_SUCCESS) {
       if (readTimestamp4 != timestamp4) {
-         ErrorLog().printf("Read test, frame 1, expected timestamp %f, received %f\n",
-               timestamp4, readTimestamp4);
+         ErrorLog().printf("%s read test, frame 1, expected timestamp %f, received %f\n",
+               directory.c_str(), timestamp4, readTimestamp4);
          status = PV_FAILURE;
       }
    }
@@ -343,30 +343,30 @@ int compareWeights(
    int status = PV_SUCCESS;
    if (weights1->getNumArbors() != weights2->getNumArbors()) {
       ErrorLog().printf(
-            "compareWeights: numbers of arbors differ (%d versus %d)\n",
-            weights1->getNumArbors(), weights2->getNumArbors());
+            "compareWeights, %s: numbers of arbors differ (%d versus %d)\n",
+            label.c_str(), weights1->getNumArbors(), weights2->getNumArbors());
       status = PV_FAILURE;
    }
    int numArbors = weights1->getNumArbors();
 
    if (weights1->getPatchSizeX() != weights2->getPatchSizeX()) {
       ErrorLog().printf(
-            "compareWeights: PatchSizeX differs (%d versus %d)\n",
-            weights1->getPatchSizeX(), weights2->getPatchSizeX());
+            "compareWeights, %s: PatchSizeX differs (%d versus %d)\n",
+            label.c_str(), weights1->getPatchSizeX(), weights2->getPatchSizeX());
       status = PV_FAILURE;
    }
    int patchSizeX = weights1->getPatchSizeX();
    if (weights1->getPatchSizeY() != weights2->getPatchSizeY()) {
       ErrorLog().printf(
-            "compareWeights: PatchSizeY differs (%d versus %d)\n",
-            weights1->getPatchSizeY(), weights2->getPatchSizeY());
+            "compareWeights, %s: PatchSizeY differs (%d versus %d)\n",
+            label.c_str(), weights1->getPatchSizeY(), weights2->getPatchSizeY());
       status = PV_FAILURE;
    }
    int patchSizeY = weights1->getPatchSizeY();
    if (weights1->getPatchSizeF() != weights2->getPatchSizeF()) {
       ErrorLog().printf(
-            "compareWeights: PatchSizeF differs (%d versus %d)\n",
-            weights1->getPatchSizeF(), weights2->getPatchSizeF());
+            "compareWeights, %s: PatchSizeF differs (%d versus %d)\n",
+            label.c_str(), weights1->getPatchSizeF(), weights2->getPatchSizeF());
       status = PV_FAILURE;
    }
    int patchSizeF = weights1->getPatchSizeF();
@@ -403,8 +403,8 @@ int compareWeights(
    }
    if (weights1->getNumDataPatchesF() != weights2->getNumDataPatchesF()) {
       ErrorLog().printf(
-            "compareWeights: NumDataPatchesF differs (%d versus %d)\n",
-            weights1->getNumDataPatchesF(), weights2->getNumDataPatchesF());
+            "compareWeights, %s: NumDataPatchesF differs (%d versus %d)\n",
+            label.c_str(), weights1->getNumDataPatchesF(), weights2->getNumDataPatchesF());
       status = PV_FAILURE;
    }
    int nf = weights1->getNumDataPatchesF();
