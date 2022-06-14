@@ -1,5 +1,7 @@
--- Path to OpenPV. Replace this with an absolute path.
-package.path = package.path .. ";" .. "../../../parameterWrapper/?.lua";
+-- Path to OpenPV. Edit this if necessary with the path to the OpenPV repository.
+sourcedir = os.getenv("HOME") .. "/OpenPV";
+
+package.path = package.path .. ";" .. sourcedir .. "/parameterWrapper/?.lua";
 local pv = require "PVModule";
 
 local nbatch              = 20;    --Number of images to process in parallel
@@ -14,8 +16,8 @@ local stopTime            = math.ceil((numImages  * numEpochs) / nbatch) * displ
 local writeStep           = displayPeriod;
 local initialWriteTime    = displayPeriod;
 
-local inputPath           = "../cifar-10-batches-mat/mixed_cifar.txt";
-local outputPath          = "../output";
+local inputPath           = "cifar-10-batches-mat/mixed_cifar.txt";
+local outputPath          = "output";
 local checkpointPeriod    = (displayPeriod * 100); -- How often to write checkpoints
 
 local dictionarySize      = 128;   --Number of patches/elements in dictionary 
