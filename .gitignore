@@ -11,5 +11,3 @@ _site/
 lib
 *.pyc
 src/include/cMakeHeader.h
-subdirectories.txt
-
