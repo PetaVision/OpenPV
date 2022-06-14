@@ -187,8 +187,6 @@ add_subdirectory(WTAConnTest)
 
 set(DEPRECATED_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../deprecated-tests)
 set(DEPRECATED_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/../deprecated-tests)
-message(${DEPRECATED_SOURCE_DIR})
-message(${DEPRECATED_BINARY_DIR})
 #October 7, 2021: Many probe classes were deprecated.
 add_subdirectory(${DEPRECATED_SOURCE_DIR}/PointProbeBatchTest ${DEPRECATED_BINARY_DIR}/PointProbeBatchTest)
 add_subdirectory(${DEPRECATED_SOURCE_DIR}/PointProbeTest ${DEPRECATED_BINARY_DIR}/PointProbeTest)
