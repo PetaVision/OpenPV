@@ -102,17 +102,17 @@ class Param_Reader(object):
                 return
     # method to determine object type from regex matches 
     def interpret(self, pattern, match):
-        if pattern is 'object_regex':
+        if pattern == 'object_regex':
             name = match.group(2)
             type = match.group(1)
             self.assign_object(type,name)
-        elif pattern is 'end_regex':
+        elif pattern == 'end_regex':
             self.current_object = None
-        elif pattern is 'param_regex' and self.current_object:
+        elif pattern == 'param_regex' and self.current_object:
             label = match.group(1)
             value = match.group(2)
             self.current_object.params[label] = value
-        elif pattern is 'include_regex':
+        elif pattern == 'include_regex':
             parent = match.group(1)
             if parent in self.layer_dict:
                 self.current_object.params = self.layer_dict[parent].params.copy()

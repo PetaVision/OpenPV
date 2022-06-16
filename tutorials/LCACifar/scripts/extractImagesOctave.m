@@ -44,7 +44,7 @@ function extractImagesOctave(batch_name, cnt, append_mixed=true)
   
   mixed_file = fopen(mixed_file_pathname, 'a');
   if mixed_file <=0 
-    error(["mixed_file = ", num2str(mixed_file), ": randorder_pathname = ", randorder_pathname]);
+    error(["mixed_file = ", num2str(mixed_file), ": mixed_file_pathname = ", mixed_file_pathname]);
   end%if
 
                                 % loop through all elements in .mat file
