@@ -1,5 +1,5 @@
 % This script will unpack the MATLAB version of the CIFAR dataset. Assuming
-% the dataset was extracted to OpenPV/tutorials/LCACifar/cifar-10-batches-mat,
+% the dataset was extracted to OpenPV/tutorials/LCA-CIFAR/cifar-10-batches-mat,
 % running 'octave extractCIFAR.m' will unpack the images into that directory.
 
 cifarPath = cd(cd("../cifar-10-batches-mat/"));
