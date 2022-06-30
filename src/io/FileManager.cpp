@@ -237,7 +237,7 @@ int FileManager::statRetry(std::string const &path, struct stat &statbuf, int ma
       }
       else if (attemptNum > 0) {
          InfoLog().printf("Attempt %d of %d: status of \"%s\" succeeded.\n",
-                 attemptNum + 1, maxAttempts, path);
+                 attemptNum + 1, maxAttempts, path.c_str());
       }
    }
    return status;
