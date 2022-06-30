@@ -14,7 +14,7 @@ macro(pv_config_project)
 
   # Intel Compiler defaults
   set(ICC_OPT_REPORT_LEVEL "-qopt-report=2")
-  set(ICC_OPT_REPORT_PHASE "-opt-report-phase=loop,vec,openmp")
+  set(ICC_OPT_REPORT_PHASE "-qopt-report-phase=loop,vec,openmp")
   set(ICC_DEBUG_FLAGS -restrict;-traceback;-xcore-avx2;${ICC_OPT_REPORT_LEVEL};${ICC_OPT_REPORT_PHASE};-g;-O2)
   set(ICC_RELEASE_FLAGS -restrict;-traceback;-xcore-avx2;-O3;-DNDEBUG)
   set(ICC_OPENMP_FLAG "-qopenmp")
