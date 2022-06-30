@@ -31,7 +31,7 @@ LocalPatchWeightsIO::LocalPatchWeightsIO(
    FatalIf(
          fileStream and !fileStream->readable(),
          "FileStream \"%s\" is not readable and can't be used in a LocalPatchWeightsIO object.\n",
-         fileStream->getFileName());
+         fileStream->getFileName().c_str());
 
    mDataSize = static_cast<long>(mCompressedFlag ? sizeof(uint8_t) : sizeof(float));
    initializeMargins(); // initializes XMargin and YMargin

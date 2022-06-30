@@ -53,7 +53,7 @@ void FileManager::ensureDirectoryExists(std::string const &path) const {
    FatalIf(
          errno != ENOENT,
          "Error checking status of directory \"%s\": %s.\n",
-         path,
+         path.c_str(),
          strerror(errno));
 
    InfoLog().printf(
@@ -233,7 +233,7 @@ int FileManager::statRetry(std::string const &path, struct stat &statbuf, int ma
       if (status) {
          WarnLog().printf(
                  "Attempt %d of %d: unable to get status of \"%s\": %s\n",
-                 attemptNum + 1, maxAttempts, path, std::strerror(errno));
+                 attemptNum + 1, maxAttempts, path.c_str(), std::strerror(errno));
       }
       else if (attemptNum > 0) {
          InfoLog().printf("Attempt %d of %d: status of \"%s\" succeeded.\n",

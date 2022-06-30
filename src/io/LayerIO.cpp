@@ -15,7 +15,7 @@ LayerIO::LayerIO(
    FatalIf(
          fileStream and !fileStream->readable(),
          "FileStream \"%s\" is not readable and can't be used in a LayerIO object.\n",
-         fileStream->getFileName());
+         fileStream->getFileName().c_str());
 
    if (!getFileStream()) { return; }
 
@@ -179,7 +179,7 @@ void LayerIO::writeHeader() {
    FatalIf(
          !getFileStream()->writeable(),
          "writeHeader() called but \"%s\" is not writeable.\n",
-         getFileStream()->getFileName());
+         getFileStream()->getFileName().c_str());
 
    BufferUtils::ActivityHeader header;
    header.headerSize = static_cast<int>(mHeaderSize);

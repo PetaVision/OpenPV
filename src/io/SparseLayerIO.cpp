@@ -15,7 +15,7 @@ SparseLayerIO::SparseLayerIO(
    FatalIf(
          fileStream and !fileStream->readable(),
          "FileStream \"%s\" is not readable and can't be used in a SparseLayerIO object.\n",
-         fileStream->getFileName());
+         fileStream->getFileName().c_str());
 
    if (!getFileStream()) { return; }
 
@@ -151,7 +151,7 @@ void SparseLayerIO::initializeFrameStarts() {
    FatalIf(
          eofPosition < mHeaderSize,
          "SparseLayerIO \"%s\" is too short (%ld bytes) to contain an activity header.\n",
-         getFileStream()->getFileName(), eofPosition);
+         getFileStream()->getFileName().c_str(), eofPosition);
    long curPosition = mHeaderSize;
    getFileStream()->setInPos(curPosition, std::ios_base::beg);
    mFrameStarts.clear();
@@ -163,7 +163,7 @@ void SparseLayerIO::initializeFrameStarts() {
       FatalIf(
             eofPosition - curPosition < 12L,
             "SparseLayerIO \"%s\" has %ld bytes left over after %zu pvp frames.\n",
-            getFileStream()->getFileName(),
+            getFileStream()->getFileName().c_str(),
             eofPosition - curPosition,
             mFrameStarts.size());
 
@@ -215,7 +215,7 @@ void SparseLayerIO::writeHeader() {
    FatalIf(
          !getFileStream()->writeable(),
          "writeHeader() called but \"%s\" is not writeable.\n",
-         getFileStream()->getFileName());
+         getFileStream()->getFileName().c_str());
 
    BufferUtils::ActivityHeader header;
    header.headerSize = static_cast<int>(mHeaderSize);
