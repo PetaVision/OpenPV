@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
        FatalIf(
              group0Keyword == nullptr or strcmp(group0Keyword, "HyPerCol"),
              "Params file \"%s\" group 0 is not a HyPerCol\n",
-             pv_init.getArguments()->getStringArgument(std::string("ParamsFile")));
+             pv_init.getArguments()->getStringArgument(std::string("ParamsFile")).c_str());
        char const *hypercolName = pv_init.getParams()->groupNameFromIndex(0);
        pvAssert(hypercolName != nullptr);
        char *paramsOutputPath = nullptr;
