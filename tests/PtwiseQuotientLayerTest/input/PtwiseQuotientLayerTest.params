@@ -176,7 +176,7 @@ RequireAllZeroActivityProbe "ComparisonTest" = {
     probeOutputFile                     = "ComparisonTest.txt";
     triggerLayerName                    = NULL;
     energyProbe                         = NULL;
-    nnzThreshold                        = 0.0;
+    nnzThreshold                        = 5.0e-7;
     exitOnFailure                       = true;
     immediateExitOnFailure              = false;
 };
