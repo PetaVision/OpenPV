@@ -1,5 +1,9 @@
--- Path to OpenPV. Edit this if necessary with the path to the OpenPV repository.
-sourcedir = os.getenv("HOME") .. "/OpenPV";
+-- Set the environment variable PV_SOURCEDIR to the path to the OpenPV repository.
+-- Default value of PV_SOURCEDIR is $HOME/OpenPV.
+sourcedir = os.getenv("PV_SOURCEDIR");
+if (sourcedir == nil) then
+   sourcedir = os.getenv("HOME") .. "/OpenPV";
+end
 
 package.path = package.path .. ";" .. sourcedir .. "/parameterWrapper/?.lua";
 local pv = require "PVModule";

@@ -881,8 +881,16 @@ void HyPerCol::outputParams(char const *path) {
       // Lua file output
       outputParamsHeadComments(printLuaStream, "--");
       // Load util module based on PVPath
+
       printLuaStream->printf(
-            "package.path = package.path .. \";\" .. \"" PV_DIR "/../parameterWrapper/?.lua\"\n");
+            "-- Set the environment variable PV_SOURCEDIR to the path to the OpenPV repository.\n");
+      printLuaStream->printf("-- Default value of PV_SOURCEDIR is \"" PV_DIR "\".\n");
+      printLuaStream->printf("sourcedir = os.getenv(\"PV_SOURCEDIR\");\n");
+      printLuaStream->printf("if (sourcedir == nil) then\n");
+      printLuaStream->printf("   sourcedir = \"" PV_DIR "\";\n");
+      printLuaStream->printf("end\n");
+      printLuaStream->printf("\n");
+      printLuaStream->printf("package.path .. \";\" .. sourcedir .. \"/parameterWrapper/?.lua\"\n");
       printLuaStream->printf("local pv = require \"PVModule\"\n\n");
       printLuaStream->printf(
             "NULL = function() end; -- to allow string parameters to be set to NULL\n\n");
