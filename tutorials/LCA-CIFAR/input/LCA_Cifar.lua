@@ -8,7 +8,7 @@ end
 package.path = package.path .. ";" .. sourcedir .. "/parameterWrapper/?.lua";
 local pv = require "PVModule";
 
-local nbatch              = 20;    --Number of images to process in parallel
+local nbatch              = 16;    --Number of images to process in parallel
 local nxSize              = 32;    --CIFAR images are 32 x 32
 local nySize              = 32;
 local patchSize           = 8;
