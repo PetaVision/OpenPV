@@ -22,7 +22,7 @@ local initialWriteTime    = displayPeriod;
 
 local inputPath           = "cifar-10-batches-mat/mixed_cifar.txt";
 local outputPath          = "output";
-local checkpointPeriod    = (displayPeriod * 100); -- How often to write checkpoints
+local checkpointPeriod    = (displayPeriod * 125); -- How often to write checkpoints
 
 local dictionarySize      = 128;   --Number of patches/elements in dictionary 
 local dictionaryFile      = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
