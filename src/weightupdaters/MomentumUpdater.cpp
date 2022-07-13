@@ -151,10 +151,12 @@ void MomentumUpdater::ioParam_initPrev_dWFile(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumUpdater::ioParam_prev_dWFrameNumber(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "initPrev_dWFile"));
-   if (mInitPrev_dWFile and mInitPrev_dWFile[0]) {
-      parameters()->ioParamValue(
-            ioFlag, name, "prev_dWFrameNumber", &mPrev_dWFrameNumber, mPrev_dWFrameNumber);
+   if (mPlasticityFlag) {
+      pvAssert(!parameters()->presentAndNotBeenRead(name, "initPrev_dWFile"));
+      if (mInitPrev_dWFile and mInitPrev_dWFile[0]) {
+         parameters()->ioParamValue(
+               ioFlag, name, "prev_dWFrameNumber", &mPrev_dWFrameNumber, mPrev_dWFrameNumber);
+      }
    }
 }
 
@@ -367,11 +369,16 @@ void MomentumUpdater::openOutputStateFile(
 }
 
 void MomentumUpdater::outputMomentum(double timestamp) {
-   if ((mWriteStep >= 0) && (timestamp >= mWriteTime)) {
+   if (mPlasticityFlag && (mWriteStep >= 0) && (timestamp >= mWriteTime)) {
       mWriteTime += mWriteStep;
 
-      WeightsFileIO weightsFileIO(mOutputStateStream, getMPIBlock(), mPrevDeltaWeights);
-      weightsFileIO.writeWeights(timestamp, mWriteCompressedWeights);
+      try {
+         WeightsFileIO weightsFileIO(mOutputStateStream, getMPIBlock(), mPrevDeltaWeights);
+         weightsFileIO.writeWeights(timestamp, mWriteCompressedWeights);
+      }
+      catch (std::invalid_argument &e) {
+         Fatal() << getDescription() << " unable to output momentum: " << e.what() << "\n";
+      }
    }
    else if (mWriteStep < 0) {
       // If writeStep is negative, we never call writeWeights, but someone might restart from a
