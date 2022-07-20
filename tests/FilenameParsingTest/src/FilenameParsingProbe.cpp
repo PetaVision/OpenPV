@@ -53,7 +53,7 @@ Response::Status FilenameParsingProbe::communicateInitInfo(
 Response::Status FilenameParsingProbe::outputState(double simTime, double deltaTime) {
    if (simTime == 0.0) {
       return Response::NO_ACTION;
-   } // FilenameParsingGroundTruthLayer hasn't updated.
+   } // FilenameParsingLayer hasn't updated.
 
    double const displayTime = (simTime - deltaTime) / mInputDisplayPeriod;
    int const displayNumber  = (int)std::floor(displayTime);

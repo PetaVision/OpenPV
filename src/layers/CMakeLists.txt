@@ -8,7 +8,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/DropoutLayer.cpp
    ${SUBDIR}/CloneVLayer.cpp
    ${SUBDIR}/ConstantLayer.cpp
-   ${SUBDIR}/FilenameParsingGroundTruthLayer.cpp
+   ${SUBDIR}/FilenameParsingLayer.cpp
    ${SUBDIR}/FirmThresholdCostLayer.cpp
    ${SUBDIR}/GapLayer.cpp
    ${SUBDIR}/GaussianNoiseLayer.cpp
@@ -44,7 +44,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/DependentFirmThresholdCostLayer.hpp
    ${SUBDIR}/DropoutLayer.hpp
    ${SUBDIR}/ConstantLayer.hpp
-   ${SUBDIR}/FilenameParsingGroundTruthLayer.hpp
+   ${SUBDIR}/FilenameParsingLayer.hpp
    ${SUBDIR}/FirmThresholdCostLayer.hpp
    ${SUBDIR}/GapLayer.hpp
    ${SUBDIR}/GaussianNoiseLayer.hpp

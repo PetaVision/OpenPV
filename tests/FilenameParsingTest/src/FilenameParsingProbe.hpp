@@ -8,7 +8,7 @@
 #ifndef FILENAMEPARSINGPROBE_HPP_
 #define FILENAMEPARSINGPROBE_HPP_
 
-#include <layers/FilenameParsingGroundTruthLayer.hpp>
+#include <layers/FilenameParsingLayer.hpp>
 #include <probes/LayerProbe.hpp>
 
 /**

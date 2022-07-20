@@ -4,7 +4,7 @@
 // created by peteschultz: Apr 19, 2017
 //
 
-//  A params file to test FilenameParsingGroundTruthLayer
+//  A params file to test FilenameParsingLayer
 //
 
 debugParsing = false;
@@ -27,7 +27,7 @@ HyPerCol "column" = {
     errorOnNotANumber                   = true;
 };
 
-FilenameParsingGroundTruthLayer "GroundTruth" = {
+FilenameParsingLayer "GroundTruth" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 10;

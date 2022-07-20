@@ -1,27 +1,27 @@
 /*
- * FilenameParsingGroundTruthLayer.cpp
+ * FilenameParsingLayer.cpp
  *
  *  Created on: Nov 10, 2014
  *      Author: wchavez
  */
 
-#include "FilenameParsingGroundTruthLayer.hpp"
+#include "FilenameParsingLayer.hpp"
 
 #include "components/ActivityComponentActivityOnly.hpp"
 #include "components/FilenameParsingActivityBuffer.hpp"
 #include "components/FilenameParsingLayerUpdateController.hpp"
 
 namespace PV {
-FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer(
+FilenameParsingLayer::FilenameParsingLayer(
       const char *name,
       PVParams *params,
       Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-FilenameParsingGroundTruthLayer::~FilenameParsingGroundTruthLayer() {}
+FilenameParsingLayer::~FilenameParsingLayer() {}
 
-void FilenameParsingGroundTruthLayer::fillComponentTable() {
+void FilenameParsingLayer::fillComponentTable() {
    HyPerLayer::fillComponentTable();
    mInputLayerNameParam = createInputLayerNameParam();
    if (mInputLayerNameParam) {
@@ -29,18 +29,18 @@ void FilenameParsingGroundTruthLayer::fillComponentTable() {
    }
 }
 
-LayerInputBuffer *FilenameParsingGroundTruthLayer::createLayerInput() { return nullptr; }
+LayerInputBuffer *FilenameParsingLayer::createLayerInput() { return nullptr; }
 
-LayerUpdateController *FilenameParsingGroundTruthLayer::createLayerUpdateController() {
+LayerUpdateController *FilenameParsingLayer::createLayerUpdateController() {
    return new FilenameParsingLayerUpdateController(getName(), parameters(), mCommunicator);
 }
 
-ActivityComponent *FilenameParsingGroundTruthLayer::createActivityComponent() {
+ActivityComponent *FilenameParsingLayer::createActivityComponent() {
    return new ActivityComponentActivityOnly<FilenameParsingActivityBuffer>(
          getName(), parameters(), mCommunicator);
 }
 
-InputLayerNameParam *FilenameParsingGroundTruthLayer::createInputLayerNameParam() {
+InputLayerNameParam *FilenameParsingLayer::createInputLayerNameParam() {
    return new InputLayerNameParam(getName(), parameters(), mCommunicator);
 }
 
