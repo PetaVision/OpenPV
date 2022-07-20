@@ -40,6 +40,22 @@ class InputActivityBuffer : public ActivityBuffer {
    virtual void ioParam_offsets(enum ParamsIOFlag ioFlag);
 
    /**
+    * jitterChangeInterval:
+    * Defines the period of the random shifts updates
+    * A value less than or equal to zero means no jitter.
+    */
+   virtual void ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag);
+
+   /**
+    * jitterChangeIntervalUnit:
+    * Either "displayPeriod" or "timestep" (case-insensitive).
+    * Whether jitterChangeInterval is the number of display periods or
+    * the number of timesteps.
+    * Defaults to displayPeriod.
+    */
+   virtual void ioParam_jitterChangeIntervalUnit(enum ParamsIOFlag ioFlag);
+
+   /**
     * maxShiftX: max random shift in X direction
     * maxShiftY: max random shift in Y direction
     * Defines the max random shift in image space
@@ -57,12 +73,6 @@ class InputActivityBuffer : public ActivityBuffer {
     * yFlipToggle: When true, flip every jitter interval instead of randomly
     */
    virtual void ioParam_flipsToggle(enum ParamsIOFlag ioFlag);
-
-   /**
-    * jitterChangeInterval: interval measured in displayPeriods
-    * Defines the frequency of the random shifts updates
-    */
-   virtual void ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag);
 
    /**
     * offsetAnchor: Defines where the anchor point is for the offsets.
@@ -306,6 +316,14 @@ class InputActivityBuffer : public ActivityBuffer {
    int mOffsetX = 0;
    int mOffsetY = 0;
 
+   // How often to change random shifts (measured in displayPeriods)
+   // Value of zero means no jitter
+   int mJitterChangeInterval = 0;
+
+   char *mJitterChangeIntervalUnit = nullptr;
+
+   int mJitterChangeIntervalInTimesteps = 0;
+
    // If nonzero, create a sample by shifting image randomly in [-maxRandomShiftX, maxRandomShiftX]
    // x [-maxRandomShiftY, maxRandomShiftY]
    int mMaxShiftX = 0;
@@ -318,9 +336,6 @@ class InputActivityBuffer : public ActivityBuffer {
    // If this is true, toggle mirror flips each time instead of randomly selecting
    bool mXFlipToggle = false;
    bool mYFlipToggle = false;
-
-   // How often to change random shifts (measured in displayPeriods)
-   int mJitterChangeInterval = 1;
 
    // Flag that enables rescaling input buffer to layer dimensions instead of just cropping
    bool mAutoResizeFlag = false;
