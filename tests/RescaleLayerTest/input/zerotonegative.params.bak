@@ -1,0 +1,168 @@
+//
+// zerotonegative.params
+//
+// created by peteschultz Jul 20, 2022
+//
+
+// A params file for testing the zerotonegative rescale method defined by the
+// RescaleLayer class. There is an input layer and a RescaleLayer
+// with rescaleMethod = "zerotonegative".
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 16;
+   ny = 16;
+   dt = 1.0;
+   randomSeed = 928962559;
+   stopTime = 8.0;
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/zerotonegative";
+   printParamsFilename = "pv.params";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/zerotonegative/Last";
+   nbatch = 2;
+};
+
+//
+// Layers
+//
+
+PvpLayer "InputMovie" = {
+   nxScale = 1.0;
+   nyScale = 1.0;
+   inputPath = "input/testinput.pvp";
+   nf = 3;
+   phase = 0;
+   writeStep = -1;
+   sparseLayer = false;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   useInputBCflag = false;
+   inverseFlag = false;
+   normalizeLuminanceFlag = false;
+   autoResizeFlag = false;
+   offsetAnchor = "tl";
+   offsetX = 0;
+   offsetY = 0;
+   jitterChangeInterval = 0;
+   padValue = 0;
+   displayPeriod = 1.0;
+   batchMethod = "byFile";
+   writeFrameToTimestamp = true;
+};
+
+PvpLayer "CorrectValues" = {
+   nxScale = 1.0;
+   nyScale = 1.0;
+   inputPath = "input/correct_rescale_zerotonegative.pvp";
+   nf = 3;
+   phase = 0;
+   writeStep = -1;
+   sparseLayer = false;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   useInputBCflag = false;
+   inverseFlag = false;
+   normalizeLuminanceFlag = false;
+   autoResizeFlag = false;
+   offsetAnchor = "tl";
+   offsetX = 0;
+   offsetY = 0;
+   jitterChangeInterval = 0;
+   padValue = 0;
+   displayPeriod = 1.0;
+   batchMethod = "byFile";
+   writeFrameToTimestamp = true;
+};
+
+HyPerLayer "UnrescaledLayer" = {
+   nxScale = 1.0;
+   nyScale = 1.0;
+   nf = 3;
+   phase = 1;
+   writeStep = 1.0;
+   initialWriteTime = 1.0;
+   sparseLayer = false;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   
+   InitVType = "ZeroV";
+   
+   triggerLayerName = NULL;
+};
+
+RescaleLayer "RescaledLayer" = {
+   nxScale = 1.0;
+   nyScale = 1.0;
+   nf = 3;
+   phase = 2;
+   writeStep = 1.0;
+   initialWriteTime = 1.0;
+   sparseLayer = false;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   triggerLayerName = NULL;
+      
+   originalLayerName = "UnrescaledLayer";
+   rescaleMethod = "zerotonegative";
+};
+
+HyPerLayer "Comparison" = {
+   nxScale = 1.0;
+   nyScale = 1.0;
+   nf = 3;
+   phase = 3;
+   writeStep = 1.0;
+   initialWriteTime = 1.0;
+   sparseLayer = false;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   triggerLayerName = NULL;
+   InitVType = "ZeroV";
+   updateGpu = false;
+};
+
+//
+// Connections
+//
+
+IdentConn "InputMovieToUnrescaledLayer" = {
+    preLayerName = "InputMovie";
+    postLayerName = "UnrescaledLayer";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "RescaledLayerToComparison" = {
+    preLayerName = "RescaledLayer";
+    postLayerName = "Comparison";
+    channelCode = 0;
+    delay = 0;
+};
+
+IdentConn "CorrectValuesToComparison" = {
+    preLayerName = "CorrectValues";
+    postLayerName = "Comparison";
+    channelCode = 1;
+    delay = 0;
+};
+
+//
+// Probes
+//
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer = "Comparison";
+    message = NULL;
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    triggerLayerName = NULL;
+    energyProbe = NULL;
+    nnzThreshold = 5.0e-7
+    exitOnFailure = true;
+    immediateExitOnFailure = false;
+};
