@@ -118,12 +118,16 @@ int main(int argc, char *argv[]) {
    auto fileManager = std::make_shared<FileManager>(mpiBlock, baseDirectory);
 
    // Delete old output directory, to start with a clean slate.
-   if (fileManager->isRoot()) {
-      pvAssert(!baseDirectory.empty());
-      status = deleteOldOutputDirectory(baseDirectory);
-      if (status != PV_SUCCESS) { return status; }
+   int deleteStatus = 0;
+   for (int rank = 0; rank < communicator->globalCommSize(); rank++) {
+      if (rank == communicator->globalCommRank() and fileManager->isRoot()) {
+         pvAssert(!baseDirectory.empty());
+         deleteStatus = deleteOldOutputDirectory(baseDirectory) != PV_SUCCESS;
+      }
+      MPI_Barrier(communicator->globalCommunicator());
    }
-   MPI_Barrier(fileManager->getMPIBlock()->getGlobalComm());
+   MPI_Allreduce(MPI_IN_PLACE, &deleteStatus, 1, MPI_INT, MPI_LOR, MPI_COMM_WORLD);
+   status = deleteStatus ? PV_FAILURE : PV_SUCCESS;
 
    // Create LayerLoc structure with local and global layer dimensions
    PVLayerLoc layerLoc = createLayerLoc(pv_init_obj, 0, 0);

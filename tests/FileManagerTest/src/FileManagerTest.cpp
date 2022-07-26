@@ -61,7 +61,8 @@ int main(int argc, char *argv[]) {
    MPI_Init(&argc, &argv);
 
    int status = EXIT_SUCCESS;
-   int globalSize;
+   int globalRank, globalSize;
+   MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
    MPI_Comm_size(MPI_COMM_WORLD, &globalSize);
    if ( globalSize != GLOBAL_MPI_SIZE) {
       ErrorLog() << argv[0] << " must be run with exactly " << GLOBAL_MPI_SIZE <<
@@ -69,17 +70,29 @@ int main(int argc, char *argv[]) {
       status = EXIT_FAILURE;
    }
 
-   applyLogFileOption(argc, argv);
-
-   bool requireReturn = (pv_getopt(argc, argv, "--require-return", nullptr /*paramusage*/) == 0);
-   if (requireReturn) { WaitForReturn(MPI_COMM_WORLD); }
-
    if (status == EXIT_SUCCESS) {
-      status = deleteOldOutputDirectory();
+      applyLogFileOption(argc, argv);
+
+      bool requireReturn = (pv_getopt(argc, argv, "--require-return", nullptr /*paramusage*/) == 0);
+      if (requireReturn) { WaitForReturn(MPI_COMM_WORLD); }
+
+      int deleteStatus = 0;
+      for (int rank = 0; rank < globalSize; rank++) {
+         if (rank == globalRank) {
+            int rankStatus = deleteOldOutputDirectory();
+            deleteStatus = rankStatus != PV_SUCCESS;
+            if (deleteStatus) {
+               ErrorLog() << "Rank " << rank << " failed to delete old output directory.\n";
+            }
+         }
+         MPI_Barrier(MPI_COMM_WORLD);
+      }
+      MPI_Allreduce(MPI_IN_PLACE, &deleteStatus, 1, MPI_INT, MPI_LOR, MPI_COMM_WORLD);
+      status = deleteStatus ? EXIT_FAILURE : EXIT_SUCCESS;
    }
 
    if (status == EXIT_SUCCESS) {
-      status = run() ? EXIT_FAILURE : EXIT_SUCCESS;
+      status = run() == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
    }
    MPI_Finalize();
 
@@ -87,9 +100,10 @@ int main(int argc, char *argv[]) {
 }
 
 int deleteOldOutputDirectory() {
-   int status = std::system("rm -rf output/");
+   char const *systemCommand = "rm -rf output/";
+   int status = std::system(systemCommand);
    if (status) {
-      ErrorLog() << "system command \"rm -fr output/\" returned " << status << "\n";
+      ErrorLog() << "system command \"" << systemCommand << "\" failed with " << status << "\n";
    }
    return status ? PV_FAILURE : PV_SUCCESS;
 }
