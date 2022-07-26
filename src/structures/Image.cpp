@@ -164,7 +164,7 @@ void Image::convertToColor(bool alphaChannel) {
 
 void Image::read(std::string filename) {
    int width = 0, height = 0, channels = 0;
-   uint8_t *data = stbi_load(filename.c_str(), &width, &height, &channels, 0);
+   stbi_us *data = stbi_load_16(filename.c_str(), &width, &height, &channels, 0);
    if (data == nullptr) {
       if (!std::strcmp(stbi_failure_reason(), "unknown image type")) {
          Fatal().printf(
@@ -183,7 +183,7 @@ void Image::read(std::string filename) {
    for (int y = 0; y < height; ++y) {
       for (int x = 0; x < width; ++x) {
          for (int f = 0; f < channels; ++f) {
-            float value = static_cast<float>(data[(y * width + x) * channels + f]) / 255.0f;
+            float value = static_cast<float>(data[(y * width + x) * channels + f]) / 65535.0f;
             set(x, y, f, value);
          }
       }
@@ -193,7 +193,7 @@ void Image::read(std::string filename) {
 }
 
 void Image::write(std::string filename) {
-   std::vector<uint8_t> byteData(getWidth() * getHeight() * getFeatures());
+   std::vector<uint16_t> byteData(getWidth() * getHeight() * getFeatures());
    int byteIndex  = 0;
    float imageMin = 0.0f;
    float imageMax = 1.0f;
@@ -211,7 +211,7 @@ void Image::write(std::string filename) {
       for (int x = 0; x < getWidth(); ++x) {
          for (int f = 0; f < getFeatures(); ++f) {
             float normVal            = (at(x, y, f) - imageMin) / (imageMax - imageMin);
-            byteData.at(byteIndex++) = static_cast<uint8_t>(normVal * 255.0f);
+            byteData.at(byteIndex++) = static_cast<uint16_t>(normVal * 65535.0f);
          }
       }
    }
@@ -224,4 +224,4 @@ void Image::write(std::string filename) {
          byteData.data(),
          getWidth() * getFeatures());
 }
-}
+} // namespace PV

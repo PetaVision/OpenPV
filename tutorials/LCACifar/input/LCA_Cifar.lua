@@ -2,7 +2,7 @@
 package.path = package.path .. ";" .. "../../../parameterWrapper/?.lua";
 local pv = require "PVModule";
 
-local nbatch              = 20;    --Number of images to process in parallel
+local nbatch              = 16;    --Number of images to process in parallel
 local nxSize              = 32;    --CIFAR images are 32 x 32
 local nySize              = 32;
 local patchSize           = 8;
@@ -21,8 +21,8 @@ local checkpointPeriod    = (displayPeriod * 100); -- How often to write checkpo
 local dictionarySize      = 128;   --Number of patches/elements in dictionary 
 local dictionaryFile      = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
 local plasticityFlag      = true;  --Determines if we are learning our dictionary or holding it constant
-local timeConstantTauConn = 500;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
-local dWMax               = 0.05;    --The learning rate
+local timeConstantTauConn = 5.0;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
+local dWMax               = 1.0;   --The learning rate
 local VThresh             = 0.55;  --The threshold, or lambda, of the network
 local AMin                = 0;
 local AMax                = infinity;
