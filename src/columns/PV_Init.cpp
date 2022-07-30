@@ -11,6 +11,7 @@
 #include "columns/CoreKeywords.hpp"
 #include "utils/PVLog.hpp"
 #include <csignal>
+#include <sys/utsname.h>
 #ifdef PV_USE_OPENMP_THREADS
 #include <omp.h>
 #endif // PV_USE_OPENMP_THREADS
@@ -196,11 +197,24 @@ int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
 }
 
 void PV_Init::printInitMessage() {
+   time_t currentTime = time(nullptr);
+   InfoLog() << "PetaVision initialized at "
+             << ctime(&currentTime); // string returned by ctime contains a trailing \n.
+   struct utsname systemInfo;
+   int unamestatus = uname(&systemInfo);
+   if (unamestatus == 0) {
+      InfoLog() << "System information:\n"
+                << "    system name: " << systemInfo.sysname << "\n"
+                << "    nodename:    " << systemInfo.nodename << "\n"
+                << "    release:     " << systemInfo.release << "\n"
+                << "    version:     " << systemInfo.version << "\n"
+                << "    machine:     " << systemInfo.machine << "\n";
+   }
+   else {
+      ErrorLog() << "System name information unavailable: " << strerror(errno) << "\n";
+   }
    Communicator const *communicator = getCommunicator();
    if (communicator == nullptr or communicator->globalCommRank() == 0) {
-      time_t currentTime = time(nullptr);
-      InfoLog() << "PetaVision initialized at "
-                << ctime(&currentTime); // string returned by ctime contains a trailing \n.
       InfoLog() << "Configuration is:\n";
       printState();
       InfoLog().printf("----------------\n");
