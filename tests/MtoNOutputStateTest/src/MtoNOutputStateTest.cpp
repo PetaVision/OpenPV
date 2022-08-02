@@ -44,8 +44,6 @@ int main(int argc, char *argv[]) {
    pv_init.registerKeyword("IndexLayer", Factory::create<IndexLayer>);
    pv_init.registerKeyword("IndexWeightConn", Factory::create<IndexWeightConn>);
 
-   InfoLog() << "PID " << getpid() << ", global rank " << pv_init.getWorldRank() << ".\n";
-
    auto communicator = pv_init.getCommunicator();
    auto mpiBlock     = communicator->getIOMPIBlock();
 

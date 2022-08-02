@@ -67,6 +67,7 @@ int PV_Init::initSignalHandler() {
 int PV_Init::initialize() {
    delete mCommunicator;
    mCommunicator = new Communicator(mArguments.get());
+   printInitMessage();
    int status    = PV_SUCCESS;
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
@@ -76,7 +77,6 @@ int PV_Init::initialize() {
    if (!paramsFile.empty()) {
       status = createParams();
    }
-   printInitMessage();
    return status;
 }
 
@@ -197,6 +197,7 @@ int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
 }
 
 void PV_Init::printInitMessage() {
+   InfoLog() << "PID " << getpid() << ", global rank " << getWorldRank() << ".\n";
    time_t currentTime = time(nullptr);
    InfoLog() << "PetaVision initialized at "
              << ctime(&currentTime); // string returned by ctime contains a trailing \n.
@@ -213,12 +214,41 @@ void PV_Init::printInitMessage() {
    else {
       ErrorLog() << "System name information unavailable: " << strerror(errno) << "\n";
    }
-   Communicator const *communicator = getCommunicator();
-   if (communicator == nullptr or communicator->globalCommRank() == 0) {
-      InfoLog() << "Configuration is:\n";
-      printState();
-      InfoLog().printf("----------------\n");
-   }
+   auto globalMPIBlock = getCommunicator()->getGlobalMPIBlock();
+   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+   InfoLog().printf("----------------\n");
+   InfoLog() << "Configuration is:\n";
+   printState();
+   InfoLog().printf("----------------\n");
+   InfoLog() << "Running with NumRows=" << mCommunicator->numCommRows()
+             << ", NumCols=" << mCommunicator->numCommColumns()
+             << ", and BatchWidth=" << mCommunicator->numCommBatches() << "\n";
+   InfoLog() << "I/O Blocks have " << ioMPIBlock->getNumRows() << " rows, "
+             << ioMPIBlock->getNumColumns() << " columns, and "
+             << "batch width of " << ioMPIBlock->getBatchDimension() << "\n";
+   InfoLog().printf("Position in global MPI configuration:\n");
+   InfoLog().printf(
+        "    Row %d of %d, Column %d of %d, Batch index %d of %d\n",
+        globalMPIBlock->getRowIndex(),
+        globalMPIBlock->getNumRows(),
+        globalMPIBlock->getColumnIndex(),
+        globalMPIBlock->getNumColumns(),
+        globalMPIBlock->getBatchIndex(),
+        globalMPIBlock->getBatchDimension());
+   InfoLog().printf(
+        "Input/Output block starts at row %d, column %d, batch index %d\n",
+        ioMPIBlock->getStartRow(),
+        ioMPIBlock->getStartColumn(),
+        ioMPIBlock->getStartBatch());
+   InfoLog().printf("Position within Input/Output block:\n");
+   InfoLog().printf(
+        "    Row %d of %d, Column %d of %d, Batch index %d of %d\n",
+        ioMPIBlock->getRowIndex(),
+        ioMPIBlock->getNumRows(),
+        ioMPIBlock->getColumnIndex(),
+        ioMPIBlock->getNumColumns(),
+        ioMPIBlock->getBatchIndex(),
+        ioMPIBlock->getBatchDimension());
 }
 
 int PV_Init::resetState() {

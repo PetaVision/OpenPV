@@ -972,18 +972,21 @@ void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comm
    fileStream->printf("%s Compiled without CUDA.\n", commentToken);
 #endif
 #ifdef PV_USE_OPENMP_THREADS
-   std::string openmpVersion;
+   std::string openmpAPIVersionString;
    switch (_OPENMP) {
-      case 201511: openmpVersion = "4.5"; break;
-      case 201307: openmpVersion = "4.0"; break;
-      case 201107: openmpVersion = "3.1"; break;
-      case 200805: openmpVersion = "3.0"; break;
-      default: openmpVersion     = "is unrecognized"; break;
+      case 202111: openmpAPIVersionString = "5.2"; break;
+      case 202011: openmpAPIVersionString = "5.1"; break;
+      case 201811: openmpAPIVersionString = "5.0"; break;
+      case 201511: openmpAPIVersionString = "4.5"; break;
+      case 201307: openmpAPIVersionString = "4.0"; break;
+      case 201107: openmpAPIVersionString = "3.1"; break;
+      case 200805: openmpAPIVersionString = "3.0"; break;
+      default: openmpAPIVersionString     = "is unrecognized"; break;
    }
    fileStream->printf(
          "%s Compiled with OpenMP parallel code, API version %s (%06d) ",
          commentToken,
-         openmpVersion.c_str(),
+         openmpAPIVersionString.c_str(),
          _OPENMP);
    if (mNumThreads > 0) {
       fileStream->printf("and run using %d threads.\n", mNumThreads);

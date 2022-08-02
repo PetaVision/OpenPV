@@ -36,12 +36,6 @@ Communicator::Communicator(Arguments const *arguments) {
 
    int procsNeeded = mBatchWidth * mNumRows * mNumCols;
 
-   // For debugging
-   if (mGlobalRank == 0) {
-      InfoLog() << "Running with BatchWidth=" << mBatchWidth << ", NumRows=" << mNumRows
-                << ", and NumCols=" << mNumCols << "\n";
-   }
-
    if (procsNeeded > totalSize) {
       Fatal() << "Number of required processes (NumRows * NumColumns * BatchWidth = " << procsNeeded
               << ") should be the same as, and cannot be larger than, the number of processes "
