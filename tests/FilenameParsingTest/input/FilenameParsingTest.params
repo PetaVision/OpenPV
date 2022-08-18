@@ -4,7 +4,7 @@
 // created by peteschultz: Apr 19, 2017
 //
 
-//  A params file to test FilenameParsingGroundTruthLayer
+//  A params file to test FilenameParsingLayer
 //
 
 debugParsing = false;
@@ -27,19 +27,17 @@ HyPerCol "column" = {
     errorOnNotANumber                   = true;
 };
 
-FilenameParsingGroundTruthLayer "GroundTruth" = {
+FilenameParsingLayer "GroundTruth" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 10;
     phase                               = 0;
     mirrorBCflag                        = true;
-    InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
     writeStep                           = 1;
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     classList                           = "input/Classes.txt";
     inputLayerName                      = "Input";
     gtClassTrueValue                    = 1;
@@ -56,7 +54,6 @@ ImageLayer "Input" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 10;
     inputPath                           = "input/ImageList.txt";
     offsetAnchor                        = "tl";

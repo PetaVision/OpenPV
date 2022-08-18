@@ -35,10 +35,11 @@ int InputActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_inputPath(ioFlag);
    ioParam_offsetAnchor(ioFlag);
    ioParam_offsets(ioFlag);
+   ioParam_jitterChangeInterval(ioFlag);
+   ioParam_jitterChangeIntervalUnit(ioFlag);
    ioParam_maxShifts(ioFlag);
    ioParam_flipsEnabled(ioFlag);
    ioParam_flipsToggle(ioFlag);
-   ioParam_jitterChangeInterval(ioFlag);
    ioParam_autoResizeFlag(ioFlag);
    ioParam_aspectRatioAdjustment(ioFlag);
    ioParam_interpolationMethod(ioFlag);
@@ -53,6 +54,45 @@ int InputActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_skip_frame_index(ioFlag);
    ioParam_resetToStartOnLoop(ioFlag);
    ioParam_writeFrameToTimestamp(ioFlag);
+
+   // Jul 20, 2022 - Changed default of jitterChangeInterval from 1 (jitter every timestep)
+   // to 0 (never jitter). If jitterChangeInterval is not present but any of
+   // maxShift{X,Y}, {x,y}FlipEnabled, {x,y}FlipToggle is present, flag as an error.
+   // Delete this if-statement after a reasonable fade-time
+   if (ioFlag == PARAMS_IO_READ and !parameters()->present(name, "jitterChangeInterval")) {
+      bool fatal = false;
+      if ( parameters()->present(name, "maxShiftX") ) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use maxShiftX\n", name);
+         fatal = true;
+      }
+      if ( parameters()->present(name, "maxShiftY") ) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use maxShiftY\n", name);
+         fatal = true;
+      }
+      if ( parameters()->present(name, "xFlipEnabled") ) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use xFlipEnabled\n", name);
+         fatal = true;
+      }
+      if ( parameters()->present(name, "yFlipEnabled") ) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use yFlipEnabled\n", name);
+         fatal = true;
+      }
+      if ( parameters()->present(name, "xFlipToggle") ) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use xFlipToggle\n", name);
+         fatal = true;
+      }
+      if ( parameters()->present(name, "yFlipToggle") ) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use yFlipToggle\n", name);
+         fatal = true;
+      }
+      FatalIf(fatal, "Set jitterChangeInterval explicitly in layer \"%s\"\n", name);
+   }
    return status;
 }
 
@@ -81,24 +121,61 @@ void InputActivityBuffer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, name, "offsetY", &mOffsetY, mOffsetY);
 }
 
-void InputActivityBuffer::ioParam_maxShifts(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "maxShiftX", &mMaxShiftX, mMaxShiftX);
-   parameters()->ioParamValue(ioFlag, name, "maxShiftY", &mMaxShiftY, mMaxShiftY);
-}
-
-void InputActivityBuffer::ioParam_flipsEnabled(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "xFlipEnabled", &mXFlipEnabled, mXFlipEnabled);
-   parameters()->ioParamValue(ioFlag, name, "yFlipEnabled", &mYFlipEnabled, mYFlipEnabled);
-}
-
-void InputActivityBuffer::ioParam_flipsToggle(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "xFlipToggle", &mXFlipToggle, mXFlipToggle);
-   parameters()->ioParamValue(ioFlag, name, "yFlipToggle", &mYFlipToggle, mYFlipToggle);
-}
-
 void InputActivityBuffer::ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag, name, "jitterChangeInterval", &mJitterChangeInterval, mJitterChangeInterval);
+}
+
+void InputActivityBuffer::ioParam_jitterChangeIntervalUnit(enum ParamsIOFlag ioFlag) {
+   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   if (mJitterChangeInterval > 0) {
+      parameters()->ioParamString(
+            ioFlag,
+            name,
+            "jitterChangeIntervalUnit",
+            &mJitterChangeIntervalUnit,
+            "displayPeriod" /*default*/);
+      if (ioFlag == PARAMS_IO_READ) {
+         for (char *c = mJitterChangeIntervalUnit; *c != '\0'; c++) {
+            *c = (char)std::tolower((int)*c);
+         }
+         mJitterChangeIntervalInTimesteps = mJitterChangeInterval;
+         if (!strcmp(mJitterChangeIntervalUnit, "displayperiod")) {
+           std::strncpy(
+                 mJitterChangeIntervalUnit, "displayPeriod", strlen(mJitterChangeIntervalUnit));
+           mJitterChangeIntervalInTimesteps *= mDisplayPeriod;
+         }
+         FatalIf(
+               strcmp(mJitterChangeIntervalUnit, "displayPeriod") != 0 and
+               strcmp(mJitterChangeIntervalUnit, "timestep") != 0,
+               "\"%s\" jitterChangeIntervalUnit must be either \"displayPeriod\" or \"timestep\"\n",
+               getName());
+      }
+   }
+}
+
+void InputActivityBuffer::ioParam_maxShifts(enum ParamsIOFlag ioFlag) {
+   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   if (mJitterChangeInterval > 0) {
+      parameters()->ioParamValue(ioFlag, name, "maxShiftX", &mMaxShiftX, mMaxShiftX);
+      parameters()->ioParamValue(ioFlag, name, "maxShiftY", &mMaxShiftY, mMaxShiftY);
+   }
+}
+
+void InputActivityBuffer::ioParam_flipsEnabled(enum ParamsIOFlag ioFlag) {
+   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   if (mJitterChangeInterval > 0) {
+      parameters()->ioParamValue(ioFlag, name, "xFlipEnabled", &mXFlipEnabled, mXFlipEnabled);
+      parameters()->ioParamValue(ioFlag, name, "yFlipEnabled", &mYFlipEnabled, mYFlipEnabled);
+   }
+}
+
+void InputActivityBuffer::ioParam_flipsToggle(enum ParamsIOFlag ioFlag) {
+   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   if (mJitterChangeInterval > 0) {
+      parameters()->ioParamValue(ioFlag, name, "xFlipToggle", &mXFlipToggle, mXFlipToggle);
+      parameters()->ioParamValue(ioFlag, name, "yFlipToggle", &mYFlipToggle, mYFlipToggle);
+   }
 }
 
 void InputActivityBuffer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
@@ -601,9 +678,9 @@ bool InputActivityBuffer::readyForNextFile(double simTime, double deltaT) {
 
 void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
    auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
-   if (ioMPIBlock->getRank() == 0) {
-      int displayPeriodIndex = std::floor(simTime / (mDisplayPeriod * deltaTime));
-      if (displayPeriodIndex % mJitterChangeInterval == 0) {
+   if (ioMPIBlock->getRank() == 0 and mJitterChangeIntervalInTimesteps > 0) {
+      long timestep = std::nearbyint(simTime / deltaTime);
+      if (timestep % mJitterChangeIntervalInTimesteps == 0) {
          for (std::size_t b = 0; b < mRandomShiftX.size(); b++) {
             mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2 * mMaxShiftX + 1));
             mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2 * mMaxShiftY + 1));

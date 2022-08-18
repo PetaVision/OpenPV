@@ -1,11 +1,11 @@
 /*
- * FilenameParsingGroundTruthLayer.hpp
+ * FilenameParsingLayer.hpp
  *
  *  Created on: Nov 10, 2014
  *      Author: wchavez
  */
-#ifndef FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_
-#define FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_
+#ifndef FILENAMEPARSINGLAYER_HPP_
+#define FILENAMEPARSINGLAYER_HPP_
 
 #include "layers/HyPerLayer.hpp"
 
@@ -15,10 +15,10 @@
 
 namespace PV {
 
-class FilenameParsingGroundTruthLayer : public HyPerLayer {
+class FilenameParsingLayer : public HyPerLayer {
   public:
-   FilenameParsingGroundTruthLayer(const char *name, PVParams *params, Communicator const *comm);
-   virtual ~FilenameParsingGroundTruthLayer();
+   FilenameParsingLayer(const char *name, PVParams *params, Communicator const *comm);
+   virtual ~FilenameParsingLayer();
 
   private:
    InputLayerNameParam *mInputLayerNameParam = nullptr;
@@ -29,8 +29,8 @@ class FilenameParsingGroundTruthLayer : public HyPerLayer {
    virtual LayerInputBuffer *createLayerInput() override;
    virtual ActivityComponent *createActivityComponent() override;
    virtual InputLayerNameParam *createInputLayerNameParam();
-}; // end class FilenameParsingGroundTruthLayer
+}; // end class FilenameParsingLayer
 
 } // end namespace PV
 
-#endif // FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_
+#endif // FILENAMEPARSINGLAYER_HPP_

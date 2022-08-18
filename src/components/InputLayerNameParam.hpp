@@ -13,7 +13,7 @@
 namespace PV {
 
 /**
- * A component to contain the inputLayerName param, used by FilenameParsingGroundTruthLayer.
+ * A component to contain the inputLayerName param, used by FilenameParsingLayer.
  */
 class InputLayerNameParam : public LinkedObjectParam {
   public:
