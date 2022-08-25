@@ -198,15 +198,6 @@ float *Weights::getData(int arbor) { return mData->getData(arbor); }
 
 float const *Weights::getData(int arbor) const { return mData->getData(arbor); }
 
-float *Weights::getDataFromDataIndex(int arbor, int dataIndex) {
-   return mData->getDataFromDataIndex(arbor, dataIndex);
-}
-
-float *Weights::getDataFromPatchIndex(int arbor, int patchIndex) {
-   int dataIndex = mSharedFlag ? dataIndexLookupTable[patchIndex] : patchIndex;
-   return getDataFromDataIndex(arbor, dataIndex);
-}
-
 float *Weights::getDataFromPatchIndexWithOffset(int arbor, int patchIndex) {
    return getDataFromPatchIndex(arbor, patchIndex) + getPatch(patchIndex).offset;
 }

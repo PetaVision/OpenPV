@@ -32,18 +32,6 @@ float const *WeightData::getDataFromXYF(int arbor, int indexX, int indexY, int i
    return getDataFromDataIndex(arbor, dataIndex);
 }
 
-float *WeightData::getDataFromDataIndex(int arbor, int dataIndex) {
-   auto &a = mData.at(arbor);
-   long offset = static_cast<int>(dataIndex) * getPatchSizeOverall();
-   return &a[offset]; 
-}
-
-float const *WeightData::getDataFromDataIndex(int arbor, int dataIndex) const {
-   auto &a = mData.at(arbor);
-   long offset = static_cast<int>(dataIndex) * getPatchSizeOverall();
-   return &a[offset]; 
-}
-
 void WeightData::initializeData() {
    mData.resize(getNumArbors());
    for (auto &a : mData) {

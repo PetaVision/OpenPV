@@ -198,13 +198,18 @@ class Weights {
    float const *getData(int arbor) const;
 
    /** Returns a pointer to the patch data for the given data index */
-   float *getDataFromDataIndex(int arbor, int dataIndex);
+   inline float *getDataFromDataIndex(int arbor, int dataIndex) {
+      return mData->getDataFromDataIndex(arbor, dataIndex);
+   }
 
    /**
     * Returns a pointer to the patch data for data index corresponding to the
     * given patch index
     */
-   float *getDataFromPatchIndex(int arbor, int patchIndex);
+   inline float *getDataFromPatchIndex(int arbor, int patchIndex) {
+      int dataIndex = mSharedFlag ? dataIndexLookupTable[patchIndex] : patchIndex;
+      return getDataFromDataIndex(arbor, dataIndex);
+   }
 
    /**
     * Returns a pointer to the start of the active area of the patch data for
@@ -217,16 +222,6 @@ class Weights {
     * the given value
     */
    float *getData(int arbor, double timestamp);
-
-   /** Returns a modifiable pointer to the patch data for the given data index, and sets the
-    * timestamp to the given value
-    */
-   float *getDataFromDataIndex(int arbor, int dataIndex, double timestamp);
-
-   /** Returns a modifiable pointer to the patch data for data index corresponding to the given
-    * patch index, and sets the timestamp to the give value
-    */
-   float *getDataFromPatchIndex(int arbor, int patchIndex, double timestamp);
 
    /** Sets the timestamp */
    void setTimestamp(double timestamp) { mTimestamp = timestamp; }

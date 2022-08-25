@@ -21,8 +21,17 @@ class WeightData {
    float *getDataFromXYF(int arbor, int indexX, int indexY, int indexF);
    float const *getDataFromXYF(int arbor, int indexX, int indexY, int indexF) const;
 
-   float *getDataFromDataIndex(int arbor, int dataIndex);
-   float const *getDataFromDataIndex(int arbor, int dataIndex) const;
+   inline float *getDataFromDataIndex(int arbor, int dataIndex) {
+      auto &a = mData[arbor];
+      long offset = static_cast<long>(dataIndex) * mPatchSizeOverall;
+      return &a[offset]; 
+   }
+
+   inline float const *getDataFromDataIndex(int arbor, int dataIndex) const {
+      auto &a = mData[arbor];
+      long offset = static_cast<long>(dataIndex) * mPatchSizeOverall;
+      return &a[offset]; 
+   }
 
    // accessor function members (get-methods)
    int getNumArbors() const { return mNumArbors; }
