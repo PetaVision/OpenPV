@@ -27,6 +27,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PtwiseProductLayer.cpp
    ${SUBDIR}/PtwiseQuotientLayer.cpp
    ${SUBDIR}/PvpLayer.cpp
+   ${SUBDIR}/PvpListLayer.cpp
    ${SUBDIR}/RescaleLayer.cpp
    ${SUBDIR}/Retina.cpp
    ${SUBDIR}/Segmentify.cpp
@@ -63,6 +64,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PtwiseProductLayer.hpp
    ${SUBDIR}/PtwiseQuotientLayer.hpp
    ${SUBDIR}/PvpLayer.hpp
+   ${SUBDIR}/PvpListLayer.hpp
    ${SUBDIR}/RescaleLayer.hpp
    ${SUBDIR}/Retina.hpp
    ${SUBDIR}/Segmentify.hpp

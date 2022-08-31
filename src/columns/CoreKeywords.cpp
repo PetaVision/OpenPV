@@ -36,6 +36,7 @@
 #include "layers/PtwiseProductLayer.hpp"
 #include "layers/PtwiseQuotientLayer.hpp"
 #include "layers/PvpLayer.hpp"
+#include "layers/PvpListLayer.hpp"
 #include "layers/RescaleLayer.hpp"
 #include "layers/Retina.hpp"
 #include "layers/SigmoidLayer.hpp"
@@ -150,6 +151,7 @@ void registerCoreKeywords() {
    factory->registerKeyword("MomentumLCALayer", Factory::create<MomentumLCALayer>);
    factory->registerKeyword("PoolingIndexLayer", Factory::create<PoolingIndexLayer>);
    factory->registerKeyword("PvpLayer", Factory::create<PvpLayer>);
+   factory->registerKeyword("PvpListLayer", Factory::create<PvpListLayer>);
    factory->registerKeyword("PtwiseProductLayer", Factory::create<PtwiseProductLayer>);
    factory->registerKeyword("PtwiseQuotientLayer", Factory::create<PtwiseQuotientLayer>);
    factory->registerKeyword("RescaleLayer", Factory::create<RescaleLayer>);
