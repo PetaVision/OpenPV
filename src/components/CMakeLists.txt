@@ -66,6 +66,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PtwiseQuotientGSynAccumulator.cpp
    ${SUBDIR}/PublisherComponent.cpp
    ${SUBDIR}/PvpActivityBuffer.cpp
+   ${SUBDIR}/PvpListActivityBuffer.cpp
    ${SUBDIR}/RescaleActivityBuffer.cpp
    ${SUBDIR}/RestrictedBuffer.cpp
    ${SUBDIR}/RetinaActivityBuffer.cpp
@@ -157,6 +158,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PtwiseQuotientGSynAccumulator.hpp
    ${SUBDIR}/PublisherComponent.hpp
    ${SUBDIR}/PvpActivityBuffer.hpp
+   ${SUBDIR}/PvpListActivityBuffer.hpp
    ${SUBDIR}/RescaleActivityBuffer.hpp
    ${SUBDIR}/RestrictedBuffer.hpp
    ${SUBDIR}/RetinaActivityBuffer.hpp
