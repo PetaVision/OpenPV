@@ -52,11 +52,11 @@ class LocalPatchWeightsFile : public WeightsFile {
 
    ~LocalPatchWeightsFile();
 
-   void read(WeightData &weightData);
-   void read(WeightData &weightData, double &timestamp);
-   void write(WeightData const &weightData, double timestamp);
+   void read(WeightData &weightData) override;
+   void read(WeightData &weightData, double &timestamp) override;
+   void write(WeightData const &weightData, double timestamp) override;
 
-   void truncate(int index);
+   void truncate(int index) override;
 
    std::string const &getPath() const { return mPath; }
 
