@@ -881,14 +881,7 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
                   oldestCheckpointDir.c_str());
          }
          else {
-            sync();
-            mTimeInfoCheckpointEntry->remove(fileManager);
-            fileManager->deleteFile(std::string("timers.txt"));
-
-            for (auto &c : mCheckpointRegistry) {
-               c->remove(fileManager);
-            }
-            fileManager->deleteDirectory(std::string(""));
+            checkpointDelete(fileManager);
          }
       }
    }

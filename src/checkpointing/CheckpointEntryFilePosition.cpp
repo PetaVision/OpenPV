@@ -37,8 +37,12 @@ void CheckpointEntryFilePosition::read(
 }
 
 void CheckpointEntryFilePosition::remove(std::shared_ptr<FileManager const> fileManager) const {
-   deleteFile(fileManager, std::string("FileStreamRead"));
-   deleteFile(fileManager, std::string("FileStreamWrite"));
+   std::string filenamebase(getName());
+   filenamebase.append("_FileStream");
+   fileManager->deleteFile(filenamebase + "Read.bin");
+   fileManager->deleteFile(filenamebase + "Read.txt");
+   fileManager->deleteFile(filenamebase + "Write.bin");
+   fileManager->deleteFile(filenamebase + "Write.txt");
 }
 
 void CheckpointEntryFilePosition::readValueFromBin(
