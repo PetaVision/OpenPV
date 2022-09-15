@@ -63,10 +63,10 @@ void CheckpointEntryMPIRecvStream::read(
 }
 
 void CheckpointEntryMPIRecvStream::remove(std::shared_ptr<FileManager const> fileManager) const {
-   deleteFile(fileManager, getName() + "_FileStreamWrite.bin");
-   deleteFile(fileManager, getName() + "_FileStreamWrite.txt");
-   deleteFile(fileManager, getName() + "_FileStreamRead.bin");
-   deleteFile(fileManager, getName() + "_FileStreamRead.bin");
+   fileManager->deleteFile(getName() + "_FileStreamWrite.bin");
+   fileManager->deleteFile(getName() + "_FileStreamWrite.txt");
+   fileManager->deleteFile(getName() + "_FileStreamRead.bin");
+   fileManager->deleteFile(getName() + "_FileStreamRead.txt");
 }
 
 } // namespace PV
