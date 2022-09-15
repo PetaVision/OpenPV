@@ -158,13 +158,12 @@ Response::Status LIFTestProbe::outputState(double simTime, double deltaTime) {
             MPI_SUM,
             root_proc,
             icComm->communicator());
-      InfoLog(dumpRates);
-      dumpRates.printf("%s t=%f:", getMessage(), simTime);
+      output(0).printf("%s t=%f:", getMessage(), simTime);
       for (int j = 0; j < LIFTESTPROBE_BINS; j++) {
          rates[j] /= (double)counts[j] * simTime / 1000.0;
-         dumpRates.printf(" %f", (double)rates[j]);
+         output(0).printf(" %f", (double)rates[j]);
       }
-      dumpRates.printf("\n");
+      output(0).printf("\n");
       if (simTime >= endingTime) {
          double stdfactor = sqrt(simTime / 2000.0); // Since the values of std are based on t=2000.
          for (int j = 0; j < LIFTESTPROBE_BINS; j++) {
