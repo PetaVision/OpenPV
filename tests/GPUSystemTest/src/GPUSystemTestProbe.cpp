@@ -38,15 +38,15 @@ Response::Status GPUSystemTestProbe::outputState(double simTime, double deltaTim
    for (int b = 0; b < loc->nbatch; b++) {
       // For max std of 5.0fe-5
       if (sigma[b] > tolSigma) {
-         if (!nonzeroFound) {
-            nonzeroTime = simTime;
+         if (!mNonzeroFound) {
+            mNonzeroTime = simTime;
          }
-         nonzeroFound = true;
+         mNonzeroFound = true;
          if (mCommunicator->commRank() == 0) {
             std::stringstream message("");
             message << getDescription_c() << ": Nonzero standard deviation " << simTime
-                    << " at time " << nonzeroTime << "; tolerance is " << tolSigma << "\n";
-            if (immediateExitOnFailure) {
+                    << " at time " << mNonzeroTime << "; tolerance is " << tolSigma << "\n";
+            if (mImmediateExitOnFailure) {
                Fatal() << message.str();
             }
             else {

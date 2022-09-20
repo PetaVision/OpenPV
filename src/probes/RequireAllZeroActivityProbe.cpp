@@ -41,21 +41,21 @@ void RequireAllZeroActivityProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 }
 
 void RequireAllZeroActivityProbe::ioParam_exitOnFailure(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "exitOnFailure", &exitOnFailure, exitOnFailure);
+   parameters()->ioParamValue(ioFlag, name, "exitOnFailure", &mExitOnFailure, mExitOnFailure);
 }
 
 void RequireAllZeroActivityProbe::ioParam_immediateExitOnFailure(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(name, "exitOnFailure"));
-   if (exitOnFailure) {
+   if (mExitOnFailure) {
       parameters()->ioParamValue(
             ioFlag,
             name,
             "immediateExitOnFailure",
-            &immediateExitOnFailure,
-            immediateExitOnFailure);
+            &mImmediateExitOnFailure,
+            mImmediateExitOnFailure);
    }
    else {
-      immediateExitOnFailure = false;
+      mImmediateExitOnFailure = false;
    }
 }
 
@@ -68,42 +68,51 @@ Response::Status RequireAllZeroActivityProbe::outputState(double simTime, double
    int const nbatch = targetLayer->getLayerLoc()->nbatch;
    for (int b = 0; b < nbatch; b++) {
       if (nnz[b] != 0) {
-         if (!nonzeroFound) {
-            nonzeroTime = simTime;
+         if (!mNonzeroFound) {
+            mNonzeroTime = simTime;
          }
-         nonzeroFound = true;
-         nonzeroFoundMessage(
-               nonzeroTime, mCommunicator->globalCommRank() == 0, immediateExitOnFailure);
+         mNonzeroFound = true;
+         errorMessage(
+               mNonzeroTime,
+               "Nonzero activity found",
+               mImmediateExitOnFailure);
       }
    }
    return Response::SUCCESS;
 }
 
-void RequireAllZeroActivityProbe::nonzeroFoundMessage(
+void RequireAllZeroActivityProbe::errorMessage(
       double badTime,
-      bool isRoot,
+      std::string const &baseMessage,
       bool fatalError) {
-   if (isRoot) {
-      std::stringstream message("");
-      message << getDescription_c() << ": Nonzero activity found at time " << badTime << "\n";
-      if (fatalError) {
-         Fatal() << message.str();
-      }
-      else {
-         WarnLog() << message.str();
+   std::stringstream message("");
+   message << getDescription_c() << baseMessage << " at time " << badTime << "\n";
+   int nbatch = getTargetLayer()->getLayerLoc()->nbatch;
+   for (int b = 0; b < nbatch; ++b) {
+      float maxabs = std::max(fMax[b], -fMin[b]);
+      if (maxabs > nnzThreshold) {
+         message << "    batch element " << b << " has " << nnz[b]
+                 << " values exceeding threshold of " << nnzThreshold << ". Max = " << fMin[b]
+                 << "; Max = " << fMax[b] << "\n";
       }
    }
+   ErrorLog() << message.str();
    if (fatalError) {
       MPI_Barrier(mCommunicator->communicator());
       exit(EXIT_FAILURE);
    }
 }
 
-RequireAllZeroActivityProbe::~RequireAllZeroActivityProbe() {
-   // We check for exits on failure in destructor
-   if (exitOnFailure && getNonzeroFound()) {
-      nonzeroFoundMessage(nonzeroTime, mCommunicator->globalCommRank() == 0, true /*fatalError*/);
+Response::Status RequireAllZeroActivityProbe::cleanup() {
+   if (mNonzeroFound) {
+      errorMessage(
+            mNonzeroTime,
+            "Nonzero activity beginning",
+            mExitOnFailure);
    }
+   return Response::SUCCESS;
 }
+
+RequireAllZeroActivityProbe::~RequireAllZeroActivityProbe() {}
 
 } /* namespace PV */
