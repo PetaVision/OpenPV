@@ -18,9 +18,9 @@ HyPerCol "column" = {
    nbatch = 3;
    progressInterval = 1.0; //Program will output its progress at each progressInterval
    writeProgressToErr = false;  
-   outputPath = "output/";
+   outputPath = "output/MovieFileIO";
    checkpointWrite = true;
-   checkpointWriteDir = "output/Checkpoints/";
+   checkpointWriteDir = "output/MovieFileIO/Checkpoints/";
    checkpointWriteStepInterval = 1;
 };
 

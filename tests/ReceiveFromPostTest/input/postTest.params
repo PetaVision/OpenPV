@@ -8,10 +8,10 @@ HyPerCol "column" = {
     stopTime = 10.0;       // Depends on number of VINE video frames
     progressInterval = 1.0;
     //Change this
-    outputPath = "output/";
+    outputPath = "output/postTest";
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
-    lastCheckpointDir = "output/Last";
+    lastCheckpointDir = "output/postTest/Last";
     writeProgressToErr = true;
 };
 
