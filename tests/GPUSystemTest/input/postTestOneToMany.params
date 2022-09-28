@@ -25,9 +25,10 @@ ConstantLayer "input" = {
     mirrorBCflag = false;
     sparseLayer = 0;
     //
-    InitVType = "UniformRandomV";
-    minV = 0;
-    maxV = 1;
+    InitVType = "DiscreteUniformRandomV";
+    minV = 1.0;
+    maxV = 1.96875; // 1+31/32
+    numValues = 32;
     phase = 1; 
 };
 
@@ -99,23 +100,16 @@ HyPerConn "origConn" = {
     nxp = 9; 
     nyp = 9; 
     numAxonalArbors = 1;
-    writeStep = -1;
+    writeStep = 1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
     
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -1;
-    wMaxInit = 1;
-    sparseFraction = 0;
+    weightInitType = "DiscreteUniformRandomWeight";
+    wMin = 1.0;
+    wMax = 1.96875; // 1+31/32
+    numValues = 32;
 
-    //weightInitType = "UniformWeight";
-    //weightInit = 1;
-        
     normalizeMethod                     = "none";
-    //strength                            = 1;
-    //rMinX                               = 1.5;
-    //rMinY                               = 1.5;
-    //normalize_cutoff                    = 0;
 
     normalizeArborsIndividually = false;
     normalizeFromPostPerspective = false;
@@ -176,10 +170,10 @@ IdentConn "RecvTest" = {
     writeStep = -1;
 };
 
-GPUSystemTestProbe "testProbe" = {
+RequireAllZeroActivityProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
-   nnzThreshold = 5.0e-4;
+   nnzThreshold = 0.0;
    exitOnFailure = true;
    immediateExitOnFailure = false;
 };
