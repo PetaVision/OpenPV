@@ -71,6 +71,7 @@
 #include "probes/StatsProbe.hpp"
 
 #include "initv/ConstantV.hpp"
+#include "initv/DiscreteUniformRandomV.hpp"
 #include "initv/GaussianRandomV.hpp"
 #include "initv/InitVFromFile.hpp"
 #include "initv/UniformRandomV.hpp"
@@ -90,6 +91,7 @@
 #endif // PV_USE_CUDA
 
 #include "weightinit/InitCocircWeights.hpp"
+#include "weightinit/InitDiscreteUniformRandomWeights.hpp"
 #include "weightinit/InitGauss2DWeights.hpp"
 #include "weightinit/InitGaussianRandomWeights.hpp"
 #include "weightinit/InitIdentWeights.hpp"
@@ -193,6 +195,7 @@ void registerCoreKeywords() {
 
    // InitV objects
    factory->registerKeyword("ConstantV", Factory::create<ConstantV>);
+   factory->registerKeyword("DiscreteUniformRandomV", Factory::create<DiscreteUniformRandomV>);
    factory->registerKeyword("GaussianRandomV", Factory::create<GaussianRandomV>);
    factory->registerKeyword("InitVFromFile", Factory::create<InitVFromFile>);
    factory->registerKeyword("UniformRandomV", Factory::create<UniformRandomV>);
@@ -224,6 +227,7 @@ void registerCoreKeywords() {
    // InitWeights objects
    factory->registerKeyword("Gauss2DWeight", Factory::create<InitGauss2DWeights>);
    factory->registerKeyword("CoCircWeight", Factory::create<InitCocircWeights>);
+   factory->registerKeyword("DiscreteUniformRandomWeight", Factory::create<InitDiscreteUniformRandomWeights>);
    factory->registerKeyword("UniformWeight", Factory::create<InitUniformWeights>);
    factory->registerKeyword("SmartWeight", Factory::create<InitSmartWeights>);
    factory->registerKeyword("UniformRandomWeight", Factory::create<InitUniformRandomWeights>);
