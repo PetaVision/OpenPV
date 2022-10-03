@@ -173,7 +173,7 @@ IdentConn "RecvTest" = {
 RequireAllZeroActivityProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
-   nnzThreshold = 0.0;
+   nnzThreshold = 4.0e-3;
    exitOnFailure = true;
    immediateExitOnFailure = false;
 };

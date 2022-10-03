@@ -92,7 +92,7 @@ void RequireAllZeroActivityProbe::errorMessage(
       float maxabs = std::max(fMax[b], -fMin[b]);
       if (maxabs > nnzThreshold) {
          message << "    batch element " << b << " has " << nnz[b]
-                 << " values exceeding threshold of " << nnzThreshold << ". Max = " << fMin[b]
+                 << " values exceeding threshold of " << nnzThreshold << ". Min = " << fMin[b]
                  << "; Max = " << fMax[b] << "\n";
       }
    }
