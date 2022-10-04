@@ -30,17 +30,16 @@ class StochasticReleaseTestProbe : public PV::StatsProbe {
    StochasticReleaseTestProbe();
    void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
-   void computePValues();
-   void computePValues(int step, int f);
+   int computePValues();
 
   private:
    int initialize_base();
 
    // Member variables
   protected:
-   ComponentBasedObject *conn = nullptr; // The connection for which targetLayer is the post layer.
+   ComponentBasedObject *mConn = nullptr; // The connection for which targetLayer is the post layer.
    // There must be exactly one such conn.
-   std::vector<double> pvalues; // The two-tailed p-value of the nnz value of each timestep.
+   std::vector<double> m_pValues; // The two-tailed p-value of the nnz value of each timestep.
 }; // end class StochasticReleaseTestProbe
 
 } /* namespace PV */

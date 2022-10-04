@@ -13,6 +13,7 @@
 #include "layers/HyPerLayer.hpp"
 #include <algorithm>
 #include <cmath>
+#include <random>
 
 namespace PV {
 
@@ -41,7 +42,7 @@ void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 
 Response::Status StochasticReleaseTestProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   if (conn == nullptr) {
+   if (mConn == nullptr) {
       auto status = StatsProbe::communicateInitInfo(message);
       if (!Response::completed(status)) {
          return status;
@@ -52,7 +53,7 @@ Response::Status StochasticReleaseTestProbe::communicateInitInfo(
             "%s can only be used with nbatch = 1.\n",
             getDescription_c());
       FatalIf(
-            conn != nullptr,
+            mConn != nullptr,
             ": %s, communicateInitInfo called with connection already set.\n",
             getDescription_c());
       for (auto &obj : *message->mObjectTable) {
@@ -66,65 +67,51 @@ Response::Status StochasticReleaseTestProbe::communicateInitInfo(
          }
          if (!strcmp(connectionData->getPostLayerName(), getTargetLayer()->getName())) {
             FatalIf(
-                  conn != nullptr,
+                  mConn != nullptr,
                   ": %s cannot have more than one connnection going to target %s.\n",
                   getDescription_c(),
                   getTargetLayer()->getName());
-            conn = hyperconn;
+            mConn = hyperconn;
          }
       }
       FatalIf(
-            conn == nullptr,
+            mConn == nullptr,
             ": %s requires a connection going to target %s.\n",
             getDescription_c(),
             getTargetLayer()->getName());
    }
-   if (!conn->getInitInfoCommunicatedFlag()) {
+   if (!mConn->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
-   auto *arborList = conn->getComponentByType<ArborList>();
+   auto *arborList = mConn->getComponentByType<ArborList>();
    FatalIf(
          arborList->getNumAxonalArbors() != 1,
          ": %s connection %s has %d arbors; only one is allowed.\n",
          getDescription_c(),
-         conn->getName(),
+         mConn->getName(),
          arborList->getNumAxonalArbors());
-   auto *patchSize = conn->getComponentByType<PatchSize>();
+   auto *patchSize = mConn->getComponentByType<PatchSize>();
    FatalIf(
          patchSize->getPatchSizeX() != 1,
          ": %s connection %s has nxp=%d, nxp=1 is required.\n",
          getDescription_c(),
-         conn->getName(),
+         mConn->getName(),
          patchSize->getPatchSizeX());
    FatalIf(
          patchSize->getPatchSizeY() != 1,
          ": %s connection %s has nyp=%d, nyp=1 is required.\n",
          getDescription_c(),
-         conn->getName(),
+         mConn->getName(),
          patchSize->getPatchSizeY());
-   auto *weightsPair = conn->getComponentByType<WeightsPair>();
+   auto *weightsPair = mConn->getComponentByType<WeightsPair>();
    FatalIf(
          weightsPair->getPreWeights()->getNumDataPatches() != patchSize->getPatchSizeF(),
          ": %s connection %s must have number of data patches (%d) and nfp equal (%d).\n",
          getDescription_c(),
-         conn->getName(),
+         mConn->getName(),
          weightsPair->getPreWeights()->getNumDataPatches(),
          patchSize->getPatchSizeF());
    return Response::SUCCESS;
-}
-
-bool compar(double const &a, double const &b) {
-   // routine for sorting p-values.
-   // If the theoretical variance is zero and the observed mean is correct, the p-value will be
-   // not-a-number.
-   // If the theoretical variance is zero and the observed mean is incorrect, the p-value will be
-   // plus or minus infinity
-   // Sort so that all the nan's are at the end; they won't be included in the Holm-Bonferroni test.
-   if (std::isnan(a))
-      return false;
-   if (std::isnan(b))
-      return true;
-   return a < b;
 }
 
 Response::Status StochasticReleaseTestProbe::outputState(double simTime, double deltaTime) {
@@ -136,16 +123,13 @@ Response::Status StochasticReleaseTestProbe::outputState(double simTime, double 
          simTime);
    bool failed = false;
    if (simTime > 0.0) {
-      computePValues();
+      int pValuesStatus = computePValues();
+      if (pValuesStatus) { failed = true; }
       if (mCommunicator->commRank() == 0) {
-         size_t N = pvalues.size();
-         std::sort(pvalues.begin(), pvalues.end(), compar);
-         while (N > 0 && std::isnan(pvalues.at(N - 1))) {
-            N--;
-         }
-         pvalues.resize(N);
+         std::sort(m_pValues.begin(), m_pValues.end());
+         size_t N = m_pValues.size();
          for (std::size_t k = 0; k < N; k++) {
-            double hbCorr = pvalues.at(k) * (double)(N - k);
+            double hbCorr = m_pValues.at(k) * (double)(N - k);
             if (hbCorr < 0.05) {
                ErrorLog().printf(
                      "%s: p-value %zu out of %zu (ordered by size) with Holm-Bonferroni correction "
@@ -167,17 +151,14 @@ Response::Status StochasticReleaseTestProbe::outputState(double simTime, double 
    return Response::SUCCESS;
 }
 
-void StochasticReleaseTestProbe::computePValues() {
+int StochasticReleaseTestProbe::computePValues() {
+   int status                        = PV_SUCCESS;
    HyPerLayer *layer                 = getTargetLayer();
    BasePublisherComponent *publisher = layer->getComponentByType<BasePublisherComponent>();
    int nf                            = publisher->getLayerLoc()->nf;
-   auto oldsize                      = pvalues.size();
-   pvalues.resize(oldsize + nf);
-   auto *preWeights = conn->getComponentByType<WeightsPair>()->getPreWeights();
-   auto *preLayer   = conn->getComponentByType<ConnectionData>()->getPre();
+   auto *preWeights = mConn->getComponentByType<WeightsPair>()->getPreWeights();
+   auto *preLayer   = mConn->getComponentByType<ConnectionData>()->getPre();
    for (int f = 0; f < nf; f++) {
-      int nf = publisher->getLayerLoc()->nf;
-      FatalIf(!(f >= 0 && f < nf), "Test failed.\n");
       float wgt = preWeights->getData(0)[f * (nf + 1)]; // weights should be one-to-one weights
 
       auto *prePublisher       = preLayer->getComponentByType<BasePublisherComponent>();
@@ -199,7 +180,7 @@ void StochasticReleaseTestProbe::computePValues() {
          float a = preactPtr[nExt];
          if (a != 0.0f) {
             if (found) {
-               FatalIf(!(preact == a), "Test failed.\n");
+               FatalIf(preact != a, "Input activity layer has more than one nonzero value.\n");
             }
             else {
                found  = true;
@@ -207,10 +188,6 @@ void StochasticReleaseTestProbe::computePValues() {
             }
          }
       }
-      if (preact < 0.0f)
-         preact = 0.0f;
-      if (preact > 1.0f)
-         preact = 1.0f;
 
       const PVLayerLoc *loc = publisher->getLayerLoc();
       const float *activity = publisher->getLayerData();
@@ -226,17 +203,36 @@ void StochasticReleaseTestProbe::computePValues() {
                loc->halo.rt,
                loc->halo.dn,
                loc->halo.up);
-         FatalIf(!(activity[nExt] == 0 || activity[nExt] == wgt), "Test failed.\n");
-         if (activity[nExt] != 0)
-            nnzf++;
+         FatalIf(
+               activity[nExt] != 0 and activity[nExt] != wgt,
+               "An activity value was neither zero nor weight equal to %f\n",
+               (double)wgt);
+         nnzf += (activity[nExt] != 0) ? 1 : 0;
       }
+
       MPI_Allreduce(MPI_IN_PLACE, &nnzf, 1, MPI_INT, MPI_SUM, mCommunicator->communicator());
       const int neuronsPerFeature = layer->getNumGlobalNeurons() / nf;
-      double mean                 = preact * neuronsPerFeature;
-      double stddev               = sqrt(neuronsPerFeature * preact * (1 - preact));
-      double numdevs              = (nnzf - mean) / stddev;
-      double pval                 = std::erfc(std::fabs(numdevs) / std::sqrt(2));
-      pvalues.at(oldsize + f)     = pval;
+      if (preact <= 0.0f) {
+         if (nnzf != 0) {
+            ErrorLog().printf("nnzf is %d for f = %d; expected 0\n", nnzf, f);
+            status = PV_FAILURE;
+         }
+         continue;
+      }
+      if (preact >= 1.0f) {
+         if (nnzf != neuronsPerFeature) {
+            ErrorLog().printf("nnzf is %d for f = %d; expected 0\n", nnzf, f);
+            status = PV_FAILURE;
+         }
+         continue;
+      }
+
+      double mean    = preact * neuronsPerFeature;
+      double stddev  = std::sqrt(static_cast<float>(neuronsPerFeature) * preact * (1.0f - preact));
+      pvAssert(stddev > 0.0);
+      double numdevs = (nnzf - mean) / stddev;
+      double pval    = std::erfc(std::fabs(numdevs) / std::sqrt(2.0));
+      m_pValues.push_back(pval);
       if (!mOutputStreams.empty()) {
          pvAssert(mOutputStreams.size() == (std::size_t)1);
          output(0).printf(
@@ -250,6 +246,7 @@ void StochasticReleaseTestProbe::computePValues() {
                pval);
       }
    }
+   return status;
 }
 
 StochasticReleaseTestProbe::~StochasticReleaseTestProbe() {}
