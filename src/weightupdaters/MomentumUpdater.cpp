@@ -246,7 +246,8 @@ MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> m
    }
    if (mPlasticityFlag and mInitPrev_dWFile and mInitPrev_dWFile[0]) {
       auto globalMPIBlock = getCommunicator()->getGlobalMPIBlock();
-      auto fileManager = std::make_shared<FileManager>(globalMPIBlock, ".");
+      char const *baseDirectory = mInitPrev_dWFile[0] == '/' ? "/" : ".";
+      auto fileManager = std::make_shared<FileManager>(globalMPIBlock, baseDirectory);
       std::shared_ptr<WeightsFile> weightsFile;
       if (mPrevDeltaWeights->getSharedFlag()) {
          weightsFile = std::make_shared<SharedWeightsFile>(
