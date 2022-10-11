@@ -475,18 +475,24 @@ const char *ParameterGroup::stringValue(const char *stringName) {
    return NULL;
 }
 
-int ParameterGroup::warnUnread() {
+int ParameterGroup::lookForUnread(bool errorOnUnread) {
    int status = PV_SUCCESS;
    int count;
    count = stack->size();
    for (int i = 0; i < count; i++) {
       Parameter *p = stack->peek(i);
       if (!p->hasBeenRead()) {
-         if (processRank == 0)
-            WarnLog().printf(
-                  "Parameter group \"%s\": parameter \"%s\" has not been read.\n",
-                  name(),
-                  p->name());
+         if (processRank == 0) {
+            std::string message("Parameter group \"#1\": parameter \"#2\" has not been read.\n");
+            message.replace(message.find("#1"), 2, name());
+            message.replace(message.find("#2"), 2, p->name());
+            if (errorOnUnread) {
+               ErrorLog() << message;
+            }
+            else {
+               WarnLog() << message;
+            }
+         }
          status = PV_FAILURE;
       }
    }
@@ -494,22 +500,36 @@ int ParameterGroup::warnUnread() {
    for (int i = 0; i < count; i++) {
       ParameterArray *parr = arrayStack->peek(i);
       if (!parr->hasBeenRead()) {
-         if (processRank == 0)
-            WarnLog().printf(
-                  "Parameter group \"%s\": array parameter \"%s\" has not been read.\n",
-                  name(),
-                  parr->name());
+         if (processRank == 0) {
+            std::string message(
+                  "Parameter group \"#1\": array parameter \"#2\" has not been read.\n");
+            message.replace(message.find("#1"), 2, name());
+            message.replace(message.find("#2"), 2, parr->name());
+            if (errorOnUnread) {
+               ErrorLog() << message;
+            }
+            else {
+               WarnLog() << message;
+            }
+         }
       }
    }
    count = stringStack->size();
    for (int i = 0; i < count; i++) {
       ParameterString *pstr = stringStack->peek(i);
       if (!pstr->hasBeenRead()) {
-         if (processRank == 0)
-            WarnLog().printf(
-                  "Parameter group \"%s\": string parameter \"%s\" has not been read.\n",
-                  name(),
-                  pstr->getName());
+         if (processRank == 0) {
+            std::string message(
+                  "Parameter group \"#1\": string parameter \"#2\" has not been read.\n");
+            message.replace(message.find("#1"), 2, name());
+            message.replace(message.find("#2"), 2, pstr->getName());
+            if (errorOnUnread) {
+               ErrorLog() << message;
+            }
+            else {
+               WarnLog() << message;
+            }
+         }
          status = PV_FAILURE;
       }
    }
@@ -1598,10 +1618,10 @@ void PVParams::addActiveParamSweep(const char *group_name, const char *param_nam
    newActiveParamSweep();
 }
 
-int PVParams::warnUnread() {
+int PVParams::lookForUnread(bool errorOnUnread) {
    int status = PV_SUCCESS;
    for (int i = 0; i < numberOfGroups(); i++) {
-      if (mGroups[i]->warnUnread() != PV_SUCCESS) {
+      if (mGroups[i]->lookForUnread(errorOnUnread) != PV_SUCCESS) {
          status = PV_FAILURE;
       }
    }

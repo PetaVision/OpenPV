@@ -98,8 +98,14 @@ class HyPerCol : public Subject, public ParamsInterface {
    virtual void ioParam_nBatch(enum ParamsIOFlag ioFlag);
 
    /**
+    * @brief errorOnUnusedParam: If true, it is a fatal error if the params file contains
+    * timestep for nans in activity. Default is false, in which case a warning is issued.
+    */
+   virtual void ioParam_errorOnUnusedParam(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief errorOnNotANumber: Specifies if the run should check on each
-    * timestep for nans in activity.
+    * timestep for not-a-number values in activity.
     */
    virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
 
@@ -231,6 +237,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    // Private variables
 
   private:
+   bool mErrorOnUnusedParam = false; // If true, error out if a params file param goes unused
    bool mErrorOnNotANumber = false; // If true, check each layer's activity buffer for
    // not-a-numbers and exit with an error if any appear
    bool mCheckpointReadFlag = false; // whether to load from a checkpoint directory

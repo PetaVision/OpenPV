@@ -16,6 +16,7 @@ HyPerCol "column" = {
     nx                                  = 32;
     ny                                  = 32;
     nbatch                              = 1;
+    errorOnUnusedParam                  = false;
     errorOnNotANumber                   = true;
 };
 

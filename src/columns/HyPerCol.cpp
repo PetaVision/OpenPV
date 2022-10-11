@@ -88,7 +88,6 @@ int HyPerCol::initialize(PV_Init *initObj) {
       return PV_FAILURE;
    }
    if (strcmp(mParams->groupKeywordFromIndex(0), "HyPerCol")) {
-      std::string paramsFile = mPVInitObj->getStringArgument("ParamsFile");
       ErrorLog() << "First group in the params file \"" << paramsFile
                  << "\" does not define a HyPerCol.\n";
       return PV_FAILURE;
@@ -215,6 +214,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_nx(ioFlag);
    ioParam_ny(ioFlag);
    ioParam_nBatch(ioFlag);
+   ioParam_errorOnUnusedParam(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
    ioParam_outputPath(ioFlag);
    if (ioFlag == PARAMS_IO_WRITE) {
@@ -299,6 +299,11 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
          "width (%d)\n",
          mNumBatchGlobal,
          mCommunicator->numCommBatches());
+}
+
+void HyPerCol::ioParam_errorOnUnusedParam(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValue(
+         ioFlag, getName(), "errorOnUnusedParam", &mErrorOnUnusedParam, mErrorOnUnusedParam);
 }
 
 void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
@@ -440,9 +445,9 @@ int HyPerCol::run(double stopTime, double dt) {
             "Warning: more MPI processes than available threads.  "
             "Processors may be oversubscribed.\n");
    }
-   processParams(mPrintParamsFilename);
    bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
    if (dryRunFlag) {
+      processParams(mPrintParamsFilename);
       return PV_SUCCESS;
    }
 
@@ -589,7 +594,11 @@ void HyPerCol::processParams(char const *path) {
                   mNumBatchGlobal,
                   mNumThreads));
    }
-   parameters()->warnUnread();
+   int unreadParamStatus = parameters()->lookForUnread(mErrorOnUnusedParam);
+   FatalIf(
+          mErrorOnUnusedParam and unreadParamStatus != PV_SUCCESS,
+          "Params file \"%s\" contains unused parameters, and errorOnUnusedParam was set.\n",
+          mPVInitObj->getStringArgument("ParamsFile").c_str());
 
    // Print a cleaned up version of params to the file given by printParamsFilename
    if (path != nullptr && path[0] != '\0') {

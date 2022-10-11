@@ -190,7 +190,14 @@ class ParameterGroup {
    const double *arrayValuesDbl(const char *name, int *size);
    int stringPresent(const char *stringName);
    const char *stringValue(const char *stringName);
-   int warnUnread();
+
+   /**
+    * lookForUnread() tests each parameter in the parameter group for whether it's been read, and
+    * prints a message for each unread parameter.  If errorOnUnread is true, the message is an
+    * error; otherwise it is a warning. Returns PV_SUCCESS if all parameters have been read,
+    * and PV_FAILURE otherwise.
+    */
+   int lookForUnread(bool errorOnUnread);
    bool hasBeenRead(const char *paramName);
    int clearHasBeenReadFlags();
    int pushNumerical(Parameter *param);
@@ -321,7 +328,14 @@ class PVParams {
    const char *groupNameFromIndex(int index);
    const char *groupKeywordFromIndex(int index);
    const char *groupKeywordFromName(const char *name);
-   int warnUnread();
+
+   /**
+    * lookForUnread() tests each parameter in each parameter group for whether it's been read, and
+    * prints a message for each unread parameter.  If errorOnUnread is true, the message is an
+    * error; otherwise it is a warning. Returns PV_SUCCESS if all parameters have been read,
+    * and PV_FAILURE otherwise.
+    */
+   int lookForUnread(bool errorOnUnread);
    bool hasBeenRead(const char *group_name, const char *param_name);
    bool presentAndNotBeenRead(const char *group_name, const char *param_name);
    void handleUnnecessaryParameter(const char *group_name, const char *param_name);
