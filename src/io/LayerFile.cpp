@@ -109,11 +109,11 @@ void LayerFile::setIndex(int index) {
    if (frameNumber < 0) {
       frameNumber += mLayerIO->getNumFrames();
    }
-   if (frameNumber < 0 or frameNumber > mLayerIO->getNumFrames()) {
+   if (frameNumber > mLayerIO->getNumFrames()) {
       int maxIndex = mLayerIO->getNumFrames() / blockBatchDim; 
       Fatal().printf(
-            "LayerFile::setIndex called for \"%s\" with index %d out of bounds. Allowed values for this file "
-            "are 0 through %d (or -%d through 0, counting backwards from the end.)\n",
+            "LayerFile::setIndex called for \"%s\" with index %d out of bounds. Allowed values for "
+            "this file are 0 through %d (or -%d through 0, counting backwards from the end.)\n",
             mFileManager->makeBlockFilename(getPath()).c_str(), index, maxIndex, maxIndex);
    }
    mLayerIO->setFrameNumber(frameNumber);

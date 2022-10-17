@@ -120,17 +120,44 @@ SparseLayerFile::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
          false /*not constant*/);
    auto filePosEntry = std::make_shared<CheckpointEntryFilePosition>(
          objName, std::string("filepos"), mSparseLayerIO->getFileStream());
+   bool registerSucceeded = checkpointer->registerCheckpointEntry(
+         filePosEntry, false /*not constant for entire run*/);
+   FatalIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         mPath.c_str(),
+         filePosEntry->getName().c_str());
    return Response::SUCCESS;
 }
 
 void SparseLayerFile::setIndex(int index) {
    mIndex = index;
    if (!isRoot()) { return; }
-   int frameNumber = index * mFileManager->getMPIBlock()->getBatchDimension() * mLayerLoc.nbatch;
+   int blockBatchDim = mFileManager->getMPIBlock()->getBatchDimension() * mLayerLoc.nbatch;
+   int frameNumber = index * blockBatchDim;
    if (mReadOnly) {
       frameNumber = frameNumber % mSparseLayerIO->getNumFrames();
    }
+   if (frameNumber < 0) {
+      frameNumber += mSparseLayerIO->getNumFrames();
+   }
+   if (frameNumber > mSparseLayerIO->getNumFrames()) {
+      int maxIndex = mSparseLayerIO->getNumFrames() / blockBatchDim; 
+      Fatal().printf(
+            "SparseLayerFile::setIndex called for \"%s\" with index %d out of bounds. "
+            "Allowed values for this file are 0 through %d (or -%d through 0, counting backwards "
+            "from the end.)\n",
+            mFileManager->makeBlockFilename(getPath()).c_str(), index, maxIndex, maxIndex);
+   }
    mSparseLayerIO->setFrameNumber(frameNumber);
+   mNumFramesSparse = frameNumber;
+   mFileStreamReadPos = mSparseLayerIO->getFileStream()->getInPos();
+   if (!mReadOnly) {
+      mFileStreamWritePos = mSparseLayerIO->getFileStream()->getOutPos();
+   }
+   else {
+      mFileStreamWritePos = mFileStreamReadPos;
+   }
 }
 
 Response::Status SparseLayerFile::processCheckpointRead() {
