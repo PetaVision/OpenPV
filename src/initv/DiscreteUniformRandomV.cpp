@@ -8,6 +8,7 @@
 #include "DiscreteUniformRandomV.hpp"
 #include "columns/Random.hpp"
 #include "utils/PVLog.hpp"
+#include <cmath>
 
 namespace PV {
 

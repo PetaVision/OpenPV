@@ -12,6 +12,7 @@
 // including this file; the and the .cpp file undefines it.
 
 #include "utils/conversions.hpp"
+#include <cmath>
 #ifdef PV_RUN_ON_GPU
 namespace PVCuda {
 __global__ void updateMomentumLCAOnGPU
@@ -49,7 +50,7 @@ inline void updateMomentumLCAOnCPU
       int b = index / numNeurons;
       int k = index % numNeurons;
 
-      float exp_tau          = (float)std::exp(-dtAdapt[b] / (double)tau);
+      float exp_tau          = static_cast<float>(std::exp(-dtAdapt[b] / (double)tau));
       float *VBatch          = V + b * numNeurons;
       float const *gSynBatch = accumulatedGSyn + b * numNeurons;
       float *prevDriveBatch  = prevDrive + b * numNeurons;
