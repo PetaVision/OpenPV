@@ -1,3 +1,6 @@
+#ifndef CHECKPOINTINGMESSAGES_HPP_
+#define CHECKPOINTINGMESSAGES_HPP_
+
 #include "io/FileManager.hpp"
 #include "observerpattern/BaseMessage.hpp"
 #include <memory>
@@ -27,8 +30,8 @@ class ReadStateFromCheckpointMessage : public BaseMessage {
 
 class ProcessCheckpointReadMessage : public BaseMessage {
   public:
-   ProcessCheckpointReadMessage(std::shared_ptr<FileManager const> fileManager) :
-         mFileManager(fileManager) {
+   ProcessCheckpointReadMessage(std::shared_ptr<FileManager const> fileManager)
+         : mFileManager(fileManager) {
       setMessageType("ProcessCheckpointRead");
    }
    std::shared_ptr<FileManager const> mFileManager;
@@ -45,8 +48,8 @@ class WriteParamsFileMessage : public BaseMessage {
    WriteParamsFileMessage(
          std::shared_ptr<FileManager const> fileManager,
          std::string const &path,
-         Action action) :
-         mFileManager(fileManager), mParamsFilePath(path), mAction(action) {
+         Action action)
+         : mFileManager(fileManager), mParamsFilePath(path), mAction(action) {
       setMessageType("WriteParamsFile");
    }
    std::shared_ptr<FileManager const> mFileManager;
@@ -55,3 +58,5 @@ class WriteParamsFileMessage : public BaseMessage {
 };
 
 } // end namespace PV
+
+#endif // CHECKPOINTINGMESSAGES_HPP_

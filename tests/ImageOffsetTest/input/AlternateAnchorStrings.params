@@ -1,0 +1,101 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 16; //1242;  // KITTI synced value
+    ny = 16;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    stopTime = 10.0;       // Depends on number of VINE video frames
+    progressInterval = 1.0;
+    //Change this
+    outputPath = "output/ImageOffsetTest";
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    lastCheckpointDir = "output/ImageOffsetTest/Last";
+    writeProgressToErr = true;
+    nbatch = 2;
+};
+
+// this is a input layer
+ImageOffsetTestLayer "crop" = {
+    nxScale = .5;
+    nyScale = .5;
+    inputPath = "input/input.png";
+    nf = 3;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "cc";
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+};
+
+ImageOffsetTestLayer "pad" = {
+   #include "crop";
+   @nxScale = 2;
+   @nyScale = 2;
+};
+
+ImageOffsetTestLayer "TLCorner" = {
+   #include "crop";
+   @nxScale = 1;
+   @nyScale = 1;
+   @offsetAnchor = "lt";
+   @offsetX = 14;
+   @offsetY = 14;
+};
+
+ImageOffsetTestLayer "TRCorner" = {
+   #include "TLCorner";
+   @offsetAnchor = "rt";
+   @offsetX = -14;
+   @offsetY = 14;
+};
+
+ImageOffsetTestLayer "BLCorner" = {
+   #include "TLCorner";
+   @offsetAnchor = "lb";
+   @offsetX = 14;
+   @offsetY = -14;
+};
+
+ImageOffsetTestLayer "BRCorner" = {
+   #include "TLCorner";
+   @offsetAnchor = "rb";
+   @offsetX = -14;
+   @offsetY = -14;
+};
+
+ImageOffsetTestLayer "TLOver" = {
+   #include "TLCorner";
+   @offsetAnchor = "lt";
+   @offsetX = 2;
+   @offsetY = 2;
+};
+
+ImageOffsetTestLayer "TROver" = {
+   #include "TLCorner";
+   @offsetAnchor = "rt";
+   @offsetX = -2;
+   @offsetY = 2;
+};
+
+ImageOffsetTestLayer "BLOver" = {
+   #include "TLCorner";
+   @offsetAnchor = "lb";
+   @offsetX = 2;
+   @offsetY = -2;
+};
+
+ImageOffsetTestLayer "BROver" = {
+   #include "TLCorner";
+   @offsetAnchor = "rb";
+   @offsetX = -2;
+   @offsetY = -2;
+};

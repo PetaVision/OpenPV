@@ -8,12 +8,21 @@
 #ifndef INPUTACTIVITYBUFFER_HPP_
 #define INPUTACTIVITYBUFFER_HPP_
 
+#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointingMessages.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Messages.hpp"
 #include "components/ActivityBuffer.hpp"
 #include "components/BatchIndexer.hpp"
 #include "io/FileStream.hpp"
+#include "io/PVParams.hpp"
+#include "observerpattern/Response.hpp"
+#include "structures/Buffer.hpp"
 #include "utils/BufferUtilsRescale.hpp"
 #include <memory>
 #include <random>
+#include <string>
+#include <vector>
 
 namespace PV {
 
@@ -80,6 +89,7 @@ class InputActivityBuffer : public ActivityBuffer {
     * Specified as a 2 character string, "xy"
     * x can be 'l', 'c', or 'r' for left, center, right respectively <br />
     * y can be 't', 'c', or 'b' for top, center, bottom respectively <br />
+    * The order of the letters can also be swapped (e.g. "tl" and "lt" both indicate top left.
     */
    virtual void ioParam_offsetAnchor(enum ParamsIOFlag ioFlag);
 
@@ -205,13 +215,6 @@ class InputActivityBuffer : public ActivityBuffer {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   /**
-    * Returns PV_SUCCESS if offsetAnchor is a valid anchor string, PV_FAILURE otherwise.
-    * (two characters long; first characters one of 't', 'c', or 'b'; second characters one of 'l',
-    * 'c', or 'r')
-    */
-   int checkValidAnchorString(const char *offsetAnchor);
-
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
@@ -272,6 +275,12 @@ class InputActivityBuffer : public ActivityBuffer {
    virtual Buffer<float> retrieveData(int inputIndex) { return Buffer<float>(); }
 
   private:
+   /**
+    * @brief Called by ioParam_offsetAnchor() if the offsetAnchor parameter is not an
+    * acceptable string.
+    */
+   void badOffsetAnchorString(char const *offsetAnchor);
+
    /**
     * Resizes a buffer from the image size to the global layer size. If autoResizeFlag is true,
     * it calls BufferUtils::rescale. If autoResizeFlag is false, it calls Buffer methods grow,
