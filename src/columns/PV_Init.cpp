@@ -6,12 +6,24 @@
  */
 #include "PV_Init.hpp"
 #include "cMakeHeader.h"
-#include "columns/CommandLineArguments.hpp"
-#include "columns/ConfigFileArguments.hpp"
 #include "columns/CoreKeywords.hpp"
+#include "columns/Factory.hpp"
+#include "include/pv_common.h"
+#include "io/io.hpp"
+#include "structures/MPIBlock.hpp"
+#include "utils/PVAlloc.hpp"
+#include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
+#include "utils/PathComponents.hpp"
+
+#include <cerrno>
 #include <csignal>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <ios>
 #include <sys/utsname.h>
+#include <unistd.h>
 #ifdef PV_USE_OPENMP_THREADS
 #include <omp.h>
 #endif // PV_USE_OPENMP_THREADS
@@ -60,7 +72,7 @@ int PV_Init::initSignalHandler() {
    sigemptyset(&blockusr1);
    sigaddset(&blockusr1, SIGUSR1);
    sigaddset(&blockusr1, SIGUSR2);
-   sigprocmask(SIG_BLOCK, &blockusr1, NULL);
+   sigprocmask(SIG_BLOCK, &blockusr1, nullptr);
    return 0;
 }
 
@@ -103,7 +115,7 @@ int PV_Init::commInit(int *argc, char ***argv) {
    // can run the second simulation, etc.
    MPI_Initialized(&mpiInit);
    if (!mpiInit) {
-      pvAssert((*argv)[*argc] == NULL); // Open MPI 1.7 assumes this.
+      pvAssert((*argv)[*argc] == nullptr); // Open MPI 1.7 assumes this.
       MPI_Init(argc, argv);
    }
    else {
@@ -162,7 +174,7 @@ int PV_Init::createParams() {
       params = new PVParams(
             paramsFile.c_str(),
             2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
-            mCommunicator);
+            mCommunicator->globalCommunicator());
       unsigned int shuffleSeed = mArguments->getUnsignedIntArgument("ShuffleParamGroups");
       if (shuffleSeed) {
          params->shuffleGroups(shuffleSeed);

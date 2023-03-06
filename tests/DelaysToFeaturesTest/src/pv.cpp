@@ -5,6 +5,7 @@
 
 #include "DelayTestProbe.hpp"
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 
 int main(int argc, char *argv[]) {
    PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);

@@ -4,6 +4,7 @@
 #include "io/FileManager.hpp"
 #include "observerpattern/BaseMessage.hpp"
 #include <memory>
+#include <string>
 
 namespace PV {
 
@@ -30,16 +31,20 @@ class ReadStateFromCheckpointMessage : public BaseMessage {
 
 class ProcessCheckpointReadMessage : public BaseMessage {
   public:
-   ProcessCheckpointReadMessage(std::shared_ptr<FileManager const> fileManager)
-         : mFileManager(fileManager) {
+   ProcessCheckpointReadMessage(double simTime) {
       setMessageType("ProcessCheckpointRead");
+      mSimTime = simTime;
    }
-   std::shared_ptr<FileManager const> mFileManager;
+   double mSimTime;
 };
 
 class PrepareCheckpointWriteMessage : public BaseMessage {
   public:
-   PrepareCheckpointWriteMessage() { setMessageType("PrepareCheckpointWrite"); }
+   PrepareCheckpointWriteMessage(double simTime) {
+      setMessageType("PrepareCheckpointWrite");
+      mSimTime = simTime;
+   }
+   double mSimTime;
 };
 
 class WriteParamsFileMessage : public BaseMessage {

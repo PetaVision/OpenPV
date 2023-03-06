@@ -20,7 +20,7 @@ namespace PV {
  * operations, M-to-N communication, and PVP file format details. All file operations treat
  * the connection state, i.e. all weights at a single timestep, as a unit.
  */
-class SharedWeightsFile  : public WeightsFile  {
+class SharedWeightsFile : public WeightsFile {
   public:
    SharedWeightsFile(
          std::shared_ptr<FileManager const> fileManager,
@@ -64,7 +64,7 @@ class SharedWeightsFile  : public WeightsFile  {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-   virtual Response::Status processCheckpointRead() override;
+   virtual Response::Status processCheckpointRead(double simTime) override;
 
   private:
    int initializeCheckpointerDataInterface();
@@ -94,6 +94,6 @@ class SharedWeightsFile  : public WeightsFile  {
    long mFileStreamWritePos = 0L; // Output file position of the SharedWeightsIO's FileStream
 };
 
-} // namespacePV
+} // namespace PV
 
 #endif // SHAREDWEIGHTSFILE_HPP_

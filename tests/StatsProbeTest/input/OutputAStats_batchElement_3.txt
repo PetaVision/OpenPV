@@ -1,0 +1,17 @@
+OutputAStats  :t==   0.0 b==3 N==64 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000 sigma==0.000000 nnz==0
+OutputAStats  :t==   1.0 b==3 N==64 Total==457.000000 Min==3.000000 Avg==7.140625 Max==9.000000 sigma==1.775415 nnz==64
+OutputAStats  :t==   2.0 b==3 N==64 Total==427.000000 Min==3.000000 Avg==6.671875 Max==9.000000 sigma==1.871285 nnz==64
+OutputAStats  :t==   3.0 b==3 N==64 Total==396.000000 Min==2.000000 Avg==6.187500 Max==9.000000 sigma==1.801692 nnz==64
+OutputAStats  :t==   4.0 b==3 N==64 Total==375.000000 Min==2.000000 Avg==5.859375 Max==9.000000 sigma==1.852930 nnz==64
+OutputAStats  :t==   5.0 b==3 N==64 Total==327.000000 Min==1.000000 Avg==5.109375 Max==8.000000 sigma==1.511593 nnz==64
+OutputAStats  :t==   6.0 b==3 N==64 Total==297.000000 Min==1.000000 Avg==4.640625 Max==9.000000 sigma==1.482894 nnz==64
+OutputAStats  :t==   7.0 b==3 N==64 Total==267.000000 Min==1.000000 Avg==4.171875 Max==8.000000 sigma==1.737047 nnz==64
+OutputAStats  :t==   8.0 b==3 N==64 Total==247.000000 Min==1.000000 Avg==3.859375 Max==7.000000 sigma==1.445545 nnz==64
+OutputAStats  :t==   9.0 b==3 N==64 Total==204.000000 Min==1.000000 Avg==3.187500 Max==7.000000 sigma==1.333171 nnz==64
+OutputAStats  :t==  10.0 b==3 N==64 Total==189.000000 Min==0.000000 Avg==2.953125 Max==6.000000 sigma==1.255360 nnz==62
+OutputAStats  :t==  11.0 b==3 N==64 Total==146.000000 Min==0.000000 Avg==2.281250 Max==5.000000 sigma==1.067543 nnz==60
+OutputAStats  :t==  12.0 b==3 N==64 Total==115.000000 Min==0.000000 Avg==1.796875 Max==5.000000 sigma==1.148092 nnz==58
+OutputAStats  :t==  13.0 b==3 N==64 Total==93.000000 Min==0.000000 Avg==1.453125 Max==5.000000 sigma==1.345475 nnz==48
+OutputAStats  :t==  14.0 b==3 N==64 Total==55.000000 Min==0.000000 Avg==0.859375 Max==3.000000 sigma==0.767854 nnz==41
+OutputAStats  :t==  15.0 b==3 N==64 Total==30.000000 Min==0.000000 Avg==0.468750 Max==2.000000 sigma==0.558143 nnz==28
+OutputAStats  :t==  16.0 b==3 N==64 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000 sigma==0.000000 nnz==0

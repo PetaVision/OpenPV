@@ -1,0 +1,17 @@
+InputStats    :t==   0.0 b==2 N==64 Total==61.000000 Min==0.000000 Avg==0.953125 Max==1.000000 sigma==0.211371 nnz==61
+InputStats    :t==   1.0 b==2 N==64 Total==61.000000 Min==0.000000 Avg==0.953125 Max==1.000000 sigma==0.211371 nnz==61
+InputStats    :t==   2.0 b==2 N==64 Total==57.000000 Min==0.000000 Avg==0.890625 Max==1.000000 sigma==0.312109 nnz==57
+InputStats    :t==   3.0 b==2 N==64 Total==53.000000 Min==0.000000 Avg==0.828125 Max==1.000000 sigma==0.377272 nnz==53
+InputStats    :t==   4.0 b==2 N==64 Total==49.000000 Min==0.000000 Avg==0.765625 Max==1.000000 sigma==0.423608 nnz==49
+InputStats    :t==   5.0 b==2 N==64 Total==45.000000 Min==0.000000 Avg==0.703125 Max==1.000000 sigma==0.456881 nnz==45
+InputStats    :t==   6.0 b==2 N==64 Total==41.000000 Min==0.000000 Avg==0.640625 Max==1.000000 sigma==0.479817 nnz==41
+InputStats    :t==   7.0 b==2 N==64 Total==37.000000 Min==0.000000 Avg==0.578125 Max==1.000000 sigma==0.493859 nnz==37
+InputStats    :t==   8.0 b==2 N==64 Total==33.000000 Min==0.000000 Avg==0.515625 Max==1.000000 sigma==0.499756 nnz==33
+InputStats    :t==   9.0 b==2 N==64 Total==29.000000 Min==0.000000 Avg==0.453125 Max==1.000000 sigma==0.497798 nnz==29
+InputStats    :t==  10.0 b==2 N==64 Total==25.000000 Min==0.000000 Avg==0.390625 Max==1.000000 sigma==0.487890 nnz==25
+InputStats    :t==  11.0 b==2 N==64 Total==21.000000 Min==0.000000 Avg==0.328125 Max==1.000000 sigma==0.469531 nnz==21
+InputStats    :t==  12.0 b==2 N==64 Total==17.000000 Min==0.000000 Avg==0.265625 Max==1.000000 sigma==0.441665 nnz==17
+InputStats    :t==  13.0 b==2 N==64 Total==13.000000 Min==0.000000 Avg==0.203125 Max==1.000000 sigma==0.402325 nnz==13
+InputStats    :t==  14.0 b==2 N==64 Total==9.000000 Min==0.000000 Avg==0.140625 Max==1.000000 sigma==0.347634 nnz==9
+InputStats    :t==  15.0 b==2 N==64 Total==5.000000 Min==0.000000 Avg==0.078125 Max==1.000000 sigma==0.268368 nnz==5
+InputStats    :t==  16.0 b==2 N==64 Total==1.000000 Min==0.000000 Avg==0.015625 Max==1.000000 sigma==0.124020 nnz==1

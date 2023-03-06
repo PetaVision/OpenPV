@@ -9,17 +9,16 @@
 #define SHAREDWEIGHTSIO_HPP_
 
 #include "io/FileStream.hpp"
-#include "utils/BufferUtilsPvp.hpp" // struct WeightHeader
-#include "structures/Buffer.hpp"
 #include "structures/Patch.hpp"
 #include "structures/WeightData.hpp"
+#include "utils/BufferUtilsPvp.hpp" // struct WeightHeader
 
 #include <memory>
 
 namespace PV {
 
 /**
- * A class to manage shared weight PVP files. 
+ * A class to manage shared weight PVP files.
  * Generally reading and writing a shared weight PVP file should be done by means of this class.
  * The principal use case is by the SharedWeightsFile class, which creates and manages a
  * SharedWeightsIO class internally for its I/O operations.
@@ -35,15 +34,15 @@ namespace PV {
 class SharedWeightsIO {
   public:
    SharedWeightsIO(
-      std::shared_ptr<FileStream> fileStream,
-      int patchSizeX,
-      int patchSizeY,
-      int patchSizeF,
-      int numPatchesX,
-      int numPatchesY,
-      int numPatchesF,
-      int numArbors,
-      bool compressedFlag);
+         std::shared_ptr<FileStream> fileStream,
+         int patchSizeX,
+         int patchSizeY,
+         int patchSizeF,
+         int numPatchesX,
+         int numPatchesY,
+         int numPatchesF,
+         int numArbors,
+         bool compressedFlag);
 
    virtual ~SharedWeightsIO() {}
 
@@ -104,13 +103,13 @@ class SharedWeightsIO {
    long mDataSize = static_cast<long>(sizeof(float));
 
    long mFrameSize  = 0L; // Number of bytes in a frame, including the header
-   int mFrameNumber     = 0;
-   int mNumFrames       = 0;
+   int mFrameNumber = 0;
+   int mNumFrames   = 0;
 
-   long const mHeaderSize = static_cast<long>(sizeof(BufferUtils::WeightHeader));
+   long const mHeaderSize      = static_cast<long>(sizeof(BufferUtils::WeightHeader));
    long const mPatchHeaderSize = static_cast<long>(sizeof(Patch));
 };
 
-} // namespacePV
+} // namespace PV
 
 #endif // SHAREDWEIGHTSIO_HPP_

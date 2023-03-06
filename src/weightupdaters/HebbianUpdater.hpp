@@ -69,7 +69,7 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
-   virtual Response::Status prepareCheckpointWrite() override;
+   virtual Response::Status prepareCheckpointWrite(double simTime) override;
 
    virtual void updateState(double timestamp, double dt) override;
 

@@ -1,0 +1,8 @@
+set(SRC_CPP
+   src/L2NormProbeAggregatorTest.cpp
+  ${TESTS_SHARED_DIR}/CheckValue.hpp
+)
+
+if (PV_SYSTEM_TEST_MPIBLOCK)
+  pv_add_test(NO_PARAMS MPI_ONLY MIN_MPI_COPIES 8 MAX_MPI_COPIES 8 SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})
+endif (PV_SYSTEM_TEST_MPIBLOCK)

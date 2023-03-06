@@ -33,8 +33,8 @@ void ColProbe::initMessageActionMap() {
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ColProbeWriteParamsMessage const>(msgptr);
-      return respondColProbeWriteParams(castMessage);
+      auto castMessage = std::dynamic_pointer_cast<ProbeWriteParamsMessage const>(msgptr);
+      return respondProbeWriteParams(castMessage);
    };
    mMessageActionMap.emplace("ColProbeWriteParams", action);
 
@@ -62,12 +62,6 @@ void ColProbe::initOutputStreams(std::shared_ptr<RegisterDataMessage<Checkpointe
    if (checkpointer->getCheckpointReadDirectory().empty()) {
       outputHeader();
    }
-}
-
-Response::Status
-ColProbe::respondColProbeWriteParams(std::shared_ptr<ColProbeWriteParamsMessage const>(message)) {
-   writeParams();
-   return Response::SUCCESS;
 }
 
 Response::Status

@@ -148,7 +148,7 @@ Response::Status BasePublisherComponent::registerData(
    return Response::SUCCESS;
 }
 
-Response::Status BasePublisherComponent::processCheckpointRead() {
+Response::Status BasePublisherComponent::processCheckpointRead(double simTime) {
    updateAllActiveIndices();
    return Response::SUCCESS;
 }
@@ -225,8 +225,6 @@ float const *BasePublisherComponent::getLayerData(int delay) const {
    return cube.data;
 }
 
-Response::Status BasePublisherComponent::cleanup() {
-   return mPublisher->cleanup();
-}
+Response::Status BasePublisherComponent::cleanup() { return mPublisher->cleanup(); }
 
 } // namespace PV

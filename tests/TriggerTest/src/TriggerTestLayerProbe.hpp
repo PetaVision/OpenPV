@@ -5,46 +5,41 @@
 
 #ifndef TRIGGERTESTLAYERPROBE_HPP_
 #define TRIGGERTESTLAYERPROBE_HPP_
-#include "probes/LayerProbe.hpp"
+#include <columns/BaseObject.hpp>
+#include <columns/Communicator.hpp>
+#include <columns/Messages.hpp>
+#include <io/PVParams.hpp>
+#include <observerpattern/Response.hpp>
+#include <probes/ProbeTriggerComponent.hpp>
+#include <probes/TargetLayerComponent.hpp>
+
+#include <memory>
 
 namespace PV {
 
-class TriggerTestLayerProbe : public PV::LayerProbe {
+class TriggerTestLayerProbe : public PV::BaseObject {
   public:
    TriggerTestLayerProbe(const char *name, PVParams *params, Communicator const *comm);
-   virtual Response::Status outputStateWrapper(double simTime, double dt) override;
 
   protected:
-   /**
-    * @brief textOutputFlag: TriggerTestLayerProbe does not use textOutputFlag;
-    * as it overrides outputStateWrapper to always create a text file.
-    */
-   virtual void ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) override {}
-
    virtual Response::Status
-   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual void initMessageActionMap() override;
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   /**
-    * TriggerTestLayerProbe::needRecalc(double) always returns true so that we can always
-    * investigate the value of needUpdate()
-    */
-   virtual bool needRecalc(double timevalue) override { return true; }
+   Response::Status outputState(std::shared_ptr<LayerOutputStateMessage const> message);
 
-   /**
-    * Sets calcValue to the value of needUpdate(timevalue, dt), where dt is the parent HyPerCol's
-    * dt.
-    */
-   virtual void calcValues(double timevalue) override;
-
-   /**
-    * TriggerTestLayerProbe does not call outputState, but the routine is needed since
-    * LayerProbe::TriggerTestLayerProbe is pure virtual
-    */
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
+   Response::Status respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message);
 
   protected:
-   double mDeltaTime = 1.0; // Set during InitializeState, and used in calcValues.
+   std::shared_ptr<TargetLayerComponent> mProbeTargetLayerLocator = nullptr;
+   std::shared_ptr<ProbeTriggerComponent> mProbeTrigger           = nullptr;
+
+   static int const mInputDisplayPeriod = 5;
+
 }; // end TriggerTestLayer
 
-} // end namespacePV
+} // namespace PV
 #endif /* IMAGETESTPROBE_HPP */

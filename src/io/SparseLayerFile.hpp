@@ -53,14 +53,15 @@ class SparseLayerFile : public CheckpointerDataInterface {
    std::string const &getPath() const { return mPath; }
 
    SparseList<float> *getListLocation(int index) const { return mSparseListLocations.at(index); }
-   void setListLocation(
-         SparseList<float> *listPtr, int index) { mSparseListLocations.at(index) = listPtr; }
+   void setListLocation(SparseList<float> *listPtr, int index) {
+      mSparseListLocations.at(index) = listPtr;
+   }
 
   protected:
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-   virtual Response::Status processCheckpointRead() override;
+   virtual Response::Status processCheckpointRead(double simTime) override;
 
   private:
    int initializeCheckpointerDataInterface();
@@ -81,7 +82,7 @@ class SparseLayerFile : public CheckpointerDataInterface {
    bool mVerifyWrites;
 
    int mIndex = 0;
-   std::vector<SparseList<float>*> mSparseListLocations;
+   std::vector<SparseList<float> *> mSparseListLocations;
 
    std::unique_ptr<SparseLayerBatchGatherScatter> mGatherScatter;
    std::unique_ptr<SparseLayerIO> mSparseLayerIO;
@@ -95,6 +96,6 @@ class SparseLayerFile : public CheckpointerDataInterface {
    long mFileStreamWritePos = 0L; // Output file position of the SparseLayerIO's FileStream
 };
 
-} // namespacePV
+} // namespace PV
 
 #endif // SPARSELAYERFILE_HPP_

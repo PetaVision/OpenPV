@@ -7,6 +7,12 @@
 
 #include "AdaptiveTimeScaleProbe.hpp"
 #include "columns/Messages.hpp"
+#include "observerpattern/BaseMessage.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include <cstdlib>
+#include <functional>
+#include <vector>
 
 namespace PV {
 
@@ -115,10 +121,10 @@ Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(
    if (!Response::completed(status)) {
       return status;
    }
-   mTargetProbe = message->mObjectTable->findObject<BaseProbe>(targetName);
+   mTargetProbe = message->mObjectTable->findObject<ProbeInterface>(targetName);
    FatalIf(
          mTargetProbe == nullptr,
-         "%s: targetName \"%s\" is not a probe in the HyPerCol.\n",
+         "%s: targetName \"%s\" is not a suitable probe type.\n",
          getDescription_c(),
          targetName);
    return Response::SUCCESS;
@@ -129,15 +135,20 @@ Response::Status AdaptiveTimeScaleProbe::allocateDataStructures() {
    if (!Response::completed(status)) {
       return status;
    }
-   if (mTargetProbe->getNumValues() != getNumValues()) {
-      if (mCommunicator->commRank() == 0) {
-         Fatal() << getDescription() << ": target probe \"" << mTargetProbe->getDescription()
-                 << "\" does not have the correct numValues (" << mTargetProbe->getNumValues()
-                 << " instead of " << getNumValues() << ").\n";
-      }
-      MPI_Barrier(mCommunicator->communicator());
-      exit(EXIT_FAILURE);
+   if (!mTargetProbe->getDataStructuresAllocatedFlag()) {
+      InfoLog().printf(
+            "%s must postpone until %s allocates.\n",
+            getDescription_c(),
+            mTargetProbe->getDescription_c());
+      return Response::POSTPONE;
    }
+   FatalIf(
+         mTargetProbe->getNumValues() != getNumValues(),
+         "%s: target probe %s does not have the correct NumValues (%d instead of %d).\n",
+         getDescription_c(),
+         mTargetProbe->getName(),
+         mTargetProbe->getNumValues(),
+         getNumValues());
    allocateTimeScaleController();
    return Response::SUCCESS;
 }
@@ -189,7 +200,10 @@ void AdaptiveTimeScaleProbe::calcValues(double timeValue) {
       rawProbeValues.assign(getNumValues(), -1.0);
    }
    else {
-      mTargetProbe->getValues(timeValue, &rawProbeValues);
+      // Since AdaptTimestep is called at the beginning of the timestep, we don't want to cause
+      // the downstream probes to recalculate here, since the layers haven't updated for the
+      // current timestep yet. Hence, we call TargetProbe->getValues() with no argument.
+      rawProbeValues = mTargetProbe->getValues();
    }
    pvAssert(rawProbeValues.size() == (std::size_t)getNumValues());
    // In allocateDataStructures, we checked that mTargetProbe has a compatible size.

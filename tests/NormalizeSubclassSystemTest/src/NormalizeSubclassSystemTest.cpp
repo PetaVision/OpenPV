@@ -8,6 +8,7 @@
 
 #include "NormalizeL3.hpp"
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 #include <connections/HyPerConn.hpp>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);

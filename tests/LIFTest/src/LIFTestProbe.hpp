@@ -8,12 +8,19 @@
 #ifndef LIFTESTPROBE_HPP_
 #define LIFTESTPROBE_HPP_
 
-#include "layers/HyPerLayer.hpp"
-#include "probes/StatsProbe.hpp"
+#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointingMessages.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Messages.hpp"
+#include "io/PVParams.hpp"
+#include "observerpattern/Response.hpp"
+#include "probes/StatsProbeImmediate.hpp"
+#include <memory>
+#include <vector>
 
 namespace PV {
 
-class LIFTestProbe : public StatsProbe {
+class LIFTestProbe : public StatsProbeImmediate {
   public:
    LIFTestProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~LIFTestProbe();
@@ -21,30 +28,29 @@ class LIFTestProbe : public StatsProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
   protected:
    LIFTestProbe();
+   void checkStats() override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_endingTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_tolerance(enum ParamsIOFlag ioFlag);
-   virtual void initOutputStreams(
-         std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+
+   Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
   private:
-   int initialize_base();
+   std::vector<double> mRadii;
+   std::vector<double> mRates;
+   std::vector<double> mTargetRates;
+   std::vector<double> mStdDevs;
+   std::vector<int> mCounts;
 
-  private:
-   double *radii;
-   double *rates;
-   double *targetrates;
-   double *stddevs;
-   int *counts;
+   double mEndingTime = 2000.0; // Default stop time
+   double mTolerance  = 3.0; // Number of standard deviations that the observed rates can differ
+   // from the expected rates.
 
-   double endingTime; // The time, in the same units dt is in, at which to stop the test.
-   double tolerance; // Number of standard deviations that the observed rates can differ from the
-   // expected rates.
+   static constexpr const int mNumBins = 5;
 };
 
 } /* namespace PV */

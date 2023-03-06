@@ -90,8 +90,6 @@ class ColProbe : public BaseProbe {
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
    Response::Status
-   respondColProbeWriteParams(std::shared_ptr<ColProbeWriteParamsMessage const>(message));
-   Response::Status
    respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage const>(message));
 
    /**

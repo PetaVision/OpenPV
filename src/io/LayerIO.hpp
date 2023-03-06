@@ -9,15 +9,15 @@
 #define LAYERIO_HPP_
 
 #include "io/FileStream.hpp"
+#include "structures/Buffer.hpp"
 #include "utils/BufferUtilsPvp.hpp" // struct ActivityHeader
 
 #include <memory>
-#include <string>
 
 namespace PV {
 
 /**
- * A class to manage nonsparse activity PVP files. 
+ * A class to manage nonsparse activity PVP files.
  * Generally reading and writing a nonsparse activity PVP file should be done by means of this
  * class. The principal use case is by the LayerFile class, which creates and manages a
  * LayerIO class internally for its I/O operations.
@@ -33,11 +33,7 @@ namespace PV {
  */
 class LayerIO {
   public:
-   LayerIO(
-      std::shared_ptr<FileStream> fileStream,
-      int width,
-      int height,
-      int numFeatures);
+   LayerIO(std::shared_ptr<FileStream> fileStream, int width, int height, int numFeatures);
 
    virtual ~LayerIO() {}
 
@@ -84,9 +80,9 @@ class LayerIO {
    int mNumFrames   = 0;
 
    long const mHeaderSize = static_cast<long>(sizeof(BufferUtils::ActivityHeader));
-   long const mDataSize = static_cast<long>(sizeof(float));
+   long const mDataSize   = static_cast<long>(sizeof(float));
 };
 
-} // namespacePV
+} // namespace PV
 
 #endif // LAYERIO_HPP_

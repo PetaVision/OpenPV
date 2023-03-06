@@ -29,8 +29,7 @@ class RandomSeed {
    unsigned int mInitialSeed = 0U;
    bool mInitialized         = false;
    // minSeed needs to be high enough that for the pseudorandom sequence to be
-   // good,
-   // but must be less than (and should be much less than) ULONG_MAX/2
+   // good, but must be less than (and should be much less than) ULONG_MAX/2
 };
 
 } /* namespace PV */

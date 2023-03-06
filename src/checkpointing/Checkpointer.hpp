@@ -43,6 +43,12 @@ class Checkpointer : public Subject {
    void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
+    * @brief ioParam_checkpointWriteInsideOutputPath: Flag to determine whether
+    * the checkpointWriteDir is taken relative to the outputPath varia
+    */
+   void ioParam_checkpointWriteInsideOutputPath(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
     * @brief checkpointWriteDir: If checkpointWrite is set, specifies the output
     * checkpoint
     * directory.
@@ -188,7 +194,7 @@ class Checkpointer : public Subject {
    bool isCompleteCheckpoint(std::string const &candidateCheckpoint) const;
 
    std::shared_ptr<MPIBlock const> getMPIBlock() { return mMPIBlock; }
-   bool doesVerifyWrites() { return mVerifyWrites; }
+   bool doesVerifyWrites() const { return mVerifyWrites; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
    char const *getCheckpointWriteDir() const { return mCheckpointWriteDir; }
    enum CheckpointWriteTriggerMode getCheckpointWriteTriggerMode() const {
@@ -220,39 +226,39 @@ class Checkpointer : public Subject {
    std::string makeCheckpointDirectoryFromCurrentStep();
 
    /**
-     * If a meaningful signal has been received by the global root process, clears the signal
-     * and returns its value. Otherwise returns 0.
-     * Currently, the meaningful signals are SIGUSR1 and SIGUSR2
-     */
+    * If a meaningful signal has been received by the global root process, clears the signal
+    * and returns its value. Otherwise returns 0.
+    * Currently, the meaningful signals are SIGUSR1 and SIGUSR2
+    */
    int retrieveSignal();
 
    /**
-     * Returns true if the params file settings indicate a checkpoint should occur at this
-     * timestep. It also advances the appropriate data member for the trigger mode
-     * to the next scheduled checkpoint. Returns false otherwise.
-     */
+    * Returns true if the params file settings indicate a checkpoint should occur at this
+    * timestep. It also advances the appropriate data member for the trigger mode
+    * to the next scheduled checkpoint. Returns false otherwise.
+    */
    bool scheduledCheckpoint();
 
    /**
-     * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "step". If the
-     * step number is an integral multiple of checkpointWriteStepInterval, it advances
-     * mNextCheckpointStep by the step interval and returns true. Otherwise it returns false.
-     */
+    * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "step". If the
+    * step number is an integral multiple of checkpointWriteStepInterval, it advances
+    * mNextCheckpointStep by the step interval and returns true. Otherwise it returns false.
+    */
    bool scheduledStep();
 
    /**
-     * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "time". If the
-     * simTime is >= the current value of mNextCheckpointSimtime, it advances
-     * mNextCheckpointSimtime by the time interval and returns true. Otherwise it returns false.
-     */
+    * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "time". If the
+    * simTime is >= the current value of mNextCheckpointSimtime, it advances
+    * mNextCheckpointSimtime by the time interval and returns true. Otherwise it returns false.
+    */
    bool scheduledSimTime();
 
    /**
-     * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "clock". If the
-     * elapsed time between the wall clock time and mLastCheckpointWallclock exceeds
-     * mCheckpointWriteWallclockInterval, it sets mLastCheckpointWallclock to the current
-     * wall clock time and returns true. Otherwise it returns false.
-     */
+    * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "clock". If the
+    * elapsed time between the wall clock time and mLastCheckpointWallclock exceeds
+    * mCheckpointWriteWallclockInterval, it sets mLastCheckpointWallclock to the current
+    * wall clock time and returns true. Otherwise it returns false.
+    */
    bool scheduledWallclock();
 
    /**
@@ -338,8 +344,6 @@ class Checkpointer : public Subject {
    // used if mDeleteOlderCheckpoints is true.
    std::vector<Timer const *> mTimers;
    Timer *mCheckpointTimer = nullptr;
-
-   static std::string const mDefaultOutputPath;
 };
 
 } // namespace PV

@@ -7,12 +7,9 @@
 #ifndef CUDATIMER_HPP_
 #define CUDATIMER_HPP_
 
-#include "../../io/PrintStream.hpp"
-#include "../../utils/Timer.hpp"
+#include "io/PrintStream.hpp"
+#include "utils/Timer.hpp"
 #include <cuda_runtime_api.h>
-#include <stdio.h>
-
-using PV::PrintStream;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -51,7 +48,7 @@ class CudaTimer : public PV::Timer {
     * @return Returns the accumulated time of this timer
     */
    double accumulateTime();
-   virtual int fprint_time(PrintStream &printStream) const override;
+   virtual int fprint_time(PV::PrintStream &printStream) const override;
    /**
     * A setter function to set the stream to time
     */
@@ -65,6 +62,6 @@ class CudaTimer : public PV::Timer {
    bool mEventPending = false; // A flag that is set by stop(). If true, accumulateTime() will add
 };
 
-} // namespace PV
+} // namespace PVCuda
 
 #endif /* CUDATIMER_HPP_ */

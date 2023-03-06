@@ -1,0 +1,74 @@
+debugParsing = false;
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 4;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = true;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+};
+
+HyPerLayer "TestLayer" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = -1;
+};
+
+HyPerLayer "DummyOutputLayer" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = -1;
+};
+
+HyPerConn "DummyConnection" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "TestLayer";
+    postLayerName                       = "DummyOutputLayer";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;    
+    channelCode                         = 0;    
+    numAxonalArbors                     = 1;    
+    delay                               = [0.000000];   
+    nxp                                 = 3; 
+    nyp                                 = 3;
+    nfp                                 = 1;
+    sharedWeights                       = true;
+    writeStep                           = 1;    
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 0;   
+    connectOnlySameFeatures             = false;  
+    normalizeMethod                     = "none";
+    plasticityFlag                      = false;
+
+};

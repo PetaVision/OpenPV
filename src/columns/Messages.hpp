@@ -81,17 +81,10 @@ class ConnectionWriteParamsMessage : public BaseMessage {
   public:
    ConnectionWriteParamsMessage() { setMessageType("ConnectionWriteParams"); }
 };
-class ColProbeWriteParamsMessage : public BaseMessage {
+
+class ProbeWriteParamsMessage : public BaseMessage {
   public:
-   ColProbeWriteParamsMessage() { setMessageType("ColProbeWriteParams"); }
-};
-class LayerProbeWriteParamsMessage : public BaseMessage {
-  public:
-   LayerProbeWriteParamsMessage() { setMessageType("LayerProbeWriteParams"); }
-};
-class ConnectionProbeWriteParamsMessage : public BaseMessage {
-  public:
-   ConnectionProbeWriteParamsMessage() { setMessageType("ConnectionProbeWriteParams"); }
+   ProbeWriteParamsMessage() { setMessageType("ProbeWriteParams"); }
 };
 
 class InitializeStateMessage : public BaseMessage {

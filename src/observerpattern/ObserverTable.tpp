@@ -9,6 +9,8 @@
  *  the .tpp file does not include the .hpp file.
  */
 
+#include "utils/PVLog.hpp"
+
 namespace PV {
 
 template <typename T>

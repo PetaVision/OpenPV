@@ -5,6 +5,7 @@
 
 #include "BinningTestProbe.hpp"
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 
 #define MAIN_USES_CUSTOM_GROUPS
 

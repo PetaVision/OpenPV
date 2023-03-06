@@ -3,9 +3,16 @@
  *
  */
 #include "TestNotAlwaysAllZerosProbe.hpp"
+#include <arch/mpi/mpi.h>
+#include <columns/Factory.hpp>
+#include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
-#include <layers/InputLayer.hpp>
+#include <include/pv_common.h>
+#include <layers/HyPerLayer.hpp>
+#include <utils/PVLog.hpp>
+
+#include <cstdlib>
 
 int checkProbesOnExit(HyPerCol *hc, int argc, char *argv[]);
 
@@ -85,6 +92,7 @@ int checkProbesOnExit(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(!layer, "No layer named \"OriginalMovie\".\n");
    TestNotAlwaysAllZerosProbe *testNonzero =
          dynamic_cast<TestNotAlwaysAllZerosProbe *>(hc->getObjectFromName("OriginalMovieProbe"));
+   FatalIf(!testNonzero, "No probe named \"OriginalMovieProbe\".\n");
    FatalIf(
          !testNonzero->nonzeroValueHasOccurred(),
          "OriginalMovieProbe is always zero.\n",

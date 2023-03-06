@@ -8,15 +8,19 @@
 #ifndef STOCHASTICRELEASETESTPROBE_HPP_
 #define STOCHASTICRELEASETESTPROBE_HPP_
 
+#include "columns/Communicator.hpp"
 #include "columns/ComponentBasedObject.hpp"
-#include "columns/buildandrun.hpp"
-#include "probes/StatsProbe.hpp"
-#include <cmath>
-#include <stdlib.h>
+#include "columns/Messages.hpp"
+#include "io/PVParams.hpp"
+#include "observerpattern/Response.hpp"
+#include "probes/StatsProbeImmediate.hpp"
+
+#include <memory>
+#include <vector>
 
 namespace PV {
 
-class StochasticReleaseTestProbe : public PV::StatsProbe {
+class StochasticReleaseTestProbe : public PV::StatsProbeImmediate {
   public:
    StochasticReleaseTestProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~StochasticReleaseTestProbe();
@@ -24,16 +28,14 @@ class StochasticReleaseTestProbe : public PV::StatsProbe {
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
   protected:
    StochasticReleaseTestProbe();
+   virtual void checkStats() override;
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
+   virtual void
+   createProbeOutputter(char const *name, PVParams *params, Communicator const *comm) override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    int computePValues();
-
-  private:
-   int initialize_base();
 
    // Member variables
   protected:

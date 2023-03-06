@@ -1,379 +1,231 @@
-/*
- * StatsProbe.cpp
- *
- *  Created on: Mar 10, 2009
- *      Author: Craig Rasmussen
- */
-
 #include "StatsProbe.hpp"
-#include "../layers/HyPerLayer.hpp"
-#include <float.h> // FLT_MAX/MIN
-#include <string.h>
+
+#include "checkpointing/Checkpointer.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Messages.hpp"
+#include "components/BasePublisherComponent.hpp"
+#include "components/PhaseParam.hpp"
+#include "include/PVLayerLoc.h"
+#include "io/PVParams.hpp"
+#include "observerpattern/BaseMessage.hpp"
+#include "observerpattern/Response.hpp"
+#include "probes/ProbeTriggerComponent.hpp"
+#include "probes/StatsProbeTypes.hpp"
+#include "utils/Timer.hpp"
+
+#include <cMakeHeader.h>
+#include <functional>
 
 namespace PV {
 
-StatsProbe::StatsProbe(const char *name, PVParams *params, Communicator const *comm) {
-   initialize_base();
+StatsProbe::StatsProbe(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-StatsProbe::StatsProbe() : LayerProbe() {
-   initialize_base();
-   // Derived classes should call initialize
-}
+StatsProbe::StatsProbe() {}
 
 StatsProbe::~StatsProbe() {
-   int rank = mCommunicator->commRank();
-   if (rank == 0 and !mOutputStreams.empty()) {
-      iotimer->fprint_time(output(0));
-      mpitimer->fprint_time(output(0));
-      comptimer->fprint_time(output(0));
-   }
-   delete iotimer;
-   delete mpitimer;
-   delete comptimer;
-   free(sum);
-   free(sum2);
-   free(nnz);
-   free(fMin);
-   free(fMax);
-   free(avg);
-   free(sigma);
+   delete mTimerInitialization;
+   delete mTimerComp;
+   delete mTimerIO;
+#ifdef PV_USE_MPI
+   delete mTimerMPI;
+#endif // PV_USE_MPI
 }
 
-int StatsProbe::initialize_base() {
-   fMin  = NULL;
-   fMax  = NULL;
-   sum   = NULL;
-   sum2  = NULL;
-   nnz   = NULL;
-   avg   = NULL;
-   sigma = NULL;
+void StatsProbe::assembleStatsAndOutput() {
+#ifdef PV_USE_MPI
+   mTimerMPI->start();
+   mProbeAggregator->aggregateStoredValues(mProbeLocal->getStoredValues());
+   mProbeLocal->clearStoredValues();
+   mTimerMPI->stop();
+#endif // PV_USE_MPI
+   mTimerIO->start();
+   mProbeOutputter->printGlobalStatsBuffer(mProbeAggregator->getStoredValues());
+   mTimerIO->stop();
 
-   type         = BufV;
-   iotimer      = NULL;
-   mpitimer     = NULL;
-   comptimer    = NULL;
-   nnzThreshold = (float)0;
-   return PV_SUCCESS;
+   mTimerComp->start();
+   checkStats();
+   mProbeAggregator->clearStoredValues();
+   mTimerComp->stop();
 }
 
-void StatsProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   LayerProbe::initialize(name, params, comm);
-}
+// Derived classes can override checkStats() to verify that the stats satisfy desired constraints
+void StatsProbe::checkStats() {}
 
-void StatsProbe::resetStats() {
-   for (int b = 0; b < mLocalBatchWidth; b++) {
-      fMin[b]  = FLT_MAX;
-      fMax[b]  = -FLT_MAX;
-      sum[b]   = 0.0f;
-      sum2[b]  = 0.0f;
-      avg[b]   = 0.0f;
-      sigma[b] = 0.0f;
-      nnz[b]   = 0;
-   }
-}
-
-int StatsProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = LayerProbe::ioParamsFillGroup(ioFlag);
-   ioParam_buffer(ioFlag);
-   ioParam_nnzThreshold(ioFlag);
-   return status;
-}
-
-void StatsProbe::ioParam_statsFlag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "statsFlag");
-   }
-}
-
-void StatsProbe::requireType(PVBufType requiredType) {
-   PVParams *params = parameters();
-   if (params->stringPresent(getName(), "buffer")) {
-      params->handleUnnecessaryStringParameter(getName(), "buffer");
-      StatsProbe::ioParam_buffer(PARAMS_IO_READ);
-      if (type != requiredType) {
-         const char *requiredString = NULL;
-         switch (requiredType) {
-            case BufV: requiredString        = "\"MembranePotential\" or \"V\""; break;
-            case BufActivity: requiredString = "\"Activity\" or \"A\""; break;
-            default: assert(0); break;
-         }
-         if (type != BufV) {
-            if (mCommunicator->globalCommRank() == 0) {
-               ErrorLog().printf(
-                     "   Value \"%s\" is inconsistent with allowed values %s.\n",
-                     params->stringValue(getName(), "buffer"),
-                     requiredString);
-            }
-         }
-      }
-   }
-   else {
-      type = requiredType;
-   }
-}
-
-void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
-   char *buffer = NULL;
-   if (ioFlag == PARAMS_IO_WRITE) {
-      switch (type) {
-         case BufV: buffer        = strdup("MembranePotential"); break;
-         case BufActivity: buffer = strdup("Activity");
-      }
-   }
-   parameters()->ioParamString(
-         ioFlag, getName(), "buffer", &buffer, "Activity", true /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
-      assert(buffer);
-      size_t len = strlen(buffer);
-      for (size_t c = 0; c < len; c++) {
-         buffer[c] = (char)tolower((int)buffer[c]);
-      }
-      if (!strcmp(buffer, "v") || !strcmp(buffer, "membranepotential")) {
-         type = BufV;
-      }
-      else if (!strcmp(buffer, "a") || !strcmp(buffer, "activity")) {
-         type = BufActivity;
-      }
-      else {
-         if (mCommunicator->commRank() == 0) {
-            const char *bufnameinparams = parameters()->stringValue(getName(), "buffer");
-            assert(bufnameinparams);
-            ErrorLog().printf(
-                  "%s: buffer \"%s\" is not recognized.\n", getDescription_c(), bufnameinparams);
-         }
-         MPI_Barrier(mCommunicator->communicator());
-         exit(EXIT_FAILURE);
-      }
-   }
-   free(buffer);
-   buffer = NULL;
-}
-
-void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, 0.0f);
-}
-
-void StatsProbe::initNumValues() { setNumValues(-1); }
-
-Response::Status StatsProbe::allocateDataStructures() {
-   auto status = LayerProbe::allocateDataStructures();
+Response::Status
+StatsProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseObject::communicateInitInfo(message);
    if (!Response::completed(status)) {
       return status;
    }
 
-   int const nbatch = mLocalBatchWidth;
+   // Set target layer and trigger layer
+   status = status + mProbeTargetLayer->communicateInitInfo(message);
+   status = status + mProbeTrigger->communicateInitInfo(message);
+   return status;
+}
 
-   fMin  = (float *)malloc(sizeof(float) * nbatch);
-   fMax  = (float *)malloc(sizeof(float) * nbatch);
-   sum   = (double *)malloc(sizeof(double) * nbatch);
-   sum2  = (double *)malloc(sizeof(double) * nbatch);
-   avg   = (float *)malloc(sizeof(float) * nbatch);
-   sigma = (float *)malloc(sizeof(float) * nbatch);
-   nnz   = (int *)malloc(sizeof(int) * nbatch);
-   resetStats();
+void StatsProbe::createComponents(char const *name, PVParams *params, Communicator const *comm) {
+   // NB: the data members mName and mParams have not been set when createComponents() is called.
+   createTargetLayerComponent(name, params);
+   createProbeLocal(name, params);
+   createProbeAggregator(name, params, comm);
+   createProbeOutputter(name, params, comm);
+   createProbeTrigger(name, params);
+}
 
+void StatsProbe::createProbeAggregator(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   mProbeAggregator =
+         std::make_shared<StatsProbeAggregator>(name, params, comm->getLocalMPIBlock());
+}
+
+void StatsProbe::createProbeLocal(char const *name, PVParams *params) {
+   mProbeLocal = std::make_shared<StatsProbeLocal>(name, params);
+}
+
+void StatsProbe::createProbeOutputter(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   mProbeOutputter = std::make_shared<StatsProbeOutputter>(name, params, comm);
+}
+
+void StatsProbe::createProbeTrigger(char const *name, PVParams *params) {
+   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(name, params);
+}
+
+void StatsProbe::createTargetLayerComponent(char const *name, PVParams *params) {
+   mProbeTargetLayer = std::make_shared<TargetLayerComponent>(name, params);
+}
+
+void StatsProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   createComponents(name, params, comm);
+   // createComponents() must be called before the base class's initialize(),
+   // because BaseObject::initialize() calls the ioParamsFillGroup() method,
+   // which calls each component's ioParamsFillGroup() method.
+   BaseObject::initialize(name, params, comm);
+}
+
+Response::Status
+StatsProbe::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   mTimerInitialization->start();
+   auto status = BaseObject::initializeState(message);
+   if (Response::completed(status)) {
+      mProbeLocal->initializeState(getTargetLayer());
+   }
+
+   mTimerInitialization->stop();
+   return Response::SUCCESS;
+}
+
+void StatsProbe::initMessageActionMap() {
+   BaseObject::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(msgptr);
+      return respondLayerOutputState(castMessage);
+   };
+   mMessageActionMap.emplace("LayerOutputState", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ProbeWriteParamsMessage const>(msgptr);
+      return respondProbeWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("ProbeWriteParams", action);
+}
+
+void StatsProbe::initProbeTimers(Checkpointer *checkpointer) {
+   mTimerInitialization = new Timer(getName(), "probe", "init");
+   checkpointer->registerTimer(mTimerInitialization);
+   mTimerComp = new Timer(getName(), "probe", "probecomp");
+   checkpointer->registerTimer(mTimerComp);
+   mTimerIO = new Timer(getName(), "probe", "probeio");
+#ifdef PV_USE_MPI
+   mTimerMPI = new Timer(getName(), "probe", "probempi");
+   checkpointer->registerTimer(mTimerMPI);
+#endif // PV_USE_MPI
+   checkpointer->registerTimer(mTimerIO);
+}
+
+void StatsProbe::ioParam_immediateMPIAssembly(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValue(
+         ioFlag,
+         getName(),
+         "immediateMPIAssembly",
+         &mImmediateMPIAssembly,
+         mImmediateMPIAssembly,
+         true /*warnIfAbsent*/);
+}
+
+int StatsProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = BaseObject::ioParamsFillGroup(ioFlag);
+   mProbeTargetLayer->ioParamsFillGroup(ioFlag);
+   mProbeOutputter->ioParamsFillGroup(ioFlag);
+   mProbeTrigger->ioParamsFillGroup(ioFlag);
+   mProbeLocal->ioParamsFillGroup(ioFlag);
+   mProbeAggregator->ioParamsFillGroup(ioFlag);
+   ioParam_immediateMPIAssembly(ioFlag);
+   return status;
+}
+
+Response::Status StatsProbe::outputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   mTimerComp->start();
+   if (mProbeTrigger->needUpdate(message->mTime, message->mDeltaTime)) {
+      mProbeLocal->storeValues(message->mTime);
+   }
+   mTimerComp->stop();
+   if (mImmediateMPIAssembly) {
+      assembleStatsAndOutput();
+   }
+   return Response::SUCCESS;
+}
+
+Response::Status StatsProbe::prepareCheckpointWrite(double simTime) {
+   if (!mImmediateMPIAssembly) {
+      assembleStatsAndOutput();
+   }
    return Response::SUCCESS;
 }
 
 Response::Status
 StatsProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = LayerProbe::registerData(message);
+   auto status = BaseObject::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
    auto *checkpointer = message->mDataRegistry;
 
-   std::string timermessagehead;
-   timermessagehead.append("StatsProbe ").append(getName());
-   std::string timermessage;
+   bool convertToHertz = false;
+   if (mProbeLocal->getBufferType() == StatsBufferType::A) {
+      convertToHertz =
+            getTargetLayer()->getComponentByType<BasePublisherComponent>()->getSparseLayer();
+   }
+   mProbeOutputter->setConvertToHertzFlag(convertToHertz);
+   mProbeOutputter->initOutputStreams(checkpointer, getTargetLayer()->getLayerLoc()->nbatch);
 
-   timermessage = timermessagehead + " I/O  timer ";
-   iotimer      = new Timer(timermessage.c_str());
-   checkpointer->registerTimer(iotimer);
-
-   timermessage = timermessagehead + " MPI  timer ";
-   mpitimer     = new Timer(timermessage.c_str());
-   checkpointer->registerTimer(mpitimer);
-
-   timermessage = timermessagehead + " Comp timer ";
-   comptimer    = new Timer(timermessage.c_str());
-   checkpointer->registerTimer(comptimer);
+   initProbeTimers(checkpointer);
    return Response::SUCCESS;
 }
 
-Response::Status StatsProbe::outputState(double simTime, double deltaTime) {
-#ifdef PV_USE_MPI
-   Communicator const *icComm = mCommunicator;
-   MPI_Comm comm              = icComm->communicator();
-   int rank                   = icComm->commRank();
-   const int rcvProc          = 0;
-#endif // PV_USE_MPI
-
-   int nk;
-   float const *baseBuffer;
-   resetStats();
-
-   nk = getTargetLayer()->getNumNeurons();
-
-   int nbatch = getTargetLayer()->getLayerLoc()->nbatch;
-
-   comptimer->start();
-   switch (type) {
-      case BufV:
-         baseBuffer = retrieveVBuffer();
-         for (int b = 0; b < nbatch; b++) {
-            float const *buf = baseBuffer + b * getTargetLayer()->getNumNeurons();
-            if (buf == NULL) {
-#ifdef PV_USE_MPI
-               if (rank != rcvProc) {
-                  return Response::SUCCESS;
-               }
-#endif // PV_USE_MPI
-               output(b) << getMessage() << "V buffer is NULL\n";
-               return Response::SUCCESS;
-            }
-            for (int k = 0; k < nk; k++) {
-               float a = buf[k];
-               sum[b] += (double)a;
-               sum2[b] += (double)(a * a);
-               if (fabsf(a) > nnzThreshold) {
-                  nnz[b]++;
-               }
-               if (a < fMin[b]) {
-                  fMin[b] = a;
-               }
-               if (a > fMax[b]) {
-                  fMax[b] = a;
-               }
-            }
-         }
-         break;
-      case BufActivity:
-         baseBuffer = retrieveActivityBuffer();
-         for (int b = 0; b < nbatch; b++) {
-            float const *buf = baseBuffer + b * getTargetLayer()->getNumExtended();
-            for (int k = 0; k < nk; k++) {
-               const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
-               int kex               = kIndexExtended(
-                     k,
-                     loc->nx,
-                     loc->ny,
-                     loc->nf,
-                     loc->halo.lt,
-                     loc->halo.rt,
-                     loc->halo.dn,
-                     loc->halo.up); // TODO: faster to use strides
-               // and a double-loop than
-               // compute
-               // kIndexExtended for every neuron?
-               float a = buf[kex];
-               sum[b] += (double)a;
-               sum2[b] += (double)(a * a);
-               if (fabsf(a) > nnzThreshold) {
-                  nnz[b]++;
-               }
-               if (a < fMin[b]) {
-                  fMin[b] = a;
-               }
-               if (a > fMax[b]) {
-                  fMax[b] = a;
-               }
-            }
-         }
-         break;
-      default: pvAssert(0); break;
+Response::Status
+StatsProbe::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   auto status          = Response::SUCCESS;
+   int targetLayerPhase = getTargetLayer()->getComponentByType<PhaseParam>()->getPhase();
+   if (message->mPhase == targetLayerPhase) {
+      status = outputState(message);
    }
-   comptimer->stop();
+   return status;
+}
 
-#ifdef PV_USE_MPI
-   mpitimer->start();
-
-   // In place reduction to prevent allocating a temp recv buffer
-   MPI_Allreduce(MPI_IN_PLACE, sum, nbatch, MPI_DOUBLE, MPI_SUM, comm);
-   MPI_Allreduce(MPI_IN_PLACE, sum2, nbatch, MPI_DOUBLE, MPI_SUM, comm);
-   MPI_Allreduce(MPI_IN_PLACE, nnz, nbatch, MPI_INT, MPI_SUM, comm);
-   MPI_Allreduce(MPI_IN_PLACE, fMin, nbatch, MPI_FLOAT, MPI_MIN, comm);
-   MPI_Allreduce(MPI_IN_PLACE, fMax, nbatch, MPI_FLOAT, MPI_MAX, comm);
-   MPI_Allreduce(MPI_IN_PLACE, &nk, 1, MPI_INT, MPI_SUM, comm);
-
-   mpitimer->stop();
-   if (rank != rcvProc) {
-      return Response::SUCCESS;
-   }
-
-#endif // PV_USE_MPI
-   float divisor = nk;
-
-   iotimer->start();
-   for (int b = 0; b < nbatch; b++) {
-      avg[b]              = (float)sum[b] / divisor;
-      sigma[b]            = sqrtf((float)sum2[b] / divisor - avg[b] * avg[b]);
-      float avgval        = 0.0f;
-      char const *avgnote = nullptr;
-      if (type == BufActivity
-          and getTargetLayer()->getComponentByType<BasePublisherComponent>()->getSparseLayer()) {
-         avgval  = 1000.0f * avg[b]; // convert spikes per millisecond to hertz.
-         avgnote = " Hz (/dt ms)";
-      }
-      else {
-         avgval  = avg[b];
-         avgnote = "";
-      }
-      int globalBatchIndex = calcGlobalBatchOffset() + b;
-      output(b).printf(
-            "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f%s "
-            "Max==%f sigma==%f nnz==%d",
-            getMessage(),
-            (double)simTime,
-            globalBatchIndex,
-            (int)divisor,
-            (double)sum[b],
-            (double)fMin[b],
-            (double)avgval,
-            avgnote,
-            (double)fMax[b],
-            (double)sigma[b],
-            (int)nnz[b]);
-      output(b) << std::endl;
-   }
-
-   iotimer->stop();
-
+Response::Status
+StatsProbe::respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message) {
+   writeParams();
    return Response::SUCCESS;
 }
 
-float const *StatsProbe::retrieveVBuffer() {
-   auto *activityComponent = getTargetLayer()->getComponentByType<ActivityComponent>();
-   auto *internalState     = activityComponent->getComponentByType<InternalStateBuffer>();
-   FatalIf(
-         internalState == nullptr,
-         "%s target layer \"%s\" does not have a V buffer.\n",
-         getDescription_c(),
-         getTargetLayer()->getName());
-   return internalState->getBufferData();
-}
-
-float const *StatsProbe::retrieveActivityBuffer() {
-   auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
-   FatalIf(
-         publisherComponent == nullptr,
-         "%s target layer \"%s\" does not have an A buffer.\n",
-         getDescription_c(),
-         getTargetLayer()->getName());
-   return publisherComponent->getLayerData();
-}
-
-Response::Status StatsProbe::outputStateStats(double simTime, double deltaTime) {
-   Fatal() << "StatsProbe::outputStateStats() should never be called.\n";
-   return Response::NO_ACTION; // to suppress compiler warnings
-}
-
-int StatsProbe::checkpointTimers(PrintStream &timerstream) {
-   iotimer->fprint_time(timerstream);
-   mpitimer->fprint_time(timerstream);
-   comptimer->fprint_time(timerstream);
-   return PV_SUCCESS;
-}
-}
+} // namespace PV

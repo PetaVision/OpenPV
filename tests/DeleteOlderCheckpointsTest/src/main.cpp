@@ -21,7 +21,8 @@ int main(int argc, char *argv[]) {
    auto mpiBlock = comm->getLocalMPIBlock();
 
    // Params file
-   PV::PVParams *params = new PV::PVParams("input/DeleteOldCheckpointsTest.params", 1, comm);
+   PV::PVParams *params =
+         new PV::PVParams("input/DeleteOldCheckpointsTest.params", 1, comm->globalCommunicator());
 
    // Create checkpointing directory and delete any existing files inside it.
    char const *checkpointWriteDir = params->stringValue("checkpointer", "checkpointWriteDir");

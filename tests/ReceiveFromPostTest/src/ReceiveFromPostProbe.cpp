@@ -4,71 +4,65 @@
  */
 
 #include "ReceiveFromPostProbe.hpp"
-#include <include/pv_arch.h>
+#include <columns/Communicator.hpp>
+#include <components/BasePublisherComponent.hpp>
+#include <io/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
-#include <string.h>
+#include <probes/ActivityBufferStatsProbeLocal.hpp>
+#include <probes/StatsProbeImmediate.hpp>
 #include <utils/PVLog.hpp>
+
+#include <cmath>
+#include <memory>
 
 namespace PV {
 ReceiveFromPostProbe::ReceiveFromPostProbe(
       const char *name,
       PVParams *params,
       Communicator const *comm)
-      : StatsProbe() {
-   initialize_base();
+      : StatsProbeImmediate() {
    initialize(name, params, comm);
 }
 
-int ReceiveFromPostProbe::initialize_base() {
-   tolerance = (float)1e-3f;
-   return PV_SUCCESS;
-}
-
-void ReceiveFromPostProbe::initialize(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
-}
-
-int ReceiveFromPostProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = StatsProbe::ioParamsFillGroup(ioFlag);
-   ioParam_tolerance(ioFlag);
-   return status;
-}
-
-void ReceiveFromPostProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
-
-void ReceiveFromPostProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
-}
-
-Response::Status ReceiveFromPostProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
+void ReceiveFromPostProbe::checkStats() {
    auto *publisherComponent = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    int numExtNeurons        = publisherComponent->getNumExtended();
    const float *A           = publisherComponent->getLayerData();
    bool failed              = false;
    for (int i = 0; i < numExtNeurons; i++) {
       // For roundoff errors
-      if (fabsf(A[i]) >= tolerance) {
+      if (std::fabs(A[i]) >= mTolerance) {
          ErrorLog().printf(
-               "%s %s activity outside of tolerance %f: extended index %d has activity %f\n",
-               getMessage(),
-               getTargetLayer()->getDescription_c(),
-               (double)tolerance,
+               "%s activity outside of tolerance %f: extended index %d has activity %f\n",
+               getDescription_c(),
+               (double)mTolerance,
                i,
                (double)A[i]);
          failed = true;
       }
-      if (failed) {
-         exit(EXIT_FAILURE);
-      }
+      FatalIf(failed, "Test failed.\n");
    }
+}
+
+void ReceiveFromPostProbe::createProbeLocal(char const *name, PVParams *params) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+}
+
+void ReceiveFromPostProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
+   StatsProbeImmediate::initialize(name, params, comm);
+}
+
+int ReceiveFromPostProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = StatsProbeImmediate::ioParamsFillGroup(ioFlag);
+   ioParam_tolerance(ioFlag);
    return status;
+}
+
+void ReceiveFromPostProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValue(ioFlag, getName(), "tolerance", &mTolerance, mTolerance);
 }
 
 } // end namespace PV

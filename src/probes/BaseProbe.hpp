@@ -7,12 +7,22 @@
 #ifndef BASEPROBE_HPP_
 #define BASEPROBE_HPP_
 
+#include "cMakeHeader.h"
+
+#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/BaseObject.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Messages.hpp"
 #include "components/LayerUpdateController.hpp"
 #include "include/pv_common.h"
+#ifdef PV_USE_MPI
 #include "io/MPIRecvStream.hpp"
+#endif // PV_USE_MPI
+#include "io/PVParams.hpp"
+#include "io/PrintStream.hpp"
+#include "observerpattern/Response.hpp"
 #include "utils/Timer.hpp"
-#include <stdio.h>
 #include <memory>
 #include <vector>
 
@@ -35,7 +45,7 @@ class BaseProbe : public BaseObject {
 
    /**
     * @brief targetName: the name of the object that the probe attaches to.
-    * In LayerProbe, targetName is used to define the targetLayer, and in
+    * In LegacyLayerProbe, targetName is used to define the targetLayer, and in
     * BaseConnectionProbe, targetName is used to define the targetConn.
     */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
@@ -70,40 +80,18 @@ class BaseProbe : public BaseObject {
    virtual void ioParam_statsFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerFlag: If false, the needUpdate method always returns true,
-    * so that outputState is called every timestep.  If true, the needUpdate
-    * method uses triggerLayerName and triggerOffset to determine if the probe
-    * should be triggered.
-    */
-   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief triggerLayerName: If triggerFlag is true, triggerLayerName specifies
-    * the layer to check for triggering.
+    * @brief triggerLayerName: specifies the layer to check for triggering.
+    * If triggerLayer is null or empty, the probe does not have a trigger
+    * layer and updates every timestep.
     */
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerOffset: If triggerFlag is true, triggerOffset specifies the
+    * @brief triggerOffset: If triggerLayer is set, triggerOffset specifies the
     * time interval *before* the triggerLayer's nextUpdate time that needUpdate()
     * returns true.
     */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief energyProbe: If nonblank, specifies the name of a ColumnEnergyProbe
-    * that this probe contributes an energy term to.
-    */
-   virtual void ioParam_energyProbe(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief coefficient: If energyProbe is set, the coefficient parameter
-    * specifies that ColumnEnergyProbe multiplies the result of this probe's
-    * getValues() method by coefficient when computing the error.
-    * @details Note that coefficient does not affect the value returned by the
-    * getValues() methods.
-    */
-   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag);
    /** @} */
   public:
    virtual ~BaseProbe();
@@ -111,7 +99,7 @@ class BaseProbe : public BaseObject {
    /**
     * A virtual function called during HyPerCol::run, during the communicateInitInfo stage.
     * BaseProbe::communicateInitInfo sets up the triggering layer and attaches to the energy probe,
-    * if either triggerFlag or energyProbe are set.
+    * if either triggerFlag or energyProbe is set.
     */
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
@@ -146,22 +134,10 @@ class BaseProbe : public BaseObject {
 
    /**
     * Returns the name of the targetName parameter for this probe.
-    * LayerProbe uses targetName to specify the layer to attach to;
+    * LegacyLayerProbe uses targetName to specify the layer to attach to;
     * BaseConnectionProbe uses it to specify the connection to attach to.
     */
    const char *getTargetName() { return targetName; }
-
-   /**
-    * Returns the name of the energy probe the probe is attached to (null if not
-    * attached to an
-    * energy probe)
-    */
-   char const *getEnergyProbe() { return energyProbe; }
-
-   /**
-    * Returns the coefficient if the energy probe is set.
-    */
-   double getCoefficient() { return coefficient; }
 
    /**
     * Returns the time that calcValues was last called.
@@ -225,8 +201,8 @@ class BaseProbe : public BaseObject {
     * The global root process sets up a single output stream, to the file specified
     * in ProbeOutputFile, or the log file if ProbeOutputFile is empty or null.
     */
-   void initOutputStreamsStatsFlag
-         (std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
+   void
+   initOutputStreamsStatsFlag(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
 
    /**
     * Called by BaseProbe::initOutputStreams if StatsFlag is false.
@@ -337,7 +313,7 @@ class BaseProbe : public BaseObject {
     * Returns true if a probeOutputFile is being used.
     * Otherwise, returns false (indicating output is going to getOutputStream().
     */
-inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutputFilename[0]; }
+   inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutputFilename[0]; }
 
    /**
     * If there is a triggering layer, needUpdate returns true when the triggering
@@ -365,7 +341,10 @@ inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutp
     * calls flushOutputStream(), so that when checkpoints are written, the
     * output files are up to date.
     */
-   virtual Response::Status prepareCheckpointWrite() override;
+   virtual Response::Status prepareCheckpointWrite(double simTime) override;
+
+   Response::Status
+         respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const>(message));
 
   private:
    int initialize_base();
@@ -439,10 +418,7 @@ inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutp
    LayerUpdateController *mTriggerControl = nullptr;
    double triggerOffset;
    char *targetName;
-   char *energyProbe; // the name of the ColumnEnergyProbe to attach to, if any.
-   double coefficient;
-   bool mAddedToEnergyProbe = false; // Set to true when it calls energy probe's addTerm()
-   int mLocalBatchWidth     = 1; // the value of loc->nbatch
+   int mLocalBatchWidth = 1; // the value of loc->nbatch
 
   private:
    char *msgparams; // the message parameter in the params
@@ -470,9 +446,9 @@ inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutp
    // incrementing the tag when data is received. In this way, the root process does not have
    // to block, and printing the probe output for nonroot batch elements only has to be
    // synchronized when writing checkpoints or at the end of the run.
-   std::vector<int>mCurrentTag;
-   std::vector<int>mStartTag;
-   std::vector<int>mTagLimit;
+   std::vector<int> mCurrentTag;
+   std::vector<int> mStartTag;
+   std::vector<int> mTagLimit;
 
    // BaseTag and TagSpacing are used by initializeTagVectors() to initialize the CurrentTag,
    // StartTag, and TagLimit vectors.
@@ -487,10 +463,10 @@ inline bool isWritingToFile() const { return mProbeOutputFilename and mProbeOutp
    // handled?
    int mProbeIndex;
    static int mNumProbes;
-   Timer *mInitialIOTimer = nullptr;
+   Timer *mInitialIOTimer     = nullptr;
    Timer *mInitialIOWaitTimer = nullptr;
-   Timer *mIOTimer = nullptr;
-   Timer *mIOWaitTimer = nullptr;
+   Timer *mIOTimer            = nullptr;
+   Timer *mIOWaitTimer        = nullptr;
 }; // class BaseProbe
 
 } // namespace PV

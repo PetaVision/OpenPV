@@ -72,9 +72,12 @@ test -e output && rm -r output
 ### Base run ###
 echo "${RUNDESC} test, base run..."
 test -e output_${RUNNAME} && rm -r output_${RUNNAME}
-${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}.txt
+command="${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}.txt"
+echo "Executing command:"
+echo "$command"
+$command
 mv -i ProbeOutputTest_${RUNNAME}*.log output/
-toldiffloop base
+toldiffloop base > output/ProbeOutputTest_differences.log 2>&1
 status="$?"
 
 mv -i output output_${RUNNAME}
@@ -121,9 +124,12 @@ done
 #do
 #    truncate -s ${OUTPUTPVPTRUNC} "$f"
 #done
-${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}-ifcp.txt
+command="${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}-ifcp.txt"
+echo "Executing command:"
+echo "$command"
+$command
 mv -i ProbeOutputTest_${RUNNAME}_initfromchkpt*.log output/
-toldiffloop initfromchkpt
+toldiffloop initfromchkpt > output/ProbeOutputTest_differences.log 2>&1
 if test $? -ne 0
 then
     >&2 echo "${RUNDESC}, initializing from checkpoint failed."
@@ -154,9 +160,12 @@ while read f
 do
     truncate -s ${OUTPUTPVPTRUNC} "$f"
 done
-${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}-restartfromchkpt.txt
+command="${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}-restartfromchkpt.txt"
+echo "Executing command:"
+echo "$command"
+$command
 mv -i ProbeOutputTest_${RUNNAME}_restartfromchkpt*.log output/
-toldiffloop restartfromchkpt
+toldiffloop restartfromchkpt > output/ProbeOutputTest_differences.log 2>&1
 if test $? -ne 0
 then
     >&2 echo "${RUNDESC}, restarting from checkpoint failed."
@@ -172,9 +181,13 @@ mv -i output output_${RUNNAME}_restartfromchkpt
 echo "${RUNDESC} test, restarting from end..."
 cp -pr output_${RUNNAME} output
 rm output/*.log
-${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}-restartfromend.txt
+command="${MPICOMMAND} ${PVEXECUTABLE} input/config_${RUNNAME}-restartfromend.txt"
+echo "Executing command:"
+echo "$command"
+$command
+
 mv -i ProbeOutputTest_${RUNNAME}_restartfromend*.log output/
-toldiffloop restartfromend
+toldiffloop restartfromend > output/ProbeOutputTest_differences.log 2>&1
 if test $? -ne 0
 then
     >&2 echo "${RUNDESC}, restarting from end failed."

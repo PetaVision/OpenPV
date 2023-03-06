@@ -8,9 +8,16 @@
 #ifndef ADAPTIVETIMESCALEPROBE_HPP_
 #define ADAPTIVETIMESCALEPROBE_HPP_
 
-#include "BaseProbe.hpp"
-#include "ColProbe.hpp"
+#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointingMessages.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Messages.hpp"
 #include "components/AdaptiveTimeScaleController.hpp"
+#include "io/PVParams.hpp"
+#include "observerpattern/Response.hpp"
+#include "probes/ColProbe.hpp"
+#include "probes/ProbeInterface.hpp"
+#include <memory>
 
 namespace PV {
 
@@ -106,7 +113,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
    double mGrowthFactor           = 1.0;
    bool mWriteTimeScaleFieldnames = true;
 
-   BaseProbe *mTargetProbe                                   = nullptr;
+   ProbeInterface *mTargetProbe                              = nullptr;
    AdaptiveTimeScaleController *mAdaptiveTimeScaleController = nullptr;
 
    double mBaseDeltaTime = 1.0; // The parent's DeltaTime, set during InitializeState.

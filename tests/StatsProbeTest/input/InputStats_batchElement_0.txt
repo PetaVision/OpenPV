@@ -1,0 +1,17 @@
+InputStats    :t==   0.0 b==0 N==64 Total==63.000000 Min==0.000000 Avg==0.984375 Max==1.000000 sigma==0.124020 nnz==63
+InputStats    :t==   1.0 b==0 N==64 Total==63.000000 Min==0.000000 Avg==0.984375 Max==1.000000 sigma==0.124020 nnz==63
+InputStats    :t==   2.0 b==0 N==64 Total==59.000000 Min==0.000000 Avg==0.921875 Max==1.000000 sigma==0.268368 nnz==59
+InputStats    :t==   3.0 b==0 N==64 Total==55.000000 Min==0.000000 Avg==0.859375 Max==1.000000 sigma==0.347634 nnz==55
+InputStats    :t==   4.0 b==0 N==64 Total==51.000000 Min==0.000000 Avg==0.796875 Max==1.000000 sigma==0.402325 nnz==51
+InputStats    :t==   5.0 b==0 N==64 Total==47.000000 Min==0.000000 Avg==0.734375 Max==1.000000 sigma==0.441665 nnz==47
+InputStats    :t==   6.0 b==0 N==64 Total==43.000000 Min==0.000000 Avg==0.671875 Max==1.000000 sigma==0.469531 nnz==43
+InputStats    :t==   7.0 b==0 N==64 Total==39.000000 Min==0.000000 Avg==0.609375 Max==1.000000 sigma==0.487890 nnz==39
+InputStats    :t==   8.0 b==0 N==64 Total==35.000000 Min==0.000000 Avg==0.546875 Max==1.000000 sigma==0.497798 nnz==35
+InputStats    :t==   9.0 b==0 N==64 Total==31.000000 Min==0.000000 Avg==0.484375 Max==1.000000 sigma==0.499756 nnz==31
+InputStats    :t==  10.0 b==0 N==64 Total==27.000000 Min==0.000000 Avg==0.421875 Max==1.000000 sigma==0.493859 nnz==27
+InputStats    :t==  11.0 b==0 N==64 Total==23.000000 Min==0.000000 Avg==0.359375 Max==1.000000 sigma==0.479817 nnz==23
+InputStats    :t==  12.0 b==0 N==64 Total==19.000000 Min==0.000000 Avg==0.296875 Max==1.000000 sigma==0.456881 nnz==19
+InputStats    :t==  13.0 b==0 N==64 Total==15.000000 Min==0.000000 Avg==0.234375 Max==1.000000 sigma==0.423608 nnz==15
+InputStats    :t==  14.0 b==0 N==64 Total==11.000000 Min==0.000000 Avg==0.171875 Max==1.000000 sigma==0.377272 nnz==11
+InputStats    :t==  15.0 b==0 N==64 Total==7.000000 Min==0.000000 Avg==0.109375 Max==1.000000 sigma==0.312109 nnz==7
+InputStats    :t==  16.0 b==0 N==64 Total==3.000000 Min==0.000000 Avg==0.046875 Max==1.000000 sigma==0.211371 nnz==3

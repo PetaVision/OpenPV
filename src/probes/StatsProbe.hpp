@@ -1,88 +1,104 @@
-/*
- * StatsProbe.hpp
- *
- *  Created on: Mar 10, 2009
- *      Author: rasmussn
- */
-
 #ifndef STATSPROBE_HPP_
 #define STATSPROBE_HPP_
 
-#include "LayerProbe.hpp"
+#include "cMakeHeader.h"
+
+#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointingMessages.hpp"
+#include "columns/BaseObject.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Messages.hpp"
+#include "io/PVParams.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "observerpattern/Response.hpp"
+#include "probes/ProbeTriggerComponent.hpp"
+#include "probes/StatsProbeAggregator.hpp"
+#include "probes/StatsProbeLocal.hpp"
+#include "probes/StatsProbeOutputter.hpp"
+#include "probes/TargetLayerComponent.hpp"
+#include "utils/Timer.hpp"
+
+#include <memory>
 
 namespace PV {
 
-class StatsProbe : public LayerProbe {
+class StatsProbe : public BaseObject {
+  protected:
+   /**
+    * @brief immediateMPIAssembly: If true, assemble stats over MPI each time outputState is
+    * called. If false, store the values until a checkpoint, and perform MPI reduction then.
+    * The default is false.
+    */
+   virtual void ioParam_immediateMPIAssembly(enum ParamsIOFlag ioFlag);
+
   public:
-   StatsProbe(const char *name, PVParams *params, Communicator const *comm);
+   StatsProbe(char const *name, PVParams *params, Communicator const *comm);
    virtual ~StatsProbe();
 
-   virtual int checkpointTimers(PrintStream &timerstream);
+   HyPerLayer *getTargetLayer() { return mProbeTargetLayer->getTargetLayer(); }
+   HyPerLayer const *getTargetLayer() const { return mProbeTargetLayer->getTargetLayer(); }
+   char const *getTargetLayerName() const { return mProbeTargetLayer->getTargetLayerName(); }
 
   protected:
    StatsProbe();
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   /**
-    * @brief statsFlag: StatsProbe does not use statsFlag.
-    */
-   virtual void ioParam_statsFlag(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);
-   void requireType(PVBufType requiredType);
-
-   /**
-    * StatsProbe sets numValues to -1, indicating that the getValues methods don't work.
-    * StatsProbe is an old probe that might eventually be deprecated in favor of more
-    * getValues-friendly probes.
-    */
-   virtual void initNumValues() override;
-
-   virtual Response::Status allocateDataStructures() override;
+   void assembleStatsAndOutput();
+   virtual void checkStats();
 
    virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual void createComponents(char const *name, PVParams *params, Communicator const *comm);
+
+   virtual void createProbeAggregator(char const *name, PVParams *params, Communicator const *comm);
+   virtual void createProbeLocal(char const *name, PVParams *params);
+   virtual void createProbeOutputter(char const *name, PVParams *params, Communicator const *comm);
+   virtual void createProbeTrigger(char const *name, PVParams *params);
+   virtual void createTargetLayerComponent(char const *name, PVParams *params);
+
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
+
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
+
+   virtual void initMessageActionMap() override;
+
+   void initProbeTimers(Checkpointer *checkpointer);
+
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
+   virtual Response::Status outputState(std::shared_ptr<LayerOutputStateMessage const> message);
+
+   virtual Response::Status prepareCheckpointWrite(double simTime) override;
+
+   Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-   /**
-    * Implements needRecalc() for StatsProbe to always return false
-    * (the getValues() function member should not be used).
-    */
-   virtual bool needRecalc(double timevalue) override { return false; }
+   Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
+   Response::Status respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message);
 
-   /**
-    * Implements calcValues() for StatsProbe to always fail
-    * (the getValues() function member should not be used).
-    */
-   virtual void calcValues(double timevalue) override {
-      Fatal().printf("%s does not use calcValues.\n", getDescription_c());
-   }
+   bool getImmediateMPIAssembly() const { return mImmediateMPIAssembly; }
+   void setImmediateMPIAssembly(bool flag) { mImmediateMPIAssembly = flag; }
 
-   float const *retrieveActivityBuffer();
-   float const *retrieveVBuffer();
-
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-   virtual Response::Status outputStateStats(double simTime, double deltaTime) override;
-
-   // Member variables
-   PVBufType type;
-   double *sum;
-   double *sum2;
-   int *nnz;
-   float *fMin;
-   float *fMax;
-   float *avg;
-   float *sigma;
-
-   float nnzThreshold;
-   Timer *iotimer; // A timer for the i/o part of outputState
-   Timer *mpitimer; // A timer for the MPI part of outputState
-   Timer *comptimer; // A timer for the basic computation of outputState
+  protected:
+   // Probe components, set by createComponents(), called by initialize()
+   std::shared_ptr<StatsProbeAggregator> mProbeAggregator;
+   std::shared_ptr<StatsProbeLocal> mProbeLocal;
+   std::shared_ptr<StatsProbeOutputter> mProbeOutputter;
+   std::shared_ptr<TargetLayerComponent> mProbeTargetLayer;
+   std::shared_ptr<ProbeTriggerComponent> mProbeTrigger;
 
   private:
-   int initialize_base();
-   void resetStats();
-}; // end class StatsProbe
-}
+   // Private data members
+   bool mImmediateMPIAssembly = false;
 
-#endif /* STATSPROBE_HPP_ */
+   Timer *mTimerComp           = nullptr; // A timer for the basic computation of the stats
+   Timer *mTimerInitialization = nullptr; // A timer for initialization activity
+   Timer *mTimerIO             = nullptr; // A timer for writing output
+#ifdef PV_USE_MPI
+   Timer *mTimerMPI = nullptr; // A timer for MPI activity
+#endif // PV_USE_MPI
+};
+
+} // namespace PV
+
+#endif // STATSPROBE_HPP_

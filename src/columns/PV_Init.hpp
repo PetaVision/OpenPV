@@ -8,13 +8,16 @@
 #ifndef PV_INIT_HPP_
 #define PV_INIT_HPP_
 
-#include <arch/mpi/mpi.h>
-#include <columns/Arguments.hpp>
-#include <columns/Factory.hpp>
-#include <columns/KeywordHandler.hpp>
-#include <io/PVParams.hpp>
-#include <iostream>
+#include "arch/mpi/mpi.h"
+#include "columns/Arguments.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/KeywordHandler.hpp"
+#include "io/Configuration.hpp"
+#include "io/PVParams.hpp"
+
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace PV {
 

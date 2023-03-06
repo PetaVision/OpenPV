@@ -6,14 +6,30 @@
  */
 
 #include "StochasticReleaseTestProbe.hpp"
+#include "StochasticReleaseTestProbeOutputter.hpp"
+#include "arch/mpi/mpi.h"
 #include "components/ArborList.hpp"
+#include "components/BasePublisherComponent.hpp"
 #include "components/ConnectionData.hpp"
 #include "components/PatchSize.hpp"
+#include "components/Weights.hpp"
 #include "components/WeightsPair.hpp"
+#include "include/PVLayerLoc.h"
+#include "include/pv_common.h"
 #include "layers/HyPerLayer.hpp"
+#include "observerpattern/Observer.hpp"
+#include "observerpattern/Response.hpp"
+#include "probes/ActivityBufferStatsProbeLocal.hpp"
+#include "probes/ProbeData.hpp"
+#include "probes/StatsProbeTypes.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include "utils/conversions.hpp"
 #include <algorithm>
 #include <cmath>
-#include <random>
+#include <cstdlib>
+#include <cstring>
+#include <memory>
 
 namespace PV {
 
@@ -21,29 +37,63 @@ StochasticReleaseTestProbe::StochasticReleaseTestProbe(
       const char *name,
       PVParams *params,
       Communicator const *comm) {
-   initialize_base();
    initialize(name, params, comm);
 }
 
-StochasticReleaseTestProbe::StochasticReleaseTestProbe() { initialize_base(); }
+StochasticReleaseTestProbe::StochasticReleaseTestProbe() {}
 
-int StochasticReleaseTestProbe::initialize_base() { return PV_SUCCESS; }
-
-void StochasticReleaseTestProbe::initialize(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
+void StochasticReleaseTestProbe::checkStats() {
+   bool failed                        = false;
+   auto const &storedValues           = mProbeAggregator->getStoredValues();
+   auto numTimestamps                 = storedValues.size();
+   int lastTimestampIndex             = static_cast<int>(numTimestamps) - 1;
+   ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
+   double simTime                     = stats.getTimestamp();
+   if (simTime > 0.0) {
+      int pValuesStatus = computePValues();
+      if (pValuesStatus) {
+         failed = true;
+      }
+      if (mCommunicator->commRank() == 0) {
+         std::sort(m_pValues.begin(), m_pValues.end());
+         size_t N = m_pValues.size();
+         for (std::size_t k = 0; k < N; k++) {
+            double hbCorr = m_pValues.at(k) * (double)(N - k);
+            if (hbCorr < 0.05) {
+               ErrorLog().printf(
+                     "%s: p-value %zu out of %zu (ordered by size) with Holm-Bonferroni correction "
+                     "= %f\n",
+                     getTargetLayer()->getDescription_c(),
+                     k,
+                     N,
+                     hbCorr);
+               failed = true;
+            }
+         }
+      }
+   }
+   FatalIf(
+         failed,
+         ": %s failed in StochasticReleaseTestProbe::checkStats at time %f.\n",
+         getTargetLayer()->getName(),
+         simTime);
 }
 
-void StochasticReleaseTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
-   requireType(BufActivity);
+void StochasticReleaseTestProbe::createProbeLocal(char const *name, PVParams *params) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+}
+
+void StochasticReleaseTestProbe::createProbeOutputter(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   mProbeOutputter = std::make_shared<StochasticReleaseTestProbeOutputter>(name, params, comm);
 }
 
 Response::Status StochasticReleaseTestProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    if (mConn == nullptr) {
-      auto status = StatsProbe::communicateInitInfo(message);
+      auto status = StatsProbeImmediate::communicateInitInfo(message);
       if (!Response::completed(status)) {
          return status;
       }
@@ -114,50 +164,13 @@ Response::Status StochasticReleaseTestProbe::communicateInitInfo(
    return Response::SUCCESS;
 }
 
-Response::Status StochasticReleaseTestProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
-   FatalIf(
-         status != Response::SUCCESS,
-         ": %s failed in StatsProbe::outputState at time %f.\n",
-         getDescription_c(),
-         simTime);
-   bool failed = false;
-   if (simTime > 0.0) {
-      int pValuesStatus = computePValues();
-      if (pValuesStatus) { failed = true; }
-      if (mCommunicator->commRank() == 0) {
-         std::sort(m_pValues.begin(), m_pValues.end());
-         size_t N = m_pValues.size();
-         for (std::size_t k = 0; k < N; k++) {
-            double hbCorr = m_pValues.at(k) * (double)(N - k);
-            if (hbCorr < 0.05) {
-               ErrorLog().printf(
-                     "%s: p-value %zu out of %zu (ordered by size) with Holm-Bonferroni correction "
-                     "= %f\n",
-                     getTargetLayer()->getDescription_c(),
-                     k,
-                     N,
-                     hbCorr);
-               failed = true;
-            }
-         }
-      }
-   }
-   FatalIf(
-         failed,
-         ": %s failed in StochasticReleaseTestProbe::outputState at time %f.\n",
-         getTargetLayer()->getName(),
-         simTime);
-   return Response::SUCCESS;
-}
-
 int StochasticReleaseTestProbe::computePValues() {
    int status                        = PV_SUCCESS;
    HyPerLayer *layer                 = getTargetLayer();
    BasePublisherComponent *publisher = layer->getComponentByType<BasePublisherComponent>();
    int nf                            = publisher->getLayerLoc()->nf;
-   auto *preWeights = mConn->getComponentByType<WeightsPair>()->getPreWeights();
-   auto *preLayer   = mConn->getComponentByType<ConnectionData>()->getPre();
+   auto *preWeights                  = mConn->getComponentByType<WeightsPair>()->getPreWeights();
+   auto *preLayer                    = mConn->getComponentByType<ConnectionData>()->getPre();
    for (int f = 0; f < nf; f++) {
       float wgt = preWeights->getData(0)[f * (nf + 1)]; // weights should be one-to-one weights
 
@@ -227,26 +240,24 @@ int StochasticReleaseTestProbe::computePValues() {
          continue;
       }
 
-      double mean    = preact * neuronsPerFeature;
-      double stddev  = std::sqrt(static_cast<float>(neuronsPerFeature) * preact * (1.0f - preact));
+      double mean   = preact * neuronsPerFeature;
+      double stddev = std::sqrt(static_cast<float>(neuronsPerFeature) * preact * (1.0f - preact));
       pvAssert(stddev > 0.0);
       double numdevs = (nnzf - mean) / stddev;
       double pval    = std::erfc(std::fabs(numdevs) / std::sqrt(2.0));
       m_pValues.push_back(pval);
-      if (!mOutputStreams.empty()) {
-         pvAssert(mOutputStreams.size() == (std::size_t)1);
-         output(0).printf(
-               "    Feature %d, nnz=%5d, expectation=%7.1f, std.dev.=%5.1f, discrepancy of %f "
-               "deviations, p-value %f\n",
-               f,
-               nnzf,
-               mean,
-               stddev,
-               numdevs,
-               pval);
-      }
+      auto *outputter = dynamic_cast<StochasticReleaseTestProbeOutputter *>(mProbeOutputter.get());
+      pvAssert(outputter != nullptr);
+      outputter->printNumNonzeroData(f, nnzf, mean, stddev, numdevs, pval);
    }
    return status;
+}
+
+void StochasticReleaseTestProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
+   StatsProbeImmediate::initialize(name, params, comm);
 }
 
 StochasticReleaseTestProbe::~StochasticReleaseTestProbe() {}

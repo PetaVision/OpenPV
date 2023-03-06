@@ -70,8 +70,8 @@ class CheckpointerDataInterface : public Observer {
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) {
       return Response::NO_ACTION;
    }
-   virtual Response::Status processCheckpointRead() { return Response::NO_ACTION; }
-   virtual Response::Status prepareCheckpointWrite() { return Response::NO_ACTION; }
+   virtual Response::Status processCheckpointRead(double simTime) { return Response::NO_ACTION; }
+   virtual Response::Status prepareCheckpointWrite(double simTime) { return Response::NO_ACTION; }
 
   protected:
    // If parent HyPerCol sets initializeFromCheckpointDir and this flag is set,
@@ -83,7 +83,7 @@ class CheckpointerDataInterface : public Observer {
   private:
    // std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
    bool mAddedToCheckpointer = false; // semaphore to prevent object from being registered with
-         // checkpointer more than once
+                                      // checkpointer more than once
 };
 
 } // namespace PV

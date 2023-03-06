@@ -27,14 +27,14 @@ namespace PV {
 class LayerFile : public CheckpointerDataInterface {
   public:
    LayerFile(
-      std::shared_ptr <FileManager const> fileManager,
-      std::string const &path,
-      PVLayerLoc const &layerLoc,
-      bool dataExtendedFlag,
-      bool fileExtendedFlag,
-      bool readOnlyFlag,
-      bool clobberFlag,
-      bool verifyWrites);
+         std::shared_ptr<FileManager const> fileManager,
+         std::string const &path,
+         PVLayerLoc const &layerLoc,
+         bool dataExtendedFlag,
+         bool fileExtendedFlag,
+         bool readOnlyFlag,
+         bool clobberFlag,
+         bool verifyWrites);
 
    LayerFile() = delete;
 
@@ -59,7 +59,7 @@ class LayerFile : public CheckpointerDataInterface {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-   virtual Response::Status processCheckpointRead() override;
+   virtual Response::Status processCheckpointRead(double simTime) override;
 
   private:
    int initializeCheckpointerDataInterface();
@@ -80,7 +80,7 @@ class LayerFile : public CheckpointerDataInterface {
    bool mVerifyWrites;
 
    int mIndex = 0;
-   std::vector<float*> mDataLocations;
+   std::vector<float *> mDataLocations;
 
    std::unique_ptr<LayerBatchGatherScatter> mGatherScatter;
    std::unique_ptr<LayerIO> mLayerIO;
@@ -94,6 +94,6 @@ class LayerFile : public CheckpointerDataInterface {
    long mFileStreamWritePos = 0L; // Output file position of the LayerIO's FileStream
 };
 
-} // namespacePV
+} // namespace PV
 
 #endif // LAYERFILE_HPP_

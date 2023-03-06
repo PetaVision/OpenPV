@@ -5,6 +5,8 @@
  *      Author: pschultz
  */
 
+#include "cMakeHeader.h"
+
 #include "CoreKeywords.hpp"
 
 #include "columns/Factory.hpp"
@@ -66,7 +68,7 @@
 #include "probes/L1NormProbe.hpp"
 #include "probes/L2NormProbe.hpp"
 #include "probes/LogTimeScaleProbe.hpp"
-#include "probes/QuotientColProbe.hpp"
+#include "probes/QuotientProbe.hpp"
 #include "probes/RequireAllZeroActivityProbe.hpp"
 #include "probes/StatsProbe.hpp"
 
@@ -115,10 +117,10 @@
 // Deprecated Oct 7, 2021.
 // These probes currently are not being used, and maintaining them would
 // complicate refactoring.
-#include "deprecated/KernelProbe.hpp"
-#include "deprecated/L2ConnProbe.hpp"
-#include "deprecated/PointLIFProbe.hpp"
-#include "deprecated/PointProbe.hpp"
+// #include "deprecated/KernelProbe.hpp"
+// #include "deprecated/L2ConnProbe.hpp"
+// #include "deprecated/PointLIFProbe.hpp"
+// #include "deprecated/PointProbe.hpp"
 
 namespace PV {
 
@@ -188,7 +190,7 @@ void registerCoreKeywords() {
    factory->registerKeyword("L1NormLCAProbe", Factory::create<L1NormLCAProbe>);
    factory->registerKeyword("L1NormProbe", Factory::create<L1NormProbe>);
    factory->registerKeyword("L2NormProbe", Factory::create<L2NormProbe>);
-   factory->registerKeyword("QuotientColProbe", Factory::create<QuotientColProbe>);
+   factory->registerKeyword("QuotientProbe", Factory::create<QuotientProbe>);
    factory->registerKeyword(
          "RequireAllZeroActivityProbe", Factory::create<RequireAllZeroActivityProbe>);
    factory->registerKeyword("StatsProbe", Factory::create<StatsProbe>);
@@ -227,7 +229,8 @@ void registerCoreKeywords() {
    // InitWeights objects
    factory->registerKeyword("Gauss2DWeight", Factory::create<InitGauss2DWeights>);
    factory->registerKeyword("CoCircWeight", Factory::create<InitCocircWeights>);
-   factory->registerKeyword("DiscreteUniformRandomWeight", Factory::create<InitDiscreteUniformRandomWeights>);
+   factory->registerKeyword(
+         "DiscreteUniformRandomWeight", Factory::create<InitDiscreteUniformRandomWeights>);
    factory->registerKeyword("UniformWeight", Factory::create<InitUniformWeights>);
    factory->registerKeyword("SmartWeight", Factory::create<InitSmartWeights>);
    factory->registerKeyword("UniformRandomWeight", Factory::create<InitUniformRandomWeights>);
@@ -250,13 +253,13 @@ void registerCoreKeywords() {
    factory->registerKeyword("normalizeSum", Factory::create<NormalizeSum>);
    factory->registerKeyword("normalizeGroup", Factory::create<NormalizeGroup>);
 
-// Deprecated Oct 7, 2021.
-// These probes currently are not being used, and maintaining them would
-// complicate refactoring.
-   factory->registerKeyword("KernelProbe", Factory::create<KernelProbe>);
-   factory->registerKeyword("L2ConnProbe", Factory::create<L2ConnProbe>);
-   factory->registerKeyword("PointLIFProbe", Factory::create<PointLIFProbe>);
-   factory->registerKeyword("PointProbe", Factory::create<PointProbe>);
+   // Deprecated Oct 7, 2021.
+   // These probes currently are not being used, and maintaining them would
+   // complicate refactoring.
+   //   factory->registerKeyword("KernelProbe", Factory::create<KernelProbe>);
+   //   factory->registerKeyword("L2ConnProbe", Factory::create<L2ConnProbe>);
+   //   factory->registerKeyword("PointLIFProbe", Factory::create<PointLIFProbe>);
+   //   factory->registerKeyword("PointProbe", Factory::create<PointProbe>);
 }
 
 } // end namespace PV

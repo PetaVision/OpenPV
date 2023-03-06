@@ -1,0 +1,109 @@
+//
+// MaskLayers.params
+//
+// created by peteschultz: Jan 25, 2023
+//
+//  A params file consisting of two 4x4 layers, one with three features and
+//  one with one feature, to be used as MaskLayer objects in testing the
+//  L1NormProbeLocal class, and a 4x4x3 feature to be used as the target layer
+//  for the L1NormProbeLocal object.
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 4;
+   ny = 4;
+   nbatch = 2;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 5.0;  
+   errorOnNotANumber = true;
+   progressInterval = 10.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+//
+// layers
+//
+
+PvpLayer "TargetLayer" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 1;
+
+    inputPath = "input/TargetLayer.pvp";
+    nf = 3;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+PvpLayer "Layer1Feature" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 1;
+
+    inputPath = "input/Layer1Feature.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+PvpLayer "Layer3Features" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 1;
+
+    inputPath = "input/Layer3Features.pvp";
+    nf = 3;
+    phase = 0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};

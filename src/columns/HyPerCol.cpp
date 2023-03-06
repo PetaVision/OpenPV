@@ -6,38 +6,47 @@
  */
 
 #include "HyPerCol.hpp"
+#include "arch/mpi/mpi.h"
 #include "checkpointing/CheckpointEntryParamsFileWriter.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/Factory.hpp"
 #include "columns/GitRevision.hpp"
 #include "columns/RandomSeed.hpp"
+#include "include/pv_arch.h"
+#include "include/pv_common.h"
+#include "io/Configuration.hpp"
+#include "io/FileManager.hpp"
 #include "io/PrintStream.hpp"
+#include "io/fileio.hpp"
+#include "observerpattern/ObserverTable.hpp"
+#include "structures/MPIBlock.hpp"
 #include "utils/ExpandLeadingTilde.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
 #include "utils/PathComponents.hpp"
 
-#include <assert.h>
+#include <cassert>
+#include <cctype>
+#include <cerrno>
 #include <cmath>
-#include <csignal>
-#include <float.h>
+#include <cstdlib>
+#include <cstring>
+#include <exception>
 #include <fstream>
-#include <fts.h>
-#include <libgen.h>
-#include <limits>
-#include <memory.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <functional>
+#include <stdexcept>
 #include <string>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <utility>
 
 #ifdef PV_USE_OPENMP_THREADS
 #include <omp.h>
 #endif
 
 #ifdef PV_USE_CUDA
+#include "arch/cuda/CudaDevice.hpp"
 #include <cuda.h>
 #include <cudnn.h>
 #include <map>
@@ -126,8 +135,8 @@ int HyPerCol::initialize(PV_Init *initObj) {
    }
 
    mBuildAndRunTimer = new Timer(getName(), "column", "buildrun");
-   mBuildTimer = new Timer(getName(), "column", "build   ");
-   mRunTimer = new Timer(getName(), "column", "run     ");
+   mBuildTimer       = new Timer(getName(), "column", "build   ");
+   mRunTimer         = new Timer(getName(), "column", "run     ");
    std::vector<Timer const *> columnTimers{mBuildAndRunTimer, mBuildTimer, mRunTimer};
 
    mCheckpointer = new Checkpointer(
@@ -318,10 +327,10 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
          pvAssert(mOutputPath); // should have been set to non-null in initialize()
          // If non-empty, keep what was set in configuration; otherwise read from params
          if (mOutputPath[0] == '\0') {
-             free(mOutputPath);
-             mOutputPath = nullptr;
-             parameters()->ioParamString(
-                   ioFlag, getName(), "outputPath", &mOutputPath, mDefaultOutputPath.c_str(), true);
+            free(mOutputPath);
+            mOutputPath = nullptr;
+            parameters()->ioParamString(
+                  ioFlag, getName(), "outputPath", &mOutputPath, mDefaultOutputPath.c_str(), true);
          }
          getCommunicator()->getOutputFileManager()->changeBaseDirectory(std::string(mOutputPath));
          break;
@@ -377,9 +386,9 @@ void HyPerCol::allocateColumn() {
       mCheckpointer->readStateFromCheckpoint();
       // readStateFromCheckpoint() does nothing if initializeFromCheckpointDir is empty or null.
    }
-// Note: ideally, if checkpointReadFlag is set, calling InitializeState should
-// be unnecessary. However, currently initializeState does some CUDA kernel
-// initializations that still need to happen when reading from checkpoint.
+   // Note: ideally, if checkpointReadFlag is set, calling InitializeState should
+   // be unnecessary. However, currently initializeState does some CUDA kernel
+   // initializations that still need to happen when reading from checkpoint.
 
 #ifdef PV_USE_CUDA
    notifyLoop(std::make_shared<CopyInitialStateToGPUMessage>());
@@ -419,16 +428,16 @@ HyPerCol::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> 
          mIdleCounts.size(),
          true /*broadcast*/,
          false /*constantEntireRun*/);
-      auto checkpointEntry = std::make_shared<CheckpointEntryParamsFileWriter>(
-            getPrintParamsFilename(), this);
-      bool registerSucceeded =
-            checkpointer->registerCheckpointEntry(checkpointEntry, false /*not constant*/);
-      FatalIf(
-            !registerSucceeded,
-            "%s failed to register %s for checkpointing.\n",
-            getDescription_c(),
-            getPrintParamsFilename());
-   
+   auto checkpointEntry =
+         std::make_shared<CheckpointEntryParamsFileWriter>(getPrintParamsFilename(), this);
+   bool registerSucceeded =
+         checkpointer->registerCheckpointEntry(checkpointEntry, false /*not constant*/);
+   FatalIf(
+         !registerSucceeded,
+         "%s failed to register %s for checkpointing.\n",
+         getDescription_c(),
+         getPrintParamsFilename());
+
    return Response::SUCCESS;
 }
 
@@ -441,9 +450,8 @@ int HyPerCol::run(double stopTime, double dt) {
 
    int const totalThreads = mNumThreads * numberOfGlobalColumns();
    if (globalRank() == 0 and totalThreads > mPVInitObj->getMaxThreads()) {
-      WarnLog().printf(
-            "Warning: more MPI processes than available threads.  "
-            "Processors may be oversubscribed.\n");
+      WarnLog().printf("Warning: more MPI processes than available threads.  "
+                       "Processors may be oversubscribed.\n");
    }
    bool dryRunFlag = mPVInitObj->getBooleanArgument("DryRun");
    if (dryRunFlag) {
@@ -473,8 +481,17 @@ int HyPerCol::run(double stopTime, double dt) {
       runClock.print_elapsed(getOutputStream());
    }
 
+   int status = PV_SUCCESS;
+   for (auto *c : *mTable) {
+      BaseObject *object = dynamic_cast<BaseObject *>(c);
+      if (object and object->getStatus() != PV_SUCCESS) {
+         status = PV_FAILURE;
+      }
+   }
+
    mBuildAndRunTimer->stop();
-   return PV_SUCCESS;
+
+   return status;
 }
 
 // This routine sets the mNumThreads member variable. It is called by HyPerCol::initialize()
@@ -585,20 +602,14 @@ void HyPerCol::processParams(char const *path) {
    auto objectTable = getAllObjectsFlat();
 
    if (!mParamsProcessedFlag) {
-      notifyLoop(
-            std::make_shared<CommunicateInitInfoMessage>(
-                  &objectTable,
-                  mDeltaTime,
-                  mNumXGlobal,
-                  mNumYGlobal,
-                  mNumBatchGlobal,
-                  mNumThreads));
+      notifyLoop(std::make_shared<CommunicateInitInfoMessage>(
+            &objectTable, mDeltaTime, mNumXGlobal, mNumYGlobal, mNumBatchGlobal, mNumThreads));
    }
    int unreadParamStatus = parameters()->lookForUnread(mErrorOnUnusedParam);
    FatalIf(
-          mErrorOnUnusedParam and unreadParamStatus != PV_SUCCESS,
-          "Params file \"%s\" contains unused parameters, and errorOnUnusedParam was set.\n",
-          mPVInitObj->getStringArgument("ParamsFile").c_str());
+         mErrorOnUnusedParam and unreadParamStatus != PV_SUCCESS,
+         "Params file \"%s\" contains unused parameters, and errorOnUnusedParam was set.\n",
+         mPVInitObj->getStringArgument("ParamsFile").c_str());
 
    // Print a cleaned up version of params to the file given by printParamsFilename
    if (path != nullptr && path[0] != '\0') {
@@ -718,37 +729,31 @@ int HyPerCol::advanceTime(double sim_time) {
       nonblockingLayerUpdate(recvMessage, updateMessage);
 
       // Update for receiving on cpu and updating on gpu
-      nonblockingLayerUpdate(
-            std::make_shared<LayerUpdateStateMessage>(
-                  phase,
-                  false /*recvOnGpuFlag*/,
-                  true /*updateOnGpuFlag*/,
-                  mSimTime,
-                  mDeltaTime,
-                  &someLayerIsPending,
-                  &someLayerHasActed));
+      nonblockingLayerUpdate(std::make_shared<LayerUpdateStateMessage>(
+            phase,
+            false /*recvOnGpuFlag*/,
+            true /*updateOnGpuFlag*/,
+            mSimTime,
+            mDeltaTime,
+            &someLayerIsPending,
+            &someLayerHasActed));
 
       if (getDevice() != nullptr) {
          notifyLoop(std::make_shared<LayerCopyFromGpuMessage>(phase));
       }
 
       // Update for gpu recv and non gpu update
-      nonblockingLayerUpdate(
-            std::make_shared<LayerUpdateStateMessage>(
-                  phase,
-                  true /*recvOnGpuFlag*/,
-                  false /*updateOnGpuFlag*/,
-                  mSimTime,
-                  mDeltaTime,
-                  &someLayerIsPending,
-                  &someLayerHasActed));
-#else
-      auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
+      nonblockingLayerUpdate(std::make_shared<LayerUpdateStateMessage>(
             phase,
+            true /*recvOnGpuFlag*/,
+            false /*updateOnGpuFlag*/,
             mSimTime,
             mDeltaTime,
             &someLayerIsPending,
-            &someLayerHasActed);
+            &someLayerHasActed));
+#else
+      auto recvMessage = std::make_shared<LayerRecvSynapticInputMessage>(
+            phase, mSimTime, mDeltaTime, &someLayerIsPending, &someLayerHasActed);
       auto updateMessage = std::make_shared<LayerUpdateStateMessage>(
             phase, mSimTime, mDeltaTime, &someLayerIsPending, &someLayerHasActed);
       nonblockingLayerUpdate(recvMessage, updateMessage);
@@ -842,16 +847,14 @@ HyPerCol::respondWriteParamsFile(std::shared_ptr<WriteParamsFileMessage const> m
 
 Response::Status HyPerCol::writeParamsFile(std::shared_ptr<WriteParamsFileMessage const> message) {
    auto fileManager = message->mFileManager;
-   auto path = fileManager->makeBlockFilename(message->mParamsFilePath);
+   auto path        = fileManager->makeBlockFilename(message->mParamsFilePath);
    switch (message->mAction) {
-      case WriteParamsFileMessage::WRITE:
-         outputParams(path.c_str());
-         break;
+      case WriteParamsFileMessage::WRITE: outputParams(path.c_str()); break;
       case WriteParamsFileMessage::DELETE:
          fileManager->deleteFile(message->mParamsFilePath);
          fileManager->deleteFile(message->mParamsFilePath + ".lua");
    }
-       
+
    return Response::SUCCESS;
 }
 
@@ -879,8 +882,8 @@ void HyPerCol::outputParams(char const *path) {
       // Lua file output
       outputParamsHeadComments(printLuaStream, "--");
       // Load util module based on PVPath
-      printLuaStream->printf(
-            "package.path = package.path .. \";\" .. \"" PV_DIR "/../parameterWrapper/?.lua\"\n");
+      printLuaStream->printf("package.path = package.path .. \";\" .. \"" PV_DIR
+                             "/../parameterWrapper/?.lua\"\n");
       printLuaStream->printf("local pv = require \"PVModule\"\n\n");
       printLuaStream->printf(
             "NULL = function() end; -- to allow string parameters to be set to NULL\n\n");
@@ -896,9 +899,7 @@ void HyPerCol::outputParams(char const *path) {
    // message that all five types respond to.
    notifyLoop(std::make_shared<LayerWriteParamsMessage>());
    notifyLoop(std::make_shared<ConnectionWriteParamsMessage>());
-   notifyLoop(std::make_shared<ColProbeWriteParamsMessage>());
-   notifyLoop(std::make_shared<LayerProbeWriteParamsMessage>());
-   notifyLoop(std::make_shared<ConnectionProbeWriteParamsMessage>());
+   notifyLoop(std::make_shared<ProbeWriteParamsMessage>());
 
    if (rank == 0) {
       printLuaStream->printf("} --End of pvParameters\n");
@@ -982,6 +983,9 @@ void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comm
 #endif
 #ifdef PV_USE_OPENMP_THREADS
    std::string openmpAPIVersionString;
+#ifndef _OPENMP
+#define _OPENMP 201511
+#endif // _OPENMP
    switch (_OPENMP) {
       case 202111: openmpAPIVersionString = "5.2"; break;
       case 202011: openmpAPIVersionString = "5.1"; break;
@@ -990,7 +994,7 @@ void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *comm
       case 201307: openmpAPIVersionString = "4.0"; break;
       case 201107: openmpAPIVersionString = "3.1"; break;
       case 200805: openmpAPIVersionString = "3.0"; break;
-      default: openmpAPIVersionString     = "is unrecognized"; break;
+      default: openmpAPIVersionString = "is unrecognized"; break;
    }
    fileStream->printf(
          "%s Compiled with OpenMP parallel code, API version %s (%06d) ",
@@ -1288,4 +1292,4 @@ std::string const HyPerCol::mDefaultOutputPath = "output";
 
 double const HyPerCol::mDefaultDeltaTime = 1.0;
 
-} // PV namespace
+} // namespace PV

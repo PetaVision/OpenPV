@@ -6,34 +6,27 @@
  */
 
 #include "MPITestProbe.hpp"
-#include <include/pv_arch.h>
-#include <layers/HyPerLayer.hpp>
-#include <string.h>
-#include <utils/PVLog.hpp>
+#include "MPITestProbeOutputter.hpp"
+#include <columns/Communicator.hpp>
+#include <components/LayerGeometry.hpp>
+#include <include/PVLayerLoc.h>
+#include <io/PVParams.hpp>
+#include <probes/ActivityBufferStatsProbeLocal.hpp>
+#include <probes/ProbeData.hpp>
+#include <probes/StatsProbeImmediate.hpp>
+#include <probes/StatsProbeTypes.hpp>
+#include <utils/conversions.hpp>
+
+#include <memory>
 
 namespace PV {
 
 MPITestProbe::MPITestProbe(const char *name, PVParams *params, Communicator const *comm)
-      : StatsProbe() {
+      : StatsProbeImmediate() {
    initialize(name, params, comm);
 }
 
-void MPITestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
-}
-
-void MPITestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
-
-Response::Status MPITestProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
-   if (mOutputStreams.empty()) {
-      return status;
-   }
-   float tol = 1e-4f;
-
+void MPITestProbe::checkStats() {
    // if many to one connection, each neuron should receive its global x/y/f position
    // if one to many connection, the position of the nearest sending cell is received
    // assume sending layer has scale factor == 1
@@ -41,7 +34,7 @@ Response::Status MPITestProbe::outputState(double simTime, double deltaTime) {
    int xScaleLog2      = layerGeometry->getXScale();
 
    // determine min/max position of receiving layer
-   const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
+   PVLayerLoc const *loc = getTargetLayer()->getLayerLoc();
    int nf                = loc->nf;
    int nxGlobal          = loc->nxGlobal;
    int nyGlobal          = loc->nyGlobal;
@@ -54,35 +47,32 @@ Response::Status MPITestProbe::outputState(double simTime, double deltaTime) {
       min_global_xpos  = 0.5f;
       max_global_xpos -= xpos_shift;
    }
-   float ave_global_xpos = (min_global_xpos + max_global_xpos) / 2.0f;
+   double ave_global_xpos = (double)(min_global_xpos + max_global_xpos) / 2.0;
 
-   for (int b = 0; b < (int)mOutputStreams.size(); b++) {
-      if (simTime > 3.0) {
-         output(b).printf(
-               "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f\n",
-               getMessage(),
-               (double)min_global_xpos,
-               (double)ave_global_xpos,
-               (double)max_global_xpos);
-         FatalIf(
-               (fMin[b] / min_global_xpos <= (1 - tol)) or (fMin[b] / min_global_xpos >= (1 + tol)),
-               "%s fMin differs from %f.\n",
-               getDescription_c(),
-               (double)min_global_xpos);
-         FatalIf(
-               (fMax[b] / max_global_xpos <= (1 - tol)) or (fMax[b] / max_global_xpos >= (1 + tol)),
-               "%s fMax differs from %f.\n",
-               getDescription_c(),
-               (double)max_global_xpos);
-         FatalIf(
-               (avg[b] / ave_global_xpos <= (1 - tol)) or (avg[b] / ave_global_xpos >= (1 + tol)),
-               "%s average differs from %f.\n",
-               getDescription_c(),
-               (double)ave_global_xpos);
-      }
+   auto const &storedValues           = mProbeAggregator->getStoredValues();
+   auto numTimestamps                 = storedValues.size();
+   int lastTimestampIndex             = static_cast<int>(numTimestamps) - 1;
+   ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
+   if (stats.getTimestamp() > 3.0) {
+      auto *outputter = dynamic_cast<MPITestProbeOutputter *>(mProbeOutputter.get());
+      outputter->printGlobalXPosStats(stats, min_global_xpos, max_global_xpos, ave_global_xpos);
+      // MPITestProbeOutputter::printGlobalXPosStats will error out if values are bad.
    }
+}
 
-   return status;
+void MPITestProbe::createProbeLocal(char const *name, PVParams *params) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+}
+
+void MPITestProbe::createProbeOutputter(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   mProbeOutputter = std::make_shared<MPITestProbeOutputter>(name, params, comm);
+}
+
+void MPITestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   StatsProbeImmediate::initialize(name, params, comm);
 }
 
 } // end namespace PV

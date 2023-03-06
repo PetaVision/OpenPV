@@ -6,15 +6,22 @@
  */
 
 #include "BaseProbe.hpp"
+#include "arch/mpi/mpi.h"
 #include "checkpointing/CheckpointEntryFilePosition.hpp"
 #include "checkpointing/CheckpointEntryMPIRecvStream.hpp"
+#include "io/FileManager.hpp"
 #include "io/FileStreamBuilder.hpp"
 #include "io/MPISendStream.hpp"
 #include "layers/HyPerLayer.hpp"
-#include "probes/ColumnEnergyProbe.hpp"
+#include "observerpattern/BaseMessage.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
 #include "utils/PathComponents.hpp"
-#include <float.h>
-#include <limits>
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <functional>
+#include <string>
 
 namespace PV {
 
@@ -28,19 +35,18 @@ BaseProbe::BaseProbe() {
 BaseProbe::~BaseProbe() {
    flushOutputStreams();
    mOutputStreams.clear();
-   free(targetName);
+   std::free(targetName);
    targetName = nullptr;
-   free(msgparams);
+   std::free(msgparams);
    msgparams = nullptr;
-   free(msgstring);
+   std::free(msgstring);
    msgstring = nullptr;
-   free(mProbeOutputFilename);
+   std::free(mProbeOutputFilename);
    mProbeOutputFilename = nullptr;
    if (triggerLayerName) {
-      free(triggerLayerName);
+      std::free(triggerLayerName);
       triggerLayerName = nullptr;
    }
-   free(energyProbe);
    mMPIRecvStreams.clear();
    delete mInitialIOTimer;
    delete mInitialIOWaitTimer;
@@ -56,8 +62,6 @@ int BaseProbe::initialize_base() {
    triggerFlag      = false;
    triggerLayerName = nullptr;
    triggerOffset    = 0;
-   energyProbe      = nullptr;
-   coefficient      = 1.0;
    lastUpdateTime   = 0.0;
    mProbeValues.clear();
    return PV_SUCCESS;
@@ -78,10 +82,7 @@ int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_probeOutputFile(ioFlag);
    ioParam_statsFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
-   ioParam_triggerFlag(ioFlag);
    ioParam_triggerOffset(ioFlag);
-   ioParam_energyProbe(ioFlag);
-   ioParam_coefficient(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -93,19 +94,6 @@ void BaseProbe::ioParam_message(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(ioFlag, name, "message", &msgparams, NULL, false /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       initMessage(msgparams);
-   }
-}
-
-void BaseProbe::ioParam_energyProbe(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, name, "energyProbe", &energyProbe, NULL, false /*warnIfAbsent*/);
-}
-
-void BaseProbe::ioParam_coefficient(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "energyProbe"));
-   if (energyProbe && energyProbe[0]) {
-      parameters()->ioParamValue(
-            ioFlag, name, "coefficient", &coefficient, coefficient, true /*warnIfAbsent*/);
    }
 }
 
@@ -142,29 +130,8 @@ void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-// triggerFlag was deprecated Oct 7, 2015, and marked obsolete Jun 9, 2017.
-// Setting triggerLayerName to a nonempty string has the effect of triggerFlag=true, and
-// setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
-// For a reasonable fade-out time, it is an error for triggerFlag to be defined in params.
-void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-   if (ioFlag == PARAMS_IO_READ && parameters()->present(name, "triggerFlag")) {
-      bool flagFromParams = false;
-      parameters()->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
-      if (mCommunicator->globalCommRank() == 0) {
-         Fatal(triggerFlagDeprecated);
-         triggerFlagDeprecated.printf(
-               "%s: triggerFlag is obsolete for probes.\n", getDescription_c());
-         triggerFlagDeprecated.printf(
-               "   If triggerLayerName is a nonempty string, triggering will be on;\n");
-         triggerFlagDeprecated.printf(
-               "   if triggerLayerName is empty or null, triggering will be off.\n");
-      }
-   }
-}
-
 void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+   assert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (triggerFlag) {
       parameters()->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if (triggerOffset < 0) {
@@ -193,6 +160,12 @@ void BaseProbe::initMessageActionMap() {
       return respondPrepareCheckpointWrite(castMessage);
    };
    mMessageActionMap.emplace("PrepareCheckpointWrite", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ProbeWriteParamsMessage const>(msgptr);
+      return respondProbeWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("ProbeWriteParams", action);
 }
 
 void BaseProbe::initOutputStreams(
@@ -207,7 +180,7 @@ void BaseProbe::initOutputStreams(
 
 void BaseProbe::initOutputStreamsStatsFlag(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto *checkpointer = message->mDataRegistry;
+   auto *checkpointer     = message->mDataRegistry;
    auto globalFileManager = std::make_shared<FileManager>(
          getCommunicator()->getIOMPIBlock(),
          getCommunicator()->getOutputFileManager()->getBaseDirectory());
@@ -216,12 +189,13 @@ void BaseProbe::initOutputStreamsStatsFlag(
       if (getProbeOutputFilename() and getProbeOutputFilename()[0]) {
          bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
          auto fileStream = FileStreamBuilder(
-               globalFileManager,
-               getProbeOutputFilename(),
-               true /*text*/,
-               false /*not read-only*/,
-               createFlag,
-               checkpointer->doesVerifyWrites()).get();
+                                 globalFileManager,
+                                 getProbeOutputFilename(),
+                                 true /*text*/,
+                                 false /*not read-only*/,
+                                 createFlag,
+                                 checkpointer->doesVerifyWrites())
+                                 .get();
          auto checkpointEntry = std::make_shared<CheckpointEntryFilePosition>(
                getProbeOutputFilename(), std::string("filepos"), fileStream);
          bool registerSucceeded = checkpointer->registerCheckpointEntry(
@@ -253,9 +227,9 @@ void BaseProbe::initOutputStreamsByBatchElement(
       if (isWritingToFile()) {
          if (isRootProc()) {
             std::string probeOutputFilename(mProbeOutputFilename);
-            std::string dir  = dirName(probeOutputFilename);
-            std::string base = stripExtension(probeOutputFilename);
-            std::string ext  = extension(probeOutputFilename);
+            std::string dir      = dirName(probeOutputFilename);
+            std::string base     = stripExtension(probeOutputFilename);
+            std::string ext      = extension(probeOutputFilename);
             std::string pathRoot = dir + "/" + base + "_batchElement_";
 
             int blockBatchSize = ioMPIBlock->getBatchDimension() * mLocalBatchWidth;
@@ -267,19 +241,20 @@ void BaseProbe::initOutputStreamsByBatchElement(
             bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
             for (int b = 0; b < blockBatchSize; ++b) {
                int batchProcessIndex = b / mLocalBatchWidth; // integer division
-               int sendingRank = ioMPIBlock->calcRankFromRowColBatch(0, 0, batchProcessIndex);
+               int sendingRank       = ioMPIBlock->calcRankFromRowColBatch(0, 0, batchProcessIndex);
                if (sendingRank == ioMPIBlock->getRank()) {
                   int localBatchIndex  = b % mLocalBatchWidth;
                   int globalBatchIndex = localBatchIndex + localBatchOffset;
                   auto path            = pathRoot + std::to_string(globalBatchIndex) + ext;
                   bool verifyWrites    = checkpointer->doesVerifyWrites();
                   auto fileStream      = FileStreamBuilder(
-                       fileManager,
-                       path,
-                       true /*text*/,
-                       false /*not read-only*/,
-                       createFlag,
-                       verifyWrites).get();
+                                          fileManager,
+                                          path,
+                                          true /*text*/,
+                                          false /*not read-only*/,
+                                          createFlag,
+                                          verifyWrites)
+                                          .get();
                   auto checkpointEntry =
                         std::make_shared<CheckpointEntryFilePosition>(path, "filepos", fileStream);
                   bool registerSucceeded = checkpointer->registerCheckpointEntry(
@@ -292,11 +267,12 @@ void BaseProbe::initOutputStreamsByBatchElement(
                   mOutputStreams[localBatchIndex] = fileStream;
                }
                else {
-                  int globalBatchIndex  = b + localBatchOffset;
-                  auto batchPath        = pathRoot + std::to_string(globalBatchIndex) + ext;
+                  int globalBatchIndex = b + localBatchOffset;
+                  auto batchPath       = pathRoot + std::to_string(globalBatchIndex) + ext;
                   std::string checkpointPath(batchPath + "_filepos");
                   batchPath = fileManager->makeBlockFilename(batchPath);
-                  mMPIRecvStreams.emplace_back(batchPath, ioMPIBlock->getComm(), sendingRank, createFlag);
+                  mMPIRecvStreams.emplace_back(
+                        batchPath, ioMPIBlock->getComm(), sendingRank, createFlag);
                   auto checkpointEntry = std::make_shared<CheckpointEntryMPIRecvStream>(
                         checkpointPath, mMPIRecvStreams.back());
                   bool constantEntireRunFlag = false;
@@ -308,7 +284,7 @@ void BaseProbe::initOutputStreamsByBatchElement(
             initializeTagVectors(mLocalBatchWidth, mTagSpacing);
             for (int b = 0; b < mLocalBatchWidth; b++) {
                mOutputStreams[b] =
-                     std::make_shared<MPISendStream>(ioMPIBlock->getComm(), 0/*receiving rank*/);
+                     std::make_shared<MPISendStream>(ioMPIBlock->getComm(), 0 /*receiving rank*/);
             }
          }
       }
@@ -321,6 +297,12 @@ void BaseProbe::initOutputStreamsByBatchElement(
    else {
       mOutputStreams.clear();
    }
+}
+
+Response::Status
+BaseProbe::respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const>(message)) {
+   writeParams();
+   return Response::SUCCESS;
 }
 
 void BaseProbe::initNumValues() { setNumValues(mLocalBatchWidth); }
@@ -358,24 +340,6 @@ BaseProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const>
             getDescription_c(),
             triggerLayerName);
    }
-
-   // Add the probe to the ColumnEnergyProbe, if there is one.
-   if (!mAddedToEnergyProbe and energyProbe and energyProbe[0]) {
-      auto *probe = objectTable->findObject<ColumnEnergyProbe>(energyProbe);
-      FatalIf(
-            probe == nullptr,
-            "%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the column.\n",
-            parameters()->groupKeywordFromName(getName()),
-            getName(),
-            energyProbe);
-      int termAdded = probe->addTerm(this);
-      FatalIf(
-            termAdded != PV_SUCCESS,
-            "Failed to add %s to %s.\n",
-            getDescription_c(),
-            probe->getDescription_c());
-      mAddedToEnergyProbe = (termAdded == PV_SUCCESS);
-   }
    return Response::SUCCESS;
 }
 
@@ -384,17 +348,17 @@ int BaseProbe::initMessage(const char *msg) {
    int status = PV_SUCCESS;
    if (msg != NULL && msg[0] != '\0') {
       size_t msglen   = strlen(msg);
-      this->msgstring = (char *)calloc(
+      this->msgstring = (char *)std::calloc(
             msglen + 2,
             sizeof(char)); // Allocate room for colon plus null terminator
       if (this->msgstring) {
-         memcpy(this->msgstring, msg, msglen);
+         std::memcpy(this->msgstring, msg, msglen);
          this->msgstring[msglen]     = ':';
          this->msgstring[msglen + 1] = '\0';
       }
    }
    else {
-      this->msgstring = (char *)calloc(1, sizeof(char));
+      this->msgstring = (char *)std::calloc(1, sizeof(char));
       if (this->msgstring) {
          this->msgstring[0] = '\0';
       }
@@ -430,7 +394,7 @@ BaseProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const>
    initOutputStreams(message);
 
    auto *checkpointer = message->mDataRegistry;
-   mInitialIOTimer = new Timer(getName(), "probe", "initialio ");
+   mInitialIOTimer    = new Timer(getName(), "probe", "initialio ");
    checkpointer->registerTimer(mInitialIOTimer);
    mInitialIOWaitTimer = new Timer(getName(), "probe", "initiowait");
    checkpointer->registerTimer(mInitialIOWaitTimer);
@@ -451,7 +415,7 @@ void BaseProbe::getValues(double timevalue) {
 
 void BaseProbe::getValues(double timevalue, double *values) {
    getValues(timevalue);
-   memcpy(values, mProbeValues.data(), sizeof(*mProbeValues.data()) * mProbeValues.size());
+   std::memcpy(values, mProbeValues.data(), sizeof(*mProbeValues.data()) * mProbeValues.size());
 }
 
 void BaseProbe::getValues(double timevalue, std::vector<double> *valuesVector) {
@@ -482,8 +446,12 @@ Response::Status BaseProbe::outputStateWrapper(double simTime, double dt) {
 }
 
 void BaseProbe::flushOutputStreams() {
-   if (mStatsFlag) { return; }
-   if (!isWritingToFile()) { return; }
+   if (mStatsFlag) {
+      return;
+   }
+   if (!isWritingToFile()) {
+      return;
+   }
    transferMPIOutput();
    auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
    if (isBatchBaseProc()) {
@@ -491,7 +459,9 @@ void BaseProbe::flushOutputStreams() {
          std::vector<int> nonRootTags(mCurrentTag.size());
          for (int p = 0; p < ioMPIBlock->getBatchDimension(); ++p) {
             int sendingRank = ioMPIBlock->calcRankFromRowColBatch(0, 0, p);
-            if (p == ioMPIBlock->getBatchIndex()) { continue; }
+            if (p == ioMPIBlock->getBatchIndex()) {
+               continue;
+            }
             int tagVectorOffset = p - (p > ioMPIBlock->getBatchIndex() ? 1 : 0);
             tagVectorOffset *= mLocalBatchWidth;
             pvAssert(tagVectorOffset < static_cast<int>(nonRootTags.size()));
@@ -518,7 +488,7 @@ void BaseProbe::flushOutputStreams() {
       else {
          pvAssert(static_cast<int>(mCurrentTag.size() == mLocalBatchWidth));
          MPI_Send(
-               mCurrentTag.data(), 
+               mCurrentTag.data(),
                mLocalBatchWidth,
                MPI_INT,
                0 /*destination rank*/,
@@ -529,9 +499,9 @@ void BaseProbe::flushOutputStreams() {
 }
 
 int BaseProbe::incrementTag(int index) {
-   int tag = mCurrentTag.at(index);
-   int newTag = tag + 1;
-   newTag = (newTag >= mTagLimit[index]) ? mStartTag[index] : newTag;
+   int tag            = mCurrentTag.at(index);
+   int newTag         = tag + 1;
+   newTag             = (newTag >= mTagLimit[index]) ? mStartTag[index] : newTag;
    mCurrentTag[index] = newTag;
    return newTag;
 }
@@ -543,10 +513,10 @@ void BaseProbe::initializeTagVectors(int vectorSize, int spacing) {
    mTagLimit.resize(vectorSize);
    for (int b = 0; b < vectorSize; ++b) {
       int localBatchIndex = b % mLocalBatchWidth;
-      int startTag = mBaseTag + spacing * (localBatchIndex + mLocalBatchWidth * mProbeIndex);
-      mCurrentTag[b] = startTag;
-      mStartTag[b] = startTag;
-      mTagLimit[b] = startTag + spacing;
+      int startTag        = mBaseTag + spacing * (localBatchIndex + mLocalBatchWidth * mProbeIndex);
+      mCurrentTag[b]      = startTag;
+      mStartTag[b]        = startTag;
+      mTagLimit[b]        = startTag + spacing;
    }
 }
 
@@ -556,18 +526,16 @@ bool BaseProbe::isBatchBaseProc() const {
    return (blockColumnIndex == 0 and blockRowIndex == 0);
 }
 
-bool BaseProbe::isRootProc() const {
-   return getCommunicator()->getIOMPIBlock()->getRank() == 0;
-}
+bool BaseProbe::isRootProc() const { return getCommunicator()->getIOMPIBlock()->getRank() == 0; }
 
 void BaseProbe::receive(int batchProcessIndex, int localBatchIndex) {
    pvAssert(isRootProc());
    int blockBatchIndex = batchProcessIndex * mLocalBatchWidth + localBatchIndex;
-   int streamIndex = blockBatchIndex;
-   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+   int streamIndex     = blockBatchIndex;
+   auto ioMPIBlock     = getCommunicator()->getIOMPIBlock();
    streamIndex -= (batchProcessIndex > ioMPIBlock->getBatchIndex() ? mLocalBatchWidth : 0);
-   int tag = mCurrentTag[streamIndex];
-   auto &recvStream = mMPIRecvStreams[streamIndex];
+   int tag           = mCurrentTag[streamIndex];
+   auto &recvStream  = mMPIRecvStreams[streamIndex];
    int bytesReceived = recvStream.receive(tag);
    if (bytesReceived > 0) {
       incrementTag(streamIndex);
@@ -575,24 +543,30 @@ void BaseProbe::receive(int batchProcessIndex, int localBatchIndex) {
 }
 
 void BaseProbe::transferMPIOutput() {
-   if (mStatsFlag) { return; }
-   if (!isWritingToFile()) { return; }
+   if (mStatsFlag) {
+      return;
+   }
+   if (!isWritingToFile()) {
+      return;
+   }
    if (isBatchBaseProc()) {
       if (isRootProc()) {
-         auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+         auto ioMPIBlock    = getCommunicator()->getIOMPIBlock();
          int blockBatchSize = ioMPIBlock->getBatchDimension() * mLocalBatchWidth;
          for (int b = 0; b < blockBatchSize; ++b) {
             int batchProcessIndex = b / mLocalBatchWidth; // integer division
-            if (batchProcessIndex == ioMPIBlock->getBatchIndex()) { continue; }
+            if (batchProcessIndex == ioMPIBlock->getBatchIndex()) {
+               continue;
+            }
             int localBatchIndex = b % mLocalBatchWidth;
             receive(batchProcessIndex, localBatchIndex);
          }
       }
       else {
          for (int b = 0; b < mLocalBatchWidth; ++b) {
-            auto *stream = dynamic_cast<MPISendStream*>(&output(b));
+            auto *stream = dynamic_cast<MPISendStream *>(&output(b));
             pvAssert(stream != nullptr);
-            int tag = mCurrentTag[b];
+            int tag       = mCurrentTag[b];
             int bytesSent = stream->send(tag);
             if (bytesSent > 0) {
                incrementTag(b);
@@ -602,8 +576,10 @@ void BaseProbe::transferMPIOutput() {
    }
 }
 
-Response::Status BaseProbe::prepareCheckpointWrite() {
-   if (!mStatsFlag) { flushOutputStreams(); }
+Response::Status BaseProbe::prepareCheckpointWrite(double simTime) {
+   if (!mStatsFlag) {
+      flushOutputStreams();
+   }
    return Response::SUCCESS;
 }
 

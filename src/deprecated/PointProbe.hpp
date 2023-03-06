@@ -8,11 +8,18 @@
 #ifndef POINTPROBE_HPP_
 #define POINTPROBE_HPP_
 
-#include "probes/LayerProbe.hpp"
+#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointingMessages.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Messages.hpp"
+#include "io/PVParams.hpp"
+#include "observerpattern/Response.hpp"
+#include "probes/LegacyLayerProbe.hpp"
+#include <memory>
 
 namespace PV {
 
-class PointProbe : public LayerProbe {
+class PointProbe : public LegacyLayerProbe {
   public:
    PointProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~PointProbe();
@@ -51,8 +58,8 @@ class PointProbe : public LayerProbe {
     * the indicated point has an mOutputStreams vector whose length is the
     * local batch width. Other processes have an empty mOutputStreams vector.
     */
-   virtual void initOutputStreams(
-         std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+   virtual void
+   initOutputStreams(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    virtual void writeState(double timevalue);
 
@@ -87,6 +94,6 @@ class PointProbe : public LayerProbe {
    float const *mPointV = nullptr; // Points to the memory location of the target point's V
    float const *mPointA = nullptr; // Points to the memory location of the target point's A
 }; // end class PointProbe
-}
+} // namespace PV
 
 #endif /* POINTPROBE_HPP_ */

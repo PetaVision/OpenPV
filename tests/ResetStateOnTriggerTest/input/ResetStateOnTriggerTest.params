@@ -146,7 +146,7 @@ IdentConn "InputLayerToTestLayer" = {
 };
 
 ResetStateOnTriggerTestProbe "TestProbe" = {
-    targetName                          = "TestLayer";
+    targetLayer                         = "TestLayer";
     message                             = "TestProbe";
     textOutputFlag                      = true;
     probeOutputFile                     = "TestProbe.txt";

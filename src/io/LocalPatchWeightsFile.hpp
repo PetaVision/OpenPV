@@ -83,14 +83,14 @@ class LocalPatchWeightsFile : public WeightsFile {
    void setIndex(int index) override;
 
    std::shared_ptr<FileStream> getFileStream() const {
-         return mLocalPatchWeightsIO->getFileStream();
+      return mLocalPatchWeightsIO->getFileStream();
    }
 
   protected:
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-   virtual Response::Status processCheckpointRead() override;
+   virtual Response::Status processCheckpointRead(double simTime) override;
 
   private:
    int initializeCheckpointerDataInterface();
@@ -129,6 +129,6 @@ class LocalPatchWeightsFile : public WeightsFile {
    long mFileStreamWritePos = 0L; // Output file position of the LocalPatchWeightsIO's FileStream
 };
 
-} // namespacePV
+} // namespace PV
 
 #endif // LOCALPATCHWEIGHTSFILE_HPP_

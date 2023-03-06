@@ -1,0 +1,17 @@
+OutputAStats  :t==   0.0 b==2 N==64 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000 sigma==0.000000 nnz==0
+OutputAStats  :t==   1.0 b==2 N==64 Total==460.000000 Min==4.000000 Avg==7.187500 Max==9.000000 sigma==1.703627 nnz==64
+OutputAStats  :t==   2.0 b==2 N==64 Total==430.000000 Min==3.000000 Avg==6.718750 Max==9.000000 sigma==1.709064 nnz==64
+OutputAStats  :t==   3.0 b==2 N==64 Total==403.000000 Min==2.000000 Avg==6.296875 Max==9.000000 sigma==1.729159 nnz==64
+OutputAStats  :t==   4.0 b==2 N==64 Total==366.000000 Min==1.000000 Avg==5.718750 Max==9.000000 sigma==1.883056 nnz==64
+OutputAStats  :t==   5.0 b==2 N==64 Total==341.000000 Min==1.000000 Avg==5.328125 Max==8.000000 sigma==2.023724 nnz==64
+OutputAStats  :t==   6.0 b==2 N==64 Total==312.000000 Min==0.000000 Avg==4.875000 Max==9.000000 sigma==1.932453 nnz==63
+OutputAStats  :t==   7.0 b==2 N==64 Total==285.000000 Min==0.000000 Avg==4.453125 Max==8.000000 sigma==1.758281 nnz==63
+OutputAStats  :t==   8.0 b==2 N==64 Total==255.000000 Min==1.000000 Avg==3.984375 Max==8.000000 sigma==1.644044 nnz==64
+OutputAStats  :t==   9.0 b==2 N==64 Total==212.000000 Min==0.000000 Avg==3.312500 Max==6.000000 sigma==1.529655 nnz==63
+OutputAStats  :t==  10.0 b==2 N==64 Total==180.000000 Min==0.000000 Avg==2.812500 Max==5.000000 sigma==1.379255 nnz==59
+OutputAStats  :t==  11.0 b==2 N==64 Total==160.000000 Min==1.000000 Avg==2.500000 Max==5.000000 sigma==1.274755 nnz==64
+OutputAStats  :t==  12.0 b==2 N==64 Total==130.000000 Min==0.000000 Avg==2.031250 Max==6.000000 sigma==1.468085 nnz==53
+OutputAStats  :t==  13.0 b==2 N==64 Total==97.000000 Min==0.000000 Avg==1.515625 Max==4.000000 sigma==1.249902 nnz==47
+OutputAStats  :t==  14.0 b==2 N==64 Total==67.000000 Min==0.000000 Avg==1.046875 Max==3.000000 sigma==0.818338 nnz==46
+OutputAStats  :t==  15.0 b==2 N==64 Total==36.000000 Min==0.000000 Avg==0.562500 Max==2.000000 sigma==0.658478 nnz==30
+OutputAStats  :t==  16.0 b==2 N==64 Total==9.000000 Min==0.000000 Avg==0.140625 Max==1.000000 sigma==0.347634 nnz==9

@@ -134,12 +134,7 @@ void HebbianUpdater::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
    if (mPlasticityFlag) {
       pvAssert(!parameters()->presentAndNotBeenRead(name, "dWMax"));
       parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "dWMaxDecayInterval",
-            &mDWMaxDecayInterval,
-            mDWMaxDecayInterval,
-            false);
+            ioFlag, name, "dWMaxDecayInterval", &mDWMaxDecayInterval, mDWMaxDecayInterval, false);
    }
 }
 
@@ -857,7 +852,7 @@ void HebbianUpdater::computeNewWeightUpdateTime(double simTime, double currentUp
    }
 }
 
-Response::Status HebbianUpdater::prepareCheckpointWrite() {
+Response::Status HebbianUpdater::prepareCheckpointWrite(double simTime) {
    blockingNormalize_dW();
    pvAssert(mDeltaWeightsReduceRequests.empty());
    return Response::SUCCESS;

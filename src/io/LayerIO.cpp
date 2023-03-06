@@ -1,23 +1,23 @@
 #include "LayerIO.hpp"
 
+#include "include/pv_common.h"
 #include "structures/Buffer.hpp"
-#include "utils/BufferUtilsMPI.hpp" // gather, scatter
 #include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include <ios>
 
 namespace PV {
 
-LayerIO::LayerIO(
-      std::shared_ptr<FileStream> fileStream,
-      int width,
-      int height,
-      int numFeatures) :
-      mFileStream(fileStream), mWidth(width), mHeight(height), mNumFeatures(numFeatures) {
+LayerIO::LayerIO(std::shared_ptr<FileStream> fileStream, int width, int height, int numFeatures)
+      : mFileStream(fileStream), mWidth(width), mHeight(height), mNumFeatures(numFeatures) {
    FatalIf(
          fileStream and !fileStream->readable(),
          "FileStream \"%s\" is not readable and can't be used in a LayerIO object.\n",
          fileStream->getFileName().c_str());
 
-   if (!getFileStream()) { return; }
+   if (!getFileStream()) {
+      return;
+   }
 
    initializeNumFrames();
 
@@ -38,8 +38,7 @@ long LayerIO::calcFilePositionFromFrameNumber(int frameNumber) const {
    long const valuesPerPVPFrame = calcValuesPerPVPFrame();
    long const frameSizeInBytes  = frameHeaderSize + mDataSize * valuesPerPVPFrame;
 
-   long const filePosition =
-         mHeaderSize + frameSizeInBytes * static_cast<long>(frameNumber);
+   long const filePosition = mHeaderSize + frameSizeInBytes * static_cast<long>(frameNumber);
    return filePosition;
 }
 
@@ -59,7 +58,9 @@ void LayerIO::read(Buffer<float> &buffer) {
 }
 
 void LayerIO::read(Buffer<float> &buffer, double &timestamp) {
-   if (!mFileStream) { return; }
+   if (!mFileStream) {
+      return;
+   }
 
    if (buffer.getTotalElements() == 0) {
       buffer.resize(mWidth, mHeight, mNumFeatures);
@@ -77,9 +78,10 @@ void LayerIO::read(Buffer<float> &buffer, double &timestamp, int frameNumber) {
    read(buffer, timestamp);
 }
 
-
 void LayerIO::write(Buffer<float> const &buffer, double timestamp) {
-   if (!mFileStream) { return; }
+   if (!mFileStream) {
+      return;
+   }
 
    long numBytes = checkBufferDimensions(buffer);
    mFileStream->write(&timestamp, 8L);
@@ -97,26 +99,26 @@ void LayerIO::write(Buffer<float> const &buffer, double timestamp, int frameNumb
    write(buffer, timestamp);
 }
 
-void LayerIO::open() {
-   mFileStream->open();
-}
+void LayerIO::open() { mFileStream->open(); }
 
-void LayerIO::close() {
-   mFileStream->close();
-}
+void LayerIO::close() { mFileStream->close(); }
 
 void LayerIO::setFrameNumber(int frame) {
-   if (!mFileStream) { return; }
+   if (!mFileStream) {
+      return;
+   }
    mFrameNumber = frame;
    long filePos = calcFilePositionFromFrameNumber(frame);
    mFileStream->setInPos(filePos, std::ios_base::beg);
-   if (mFileStream->writeable()) { mFileStream->setOutPos(filePos, std::ios_base::beg); }
+   if (mFileStream->writeable()) {
+      mFileStream->setOutPos(filePos, std::ios_base::beg);
+   }
 }
 
 long LayerIO::calcValuesPerPVPFrame() const {
-   long nf = static_cast<long>(mNumFeatures);
-   long nx = static_cast<long>(mWidth);
-   long ny = static_cast<long>(mHeight);
+   long nf                      = static_cast<long>(mNumFeatures);
+   long nx                      = static_cast<long>(mWidth);
+   long ny                      = static_cast<long>(mHeight);
    long const valuesPerPVPFrame = nx * ny * nf;
    return valuesPerPVPFrame;
 }
@@ -126,34 +128,42 @@ long LayerIO::checkBufferDimensions(Buffer<float> const &buffer) {
    if (buffer.getWidth() != getWidth()) {
       ErrorLog().printf(
             "LayerIO received a buffer with width %d but file has width %d.\n",
-            buffer.getWidth(), getWidth());
+            buffer.getWidth(),
+            getWidth());
       status = PV_FAILURE;
    }
    if (buffer.getHeight() != getHeight()) {
       ErrorLog().printf(
             "LayerIO received a buffer with height %d but file has height %d.\n",
-            buffer.getHeight(), getHeight());
+            buffer.getHeight(),
+            getHeight());
       status = PV_FAILURE;
    }
    if (buffer.getFeatures() != getNumFeatures()) {
       ErrorLog().printf(
             "LayerIO received a buffer with %d features %d but file has %d features.\n",
-            buffer.getFeatures(), getNumFeatures());
+            buffer.getFeatures(),
+            getNumFeatures());
       status = PV_FAILURE;
    }
-   FatalIf(status != PV_SUCCESS, "LayerIO \"%s\" failed.\n", getFileStream()->getFileName().c_str());
+   FatalIf(
+         status != PV_SUCCESS, "LayerIO \"%s\" failed.\n", getFileStream()->getFileName().c_str());
 
    long numBytes = static_cast<long>(buffer.getTotalElements()) * mDataSize;
    return numBytes;
 }
 
 void LayerIO::initializeNumFrames() {
-   if (!mFileStream) { return; }
+   if (!mFileStream) {
+      return;
+   }
 
    getFileStream()->setInPos(0L, std::ios_base::end);
    long eofPosition = getFileStream()->getInPos();
    if (getFileStream()->writeable()) {
-      if (eofPosition == 0L) { writeHeader(); }
+      if (eofPosition == 0L) {
+         writeHeader();
+      }
       getFileStream()->setInPos(0L, std::ios_base::end);
       eofPosition = getFileStream()->getInPos();
       getFileStream()->setOutPos(eofPosition, std::ios_base::beg);
@@ -166,8 +176,8 @@ void LayerIO::setHeaderNBands() {
    pvAssert(getFileStream());
    long currentPosition = getFileStream()->getOutPos();
    getFileStream()->setOutPos(0L, std::ios_base::end);
-   long fileLength = getFileStream()->getOutPos();
-   int nBandsTotal = calcFrameNumberFromFilePosition(fileLength);
+   long fileLength     = getFileStream()->getOutPos();
+   int nBandsTotal     = calcFrameNumberFromFilePosition(fileLength);
    long nBandsPosition = 68L;
    getFileStream()->setOutPos(nBandsPosition, std::ios_base::beg);
    getFileStream()->write(&nBandsTotal, static_cast<long>(sizeof(nBandsTotal)));
@@ -175,7 +185,9 @@ void LayerIO::setHeaderNBands() {
 }
 
 void LayerIO::writeHeader() {
-   if (!getFileStream()) { return; }
+   if (!getFileStream()) {
+      return;
+   }
    FatalIf(
          !getFileStream()->writeable(),
          "writeHeader() called but \"%s\" is not writeable.\n",

@@ -9,19 +9,19 @@
 #define LOCALPATCHWEIGHTSIO_HPP_
 
 #include "io/FileStream.hpp"
-#include "utils/BufferUtilsPvp.hpp" // struct WeightHeader
-#include "structures/Buffer.hpp"
 #include "structures/Patch.hpp"
 #include "structures/WeightData.hpp"
+#include "utils/BufferUtilsPvp.hpp" // struct WeightHeader
 
 #include <array>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace PV {
 
 /**
- * A class to manage weight PVP files. 
+ * A class to manage weight PVP files.
  * Generally reading and writing a weight PVP file should be done by means of this class.
  * The principal use case is by the LocalPatchWeightsFile class, which creates and manages a
  * LocalPatchWeightsIO class internally for its I/O operations.
@@ -45,19 +45,19 @@ namespace PV {
 class LocalPatchWeightsIO {
   public:
    LocalPatchWeightsIO(
-      std::shared_ptr<FileStream> fileStream,
-      int patchSizeX,
-      int patchSizeY,
-      int patchSizeF,
-      int nxRestrictedPre,
-      int nyRestrictedPre,
-      int nfRestrictedPre,
-      int nxRestrictedPost,
-      int nyRestrictedPost,
-      // nfRestrictedPost would be the same as patchSizeF
-      int numArbors,
-      bool fileExtendedFlag,
-      bool compressedFlag);
+         std::shared_ptr<FileStream> fileStream,
+         int patchSizeX,
+         int patchSizeY,
+         int patchSizeF,
+         int nxRestrictedPre,
+         int nyRestrictedPre,
+         int nfRestrictedPre,
+         int nxRestrictedPost,
+         int nyRestrictedPost,
+         // nfRestrictedPost would be the same as patchSizeF
+         int numArbors,
+         bool fileExtendedFlag,
+         bool compressedFlag);
 
    virtual ~LocalPatchWeightsIO() {}
 
@@ -74,8 +74,10 @@ class LocalPatchWeightsIO {
     */
    void calcExtremeWeights(
          WeightData const &weightRegion,
-         int nxRestrictedRegion, int nyRestrictedRegion,
-         float &minWeight, float &maxWeight) const;
+         int nxRestrictedRegion,
+         int nyRestrictedRegion,
+         float &minWeight,
+         float &maxWeight) const;
    long calcFilePositionFromFrameNumber(int frameNumber) const;
    int calcFrameNumberFromFilePosition(long filePosition) const;
 
@@ -89,26 +91,26 @@ class LocalPatchWeightsIO {
    BufferUtils::WeightHeader readHeader();
    BufferUtils::WeightHeader readHeader(int frameNumber);
    void readRegion(
-      WeightData &weightData,
-      BufferUtils::WeightHeader const &header,
-      int regionNxRestricted,
-      int regionNyRestricted,
-      int regionXStartRestricted,
-      int regionYStartRestricted,
-      int regionFStartRestricted,
-      int arborIndexStart);
-  
+         WeightData &weightData,
+         BufferUtils::WeightHeader const &header,
+         int regionNxRestricted,
+         int regionNyRestricted,
+         int regionXStartRestricted,
+         int regionYStartRestricted,
+         int regionFStartRestricted,
+         int arborIndexStart);
+
    void writeHeader(BufferUtils::WeightHeader const &header);
    void writeHeader(BufferUtils::WeightHeader const &header, int frameNumber);
    void writeRegion(
-      WeightData const &weightData,
-      BufferUtils::WeightHeader const &header,
-      int regionNxRestricted,
-      int regionNyRestricted,
-      int regionXStartRestricted,
-      int regionYStartRestricted,
-      int regionFStartRestricted,
-      int arborIndexStart);
+         WeightData const &weightData,
+         BufferUtils::WeightHeader const &header,
+         int regionNxRestricted,
+         int regionNyRestricted,
+         int regionXStartRestricted,
+         int regionYStartRestricted,
+         int regionFStartRestricted,
+         int arborIndexStart);
 
    std::shared_ptr<FileStream> getFileStream() const { return mFileStream; }
 
@@ -146,16 +148,20 @@ class LocalPatchWeightsIO {
    long calcFrameSizeBytes() const;
    long calcPatchSizeBytes() const;
    static std::array<std::vector<int>, 2> calcPatchStartsAndStops(
-         int nExtendedPre, int nRestrictedPre, int nPreRef, int nPostRef, int patchSize);
+         int nExtendedPre,
+         int nRestrictedPre,
+         int nPreRef,
+         int nPostRef,
+         int patchSize);
    void checkDimensions(
-      WeightData const &weightData,
-      int regionNxRestrictedPre,
-      int regionNyRestrictedPre,
-      int regionXStartRestricted,
-      int regionYStartRestricted,
-      int regionFStartRestricted,
-      int arborIndexStart,
-      std::string const &functionName);
+         WeightData const &weightData,
+         int regionNxRestrictedPre,
+         int regionNyRestrictedPre,
+         int regionXStartRestricted,
+         int regionYStartRestricted,
+         int regionFStartRestricted,
+         int arborIndexStart,
+         std::string const &functionName);
    void checkHeader(BufferUtils::WeightHeader const &header) const;
 
    void initializeFrameSize();
@@ -163,31 +169,36 @@ class LocalPatchWeightsIO {
    void initializeNumFrames();
 
    void readPatch(
-      std::vector<float> &readBuffer,
-      int arborIndex,
-      int xPatchIndex,
-      int yPatchIndex,
-      int fPatchIndex,
-      float minWeight,
-      float maxWeight);
+         std::vector<float> &readBuffer,
+         int arborIndex,
+         int xPatchIndex,
+         int yPatchIndex,
+         int fPatchIndex,
+         float minWeight,
+         float maxWeight);
 
    void writePatch(
-      std::vector<float> const &writeBuffer,
-      int arborIndex,
-      int xPatchIndex,
-      int yPatchIndex,
-      int fPatchIndex,
-      int xStart,
-      int xStop,
-      int yStart,
-      int yStop,
-      float minWeight,
-      float maxWeight);
+         std::vector<float> const &writeBuffer,
+         int arborIndex,
+         int xPatchIndex,
+         int yPatchIndex,
+         int fPatchIndex,
+         int xStart,
+         int xStop,
+         int yStart,
+         int yStop,
+         float minWeight,
+         float maxWeight);
    // void setHeaderNBands(); // We might do this for weights as we do for layers; for now we don't
 
    void writePatchAtLocation(
-      std::vector<float> const &writeBuffer,
-      int xStart, int xStop, int yStart, int yStop, float minWeight, float maxWeight);
+         std::vector<float> const &writeBuffer,
+         int xStart,
+         int xStop,
+         int yStart,
+         int yStop,
+         float minWeight,
+         float maxWeight);
 
   private:
    std::shared_ptr<FileStream> mFileStream;
@@ -204,17 +215,17 @@ class LocalPatchWeightsIO {
    bool mCompressedFlag;
 
    long mFrameSize  = 0L; // Number of bytes in a frame, including the header
-   int mFrameNumber     = 0;
-   int mNumFrames       = 0;
+   int mFrameNumber = 0;
+   int mNumFrames   = 0;
 
    int mXMargin = 0;
    int mYMargin = 0;
 
-   long mDataSize = static_cast<long>(sizeof(float));
-   long const mHeaderSize = static_cast<long>(sizeof(BufferUtils::WeightHeader));
+   long mDataSize              = static_cast<long>(sizeof(float));
+   long const mHeaderSize      = static_cast<long>(sizeof(BufferUtils::WeightHeader));
    long const mPatchHeaderSize = static_cast<long>(sizeof(Patch));
 };
 
-} // namespacePV
+} // namespace PV
 
 #endif // LOCALPATCHWEIGHTSIO_HPP_

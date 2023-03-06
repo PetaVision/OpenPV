@@ -6,37 +6,37 @@
  */
 
 #include "DelayTestProbe.hpp"
-#include <include/pv_arch.h>
+#include <include/PVLayerLoc.h>
+#include <include/pv_common.h>
 #include <layers/HyPerLayer.hpp>
-#include <string.h>
+#include <probes/ProbeData.hpp>
+#include <probes/StatsProbeTypes.hpp>
 #include <utils/PVLog.hpp>
+
+#include <cmath>
 
 namespace PV {
 
 DelayTestProbe::DelayTestProbe(const char *name, PVParams *params, Communicator const *comm)
-      : StatsProbe() {
-   initialize_base();
+      : StatsProbeImmediate() {
    initialize(name, params, comm);
 }
 
 DelayTestProbe::~DelayTestProbe() {}
 
-int DelayTestProbe::initialize_base() { return PV_SUCCESS; }
-
-void DelayTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
-}
-
-Response::Status DelayTestProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
+void DelayTestProbe::checkStats() {
    Communicator const *icComm = mCommunicator;
-   int const rcvProc          = 0;
-   if (icComm->commRank() != rcvProc) {
-      return status;
+   int const rootProc         = 0;
+   if (icComm->commRank() != rootProc) {
+      return;
    }
+   auto const &storedValues           = mProbeAggregator->getStoredValues();
+   auto numTimestamps                 = storedValues.size();
+   int lastTimestampIndex             = static_cast<int>(numTimestamps) - 1;
+   ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
+   double simTime                     = stats.getTimestamp();
+   int status                         = PV_SUCCESS;
+
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    const int rows        = icComm->numCommRows();
    const int cols        = icComm->numCommColumns();
@@ -44,34 +44,44 @@ Response::Status DelayTestProbe::outputState(double simTime, double deltaTime) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
+   FatalIf(
+         loc->nbatch != static_cast<int>(stats.size()),
+         "ProbeData<LayerStats> has size %d but the target layer has batch size %d\n",
+         static_cast<int>(stats.size()),
+         loc->nbatch);
 
    for (int b = 0; b < loc->nbatch; b++) {
-      float avgExpected;
+      LayerStats const &statsElem = stats.getValue(b);
+      double avgExpected;
       int nnzExpected;
-      if (simTime == 0) {
-         avgExpected = 0.0f;
+      if (simTime == 0.0) {
+         avgExpected = 0.0;
          nnzExpected = (int)std::nearbyint(simTime) * nx * rows * ny * cols;
       }
       else {
-         avgExpected = (float)((simTime - 1.0) / nf);
+         avgExpected = ((simTime - 1.0) / (double)nf);
          nnzExpected = ((int)std::nearbyint(simTime) - 1) * nx * rows * ny * cols;
       }
+      double average = statsElem.average();
       FatalIf(
-            avg[b] != avgExpected,
+            average != avgExpected,
             "t = %f: Average for batch element %d: expected %f, received %f\n",
             simTime,
             b,
-            (double)avgExpected,
-            (double)avg[b]);
+            avgExpected,
+            average);
       FatalIf(
-            nnz[b] != nnzExpected,
+            statsElem.mNumNonzero != nnzExpected,
             "t = %f: number of nonzero elements for batch element %d: expected %d, received %d\n",
             simTime,
             b,
             nnzExpected,
-            nnz[b]);
+            statsElem.mNumNonzero);
    }
-   return status;
+}
+
+void DelayTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   StatsProbeImmediate::initialize(name, params, comm);
 }
 
 } /* namespace PV */

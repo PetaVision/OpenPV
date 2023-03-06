@@ -6,35 +6,89 @@
  */
 
 #include "BinningTestProbe.hpp"
+#include "include/PVLayerLoc.h"
+#include "io/PVParams.hpp"
+#include "layers/BinningLayer.hpp"
+#include "observerpattern/BaseMessage.hpp"
+#include "observerpattern/Response.hpp"
+#include "probes/TargetLayerComponent.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include "utils/conversions.hpp"
+#include <columns/BaseObject.hpp>
+#include <columns/Communicator.hpp>
+#include <columns/ComponentBasedObject.hpp>
+#include <columns/Messages.hpp>
 #include <components/BasePublisherComponent.hpp>
 #include <components/BinningActivityBuffer.hpp>
+#include <components/PhaseParam.hpp>
+
+#include <cmath>
+#include <functional>
 
 namespace PV {
 
 BinningTestProbe::BinningTestProbe(const char *name, PVParams *params, Communicator const *comm) {
-   LayerProbe::initialize(name, params, comm);
+   initialize(name, params, comm);
+}
+void BinningTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(name, params);
+   // createComponents() must be called before the base class's initialize(),
+   // because BaseObject::initialize() calls the ioParamsFillGroup() method,
+   // which calls each component's ioParamsFillGroup() method.
+   BaseObject::initialize(name, params, comm);
 }
 
 Response::Status
 BinningTestProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto status = LayerProbe::communicateInitInfo(message);
+   auto status = BaseObject::communicateInitInfo(message);
    if (!Response::completed(status)) {
       return status;
    }
-   mBinningLayer = dynamic_cast<BinningLayer *>(getTargetLayer());
+
+   // Set target layer and trigger layer
+   status = status + mProbeTargetLayerLocator->communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   mBinningLayer = dynamic_cast<BinningLayer *>(mProbeTargetLayerLocator->getTargetLayer());
    FatalIf(
-         mBinningLayer == nullptr,
+         getBinningLayer() == nullptr,
          "%s requires the target layer to be a BinningLayer.\n",
          getDescription_c());
    return Response::SUCCESS;
 }
 
-Response::Status BinningTestProbe::outputState(double simTime, double deltaTime) {
-   if (simTime == 0.0) {
+void BinningTestProbe::initMessageActionMap() {
+   BaseObject::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(msgptr);
+      return respondLayerOutputState(castMessage);
+   };
+   mMessageActionMap.emplace("LayerOutputState", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ProbeWriteParamsMessage const>(msgptr);
+      return respondProbeWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("ProbeWriteParams", action);
+}
+
+int BinningTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = BaseObject::ioParamsFillGroup(ioFlag);
+   mProbeTargetLayerLocator->ioParamsFillGroup(ioFlag);
+   return status;
+}
+
+Response::Status
+BinningTestProbe::outputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   if (message->mTime == 0.0) {
       return Response::SUCCESS;
    }
    // Grab layer size
-   const PVLayerLoc *loc = mBinningLayer->getLayerLoc();
+   const PVLayerLoc *loc = getBinningLayer()->getLayerLoc();
    int nx                = loc->nx;
    int ny                = loc->ny;
    int nf                = loc->nf;
@@ -47,15 +101,15 @@ Response::Status BinningTestProbe::outputState(double simTime, double deltaTime)
    int nxGlobalExt       = nxGlobal + loc->halo.lt + loc->halo.rt;
    int nyGlobalExt       = nyGlobal + loc->halo.lt + loc->halo.rt;
    // Grab the activity layer of current layer
-   auto *publisherComponent = mBinningLayer->getComponentByType<BasePublisherComponent>();
+   auto *publisherComponent = getBinningLayer()->getComponentByType<BasePublisherComponent>();
    FatalIf(
          publisherComponent == nullptr,
          "%s does not have a BasePublisherComponent.\n",
-         mBinningLayer->getDescription_c());
+         getBinningLayer()->getDescription_c());
    const float *A = publisherComponent->getLayerData();
 
    // Grab BinSigma from BinningLayer, which is contained in a component.
-   auto *activityComponent = mBinningLayer->getComponentByType<ComponentBasedObject>();
+   auto *activityComponent = getBinningLayer()->getComponentByType<ComponentBasedObject>();
    pvAssert(activityComponent);
    auto *binningActivityBuffer = activityComponent->getComponentByType<BinningActivityBuffer>();
    pvAssert(binningActivityBuffer);
@@ -63,7 +117,7 @@ Response::Status BinningTestProbe::outputState(double simTime, double deltaTime)
 
    // We only care about restricted space
    for (int iY = loc->halo.up; iY < ny + loc->halo.up; iY++) {
-      for (int iX = loc->halo.up; iX < nx + loc->halo.lt; iX++) {
+      for (int iX = loc->halo.lt; iX < nx + loc->halo.lt; iX++) {
          for (int iF = 0; iF < nf; iF++) {
             int origIndexGlobal   = kIndex(iX + kx0, iY + ky0, 0, nxGlobalExt, nyGlobalExt, 1);
             int binningIndexLocal = kIndex(iX, iY, iF, nxExt, nyExt, nf);
@@ -77,7 +131,7 @@ Response::Status BinningTestProbe::outputState(double simTime, double deltaTime)
                FatalIf(
                      observedValue != correctValue,
                      "%s, extended global location x=%d, y=%d, f=%d, expected %f, observed %f.\n",
-                     getTargetLayer()->getDescription_c(),
+                     getBinningLayer()->getDescription_c(),
                      iX + kx0,
                      iY + ky0,
                      iF,
@@ -94,7 +148,7 @@ Response::Status BinningTestProbe::outputState(double simTime, double deltaTime)
                FatalIf(
                      std::fabs(observedValue - correctValue) > 0.0001f,
                      "%s, extended global location x=%d, y=%d, f=%d, expected %f, observed %f.\n",
-                     getTargetLayer()->getDescription_c(),
+                     getBinningLayer()->getDescription_c(),
                      iX + kx0,
                      iY + ky0,
                      iF,
@@ -104,6 +158,22 @@ Response::Status BinningTestProbe::outputState(double simTime, double deltaTime)
          }
       }
    }
+   return Response::SUCCESS;
+}
+
+Response::Status
+BinningTestProbe::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   auto status          = Response::SUCCESS;
+   int targetLayerPhase = getBinningLayer()->getComponentByType<PhaseParam>()->getPhase();
+   if (message->mPhase == targetLayerPhase) {
+      status = outputState(message);
+   }
+   return status;
+}
+
+Response::Status
+BinningTestProbe::respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message) {
+   writeParams();
    return Response::SUCCESS;
 }
 

@@ -6,82 +6,102 @@
  */
 
 #include "ArborTestProbe.hpp"
-#include <include/pv_arch.h>
-#include <layers/HyPerLayer.hpp>
-#include <string.h>
+#include <include/pv_common.h>
+#include <probes/ActivityBufferStatsProbeLocal.hpp>
+#include <probes/ProbeData.hpp>
+#include <probes/StatsProbeTypes.hpp>
 #include <utils/PVLog.hpp>
+
+#include <cstdlib>
+#include <memory>
 
 namespace PV {
 
 ArborTestProbe::ArborTestProbe(const char *name, PVParams *params, Communicator const *comm)
-      : StatsProbe() {
-   initialize_base();
+      : StatsProbeImmediate() {
    initialize(name, params, comm);
 }
 
 ArborTestProbe::~ArborTestProbe() {}
 
-int ArborTestProbe::initialize_base() { return PV_SUCCESS; }
-
-void ArborTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
-}
-
-void ArborTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      type             = BufActivity;
-      PVParams *params = parameters();
-      if (params->present(name, "buffer")) {
-         params->handleUnnecessaryStringParameter(name, "buffer");
-         char const *buffer = params->stringValue(name, "buffer");
-         FatalIf(!(buffer != NULL), "Test failed.\n");
-         char *bufferlc = strdup(buffer);
-         for (int c = 0; c < (int)strlen(bufferlc); c++) {
-            bufferlc[c] = tolower(bufferlc[c]);
-         }
-         if (strcmp(bufferlc, "a") != 0 && strcmp(bufferlc, "activity") != 0) {
-            if (mCommunicator->commRank() == 0) {
-               ErrorLog().printf(
-                     "   Value \"%s\" is inconsistent with correct value \"a\" or \"activity\".  "
-                     "Exiting.\n",
-                     buffer);
-            }
-            MPI_Barrier(mCommunicator->communicator());
-            exit(EXIT_FAILURE);
-         }
-         free(bufferlc);
-      }
+void ArborTestProbe::checkStats() {
+   if (mCommunicator->commRank() != 0) {
+      return;
    }
-}
+   auto const &storedValues           = mProbeAggregator->getStoredValues();
+   auto numTimestamps                 = storedValues.size();
+   int lastTimestampIndex             = static_cast<int>(numTimestamps) - 1;
+   ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
 
-Response::Status ArborTestProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
-   int const rank    = mCommunicator->commRank();
-   int const rcvProc = 0;
-   if (rank != rcvProc) {
-      return status;
-   }
-   for (int b = 0; b < mLocalBatchWidth; b++) {
-      if (simTime == 1.0) {
-         FatalIf(!((avg[b] > 0.2499f) && (avg[b] < 0.2501f)), "Test failed.\n");
+   double simTime = stats.getTimestamp();
+   int status     = PV_SUCCESS;
+   int nbatch     = static_cast<int>(stats.size());
+   for (int b = 0; b < nbatch; b++) {
+      LayerStats const &statsElem = stats.getValue(b);
+      double average              = statsElem.average();
+      if (simTime == 1.0 and std::abs(average - 0.25) >= 0.0001) {
+         ErrorLog().printf(
+               "%s: t=1.0, batch index %d had average %f instead of expected 0.25.\n",
+               getDescription_c(),
+               b,
+               average);
+         status = PV_FAILURE;
       }
-      else if (simTime == 2.0) {
-         FatalIf(!((avg[b] > 0.4999f) && (avg[b] < 0.5001f)), "Test failed.\n");
+      else if (simTime == 2.0 and std::abs(average - 0.50) >= 0.0001) {
+         ErrorLog().printf(
+               "%s: t=2.0, batch index %d had average %f instead of expected 0.50.\n",
+               getDescription_c(),
+               b,
+               average);
+         status = PV_FAILURE;
       }
-      else if (simTime == 3.0) {
-         FatalIf(!((avg[b] > 0.7499f) && (avg[b] < 0.7501f)), "Test failed.\n");
+      else if (simTime == 3.0 and std::abs(average - 0.75) >= 0.0001) {
+         ErrorLog().printf(
+               "%s: t=3.0, batch index %d had average %f instead of expected 0.75.\n",
+               getDescription_c(),
+               b,
+               average);
+         status = PV_FAILURE;
       }
       else if (simTime > 3.0) {
-         FatalIf(!((fMin[b] > 0.9999f) && (fMin[b] < 1.001f)), "Test failed.\n");
-         FatalIf(!((fMax[b] > 0.9999f) && (fMax[b] < 1.001f)), "Test failed.\n");
-         FatalIf(!((avg[b] > 0.9999f) && (avg[b] < 1.001f)), "Test failed.\n");
+         if (std::abs(statsElem.mMin - 1.00f) >= 0.0001f) {
+            ErrorLog().printf(
+                  "%s: t=%.1f, batch index %d had minimum %f instead of expected 1.00.\n",
+                  getDescription_c(),
+                  simTime,
+                  b,
+                  (double)statsElem.mMin);
+            status = PV_FAILURE;
+         }
+         if (std::abs(statsElem.mMax - 1.00f) >= 0.0001f) {
+            ErrorLog().printf(
+                  "%s: t=%.1f, batch index %d had maximum %f instead of expected 1.00.\n",
+                  getDescription_c(),
+                  simTime,
+                  b,
+                  (double)statsElem.mMax);
+            status = PV_FAILURE;
+         }
+         if (std::abs(average - 1.00) >= 0.0001) {
+            ErrorLog().printf(
+                  "%s: t=%.1f, batch index %d had average %f instead of expected 1.00.\n",
+                  getDescription_c(),
+                  simTime,
+                  b,
+                  average);
+            status = PV_FAILURE;
+         }
       }
    }
+   FatalIf(status != PV_SUCCESS, "Test failed.\n");
+}
 
-   return status;
+void ArborTestProbe::createProbeLocal(char const *name, PVParams *params) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+}
+
+void ArborTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   StatsProbeImmediate::initialize(name, params, comm);
 }
 
 } /* namespace PV */

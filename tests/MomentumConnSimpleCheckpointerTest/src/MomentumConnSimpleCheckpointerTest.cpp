@@ -5,6 +5,7 @@
 #include "MomentumConnSimpleCheckpointerTestProbe.hpp"
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 
 void checkConfiguration(PV::PV_Init &pv_initObj, char const *programName);
 int checkProbe(PV::HyPerCol *hc, int argc, char **argv);

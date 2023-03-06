@@ -1,29 +1,25 @@
 #ifndef TESTNOTALWAYSALLZEROSPROBE_HPP_
 #define TESTNOTALWAYSALLZEROSPROBE_HPP_
 
-#include "layers/HyPerLayer.hpp"
-#include "probes/StatsProbe.hpp"
-#include "utils/PVLog.hpp"
+#include <columns/Communicator.hpp>
+#include <io/PVParams.hpp>
+#include <probes/StatsProbeImmediate.hpp>
 
 namespace PV {
 
-class TestNotAlwaysAllZerosProbe : public StatsProbe {
+class TestNotAlwaysAllZerosProbe : public StatsProbeImmediate {
   public:
    TestNotAlwaysAllZerosProbe(const char *name, PVParams *params, Communicator const *comm);
-   bool nonzeroValueHasOccurred() { return nonzeroValueOccurred; }
-
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   bool nonzeroValueHasOccurred() { return mNonzeroValueOccurred; }
 
   protected:
+   virtual void checkStats() override;
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
-
-  private:
-   int initialize_base();
 
    // Member variables
   protected:
-   bool nonzeroValueOccurred;
+   bool mNonzeroValueOccurred = false;
 }; // end of class TestNotAlwaysAllZerosProbe
 
 } // namespace PV

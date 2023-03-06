@@ -55,7 +55,6 @@ PvpLayer "Input" = {
 };
 
 HyPerLayer "Output" = {
-    restart = 0;
     nxScale = 1; 
     nyScale = 1;
     nf = 6;

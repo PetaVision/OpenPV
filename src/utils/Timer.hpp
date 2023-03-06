@@ -11,13 +11,9 @@
 
 #include "io/PrintStream.hpp"
 
-#include <assert.h>
-#include <ostream>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>      // uint64_t
+#include <cstdlib>      // size_t
+#include <string>       // string class
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -38,13 +34,16 @@ class Timer {
    inline double elapsed_time() const;
    virtual int fprint_time(PrintStream &stream) const;
 
-  protected:
-   int rank;
-   char *message;
+   static void stringPad(
+         std::string &str, std::size_t fillCount, std::size_t padCount, char c = ' ');
 
-   bool running = false; // start() sets running flag to true; stop() sets it to false.
-   uint64_t time_start, time_end;
-   uint64_t time_elapsed = (uint64_t)0;
+  protected:
+   int mRank;
+   std::string mMessage;
+
+   bool mRunning = false; // start() sets running flag to true; stop() sets it to false.
+   uint64_t mTimeStart, mTimeEnd;
+   uint64_t mTimeElapsed = (uint64_t)0;
 
 #ifdef PV_TIMER_VERBOSE
    static uint64_t mEpoch;

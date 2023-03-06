@@ -1,11 +1,17 @@
 #include "LocalPatchWeightsIO.hpp"
 
 #include "components/PatchGeometry.hpp"
+#include "include/pv_common.h"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
 #include "utils/conversions.hpp"
 #include "utils/requiredConvolveMargin.hpp"
-#include "utils/weight_conversions.hpp"
 
+#include <cfloat>
+#include <cmath>
 #include <cstdint>
+#include <cstring>
+#include <ios>
 
 namespace PV {
 
@@ -21,13 +27,19 @@ LocalPatchWeightsIO::LocalPatchWeightsIO(
       int nyRestrictedPost,
       int numArbors,
       bool fileExtendedFlag,
-      bool compressedFlag) :
-      mFileStream(fileStream),
-      mPatchSizeX(patchSizeX), mPatchSizeY(patchSizeY), mPatchSizeF(patchSizeF),
-      mNxRestrictedPre(nxRestrictedPre), mNyRestrictedPre(nyRestrictedPre),
-      mNfPre(nfPre),
-      mNxRestrictedPost(nxRestrictedPost), mNyRestrictedPost(nyRestrictedPost),
-      mNumArbors(numArbors), mFileExtendedFlag(fileExtendedFlag), mCompressedFlag(compressedFlag) {
+      bool compressedFlag)
+      : mFileStream(fileStream),
+        mPatchSizeX(patchSizeX),
+        mPatchSizeY(patchSizeY),
+        mPatchSizeF(patchSizeF),
+        mNxRestrictedPre(nxRestrictedPre),
+        mNyRestrictedPre(nyRestrictedPre),
+        mNfPre(nfPre),
+        mNxRestrictedPost(nxRestrictedPost),
+        mNyRestrictedPost(nyRestrictedPost),
+        mNumArbors(numArbors),
+        mFileExtendedFlag(fileExtendedFlag),
+        mCompressedFlag(compressedFlag) {
    FatalIf(
          fileStream and !fileStream->readable(),
          "FileStream \"%s\" is not readable and can't be used in a LocalPatchWeightsIO object.\n",
@@ -38,7 +50,9 @@ LocalPatchWeightsIO::LocalPatchWeightsIO(
    initializeFrameSize();
    initializeNumFrames();
 
-   if (!getFileStream()) { return; }
+   if (!getFileStream()) {
+      return;
+   }
 
    // If writeable, initialize position at end of file.
    // If read-only, initialize position at beginning.
@@ -54,47 +68,62 @@ LocalPatchWeightsIO::LocalPatchWeightsIO(
 
 void LocalPatchWeightsIO::calcExtremeWeights(
       WeightData const &weightDataRegion,
-      int nxRestrictedRegion, int nyRestrictedRegion,
-      float &minWeight, float &maxWeight) const {
-   int nxExtended = nxRestrictedRegion + 2*getXMargin();
-   int nyExtended = nyRestrictedRegion + 2*getYMargin();
-   int status = PV_SUCCESS;
+      int nxRestrictedRegion,
+      int nyRestrictedRegion,
+      float &minWeight,
+      float &maxWeight) const {
+   int nxExtended = nxRestrictedRegion + 2 * getXMargin();
+   int nyExtended = nyRestrictedRegion + 2 * getYMargin();
+   int status     = PV_SUCCESS;
    if (nxExtended > weightDataRegion.getNumDataPatchesX()) {
       ErrorLog().printf(
             "calcExtremeWeights() called with NxRestrictedRegion = %d and required margin %d on "
             "either side, but weightDataRegion has only %d patches in the x-direction.\n",
-            nxRestrictedRegion, getXMargin(), weightDataRegion.getNumDataPatchesX());
+            nxRestrictedRegion,
+            getXMargin(),
+            weightDataRegion.getNumDataPatchesX());
       status = PV_FAILURE;
    }
    if (nyExtended > weightDataRegion.getNumDataPatchesY()) {
       ErrorLog().printf(
             "calcExtremeWeights() called with NyRestrictedRegion = %d and required margin %d on "
             "either side, but weightDataRegion has only %d patches in the y-direction.\n",
-            nyRestrictedRegion, getYMargin(), weightDataRegion.getNumDataPatchesY());
+            nyRestrictedRegion,
+            getYMargin(),
+            weightDataRegion.getNumDataPatchesY());
       status = PV_FAILURE;
    }
    FatalIf(status != PV_SUCCESS, "Bad arguments to calcExtremeWeights()\n");
    int nf = weightDataRegion.getNumDataPatchesF();
 
    auto xStartsAndStops = calcPatchStartsAndStops(
-         weightDataRegion.getNumDataPatchesX(), nxRestrictedRegion,
-         getNxRestrictedPre(), getNxRestrictedPost(), weightDataRegion.getPatchSizeX());
+         weightDataRegion.getNumDataPatchesX(),
+         nxRestrictedRegion,
+         getNxRestrictedPre(),
+         getNxRestrictedPost(),
+         weightDataRegion.getPatchSizeX());
    auto yStartsAndStops = calcPatchStartsAndStops(
-         weightDataRegion.getNumDataPatchesY(), nyRestrictedRegion,
-         getNyRestrictedPre(), getNyRestrictedPost(), weightDataRegion.getPatchSizeY());
+         weightDataRegion.getNumDataPatchesY(),
+         nyRestrictedRegion,
+         getNyRestrictedPre(),
+         getNyRestrictedPost(),
+         weightDataRegion.getPatchSizeY());
 
    minWeight = FLT_MAX;
    maxWeight = -FLT_MAX;
    for (int a = 0; a < weightDataRegion.getNumArbors(); ++a) {
-      for (int y = 0; y < nyRestrictedRegion + 2*getYMargin(); ++y) {
-         for (int x = 0; x < nxRestrictedRegion + 2*getXMargin(); ++x) {
+      for (int y = 0; y < nyRestrictedRegion + 2 * getYMargin(); ++y) {
+         for (int x = 0; x < nxRestrictedRegion + 2 * getXMargin(); ++x) {
             for (int f = 0; f < nf; ++f) {
                int kIndexInRegion = kIndex(
-                     x, y, f, 
+                     x,
+                     y,
+                     f,
                      weightDataRegion.getNumDataPatchesX(),
                      weightDataRegion.getNumDataPatchesY(),
                      weightDataRegion.getNumDataPatchesF());
-               float const *patchInRegion = weightDataRegion.getDataFromDataIndex(a, kIndexInRegion);
+               float const *patchInRegion =
+                     weightDataRegion.getDataFromDataIndex(a, kIndexInRegion);
                if (getFileExtendedFlag()) {
                   // Now, we have to compare the values in the patch to minWeight and maxWeight,
                   // but only in the active part of the patch.
@@ -104,17 +133,18 @@ void LocalPatchWeightsIO::calcExtremeWeights(
                   int const &yStop  = yStartsAndStops[1].at(y);
                   for (int ky = yStart; ky < yStop; ++ky) {
                      int kStart = kIndex(
-                           xStart, ky, 0,
+                           xStart,
+                           ky,
+                           0,
                            weightDataRegion.getPatchSizeX(),
                            weightDataRegion.getPatchSizeY(),
                            weightDataRegion.getPatchSizeF());
-                     int numValuesInLine =
-                        (xStop - xStart) * weightDataRegion.getPatchSizeF();
+                     int numValuesInLine    = (xStop - xStart) * weightDataRegion.getPatchSizeF();
                      float const *lineStart = &patchInRegion[kStart];
                      for (int k = 0; k < numValuesInLine; ++k) {
                         float value = lineStart[k];
-                        minWeight = value < minWeight ? value : minWeight;
-                        maxWeight = value > maxWeight ? value : maxWeight;
+                        minWeight   = value < minWeight ? value : minWeight;
+                        maxWeight   = value > maxWeight ? value : maxWeight;
                      }
                   }
                }
@@ -123,8 +153,8 @@ void LocalPatchWeightsIO::calcExtremeWeights(
                   long numValuesInPatch = weightDataRegion.getPatchSizeOverall();
                   for (long k = 0; k < numValuesInPatch; ++k) {
                      float value = patchInRegion[k];
-                     minWeight = value < minWeight ? value : minWeight;
-                     maxWeight = value < maxWeight ? value : maxWeight;
+                     minWeight   = value < minWeight ? value : minWeight;
+                     maxWeight   = value < maxWeight ? value : maxWeight;
                   }
                }
             }
@@ -147,7 +177,7 @@ void LocalPatchWeightsIO::finishWrite() {
       mNumFrames = getFrameNumber();
    }
    getFileStream()->setOutPos(0L, std::ios_base::end);
-   long eofPos = getFileStream()->getOutPos();
+   long eofPos        = getFileStream()->getOutPos();
    long correctEOFPos = calcFilePositionFromFrameNumber(getNumFrames());
    if (eofPos < correctEOFPos) {
       long numPadBytes = correctEOFPos - eofPos;
@@ -178,9 +208,13 @@ void LocalPatchWeightsIO::readRegion(
       int regionYStartRestricted,
       int regionFStartRestricted,
       int arborIndexStart) {
-   if (!mFileStream) { return; }
+   if (!mFileStream) {
+      return;
+   }
 
-   if (weightData.getNumArbors() == 0) { return; }
+   if (weightData.getNumArbors() == 0) {
+      return;
+   }
 
    checkDimensions(
          weightData,
@@ -199,11 +233,17 @@ void LocalPatchWeightsIO::readRegion(
    pvAssert(yMarginRegion >= getYMargin()); // checked in checkDimensions()
 
    auto xStartsAndStops = calcPatchStartsAndStops(
-      weightData.getNumDataPatchesX(), regionNxRestrictedPre,
-      getNxRestrictedPre(), getNxRestrictedPost(), getPatchSizeX());
+         weightData.getNumDataPatchesX(),
+         regionNxRestrictedPre,
+         getNxRestrictedPre(),
+         getNxRestrictedPost(),
+         getPatchSizeX());
    auto yStartsAndStops = calcPatchStartsAndStops(
-      weightData.getNumDataPatchesY(), regionNyRestrictedPre,
-      getNyRestrictedPre(), getNyRestrictedPost(), getPatchSizeY());
+         weightData.getNumDataPatchesY(),
+         regionNyRestrictedPre,
+         getNyRestrictedPre(),
+         getNyRestrictedPost(),
+         getPatchSizeY());
 
    for (int a = 0; a < weightData.getNumArbors(); ++a) {
       for (int y = -getYMargin(); y < regionNyRestrictedPre + getYMargin(); ++y) {
@@ -215,12 +255,19 @@ void LocalPatchWeightsIO::readRegion(
                int fIndexInFile = f + regionFStartRestricted;
 
                readPatch(
-                     readBuffer, a, xIndexInFile, yIndexInFile, fIndexInFile,
-                     header.minVal, header.maxVal);
-               int xIndexInRegion = x + xMarginRegion; 
-               int yIndexInRegion = y + yMarginRegion; 
+                     readBuffer,
+                     a,
+                     xIndexInFile,
+                     yIndexInFile,
+                     fIndexInFile,
+                     header.minVal,
+                     header.maxVal);
+               int xIndexInRegion = x + xMarginRegion;
+               int yIndexInRegion = y + yMarginRegion;
                int kIndexInRegion = kIndex(
-                     xIndexInRegion, yIndexInRegion, f,
+                     xIndexInRegion,
+                     yIndexInRegion,
+                     f,
                      weightData.getNumDataPatchesX(),
                      weightData.getNumDataPatchesY(),
                      weightData.getNumDataPatchesF());
@@ -233,10 +280,10 @@ void LocalPatchWeightsIO::readRegion(
                   int const &yStart = yStartsAndStops[0].at(yIndexInRegion);
                   int const &yStop  = yStartsAndStops[1].at(yIndexInRegion);
                   for (int ky = yStart; ky < yStop; ++ky) {
-                     int kStart = kIndex(
-                           xStart, ky, 0, getPatchSizeX(), getPatchSizeY(), getPatchSizeF());
+                     int kStart =
+                           kIndex(xStart, ky, 0, getPatchSizeX(), getPatchSizeY(), getPatchSizeF());
                      int numBytesToCopy =
-                        (xStop - xStart) * getPatchSizeF() * static_cast<int>(mDataSize);
+                           (xStop - xStart) * getPatchSizeF() * static_cast<int>(mDataSize);
                      memcpy(&patchInRegion[kStart], &readBuffer.data()[kStart], numBytesToCopy);
                   }
                }
@@ -270,9 +317,13 @@ void LocalPatchWeightsIO::writeRegion(
       int regionYStartRestricted,
       int regionFStartRestricted,
       int arborIndexStart) {
-   if (!mFileStream) { return; }
+   if (!mFileStream) {
+      return;
+   }
 
-   if (weightData.getNumArbors() == 0) { return; }
+   if (weightData.getNumArbors() == 0) {
+      return;
+   }
 
    checkDimensions(
          weightData,
@@ -291,11 +342,17 @@ void LocalPatchWeightsIO::writeRegion(
    pvAssert(yMarginRegion >= getYMargin()); // checked in checkDimensions()
 
    auto xStartsAndStops = calcPatchStartsAndStops(
-      weightData.getNumDataPatchesX(), regionNxRestrictedPre,
-      getNxRestrictedPre(), getNxRestrictedPost(), getPatchSizeX());
+         weightData.getNumDataPatchesX(),
+         regionNxRestrictedPre,
+         getNxRestrictedPre(),
+         getNxRestrictedPost(),
+         getPatchSizeX());
    auto yStartsAndStops = calcPatchStartsAndStops(
-      weightData.getNumDataPatchesY(), regionNyRestrictedPre,
-      getNyRestrictedPre(), getNyRestrictedPost(), getPatchSizeY());
+         weightData.getNumDataPatchesY(),
+         regionNyRestrictedPre,
+         getNyRestrictedPre(),
+         getNyRestrictedPost(),
+         getPatchSizeY());
 
    for (int a = 0; a < weightData.getNumArbors(); ++a) {
       for (int y = -getYMargin(); y < regionNyRestrictedPre + getYMargin(); ++y) {
@@ -306,17 +363,19 @@ void LocalPatchWeightsIO::writeRegion(
                int yIndexInFile = y + regionYStartRestricted + getYMargin();
                int fIndexInFile = f + regionFStartRestricted;
 
-               int xIndexInRegion = x + xMarginRegion; 
-               int yIndexInRegion = y + yMarginRegion; 
+               int xIndexInRegion = x + xMarginRegion;
+               int yIndexInRegion = y + yMarginRegion;
                int kIndexInRegion = kIndex(
-                     xIndexInRegion, yIndexInRegion, f,
+                     xIndexInRegion,
+                     yIndexInRegion,
+                     f,
                      weightData.getNumDataPatchesX(),
                      weightData.getNumDataPatchesY(),
                      weightData.getNumDataPatchesF());
-               int const &xStart = xStartsAndStops[0].at(xIndexInRegion);
-               int const &xStop  = xStartsAndStops[1].at(xIndexInRegion);
-               int const &yStart = yStartsAndStops[0].at(yIndexInRegion);
-               int const &yStop  = yStartsAndStops[1].at(yIndexInRegion);
+               int const &xStart          = xStartsAndStops[0].at(xIndexInRegion);
+               int const &xStop           = xStartsAndStops[1].at(xIndexInRegion);
+               int const &yStart          = yStartsAndStops[0].at(yIndexInRegion);
+               int const &yStop           = yStartsAndStops[1].at(yIndexInRegion);
                float const *patchInRegion = weightData.getDataFromDataIndex(a, kIndexInRegion);
                if (getFileExtendedFlag()) {
                   // Now, we have to move the data from readBuffer.data() to patchInRegion,
@@ -326,7 +385,7 @@ void LocalPatchWeightsIO::writeRegion(
                      int kStart =
                            kIndex(xStart, ky, 0, getPatchSizeX(), getPatchSizeY(), getPatchSizeF());
                      int numBytesToCopy =
-                        (xStop - xStart) * getPatchSizeF() * static_cast<int>(mDataSize);
+                           (xStop - xStart) * getPatchSizeF() * static_cast<int>(mDataSize);
                      memcpy(&writeBuffer.data()[kStart], &patchInRegion[kStart], numBytesToCopy);
                   }
                }
@@ -336,8 +395,17 @@ void LocalPatchWeightsIO::writeRegion(
                }
                // Finally, we have to write the modified patch back into the file.
                writePatch(
-                     writeBuffer, a, xIndexInFile, yIndexInFile, fIndexInFile,
-                     xStart, xStop, yStart, yStop, header.minVal, header.maxVal);
+                     writeBuffer,
+                     a,
+                     xIndexInFile,
+                     yIndexInFile,
+                     fIndexInFile,
+                     xStart,
+                     xStop,
+                     yStart,
+                     yStop,
+                     header.minVal,
+                     header.maxVal);
             }
          }
       }
@@ -345,13 +413,9 @@ void LocalPatchWeightsIO::writeRegion(
    setFrameNumber(getFrameNumber());
 }
 
-void LocalPatchWeightsIO::open() {
-   mFileStream->open();
-}
+void LocalPatchWeightsIO::open() { mFileStream->open(); }
 
-void LocalPatchWeightsIO::close() {
-   mFileStream->close();
-}
+void LocalPatchWeightsIO::close() { mFileStream->close(); }
 
 long LocalPatchWeightsIO::getNumPatchesFile() const {
    long nx = getNxRestrictedPre() + 2 * getXMargin();
@@ -365,13 +429,15 @@ void LocalPatchWeightsIO::setFrameNumber(int frameNumber) {
    mFrameNumber = frameNumber;
    long filePos = calcFilePositionFromFrameNumber(frameNumber);
    mFileStream->setInPos(filePos, std::ios_base::beg);
-   if (mFileStream->writeable()) { mFileStream->setOutPos(filePos, std::ios_base::beg); }
+   if (mFileStream->writeable()) {
+      mFileStream->setOutPos(filePos, std::ios_base::beg);
+   }
 }
 
 long LocalPatchWeightsIO::calcArborSizeBytes() const {
    long patchSizeBytes = calcPatchSizeBytes();
-   long numPatches = getNumPatchesFile();
-   long sizeBytes = numPatches * patchSizeBytes;
+   long numPatches     = getNumPatchesFile();
+   long sizeBytes      = numPatches * patchSizeBytes;
    return sizeBytes;
 }
 
@@ -385,11 +451,15 @@ long LocalPatchWeightsIO::calcPatchSizeBytes() const {
 }
 
 std::array<std::vector<int>, 2> LocalPatchWeightsIO::calcPatchStartsAndStops(
-      int nExtendedPre, int nRestrictedPre, int nPreRef, int nPostRef, int patchSize) {
+      int nExtendedPre,
+      int nRestrictedPre,
+      int nPreRef,
+      int nPostRef,
+      int patchSize) {
    std::array<std::vector<int>, 2> result;
    result[0].resize(nExtendedPre);
    result[1].resize(nExtendedPre);
-   
+
    float nPostRefFloat   = static_cast<float>(nPostRef);
    float nPreRefFloat    = static_cast<float>(nPreRef);
    float nRestrictedPreF = static_cast<float>(nRestrictedPre);
@@ -401,8 +471,19 @@ std::array<std::vector<int>, 2> LocalPatchWeightsIO::calcPatchStartsAndStops(
    int dummy1, dummy2, dummy3;
    for (int k = 0; k < nExtendedPre; ++k) {
       PatchGeometry::calcPatchData(
-            k, nRestrictedPre, beginMargin, endMargin, 
-            nPost, 0, 0, patchSize, &dim, &start, &dummy1, &dummy2, &dummy3);
+            k,
+            nRestrictedPre,
+            beginMargin,
+            endMargin,
+            nPost,
+            0,
+            0,
+            patchSize,
+            &dim,
+            &start,
+            &dummy1,
+            &dummy2,
+            &dummy3);
       result[0].at(k) = start;
       result[1].at(k) = start + dim;
    }
@@ -432,56 +513,75 @@ void LocalPatchWeightsIO::checkDimensions(
       ErrorLog().printf(
             "%s called with too many arbors "
             "(region has %d arbors with starting index %d; NumArbors is %d)\n",
-            errMsgHdr.c_str(), weightData.getNumArbors(), arborIndexStart, getNumArbors());
+            errMsgHdr.c_str(),
+            weightData.getNumArbors(),
+            arborIndexStart,
+            getNumArbors());
       status = PV_FAILURE;
    }
    if (regionXStartRestricted < 0) {
       ErrorLog().printf(
             "%s called with region's left edge negative (%d)\n",
-            errMsgHdr.c_str(), regionXStartRestricted);
+            errMsgHdr.c_str(),
+            regionXStartRestricted);
       status = PV_FAILURE;
    }
-   if ( regionXStartRestricted + regionNxRestrictedPre > getNxRestrictedPre()) {
+   if (regionXStartRestricted + regionNxRestrictedPre > getNxRestrictedPre()) {
       ErrorLog().printf(
             "%s called with region's right edge beyond overall right edge (%d + %d versus %d)\n",
-            errMsgHdr.c_str(), regionXStartRestricted, regionNxRestrictedPre, getNxRestrictedPre());
+            errMsgHdr.c_str(),
+            regionXStartRestricted,
+            regionNxRestrictedPre,
+            getNxRestrictedPre());
       status = PV_FAILURE;
    }
    if (regionYStartRestricted < 0) {
       ErrorLog().printf(
             "%s called with region's top edge negative (%d)\n",
-            errMsgHdr.c_str(), regionYStartRestricted);
+            errMsgHdr.c_str(),
+            regionYStartRestricted);
       status = PV_FAILURE;
    }
-   if ( regionYStartRestricted + regionNyRestrictedPre > getNyRestrictedPre()) {
+   if (regionYStartRestricted + regionNyRestrictedPre > getNyRestrictedPre()) {
       ErrorLog().printf(
             "%s called with region's bottom edge beyond overall bottom edge (%d + %d versus %d)\n",
-            errMsgHdr.c_str(), regionYStartRestricted, regionNyRestrictedPre, getNyRestrictedPre());
+            errMsgHdr.c_str(),
+            regionYStartRestricted,
+            regionNyRestrictedPre,
+            getNyRestrictedPre());
       status = PV_FAILURE;
    }
-   if (regionNxRestrictedPre + 2*getXMargin() > weightData.getNumDataPatchesX()) {
+   if (regionNxRestrictedPre + 2 * getXMargin() > weightData.getNumDataPatchesX()) {
       ErrorLog().printf(
             "%s called with region restricted width %d "
             "and required margin %d on each side, but WeightData only has width %d\n",
-            errMsgHdr.c_str(), regionNxRestrictedPre,
-            getXMargin(), weightData.getNumDataPatchesX());
+            errMsgHdr.c_str(),
+            regionNxRestrictedPre,
+            getXMargin(),
+            weightData.getNumDataPatchesX());
       status = PV_FAILURE;
    }
-   if (regionNyRestrictedPre + 2*getYMargin() > weightData.getNumDataPatchesY()) {
+   if (regionNyRestrictedPre + 2 * getYMargin() > weightData.getNumDataPatchesY()) {
       ErrorLog().printf(
             "%s called with region restricted height %d "
             "and required margin %d on each side, but WeightData only has height %d\n",
-            errMsgHdr.c_str(), regionNyRestrictedPre,
-            getYMargin(), weightData.getNumDataPatchesY());
+            errMsgHdr.c_str(),
+            regionNyRestrictedPre,
+            getYMargin(),
+            weightData.getNumDataPatchesY());
       status = PV_FAILURE;
    }
    if (weightData.getNumDataPatchesF() + regionFStartRestricted > getNfPre()) {
       ErrorLog().printf(
-           "%s called with starting feature index %d but WeightData object has %d features "
-           "and LocalPatchWeightsIO object has only %d (%d + %d versus %d)\n",
-           errMsgHdr.c_str(), regionFStartRestricted,
-           weightData.getNumDataPatchesF(), getNfPre(),
-           weightData.getNumDataPatchesF(), regionFStartRestricted, getNfPre());
+            "%s called with starting feature index %d but WeightData object has %d features "
+            "and LocalPatchWeightsIO object has only %d (%d + %d versus %d)\n",
+            errMsgHdr.c_str(),
+            regionFStartRestricted,
+            weightData.getNumDataPatchesF(),
+            getNfPre(),
+            weightData.getNumDataPatchesF(),
+            regionFStartRestricted,
+            getNfPre());
       status = PV_FAILURE;
    }
    FatalIf(status != PV_SUCCESS, "%s failed\n", errMsgHdr.c_str());
@@ -491,32 +591,37 @@ void LocalPatchWeightsIO::checkHeader(BufferUtils::WeightHeader const &header) c
    int status = PV_SUCCESS;
    if (header.baseHeader.numRecords != mNumArbors) {
       ErrorLog().printf(
-         "LocalPatchWeightsIO object expects %d arbors, but file has %d.\n",
-         mNumArbors, header.baseHeader.numRecords);
+            "LocalPatchWeightsIO object expects %d arbors, but file has %d.\n",
+            mNumArbors,
+            header.baseHeader.numRecords);
       status = PV_FAILURE;
    }
    if (header.nxp != mPatchSizeX) {
       ErrorLog().printf(
-         "LocalPatchWeightsIO object expects PatchSizeX=%d, but file has %d.\n",
-         mPatchSizeX, header.nxp);
+            "LocalPatchWeightsIO object expects PatchSizeX=%d, but file has %d.\n",
+            mPatchSizeX,
+            header.nxp);
       status = PV_FAILURE;
    }
    if (header.nyp != mPatchSizeY) {
       ErrorLog().printf(
-         "LocalPatchWeightsIO object expects PatchSizeX=%d, but file has %d.\n",
-         mPatchSizeY, header.nyp);
+            "LocalPatchWeightsIO object expects PatchSizeX=%d, but file has %d.\n",
+            mPatchSizeY,
+            header.nyp);
       status = PV_FAILURE;
    }
    if (header.nfp != mPatchSizeF) {
       ErrorLog().printf(
-         "LocalPatchWeightsIO object expects PatchSizeF=%d, but file has %d.\n",
-         mPatchSizeF, header.nfp);
+            "LocalPatchWeightsIO object expects PatchSizeF=%d, but file has %d.\n",
+            mPatchSizeF,
+            header.nfp);
       status = PV_FAILURE;
    }
    if (static_cast<long>(header.numPatches) != getNumPatchesFile()) {
       ErrorLog().printf(
-         "LocalPatchWeightsIO object expects %ld patches, but file has %d.\n",
-         getNumPatchesFile(), header.numPatches);
+            "LocalPatchWeightsIO object expects %ld patches, but file has %d.\n",
+            getNumPatchesFile(),
+            header.numPatches);
       status = PV_FAILURE;
    }
    FatalIf(status != PV_SUCCESS, "checkHeader failed.\n");
@@ -528,8 +633,10 @@ void LocalPatchWeightsIO::initializeFrameSize() {
 
 void LocalPatchWeightsIO::initializeMargins() {
    if (getFileExtendedFlag()) {
-      mXMargin = requiredConvolveMargin(getNxRestrictedPre(), getNxRestrictedPost(), getPatchSizeX());
-      mYMargin = requiredConvolveMargin(getNyRestrictedPre(), getNyRestrictedPost(), getPatchSizeY());
+      mXMargin =
+            requiredConvolveMargin(getNxRestrictedPre(), getNxRestrictedPost(), getPatchSizeX());
+      mYMargin =
+            requiredConvolveMargin(getNyRestrictedPre(), getNyRestrictedPost(), getPatchSizeY());
    }
    else {
       mXMargin = 0;
@@ -538,12 +645,14 @@ void LocalPatchWeightsIO::initializeMargins() {
 }
 
 void LocalPatchWeightsIO::initializeNumFrames() {
-   if (!getFileStream()) { return; }
+   if (!getFileStream()) {
+      return;
+   }
 
    long curPos = getFileStream()->getInPos();
    getFileStream()->setInPos(0L, std::ios_base::end);
    long eofPosition = getFileStream()->getInPos();
-   mNumFrames = calcFrameNumberFromFilePosition(eofPosition);
+   mNumFrames       = calcFrameNumberFromFilePosition(eofPosition);
    getFileStream()->setInPos(curPos, std::ios_base::beg);
 }
 
@@ -558,17 +667,15 @@ void LocalPatchWeightsIO::readPatch(
    pvAssert(mFileStream);
    pvAssert(static_cast<long>(readBuffer.size()) >= getPatchSizeOverall());
 
-   int nxExtendedPre = getNxRestrictedPre() + 2 * getXMargin();
-   int nyExtendedPre = getNyRestrictedPre() + 2 * getYMargin();
-   int nfPre         = getNfPre();
-   long patchIndexInFile = static_cast<long>(kIndex(
-         xPatchIndex, yPatchIndex, fPatchIndex,
-         nxExtendedPre, nyExtendedPre, nfPre));
-   long patchDataOffset =
-         mHeaderSize + patchIndexInFile * calcPatchSizeBytes() + mPatchHeaderSize;
-   long frameStart     = calcFilePositionFromFrameNumber(getFrameNumber());
-   long arborSizeBytes = calcArborSizeBytes();
-   long patchOffsetBytes  = patchIndexInFile * calcPatchSizeBytes();
+   int nxExtendedPre     = getNxRestrictedPre() + 2 * getXMargin();
+   int nyExtendedPre     = getNyRestrictedPre() + 2 * getYMargin();
+   int nfPre             = getNfPre();
+   long patchIndexInFile = static_cast<long>(
+         kIndex(xPatchIndex, yPatchIndex, fPatchIndex, nxExtendedPre, nyExtendedPre, nfPre));
+   long patchDataOffset  = mHeaderSize + patchIndexInFile * calcPatchSizeBytes() + mPatchHeaderSize;
+   long frameStart       = calcFilePositionFromFrameNumber(getFrameNumber());
+   long arborSizeBytes   = calcArborSizeBytes();
+   long patchOffsetBytes = patchIndexInFile * calcPatchSizeBytes();
    long patchLocationFile =
          frameStart + mHeaderSize + arborIndex * arborSizeBytes + patchOffsetBytes;
    long patchDataLocationFile = patchLocationFile + mPatchHeaderSize;
@@ -578,8 +685,8 @@ void LocalPatchWeightsIO::readPatch(
       std::vector<uint8_t> readBufferCompressed(patchSizeOverall);
       mFileStream->read(readBufferCompressed.data(), patchSizeOverall);
       for (int k = 0; k < patchSizeOverall; ++k) {
-         float compressedVal = static_cast<float>(readBufferCompressed[k])/255.0f;
-         readBuffer[k] = compressedVal * (maxWeight - minWeight) + minWeight;
+         float compressedVal = static_cast<float>(readBufferCompressed[k]) / 255.0f;
+         readBuffer[k]       = compressedVal * (maxWeight - minWeight) + minWeight;
       }
    }
    else {
@@ -602,30 +709,34 @@ void LocalPatchWeightsIO::writePatch(
    pvAssert(mFileStream);
    pvAssert(static_cast<long>(writeBuffer.size()) >= getPatchSizeOverall());
 
-   int nxExtendedPre = getNxRestrictedPre() + 2 * getXMargin();
-   int nyExtendedPre = getNyRestrictedPre() + 2 * getYMargin();
-   int nfPre         = getNfPre();
-   long patchIndexInFile = static_cast<long>(kIndex(
-         xPatchIndex, yPatchIndex, fPatchIndex,
-         nxExtendedPre, nyExtendedPre, nfPre));
-   long frameStart        = calcFilePositionFromFrameNumber(getFrameNumber());
-   long arborSizeBytes    = calcArborSizeBytes();
-   long patchOffsetBytes  = patchIndexInFile * calcPatchSizeBytes();
+   int nxExtendedPre     = getNxRestrictedPre() + 2 * getXMargin();
+   int nyExtendedPre     = getNyRestrictedPre() + 2 * getYMargin();
+   int nfPre             = getNfPre();
+   long patchIndexInFile = static_cast<long>(
+         kIndex(xPatchIndex, yPatchIndex, fPatchIndex, nxExtendedPre, nyExtendedPre, nfPre));
+   long frameStart       = calcFilePositionFromFrameNumber(getFrameNumber());
+   long arborSizeBytes   = calcArborSizeBytes();
+   long patchOffsetBytes = patchIndexInFile * calcPatchSizeBytes();
    long patchLocationFile =
          frameStart + mHeaderSize + arborIndex * arborSizeBytes + patchOffsetBytes;
    getFileStream()->setOutPos(patchLocationFile, std::ios_base::beg);
    Patch patchHeader;
-   patchHeader.nx = static_cast<uint16_t>(getPatchSizeX());
-   patchHeader.ny = static_cast<uint16_t>(getPatchSizeY());
+   patchHeader.nx     = static_cast<uint16_t>(getPatchSizeX());
+   patchHeader.ny     = static_cast<uint16_t>(getPatchSizeY());
    patchHeader.offset = static_cast<uint32_t>(0);
    getFileStream()->write(&patchHeader, mPatchHeaderSize);
-   
+
    writePatchAtLocation(writeBuffer, xStart, xStop, yStart, yStop, minWeight, maxWeight);
 }
 
 void LocalPatchWeightsIO::writePatchAtLocation(
       std::vector<float> const &writeBuffer,
-      int xStart, int xStop, int yStart, int yStop, float minWeight, float maxWeight) {
+      int xStart,
+      int xStop,
+      int yStart,
+      int yStop,
+      float minWeight,
+      float maxWeight) {
    pvAssert(xStart >= 0 and xStart <= xStop);
    pvAssert(xStop >= 0 and xStop <= getPatchSizeX());
    pvAssert(yStart >= 0 and yStart <= yStop);
@@ -634,8 +745,8 @@ void LocalPatchWeightsIO::writePatchAtLocation(
    if (getCompressedFlag()) {
       std::vector<uint8_t> writeBufferCompressed(getPatchSizeOverall());
       for (int k = 0; k < getPatchSizeOverall(); ++k) {
-         float value         = writeBuffer[k];
-         float compressedVal = (value - minWeight) / (maxWeight - minWeight) * 255.0f;
+         float value              = writeBuffer[k];
+         float compressedVal      = (value - minWeight) / (maxWeight - minWeight) * 255.0f;
          writeBufferCompressed[k] = static_cast<uint8_t>(compressedVal);
       }
       for (int y = yStart; y < yStop; ++y) {
@@ -657,5 +768,5 @@ void LocalPatchWeightsIO::writePatchAtLocation(
    }
    getFileStream()->setOutPos(positionInFile, std::ios_base::beg);
 }
-   
+
 } // namespace PV

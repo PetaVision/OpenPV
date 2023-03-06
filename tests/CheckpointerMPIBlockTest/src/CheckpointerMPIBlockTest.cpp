@@ -56,7 +56,7 @@ int run(int argc, char *argv[]) {
    auto checkpointer =
          new PV::Checkpointer(std::string("checkpointer"), &pvComm, arguments);
 
-   PV::PVParams params("input/CheckpointerMPIBlockTest.params", 1, &pvComm);
+   PV::PVParams params("input/CheckpointerMPIBlockTest.params", 1, pvComm.globalCommunicator());
    checkpointer->ioParams(PV::PARAMS_IO_READ, &params);
 
    // Delete any existing checkpoints directory.

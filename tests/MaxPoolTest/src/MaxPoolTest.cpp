@@ -7,6 +7,7 @@
 #include "GateMaxPoolTestLayer.hpp"
 #include "MaxPoolTestLayer.hpp"
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 
 #define MAIN_USES_CUSTOMGROUPS
 

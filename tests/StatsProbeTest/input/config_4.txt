@@ -1,0 +1,6 @@
+ParamsFile:input/StatsProbeTest_4.params
+LogFile:StatsProbeTest_4.log
+NumThreads:-
+NumRows:2
+NumColumns:2
+BatchWidth:1

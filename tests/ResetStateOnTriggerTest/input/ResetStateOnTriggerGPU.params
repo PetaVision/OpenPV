@@ -213,7 +213,7 @@ IdentConn "TestLayerCPUToRelativeError" = {
 };
 
 RequireAllZeroActivityProbe "TestProbe" = {
-    targetName                          = "RelativeError";
+    targetLayer                         = "RelativeError";
     message                             = "TestProbe";
     textOutputFlag                      = true;
     probeOutputFile                     = "TestProbe.txt";

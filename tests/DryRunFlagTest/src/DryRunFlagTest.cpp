@@ -5,6 +5,7 @@
 
 #include "AlwaysFailsLayer.hpp"
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 #include <sys/types.h>
 #include <unistd.h>
 #include <utils/CompareParamsFiles.hpp>
@@ -29,9 +30,9 @@ int main(int argc, char *argv[]) {
          "%s should be called without the -p argument; the necessary params file is hard-coded.\n");
    pv_obj.setParams("input/DryRunFlagTest.params");
 
-   int rank = pv_obj.getCommunicator()->globalCommRank();
+   auto *comm = pv_obj.getCommunicator();
 
-   status = deleteOutputDirectory(pv_obj.getCommunicator());
+   status = deleteOutputDirectory(comm);
    if (status != PV_SUCCESS) {
       Fatal().printf("%s: error cleaning generated files from any previous run.\n", argv[0]);
    }
@@ -39,13 +40,14 @@ int main(int argc, char *argv[]) {
    status = buildandrun(&pv_obj);
 
    if (status != PV_SUCCESS) {
+      int rank = comm->globalCommRank();
       Fatal().printf("%s: running with dry-run flag set failed on process %d.\n", argv[0], rank);
    }
 
    status = PV::compareParamsFiles(
          std::string("output/pv.params"),
          std::string("input/correct.params"),
-         pv_obj.getCommunicator());
+         comm->globalCommunicator());
    if (status != PV_SUCCESS) {
       Fatal().printf("%s failed.\n", argv[0]);
    }

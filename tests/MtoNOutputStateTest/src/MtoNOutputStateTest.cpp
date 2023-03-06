@@ -7,6 +7,7 @@
 #include "IndexWeightConn.hpp"
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 #include <cstdlib>
 #include <memory>
 #include <utils/BufferUtilsPvp.hpp>

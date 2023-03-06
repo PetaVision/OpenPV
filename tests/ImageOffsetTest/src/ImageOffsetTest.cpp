@@ -8,6 +8,7 @@
 
 #include "ImageOffsetTestLayer.hpp"
 #include "ImagePvpOffsetTestLayer.hpp"
+#include <columns/Factory.hpp>
 #include <columns/PV_Init.hpp>
 
 int main(int argc, char *argv[]) {

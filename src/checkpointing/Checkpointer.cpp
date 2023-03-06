@@ -229,9 +229,8 @@ void Checkpointer::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag, PV
    if (mCheckpointWriteFlag) {
       pvAssert(!params->presentAndNotBeenRead(mName.c_str(), "checkpointWriteTriggerMode"));
       if (mCheckpointWriteTriggerMode == WALLCLOCK) {
-         assert(
-               !params->presentAndNotBeenRead(
-                     mName.c_str(), "checkpointWriteTriggerClockInterval"));
+         assert(!params->presentAndNotBeenRead(
+               mName.c_str(), "checkpointWriteTriggerClockInterval"));
          params->ioParamString(
                ioFlag,
                mName.c_str(),
@@ -639,7 +638,7 @@ void Checkpointer::checkpointRead(double *simTimePointer, long int *currentStepP
       *currentStepPointer = mTimeInfo.mCurrentCheckpointStep;
    }
    notify(
-         std::make_shared<ProcessCheckpointReadMessage const>(cpreadFileManager),
+         std::make_shared<ProcessCheckpointReadMessage const>(mTimeInfo.mSimTime),
          getMPIBlock()->getRank() == 0 /*printFlag*/);
 }
 
@@ -707,8 +706,8 @@ bool Checkpointer::scheduledCheckpoint() {
             // Only NONE if checkpointWrite is off, in which case this method should not get called
             pvAssert(0);
             break;
-         case STEP: isScheduled      = scheduledStep(); break;
-         case SIMTIME: isScheduled   = scheduledSimTime(); break;
+         case STEP: isScheduled = scheduledStep(); break;
+         case SIMTIME: isScheduled = scheduledSimTime(); break;
          case WALLCLOCK: isScheduled = scheduledWallclock(); break;
          default: pvAssert(0); break;
       }
@@ -833,7 +832,7 @@ void Checkpointer::checkpointToDirectory(std::string const &directory) {
    }
    fileManager->ensureDirectoryExists(std::string("."));
    notify(
-         std::make_shared<PrepareCheckpointWriteMessage const>(),
+         std::make_shared<PrepareCheckpointWriteMessage const>(mTimeInfo.mSimTime),
          mMPIBlock->getRank() == 0 /*printFlag*/);
    for (auto &c : mCheckpointRegistry) {
       c->write(fileManager, mTimeInfo.mSimTime, mVerifyWrites);
@@ -893,7 +892,9 @@ void Checkpointer::rotateOldCheckpoints(std::string const &newCheckpointDirector
 }
 
 void Checkpointer::writeTimers(std::shared_ptr<PrintStream> stream) const {
-   if (!stream) { return; }
+   if (!stream) {
+      return;
+   }
    for (auto timer : mTimers) {
       timer->fprint_time(*stream);
    }
@@ -935,5 +936,4 @@ void Checkpointer::writeTimers(std::shared_ptr<FileManager const> fileManager) {
    }
 }
 
-std::string const Checkpointer::mDefaultOutputPath = "output";
 } // namespace PV

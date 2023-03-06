@@ -21,7 +21,6 @@ HyPerCol "column" = {
    checkpointWrite = true;
    checkpointWriteDir = "checkpoints/";
    checkpointWriteStepInterval = 1;
-   checkpointWriteTimeInterval = -1;
    deleteOlderCheckpoints = false;
    nbatch = 2;
 };
@@ -31,7 +30,6 @@ HyPerCol "column" = {
 //
 
 DatastoreDelayTestLayer "input" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -43,14 +41,9 @@ DatastoreDelayTestLayer "input" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    AMax = infinity;
-    VThresh = -infinity;
-    AMin = -infinity;
-    AShift = 0.0;
 };
 
-ANNLayer "output" = {
-    restart = 0;
+HyPerLayer "output" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -62,14 +55,9 @@ ANNLayer "output" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    AMax = infinity;
-    VThresh = -infinity;
-    AMin = -infinity;
-    AShift = 0.0;
 };
 
-ANNLayer "outputArbor" = {
-    restart = 0;
+HyPerLayer "outputArbor" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -81,11 +69,8 @@ ANNLayer "outputArbor" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    AMax = infinity;
-    VThresh = -infinity;
-    AMin = -infinity;
-    AShift = 0.0;
 };
+
 // Connections
 
 IdentConn "delay0" = {
@@ -93,7 +78,6 @@ IdentConn "delay0" = {
     postLayerName = "output";
     channelCode = 0;
     delay = 0;
-    writeStep = -1;
 };
 
 IdentConn "delay1" = {
@@ -101,7 +85,6 @@ IdentConn "delay1" = {
     postLayerName = "output";
     channelCode = 0;
     delay = 1;
-    writeStep = -1;
 };
 
 IdentConn "delay2" = {
@@ -109,7 +92,6 @@ IdentConn "delay2" = {
     postLayerName = "output";
     channelCode = 0;
     delay = 2;
-    writeStep = -1;
 };
 
 IdentConn "delay3" = {
@@ -117,7 +99,6 @@ IdentConn "delay3" = {
     postLayerName = "output";
     channelCode = 0;
     delay = 3;
-    writeStep = -1;
 };
 
 IdentConn "delay4" = {
@@ -125,7 +106,6 @@ IdentConn "delay4" = {
     postLayerName = "output";
     channelCode = 0;
     delay = 4;
-    writeStep = -1;
 };
 
 HyPerConn "delayArbor" = {
@@ -155,12 +135,16 @@ HyPerConn "delayArbor" = {
 
 DatastoreDelayTestProbe "probe" = {
     targetLayer = "output";
-    probeOutputFile = "probe.txt";
     message = "probe           ";
+    textOutputFlag = true;
+    probeOutputFile = "probe.txt";
+    nnzThreshold = 0.0;
 };
 
 DatastoreDelayTestProbe "probeArbor" = {
     targetLayer = "outputArbor";
-    probeOutputFile = "probeArbor.txt";
     message = "probeArbor      ";
+    textOutputFlag = true;
+    probeOutputFile = "probeArbor.txt";
+    nnzThreshold = 0.0;
 };

@@ -4,9 +4,15 @@
  *
  */
 
+#include <cMakeHeader.h>
+
 #include "GPUSystemTestProbe.hpp"
-#include "identicalBatchProbe.hpp"
+#include <columns/PV_Init.hpp>
+#include <columns/Factory.hpp>
 #include <columns/buildandrun.hpp>
+#include <include/pv_common.h>
+
+#include <cstdlib>
 
 #define MAIN_USES_CUSTOM_GROUPS
 
@@ -28,7 +34,6 @@ int main(int argc, char *argv[]) {
 #ifdef MAIN_USES_CUSTOM_GROUPS
    PV_Init pv_initObj(&argc, &argv, false /*do not allow unrecognized arguments*/);
    pv_initObj.registerKeyword("GPUSystemTestProbe", Factory::create<GPUSystemTestProbe>);
-   pv_initObj.registerKeyword("identicalBatchProbe", Factory::create<identicalBatchProbe>);
    status = buildandrun(&pv_initObj);
 #else
    status = buildandrun(argc, argv);

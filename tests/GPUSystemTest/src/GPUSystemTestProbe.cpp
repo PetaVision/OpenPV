@@ -4,59 +4,32 @@
  */
 
 #include "GPUSystemTestProbe.hpp"
-#include <include/pv_arch.h>
-#include <layers/HyPerLayer.hpp>
-#include <string.h>
-#include <utils/PVLog.hpp>
+
+#include "CheckStatsAllZerosCheckSigma.hpp"
+#include <probes/ActivityBufferStatsProbeLocal.hpp>
+
+#include <memory>
 
 namespace PV {
 GPUSystemTestProbe::GPUSystemTestProbe(
       const char *name,
       PVParams *params,
       Communicator const *comm) {
-   initialize_base();
    initialize(name, params, comm);
 }
 
-int GPUSystemTestProbe::initialize_base() { return PV_SUCCESS; }
+GPUSystemTestProbe::~GPUSystemTestProbe() {}
 
-void GPUSystemTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
+void GPUSystemTestProbe::createProbeCheckStats(char const *name, PVParams *params) {
+   mCheckStats = std::make_shared<CheckStatsAllZerosCheckSigma>(name, params);
 }
 
-void GPUSystemTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
+void GPUSystemTestProbe::createProbeLocal(char const *name, PVParams *params) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+}
 
-// 2 tests: max difference can be 5e-4, max std is 5e-5
-Response::Status GPUSystemTestProbe::outputState(double simTime, double deltaTime) {
-   auto status = RequireAllZeroActivityProbe::outputState(simTime, deltaTime);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
-   auto *targetPublisher = getTargetLayer()->getComponentByType<BasePublisherComponent>();
-   PVLayerLoc const *loc = targetPublisher->getLayerLoc();
-   float tolSigma        = 5e-5;
-   for (int b = 0; b < loc->nbatch; b++) {
-      // For max std of 5.0fe-5
-      if (sigma[b] > tolSigma) {
-         if (!mNonzeroFound) {
-            mNonzeroTime = simTime;
-         }
-         mNonzeroFound = true;
-         if (mCommunicator->commRank() == 0) {
-            std::stringstream message("");
-            message << getDescription_c() << ": Nonzero standard deviation " << simTime
-                    << " at time " << mNonzeroTime << "; tolerance is " << tolSigma << "\n";
-            if (mImmediateExitOnFailure) {
-               Fatal() << message.str();
-            }
-            else {
-               WarnLog() << message.str();
-            }
-         }
-      }
-   }
-
-   return status;
+void GPUSystemTestProbe::initialize(char const *name, PVParams *params, Communicator const *comm) {
+   RequireAllZeroActivityProbe::initialize(name, params, comm);
 }
 
 } // end namespace PV

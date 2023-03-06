@@ -179,7 +179,7 @@ int MPI_Isend(
  * the send buffer does not get read.  A better implementation of MPI_Send
  * would need to be implemented if that's ever something we find convenient to do.
  */
-int MPI_Send(void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm) {
+int MPI_Send(void const *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm) {
    return 0;
 }
 

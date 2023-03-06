@@ -4,91 +4,167 @@
  */
 
 #include "TriggerTestLayerProbe.hpp"
+#include <columns/BaseObject.hpp>
+#include <columns/Communicator.hpp>
+#include <columns/Messages.hpp>
+#include <components/InputActivityBuffer.hpp>
+#include <components/PhaseParam.hpp>
+#include <io/PVParams.hpp>
+#include <observerpattern/BaseMessage.hpp>
+#include <observerpattern/Response.hpp>
+#include <probes/ProbeTriggerComponent.hpp>
+#include <probes/TargetLayerComponent.hpp>
 #include <utils/PVLog.hpp>
+
+#include <cmath>
+#include <functional>
+#include <string>
 
 namespace PV {
 TriggerTestLayerProbe::TriggerTestLayerProbe(
       const char *name,
       PVParams *params,
       Communicator const *comm) {
-   LayerProbe::initialize(name, params, comm);
+   initialize(name, params, comm);
 }
 
-Response::Status
-TriggerTestLayerProbe::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   mDeltaTime = message->mDeltaTime;
+Response::Status TriggerTestLayerProbe::communicateInitInfo(
+      std::shared_ptr<CommunicateInitInfoMessage const> message) {
+   auto status = BaseObject::communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   status = status + mProbeTargetLayerLocator->communicateInitInfo(message);
+   status = status + mProbeTrigger->communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   char const *inputLayerName = mProbeTrigger->getTriggerLayerName();
+   if (inputLayerName) {
+      auto *inputBuffer = message->mObjectTable->findObject<InputActivityBuffer>(inputLayerName);
+      FatalIf(
+            inputBuffer == nullptr,
+            "%s: triggerLayerName \"%s\" is not an InputLayer-derived object, as required "
+            "by TriggerTest.\n",
+            getDescription_c(),
+            inputLayerName);
+      FatalIf(
+            inputBuffer->getDisplayPeriod() != mInputDisplayPeriod,
+            "%s: triggerLayer \"%s\" has display period %d, "
+            "but TriggerTest requires displayPeriod = %d.\n",
+            getDescription_c(),
+            inputLayerName,
+            inputBuffer->getDisplayPeriod(),
+            mInputDisplayPeriod);
+   }
    return Response::SUCCESS;
 }
 
-void TriggerTestLayerProbe::calcValues(double timevalue) {
-   double v           = needUpdate(timevalue, mDeltaTime) ? 1.0 : 0.0;
-   auto &valuesVector = this->getProbeValues();
-   pvAssert(static_cast<int>(valuesVector.size()) == this->getNumValues());
-   for (int n = 0; n < this->getNumValues(); n++) {
-      valuesVector[n] = v;
-   }
+void TriggerTestLayerProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
+   mProbeTargetLayerLocator = std::make_shared<TargetLayerComponent>(name, params);
+   mProbeTrigger            = std::make_shared<ProbeTriggerComponent>(name, params);
+   // createComponents() must be called before the base class's initialize(),
+   // because BaseObject::initialize() calls the ioParamsFillGroup() method,
+   // which calls each component's ioParamsFillGroup() method.
+   BaseObject::initialize(name, params, comm);
 }
 
-Response::Status TriggerTestLayerProbe::outputStateWrapper(double simTime, double dt) {
-   // Time 0 is initialization, doesn't matter if it updates or not
-   if (simTime < dt / 2) {
-      return LayerProbe::outputStateWrapper(simTime, dt);
+void TriggerTestLayerProbe::initMessageActionMap() {
+   BaseObject::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(msgptr);
+      return respondLayerOutputState(castMessage);
+   };
+   mMessageActionMap.emplace("LayerOutputState", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ProbeWriteParamsMessage const>(msgptr);
+      return respondProbeWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("ProbeWriteParams", action);
+}
+
+int TriggerTestLayerProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = BaseObject::ioParamsFillGroup(ioFlag);
+   mProbeTargetLayerLocator->ioParamsFillGroup(ioFlag);
+   mProbeTrigger->ioParamsFillGroup(ioFlag);
+   return status;
+}
+
+Response::Status
+TriggerTestLayerProbe::outputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   double simTime   = message->mTime;
+   double deltaTime = message->mDeltaTime;
+   if (simTime < deltaTime / 2.0) {
+      return Response::SUCCESS;
    }
 
-   // 4 different layers
-   // No trigger, always update
-   const char *name = getName();
-   getValues(simTime);
-   FatalIf(this->getNumValues() <= 0, "Test failed.\n");
-   FatalIf(getProbeValues().empty(), "Test failed.\n");
-   int updateNeeded = (int)getProbeValues()[0];
+   std::string name(getName());
+   char const *name_c = name.c_str();
+   bool updateNeeded  = mProbeTrigger->needUpdate(simTime, deltaTime);
+   int stepNumber     = static_cast<int>(std::nearbyint(simTime / deltaTime));
+
    InfoLog().printf(
          "%s: time=%f, dt=%f, needUpdate=%d, triggerOffset=%f\n",
-         name,
+         name.c_str(),
          simTime,
-         dt,
+         deltaTime,
          updateNeeded,
-         triggerOffset);
-   if (strcmp(name, "notriggerlayerprobe") == 0) {
-      FatalIf(!(updateNeeded == 1), "Test failed at %s. Expected true, found false.\n", getName());
+         mProbeTrigger->getTriggerOffset());
+   // 4 different layers
+   if (name == "notriggerlayerprobe") {
+      // No trigger, always update
+      FatalIf(updateNeeded != true, "Test failed at %s. Expected true, found false.\n", name_c);
    }
-   // Trigger with offset of 0, assuming display period is 5
-   else if (strcmp(name, "trigger0layerprobe") == 0) {
-      if (((int)simTime - 1) % 5 == 0) {
-         FatalIf(
-               !(updateNeeded == 1), "Test failed at %s. Expected true, found false.\n", getName());
+   else if (name == "trigger0layerprobe") {
+      // Trigger with offset of 0, assuming display period is 5
+      if ((stepNumber - 1) % mInputDisplayPeriod == 0) {
+         FatalIf(updateNeeded != true, "Test failed at %s. Expected true, found false.\n", name_c);
       }
       else {
-         FatalIf(
-               !(updateNeeded == 0), "Test failed at %s. Expected false, found true.\n", getName());
+         FatalIf(updateNeeded != false, "Test failed at %s. Expected false, found true.\n", name_c);
+      }
+   }
+   else if (name == "trigger1layerprobe") {
+      // Trigger with offset of 1, assuming display period is 5
+      if (stepNumber % mInputDisplayPeriod == 0) {
+         FatalIf(updateNeeded != true, "Test failed at %s. Expected true, found false.\n", name_c);
+      }
+      else {
+         FatalIf(updateNeeded != false, "Test failed at %s. Expected false, found true.\n", name_c);
       }
    }
    // Trigger with offset of 1, assuming display period is 5
-   else if (strcmp(name, "trigger1layerprobe") == 0) {
-      if (((int)simTime) % 5 == 0) {
-         FatalIf(
-               !(updateNeeded == 1), "Test failed at %s. Expected true, found false.\n", getName());
+   else if (name == "trigger2layerprobe") {
+      if ((stepNumber + 1) % mInputDisplayPeriod == 0) {
+         FatalIf(updateNeeded != true, "Test failed at %s. Expected true, found false.\n", name_c);
       }
       else {
-         FatalIf(
-               !(updateNeeded == 0), "Test failed at %s. Expected false, found true.\n", getName());
+         FatalIf(updateNeeded != false, "Test failed at %s. Expected false, found true.\n", name_c);
       }
    }
-   // Trigger with offset of 1, assuming display period is 5
-   else if (strcmp(name, "trigger2layerprobe") == 0) {
-      if (((int)simTime + 1) % 5 == 0) {
-         FatalIf(
-               !(updateNeeded == 1), "Test failed at %s. Expected true, found false.\n", getName());
-      }
-      else {
-         FatalIf(
-               !(updateNeeded == 0), "Test failed at %s. Expected false, found true.\n", getName());
-      }
-   }
-   return LayerProbe::outputStateWrapper(simTime, dt);
+   return Response::SUCCESS;
 }
 
-Response::Status TriggerTestLayerProbe::outputState(double simTime, double deltaTime) {
+Response::Status TriggerTestLayerProbe::respondLayerOutputState(
+      std::shared_ptr<LayerOutputStateMessage const> message) {
+   auto status          = Response::SUCCESS;
+   auto *targetLayer    = mProbeTargetLayerLocator->getTargetLayer();
+   int targetLayerPhase = targetLayer->getComponentByType<PhaseParam>()->getPhase();
+   if (message->mPhase == targetLayerPhase) {
+      status = outputState(message);
+   }
+   return status;
+}
+
+Response::Status TriggerTestLayerProbe::respondProbeWriteParams(
+      std::shared_ptr<ProbeWriteParamsMessage const> message) {
+   writeParams();
    return Response::SUCCESS;
 }
 

@@ -31,12 +31,6 @@ void BaseConnectionProbe::initMessageActionMap() {
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ConnectionProbeWriteParamsMessage const>(msgptr);
-      return respondConnectionProbeWriteParams(castMessage);
-   };
-   mMessageActionMap.emplace("ConnectionProbeWriteParams", action);
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(msgptr);
       return respondConnectionOutput(castMessage);
    };
@@ -48,12 +42,6 @@ void BaseConnectionProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    if (targetName == NULL) {
       BaseProbe::ioParam_targetName(ioFlag);
    }
-}
-
-Response::Status BaseConnectionProbe::respondConnectionProbeWriteParams(
-      std::shared_ptr<ConnectionProbeWriteParamsMessage const> message) {
-   writeParams();
-   return Response::SUCCESS;
 }
 
 Response::Status BaseConnectionProbe::respondConnectionOutput(

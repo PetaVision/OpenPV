@@ -17,7 +17,8 @@ int main(int argc, char *argv[]) {
    PV::Checkpointer *checkpointer = new PV::Checkpointer(
          std::string("checkpointer"), comm, arguments);
 
-   PV::PVParams *params = new PV::PVParams("input/CheckpointerClassTest.params", 1, comm);
+   PV::PVParams *params =
+         new PV::PVParams("input/CheckpointerClassTest.params", 1, comm->globalCommunicator());
 
    char const *checkpointWriteDir = params->stringValue("checkpointer", "checkpointWriteDir");
    FatalIf(

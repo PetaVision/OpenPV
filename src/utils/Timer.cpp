@@ -9,10 +9,13 @@
 
 #include "Timer.hpp"
 #include "utils/PVLog.hpp"
-#include <stdio.h>
+
+#include <cstdlib>             // size_t
+#include <cstring>             // std::strlen
+#include <ostream>             // std::endl
 
 #ifdef PV_TIMER_VERBOSE
-#include <inttypes.h> // PRIu64 printf directive
+#include <cinttypes>           // PRIu64 printf directive
 #endif // PV_TIMER_VERBOSE
 
 #ifdef __APPLE__
@@ -24,7 +27,7 @@
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 #else
-#include <time.h>
+#include <time.h>               // clock_gettime(), struct timespec
 #endif // USE_MACH_TIMER
 
 namespace PV {
@@ -64,9 +67,9 @@ Timer::Timer(const char *timermessage, double init_time) {
    }
 #endif // PV_TIMER_VERBOSE
 
-   rank = 0;
+   mRank = 0;
    reset(init_time);
-   message = strdup(timermessage ? timermessage : "");
+   mMessage = timermessage ? timermessage : "";
 }
 
 Timer::Timer(const char *objname, const char *objtype, const char *timertype, double init_time) {
@@ -75,64 +78,66 @@ Timer::Timer(const char *objname, const char *objtype, const char *timertype, do
       mEpoch = get_cpu_time();
    }
 #endif // PV_TIMER_VERBOSE
-   rank = 0;
+   mRank = 0;
    reset(init_time);
-   int charsneeded =
-         snprintf(nullptr, 0, "%32s: total time in %-10s %-10s : ", objname, objtype, timertype) + 1;
-   message = (char *)malloc(charsneeded);
-   FatalIf(
-         message == nullptr,
-         "Timer::setMessage unable to allocate memory for Timer message: called with name=%s, "
-         "objtype=%s, timertype=%s\n",
-         objname,
-         objtype,
-         timertype);
-#ifdef NDEBUG
-   snprintf(message, charsneeded, "%32s: total time in %-10s %-10s : ", objname, objtype, timertype);
-#else
-   int chars_used =
-         snprintf(
-               message, charsneeded, "%32s: total time in %-10s %-10s : ", objname, objtype, timertype)
-         + 1;
-   assert(chars_used <= charsneeded);
-#endif // NDEBUG
+   // C-style code was
+   // sprintf(message, "%32s: total time in %-10s %-10s : ", objname, objtype, timertype);
+   // plus memory memory management. Instead, let the C++ string class manage the memory.
+   mMessage.clear();
+   mMessage.reserve(72);
+   stringPad(mMessage, std::strlen(objname), 32UL);
+   mMessage.append(objname);
+   mMessage.append(": total time in ");
+   mMessage.append(objtype);
+   stringPad(mMessage, std::strlen(objtype), 10UL);
+   mMessage.append(" ");
+   mMessage.append(timertype);
+   stringPad(mMessage, std::strlen(timertype), 10UL);
+   mMessage.append(" : ");
 }
 
-Timer::~Timer() { free(message); }
+void Timer::stringPad(std::string &str, std::size_t fillCount, std::size_t padCount, char c) {
+   if (fillCount < padCount) {
+      auto stringSize = str.size();
+      str.resize(stringSize + padCount - fillCount, c);
+   }
+}
+
+Timer::~Timer() {}
 
 void Timer::reset(double init_time) {
-   time_start   = get_cpu_time();
-   time_end     = time_start;
-   time_elapsed = init_time;
+   mTimeStart   = get_cpu_time();
+   mTimeEnd     = mTimeStart;
+   mTimeElapsed = init_time;
 }
 
 double Timer::start() {
-   time_start = get_cpu_time();
-   running    = true;
+   mTimeStart = get_cpu_time();
+   mRunning   = true;
 #ifdef PV_TIMER_VERBOSE
-   InfoLog().printf("%12" PRIu64 " Start %s\n", time_start - mEpoch, message);
+   InfoLog().printf("%12" PRIu64 " Start %s\n", mTimeStart - mEpoch, mMessage.c_str());
 #endif // PV_TIMER_VERBOSE
-   return (double)time_start;
+   return (double)mTimeStart;
 }
 
 double Timer::stop() {
-   running  = false;
-   time_end = get_cpu_time();
-   time_elapsed += time_end - time_start;
+   mRunning = false;
+   mTimeEnd = get_cpu_time();
+   mTimeElapsed += mTimeEnd - mTimeStart;
 #ifdef PV_TIMER_VERBOSE
-   InfoLog().printf("%12" PRIu64 " Stop  %s\n", time_end - mEpoch, message);
+   InfoLog().printf("%12" PRIu64 " Stop  %s\n", mTimeEnd - mEpoch, mMessage.c_str());
 #endif // PV_TIMER_VERBOSE
-   return (double)time_end;
+   return (double)mTimeEnd;
 }
 
 double Timer::elapsed_time() const {
-   return (double)(time_elapsed + (running ? get_cpu_time()-time_start : (uint64_t)0));
+   return (double)(mTimeElapsed + (mRunning ? get_cpu_time()-mTimeStart : (uint64_t)0));
 }
 
 int Timer::fprint_time(PrintStream &stream) const {
-   if (rank == 0) {
-      stream << message << "processor cycle time == " << (float)cpu_time_to_sec(elapsed_time())
-             << std::endl;
+   if (mRank == 0) {
+      stream << mMessage.c_str() << "processor cycle time == "
+             << (float)cpu_time_to_sec(elapsed_time()) << std::endl;
    }
    return 0;
 }

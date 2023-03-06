@@ -47,7 +47,6 @@ set(SRC_SUBDIRS
   connections
   cudakernels
   delivery
-  deprecated
   include
   initv
   io

@@ -10,8 +10,6 @@
 
 #include "components/HyPerLCAInternalStateBuffer.hpp"
 
-#include "probes/AdaptiveTimeScaleProbe.hpp"
-
 namespace PV {
 
 class MomentumLCAInternalStateBuffer : public HyPerLCAInternalStateBuffer {

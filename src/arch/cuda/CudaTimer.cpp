@@ -5,8 +5,11 @@
  */
 
 #include "CudaTimer.hpp"
-#include "../../io/PrintStream.hpp"
 #include "cuda_util.hpp"
+#include "io/PrintStream.hpp"
+#include "utils/PVLog.hpp"
+#include <cuda_runtime_api.h>
+#include <ostream>
 
 namespace PVCuda {
 
@@ -38,7 +41,7 @@ CudaTimer::~CudaTimer() {
 double CudaTimer::start() {
    if (mEventPending == true) {
       WarnLog() << "CudaTimer called start() while event was still pending (timer message = \""
-                << message << "\").\n";
+                << mMessage << "\").\n";
    }
    handleError(cudaEventRecord(mStartEvent, mStream), "Recording start event");
    return 0;
@@ -48,7 +51,7 @@ double CudaTimer::stop() {
    handleError(cudaEventRecord(mStopEvent, mStream), "Recording stop event");
    if (mEventPending == true) {
       WarnLog() << "CudaTimer called stop() while event was still pending (timer message = \""
-                << message << "\").\n";
+                << mMessage << "\").\n";
    }
    mEventPending = true;
    return 0;
@@ -68,11 +71,11 @@ double CudaTimer::accumulateTime() {
    return (double)mTime;
 }
 
-int CudaTimer::fprint_time(PrintStream &printStream) const {
-   if (rank == 0) {
-      printStream << message << "processor cycle time == " << mTime << std::endl;
+int CudaTimer::fprint_time(PV::PrintStream &printStream) const {
+   if (mRank == 0) {
+      printStream << mMessage.c_str() << "processor cycle time == " << mTime << std::endl;
    }
    return 0;
 }
 
-} // namespace PV
+} // namespace PVCuda

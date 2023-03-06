@@ -62,12 +62,12 @@ Response::Status CheckpointerDataInterface::respondReadStateFromCheckpoint(
 
 Response::Status CheckpointerDataInterface::respondProcessCheckpointRead(
       std::shared_ptr<ProcessCheckpointReadMessage const> message) {
-   return processCheckpointRead();
+   return processCheckpointRead(message->mSimTime);
 }
 
 Response::Status CheckpointerDataInterface::respondPrepareCheckpointWrite(
       std::shared_ptr<PrepareCheckpointWriteMessage const> message) {
-   return prepareCheckpointWrite();
+   return prepareCheckpointWrite(message->mSimTime);
 }
 
 Response::Status CheckpointerDataInterface::registerData(
