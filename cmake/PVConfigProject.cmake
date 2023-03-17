@@ -179,7 +179,7 @@ macro(pv_config_project)
   set(PV_DEBUG_OUTPUT OFF CACHE BOOL "${PV_DEBUG_OUTPUT_HELP}")
   set(PV_TIMER_VERBOSE OFF CACHE BOOL "${PV_TIMER_VERBOSE_HELP}")
   set(PV_BUILD_TEST ON CACHE BOOL "${PV_BUILD_TEST_HELP}")
-  set(PV_COMPILE_OPTIONS_EXTRA "" CACHE STRING "${PV_COMPILE_FLAGS_EXTRA_HELP}")
+  set(PV_COMPILE_OPTIONS_EXTRA "" CACHE STRING "${PV_COMPILE_OPTIONS_EXTRA_HELP}")
 
   ################################################################################
   # Set compiler flags
