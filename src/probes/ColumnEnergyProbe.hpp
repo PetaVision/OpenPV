@@ -53,7 +53,6 @@ class ColumnEnergyProbe : public ProbeInterface {
 
    Response::Status
          respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage const>(message));
-   Response::Status respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message);
 
   protected:
    // Probe components, set by createComponents(), called by initialize()

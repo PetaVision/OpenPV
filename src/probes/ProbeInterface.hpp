@@ -33,8 +33,12 @@ class ProbeInterface : public BaseObject {
 
    void initialize(const char *name, PVParams *params, Communicator const *comm);
 
+   virtual void initMessageActionMap() override;
+
    Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
+
+   Response::Status respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message);
 
    void setValues(ProbeData<double> const &newValues);
    void setValues(double timestamp, std::vector<double> const &newValues);

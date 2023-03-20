@@ -28,6 +28,9 @@
 
 namespace PV {
 
+// BaseProbe was deprecated on March 19, 2023. Derive probes from ProbeInterface instead,
+// or if the desired probe behavior is too different from the interface provided by
+// ProbeInterface (e.g. StatsProbe), derive the probe straight from BaseObject.
 /**
  * An abstract base class for the common functionality of layer probes and
  * connection probes.

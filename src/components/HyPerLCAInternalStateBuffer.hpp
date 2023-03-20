@@ -8,6 +8,7 @@
 #ifndef HYPERLCAINTERNALSTATEBUFFER_HPP_
 #define HYPERLCAINTERNALSTATEBUFFER_HPP_
 
+#include "components/ActivityBuffer.hpp"
 #include "components/HyPerInternalStateBuffer.hpp"
 
 #include "probes/AdaptiveTimeScaleProbe.hpp"

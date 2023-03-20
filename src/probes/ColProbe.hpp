@@ -13,10 +13,11 @@
 
 namespace PV {
 
+// ColProbe was deprecated on March 19, 2023. Derive column-wide probes from ProbeInterface instead.
 /**
+ * *Note: ColProbe is deprecated in favor of ProbeInterface*
  * ColProbe is the base class for probes that are attached to the column as a
- * whole,
- * as opposed to an individual layer or connection.
+ * whole, as opposed to an individual layer or connection.
  * Derived classes must implement the needRecalc and calcValues methods.
  *
  * The original motivation for ColProbe was for computing total energy of a

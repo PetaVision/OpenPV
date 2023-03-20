@@ -12,20 +12,21 @@
 #include "checkpointing/CheckpointerDataInterface.hpp"
 #include "columns/Communicator.hpp"
 #include "io/PrintStream.hpp"
+#include "probes/ProbeData.hpp"
 #include "structures/MPIBlock.hpp"
 #include <memory>
 #include <vector>
 
 namespace PV {
 
+struct TimeScaleData {
+   double mTimeScale;
+   double mTimeScaleMax;
+   double mTimeScaleTrue;
+};
+
 class AdaptiveTimeScaleController : public CheckpointerDataInterface {
   public:
-   struct TimeScaleInfo {
-      std::vector<double> mTimeScale;
-      std::vector<double> mTimeScaleMax;
-      std::vector<double> mTimeScaleTrue;
-   };
-
    AdaptiveTimeScaleController(
          char const *name,
          int batchWidth,
@@ -33,14 +34,11 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
          double baseMin,
          double tauFactor,
          double growthFactor,
-         bool writeTimeScaleFieldnames,
          Communicator const *comm);
    virtual ~AdaptiveTimeScaleController();
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
-   virtual std::vector<double>
-   calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales);
-   void writeTimestepInfo(double timeValue, std::vector<std::shared_ptr<PrintStream>> &streams);
+   virtual std::vector<TimeScaleData> const &calcTimesteps(std::vector<double> const &timeScales);
 
    // Data members
   protected:
@@ -53,22 +51,22 @@ class AdaptiveTimeScaleController : public CheckpointerDataInterface {
    bool mWriteTimeScaleFieldnames;
    Communicator const *mCommunicator;
 
-   TimeScaleInfo mTimeScaleInfo, mOldTimeScaleInfo;
-   std::vector<double> mOldTimeScale;
-   std::vector<double> mOldTimeScaleTrue;
+   std::vector<TimeScaleData> mTimeScaleInfo, mOldTimeScaleInfo;
 };
 
 class CheckpointEntryTimeScaleInfo : public CheckpointEntry {
   public:
    CheckpointEntryTimeScaleInfo(
          std::string const &name,
-         AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
-         : CheckpointEntry(name), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
+         TimeScaleData *timeScaleDataPtr,
+         int batchSize)
+         : CheckpointEntry(name), mTimeScaleDataPtr(timeScaleDataPtr), mBatchSize(batchSize) {}
    CheckpointEntryTimeScaleInfo(
          std::string const &objName,
          std::string const &dataName,
-         AdaptiveTimeScaleController::TimeScaleInfo *timeScaleInfoPtr)
-         : CheckpointEntry(objName, dataName), mTimeScaleInfoPtr(timeScaleInfoPtr) {}
+         TimeScaleData *timeScaleDataPtr,
+         int batchSize)
+         : CheckpointEntry(objName, dataName), mTimeScaleDataPtr(timeScaleDataPtr), mBatchSize(batchSize) {}
    virtual void write(
          std::shared_ptr<FileManager const> fileManager, double simTime, bool verifyWritesFlag)
          const override;
@@ -77,7 +75,8 @@ class CheckpointEntryTimeScaleInfo : public CheckpointEntry {
    virtual void remove(std::shared_ptr<FileManager const> fileManager) const override;
 
   private:
-   AdaptiveTimeScaleController::TimeScaleInfo *mTimeScaleInfoPtr;
+   TimeScaleData *mTimeScaleDataPtr;
+   int mBatchSize;
 };
 
 } /* namespace PV */

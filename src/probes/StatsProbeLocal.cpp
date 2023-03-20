@@ -20,7 +20,7 @@ float const *
 StatsProbeLocal::calculateBatchElementStart<StatsBufferType::A>(int localBatchIndex) const {
    PVLayerLoc const *loc = getLayerLoc();
    int nxExt             = loc->nx + loc->halo.lt + loc->halo.rt;
-   int nyExt             = loc->nx + loc->halo.dn + loc->halo.up;
+   int nyExt             = loc->ny + loc->halo.dn + loc->halo.up;
    int numExtended       = nxExt * nyExt * loc->nf;
    return findDataBufferA() + localBatchIndex * numExtended;
 }

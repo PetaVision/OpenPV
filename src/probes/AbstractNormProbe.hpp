@@ -65,7 +65,6 @@ class AbstractNormProbe : public ProbeInterface {
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
    Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
-   Response::Status respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message);
 
   protected:
    // Probe components, set by createComponents(), called by initialize()

@@ -97,10 +97,12 @@ void BaseProbeOutputter::initialize(
 
 void BaseProbeOutputter::ioParam_message(enum ParamsIOFlag ioFlag) {
    pvAssert(!getParams()->presentAndNotBeenRead(getName_c(), "textOutputFlag"));
-   getParams()->ioParamString(
-         ioFlag, getName_c(), "message", &mMessageParam, mMessageParam, false /*warnIfAbsent*/);
-   if (ioFlag == PARAMS_IO_READ) {
-      initMessageString();
+   if (mTextOutputFlag) {
+      getParams()->ioParamString(
+            ioFlag, getName_c(), "message", &mMessageParam, mMessageParam, false /*warnIfAbsent*/);
+      if (ioFlag == PARAMS_IO_READ) {
+         initMessageString();
+      }
    }
 }
 

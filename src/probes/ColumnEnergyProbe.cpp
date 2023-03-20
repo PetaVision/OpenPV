@@ -107,12 +107,6 @@ void ColumnEnergyProbe::initMessageActionMap() {
       return respondColProbeOutputState(castMessage);
    };
    mMessageActionMap.emplace("ColProbeOutputState", action);
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ProbeWriteParamsMessage const>(msgptr);
-      return respondProbeWriteParams(castMessage);
-   };
-   mMessageActionMap.emplace("ProbeWriteParams", action);
 }
 
 int ColumnEnergyProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -188,12 +182,6 @@ ColumnEnergyProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer
 Response::Status ColumnEnergyProbe::respondColProbeOutputState(
       std::shared_ptr<ColProbeOutputStateMessage const>(message)) {
    return outputState(message->mTime, message->mDeltaTime);
-}
-
-Response::Status
-ColumnEnergyProbe::respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message) {
-   writeParams();
-   return Response::SUCCESS;
 }
 
 } // namespace PV

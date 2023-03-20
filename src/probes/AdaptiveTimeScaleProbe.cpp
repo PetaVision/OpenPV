@@ -8,6 +8,8 @@
 #include "AdaptiveTimeScaleProbe.hpp"
 #include "columns/Messages.hpp"
 #include "observerpattern/BaseMessage.hpp"
+#include "probes/AdaptiveTimeScaleProbeOutputter.hpp"
+#include "probes/ProbeTriggerComponent.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include <cstdlib>
@@ -25,17 +27,38 @@ AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe(
 
 AdaptiveTimeScaleProbe::AdaptiveTimeScaleProbe() {}
 
-AdaptiveTimeScaleProbe::~AdaptiveTimeScaleProbe() { delete mAdaptiveTimeScaleController; }
+AdaptiveTimeScaleProbe::~AdaptiveTimeScaleProbe() {
+    free(mTargetName);
+    delete mAdaptiveTimeScaleController;
+}
 
-void AdaptiveTimeScaleProbe::initialize(
+void AdaptiveTimeScaleProbe::createComponents(char const *name, PVParams *params, Communicator const *comm) {
+   // NB: the data members mName and mParams have not been set when createComponents() is called.
+   createProbeOutputter(name, params, comm);
+   createProbeTrigger(name, params);
+}
+
+void AdaptiveTimeScaleProbe::createProbeOutputter(
       char const *name,
       PVParams *params,
       Communicator const *comm) {
-   ColProbe::initialize(name, params, comm);
+   mProbeOutputter = std::make_shared<AdaptiveTimeScaleProbeOutputter>(name, params, comm);
+}
+
+void AdaptiveTimeScaleProbe::createProbeTrigger(char const *name, PVParams *params) {
+   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(name, params);
+}
+
+void AdaptiveTimeScaleProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   createComponents(name, params, comm);
+   // createComponents() must be called before the base class's initialize(),
+   // because BaseObject::initialize() calls the ioParamsFillGroup() method,
+   // which calls each component's ioParamsFillGroup() method.
+   ProbeInterface::initialize(name, params, comm);
 }
 
 void AdaptiveTimeScaleProbe::initMessageActionMap() {
-   ColProbe::initMessageActionMap();
+   ProbeInterface::initMessageActionMap();
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
@@ -46,18 +69,19 @@ void AdaptiveTimeScaleProbe::initMessageActionMap() {
 }
 
 int AdaptiveTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = ColProbe::ioParamsFillGroup(ioFlag);
+   int status = ProbeInterface::ioParamsFillGroup(ioFlag);
+   ioParam_targetName(ioFlag);
+   mProbeOutputter->ioParamsFillGroup(ioFlag);
+   mProbeTrigger->ioParamsFillGroup(ioFlag);
    ioParam_baseMax(ioFlag);
    ioParam_baseMin(ioFlag);
    ioParam_tauFactor(ioFlag);
    ioParam_growthFactor(ioFlag);
-   ioParam_writeTimeScales(ioFlag);
-   ioParam_writeTimeScaleFieldnames(ioFlag);
    return status;
 }
 
 void AdaptiveTimeScaleProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
+   parameters()->ioParamStringRequired(ioFlag, name, "targetName", &mTargetName);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_baseMax(enum ParamsIOFlag ioFlag) {
@@ -76,62 +100,31 @@ void AdaptiveTimeScaleProbe::ioParam_growthFactor(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
 }
 
-// writeTimeScales was marked obsolete Jul 27, 2017. Use textOutputFlag instead.
-void AdaptiveTimeScaleProbe::ioParam_writeTimeScales(enum ParamsIOFlag ioFlag) {
-   if (ioFlag != PARAMS_IO_READ) {
-      return;
-   }
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
-   if (parameters()->present(name, "writeTimeScales")) {
-      bool writeTimeScales = (parameters()->value(name, "writeTimeScales") != 0);
-      if (writeTimeScales == getTextOutputFlag()) {
-         WarnLog() << getDescription()
-                   << " sets writeTimeScales, which is obsolete. Use textOutputFlag instead.\n";
-      }
-      else if (parameters()->present(name, "textOutputFlag")) {
-         Fatal() << "writeTimeScales is obsolete as it is redundant with textOutputFlag. "
-                 << getDescription() << " sets these flags to opposite values.\n";
-      }
-      else {
-         pvAssert(writeTimeScales != getTextOutputFlag());
-         Fatal() << "writeTimeScales is obsolete as it is redundant with textOutputFlag. "
-                 << getDescription() << " sets writeTimeScales to "
-                 << (writeTimeScales ? "true" : "false")
-                 << " but the default value of textOutputFlag is "
-                 << (getTextOutputFlag() ? "true" : "false") << "\n";
-      }
-   }
-}
-
-void AdaptiveTimeScaleProbe::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
-   if (getTextOutputFlag()) {
-      parameters()->ioParamValue(
-            ioFlag,
-            name,
-            "writeTimeScaleFieldnames",
-            &mWriteTimeScaleFieldnames,
-            mWriteTimeScaleFieldnames);
-   }
-}
-
 Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto status = ColProbe::communicateInitInfo(message);
+   auto status = ProbeInterface::communicateInitInfo(message);
    if (!Response::completed(status)) {
       return status;
    }
-   mTargetProbe = message->mObjectTable->findObject<ProbeInterface>(targetName);
+
+   mTargetProbe = message->mObjectTable->findObject<ProbeInterface>(mTargetName);
    FatalIf(
          mTargetProbe == nullptr,
          "%s: targetName \"%s\" is not a suitable probe type.\n",
          getDescription_c(),
-         targetName);
+         mTargetName);
+
+   // Set up triggering
+   status = status + mProbeTrigger->communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+
    return Response::SUCCESS;
 }
 
 Response::Status AdaptiveTimeScaleProbe::allocateDataStructures() {
-   auto status = ColProbe::allocateDataStructures();
+   auto status = ProbeInterface::allocateDataStructures();
    if (!Response::completed(status)) {
       return status;
    }
@@ -142,13 +135,8 @@ Response::Status AdaptiveTimeScaleProbe::allocateDataStructures() {
             mTargetProbe->getDescription_c());
       return Response::POSTPONE;
    }
-   FatalIf(
-         mTargetProbe->getNumValues() != getNumValues(),
-         "%s: target probe %s does not have the correct NumValues (%d instead of %d).\n",
-         getDescription_c(),
-         mTargetProbe->getName(),
-         mTargetProbe->getNumValues(),
-         getNumValues());
+   int batchWidth = mTargetProbe->getNumValues();
+   setNumValues(batchWidth);
    allocateTimeScaleController();
    return Response::SUCCESS;
 }
@@ -161,17 +149,18 @@ void AdaptiveTimeScaleProbe::allocateTimeScaleController() {
          mBaseMin,
          tauFactor,
          mGrowthFactor,
-         mWriteTimeScaleFieldnames,
          mCommunicator);
 }
 
 Response::Status AdaptiveTimeScaleProbe::registerData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   auto status = ColProbe::registerData(message);
+   auto status = ProbeInterface::registerData(message);
    if (!Response::completed(status)) {
       return status;
    }
    mAdaptiveTimeScaleController->registerData(message);
+   auto *checkpointer = message->mDataRegistry;
+   mProbeOutputter->initOutputStreams(checkpointer, getNumValues());
    return Response::SUCCESS;
 }
 
@@ -193,32 +182,35 @@ AdaptiveTimeScaleProbe::respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessag
 // probeValues. AdaptiveTimeScaleProbe also processes the triggering and only reads the
 // mAdaptiveTimeScaleController when triggering doesn't happen.
 
-void AdaptiveTimeScaleProbe::calcValues(double timeValue) {
-   std::vector<double> rawProbeValues;
-   if (mTriggerControl != nullptr
-       && mTriggerControl->needUpdate(timeValue + triggerOffset, mBaseDeltaTime)) {
-      rawProbeValues.assign(getNumValues(), -1.0);
+void AdaptiveTimeScaleProbe::calcValues(double timestamp) {
+   std::vector<double> probeValues;
+   if (mProbeTrigger and mProbeTrigger->needUpdate(timestamp, mBaseDeltaTime)) {
+      probeValues.assign(getNumValues(), -1.0);
    }
    else {
       // Since AdaptTimestep is called at the beginning of the timestep, we don't want to cause
       // the downstream probes to recalculate here, since the layers haven't updated for the
       // current timestep yet. Hence, we call TargetProbe->getValues() with no argument.
-      rawProbeValues = mTargetProbe->getValues();
+      probeValues = mTargetProbe->getValues();
+
+      // In allocateDataStructures, we set NumValues to the target probe's NumValues.
+      pvAssert(getNumValues() == static_cast<int>(probeValues.size()));
    }
-   pvAssert(rawProbeValues.size() == (std::size_t)getNumValues());
-   // In allocateDataStructures, we checked that mTargetProbe has a compatible size.
-   std::vector<double> timeSteps =
-         mAdaptiveTimeScaleController->calcTimesteps(timeValue, rawProbeValues);
+   std::vector<TimeScaleData> const &newTimeScales =
+         mAdaptiveTimeScaleController->calcTimesteps(probeValues);
+   ProbeData<TimeScaleData> newTimeScaleData(timestamp, getNumValues());
    for (int b = 0; b < getNumValues(); ++b) {
-      getProbeValues()[b] = timeSteps[b];
+       newTimeScaleData.getValue(b) = newTimeScales[b];
+       probeValues[b] = newTimeScales[b].mTimeScale;
    }
+   mStoredValues.store(newTimeScaleData);
+   setValues(timestamp, probeValues);
 }
 
-Response::Status AdaptiveTimeScaleProbe::outputState(double simTime, double deltaTime) {
-   if (!mOutputStreams.empty()) {
-      mAdaptiveTimeScaleController->writeTimestepInfo(simTime, mOutputStreams);
-   }
+Response::Status AdaptiveTimeScaleProbe::prepareCheckpointWrite(double simTime) {
+   mProbeOutputter->printTimeScaleBuffer(mStoredValues);
+   mStoredValues.clear();
    return Response::SUCCESS;
 }
 
-} /* namespace PV */
+} // namespace PV

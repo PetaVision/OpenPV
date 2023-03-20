@@ -87,6 +87,13 @@ Response::Status HyPerLCAInternalStateBuffer::allocateDataStructures() {
       return status;
    }
    if (mAdaptiveTimeScaleProbe) {
+      if (!mAdaptiveTimeScaleProbe->getDataStructuresAllocatedFlag()) {
+         InfoLog().printf(
+               "%s must wait until %s has finished its allocateDataStructures stage.\n",
+               getDescription_c(),
+               mAdaptiveTimeScaleProbe->getDescription_c());
+         return status + Response::POSTPONE;
+      }
       pvAssert(getLayerLoc()->nbatch == mAdaptiveTimeScaleProbe->getNumValues());
    }
    mDeltaTimes.resize(getLayerLoc()->nbatch);
@@ -160,7 +167,7 @@ void HyPerLCAInternalStateBuffer::updateBufferCPU(double simTime, double deltaTi
 
 double const *HyPerLCAInternalStateBuffer::deltaTimes(double simTime, double deltaTime) {
    if (mAdaptiveTimeScaleProbe) {
-      mAdaptiveTimeScaleProbe->getValues(simTime, &mDeltaTimes);
+      mDeltaTimes = mAdaptiveTimeScaleProbe->getValues(simTime);
    }
    else {
       mDeltaTimes.assign(getLayerLoc()->nbatch, deltaTime);

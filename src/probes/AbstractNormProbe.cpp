@@ -133,12 +133,6 @@ void AbstractNormProbe::initMessageActionMap() {
       return respondLayerOutputState(castMessage);
    };
    mMessageActionMap.emplace("LayerOutputState", action);
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ProbeWriteParamsMessage const>(msgptr);
-      return respondProbeWriteParams(castMessage);
-   };
-   mMessageActionMap.emplace("ProbeWriteParams", action);
 }
 
 int AbstractNormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -201,12 +195,6 @@ AbstractNormProbe::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessa
       status = outputState(message);
    }
    return status;
-}
-
-Response::Status
-AbstractNormProbe::respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message) {
-   writeParams();
-   return Response::SUCCESS;
 }
 
 } // namespace PV

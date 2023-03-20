@@ -14,13 +14,11 @@ class KneeTimeScaleController : public AdaptiveTimeScaleController {
          double baseMin,
          double tauFactor,
          double growthFactor,
-         bool writeTimeScaleFieldnames,
          Communicator const *comm,
          double kneeThresh,
          double kneeSlope);
 
-   virtual std::vector<double>
-   calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales) override;
+   virtual std::vector<TimeScaleData> const &calcTimesteps(std::vector<double> const &timeScales) override;
 
   protected:
    double mKneeThresh = 1.0;

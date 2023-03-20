@@ -15,19 +15,16 @@
 #include "components/AdaptiveTimeScaleController.hpp"
 #include "io/PVParams.hpp"
 #include "observerpattern/Response.hpp"
-#include "probes/ColProbe.hpp"
+#include "probes/AdaptiveTimeScaleProbeOutputter.hpp"
+#include "probes/ProbeData.hpp"
+#include "probes/ProbeDataBuffer.hpp"
 #include "probes/ProbeInterface.hpp"
+#include "probes/ProbeTriggerComponent.hpp"
 #include <memory>
 
 namespace PV {
 
-// AdaptiveTimeScaleProbe to be a subclass of ColProbe since it doesn't belong
-// to a layer or connection, and the HyPerCol has to know of its existence to
-// call various methods. It doesn't use any ColProbe-specific behavior other
-// than ColProbe inserting the probe into the HyPerCol's list of ColProbes.
-// Once the observer pattern is more fully implemented, it could probably
-// derive straight from BaseProbe.
-class AdaptiveTimeScaleProbe : public ColProbe {
+class AdaptiveTimeScaleProbe : public ProbeInterface {
   protected:
    /**
     * List of parameters needed from the AdaptiveTimeScaleProbe class
@@ -40,7 +37,7 @@ class AdaptiveTimeScaleProbe : public ColProbe {
     * The target probe's values are used as the input to compute the adaptive
     * timesteps.
     */
-   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
+   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief baseMax: Specifies the initial maximum timescale allowed.
@@ -67,19 +64,6 @@ class AdaptiveTimeScaleProbe : public ColProbe {
     * when the timescale reaches the maximum.
     */
    virtual void ioParam_growthFactor(enum ParamsIOFlag ioFlag);
-
-   // writeTimeScales was marked obsolete Jul 27, 2017.
-   /**
-    * @brief writeTimeScales is obsolete, as it is redundant with textOutputFlag.
-    */
-   virtual void ioParam_writeTimeScales(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief writeTimeScaleFieldnames: A flag to determine if fieldnames are
-    * written to the
-    * HyPerCol_timescales file. If false, file is written as comma separated list
-    */
-   virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);
    /** @} */
 
   public:
@@ -91,27 +75,33 @@ class AdaptiveTimeScaleProbe : public ColProbe {
 
   protected:
    AdaptiveTimeScaleProbe();
+   virtual void createComponents(char const *name, PVParams *params, Communicator const *comm);
+   virtual void createProbeOutputter(char const *name, PVParams *params, Communicator const *comm);
+   virtual void createProbeTrigger(char const *name, PVParams *params);
    void initialize(char const *name, PVParams *params, Communicator const *comm);
    virtual void initMessageActionMap() override;
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   virtual Response::Status prepareCheckpointWrite(double simTime) override;
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
    virtual Response::Status
    initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
    Response::Status respondAdaptTimestep(std::shared_ptr<AdaptTimestepMessage const> message);
-   bool needRecalc(double timeValue) override { return timeValue > getLastUpdateTime(); }
-   double referenceUpdateTime(double timevalue) const override { return timevalue; }
-   virtual void calcValues(double timeValue) override;
-   virtual bool needUpdate(double timeValue, double dt) const override { return true; }
+   virtual void calcValues(double timestamp) override;
    virtual void allocateTimeScaleController();
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
   protected:
+   // Probe components, set by createComponents(), called by initialize()
+   std::shared_ptr<AdaptiveTimeScaleProbeOutputter> mProbeOutputter;
+   std::shared_ptr<ProbeTriggerComponent> mProbeTrigger;
+
+   ProbeDataBuffer<TimeScaleData> mStoredValues;
+
+   char *mTargetName              = nullptr;
    double mBaseMax                = 1.0;
    double mBaseMin                = 1.0;
    double tauFactor               = 1.0;
    double mGrowthFactor           = 1.0;
-   bool mWriteTimeScaleFieldnames = true;
 
    ProbeInterface *mTargetProbe                              = nullptr;
    AdaptiveTimeScaleController *mAdaptiveTimeScaleController = nullptr;

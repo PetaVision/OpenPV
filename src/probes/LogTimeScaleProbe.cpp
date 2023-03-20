@@ -30,7 +30,6 @@ void LogTimeScaleProbe::allocateTimeScaleController() {
          mBaseMin,
          tauFactor,
          mGrowthFactor,
-         mWriteTimeScaleFieldnames,
          mCommunicator,
          mLogThresh,
          mLogSlope);

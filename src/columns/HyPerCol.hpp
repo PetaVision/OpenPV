@@ -170,7 +170,6 @@ class HyPerCol : public Subject, public ParamsInterface {
    bool getVerifyWrites() { return mCheckpointer->doesVerifyWrites(); }
    bool getCheckpointWriteFlag() const { return mCheckpointer->getCheckpointWriteFlag(); }
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
-   bool getWriteTimescales() const { return mWriteTimescales; }
    const char *getOutputPath() { return mOutputPath; }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    double getDeltaTime() const { return mDeltaTime; }
@@ -251,8 +250,6 @@ class HyPerCol : public Subject, public ParamsInterface {
    bool mWriteProgressToErr = false; // Whether to write progress step to standard error
    // (True) or standard output (False) (default is output)
    bool mOwnsCommunicator = true; // True if icComm was created by initialize,
-   // false if passed in the constructor
-   bool mWriteTimescales;
    char *mPrintParamsFilename = nullptr; // filename for outputting the mParams, including
    // defaults and excluding unread mParams
    char *mOutputPath = nullptr;

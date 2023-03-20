@@ -2,6 +2,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/AbstractNormProbe.cpp
    ${SUBDIR}/ActivityBufferStatsProbeLocal.cpp
    ${SUBDIR}/AdaptiveTimeScaleProbe.cpp
+   ${SUBDIR}/AdaptiveTimeScaleProbeOutputter.cpp
    ${SUBDIR}/BaseProbe.cpp
    ${SUBDIR}/BaseProbeOutputter.cpp
    ${SUBDIR}/BufferParamInterface.cpp
@@ -55,6 +56,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/AbstractNormProbe.hpp
    ${SUBDIR}/ActivityBufferStatsProbeLocal.hpp
    ${SUBDIR}/AdaptiveTimeScaleProbe.hpp
+   ${SUBDIR}/AdaptiveTimeScaleProbeOutputter.hpp
    ${SUBDIR}/BaseProbe.hpp
    ${SUBDIR}/BaseProbeOutputter.hpp
    ${SUBDIR}/BufferParamsInterface.hpp

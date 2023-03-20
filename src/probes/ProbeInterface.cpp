@@ -15,11 +15,21 @@ std::vector<double> const &ProbeInterface::getValues(double timestamp) {
       calcValues(timestamp);
    }
    return getValues();
-   // return mValues->getValues();
 }
 
 void ProbeInterface::initialize(const char *name, PVParams *params, Communicator const *comm) {
    BaseObject::initialize(name, params, comm);
+}
+
+void ProbeInterface::initMessageActionMap() {
+   BaseObject::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ProbeWriteParamsMessage const>(msgptr);
+      return respondProbeWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("ProbeWriteParams", action);
 }
 
 Response::Status
@@ -29,6 +39,12 @@ ProbeInterface::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
       return status;
    }
    auto *checkpointer = message->mDataRegistry;
+   return Response::SUCCESS;
+}
+
+Response::Status
+ProbeInterface::respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message) {
+   writeParams();
    return Response::SUCCESS;
 }
 

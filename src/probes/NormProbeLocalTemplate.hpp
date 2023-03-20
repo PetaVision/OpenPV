@@ -54,8 +54,6 @@ void NormProbeLocalTemplate<C>::calculateNorms(double simTime, ProbeData<double>
    for (int b = 0; b < nbatch; ++b) {
       values.getValue(b) =
             norm->calculateSum(getTargetBuffer(), bufferLoc, getMaskBuffer(), maskLoc, b);
-      InfoLog().printf(
-            "timestamp = %f, batch element %d, value %f\n", simTime, b, values.getValue(b));
    }
 }
 

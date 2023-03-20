@@ -42,6 +42,11 @@ class BaseProbeOutputter : public ProbeComponent {
     */
    void writeString(std::string const &str, int batchIndex);
 
+   std::string const &getMessage() const { return mMessageString; }
+   char const *getMessageParam() const { return mMessageParam; }
+   char const *getProbeOutputFilename() const { return mProbeOutputFilename; }
+   bool getTextOutputFlag() const { return mTextOutputFlag; }
+
   protected:
    BaseProbeOutputter() {}
    int calcGlobalBatchOffset() const;
@@ -56,10 +61,6 @@ class BaseProbeOutputter : public ProbeComponent {
    Communicator const *getCommunicator() const { return mCommunicator; }
    std::shared_ptr<MPIBlock const> getIOMPIBlock() const { return mIOMPIBlock; }
    int getLocalNBatch() const { return mLocalNBatch; }
-   std::string const &getMessage() const { return mMessageString; }
-   char const *getMessageParam() const { return mMessageParam; }
-   char const *getProbeOutputFilename() const { return mProbeOutputFilename; }
-   bool getTextOutputFlag() const { return mTextOutputFlag; }
 
   private:
    Communicator const *mCommunicator;

@@ -122,12 +122,6 @@ void QuotientProbe::initMessageActionMap() {
       return respondColProbeOutputState(castMessage);
    };
    mMessageActionMap.emplace("ColProbeOutputState", action);
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ProbeWriteParamsMessage const>(msgptr);
-      return respondProbeWriteParams(castMessage);
-   };
-   mMessageActionMap.emplace("ProbeWriteParams", action);
 }
 
 void QuotientProbe::ioParam_denominator(enum ParamsIOFlag ioFlag) {
@@ -213,12 +207,6 @@ QuotientProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> co
 Response::Status QuotientProbe::respondColProbeOutputState(
       std::shared_ptr<ColProbeOutputStateMessage const>(message)) {
    return outputState(message->mTime, message->mDeltaTime);
-}
-
-Response::Status
-QuotientProbe::respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message) {
-   writeParams();
-   return Response::SUCCESS;
 }
 
 } // namespace PV

@@ -1,4 +1,5 @@
 #include "KneeTimeScaleController.hpp"
+#include "utils/PVAssert.hpp"
 
 namespace PV {
 
@@ -9,7 +10,6 @@ KneeTimeScaleController::KneeTimeScaleController(
       double baseMin,
       double tauFactor,
       double growthFactor,
-      bool writeTimeScaleFieldnames,
       Communicator const *comm,
       double kneeThresh,
       double kneeSlope)
@@ -20,29 +20,27 @@ KneeTimeScaleController::KneeTimeScaleController(
               baseMin,
               tauFactor,
               growthFactor,
-              writeTimeScaleFieldnames,
               comm) {
    mKneeThresh = kneeThresh;
    mKneeSlope  = kneeSlope;
 }
 
-std::vector<double>
-KneeTimeScaleController::calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales) {
-
-   std::vector<double> timeScales(
-         AdaptiveTimeScaleController::calcTimesteps(timeValue, rawTimeScales));
-
-   for (std::size_t i = 0; i < timeScales.size(); ++i) {
-      // Scale timescalemax if it's above the knee
-      if (mTimeScaleInfo.mTimeScaleMax[i] > mKneeThresh) {
-         mTimeScaleInfo.mTimeScaleMax[i] =
-               mOldTimeScaleInfo.mTimeScaleMax[i]
-               + (mTimeScaleInfo.mTimeScaleMax[i] - mOldTimeScaleInfo.mTimeScaleMax[i])
+std::vector<TimeScaleData> const &KneeTimeScaleController::calcTimesteps(std::vector<double> const &timeScales) {
+   AdaptiveTimeScaleController::calcTimesteps(timeScales);
+   // Updates mTimeScaleInfo, mOldTimeScaleInfo
+   // Now scale timescalemax if it's above the knee
+   for (int i = 0; i < mBatchWidth; ++i) {
+      if (mTimeScaleInfo[i].mTimeScaleMax > mKneeThresh) {
+         mTimeScaleInfo[i].mTimeScaleMax =
+               mOldTimeScaleInfo[i].mTimeScaleMax
+               + (mTimeScaleInfo[i].mTimeScaleMax - mOldTimeScaleInfo[i].mTimeScaleMax)
                        * mKneeSlope;
          // Cap our timescale to the newly calculated max
-         timeScales[i] = std::min(timeScales[i], mTimeScaleInfo.mTimeScaleMax[i]);
+         mTimeScaleInfo[i].mTimeScale =
+               std::min(mTimeScaleInfo[i].mTimeScale, mTimeScaleInfo[i].mTimeScaleMax);
       }
    }
-   return timeScales;
+   return mTimeScaleInfo;
 }
-}
+
+} // namespace PV
