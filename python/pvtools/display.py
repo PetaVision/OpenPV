@@ -1,5 +1,4 @@
 from .readpvpfile import readpvpfile
-#from .pv_object import PV_Object
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +8,6 @@ import numpy as np
 def interpret(arg):
    if type(arg) is str:
       arg = readpvpfile(arg)
-   #assert type(arg) is PV_Object
    return arg
 
 def getActive(data):

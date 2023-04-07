@@ -1,7 +1,7 @@
 import os
 import imageio
-import scipy.io
 import numpy as np
+import pickle
 import sys
 
 
@@ -18,33 +18,32 @@ def mkdir_if_needed(path):
     exit(1)
 
 
-def extract_images(path, cnt, append_mixed=True):
+def extract_images(input_path, output_dir, lead_digit, append_mixed=True):
   '''
   Extracts images from the given .mat file and writes them as .png files.
-  path:         mat file given as string, e.g 'data_batch_1.mat'
-  cnt:          most significant digit in unique file number. Accounts for having 
-                individual .mat files. cnt = 3 will result in numbers 3xxxx
+  input_path:   data file given as string, e.g 'data_batch_1'
+  output_dir:   directory to write the results in. If does not exist it will be
+                created. If it does exist, there is no checking for whether
+                files exist or whether any previously existing files will be
+                clobbered.
+  lead_digit:   most significant digit in unique file number. Accounts for having 
+                individual data files. lead_digit = 3 will result in numbers 3xxxx
   append_mixed: Whether to append the results to the mixed_cifar.txt file
   '''
-  basename = os.path.basename(path)
-  dirname = os.path.dirname(path)
-  if len(dirname) == 0:
-    dirname = '.'
-  if basename.find('data_batch_') < 0 and basename.find('test_batch') < 0:
+  input_basename = os.path.basename(input_path)
+  input_dirname = os.path.dirname(input_path)
+  if len(input_dirname) == 0:
+    input_dirname = '.'
+  if input_basename.find('data_batch_') < 0 and input_basename.find('test_batch') < 0:
     print('filename does not begin with either "data_batch_" or "test_batch"', file=sys.stderr)
     exit(1)
-  if basename[-4:] != '.mat':
-    print('filename does not have the extension ".mat"', file=sys.stderr)
-    exit(1)
 
-  output_dir_base = basename[:len(basename)-4]
-  output_dir = dirname + os.sep + output_dir_base
   mkdir_if_needed(output_dir)
   
-  matcontents = scipy.io.loadmat(path)
-  num_ims, im_size = matcontents['data'].shape
+  contents = unpickle(input_path)
+  num_ims, im_size = contents[b'data'].shape
   if im_size != 3072:
-    print('data variable in {} does not have 3072 columns, as expected for CIFAR-10 data'.format(basename))
+    print(f'data variable in {input_basename} does not have 3072 columns, as expected for CIFAR-10 data')
 
   # specify dimensions of image
   xdim = 32
@@ -52,32 +51,30 @@ def extract_images(path, cnt, append_mixed=True):
   coldim = 3
 
   # get labels used to create subfolders for each label
-  uniquelabels = np.unique(matcontents['labels'])
+  uniquelabels = np.unique(contents[b'labels'])
 
   # create subfolders
   for i in uniquelabels:
     subdir = output_dir + os.sep + str(i)
     mkdir_if_needed(subdir)
-    # delete files remaining from a previous extractImages run, if any
-    for file in os.listdir(subdir):
-      os.remove(subdir + os.sep + file)
 
-  # create randorder file for PV. Order within .mat file is random already
+  # create randorder file for PV. Order within data file is random already
   # appends new lines to the end of the file
-  randorder_pathname = output_dir + os.sep + output_dir_base + '_randorder.txt'
-  mixed_file_pathname = dirname + os.sep + 'mixed_cifar.txt'
+  randorder_pathname = output_dir + os.sep + input_basename + '_randorder.txt'
 
   batch_file = open(randorder_pathname, 'w')
-  mixed_file = open(mixed_file_pathname, 'a')
+  if append_mixed:
+    mixed_file_pathname = output_dir + os.sep + 'mixed_cifar.txt'
+    mixed_file = open(mixed_file_pathname, 'a')
 
   for i in range(num_ims):
     # get image path
-    index = i + cnt * 10000
-    label = matcontents['labels'][i][0]
+    index = i + lead_digit * 10000
+    label = contents[b'labels'][i]
     cifar_name = f'{output_dir}{os.sep}{label}{os.sep}CIFAR_{index:05d}.png'
     
     # process and save image
-    im = matcontents['data'][i]
+    im = contents[b'data'][i]
     im = im.reshape(coldim, ydim, xdim).transpose(1,2,0)
     imageio.imwrite(cifar_name, im)
 
@@ -87,31 +84,33 @@ def extract_images(path, cnt, append_mixed=True):
         print(cifar_name, file=mixed_file)
 
   batch_file.close()
-  mixed_file.close()
-  print(f'Finished {output_dir_base}')
+  if append_mixed:
+    mixed_file.close()
+  print(f'Finished {input_basename}')
 
 
 def extract_cifar():
   progpath = sys.argv[0]
   progdir = os.path.dirname(progpath)
-  if len(progdir) == 0:
-    progdir = '.'
-  cifarPath = progdir + os.sep + '../cifar-10-batches-mat'
-  cifarPath = os.path.realpath(cifarPath)
-  mixed_file_pathname = cifarPath + os.sep + 'mixed_cifar.txt'
+  input_dir = os.path.join(progdir, '../cifar-10-batches-py')
+  input_dir = os.path.realpath(input_dir)
 
-  if os.path.exists(mixed_file_pathname):
-    print(f'WARNING: {mixed_file_pathname} exists and is being deleted to prevent duplicate entries.')
-    os.remove(mixed_file_pathname) 
+  output_dir = os.path.join(progdir, '../cifar-10-images')
+  output_dir = os.path.realpath(output_dir)
 
   print('Extracting images..')
 
-  extract_images(cifarPath + os.sep + 'data_batch_1.mat', 1)
-  extract_images(cifarPath + os.sep + 'data_batch_2.mat', 2)
-  extract_images(cifarPath + os.sep + 'data_batch_3.mat', 3)
-  extract_images(cifarPath + os.sep + 'data_batch_4.mat', 4)
-  extract_images(cifarPath + os.sep + 'data_batch_5.mat', 5)
-  extract_images(cifarPath + os.sep + 'test_batch.mat', 0, False)
+  extract_images(os.path.join(input_dir, 'data_batch_1'), output_dir, 1)
+  extract_images(os.path.join(input_dir, 'data_batch_2'), output_dir, 2)
+  extract_images(os.path.join(input_dir, 'data_batch_3'), output_dir, 3)
+  extract_images(os.path.join(input_dir, 'data_batch_4'), output_dir, 4)
+  extract_images(os.path.join(input_dir, 'data_batch_5'), output_dir, 5)
+  extract_images(os.path.join(input_dir, 'test_batch'), output_dir, 0, False)
+
+def unpickle(path):
+  with open(path, 'rb') as fileobj:
+    contents = pickle.load(fileobj, encoding='bytes')
+  return contents
 
 
 if __name__ == '__main__':

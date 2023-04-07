@@ -1,10 +1,17 @@
 function [data,hdr] = readpvpfile(filename,progressperiod, last_frame, start_frame, skip_frames)
-% Usage:[data,hdr] = readpvpfile(filename,progressperiod, last_frame, start_frame)
+% Usage:[data,hdr] = readpvpfile(filename,progressperiod, last_frame, start_frame, skip_frames)
 % filename is a pvp file (any type)
 % progressperiod is an optional integer argument.  A message is printed
 %     to the screen every progressperiod frames.
 % last_frame is the index of the last frame to read.  Default is all frames.
 % start_frame is the starting frame.  Default is 1.
+% skip_frame means to read every [n]th frame. Default is 1.
+% The frames are numbered starting with 1.
+%
+% For example, readpvpfile(filename, 10, 100, 1, 5)
+% Would read frames 1, 6, 11, 16, etc. until 96. It would print out progress messages
+% at frames 10, 20, etc. until 100, even though it doesn't store any of those
+% specific frames.
 %
 % data is a cell array containing the data.
 %     In general, data has one element for each time step written.

@@ -1,11 +1,18 @@
 clear all;
 close all;
 %setenv('GNUTERM','X11')
-addpath('../../../mlab/util/');
+% addpath('../../../mlab/util/');
 
-workspace_path = '../../../';
-output_dir = '../output/';
-checkpoint_dir = '../output/Checkpoints/';
+script_dir = fileparts(mfilename("fullpath"));
+% script_dir is the directory containing this script m-file
+addpath(script_dir)
+top_dir = cd(cd([script_dir filesep ".."]));
+% top_dir is the directory containing script_dir
+
+output_dir = [top_dir filesep 'output'];
+checkpoint_dir = [output_dir filesep 'Checkpoints'];
+analysis_dir = [top_dir filesep 'Analysis']; % Files are written to this dir
+mkdir(analysis_dir);
 
 max_history = 100000000;
 numarbors = 1;
@@ -23,11 +30,13 @@ if analyze_Recon_flag
    numRecons = size(Input_list, 1);
    assert(numRecons == size(Recon_list, 1));
 
-   outDir = [output_dir, '/Recons/'];
-   mkdir(outDir);
+   recons_dir = [analysis_dir, filesep 'Recons'];
+   mkdir(recons_dir);
    for i_recon = 1:numRecons
-      [inputData, inputHdr] = readpvpfile([output_dir, Input_list{i_recon}, '.pvp']);
-      [reconData, reconHdr] = readpvpfile([output_dir, Recon_list{i_recon}, '.pvp']);
+      inputPath = [output_dir, filesep, Input_list{i_recon}, '.pvp'];
+      [inputData, inputHdr] = readpvpfile(inputPath);
+      reconPath = [output_dir, filesep, Recon_list{i_recon}, '.pvp'];
+      [reconData, reconHdr] = readpvpfile(reconPath);
       numFrames = min(length(inputData), length(reconData));
       for i_frame = 1:frameSkip:numFrames
          %readpvpfile returns in [x, y, f]. Octave expects [y, x, f]
@@ -42,7 +51,7 @@ if analyze_Recon_flag
          %Concat images
          outImg = [scaled_inputImage; scaled_reconImage];
          %Write image
-         outName = sprintf('%s/recon_%06d_%03d.png', outDir, time, batch)
+         outName = sprintf('%s/recon_%06d_%03d.png', recons_dir, time, batch)
          imwrite(outImg, outName);
       end
    end
@@ -51,37 +60,31 @@ end
 plot_flag = 1;
 analyze_Sparse_flag = true;
 if analyze_Sparse_flag
-    Sparse_list = ...
-       {[''], ['V1']; ...
-        };
+    Sparse_label = 'V1';
+    Sparse_file = [output_dir, filesep, Sparse_label, ".pvp"];
 
-    load_Sparse_flag = 0;
     plot_flag = 1;
 
     fraction_Sparse_frames_read = 1;
     min_Sparse_skip = 1;
     fraction_Sparse_progress = 1;
     num_procs = 8;
-    num_epochs = 1;
-    Sparse_frames_list = [];
+    Sparse_dir = [analysis_dir filesep 'Sparse'];
 
   [Sparse_hdr, ...
    Sparse_hist_rank_array, ...
    Sparse_times_array, ...
    Sparse_percent_active_array, ...
    Sparse_percent_change_array, ...
-   Sparse_std_array, ...
-   Sparse_struct_array] = ...
-      analyzeSparseEpochsPVP2(Sparse_list, ...
-			     output_dir, ...
-			     load_Sparse_flag, ...
-			     plot_flag, ...
-			     fraction_Sparse_frames_read, ...
-			     min_Sparse_skip, ...
-			     fraction_Sparse_progress, ...
-			     Sparse_frames_list, ...
-			     num_procs, ...
-			     num_epochs);
+   Sparse_std_array] = ...
+      analyzeSparse(Sparse_file, ...
+                    Sparse_label, ...
+                    Sparse_dir, ...
+                    plot_flag, ...
+                    fraction_Sparse_frames_read, ...
+                    min_Sparse_skip, ...
+                    fraction_Sparse_progress, ...
+                    num_procs);
 end
 
 analyze_nonSparse_flag = true;
@@ -90,7 +93,7 @@ if analyze_nonSparse_flag
         {[''], ['InputError']; ...
          };
     num_nonSparse_list = size(nonSparse_list,1);
-    nonSparse_skip = repmat(10, num_nonSparse_list, 1);
+    nonSparse_skip = repmat(16, num_nonSparse_list, 1);
     nonSparse_norm_list = ...
         {...
          [''], ['Input']; ...
@@ -109,26 +112,27 @@ if analyze_nonSparse_flag
   fraction_nonSparse_frames_read = 1;
   min_nonSparse_skip = 1;
   fraction_nonSparse_progress = 10;
+  nonSparse_dir = [analysis_dir, filesep, "nonSparse"];
   [nonSparse_times_array, ...
    nonSparse_RMS_array, ...
    nonSparse_norm_RMS_array, ...
    nonSparse_RMS_fig] = ...
       analyzeNonSparsePVP(nonSparse_list, ...
-		       nonSparse_skip, ...
-		       nonSparse_norm_list, ...
-		       nonSparse_norm_strength, ...
-		       Sparse_times_array, ...
-		       Sparse_std_array, ...
-		       Sparse_std_ndx, ...
-		       output_dir, ...
-		       plot_flag, ...
-		       fraction_nonSparse_frames_read, ...
-		       min_nonSparse_skip, ...
-		       fraction_nonSparse_progress);
+         nonSparse_skip, ...
+         nonSparse_norm_list, ...
+         nonSparse_norm_strength, ...
+         Sparse_times_array, ...
+         Sparse_std_array, ...
+         Sparse_std_ndx, ...
+         output_dir, ...
+         nonSparse_dir, ...
+         plot_flag, ...
+         fraction_nonSparse_frames_read, ...
+         min_nonSparse_skip, ...
+         fraction_nonSparse_progress);
 
 end %% analyze_nonSparse_flag
 
-%%keyboard;
 plot_flag = false;
 plot_weights = true;
 if plot_weights
@@ -158,13 +162,12 @@ if plot_weights
    num_checkpoints = length(checkpoints_list);
    checkpoint_weights_movie = true;
    no_clobber = false;
-   weights_movie_dir = [output_dir, filesep, 'weights_movie']
 
    num_weights_list = size(weights_list,1);
    weights_hdr = cell(num_weights_list,1);
    pre_hdr = cell(num_weights_list,1);
    if checkpoint_weights_movie
-      weights_movie_dir = [output_dir, filesep, 'weights_movie']
+      weights_movie_dir = [analysis_dir, filesep, 'weights_movie']
       [status, msg, msgid] = mkdir(weights_movie_dir);
       if status ~= 1
          warning(['mkdir(', weights_movie_dir, ')', ' msg = ', msg]);
@@ -181,7 +184,7 @@ if plot_weights
       max_weight_time = 0;
       max_checkpoint = 0;
       for i_checkpoint = 1 : num_checkpoints
-         checkpoint_path = [checkpoint_dir, checkpoints_list{i_checkpoint}];
+         checkpoint_path = [checkpoint_dir, filesep, checkpoints_list{i_checkpoint}];
          weights_file = [checkpoint_path, filesep, weights_list{i_weights,1}, '.pvp'];
          if ~exist(weights_file, 'file')
             warning(['file does not exist: ', weights_file]);
@@ -199,7 +202,7 @@ if plot_weights
       end %% i_checkpoint
 
       for i_checkpoint = 1 : num_checkpoints
-         checkpoint_path = [checkpoint_dir, checkpoints_list{i_checkpoint}];
+         checkpoint_path = [checkpoint_dir, filesep, checkpoints_list{i_checkpoint}];
          weights_file = [checkpoint_path, filesep, weights_list{i_weights,1}, '.pvp'];
          if ~exist(weights_file, 'file')
             warning(['file does not exist: ', weights_file]);
@@ -209,8 +212,8 @@ if plot_weights
          weights_hdr{i_weights} = readpvpheader(weights_fid);    
          fclose(weights_fid);
          weights_filedata = dir(weights_file);
-         patchsize = weights_hdr{i_weights}.additional(1)*weights_hdr{i_weights}.additional(2)*weights_hdr{i_weights}.additional(3);
-         numpatches = weights_hdr{i_weights}.additional(6);
+         patchsize = weights_hdr{i_weights}.nxp * weights_hdr{i_weights}.nyp * weights_hdr{i_weights}.nfp;
+         numpatches = weights_hdr{i_weights}.numPatches;
          datasize = weights_hdr{i_weights}.datasize;
          weights_framesize = (patchsize * datasize + 8) * numpatches + weights_hdr{i_weights}.headersize;
          tot_weights_frames = weights_filedata(1).bytes/weights_framesize;
@@ -228,68 +231,14 @@ if plot_weights
          end
          tmp_ndx = sparse_ndx(i_weights);
          if analyze_Sparse_flag
-            tmp_rank = Sparse_hist_rank_array{tmp_ndx};
+           pre_hist_rank = Sparse_hist_rank_array;
          else
-            tmp_rank = [];
+           pre_hist_rank = (1:weights_hdr{i_weights}.nf);
          end
-         if analyze_Sparse_flag && ~isempty(tmp_rank)
-            pre_hist_rank = tmp_rank;
-         else
-             pre_hist_rank = (1:weights_hdr{i_weights}.nf);
-         end
+
          %% make tableau of all patches
-         %%keyboard;
-         i_patch = 1;
-         num_weights_dims = ndims(weight_vals);
-         num_patches = size(weight_vals, num_weights_dims);
-         num_patches_rows = floor(sqrt(num_patches));
-         num_patches_cols = ceil(num_patches / num_patches_rows);
-         num_weights_colors = 1;
-         if num_weights_dims == 4
-             num_weights_colors = size(weight_vals,3);
-         end
-         if plot_flag && i_checkpoint == max_checkpoint
-            weights_fig = figure;
-            set(weights_fig, 'name', weights_name);
-         end
-         weight_patch_array = [];
-         for j_patch = 1  : num_patches
-            i_patch = pre_hist_rank(j_patch);
-            if plot_flag && i_checkpoint == max_checkpoint
-               subplot(num_patches_rows, num_patches_cols, j_patch); 
-            end
-            if num_weights_colors == 1
-               patch_tmp = squeeze(weight_vals(:,:,i_patch));
-            else
-               patch_tmp = squeeze(weight_vals(:,:,:,i_patch));
-            end
-            patch_tmp2 = patch_tmp; %% imresize(patch_tmp, 12);
-            min_patch = min(patch_tmp2(:));
-            max_patch = max(patch_tmp2(:));
-            patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
-            patch_tmp2 = uint8(permute(patch_tmp2, [2,1,3])); %% uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
-            if plot_flag && i_checkpoint == max_checkpoint
-               imagesc(patch_tmp2); 
-               if num_weights_colors == 1
-                  colormap(gray);
-               end
-               box off
-               axis off
-               axis image
-            end %% plot_flag
-            if isempty(weight_patch_array)
-               weight_patch_array = ...
-               zeros(num_patches_rows*size(patch_tmp2,1), num_patches_cols*size(patch_tmp2,2), size(patch_tmp2,3));
-            end
-            col_ndx = 1 + mod(j_patch-1, num_patches_cols);
-            row_ndx = 1 + floor((j_patch-1) / num_patches_cols);
-            weight_patch_array(((row_ndx-1)*size(patch_tmp2,1)+1):row_ndx*size(patch_tmp2,1), ...
-            ((col_ndx-1)*size(patch_tmp2,2)+1):col_ndx*size(patch_tmp2,2),:) = ...
-            patch_tmp2;
-         end  %% j_patch
-         if plot_flag && i_checkpoint == max_checkpoint
-            saveas(weights_fig, [weights_dir, filesep, weights_name, '.png'], 'png');
-         end
+         weight_patch_array = weights_tableau(weight_vals, pre_hist_rank);
+
          imwrite(uint8(weight_patch_array), [weights_movie_dir, filesep, weights_name, '.png'], 'png');
          %% make histogram of all weights
          if plot_flag && i_checkpoint == max_checkpoint
