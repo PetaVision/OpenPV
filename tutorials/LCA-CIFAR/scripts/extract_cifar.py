@@ -1,8 +1,10 @@
-import os
 import imageio
 import numpy as np
+import os
 import pickle
 import sys
+import tarfile
+import tempfile
 
 
 def mkdir_if_needed(path):
@@ -89,16 +91,14 @@ def extract_images(input_path, output_dir, lead_digit, append_mixed=True):
   print(f'Finished {input_basename}')
 
 
-def extract_cifar():
-  progpath = sys.argv[0]
-  progdir = os.path.dirname(progpath)
-  input_dir = os.path.join(progdir, '../cifar-10-batches-py')
-  input_dir = os.path.realpath(input_dir)
-
-  output_dir = os.path.join(progdir, '../cifar-10-images')
-  output_dir = os.path.realpath(output_dir)
-
+def extract_cifar(inputfilename:str):
   print('Extracting images..')
+
+  extractdir = tempfile.TemporaryDirectory()
+
+  untar(inputfilename, extractdir.name)
+  input_dir = os.path.join(extractdir.name, 'cifar-10-batches-py')
+  output_dir = 'cifar-10-images'
 
   extract_images(os.path.join(input_dir, 'data_batch_1'), output_dir, 1)
   extract_images(os.path.join(input_dir, 'data_batch_2'), output_dir, 2)
@@ -106,12 +106,32 @@ def extract_cifar():
   extract_images(os.path.join(input_dir, 'data_batch_4'), output_dir, 4)
   extract_images(os.path.join(input_dir, 'data_batch_5'), output_dir, 5)
   extract_images(os.path.join(input_dir, 'test_batch'), output_dir, 0, False)
+  extractdir.cleanup()
 
 def unpickle(path):
   with open(path, 'rb') as fileobj:
     contents = pickle.load(fileobj, encoding='bytes')
   return contents
 
+def untar(filename:str, dirname:str="."):
+  tar = tarfile.open(filename)
+  tar.extractall(path=dirname)
+  tar.close()
 
 if __name__ == '__main__':
-  extract_cifar()
+  if len(sys.argv) > 2:
+      print(f'Usage: {sys.argv[0]} [filename]', file=sys.stderr)
+      print(f'filename is the cifar-10-python.tar.gz file from the CIFAR-10 website', file=sys.stderr)
+      print(f'Default filename is cifar-10-python.tar.gz', file=sys.stderr)
+      exit(1)
+  elif len(sys.argv) == 2 and (sys.argv[1] == "--help" or sys.argv[1] == "-h"):
+      print(f'Usage: {sys.argv[0]} [filename]')
+      print(f'filename is the cifar-10-python.tar.gz file from the CIFAR-10 website')
+      print(f'Default filename is cifar-10-python.tar.gz')
+      exit(0)
+  if len(sys.argv) < 2:
+    inputfilename = "cifar-10-python.tar.gz"
+  else:
+    inputfilename = sys.argv[1]
+
+  extract_cifar(inputfilename)

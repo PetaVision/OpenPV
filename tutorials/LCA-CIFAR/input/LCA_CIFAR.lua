@@ -8,35 +8,35 @@ end
 package.path = package.path .. ";" .. sourcedir .. "/parameterWrapper/?.lua";
 local pv = require "PVModule";
 
-local nbatch              = 1;  --Number of images to process in parallel
-local nxSize              = 32;  -- \
-local nySize              = 32;  --  } CIFAR images are 32 x 32 x 3
-local numFeatures         = 3;   -- /
-local patchSize           = 8;   --Use weight patches of size 8 x 8 x 3
-local stride              = 2;   --A location in the V1 layer sits above a 2 x 2 cell in the input layer
-local displayPeriod       = 400; --Number of timesteps to find sparse approximation for each image
-local numImages           = 1; --Number of images to process. If numImages is greater than dataset size, will wrap around.
-local stopTime            = math.ceil(numImages / nbatch) * displayPeriod;
-local layerWriteStep      = 1.0;
-local layerInitialWrite   = 0.0;
-local connWriteStep       = displayPeriod;
-local connInitialWrite    = displayPeriod;
+local nbatch               = 1;  --Number of images to process in parallel
+local nxSize               = 32;  -- \
+local nySize               = 32;  --  } CIFAR images are 32 x 32 x 3
+local numFeatures          = 3;   -- /
+local patchSize            = 8;   --Use weight patches of size 8 x 8 x 3
+local stride               = 2;   --A location in the leaky integrator layer sits above a 2 x 2 cell in the input layer
+local displayPeriod        = 400; --Number of timesteps to find sparse approximation for each image
+local numImages            = 1; --Number of images to process. If numImages is greater than dataset size, will wrap around.
+local stopTime             = math.ceil(numImages / nbatch) * displayPeriod;
+local layerWriteStep       = 1.0;
+local layerInitialWrite    = 0.0;
+local connWriteStep        = displayPeriod;
+local connInitialWrite     = displayPeriod;
 
-local inputPath           = "cifar-10-images/6/CIFAR_10000.png"
-local outputPath          = "output";
-local checkpointPeriod    = displayPeriod; -- How often to write checkpoints
+local inputPath            = "cifar-10-images/6/CIFAR_10000.png"
+local outputPath           = "output";
+local checkpointPeriod     = displayPeriod; -- How often to write checkpoints
 
-local dictionarySize      = 128;   --Number of patches/elements in dictionary
-local dictionaryFile      = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
-local plasticityFlag      = true;  --Determines if we are learning our dictionary or holding it constant
-local timeConstantTauConn = 5.0;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
-local dWMax               = 1.0 / (stride * stride);   --The learning rate
-local VThresh             = 0.55;  --The threshold, or lambda, of the network
-local AMin                = 0;
-local AMax                = infinity;
-local AShift              = VThresh;  --This being equal to VThresh is a soft threshold
-local VWidth              = 0;
-local timeConstantTauV1   = 100;   --The integration tau for sparse approximation
+local dictionarySize       = 128;   --Number of patches/elements in dictionary
+local dictionaryFile       = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
+local plasticityFlag       = true;  --Determines if we are learning our dictionary or holding it constant
+local timeConstantTauConn  = 5.0;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
+local dWMax                = 1.0 / (stride * stride);   --The learning rate
+local VThresh              = 0.55;  --The threshold, or lambda, of the network
+local AMin                 = 0;
+local AMax                 = infinity;
+local AShift               = VThresh;  --This being equal to VThresh is a soft threshold
+local VWidth               = 0;
+local timeConstantTauLayer = 100;   --The integration tau for sparse approximation
 local weightInit          = 1.0;
 
 -- Base table variable to store
@@ -129,7 +129,7 @@ local pvParameters = {
       dataType                            = nil;
    };
 
-   V1 = {
+   LeakyIntegrator = {
       groupType = "HyPerLCALayer";
       nxScale                             = 1/stride;
       nyScale                             = 1/stride;
@@ -151,7 +151,7 @@ local pvParameters = {
       AMax                                = AMax;
       AShift                              = AShift;
       VWidth                              = VWidth;
-      timeConstantTau                     = timeConstantTauV1;
+      timeConstantTau                     = timeConstantTauLayer;
       selfInteract                        = true;
       adaptiveTimeScaleProbe              = "AdaptiveTimeScales";
    };
@@ -186,22 +186,22 @@ local pvParameters = {
       scale                               = weightInit;
    };
 
-   ErrorToV1 = {
+   ErrorToLeakyIntegrator = {
       groupType = "TransposeConn";
       preLayerName                        = "InputError";
-      postLayerName                       = "V1";
+      postLayerName                       = "LeakyIntegrator";
       channelCode                         = 0;
       delay                               = {0.000000};
       receiveGpu                          = true;
       updateGSynFromPostPerspective       = true;
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
-      originalConnName                    = "V1ToInputError";
+      originalConnName                    = "LeakyIntegratorToInputError";
    };
 
-   V1ToInputError = {
+   LeakyIntegratorToInputError = {
       groupType = "MomentumConn";
-      preLayerName                        = "V1";
+      preLayerName                        = "LeakyIntegrator";
       postLayerName                       = "InputError";
       channelCode                         = -1;
       delay                               = {0.000000};
@@ -218,7 +218,7 @@ local pvParameters = {
       triggerLayerName                    = "Input";
       triggerOffset                       = 1;
       immediateWeightUpdate               = true;
-      updateGSynFromPostPerspective       = false; -- Should be false from V1 (sparse layer) to Error (not sparse). Otherwise every input from pre will be calculated (Instead of only active ones)
+      updateGSynFromPostPerspective       = false; -- Should be false from LeakyIntegrator (sparse layer) to Error (not sparse). Otherwise every input from pre will be calculated (Instead of only active ones)
       pvpatchAccumulateType               = "convolve";
       writeStep                           = connWriteStep;
       initialWriteTime                    = connInitialWrite;
@@ -244,16 +244,16 @@ local pvParameters = {
       momentumDecay                       = 0;
    };
 
-   V1ToRecon = {
+   LeakyIntegratorToRecon = {
       groupType = "CloneConn";
-      preLayerName                        = "V1";
+      preLayerName                        = "LeakyIntegrator";
       postLayerName                       = "InputRecon";
       channelCode                         = 0;
       delay                               = {0.000000};
       receiveGpu                          = false;
       updateGSynFromPostPerspective       = false;
       pvpatchAccumulateType               = "convolve";
-      originalConnName                    = "V1ToInputError";
+      originalConnName                    = "LeakyIntegratorToInputError";
    };
 
    ReconToError = {
@@ -289,22 +289,22 @@ local pvParameters = {
       exponent                            = 2;
    };
 
-   V1L1NormProbe = {
+   SparsityProbe = {
       groupType = "L1NormLCAProbe";
-      targetLayer                         = "V1";
+      targetLayer                         = "LeakyIntegrator";
       message                             = nil;
       textOutputFlag                      = true;
-      probeOutputFile                     = "V1L1NormProbe.txt";
+      probeOutputFile                     = "SparsityProbe.txt";
       energyProbe                         = "TotalEnergyProbe";
       maskLayerName                       = nil;
    };
 
-   V1NumNonzeroProbe = {
+   NumNonzeroProbe = {
       groupType = "L0NormLCAProbe";
-      targetLayer                         = "V1";
+      targetLayer                         = "LeakyIntegrator";
       message                             = nil;
       textOutputFlag                      = true;
-      probeOutputFile                     = "V1NumNonzeroProbe.txt";
+      probeOutputFile                     = "NumNonzeroProbe.txt";
       energyProbe                         = nil;
       maskLayerName                       = nil;
       nnzThreshold                        = 0.0;
@@ -313,8 +313,8 @@ local pvParameters = {
 } --End of pvParameters
 
 if dictionaryFile ~= nil then
-   pvParameters.V1ToInputError.weightInitType  = "FileWeight";
-   pvParameters.V1ToInputError.initWeightsFile = dictionaryFile;
+   pvParameters.LeakyIntegrator.weightInitType  = "FileWeight";
+   pvParameters.LeakyIntegrator.initWeightsFile = dictionaryFile;
 end
 -- Print out PetaVision approved parameter file to the console
 pv.printConsole(pvParameters)
