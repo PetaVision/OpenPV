@@ -51,13 +51,14 @@ class ResetStateOnTriggerTestProbe : public PV::BaseObject {
 
    void initialize(char const *name, PVParams *params, Communicator const *comm);
 
-   virtual PV::Response::Status
-   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
    virtual void initMessageActionMap() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    PV::Response::Status outputState(std::shared_ptr<LayerOutputStateMessage const> message);
+
+   PV::Response::Status
+   registerData(std::shared_ptr<PV::RegisterDataMessage<PV::Checkpointer> const> message) override;
 
    PV::Response::Status
    respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);

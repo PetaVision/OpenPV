@@ -48,24 +48,6 @@ void ResetStateOnTriggerTestProbe::initialize(
    BaseObject::initialize(name, params, comm);
 }
 
-PV::Response::Status ResetStateOnTriggerTestProbe::initializeState(
-      std::shared_ptr<InitializeStateMessage const> message) {
-   auto status = BaseObject::initializeState(message);
-   if (!PV::Response::completed(status)) {
-      return status;
-   }
-   auto *targetLayer = mTargetLayerLocator->getTargetLayer();
-   pvAssert(targetLayer);
-   if (PV::Response::completed(status)) {
-      mProbeLocal->initializeState(targetLayer);
-      auto *targetLayer     = mTargetLayerLocator->getTargetLayer();
-      auto *targetPublisher = targetLayer->getComponentByType<PV::BasePublisherComponent>();
-      mTargetLayerLoc       = targetLayer->getLayerLoc();
-      mTargetLayerData      = targetPublisher->getLayerData();
-   }
-   return PV::Response::Status::SUCCESS;
-}
-
 void ResetStateOnTriggerTestProbe::initMessageActionMap() {
    BaseObject::initMessageActionMap();
    std::function<PV::Response::Status(std::shared_ptr<BaseMessage const>)> action;
@@ -112,6 +94,25 @@ ResetStateOnTriggerTestProbe::outputState(std::shared_ptr<LayerOutputStateMessag
             mCommunicator->communicator());
       mProbeOutputter->printGlobalStatsBuffer(globalDiscreps);
    }
+   return PV::Response::SUCCESS;
+}
+
+PV::Response::Status ResetStateOnTriggerTestProbe::registerData(
+      std::shared_ptr<PV::RegisterDataMessage<PV::Checkpointer> const> message) {
+   auto status = PV::BaseObject::registerData(message);
+   if (!PV::Response::completed(status)) {
+      return status;
+   }
+   auto *targetLayer = mTargetLayerLocator->getTargetLayer();
+   mProbeLocal->initializeState(targetLayer);
+
+   mTargetLayerLoc = targetLayer->getLayerLoc();
+
+   auto *targetPublisher = targetLayer->getComponentByType<PV::BasePublisherComponent>();
+   mTargetLayerData      = targetPublisher->getLayerData();
+
+   auto *checkpointer = message->mDataRegistry;
+   mProbeOutputter->initOutputStreams(checkpointer, mTargetLayerLoc->nbatch);
    return PV::Response::SUCCESS;
 }
 
