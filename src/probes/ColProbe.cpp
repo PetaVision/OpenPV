@@ -5,6 +5,8 @@
  *      Author: pschultz
  */
 
+// BaseProbe was deprecated on Apr 19, 2023. Use ProbeInterface instead.
+
 #include "ColProbe.hpp"
 
 namespace PV {
@@ -12,10 +14,15 @@ namespace PV {
 ColProbe::ColProbe() { // Default constructor to be called by derived classes.
    // They should call ColProbe::initialize from their own initialization routine
    // instead of calling a non-default constructor.
+
+   WarnLog() << "ColProbe has been deprecated. Derive probe classes from ProbeInterface instead.\n";
+   // ColProbe was deprecated on Apr 19, 2023.
    initialize_base();
 }
 
 ColProbe::ColProbe(const char *name, PVParams *params, Communicator const *comm) {
+   WarnLog() << "ColProbe has been deprecated. Derive probe classes from ProbeInterface instead.\n";
+   // ColProbe was deprecated on Apr 19, 2023.
    initialize_base();
    initialize(name, params, comm);
 }

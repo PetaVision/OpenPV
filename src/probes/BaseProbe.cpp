@@ -5,6 +5,8 @@
  *      Author: rasmussn
  */
 
+// BaseProbe was deprecated on Apr 19, 2023. Use ProbeInterface instead.
+
 #include "BaseProbe.hpp"
 #include "arch/mpi/mpi.h"
 #include "checkpointing/CheckpointEntryFilePosition.hpp"
@@ -28,6 +30,8 @@ namespace PV {
 int BaseProbe::mNumProbes = 0; // Initialize number of probes overall, a static BaseProbes member.
 
 BaseProbe::BaseProbe() {
+   // BaseProbe was deprecated on Apr 19, 2023.
+   WarnLog() << "BaseProbe has been deprecated. Derive probe classes from ProbeInterface instead.\n";
    initialize_base();
    // Derived classes of BaseProbe should call BaseProbe::initialize themselves.
 }

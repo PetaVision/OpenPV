@@ -13,7 +13,7 @@
 
 namespace PV {
 
-// ColProbe was deprecated on March 19, 2023. Derive column-wide probes from ProbeInterface instead.
+// ColProbe was deprecated on Apr 19, 2023. Derive column-wide probes from ProbeInterface instead.
 /**
  * *Note: ColProbe is deprecated in favor of ProbeInterface*
  * ColProbe is the base class for probes that are attached to the column as a

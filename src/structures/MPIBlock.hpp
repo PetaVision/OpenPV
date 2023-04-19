@@ -290,7 +290,7 @@ class MPIBlock {
    int mColumnIndex          = 0;
    int mBatchIndex           = 0;
 
-}; // end classe MPIBlock
+}; // end class MPIBlock
 
 } // end namespace PV
 
