@@ -5,6 +5,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/Clock.cpp
    ${SUBDIR}/CompareParamsFiles.cpp
    ${SUBDIR}/ExpandLeadingTilde.cpp
+   ${SUBDIR}/PathComponents.cpp
    ${SUBDIR}/PVAssert.cpp
    ${SUBDIR}/PVAlloc.cpp
    ${SUBDIR}/PVLog.cpp
@@ -22,12 +23,15 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CompareParamsFiles.hpp
    ${SUBDIR}/conversions.hpp
    ${SUBDIR}/ExpandLeadingTilde.hpp
+   ${SUBDIR}/PathComponents.hpp
    ${SUBDIR}/PVAssert.hpp
    ${SUBDIR}/PVAlloc.hpp
    ${SUBDIR}/PVLog.hpp
+   ${SUBDIR}/requiredConvolveMargin.hpp
    ${SUBDIR}/Timer.hpp
    ${SUBDIR}/TransposeWeights.hpp
    ${SUBDIR}/WaitForReturn.hpp
+   ${SUBDIR}/weight_conversions.hpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcTpp}

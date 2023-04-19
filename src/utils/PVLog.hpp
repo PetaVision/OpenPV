@@ -1,6 +1,7 @@
 #ifndef PVLOG_HPP_
 #define PVLOG_HPP_
 
+#include "utils/PathComponents.hpp" // baseName
 #include <cstdarg>
 #include <iostream>
 #include <libgen.h>
@@ -359,7 +360,8 @@ struct Log {
             _stream << LogType::prefix() << " ";
          }
          if (LogType::outputFileLine()) {
-            _stream << "<" << basename((char *)file) << ":" << line << ">: ";
+            std::string filebasename = baseName(file);
+            _stream << "<" << filebasename << ":" << line << ">: ";
          }
       }
    }

@@ -17,6 +17,7 @@ ActivityComponent::ActivityComponent(char const *name, PVParams *params, Communi
 ActivityComponent::~ActivityComponent() {
    delete mUpdateTimer;
 #ifdef PV_USE_CUDA
+   delete mCopyFromCudaTimer;
    delete mUpdateCudaTimer;
 #endif // PV_USE_CUDA
 }
@@ -103,6 +104,8 @@ ActivityComponent::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer
       mUpdateCudaTimer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
       mUpdateCudaTimer->setStream(cudaDevice->getStream());
       checkpointer->registerTimer(mUpdateCudaTimer);
+      mCopyFromCudaTimer = new Timer(getName(), "layer", "copytocpu");
+      checkpointer->registerTimer(mCopyFromCudaTimer);
    }
 #endif // PV_USE_CUDA
 
@@ -190,6 +193,7 @@ void ActivityComponent::copyToCuda() {
 }
 
 void ActivityComponent::copyFromCuda() {
+   mCopyFromCudaTimer->start();
    for (auto *obj : *mTable) {
       auto *buffer = dynamic_cast<ComponentBuffer *>(obj);
       if (buffer && !buffer->getBufferLabel().empty()) {
@@ -199,6 +203,7 @@ void ActivityComponent::copyFromCuda() {
    if (getUpdateGpu()) {
       mUpdateCudaTimer->accumulateTime();
    }
+   mCopyFromCudaTimer->stop();
 }
 #endif // PV_USE_CUDA
 

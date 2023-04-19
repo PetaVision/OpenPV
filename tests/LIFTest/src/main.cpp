@@ -5,6 +5,7 @@
 
 #include "LIFTestProbe.hpp"
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);
 // customexit is called after each entry in the parameter sweep (or once at the end if there are no

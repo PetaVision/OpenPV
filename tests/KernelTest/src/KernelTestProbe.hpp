@@ -8,22 +8,20 @@
 #ifndef KERNELTESTPROBE_HPP_
 #define KERNELTESTPROBE_HPP_
 
-#include "probes/StatsProbe.hpp"
+#include "columns/Communicator.hpp"
+#include "io/PVParams.hpp"
+#include "probes/StatsProbeImmediate.hpp"
 
 namespace PV {
 
-class KernelTestProbe : public PV::StatsProbe {
+class KernelTestProbe : public PV::StatsProbeImmediate {
   public:
    KernelTestProbe(const char *name, PVParams *params, Communicator const *comm);
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
   protected:
+   virtual void checkStats() override;
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
-   void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
-
-  private:
-   int initialize_base();
 };
 
 } /* namespace PV */

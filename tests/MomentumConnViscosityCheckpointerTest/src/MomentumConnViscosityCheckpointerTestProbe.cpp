@@ -220,12 +220,13 @@ PV::Response::Status MomentumConnViscosityCheckpointerTestProbe::readStateFromCh
    PV::Checkpointer::TimeInfo timeInfo;
    PV::CheckpointEntryData<PV::Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
-         mCommunicator->getLocalMPIBlock(),
          &timeInfo,
          (size_t)1,
          true /*broadcast*/);
+   auto mpiBlock = checkpointer->getMPIBlock();
    std::string initializeFromCheckpointDir(checkpointer->getInitializeFromCheckpointDir());
-   timeInfoCheckpointEntry.read(initializeFromCheckpointDir, nullptr);
+   auto fileManager = std::make_shared<PV::FileManager>(mpiBlock, initializeFromCheckpointDir);
+   timeInfoCheckpointEntry.read(fileManager, nullptr);
 
    mStartingTimestamp = timeInfo.mSimTime;
 

@@ -8,32 +8,27 @@
 #ifndef LAYERPHASETESTPROBE_HPP_
 #define LAYERPHASETESTPROBE_HPP_
 
-#include "include/pv_arch.h"
-#include "layers/HyPerLayer.hpp"
-#include "probes/StatsProbe.hpp"
-#include "utils/PVLog.hpp"
+#include "columns/Communicator.hpp"
+#include "io/PVParams.hpp"
+#include "probes/StatsProbeImmediate.hpp"
 
 namespace PV {
 
-class LayerPhaseTestProbe : public PV::StatsProbe {
+class LayerPhaseTestProbe : public PV::StatsProbeImmediate {
   public:
    LayerPhaseTestProbe(const char *name, PVParams *params, Communicator const *comm);
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
   protected:
+   virtual void checkStats() override;
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_equilibriumValue(enum ParamsIOFlag ioFlag);
    virtual void ioParam_equilibriumTime(enum ParamsIOFlag ioFlag);
 
-  private:
-   int initialize_base();
-
   protected:
-   float equilibriumValue;
-   double equilibriumTime;
+   float mEquilibriumValue = 0.0f;
+   double mEquilibriumTime = 0.0;
 };
 
 } /* namespace PV */

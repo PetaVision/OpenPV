@@ -6,7 +6,8 @@
  */
 
 #include "BaseConnectionProbe.hpp"
-#include "checkpointing/CheckpointableFileStream.hpp"
+#include "checkpointing/CheckpointEntryFilePosition.hpp"
+#include "io/FileStreamBuilder.hpp"
 
 namespace PV {
 
@@ -30,12 +31,6 @@ void BaseConnectionProbe::initMessageActionMap() {
    std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
    action = [this](std::shared_ptr<BaseMessage const> msgptr) {
-      auto castMessage = std::dynamic_pointer_cast<ConnectionProbeWriteParamsMessage const>(msgptr);
-      return respondConnectionProbeWriteParams(castMessage);
-   };
-   mMessageActionMap.emplace("ConnectionProbeWriteParams", action);
-
-   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
       auto castMessage = std::dynamic_pointer_cast<ConnectionOutputMessage const>(msgptr);
       return respondConnectionOutput(castMessage);
    };
@@ -47,12 +42,6 @@ void BaseConnectionProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
    if (targetName == NULL) {
       BaseProbe::ioParam_targetName(ioFlag);
    }
-}
-
-Response::Status BaseConnectionProbe::respondConnectionProbeWriteParams(
-      std::shared_ptr<ConnectionProbeWriteParamsMessage const> message) {
-   writeParams();
-   return Response::SUCCESS;
 }
 
 Response::Status BaseConnectionProbe::respondConnectionOutput(
@@ -94,20 +83,33 @@ Response::Status BaseConnectionProbe::registerData(
 
 void BaseConnectionProbe::initOutputStreams(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   if (getMPIBlock()->getRank() == 0) {
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
       auto *checkpointer = message->mDataRegistry;
       char const *probeOutputFilename = getProbeOutputFilename();
       if (probeOutputFilename and probeOutputFilename[0]) {
          std::string path(probeOutputFilename);
+         auto fileManager = getCommunicator()->getOutputFileManager();
          bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
-         std::string filePosName(getProbeOutputFilename());
-         filePosName.append("_filepos");
-         auto stream = new CheckpointableFileStream(
-               path.c_str(), createFlag, checkpointer, filePosName);
+         auto stream = FileStreamBuilder(
+               fileManager,
+               path,
+               true /*textFile*/,
+               false /*readOnlyFlag*/,
+               createFlag,
+               checkpointer->doesVerifyWrites()).get();
+         auto checkpointEntry = std::make_shared<CheckpointEntryFilePosition>(
+               getProbeOutputFilename(), stream);
+         bool registerSucceeded = checkpointer->registerCheckpointEntry(
+               checkpointEntry, false /*not constant for entire run*/);
+         FatalIf(
+               !registerSucceeded,
+               "%s failed to register %s for checkpointing.\n",
+               getDescription_c(),
+               checkpointEntry->getName().c_str());
          mOutputStreams.push_back(stream);
       }
       else {
-         auto stream = new PrintStream(PV::getOutputStream());
+         auto stream = std::make_shared<PrintStream>(PV::getOutputStream());
          mOutputStreams.push_back(stream);
       }
    }

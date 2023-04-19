@@ -5,31 +5,32 @@
 
 #ifndef RECEIVEFROMPOSTPROBE_HPP_
 #define RECEIVEFROMPOSTPROBE_HPP_
-#include "probes/StatsProbe.hpp"
+
+#include <columns/Communicator.hpp>
+#include <io/PVParams.hpp>
+#include <probes/StatsProbeImmediate.hpp>
 
 namespace PV {
 
-class ReceiveFromPostProbe : public PV::StatsProbe {
+class ReceiveFromPostProbe : public PV::StatsProbeImmediate {
+  protected:
+   void ioParam_tolerance(enum ParamsIOFlag ioFlag);
+
   public:
    ReceiveFromPostProbe(const char *name, PVParams *params, Communicator const *comm);
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
   protected:
+   virtual void checkStats() override;
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
-   void ioParam_tolerance(enum ParamsIOFlag ioFlag);
-
-  private:
-   int initialize_base();
 
    // Member variables
   protected:
-   float tolerance;
+   float mTolerance = 1.0e-3f;
 
 }; // end class ReceiveFromPostProbe
 
-} // end namespcae PV
+} // namespace PV
 
 #endif // RECEIVEFROMPOSTPROBE_HPP_

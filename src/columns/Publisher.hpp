@@ -15,6 +15,7 @@
 #include "include/pv_types.h"
 #include "structures/MPIBlock.hpp"
 #include "utils/BorderExchange.hpp"
+#include "utils/Timer.hpp"
 
 namespace PV {
 
@@ -22,6 +23,7 @@ class Publisher {
 
   public:
    Publisher(
+         char const *name,
          MPIBlock const &mpiBlock,
          float const *data,
          PVLayerLoc const *loc,
@@ -61,6 +63,11 @@ class Publisher {
    void updateAllActiveIndices();
    void updateActiveIndices(int delay = 0);
 
+   Response::Status cleanup();
+
+   Timer const *getIncreaseLevelTimer() const { return mIncreaseLevelTimer; }
+   Timer const *getIncreaseLevelWaitTimer() const { return mIncreaseLevelWaitTimer; }
+
   private:
    float *recvBuffer(int bufferId) { return store->buffer(bufferId); }
    float *recvBuffer(int bufferId, int delay) { return store->buffer(bufferId, delay); }
@@ -84,6 +91,10 @@ class Publisher {
    BorderExchange *mBorderExchanger = nullptr;
 
    RingBuffer<std::vector<MPI_Request>> *mpiRequestsBuffer = nullptr;
+
+   Timer *mIncreaseLevelTimer = nullptr;
+   Timer *mIncreaseLevelWaitTimer = nullptr;
+   Timer *mWaitTimer = nullptr;
 };
 
 } /* namespace PV */

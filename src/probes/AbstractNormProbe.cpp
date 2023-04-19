@@ -1,133 +1,200 @@
-/*
- * AbstractNormProbe.cpp
- *
- *  Created on: Aug 11, 2015
- *      Author: pschultz
- */
-
 #include "AbstractNormProbe.hpp"
-#include "layers/HyPerLayer.hpp"
-#include <limits>
+#include "components/PhaseParam.hpp"
+#include "observerpattern/BaseMessage.hpp"
+#include "utils/PVAssert.hpp"
+#include <functional>
 
 namespace PV {
 
-AbstractNormProbe::AbstractNormProbe() : LayerProbe() {}
-
-AbstractNormProbe::AbstractNormProbe(const char *name, PVParams *params, Communicator const *comm)
-      : LayerProbe() {
+AbstractNormProbe::AbstractNormProbe(char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-AbstractNormProbe::~AbstractNormProbe() {
-   free(normDescription);
-   normDescription = NULL;
-   free(maskLayerName);
-   maskLayerName = NULL;
-   // Don't free mMaskLayerData, which belongs to the layer named by maskLayerName.
+Response::Status AbstractNormProbe::allocateDataStructures() {
+   mLocalNBatch = getTargetLayer()->getLayerLoc()->nbatch;
+   setNumValues(mLocalNBatch);
+   if (mEnergyProbeComponent) {
+      setCoefficient(mEnergyProbeComponent->getCoefficient());
+   }
+   return Response::SUCCESS;
 }
 
-void AbstractNormProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   LayerProbe::initialize(name, params, comm);
-   setNormDescription();
-}
+void AbstractNormProbe::calcValues(double timestamp) {
+   mProbeLocal->storeValues(timestamp);
 
-int AbstractNormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = LayerProbe::ioParamsFillGroup(ioFlag);
-   ioParam_maskLayerName(ioFlag);
-   return status;
-}
+   mProbeAggregator->aggregateStoredValues(mProbeLocal->getStoredValues());
+   mProbeLocal->clearStoredValues();
 
-void AbstractNormProbe::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(
-         ioFlag, name, "maskLayerName", &maskLayerName, NULL, false /*warnIfAbsent*/);
+   auto const &storedValues = mProbeAggregator->getStoredValues();
+   auto bufferSize          = storedValues.size();
+   pvAssert(bufferSize > static_cast<batchwidth_type>(0));
+   auto lastDataIndex             = bufferSize - static_cast<batchwidth_type>(1);
+   LayerProbeData const &lastData = storedValues.getData(lastDataIndex);
+   setValues(lastData);
 }
 
 Response::Status
 AbstractNormProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto status = LayerProbe::communicateInitInfo(message);
+   auto status = ProbeInterface::communicateInitInfo(message);
    if (!Response::completed(status)) {
       return status;
    }
-   assert(targetLayer);
-   if (maskLayerName && maskLayerName[0]) {
-      mMaskLayerData = message->mObjectTable->findObject<BasePublisherComponent>(maskLayerName);
-      FatalIf(
-            mMaskLayerData == nullptr,
-            "%s: maskLayerName \"%s\" does not have a BasePublisherComponent.\n",
-            getDescription_c(),
-            maskLayerName);
 
-      PVLayerLoc const *maskLoc = mMaskLayerData->getLayerLoc();
-      PVLayerLoc const *loc     = targetLayer->getLayerLoc();
-      pvAssert(maskLoc != nullptr && loc != nullptr);
-      FatalIf(
-            maskLoc->nxGlobal != loc->nxGlobal or maskLoc->nyGlobal != loc->nyGlobal,
-            "%s: maskLayerName \"%s\" does not have the same x and y dimensions.\n"
-            "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
-            getDescription_c(),
-            maskLayerName,
-            maskLoc->nxGlobal,
-            maskLoc->nyGlobal,
-            maskLoc->nf,
-            loc->nxGlobal,
-            loc->nyGlobal,
-            loc->nf);
-
-      FatalIf(
-            maskLoc->nf != 1 and maskLoc->nf != loc->nf,
-            "%s: maskLayerName \"%s\" must either have the same number of features as this layer, "
-            "or one feature.\n",
-            "    mask (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
-            getDescription_c(),
-            maskLayerName,
-            maskLoc->nxGlobal,
-            maskLoc->nyGlobal,
-            maskLoc->nf,
-            loc->nxGlobal,
-            loc->nyGlobal,
-            loc->nf);
-      pvAssert(maskLoc->nx == loc->nx && maskLoc->ny == loc->ny);
-      singleFeatureMask = maskLoc->nf == 1 && loc->nf != 1;
+   // Set target layer
+   status = status + mProbeTargetLayer->communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
    }
+
+   // Set up triggering
+   status = status + mProbeTrigger->communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+
+   // Add probe to energy probe if there is one
+   status = status + mEnergyProbeComponent->communicateInitInfo(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *energyProbe = mEnergyProbeComponent->getEnergyProbe();
+   if (energyProbe and !mAddedToEnergyProbe) {
+      energyProbe->addTerm(this);
+      status              = Response::SUCCESS;
+      mAddedToEnergyProbe = true;
+   }
+   return status;
+}
+
+void AbstractNormProbe::createComponents(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   // NB: the data members mName and mParams have not been set when createComponents() is called.
+   createTargetLayerComponent(name, params);
+   createProbeLocal(name, params);
+   createProbeAggregator(name, params, comm);
+   createProbeOutputter(name, params, comm);
+   createProbeTrigger(name, params);
+   createEnergyProbeComponent(name, params);
+}
+
+void AbstractNormProbe::createEnergyProbeComponent(char const *name, PVParams *params) {
+   mEnergyProbeComponent = std::make_shared<EnergyProbeComponent>(name, params);
+}
+
+void AbstractNormProbe::createProbeAggregator(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   mProbeAggregator = std::make_shared<NormProbeAggregator>(name, params, comm->getLocalMPIBlock());
+}
+
+void AbstractNormProbe::createProbeOutputter(
+      char const *name,
+      PVParams *params,
+      Communicator const *comm) {
+   mProbeOutputter = std::make_shared<NormProbeOutputter>(name, params, comm);
+}
+
+void AbstractNormProbe::createProbeTrigger(char const *name, PVParams *params) {
+   mProbeTrigger = std::make_shared<ProbeTriggerComponent>(name, params);
+}
+
+void AbstractNormProbe::createTargetLayerComponent(char const *name, PVParams *params) {
+   mProbeTargetLayer = std::make_shared<TargetLayerComponent>(name, params);
+}
+
+void AbstractNormProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   createComponents(name, params, comm);
+   // createComponents() must be called before the base class's initialize(),
+   // because BaseObject::initialize() calls the ioParamsFillGroup() method,
+   // which calls each component's ioParamsFillGroup() method.
+   ProbeInterface::initialize(name, params, comm);
+}
+
+Response::Status
+AbstractNormProbe::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
+   auto status = ProbeInterface::initializeState(message);
+   if (Response::completed(status)) {
+      mProbeLocal->initializeState(getTargetLayer());
+      mEnergyProbeComponent->initializeState(getTargetLayer());
+   }
+
    return Response::SUCCESS;
 }
 
-int AbstractNormProbe::setNormDescription() { return setNormDescriptionToString("norm"); }
+void AbstractNormProbe::initMessageActionMap() {
+   ProbeInterface::initMessageActionMap();
+   std::function<Response::Status(std::shared_ptr<BaseMessage const>)> action;
 
-int AbstractNormProbe::setNormDescriptionToString(char const *s) {
-   normDescription = strdup(s);
-   return normDescription ? PV_SUCCESS : PV_FAILURE;
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(msgptr);
+      return respondLayerOutputState(castMessage);
+   };
+   mMessageActionMap.emplace("LayerOutputState", action);
 }
 
-void AbstractNormProbe::calcValues(double timeValue) {
-   auto &valuesVector = this->getProbeValues();
-   pvAssert(static_cast<int>(valuesVector.size()) == this->getNumValues());
-   for (int b = 0; b < this->getNumValues(); b++) {
-      valuesVector[b] = getValueInternal(timeValue, b);
+int AbstractNormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ProbeInterface::ioParamsFillGroup(ioFlag);
+   mProbeTargetLayer->ioParamsFillGroup(ioFlag);
+   mProbeOutputter->ioParamsFillGroup(ioFlag);
+   mProbeTrigger->ioParamsFillGroup(ioFlag);
+   mProbeLocal->ioParamsFillGroup(ioFlag);
+   mProbeAggregator->ioParamsFillGroup(ioFlag);
+   mEnergyProbeComponent->ioParamsFillGroup(ioFlag);
+   return status;
+}
+
+Response::Status
+AbstractNormProbe::outputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   if (mProbeTrigger->needUpdate(message->mTime, message->mDeltaTime)) {
+      getValues(message->mTime);
    }
-   MPI_Allreduce(
-         MPI_IN_PLACE,
-         valuesVector.data(),
-         getNumValues(),
-         MPI_DOUBLE,
-         MPI_SUM,
-         mCommunicator->communicator());
+
+   return Response::SUCCESS;
 }
 
-Response::Status AbstractNormProbe::outputState(double simTime, double deltaTime) {
+Response::Status AbstractNormProbe::prepareCheckpointWrite(double simTime) {
+   mProbeOutputter->printGlobalNormsBuffer(
+         mProbeAggregator->getStoredValues(), getTargetLayer()->getNumGlobalNeurons());
+   mProbeAggregator->clearStoredValues();
+   return Response::SUCCESS;
+}
+
+Response::Status AbstractNormProbe::processCheckpointRead(double simTime) {
+   // This assumes that if there is a trigger layer, the layer triggered
+   // at the time of the checkpoint being read from; or at least that
+   // the target layer has not updated since then.
    getValues(simTime);
-   auto &valuesVector = this->getProbeValues();
-   if (!mOutputStreams.empty()) {
-      int nBatch = getNumValues();
-      pvAssert(static_cast<int>(valuesVector.size()) == nBatch);
-      int nk     = getTargetLayer()->getNumGlobalNeurons();
-      for (int b = 0; b < nBatch; b++) {
-         int globalBatchIndex = calcGlobalBatchOffset() + b;
-         output(b).printf("%6.3f, %d, %8d, %f", simTime, globalBatchIndex, nk, valuesVector[b]);
-         output(b) << std::endl;
-      }
-   }
+
+   // calcValues() uses ProbeAggregator to compute the values in ProbeInterface::mValues,
+   // but writing the checkpoint clears the ProbeAggregator object, so
+   // on exit from reading a checkpoint, the ProbeAggreagotr should be cleared.
+   mProbeAggregator->clearStoredValues();
+
    return Response::SUCCESS;
 }
 
-} // end namespace PV
+Response::Status
+AbstractNormProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = ProbeInterface::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer = message->mDataRegistry;
+   mProbeOutputter->initOutputStreams(checkpointer, mLocalNBatch);
+   return Response::SUCCESS;
+}
+
+Response::Status
+AbstractNormProbe::respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   auto status          = Response::SUCCESS;
+   int targetLayerPhase = getTargetLayer()->getComponentByType<PhaseParam>()->getPhase();
+   if (message->mPhase == targetLayerPhase) {
+      status = outputState(message);
+   }
+   return status;
+}
+
+} // namespace PV

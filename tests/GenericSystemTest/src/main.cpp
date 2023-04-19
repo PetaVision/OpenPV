@@ -3,18 +3,31 @@
  *
  */
 
+#include "arch/mpi/mpi.h"
+#include "columns/Communicator.hpp"
 #include "columns/ComponentBasedObject.hpp"
+#include "columns/HyPerCol.hpp"
+#include "columns/PV_Init.hpp"
 #include "columns/buildandrun.hpp"
 #include "components/InputActivityBuffer.hpp"
+#include "include/pv_common.h"
+#include "io/FileStream.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "probes/RequireAllZeroActivityProbe.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <ios>
+#include <string>
 
 #define CORRECT_PVP_NX 32 // The x-dimension in the "correct.pvp" file.  Needed by generate()
 #define CORRECT_PVP_NY 32 // The y-dimension in the "correct.pvp" file.  Needed by generate()
 #define CORRECT_PVP_NF 8 // The number of features in the "correct.pvp" file.  Needed by generate()
 
 int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]);
-int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]);
+int assertAllZeros(HyPerCol *hc, int argc, char *argv[]);
 
 int generate(PV_Init *initObj, int rank);
 int testrun(PV_Init *initObj, int rank);
@@ -28,13 +41,13 @@ int main(int argc, char *argv[]) {
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
    bool generateFlag = false; // Flag for whether to generate correct output for future tests; don't
-   // check the RequireAllZeroActivity probe
+   // check the RequireAllZeroActivityProbe
    bool testrunFlag = false; // Flag for whether to run from params and then check the
-   // RequireAllZeroActivity probe
+   // RequireAllZeroActivityProbe
    bool testcheckpointFlag = false; // Flag for whether to run from checkpoint and then check the
-   // RequireAllZeroActivity probe
+   // RequireAllZeroActivityProbe
    bool testioparamsFlag = false; // Flag for whether to run from the output pv.params and then
-   // check the RequireAllZeroActivity probe
+   // check the RequireAllZeroActivityProbe
 
    // Run through the command line arguments.  If an argument is any of
    // --generate
@@ -224,7 +237,7 @@ int testrun(PV_Init *initObj, int rank) {
       InfoLog().printf("Running --testrun.  Effective command line is\n");
       initObj->printState();
    }
-   int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
+   int status = rebuildandrun(initObj, NULL, &assertAllZeros);
    return status;
 }
 
@@ -247,7 +260,7 @@ int testcheckpoint(PV_Init *initObj, int rank) {
    if (rank == 0) {
       InfoLog().printf("Running --testcheckpoint.  Effective command line is\n");
    }
-   int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
+   int status = rebuildandrun(initObj, NULL, &assertAllZeros);
    return status;
 }
 
@@ -278,11 +291,11 @@ int testioparams(PV_Init *initObj, int rank) {
       InfoLog().printf("Running --testioparams.  Effective command line is\n");
       initObj->printState();
    }
-   status = rebuildandrun(initObj, NULL, &assertAllZeroes);
+   status = rebuildandrun(initObj, NULL, &assertAllZeros);
    return status;
 }
 
-int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
+int assertAllZeros(HyPerCol *hc, int argc, char *argv[]) {
    std::string const targetLayerName("comparison");
    HyPerLayer *layer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(targetLayerName));
    FatalIf(!layer, "No layer named \"%s\".\n", targetLayerName.c_str());
@@ -291,9 +304,9 @@ int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
    RequireAllZeroActivityProbe *probe =
          dynamic_cast<RequireAllZeroActivityProbe *>(hc->getObjectFromName(probeName));
    FatalIf(!probe, "No RequireAllZeroActivityProbe named \"%s\".\n", probeName.c_str());
-   if (probe->getNonzeroFound()) {
+   if (probe->foundNonzero()) {
       if (hc->columnId() == 0) {
-         double t = probe->getNonzeroTime();
+         double t = probe->getFirstFailureTime();
          ErrorLog().printf(
                "%s had at least one nonzero activity value, beginning at time %f\n",
                layer->getDescription_c(),

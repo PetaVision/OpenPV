@@ -8,7 +8,10 @@
 #include "MomentumUpdater.hpp"
 
 #include "components/WeightsPair.hpp"
-#include "io/WeightsFileIO.hpp"
+#include "io/LocalPatchWeightsFile.hpp"
+#include "io/SharedWeightsFile.hpp"
+#include <cmath> // exp()
+#include <cstring> // memcpy(), strcmp()
 
 namespace PV {
 
@@ -37,13 +40,13 @@ void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (mPlasticityFlag) {
       parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &mMomentumMethod);
-      if (strcmp(mMomentumMethod, "viscosity") == 0) {
+      if (std::strcmp(mMomentumMethod, "viscosity") == 0) {
          mMethod = VISCOSITY;
       }
-      else if (strcmp(mMomentumMethod, "simple") == 0) {
+      else if (std::strcmp(mMomentumMethod, "simple") == 0) {
          mMethod = SIMPLE;
       }
-      else if (strcmp(mMomentumMethod, "alex") == 0) {
+      else if (std::strcmp(mMomentumMethod, "alex") == 0) {
          mMethod = ALEX;
       }
       else {
@@ -237,12 +240,40 @@ MomentumUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
 
 Response::Status
 MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   Response::Status status = Response::SUCCESS;
+   Response::Status status = HebbianUpdater::initializeState(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
    if (mPlasticityFlag and mInitPrev_dWFile and mInitPrev_dWFile[0]) {
-      FileStream prevDeltaWeightsStream(
-            mInitPrev_dWFile, std::ios_base::in | std::ios_base::binary);
-      WeightsFileIO prev_dWFile(&prevDeltaWeightsStream, getMPIBlock(), mPrevDeltaWeights);
-      prev_dWFile.readWeights(mPrev_dWFrameNumber);
+      auto globalMPIBlock = getCommunicator()->getGlobalMPIBlock();
+      char const *baseDirectory = mInitPrev_dWFile[0] == '/' ? "/" : ".";
+      auto fileManager = std::make_shared<FileManager>(globalMPIBlock, baseDirectory);
+      std::shared_ptr<WeightsFile> weightsFile;
+      if (mPrevDeltaWeights->getSharedFlag()) {
+         weightsFile = std::make_shared<SharedWeightsFile>(
+               fileManager,
+               std::string(mInitPrev_dWFile),
+               mPrevDeltaWeights->getData(),
+               false /* compressedFlag */,
+               true /* readOnlyFlag */,
+               false /* clobberFlag */,
+               false /* verifyWritesFlag */);
+      }
+      else {
+         weightsFile = std::make_shared<LocalPatchWeightsFile>(
+               fileManager,
+               std::string(mInitPrev_dWFile),
+               mPrevDeltaWeights->getData(),
+               &mPrevDeltaWeights->getGeometry()->getPreLoc(),
+               &mPrevDeltaWeights->getGeometry()->getPostLoc(),
+               true /* fileExtendedFlag */,
+               false /* compressedFlag */,
+               true /* readOnlyFlag */,
+               false /* clobberFlag */,
+               false /* verifyWritesFlag */);
+      }
+      weightsFile->setIndex(mPrev_dWFrameNumber);
+      weightsFile->read(*mPrevDeltaWeights->getData());
    }
    return status;
 }
@@ -274,7 +305,7 @@ int MomentumUpdater::updateWeights(int arborId) {
    pvAssert(mPrevDeltaWeights);
    std::memcpy(
          mPrevDeltaWeights->getData(arborId),
-         mDeltaWeights->getDataReadOnly(arborId),
+         mDeltaWeights->getData(arborId),
          sizeof(float) * mDeltaWeights->getPatchSizeOverall() * mDeltaWeights->getNumDataPatches());
 
    // add dw to w
@@ -351,30 +382,54 @@ void MomentumUpdater::applyMomentumDeprecated(int arborId, float dwFactor, float
 
 void MomentumUpdater::openOutputStateFile(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   if (mWriteStep >= 0) {
-      auto *checkpointer = message->mDataRegistry;
-      if (checkpointer->getMPIBlock()->getRank() == 0) {
-         std::string outputStatePath(getName());
-         outputStatePath.append(".prevDelta.pvp");
+   if (mWriteStep < 0) { return; }
 
-         std::string checkpointLabel(getName());
-         checkpointLabel.append("_prevDelta_filepos");
+   auto *checkpointer = message->mDataRegistry;
+   auto outputFileManager = getCommunicator()->getOutputFileManager();
+   std::string outputStatePath(getName());
+   outputStatePath.append(".prevDelta.pvp");
 
-         bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
-         mOutputStateStream = new CheckpointableFileStream(
-               outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
-         mOutputStateStream->respond(message); // CheckpointableFileStream needs to register data
-      }
+   // If the file exists and CheckpointReadDirectory is empty, we need to
+   // clobber the file.
+   if (checkpointer->getCheckpointReadDirectory().empty()) {
+      outputFileManager->open(
+            outputStatePath, std::ios_base::out, checkpointer->doesVerifyWrites());
    }
+
+   auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
+   auto *postLoc = mConnectionData->getPost()->getLayerLoc();
+   if (mPrevDeltaWeights->getSharedFlag()) {
+      mWeightsFile = std::make_shared<SharedWeightsFile>(
+            outputFileManager,
+            outputStatePath,
+            mPrevDeltaWeights->getData(),
+            mWriteCompressedWeights,
+            false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+            checkpointer->doesVerifyWrites());
+   }
+   else {
+      mWeightsFile = std::make_shared<LocalPatchWeightsFile>(
+            outputFileManager,
+            outputStatePath,
+            mPrevDeltaWeights->getData(),
+            preLoc,
+            postLoc,
+            true /*fileExtendedFlag*/,
+            mWriteCompressedWeights,
+            false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+            checkpointer->doesVerifyWrites());
+   }
+   mWeightsFile->respond(message); // WeightsFile needs to register filepos
 }
 
 void MomentumUpdater::outputMomentum(double timestamp) {
-   if (mPlasticityFlag && (mWriteStep >= 0) && (timestamp >= mWriteTime)) {
+   if (mWeightsFile && (timestamp >= mWriteTime)) {
       mWriteTime += mWriteStep;
 
       try {
-         WeightsFileIO weightsFileIO(mOutputStateStream, getMPIBlock(), mPrevDeltaWeights);
-         weightsFileIO.writeWeights(timestamp, mWriteCompressedWeights);
+         mWeightsFile->write(*mPrevDeltaWeights->getData(), timestamp);
       }
       catch (std::invalid_argument &e) {
          Fatal() << getDescription() << " unable to output momentum: " << e.what() << "\n";

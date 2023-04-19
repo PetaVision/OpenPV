@@ -30,6 +30,5 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/TransposeConn.hpp
    ${SUBDIR}/TransposePoolingConn.hpp
    ${SUBDIR}/WTAConn.hpp
-   ${SUBDIR}/weight_conversions.hpp
 )
 

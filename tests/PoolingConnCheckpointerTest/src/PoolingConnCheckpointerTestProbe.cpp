@@ -180,12 +180,13 @@ PoolingConnCheckpointerTestProbe::readStateFromCheckpoint(Checkpointer *checkpoi
    Checkpointer::TimeInfo timeInfo;
    CheckpointEntryData<Checkpointer::TimeInfo> timeInfoCheckpointEntry(
          std::string("timeinfo"),
-         mCommunicator->getLocalMPIBlock(),
          &timeInfo,
          (size_t)1,
          true /*broadcast*/);
+   auto mpiBlock = checkpointer->getMPIBlock();
    std::string initializeFromCheckpointDir(checkpointer->getInitializeFromCheckpointDir());
-   timeInfoCheckpointEntry.read(initializeFromCheckpointDir, nullptr);
+   auto fileManager = std::make_shared<FileManager>(mpiBlock, initializeFromCheckpointDir);
+   timeInfoCheckpointEntry.read(fileManager, nullptr);
 
    mStartingUpdateNumber = calcUpdateNumber(timeInfo.mSimTime);
 

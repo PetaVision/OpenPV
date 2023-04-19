@@ -13,10 +13,11 @@
 
 namespace PV {
 
+// ColProbe was deprecated on Apr 19, 2023. Derive column-wide probes from ProbeInterface instead.
 /**
+ * *Note: ColProbe is deprecated in favor of ProbeInterface*
  * ColProbe is the base class for probes that are attached to the column as a
- * whole,
- * as opposed to an individual layer or connection.
+ * whole, as opposed to an individual layer or connection.
  * Derived classes must implement the needRecalc and calcValues methods.
  *
  * The original motivation for ColProbe was for computing total energy of a
@@ -90,8 +91,6 @@ class ColProbe : public BaseProbe {
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
    Response::Status
-   respondColProbeWriteParams(std::shared_ptr<ColProbeWriteParamsMessage const>(message));
-   Response::Status
    respondColProbeOutputState(std::shared_ptr<ColProbeOutputStateMessage const>(message));
 
    /**
@@ -117,7 +116,7 @@ class ColProbe : public BaseProbe {
     * Derived classes can override this method to write header data to the output
     * file.
     */
-   virtual void outputHeader(Checkpointer *checkpointer) {}
+   virtual void outputHeader() {}
 
   private:
    /**

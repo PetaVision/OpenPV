@@ -147,7 +147,6 @@ void RetinaActivityBuffer::registerRandState(Checkpointer *checkpointer) {
    auto checkpointEntry = std::make_shared<CheckpointEntryRandState>(
          getName(),
          "rand_state",
-         checkpointer->getMPIBlock(),
          mRandState->getRNG(0),
          getLayerLoc(),
          true /*extended buffer*/);
@@ -164,7 +163,6 @@ void RetinaActivityBuffer::registerSinceLastSpike(Checkpointer *checkpointer) {
    auto checkpointEntry = std::make_shared<CheckpointEntryPvpBuffer<float>>(
          getName(),
          "SinceLastSpike",
-         checkpointer->getMPIBlock(),
          mSinceLastSpike.data(),
          getLayerLoc(),
          true /*extended buffer*/);

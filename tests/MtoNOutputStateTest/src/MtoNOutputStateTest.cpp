@@ -7,22 +7,26 @@
 #include "IndexWeightConn.hpp"
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 #include <cstdlib>
+#include <memory>
 #include <utils/BufferUtilsPvp.hpp>
 
 void verifyOutputStateFiles(
       std::string const &blockDirectory,
-      MPIBlock const &mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       int batchElementsPerProcess);
 void verifyOutputStatePre(
       std::string const &path,
-      MPIBlock const &mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       int batchElementsPerProcess);
 void verifyOutputStatePost(
       std::string const &path,
-      MPIBlock const &mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       int batchElementsPerProcess);
-void verifyOutputStateSharedWeights(std::string const &path, MPIBlock const &mpiBlock);
+void verifyOutputStateSharedWeights(
+      std::string const &path,
+      std::shared_ptr<MPIBlock const> mpiBlock);
 
 int main(int argc, char *argv[]) {
    // Initialize
@@ -41,24 +45,30 @@ int main(int argc, char *argv[]) {
    pv_init.registerKeyword("IndexLayer", Factory::create<IndexLayer>);
    pv_init.registerKeyword("IndexWeightConn", Factory::create<IndexWeightConn>);
 
-   InfoLog() << "PID " << getpid() << ", global rank " << pv_init.getWorldRank() << ".\n";
+   auto communicator = pv_init.getCommunicator();
+   auto mpiBlock     = communicator->getIOMPIBlock();
 
-   // Creating a checkpointer with the same constructor arguments as the
-   // HyPerCol's checkpointer will have is the easiest way to get the
-   // directory that outputState will write to, and the rank within the
-   // MPIBlock.
-   Checkpointer *tempCheckpoint = new Checkpointer(
-         "column", pv_init.getCommunicator(), pv_init.getArguments());
-   tempCheckpoint->ioParams(PARAMS_IO_READ, pv_init.getParams());
-   std::string outputDirectory(tempCheckpoint->getOutputPath());
-   std::string const &blockDirectory = tempCheckpoint->getBlockDirectoryName();
-   if (!blockDirectory.empty()) {
-      outputDirectory.append("/").append(blockDirectory);
+   std::string outputPath = pv_init.getArguments()->getStringArgument("OutputPath");
+   if (outputPath.empty()) {
+       char const *group0Keyword = pv_init.getParams()->groupKeywordFromIndex(0);
+       FatalIf(
+             group0Keyword == nullptr or strcmp(group0Keyword, "HyPerCol"),
+             "Params file \"%s\" group 0 is not a HyPerCol\n",
+             pv_init.getArguments()->getStringArgument(std::string("ParamsFile")).c_str());
+       char const *hypercolName = pv_init.getParams()->groupNameFromIndex(0);
+       pvAssert(hypercolName != nullptr);
+       char *paramsOutputPath = nullptr;
+       pv_init.getParams()->ioParamString(
+              PARAMS_IO_READ, hypercolName, "outputPath", &paramsOutputPath, "output", true);
+       outputPath = paramsOutputPath;
+       free(paramsOutputPath);
+
+       communicator->getOutputFileManager()->changeBaseDirectory(outputPath);
    }
-   MPIBlock mpiBlock = *tempCheckpoint->getMPIBlock();
+   std::string const outputDirectory =
+         communicator->getOutputFileManager()->makeBlockFilename(std::string(""));
 
-   int const rankInBlock = mpiBlock.getRank();
-   delete tempCheckpoint;
+   int const rankInBlock = mpiBlock->getRank();
 
    // If the directory already exists, delete it so that results aren't skewed
    // by results from a previous run.
@@ -76,7 +86,7 @@ int main(int argc, char *argv[]) {
    }
 
    HyPerCol *hc          = new HyPerCol(&pv_init);
-   int processBatchWidth = hc->getNBatchGlobal() / mpiBlock.getGlobalBatchDimension();
+   int processBatchWidth = hc->getNBatchGlobal() / mpiBlock->getGlobalBatchDimension();
    int status            = hc->run();
 
    if (rankInBlock == 0) {
@@ -88,7 +98,7 @@ int main(int argc, char *argv[]) {
 
 void verifyOutputStateFiles(
       std::string const &blockDirectory,
-      MPIBlock const &mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       int batchElementsPerProcess) {
    std::string outputStatePre = blockDirectory;
    if (!blockDirectory.empty()) {
@@ -114,14 +124,14 @@ void verifyOutputStateFiles(
 
 void verifyOutputStatePre(
       std::string const &path,
-      MPIBlock const &mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       int batchElementsPerProcess) {
    FileStream outputStatePreStream(path.c_str(), std::ios_base::in);
    auto header = BufferUtils::readActivityHeader(outputStatePreStream);
    FatalIf(header.fileType != PVP_NONSPIKING_ACT_FILE_TYPE, "%s is not a dense activity file.\n");
    FatalIf(header.dataType != BufferUtils::FLOAT, "%s does not have dataType=float.\n");
 
-   int batchElementsPerBlock = batchElementsPerProcess * mpiBlock.getBatchDimension();
+   int batchElementsPerBlock = batchElementsPerProcess * mpiBlock->getBatchDimension();
 
    int const numFrames  = header.nBands;
    int const numNeurons = header.nx * header.ny * header.nf;
@@ -160,7 +170,7 @@ void verifyOutputStatePre(
                   frame,
                   frameTime,
                   localBatchIndex,
-                  localBatchIndex + mpiBlock.getStartBatch() * batchElementsPerProcess,
+                  localBatchIndex + mpiBlock->getStartBatch() * batchElementsPerProcess,
                   x,
                   y,
                   f,
@@ -175,23 +185,23 @@ void verifyOutputStatePre(
 
 void verifyOutputStatePost(
       std::string const &path,
-      MPIBlock const &mpiBlock,
+      std::shared_ptr<MPIBlock const> mpiBlock,
       int batchElementsPerProcess) {
    FileStream outputStatePostStream(path.c_str(), std::ios_base::in);
    auto header = BufferUtils::readActivityHeader(outputStatePostStream);
    FatalIf(header.fileType != PVP_NONSPIKING_ACT_FILE_TYPE, "%s is not a dense activity file.\n");
    FatalIf(header.dataType != BufferUtils::FLOAT, "%s does not have dataType=float.\n");
 
-   int batchElementsPerBlock = batchElementsPerProcess * mpiBlock.getBatchDimension();
+   int batchElementsPerBlock = batchElementsPerProcess * mpiBlock->getBatchDimension();
 
    int const numFrames = header.nBands;
 
    int numNeurons       = header.nx * header.ny * header.nf;
-   int nxGlobal         = header.nx * (mpiBlock.getGlobalNumColumns() / mpiBlock.getNumColumns());
-   int nyGlobal         = header.ny * (mpiBlock.getGlobalNumRows() / mpiBlock.getNumRows());
+   int nxGlobal         = header.nx * (mpiBlock->getGlobalNumColumns() / mpiBlock->getNumColumns());
+   int nyGlobal         = header.ny * (mpiBlock->getGlobalNumRows() / mpiBlock->getNumRows());
    int numNeuronsGlobal = nxGlobal * nyGlobal * header.nf;
-   int kx0              = header.nx * (mpiBlock.getStartColumn() / mpiBlock.getNumColumns());
-   int ky0              = header.ny * (mpiBlock.getStartRow() / mpiBlock.getNumRows());
+   int kx0              = header.nx * (mpiBlock->getStartColumn() / mpiBlock->getNumColumns());
+   int ky0              = header.ny * (mpiBlock->getStartRow() / mpiBlock->getNumRows());
 
    double frameTime    = std::strtod("NAN", nullptr);
    int localBatchIndex = 0;
@@ -218,7 +228,7 @@ void verifyOutputStatePost(
          int y                = kyPos(k, header.nx, header.ny, header.nf);
          int f                = featureIndex(k, header.nx, header.ny, header.nf);
          float observed       = buffer.at(x, y, f);
-         int batchIndexOffset = mpiBlock.getStartBatch() * batchElementsPerProcess;
+         int batchIndexOffset = mpiBlock->getStartBatch() * batchElementsPerProcess;
          int globalBatchIndex = localBatchIndex + batchIndexOffset;
          int xGlobal          = x + kx0;
          int yGlobal          = y + ky0;
@@ -251,7 +261,9 @@ void verifyOutputStatePost(
    FatalIf(errorFound, "Error in Post.pvp\n");
 }
 
-void verifyOutputStateSharedWeights(std::string const &path, MPIBlock const &mpiBlock) {
+void verifyOutputStateSharedWeights(
+      std::string const &path,
+      std::shared_ptr<MPIBlock const> mpiBlock) {
 
    // FileStream does not make the file size available, but calls Fatal() if you read past the end,
    // so we need to get the file size.

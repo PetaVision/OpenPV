@@ -1,4 +1,5 @@
 #include "PVAssert.hpp"
+#include "utils/PathComponents.hpp" // baseName
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -15,7 +16,8 @@ void pv_abort_message(const char *file, int line, const char *fmt, ...) {
    va_end(args);
    st << "assert failed";
    if (file) {
-      st << " <" << basename((char *)file) << ":" << line << ">";
+      std::string filebasename = baseName(file);
+      st << " <" << filebasename << ":" << line << ">";
    }
    st << ": " << msg;
    st.flush();

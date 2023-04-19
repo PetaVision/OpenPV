@@ -1,12 +1,12 @@
 set(SRC_CPP
   src/GPUSystemTest.cpp
   src/GPUSystemTestProbe.cpp
-  src/identicalBatchProbe.cpp
+  src/CheckStatsAllZerosCheckSigma.cpp
 )
 
 set(SRC_HPP
   src/GPUSystemTestProbe.hpp
-  src/identicalBatchProbe.hpp
+  src/CheckStatsAllZerosCheckSigma.hpp
 )
 
 if (PV_USE_CUDA)

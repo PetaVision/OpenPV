@@ -11,7 +11,6 @@
 #include "components/BasePublisherComponent.hpp"
 
 #include "columns/Publisher.hpp"
-#include "utils/Timer.hpp"
 
 namespace PV {
 

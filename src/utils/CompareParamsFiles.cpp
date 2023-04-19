@@ -13,10 +13,10 @@ namespace PV {
 int compareParamsFiles(
       std::string const &paramsFile1,
       std::string const &paramsFile2,
-      Communicator const *comm) {
+      MPI_Comm mpiComm) {
    int status = PV_SUCCESS;
-   PVParams params1{paramsFile1.c_str(), INITIAL_LAYER_ARRAY_SIZE, comm};
-   PVParams params2{paramsFile2.c_str(), INITIAL_LAYER_ARRAY_SIZE, comm};
+   PVParams params1{paramsFile1.c_str(), INITIAL_LAYER_ARRAY_SIZE, mpiComm};
+   PVParams params2{paramsFile2.c_str(), INITIAL_LAYER_ARRAY_SIZE, mpiComm};
 
    // create a map between groups in paramsFile1 and those in paramsFile2.
    std::map<ParameterGroup *, ParameterGroup *> parameterGroupMap;

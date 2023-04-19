@@ -19,29 +19,29 @@ class CheckpointEntryData : public CheckpointEntry {
   public:
    CheckpointEntryData(
          std::string const &name,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          T *dataPtr,
          size_t numValues,
          bool broadcastingFlag)
-         : CheckpointEntry(name, mpiBlock),
+         : CheckpointEntry(name),
            mDataPointer(dataPtr),
            mNumValues(numValues),
            mBroadcastingFlag(broadcastingFlag) {}
    CheckpointEntryData(
          std::string const &objName,
          std::string const &dataName,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          T *dataPtr,
          size_t numValues,
          bool broadcastingFlag)
-         : CheckpointEntry(objName, dataName, mpiBlock),
+         : CheckpointEntry(objName, dataName),
            mDataPointer(dataPtr),
            mNumValues(numValues),
            mBroadcastingFlag(broadcastingFlag) {}
-   virtual void write(std::string const &checkpointDirectory, double simTime, bool verifyWritesFlag)
+   virtual void write(
+         std::shared_ptr<FileManager const> fileManager, double simTime, bool verifyWritesFlag)
          const override;
-   virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
-   virtual void remove(std::string const &checkpointDirectory) const override;
+   virtual void
+         read(std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const override;
+   virtual void remove(std::shared_ptr<FileManager const> fileManager) const override;
 
   private:
    void broadcast();

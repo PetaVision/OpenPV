@@ -68,11 +68,11 @@ int main(int argc, char *argv[]) {
 
    std::string file1 = argv[optind];
    std::string file2 = argv[optind + 1];
-   auto *comm        = pvInitObj->getCommunicator();
+   auto mpiComm      = pvInitObj->getCommunicator()->globalCommunicator();
 
    std::stringstream configStream("NumRows:0\nNumColumns:0\nBatchWidth:0\n");
 
-   int status = PV::compareParamsFiles(file1, file2, comm);
+   int status = PV::compareParamsFiles(file1, file2, mpiComm);
    delete pvInitObj;
    if (status == PV_SUCCESS) {
       std::cout << file1 << " and " << file2 << " are equivalent.\n";

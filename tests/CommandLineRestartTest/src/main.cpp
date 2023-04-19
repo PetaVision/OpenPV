@@ -4,6 +4,7 @@
  */
 
 #include "FailBeforeExpectedStartTimeLayer.hpp"
+#include "columns/Factory.hpp"
 #include "columns/HyPerCol.hpp"
 #include "columns/PV_Init.hpp"
 #include "copyOutput.hpp"

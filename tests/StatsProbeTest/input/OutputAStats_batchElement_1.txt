@@ -1,0 +1,17 @@
+OutputAStats  :t==   0.0 b==1 N==64 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000 sigma==0.000000 nnz==0
+OutputAStats  :t==   1.0 b==1 N==64 Total==466.000000 Min==4.000000 Avg==7.281250 Max==9.000000 sigma==1.709064 nnz==64
+OutputAStats  :t==   2.0 b==1 N==64 Total==439.000000 Min==3.000000 Avg==6.859375 Max==9.000000 sigma==1.739856 nnz==64
+OutputAStats  :t==   3.0 b==1 N==64 Total==412.000000 Min==3.000000 Avg==6.437500 Max==9.000000 sigma==1.712774 nnz==64
+OutputAStats  :t==   4.0 b==1 N==64 Total==376.000000 Min==2.000000 Avg==5.875000 Max==9.000000 sigma==1.815730 nnz==64
+OutputAStats  :t==   5.0 b==1 N==64 Total==351.000000 Min==2.000000 Avg==5.484375 Max==8.000000 sigma==1.648789 nnz==64
+OutputAStats  :t==   6.0 b==1 N==64 Total==323.000000 Min==1.000000 Avg==5.046875 Max==8.000000 sigma==1.614676 nnz==64
+OutputAStats  :t==   7.0 b==1 N==64 Total==287.000000 Min==2.000000 Avg==4.484375 Max==8.000000 sigma==1.457654 nnz==64
+OutputAStats  :t==   8.0 b==1 N==64 Total==244.000000 Min==1.000000 Avg==3.812500 Max==7.000000 sigma==1.116286 nnz==64
+OutputAStats  :t==   9.0 b==1 N==64 Total==233.000000 Min==1.000000 Avg==3.640625 Max==7.000000 sigma==1.604361 nnz==64
+OutputAStats  :t==  10.0 b==1 N==64 Total==200.000000 Min==1.000000 Avg==3.125000 Max==7.000000 sigma==1.605654 nnz==64
+OutputAStats  :t==  11.0 b==1 N==64 Total==175.000000 Min==0.000000 Avg==2.734375 Max==6.000000 sigma==1.394657 nnz==60
+OutputAStats  :t==  12.0 b==1 N==64 Total==142.000000 Min==0.000000 Avg==2.218750 Max==5.000000 sigma==1.292632 nnz==59
+OutputAStats  :t==  13.0 b==1 N==64 Total==100.000000 Min==0.000000 Avg==1.562500 Max==4.000000 sigma==1.143938 nnz==50
+OutputAStats  :t==  14.0 b==1 N==64 Total==79.000000 Min==0.000000 Avg==1.234375 Max==3.000000 sigma==1.071538 nnz==44
+OutputAStats  :t==  15.0 b==1 N==64 Total==48.000000 Min==0.000000 Avg==0.750000 Max==3.000000 sigma==0.883883 nnz==32
+OutputAStats  :t==  16.0 b==1 N==64 Total==10.000000 Min==0.000000 Avg==0.156250 Max==1.000000 sigma==0.363092 nnz==10

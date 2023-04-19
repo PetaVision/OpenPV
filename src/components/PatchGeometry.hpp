@@ -8,7 +8,7 @@
 #ifndef PATCHGEOMETRY_HPP_
 #define PATCHGEOMETRY_HPP_
 
-#include "components/Patch.hpp"
+#include "structures/Patch.hpp"
 #include "include/PVLayerLoc.h"
 #include <string>
 #include <vector>
@@ -215,6 +215,21 @@ class PatchGeometry {
          int numNeuronsPre,
          int numNeuronsPost);
 
+   static void calcPatchData(
+         int index,
+         int numPreRestricted,
+         int preStartBorder,
+         int preEndBorder,
+         int numPostRestricted,
+         int postStartBorder,
+         int postEndBorder,
+         int patchSize,
+         int *patchDim,
+         int *patchStart,
+         int *postPatchStartRestricted,
+         int *postPatchStartExtended,
+         int *postPatchUnshrunkenStart);
+
   private:
    /** Called internally by the constructor */
    void initialize(
@@ -248,21 +263,6 @@ class PatchGeometry {
     * Called internally by allocateDataStructures, to compute the TransposeItemIndex vectors.
     */
    void setTransposeItemIndices();
-
-   static void calcPatchData(
-         int index,
-         int numPreRestricted,
-         int preStartBorder,
-         int preEndBorder,
-         int numPostRestricted,
-         int postStartBorder,
-         int postEndBorder,
-         int patchSize,
-         int *patchDim,
-         int *patchStart,
-         int *postPatchStartRestricted,
-         int *postPatchStartExtended,
-         int *postPatchUnshrunkenStart);
 
   private:
    int mPatchSizeX;

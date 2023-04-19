@@ -1,0 +1,63 @@
+//
+// allzeros.params
+//
+
+//  A params file for a single input layer that loads allzeros.params
+//  and a RequireAllZeroActivityProbe attached to the layer.
+//  It was written for RequireAllZeroActivityProbeTest.
+//
+
+debugParsing = true;
+
+HyPerCol "column" = {
+   nx = 16;
+   ny = 16;
+   nbatch = 1;
+   dt = 1.0;
+   randomSeed = 1389263926;
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 10.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/allzeros";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/allzeros/Last";
+};
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 1;
+
+    inputPath = "input/allzeros.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+RequireAllZeroActivityProbe "Probe" = {
+    targetLayer = "Input";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = false;
+    immediateExitOnFailure = false;
+};

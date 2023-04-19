@@ -186,7 +186,7 @@ void ColumnArchive::addCol(HyPerCol *hc, float layerTolerance, float connToleran
          addLayer(publisherComponent, layerTolerance);
       }
       auto *conn = dynamic_cast<ComponentBasedObject *>(obj);
-      if (conn->getComponentByType<PatchSize>() != nullptr) {
+      if (conn and conn->getComponentByType<PatchSize>() != nullptr) {
          addConn(conn, connTolerance);
       }
    }

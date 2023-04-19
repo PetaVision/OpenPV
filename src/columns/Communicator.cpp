@@ -2,18 +2,18 @@
  * Communicator.cpp
  */
 
+#include "Communicator.hpp"
+#include "utils/conversions.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include "utils/WaitForReturn.hpp"
+
 #include <cassert>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-
-#include "Communicator.hpp"
-#include "utils/PVAssert.hpp"
-#include "utils/PVLog.hpp"
-#include "utils/WaitForReturn.hpp"
-#include "utils/conversions.hpp"
 
 namespace PV {
 
@@ -27,103 +27,68 @@ int Communicator::gcd(int a, int b) const {
    return b;
 }
 
-Communicator::Communicator(Arguments const *argumentList) {
+Communicator::Communicator(Arguments const *arguments) {
    int totalSize;
-   MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
+   MPI_Comm_rank(MPI_COMM_WORLD, &mGlobalRank);
    MPI_Comm_size(MPI_COMM_WORLD, &totalSize);
 
-   numRows    = argumentList->getIntegerArgument("NumRows");
-   numCols    = argumentList->getIntegerArgument("NumColumns");
-   batchWidth = argumentList->getIntegerArgument("BatchWidth");
+   setDimensions(arguments, totalSize);
 
-   int cellRows       = argumentList->getIntegerArgument("CheckpointCellNumRows");
-   int cellCols       = argumentList->getIntegerArgument("CheckpointCellNumColumns");
-   int cellBatchProcs = argumentList->getIntegerArgument("CheckpointCellBatchDimension");
+   int procsNeeded = mBatchWidth * mNumRows * mNumCols;
 
-   bool rowsDefined  = numRows != 0;
-   bool colsDefined  = numCols != 0;
-   bool batchDefined = batchWidth != 0;
-
-   if (!batchDefined) {
-      batchWidth = 1;
-   }
-
-   int procsLeft = totalSize / batchWidth;
-   if (rowsDefined && !colsDefined) {
-      numCols = (int)ceil(procsLeft / numRows);
-   }
-   if (!rowsDefined && colsDefined) {
-      numRows = (int)ceil(procsLeft / numCols);
-   }
-   if (!rowsDefined && !colsDefined) {
-      double r = std::sqrt(procsLeft);
-      numRows  = (int)r;
-      if (numRows == 0) {
-         Fatal() << "Not enough processes left\n";
-      }
-      numCols = (int)ceil(procsLeft / numRows);
-   }
-
-   int commSize = batchWidth * numRows * numCols;
-
-   // For debugging
-   if (globalRank == 0) {
-      InfoLog() << "Running with batchWidth=" << batchWidth << ", numRows=" << numRows
-                << ", and numCols=" << numCols << "\n";
-   }
-
-   if (commSize > totalSize) {
-      Fatal() << "Number of required processes (NumRows * NumColumns * BatchWidth = " << commSize
+   if (procsNeeded > totalSize) {
+      Fatal() << "Number of required processes (NumRows * NumColumns * BatchWidth = " << procsNeeded
               << ") should be the same as, and cannot be larger than, the number of processes "
                  "launched ("
               << totalSize << ")\n";
    }
 
    mGlobalMPIBlock = std::make_shared<MPIBlock>(
-         MPI_COMM_WORLD, numRows, numCols, batchWidth, numRows, numCols, batchWidth);
-   isExtra = (globalRank >= commSize);
+         MPI_COMM_WORLD, mNumRows, mNumCols, mBatchWidth, mNumRows, mNumCols, mBatchWidth);
+   isExtra = (mGlobalRank >= procsNeeded);
    if (isExtra) {
-      WarnLog() << "Global process rank " << globalRank << " is extra, as only " << commSize
+      WarnLog() << "Global process rank " << mGlobalRank << " is extra, as only " << procsNeeded
                 << " mpiProcesses are required. Process exiting\n";
       return;
    }
    // mGlobalMPIBlock's communicator now has only useful mpi processes
 
    // If RequireReturn was set, wait until global root process gets keyboard input.
-   bool requireReturn = argumentList->getBooleanArgument("RequireReturn");
+   bool requireReturn = arguments->getBooleanArgument("RequireReturn");
    if (requireReturn) {
       WaitForReturn(globalCommunicator());
    }
 
-   // Grab globalSize now that extra processes have been exited
-   MPI_Comm_size(globalCommunicator(), &globalSize);
+   // Grab GlobalSize now that extra processes have been exited
+   MPI_Comm_size(globalCommunicator(), &mGlobalSize);
 
    // Make new local communicator
    mLocalMPIBlock =
-         std::make_shared<MPIBlock>(globalCommunicator(), numRows, numCols, batchWidth, numRows, numCols, 1);
+         std::make_shared<MPIBlock>(globalCommunicator(), mNumRows, mNumCols, mBatchWidth, mNumRows, mNumCols, 1);
    // Set local rank
-   localRank = mLocalMPIBlock->getRank();
+   mLocalRank = mLocalMPIBlock->getRank();
    // Make new batch communicator
    mBatchMPIBlock =
-         std::make_shared<MPIBlock>(globalCommunicator(), numRows, numCols, batchWidth, 1, 1, batchWidth);
+         std::make_shared<MPIBlock>(globalCommunicator(), mNumRows, mNumCols, mBatchWidth, 1, 1, mBatchWidth);
+
+   int cellRows       = arguments->getIntegerArgument("CheckpointCellNumRows");
+   int cellCols       = arguments->getIntegerArgument("CheckpointCellNumColumns");
+   int cellBatchProcs = arguments->getIntegerArgument("CheckpointCellBatchDimension");
 
    mIOMPIBlock = std::make_shared<MPIBlock>(
-         globalCommunicator(), numRows, numCols, batchWidth, cellRows, cellCols, cellBatchProcs);
+         globalCommunicator(), mNumRows, mNumCols, mBatchWidth, cellRows, cellCols, cellBatchProcs);
 
-   //#ifdef DEBUG_OUTPUT
-   //      DebugLog().printf("[%2d]: Formed resized communicator, size==%d
-   //      cols==%d rows==%d\n",
-   //      icRank, icSize, numCols, numRows);
-   //#endif // DEBUG_OUTPUT
+   std::string const &outputDirectory = arguments->getStringArgument("OutputPath");
+   mOutputFileManager = std::make_shared<FileManager>(mIOMPIBlock, outputDirectory);
 
    // Grab local rank and check for errors
    int tmpLocalRank;
-   MPI_Comm_size(communicator(), &localSize);
+   MPI_Comm_size(communicator(), &mLocalSize);
    MPI_Comm_rank(communicator(), &tmpLocalRank);
    // This should be equiv
-   pvAssert(tmpLocalRank == localRank);
+   pvAssert(tmpLocalRank == mLocalRank);
 
-   if (globalSize > 0) {
+   if (mGlobalSize > 0) {
       neighborInit();
    }
    MPI_Barrier(globalCommunicator());
@@ -133,6 +98,36 @@ Communicator::~Communicator() {
 #ifdef PV_USE_MPI
    MPI_Barrier(globalCommunicator());
 #endif
+}
+
+void Communicator::setDimensions(Arguments const *arguments, int totalProcs) {
+   mNumRows    = arguments->getIntegerArgument("NumRows");
+   mNumCols    = arguments->getIntegerArgument("NumColumns");
+   mBatchWidth = arguments->getIntegerArgument("BatchWidth");
+
+   bool rowsDefined  = mNumRows > 0;
+   bool colsDefined  = mNumCols > 0;
+   bool batchDefined = mBatchWidth > 0;
+
+   if (!batchDefined) {
+      mBatchWidth = 1;
+   }
+
+   int procsPerBatchElem = totalProcs / mBatchWidth;
+   if (rowsDefined and !colsDefined) {
+      mNumCols = static_cast<int>(procsPerBatchElem / mNumRows);
+   }
+   if (!rowsDefined and colsDefined) {
+      mNumRows = static_cast<int>(procsPerBatchElem / mNumCols);
+   }
+   if (!rowsDefined && !colsDefined) {
+      double r = std::sqrt(procsPerBatchElem);
+      mNumRows  = static_cast<int>(std::floor(r));
+      if (mNumRows == 0) {
+         Fatal() << "Not enough processes left\n";
+      }
+      mNumCols = static_cast<int>(procsPerBatchElem / mNumRows);
+   }
 }
 
 /**
@@ -155,15 +150,15 @@ int Communicator::neighborInit() {
    // MPI_Send/MPI_Irecv pairs can be distinguished.
 
    for (int i = 0; i < NUM_NEIGHBORHOOD; i++) {
-      int n        = neighborIndex(localRank, i);
-      neighbors[i] = localRank; // default neighbor is self
+      int n        = neighborIndex(mLocalRank, i);
+      neighbors[i] = mLocalRank; // default neighbor is self
       if (n >= 0) {
          neighbors[i] = n;
          num_neighbors++;
 #ifdef DEBUG_OUTPUT
          DebugLog().printf(
                "[%2d]: neighborInit: remote[%d] of %d is %d, i=%d, neighbor=%d\n",
-               localRank,
+               mLocalRank,
                num_neighbors - 1,
                this->numNeighbors,
                n,
@@ -173,7 +168,7 @@ int Communicator::neighborInit() {
       }
       else {
 #ifdef DEBUG_OUTPUT
-         DebugLog().printf("[%2d]: neighborInit: i=%d, neighbor=%d\n", localRank, i, neighbors[i]);
+         DebugLog().printf("[%2d]: neighborInit: i=%d, neighbor=%d\n", mLocalRank, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
       }
       this->tags[i] = tags[i];
@@ -186,25 +181,25 @@ int Communicator::neighborInit() {
 /**
  * Returns the communication row id for the given communication id
  */
-int Communicator::commRow(int commId) const { return rowFromRank(commId, numRows, numCols); }
+int Communicator::commRow(int commId) const { return rowFromRank(commId, mNumRows, mNumCols); }
 
 /**
  * Returns the communication column id for the given communication id
  */
-int Communicator::commColumn(int commId) const { return columnFromRank(commId, numRows, numCols); }
+int Communicator::commColumn(int commId) const { return columnFromRank(commId, mNumRows, mNumCols); }
 
 /**
  * Returns the batch column id for the given communication id
  */
 int Communicator::commBatch(int commId) const {
-   return batchFromRank(commId, batchWidth, numRows, numCols);
+   return batchFromRank(commId, mBatchWidth, mNumRows, mNumCols);
 }
 
 /**
  * Returns the communication id for a given row and column
  */
 int Communicator::commIdFromRowColumn(int commRow, int commColumn) const {
-   return rankFromRowAndColumn(commRow, commColumn, numRows, numCols);
+   return rankFromRowAndColumn(commRow, commColumn, mNumRows, mNumCols);
 }
 
 /**
@@ -212,7 +207,7 @@ int Communicator::commIdFromRowColumn(int commRow, int commColumn) const {
  * (false otherwise)
  */
 bool Communicator::hasNeighbor(int neighbor) const {
-   int nbrIdx = neighborIndex(localRank, neighbor);
+   int nbrIdx = neighborIndex(mLocalRank, neighbor);
    return nbrIdx >= 0;
 }
 
@@ -454,36 +449,36 @@ int Communicator::reverseDirection(int commId, int direction) const {
       case NORTHEAST: /* northeast */
          assert(revdir == SOUTHWEST);
          if (row == 0) {
-            assert(col < numCols - 1);
+            assert(col < mNumCols - 1);
             revdir = NORTHWEST;
          }
-         if (col == numCols - 1) {
+         if (col == mNumCols - 1) {
             assert(row > 0);
             revdir = SOUTHEAST;
          }
          break;
       case WEST: /* west */ assert(commColumn(commId) > 0); break;
-      case EAST: /* east */ assert(commColumn(commId) < numCols - 1); break;
+      case EAST: /* east */ assert(commColumn(commId) < mNumCols - 1); break;
       case SOUTHWEST: /* southwest */
          assert(revdir == NORTHEAST);
-         if (row == numRows - 1) {
+         if (row == mNumRows - 1) {
             assert(col > 0);
             revdir = SOUTHEAST;
          }
          if (col == 0) {
-            assert(row < numRows - 1);
+            assert(row < mNumRows - 1);
             revdir = NORTHWEST;
          }
          break;
-      case SOUTH: /* south */ assert(commRow(commId) < numRows - 1); break;
+      case SOUTH: /* south */ assert(commRow(commId) < mNumRows - 1); break;
       case SOUTHEAST: /* southeast */
          assert(revdir == NORTHWEST);
-         if (row == numRows - 1) {
-            assert(col < numCols - 1);
+         if (row == mNumRows - 1) {
+            assert(col < mNumCols - 1);
             revdir = SOUTHWEST;
          }
-         if (col == numCols - 1) {
-            assert(row < numRows - 1);
+         if (col == mNumCols - 1) {
+            assert(row < mNumRows - 1);
             revdir = NORTHEAST;
          }
          break;

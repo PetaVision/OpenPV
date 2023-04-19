@@ -1,5 +1,6 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/InitCocircWeights.cpp
+   ${SUBDIR}/InitDiscreteUniformRandomWeights.cpp
    ${SUBDIR}/InitGauss2DWeights.cpp
    ${SUBDIR}/InitGaussianRandomWeights.cpp
    ${SUBDIR}/InitIdentWeights.cpp
@@ -15,6 +16,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/InitCocircWeights.hpp
+   ${SUBDIR}/InitDiscreteUniformRandomWeights.hpp
    ${SUBDIR}/InitGauss2DWeights.hpp
    ${SUBDIR}/InitGaussianRandomWeights.hpp
    ${SUBDIR}/InitIdentWeights.hpp

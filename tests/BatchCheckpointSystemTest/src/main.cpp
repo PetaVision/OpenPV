@@ -7,6 +7,7 @@
 #include "VaryingHyPerConn.hpp"
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);
 
@@ -92,17 +93,9 @@ int main(int argc, char *argv[]) {
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    // Rank of the checkpointing MPI communicator does is not publicly accessible, so recreate it.
-   Arguments const *arguments = hc->getPV_InitObj()->getArguments();
-   MPIBlock mpiBlock(
-         hc->getCommunicator()->globalCommunicator(),
-         arguments->getIntegerArgument("NumRows"),
-         arguments->getIntegerArgument("NumColumns"),
-         arguments->getIntegerArgument("BatchWidth"),
-         arguments->getIntegerArgument("CheckpointCellNumRows"),
-         arguments->getIntegerArgument("CheckpointCellNumColumns"),
-         arguments->getIntegerArgument("CheckpointCellBatchDimension"));
-   int rank     = mpiBlock.getRank();
-   int rootproc = 0;
+   auto arguments = hc->getPV_InitObj()->getArguments();
+   int rank       = hc->getCommunicator()->getIOMPIBlock()->getRank();
+   int rootproc   = 0;
 
    int status = PV_SUCCESS;
    if (rank == rootproc) {
@@ -111,7 +104,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
       const char *cpdir2    = hc->parameters()->stringValue("column", "checkpointWriteDir");
       const int max_buf_len = 1024;
       char shellcommand[max_buf_len];
-      const char *fmtstr = "diff -r -q -x timers.txt -x pv.params -x pv.params.lua "
+      const char *fmtstr = "diff -r -q -x timers.txt -x pv?.params -x pv?.params.lua "
                            "%s/Checkpoint%ld %s/Checkpoint%ld";
       snprintf(shellcommand, max_buf_len, fmtstr, cpdir1, index, cpdir2, index);
       status = system(shellcommand);

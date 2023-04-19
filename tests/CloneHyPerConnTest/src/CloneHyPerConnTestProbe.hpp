@@ -8,21 +8,19 @@
 #ifndef CLONEKERNELCONNTESTPROBE_HPP_
 #define CLONEKERNELCONNTESTPROBE_HPP_
 
-#include "probes/StatsProbe.hpp"
+#include "columns/Communicator.hpp"
+#include "io/PVParams.hpp"
+#include "probes/StatsProbeImmediate.hpp"
 
 namespace PV {
 
-class CloneHyPerConnTestProbe : public PV::StatsProbe {
+class CloneHyPerConnTestProbe : public PV::StatsProbeImmediate {
   public:
    CloneHyPerConnTestProbe(const char *name, PVParams *params, Communicator const *comm);
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
   protected:
+   virtual void checkStats() override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
-
-  private:
-   int initialize_base();
 };
 
 } /* namespace PV */

@@ -1,0 +1,13 @@
+debugParsing = false;
+
+L1NormProbe "ProbeWithNoMask" = {
+    maskLayerName = "";
+};
+
+L1NormProbe "ProbeWith1FeatureMask" = {
+    maskLayerName = "Layer1Feature";
+};
+
+L1NormProbe "ProbeWith3FeatureMask" = {
+    maskLayerName = "Layer3Features";
+};

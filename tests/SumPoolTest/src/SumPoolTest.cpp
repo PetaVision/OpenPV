@@ -9,6 +9,7 @@
 #include "SumPoolTestLayer.hpp"
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 
 #define MAIN_USES_CUSTOMGROUPS
 

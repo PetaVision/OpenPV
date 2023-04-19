@@ -13,6 +13,7 @@
 #include "TestImage.hpp"
 
 #include "columns/ComponentBasedObject.hpp"
+#include <columns/Factory.hpp>
 #include "columns/HyPerCol.hpp"
 #include "components/PatchSize.hpp"
 #include "layers/Retina.hpp"

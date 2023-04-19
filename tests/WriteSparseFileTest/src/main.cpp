@@ -3,18 +3,30 @@
  *
  */
 
+#include "arch/mpi/mpi.h"
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/buildandrun.hpp"
+#include "columns/HyPerCol.hpp"
+#include "columns/PV_Init.hpp"
 #include "components/InputActivityBuffer.hpp"
+#include "include/pv_common.h"
+#include "io/FileStream.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "probes/RequireAllZeroActivityProbe.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <ios>
+#include <string>
 
 #define CORRECT_PVP_NX 32 // The x-dimension in the "correct.pvp" file.  Needed by generate()
 #define CORRECT_PVP_NY 32 // The y-dimension in the "correct.pvp" file.  Needed by generate()
 #define CORRECT_PVP_NF 8 // The number of features in the "correct.pvp" file.  Needed by generate()
 
 int copyCorrectOutput(HyPerCol *hc, int argc, char *argv[]);
-int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]);
+int assertAllZeros(HyPerCol *hc, int argc, char *argv[]);
 
 int generate(PV_Init *initObj, int rank);
 int testrun(PV_Init *initObj, int rank);
@@ -28,13 +40,13 @@ int main(int argc, char *argv[]) {
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
    bool generateFlag = false; // Flag for whether to generate correct output for future tests; don't
-   // check the RequireAllZeroActivity probe
+   // check the RequireAllZeroActivityProbe
    bool testrunFlag = false; // Flag for whether to run from params and then check the
-   // RequireAllZeroActivity probe
+   // RequireAllZeroActivityProbe
    bool testcheckpointFlag = false; // Flag for whether to run from checkpoint and then check the
-   // RequireAllZeroActivity probe
+   // RequireAllZeroActivityProbe
    bool testioparamsFlag = false; // Flag for whether to run from the output pv.params and then
-   // check the RequireAllZeroActivity probe
+   // check the RequireAllZeroActivityProbe
 
    // Run through the command line arguments.  If an argument is any of
    // --generate
@@ -142,29 +154,30 @@ int generate(PV_Init *initObj, int rank) {
             new FileStream("input/correct.pvp", std::ios_base::out, false /*verifyWrites*/);
       // Data for a CORRECT_PVP_NX-by-CORRECT_PVP_NY layer with CORRECT_PVP_NF features.
       // Sparse activity with no active neurons so file size doesn't change with number of features
-      int emptydata[] = {80,
-                         20,
-                         2,
-                         CORRECT_PVP_NX,
-                         CORRECT_PVP_NY,
-                         CORRECT_PVP_NF,
-                         1,
-                         0,
-                         4,
-                         2,
-                         1,
-                         1,
-                         CORRECT_PVP_NX,
-                         CORRECT_PVP_NY,
-                         0,
-                         0,
-                         0,
-                         1,
-                         0,
-                         0,
-                         0,
-                         0,
-                         0};
+      int emptydata[] = {
+            80,
+            20,
+            2,
+            CORRECT_PVP_NX,
+            CORRECT_PVP_NY,
+            CORRECT_PVP_NF,
+            1,
+            0,
+            4,
+            2,
+            1,
+            1,
+            CORRECT_PVP_NX,
+            CORRECT_PVP_NY,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0};
       emptyInputFile->write(emptydata, 23L * (long)sizeof(int));
       delete emptyInputFile;
    }
@@ -226,7 +239,7 @@ int testrun(PV_Init *initObj, int rank) {
             "Running --testrun with effective command line\n", initObj->getProgramName());
       initObj->printState();
    }
-   int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
+   int status = rebuildandrun(initObj, NULL, &assertAllZeros);
    return status;
 }
 
@@ -251,7 +264,7 @@ int testcheckpoint(PV_Init *initObj, int rank) {
             "Running --testcheckpoint with effective command line\n", initObj->getProgramName());
       initObj->printState();
    }
-   int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
+   int status = rebuildandrun(initObj, NULL, &assertAllZeros);
    return status;
 }
 
@@ -282,11 +295,11 @@ int testioparams(PV_Init *initObj, int rank) {
       InfoLog().printf("Running --testioparams with effective command line\n");
       initObj->printState();
    }
-   status = rebuildandrun(initObj, NULL, &assertAllZeroes);
+   status = rebuildandrun(initObj, NULL, &assertAllZeros);
    return status;
 }
 
-int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
+int assertAllZeros(HyPerCol *hc, int argc, char *argv[]) {
    const char *targetLayerName = "comparison";
    HyPerLayer *layer           = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(targetLayerName));
    FatalIf(!layer, "Unable to find layer \"%s\".\n", targetLayerName);
@@ -294,9 +307,9 @@ int assertAllZeroes(HyPerCol *hc, int argc, char *argv[]) {
          dynamic_cast<RequireAllZeroActivityProbe *>(hc->getObjectFromName("comparison_test"));
    FatalIf(!allzeroProbe, "Unable to find RequireAllZeroActivityProbe \"comparison_test\".\n");
    FatalIf(
-         allzeroProbe->getNonzeroFound(),
+         allzeroProbe->foundNonzero(),
          "%s had at least one nonzero activity value, beginning at time %f\n",
          layer->getDescription_c(),
-         allzeroProbe->getNonzeroTime());
+         allzeroProbe->getFirstFailureTime());
    return PV_SUCCESS;
 }

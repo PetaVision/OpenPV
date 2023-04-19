@@ -8,6 +8,7 @@
 extern "C" {
 #include <unistd.h>
 }
+#include <cerrno>
 #include <cinttypes>
 #include <cstdarg>
 #include <cstdio>
@@ -24,30 +25,31 @@ using std::string;
 
 namespace PV {
 
-FileStream::FileStream(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
-   initialize(path, mode, verifyWrites);
+FileStream::FileStream(char const *path) {
+   initializePath(path);
 }
 
-void FileStream::initialize(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
-   PrintStream::initialize(mFStream);
-   openFile(path, mode, verifyWrites);
+FileStream::FileStream(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
+   initializePath(path);
+   open(mode, verifyWrites);
 }
 
 FileStream::~FileStream() {}
 
-void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool verifyWrites) {
-   string fullPath = expandLeadingTilde(path);
-   mFileName       = fullPath;
-   mMode           = mode;
-   mVerifyWrites   = verifyWrites;
-   int attempts    = 0;
+void FileStream::initializePath(char const *path) {
+   mFileName = expandLeadingTilde(path);
+}
+
+void FileStream::open() {
+   int attempts  = 0;
    while (!mFStream.is_open()) {
-      mFStream.open(fullPath, mode);
+      mFStream.open(mFileName, mMode);
       if (!mFStream.fail()) {
          break;
       }
       attempts++;
-      WarnLog() << "Failed to open \"" << fullPath << "\" on attempt " << attempts << "\n";
+      WarnLog() << "Failed to open \"" << mFileName << "\" on attempt " << attempts << ": "
+                << strerror(errno) << "\n";
       if (attempts < mMaxAttempts) {
          sleep(1);
       }
@@ -56,14 +58,24 @@ void FileStream::openFile(char const *path, std::ios_base::openmode mode, bool v
       }
    }
    if (!mFStream.is_open()) {
-      Fatal() << "FileStream::openFile failure (" << strerror(errno) << ") for \"" << fullPath
+      Fatal() << "FileStream::open failure (" << strerror(errno) << ") for \"" << mFileName
               << "\": MAX_FILESYSTEMCALL_TRIES = " << mMaxAttempts << " exceeded.\n";
    }
    else if (attempts > 0) {
-      WarnLog() << "FileStream::openFile succeeded for \"" << fullPath << "\" on attempt "
+      WarnLog() << "FileStream::open succeeded for \"" << mFileName << "\" on attempt "
                 << attempts + 1 << "\n";
    }
-   verifyFlags("openFile");
+   verifyFlags("open");
+   if (writeable()) { PrintStream::initialize(mFStream); }
+}
+
+void FileStream::open(std::ios_base::openmode mode, bool verifyWrites) {
+   if (mFStream.is_open() and (mode != mMode or verifyWrites != mVerifyWrites)) {
+      mFStream.close();
+   }
+   mMode         = mode;
+   mVerifyWrites = verifyWrites;
+   open();
 }
 
 void FileStream::verifyFlags(const char *caller) {
@@ -120,6 +132,15 @@ void FileStream::read(void *data, long length) {
          numRead,
          getInPos());
    verifyFlags("read");
+}
+
+void FileStream::close() {
+   if (!isOpen()) { return; }
+   mFStream.close();
+   FatalIf(
+         mFStream.fail(),
+         "FileStream failed to close \"%s\": %s\n",
+         mFileName.c_str(), strerror(errno));
 }
 
 void FileStream::setOutPos(long pos, std::ios_base::seekdir seekAnchor) {

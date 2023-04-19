@@ -10,6 +10,7 @@
 #ifdef MAIN_USES_CUSTOM_GROUPS
 #include "ImportParamsConn.hpp"
 #include "ImportParamsLayer.hpp"
+#include <columns/Factory.hpp>
 #include <columns/PV_Init.hpp>
 #endif // MAIN_USES_CUSTOM_GROUPS
 

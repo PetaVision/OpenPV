@@ -291,11 +291,11 @@ FirmThresholdCostFnLCAProbe "CostFunctionProbe" = {
 
 // Quotient probe to scale TotalEnergyProbe by input energy
 
-QuotientColProbe "TimeScale" = {
+QuotientProbe "TimeScale" = {
+    message                             = "TimeScale";
+    probeOutputFile                     = "timescale.txt";
     numerator                           = "InputEnergyColProbe";
     denominator                         = "TotalEnergyProbe";
-    probeOutputFile                     = "timescale.txt";
-    valueDescription                    = "TimeScale";
 };
 
 ColumnEnergyProbe "InputEnergyColProbe" = {

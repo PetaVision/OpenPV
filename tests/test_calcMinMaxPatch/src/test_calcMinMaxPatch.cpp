@@ -4,9 +4,9 @@
  */
 
 #include <io/fileio.hpp>
+#include <utils/PathComponents.hpp> // baseName
 #include <utils/PVLog.hpp>
 
-#include <libgen.h> // basename
 #include <stdexcept>
 #include <vector>
 
@@ -42,10 +42,8 @@ int main(int argc, char *argv[]) {
 
    // If we got this far, all the tests passed.
    // Tests that fail exit with failure status instead of returning.
-   char *progpath = strdup(argv[0]);
-   char *progname = basename(progpath);
+   std::string progname = baseName(argv[0]);
    InfoLog() << progname << " passed.\n";
-   free(progpath);
    return EXIT_SUCCESS;
 }
 

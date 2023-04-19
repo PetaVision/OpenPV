@@ -8,12 +8,12 @@
 #ifndef OBSERVER_HPP_
 #define OBSERVER_HPP_
 
-#include "include/pv_common.h"
 #include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Response.hpp"
 #include <functional>
 #include <map>
 #include <memory>
+#include <string>
 
 namespace PV {
 

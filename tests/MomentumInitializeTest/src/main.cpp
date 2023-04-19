@@ -34,7 +34,6 @@
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
 #include <connections/MomentumConn.hpp>
-#include <io/WeightsFileIO.hpp>
 #include <weightupdaters/MomentumUpdater.hpp>
 
 #include <errno.h>
@@ -176,7 +175,7 @@ Weights copyWeights(Weights const *inWeights) {
    result.allocateDataStructures();
    for (int a = 0; a < inWeights->getNumArbors(); ++a) {
       float *outData      = result.getData(a);
-      float const *inData = inWeights->getDataReadOnly(a);
+      float const *inData = inWeights->getData(a);
       size_t patchSize  = (size_t)inWeights->getPatchSizeOverall();
       size_t numPatches = (size_t)inWeights->getNumDataPatches();
       int numValuesPerArbor = inWeights->getPatchSizeOverall() * inWeights->getNumDataPatches();
@@ -252,8 +251,8 @@ int compare(Weights const &weights1, Weights const &weights2, char const *desc) 
    int nfp = weights1.getPatchSizeF();
 
    for (int a = 0; a < numArbors; ++a) {
-       float const *arborData1 = weights1.getDataReadOnly(a);
-       float const *arborData2 = weights2.getDataReadOnly(a);
+       float const *arborData1 = weights1.getData(a);
+       float const *arborData2 = weights2.getData(a);
        int numValuesPerArbor = nxp * nyp * nfp * numPatchesX * numPatchesY * numPatchesF;
        for (int k = 0; k < numValuesPerArbor; ++k) {
            if (arborData1[k] != arborData2[k]) {

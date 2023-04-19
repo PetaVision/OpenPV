@@ -11,6 +11,7 @@
 #include "checkpointing/CheckpointEntry.hpp"
 #include "checkpointing/CheckpointEntryData.hpp"
 #include "columns/Communicator.hpp"
+#include "io/FileManager.hpp"
 #include "io/PVParams.hpp"
 #include "observerpattern/Subject.hpp"
 #include "utils/Timer.hpp"
@@ -37,15 +38,15 @@ class Checkpointer : public Subject {
    virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
-    * @brief mOutputPath: Specifies the absolute or relative output path of the
-    * run
-    */
-   virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag, PVParams *params);
-
-   /**
     * @brief checkpointWrite: Flag to determine if the run writes checkpoints.
     */
    void ioParam_checkpointWrite(enum ParamsIOFlag ioFlag, PVParams *params);
+
+   /**
+    * @brief ioParam_checkpointWriteInsideOutputPath: Flag to determine whether
+    * the checkpointWriteDir is taken relative to the outputPath varia
+    */
+   void ioParam_checkpointWriteInsideOutputPath(enum ParamsIOFlag ioFlag, PVParams *params);
 
    /**
     * @brief checkpointWriteDir: If checkpointWrite is set, specifies the output
@@ -151,16 +152,9 @@ class Checkpointer : public Subject {
    Checkpointer(
          std::string const &name,
          Communicator const *communicator,
-         Arguments const *arguments);
+         std::shared_ptr<Arguments const> arguments,
+         std::vector<Timer const *> const &timers = std::vector<Timer const *>());
    ~Checkpointer();
-
-   /**
-    * Given a relative path, returns a full path consisting of the effective
-    * output directory for the process's checkpoint cell, followed by "/",
-    * followed by the given relative path. It is a fatal error for the path to
-    * be an absolute path (i.e. starting with '/').
-    */
-   std::string makeOutputPathFilename(std::string const &path);
 
    void ioParams(enum ParamsIOFlag ioFlag, PVParams *params);
    void provideFinalStep(long int finalStep);
@@ -189,8 +183,9 @@ class Checkpointer : public Subject {
    void readStateFromCheckpoint();
    void checkpointRead(double *simTimePointer, long int *currentStepPointer);
    void checkpointWrite(double simTime);
+   void checkpointDelete(std::shared_ptr<FileManager const> fileManager);
    void finalCheckpoint(double simTime);
-   void writeTimers(PrintStream &stream) const;
+   void writeTimers(std::shared_ptr<PrintStream> stream) const;
 
    /**
     * Returns true if the argument identifies a directory that appears to be a complete checkpoint
@@ -199,8 +194,7 @@ class Checkpointer : public Subject {
    bool isCompleteCheckpoint(std::string const &candidateCheckpoint) const;
 
    std::shared_ptr<MPIBlock const> getMPIBlock() { return mMPIBlock; }
-   bool doesVerifyWrites() { return mVerifyWrites; }
-   std::string const &getOutputPath() { return mOutputPath; }
+   bool doesVerifyWrites() const { return mVerifyWrites; }
    bool getCheckpointWriteFlag() const { return mCheckpointWriteFlag; }
    char const *getCheckpointWriteDir() const { return mCheckpointWriteDir; }
    enum CheckpointWriteTriggerMode getCheckpointWriteTriggerMode() const {
@@ -232,39 +226,39 @@ class Checkpointer : public Subject {
    std::string makeCheckpointDirectoryFromCurrentStep();
 
    /**
-     * If a meaningful signal has been received by the global root process, clears the signal
-     * and returns its value. Otherwise returns 0.
-     * Currently, the meaningful signals are SIGUSR1 and SIGUSR2
-     */
+    * If a meaningful signal has been received by the global root process, clears the signal
+    * and returns its value. Otherwise returns 0.
+    * Currently, the meaningful signals are SIGUSR1 and SIGUSR2
+    */
    int retrieveSignal();
 
    /**
-     * Returns true if the params file settings indicate a checkpoint should occur at this
-     * timestep. It also advances the appropriate data member for the trigger mode
-     * to the next scheduled checkpoint. Returns false otherwise.
-     */
+    * Returns true if the params file settings indicate a checkpoint should occur at this
+    * timestep. It also advances the appropriate data member for the trigger mode
+    * to the next scheduled checkpoint. Returns false otherwise.
+    */
    bool scheduledCheckpoint();
 
    /**
-     * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "step". If the
-     * step number is an integral multiple of checkpointWriteStepInterval, it advances
-     * mNextCheckpointStep by the step interval and returns true. Otherwise it returns false.
-     */
+    * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "step". If the
+    * step number is an integral multiple of checkpointWriteStepInterval, it advances
+    * mNextCheckpointStep by the step interval and returns true. Otherwise it returns false.
+    */
    bool scheduledStep();
 
    /**
-     * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "time". If the
-     * simTime is >= the current value of mNextCheckpointSimtime, it advances
-     * mNextCheckpointSimtime by the time interval and returns true. Otherwise it returns false.
-     */
+    * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "time". If the
+    * simTime is >= the current value of mNextCheckpointSimtime, it advances
+    * mNextCheckpointSimtime by the time interval and returns true. Otherwise it returns false.
+    */
    bool scheduledSimTime();
 
    /**
-     * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "clock". If the
-     * elapsed time between the wall clock time and mLastCheckpointWallclock exceeds
-     * mCheckpointWriteWallclockInterval, it sets mLastCheckpointWallclock to the current
-     * wall clock time and returns true. Otherwise it returns false.
-     */
+    * Called by scheduledCheckpoint if checkpointWriteTriggerMode is "clock". If the
+    * elapsed time between the wall clock time and mLastCheckpointWallclock exceeds
+    * mCheckpointWriteWallclockInterval, it sets mLastCheckpointWallclock to the current
+    * wall clock time and returns true. Otherwise it returns false.
+    */
    bool scheduledWallclock();
 
    /**
@@ -287,9 +281,10 @@ class Checkpointer : public Subject {
    void checkpointNow();
 
    /**
-    * Creates a checkpoint based at the given directory. If the checkpoint directory already exists,
-    * it issues a warning, and deletes the timeinfo.bin file in the checkpooint. This way, the
-    * presence of the timeinfo.bin file indicates that the checkpoint is complete.
+    * Creates a checkpoint based at the directory managed by the given FileManager. If the
+    * checkpoint directory already exists, it issues a warning, and deletes the timeinfo.bin file
+    * in the checkpooint. This way, the presence of the timeinfo.bin file indicates that the
+    * checkpoint is complete.
     */
    void checkpointToDirectory(std::string const &checkpointDirectory);
 
@@ -298,8 +293,8 @@ class Checkpointer : public Subject {
     * old checkpoint directories, and adds the new checkpoint directory to the list.
     */
    void rotateOldCheckpoints(std::string const &newCheckpointDirectory);
-   void deleteFileFromDir(std::string const &targetDir, std::string const &targetFile) const;
    void writeTimers(std::string const &directory);
+   void writeTimers(std::shared_ptr<FileManager const> fileManager);
    std::string generateBlockPath(std::string const &baseDirectory);
 
    /**
@@ -322,7 +317,6 @@ class Checkpointer : public Subject {
    std::shared_ptr<CheckpointEntryData<TimeInfo>> mTimeInfoCheckpointEntry = nullptr;
    bool mWarmStart                                                         = false;
    bool mVerifyWrites                                                      = true;
-   std::string mOutputPath                                                 = "";
    bool mCheckpointWriteFlag                                               = false;
    char *mCheckpointWriteDir                                               = nullptr;
    char *mCheckpointWriteTriggerModeString                                 = nullptr;
@@ -338,6 +332,7 @@ class Checkpointer : public Subject {
    int mNumCheckpointsKept                                                 = 2;
    char *mLastCheckpointDir                                                = nullptr;
    char *mInitializeFromCheckpointDir                                      = nullptr;
+   std::shared_ptr<FileManager> mInitializeFromCheckpointFileManager       = nullptr;
    std::string mCheckpointReadDirectory;
    long int mNextCheckpointStep         = 0L; // kept only for consistency with HyPerCol
    double mNextCheckpointSimtime        = 0.0;
@@ -349,8 +344,6 @@ class Checkpointer : public Subject {
    // used if mDeleteOlderCheckpoints is true.
    std::vector<Timer const *> mTimers;
    Timer *mCheckpointTimer = nullptr;
-
-   static std::string const mDefaultOutputPath;
 };
 
 } // namespace PV

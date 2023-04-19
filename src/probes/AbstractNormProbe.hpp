@@ -1,149 +1,85 @@
-/*
- * AbstractNormProbe.hpp
- *
- *  Created on: Aug 11, 2015
- *      Author: pschultz
- */
-
 #ifndef ABSTRACTNORMPROBE_HPP_
 #define ABSTRACTNORMPROBE_HPP_
 
-#include "LayerProbe.hpp"
-#include "components/BasePublisherComponent.hpp"
+#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointingMessages.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Messages.hpp"
+#include "io/PVParams.hpp"
+#include "layers/HyPerLayer.hpp"
+#include "observerpattern/Response.hpp"
+#include "probes/EnergyProbeComponent.hpp"
+#include "probes/NormProbeAggregator.hpp"
+#include "probes/NormProbeLocalInterface.hpp"
+#include "probes/NormProbeOutputter.hpp"
+#include "probes/ProbeInterface.hpp"
+#include "probes/ProbeTriggerComponent.hpp"
+#include "probes/TargetLayerComponent.hpp"
+
+#include <memory>
 
 namespace PV {
 
-/**
- * An abstract layer probe where getValues return a norm-like quantity where
- * the quantity over the entire column is the sum of subquantities computed
- * over each MPI process.
- *
- * Derived classes must implement getValueInternal(double, int).  Each MPI
- * process should return its own contribution to the norm.
- * getValues() call getValueInternal() and apply MPI_Allreduce to the result,
- * so that getValueInternal() typically does not have to call any MPI processes.
- */
-class AbstractNormProbe : public LayerProbe {
+class AbstractNormProbe : public ProbeInterface {
   public:
-   AbstractNormProbe(const char *name, PVParams *params, Communicator const *comm);
-   virtual ~AbstractNormProbe();
+   AbstractNormProbe(char const *name, PVParams *params, Communicator const *comm);
+   virtual ~AbstractNormProbe() {}
 
-   /**
-    * Returns a pointer to the masking layer.  Returns NULL if masking is not
-    * used.
-    */
-   BasePublisherComponent *getMaskLayerData() { return mMaskLayerData; }
-
-   /**
-    * Returns the name of the masking layer, as given by the params.
-    * maskLayerName is not set in params, it returns NULL.
-    */
-   char const *getMaskLayerName() { return maskLayerName; }
+   HyPerLayer *getTargetLayer() { return mProbeTargetLayer->getTargetLayer(); }
+   HyPerLayer const *getTargetLayer() const { return mProbeTargetLayer->getTargetLayer(); }
+   char const *getTargetLayerName() const { return mProbeTargetLayer->getTargetLayerName(); }
 
   protected:
-   AbstractNormProbe();
+   AbstractNormProbe() {}
+
+   virtual Response::Status allocateDataStructures() override;
+
+   virtual void calcValues(double timestamp) override;
+
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   virtual void createComponents(char const *name, PVParams *params, Communicator const *comm);
+
+   virtual void createEnergyProbeComponent(char const *name, PVParams *params);
+   virtual void createProbeAggregator(char const *name, PVParams *params, Communicator const *comm);
+   virtual void createProbeLocal(char const *name, PVParams *params) = 0;
+   virtual void createProbeOutputter(char const *name, PVParams *params, Communicator const *comm);
+   virtual void createProbeTrigger(char const *name, PVParams *params);
+   virtual void createTargetLayerComponent(char const *name, PVParams *params);
+
    void initialize(const char *name, PVParams *params, Communicator const *comm);
 
-   /**
-    * Called during initialization, sets the member variable normDescription.
-    * This member variable is used by outputState() when printing the norm value.
-    * AbstractNormProbe::setNormDescription calls
-    * setNormDescriptionToString("norm")
-    * and can be overridden.  setNormDescription() returns PV_SUCCESS or
-    * PV_FAILURE
-    * and on failure it sets errno.
-    */
-   virtual int setNormDescription();
+   virtual Response::Status
+   initializeState(std::shared_ptr<InitializeStateMessage const> message) override;
 
-   /**
-    * A generic method for setNormDescription() implementations to call.  It
-    * frees normDescription if it has already been set, and then copies the
-    * string in the input argument to the normDescription member variable.
-    * It returns PV_SUCCESS or PV_FAILURE; on failure it sets errno.
-    */
-   int setNormDescriptionToString(char const *s);
+   virtual void initMessageActionMap() override;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   /**
-    * List of parameters needed from the AbstractNormProbe class
-    * @name AbstractNormProbe Parameters
-    * @{
-    */
+   virtual Response::Status outputState(std::shared_ptr<LayerOutputStateMessage const> message);
 
-   /**
-    * @brief maskLayerName: Specifies a masking layer to use when calculating the
-    * norm.
-    * When blank (the default), masking is not used.
-    * @details The motivation for maskLayerName is to use a layer of
-    * ones and zeros to mask out do-not-care regions when computing the norm.
-    * Note that for reasons of computation speed, it is up to derived classes to
-    * take masking into account when implementing getValueInternal().
-    * The maskLayerName must refer to a layer in the HyPerCol with the same
-    * nxScale and
-    * nyScale as the probe's targetLayer, and have either the same number of
-    * features
-    * or a single feature.
-    */
-   virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
-   /** @} */
+   virtual Response::Status prepareCheckpointWrite(double simTime) override;
+   virtual Response::Status processCheckpointRead(double simTime) override;
 
-   /**
-    * Computes the norms.  Each MPI process calls getValueInternal to compute its
-    * own contribution to the norms, and then calcValues calls MPI_Allreduce.
-    */
-   virtual void calcValues(double timeValue) override;
+   Response::Status
+   registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-   /**
-    * getValueInternal(double, index) is a pure virtual function
-    * called by calcValues().  The index refers to the layer's batch element
-    * index.
-    *
-    * Typically, getValueInternal should compute the contribution to the norm
-    * from
-    * its own MPI process.  Then calcValues calls MPI_Allreduce.
-    */
-   virtual double getValueInternal(double timevalue, int index) = 0;
+   Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
 
-   /**
-    * Calls LayerProbe::communicateInitInfo to set up the targetLayer and
-    * attach the probe; and then checks the masking layer if masking is used.
-    */
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
-
-   /**
-    * Returns true if masking is used and the layer has multiple features but
-    * the masking layer has a single feature.  In this case it is expected that
-    * the single masking feature will be applied to all layer features.
-    * Not reliable until communicateInitInfo() has been called.
-    */
-   bool maskHasSingleFeature() { return singleFeatureMask; }
-
-   /**
-    * Implements the outputState method required by classes derived from BaseProbe.
-    * Prints to the outputFile the probe message, timestamp, number of neurons,
-    * and norm value for each batch element.
-    */
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
-   char const *getNormDescription() { return normDescription; }
+  protected:
+   // Probe components, set by createComponents(), called by initialize()
+   std::shared_ptr<EnergyProbeComponent> mEnergyProbeComponent;
+   std::shared_ptr<NormProbeAggregator> mProbeAggregator;
+   std::shared_ptr<NormProbeLocalInterface> mProbeLocal;
+   std::shared_ptr<NormProbeOutputter> mProbeOutputter;
+   std::shared_ptr<TargetLayerComponent> mProbeTargetLayer;
+   std::shared_ptr<ProbeTriggerComponent> mProbeTrigger;
 
   private:
-   int initialize_base();
+   bool mAddedToEnergyProbe = false; // Set to true when it calls energy probe's addTerm()
+   int mLocalNBatch         = 0;
+};
 
-  private:
-   char *normDescription                  = nullptr;
-   char *maskLayerName                    = nullptr;
-   BasePublisherComponent *mMaskLayerData = nullptr;
-   bool singleFeatureMask                 = false;
+} // namespace PV
 
-   double timeLastComputed = -std::numeric_limits<double>::infinity();
-   // the value of the input argument timevalue for the most recent
-   // getValues() call.  Calls to getValues() do not set or refer to this time.
-
-}; // end class AbstractNormProbe
-
-} // end namespace PV
-
-#endif /* ABSTRACTNORMPROBE_HPP_ */
+#endif // ABSTRACTNORMPROBE_HPP_

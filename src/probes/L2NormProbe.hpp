@@ -1,79 +1,28 @@
-/*
- * L2NormProbe.hpp
- *
- *  Created on: Aug 11, 2015
- *      Author: pschultz
- */
-
 #ifndef L2NORMPROBE_HPP_
 #define L2NORMPROBE_HPP_
 
-#include "AbstractNormProbe.hpp"
+#include "columns/Communicator.hpp"
+#include "probes/AbstractNormProbe.hpp"
+#include "probes/L2NormProbeLocal.hpp"
 
 namespace PV {
 
-/**
- * A layer probe for returning the L2-norm of its target layer's activity,
- * raised to
- * a power (set by the exponent parameter).
- */
 class L2NormProbe : public AbstractNormProbe {
   public:
-   L2NormProbe(const char *name, PVParams *params, Communicator const *comm);
-   virtual ~L2NormProbe();
+   L2NormProbe(char const *name, PVParams *params, Communicator const *comm);
+   virtual ~L2NormProbe() {}
 
   protected:
-   L2NormProbe();
+   L2NormProbe() {}
+
+   virtual void
+   createProbeAggregator(char const *name, PVParams *params, Communicator const *comm) override;
+
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
+
    void initialize(const char *name, PVParams *params, Communicator const *comm);
+};
 
-   /**
-    * Overrides AbstractNormProbe::setNormDescription().
-    * If exponent == 1.0, normDescription is set to "L2-Norm".
-    * If exponent == 2.0, normDescription is set to "L2-Norm squared".
-    * Otherwise, it is set to "(L2-Norm)^exp", with "exp" replaced by
-    * the value of exponent.
-    * Return values and errno are set by a call to setNormDescriptionToString.
-    */
-   virtual int setNormDescription() override;
+} // namespace PV
 
-   /**
-    * Overrides AbstractNormProbe::calcValues method to apply the exponent.
-    */
-   virtual void calcValues(double timevalue) override;
-
-   /**
-    * Each MPI process returns the sum of the squares of the activities in its
-    * restricted activity space.  Note that the exponent parameter is not applied
-    * inside the call to getValueInternal.
-    */
-   virtual double getValueInternal(double timevalue, int index) override;
-
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-
-   /**
-    * List of parameters for the L2NormProbe class
-    * @name L2NormProbe Parameters
-    * @{
-    */
-
-   /**
-    * @brief exponent: The exponent on the L2-norm.
-    * getValues() returns the (L2-Norm)^exponent of each batch element.
-    * @details (e.g. when exponent=2, getValues() returns the sum of the
-    * squares; when exponent=1, getValues() returns the square root of the
-    * sum of the squares.)
-    * default is 1.
-    */
-   virtual void ioParam_exponent(enum ParamsIOFlag ioFlag);
-   /** @} */
-
-  private:
-   int initialize_base();
-
-   // Member variables
-   double exponent;
-}; // end class L2NormProbe
-
-} // end namespace PV
-
-#endif /* L2NORMPROBE_HPP_ */
+#endif // L2NORMPROBE_HPP_

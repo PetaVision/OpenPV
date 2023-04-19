@@ -57,6 +57,12 @@ class BaseObject : public ParamsInterface {
     */
    bool getInitialValuesSetFlag() const { return mInitialValuesSetFlag; }
 
+   /**
+    * Returns the value of the Status data member. Defaults to PV_SUCCESS.
+    * Objects can set the Status data member to indicate an error.
+    */
+   int getStatus() const { return mStatus; }
+
 #ifdef PV_USE_CUDA
    /**
     * Returns true if the object requires the GPU; false otherwise.
@@ -123,6 +129,7 @@ class BaseObject : public ParamsInterface {
    bool mUsingGPUFlag              = false;
    PVCuda::CudaDevice *mCudaDevice = nullptr;
 #endif // PV_USE_CUDA
+   int mStatus = PV_SUCCESS;
 }; // class BaseObject
 
 } // namespace PV

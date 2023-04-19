@@ -1,45 +1,33 @@
 #include "CheckStatsProbe.hpp"
+#include <columns/Communicator.hpp>
+#include <include/pv_common.h>
+#include <io/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
+#include <probes/ProbeData.hpp>
+#include <probes/StatsProbeImmediate.hpp>
+#include <probes/StatsProbeTypes.hpp>
+#include <utils/PVLog.hpp>
 
-void CheckStatsProbe::ioParam_buffer(enum PV::ParamsIOFlag ioFlag) {
-   if (ioFlag == PV::PARAMS_IO_READ) {
-      type                  = PV::BufActivity;
-      char const *paramName = "buffer";
-      PV::PVParams *params  = parameters();
-      if (params->stringPresent(name, paramName)) {
-         char *paramValue = nullptr;
-         parameters()->ioParamString(ioFlag, getName(), paramName, &paramValue, "Activity", false);
-         pvAssert(paramValue);
-         for (size_t c = 0; paramValue[c]; c++) {
-            paramValue[c] = (char)tolower((int)paramValue[c]);
-         }
-         FatalIf(
-               strcmp(paramValue, "a") and strcmp(paramValue, "activity"),
-               "%s sets buffer to be \"Activity\".\n");
-         free(paramValue);
-         paramValue = NULL;
-      }
-   }
-}
+#include <cstdlib>
 
 void CheckStatsProbe::ioParam_correctMin(enum PV::ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "correctMin", &correctMin, correctMin);
+   parameters()->ioParamValue(ioFlag, getName(), "correctMin", &mCorrectMin, mCorrectMin);
 }
 
 void CheckStatsProbe::ioParam_correctMax(enum PV::ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "correctMax", &correctMax, correctMax);
+   parameters()->ioParamValue(ioFlag, getName(), "correctMax", &mCorrectMax, mCorrectMax);
 }
 
 void CheckStatsProbe::ioParam_correctMean(enum PV::ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "correctMean", &correctMean, correctMean);
+   parameters()->ioParamValue(ioFlag, getName(), "correctMean", &mCorrectMean, mCorrectMean);
 }
 
 void CheckStatsProbe::ioParam_correctStd(enum PV::ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "correctStd", &correctStd, correctStd);
+   parameters()->ioParamValue(ioFlag, getName(), "correctStd", &mCorrectStd, mCorrectStd);
 }
 
 void CheckStatsProbe::ioParam_tolerance(enum PV::ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
+   parameters()->ioParamValue(ioFlag, getName(), "tolerance", &mTolerance, mTolerance);
 }
 
 CheckStatsProbe::CheckStatsProbe(
@@ -47,65 +35,75 @@ CheckStatsProbe::CheckStatsProbe(
       PV::PVParams *params,
       PV::Communicator const *comm) {
    initialize(name, params, comm);
-   initialize_base();
 }
 
-CheckStatsProbe::CheckStatsProbe() { initialize_base(); }
+CheckStatsProbe::CheckStatsProbe() {}
 
 CheckStatsProbe::~CheckStatsProbe() {}
 
-int CheckStatsProbe::initialize_base() { return PV_SUCCESS; }
+void CheckStatsProbe::checkStats() {
+   int nbatch = getTargetLayer()->getLayerLoc()->nbatch;
+   FatalIf(nbatch != 1, "%s is only written for nbatch = 1.\n", getDescription_c());
+   if (mCommunicator->commRank() != 0) {
+      return;
+   }
+
+   auto const &storedValues                   = mProbeAggregator->getStoredValues();
+   auto numTimestamps                         = storedValues.size();
+   int lastTimestampIndex                     = static_cast<int>(numTimestamps) - 1;
+   PV::ProbeData<PV::LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
+   PV::LayerStats const &statsElem            = stats.getValue(0);
+   int status                                 = PV_SUCCESS;
+   if (std::abs(statsElem.mMin - mCorrectMin) > mTolerance) {
+      ErrorLog().printf(
+            "%s minimum value %f differs from expected value %f.\n",
+            getTargetLayer()->getDescription_c(),
+            (double)statsElem.mMin,
+            (double)mCorrectMin);
+      status = PV_FAILURE;
+   }
+   if (std::abs(statsElem.mMax - mCorrectMax) > mTolerance) {
+      ErrorLog().printf(
+            "%s maximum value %f differs from expected value %f.\n",
+            getTargetLayer()->getDescription_c(),
+            (double)statsElem.mMax,
+            (double)mCorrectMax);
+      status = PV_FAILURE;
+   }
+   double average, sigma;
+   statsElem.derivedStats(average, sigma);
+   if (std::abs(static_cast<float>(average) - mCorrectMean) > mTolerance) {
+      ErrorLog().printf(
+            "%s mean value value %f differs from expected value %f.\n",
+            getTargetLayer()->getDescription_c(),
+            average,
+            (double)mCorrectMean);
+      status = PV_FAILURE;
+   }
+   if (std::abs(static_cast<float>(sigma) - mCorrectStd) > mTolerance) {
+      ErrorLog().printf(
+            "%s standard deviation %f differs from expected value %f.\n",
+            getTargetLayer()->getDescription_c(),
+            sigma,
+            (double)mCorrectStd);
+      status = PV_FAILURE;
+   }
+   FatalIf(status != PV_SUCCESS, "%s failed.\n", getDescription_c());
+}
 
 void CheckStatsProbe::initialize(
       char const *name,
       PV::PVParams *params,
       PV::Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
+   StatsProbeImmediate::initialize(name, params, comm);
 }
 
 int CheckStatsProbe::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
-   int status = PV::StatsProbe::ioParamsFillGroup(ioFlag);
+   int status = PV::StatsProbeImmediate::ioParamsFillGroup(ioFlag);
    ioParam_correctMin(ioFlag);
    ioParam_correctMax(ioFlag);
    ioParam_correctMean(ioFlag);
    ioParam_correctStd(ioFlag);
    ioParam_tolerance(ioFlag);
-   return status;
-}
-
-PV::Response::Status CheckStatsProbe::outputState(double simTime, double deltaTime) {
-   int nbatch = getTargetLayer()->getLayerLoc()->nbatch;
-   FatalIf(nbatch != 1, "%s is only written for nbatch = 1.\n", getDescription_c());
-   auto status = PV::StatsProbe::outputState(simTime, deltaTime);
-   if (status != PV::Response::SUCCESS) {
-      return status;
-   }
-   if (mCommunicator->commRank() != 0) {
-      return status;
-   }
-   FatalIf(
-         std::abs(fMin[0] - correctMin) > tolerance,
-         "%s minimum value %f differs from expected value %f.\n",
-         getTargetLayer()->getDescription_c(),
-         (double)fMin[0],
-         (double)correctMin);
-   FatalIf(
-         std::abs(fMax[0] - correctMax) > tolerance,
-         "%s maximum value %f differs from expected value %f.\n",
-         getTargetLayer()->getDescription_c(),
-         (double)fMax[0],
-         (double)correctMax);
-   FatalIf(
-         std::abs(avg[0] - correctMean) > tolerance,
-         "%s mean value %f differs from expected value %f.\n",
-         getTargetLayer()->getDescription_c(),
-         (double)avg[0],
-         (double)correctMean);
-   FatalIf(
-         std::abs(sigma[0] - correctStd) > tolerance,
-         "%s standard deviation %f differs from expected value %f.\n",
-         getTargetLayer()->getDescription_c(),
-         (double)sigma[0],
-         (double)correctStd);
    return status;
 }

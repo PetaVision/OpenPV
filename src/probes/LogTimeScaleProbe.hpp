@@ -1,5 +1,5 @@
-#ifndef _LOGTIMESCALEPROBE_HPP_
-#define _LOGTIMESCALEPROBE_HPP_
+#ifndef LOGTIMESCALEPROBE_HPP_
+#define LOGTIMESCALEPROBE_HPP_
 
 #include "AdaptiveTimeScaleProbe.hpp"
 #include <cfloat>
@@ -23,4 +23,4 @@ class LogTimeScaleProbe : public AdaptiveTimeScaleProbe {
 };
 }
 
-#endif
+#endif // LOGTIMESCALEPROBE_HPP_

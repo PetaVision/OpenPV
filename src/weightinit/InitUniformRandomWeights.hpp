@@ -28,7 +28,7 @@ class InitUniformRandomWeights : public InitRandomWeights {
   protected:
    InitUniformRandomWeights();
    void initialize(char const *name, PVParams *params, Communicator const *comm);
-   void randomWeights(float *patchDataStart, int patchIndex) override;
+   virtual void randomWeights(float *patchDataStart, int patchIndex) override;
 
    // Data members
   protected:

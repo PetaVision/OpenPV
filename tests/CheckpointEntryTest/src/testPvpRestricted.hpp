@@ -1,10 +1,9 @@
 #ifndef TESTPVPRESTRICTED_HPP_
 #define TESTPVPRESTRICTED_HPP_
 
-#include "structures/MPIBlock.hpp"
+#include "io/FileManager.hpp"
 #include <memory>
-#include <string>
 
-void testPvpRestricted(std::shared_ptr<PV::MPIBlock const> mpiBlock, std::string const &directory);
+void testPvpRestricted(std::shared_ptr<PV::FileManager const> fileManager);
 
 #endif // TESTPVPRESTRICTED_HPP_

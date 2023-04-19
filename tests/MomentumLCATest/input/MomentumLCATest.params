@@ -143,7 +143,6 @@ IdentConn "InputToResidual" = {
     postLayerName = "Residual";
     channelCode = 0;
     delay = 0;
-    writeStep = -1;
 };
 
 HyPerConn "V1ToResidual" = {
@@ -258,7 +257,6 @@ IdentConn "ReconstructionToComparison" = {
     preLayerName = "Reconstruction";
     postLayerName = "Comparison";
     channelCode = 0;
-    writeStep = -1;
     delay = 0;
 };
 
@@ -266,7 +264,6 @@ IdentConn "CorrectToComparison" = {
     preLayerName = "Correct";
     postLayerName = "Comparison";
     channelCode = 1;
-    writeStep = -1;
     delay = 0;
 };
 

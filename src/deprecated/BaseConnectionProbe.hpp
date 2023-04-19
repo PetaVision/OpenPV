@@ -31,9 +31,6 @@ class BaseConnectionProbe : public BaseProbe {
    virtual void initMessageActionMap() override;
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag) override;
 
-   Response::Status respondConnectionProbeWriteParams(
-         std::shared_ptr<ConnectionProbeWriteParamsMessage const> message);
-
    Response::Status respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message);
 
    virtual Response::Status

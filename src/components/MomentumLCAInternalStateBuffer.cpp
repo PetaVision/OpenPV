@@ -61,7 +61,7 @@ Response::Status MomentumLCAInternalStateBuffer::communicateInitInfo(
       if (buf->getBufferLabel() == label) {
          FatalIf(
                mPrevDrive != nullptr,
-               "%s found multiple buffers with name \%s\" and label \"%s\"\n",
+               "%s found multiple buffers with name \"%s\" and label \"%s\"\n",
                getDescription_c(),
                getName(),
                label);

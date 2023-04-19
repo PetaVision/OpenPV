@@ -5,9 +5,13 @@
 
 #include "columns/ComponentBasedObject.hpp"
 #include "columns/buildandrun.hpp"
+#include "columns/HyPerCol.hpp"
 #include "components/PatchSize.hpp"
+#include "include/pv_common.h"
 #include "layers/HyPerLayer.hpp"
 #include "probes/RequireAllZeroActivityProbe.hpp"
+#include "utils/PVLog.hpp"
+#include <cstdlib>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);
 int correctHaloSize(int patchsize, int nPre, int nPost);
@@ -21,9 +25,13 @@ int main(int argc, char *argv[]) {
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    // Make sure comparison layer is all zeros
-   auto *layer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("compare"));
-   auto *probe = dynamic_cast<RequireAllZeroActivityProbe *>(hc->getObjectFromName("check_output"));
-   FatalIf(probe->getNonzeroFound(), "%s contains a nonzero value.\n", layer->getName());
+   char const *layerName = "compare";
+   auto *layer           = dynamic_cast<HyPerLayer *>(hc->getObjectFromName(layerName));
+   FatalIf(!layer, "No layer named \"%s\".\n", layerName);
+   char const *probeName = "check_output";
+   auto *probe = dynamic_cast<RequireAllZeroActivityProbe *>(hc->getObjectFromName(probeName));
+   FatalIf(!probe, "No RequireAllZeroActivityProbe named \"%s\".\n", probeName);
+   FatalIf(probe->foundNonzero(), "%s contains a nonzero value.\n", layer->getName());
 
    // Check halo of input layer
    auto *inlayer = dynamic_cast<HyPerLayer *>(hc->getObjectFromName("input"));

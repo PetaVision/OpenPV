@@ -8,31 +8,32 @@
 #ifndef PARAMETERSWEEPTESTPROBE_HPP_
 #define PARAMETERSWEEPTESTPROBE_HPP_
 
-#include "layers/HyPerLayer.hpp"
-#include "probes/StatsProbe.hpp"
-#include "utils/PVLog.hpp"
-#include <cmath>
+#include "columns/Communicator.hpp"
+#include "io/PVParams.hpp"
+#include "probes/StatsProbeImmediate.hpp"
 
 namespace PV {
 
-class ParameterSweepTestProbe : public StatsProbe {
-  public:
-   ParameterSweepTestProbe(const char *name, PVParams *params, Communicator const *comm);
-   virtual ~ParameterSweepTestProbe();
-
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
+class ParameterSweepTestProbe : public StatsProbeImmediate {
   protected:
-   void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_expectedSum(enum ParamsIOFlag ioFlag);
    virtual void ioParam_expectedMin(enum ParamsIOFlag ioFlag);
    virtual void ioParam_expectedMax(enum ParamsIOFlag ioFlag);
 
+  public:
+   ParameterSweepTestProbe(const char *name, PVParams *params, Communicator const *comm);
+   virtual ~ParameterSweepTestProbe();
+
+  protected:
+   virtual void checkStats() override;
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+
   private:
-   double expectedSum;
-   float expectedMin, expectedMax;
+   double mExpectedSum = 0.0;
+   float mExpectedMin  = 0.0f;
+   float mExpectedMax  = 0.0f;
 }; // end class ParameterSweepTestProbe
 
 } // end namespace PV

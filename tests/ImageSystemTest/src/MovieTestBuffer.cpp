@@ -19,13 +19,14 @@ void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
    int nbatch            = loc->nbatch;
    int numNeurons        = nx * ny * nf;
    int batchIndexerData[2 * nbatch];
-   if (getMPIBlock()->getRank() == 0) {
+   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+   if (ioMPIBlock->getRank() == 0) {
       for (int b = 0; b < nbatch; b++) {
          batchIndexerData[b]          = mBatchIndexer->getStartIndex(b);
          batchIndexerData[b + nbatch] = mBatchIndexer->getSkipAmount(b);
       }
    }
-   MPI_Bcast(batchIndexerData, 2 * nbatch, MPI_INT, 0, getMPIBlock()->getComm());
+   MPI_Bcast(batchIndexerData, 2 * nbatch, MPI_INT, 0, ioMPIBlock->getComm());
    for (int b = 0; b < nbatch; b++) {
       float const *dataBatch = getBufferData(b);
       int startIndex         = batchIndexerData[b];

@@ -6,6 +6,7 @@
 #include "TriggerTestConn.hpp"
 #include "TriggerTestLayer.hpp"
 #include "TriggerTestLayerProbe.hpp"
+#include <columns/Factory.hpp>
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
 

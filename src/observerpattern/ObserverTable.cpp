@@ -8,6 +8,8 @@
 #include "observerpattern/ObserverTable.hpp"
 #include "utils/PVLog.hpp"
 
+#include <utility>
+
 namespace PV {
 
 ObserverTable::ObserverTable(char const *description) { initialize(description); }

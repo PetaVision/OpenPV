@@ -20,9 +20,10 @@ MPIRecvStream::MPIRecvStream(
       int status = stat(path.c_str(), &existingstat);
       FatalIf(
             status != 0 and errno != ENOENT,
-            "MPIRecvStream unable to check status of \"%s\": %s\n",
+            "Unable to check status of \"%s\": %s\n",
             path.c_str(), std::strerror(errno));
-      if (errno == ENOENT) {
+      if (status != 0) {
+         pvAssert(errno == ENOENT);
          createFile = true;
       }
    }

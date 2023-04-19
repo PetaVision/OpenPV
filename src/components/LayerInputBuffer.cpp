@@ -16,6 +16,7 @@ LayerInputBuffer::LayerInputBuffer(char const *name, PVParams *params, Communica
 LayerInputBuffer::~LayerInputBuffer() {
    delete mReceiveInputTimer;
 #ifdef PV_USE_CUDA
+   delete mCopyFromCudaTimer;
    delete mReceiveInputCudaTimer;
 #endif // PV_USE_CUDA
 }
@@ -117,6 +118,8 @@ LayerInputBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer>
       mReceiveInputCudaTimer = new PVCuda::CudaTimer(getName(), "layer", "gpurecvsyn");
       mReceiveInputCudaTimer->setStream(cudaDevice->getStream());
       checkpointer->registerTimer(mReceiveInputCudaTimer);
+      mCopyFromCudaTimer = new Timer(getName(), "layer", "InputFrGPU");
+      checkpointer->registerTimer(mCopyFromCudaTimer);
    }
 #endif // PV_USE_CUDA
    return Response::SUCCESS;
@@ -169,8 +172,10 @@ void LayerInputBuffer::updateBufferGPU(double simTime, double deltaTime) {
 
 Response::Status
 LayerInputBuffer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage const> message) {
+   mCopyFromCudaTimer->start();
    copyFromCuda();
    mReceiveInputCudaTimer->accumulateTime();
+   mCopyFromCudaTimer->stop();
    return Response::SUCCESS;
 }
 #endif // PV_USE_CUDA

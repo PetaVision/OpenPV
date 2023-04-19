@@ -475,18 +475,24 @@ const char *ParameterGroup::stringValue(const char *stringName) {
    return NULL;
 }
 
-int ParameterGroup::warnUnread() {
+int ParameterGroup::lookForUnread(bool errorOnUnread) {
    int status = PV_SUCCESS;
    int count;
    count = stack->size();
    for (int i = 0; i < count; i++) {
       Parameter *p = stack->peek(i);
       if (!p->hasBeenRead()) {
-         if (processRank == 0)
-            WarnLog().printf(
-                  "Parameter group \"%s\": parameter \"%s\" has not been read.\n",
-                  name(),
-                  p->name());
+         if (processRank == 0) {
+            std::string message("Parameter group \"#1\": parameter \"#2\" has not been read.\n");
+            message.replace(message.find("#1"), 2, name());
+            message.replace(message.find("#2"), 2, p->name());
+            if (errorOnUnread) {
+               ErrorLog() << message;
+            }
+            else {
+               WarnLog() << message;
+            }
+         }
          status = PV_FAILURE;
       }
    }
@@ -494,22 +500,36 @@ int ParameterGroup::warnUnread() {
    for (int i = 0; i < count; i++) {
       ParameterArray *parr = arrayStack->peek(i);
       if (!parr->hasBeenRead()) {
-         if (processRank == 0)
-            WarnLog().printf(
-                  "Parameter group \"%s\": array parameter \"%s\" has not been read.\n",
-                  name(),
-                  parr->name());
+         if (processRank == 0) {
+            std::string message(
+                  "Parameter group \"#1\": array parameter \"#2\" has not been read.\n");
+            message.replace(message.find("#1"), 2, name());
+            message.replace(message.find("#2"), 2, parr->name());
+            if (errorOnUnread) {
+               ErrorLog() << message;
+            }
+            else {
+               WarnLog() << message;
+            }
+         }
       }
    }
    count = stringStack->size();
    for (int i = 0; i < count; i++) {
       ParameterString *pstr = stringStack->peek(i);
       if (!pstr->hasBeenRead()) {
-         if (processRank == 0)
-            WarnLog().printf(
-                  "Parameter group \"%s\": string parameter \"%s\" has not been read.\n",
-                  name(),
-                  pstr->getName());
+         if (processRank == 0) {
+            std::string message(
+                  "Parameter group \"#1\": string parameter \"#2\" has not been read.\n");
+            message.replace(message.find("#1"), 2, name());
+            message.replace(message.find("#2"), 2, pstr->getName());
+            if (errorOnUnread) {
+               ErrorLog() << message;
+            }
+            else {
+               WarnLog() << message;
+            }
+         }
          status = PV_FAILURE;
       }
    }
@@ -765,20 +785,20 @@ const char *ParameterSweep::getStringValue(int n) {
 /**
  * @filename
  * @initialSize
- * @icComm
+ * @mpiComm
  */
-PVParams::PVParams(const char *filename, size_t initialSize, Communicator const *inIcComm) {
-   this->icComm = inIcComm;
+PVParams::PVParams(const char *filename, size_t initialSize, MPI_Comm mpiComm) {
+   mMPIComm = mpiComm;
    initialize(initialSize);
    parseFile(filename);
 }
 
 /*
  * @initialSize
- * @icComm
+ * @mpiComm
  */
-PVParams::PVParams(size_t initialSize, Communicator const *inIcComm) {
-   this->icComm = inIcComm;
+PVParams::PVParams(size_t initialSize, MPI_Comm mpiComm) {
+   mMPIComm = mpiComm;
    initialize(initialSize);
 }
 
@@ -786,14 +806,14 @@ PVParams::PVParams(size_t initialSize, Communicator const *inIcComm) {
  * @buffer
  * @bufferLength
  * @initialSize
- * @icComm
+ * @mpiComm
  */
 PVParams::PVParams(
       const char *buffer,
       long int bufferLength,
       size_t initialSize,
-      Communicator const *inIcComm) {
-   this->icComm = inIcComm;
+      MPI_Comm mpiComm) {
+   mMPIComm = mpiComm;
    initialize(initialSize);
    parseBuffer(buffer, bufferLength);
 }
@@ -820,8 +840,8 @@ PVParams::~PVParams() {
  */
 int PVParams::initialize(size_t initialSize) {
    // Get world rank and size
-   MPI_Comm_rank(icComm->globalCommunicator(), &worldRank);
-   MPI_Comm_size(icComm->globalCommunicator(), &worldSize);
+   MPI_Comm_rank(mMPIComm, &worldRank);
+   MPI_Comm_size(mMPIComm, &worldSize);
 
    mGroups.reserve(initialSize);
    stack       = new ParameterStack(MAX_PARAMS);
@@ -871,7 +891,7 @@ int PVParams::parseFile(const char *filename) {
       for (int i = 0; i < sz; i++) {
          if (i == rootproc)
             continue;
-         MPI_Send(paramBuffer, (int)bufferlen, MPI_CHAR, i, 31, icComm->globalCommunicator());
+         MPI_Send(paramBuffer, (int)bufferlen, MPI_CHAR, i, 31, mMPIComm);
       }
 #endif // PV_USE_MPI
    }
@@ -879,7 +899,7 @@ int PVParams::parseFile(const char *filename) {
 #ifdef PV_USE_MPI
       MPI_Status mpi_status;
       int count;
-      MPI_Probe(rootproc, 31, icComm->globalCommunicator(), &mpi_status);
+      MPI_Probe(rootproc, 31, mMPIComm, &mpi_status);
       // int status =
       MPI_Get_count(&mpi_status, MPI_CHAR, &count);
       bufferlen   = (size_t)count;
@@ -895,7 +915,7 @@ int PVParams::parseFile(const char *filename) {
             MPI_CHAR,
             rootproc,
             31,
-            icComm->globalCommunicator(),
+            mMPIComm,
             MPI_STATUS_IGNORE);
 #endif // PV_USE_MPI
    }
@@ -1085,17 +1105,6 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
             addActiveParamSweep(hypercolgroupname, "checkpointWriteDir");
          }
       }
-   }
-
-   if (icComm->numCommBatches() > 1) {
-      ParameterGroup *hypercolGroup = nullptr;
-      for (auto &g : mGroups) {
-         if (!strcmp(g->getGroupKeyword(), "HyPerCol")) {
-            hypercolGroup = g;
-            break;
-         }
-      }
-      FatalIf(hypercolGroup == nullptr, "PVParams::parseBuffer: no HyPerCol group\n");
    }
 
    // Each ParameterSweep needs to have its group/parameter pair added to the database, if it's not
@@ -1456,7 +1465,7 @@ void PVParams::ioParamStringRequired(
                      groupName,
                      paramName);
             }
-            MPI_Barrier(icComm->globalCommunicator());
+            MPI_Barrier(mMPIComm);
             exit(EXIT_FAILURE);
          }
          else {
@@ -1598,10 +1607,10 @@ void PVParams::addActiveParamSweep(const char *group_name, const char *param_nam
    newActiveParamSweep();
 }
 
-int PVParams::warnUnread() {
+int PVParams::lookForUnread(bool errorOnUnread) {
    int status = PV_SUCCESS;
    for (int i = 0; i < numberOfGroups(); i++) {
-      if (mGroups[i]->warnUnread() != PV_SUCCESS) {
+      if (mGroups[i]->lookForUnread(errorOnUnread) != PV_SUCCESS) {
          status = PV_FAILURE;
       }
    }
@@ -1769,7 +1778,7 @@ void PVParams::handleUnnecessaryStringParameter(
       }
    }
    if (status != PV_SUCCESS) {
-      MPI_Barrier(icComm->globalCommunicator());
+      MPI_Barrier(mMPIComm);
       exit(EXIT_FAILURE);
    }
 }

@@ -76,6 +76,55 @@ void Buffer<T>::set(Buffer<T> other) {
    set(other.asVector(), other.getWidth(), other.getHeight(), other.getFeatures());
 }
 
+template <class T>
+void Buffer<T>::insert(Buffer<T> const &insertion, int xStart, int yStart) {
+   int xEnd = xStart + insertion.getWidth();
+   FatalIf(xStart < 0 or xStart >= getWidth(), "Buffer::insert() has bad xStart = %d (Width = %d)\n", xStart, getWidth());
+   FatalIf(xEnd <= 0 or xEnd > getWidth(),
+         "Buffer::insert() has bad x interval = (%d,%d) (Width = %d; insertion width = %d)\n",
+         xStart, xEnd, getWidth(), insertion.getWidth());
+
+   int yEnd = yStart + insertion.getHeight();
+   FatalIf(yStart < 0 or yStart >= getHeight(), "Buffer::insert() has bad yStart = %d (Height = %d)\n", yStart, getHeight());
+   FatalIf(yEnd <= 0 or yEnd > getHeight(),
+         "Buffer::insert() has bad y interval = (%d,%d) (Height = %d; insertion height = %d)\n",
+         yStart, yEnd, getHeight(), insertion.getHeight());
+
+   FatalIf(getFeatures() != insertion.getFeatures(),
+         "Buffer::insert() has incompatible number of features: %d versus %d\n",
+         getFeatures(), insertion.getFeatures());
+
+   for (int y = 0; y < insertion.getHeight(); ++y) {
+      for (int x = 0; x < insertion.getWidth(); ++x) {
+         for (int f = 0; f < insertion.getFeatures(); ++f) {
+            T value = insertion.at(x, y, f);
+            set(x + xStart, y + yStart, f, value);
+         }
+      }
+   }
+}
+
+template <class T>
+Buffer<T> Buffer<T>::extract(int xStart, int yStart, int width, int height) const {
+   FatalIf(xStart < 0 or xStart >= getWidth(), "Buffer::extract() has bad xStart %d (Width = %d)\n", xStart, getWidth());
+   FatalIf(xStart + width < 0 or xStart + width > getWidth(),
+         "Buffer::extract() has bad width %d (xStart = %d; total width = %d)\n", width, xStart, getWidth());
+   FatalIf(yStart < 0 or yStart >= getHeight(), "Buffer::extract() has bad yStart %d (Height = %d)\n", yStart, getHeight());
+   FatalIf(yStart + height < 0 or yStart + height > getHeight(),
+         "Buffer::extract() has bad height %d (yStart = %d; total height = %d)\n", height, yStart, getHeight());
+
+   Buffer<T> result(width, height, getFeatures());
+   for (int y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
+         for (int f = 0; f < getFeatures(); ++f) {
+            T value = at(x + xStart, y + yStart, f);
+            result.set(x, y, f, value);
+         }
+      }
+   }
+   return result;
+}
+
 // Resizing a Buffer will clear its contents. Use rescale, crop, or grow to preserve values.
 template <class T>
 void Buffer<T>::resize(int width, int height, int features) {

@@ -36,14 +36,14 @@ HyPerCol "column" = {
     progressInterval                    = 5;
     writeProgressToErr                  = false;
     verifyWrites                        = false;
-    outputPath                          = "output/";
+    outputPath                          = "output/ResetStateOnTriggerGPU";
     printParamsFilename                 = "pv.params";
     randomSeed                          = 1234567890;
     nx                                  = 8;
     ny                                  = 8;
     nbatch                              = 1;
     checkpointWrite                     = false;
-    lastCheckpointDir                   = "output/Last";
+    lastCheckpointDir                   = "output/ResetStateOnTriggerGPU/Last";
     errorOnNotANumber                   = true;
 };
 
@@ -213,7 +213,7 @@ IdentConn "TestLayerCPUToRelativeError" = {
 };
 
 RequireAllZeroActivityProbe "TestProbe" = {
-    targetName                          = "RelativeError";
+    targetLayer                         = "RelativeError";
     message                             = "TestProbe";
     textOutputFlag                      = true;
     probeOutputFile                     = "TestProbe.txt";

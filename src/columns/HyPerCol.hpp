@@ -8,26 +8,28 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
+#include "cMakeHeader.h"
+
 #include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointingMessages.hpp"
 #include "columns/BaseObject.hpp"
 #include "columns/Communicator.hpp"
 #include "columns/Messages.hpp"
 #include "columns/PV_Init.hpp"
 #include "columns/ParamsInterface.hpp"
-#include "include/pv_types.h"
+#include "io/FileStream.hpp"
 #include "io/PVParams.hpp"
+#include "observerpattern/BaseMessage.hpp"
 #include "observerpattern/Observer.hpp"
 #include "observerpattern/ObserverTable.hpp"
+#include "observerpattern/Response.hpp"
 #include "observerpattern/Subject.hpp"
 #include "utils/Clock.hpp"
 #include "utils/Timer.hpp"
 #include <fstream>
 #include <memory>
-#include <sstream>
 #include <string>
-#include <sys/stat.h>
 #include <time.h>
-#include <typeinfo>
 #include <vector>
 
 #ifdef PV_USE_CUDA
@@ -98,10 +100,22 @@ class HyPerCol : public Subject, public ParamsInterface {
    virtual void ioParam_nBatch(enum ParamsIOFlag ioFlag);
 
    /**
+    * @brief errorOnUnusedParam: If true, it is a fatal error if the params file contains
+    * timestep for nans in activity. Default is false, in which case a warning is issued.
+    */
+   virtual void ioParam_errorOnUnusedParam(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief errorOnNotANumber: Specifies if the run should check on each
-    * timestep for nans in activity.
+    * timestep for not-a-number values in activity.
     */
    virtual void ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief mOutputPath: Specifies the absolute or relative output path of the
+    * run
+    */
+   virtual void ioParam_outputPath(enum ParamsIOFlag ioFlag);
 
   public:
    HyPerCol(PV_Init *initObj);
@@ -156,17 +170,16 @@ class HyPerCol : public Subject, public ParamsInterface {
    bool getVerifyWrites() { return mCheckpointer->doesVerifyWrites(); }
    bool getCheckpointWriteFlag() const { return mCheckpointer->getCheckpointWriteFlag(); }
    char const *getLastCheckpointDir() const { return mCheckpointer->getLastCheckpointDir(); }
-   bool getWriteTimescales() const { return mWriteTimescales; }
-   const char *getOutputPath() { return mCheckpointer->getOutputPath().c_str(); }
+   const char *getOutputPath() { return mOutputPath; }
    const char *getPrintParamsFilename() const { return mPrintParamsFilename; }
    double getDeltaTime() const { return mDeltaTime; }
    double simulationTime() const { return mSimTime; }
    double getStopTime() const { return mStopTime; }
    int globalRank() { return mCommunicator->globalCommRank(); }
    int columnId() { return mCommunicator->commRank(); }
-   int getNxGlobal() { return mNumXGlobal; }
-   int getNyGlobal() { return mNumYGlobal; }
-   int getNBatchGlobal() { return mNumBatchGlobal; }
+   int getNxGlobal() const { return mNumXGlobal; }
+   int getNyGlobal() const { return mNumYGlobal; }
+   int getNBatchGlobal() const { return mNumBatchGlobal; }
    int getNumThreads() const { return mNumThreads; }
    int numberOfColumns() { return mCommunicator->commSize(); }
    int numberOfGlobalColumns() { return mCommunicator->globalCommSize(); }
@@ -194,7 +207,6 @@ class HyPerCol : public Subject, public ParamsInterface {
 
   private:
    int getAutoGPUDevice();
-   int initialize_base();
    int initialize(PV_Init *initObj);
    virtual void initMessageActionMap() override;
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
@@ -226,56 +238,57 @@ class HyPerCol : public Subject, public ParamsInterface {
    // Private variables
 
   private:
-   bool mErrorOnNotANumber; // If true, check each layer's activity buffer for
+   bool mErrorOnUnusedParam = false; // If true, error out if a params file param goes unused
+   bool mErrorOnNotANumber  = false; // If true, check each layer's activity buffer for
    // not-a-numbers and exit with an error if any appear
-   bool mCheckpointReadFlag; // whether to load from a checkpoint directory
-   bool mReadyFlag; // Initially false; set to true when communicateInitInfo,
+   bool mCheckpointReadFlag = false; // whether to load from a checkpoint directory
+   bool mReadyFlag          = false; // Initially false; set to true when communicateInitInfo,
    // allocateDataStructures, and initializeState stages are completed
-   bool mParamsProcessedFlag = false; // Set to true when processParams() is called.
-   bool mWriteTimeScaleFieldnames; // determines whether fieldnames are written to
-   // HyPerCol_timescales file
-   bool mWriteProgressToErr; // Whether to write progress step to standard error
+   bool mParamsProcessedFlag      = false; // Set to true when processParams() is called.
+   bool mWriteTimeScaleFieldnames = true; // determines whether fieldnames are
+   // written to HyPerCol_timescales file
+   bool mWriteProgressToErr = false; // Whether to write progress step to standard error
    // (True) or standard output (False) (default is output)
-   bool mOwnsCommunicator; // True if icComm was created by initialize, false if
-   // passed in the constructor
-   bool mWriteTimescales;
-   char *mPrintParamsFilename; // filename for outputting the mParams, including
+   bool mOwnsCommunicator = true; // True if icComm was created by initialize,
+   char *mPrintParamsFilename = nullptr; // filename for outputting the mParams, including
    // defaults and excluding unread mParams
+   char *mOutputPath = nullptr;
    double mSimTime;
-   double mStopTime; // time to stop time
-   double mDeltaTime; // time step interval
-   double mProgressInterval; // Output progress after mSimTime increases by this amount.
+   double mStopTime         = 0.0; // time to stop time
+   double mDeltaTime        = mDefaultDeltaTime; // time step interval
+   double mProgressInterval = 1.0; // Output progress after mSimTime increases by this amount.
    double mNextProgressTime; // Next time to output a progress message
-   int mNumPhases;
+   int mNumPhases = 0;
    std::vector<int> mIdleCounts; // How many times each phase had to wait for data to arrive
-   int mNumXGlobal;
-   int mNumYGlobal;
-   int mNumBatchGlobal;
-   int mOrigStdOut;
-   int mOrigStdErr;
-   int mNumThreads;
-   int *mLayerStatus;
-   int *mConnectionStatus;
-   Communicator *mCommunicator; // manages communication between HyPerColumns};
+   int mNumXGlobal             = 0;
+   int mNumYGlobal             = 0;
+   int mNumBatchGlobal         = 1;
+   int mOrigStdOut             = -1;
+   int mOrigStdErr             = -1;
+   int mNumThreads             = 1;
+   int *mLayerStatus           = nullptr;
+   int *mConnectionStatus      = nullptr;
+   Communicator *mCommunicator = nullptr; // manages communication between MPI processes;
 
    Checkpointer *mCheckpointer = nullptr; // manages checkpointing and outputState output
    long int mCurrentStep;
    long int mFinalStep;
    PV_Init *mPVInitObj;
-   PVParams *mParams; // manages input parameters
+   PVParams *mParams = nullptr; // manages input parameters
    size_t mLayerArraySize;
    size_t mConnectionArraySize;
    std::ofstream mTimeScaleStream;
-   Timer *mRunTimer;
-   std::vector<Timer *> mPhaseRecvTimers; // Timer ** mPhaseRecvTimers;
-   unsigned int mRandomSeed;
+   Timer *mBuildAndRunTimer = nullptr;
+   Timer *mBuildTimer       = nullptr;
+   Timer *mRunTimer         = nullptr;
+   unsigned int mRandomSeed = 0U;
 #ifdef PV_USE_CUDA
-   PVCuda::CudaDevice *mCudaDevice; // object for running kernels on OpenCL device
+   PVCuda::CudaDevice *mCudaDevice = nullptr; // object for running kernels on OpenCL device
 #endif
 
+   static std::string const mDefaultOutputPath;
+   static double const mDefaultDeltaTime;
 }; // class HyPerCol
-
-// July 7, 2017: Functionality of createHyPerCol() moved into HyPerCol::initialize()
 
 } // namespace PV
 

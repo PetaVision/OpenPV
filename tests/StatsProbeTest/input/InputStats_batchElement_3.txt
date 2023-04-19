@@ -1,0 +1,17 @@
+InputStats    :t==   0.0 b==3 N==64 Total==60.000000 Min==0.000000 Avg==0.937500 Max==1.000000 sigma==0.242061 nnz==60
+InputStats    :t==   1.0 b==3 N==64 Total==60.000000 Min==0.000000 Avg==0.937500 Max==1.000000 sigma==0.242061 nnz==60
+InputStats    :t==   2.0 b==3 N==64 Total==56.000000 Min==0.000000 Avg==0.875000 Max==1.000000 sigma==0.330719 nnz==56
+InputStats    :t==   3.0 b==3 N==64 Total==52.000000 Min==0.000000 Avg==0.812500 Max==1.000000 sigma==0.390312 nnz==52
+InputStats    :t==   4.0 b==3 N==64 Total==48.000000 Min==0.000000 Avg==0.750000 Max==1.000000 sigma==0.433013 nnz==48
+InputStats    :t==   5.0 b==3 N==64 Total==44.000000 Min==0.000000 Avg==0.687500 Max==1.000000 sigma==0.463512 nnz==44
+InputStats    :t==   6.0 b==3 N==64 Total==40.000000 Min==0.000000 Avg==0.625000 Max==1.000000 sigma==0.484123 nnz==40
+InputStats    :t==   7.0 b==3 N==64 Total==36.000000 Min==0.000000 Avg==0.562500 Max==1.000000 sigma==0.496078 nnz==36
+InputStats    :t==   8.0 b==3 N==64 Total==32.000000 Min==0.000000 Avg==0.500000 Max==1.000000 sigma==0.500000 nnz==32
+InputStats    :t==   9.0 b==3 N==64 Total==28.000000 Min==0.000000 Avg==0.437500 Max==1.000000 sigma==0.496078 nnz==28
+InputStats    :t==  10.0 b==3 N==64 Total==24.000000 Min==0.000000 Avg==0.375000 Max==1.000000 sigma==0.484123 nnz==24
+InputStats    :t==  11.0 b==3 N==64 Total==20.000000 Min==0.000000 Avg==0.312500 Max==1.000000 sigma==0.463512 nnz==20
+InputStats    :t==  12.0 b==3 N==64 Total==16.000000 Min==0.000000 Avg==0.250000 Max==1.000000 sigma==0.433013 nnz==16
+InputStats    :t==  13.0 b==3 N==64 Total==12.000000 Min==0.000000 Avg==0.187500 Max==1.000000 sigma==0.390312 nnz==12
+InputStats    :t==  14.0 b==3 N==64 Total==8.000000 Min==0.000000 Avg==0.125000 Max==1.000000 sigma==0.330719 nnz==8
+InputStats    :t==  15.0 b==3 N==64 Total==4.000000 Min==0.000000 Avg==0.062500 Max==1.000000 sigma==0.242061 nnz==4
+InputStats    :t==  16.0 b==3 N==64 Total==0.000000 Min==0.000000 Avg==0.000000 Max==0.000000 sigma==0.000000 nnz==0

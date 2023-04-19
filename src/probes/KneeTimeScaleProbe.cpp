@@ -33,9 +33,9 @@ void KneeTimeScaleProbe::allocateTimeScaleController() {
          mBaseMin,
          tauFactor,
          mGrowthFactor,
-         mWriteTimeScaleFieldnames,
          mCommunicator,
          mKneeThresh,
          mKneeSlope);
 }
-}
+
+} // namespace PV

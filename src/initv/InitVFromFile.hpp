@@ -9,7 +9,6 @@
 #define INITVFROMFILE_HPP_
 
 #include "BaseInitV.hpp"
-#include "utils/BufferUtilsPvp.hpp"
 
 namespace PV {
 
@@ -47,11 +46,6 @@ class InitVFromFile : public BaseInitV {
   protected:
    InitVFromFile();
    void initialize(char const *name, PVParams *params, Communicator const *comm);
-   void readDenseActivityPvp(
-         float *V,
-         PVLayerLoc const *loc,
-         FileStream &fileStream,
-         BufferUtils::ActivityHeader const &header);
 
   private:
    int initialize_base();

@@ -1,5 +1,4 @@
 #include "randomstateio.hpp"
-#include "io/FileStream.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/BufferUtilsPvp.hpp"

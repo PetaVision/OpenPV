@@ -68,7 +68,6 @@ class FilenameParsingActivityBuffer : public ActivityBuffer {
 
   private:
    std::vector<std::string> mClasses;
-   char *mInputLayerName    = nullptr;
    char *mClassListFileName = nullptr;
    InputLayer *mInputLayer  = nullptr;
    float mGtClassTrueValue  = 1.0f;

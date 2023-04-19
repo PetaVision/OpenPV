@@ -91,6 +91,9 @@ int main(int argc, char *argv[]) {
    checkHalo(haloA, 6, 2, "B");
    checkHalo(haloA, 6, 2, "C");
 
+   delete geomA;
+   delete geomB;
+   delete geomC;
    delete hc;
 
    // ============= // Reset, and do y-margin first, then x-margin at the end
@@ -144,6 +147,9 @@ int main(int argc, char *argv[]) {
    checkHalo(haloA, 2, 6, "B");
    checkHalo(haloA, 2, 6, "C");
 
+   delete geomA;
+   delete geomB;
+   delete geomC;
    delete hc;
 
    return EXIT_SUCCESS;

@@ -1,0 +1,9 @@
+ParamsFile:input/StatsProbeTest_8MtoN.params
+LogFile:StatsProbeTest_8MtoN.log
+NumThreads:-
+NumRows:2
+NumColumns:2
+BatchWidth:2
+CheckpointCellNumRows:1
+CheckpointCellNumColumns:1
+CheckpointCellBatchDimension:1

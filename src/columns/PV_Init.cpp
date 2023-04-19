@@ -6,11 +6,24 @@
  */
 #include "PV_Init.hpp"
 #include "cMakeHeader.h"
-#include "columns/CommandLineArguments.hpp"
-#include "columns/ConfigFileArguments.hpp"
 #include "columns/CoreKeywords.hpp"
+#include "columns/Factory.hpp"
+#include "include/pv_common.h"
+#include "io/io.hpp"
+#include "structures/MPIBlock.hpp"
+#include "utils/PVAlloc.hpp"
+#include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
+#include "utils/PathComponents.hpp"
+
+#include <cerrno>
 #include <csignal>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <ios>
+#include <sys/utsname.h>
+#include <unistd.h>
 #ifdef PV_USE_OPENMP_THREADS
 #include <omp.h>
 #endif // PV_USE_OPENMP_THREADS
@@ -30,16 +43,16 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
    params        = nullptr;
    mCommunicator = nullptr;
 
-   arguments = parse_arguments(*argc, *argv, allowUnrecognizedArguments);
+   mArguments = parse_arguments(*argc, *argv, allowUnrecognizedArguments);
    initLogFile(false /*appendFlag*/);
    initFactory();
-   initialize(); // must be called after initialization of arguments data member.
+   initialize(); // must be called after initialization of Arguments data member.
 }
 
 PV_Init::~PV_Init() {
    delete params;
    delete mCommunicator;
-   arguments = nullptr;
+   mArguments = nullptr;
    commFinalize();
 }
 
@@ -59,23 +72,23 @@ int PV_Init::initSignalHandler() {
    sigemptyset(&blockusr1);
    sigaddset(&blockusr1, SIGUSR1);
    sigaddset(&blockusr1, SIGUSR2);
-   sigprocmask(SIG_BLOCK, &blockusr1, NULL);
+   sigprocmask(SIG_BLOCK, &blockusr1, nullptr);
    return 0;
 }
 
 int PV_Init::initialize() {
    delete mCommunicator;
-   mCommunicator = new Communicator(arguments.get());
+   mCommunicator = new Communicator(mArguments.get());
+   printInitMessage();
    int status    = PV_SUCCESS;
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
    delete params;
    params                 = nullptr;
-   std::string paramsFile = arguments->getStringArgument("ParamsFile");
+   std::string paramsFile = mArguments->getStringArgument("ParamsFile");
    if (!paramsFile.empty()) {
       status = createParams();
    }
-   printInitMessage();
    return status;
 }
 
@@ -102,7 +115,7 @@ int PV_Init::commInit(int *argc, char ***argv) {
    // can run the second simulation, etc.
    MPI_Initialized(&mpiInit);
    if (!mpiInit) {
-      pvAssert((*argv)[*argc] == NULL); // Open MPI 1.7 assumes this.
+      pvAssert((*argv)[*argc] == nullptr); // Open MPI 1.7 assumes this.
       MPI_Init(argc, argv);
    }
    else {
@@ -116,42 +129,28 @@ void PV_Init::initFactory() { PV::registerCoreKeywords(); }
 
 void PV_Init::initLogFile(bool appendFlag) {
    // TODO: Under MPI, non-root processes should send messages to root process.
-   // Currently, if logFile is directory/filename.txt, the root process writes to
-   // that path,
-   // and nonroot processes write to directory/filename_<rank>.txt, where <rank>
-   // is replaced with
+   // Currently, if logFile is directory/filename.txt, the root process writes to that path,
+   // and nonroot processes write to directory/filename_<rank>.txt, where <rank> is replaced with
    // the global rank.
    // If filename does not have an extension, _<rank> is appended.
-   // Note that the global rank zero process does not insert _<rank>.  This is
-   // deliberate, as the nonzero ranks should be MPI-ing the data to the zero rank.
-   std::string logFile         = arguments->getStringArgument("LogFile");
+   // Note that the global rank zero process does not insert _<rank>.  This is deliberate, as the
+   // nonzero ranks should be MPI-ing the data to the zero rank.
+   std::string logFile         = mArguments->getStringArgument("LogFile");
    int const globalRootProcess = 0;
    int globalRank;
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
    std::ios_base::openmode mode =
          appendFlag ? std::ios_base::out | std::ios_base::app : std::ios_base::out;
    if (!logFile.empty() && globalRank != globalRootProcess) {
-      // To prevent collisions caused by multiple processes opening the same file
-      // for logging,
-      // processes with global rank other than zero append the rank to the log
-      // filename.
-      // If the logfile has an extension (e.g. ".log", ".txt"), the rank is
-      // appended before the
+      // To prevent collisions caused by multiple processes opening the same file for logging,
+      // processes with global rank other than zero append the rank to the log filename.
+      // If the logfile has an extension (e.g. ".log", ".txt"), the rank is appended before the
       // period separating the extension.
-      std::string logFileString(logFile);
-      size_t finalSlash = logFileString.rfind('/');
-      size_t finalDot   = logFileString.rfind('.');
-      size_t insertionPoint;
-      if (finalDot == std::string::npos
-          || (finalSlash != std::string::npos && finalDot < finalSlash)) {
-         insertionPoint = logFileString.length();
-      }
-      else {
-         insertionPoint = finalDot;
-      }
-      std::string insertion("_");
-      insertion.append(std::to_string(globalRank));
-      logFileString.insert(insertionPoint, insertion);
+      std::string directory     = dirName(logFile);
+      std::string stripExt      = stripExtension(logFile);
+      std::string fileExt       = extension(logFile);
+      std::string logFileString =
+            directory + '/' + stripExt + '_' + std::to_string(globalRank) + fileExt;
       PV::setLogFile(logFileString, mode);
    }
    else {
@@ -163,20 +162,20 @@ int PV_Init::setParams(char const *params_file) {
    if (params_file == nullptr) {
       return PV_FAILURE;
    }
-   arguments->setStringArgument("ParamsFile", std::string{params_file});
+   mArguments->setStringArgument("ParamsFile", std::string{params_file});
    initialize();
    return createParams();
 }
 
 int PV_Init::createParams() {
-   std::string paramsFile = arguments->getStringArgument("ParamsFile");
+   std::string paramsFile = mArguments->getStringArgument("ParamsFile");
    if (!paramsFile.empty()) {
       delete params;
       params = new PVParams(
             paramsFile.c_str(),
             2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
-            mCommunicator);
-      unsigned int shuffleSeed = arguments->getUnsignedIntArgument("ShuffleParamGroups");
+            mCommunicator->globalCommunicator());
+      unsigned int shuffleSeed = mArguments->getUnsignedIntArgument("ShuffleParamGroups");
       if (shuffleSeed) {
          params->shuffleGroups(shuffleSeed);
       }
@@ -189,7 +188,7 @@ int PV_Init::createParams() {
 
 int PV_Init::setLogFile(char const *logFile, bool appendFlag) {
    std::string logFileString{logFile};
-   arguments->setStringArgument("LogFile", logFileString);
+   mArguments->setStringArgument("LogFile", logFileString);
    initLogFile(appendFlag);
    printInitMessage();
    return PV_SUCCESS;
@@ -197,32 +196,75 @@ int PV_Init::setLogFile(char const *logFile, bool appendFlag) {
 
 int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
    if (rows >= 0) {
-      arguments->setIntegerArgument("NumRows", rows);
+      mArguments->setIntegerArgument("NumRows", rows);
    }
    if (columns >= 0) {
-      arguments->setIntegerArgument("NumColumns", columns);
+      mArguments->setIntegerArgument("NumColumns", columns);
    }
    if (batchWidth >= 0) {
-      arguments->setIntegerArgument("BatchWidth", batchWidth);
+      mArguments->setIntegerArgument("BatchWidth", batchWidth);
    }
    initialize();
    return PV_SUCCESS;
 }
 
 void PV_Init::printInitMessage() {
-   Communicator const *communicator = getCommunicator();
-   if (communicator == nullptr or communicator->globalCommRank() == 0) {
-      time_t currentTime = time(nullptr);
-      InfoLog() << "PetaVision initialized at "
-                << ctime(&currentTime); // string returned by ctime contains a trailing \n.
-      InfoLog() << "Configuration is:\n";
-      printState();
-      InfoLog().printf("----------------\n");
+   InfoLog() << "PID " << getpid() << ", global rank " << getWorldRank() << ".\n";
+   time_t currentTime = time(nullptr);
+   InfoLog() << "PetaVision initialized at "
+             << ctime(&currentTime); // string returned by ctime contains a trailing \n.
+   struct utsname systemInfo;
+   int unamestatus = uname(&systemInfo);
+   if (unamestatus == 0) {
+      InfoLog() << "System information:\n"
+                << "    system name: " << systemInfo.sysname << "\n"
+                << "    nodename:    " << systemInfo.nodename << "\n"
+                << "    release:     " << systemInfo.release << "\n"
+                << "    version:     " << systemInfo.version << "\n"
+                << "    machine:     " << systemInfo.machine << "\n";
    }
+   else {
+      ErrorLog() << "System name information unavailable: " << strerror(errno) << "\n";
+   }
+   auto globalMPIBlock = getCommunicator()->getGlobalMPIBlock();
+   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+   InfoLog().printf("----------------\n");
+   InfoLog() << "Configuration is:\n";
+   printState();
+   InfoLog().printf("----------------\n");
+   InfoLog() << "Running with NumRows=" << mCommunicator->numCommRows()
+             << ", NumCols=" << mCommunicator->numCommColumns()
+             << ", and BatchWidth=" << mCommunicator->numCommBatches() << "\n";
+   InfoLog() << "I/O Blocks have " << ioMPIBlock->getNumRows() << " rows, "
+             << ioMPIBlock->getNumColumns() << " columns, and "
+             << "batch width of " << ioMPIBlock->getBatchDimension() << "\n";
+   InfoLog().printf("Position in global MPI configuration:\n");
+   InfoLog().printf(
+        "    Row %d of %d, Column %d of %d, Batch index %d of %d\n",
+        globalMPIBlock->getRowIndex(),
+        globalMPIBlock->getNumRows(),
+        globalMPIBlock->getColumnIndex(),
+        globalMPIBlock->getNumColumns(),
+        globalMPIBlock->getBatchIndex(),
+        globalMPIBlock->getBatchDimension());
+   InfoLog().printf(
+        "Input/Output block starts at row %d, column %d, batch index %d\n",
+        ioMPIBlock->getStartRow(),
+        ioMPIBlock->getStartColumn(),
+        ioMPIBlock->getStartBatch());
+   InfoLog().printf("Position within Input/Output block:\n");
+   InfoLog().printf(
+        "    Row %d of %d, Column %d of %d, Batch index %d of %d\n",
+        ioMPIBlock->getRowIndex(),
+        ioMPIBlock->getNumRows(),
+        ioMPIBlock->getColumnIndex(),
+        ioMPIBlock->getNumColumns(),
+        ioMPIBlock->getBatchIndex(),
+        ioMPIBlock->getBatchDimension());
 }
 
 int PV_Init::resetState() {
-   arguments->resetState();
+   mArguments->resetState();
    return PV_SUCCESS;
 }
 

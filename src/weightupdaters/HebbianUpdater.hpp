@@ -69,7 +69,7 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
-   virtual Response::Status prepareCheckpointWrite() override;
+   virtual Response::Status prepareCheckpointWrite(double simTime) override;
 
    virtual void updateState(double timestamp, double dt) override;
 
@@ -143,8 +143,8 @@ class HebbianUpdater : public BaseWeightUpdater {
 
    // dWMax is required if plasticityFlag is true
    float mDWMax                     = std::numeric_limits<float>::quiet_NaN();
-   float mDWMaxDecayFactor            = 0;
-   int mDWMaxDecayInterval        = 0.0f;
+   float mDWMaxDecayFactor          = 0.0f;
+   int mDWMaxDecayInterval          = 0;
    bool mNormalizeDw                = true;
    bool mCombine_dWWithWFlag        = false;
    bool mWriteCompressedCheckpoints = false;

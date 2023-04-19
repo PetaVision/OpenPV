@@ -6,7 +6,8 @@
  */
 
 #include "WeightsPair.hpp"
-#include "io/WeightsFileIO.hpp"
+#include "io/LocalPatchWeightsFile.hpp"
+#include "io/SharedWeightsFile.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "utils/TransposeWeights.hpp"
 
@@ -16,7 +17,7 @@ WeightsPair::WeightsPair(char const *name, PVParams *params, Communicator const 
    initialize(name, params, comm);
 }
 
-WeightsPair::~WeightsPair() { delete mOutputStateStream; }
+WeightsPair::~WeightsPair() {}
 
 void WeightsPair::initialize(char const *name, PVParams *params, Communicator const *comm) {
    WeightsPairInterface::initialize(name, params, comm);
@@ -277,21 +278,39 @@ void WeightsPair::finalizeUpdate(double timestamp, double deltaTime) {
 
 void WeightsPair::openOutputStateFile(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   if (mWriteStep >= 0) {
-      auto *checkpointer = message->mDataRegistry;
-      if (checkpointer->getMPIBlock()->getRank() == 0) {
-         std::string outputStatePath(getName());
-         outputStatePath.append(".pvp");
+   if (mWriteStep < 0) { return; }
 
-         std::string checkpointLabel(getName());
-         checkpointLabel.append("_filepos");
+   auto *checkpointer = message->mDataRegistry;
+   auto outputFileManager = getCommunicator()->getOutputFileManager();
+   std::string outputStatePath(getName());
+   outputStatePath.append(".pvp");
 
-         bool createFlag    = checkpointer->getCheckpointReadDirectory().empty();
-         mOutputStateStream = new CheckpointableFileStream(
-               outputStatePath.c_str(), createFlag, checkpointer, checkpointLabel);
-         mOutputStateStream->respond(message); // CheckpointableFileStream needs to register data
-      }
+   if (mPreWeights->getSharedFlag()) {
+      mWeightsFile = std::make_shared<SharedWeightsFile>(
+            outputFileManager,
+            outputStatePath,
+            mPreWeights->getData(),
+            getWriteCompressedWeights(),
+            false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+            checkpointer->doesVerifyWrites());
    }
+   else {
+      auto *preLoc  = mConnectionData->getPre()->getLayerLoc();
+      auto *postLoc = mConnectionData->getPost()->getLayerLoc();
+      mWeightsFile = std::make_shared<LocalPatchWeightsFile>(
+            outputFileManager,
+            outputStatePath,
+            mPreWeights->getData(),
+            preLoc,
+            postLoc,
+            true /*fileExtendedFlag*/,
+            getWriteCompressedWeights(),
+            false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+            checkpointer->doesVerifyWrites());
+   }
+   mWeightsFile->respond(message); // LocalPatchWeightsFile needs to register filepos
 }
 
 Response::Status WeightsPair::readStateFromCheckpoint(Checkpointer *checkpointer) {
@@ -308,9 +327,7 @@ Response::Status WeightsPair::readStateFromCheckpoint(Checkpointer *checkpointer
 void WeightsPair::outputState(double timestamp) {
    if ((mWriteStep >= 0) && (timestamp >= mWriteTime)) {
       mWriteTime += mWriteStep;
-
-      WeightsFileIO weightsFileIO(mOutputStateStream, getMPIBlock(), mPreWeights);
-      weightsFileIO.writeWeights(timestamp, mWriteCompressedWeights);
+      mWeightsFile->write(*mPreWeights->getData(), timestamp);
    }
    else if (mWriteStep < 0) {
       // If writeStep is negative, we never call writeWeights, but someone might restart from a

@@ -1,5 +1,5 @@
-#ifndef _KNEETIMESCALECONTROLLER_HPP_
-#define _KNEETIMESCALECONTROLLER_HPP_
+#ifndef KNEETIMESCALECONTROLLER_HPP_
+#define KNEETIMESCALECONTROLLER_HPP_
 
 #include "AdaptiveTimeScaleController.hpp"
 
@@ -14,13 +14,11 @@ class KneeTimeScaleController : public AdaptiveTimeScaleController {
          double baseMin,
          double tauFactor,
          double growthFactor,
-         bool writeTimeScaleFieldnames,
          Communicator const *comm,
          double kneeThresh,
          double kneeSlope);
 
-   virtual std::vector<double>
-   calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales) override;
+   virtual std::vector<TimeScaleData> const &calcTimesteps(std::vector<double> const &timeScales) override;
 
   protected:
    double mKneeThresh = 1.0;
@@ -28,4 +26,4 @@ class KneeTimeScaleController : public AdaptiveTimeScaleController {
 };
 }
 
-#endif
+#endif // KNEETIMESCALECONTROLLER_HPP_

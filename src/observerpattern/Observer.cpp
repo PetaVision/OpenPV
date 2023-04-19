@@ -6,7 +6,8 @@
  */
 
 #include "Observer.hpp"
-#include "utils/PVLog.hpp"
+#include "include/pv_common.h"
+#include <utility>
 
 namespace PV {
 

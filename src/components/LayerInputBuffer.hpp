@@ -100,6 +100,7 @@ class LayerInputBuffer : public ComponentBuffer {
 #ifdef PV_USE_CUDA
    std::vector<LayerInputDelivery *> mGPUDeliverySources; // delivery sources that set recvGpu
    PVCuda::CudaTimer *mReceiveInputCudaTimer = nullptr;
+   Timer *mCopyFromCudaTimer = nullptr;
 #endif
 };
 

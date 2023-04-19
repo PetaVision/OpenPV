@@ -268,13 +268,11 @@ Response::Status LayerUpdateController::respondLayerRecvSynapticInput(
       return status;
    }
 
-   message->mTimer->start();
    status = mLayerInput->respond(message);
    if (status == Response::SUCCESS) {
       mHasReceived                   = true;
       *(message->mSomeLayerHasActed) = true;
    }
-   message->mTimer->stop();
    return status;
 }
 

@@ -5,26 +5,25 @@
  *      Author: kpeterson
  */
 
-#ifndef ArborTestForOnesProbe_HPP_
-#define ArborTestForOnesProbe_HPP_
+#ifndef ARBORTESTFORONESPROBE_HPP_
+#define ARBORTESTFORONESPROBE_HPP_
 
-#include "probes/StatsProbe.hpp"
+#include "columns/Communicator.hpp"
+#include "io/PVParams.hpp"
+#include "probes/StatsProbeImmediate.hpp"
 
 namespace PV {
 
-class ArborTestForOnesProbe : public PV::StatsProbe {
+class ArborTestForOnesProbe : public PV::StatsProbeImmediate {
   public:
    ArborTestForOnesProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~ArborTestForOnesProbe();
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
   protected:
    void initialize(const char *name, PVParams *params, Communicator const *comm);
-
-  private:
-   int initialize_base();
+   virtual void checkStats() override;
+   int checkValue(float value, double timestamp, int batchIndex, char const *desc);
 };
 
 } /* namespace PV */
-#endif /* ArborTestForOnesProbe_HPP_ */
+#endif // ARBORTESTFORONESPROBE_HPP_
