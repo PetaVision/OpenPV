@@ -26,7 +26,7 @@ class FileStream : public PrintStream {
    virtual void setInPos(long pos, bool fromBeginning);
    bool readable() const { return mMode & std::ios_base::in; }
    bool writeable() const { return mMode & std::ios_base::out; }
-   bool binary() const { return mFStream.flags() & std::ios_base::binary; }
+   bool binary() const { return mMode & std::ios_base::binary; }
    bool readwrite() const { return readable() && writeable(); }
    operator bool() const { return mFStream ? true : false; }
    long getOutPos();
