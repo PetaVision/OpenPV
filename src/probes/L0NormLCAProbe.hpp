@@ -25,6 +25,10 @@ class L0NormLCAProbe : public L0NormProbe {
 
   protected:
    L0NormLCAProbe() {}
+
+   virtual Response::Status allocateDataStructures() override;
+
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
    virtual void createEnergyProbeComponent(char const *name, PVParams *params) override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
 }; // class L0NormLCAProbe

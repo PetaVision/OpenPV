@@ -26,7 +26,7 @@ class L0NormProbeLocal : public BaseL0NormProbeLocal {
    virtual std::shared_ptr<L0CostFunctionSum const> createCostFunctionSum() override;
    void initialize(char const *objName, PVParams *params);
 
-  private:
+  protected:
    double mNnzThreshold = 0.0;
 };
 

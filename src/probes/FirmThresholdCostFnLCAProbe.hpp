@@ -13,13 +13,9 @@
 namespace PV {
 
 /**
- * A special case of FirmThresholdCostFnProbe, to be used when the target layer
- * is an LCA layer
- * with a hard-threshold transfer function.  The corresponding cost function is
- * the norm
- * measured by FirmThresholdCostFnProbe, with coefficient Vth, where Vth is the
- * target LCA layer's
- * VThresh.
+ * A special case of FirmThresholdCostFnProbe, to be used when the target layer is an LCA layer
+ * with a hard-threshold transfer function.  The corresponding cost function is the norm measured
+ * by FirmThresholdCostFnProbe, with coefficient Vth, where Vth is the target LCA layer's VThresh.
  */
 class FirmThresholdCostFnLCAProbe : public FirmThresholdCostFnProbe {
   public:
