@@ -1,10 +1,9 @@
 #ifndef TESTPVPBATCH_HPP_
 #define TESTPVPBATCH_HPP_
 
-#include "structures/MPIBlock.hpp"
+#include "io/FileManager.hpp"
 #include <memory>
-#include <string>
 
-void testPvpBatch(std::shared_ptr<PV::MPIBlock const> mpiBlock, std::string const &directory);
+void testPvpBatch(std::shared_ptr<PV::FileManager const> fileManager);
 
 #endif // TESTPVPBATCH_HPP_

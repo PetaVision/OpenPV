@@ -132,7 +132,7 @@ BatchIndexer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> con
    return Response::SUCCESS;
 }
 
-Response::Status BatchIndexer::processCheckpointRead() {
+Response::Status BatchIndexer::processCheckpointRead(double simTime) {
    checkIndices();
    return Response::SUCCESS;
 }

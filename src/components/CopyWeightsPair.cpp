@@ -192,7 +192,7 @@ void CopyWeightsPair::copy() {
 
       auto arborSize = (std::size_t)(patchSizeOverall * numDataPatches) * sizeof(float);
       for (int arbor = 0; arbor < numArbors; arbor++) {
-         float const *sourceArbor = originalPreWeights->getDataReadOnly(arbor);
+         float const *sourceArbor = originalPreWeights->getData(arbor);
          std::memcpy(mPreWeights->getData(arbor), sourceArbor, arborSize);
       }
    }
@@ -209,7 +209,7 @@ void CopyWeightsPair::copy() {
 
       auto arborSize = (std::size_t)(patchSizeOverall * numDataPatches) * sizeof(float);
       for (int arbor = 0; arbor < numArbors; arbor++) {
-         float const *sourceArbor = originalPostWeights->getDataReadOnly(arbor);
+         float const *sourceArbor = originalPostWeights->getData(arbor);
          std::memcpy(mPostWeights->getData(arbor), sourceArbor, arborSize);
       }
    }

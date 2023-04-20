@@ -1,7 +1,7 @@
-#include "PVAssert.hpp"
-#include "PVLog.hpp"
 #include "arch/mpi/mpi.h"
-#include "conversions.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include "utils/conversions.hpp"
 
 namespace PV {
 namespace BufferUtils {
@@ -26,20 +26,16 @@ void scatter(
       // Loop through each rank.
       // Uses Buffer::crop and MPI_Send to give each process
       // the correct slice of input data.
-      for (int sendColumn = numColumns - 1; sendColumn >= 0; --sendColumn) {
-         for (int sendRow = mpiBlock->getNumRows() - 1; sendRow >= 0; --sendRow) {
+      for (int sendRow = mpiBlock->getNumRows() - 1; sendRow >= 0; --sendRow) {
+         for (int sendColumn = numColumns - 1; sendColumn >= 0; --sendColumn) {
             int sendRank = mpiBlock->calcRankFromRowColBatch(sendRow, sendColumn, mpiBatchIndex);
-            // Copy the input data to a temporary buffer.
-            // This gets cropped to the layer size below.
-            Buffer<T> croppedBuffer = buffer;
-            int sliceRank           = mpiBlock->calcRankFromRowColBatch(sendRow, sendColumn, 0);
-            unsigned int cropLeft   = localWidth * columnFromRank(sliceRank, numRows, numColumns);
-            unsigned int cropTop    = localHeight * rowFromRank(sliceRank, numRows, numColumns);
 
-            // Crop the input data to the size of one process.
-            croppedBuffer.translate(-cropLeft, -cropTop);
-            croppedBuffer.crop(localWidth + xMargins, localHeight + yMargins, Buffer<T>::NORTHWEST);
+            int sliceRank         = mpiBlock->calcRankFromRowColBatch(sendRow, sendColumn, 0);
+            unsigned int cropLeft = localWidth * columnFromRank(sliceRank, numRows, numColumns);
+            unsigned int cropTop  = localHeight * rowFromRank(sliceRank, numRows, numColumns);
 
+            Buffer<T> croppedBuffer =
+                  buffer.extract(cropLeft, cropTop, localWidth + xMargins, localHeight + yMargins);
             pvAssert(numElements == croppedBuffer.getTotalElements());
 
             if (sendRank != sourceProcess) {
@@ -53,7 +49,7 @@ void scatter(
                      mpiBlock->getComm());
             }
             else {
-               // Root process is in this batch element; keep a slice for ourselves
+               // Root process is in this batch element; this is our slice.
                buffer.set(
                      croppedBuffer.asVector(),
                      localWidth + xMargins,
@@ -65,32 +61,21 @@ void scatter(
    }
    else if (mpiBlock->getBatchIndex() == mpiBatchIndex) {
       pvAssert(mpiBlock->getRank() != sourceProcess);
-      // Create a temporary array to receive from MPI, move the values into
-      // a vector, and then set our Buffer's contents to that vector.
-      // This set of conversions could be greatly reduced by giving Buffer
-      // a constructor that accepts raw memory.
-      T *tempMem = (T *)calloc(buffer.getTotalElements(), dataSize);
-      FatalIf(
-            tempMem == nullptr,
-            "Could not allocate a receive buffer of %d bytes.\n",
-            buffer.getTotalElements() * dataSize);
       MPI_Recv(
-            tempMem,
+            buffer.asVector().data(),
             buffer.getTotalElements() * dataSize,
             MPI_BYTE,
             sourceProcess,
             31,
             mpiBlock->getComm(),
             MPI_STATUS_IGNORE);
-      buffer.set(tempMem, buffer.getWidth(), buffer.getHeight(), buffer.getFeatures());
-      free(tempMem);
    }
 }
 
 template <typename T>
 Buffer<T> gather(
       std::shared_ptr<MPIBlock const> mpiBlock,
-      Buffer<T> buffer,
+      Buffer<T> const &buffer,
       unsigned int localWidth,
       unsigned int localHeight,
       int mpiBatchIndex,
@@ -117,8 +102,8 @@ Buffer<T> gather(
             tempMem == nullptr,
             "Could not allocate a receive buffer of %d bytes.\n",
             numElements * dataSize);
-      for (int recvColumn = numColumns - 1; recvColumn >= 0; --recvColumn) {
-         for (int recvRow = numRows - 1; recvRow >= 0; --recvRow) {
+      for (int recvRow = numRows - 1; recvRow >= 0; --recvRow) {
+         for (int recvColumn = numColumns - 1; recvColumn >= 0; --recvColumn) {
             int recvRank = mpiBlock->calcRankFromRowColBatch(recvRow, recvColumn, mpiBatchIndex);
             Buffer<T> smallBuffer;
             if (recvRank != destProcess) {
@@ -141,14 +126,34 @@ Buffer<T> gather(
             unsigned int sliceX = localWidth * columnFromRank(sliceRank, numRows, numColumns);
             unsigned int sliceY = localHeight * rowFromRank(sliceRank, numRows, numColumns);
 
-            // Place our chunk into the global buffer
-            for (int y = 0; y < buffer.getHeight(); ++y) {
-               for (int x = 0; x < buffer.getWidth(); ++x) {
-                  for (int f = 0; f < buffer.getFeatures(); ++f) {
-                     globalBuffer.set(sliceX + x, sliceY + y, f, smallBuffer.at(x, y, f));
-                  }
-               }
+            // crop out the border regions of small buffer, unless the rank sits on the edge
+            // of the MPI quilt
+            int topMargin  = yMargins / 2; // integer division, although usu. margins are even
+            int leftMargin = xMargins / 2;
+            if (recvRow > 0) {
+               sliceY += topMargin;
+               smallBuffer.crop(
+                     smallBuffer.getWidth(), smallBuffer.getHeight() - topMargin, Buffer<T>::SOUTH);
             }
+            if (recvRow < numRows - 1) {
+               smallBuffer.crop(
+                     smallBuffer.getWidth(),
+                     smallBuffer.getHeight() - (yMargins - topMargin),
+                     Buffer<T>::NORTH);
+            }
+            if (recvColumn > 0) {
+               sliceX += leftMargin;
+               smallBuffer.crop(
+                     smallBuffer.getWidth() - leftMargin, smallBuffer.getHeight(), Buffer<T>::EAST);
+            }
+            if (recvColumn < numColumns - 1) {
+               smallBuffer.crop(
+                     smallBuffer.getWidth() - (xMargins - leftMargin),
+                     smallBuffer.getHeight(),
+                     Buffer<T>::WEST);
+            }
+
+            globalBuffer.insert(smallBuffer, sliceX, sliceY);
          }
       }
       free(tempMem);
@@ -177,8 +182,8 @@ SparseList<T> gatherSparse(
    size_t entrySize = sizeof(typename SparseList<T>::Entry);
    if (mpiBlock->getRank() == destProcess) {
       SparseList<T> globalList;
-      for (int recvColumn = mpiBlock->getNumColumns() - 1; recvColumn >= 0; --recvColumn) {
-         for (int recvRow = mpiBlock->getNumRows() - 1; recvRow >= 0; --recvRow) {
+      for (int recvRow = mpiBlock->getNumRows() - 1; recvRow >= 0; --recvRow) {
+         for (int recvColumn = mpiBlock->getNumColumns() - 1; recvColumn >= 0; --recvColumn) {
             int recvRank = mpiBlock->calcRankFromRowColBatch(recvRow, recvColumn, mpiBatchIndex);
             SparseList<T> listChunk;
             if (recvRank != destProcess) {
@@ -209,7 +214,7 @@ SparseList<T> gatherSparse(
             else {
                listChunk = list;
             }
-            listChunk.appendToList(globalList);
+            globalList.merge(listChunk);
          }
       }
       return globalList;
@@ -230,5 +235,7 @@ SparseList<T> gatherSparse(
    }
    return list;
 }
+
 } // end namespace BufferUtils
+
 } // end namespace PV

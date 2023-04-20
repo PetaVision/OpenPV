@@ -1,5 +1,5 @@
-#ifndef _LOGTIMESCALECONTROLLER_HPP_
-#define _LOGTIMESCALECONTROLLER_HPP_
+#ifndef LOGTIMESCALECONTROLLER_HPP_
+#define LOGTIMESCALECONTROLLER_HPP_
 
 #include "AdaptiveTimeScaleController.hpp"
 #include <cfloat>
@@ -15,13 +15,11 @@ class LogTimeScaleController : public AdaptiveTimeScaleController {
          double baseMin,
          double tauFactor,
          double growthFactor,
-         bool writeTimeScaleFieldnames,
          Communicator const *comm,
          double logThresh,
          double logSlope);
 
-   virtual std::vector<double>
-   calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales) override;
+   virtual std::vector<TimeScaleData> const &calcTimesteps(std::vector<double> const &timeScales) override;
 
   protected:
    double mLogThresh = DBL_MAX_EXP;
@@ -29,4 +27,4 @@ class LogTimeScaleController : public AdaptiveTimeScaleController {
 };
 }
 
-#endif
+#endif // LOGTIMESCALECONTROLLER_HPP_

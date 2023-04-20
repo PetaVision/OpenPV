@@ -13,4 +13,7 @@ set(SRC_HPP
   src/ImagePvpOffsetTestLayer.hpp
 )
 
-pv_add_test(PARAMS ImageOffsetTest ImagePvpOffsetTest SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H})
+pv_add_test(
+  PARAMS ImageOffsetTest ImagePvpOffsetTest AlternateAnchorStrings
+  SRCFILES ${SRC_CPP} ${SRC_HPP} ${SRC_C} ${SRC_H}
+)

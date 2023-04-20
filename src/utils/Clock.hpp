@@ -46,9 +46,6 @@ class Clock {
    double m_tstart;
    double m_tend;
 
-   struct timeval m_tv_start;
-   struct timeval m_tv_end;
-
 #ifdef CYCLE_TIMER
    uint64_t m_cycle_start;
    uint64_t m_cycle_end;

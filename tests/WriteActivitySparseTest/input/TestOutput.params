@@ -16,7 +16,7 @@
 // A RequireAllZeroActivityProbe throws an error if
 // any comparison layer neuron is nonzero.
 // 
-// There is also a TestNotAlwaysAllZeroProbe on the excitatory channel.
+// There is also a TestNotAlwaysAllZerosProbe on the excitatory channel.
 // It never throws an error (unless StatsProbe would), but a public
 // member function nonzeroValueHasOccurred() returns false if the layer
 // is always zero, and becomes true and stays true once a nonzero value

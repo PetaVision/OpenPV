@@ -1,4 +1,5 @@
 #include "MPIBlock.hpp"
+#include "include/pv_common.h"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.hpp"
@@ -19,6 +20,7 @@ MPIBlock::MPIBlock(
    mGlobalComm = comm;
    initGlobalDimensions(comm, globalNumRows, globalNumColumns, globalBatchDimension);
    initBlockDimensions(blockNumRows, blockNumColumns, blockBatchDimension);
+   dimensionSanityCheck();
    initBlockLocation(comm);
    createBlockComm(comm);
 }
@@ -77,6 +79,39 @@ void MPIBlock::initBlockDimensions(int blockNumRows, int blockNumColumns, int bl
    mNumRows        = blockNumRows > 0 ? blockNumRows : mGlobalNumRows;
    mNumColumns     = blockNumColumns > 0 ? blockNumColumns : mGlobalNumColumns;
    mBatchDimension = blockBatchDimension > 0 ? blockBatchDimension : mGlobalBatchDimension;
+}
+
+void MPIBlock::dimensionSanityCheck() {
+   pvAssert(mGlobalNumRows > 0);        // Should have been set by initGlobalDimensions()
+   pvAssert(mGlobalNumColumns > 0);     // Should have been set by initGlobalDimensions()
+   pvAssert(mGlobalBatchDimension > 0); // Should have been set by initGlobalDimensions()
+   pvAssert(mNumRows > 0);              // Should have been set by initBlockDimensions()
+   pvAssert(mNumColumns > 0);           // Should have been set by initBlockDimensions()
+   pvAssert(mBatchDimension > 0);       // Should have been set by initBlockDimensions()
+ 
+   int status = PV_SUCCESS;
+   if (mGlobalNumRows % mNumRows) {
+      ErrorLog().printf(
+            "NumRows (%d) is not a multiple of CheckpointCellNumRows (%d)\n",
+            mGlobalNumRows,
+            mNumRows);
+      status = PV_FAILURE;
+   }
+   if (mGlobalNumColumns % mNumColumns) {
+      ErrorLog().printf(
+            "NumColumns (%d) is not a multiple of CheckpointCellNumColumns (%d)\n",
+            mGlobalNumColumns,
+            mNumColumns);
+      status = PV_FAILURE;
+   }
+   if (mGlobalBatchDimension % mBatchDimension) {
+      ErrorLog().printf(
+            "BatchDimension (%d) is not a multiple of CheckpointCellBatchDimension (%d)\n",
+            mGlobalBatchDimension,
+            mBatchDimension);
+      status = PV_FAILURE;
+   }
+   FatalIf(status != PV_SUCCESS, "Incompatible CheckpointCell dimensions\n");
 }
 
 void MPIBlock::initBlockLocation(MPI_Comm comm) {

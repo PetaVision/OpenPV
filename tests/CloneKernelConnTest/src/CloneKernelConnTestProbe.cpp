@@ -6,10 +6,12 @@
  */
 
 #include "CloneKernelConnTestProbe.hpp"
-#include <include/pv_arch.h>
-#include <layers/HyPerLayer.hpp>
-#include <string.h>
+#include <include/pv_common.h>
+#include <probes/ProbeData.hpp>
+#include <probes/StatsProbeTypes.hpp>
 #include <utils/PVLog.hpp>
+
+#include <cstdlib>
 
 namespace PV {
 
@@ -17,39 +19,62 @@ CloneKernelConnTestProbe::CloneKernelConnTestProbe(
       const char *name,
       PVParams *params,
       Communicator const *comm)
-      : StatsProbe() {
-   initialize_base();
+      : StatsProbeImmediate() {
    initialize(name, params, comm);
 }
 
-int CloneKernelConnTestProbe::initialize_base() { return PV_SUCCESS; }
+void CloneKernelConnTestProbe::checkStats() {
+   if (mCommunicator->commRank() != 0) {
+      return;
+   }
+   auto const &storedValues           = mProbeAggregator->getStoredValues();
+   auto numTimestamps                 = storedValues.size();
+   int lastTimestampIndex             = static_cast<int>(numTimestamps) - 1;
+   ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
+
+   double simTime   = stats.getTimestamp();
+   int status       = PV_SUCCESS;
+   int const nbatch = stats.size();
+   for (int b = 0; b < nbatch; ++b) {
+      if (simTime > 2.0) {
+         LayerStats const &statsElem = stats.getValue(b);
+         if (std::abs(statsElem.mMin) >= 1.0e-6f) {
+            ErrorLog().printf(
+                  "%s: t=%f, batch index %d had minimum %f instead of expected zero.\n",
+                  getDescription_c(),
+                  simTime,
+                  b,
+                  (double)statsElem.mMin);
+            status = PV_FAILURE;
+         }
+         if (std::abs(statsElem.mMax) >= 1.0e-6f) {
+            ErrorLog().printf(
+                  "%s: t=%f, batch index %d had maximum %f instead of expected zero.\n",
+                  getDescription_c(),
+                  simTime,
+                  b,
+                  (double)statsElem.mMax);
+            status = PV_FAILURE;
+         }
+         if (std::abs(statsElem.average()) >= 1.0e-6) {
+            ErrorLog().printf(
+                  "%s: t=%f, batch index %d had average %f instead of expected zero.\n",
+                  getDescription_c(),
+                  simTime,
+                  b,
+                  statsElem.average());
+            status = PV_FAILURE;
+         }
+      }
+   }
+   FatalIf(status != PV_SUCCESS, "Test failed.\n");
+}
 
 void CloneKernelConnTestProbe::initialize(
       const char *name,
       PVParams *params,
       Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
-}
-
-Response::Status CloneKernelConnTestProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
-   int const rank    = mCommunicator->commRank();
-   int const rcvProc = 0;
-   if (rank != rcvProc) {
-      return status;
-   }
-   for (int b = 0; b < mLocalBatchWidth; b++) {
-      if (simTime > 2.0) {
-         FatalIf(!(fabsf(fMin[b]) < 1e-6f), "Test failed.\n");
-         FatalIf(!(fabsf(fMax[b]) < 1e-6f), "Test failed.\n");
-         FatalIf(!(fabsf(avg[b]) < 1e-6f), "Test failed.\n");
-      }
-   }
-
-   return status;
+   StatsProbeImmediate::initialize(name, params, comm);
 }
 
 } /* namespace PV */

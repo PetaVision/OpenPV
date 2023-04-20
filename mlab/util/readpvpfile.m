@@ -87,7 +87,7 @@ if (exist('last_frame','var') && ~isempty(last_frame))
 else
     lastframe = numframes;
 end%if
-tot_frames = ceil((lastframe-start_frame+1)/skip_frames);
+tot_frames = floor((lastframe - start_frame) / skip_frames + 1);
 
 if isempty(errorstring)
     if(lastframe ~= round(lastframe) || lastframe <= 0)
@@ -130,10 +130,10 @@ if isempty(errorstring)
                         end%if
                     end%if
                 end%if
-                if f < start_frame || mod(f,skip_frames)~=0
+                if f < start_frame || mod(f - start_frame, skip_frames)~=0
                     continue;
                 end%if
-                data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
+                data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end%for %% last_frame
         case 3 % PVP_WGT_FILE_TYPE
             fseek(fid, (start_frame-1)*framesize, 'bof');
@@ -185,10 +185,10 @@ if isempty(errorstring)
                         end%if
                     end%if
                 end%if
-                if f < start_frame || mod(f,skip_frames)~=0
+                if f < start_frame || mod(f - start_frame, skip_frames) ~= 0
                     continue;
                 end%if
-                data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
+                data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end  %% last_frame
         case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
             recordsize = hdr.nx * hdr.ny * hdr.nf;
@@ -212,10 +212,10 @@ if isempty(errorstring)
                         end%if
                     end%if
                 end%if
-                if f < start_frame || mod(f,skip_frames)~=0
+                if f < start_frame || mod(f - start_frame, skip_frames) ~= 0
                     continue;
                 end%if
-                data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
+                data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end%for %% lastframe
         case 5 % PVP_KERNEL_FILE_TYPE
             %keyboard;
@@ -257,10 +257,10 @@ if isempty(errorstring)
                         end%if
                     end%if
                 end%if
-                if f < start_frame || mod(f,skip_frames)~=0
+                if f < start_frame || mod(f - start_frame, skip_frames)~=0
                     continue;
                 end%if
-                data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
+                data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end%for %% last_frame
         case 6 % PVP_ACT_SPARSEVALUES_FILE_TYPE
             for f=1:lastframe
@@ -279,10 +279,10 @@ if isempty(errorstring)
                         end%if
                     end%if
                 end%if
-                if f < start_frame || mod(f,skip_frames)~=0
+                if f < start_frame || mod(f - start_frame, skip_frames) ~= 0
                     continue;
                 end%if
-                data{ceil((f - start_frame + 1)/skip_frames)} = data_tmp;
+                data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end%for %% last_frame
         otherwise
             assert(0); % This possibility should have been weeded out above

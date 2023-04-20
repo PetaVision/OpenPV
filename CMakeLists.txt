@@ -19,7 +19,7 @@ set(PV_BUILD_TOOLS_DEFAULT OFF)
 
 # Help strings
 set(PV_BUILD_DEMOS_HELP "Build OpenPV demos")
-set(PV_BUILD_DEMOS_HELP "Build OpenPV tools")
+set(PV_BUILD_TOOLS_HELP "Build OpenPV tools")
 
 # Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")

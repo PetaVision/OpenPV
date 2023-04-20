@@ -15,10 +15,10 @@ ImagePvpTestBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointe
    if (!Response::completed(status)) {
       return status;
    }
-   if (getMPIBlock()->getRank() == 0) {
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
       mNumFrames = countInputImages();
    }
-   MPI_Bcast(&mNumFrames, 1, MPI_INT, 0, getMPIBlock()->getComm());
+   MPI_Bcast(&mNumFrames, 1, MPI_INT, 0, getCommunicator()->ioCommunicator());
    return Response::SUCCESS;
 }
 

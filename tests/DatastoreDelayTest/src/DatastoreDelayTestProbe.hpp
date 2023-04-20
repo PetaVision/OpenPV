@@ -8,31 +8,34 @@
 #ifndef DATASTOREDELAYTESTPROBE_HPP_
 #define DATASTOREDELAYTESTPROBE_HPP_
 
-#include "include/pv_common.h"
-#include "probes/StatsProbe.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Messages.hpp"
+#include "components/BasePublisherComponent.hpp"
+#include "io/PVParams.hpp"
+#include "observerpattern/Response.hpp"
+#include "probes/StatsProbeImmediate.hpp"
+#include <memory>
 
 namespace PV {
 
-class DatastoreDelayTestProbe : public StatsProbe {
-  protected:
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
-
+class DatastoreDelayTestProbe : public StatsProbeImmediate {
   public:
    DatastoreDelayTestProbe(const char *name, PVParams *params, Communicator const *comm);
-
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
 
    virtual ~DatastoreDelayTestProbe();
 
   protected:
+   virtual void checkStats() override;
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
    // Data members
   private:
-   int mNumDelayLevels = 0;
+   BasePublisherComponent *mInputPublisher = nullptr;
 };
-}
+
+} // namespace PV
 
 #endif /* DATASTOREDELAYTESTPROBE_HPP_ */

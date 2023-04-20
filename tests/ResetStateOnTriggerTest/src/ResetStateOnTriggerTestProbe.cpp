@@ -1,124 +1,137 @@
 #include "ResetStateOnTriggerTestProbe.hpp"
+#include <arch/mpi/mpi.h>
+#include <columns/BaseObject.hpp>
+#include <columns/Communicator.hpp>
+#include <columns/Messages.hpp>
 #include <components/BasePublisherComponent.hpp>
+#include <components/PhaseParam.hpp>
+#include <io/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
+#include <observerpattern/BaseMessage.hpp>
+#include <observerpattern/Response.hpp>
+#include <probes/ProbeData.hpp>
+#include <probes/TargetLayerComponent.hpp>
+#include <utils/PVAssert.hpp>
 
-using namespace PV;
+#include <cmath>
+#include <functional>
+#include <vector>
+
+using PV::BaseMessage;
 
 ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe(
       char const *name,
-      PVParams *params,
-      Communicator const *comm) {
-   initialize_base();
+      PV::PVParams *params,
+      PV::Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-ResetStateOnTriggerTestProbe::ResetStateOnTriggerTestProbe() { initialize_base(); }
+ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {}
 
-int ResetStateOnTriggerTestProbe::initialize_base() {
-   probeStatus      = 0;
-   firstFailureTime = 0;
-   return PV_SUCCESS;
+PV::Response::Status ResetStateOnTriggerTestProbe::communicateInitInfo(
+      std::shared_ptr<PV::CommunicateInitInfoMessage const> message) {
+   auto status = PV::BaseObject::communicateInitInfo(message);
+   if (!PV::Response::completed(status)) {
+      return status;
+   }
+   status = status + mTargetLayerLocator->communicateInitInfo(message);
+   return PV::Response::SUCCESS;
 }
 
 void ResetStateOnTriggerTestProbe::initialize(
       char const *name,
       PVParams *params,
       Communicator const *comm) {
-   LayerProbe::initialize(name, params, comm);
+   mProbeLocal         = std::make_shared<ResetStateOnTriggerTestProbeLocal>(name, params);
+   mTargetLayerLocator = std::make_shared<TargetLayerComponent>(name, params);
+   mProbeOutputter = std::make_shared<ResetStateOnTriggerTestProbeOutputter>(name, params, comm);
+   BaseObject::initialize(name, params, comm);
 }
 
-Response::Status ResetStateOnTriggerTestProbe::initializeState(
-      std::shared_ptr<InitializeStateMessage const> message) {
-   mDeltaTime = message->mDeltaTime;
-   return Response::SUCCESS;
+void ResetStateOnTriggerTestProbe::initMessageActionMap() {
+   BaseObject::initMessageActionMap();
+   std::function<PV::Response::Status(std::shared_ptr<BaseMessage const>)> action;
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<LayerOutputStateMessage const>(msgptr);
+      return respondLayerOutputState(castMessage);
+   };
+   mMessageActionMap.emplace("LayerOutputState", action);
+
+   action = [this](std::shared_ptr<BaseMessage const> msgptr) {
+      auto castMessage = std::dynamic_pointer_cast<ProbeWriteParamsMessage const>(msgptr);
+      return respondProbeWriteParams(castMessage);
+   };
+   mMessageActionMap.emplace("ProbeWriteParams", action);
 }
 
-void ResetStateOnTriggerTestProbe::calcValues(double timevalue) {
-   int nBatch = getNumValues();
-   if (timevalue > 0.0) {
-      auto *targetPublisher = targetLayer->getComponentByType<BasePublisherComponent>();
-      PVLayerLoc const *loc = targetLayer->getLayerLoc();
-      int N                 = loc->nx * loc->ny * loc->nf;
-      int NGlobal           = loc->nxGlobal * loc->nyGlobal * loc->nf;
-      int numExtended       = targetLayer->getNumExtended();
-      PVHalo const *halo    = &loc->halo;
-      int inttime           = (int)nearbyintf(timevalue / mDeltaTime);
-      for (int b = 0; b < nBatch; b++) {
-         int numDiscreps       = 0;
-         float const *activity = targetPublisher->getLayerData() + b * numExtended;
-         for (int k = 0; k < N; k++) {
-            int kex = kIndexExtended(
-                  k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
-            float a          = activity[kex];
-            int kGlobal      = globalIndexFromLocal(k, *loc);
-            int correctValue = 4 * kGlobal * ((inttime + 4) % 5 + 1)
-                               + (kGlobal == ((((inttime - 1) / 5) * 5) + 1) % NGlobal);
-            if (a != (float)correctValue) {
-               numDiscreps++;
-            }
-         }
-         getProbeValues()[b] = (double)numDiscreps;
-      }
+int ResetStateOnTriggerTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = BaseObject::ioParamsFillGroup(ioFlag);
+   mTargetLayerLocator->ioParamsFillGroup(ioFlag);
+   mProbeOutputter->ioParamsFillGroup(ioFlag);
+   mProbeLocal->ioParamsFillGroup(ioFlag);
+   return status;
+}
+
+PV::Response::Status
+ResetStateOnTriggerTestProbe::outputState(std::shared_ptr<LayerOutputStateMessage const> message) {
+   double timestepNum = std::nearbyint(message->mTime / message->mDeltaTime);
+
+   if (timestepNum > 0.0) {
+      mProbeLocal->clearStoredValues();
+      mProbeLocal->storeValues(timestepNum);
+      pvAssert(static_cast<int>(mProbeLocal->getStoredValues().size()) == 1);
+      ProbeData<int> const &localDiscrepsData     = mProbeLocal->getStoredValues().getData(0);
+      std::vector<int> const &localDiscrepsVector = localDiscrepsData.getValues();
+      int nBatch                                  = static_cast<int>(localDiscrepsVector.size());
+      ProbeData<int> globalDiscreps(message->mTime, nBatch);
       MPI_Allreduce(
-            MPI_IN_PLACE,
-            getProbeValues().data(),
+            localDiscrepsVector.data(),
+            &globalDiscreps.getValue(0),
             nBatch,
-            MPI_DOUBLE,
+            MPI_INT,
             MPI_SUM,
             mCommunicator->communicator());
-      if (probeStatus == 0) {
-         for (int k = 0; k < nBatch; k++) {
-            if (getProbeValues()[k]) {
-               probeStatus      = 1;
-               firstFailureTime = timevalue;
-            }
-         }
-      }
+      mProbeOutputter->printGlobalStatsBuffer(globalDiscreps);
    }
-   else {
-      for (int b = 0; b < nBatch; b++) {
-         getProbeValues()[b] = 0.0;
-      }
-   }
+   return PV::Response::SUCCESS;
 }
 
-Response::Status ResetStateOnTriggerTestProbe::outputState(double simTime, double deltaTime) {
-   getValues(simTime); // calls calcValues
-   if (mOutputStreams.empty()) {
-      return Response::SUCCESS;
+PV::Response::Status ResetStateOnTriggerTestProbe::registerData(
+      std::shared_ptr<PV::RegisterDataMessage<PV::Checkpointer> const> message) {
+   auto status = PV::BaseObject::registerData(message);
+   if (!PV::Response::completed(status)) {
+      return status;
    }
-   if (probeStatus != 0) {
-      int nBatch = getNumValues();
-      pvAssert((std::size_t)nBatch == mOutputStreams.size());
-      int globalBatchSize = nBatch * getMPIBlock()->getGlobalBatchDimension();
-      for (int localBatchIndex = 0; localBatchIndex < nBatch; localBatchIndex++) {
-         int nnz = (int)nearbyint(getProbeValues()[localBatchIndex]);
-         if (globalBatchSize == 1) {
-            pvAssert(localBatchIndex == 0);
-            output(localBatchIndex)
-                  .printf(
-                        "%s t=%f, %d neuron%s the wrong value.\n",
-                        getMessage(),
-                        simTime,
-                        nnz,
-                        nnz == 1 ? " has" : "s have");
-         }
-         else {
-            output(localBatchIndex)
-                  .printf(
-                        "%s t=%f, batch element %d, %d neuron%s the wrong value.\n",
-                        getMessage(),
-                        simTime,
-                        localBatchIndex,
-                        nnz,
-                        nnz == 1 ? " has" : "s have");
-         }
-      }
-   }
-   return Response::SUCCESS;
+   auto *targetLayer = mTargetLayerLocator->getTargetLayer();
+   mProbeLocal->initializeState(targetLayer);
+
+   mTargetLayerLoc = targetLayer->getLayerLoc();
+
+   auto *targetPublisher = targetLayer->getComponentByType<PV::BasePublisherComponent>();
+   mTargetLayerData      = targetPublisher->getLayerData();
+
+   auto *checkpointer = message->mDataRegistry;
+   mProbeOutputter->initOutputStreams(checkpointer, mTargetLayerLoc->nbatch);
+   return PV::Response::SUCCESS;
 }
 
-ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {}
+PV::Response::Status ResetStateOnTriggerTestProbe::respondLayerOutputState(
+      std::shared_ptr<LayerOutputStateMessage const> message) {
+   auto status          = PV::Response::SUCCESS;
+   auto *targetLayer    = mTargetLayerLocator->getTargetLayer();
+   int targetLayerPhase = targetLayer->getComponentByType<PV::PhaseParam>()->getPhase();
+   if (message->mPhase == targetLayerPhase) {
+      status = outputState(message);
+   }
+   return status;
+}
+
+PV::Response::Status ResetStateOnTriggerTestProbe::respondProbeWriteParams(
+      std::shared_ptr<ProbeWriteParamsMessage const> message) {
+   writeParams();
+   return PV::Response::SUCCESS;
+}
 
 BaseObject *
 createResetStateOnTriggerTestProbe(char const *name, PVParams *params, Communicator const *comm) {

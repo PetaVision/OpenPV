@@ -6,8 +6,24 @@
  */
 
 #include "PointProbe.hpp"
+#include "arch/mpi/mpi.h"
+#include "checkpointing/CheckpointEntryFilePosition.hpp"
+#include "components/ActivityComponent.hpp"
+#include "components/BasePublisherComponent.hpp"
+#include "components/InternalStateBuffer.hpp"
+#include "include/PVLayerLoc.h"
+#include "include/pv_common.h"
+#include "io/FileStreamBuilder.hpp"
+#include "io/PrintStream.hpp"
 #include "layers/HyPerLayer.hpp"
-#include <string.h>
+#include "structures/MPIBlock.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include "utils/conversions.hpp"
+#include <cassert>
+#include <cstdlib>
+#include <ostream>
+#include <string>
 
 namespace PV {
 
@@ -18,7 +34,7 @@ PointProbe::PointProbe() {
 }
 
 PointProbe::PointProbe(const char *name, PVParams *params, Communicator const *comm)
-      : LayerProbe() {
+      : LegacyLayerProbe() {
    initialize_base();
    initialize(name, params, comm);
 }
@@ -34,11 +50,11 @@ int PointProbe::initialize_base() {
 }
 
 void PointProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   LayerProbe::initialize(name, params, comm);
+   LegacyLayerProbe::initialize(name, params, comm);
 }
 
 int PointProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = LayerProbe::ioParamsFillGroup(ioFlag);
+   int status = LegacyLayerProbe::ioParamsFillGroup(ioFlag);
    ioParam_xLoc(ioFlag);
    ioParam_yLoc(ioFlag);
    ioParam_fLoc(ioFlag);
@@ -72,7 +88,7 @@ void PointProbe::initNumValues() { setNumValues(2); }
 
 Response::Status
 PointProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto status = LayerProbe::communicateInitInfo(message);
+   auto status = LegacyLayerProbe::communicateInitInfo(message);
    if (!Response::completed(status)) {
       return status;
    }
@@ -131,24 +147,38 @@ void PointProbe::initOutputStreams(
    int yRank             = yLoc / loc->ny; // integer division
    int batchRank         = batchLoc / loc->nbatch; // integer division
 
-   int blockColumnIndex = getMPIBlock()->getStartColumn() + getMPIBlock()->getColumnIndex();
-   int blockRowIndex    = getMPIBlock()->getStartRow() + getMPIBlock()->getRowIndex();
-   int blockBatchIndex  = getMPIBlock()->getStartBatch() + getMPIBlock()->getBatchIndex();
+   auto ioMPIBlock      = getCommunicator()->getIOMPIBlock();
+   int blockColumnIndex = ioMPIBlock->getStartColumn() + ioMPIBlock->getColumnIndex();
+   int blockRowIndex    = ioMPIBlock->getStartRow() + ioMPIBlock->getRowIndex();
+   int blockBatchIndex  = ioMPIBlock->getStartBatch() + ioMPIBlock->getBatchIndex();
 
    if (xRank == blockColumnIndex and yRank == blockRowIndex and batchRank == blockBatchIndex) {
       if (getProbeOutputFilename()) {
-         auto *checkpointer = message->mDataRegistry;
+         auto *checkpointer              = message->mDataRegistry;
          char const *probeOutputFilename = getProbeOutputFilename();
          std::string path(probeOutputFilename);
          bool createFlag = checkpointer->getCheckpointReadDirectory().empty();
-         std::string filePosName(probeOutputFilename);
-         filePosName.append("_filepos");
-         auto stream = new CheckpointableFileStream(
-               path.c_str(), createFlag, checkpointer, filePosName);
+         auto stream     = FileStreamBuilder(
+                             getCommunicator()->getOutputFileManager(),
+                             getProbeOutputFilename(),
+                             true /*text*/,
+                             false /*not read-only*/,
+                             createFlag,
+                             checkpointer->doesVerifyWrites())
+                             .get();
+         auto checkpointEntry =
+               std::make_shared<CheckpointEntryFilePosition>(getProbeOutputFilename(), stream);
+         bool registerSucceeded = checkpointer->registerCheckpointEntry(
+               checkpointEntry, false /*not constant for entire run*/);
+         FatalIf(
+               !registerSucceeded,
+               "%s failed to register %s for checkpointing.\n",
+               getDescription_c(),
+               checkpointEntry->getName().c_str());
          mOutputStreams.push_back(stream);
       }
       else {
-         auto stream = new PrintStream(PV::getOutputStream());
+         auto stream = std::make_shared<PrintStream>(PV::getOutputStream());
          mOutputStreams.push_back(stream);
       }
    }
@@ -159,7 +189,7 @@ void PointProbe::initOutputStreams(
 
 Response::Status
 PointProbe::initializeState(std::shared_ptr<InitializeStateMessage const> message) {
-   auto status = LayerProbe::initializeState(message);
+   auto status = LegacyLayerProbe::initializeState(message);
    if (!Response::completed(status)) {
       return status;
    }
@@ -235,7 +265,7 @@ Response::Status PointProbe::outputState(double simTime, double deltaTime) {
 void PointProbe::calcValues(double timevalue) {
    assert(this->getNumValues() == 2);
    auto &valuesVector = getProbeValues();
-   auto globalComm     = mCommunicator->globalCommunicator();
+   auto globalComm    = mCommunicator->globalCommunicator();
 
    if (getPointRank() == mCommunicator->globalCommRank()) {
       pvAssert(mPointA);
@@ -252,7 +282,8 @@ void PointProbe::calcValues(double timevalue) {
 
    // Root process receives from local rank of the target point.
    if (mCommunicator->globalCommRank() == 0 and getPointRank() != 0) {
-      MPI_Recv(valuesVector.data(), 2, MPI_DOUBLE, getPointRank(), 0, globalComm, MPI_STATUS_IGNORE);
+      MPI_Recv(
+            valuesVector.data(), 2, MPI_DOUBLE, getPointRank(), 0, globalComm, MPI_STATUS_IGNORE);
    }
 }
 

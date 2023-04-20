@@ -6,12 +6,12 @@
  */
 
 #include "fileio.hpp"
-#include "connections/weight_conversions.hpp"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/ExpandLeadingTilde.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.hpp"
+#include "utils/weight_conversions.hpp"
 
 #include <assert.h>
 #include <iostream>
@@ -22,10 +22,8 @@ namespace PV {
 
 int PV_stat(const char *path, struct stat *buf) {
    // Call stat library function, trying up to MAX_FILESYSTEMCALL_TRIES times if an error is
-   // returned.
-   // If an error results on all MAX_FILESYSTEMCALL_TRIES times, returns -1 (the error return value)
-   // for stat()
-   // and errno is the error of the last attempt.
+   // returned. If an error results on all MAX_FILESYSTEMCALL_TRIES times, returns -1 (the error
+   // return value) for stat() and errno is the error of the last attempt.
    char *realPath = strdup(expandLeadingTilde(path).c_str());
    int attempt    = 0;
    int retval     = -1;

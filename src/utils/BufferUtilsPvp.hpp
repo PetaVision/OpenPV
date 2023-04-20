@@ -1,16 +1,13 @@
-#ifndef __BUFFERUTILSPVP_HPP__
-#define __BUFFERUTILSPVP_HPP__
+#ifndef BUFFERUTILSPVP_HPP_
+#define BUFFERUTILSPVP_HPP_
 
-#include "include/pv_types.h"
+#include "include/PVLayerLoc.h"
 #include "io/FileStream.hpp"
 #include "structures/Buffer.hpp"
 #include "structures/SparseList.hpp"
 
-#include <string>
+#include <cstdlib>
 #include <vector>
-
-using std::vector;
-using std::string;
 
 // File type of activities where there are no timestamps in the individual frames.  No longer used
 #define PVP_FILE_TYPE 1
@@ -84,9 +81,8 @@ typedef enum HeaderDataTypeEnum {
 // a sparse pvp file from start to finish every time
 // we want to load data from it.
 struct SparseFileTable {
-   vector<long> frameStartOffsets;
-   vector<long> frameLengths;
-   bool valuesIncluded;
+   std::vector<long> frameStartOffsets;
+   std::vector<long> frameLengths;
 };
 
 struct ActivityHeader {
@@ -362,4 +358,4 @@ void calcNumberOfPatches(
 
 #include "BufferUtilsPvp.tpp"
 
-#endif
+#endif // BUFFERUTILSPVP_HPP_

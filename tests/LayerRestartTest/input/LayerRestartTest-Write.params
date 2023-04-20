@@ -41,10 +41,10 @@ PvpLayer "Image" = {
     autoResizeFlag = false;
     offsetX = 0;
     offsetY = 0;
-	displayPeriod                       = 0;
+    displayPeriod                       = 0;
 };
 
-ANNLayer "Copy" = {
+HyPerLayer "Copy" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -58,12 +58,6 @@ ANNLayer "Copy" = {
 
     InitVType = "ConstantV";
     valueV = 0;
-
-    VThresh = -infinity;
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
 };
 
 PvpLayer "RandomImage" = {
@@ -79,12 +73,12 @@ PvpLayer "RandomImage" = {
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
-	displayPeriod = 0;
+    displayPeriod = 0;
     offsetX = 0;
     offsetY = 0;
 };
 
-ANNLayer "Comparison" = {
+HyPerLayer "Comparison" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -97,12 +91,6 @@ ANNLayer "Comparison" = {
     sparseLayer = 0;
 
     InitVType = "ZeroV";
-
-    VThresh = -infinity;
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
 };
 
 IdentConn "ImageToCopy" = {

@@ -15,7 +15,8 @@ void FixedImageSequenceByFile::initialize(
 }
 
 void FixedImageSequenceByFile::defineImageSequence() {
-   int globalBatchSize = getMPIBlock()->getGlobalBatchDimension() * getLayerLoc()->nbatch;
+   int globalBatchDim  = getCommunicator()->getIOMPIBlock()->getGlobalBatchDimension();
+   int globalBatchSize = globalBatchDim * getLayerLoc()->nbatch;
    mIndexStart         = 0;
    mIndexStepBatch     = 1;
    mIndexStepTime      = globalBatchSize;

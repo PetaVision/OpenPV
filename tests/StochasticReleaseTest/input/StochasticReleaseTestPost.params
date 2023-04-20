@@ -22,11 +22,11 @@ HyPerCol "column" = {
    progressInterval = 5.0; //Program will output its progress at each progressInterval
    writeProgressToErr = false;
    verifyWrites = false;
-   outputPath = "output/";
+   outputPath = "output/StochasticReleaseTestPost";
    printParamsFilename = "pv.params";
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
-   lastCheckpointDir = "output/Last"; //Default is to save the last output as a checkpoint; setting this flag to true turns this behavior off.
+   lastCheckpointDir = "output/StochasticReleaseTestPost/Last"; //Default is to save the last output as a checkpoint; setting this flag to true turns this behavior off.
    errorOnNotANumber = false;
 };
 
@@ -55,7 +55,6 @@ PvpLayer "Input" = {
 };
 
 HyPerLayer "Output" = {
-    restart = 0;
     nxScale = 1; 
     nyScale = 1;
     nf = 6;

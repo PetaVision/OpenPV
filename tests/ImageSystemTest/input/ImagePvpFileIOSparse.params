@@ -18,9 +18,9 @@ HyPerCol "column" = {
    progressInterval = 10.0; //Program will output its progress at each progressInterval
    writeProgressToErr = false;  
    nbatch = 2;
-   outputPath = "output/";
+   outputPath = "output/ImagePvpFileIOSparse";
    checkpointWrite = false;
-   lastCheckpointDir = "output/Last"; //Save the last output as checkpoint.
+   lastCheckpointDir = "output/ImagePvpFileIOSparse/Last"; //Save the last output as checkpoint.
 };
 
 //

@@ -12,18 +12,18 @@
 debugParsing = false;    // Debug the reading of this parameter file.
 
 HyPerCol "column" = {
-   nx = 64;   //size of the whole networks
-   ny = 64;
-   dt = 1.0;  //time step in ms.	     
-   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   stopTime = 5.0;  
-   nbatch = 8;
-   threadBatch = 0;
-   progressInterval = 1.0; //Program will output its progress at each progressInterval
-   writeProgressToErr = false;  
-   outputPath = "output/";
-   checkpointWrite = false;
-   lastCheckpointDir = "output/Last"; //Save the last output as checkpoint.
+    nx = 64;   //size of the whole networks
+    ny = 64;
+    dt = 1.0;  //time step in ms.	     
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    stopTime = 5.0;  
+    nbatch = 8;
+    threadBatch = 0;
+    progressInterval = 1.0; //Program will output its progress at each progressInterval
+    writeProgressToErr = false;  
+    outputPath = "output/postRecvBatch";
+    checkpointWrite = false;
+    lastCheckpointDir = "output/postRecvBatch/Last"; //Save the last output as checkpoint.
 };
 
 //

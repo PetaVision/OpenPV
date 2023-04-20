@@ -3,6 +3,7 @@
  */
 
 #include <components/Weights.hpp>
+#include <utils/PathComponents.hpp> // PV::baseName
 #include <utils/PVLog.hpp>
 #include <utils/conversions.hpp>
 
@@ -323,9 +324,7 @@ int main(int argc, char *argv[]) {
    testOneToManyNonshared();
    testManyToOneShared();
    testManyToOneNonshared();
-   char *programPath = strdup(argv[0]);
-   char *programName = basename(programPath);
+   std::string programName = PV::baseName(argv[0]);
    InfoLog() << programName << " passed.\n";
-   free(programPath);
    return 0;
 }

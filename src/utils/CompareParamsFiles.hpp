@@ -28,7 +28,7 @@ namespace PV {
 int compareParamsFiles(
       std::string const &paramsFile1,
       std::string const &paramsFile2,
-      Communicator const *comm);
+      MPI_Comm mpiComm);
 
 /**
  * Compares two ParameterGroup objects, printing error messages describing any differences.

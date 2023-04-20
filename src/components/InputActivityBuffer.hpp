@@ -8,11 +8,21 @@
 #ifndef INPUTACTIVITYBUFFER_HPP_
 #define INPUTACTIVITYBUFFER_HPP_
 
-#include "checkpointing/CheckpointableFileStream.hpp"
+#include "checkpointing/Checkpointer.hpp"
+#include "checkpointing/CheckpointingMessages.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Messages.hpp"
 #include "components/ActivityBuffer.hpp"
 #include "components/BatchIndexer.hpp"
+#include "io/FileStream.hpp"
+#include "io/PVParams.hpp"
+#include "observerpattern/Response.hpp"
+#include "structures/Buffer.hpp"
 #include "utils/BufferUtilsRescale.hpp"
+#include <memory>
 #include <random>
+#include <string>
+#include <vector>
 
 namespace PV {
 
@@ -40,6 +50,22 @@ class InputActivityBuffer : public ActivityBuffer {
    virtual void ioParam_offsets(enum ParamsIOFlag ioFlag);
 
    /**
+    * jitterChangeInterval:
+    * Defines the period of the random shifts updates
+    * A value less than or equal to zero means no jitter.
+    */
+   virtual void ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag);
+
+   /**
+    * jitterChangeIntervalUnit:
+    * Either "displayPeriod" or "timestep" (case-insensitive).
+    * Whether jitterChangeInterval is the number of display periods or
+    * the number of timesteps.
+    * Defaults to displayPeriod.
+    */
+   virtual void ioParam_jitterChangeIntervalUnit(enum ParamsIOFlag ioFlag);
+
+   /**
     * maxShiftX: max random shift in X direction
     * maxShiftY: max random shift in Y direction
     * Defines the max random shift in image space
@@ -59,16 +85,11 @@ class InputActivityBuffer : public ActivityBuffer {
    virtual void ioParam_flipsToggle(enum ParamsIOFlag ioFlag);
 
    /**
-    * jitterChangeInterval: interval measured in displayPeriods
-    * Defines the frequency of the random shifts updates
-    */
-   virtual void ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag);
-
-   /**
     * offsetAnchor: Defines where the anchor point is for the offsets.
     * Specified as a 2 character string, "xy"
     * x can be 'l', 'c', or 'r' for left, center, right respectively <br />
     * y can be 't', 'c', or 'b' for top, center, bottom respectively <br />
+    * The order of the letters can also be swapped (e.g. "tl" and "lt" both indicate top left.
     */
    virtual void ioParam_offsetAnchor(enum ParamsIOFlag ioFlag);
 
@@ -194,13 +215,6 @@ class InputActivityBuffer : public ActivityBuffer {
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
-   /**
-    * Returns PV_SUCCESS if offsetAnchor is a valid anchor string, PV_FAILURE otherwise.
-    * (two characters long; first characters one of 't', 'c', or 'b'; second characters one of 'l',
-    * 'c', or 'r')
-    */
-   int checkValidAnchorString(const char *offsetAnchor);
-
    virtual Response::Status
    communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
 
@@ -262,6 +276,12 @@ class InputActivityBuffer : public ActivityBuffer {
 
   private:
    /**
+    * @brief Called by ioParam_offsetAnchor() if the offsetAnchor parameter is not an
+    * acceptable string.
+    */
+   void badOffsetAnchorString(char const *offsetAnchor);
+
+   /**
     * Resizes a buffer from the image size to the global layer size. If autoResizeFlag is true,
     * it calls BufferUtils::rescale. If autoResizeFlag is false, it calls Buffer methods grow,
     * translate, and crop. This method is called only by the MPI block root process,
@@ -306,6 +326,14 @@ class InputActivityBuffer : public ActivityBuffer {
    int mOffsetX = 0;
    int mOffsetY = 0;
 
+   // How often to change random shifts (measured in displayPeriods)
+   // Value of zero means no jitter
+   int mJitterChangeInterval = 0;
+
+   char *mJitterChangeIntervalUnit = nullptr;
+
+   int mJitterChangeIntervalInTimesteps = 0;
+
    // If nonzero, create a sample by shifting image randomly in [-maxRandomShiftX, maxRandomShiftX]
    // x [-maxRandomShiftY, maxRandomShiftY]
    int mMaxShiftX = 0;
@@ -318,9 +346,6 @@ class InputActivityBuffer : public ActivityBuffer {
    // If this is true, toggle mirror flips each time instead of randomly selecting
    bool mXFlipToggle = false;
    bool mYFlipToggle = false;
-
-   // How often to change random shifts (measured in displayPeriods)
-   int mJitterChangeInterval = 1;
 
    // Flag that enables rescaling input buffer to layer dimensions instead of just cropping
    bool mAutoResizeFlag = false;
@@ -404,8 +429,8 @@ class InputActivityBuffer : public ActivityBuffer {
    // copied to.
    std::vector<ActivityBuffer *> mInputRegionTargets;
 
-   // Filepointer to output file used when mWriteFrameToTimestamp == true
-   CheckpointableFileStream *mTimestampStream = nullptr;
+   // FileStream to output file used when mWriteFrameToTimestamp == true
+   std::shared_ptr<FileStream> mTimestampStream;
 };
 
 } // namespace PV

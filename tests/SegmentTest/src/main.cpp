@@ -12,6 +12,7 @@
 #include "AssertZerosProbe.hpp"
 #include "SegmentTestLayer.hpp"
 #include "SegmentifyTest.hpp"
+#include <columns/Factory.hpp>
 #include <columns/PV_Init.hpp>
 #endif // MAIN_USES_CUSTOM_GROUPS
 

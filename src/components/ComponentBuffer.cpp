@@ -76,8 +76,8 @@ Response::Status ComponentBuffer::allocateDataStructures() {
 
 void ComponentBuffer::setBufferSize() {
    PVLayerLoc const *loc     = getLayerLoc();
-   int nx                    = loc->nx + getExtendedFlag() * (loc->halo.lt + loc->halo.rt);
-   int ny                    = loc->ny + getExtendedFlag() * (loc->halo.dn + loc->halo.up);
+   int nx                    = loc->nx + (getExtendedFlag() ? loc->halo.lt + loc->halo.rt : 0);
+   int ny                    = loc->ny + (getExtendedFlag() ? loc->halo.dn + loc->halo.up : 0);
    int nf                    = loc->nf;
    int nb                    = loc->nbatch;
    mBufferSize               = nx * ny * nf;
@@ -119,7 +119,6 @@ ComponentBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
       auto checkpointEntry = std::make_shared<CheckpointEntryPvpBuffer<float>>(
             getName(),
             mBufferLabel.c_str(),
-            getMPIBlock(),
             mBufferData.data(),
             getLayerLoc(),
             getExtendedFlag());

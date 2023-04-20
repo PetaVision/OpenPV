@@ -18,25 +18,23 @@ class CheckpointEntryDataStore : public CheckpointEntryPvp<float> {
   public:
    CheckpointEntryDataStore(
          std::string const &name,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          DataStore *dataStore,
          PVLayerLoc const *layerLoc)
-         : CheckpointEntryPvp<float>(name, mpiBlock, layerLoc, true), mDataStore(dataStore) {}
+         : CheckpointEntryPvp<float>(name, layerLoc, true), mDataStore(dataStore) {}
    CheckpointEntryDataStore(
          std::string const &objName,
          std::string const &dataName,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          DataStore *dataStore,
          PVLayerLoc const *layerLoc)
-         : CheckpointEntryPvp<float>(objName, dataName, mpiBlock, layerLoc, true),
+         : CheckpointEntryPvp<float>(objName, dataName, layerLoc, true),
            mDataStore(dataStore) {}
 
-   virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
+   virtual void
+         read(std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const override;
 
   protected:
-   virtual int getNumFrames() const override;
-   virtual float *calcBatchElementStart(int batchElement) const override;
-   virtual int calcMPIBatchIndex(int frame) const override;
+   virtual int getNumIndices() const override;
+   virtual float *calcBatchElementStart(int batchElement, int index) const override;
    virtual void applyTimestamps(std::vector<double> const &timestamps) const override {
       setLastUpdateTimes(timestamps);
    }

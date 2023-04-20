@@ -21,9 +21,9 @@ HyPerCol "column" = {
    threadBatch = 0;
    progressInterval = 1.0; //Program will output its progress at each progressInterval
    writeProgressToErr = false;  
-   outputPath = "output/";
+   outputPath = "output/postRecvBatch";
    checkpointWrite = false;
-   lastCheckpointDir = "output/Last"; //Save the last output as checkpoint.
+   lastCheckpointDir = "output/postRecvBatch/Last"; //Save the last output as checkpoint.
 };
 
 //

@@ -1,8 +1,8 @@
 // Wrapper class for stb_image.h
 // athresher, Jul 27 2016
 
-#ifndef __IMAGE_HPP__
-#define __IMAGE_HPP__
+#ifndef IMAGE_HPP__
+#define IMAGE_HPP__
 
 #include "Buffer.hpp"
 
@@ -39,4 +39,4 @@ class Image : public Buffer<float> {
 };
 }
 
-#endif
+#endif // IMAGE_HPP_

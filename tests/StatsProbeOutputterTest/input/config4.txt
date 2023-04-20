@@ -1,0 +1,9 @@
+ParamsFile:input/StatsProbeOutputterTest.params
+LogFile:StatsProbeOutputterTest_8.log
+NumThreads:-
+NumRows:1
+NumColumns:1
+BatchWidth:4
+CheckpointCellNumRows:1
+CheckpointCellNumColumns:1
+CheckpointCellBatchDimension:2

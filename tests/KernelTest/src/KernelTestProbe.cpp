@@ -6,44 +6,48 @@
  */
 
 #include "KernelTestProbe.hpp"
-#include <include/pv_arch.h>
-#include <layers/HyPerLayer.hpp>
-#include <string.h>
+#include <probes/ActivityBufferStatsProbeLocal.hpp>
+#include <probes/ProbeData.hpp>
+#include <probes/StatsProbeTypes.hpp>
 #include <utils/PVLog.hpp>
+
+#include <cstdlib>
+#include <memory>
 
 namespace PV {
 
 KernelTestProbe::KernelTestProbe(const char *name, PVParams *params, Communicator const *comm)
-      : StatsProbe() {
+      : StatsProbeImmediate() {
    initialize(name, params, comm);
 }
 
-int KernelTestProbe::initialize_base() { return PV_SUCCESS; }
-
-void KernelTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
-}
-
-void KernelTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
-
-Response::Status KernelTestProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
-   if (status != Response::SUCCESS) {
-      return status;
+void KernelTestProbe::checkStats() {
+   const int rootProc = 0;
+   if (mCommunicator->commRank() != rootProc) {
+      return;
    }
-   const int rcvProc = 0;
-   if (mCommunicator->commRank() != rcvProc) {
-      return status;
-   }
-   for (int b = 0; b < mLocalBatchWidth; b++) {
-      if (simTime > 2.0) {
-         FatalIf((fMin[b] <= 0.99f) or (fMin[b] >= 1.010f), "Test failed.\n");
-         FatalIf((fMax[b] <= 0.99f) or (fMax[b] >= 1.010f), "Test failed.\n");
-         FatalIf((avg[b] <= 0.99f) or (avg[b] >= 1.010f), "Test failed.\n");
+   auto const &storedValues           = mProbeAggregator->getStoredValues();
+   auto numTimestamps                 = storedValues.size();
+   int lastTimestampIndex             = static_cast<int>(numTimestamps) - 1;
+   ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
+   double simTime                     = stats.getTimestamp();
+   int nbatch                         = static_cast<int>(stats.size());
+   if (simTime > 2.0) {
+      for (int b = 0; b < nbatch; b++) {
+         LayerStats const &statsElem = stats.getValue(b);
+         FatalIf(std::abs(statsElem.mMin - 1.00f) >= 0.01f, "Test failed.\n");
+         FatalIf(std::abs(statsElem.mMax - 1.00f) >= 0.01f, "Test failed.\n");
+         FatalIf(std::abs(statsElem.average() - 1.00) >= 0.01, "Test failed.\n");
       }
    }
+}
 
-   return status;
+void KernelTestProbe::createProbeLocal(char const *name, PVParams *params) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+}
+
+void KernelTestProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   StatsProbeImmediate::initialize(name, params, comm);
 }
 
 } /* namespace PV */

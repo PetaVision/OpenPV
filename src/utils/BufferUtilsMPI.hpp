@@ -1,9 +1,10 @@
-#ifndef __BUFFERUTILSMPI_HPP_
-#define __BUFFERUTILSMPI_HPP_
+#ifndef BUFFERUTILSMPI_HPP_
+#define BUFFERUTILSMPI_HPP_
 
 #include "structures/Buffer.hpp"
 #include "structures/MPIBlock.hpp"
 #include "structures/SparseList.hpp"
+#include <memory>
 
 namespace PV {
 namespace BufferUtils {
@@ -38,7 +39,7 @@ void scatter(
 template <typename T>
 Buffer<T> gather(
       std::shared_ptr<MPIBlock const> mpiBlock,
-      Buffer<T> buffer,
+      Buffer<T> const &buffer,
       unsigned int localWidth,
       unsigned int localHeight,
       int mpiBatchIndex,
@@ -46,10 +47,7 @@ Buffer<T> gather(
 
 template <typename T>
 SparseList<T> gatherSparse(
-      std::shared_ptr<MPIBlock const> mpiBlock,
-      SparseList<T> list,
-      int mpiBatchIndex,
-      int rootProcess);
+      std::shared_ptr<MPIBlock const> mpiBlock, SparseList<T> list, int mpiBatchIndex, int rootProcess);
 
 } // end namespace BufferUtils
 
@@ -57,4 +55,4 @@ SparseList<T> gatherSparse(
 
 #include "BufferUtilsMPI.tpp" // template implementations file
 
-#endif
+#endif // BUFFERUTILSMPI_HPP_

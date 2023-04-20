@@ -4,6 +4,12 @@
 # MPI quilt has 1 row, 4 columns, 4 batch processes #
 # MPI block has 1 row, 2 columns, 2 batch processes #
 
+if test -z "${1}"
+then
+    >&2 echo "$(basename "${0}") requires the path to the PetaVision executable as an argument."
+    exit 1
+fi
+
 test -e output && rm -r output
 
 export MPICOMMAND="mpiexec -n 16 --oversubscribe"

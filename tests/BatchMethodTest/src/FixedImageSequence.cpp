@@ -39,11 +39,12 @@ Response::Status FixedImageSequence::checkUpdateState(double simTime, double del
    int timestampInt      = (int)timestampRounded;
    int localNBatch       = loc->nbatch;
 
-   for (int m = 0; m < getMPIBlock()->getBatchDimension(); m++) {
-      int mpiBlockIndex = m + getMPIBlock()->getStartBatch();
+   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+   for (int m = 0; m < ioMPIBlock->getBatchDimension(); m++) {
+      int mpiBlockIndex = m + ioMPIBlock->getStartBatch();
       for (int b = 0; b < localNBatch; b++) {
          Buffer<float> buffer;
-         if (getMPIBlock()->getRank() == 0) {
+         if (ioMPIBlock->getRank() == 0) {
             int globalBatchElement = b + localNBatch * mpiBlockIndex;
             int inputIndex         = mIndexStart + (timestampInt - 1) * mIndexStepTime;
             inputIndex += mIndexStepBatch * globalBatchElement;
@@ -69,8 +70,8 @@ Response::Status FixedImageSequence::checkUpdateState(double simTime, double del
          else {
             buffer.resize(loc->nx, loc->ny, loc->nf);
          }
-         BufferUtils::scatter<float>(getMPIBlock(), buffer, loc->nx, loc->ny, m, 0);
-         if (getMPIBlock()->getBatchIndex() != m) {
+         BufferUtils::scatter<float>(ioMPIBlock, buffer, loc->nx, loc->ny, m, 0);
+         if (ioMPIBlock->getBatchIndex() != m) {
             continue;
          }
          bool sameDims = buffer.getWidth() == loc->nx and buffer.getHeight() == loc->ny

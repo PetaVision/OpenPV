@@ -8,12 +8,12 @@
 #ifndef CHECKSTATSPROBE_HPP_
 #define CHECKSTATSPROBE_HPP_
 
-#include <probes/StatsProbe.hpp>
+#include <columns/Communicator.hpp>
+#include <io/PVParams.hpp>
+#include <probes/StatsProbeImmediate.hpp>
 
-class CheckStatsProbe : public PV::StatsProbe {
+class CheckStatsProbe : public PV::StatsProbeImmediate {
   protected:
-   virtual void ioParam_buffer(enum PV::ParamsIOFlag ioFlag) override;
-
    virtual void ioParam_correctMin(enum PV::ParamsIOFlag ioFlag);
    virtual void ioParam_correctMax(enum PV::ParamsIOFlag ioFlag);
    virtual void ioParam_correctMean(enum PV::ParamsIOFlag ioFlag);
@@ -26,20 +26,17 @@ class CheckStatsProbe : public PV::StatsProbe {
 
   protected:
    CheckStatsProbe();
+   virtual void checkStats() override;
    void initialize(char const *name, PV::PVParams *params, PV::Communicator const *comm);
    virtual int ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) override;
-   virtual PV::Response::Status outputState(double simTime, double deltaTime) override;
-
-  private:
-   int initialize_base();
 
   protected:
    // Defaults are taken from U(0,1).
-   float correctMin  = 0.0f;
-   float correctMax  = 1.0f;
-   float correctMean = 0.5f;
-   float correctStd  = 0.28867513f;
-   float tolerance   = 0.000001f;
+   float mCorrectMin  = 0.0f;
+   float mCorrectMax  = 1.0f;
+   float mCorrectMean = 0.5f;
+   float mCorrectStd  = 0.28867513f;
+   float mTolerance   = 0.000001f;
 };
 
 #endif // CHECKSTATSPROBE_HPP_

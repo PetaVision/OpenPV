@@ -7,30 +7,29 @@
 #ifndef ALLCONSTANTVALUEPROBE_HPP_
 #define ALLCONSTANTVALUEPROBE_HPP_
 
-#include "probes/StatsProbe.hpp"
+#include <columns/Communicator.hpp>
+#include <io/PVParams.hpp>
+#include <probes/StatsProbeImmediate.hpp>
 
 namespace PV {
 
-class AllConstantValueProbe : public StatsProbe {
+class AllConstantValueProbe : public StatsProbeImmediate {
   public:
    AllConstantValueProbe(const char *name, PVParams *params, Communicator const *comm);
    ~AllConstantValueProbe();
 
-   float getCorrectValue() { return correctValue; }
-
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
+   float getCorrectValue() { return mCorrectValue; }
 
   protected:
    AllConstantValueProbe();
+   virtual void checkStats() override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
    virtual void ioParam_correctValue(enum ParamsIOFlag ioFlag);
 
   private:
-   int initialize_base();
-
    // Member variables
-   float correctValue;
+   float mCorrectValue = 0.0f;
 }; // class AllConstantValueProbe
 
 } // namespace PV

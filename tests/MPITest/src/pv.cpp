@@ -19,6 +19,7 @@
 #include "MPITestLayer.hpp"
 #include "MPITestProbe.hpp"
 #include "columns/PV_Init.hpp"
+#include "columns/Factory.hpp"
 #endif // MAIN_USES_CUSTOM_GROUPS
 
 int main(int argc, char *argv[]) {

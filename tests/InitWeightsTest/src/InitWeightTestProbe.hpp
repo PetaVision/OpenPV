@@ -5,26 +5,24 @@
  *      Author: kpeterson
  */
 
-#ifndef InitWeightTestProbe_HPP_
-#define InitWeightTestProbe_HPP_
+#ifndef INITWEIGHTTESTPROBE_HPP_
+#define INITWEIGHTTESTPROBE_HPP_
 
-#include "probes/StatsProbe.hpp"
+#include "columns/Communicator.hpp"
+#include "io/PVParams.hpp"
+#include "probes/StatsProbeImmediate.hpp"
 
 namespace PV {
 
-class InitWeightTestProbe : public PV::StatsProbe {
+class InitWeightTestProbe : public PV::StatsProbeImmediate {
   public:
    InitWeightTestProbe(const char *name, PVParams *params, Communicator const *comm);
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
   protected:
+   virtual void checkStats() override;
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
-   virtual void ioParam_buffer(enum ParamsIOFlag ioFlag) override;
-
-  private:
-   int initialize_base();
 };
 
 } /* namespace PV */
-#endif /* ArborTestProbe_HPP_ */
+#endif // INITWEIGHTTESTPROBE_HPP_

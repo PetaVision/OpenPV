@@ -8,11 +8,13 @@
 #include "Publisher.hpp"
 #include "checkpointing/CheckpointEntryDataStore.hpp"
 #include "include/pv_common.h"
+#include "observerpattern/Response.hpp"
 #include "utils/PVAssert.hpp"
 
 namespace PV {
 
 Publisher::Publisher(
+      char const *name,
       MPIBlock const &mpiBlock,
       float const *data,
       PVLayerLoc const *loc,
@@ -43,16 +45,18 @@ Publisher::Publisher(
       v->clear();
       v->reserve((NUM_NEIGHBORHOOD - 1) * numBuffers);
    }
+
+   mIncreaseLevelTimer = new Timer(name, "publish", "incrlevel");
+   mIncreaseLevelWaitTimer = new Timer(name, "publish", "incrlwait");
 }
 
 Publisher::~Publisher() {
-   for (int l = 0; l < mpiRequestsBuffer->getNumLevels(); l++) {
-      wait(l);
-   }
    delete mpiRequestsBuffer;
    delete store;
    delete mBorderExchanger;
    free(mLayerCube);
+   delete mIncreaseLevelTimer;
+   delete mIncreaseLevelWaitTimer;
 }
 
 void Publisher::checkpointDataStore(
@@ -61,7 +65,7 @@ void Publisher::checkpointDataStore(
       char const *bufferName) {
    bool registerSucceeded = checkpointer->registerCheckpointEntry(
          std::make_shared<CheckpointEntryDataStore>(
-               objectName, bufferName, checkpointer->getMPIBlock(), store, &mLayerCube->loc),
+               objectName, bufferName, store, &mLayerCube->loc),
          false /*not constant*/);
    FatalIf(
          !registerSucceeded,
@@ -204,9 +208,22 @@ int Publisher::wait(int delay /*default 0*/) {
 }
 
 void Publisher::increaseTimeLevel() {
+   mIncreaseLevelWaitTimer->start();
    wait(mpiRequestsBuffer->getNumLevels() - 1);
+   mIncreaseLevelWaitTimer->stop();
+
+   mIncreaseLevelTimer->start();
    mpiRequestsBuffer->newLevel();
    store->newLevelIndex();
+   mIncreaseLevelTimer->stop();
+}
+
+Response::Status Publisher::cleanup() {
+   for (int l = 0; l < mpiRequestsBuffer->getNumLevels(); l++) {
+      int status = wait(l);
+      FatalIf(status != 0, "Publisher::cleanup() failed on level %d\n", l);
+   }
+   return Response::SUCCESS;
 }
 
 } /* namespace PV */

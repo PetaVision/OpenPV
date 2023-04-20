@@ -1,0 +1,143 @@
+// StatsProbeTest_4.params
+//
+// Params file for testing StatsProbe.
+// An 8x8x1 PvpLayer is connected to an 8x8x1 ANNLayer, using a HyPerConn with
+// patch size 3x3, and all weights equal to one.
+//
+// The test runs for 16 timesteps with nbatch=4, and the PvpLayer has
+// displayPeriod=1, so the run uses 64 frames of the PvpLayer's input file.
+//
+// The values of PvpLayer are always 1 or zero. The zeroth frame of the input
+// file has one location with value 1, the oneth frame has two locations with
+// value one, and so on until the 63rd and last frame has all zeros. The
+// locations of the nonzero values were generated randomly.
+//
+// The PvpLayer uses batchMethod="byFile"; hence at timestep t, batch element b
+// contains the PvpLayer at (zero-indexed) frame b + 4*(t-1).
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 16;
+    progressInterval                    = 100;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 422884233;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 4;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = false;
+    outputPath                          = "output_4/";
+    verifyWrites                        = false;
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "output_4/Checkpoints";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 4;
+    checkpointIndexWidth                = -1;
+    suppressNonplasticCheckpoints       = true;
+    deleteOlderCheckpoints              = false;
+    initializeFromCheckpointDir         = "";
+};
+
+PvpLayer "Input" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 1;
+    inputPath                           = "input/input.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    jitterChangeInterval                = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0.000000,0.000000,0.000000,0.000000];
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = -1;
+};
+
+ANNLayer "Output" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    triggerLayerName                    = NULL;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = infinity;
+    AShift                              = 0;
+    VWidth                              = 0;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+};
+
+HyPerConn "InputToOutput" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Input";
+    postLayerName                       = "Output";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    numAxonalArbors                     = 1;
+    delay                               = [0.000000];
+    nxp                                 = 3;
+    nyp                                 = 3;
+    nfp                                 = 1;
+    sharedWeights                       = true;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "UniformWeight";
+    initWeightsFile                     = NULL;
+    weightInit                          = 1.0;
+    connectOnlySameFeatures             = false;
+    normalizeMethod                     = "none";
+    plasticityFlag                      = false;
+};
+
+StatsProbe "InputProbe" = {
+    targetLayer                         = "Input";
+    textOutputFlag                      = true;
+    probeOutputFile                     = "InputStats.txt";
+    message                             = "InputStats    ";
+    triggerLayerName                    = NULL;
+    buffer                              = "Activity";
+    nnzThreshold                        = 0;
+};
+
+StatsProbe "OutputVProbe" = {
+    targetLayer                         = "Output";
+    textOutputFlag                      = true;
+    probeOutputFile                     = "OutputVStats.txt";
+    message                             = "OutputVStats  ";
+    triggerLayerName                    = NULL;
+    buffer                              = "Activity";
+    nnzThreshold                        = 0;
+};
+
+StatsProbe "OutputAProbe" = {
+    targetLayer                         = "Output";
+    textOutputFlag                      = true;
+    probeOutputFile                     = "OutputAStats.txt";
+    message                             = "OutputAStats  ";
+    triggerLayerName                    = NULL;
+    buffer                              = "MembranePotential";
+    nnzThreshold                        = 0;
+};

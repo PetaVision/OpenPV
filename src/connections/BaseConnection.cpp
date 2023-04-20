@@ -16,7 +16,10 @@ BaseConnection::BaseConnection(char const *name, PVParams *params, Communicator 
 
 BaseConnection::BaseConnection() {}
 
-BaseConnection::~BaseConnection() { delete mIOTimer; }
+BaseConnection::~BaseConnection() {
+   delete mInitialIOTimer;
+   delete mIOTimer;
+}
 
 void BaseConnection::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ComponentBasedObject::initialize(name, params, comm);
@@ -89,9 +92,10 @@ Response::Status BaseConnection::respondConnectionFinalizeUpdate(
 
 Response::Status
 BaseConnection::respondConnectionOutput(std::shared_ptr<ConnectionOutputMessage const> message) {
-   mIOTimer->start();
+   Timer *timer = message->mTime ? mIOTimer : mInitialIOTimer;
+   timer->start();
    auto status = notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
-   mIOTimer->stop();
+   timer->stop();
    return status;
 }
 
@@ -134,6 +138,8 @@ BaseConnection::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
       return status;
    }
 
+   mInitialIOTimer = new Timer(getName(), "conn", "initialio");
+   message->mDataRegistry->registerTimer(mInitialIOTimer);
    mIOTimer = new Timer(getName(), "conn", "io");
    message->mDataRegistry->registerTimer(mIOTimer);
    return status;

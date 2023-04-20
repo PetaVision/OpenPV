@@ -1,5 +1,5 @@
 /*
- * LayerProbe.h
+ * LegacyLayerProbe.h
  *
  *  Created on: Mar 7, 2009
  *      Author: rasmussn
@@ -8,29 +8,40 @@
 #ifndef FILENAMEPARSINGPROBE_HPP_
 #define FILENAMEPARSINGPROBE_HPP_
 
-#include <layers/FilenameParsingGroundTruthLayer.hpp>
-#include <probes/LayerProbe.hpp>
+#include <columns/BaseObject.hpp>
+#include <columns/Communicator.hpp>
+#include <columns/Messages.hpp>
+#include <io/PVParams.hpp>
+#include <layers/FilenameParsingLayer.hpp>
+#include <observerpattern/Response.hpp>
+#include <probes/TargetLayerComponent.hpp>
+
+#include <memory>
+#include <vector>
+
+using namespace PV;
 
 /**
  * The base class for probes attached to layers.
  */
-class FilenameParsingProbe : public PV::LayerProbe {
+class FilenameParsingProbe : public BaseObject {
 
    // Methods
   public:
-   FilenameParsingProbe(const char *name, PV::PVParams *params, PV::Communicator const *comm);
+   FilenameParsingProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~FilenameParsingProbe();
 
   protected:
-   FilenameParsingProbe();
-   void initialize(const char *name, PV::PVParams *params, PV::Communicator const *comm);
-   virtual PV::Response::Status
-   communicateInitInfo(std::shared_ptr<PV::CommunicateInitInfoMessage const> message) override;
-   virtual void calcValues(double timevalue) override {}
-   virtual PV::Response::Status outputState(double simTime, double deltaTime) override;
+   FilenameParsingProbe() {}
+   virtual Response::Status
+   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
+   virtual void initMessageActionMap() override;
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
+   Response::Status outputState(std::shared_ptr<LayerOutputStateMessage const> message);
 
-  private:
-   int initialize_base();
+   Response::Status respondLayerOutputState(std::shared_ptr<LayerOutputStateMessage const> message);
+   Response::Status respondProbeWriteParams(std::shared_ptr<ProbeWriteParamsMessage const> message);
 
   private:
    int mInputDisplayPeriod = 0;
@@ -47,6 +58,9 @@ class FilenameParsingProbe : public PV::LayerProbe {
    // will need to be changed to match.
    std::vector<int> const mCategories = {1, 4, 9, 9, 8, 3, 5, 0, 7, 4,
                                          1, 8, 2, 2, 5, 3, 6, 0, 6, 7};
+
+   std::shared_ptr<TargetLayerComponent> mProbeTargetLayerLocator = nullptr;
+   FilenameParsingLayer *mFilenameParsingLayer                    = nullptr;
 };
 
 #endif /* FILENAMEPARSINGPROBE_HPP_ */

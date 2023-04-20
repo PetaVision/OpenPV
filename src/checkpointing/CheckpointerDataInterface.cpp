@@ -62,25 +62,26 @@ Response::Status CheckpointerDataInterface::respondReadStateFromCheckpoint(
 
 Response::Status CheckpointerDataInterface::respondProcessCheckpointRead(
       std::shared_ptr<ProcessCheckpointReadMessage const> message) {
-   return processCheckpointRead();
+   return processCheckpointRead(message->mSimTime);
 }
 
 Response::Status CheckpointerDataInterface::respondPrepareCheckpointWrite(
       std::shared_ptr<PrepareCheckpointWriteMessage const> message) {
-   return prepareCheckpointWrite();
+   return prepareCheckpointWrite(message->mSimTime);
 }
 
 Response::Status CheckpointerDataInterface::registerData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
-   if (mMPIBlock) {
+   if (mAddedToCheckpointer) {
       return Response::NO_ACTION;
    }
    else {
-      auto *checkpointer = message->mDataRegistry;
-      mMPIBlock          = checkpointer->getMPIBlock();
+      auto *checkpointer   = message->mDataRegistry;
+      mAddedToCheckpointer = true;
       checkpointer->addObserver(this->getDescription(), this);
       return Response::SUCCESS;
    }
+   return Response::SUCCESS;
 }
 
 } // namespace PV

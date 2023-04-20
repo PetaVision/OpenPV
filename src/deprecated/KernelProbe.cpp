@@ -142,7 +142,7 @@ Response::Status KernelProbe::allocateDataStructures() {
       }
       return Response::POSTPONE;
    }
-   mWeightData = mWeights->getDataReadOnly(getArbor());
+   mWeightData = mWeights->getData(getArbor());
 
    if (outputPlasticIncr) {
       auto *hebbianUpdater = mTargetConn->getComponentByType<HebbianUpdater>();

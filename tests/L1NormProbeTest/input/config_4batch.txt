@@ -1,0 +1,6 @@
+ParamsFile:input/L1NormProbeTest_4batch.params
+LogFile:L1NormProbeTest_4batch.log
+NumThreads:-
+NumRows:1
+NumColumns:1
+BatchWidth:4

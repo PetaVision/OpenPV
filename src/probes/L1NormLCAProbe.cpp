@@ -6,46 +6,48 @@
  */
 
 #include "L1NormLCAProbe.hpp"
-#include "components/ANNActivityBuffer.hpp"
-#include "layers/HyPerLCALayer.hpp"
+#include "probes/ANNLayerLocator.hpp"
+#include "probes/L1NormLCAProbeLocal.hpp"
+#include "probes/VThreshEnergyProbeComponent.hpp"
 
 namespace PV {
 
 L1NormLCAProbe::L1NormLCAProbe(const char *name, PVParams *params, Communicator const *comm) {
-   initialize_base();
    initialize(name, params, comm);
 }
 
-L1NormLCAProbe::L1NormLCAProbe() { initialize_base(); }
-
-Response::Status
-L1NormLCAProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   auto status = L1NormProbe::communicateInitInfo(message);
+Response::Status L1NormLCAProbe::allocateDataStructures() {
+   auto status = L1NormProbe::allocateDataStructures();
    if (!Response::completed(status)) {
       return status;
    }
-   assert(targetLayer);
-   auto *activityComponent = targetLayer->getComponentByType<ActivityComponent>();
-   FatalIf(
-         activityComponent == nullptr,
-         "%s: targetLayer \"%s\" does not have an activity component.\n",
-         getDescription_c(),
-         getTargetName());
-   ANNActivityBuffer *activityBuffer = activityComponent->getComponentByType<ANNActivityBuffer>();
+
+   auto probeLocal = std::dynamic_pointer_cast<L1NormLCAProbeLocal>(mProbeLocal);
+   pvAssert(probeLocal);
+
+   pvAssert(mProbeTargetLayer);
+   auto const *activityBuffer = locateANNActivityBuffer(mProbeTargetLayer);
    FatalIf(
          activityBuffer == nullptr,
-         "%s: targetLayer \"%s\" does not have an ANNActivityBuffer component.\n",
+         "%s: TargetLayerComponent \"%s\" was unable to find the needed activity buffer.\n",
          getDescription_c(),
-         getTargetName());
+         mProbeTargetLayer->getName_c());
 
-   FatalIf(
-         activityBuffer->usingVerticesListInParams() == true,
-         "%s: LCAProbes require targetLayer \"%s\" to use VThresh etc. "
-         "instead of verticesV/verticesV.\n",
-         getDescription_c(),
-         getTargetName());
-   coefficient = activityBuffer->getVThresh();
+   setCoefficient(activityBuffer->getVThresh());
+
    return Response::SUCCESS;
+}
+
+void L1NormLCAProbe::createEnergyProbeComponent(char const *name, PVParams *params) {
+   mEnergyProbeComponent = std::make_shared<VThreshEnergyProbeComponent>(name, params);
+}
+
+void L1NormLCAProbe::createProbeLocal(char const *name, PVParams *params) {
+   mProbeLocal = std::make_shared<L1NormLCAProbeLocal>(name, params);
+}
+
+void L1NormLCAProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   L1NormProbe::initialize(name, params, comm);
 }
 
 } /* namespace PV */

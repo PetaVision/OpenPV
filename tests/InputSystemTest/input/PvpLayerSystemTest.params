@@ -33,14 +33,14 @@ HyPerCol "column" = {
    progressInterval                 = 1000;
    writeProgressToErr               = false;
    verifyWrites                     = true;
-   outputPath                       = "output/";
+   outputPath                       = "output/PvpLayerSystemTest";
    printParamsFilename              = "pv.params";
    initializeFromCheckpointDir      = "";
    checkpointWrite                  = false;
-   // checkpointWriteDir               = "output/checkpoints";
+   // checkpointWriteDir               = "output/PvpLayerSystemTest/checkpoints";
    // checkpointWriteStepInterval      = 10000;
    // deleteOlderCheckpoints           = true;
-   lastCheckpointDir                = "output/Last";
+   lastCheckpointDir                = "output/PvpLayerSystemTest/Last";
    errorOnNotANumber                = false;
 };
 

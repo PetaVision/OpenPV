@@ -6,8 +6,25 @@
  */
 
 #include "InputActivityBuffer.hpp"
+#include "arch/mpi/mpi.h"
+#include "cMakeHeader.h"
+#include "checkpointing/CheckpointEntryFilePosition.hpp"
 #include "columns/RandomSeed.hpp"
+#include "include/PVLayerLoc.h"
+#include "io/FileStreamBuilder.hpp"
+#include "structures/MPIBlock.hpp"
 #include "utils/BufferUtilsMPI.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include "utils/conversions.hpp"
+#include <cassert>
+#include <cctype>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <limits>
+#include <memory>
+#include <sstream>
 
 namespace PV {
 
@@ -18,7 +35,7 @@ InputActivityBuffer::InputActivityBuffer(
    initialize(name, params, comm);
 }
 
-InputActivityBuffer::~InputActivityBuffer() { delete mTimestampStream; }
+InputActivityBuffer::~InputActivityBuffer() {}
 
 void InputActivityBuffer::initialize(char const *name, PVParams *params, Communicator const *comm) {
    ActivityBuffer::initialize(name, params, comm);
@@ -32,10 +49,11 @@ int InputActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_inputPath(ioFlag);
    ioParam_offsetAnchor(ioFlag);
    ioParam_offsets(ioFlag);
+   ioParam_jitterChangeInterval(ioFlag);
+   ioParam_jitterChangeIntervalUnit(ioFlag);
    ioParam_maxShifts(ioFlag);
    ioParam_flipsEnabled(ioFlag);
    ioParam_flipsToggle(ioFlag);
-   ioParam_jitterChangeInterval(ioFlag);
    ioParam_autoResizeFlag(ioFlag);
    ioParam_aspectRatioAdjustment(ioFlag);
    ioParam_interpolationMethod(ioFlag);
@@ -50,6 +68,45 @@ int InputActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_skip_frame_index(ioFlag);
    ioParam_resetToStartOnLoop(ioFlag);
    ioParam_writeFrameToTimestamp(ioFlag);
+
+   // Jul 20, 2022 - Changed default of jitterChangeInterval from 1 (jitter every timestep)
+   // to 0 (never jitter). If jitterChangeInterval is not present but any of
+   // maxShift{X,Y}, {x,y}FlipEnabled, {x,y}FlipToggle is present, flag as an error.
+   // Delete this if-statement after a reasonable fade-time
+   if (ioFlag == PARAMS_IO_READ and !parameters()->present(name, "jitterChangeInterval")) {
+      bool fatal = false;
+      if (parameters()->present(name, "maxShiftX")) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use maxShiftX\n", name);
+         fatal = true;
+      }
+      if (parameters()->present(name, "maxShiftY")) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use maxShiftY\n", name);
+         fatal = true;
+      }
+      if (parameters()->present(name, "xFlipEnabled")) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use xFlipEnabled\n", name);
+         fatal = true;
+      }
+      if (parameters()->present(name, "yFlipEnabled")) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use yFlipEnabled\n", name);
+         fatal = true;
+      }
+      if (parameters()->present(name, "xFlipToggle")) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use xFlipToggle\n", name);
+         fatal = true;
+      }
+      if (parameters()->present(name, "yFlipToggle")) {
+         ErrorLog().printf(
+               "Layer \"%s\" must set jitterChangeInterval in order to use yFlipToggle\n", name);
+         fatal = true;
+      }
+      FatalIf(fatal, "Set jitterChangeInterval explicitly in layer \"%s\"\n", name);
+   }
    return status;
 }
 
@@ -78,120 +135,129 @@ void InputActivityBuffer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(ioFlag, name, "offsetY", &mOffsetY, mOffsetY);
 }
 
-void InputActivityBuffer::ioParam_maxShifts(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "maxShiftX", &mMaxShiftX, mMaxShiftX);
-   parameters()->ioParamValue(ioFlag, name, "maxShiftY", &mMaxShiftY, mMaxShiftY);
-}
-
-void InputActivityBuffer::ioParam_flipsEnabled(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "xFlipEnabled", &mXFlipEnabled, mXFlipEnabled);
-   parameters()->ioParamValue(ioFlag, name, "yFlipEnabled", &mYFlipEnabled, mYFlipEnabled);
-}
-
-void InputActivityBuffer::ioParam_flipsToggle(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "xFlipToggle", &mXFlipToggle, mXFlipToggle);
-   parameters()->ioParamValue(ioFlag, name, "yFlipToggle", &mYFlipToggle, mYFlipToggle);
-}
-
 void InputActivityBuffer::ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag, name, "jitterChangeInterval", &mJitterChangeInterval, mJitterChangeInterval);
+}
+
+void InputActivityBuffer::ioParam_jitterChangeIntervalUnit(enum ParamsIOFlag ioFlag) {
+   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   if (mJitterChangeInterval > 0) {
+      parameters()->ioParamString(
+            ioFlag,
+            name,
+            "jitterChangeIntervalUnit",
+            &mJitterChangeIntervalUnit,
+            "displayPeriod" /*default*/);
+      if (ioFlag == PARAMS_IO_READ) {
+         for (char *c = mJitterChangeIntervalUnit; *c != '\0'; c++) {
+            *c = (char)std::tolower((int)*c);
+         }
+         mJitterChangeIntervalInTimesteps = mJitterChangeInterval;
+         if (!strcmp(mJitterChangeIntervalUnit, "displayperiod")) {
+            std::strncpy(
+                  mJitterChangeIntervalUnit, "displayPeriod", strlen(mJitterChangeIntervalUnit));
+            mJitterChangeIntervalInTimesteps *= mDisplayPeriod;
+         }
+         FatalIf(
+               strcmp(mJitterChangeIntervalUnit, "displayPeriod") != 0
+                     and strcmp(mJitterChangeIntervalUnit, "timestep") != 0,
+               "\"%s\" jitterChangeIntervalUnit must be either \"displayPeriod\" or \"timestep\"\n",
+               getName());
+      }
+   }
+}
+
+void InputActivityBuffer::ioParam_maxShifts(enum ParamsIOFlag ioFlag) {
+   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   if (mJitterChangeInterval > 0) {
+      parameters()->ioParamValue(ioFlag, name, "maxShiftX", &mMaxShiftX, mMaxShiftX);
+      parameters()->ioParamValue(ioFlag, name, "maxShiftY", &mMaxShiftY, mMaxShiftY);
+   }
+}
+
+void InputActivityBuffer::ioParam_flipsEnabled(enum ParamsIOFlag ioFlag) {
+   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   if (mJitterChangeInterval > 0) {
+      parameters()->ioParamValue(ioFlag, name, "xFlipEnabled", &mXFlipEnabled, mXFlipEnabled);
+      parameters()->ioParamValue(ioFlag, name, "yFlipEnabled", &mYFlipEnabled, mYFlipEnabled);
+   }
+}
+
+void InputActivityBuffer::ioParam_flipsToggle(enum ParamsIOFlag ioFlag) {
+   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   if (mJitterChangeInterval > 0) {
+      parameters()->ioParamValue(ioFlag, name, "xFlipToggle", &mXFlipToggle, mXFlipToggle);
+      parameters()->ioParamValue(ioFlag, name, "yFlipToggle", &mYFlipToggle, mYFlipToggle);
+   }
 }
 
 void InputActivityBuffer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       char *offsetAnchor = nullptr;
       parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
-      if (checkValidAnchorString(offsetAnchor) == PV_FAILURE) {
-         Fatal() << "Invalid value for offsetAnchor\n";
+      offsetAnchor[0] = (char)std::tolower((int)offsetAnchor[0]);
+      offsetAnchor[1] = (char)std::tolower((int)offsetAnchor[1]);
+      if (offsetAnchor == nullptr or strlen(offsetAnchor) != (size_t)2) {
+         badOffsetAnchorString(offsetAnchor);
       }
-      if (strcmp(offsetAnchor, "tl") == 0) {
+      if (strcmp(offsetAnchor, "tl") == 0 or strcmp(offsetAnchor, "lt") == 0) {
          mAnchor = Buffer<float>::NORTHWEST;
       }
-      else if (strcmp(offsetAnchor, "tc") == 0) {
+      else if (strcmp(offsetAnchor, "tc") == 0 or strcmp(offsetAnchor, "ct") == 0) {
          mAnchor = Buffer<float>::NORTH;
       }
-      else if (strcmp(offsetAnchor, "tr") == 0) {
+      else if (strcmp(offsetAnchor, "tr") == 0 or strcmp(offsetAnchor, "rt") == 0) {
          mAnchor = Buffer<float>::NORTHEAST;
       }
-      else if (strcmp(offsetAnchor, "cl") == 0) {
+      else if (strcmp(offsetAnchor, "cl") == 0 or strcmp(offsetAnchor, "lc") == 0) {
          mAnchor = Buffer<float>::WEST;
       }
       else if (strcmp(offsetAnchor, "cc") == 0) {
          mAnchor = Buffer<float>::CENTER;
       }
-      else if (strcmp(offsetAnchor, "cr") == 0) {
+      else if (strcmp(offsetAnchor, "cr") == 0 or strcmp(offsetAnchor, "rc") == 0) {
          mAnchor = Buffer<float>::EAST;
       }
-      else if (strcmp(offsetAnchor, "bl") == 0) {
+      else if (strcmp(offsetAnchor, "bl") == 0 or strcmp(offsetAnchor, "lb") == 0) {
          mAnchor = Buffer<float>::SOUTHWEST;
       }
-      else if (strcmp(offsetAnchor, "bc") == 0) {
+      else if (strcmp(offsetAnchor, "bc") == 0 or strcmp(offsetAnchor, "cb") == 0) {
          mAnchor = Buffer<float>::SOUTH;
       }
-      else if (strcmp(offsetAnchor, "br") == 0) {
+      else if (strcmp(offsetAnchor, "br") == 0 or strcmp(offsetAnchor, "rb") == 0) {
          mAnchor = Buffer<float>::SOUTHEAST;
       }
       else {
-         if (mCommunicator->commRank() == 0) {
-            ErrorLog().printf(
-                  "%s: offsetAnchor must be a two-letter string.  The first character must be "
-                  "\"t\", \"c\", or \"b\" (for top, center or bottom); and the second character "
-                  "must be \"l\", \"c\", or \"r\" (for left, center or right).\n",
-                  getDescription_c());
-         }
-         MPI_Barrier(mCommunicator->communicator());
-         exit(EXIT_FAILURE);
+         badOffsetAnchorString(offsetAnchor);
       }
       free(offsetAnchor);
    }
    else { // Writing
-      // The opposite of above. Find a better way to do this that isn't so gross
-      char *offsetAnchor = (char *)calloc(3, sizeof(char));
+      char *offsetAnchor = (char *)malloc((size_t)3);
       offsetAnchor[2]    = '\0';
       switch (mAnchor) {
-         case Buffer<float>::NORTH:
-         case Buffer<float>::NORTHWEST:
-         case Buffer<float>::NORTHEAST: offsetAnchor[0] = 't'; break;
-         case Buffer<float>::WEST:
-         case Buffer<float>::CENTER:
-         case Buffer<float>::EAST: offsetAnchor[0] = 'c'; break;
-         case Buffer<float>::SOUTHWEST:
-         case Buffer<float>::SOUTH:
-         case Buffer<float>::SOUTHEAST: offsetAnchor[0] = 'b'; break;
-      }
-      switch (mAnchor) {
-         case Buffer<float>::NORTH:
-         case Buffer<float>::CENTER:
-         case Buffer<float>::SOUTH: offsetAnchor[1] = 'c'; break;
-         case Buffer<float>::EAST:
-         case Buffer<float>::NORTHEAST:
-         case Buffer<float>::SOUTHEAST: offsetAnchor[1] = 'r'; break;
-         case Buffer<float>::WEST:
-         case Buffer<float>::NORTHWEST:
-         case Buffer<float>::SOUTHWEST: offsetAnchor[1] = 'l'; break;
+         case Buffer<float>::CENTER: strncpy(offsetAnchor, "cc", (size_t)2); break;
+         case Buffer<float>::NORTH: strncpy(offsetAnchor, "tc", (size_t)2); break;
+         case Buffer<float>::NORTHEAST: strncpy(offsetAnchor, "tr", (size_t)2); break;
+         case Buffer<float>::EAST: strncpy(offsetAnchor, "cr", (size_t)2); break;
+         case Buffer<float>::SOUTHEAST: strncpy(offsetAnchor, "br", (size_t)2); break;
+         case Buffer<float>::SOUTH: strncpy(offsetAnchor, "bc", (size_t)2); break;
+         case Buffer<float>::SOUTHWEST: strncpy(offsetAnchor, "bl", (size_t)2); break;
+         case Buffer<float>::WEST: strncpy(offsetAnchor, "cl", (size_t)2); break;
+         case Buffer<float>::NORTHWEST: strncpy(offsetAnchor, "tl", (size_t)2); break;
       }
       parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
-      free(offsetAnchor);
    }
 }
 
-int InputActivityBuffer::checkValidAnchorString(const char *offsetAnchor) {
-   int status = PV_SUCCESS;
-   if (offsetAnchor == NULL || strlen(offsetAnchor) != (size_t)2) {
-      status = PV_FAILURE;
-   }
-   else {
-      char xOffsetAnchor = offsetAnchor[1];
-      if (xOffsetAnchor != 'l' && xOffsetAnchor != 'c' && xOffsetAnchor != 'r') {
-         status = PV_FAILURE;
-      }
-      char yOffsetAnchor = offsetAnchor[0];
-      if (yOffsetAnchor != 't' && yOffsetAnchor != 'c' && yOffsetAnchor != 'b') {
-         status = PV_FAILURE;
-      }
-   }
-   return status;
+void InputActivityBuffer::badOffsetAnchorString(char const *offsetAnchor) {
+   Fatal().printf(
+         "%s: offsetAnchor %s is not recognized. The offsetAnchor parameter must be a two-letter"
+         "string.  One character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and"
+         "the other character must be \"l\", \"c\", or \"r\" (for left, center or right).\n",
+         getDescription_c(),
+         offsetAnchor ? offsetAnchor : "NULL");
 }
 
 void InputActivityBuffer::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
@@ -205,7 +271,7 @@ void InputActivityBuffer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag
       if (ioFlag == PARAMS_IO_WRITE) {
          switch (mRescaleMethod) {
             case BufferUtils::CROP: aspectRatioAdjustment = strdup("crop"); break;
-            case BufferUtils::PAD: aspectRatioAdjustment  = strdup("pad"); break;
+            case BufferUtils::PAD: aspectRatioAdjustment = strdup("pad"); break;
          }
       }
       parameters()->ioParamString(
@@ -254,8 +320,8 @@ void InputActivityBuffer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) 
          if (!strncmp(interpolationMethodString, "bicubic", strlen("bicubic"))) {
             mInterpolationMethod = BufferUtils::BICUBIC;
          }
-         else if (
-               !strncmp(interpolationMethodString, "nearestneighbor", strlen("nearestneighbor"))) {
+         else if (!strncmp(
+                        interpolationMethodString, "nearestneighbor", strlen("nearestneighbor"))) {
             mInterpolationMethod = BufferUtils::NEAREST;
          }
          else {
@@ -310,10 +376,10 @@ void InputActivityBuffer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
    char *batchMethod = nullptr;
    if (ioFlag == PARAMS_IO_WRITE) {
       switch (mBatchMethod) {
-         case BatchIndexer::BYFILE: batchMethod      = strdup("byFile"); break;
-         case BatchIndexer::BYLIST: batchMethod      = strdup("byList"); break;
+         case BatchIndexer::BYFILE: batchMethod = strdup("byFile"); break;
+         case BatchIndexer::BYLIST: batchMethod = strdup("byList"); break;
          case BatchIndexer::BYSPECIFIED: batchMethod = strdup("bySpecified"); break;
-         case BatchIndexer::RANDOM: batchMethod      = strdup("random"); break;
+         case BatchIndexer::RANDOM: batchMethod = strdup("random"); break;
       }
    }
    parameters()->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
@@ -465,10 +531,36 @@ Response::Status InputActivityBuffer::registerData(
       return status;
    }
    auto *checkpointer = message->mDataRegistry;
-   if (checkpointer->getMPIBlock()->getRank() == 0) {
+   if (mWriteFrameToTimestamp) {
+      auto fileManager = getCommunicator()->getOutputFileManager();
+      std::string timestampsDir("timestamps/");
+      fileManager->ensureDirectoryExists(timestampsDir);
+      std::string timestampPath = timestampsDir + getName() + ".txt";
+
+      mTimestampStream = FileStreamBuilder(
+                               fileManager,
+                               timestampPath,
+                               true /*text*/,
+                               false /*not read-only*/,
+                               checkpointer->getCheckpointReadDirectory()
+                                     .empty() /*whether to clobber existing file*/,
+                               checkpointer->doesVerifyWrites())
+                               .get();
+      auto checkpointEntry = std::make_shared<CheckpointEntryFilePosition>(
+            getName(), std::string("TimestampState"), mTimestampStream);
+      bool registerSucceeded = checkpointer->registerCheckpointEntry(
+            checkpointEntry, false /*not constant for entire run*/);
+      FatalIf(
+            !registerSucceeded,
+            "%s failed to register %s for checkpointing.\n",
+            getDescription_c(),
+            checkpointEntry->getName().c_str());
+   }
+
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
       mRNG.seed(mRandomSeed);
       int numBatch = getLayerLoc()->nbatch;
-      int nBatch   = getMPIBlock()->getBatchDimension() * numBatch;
+      int nBatch   = getCommunicator()->getIOMPIBlock()->getBatchDimension() * numBatch;
       mRandomShiftX.resize(nBatch);
       mRandomShiftY.resize(nBatch);
       mMirrorFlipX.resize(nBatch);
@@ -478,40 +570,28 @@ Response::Status InputActivityBuffer::registerData(
       initializeBatchIndexer();
       mBatchIndexer->setWrapToStartIndex(mResetToStartOnLoop);
       mBatchIndexer->registerData(message);
-
-      if (mWriteFrameToTimestamp) {
-         std::string timestampFilename = std::string("timestamps/");
-         timestampFilename += name + std::string(".txt");
-         std::string cpFileStreamLabel(getName());
-         cpFileStreamLabel.append("_TimestampState");
-         bool needToCreateFile = checkpointer->getCheckpointReadDirectory().empty();
-         mTimestampStream      = new CheckpointableFileStream(
-               timestampFilename, needToCreateFile, checkpointer, cpFileStreamLabel);
-         mTimestampStream->respond(message); // CheckpointableFileStream needs to register data
-      }
    }
    return Response::SUCCESS;
 }
 
 void InputActivityBuffer::initializeBatchIndexer() {
    // TODO: move check of size of mStartFrameIndex and mSkipFrameIndex here.
-   pvAssert(getMPIBlock());
-   pvAssert(getMPIBlock()->getRank() == 0);
+   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+   pvAssert(ioMPIBlock and ioMPIBlock->getRank() == 0);
    int localBatchCount  = getLayerLoc()->nbatch;
-   int mpiGlobalCount   = getMPIBlock()->getGlobalBatchDimension();
+   int mpiGlobalCount   = ioMPIBlock->getGlobalBatchDimension();
    int globalBatchCount = localBatchCount * mpiGlobalCount;
-   int batchOffset      = localBatchCount * getMPIBlock()->getStartBatch();
-   int blockBatchCount  = localBatchCount * getMPIBlock()->getBatchDimension();
+   int batchOffset      = localBatchCount * ioMPIBlock->getStartBatch();
+   int blockBatchCount  = localBatchCount * ioMPIBlock->getBatchDimension();
    int fileCount        = countInputImages();
-   mBatchIndexer        = std::unique_ptr<BatchIndexer>(
-         new BatchIndexer(
-               std::string(name),
-               globalBatchCount,
-               batchOffset,
-               blockBatchCount,
-               fileCount,
-               mBatchMethod,
-               mInitializeFromCheckpointFlag));
+   mBatchIndexer        = std::unique_ptr<BatchIndexer>(new BatchIndexer(
+         std::string(name),
+         globalBatchCount,
+         batchOffset,
+         blockBatchCount,
+         fileCount,
+         mBatchMethod,
+         mInitializeFromCheckpointFlag));
    for (int b = 0; b < blockBatchCount; ++b) {
       mBatchIndexer->specifyBatching(
             b, mStartFrameIndex.at(batchOffset + b), mSkipFrameIndex.at(batchOffset + b));
@@ -547,7 +627,7 @@ void InputActivityBuffer::writeToTimestampStream(double simTime) {
       outStrStream.precision(15);
       PVLayerLoc const *loc = getLayerLoc();
       int kb0               = loc->kb0;
-      int blockBatchCount   = loc->nbatch * getMPIBlock()->getBatchDimension();
+      int blockBatchCount   = loc->nbatch * getCommunicator()->getIOMPIBlock()->getBatchDimension();
       for (int b = 0; b < blockBatchCount; ++b) {
          int index = mBatchIndexer->getIndex(b);
          outStrStream << "[" << getName() << "] time: " << simTime << ", batch element: " << b + kb0
@@ -566,7 +646,8 @@ void InputActivityBuffer::writeToTimestampStream(double simTime) {
 void InputActivityBuffer::retrieveInputAndAdvanceIndex(double timef, double dt) {
    retrieveInput(timef, dt);
    if (mBatchIndexer) {
-      int blockBatchCount = getLayerLoc()->nbatch * getMPIBlock()->getBatchDimension();
+      int blockBatchDimension = getCommunicator()->getIOMPIBlock()->getBatchDimension();
+      int blockBatchCount     = getLayerLoc()->nbatch * blockBatchDimension;
       for (int b = 0; b < blockBatchCount; b++) {
          mBatchIndexer->nextIndex(b);
       }
@@ -582,9 +663,10 @@ bool InputActivityBuffer::readyForNextFile(double simTime, double deltaT) {
 }
 
 void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
-   if (getMPIBlock()->getRank() == 0) {
-      int displayPeriodIndex = std::floor(simTime / (mDisplayPeriod * deltaTime));
-      if (displayPeriodIndex % mJitterChangeInterval == 0) {
+   auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+   if (ioMPIBlock->getRank() == 0 and mJitterChangeIntervalInTimesteps > 0) {
+      long timestep = std::nearbyint(simTime / deltaTime);
+      if (timestep % mJitterChangeIntervalInTimesteps == 0) {
          for (std::size_t b = 0; b < mRandomShiftX.size(); b++) {
             mRandomShiftX[b] = -mMaxShiftX + (mRNG() % (2 * mMaxShiftX + 1));
             mRandomShiftY[b] = -mMaxShiftY + (mRNG() % (2 * mMaxShiftY + 1));
@@ -599,9 +681,9 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
    }
 
    int localNBatch = getLayerLoc()->nbatch;
-   for (int m = 0; m < getMPIBlock()->getBatchDimension(); m++) {
+   for (int m = 0; m < ioMPIBlock->getBatchDimension(); m++) {
       for (int b = 0; b < localNBatch; b++) {
-         if (getMPIBlock()->getRank() == 0) {
+         if (ioMPIBlock->getRank() == 0) {
             int blockBatchElement = b + localNBatch * m;
             int inputIndex        = mBatchIndexer->getIndex(blockBatchElement);
             mInputData.at(b)      = retrieveData(inputIndex);
@@ -638,7 +720,7 @@ void InputActivityBuffer::retrieveInput(double simTime, double deltaTime) {
 }
 
 void InputActivityBuffer::fitBufferToGlobalLayer(Buffer<float> &buffer, int blockBatchElement) {
-   pvAssert(getMPIBlock()->getRank() == 0);
+   pvAssert(getCommunicator()->getIOMPIBlock()->getRank() == 0);
    const PVLayerLoc *loc  = getLayerLoc();
    int const xMargins     = mUseInputBCflag ? loc->halo.lt + loc->halo.rt : 0;
    int const yMargins     = mUseInputBCflag ? loc->halo.dn + loc->halo.up : 0;
@@ -789,18 +871,20 @@ void InputActivityBuffer::normalizePixels(int batchElement) {
 
 void InputActivityBuffer::cropToMPIBlock(Buffer<float> &buffer) {
    const PVLayerLoc *loc = getLayerLoc();
-   int const startX      = getMPIBlock()->getStartColumn() * loc->nx;
-   int const startY      = getMPIBlock()->getStartRow() * loc->ny;
+   auto ioMPIBlock       = getCommunicator()->getIOMPIBlock();
+   int const startX      = ioMPIBlock->getStartColumn() * loc->nx;
+   int const startY      = ioMPIBlock->getStartRow() * loc->ny;
    buffer.translate(-startX, -startY);
    int const xMargins    = mUseInputBCflag ? loc->halo.lt + loc->halo.rt : 0;
    int const yMargins    = mUseInputBCflag ? loc->halo.dn + loc->halo.up : 0;
-   int const blockWidth  = getMPIBlock()->getNumColumns() * loc->nx + xMargins;
-   int const blockHeight = getMPIBlock()->getNumRows() * loc->ny + yMargins;
+   int const blockWidth  = ioMPIBlock->getNumColumns() * loc->nx + xMargins;
+   int const blockHeight = ioMPIBlock->getNumRows() * loc->ny + yMargins;
    buffer.crop(blockWidth, blockHeight, Buffer<float>::NORTHWEST);
 }
 
 void InputActivityBuffer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
-   int const procBatchIndex = getMPIBlock()->getBatchIndex();
+   auto ioMPIBlock          = getCommunicator()->getIOMPIBlock();
+   int const procBatchIndex = ioMPIBlock->getBatchIndex();
    if (procBatchIndex != 0 and procBatchIndex != mpiBatchIndex) {
       return;
    }
@@ -822,7 +906,7 @@ void InputActivityBuffer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
    Buffer<float> dataBuffer;
    Buffer<float> regionBuffer;
 
-   if (getMPIBlock()->getRank() == 0) {
+   if (ioMPIBlock->getRank() == 0) {
       dataBuffer   = mInputData.at(localBatchIndex);
       regionBuffer = mInputRegion.at(localBatchIndex);
    }
@@ -830,8 +914,8 @@ void InputActivityBuffer::scatterInput(int localBatchIndex, int mpiBatchIndex) {
       dataBuffer.resize(activityWidth, activityHeight, loc->nf);
       regionBuffer.resize(activityWidth, activityHeight, loc->nf);
    }
-   BufferUtils::scatter<float>(getMPIBlock(), dataBuffer, loc->nx, loc->ny, mpiBatchIndex, 0);
-   BufferUtils::scatter<float>(getMPIBlock(), regionBuffer, loc->nx, loc->ny, mpiBatchIndex, 0);
+   BufferUtils::scatter<float>(ioMPIBlock, dataBuffer, loc->nx, loc->ny, mpiBatchIndex, 0);
+   BufferUtils::scatter<float>(ioMPIBlock, regionBuffer, loc->nx, loc->ny, mpiBatchIndex, 0);
    if (procBatchIndex != mpiBatchIndex) {
       return;
    }

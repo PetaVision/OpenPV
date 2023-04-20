@@ -42,12 +42,6 @@ class BasePublisherComponent : public BaseObject {
     */
    int increaseDelayLevels(int neededDelay);
 
-   virtual void publish(Communicator const *comm, double simTime);
-
-   // mpi public wait method to ensure all targets have received synaptic input before proceeding to
-   // next time step
-   int waitOnPublish(Communicator const *comm);
-
    void updateAllActiveIndices();
    void updateActiveIndices();
 
@@ -112,7 +106,7 @@ class BasePublisherComponent : public BaseObject {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-   virtual Response::Status processCheckpointRead() override;
+   virtual Response::Status processCheckpointRead(double simTime) override;
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    Response::Status
@@ -121,6 +115,7 @@ class BasePublisherComponent : public BaseObject {
    virtual void advanceDataStore();
 
    Response::Status respondLayerPublish(std::shared_ptr<LayerPublishMessage const> message);
+   virtual void publish(Communicator const *comm, double simTime);
 
    Response::Status
    respondLayerCheckNotANumber(std::shared_ptr<LayerCheckNotANumberMessage const> message);
@@ -128,6 +123,8 @@ class BasePublisherComponent : public BaseObject {
 #ifdef PV_USE_CUDA
    virtual void allocateCudaBuffers();
 #endif // PV_USE_CUDA
+
+   virtual Response::Status cleanup() override;
 
   protected:
    bool mSparseLayer = false; // If true, Publisher uses sparse representation.
@@ -142,7 +139,8 @@ class BasePublisherComponent : public BaseObject {
    // The number of delay levels. Objects that need layer data with a delay should call
    // the increaseDelayLevels() method.
 
-   Timer *mPublishTimer = nullptr;
+   Timer *mInitialPublishTimer = nullptr;
+   Timer *mPublishTimer        = nullptr;
 
 #ifdef PV_USE_CUDA
    // OpenCL buffers and their corresponding flags
@@ -158,6 +156,8 @@ class BasePublisherComponent : public BaseObject {
 
    bool mUpdatedCudaDatastore = true;
 #endif // PV_USE_CUDA
+
+   Timer *mAdvanceDataStoreTimer = nullptr;
 
 }; // class BasePublisherComponent
 

@@ -1,5 +1,5 @@
-#ifndef _pv_alloc_h
-#define _pv_alloc_h
+#ifndef PVALLOC_HPP_
+#define PVALLOC_HPP_
 /**
  * Memory allocation macros
  *
@@ -71,4 +71,4 @@ void pv_delete(const char *file, int line, T *ptr) {
 }
 }
 
-#endif
+#endif // PVALLOC_HPP_

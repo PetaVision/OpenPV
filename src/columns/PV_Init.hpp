@@ -8,12 +8,16 @@
 #ifndef PV_INIT_HPP_
 #define PV_INIT_HPP_
 
-#include <arch/mpi/mpi.h>
-#include <columns/Arguments.hpp>
-#include <columns/Factory.hpp>
-#include <columns/KeywordHandler.hpp>
-#include <io/PVParams.hpp>
-#include <iostream>
+#include "arch/mpi/mpi.h"
+#include "columns/Arguments.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/KeywordHandler.hpp"
+#include "io/Configuration.hpp"
+#include "io/PVParams.hpp"
+
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace PV {
 
@@ -85,26 +89,26 @@ class PV_Init {
     * Returns a pointer to the Arguments. Declared const, so the arguments
     * cannot be changed using the result of this function.
     */
-   Arguments const *getArguments() const { return arguments.get(); }
+   std::shared_ptr<Arguments const> getArguments() const { return mArguments; }
 
    bool const &getBooleanArgument(std::string const &name) const {
-      return arguments->getBooleanArgument(name);
+      return mArguments->getBooleanArgument(name);
    }
 
    int const &getIntegerArgument(std::string const &name) const {
-      return arguments->getIntegerArgument(name);
+      return mArguments->getIntegerArgument(name);
    }
 
    unsigned int const &getUnsignedIntArgument(std::string const &name) const {
-      return arguments->getUnsignedIntArgument(name);
+      return mArguments->getUnsignedIntArgument(name);
    }
 
    std::string const &getStringArgument(std::string const &name) const {
-      return arguments->getStringArgument(name);
+      return mArguments->getStringArgument(name);
    }
 
    Configuration::IntOptional const &getIntOptionalArgument(std::string const &name) const {
-      return arguments->getIntOptionalArgument(name);
+      return mArguments->getIntOptionalArgument(name);
    }
 
    /**
@@ -118,30 +122,30 @@ class PV_Init {
     * instantiation,
     * and any set-methods used since then.
     */
-   void printState() const { arguments->printState(); }
+   void printState() const { mArguments->printState(); }
 
    // Below are set-methods for changing changing command line arguments
    // stored in the Arguments object, and doing any necessary
    // operations required by the change.
 
    bool setBooleanArgument(std::string const &name, bool const &value) {
-      return arguments->setBooleanArgument(name, value);
+      return mArguments->setBooleanArgument(name, value);
    }
 
    bool setIntegerArgument(std::string const &name, int const &value) {
-      return arguments->setIntegerArgument(name, value);
+      return mArguments->setIntegerArgument(name, value);
    }
 
    bool setUnsignedIntArgument(std::string const &name, unsigned int const &value) {
-      return arguments->setUnsignedIntArgument(name, value);
+      return mArguments->setUnsignedIntArgument(name, value);
    }
 
    bool setStringArgument(std::string const &name, std::string const &value) {
-      return arguments->setStringArgument(name, value);
+      return mArguments->setStringArgument(name, value);
    }
 
    bool setIntOptionalArgument(std::string const &name, Configuration::IntOptional const &value) {
-      return arguments->setIntOptionalArgument(name, value);
+      return mArguments->setIntOptionalArgument(name, value);
    }
 
    /**
@@ -184,7 +188,7 @@ class PV_Init {
     */
    int resetState();
 
-   Communicator *getCommunicator() { return mCommunicator; }
+   Communicator *getCommunicator() const { return mCommunicator; }
 
    int getWorldRank() const {
       if (mCommunicator) {
@@ -282,10 +286,11 @@ class PV_Init {
    int mArgC = 0;
    std::vector<char const *> mArgV;
    PVParams *params;
-   std::shared_ptr<Arguments> arguments;
+   std::shared_ptr<Arguments> mArguments;
    int maxThreads;
    Communicator *mCommunicator;
-};
-}
+}; // class PV_Init
+
+} // namespace PV
 
 #endif

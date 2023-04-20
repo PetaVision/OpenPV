@@ -13,36 +13,24 @@
 namespace PV {
 
 /**
- * A special case of FirmThresholdCostFnProbe, to be used when the target layer
- * is an LCA layer
- * with a hard-threshold transfer function.  The corresponding cost function is
- * the norm
- * measured by FirmThresholdCostFnProbe, with coefficient Vth, where Vth is the
- * target LCA layer's
- * VThresh.
+ * A special case of FirmThresholdCostFnProbe, to be used when the target layer is an LCA layer
+ * with a hard-threshold transfer function.  The corresponding cost function is the norm measured
+ * by FirmThresholdCostFnProbe, with coefficient Vth, where Vth is the target LCA layer's VThresh.
  */
 class FirmThresholdCostFnLCAProbe : public FirmThresholdCostFnProbe {
   public:
    FirmThresholdCostFnLCAProbe(const char *name, PVParams *params, Communicator const *comm);
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual ~FirmThresholdCostFnLCAProbe() {}
 
   protected:
-   FirmThresholdCostFnLCAProbe();
-   void initialize(const char *name, PVParams *params, Communicator const *comm) {
-      FirmThresholdCostFnProbe::initialize(name, params, comm);
-   }
+   FirmThresholdCostFnLCAProbe() {}
 
-   /**
-    * FirmThresholdCostFnLCAProbe does not read coefficient from params,
-    * but computes it from VThresh of the target layer.
-    */
-   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag) override {
-   } // coefficient is set from targetLayer during communicateInitInfo.
+   virtual Response::Status allocateDataStructures() override;
 
-  private:
-   int initialize_base() { return PV_SUCCESS; }
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
+   virtual void createEnergyProbeComponent(char const *name, PVParams *params) override;
+
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
 }; // class FirmThresholdCostFnLCAProbe
 
 } /* namespace PV */

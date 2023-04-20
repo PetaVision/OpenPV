@@ -4,32 +4,27 @@
  */
 
 #include "AssertZerosProbe.hpp"
-#include <include/pv_arch.h>
-#include <layers/HyPerLayer.hpp>
-#include <string.h>
-#include <utils/PVLog.hpp>
+#include "components/BasePublisherComponent.hpp"
+#include "components/LayerInputBuffer.hpp"
+#include "include/PVLayerLoc.h"
+#include "include/pv_types.h"
+#include "layers/HyPerLayer.hpp"
+#include "probes/ActivityBufferStatsProbeLocal.hpp"
+#include "probes/ProbeData.hpp"
+#include "probes/StatsProbeTypes.hpp"
+#include "utils/PVLog.hpp"
+
+#include <cmath>
+#include <memory>
 
 namespace PV {
 AssertZerosProbe::AssertZerosProbe(const char *name, PVParams *params, Communicator const *comm)
-      : StatsProbe() {
-   initialize_base();
+      : StatsProbeImmediate() {
    initialize(name, params, comm);
 }
 
-int AssertZerosProbe::initialize_base() { return PV_SUCCESS; }
-
-void AssertZerosProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
-   StatsProbe::initialize(name, params, comm);
-}
-
-void AssertZerosProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
-
 // 2 tests: max difference can be 5e-4, max std is 5e-5
-Response::Status AssertZerosProbe::outputState(double simTime, double deltaTime) {
-   auto status = StatsProbe::outputState(simTime, deltaTime);
-   if (status != Response::SUCCESS) {
-      return status;
-   }
+void AssertZerosProbe::checkStats() {
    auto *targetLayerInputBuffer = getTargetLayer()->getComponentByType<LayerInputBuffer>();
    auto *targetPublisher        = getTargetLayer()->getComponentByType<BasePublisherComponent>();
    const PVLayerLoc *loc        = getTargetLayer()->getLayerLoc();
@@ -38,8 +33,12 @@ Response::Status AssertZerosProbe::outputState(double simTime, double deltaTime)
    const float *A               = targetPublisher->getLayerData();
    const float *GSyn_E          = targetLayerInputBuffer->getChannelData(CHANNEL_EXC);
    const float *GSyn_I          = targetLayerInputBuffer->getChannelData(CHANNEL_INH);
+   auto const &storedValues     = mProbeAggregator->getStoredValues();
+   auto numTimestamps           = storedValues.size();
+   int lastTimestampIndex       = static_cast<int>(numTimestamps) - 1;
+   ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
+   double simTime                     = stats.getTimestamp();
 
-   // getOutputStream().precision(15);
    for (int i = 0; i < numExtNeurons; i++) {
       FatalIf(fabsf(A[i]) >= 5e-4f, "Test failed.\n");
    }
@@ -59,10 +58,24 @@ Response::Status AssertZerosProbe::outputState(double simTime, double deltaTime)
 
    for (int b = 0; b < loc->nbatch; b++) {
       // For max std of 5e-5
-      FatalIf(sigma[b] > 5e-5f, "Test failed.\n");
+      LayerStats const &statsElem = stats.getValue(b);
+      FatalIf(
+            statsElem.sigma() > 5e-5,
+            "%s: t=%f, batch index %d has sigma %f, greater than allowed tolerance %f.\n",
+            getDescription_c(),
+            simTime,
+            b,
+            statsElem.sigma(),
+            5e-5);
    }
+}
 
-   return Response::SUCCESS;
+void AssertZerosProbe::createProbeLocal(char const *name, PVParams *params) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
+}
+
+void AssertZerosProbe::initialize(const char *name, PVParams *params, Communicator const *comm) {
+   StatsProbeImmediate::initialize(name, params, comm);
 }
 
 } // end namespace PV

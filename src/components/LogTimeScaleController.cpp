@@ -10,7 +10,6 @@ LogTimeScaleController::LogTimeScaleController(
       double baseMin,
       double tauFactor,
       double growthFactor,
-      bool writeTimeScaleFieldnames,
       Communicator const *comm,
       double logThresh,
       double logSlope)
@@ -21,42 +20,42 @@ LogTimeScaleController::LogTimeScaleController(
               baseMin,
               tauFactor,
               growthFactor,
-              writeTimeScaleFieldnames,
               comm) {
    mLogThresh = logThresh;
    mLogSlope  = -(logThresh - mBaseMax) / log(logSlope);
 }
 
-std::vector<double>
-LogTimeScaleController::calcTimesteps(double timeValue, std::vector<double> const &rawTimeScales) {
-   mOldTimeScaleInfo             = mTimeScaleInfo;
-   mTimeScaleInfo.mTimeScaleTrue = rawTimeScales;
-   for (int b = 0; b < mBatchWidth; b++) {
-      double E_dt         = mTimeScaleInfo.mTimeScaleTrue[b];
-      double E_0          = mOldTimeScaleInfo.mTimeScaleTrue[b];
-      double dE_dt_scaled = (E_0 - E_dt) / mTimeScaleInfo.mTimeScale[b];
+std::vector<TimeScaleData> const &LogTimeScaleController::calcTimesteps(std::vector<double> const &timeScales) {
+   FatalIf(
+         static_cast<int>(timeScales.size()) != mBatchWidth,
+         "new timeScaleData has different size than old timeScaleData (%d versus %d)\n",
+         static_cast<int>(mTimeScaleInfo.size()),
+         mBatchWidth);
+   mOldTimeScaleInfo = mTimeScaleInfo;
+   for (int b = 0; b < mBatchWidth; ++b) {
+      mTimeScaleInfo[b].mTimeScaleTrue = timeScales[b];
+      double E_dt = mTimeScaleInfo[b].mTimeScaleTrue;
+      double E_0  = mOldTimeScaleInfo[b].mTimeScaleTrue;
+      if (E_dt == E_0) { continue; }
 
-      if (E_dt == E_0) {
-         continue;
-      }
+      double dE_dt_scaled = (E_0 - E_dt) / mTimeScaleInfo[b].mTimeScale;
 
-      if ((dE_dt_scaled <= 0.0) || (E_0 <= 0) || (E_dt <= 0)) {
-         mTimeScaleInfo.mTimeScale[b]    = mBaseMin;
-         mTimeScaleInfo.mTimeScaleMax[b] = mBaseMax;
+      if ((dE_dt_scaled <= 0.0) or (E_0 <= 0.0) or (E_dt <= 0.0)) {
+         mTimeScaleInfo[b].mTimeScale    = mBaseMin;
+         mTimeScaleInfo[b].mTimeScaleMax = mBaseMax;
       }
       else {
          double tau_eff_scaled = E_0 / dE_dt_scaled;
-
-         // dt := mTimeScaleMaxBase * tau_eff
-         mTimeScaleInfo.mTimeScale[b] = mTauFactor * tau_eff_scaled;
-         if (mTimeScaleInfo.mTimeScale[b] >= mTimeScaleInfo.mTimeScaleMax[b]) {
+         mTimeScaleInfo[b].mTimeScale = mTauFactor * tau_eff_scaled;
+         if (mTimeScaleInfo[b].mTimeScale >= mTimeScaleInfo[b].mTimeScaleMax) {
             double growthFactor =
-                  mGrowthFactor * exp(-(mTimeScaleInfo.mTimeScaleMax[b] - mBaseMax) / mLogSlope);
-            mTimeScaleInfo.mTimeScale[b]    = mTimeScaleInfo.mTimeScaleMax[b];
-            mTimeScaleInfo.mTimeScaleMax[b] = (1 + growthFactor) * mTimeScaleInfo.mTimeScaleMax[b];
+                  mGrowthFactor * exp(-(mTimeScaleInfo[b].mTimeScaleMax - mBaseMax ) / mLogSlope);
+            mTimeScaleInfo[b].mTimeScale = mTimeScaleInfo[b].mTimeScaleMax;
+            mTimeScaleInfo[b].mTimeScaleMax *= (1 + growthFactor);
          }
       }
    }
-   return mTimeScaleInfo.mTimeScale;
+   return mTimeScaleInfo;
 }
-}
+
+} // namespace PV

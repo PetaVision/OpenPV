@@ -36,7 +36,7 @@ class BatchIndexer : public CheckpointerDataInterface {
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
   protected:
-   virtual Response::Status processCheckpointRead() override;
+   virtual Response::Status processCheckpointRead(double simTime) override;
    virtual Response::Status readStateFromCheckpoint(Checkpointer *checkpointer) override;
 
    /** Exits with error if any of index is negative or >= fileCount.
@@ -58,6 +58,6 @@ class BatchIndexer : public CheckpointerDataInterface {
    std::vector<int> mSkipAmounts;
    BatchMethod mBatchMethod;
 };
-}
+} // namespace PV
 
 #endif // BATCHINDEXER_HPP_

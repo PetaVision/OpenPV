@@ -1,39 +1,113 @@
 set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/AbstractNormProbe.cpp
-   ${SUBDIR}/LogTimeScaleProbe.cpp
-   ${SUBDIR}/KneeTimeScaleProbe.cpp
+   ${SUBDIR}/ActivityBufferStatsProbeLocal.cpp
    ${SUBDIR}/AdaptiveTimeScaleProbe.cpp
+   ${SUBDIR}/AdaptiveTimeScaleProbeOutputter.cpp
+   ${SUBDIR}/ANNLayerLocator.cpp
    ${SUBDIR}/BaseProbe.cpp
+   ${SUBDIR}/BaseProbeOutputter.cpp
+   ${SUBDIR}/BufferParamActivitySpecified.cpp
+   ${SUBDIR}/BufferParamInterface.cpp
+   ${SUBDIR}/BufferParamUserSpecified.cpp
+   ${SUBDIR}/BufferParamVMembraneSpecified.cpp
+   ${SUBDIR}/CheckStatsAllZeros.cpp
    ${SUBDIR}/ColProbe.cpp
+   ${SUBDIR}/ColumnEnergyOutputter.cpp
    ${SUBDIR}/ColumnEnergyProbe.cpp
+   ${SUBDIR}/EnergyProbeComponent.cpp
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.cpp
+   ${SUBDIR}/FirmThresholdCostFnLCAProbeLocal.cpp
    ${SUBDIR}/FirmThresholdCostFnProbe.cpp
+   ${SUBDIR}/FirmThresholdCostFnProbeLocal.cpp
+   ${SUBDIR}/KneeTimeScaleProbe.cpp
+   ${SUBDIR}/L0NormLCAEnergyProbeComponent.cpp
    ${SUBDIR}/L0NormLCAProbe.cpp
+   ${SUBDIR}/L0NormLCAProbeLocal.cpp
    ${SUBDIR}/L0NormProbe.cpp
+   ${SUBDIR}/L0NormProbeLocal.cpp
    ${SUBDIR}/L1NormLCAProbe.cpp
+   ${SUBDIR}/L1NormLCAProbeLocal.cpp
    ${SUBDIR}/L1NormProbe.cpp
+   ${SUBDIR}/L1NormProbeLocal.cpp
    ${SUBDIR}/L2NormProbe.cpp
-   ${SUBDIR}/LayerProbe.cpp
-   ${SUBDIR}/QuotientColProbe.cpp
+   ${SUBDIR}/L2NormProbeAggregator.cpp
+   ${SUBDIR}/L2NormProbeLocal.cpp
+   ${SUBDIR}/LogTimeScaleProbe.cpp
+   ${SUBDIR}/NormProbeAggregator.cpp
+   ${SUBDIR}/NormProbeLocalInterface.cpp
+   ${SUBDIR}/NormProbeOutputter.cpp
+   ${SUBDIR}/ProbeComponent.cpp
+   ${SUBDIR}/ProbeInterface.cpp
+   ${SUBDIR}/ProbeTriggerComponent.cpp
+   ${SUBDIR}/QuotientProbe.cpp
+   ${SUBDIR}/QuotientProbeOutputter.cpp
    ${SUBDIR}/RequireAllZeroActivityProbe.cpp
    ${SUBDIR}/StatsProbe.cpp
+   ${SUBDIR}/StatsProbeAggregator.cpp
+   ${SUBDIR}/StatsProbeImmediate.cpp
+   ${SUBDIR}/StatsProbeLocal.cpp
+   ${SUBDIR}/StatsProbeOutputter.cpp
+   ${SUBDIR}/TargetLayerComponent.cpp
+   ${SUBDIR}/VMembraneBufferStatsProbeLocal.cpp
+   ${SUBDIR}/VThreshEnergyProbeComponent.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/AbstractNormProbe.hpp
+   ${SUBDIR}/ActivityBufferStatsProbeLocal.hpp
    ${SUBDIR}/AdaptiveTimeScaleProbe.hpp
-   ${SUBDIR}/LogTimeScaleProbe.hpp
-   ${SUBDIR}/KneeTimeScaleProbe.hpp
+   ${SUBDIR}/AdaptiveTimeScaleProbeOutputter.hpp
+   ${SUBDIR}/ANNLayerLocator.hpp
    ${SUBDIR}/BaseProbe.hpp
+   ${SUBDIR}/BaseProbeOutputter.hpp
+   ${SUBDIR}/BufferParamActivitySpecified.hpp
+   ${SUBDIR}/BufferParamInterface.hpp
+   ${SUBDIR}/BufferParamUserSpecified.hpp
+   ${SUBDIR}/BufferParamVMembraneSpecified.hpp
+   ${SUBDIR}/CheckStatsAllZeros.hpp
    ${SUBDIR}/ColProbe.hpp
+   ${SUBDIR}/ColumnEnergyOutputter.hpp
    ${SUBDIR}/ColumnEnergyProbe.hpp
+   ${SUBDIR}/CostFunctions.hpp
+   ${SUBDIR}/CostFunctionSum.hpp
+   ${SUBDIR}/EnergyProbeComponent.hpp
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.hpp
+   ${SUBDIR}/FirmThresholdCostFnLCAProbeLocal.hpp
    ${SUBDIR}/FirmThresholdCostFnProbe.hpp
+   ${SUBDIR}/FirmThresholdCostFnProbeLocal.hpp
+   ${SUBDIR}/KneeTimeScaleProbe.hpp
+   ${SUBDIR}/L0NormLCAEnergyProbeComponent.hpp
+   ${SUBDIR}/L0NormLCAProbe.hpp
+   ${SUBDIR}/L0NormLCAProbeLocal.hpp
    ${SUBDIR}/L0NormProbe.hpp
+   ${SUBDIR}/L0NormProbeLocal.hpp
    ${SUBDIR}/L1NormLCAProbe.hpp
+   ${SUBDIR}/L1NormLCAProbeLocal.hpp
    ${SUBDIR}/L1NormProbe.hpp
-   ${SUBDIR}/LayerProbe.hpp
-   ${SUBDIR}/QuotientColProbe.hpp
+   ${SUBDIR}/L1NormProbeLocal.hpp
+   ${SUBDIR}/L2NormProbe.hpp
+   ${SUBDIR}/L2NormProbeAggregator.hpp
+   ${SUBDIR}/L2NormProbeLocal.hpp
+   ${SUBDIR}/LogTimeScaleProbe.hpp
+   ${SUBDIR}/NormProbeAggregator.hpp
+   ${SUBDIR}/NormProbeLocalInterface.hpp
+   ${SUBDIR}/NormProbeLocalTemplate.hpp
+   ${SUBDIR}/NormProbeOutputter.hpp
+   ${SUBDIR}/ProbeComponent.hpp
+   ${SUBDIR}/ProbeData.hpp
+   ${SUBDIR}/ProbeDataBuffer.hpp
+   ${SUBDIR}/ProbeInterface.hpp
+   ${SUBDIR}/ProbeTriggerComponent.hpp
+   ${SUBDIR}/QuotientProbe.hpp
+   ${SUBDIR}/QuotientProbeOutputter.hpp
    ${SUBDIR}/RequireAllZeroActivityProbe.hpp
    ${SUBDIR}/StatsProbe.hpp
+   ${SUBDIR}/StatsProbeAggregator.hpp
+   ${SUBDIR}/StatsProbeImmediate.hpp
+   ${SUBDIR}/StatsProbeLocal.hpp
+   ${SUBDIR}/StatsProbeOutputter.hpp
+   ${SUBDIR}/StatsProbeTypes.hpp
+   ${SUBDIR}/TargetLayerComponent.hpp
+   ${SUBDIR}/VMembraneBufferStatsProbeLocal.hpp
+   ${SUBDIR}/VThreshEnergyProbeComponent.hpp
 )

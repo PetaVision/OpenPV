@@ -38,7 +38,8 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
    }
    // Set batch width to the number of processes, and rows and columns to 1.
-   pv_initObj.setMPIConfiguration(1 /*rows*/, 1 /*columns*/, 0 /*compute the batchWidth*/);
+   int numProcesses = pv_initObj.getWorldSize();
+   pv_initObj.setMPIConfiguration(1 /*rows*/, 1 /*columns*/, numProcesses /*batchWidth*/);
    status = buildandrun(&pv_initObj, NULL, &checkWeights);
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -1,18 +1,46 @@
 #include "SharedWeightsIO.hpp"
 
+#include "include/pv_common.h"
+#include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
+#include "utils/weight_conversions.hpp"
+
+#include <cfloat>
+#include <cstdint>
+#include <ios>
 
 namespace PV {
 
-SharedWeightsIO::SharedWeightsIO(std::shared_ptr<FileStream> fileStream) :
-      mFileStream(fileStream) {
-   if (!getFileStream()) { return; }
+SharedWeightsIO::SharedWeightsIO(
+      std::shared_ptr<FileStream> fileStream,
+      int patchSizeX,
+      int patchSizeY,
+      int patchSizeF,
+      int numPatchesX,
+      int numPatchesY,
+      int numPatchesF,
+      int numArbors,
+      bool compressedFlag)
+      : mFileStream(fileStream),
+        mPatchSizeX(patchSizeX),
+        mPatchSizeY(patchSizeY),
+        mPatchSizeF(patchSizeF),
+        mNumPatchesX(numPatchesX),
+        mNumPatchesY(numPatchesY),
+        mNumPatchesF(numPatchesF),
+        mNumArbors(numArbors),
+        mCompressedFlag(compressedFlag) {
    FatalIf(
-         !getFileStream()->readable(),
+         fileStream and !fileStream->readable(),
          "FileStream \"%s\" is not readable and can't be used in a SharedWeightsIO object.\n",
-         getFileStream()->getFileName());
+         fileStream->getFileName().c_str());
+   mDataSize = static_cast<long>(mCompressedFlag ? sizeof(uint8_t) : sizeof(float));
+   initializeFrameSize();
+   initializeNumFrames();
 
-   initializeFrameStarts();
+   if (!getFileStream()) {
+      return;
+   }
 
    // If writeable, initialize position at end of file.
    // If read-only, initialize position at beginning.
@@ -27,328 +55,243 @@ SharedWeightsIO::SharedWeightsIO(std::shared_ptr<FileStream> fileStream) :
 }
 
 long SharedWeightsIO::calcFilePositionFromFrameNumber(int frameNumber) const {
-   if (frameNumber >= 0 and frameNumber < static_cast<int>(mFrameStarts.size())) {
-      return mFrameStarts[frameNumber];
-   }
-   else {
-      return -1L;
-   }
+   return static_cast<long>(frameNumber) * mFrameSize;
 }
 
 int SharedWeightsIO::calcFrameNumberFromFilePosition(long filePosition) const {
-   pvAssert(getFrameNumber() >= 0 and getFrameNumber() <= getNumFrames());
-   pvAssert(mFrameStarts.size() == static_cast<std::vector<long>::size_type>(getNumFrames() + 1));
-   pvAssert(mFrameStarts[0] == 80L);
-#ifndef NDEBUG
-   // If in debug mode, verify that the entries of mFrameStarts are strictly increasing,
-   // and the first element is the size of the header in bytes.
-   for (int k = 0; k < getNumFrames(); ++k) {
-      pvAssert(mFrameStarts[k] < mFrameStarts[k+1]);
-   }
-#endif // NDEBUG
-   auto p = mFrameStarts.begin();
-   while(p != mFrameStarts.end()) {
-      if (*p >= filePosition) { break; }
-      ++p;
-   }
-   if (p == mFrameStarts.end()) { return -1; }
-
-   int frameNumber = static_cast<int>(p - mFrameStarts.begin());
-   return frameNumber;
+   return static_cast<int>(filePosition / mFrameSize);
 }
 
-void SharedWeightsIO::read(Weights &weights) {
+void SharedWeightsIO::read(WeightData &weightData) {
+   if (!mFileStream) {
+      return;
+   }
    double dummyTimestamp;
-   read(weights, dummyTimestamp);
+   read(weightData, dummyTimestamp);
 }
 
-void SharedWeightsIO::read(Weights &weights, double &timestamp) {
+void SharedWeightsIO::read(WeightData &weightData, double &timestamp) {
+   if (!mFileStream) {
+      return;
+   }
+   checkDimensions(weightData);
    BufferUtils::WeightHeader header;
-   uint32_t headerSize = 0U;
-   getFileStream()->read(&headerSize, 4L);
-   FatalIf(headerSize != static_cast<uint32_t>(mHeaderSize),
-         "SharedWeightsIO::read() \"%s\" frame %d has headerSize %" PRIu32
-         " when it should be %" PRIu32 ".\n",
-         getFileStream()->getFileName(),
-         getFrameNumber(),
-         headerSize,
-         static_cast<uint32_t>(mHeaderSize));
-   getFileStream()->setInPos(-4L, std::ios_base::cur);
-   getFileStream()->read(&header, static_cast<long>(mHeaderSize));
-   checkHeaderValues(weights, header);
+   mFileStream->read(&header, mHeaderSize);
+   checkHeader(header);
 
-   timestamp = header.baseHeader.timestamp;
-   long arborSize = calcArborSize(header);
-   std::vector<unsigned char> readBuffer(arborSize);
-   int numArbors   = header.baseHeader.numRecords;
-   bool compressed = header.baseHeader.dataSize == BufferUtils::BYTE;
-   for (int arbor = 0; arbor < numArbors; ++arbor) {
-      mFileStream->read(readBuffer.data(), arborSize);
-      loadWeightsFromBuffer(readBuffer, arbor, header.minVal, header.maxVal, compressed);
+   Patch patchHeader;
+   long numValuesInPatch = getPatchSizeOverall();
+   for (int a = 0; a < mNumArbors; ++a) {
+      for (int p = 0; p < getNumPatchesOverall(); ++p) {
+         mFileStream->read(&patchHeader, mPatchHeaderSize);
+         long sizeInFile  = numValuesInPatch * mDataSize;
+         float *dataStart = weightData.getDataFromDataIndex(a, p);
+         if (mCompressedFlag) {
+            uint8_t compressedData[numValuesInPatch];
+            mFileStream->read(compressedData, numValuesInPatch);
+            for (long k = 0; k < numValuesInPatch; ++k) {
+               dataStart[k] = uncompressWeight(compressedData[k], header.minVal, header.maxVal);
+            }
+         }
+         else {
+            mFileStream->read(dataStart, sizeInFile);
+         }
+      }
    }
    setFrameNumber(getFrameNumber() + 1);
+
+   timestamp = header.baseHeader.timestamp;
 }
 
-void SharedWeightsIO::read(Weights &weights, double &timestamp, int frameNumber) {
-   setFrameNumber(frameNumber);
-   read(weights, timestamp);
-}
-
-void SharedWeightsIO::write(Weights &weights, bool compressed, double timestamp) {
-   float minWeight = weights.calcMinWeight();
-   float maxWeight = weights.calcMaxWeight();
-   auto header = writeHeader(weights, compressed, timestamp, minWeight, maxWeight);
-   long arborSize = calcArborSize(header);
-   std::vector<unsigned char> write(arborSize);
-   int numArbors   = header.baseHeader.numRecords;
-   for (int arbor = 0; arbor < numArbors; ++arbor) {
-      storeWeightsInBuffer(writeBuffer, arbor, minWeight, maxWeight, compress);
-      mFileStream->write(readBuffer.data(), arborSize);
-   }
-   if (mFrameNumber == mNumFrames) {
-      mFrameStarts.push_back(getFileStream()->getOutPos());
-      ++mNumFrames;
-      setFrameNumber(mNumFrames);
-   }
-   else {
-      setFrameNumber(mFrameNumber + 1);
+void SharedWeightsIO::read(WeightData &weightData, double &timestamp, int frameNumber) {
+   if (mFileStream) {
+      setFrameNumber(frameNumber);
+      read(weightData, timestamp);
    }
 }
 
-void SharedWeightsIO::write(Weights &weights, bool compressed, double timestamp, int frameNumber) {
-   setFrameNumber(frameNumber);
-   write(weights, compressed, timestamp);
-}
-
-void SharedWeightsIO::setFrameNumber(int frame) {
-   if (!mFileStream) { return; }
-   mFrameNumber = frame;
-   long filePos = calcFilePositionFromFrameNumber(frame);
-   mFileStream->setInPos(filePos, std::ios_base::beg);
-   if (mFileStream->writeable()) { mFileStream->setOutPos(filePos, std::ios_base::beg); }
-}
-
-long SharedWeightsIO::calcArborSize(BufferUtils::WeightHeader const &header) const {
-   long patchDataSize    = static_cast<long>(nxp * nyp * nfp * header.baseHeader.dataSize);
-   auto patchHeaderSize  = std::sizeof(uint16_t) + std::sizeof(uint16_t) + std::sizeof(uint32_t);
-   long patchSizeInBytes = static_cast<long>(patchHeaderSize) + patchDataSize;
-   long arborSizeInBytes = patchSizeInBytes * static_cast<long>(header.numPatches);
-   return arborSizeInBytes;
-}
-
-void SharedWeightsIO::checkHeaderValues(
-      Weights const &weights, BufferUtils::WeightHeader const &header) const {
-   auto dataType = static_cast<BufferUtils::HeaderDataType>(header.baseHeader.dataType);
-   FatalIf(
-         dataType != BufferUtils::BYTE and dataType != BufferUtils::FLOAT,
-         "SharedWeights file \"%s\" frame %d has dataType %d. "
-         "Only BYTE(%d) and FLOAT(%d) are supported.\n",
-         getFileStream()->getFileName(), getFrameNumber(), static_cast<int>(dataType),
-         static_cast<int>(BufferUtils::BYTE), static_cast<int>(BufferUtils::FLOAT));
-   FatalIf(header.nxp != weights.getPatchSizeX(),
-         "SharedWeights file \"%s\" frame %d has nxp %d, "
-         "which is incompatible with target weight's nxp = %d\n"
-         getFileStream()->getFileName(), getFrameNumber(), header.nxp,
-         weights.getPatchSizeX());
-   FatalIf(header.nyp != weights.getPatchSizeY(),
-         "SharedWeights file \"%s\" frame %d has nyp %d, "
-         "which is incompatible with target weight's nyp = %d\n"
-         getFileStream()->getFileName(), getFrameNumber(), header.nyp,
-         weights.getPatchSizeY());
-   FatalIf(header.nfp != weights.getPatchSizeF(),
-         "SharedWeights file \"%s\" frame %d has nfp %d, "
-         "which is incompatible with target weight's nfp = %d\n"
-         getFileStream()->getFileName(), getFrameNumber(), header.nfp,
-         weights.getPatchSizeF());
-   FatalIf(header.numPatches != weights.getNumDataPatches(),
-         "SharedWeights file \"%s\" frame %d has numPatches %d, "
-         "which is incompatible with target weight's NumDataPatches = %d\n"
-         getFileStream()->getFileName(), getFrameNumber(), header.numPatches,
-         weights.getNumDataPatches());
-   FatalIf(header.numRecords != weights.getNumArbors(),
-         "SharedWeights file \"%s\" frame %d has %d arbors, "
-         "which is incompatible with target weight's NumArbors = %d\n"
-         getFileStream()->getFileName(), getFrameNumber(), header.numRecords,
-         weights.getNumArbors());
-   FatalIf(header.nBands != weights.numRecords,
-         "SharedWeights file \"%s\" frame %d has inconsistent numbers of arbors: "
-         "numRecords = %d but nBands = %d.\n",
-         getFileStream()->getFileName(), getFrameNumber(),
-         header.baseHeader.numRecords, header.baseHeader.nBands);
-}
-
-void WeightsFileIO::compressPatch(
-      unsigned char *writeBuffer,
-      float const *sourceWeights,
-      int count,
-      float minValue,
-      float maxValue) {
-   for (int k = 0; k < count; k++) {
-      float compressedWeight = (sourceWeights[k] - minValue) / (maxValue - minValue);
-      float scaledWeight     = std::floor(255.0f * compressedWeight);
-      writeBuffer[k]         = static_cast<unsigned char>(scaledWeight);
+void SharedWeightsIO::write(WeightData const &weightData, double timestamp) {
+   if (!mFileStream) {
+      return;
    }
-}
 
-void SharedWeightsIO::decompressPatch(
-      unsigned char const *readBuffer,
-      float *destWeights,
-      int count,
-      float minValue,
-      float maxValue) {
-   for (int k = 0; k < count; k++) {
-      float compressedWeight = static_cast<float>(readBuffer[k]) / 255.0f;
-      destWeights[k]         = compressedWeight * (maxValue - minValue) + minValue;
-   }
-}
-
-void SharedWeightsIO::initializeFrameStarts() {
-   // Should only be called by constructor, after nonroot process have returned
-   pvAssert(getFileStream());
-
-   getFileStream()->setInPos(0L, std::ios_base::end);
-   long eofPosition = getFileStream()->getInPos();
-   FatalIf(
-         eofPosition < mHeaderSize,
-         "SparseLayerIO \"%s\" is too shore (%ld bytes) to contain a weight header.\n",
-         getFileStream()->getFileName(), eofPosition);
-   long curPosition = 0L;
-   getFileStream()->setInPos(curPosition, std::ios_base::beg);
-   while (curPosition < eofPosition) {
-      mFrameStarts.push_back(curPosition);
-
-      // Make sure there's enough data left in the file for timestamp + numActive
-      FatalIf(
-            eofPosition - curPosition < static_cast<long>(mHeaderSize),
-            "SharedWeightsIO \"%s\" has %ld bytes left over after %zu pvp frames.\n",
-            getFileStream()->getFileName(),
-            eofPosition - curPosition,
-            mFrameStarts.size());
-
-      // Read timestamp and numActive
-      WeightHeader header;
-      getFileStream()->read(&header, static_cast<long>(mHeaderSize));
-
-      // Make sure there's enough data left in the file for the weight data.
-      long arborSize = calcArborSize(header);
-      long frameDataSize = arborSize * static_cast<long>(header.baseHeader.numRecords);
-      FatalIf(
-            eofPosition - curPosition < frameDataSize,
-            "SparseLayerIO \"%s\" has numActive=%d in frame %zu, and therefore needs "
-            "%d bytes to hold the values, but there are only %ld bytes left in the file.\n",
-            getFileStream()->getFileName(),
-            mFrameStarts.size(),
-            numActive * static_cast<int>(mSparseValueEntrySize),
-            eofPosition - curPosition);
-
-      long newPosition = getFileStream()->getInPos();
-      pvAssert(newPosition == curPosition + 104L);
-      curPosition = newPosition + frameDataSize;
-      getFileStream()->setInPos(curPosition, std::ios_base::beg);
-   }
-   pvAssert(curPosition == eofPosition);
-   mNumFrames = static_cast<int>(mNumEntries.size());
-   mFrameStarts.push_back(eofPosition);
-
-   pvAssert(mFrameStarts.size() == static_cast<std::vector<long>::size_type>(mNumFrames + 1));
-}
-
-void SharedWeightsIO::loadWeightsFromBuffer(
-      Weights &weights,
-      std::vector<unsigned char> const &readBuffer,
-      int arbor,
-      float minValue,
-      float maxValue,
-      bool compressed) {
-   int const nxp           = weights.getPatchSizeX();
-   int const nyp           = weights.getPatchSizeY();
-   int const nfp           = weights.getPatchSizeF();
-   int const valuesInPatch = nxp * nyp * nfp;
-   int const numPatches    = weights.getNumDataPatches();
-
-   auto const patchSizePvpFormat     = BufferUtils::weightPatchSize(valuesInPatch, compressed);
-   std::size_t const patchHeaderSize = sizeof(unsigned int) + 2UL * sizeof(unsigned short);
-   if (compressed) {
-      for (int k = 0; k < numPatches; k++) {
-         std::size_t const offsetInFile     = patchSizePvpFormat * (std::size_t)k;
-         unsigned char const *patchFromFile = &readBuffer[offsetInFile + patchHeaderSize];
-         float *weightsInPatch              = weights.getDataFromDataIndex(arbor, k);
-         decompressPatch(patchFromFile, weightsInPatch, valuesInPatch, minValue, maxValue);
-      }
-   }
-   else {
-      for (int k = 0; k < numPatches; k++) {
-         std::size_t const offsetInFile     = patchSizePvpFormat * (std::size_t)k;
-         unsigned char const *patchFromFile = &readBuffer[offsetInFile + patchHeaderSize];
-
-         float *weightsInPatch   = weights.getDataFromDataIndex(arbor, k);
-         std::size_t sizeInBytes = static_cast<std::size_t>(valuesInPatch) * sizeof(float);
-         memcpy(weightsInPatch, patchFromFile, sizeInBytes);
-      }
-   }
-}
-
-void SharedWeightsIO::storeWeightsInBuffer(
-      Weights const &weights,
-      std::vector<unsigned char> &readBuffer,
-      int arbor,
-      float minValue,
-      float maxValue,
-      bool compressed) {
-   int const nxp           = weights.getPatchSizeX();
-   int const nyp           = weights.getPatchSizeY();
-   int const nfp           = weights.getPatchSizeF();
-   int const valuesInPatch = nxp * nyp * nfp;
-   int const numPatches    = weights.getNumDataPatches();
-
-   auto const patchSizePvpFormat     = BufferUtils::weightPatchSize(valuesInPatch, compressed);
-   std::size_t const patchHeaderSize = sizeof(uint32_t) + 2UL * sizeof(uint16_t);
-   unsigned char patchHeader[patchHeaderSize];
-   uint16_t shortDim[2] = {static_cast<uint16_t>(nxp), static_cast<uint16_t>(nyp)};
-   memcpy(patchHeader, &shortDim, 2UL * sizeof(uint16_t));
-
-   // always zero offset for shared weights
-   memset(&patchHeader[2UL * sizeof(uint16_t)], 0, sizeof(uint32_t));
-   if (compressed) {
-      for (int k = 0; k < numDataPatches; k++) {
-         std::size_t const offsetInFile = patchSizePvpFormat * (std::size_t)k;
-         unsigned char *patchFromFile   = &dataFromFile[offsetInFile] + patchHeaderSize;
-
-         float const *weightsInPatch = weights.getDataFromDataIndex(arbor, k);
-         compressPatch(patchFromFile, weightsInPatch, valuesInPatch, minValue, maxValue);
-      }
-   }
-   else {
-      for (int k = 0; k < numDataPatches; k++) {
-         std::size_t const offsetInFile = patchSizePvpFormat * (std::size_t)k;
-         unsigned char *patchFromFile   = &dataFromFile[offsetInFile] + patchHeaderSize;
-
-         float const *weightsInPatch = weights.getDataFromDataIndex(arbor, k);
-         memcpy(patchFromFile, weightsInPatch, (std::size_t)(valuesInPatch) * sizeof(float));
-      }
-   }
-}
-
-BufferUtils::WeightHeader SharedWeightsIO::writeHeader(
-      Weights &weights,
-      bool compressed,
-      double timestamp,
-      float minWeight,
-      float maxWeight) {
-   BufferUtils::WeightHeader header = BufferUtils::buildSharedWeightHeader(
-         weights.getPatchSizeX(),
-         weights.getPatchSizeY(),
-         weights.getPatchSizeF(),
-         weights.getNumArbors(),
-         weights.getNumDataPatchesX(),
-         weights.getNumDataPatchesY(),
-         weights.getNumDataPatchesF(),
+   checkDimensions(weightData);
+   float minWeight, maxWeight;
+   calcExtremeWeights(weightData, minWeight, maxWeight);
+   auto header = BufferUtils::buildWeightHeader(
+         true /*sharedFlag*/,
+         getNumPatchesX(),
+         getNumPatchesY(),
+         getNumPatchesF(),
+         getNumPatchesX(),
+         getNumPatchesY(),
+         getNumArbors(),
          timestamp,
-         compressed,
+         getPatchSizeX(),
+         getPatchSizeY(),
+         getPatchSizeF(),
+         getCompressedFlag(),
          minWeight,
          maxWeight);
-   getFileStream()->write(&header, mHeaderSize);
-   return header;
+   mFileStream->write(&header, mHeaderSize);
+   checkHeader(header);
+
+   Patch patchHeader;
+   long numValuesInPatch = getPatchSizeOverall();
+   for (int a = 0; a < mNumArbors; ++a) {
+      Patch writePatch;
+      writePatch.nx     = static_cast<uint16_t>(getPatchSizeX());
+      writePatch.ny     = static_cast<uint16_t>(getPatchSizeY());
+      writePatch.offset = static_cast<uint32_t>(0);
+      for (int p = 0; p < getNumPatchesOverall(); ++p) {
+         mFileStream->write(&writePatch, mPatchHeaderSize);
+         long sizeInFile        = numValuesInPatch * mDataSize;
+         float const *arbor     = weightData.getData(a);
+         float const *dataStart = &arbor[p * numValuesInPatch];
+         if (mCompressedFlag) {
+            uint8_t compressedData[numValuesInPatch];
+            for (long k = 0; k < numValuesInPatch; ++k) {
+               compressedData[k] = compressWeight(dataStart[k], header.minVal, header.maxVal);
+            }
+            mFileStream->write(compressedData, sizeInFile);
+         }
+         else {
+            mFileStream->write(dataStart, sizeInFile);
+         }
+      }
+   }
+   setFrameNumber(getFrameNumber() + 1);
+   if (getFrameNumber() > getNumFrames()) {
+      mNumFrames = getFrameNumber();
+   }
+}
+
+void SharedWeightsIO::write(WeightData const &weightData, double timestamp, int frameNumber) {
+   setFrameNumber(frameNumber);
+   write(weightData, timestamp);
+}
+
+void SharedWeightsIO::open() { mFileStream->open(); }
+
+void SharedWeightsIO::close() { mFileStream->close(); }
+
+void SharedWeightsIO::setFrameNumber(int frameNumber) {
+   pvAssert(mFileStream);
+   mFrameNumber = frameNumber;
+   long filePos = calcFilePositionFromFrameNumber(frameNumber);
+   mFileStream->setInPos(filePos, std::ios_base::beg);
+   if (mFileStream->writeable()) {
+      mFileStream->setOutPos(filePos, std::ios_base::beg);
+   }
+}
+
+void SharedWeightsIO::calcExtremeWeights(
+      WeightData const &weightData,
+      float &minWeight,
+      float &maxWeight) const {
+   minWeight          = FLT_MAX;
+   maxWeight          = -FLT_MAX;
+   long totalElements = weightData.getPatchSizeOverall() * weightData.getNumDataPatchesOverall();
+   for (int a = 0; a < getNumArbors(); ++a) {
+      float const *arbor = weightData.getData(a);
+      for (long k = 0; k < totalElements; ++k) {
+         float v   = arbor[k];
+         minWeight = v < minWeight ? v : minWeight;
+         maxWeight = v > maxWeight ? v : maxWeight;
+      }
+   }
+}
+
+void SharedWeightsIO::checkDimensions(WeightData const &weightData) {
+   int status = PV_SUCCESS;
+   if (weightData.getNumArbors() != mNumArbors) {
+      ErrorLog().printf(
+            "WeightData object passed to SharedWeightsIO has %d arbors, but it expects %d\n",
+            weightData.getNumArbors(),
+            getNumArbors());
+      status = PV_FAILURE;
+   }
+   if (getNumPatchesX() != static_cast<long>(weightData.getNumDataPatchesX())) {
+      ErrorLog().printf(
+            "WeightData object has width %d, but SharedWeightsIO object expects %ld\n",
+            weightData.getNumDataPatchesX(),
+            getNumPatchesX());
+      status = PV_FAILURE;
+   }
+   if (getNumPatchesY() != static_cast<long>(weightData.getNumDataPatchesY())) {
+      ErrorLog().printf(
+            "WeightData object has height %d, but SharedWeightsIO object expects %ld\n",
+            weightData.getNumDataPatchesY(),
+            getNumPatchesY());
+      status = PV_FAILURE;
+   }
+   if (getNumPatchesF() != static_cast<long>(weightData.getNumDataPatchesF())) {
+      ErrorLog().printf(
+            "WeightData object has %d features, but SharedWeightsIO object expects %ld\n",
+            weightData.getNumDataPatchesF(),
+            getNumPatchesF());
+      status = PV_FAILURE;
+   }
+   FatalIf(status != PV_SUCCESS, "checkArborListDimensions failed.\n");
+}
+
+void SharedWeightsIO::checkHeader(BufferUtils::WeightHeader const &header) const {
+   int status = PV_SUCCESS;
+   if (header.baseHeader.numRecords != mNumArbors) {
+      ErrorLog().printf(
+            "SharedWeightsIO object expects %d arbors, but file has %d.\n",
+            mNumArbors,
+            header.baseHeader.numRecords);
+      status = PV_FAILURE;
+   }
+   if (header.nxp != mPatchSizeX) {
+      ErrorLog().printf(
+            "SharedWeightsIO object expects PatchSizeX=%d, but file has %d.\n",
+            mPatchSizeX,
+            header.nxp);
+      status = PV_FAILURE;
+   }
+   if (header.nyp != mPatchSizeY) {
+      ErrorLog().printf(
+            "SharedWeightsIO object expects PatchSizeX=%d, but file has %d.\n",
+            mPatchSizeY,
+            header.nyp);
+      status = PV_FAILURE;
+   }
+   if (header.nfp != mPatchSizeF) {
+      ErrorLog().printf(
+            "SharedWeightsIO object expects PatchSizeF=%d, but file has %d.\n",
+            mPatchSizeF,
+            header.nfp);
+      status = PV_FAILURE;
+   }
+   if (static_cast<long>(header.numPatches) != getNumPatchesOverall()) {
+      ErrorLog().printf(
+            "SharedWeightsIO object expects %ld patches, but file has %d.\n",
+            getNumPatchesOverall(),
+            header.numPatches);
+      status = PV_FAILURE;
+   }
+   FatalIf(status != PV_SUCCESS, "checkHeader failed.\n");
+}
+
+void SharedWeightsIO::initializeFrameSize() {
+   long patchSizeBytes = mDataSize * static_cast<long>(mPatchSizeX * mPatchSizeY * mPatchSizeF);
+   patchSizeBytes += static_cast<long>(sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t));
+   long numPatches = getNumPatchesOverall();
+   mFrameSize      = mHeaderSize + static_cast<long>(mNumArbors) * numPatches * patchSizeBytes;
+}
+
+void SharedWeightsIO::initializeNumFrames() {
+   if (!getFileStream()) {
+      return;
+   }
+
+   long curPos = getFileStream()->getInPos();
+   getFileStream()->setInPos(0L, std::ios_base::end);
+   long eofPosition = getFileStream()->getInPos();
+   mNumFrames       = calcFrameNumberFromFilePosition(eofPosition);
+   getFileStream()->setInPos(curPos, std::ios_base::beg);
 }
 
 } // namespace PV

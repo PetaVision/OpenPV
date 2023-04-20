@@ -7,6 +7,7 @@
 #include "VaryingHyPerConn.hpp"
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
+#include <columns/Factory.hpp>
 
 int customexit(HyPerCol *hc, int argc, char *argv[]);
 
@@ -102,7 +103,7 @@ int diffDirs(const char *cpdir1, const char *cpdir2, int index) {
    const int max_buf_len = 1024;
    char shellcommand[max_buf_len];
    const char *fmtstr =
-         "diff -r -q -x timers.txt -x pv.params -x pv.params.lua %s/Checkpoint%d %s/Checkpoint%d";
+         "diff -r -q -x timers.txt -x pv?.params -x pv?.params.lua %s/Checkpoint%d %s/Checkpoint%d";
    snprintf(shellcommand, max_buf_len, fmtstr, cpdir1, index, cpdir2, index);
    status = system(shellcommand);
    if (status != 0) {
@@ -119,7 +120,7 @@ int diffDirs(const char *cpdir1, const char *cpdir2, int index) {
 
 int customexit(HyPerCol *hc, int argc, char *argv[]) {
    // Rank of the checkpointing MPI communicator does is not publicly accessible, so recreate it.
-   Arguments const *arguments = hc->getPV_InitObj()->getArguments();
+   auto arguments = hc->getPV_InitObj()->getArguments();
    MPIBlock mpiBlock(
          hc->getCommunicator()->globalCommunicator(),
          arguments->getIntegerArgument("NumRows"),

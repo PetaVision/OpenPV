@@ -11,7 +11,7 @@ WeightsFileIO::WeightsFileIO(
    }
    if (mMPIBlock->getRank() == mRootProcess and mFileStream == nullptr) {
       throw std::invalid_argument(
-            "WeightsFileIO instantiated with a null file stream on the null process");
+            "WeightsFileIO instantiated with a null file stream on the root process");
    }
    if (mWeights == nullptr) {
       throw std::invalid_argument("WeightsFileIO instantiated with a null Weights object");

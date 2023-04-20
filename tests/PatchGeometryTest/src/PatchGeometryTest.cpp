@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <components/PatchGeometry.hpp>
 #include <string.h>
+#include <utils/PathComponents.hpp> // PV::baseName
 #include <utils/PVLog.hpp>
 #include <utils/conversions.hpp>
 
@@ -549,9 +550,7 @@ int main(int argc, char *argv[]) {
    testOneToManyExtended();
    testManyToOneRestricted();
    testManyToOneExtended();
-   char *programPath = strdup(argv[0]);
-   char *programName = basename(programPath);
+   std::string programName = PV::baseName(argv[0]);
    InfoLog() << programName << " passed.\n";
-   free(programPath);
    return 0;
 }

@@ -1,0 +1,11 @@
+# Configuration file for LocalPatchFileTest
+OutputPath:output/config_16flat
+ParamsFile:
+NumThreads:-
+LogFile:LocalPatchFileTest_16flat.log
+NumRows:4
+NumColumns:4
+BatchWidth:1
+CheckpointCellNumRows:4
+CheckpointCellNumColumns:4
+CheckpointCellBatchDimension:1

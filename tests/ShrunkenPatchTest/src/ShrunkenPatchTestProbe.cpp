@@ -1,17 +1,28 @@
 /*
- * StatsProbe.cpp
+ * ShrunkenPatchTestProbe.cpp
  *
  *  Created on:
  *      Author: garkenyon
  */
 
 #include "ShrunkenPatchTestProbe.hpp"
+#include <columns/Communicator.hpp>
 #include <components/BasePublisherComponent.hpp>
-#include <include/pv_arch.h>
+#include <components/LayerGeometry.hpp>
+#include <include/PVLayerLoc.h>
 #include <io/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
-#include <string.h>
+#include <probes/ActivityBufferStatsProbeLocal.hpp>
+#include <probes/ProbeData.hpp>
+#include <probes/StatsProbeAggregator.hpp>
+#include <probes/StatsProbeImmediate.hpp>
+#include <probes/StatsProbeTypes.hpp>
 #include <utils/PVLog.hpp>
+#include <utils/conversions.hpp>
+
+#include <cmath>
+#include <cstdlib>
+#include <memory>
 
 namespace PV {
 
@@ -24,60 +35,26 @@ ShrunkenPatchTestProbe::ShrunkenPatchTestProbe(
       const char *name,
       PVParams *params,
       Communicator const *comm)
-      : StatsProbe() {
-   initialize_base();
+      : StatsProbeImmediate() {
    initialize(name, params, comm);
 }
 
-int ShrunkenPatchTestProbe::initialize_base() { return PV_SUCCESS; }
-
-void ShrunkenPatchTestProbe::initialize(
-      const char *name,
-      PVParams *params,
-      Communicator const *comm) {
-   correctValues = NULL;
-   StatsProbe::initialize(name, params, comm);
-}
-
-int ShrunkenPatchTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = StatsProbe::ioParamsFillGroup(ioFlag);
-   ioParam_nxpShrunken(ioFlag);
-   ioParam_nypShrunken(ioFlag);
-   return status;
-}
-
-void ShrunkenPatchTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) { requireType(BufActivity); }
-
-void ShrunkenPatchTestProbe::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "nxpShrunken", &nxpShrunken);
-   return;
-}
-
-void ShrunkenPatchTestProbe::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "nypShrunken", &nypShrunken);
-   return;
-}
-
-/**
- * @time
- * @l
- */
-Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double deltaTime) {
+void ShrunkenPatchTestProbe::checkStats() {
    HyPerLayer *l         = getTargetLayer();
    const PVLayerLoc *loc = l->getLayerLoc();
    int num_neurons       = l->getNumNeurons();
 
-   // nxpShrunken must be an integer multiple of the layer's nxScale, and nxScale must be a positive
+   // NxpShrunken must be an integer multiple of the layer's nxScale, and nxScale must be a positive
    // integral power of 2.
    // The correct values of the layer activity is a function of its column index, that depends on
-   // nxpShrunken.
-   // If nxpShrunken is an odd multiple of nxScale, the patch is not really shrunken, and then the
+   // NxpShrunken.
+   // If NxpShrunken is an odd multiple of nxScale, the patch is not really shrunken, and then the
    // correct values
    // of the layer activity are [<0.5> <0.5> <1.5> <1.5> <2.5> <2.5> ...], where angle brackets
    // indicate that the given
    // value is repeated nxScale/2 times.
    //
-   // If nxpShrunken is an even multiple, the correct values of the layer activity are
+   // If NxpShrunken is an even multiple, the correct values of the layer activity are
    // [ <0.0> <1.0> <1.0> <2.0> <2.0> ...]
    //
    // This assumes the connection with l as the post-synaptic layer has a pre-synaptic layer with
@@ -85,9 +62,9 @@ Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double delt
    // There isn't a convenient way for a ShrunkenPatchTestProbe object to ensure that that's the
    // case.
 
-   if (correctValues == NULL) {
-      int nx        = loc->nx;
-      correctValues = (float *)malloc((size_t)nx * sizeof(float));
+   if (mCorrectValues == NULL) {
+      int nx         = loc->nx;
+      mCorrectValues = (float *)malloc((size_t)nx * sizeof(float));
 
       int xScaleLog2 = getTargetLayer()->getComponentByType<LayerGeometry>()->getXScale();
 
@@ -102,10 +79,10 @@ Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double delt
       FatalIf(!(half_cell_size * 2 == cell_size), "Test failed.\n");
       int num_half_cells = nx / half_cell_size;
       FatalIf(!(num_half_cells * half_cell_size == nx), "Test failed.\n");
-      int cells_in_patch = nxpShrunken / cell_size;
-      if (nxpShrunken != cells_in_patch * cell_size) {
+      int cells_in_patch = mNxpShrunken / cell_size;
+      if (mNxpShrunken != cells_in_patch * cell_size) {
          Fatal().printf(
-               "ShrunkenPatchTestProbe \"%s\" error: nxpShrunken must be an integer multiple of "
+               "ShrunkenPatchTestProbe \"%s\" error: NxpShrunken must be an integer multiple of "
                "layer \"%s\" nxScale=%d.\n",
                name,
                l->getName(),
@@ -118,22 +95,24 @@ Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double delt
          int m               = 2 * ((hc + 1 - nxp_size_parity) / 2) + nxp_size_parity;
          float correct_value = kx0 + 0.5f * (float)m;
          for (int k = 0; k < half_cell_size; k++) {
-            correctValues[idx++] = correct_value;
+            mCorrectValues[idx++] = correct_value;
          }
       }
       FatalIf(!(idx == nx), "Test failed.\n");
    }
-   FatalIf(!(correctValues != NULL), "Test failed.\n");
+   FatalIf(!(mCorrectValues != NULL), "Test failed.\n");
 
-   auto status = StatsProbe::outputState(simTime, deltaTime);
-   if (!Response::completed(status)) {
-      return status;
-   }
    float tol = 1e-4f;
 
    float const *buf =
          getTargetLayer()->getComponentByType<BasePublisherComponent>()->getLayerData();
 
+   auto const &storedValues           = mProbeAggregator->getStoredValues();
+   auto numTimestamps                 = storedValues.size();
+   int lastTimestampIndex             = static_cast<int>(numTimestamps) - 1;
+   ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
+
+   double simTime = stats.getTimestamp();
    if (simTime >= 3.0) {
       for (int k = 0; k < num_neurons; k++) {
          int kex = kIndexExtended(
@@ -146,14 +125,14 @@ Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double delt
                loc->halo.dn,
                loc->halo.up);
          int x = kxPos(k, loc->nx, loc->ny, loc->nf);
-         if (fabsf(buf[kex] - correctValues[x]) > tol) {
+         if (fabsf(buf[kex] - mCorrectValues[x]) > tol) {
             int y = kyPos(k, loc->nx, loc->ny, loc->nf);
             int f = featureIndex(k, loc->nx, loc->ny, loc->nf);
             Fatal().printf(
                   "%s: Incorrect value %f (should be %f) in process %d, x=%d, y=%d, f=%d\n",
                   l->getDescription_c(),
                   (double)buf[kex],
-                  (double)correctValues[x],
+                  (double)mCorrectValues[x],
                   mCommunicator->globalCommRank(),
                   x,
                   y,
@@ -161,9 +140,36 @@ Response::Status ShrunkenPatchTestProbe::outputState(double simTime, double delt
          }
       }
    }
-
-   return Response::SUCCESS;
 }
 
-ShrunkenPatchTestProbe::~ShrunkenPatchTestProbe() { free(correctValues); }
+void ShrunkenPatchTestProbe::createProbeLocal(char const *name, PVParams *params) {
+   mProbeLocal = std::make_shared<ActivityBufferStatsProbeLocal>(name, params);
 }
+
+void ShrunkenPatchTestProbe::initialize(
+      const char *name,
+      PVParams *params,
+      Communicator const *comm) {
+   mCorrectValues = NULL;
+   StatsProbeImmediate::initialize(name, params, comm);
+}
+
+int ShrunkenPatchTestProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = StatsProbeImmediate::ioParamsFillGroup(ioFlag);
+   ioParam_nxpShrunken(ioFlag);
+   ioParam_nypShrunken(ioFlag);
+   return status;
+}
+
+void ShrunkenPatchTestProbe::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValueRequired(ioFlag, getName(), "nxpShrunken", &mNxpShrunken);
+   return;
+}
+
+void ShrunkenPatchTestProbe::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValueRequired(ioFlag, getName(), "nypShrunken", &mNypShrunken);
+   return;
+}
+
+ShrunkenPatchTestProbe::~ShrunkenPatchTestProbe() { free(mCorrectValues); }
+} // namespace PV

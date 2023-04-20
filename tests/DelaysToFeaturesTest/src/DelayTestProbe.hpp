@@ -5,26 +5,24 @@
  *      Author: wchavez
  */
 
-#ifndef DelayTestProbe_HPP_
-#define DelayTestProbe_HPP_
+#ifndef DELAYTESTPROBE_HPP_
+#define DELAYTESTPROBE_HPP_
 
-#include "probes/StatsProbe.hpp"
+#include "columns/Communicator.hpp"
+#include "io/PVParams.hpp"
+#include "probes/StatsProbeImmediate.hpp"
 
 namespace PV {
 
-class DelayTestProbe : public PV::StatsProbe {
+class DelayTestProbe : public PV::StatsProbeImmediate {
   public:
    DelayTestProbe(const char *name, PVParams *params, Communicator const *comm);
    virtual ~DelayTestProbe();
 
-   virtual Response::Status outputState(double simTime, double deltaTime) override;
-
   protected:
+   virtual void checkStats() override;
    void initialize(const char *name, PVParams *params, Communicator const *comm);
-
-  private:
-   int initialize_base();
 };
 
 } /* namespace PV */
-#endif /* DelayTestProbe_HPP_ */
+#endif // DELAYTESTPROBE_HPP_

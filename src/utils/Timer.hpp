@@ -9,23 +9,21 @@
 #ifndef TIMER_HPP_
 #define TIMER_HPP_
 
-#include <assert.h>
-#include <ostream>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "io/PrintStream.hpp"
+
+#include <cstdint>      // uint64_t
+#include <cstdlib>      // size_t
+#include <string>       // string class
 
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace PV {
 
+uint64_t get_cpu_time();
+static double cpu_time_to_sec(uint64_t cpu_elapsed);
+
 class Timer {
   public:
-   Timer(double init_time = 0.0);
    Timer(const char *timermessage, double init_time = 0.0);
    Timer(const char *objname, const char *objtype, const char *timertype, double init_time = 0.0);
    virtual ~Timer();
@@ -36,12 +34,20 @@ class Timer {
    inline double elapsed_time() const;
    virtual int fprint_time(PrintStream &stream) const;
 
-  protected:
-   int rank;
-   char *message;
+   static void stringPad(
+         std::string &str, std::size_t fillCount, std::size_t padCount, char c = ' ');
 
-   uint64_t time_start, time_end;
-   uint64_t time_elapsed;
+  protected:
+   int mRank;
+   std::string mMessage;
+
+   bool mRunning = false; // start() sets running flag to true; stop() sets it to false.
+   uint64_t mTimeStart, mTimeEnd;
+   uint64_t mTimeElapsed = (uint64_t)0;
+
+#ifdef PV_TIMER_VERBOSE
+   static uint64_t mEpoch;
+#endif // PV_TIMER_VERBOSE
 };
 
 } // namespace PV

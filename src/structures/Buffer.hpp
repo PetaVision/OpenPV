@@ -1,5 +1,5 @@
-#ifndef __BUFFER_HPP__
-#define __BUFFER_HPP__
+#ifndef BUFFER_HPP_
+#define BUFFER_HPP_
 
 #include <vector>
 
@@ -14,19 +14,27 @@ class Buffer {
    Buffer();
    Buffer(const std::vector<T> &data, int width, int height, int features);
    Buffer(const T *data, int width, int height, int features);
+
    T const at(int x, int y, int feature) const;
    T const at(int k) const;
+
    void set(int x, int y, int feature, T value);
    void set(int k, T value);
    void set(const std::vector<T> &vector, int width, int height, int features);
    void set(const T *data, int width, int height, int features);
    void set(Buffer<T> other);
+
+   void insert(Buffer<T> const &insertion, int xStart, int yStart);
+   Buffer<T> extract(int xStart, int yStart, int width, int height) const;
    void resize(int width, int height, int features);
    void crop(int newWidth, int newHeight, enum Anchor anchor);
    void grow(int newWidth, int newHeight, enum Anchor anchor);
    void translate(int offsetX, int offsetY);
    void flip(bool xFlip, bool yFlip);
-   std::vector<T> asVector() const { return mData; }
+
+   std::vector<T> const &asVector() const { return mData; }
+   std::vector<T> &asVector() { return mData; }
+
    int getHeight() const { return mHeight; }
    int getWidth() const { return mWidth; }
    int getFeatures() const { return mFeatures; }
@@ -47,4 +55,4 @@ class Buffer {
 
 #include "Buffer.tpp" // template implementations file
 
-#endif
+#endif // BUFFER_HPP_

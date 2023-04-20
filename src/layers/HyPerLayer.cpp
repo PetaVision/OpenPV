@@ -327,14 +327,12 @@ HyPerLayer::respondLayerCopyFromGpu(std::shared_ptr<LayerCopyFromGpuMessage cons
    if (message->mPhase != mPhaseParam->getPhase()) {
       return status;
    }
-   message->mTimer->start();
    if (mActivityComponent and mActivityComponent->isUsingGPU()) {
       mActivityComponent->copyFromCuda();
    }
    if (mLayerInput and mLayerInput->isUsingGPU()) {
       mLayerInput->respond(message);
    }
-   message->mTimer->stop();
    return status;
 }
 
@@ -359,7 +357,7 @@ HyPerLayer::respondLayerPublish(std::shared_ptr<LayerPublishMessage const> messa
    if (message->mPhase != mPhaseParam->getPhase()) {
       return Response::NO_ACTION;
    }
-   mPublisher->publish(mCommunicator, message->mTime);
+   mPublisher->respond(message);
    return Response::SUCCESS;
 }
 

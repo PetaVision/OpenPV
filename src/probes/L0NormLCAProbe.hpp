@@ -13,36 +13,25 @@
 namespace PV {
 
 /**
- * A special case of L0NormProbe probe, to be used when the target layer is an
- * LCA layer
+ * A special case of L0NormProbe, to be used when the target layer is an LCA layer
  * with a hard-threshold transfer function.  The corresponding cost function is
- * the norm
- * measured by L0NormProbe, with coefficient Vth^2/2, where Vth is the target
- * LCA layer's VThresh.
+ * the norm measured by L0NormProbe, with coefficient Vth^2/2, where Vth is the
+ * target LCA layer's VThresh.
  */
 class L0NormLCAProbe : public L0NormProbe {
   public:
    L0NormLCAProbe(const char *name, PVParams *params, Communicator const *comm);
-   virtual Response::Status
-   communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) override;
    virtual ~L0NormLCAProbe() {}
 
   protected:
-   L0NormLCAProbe();
-   void initialize(const char *name, PVParams *params, Communicator const *comm) {
-      L0NormProbe::initialize(name, params, comm);
-   }
+   L0NormLCAProbe() {}
 
-   /**
-    * L0NormLCAProbe does not read coefficient from its own params group,
-    * but computes it in terms of VThresh of the target layer.
-    */
-   virtual void ioParam_coefficient(enum ParamsIOFlag ioFlag) override {
-   } // coefficient is set from targetLayer during communicateInitInfo.
+   virtual Response::Status allocateDataStructures() override;
 
-  private:
-   int initialize_base() { return PV_SUCCESS; }
-}; // end class L0NormLCAProbe
+   virtual void createProbeLocal(char const *name, PVParams *params) override;
+   virtual void createEnergyProbeComponent(char const *name, PVParams *params) override;
+   void initialize(const char *name, PVParams *params, Communicator const *comm);
+}; // class L0NormLCAProbe
 
 } /* namespace PV */
 

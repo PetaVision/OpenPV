@@ -1,5 +1,5 @@
-#ifndef _KNEETIMESCALEPROBE_HPP_
-#define _KNEETIMESCALEPROBE_HPP_
+#ifndef KNEETIMESCALEPROBE_HPP_
+#define KNEETIMESCALEPROBE_HPP_
 
 #include "AdaptiveTimeScaleProbe.hpp"
 
@@ -22,4 +22,4 @@ class KneeTimeScaleProbe : public AdaptiveTimeScaleProbe {
 };
 }
 
-#endif
+#endif // KNEETIMESCALEPROBE_HPP_

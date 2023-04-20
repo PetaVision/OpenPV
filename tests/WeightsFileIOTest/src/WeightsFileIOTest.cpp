@@ -4,6 +4,7 @@
 
 #include <columns/PV_Init.hpp>
 #include <io/WeightsFileIO.hpp>
+#include <utils/PathComponents.hpp>
 #include <utils/PVLog.hpp>
 #include <memory>
 
@@ -102,17 +103,13 @@ void testWeights(Weights &weights, PV_Init &pv_init, bool sharedFlag, bool compr
    double const timestamp = 10.0;
 
    // Create a checkpointer in order to use the MPIBlock and block-dependent path name
-   Checkpointer tempCheckpointer(
-         weights.getName(), pv_init.getCommunicator(), pv_init.getArguments());
+   Communicator *comm   = pv_init.getCommunicator();
    std::string filename = weights.getName() + std::string(".pvp");
-   std::string path     = tempCheckpointer.makeOutputPathFilename(filename);
-   auto mpiBlock        = tempCheckpointer.getMPIBlock();
+   std::string path     = comm->getOutputFileManager()->makeBlockFilename(filename);
+   auto mpiBlock        = comm->getIOMPIBlock();
 
-   char pathCopy[path.size() + 1];
-   std::memcpy(pathCopy, path.c_str(), path.size());
-   pathCopy[path.size()] = '\0';
-   char *dirName         = dirname(pathCopy);
-   ensureDirExists(mpiBlock, dirName);
+   std::string dirString = dirName(path);
+   ensureDirExists(mpiBlock, dirString.c_str());
 
    // Set weights
    if (sharedFlag) {
@@ -256,9 +253,7 @@ int main(int argc, char *argv[]) {
    testShared(pv_initObj);
    testNonshared(pv_initObj);
 
-   char *programPath = strdup(argv[0]);
-   char *programName = basename(programPath);
+   std::string programName = baseName(argv[0]);
    InfoLog() << programName << " passed.\n";
-   free(programPath);
    return 0;
 }

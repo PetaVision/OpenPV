@@ -8,15 +8,14 @@ HyPerCol "column" = {
     stopTime = 10.0;       // Depends on number of VINE video frames
     progressInterval = 1.0;
     //Change this
-    outputPath = "output/postTestNoTranspose";
+    outputPath = "output/postTestNoTranspose_GPU";
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
-    lastCheckpointDir = "output/postTestNoTranspose/Last";
+    lastCheckpointDir = "output/postTestNoTranspose_GPU/Last";
     writeProgressToErr = true;
 };
 
 ConstantLayer "input" = {
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
@@ -32,62 +31,44 @@ ConstantLayer "input" = {
     phase = 1; 
 };
 
-ANNLayer "outputRecvPre" = {
-    restart = 0;
+HyPerLayer "outputRecvPre" = {
     nxScale = .5;
     nyScale = .5;
     nf = 32;
-    writeStep = -1.0;
+    writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
-    // 
     phase = 2; 
     triggerLayerName = NULL;
 };
 
-ANNLayer "outputRecvPost" = {
-    restart = 0;
+HyPerLayer "outputRecvPost" = {
     nxScale = .5;
     nyScale = .5;
     nf = 32;
-    writeStep = -1.0;
+    writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
-    // 
     phase = 2; 
     triggerLayerName = NULL;
 };
 
-ANNLayer "outputTest" = {
-    restart = 0;
+HyPerLayer "outputTest" = {
     nxScale = .5;
     nyScale = .5;
     nf = 32;
-    writeStep = -1.0;
+    writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
-    // 
     phase = 3; 
     triggerLayerName = NULL;
 };
@@ -100,9 +81,8 @@ HyPerConn "preConn" = {
     nxp = 10; 
     nyp = 10; 
     numAxonalArbors = 1;
-    writeStep = -1;
-    initialWriteTime = 0.0;
-    writeCompressedWeights = false;
+    writeStep = -1.0;
+    // writeCompressedWeights = false;
     
     weightInitType = "UniformRandomWeight";
     wMinInit = -1;
@@ -118,11 +98,10 @@ HyPerConn "preConn" = {
     //rMinY                               = 1.5;
     //normalize_cutoff                    = 0;
 
-    normalizeArborsIndividually = false;
-    normalizeFromPostPerspective = false;
-    symmetrizeWeights = false;
+    // normalizeArborsIndividually = false;
+    // normalizeFromPostPerspective = false;
+    // symmetrizeWeights = false;
     
-    //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
     pvpatchAccumulateType = "convolve";
@@ -133,48 +112,6 @@ HyPerConn "preConn" = {
     updateGSynFromPostPerspective = false;
 
 };
-
-//HyPerConn "postConn" = {
-//    preLayerName = "input";
-//    postLayerName = "outputRecvPost";
-//    channelCode = 0;
-//    sharedWeights = true;
-//    nxp = 7; 
-//    nyp = 7; 
-//    numAxonalArbors = 1;
-//    writeStep = -1;
-//    initialWriteTime = 0.0;
-//    writeCompressedWeights = false;
-//    
-//    //weightInitType = "UniformRandomWeight";
-//    //wMinInit = -1;
-//    //wMaxInit = 1;
-//    //sparseFraction = 0;
-//
-//    weightInitType = "UniformWeight";
-//    weightInit = 1;
-//        
-//    normalizeMethod                     = "none";
-//    //strength                            = 1;
-//    //rMinX                               = 1.5;
-//    //rMinY                               = 1.5;
-//    //normalize_cutoff                    = 0;
-//
-//    normalizeArborsIndividually = false;
-//    normalizeFromPostPerspective = false;
-//    symmetrizeWeights = false;
-//    
-//    //writeCompressedWeights = 0.0;
-//    writeCompressedCheckpoints = false;
-//    plasticityFlag = 0;
-//    pvpatchAccumulateType = "convolve";
-//     
-//    delay = 0;
-//     
-//
-//    updateGSynFromPostPerspective = true;
-//
-//};
 
 CloneConn "postConn" = {
     preLayerName = "input";
@@ -187,34 +124,11 @@ CloneConn "postConn" = {
     pvpatchAccumulateType = "convolve";
 };
 
-//TransposeConn "preTransposeConn" = {
-//    preLayerName = "input";
-//    postLayerName = "outputRecvPre";
-//    channelCode = 0; //Does nothing to the input layer
-//    originalConnName = "origConn";
-//    writeStep = -1;
-//    delay = 0;
-//    pvpatchAccumulateType = "convolve";
-//    updateGSynFromPostPerspective = false;
-//};
-//
-//TransposeConn "postTransposeConn" = {
-//    preLayerName = "input";
-//    postLayerName = "outputRecvPost";
-//    channelCode = 0;
-//    originalConnName = "origConn";
-//    writeStep = -1.0;
-//    delay = 0;
-//    pvpatchAccumulateType = "convolve";
-//    updateGSynFromPostPerspective = true;
-//};
-
 IdentConn "RecvPostTest" = {
     preLayerName = "outputRecvPost";
     postLayerName = "outputTest";
     channelCode = 0;
     delay = 0;
-    writeStep = -1;
 };
 
 IdentConn "RecvPreTest" = {
@@ -222,7 +136,6 @@ IdentConn "RecvPreTest" = {
     postLayerName = "outputTest";
     channelCode = 1;
     delay = 0;
-    writeStep = -1;
 };
 
 ReceiveFromPostProbe "testProbe" = {
@@ -230,8 +143,3 @@ ReceiveFromPostProbe "testProbe" = {
    message = "testProbe ";
    tolerance = 3e-3; // covers worst case with roundoff error 2^-24 and 3456 inputs 
 };
-
-//RequireAllZeroActivityProbe "testProbe" = {
-//    targetLayer = "outputTest";
-//    nnzThreshold = 1e-6;
-//};

@@ -10,22 +10,18 @@ class CheckpointEntryMPIRecvStream : public CheckpointEntry {
   public:
    CheckpointEntryMPIRecvStream(
          std::string const &name,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          MPIRecvStream &mpiRecvStream);
    CheckpointEntryMPIRecvStream(
          std::string const &objName,
          std::string const &dataName,
-         std::shared_ptr<MPIBlock const> mpiBlock,
          MPIRecvStream &mpiRecvStream);
    virtual void write(
-         std::string const &checkpointDirectory,
+         std::shared_ptr<FileManager const> fileManager,
          double simTime,
          bool verifyWritesFlag) const override;
-   virtual void read(std::string const &checkpointDirectory, double *simTimePtr) const override;
-   virtual void remove(std::string const &checkpointDirectory) const override;
-
-  private:
-   void unlinkFile(std::string const &path) const;
+   virtual void read(
+         std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const override;
+   virtual void remove(std::shared_ptr<FileManager const> fileManager) const override;
 
   private:
    MPIRecvStream *mMPIRecvStream = nullptr;

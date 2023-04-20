@@ -9,10 +9,10 @@
 #define PVPARAMS_HPP_
 
 #include "FileStream.hpp"
-#include "columns/Communicator.hpp"
 #include "fileio.hpp"
 #include "include/pv_common.h"
 #include "io.hpp"
+#include "arch/mpi/mpi.h"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include <cstdio>
@@ -190,7 +190,14 @@ class ParameterGroup {
    const double *arrayValuesDbl(const char *name, int *size);
    int stringPresent(const char *stringName);
    const char *stringValue(const char *stringName);
-   int warnUnread();
+
+   /**
+    * lookForUnread() tests each parameter in the parameter group for whether it's been read, and
+    * prints a message for each unread parameter.  If errorOnUnread is true, the message is an
+    * error; otherwise it is a warning. Returns PV_SUCCESS if all parameters have been read,
+    * and PV_FAILURE otherwise.
+    */
+   int lookForUnread(bool errorOnUnread);
    bool hasBeenRead(const char *paramName);
    int clearHasBeenReadFlags();
    int pushNumerical(Parameter *param);
@@ -239,13 +246,13 @@ class ParameterSweep {
 
 class PVParams {
   public:
-   PVParams(size_t initialSize, Communicator const *inIcComm);
-   PVParams(const char *filename, size_t initialSize, Communicator const *inIcComm);
+   PVParams(size_t initialSize, MPI_Comm mpiComm);
+   PVParams(const char *filename, size_t initialSize, MPI_Comm mpiComm);
    PVParams(
          const char *buffer,
          long int bufferLength,
          size_t initialSize,
-         Communicator const *inIcComm);
+         MPI_Comm mpiComm);
    virtual ~PVParams();
 
    bool getParseStatus() { return parseStatus; }
@@ -321,7 +328,14 @@ class PVParams {
    const char *groupNameFromIndex(int index);
    const char *groupKeywordFromIndex(int index);
    const char *groupKeywordFromName(const char *name);
-   int warnUnread();
+
+   /**
+    * lookForUnread() tests each parameter in each parameter group for whether it's been read, and
+    * prints a message for each unread parameter.  If errorOnUnread is true, the message is an
+    * error; otherwise it is a warning. Returns PV_SUCCESS if all parameters have been read,
+    * and PV_FAILURE otherwise.
+    */
+   int lookForUnread(bool errorOnUnread);
    bool hasBeenRead(const char *group_name, const char *param_name);
    bool presentAndNotBeenRead(const char *group_name, const char *param_name);
    void handleUnnecessaryParameter(const char *group_name, const char *param_name);
@@ -398,7 +412,7 @@ class PVParams {
    ParameterStringStack *stringStack;
    bool debugParsing;
    bool disable;
-   Communicator const *icComm;
+   MPI_Comm mMPIComm;
    int worldRank;
    int worldSize;
 
@@ -462,7 +476,7 @@ void PVParams::handleUnnecessaryParameter(
          }
       }
    }
-   MPI_Barrier(icComm->globalCommunicator());
+   MPI_Barrier(mMPIComm);
    if (status != PV_SUCCESS)
       exit(EXIT_FAILURE);
 }
@@ -506,14 +520,17 @@ void PVParams::ioParamArray(
       pvAssert(*arraysize >= 0);
       if (*arraysize > 0) {
          *paramArrayValue = (T *)calloc((size_t)*arraysize, sizeof(T));
-         FatalIf(
-               paramArrayValue == nullptr,
-               "%s \"%s\": global rank %d process unable to copy array parameter %s: %s\n",
-               groupKeywordFromName(groupName),
-               groupName,
-               icComm->globalCommRank(),
-               paramName,
-               strerror(errno));
+         if (paramArrayValue == nullptr) {
+            int rank;
+            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+            Fatal().printf(
+                  "%s \"%s\": global rank %d process unable to copy array parameter %s: %s\n",
+                  groupKeywordFromName(groupName),
+                  groupName,
+                  rank,
+                  paramName,
+                  strerror(errno));
+         }
          for (int k = 0; k < *arraysize; k++) {
             (*paramArrayValue)[k] = (T)paramArray[k];
          }

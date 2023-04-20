@@ -1,0 +1,25 @@
+debugParsing = false;
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 8;
+    ny                                  = 8;
+    nbatch                              = 4;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = true;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+};
+
+ColumnEnergyProbe "TestColumnEnergyProbe" = {
+    message                             = "TestColumnEnergyProbe";
+    textOutputFlag                      = false;
+    triggerLayerName                    = NULL;
+};

@@ -4,6 +4,7 @@
  */
 
 #include "ResetStateOnTriggerTestProbe.hpp"
+#include <columns/Factory.hpp>
 #include <columns/PV_Init.hpp>
 #include <columns/buildandrun.hpp>
 
@@ -22,7 +23,7 @@ int customexit(HyPerCol *hc, int argc, char *argv[]) {
          dynamic_cast<ResetStateOnTriggerTestProbe *>(hc->getObjectFromName("TestProbe"));
    FatalIf(!p, "No ResetStateOnTriggerTestProbe named \"TestProbe\". Test failed.\n");
    int status = PV_SUCCESS;
-   if (p->getProbeStatus()) {
+   if (p->foundDiscrepancies()) {
       if (hc->columnId() == 0) {
          ErrorLog().printf("%s failed at time %f\n", argv[0], p->getFirstFailureTime());
       }

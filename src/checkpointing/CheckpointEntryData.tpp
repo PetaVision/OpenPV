@@ -15,40 +15,43 @@ namespace PV {
 
 template <typename T>
 void CheckpointEntryData<T>::write(
-      std::string const &checkpointDirectory,
+      std::shared_ptr<FileManager const> fileManager,
       double simTime,
       bool verifyWritesFlag) const {
-   if (getMPIBlock()->getRank() == 0) {
-      std::string path = generatePath(checkpointDirectory, "bin");
-      FileStream fileStream{path.c_str(), std::ios_base::out, verifyWritesFlag};
-      fileStream.write(mDataPointer, sizeof(T) * (std::size_t)mNumValues);
-      path = generatePath(checkpointDirectory, "txt");
-      FileStream txtStream(path.c_str(), std::ios_base::out, verifyWritesFlag);
-      TextOutput::print(mDataPointer, mNumValues, txtStream);
+   if (fileManager->isRoot()) {
+      std::string filename = generateFilename(std::string("bin"));
+      auto fileStream = fileManager->open(filename, std::ios_base::out, verifyWritesFlag);
+      fileStream->write(mDataPointer, sizeof(T) * (std::size_t)mNumValues);
+
+      filename = generateFilename(std::string("txt"));
+      auto txtStream = fileManager->open(filename, std::ios_base::out, verifyWritesFlag);
+      TextOutput::print(mDataPointer, mNumValues, *txtStream);
    }
 }
 
 template <typename T>
-void CheckpointEntryData<T>::read(std::string const &checkpointDirectory, double *simTimePtr)
-      const {
-   if (getMPIBlock()->getRank() == 0) {
-      std::string path = generatePath(checkpointDirectory, "bin");
-      FileStream fileStream{path.c_str(), std::ios_base::in, false /*verifyWrites not needed*/};
-      fileStream.read(mDataPointer, sizeof(T) * (std::size_t)mNumValues);
+void CheckpointEntryData<T>::read(
+      std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const {
+   if (fileManager->isRoot()) {
+      std::string filename = generateFilename(std::string("bin"));
+      auto fileStream =
+            fileManager->open(filename, std::ios_base::in, false /*verifyWritesFlag not needed*/);
+      fileStream->read(mDataPointer, sizeof(T) * (std::size_t)mNumValues);
    }
    if (mBroadcastingFlag) {
+      // TODO: Pack all MPI_Bcasts into a single broadcast.
       MPI_Bcast(
             mDataPointer,
             mNumValues * sizeof(T),
             MPI_CHAR,
             0,
-            getMPIBlock()->getComm()); // TODO: Pack all MPI_Bcasts into a single broadcast.
+            fileManager->getMPIBlock()->getComm());
    }
 }
 
 template <typename T>
-void CheckpointEntryData<T>::remove(std::string const &checkpointDirectory) const {
-   deleteFile(checkpointDirectory, "bin");
-   deleteFile(checkpointDirectory, "txt");
+void CheckpointEntryData<T>::remove(std::shared_ptr<FileManager const> fileManager) const {
+   deleteFile(fileManager, "bin");
+   deleteFile(fileManager, "txt");
 }
 } // end namespace PV

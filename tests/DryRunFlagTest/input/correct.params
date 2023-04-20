@@ -16,6 +16,7 @@ HyPerCol "column" = {
     nx                                  = 32;
     ny                                  = 32;
     nbatch                              = 1;
+    errorOnUnusedParam                  = false;
     errorOnNotANumber                   = true;
 };
 
@@ -35,13 +36,7 @@ PvpLayer "Input" = {
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
-    maxShiftX                           = 0;
-    maxShiftY                           = 0;
-    jitterChangeInterval                = 1;
-    xFlipEnabled                        = false;
-    yFlipEnabled                        = false;
-    xFlipToggle                         = false;
-    yFlipToggle                         = false;
+    jitterChangeInterval                = 0;
     autoResizeFlag                      = false;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
