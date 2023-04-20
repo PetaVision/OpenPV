@@ -300,7 +300,7 @@ local pvParameters = {
    };
 
    NumNonzeroProbe = {
-      groupType = "L0NormLCAProbe";
+      groupType = "L0NormProbe";
       targetLayer                         = "LeakyIntegrator";
       message                             = nil;
       textOutputFlag                      = true;
