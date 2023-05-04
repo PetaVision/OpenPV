@@ -8,14 +8,14 @@ end
 package.path = package.path .. ";" .. sourcedir .. "/parameterWrapper/?.lua";
 local pv = require "PVModule";
 
-local nbatch               = 1;  --Number of images to process in parallel
+local nbatch               = 1;   --Number of images to process in parallel
 local nxSize               = 32;  -- \
 local nySize               = 32;  --  } CIFAR images are 32 x 32 x 3
 local numFeatures          = 3;   -- /
 local patchSize            = 8;   --Use weight patches of size 8 x 8 x 3
 local stride               = 2;   --A location in the leaky integrator layer sits above a 2 x 2 cell in the input layer
 local displayPeriod        = 400; --Number of timesteps to find sparse approximation for each image
-local numImages            = 1; --Number of images to process. If numImages is greater than dataset size, will wrap around.
+local numImages            = 1;   --Number of images to process. If numImages is greater than dataset size, will wrap around.
 local stopTime             = math.ceil(numImages / nbatch) * displayPeriod;
 local layerWriteStep       = 1.0;
 local layerInitialWrite    = 0.0;
@@ -28,7 +28,7 @@ local checkpointPeriod     = displayPeriod; -- How often to write checkpoints
 
 local dictionarySize       = 128;   --Number of patches/elements in dictionary
 local dictionaryFile       = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
-local plasticityFlag       = true;  --Determines if we are learning our dictionary or holding it constant
+local plasticityFlag       = false; --Determines if we are learning our dictionary or holding it constant
 local timeConstantTauConn  = 5.0;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
 local dWMax                = 1.0 / (stride * stride);   --The learning rate
 local VThresh              = 0.55;  --The threshold, or lambda, of the network
