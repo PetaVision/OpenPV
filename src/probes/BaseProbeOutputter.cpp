@@ -27,6 +27,13 @@ int BaseProbeOutputter::calcGlobalBatchOffset() const {
    return (mIOMPIBlock->getStartBatch() + mIOMPIBlock->getBatchIndex()) * mLocalNBatch;
 }
 
+void BaseProbeOutputter::flushOutputStreams() {
+   for (auto &s : mOutputStreams) {
+      s->flush();
+   }
+
+}
+
 void BaseProbeOutputter::initMessageString() {
    pvAssert(mMessageString.empty());
    if (mMessageParam != nullptr and mMessageParam[0] != '\0') {

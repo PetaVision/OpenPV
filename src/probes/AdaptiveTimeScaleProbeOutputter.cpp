@@ -49,6 +49,7 @@ void AdaptiveTimeScaleProbeOutputter::printTimeScaleBuffer(
       else {
          printToLog(storedValues);
       }
+      flushOutputStreams();
    }
 }
 

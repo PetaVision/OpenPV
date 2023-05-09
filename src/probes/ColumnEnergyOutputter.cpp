@@ -24,6 +24,7 @@ void ColumnEnergyOutputter::printColumnEnergiesBuffer(ProbeDataBuffer<double> co
       else {
          printToLog(storedValues);
       }
+      flushOutputStreams();
    }
 }
 

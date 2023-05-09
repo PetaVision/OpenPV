@@ -50,6 +50,7 @@ class BaseProbeOutputter : public ProbeComponent {
   protected:
    BaseProbeOutputter() {}
    int calcGlobalBatchOffset() const;
+   void flushOutputStreams();
    void initialize(char const *objName, PVParams *params, Communicator const *comm);
    void initMessageString();
 

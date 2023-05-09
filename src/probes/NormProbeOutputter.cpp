@@ -33,6 +33,7 @@ void NormProbeOutputter::printGlobalNormsBuffer(
       else {
          printToLog(storedValues, numNeurons);
       }
+      flushOutputStreams();
    }
 }
 

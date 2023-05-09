@@ -33,6 +33,7 @@ void QuotientProbeOutputter::printBuffer(ProbeDataBuffer<double> const &storedVa
       else {
          printToLog(storedValues);
       }
+      flushOutputStreams();
    }
 }
 

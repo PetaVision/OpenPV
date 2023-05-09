@@ -33,6 +33,7 @@ void StatsProbeOutputter::printGlobalStatsBuffer(ProbeDataBuffer<LayerStats> con
       else {
          printToLog(storedValues);
       }
+      flushOutputStreams();
    }
 }
 
