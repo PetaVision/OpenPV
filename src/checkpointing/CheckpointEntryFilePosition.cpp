@@ -1,6 +1,7 @@
 #include "CheckpointEntryFilePosition.hpp"
-
 #include "utils/PVAssert.hpp"
+
+#include <sys/stat.h>
 
 namespace PV {
 
@@ -25,14 +26,33 @@ void CheckpointEntryFilePosition::read(
       std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const {
    if (!fileManager->isRoot()) { return; }
 
+   struct stat statbuf;
+   int statstatus = stat(mFileStream->getFileName().c_str(), &statbuf);
+   FatalIf(
+         statstatus,
+         "Unable to stat %s: %s\n",
+         mFileStream->getFileName().c_str(),
+         strerror(errno));
+   auto fileSize = static_cast<long>(statbuf.st_size);
+
    long readPosition;
    readValueFromBin(
          fileManager, std::string("FileStreamRead"), &readPosition);
+   FatalIf(fileSize < readPosition,
+         "File \"%s\" checkpoint read position is %ld but file size is only %ld\n",
+         mFileStream->getFileName().c_str(),
+         readPosition,
+         fileSize);
    mFileStream->setInPos(readPosition, std::ios_base::beg);
 
    long writePosition;
    readValueFromBin(
          fileManager, std::string("FileStreamWrite"), &writePosition);
+   FatalIf(fileSize < writePosition,
+         "File \"%s\" checkpoint write position is %ld but file size is only %ld\n",
+         mFileStream->getFileName().c_str(),
+         writePosition,
+         fileSize);
    mFileStream->setOutPos(writePosition, std::ios_base::beg);
 }
 
