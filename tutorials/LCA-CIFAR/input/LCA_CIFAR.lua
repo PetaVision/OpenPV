@@ -15,12 +15,13 @@ local numFeatures          = 3;   -- /
 local patchSize            = 8;   --Use weight patches of size 8 x 8 x 3
 local stride               = 2;   --A location in the leaky integrator layer sits above a 2 x 2 cell in the input layer
 local displayPeriod        = 400; --Number of timesteps to find sparse approximation for each image
-local numImages            = 1;   --Number of images to process. If numImages is greater than dataset size, will wrap around.
+local numImages            = 1;   --Number of images to process.
+                                  --If numImages is greater than dataset size, will wrap around.
 local stopTime             = math.ceil(numImages / nbatch) * displayPeriod;
 local layerWriteStep       = 1.0;
 local layerInitialWrite    = 0.0;
-local connWriteStep        = displayPeriod;
-local connInitialWrite     = displayPeriod;
+local connInitialWrite     = 0;
+local connWriteStep        = infinity;
 
 local inputPath            = "cifar-10-images/6/CIFAR_10000.png"
 local outputPath           = "output";
@@ -30,14 +31,14 @@ local dictionarySize       = 128;   --Number of patches/elements in dictionary
 local dictionaryFile       = nil;   --nil for initial weights, otherwise, specifies the weights file to load.
 local plasticityFlag       = false; --Determines if we are learning our dictionary or holding it constant
 local timeConstantTauConn  = 5.0;   --Weight momentum parameter. A single weight update will last for momentumTau timesteps.
-local dWMax                = 1.0 / (stride * stride);   --The learning rate
+local dWMax                = 4.0 / (stride * stride);   --The learning rate
 local VThresh              = 0.55;  --The threshold, or lambda, of the network
 local AMin                 = 0;
 local AMax                 = infinity;
 local AShift               = VThresh;  --This being equal to VThresh is a soft threshold
 local VWidth               = 0;
 local timeConstantTauLayer = 100;   --The integration tau for sparse approximation
-local weightInit          = 1.0;
+local weightInit           = 1.0;
 
 -- Base table variable to store
 local pvParameters = {
@@ -313,8 +314,8 @@ local pvParameters = {
 } --End of pvParameters
 
 if dictionaryFile ~= nil then
-   pvParameters.LeakyIntegrator.weightInitType  = "FileWeight";
-   pvParameters.LeakyIntegrator.initWeightsFile = dictionaryFile;
+   pvParameters.LeakyIntegratorToInputError.weightInitType  = "FileWeight";
+   pvParameters.LeakyIntegratorToInputError.initWeightsFile = dictionaryFile;
 end
 -- Print out PetaVision approved parameter file to the console
 pv.printConsole(pvParameters)
