@@ -26,15 +26,13 @@ class NormProbeLocalTemplate : public NormProbeLocalInterface {
 
    virtual void initializeState(HyPerLayer *targetLayer) override;
 
-   PVLayerLoc const *getLayerLoc() const { return mTargetLayer->getLayerLoc(); }
-
   protected:
    NormProbeLocalTemplate() {}
    virtual std::shared_ptr<C const> createCostFunctionSum() { return nullptr; }
    void initialize(char const *objName, PVParams *params);
 
   private:
-   void calculateNorms(double simTime, ProbeData<double> &values) const;
+   void calculateNorms(double simTime, ProbeData<double> &values) const override;
 
   private:
    std::shared_ptr<C const> mCostFunctionSum = nullptr;
