@@ -115,7 +115,7 @@ makeUpdateMessage(double simTime, double deltaTime, bool *isPending, bool *hasAc
          phase, recvGpuFlag, updateGpuFlag, simTime, deltaTime, isPending, hasActed);
 #else
    auto updateMessage = std::make_shared<LayerUpdateStateMessage>(
-         phase, simTime, deltaTime, &layerIsPending, &layerHasActed);
+         phase, simTime, deltaTime, isPending, hasActed);
 #endif // PV_USE_CUDA
    return updateMessage;
 }
