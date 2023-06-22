@@ -38,7 +38,6 @@ ImageLayer "Unnormalized" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 0;
     inputPath                           = "input/sampleimage.png";
     offsetAnchor                        = "cc";

@@ -188,22 +188,7 @@ LayerOutputComponent *HyPerLayer::createLayerOutput() {
  *****************************************************************/
 int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ComponentBasedObject::ioParamsFillGroup(ioFlag);
-   ioParam_dataType(ioFlag);
    return status;
-}
-
-// The dataType parameter was marked obsolete Mar 29, 2018.
-// Only TransposePoolingConn made use of the dataType, by checking
-// that the post index layer is PV_INT. But mPostIndexLayer has type
-// PoolingIndexLayer*, which is automatically PV_INT. So the dataType
-// check has become vacuous.
-void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ and parameters()->stringPresent(getName(), "dataType")) {
-      if (mCommunicator->globalCommRank() == 0) {
-         WarnLog().printf(
-               "%s defines the dataType param, which is no longer used.\n", getDescription_c());
-      }
-   }
 }
 
 /******************************************************************

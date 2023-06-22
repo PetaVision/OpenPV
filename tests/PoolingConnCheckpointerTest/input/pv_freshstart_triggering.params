@@ -38,7 +38,6 @@ PvpLayer "Input" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 4;
     inputPath                           = "input/inputframes.pvp";
     offsetAnchor                        = "tl";
@@ -67,7 +66,6 @@ HyPerLayer "Output" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 PoolingConn "InputToOutput" = {

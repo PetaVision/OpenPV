@@ -58,7 +58,6 @@ PvpLayer "OriginalMovie" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 1;
     inputPath                           = "input/inputmovie.pvp";
     offsetAnchor                        = "tl";
@@ -85,7 +84,6 @@ PvpLayer "GeneratedMovie" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 1;
     inputPath                           = "outputGenerate/Input.pvp";
     offsetAnchor                        = "tl";
@@ -113,7 +111,6 @@ HyPerLayer "Comparison" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 IdentConn "GeneratedMovieToComparison" = {

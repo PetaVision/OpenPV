@@ -67,7 +67,6 @@ ImageLayer "InputByFile" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 1;
     inputPath                           = "input/images/imagelist.txt";
     offsetAnchor                        = "tl";
@@ -95,7 +94,6 @@ HyPerLayer "OutputByFile" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 FixedImageSequenceByFile "CheckInputByFile" = {
@@ -111,7 +109,6 @@ FixedImageSequenceByFile "CheckInputByFile" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerLayer "ComparisonByFile" = {
@@ -126,7 +123,6 @@ HyPerLayer "ComparisonByFile" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerConn "InputByFileToOutputByFile" = {
@@ -195,7 +191,6 @@ ImageLayer "InputByList" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 1;
     inputPath                           = "input/images/imagelist.txt";
     offsetAnchor                        = "tl";
@@ -223,7 +218,6 @@ HyPerLayer "OutputByList" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 FixedImageSequenceByList "CheckInputByList" = {
@@ -239,7 +233,6 @@ FixedImageSequenceByList "CheckInputByList" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerLayer "ComparisonByList" = {
@@ -254,7 +247,6 @@ HyPerLayer "ComparisonByList" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerConn "InputByListToOutputByList" = {

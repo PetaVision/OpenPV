@@ -29,7 +29,6 @@ PvpLayer "ForwardPoolingSource" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     inputPath                           = "input/forwardpoolingsource.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
@@ -55,7 +54,6 @@ HyPerLayer "ForwardPoolingDestinationCPU" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 PvpLayer "BackwardPoolingSource" = {
@@ -69,7 +67,6 @@ PvpLayer "BackwardPoolingSource" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     inputPath                           = "input/backwardpoolingsource.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
@@ -95,7 +92,6 @@ HyPerLayer "BackwardPoolingDestinationCPU" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 PoolingConn "ForwardCPU" = {

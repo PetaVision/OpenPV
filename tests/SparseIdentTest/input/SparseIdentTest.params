@@ -48,7 +48,6 @@ PvpLayer "Input" = {
     writeStep                           = -1;
     sparseLayer                         = true;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 0;
     inputPath                           = "input/samplesparseimage.pvp";
     offsetAnchor                        = "tl";
@@ -78,7 +77,6 @@ HyPerLayer "OutputIdent" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerLayer "OutputRescale" = {
@@ -94,7 +92,6 @@ HyPerLayer "OutputRescale" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 IdentConn "InputToOutputIdent" = {

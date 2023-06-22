@@ -42,7 +42,6 @@ ConstantLayer "ConstantV" = {
     writeStep                           = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 PvpLayer "ConstantVCheck" = {
@@ -54,7 +53,6 @@ PvpLayer "ConstantVCheck" = {
     valueBC                             = 0;
     writeStep                           = 1;
     updateGpu                           = false;
-    dataType                            = NULL;
     inputPath                           = "input/initialVConstant.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
@@ -79,7 +77,6 @@ HyPerLayer "ConstantVCompare" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 IdentConn "ConstantVToConstantVCompare" = {
@@ -122,7 +119,6 @@ ConstantLayer "InitVFromFile" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 PvpLayer "InitVFromFileCheck" = {
@@ -134,7 +130,6 @@ PvpLayer "InitVFromFileCheck" = {
     valueBC                             = 0;
     writeStep                           = -1;
     updateGpu                           = false;
-    dataType                            = NULL;
     inputPath                           = "input/initialVFile.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
@@ -159,7 +154,6 @@ HyPerLayer "InitVFromFileCompare" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 IdentConn "InitVFromFileToInitVFromFileCompare" = {

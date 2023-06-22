@@ -88,7 +88,6 @@ local pvParameters = {
       initialWriteTime                    = initialWriteTime;
       sparseLayer                         = false;
       updateGpu                           = false;
-      dataType                            = nil;
       inputPath                           = inputPath;
       offsetAnchor                        = "tl";
       offsetX                             = 0;
@@ -118,7 +117,6 @@ local pvParameters = {
       initialWriteTime                    = initialWriteTime;
       sparseLayer                         = false;
       updateGpu                           = false;
-      dataType                            = nil;
    };
 
    V1 = {
@@ -137,7 +135,6 @@ local pvParameters = {
       initialWriteTime                    = initialWriteTime;
       sparseLayer                         = true;
       updateGpu                           = true;
-      dataType                            = nil;
       VThresh                             = VThresh;
       AMin                                = AMin;
       AMax                                = AMax;
@@ -163,7 +160,6 @@ local pvParameters = {
       initialWriteTime                    = initialWriteTime;
       sparseLayer                         = false;
       updateGpu                           = false;
-      dataType                            = nil;
    };
 
 --Connections ------------------------------------------------------

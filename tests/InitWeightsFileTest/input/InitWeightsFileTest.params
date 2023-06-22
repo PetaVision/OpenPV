@@ -41,7 +41,6 @@ ConstantLayer "Input" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerLayer "Output" = {
@@ -55,7 +54,6 @@ HyPerLayer "Output" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerConn "InputToOutput" = {

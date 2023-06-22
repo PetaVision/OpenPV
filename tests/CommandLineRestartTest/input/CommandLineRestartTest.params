@@ -52,7 +52,6 @@ ConstantLayer "Input" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 FailBeforeExpectedStartTimeLayer "Output" = {
@@ -67,7 +66,6 @@ FailBeforeExpectedStartTimeLayer "Output" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerConn "InputToOutput" = {

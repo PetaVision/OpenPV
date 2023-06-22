@@ -97,7 +97,6 @@ local pvParameters = {
       initialWriteTime                    = layerInitialWrite;
       sparseLayer                         = false;
       updateGpu                           = false;
-      dataType                            = nil;
       inputPath                           = inputPath;
       offsetAnchor                        = "tl";
       offsetX                             = 0;
@@ -127,7 +126,6 @@ local pvParameters = {
       initialWriteTime                    = layerInitialWrite;
       sparseLayer                         = false;
       updateGpu                           = false;
-      dataType                            = nil;
    };
 
    LeakyIntegrator = {
@@ -146,7 +144,6 @@ local pvParameters = {
       initialWriteTime                    = layerInitialWrite;
       sparseLayer                         = true;
       updateGpu                           = true;
-      dataType                            = nil;
       VThresh                             = VThresh;
       AMin                                = AMin;
       AMax                                = AMax;
@@ -172,7 +169,6 @@ local pvParameters = {
       initialWriteTime                    = layerInitialWrite;
       sparseLayer                         = false;
       updateGpu                           = false;
-      dataType                            = nil;
    };
 
 --Connections ------------------------------------------------------

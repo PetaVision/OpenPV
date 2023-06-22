@@ -54,7 +54,6 @@ ConstantLayer "PreLayerExc0" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 ConstantLayer "PreLayerExc1" = {
@@ -71,7 +70,6 @@ ConstantLayer "PreLayerExc1" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 ConstantLayer "PreLayerInh0" = {
@@ -88,7 +86,6 @@ ConstantLayer "PreLayerInh0" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 ConstantLayer "PreLayerInh1" = {
@@ -105,7 +102,6 @@ ConstantLayer "PreLayerInh1" = {
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerLayer "PostLayer" = {
@@ -121,7 +117,6 @@ HyPerLayer "PostLayer" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 IdentConn "Exc0" = {

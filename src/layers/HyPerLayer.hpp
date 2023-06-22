@@ -49,18 +49,6 @@ namespace PV {
  * (e.g. InputLayer does not use LayerInputBuffer).
  */
 class HyPerLayer : public ComponentBasedObject {
-  protected:
-   /**
-    * List of parameters needed from the HyPerLayer class
-    * @name HyPerLayer Parameters
-    * @{
-    */
-
-   // The dataType param was marked obsolete Mar 29, 2018.
-   /** @brief dataType: no longer used. */
-   virtual void ioParam_dataType(enum ParamsIOFlag ioFlag);
-   /** @} */
-
   public:
    HyPerLayer(const char *name, PVParams *params, Communicator const *comm);
    virtual ~HyPerLayer();

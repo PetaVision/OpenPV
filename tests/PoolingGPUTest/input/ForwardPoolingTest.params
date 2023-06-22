@@ -48,7 +48,6 @@ PvpLayer "Input" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     inputPath                           = "input/input.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
@@ -76,7 +75,6 @@ HyPerLayer "OutputCPU" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerLayer "OutputGPU" = {
@@ -128,7 +126,6 @@ HyPerLayer "Comparison" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 IdentConn "ComparisonToRelativeDiscrepancy" = {
@@ -154,7 +151,6 @@ PtwiseQuotientLayer "RelativeDiscrepancy" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 // Evaluation probe.  Fails if activity in "Comparison" is ever above threshold.

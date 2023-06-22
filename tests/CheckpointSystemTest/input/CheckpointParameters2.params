@@ -34,7 +34,6 @@ CPTestInputLayer "input" = {
     initialWriteTime                    = 0;
     sparseLayer                         = true;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerLayer "OutputNoDelay" = {
@@ -49,7 +48,6 @@ HyPerLayer "OutputNoDelay" = {
     initialWriteTime                    = 0;
     sparseLayer                         = true;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerLayer "OutputWithDelay" = {
@@ -64,7 +62,6 @@ HyPerLayer "OutputWithDelay" = {
     initialWriteTime                    = 0;
     sparseLayer                         = true;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerLayer "OutputArbor" = {
@@ -79,7 +76,6 @@ HyPerLayer "OutputArbor" = {
     initialWriteTime                    = 0;
     sparseLayer                         = true;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerLayer "OutputFromFullHyPerConn" = {
@@ -94,7 +90,6 @@ HyPerLayer "OutputFromFullHyPerConn" = {
     initialWriteTime                    = 0;
     sparseLayer                         = true;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 VaryingHyPerConn "ConnNoDelay" = {

@@ -40,7 +40,6 @@ PvpLayer "Input" = {
     initialWriteTime                    = 1;
     sparseLayer                         = true;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 1;
     inputPath                           = "input/inputmovie.pvp";
     offsetAnchor                        = "tl";
@@ -68,7 +67,6 @@ HyPerLayer "Output" = {
     initialWriteTime                    = 1;
     sparseLayer                         = true;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerConn "InputToOutput" = {

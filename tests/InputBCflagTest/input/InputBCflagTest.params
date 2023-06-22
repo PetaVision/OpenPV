@@ -74,7 +74,6 @@ PvpLayer "Input" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 1;
     inputPath                           = "input/BorderImage.pvp";
     offsetAnchor                        = "tl";
@@ -103,7 +102,6 @@ HyPerLayer "Output" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 PvpLayer "ExpectedOutput" = {
@@ -117,7 +115,6 @@ PvpLayer "ExpectedOutput" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 1;
     inputPath                           = "input/ExpectedOutput.pvp";
     offsetAnchor                        = "tl";
@@ -145,7 +142,6 @@ PvpLayer "NormalizedInput" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 1;
     inputPath                           = "input/BorderImage.pvp";
     offsetAnchor                        = "tl";
@@ -175,7 +171,6 @@ HyPerLayer "NormalizedOutput" = {
     initialWriteTime                    = 1;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 PvpLayer "ExpectedNormalizedOutput" = {
@@ -189,7 +184,6 @@ PvpLayer "ExpectedNormalizedOutput" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     displayPeriod                       = 1;
     inputPath                           = "input/ExpectedNormalizedOutput.pvp";
     offsetAnchor                        = "tl";
@@ -218,7 +212,6 @@ HyPerLayer "Comparison" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerLayer "ComparisonNormalized" = {
@@ -233,7 +226,6 @@ HyPerLayer "ComparisonNormalized" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 HyPerConn "InputToOutput" = {

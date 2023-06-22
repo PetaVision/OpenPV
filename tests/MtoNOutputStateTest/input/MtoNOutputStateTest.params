@@ -47,7 +47,6 @@ ConstantLayer "Pre" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
 };
 
 IndexLayer "Post" = {
@@ -61,7 +60,6 @@ IndexLayer "Post" = {
     initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
-    dataType                            = NULL;
     VThresh                             = -3.40282e+38;
     AMin                                = -3.40282e+38;
     AMax                                = infinity;
