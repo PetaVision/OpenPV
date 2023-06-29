@@ -72,8 +72,8 @@ void WeightsFileIO::checkHeader(BufferUtils::WeightHeader const &header) {
       // TODO: It should be allowed to read a kernel file into a non-shared-weights atlas
       FatalIf(
             header.baseHeader.fileType != PVP_WGT_FILE_TYPE,
-            "Connection \"%s\" has sharedWeights false.\n",
-            "but \"%s\" is not a non-shared-weights file. ",
+            "Connection \"%s\" has sharedWeights false, "
+            "but initWeightsFile \"%s\" is a shared-weights file.\n",
             mWeights->getName().c_str(),
             mFileStream->getFileName().c_str());
    }
