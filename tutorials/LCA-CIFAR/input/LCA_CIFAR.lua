@@ -8,6 +8,8 @@ end
 package.path = package.path .. ";" .. sourcedir .. "/parameterWrapper/?.lua";
 local pv = require "PVModule";
 
+local useGpu               = true; -- Whether to use GPU to update the LeakyIntegrator
+
 local nbatch               = 1;   --Number of images to process in parallel
 local nxSize               = 32;  -- \
 local nySize               = 32;  --  } CIFAR images are 32 x 32 x 3
@@ -143,7 +145,7 @@ local pvParameters = {
       writeStep                           = layerWriteStep;
       initialWriteTime                    = layerInitialWrite;
       sparseLayer                         = true;
-      updateGpu                           = true;
+      updateGpu                           = useGpu;
       VThresh                             = VThresh;
       AMin                                = AMin;
       AMax                                = AMax;
@@ -189,7 +191,7 @@ local pvParameters = {
       postLayerName                       = "LeakyIntegrator";
       channelCode                         = 0;
       delay                               = {0.000000};
-      receiveGpu                          = true;
+      receiveGpu                          = useGpu;
       updateGSynFromPostPerspective       = true;
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;

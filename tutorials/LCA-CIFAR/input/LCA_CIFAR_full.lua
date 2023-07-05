@@ -2,6 +2,8 @@
 package.path = package.path .. ";" .. "../../../parameterWrapper/?.lua";
 local pv = require "PVModule";
 
+local useGpu              = true; -- Use GPU to update the V1 layer
+
 local nbatch              = 16;    --Number of images to process in parallel
 local nxSize              = 32;    --CIFAR images are 32 x 32
 local nySize              = 32;
@@ -134,7 +136,7 @@ local pvParameters = {
       writeStep                           = writeStep;
       initialWriteTime                    = initialWriteTime;
       sparseLayer                         = true;
-      updateGpu                           = true;
+      updateGpu                           = useGpu;
       VThresh                             = VThresh;
       AMin                                = AMin;
       AMax                                = AMax;
@@ -180,7 +182,7 @@ local pvParameters = {
       postLayerName                       = "V1";
       channelCode                         = 0;
       delay                               = {0.000000};
-      receiveGpu                          = true;
+      receiveGpu                          = useGpu;
       updateGSynFromPostPerspective       = true;
       pvpatchAccumulateType               = "convolve";
       writeStep                           = -1;
