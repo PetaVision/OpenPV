@@ -1,0 +1,168 @@
+//
+// SharedToLocalPatchWeightsTest.params
+//
+// created by peteschultz: Jul 5, 2023
+//
+
+//  A params file to test loading a shared-weights .pvp file into
+//  a local patch weights connection (i.e. sharedFlag = false).
+//
+//  An PvpLayer (containing the CIFAR-10 image CIFAR_00067, reduced to 6-bit
+//  values) is connected to two output layers, OutputFromSharedWeights and
+//  OutputFromLocalPatchWeights, using connections SharedWeightsConn and
+//  LocalPatchConn, respectively. Each of these connections loads the same
+//  initWeightsFile, which is a shared-weights .pvp file. However,
+//  SharedWeightsConn has sharedWeights = false, and LocalPatchConn has
+//  sharedWeights = true.
+//
+//  The two output layers should have the same values. The weights have integer
+//  values from 0 to 127, and the image has values 0, 1/64, 2/64, ..., 63/64.
+//  Each output value is the sum of 14*14*3=588 products of a weight and a
+//  pixel value; hence each output layer value can be computed and represented
+//  exactly in 32-bit floating point format. For this reason we can use an
+//  RequireAllZeroActivityProbe with nnzThreshold set to zero, even when
+//  running the test in parallel.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 32;
+   ny = 32;
+   nbatch = 1;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+//
+// layers
+//
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 2;
+ 
+    inputPath = "input/testimage.pvp";
+    nf = 3;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+//an output layer
+HyPerLayer "OutputFromLocalPatchWeights" = {
+    nxScale = 0.5; 
+    nyScale = 0.5;
+    nf = 8;
+    phase = 1;
+    triggerLayerName = NULL;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};
+
+HyPerLayer "OutputFromSharedWeights" = {
+    #include "OutputFromLocalPatchWeights";
+};
+
+HyPerLayer "Comparison" = {
+    nxScale = 0.5; 
+    nyScale = 0.5;
+    nf = 8;
+    phase = 1;
+    triggerLayerName = NULL;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};
+
+//
+// connections
+//
+
+HyPerConn "LocalPatchConn" = {
+    preLayerName = "Input";
+    postLayerName = "OutputFromLocalPatchWeights";
+    channelCode = 0;
+
+    nxp = 7;
+    nyp = 7;
+    nfp = 8; 
+    numAxonalArbors = 1;
+    sharedWeights = false;
+    writeStep = -1;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/sharedWeights.pvp";
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve";
+    updateGSynFromPostPerspective = false;
+};
+
+HyPerConn "SharedWeightsConn" = {
+    #include "LocalPatchConn";
+    @postLayerName = "OutputFromSharedWeights";
+    @sharedWeights = true;
+};
+
+IdentConn "LocalPatchWeightsToComparison" = {
+    preLayerName = "OutputFromLocalPatchWeights";
+    postLayerName = "Comparison";
+    channelCode = 0;
+    delay = 0.0;
+};
+
+IdentConn "SharedWeightsToComparison" = {
+    preLayerName = "OutputFromSharedWeights";
+    postLayerName = "Comparison";
+    delay = 0.0;
+    channelCode = 1;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer = "Comparison";
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    message = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 0.0;
+    exitOnFailure = true;
+    immediateExitOnFailure = true;
+
+};

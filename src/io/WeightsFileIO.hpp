@@ -47,15 +47,19 @@ class WeightsFileIO {
     */
    static void moveToNextFrame(FileStream &fileStream);
 
-   // readSharedWeights and readNonsharedWeights assume that the file pointer
+   // readSharedWeights and readLocalPatchWeights assume that the file pointer
    // is at the end of the frame's header
-   double readSharedWeights(BufferUtils::WeightHeader const &header);
+   void readSharedWeights(BufferUtils::WeightHeader const &header);
 
-   double readNonsharedWeights(BufferUtils::WeightHeader const &header);
+   void readLocalPatchWeights(BufferUtils::WeightHeader const &header);
+
+   void readSharedFileToLocalPatchWeights(BufferUtils::WeightHeader const &header);
+
+   void readLocalPatchFileToLocalPatchWeights(BufferUtils::WeightHeader const &header);
 
    void writeSharedWeights(double timestamp, bool compress);
 
-   void writeNonsharedWeights(double timestamp, bool compress);
+   void writeLocalPatchWeights(double timestamp, bool compress);
 
    /**
     * The size in bytes of one arbor in the PVP file. This is the number of patches times
@@ -116,7 +120,7 @@ class WeightsFileIO {
          float maxValue,
          bool compressed);
 
-   void storeNonsharedPatches(
+   void storeLocalPatchPatches(
          std::vector<unsigned char> &dataFromFile,
          int arbor,
          float minValue,

@@ -27,13 +27,13 @@ double WeightsFileIO::readWeights(int frameNumber) {
    BufferUtils::WeightHeader header = readHeader(frameNumber);
    checkHeader(header);
 
-   double timestamp;
    if (mWeights->getSharedFlag()) {
-      timestamp = readSharedWeights(header);
+      readSharedWeights(header);
    }
    else {
-      timestamp = readNonsharedWeights(header);
+      readLocalPatchWeights(header);
    }
+   double timestamp = header.baseHeader.timestamp;
    mWeights->setTimestamp(timestamp);
    return timestamp;
 }
@@ -68,15 +68,15 @@ void WeightsFileIO::checkHeader(BufferUtils::WeightHeader const &header) {
             mFileStream->getFileName().c_str(),
             header.numPatches);
    }
-   else {
-      // TODO: It should be allowed to read a kernel file into a non-shared-weights atlas
-      FatalIf(
-            header.baseHeader.fileType != PVP_WGT_FILE_TYPE,
-            "Connection \"%s\" has sharedWeights false, "
-            "but initWeightsFile \"%s\" is a shared-weights file.\n",
-            mWeights->getName().c_str(),
-            mFileStream->getFileName().c_str());
-   }
+   // else {
+   //    // TODO: It should be allowed to read a kernel file into a non-shared-weights atlas
+   //    FatalIf(
+   //          header.baseHeader.fileType != PVP_WGT_FILE_TYPE,
+   //          "Connection \"%s\" has sharedWeights false, "
+   //          "but initWeightsFile \"%s\" is a shared-weights file.\n",
+   //          mWeights->getName().c_str(),
+   //          mFileStream->getFileName().c_str());
+   // }
    FatalIf(
          header.baseHeader.nBands < mWeights->getNumArbors(),
          "Connection \"%s\" has %d arbors, but file \"%s\" has only %d arbors.\n",
@@ -144,7 +144,7 @@ bool WeightsFileIO::isCompressedHeader(BufferUtils::WeightHeader const &header) 
    return isCompressed;
 }
 
-double WeightsFileIO::readSharedWeights(BufferUtils::WeightHeader const &header) {
+void WeightsFileIO::readSharedWeights(BufferUtils::WeightHeader const &header) {
    bool compressed          = isCompressedHeader(header);
    double timestamp         = header.baseHeader.timestamp;
    long arborSizeInPvpFile  = calcArborSizeLocal(compressed);
@@ -160,11 +160,86 @@ double WeightsFileIO::readSharedWeights(BufferUtils::WeightHeader const &header)
             readBuffer.data(), arborSizeInPvpFile, MPI_BYTE, mRootProcess, mMPIBlock->getComm());
       loadWeightsFromBuffer(readBuffer, arbor, header.minVal, header.maxVal, compressed);
    }
-   return timestamp;
 }
 
-double
-WeightsFileIO::readNonsharedWeights(BufferUtils::WeightHeader const &header) {
+void WeightsFileIO::readLocalPatchWeights(BufferUtils::WeightHeader const &header) {
+   int fileType = header.baseHeader.fileType;
+   switch(fileType) {
+      case PVP_WGT_FILE_TYPE:
+         readLocalPatchFileToLocalPatchWeights(header);
+         break;
+      case PVP_KERNEL_FILE_TYPE:
+         readSharedFileToLocalPatchWeights(header);
+         break;
+      default:
+         assert(0); // Should only be called for weight file types
+         break;
+   }
+}
+
+void WeightsFileIO::readSharedFileToLocalPatchWeights(BufferUtils::WeightHeader const &header) {
+   auto patchGeometry = mWeights->getGeometry();
+   int numKernelsX = patchGeometry->getNumKernelsX();
+   int numKernelsY = patchGeometry->getNumKernelsY();
+   int numKernelsF = patchGeometry->getNumKernelsF();
+   int numKernels  = numKernelsX * numKernelsY * numKernelsF;
+
+   int const weightPatchSize = mWeights->getPatchSizeOverall();
+   bool compressed           = isCompressedHeader(header);
+   long patchSizePvpFormat   = (long)BufferUtils::weightPatchSize(weightPatchSize, compressed);
+
+   int const numArbors = header.baseHeader.nBands;
+   assert(numArbors <= mWeights->getNumArbors());
+   for (int arbor = 0; arbor < numArbors; ++arbor) {
+      int arborSizeInPvpFile = patchSizePvpFormat * numKernels;
+      std::vector<unsigned char> readBuffer(arborSizeInPvpFile);
+      if (mMPIBlock->getRank() == mRootProcess) {
+         mFileStream->read(&readBuffer[0], arborSizeInPvpFile);
+      }
+      MPI_Bcast(&readBuffer[0], arborSizeInPvpFile, MPI_BYTE, mRootProcess, mMPIBlock->getComm());
+      // Each process has the shared weights in memory. Now we need to loop over all the
+      // presynaptic neurons, and read in the correct kernel.
+      PVLayerLoc const &preLoc  = mWeights->getGeometry()->getPreLoc();
+      int numPatchesX = patchGeometry->getNumPatchesX();
+      int numPatchesY = patchGeometry->getNumPatchesY();
+      int numPatchesF = patchGeometry->getNumPatchesF();
+      int numPatches = patchGeometry->getNumPatches();
+      InfoLog() << "numPatches = " << numPatches << "\n";
+      for (int k = 0; k < numPatches; ++k) {
+         int kxExt     = kxPos(k, numPatchesX, numPatchesY, numPatchesF);
+         int xCell     = (kxExt - preLoc.halo.lt + preLoc.kx0) % numKernelsX;
+         xCell += (xCell < 0) ? numKernelsX : 0;
+
+         int kyExt     = kyPos(k, numPatchesX, numPatchesY, numPatchesF);
+         int yCell     = (kyExt - preLoc.halo.dn + preLoc.ky0) % numKernelsY;
+         yCell += (yCell < 0) ? numKernelsY : 0;
+
+         int kfExt     = featureIndex(k, numPatchesX, numPatchesY, numPatchesF);
+         int fCell     = kfExt % numKernelsF;
+         fCell += (fCell < 0) ? numKernelsF : 0;
+
+         int indexCell = kIndex(xCell, yCell, fCell, numKernelsX, numKernelsY, numKernelsF);
+         auto patchHeaderSize = sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t);
+         if (compressed) {
+            int overallPatchSize = mWeights->getPatchSizeOverall();
+            int readBufferOffset =
+                  indexCell * patchSizePvpFormat + static_cast<int>(patchHeaderSize);
+            unsigned char const *patchFromFile = &readBuffer[readBufferOffset];
+            float *weightsInPatch              = mWeights->getDataFromDataIndex(arbor, k);
+
+            decompressPatch(patchFromFile, weightsInPatch, overallPatchSize, header.minVal, header.maxVal);
+         }
+         else {
+            std::size_t const offsetInFile     = patchSizePvpFormat * (std::size_t)indexCell;
+            unsigned char const *patchFromFile = &readBuffer[offsetInFile + patchHeaderSize];
+            float *weightsInPatch              = mWeights->getDataFromDataIndex(arbor, k);
+            memcpy(weightsInPatch, patchFromFile, (std::size_t)(weightPatchSize) * sizeof(float));
+         }
+      }
+   }
+}
+
+void WeightsFileIO::readLocalPatchFileToLocalPatchWeights(BufferUtils::WeightHeader const &header) {
    bool compressed          = isCompressedHeader(header);
    long arborSizeInPvpFile  = calcArborSizeFile(compressed);
    long arborSizeInPvpLocal = calcArborSizeLocal(compressed);
@@ -248,7 +323,6 @@ WeightsFileIO::readNonsharedWeights(BufferUtils::WeightHeader const &header) {
          loadWeightsFromBuffer(readBuffer, arbor, header.minVal, header.maxVal, compressed);
       }
    }
-   return header.baseHeader.timestamp;
 }
 
 // function members for writing
@@ -261,7 +335,7 @@ void WeightsFileIO::writeWeights(double timestamp, bool compress) {
       writeSharedWeights(timestamp, compress);
    }
    else {
-      writeNonsharedWeights(timestamp, compress);
+      writeLocalPatchWeights(timestamp, compress);
    }
 }
 
@@ -297,7 +371,7 @@ void WeightsFileIO::writeSharedWeights(double timestamp, bool compress) {
    }
 }
 
-void WeightsFileIO::writeNonsharedWeights(double timestamp, bool compress) {
+void WeightsFileIO::writeLocalPatchWeights(double timestamp, bool compress) {
    float extrema[2];
    extrema[0] = mWeights->calcMinWeight();
    extrema[1] = -mWeights->calcMaxWeight();
@@ -351,7 +425,7 @@ void WeightsFileIO::writeNonsharedWeights(double timestamp, bool compress) {
             mMPIBlock->calcRowColBatchFromRank(sourceRank, rowIndex, columnIndex, batchElemIndex);
 
             if (sourceRank == mRootProcess) {
-               storeNonsharedPatches(writeBuffer, arbor, extrema[0], extrema[1], compress);
+               storeLocalPatchPatches(writeBuffer, arbor, extrema[0], extrema[1], compress);
             }
             else {
                int tag       = tagbase + arbor;
@@ -407,7 +481,7 @@ void WeightsFileIO::writeNonsharedWeights(double timestamp, bool compress) {
    }
    else {
       for (int arbor = 0; arbor < numArbors; arbor++) {
-         storeNonsharedPatches(writeBuffer, arbor, extrema[0], extrema[1], compress);
+         storeLocalPatchPatches(writeBuffer, arbor, extrema[0], extrema[1], compress);
          int tag       = tagbase + arbor;
          MPI_Comm comm = mMPIBlock->getComm();
          MPI_Send(writeBuffer.data(), (int)writeBuffer.size(), MPI_BYTE, mRootProcess, tag, comm);
@@ -661,7 +735,7 @@ void WeightsFileIO::decompressPatch(
    }
 }
 
-// TODO: templating to reduce code duplication between and within store{Nonshared,Shared}Patches
+// TODO: templating to reduce code duplication between and within store{LocalPatch,Shared}Patches
 void WeightsFileIO::storeSharedPatches(
       std::vector<unsigned char> &dataFromFile,
       int arbor,
@@ -711,7 +785,7 @@ void WeightsFileIO::storeSharedPatches(
    }
 }
 
-void WeightsFileIO::storeNonsharedPatches(
+void WeightsFileIO::storeLocalPatchPatches(
       std::vector<unsigned char> &dataFromFile,
       int arbor,
       float minValue,

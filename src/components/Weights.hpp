@@ -24,7 +24,7 @@
 namespace PV {
 
 /**
- * Weights enpapsulates the patch geometry and patch data for a HyPerConn-type connection
+ * Weights encapsulates the patch geometry and patch data for a HyPerConn-type connection
  * It makes use of a PatchGeometry object (either creating it itself or using an already existing
  * object). It handles both shared and nonshared versions of the connection data used by HyPerConn,
  * and handles multiple arbors.
