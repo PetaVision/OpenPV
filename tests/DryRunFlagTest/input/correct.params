@@ -21,6 +21,7 @@ HyPerCol "column" = {
 };
 
 PvpLayer "Input" = {
+    broadcastFlag                       = false;
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -48,6 +49,7 @@ PvpLayer "Input" = {
 };
 
 ANNLayer "OutputBase" = {
+    broadcastFlag                       = false;
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 8;
@@ -68,6 +70,7 @@ ANNLayer "OutputBase" = {
 };
 
 ANNLayer "OutputImported" = {
+    broadcastFlag                       = false;
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 6;
@@ -88,6 +91,7 @@ ANNLayer "OutputImported" = {
 };
 
 AlwaysFailsLayer "AlwaysFails" = {
+    broadcastFlag                       = false;
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;

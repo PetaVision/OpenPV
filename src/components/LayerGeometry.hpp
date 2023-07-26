@@ -28,6 +28,17 @@ class LayerGeometry : public BaseObject {
     */
 
    /**
+    * @brief broadcastFlag: If true, nxScale and nyScale are computed so that each MPI process
+    * has local nx and ny both equal to one (global nx is the MPI configuration's number of
+    * columns; global ny the number of rows). If false, nxScale and nyScale are read from params.
+    * Defaults to false.
+    * @details The motivation for broadcastFlag is for all-to-all layers where each MPI process
+    * has the data for the entire layer, and MPI reductions are performed to keep the layers in
+    * sync.
+    */
+   virtual void ioParam_broadcastFlag(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief nxScale: Defines the relationship between the x column size and the layer size.
     * @details Must be 2^n or 1/2^n
     */
@@ -85,6 +96,8 @@ class LayerGeometry : public BaseObject {
    int getNumNeuronsAllBatches() const { return mNumNeuronsAllBatches; }
    int getNumExtendedAllBatches() const { return mNumExtendedAllBatches; }
 
+   bool getBroadcastFlag() const { return mBroadcastFlag; }
+
    /**
     * Returns the scale factor of the layer geometry in the x-direction.
     * In terms of the input parameter nxScale, XScale = -log2(nxScale)
@@ -130,13 +143,6 @@ class LayerGeometry : public BaseObject {
    void updateNumExtended();
 
   private:
-   /**
-    * If a subclass needs to examine other objects, to get the values of nxScale, nyScale, or nf,
-    * it can override this method, which LayerGeometry::communicateInitInfo calls
-    * before filling in the fields of mLayerLoc.
-    */
-   virtual void communicateLayerGeometry(std::shared_ptr<CommunicateInitInfoMessage const> message);
-
    void
    setLayerLoc(PVLayerLoc *layerLoc, std::shared_ptr<CommunicateInitInfoMessage const> message);
 
@@ -165,9 +171,10 @@ class LayerGeometry : public BaseObject {
       int globalSize, int numProcesses, std::string axis, std::string const &label, bool printErr);
 
   protected:
-   float mNxScale   = 1.0;
-   float mNyScale   = 1.0;
-   int mNumFeatures = 1;
+   bool mBroadcastFlag = false;
+   float mNxScale      = 1.0;
+   float mNyScale      = 1.0;
+   int mNumFeatures    = 1;
 
    PVLayerLoc mLayerLoc;
    int mNumNeurons            = 0;

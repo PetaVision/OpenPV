@@ -28,17 +28,28 @@ void LayerGeometry::initialize(char const *name, PVParams *params, Communicator 
 void LayerGeometry::setObjectType() { mObjectType = "LayerGeometry"; }
 
 int LayerGeometry::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   ioParam_broadcastFlag(ioFlag);
    ioParam_nxScale(ioFlag);
    ioParam_nyScale(ioFlag);
    ioParam_nf(ioFlag);
    return PV_SUCCESS;
 }
 
+void LayerGeometry::ioParam_broadcastFlag(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValue(ioFlag, name, "broadcastFlag", &mBroadcastFlag, mBroadcastFlag);
+}
+
 void LayerGeometry::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "nxScale", &mNxScale, mNxScale);
+   assert(!parameters()->presentAndNotBeenRead(name, "broadcastFlag"));
+   if (mBroadcastFlag) {
+   }
+   else {
+      parameters()->ioParamValue(ioFlag, name, "nxScale", &mNxScale, mNxScale);
+   }
 }
 
 void LayerGeometry::ioParam_nyScale(enum ParamsIOFlag ioFlag) {
+   assert(!parameters()->presentAndNotBeenRead(name, "broadcastFlag"));
    parameters()->ioParamValue(ioFlag, name, "nyScale", &mNyScale, mNyScale);
 }
 
@@ -48,8 +59,6 @@ void LayerGeometry::ioParam_nf(enum ParamsIOFlag ioFlag) {
 
 Response::Status
 LayerGeometry::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> message) {
-   communicateLayerGeometry(message);
-   // At this point, nxScale, nyScale, and nfScale are known.
    setLayerLoc(&mLayerLoc, message);
 
    mNumNeurons           = mLayerLoc.nx * mLayerLoc.ny * mLayerLoc.nf;
@@ -73,9 +82,6 @@ void LayerGeometry::updateNumExtended() {
    mNumExtendedAllBatches = mNumExtended * mLayerLoc.nbatch;
 }
 
-void LayerGeometry::communicateLayerGeometry(
-      std::shared_ptr<CommunicateInitInfoMessage const> message) {}
-
 void LayerGeometry::setLayerLoc(
       PVLayerLoc *layerLoc,
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
@@ -83,15 +89,25 @@ void LayerGeometry::setLayerLoc(
 
    Communicator const *icComm = mCommunicator;
 
-   int nxLayer, nyLayer;
-   if (status == PV_SUCCESS) {
-      status = calculateScaledSize(&nxLayer, mNxScale, message->mNxGlobal, 'x');
-      status = calculateScaledSize(&nyLayer, mNyScale, message->mNyGlobal, 'y');
+   if (mBroadcastFlag) {
+      int nxLayer        = icComm->numCommColumns();
+      mNxScale           = nxLayer / message->mNxGlobal;
+      layerLoc->nxGlobal = nxLayer;
+
+      int nyLayer        = icComm->numCommRows();
+      mNyScale           = nyLayer / message->mNyGlobal;
+      layerLoc->nyGlobal = nyLayer;
    }
+   else {
+      int statusx = calculateScaledSize(&layerLoc->nxGlobal, mNxScale, message->mNxGlobal, 'x'); 
+      int statusy = calculateScaledSize(&layerLoc->nyGlobal, mNyScale, message->mNyGlobal, 'y');
+      if (statusx != PV_SUCCESS or statusy != PV_SUCCESS) {
+         status = PV_FAILURE;
+      }
+   }
+
    if (status == PV_SUCCESS) {
       layerLoc->nbatchGlobal = message->mNBatchGlobal;
-      layerLoc->nxGlobal     = nxLayer;
-      layerLoc->nyGlobal     = nyLayer;
       layerLoc->nf           = mNumFeatures;
 
       // partition input space based on the number of processor columns and rows
@@ -106,7 +122,7 @@ void LayerGeometry::setLayerLoc(
    MPI_Barrier(icComm->communicator());
    if (status != PV_SUCCESS) {
       if (icComm->globalCommRank() == 0) {
-         ErrorLog().printf("setLayerLoc failed for %s.\n", getName());
+         ErrorLog().printf("setLayerLoc failed for layer \"%s\".\n", getName());
       }
       exit(EXIT_FAILURE);
    }

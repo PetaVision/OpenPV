@@ -9,6 +9,7 @@
 #define LAYERINPUTBUFFER_HPP_
 
 #include "components/ComponentBuffer.hpp"
+#include "components/LayerGeometry.hpp"
 #include "delivery/LayerInputDelivery.hpp"
 
 #ifdef PV_USE_CUDA
@@ -93,10 +94,12 @@ class LayerInputBuffer : public ComponentBuffer {
 
   protected:
    std::vector<double> mChannelTimeConstants;
+   LayerGeometry const *mLayerGeometry = nullptr;
    std::vector<LayerInputDelivery *> mDeliverySources;
    bool mHasReceived = false;
 
-   Timer *mReceiveInputTimer = nullptr;
+   Timer *mBroadcastReduceTimer = nullptr;
+   Timer *mReceiveInputTimer    = nullptr;
 #ifdef PV_USE_CUDA
    std::vector<LayerInputDelivery *> mGPUDeliverySources; // delivery sources that set recvGpu
    PVCuda::CudaTimer *mReceiveInputCudaTimer = nullptr;

@@ -14,6 +14,7 @@ LayerInputBuffer::LayerInputBuffer(char const *name, PVParams *params, Communica
 }
 
 LayerInputBuffer::~LayerInputBuffer() {
+   delete mBroadcastReduceTimer;
    delete mReceiveInputTimer;
 #ifdef PV_USE_CUDA
    delete mCopyFromCudaTimer;
@@ -57,6 +58,13 @@ LayerInputBuffer::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage
    if (!Response::completed(status)) {
       return status;
    }
+
+   mLayerGeometry = message->mObjectTable->findObject<LayerGeometry>(getName());
+   FatalIf(
+         mLayerGeometry == nullptr,
+         "%s could not find a LayerInputBuffer component.\n",
+         getDescription_c());
+
    return Response::SUCCESS;
 }
 
@@ -109,8 +117,10 @@ LayerInputBuffer::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer>
       return status;
    }
 
-   auto *checkpointer = message->mDataRegistry;
-   mReceiveInputTimer = new Timer(getName(), "layer", "recvsyn");
+   auto *checkpointer    = message->mDataRegistry;
+   mBroadcastReduceTimer = new Timer(getName(), "layer", "broadcast");
+   mReceiveInputTimer    = new Timer(getName(), "layer", "recvsyn");
+   checkpointer->registerTimer(mBroadcastReduceTimer);
    checkpointer->registerTimer(mReceiveInputTimer);
 #ifdef PV_USE_CUDA
    auto cudaDevice = mCudaDevice;
@@ -220,6 +230,18 @@ void LayerInputBuffer::recvAllSynapticInput(double simTime, double deltaTime) {
 #endif // PV_USE_CUDA
 
    mReceiveInputTimer->stop();
+
+   if (mLayerGeometry->getBroadcastFlag()) {
+      mBroadcastReduceTimer->start();
+      MPI_Allreduce(
+            MPI_IN_PLACE, 
+            mBufferData.data(), 
+            mBufferData.size(),
+            MPI_FLOAT,
+            MPI_SUM,
+            getCommunicator()->communicator());
+      mBroadcastReduceTimer->stop();
+   }
 }
 
 void LayerInputBuffer::recvUnitInput(float *recvBuffer, int channelCode) {
