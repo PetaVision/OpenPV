@@ -1,0 +1,120 @@
+//
+// BroadcastFlagTest.params
+//
+// created by Pete Schultz: Jul 25, 2023
+//
+
+//  A params file for testing the HyPerLayer broadcastFlag parameter.
+//  An 8-by-8-by-3 input layer is connected to a 1-by-1-by-8 broadcast layer,
+//  with a (non-shared) HyPerConn with nxp=1, nyp=1, nfp=8, and 8*8*3
+//  kernels.
+//
+//  The input layer values are integers in the range 0..191, with x spinning
+//  fastest, then y, then f (which is different from the standard PetaVision
+//  storage order).
+//
+//  Although the test doesn't take the transpose of the weights, the weights
+//  are more easily described in terms of the transpose, under which there are
+//  8 patches of size 8x8x3. Each of the 8 patches corresponds to one of the
+//  neurons in the 1-by-1-by-8 output layer.
+//
+//  Patch 0: all ones.
+//  Patch 1: y-locations 0,1,2,3 have all ones; y-locations 4,5,6,7 have all zeros
+//  Patch 2: y-locations 0,1,2,3 have all zeros; y-locations 4,5,6,7 have all ones
+//  Patch 3: x-locations 0,1,2,3 have all ones; x-locations 4,5,6,7 have all zeros
+//  Patch 4: x-locations 0,1,2,3 have all zeros; x-locations 4,5,6,7 have all ones
+//  Patch 5: Checkerboard pattern: one if x-location + y-location is odd; zero otherwise
+//  Patch 6: y-locations 2,3,6,7 have all ones; y-locations 0,1,4,5 have all zeros
+//  Patch 7: x-locations 2,3,6,7 have all ones; x-locations 0,1,4,5 have all zeros
+//
+//  The correct values for the 1-by-1-by-8 output layer are:
+//  18528, 7728, 10800, 9072, 9456, 9264, 10032, 9360
+//
+//  They are contained in the file input/correct.txt
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 8;
+   ny = 8;
+   nbatch = 1;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/Last";
+};
+
+//
+// layers
+//
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 1;
+
+    inputPath = "input/input.pvp";
+    nf = 3;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+HyPerLayer "Output" = {
+    broadcastFlag = true;
+    nf = 8;
+    phase = 1;
+    triggerLayerName = NULL;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};
+
+HyPerConn "InputToOutput" = {
+    preLayerName = "Input";
+    postLayerName = "Output";
+    channelCode = 0;
+
+    nxp = 1;
+    nyp = 1;
+    nfp = 8; 
+    numAxonalArbors = 1;
+    sharedWeights = false;
+    writeStep = -1;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/weights.pvp";
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve";
+    updateGSynFromPostPerspective = false;
+};
