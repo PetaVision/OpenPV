@@ -8,6 +8,7 @@
 #include "HyPerConn.hpp"
 #include "columns/Factory.hpp"
 #include "components/StrengthParam.hpp"
+#include "delivery/HyPerDelivery.hpp"
 #include "delivery/HyPerDeliveryCreator.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
 
@@ -209,8 +210,41 @@ HyPerConn::respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage
    return notify(message, mCommunicator->globalCommRank() == 0 /*printFlag*/);
 }
 
+void HyPerConn::warnIfBroadcastWithShared() {
+   // Check whether either pre- or post- layer has broadcastFlag set; if so check whether
+   // connection has the sharedWeights flag set; if so issue a warning.
+   ConnectionData *connectionData = getComponentByType<ConnectionData>();
+   BaseDelivery *delivery = getComponentByType<BaseDelivery>();
+
+   SharedWeights *sharedWeights = getComponentByType<SharedWeights>();
+   if (!sharedWeights or !sharedWeights->getSharedWeights()) { return; }
+
+   LayerInputBuffer const *postGSyn = delivery ? delivery->getPostGSyn() : nullptr;
+   LayerGeometry const *postLayerGeometry = postGSyn ? postGSyn->getLayerGeometry() : nullptr;
+   bool postLayerIsBroadcast = postLayerGeometry ? postLayerGeometry->getBroadcastFlag() : false;
+
+   BasePublisherComponent const *preData = delivery ? delivery->getPreData() : nullptr;
+   LayerGeometry const *preLayerGeometry = preData ? postGSyn->getLayerGeometry() : nullptr;
+   bool preLayerIsBroadcast = preLayerGeometry ? preLayerGeometry->getBroadcastFlag() : false;
+
+   if (postLayerIsBroadcast) {
+      WarnLog().printf(
+            "%s has sharedWeights flag on, but postsynaptic layer \"%s\" is a broadcast layer.\n",
+            getDescription_c(),
+            postGSyn->getName());
+   }
+}
+
 Response::Status
 HyPerConn::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   // Warn if using shared weights with a broadcast layer.
+   // This isn't a great place for doing the check but I wanted to do it at a place where
+   // all the params are known to have been set, without adding more postpones to
+   // communicateInitInfo, and where the code would only be called during setup and not
+   // during the runloop. This was the only place that didn't require me to have HyPerConn
+   // override a member function that hadn't already been overridden.
+   warnIfBroadcastWithShared();
+
    auto status = BaseConnection::registerData(message);
    if (Response::completed(status)) {
       if (getComponentByType<BaseWeightUpdater>()) {

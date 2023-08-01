@@ -53,7 +53,7 @@ void WeightsFileIO::checkHeader(BufferUtils::WeightHeader const &header) {
    if (mWeights->getSharedFlag()) {
       FatalIf(
             header.baseHeader.fileType != PVP_KERNEL_FILE_TYPE,
-            "Connection \"%s\" has sharedWeights true, ",
+            "Connection \"%s\" has sharedWeights true, "
             "but \"%s\" is not a shared-weights file\n",
             mWeights->getName().c_str(),
             mFileStream->getFileName().c_str());

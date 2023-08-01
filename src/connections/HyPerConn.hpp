@@ -14,6 +14,7 @@
 #include "components/SharedWeights.hpp"
 #include "components/WeightsPair.hpp"
 #include "connections/BaseConnection.hpp"
+#include "delivery/BaseDelivery.hpp"
 #include "normalizers/NormalizeBase.hpp"
 #include "weightinit/InitWeights.hpp"
 #include "weightupdaters/BaseWeightUpdater.hpp"
@@ -25,12 +26,6 @@ class HyPerConn : public BaseConnection {
    HyPerConn(char const *name, PVParams *params, Communicator const *comm);
 
    virtual ~HyPerConn();
-
-   // Jul 10, 2018: get-methods have been moved into the corresponding component classes.
-   // For example, the old HyPerConn::getPatchSizeX() has been moved into the PatchSize class.
-   // To get the PatchSizeX value from a HyPerConn conn , get the PatchSize component using
-   // "PatchSize *patchsize = conn->getComponentByType<PatchSize>()" and then call
-   // "patchSize->getPatchSizeX()"
 
   protected:
    HyPerConn();
@@ -61,15 +56,10 @@ class HyPerConn : public BaseConnection {
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
-  protected:
-   //   ArborList *mArborList              = nullptr;
-   //   PatchSize *mPatchSize              = nullptr;
-   //   SharedWeights *mSharedWeights      = nullptr;
-   //   WeightsPairInterface *mWeightsPair = nullptr;
-   //   InitWeights *mWeightInitializer    = nullptr;
-   //   NormalizeBase *mWeightNormalizer   = nullptr;
-   //   BaseWeightUpdater *mWeightUpdater  = nullptr;
+  private:
+   void warnIfBroadcastWithShared();
 
+  protected:
    Timer *mUpdateTimer = nullptr;
 
 }; // class HyPerConn

@@ -49,6 +49,8 @@ class LayerInputBuffer : public ComponentBuffer {
 
    bool getHasReceived() const { return mHasReceived; }
 
+   LayerGeometry const * getLayerGeometry() const { return mLayerGeometry; }
+
   protected:
    LayerInputBuffer() {}
 
