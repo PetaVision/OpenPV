@@ -1,0 +1,175 @@
+// A system test for convolving on the GPU from post perspective.
+//
+// The presynaptic layer Pre is 16x16x100. It is a PvpLayer, and the pvp file
+// has 100 frames. The nth frame has one value in the nth feature set to 1;
+// all other values are set to zero.
+
+// The postsynaptic layers PostOnGPU and PostOnCPU are 32x32x3. They are
+// identical HyPerLayers, differing only in the connection that controls them.
+
+// The connections PreToPostOnGPU and PreToPostOnCPU connect the presynaptic
+// layer to the post layers suggested by their names. They load their weights
+// from a file. The weights are constant and are the same between the two
+// connections; the only difference is whether the convolution is done on the
+// CPU or the GPU.  The parameter sweep has size 2; in the first run the
+// weights are 6x6x3x100; in the second run they are 10x10x3x100. In each case,
+// the nth dictionary element is all zeros except for a single weight which is
+// one. Which weight is one varies from dictionary element to dictionary
+// element.
+
+// The run continues for 100 timesteps. At each timestep, the PostOnGPU and
+// PostOnCPU layers should be identical. They are subtracted in the Comparison
+// layer, and a RequireAllZeroActivityProbe checks that all neurons in the
+// Comparison layer are within zero, up to a tolerance.
+
+// At each timestep, the post-synaptic layer should contain only a single
+// nonzero neuron. At time n, the location of this neuron depends on the
+// location of the nonzero neuron in dictionary n of the weights.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 100;
+    progressInterval                    = 100;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "CudaRecvPostTest.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 32;
+    ny                                  = 32;
+    nbatch                              = 1;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = false;
+    // outputPath handled by parameter sweep
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    // lastCheckpointDir handled by parameter sweep
+    initializeFromCheckpointDir         = "";
+};
+
+PvpLayer "Pre" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 0.5;
+    nyScale                             = 0.5;
+    nf                                  = 100;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    displayPeriod                       = 1;
+    inputPath                           = "input/pre.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    jitterChangeInterval                = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0.000000];
+    writeFrameToTimestamp               = true;
+    updateGpu                           = false;
+    sparseLayer                         = true;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+};
+
+HyPerLayer "PostOnGPU" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = true;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+};
+
+HyPerLayer "PostOnCPU" = {
+    #include "PostOnGPU";
+};
+
+HyPerLayer "Comparison" = {
+    initializeFromCheckpointFlag        = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = true;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+};
+
+HyPerConn "PreToPostOnGPU" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Pre";
+    postLayerName                       = "PostOnGPU";
+    receiveGpu                          = true;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = true;
+    channelCode                         = 0;
+    numAxonalArbors                     = 1;
+    delay                               = [0.000000];
+    // nxp handled by parameter sweep
+    // nyp handled by parameter sweep
+    nfp                                 = 3;
+    sharedWeights                       = true;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "FileWeight";
+    // initWeightsFile handled by parameter sweep
+    frameNumber                         = 0;
+    normalizeMethod                     = "none";
+    plasticityFlag                      = false;
+};
+
+HyPerConn "PreToPostOnCPU" = {
+    #include "PreToPostOnGPU";
+    @postLayerName                      = "PostOnCPU";
+    @receiveGpu                         = false;
+};
+
+IdentConn "PostOnGPUToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "PostOnGPU";
+    postLayerName                       = "Comparison";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "PostOnCPUToComparison" = {
+    #include "PostOnGPUToComparison";
+    @preLayerName                       = "PostOnCPU";
+    @channelCode                        = 1;
+};
+
+RequireAllZeroActivityProbe "Probe" = {
+    targetLayer                         = "Comparison";
+    textOutputFlag                      = false;
+    // probeOutputFile                  = NULL;
+    // message                          = NULL;
+    triggerLayerName                    = NULL;
+    nnzThreshold                        = 1e-06;
+    exitOnFailure                       = true;
+    immediateExitOnFailure              = false;
+};
+
+ParameterSweep "column":outputPath = { "output_6by6"; "output_10by10"; };
+ParameterSweep "column":lastCheckpointDir = { "output_6by6/Last"; "output_10by10/Last"; };
+ParameterSweep "PreToPostOnGPU":nxp = { 6; 10; };
+ParameterSweep "PreToPostOnGPU":nyp = { 6; 10; };
+ParameterSweep "PreToPostOnGPU":initWeightsFile = { "input/wgt6by6.pvp"; "input/wgt10by10.pvp"; };
+ParameterSweep "PreToPostOnCPU":nxp = { 6; 10; };
+ParameterSweep "PreToPostOnCPU":nyp = { 6; 10; };
+ParameterSweep "PreToPostOnCPU":initWeightsFile = { "input/wgt6by6.pvp"; "input/wgt10by10.pvp"; };
