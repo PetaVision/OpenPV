@@ -891,7 +891,8 @@ void HyPerCol::outputParams(char const *path) {
       printLuaStream->printf("   sourcedir = \"" PV_DIR "\";\n");
       printLuaStream->printf("end\n");
       printLuaStream->printf("\n");
-      printLuaStream->printf("package.path .. \";\" .. sourcedir .. \"/parameterWrapper/?.lua\"\n");
+      printLuaStream->printf(
+            "package.path = package.path .. \";\" .. sourcedir .. \"/parameterWrapper/?.lua\"\n");
       printLuaStream->printf("local pv = require \"PVModule\"\n\n");
       printLuaStream->printf(
             "NULL = function() end; -- to allow string parameters to be set to NULL\n\n");
