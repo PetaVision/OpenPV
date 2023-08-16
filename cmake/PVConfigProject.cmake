@@ -60,7 +60,7 @@ macro(pv_config_project)
   set(GCC_LINK_LIBRARIES m)
   
   # Help strings
-  set(PV_DIR_HELP "The core PetaVision directory")
+  set(PV_DIR_HELP "The top directory of the PetaVision repository")
   set(PV_OPENMP_HELP "Defines if PetaVision uses OpenMP")
   set(PV_OPENMP_FLAG_HELP "Compiler flag for compiling with OpenMP")
   set(PV_USE_MPI_HELP "Defines whether PetaVision uses MPI")
@@ -210,8 +210,8 @@ macro(pv_config_project)
   endif()
   
   # Set up PV_SOURCE and INCLUDE_DIR.
-  set(PV_SOURCE_DIR ${PV_DIR})
-  set(PV_INCLUDE_DIR ${PV_DIR})
+  set(PV_SOURCE_DIR ${PV_DIR}/src)
+  set(PV_INCLUDE_DIR ${PV_DIR}/src)
   
   set(PV_LIBRARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/lib")
   
