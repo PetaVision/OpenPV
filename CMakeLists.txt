@@ -8,7 +8,7 @@ project(PetaVision)
 ################################################################################
 
 # Default PetaVision core library directory
-set(PV_DIR_DEFAULT "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(PV_DIR_DEFAULT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(PV_TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests")
 set(PV_DEMOS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/demos")
 set(PV_TOOLS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tools")
@@ -34,8 +34,8 @@ pv_config_project()
 # Add subdirectories
 ################################################################################
 
-# Adds the core PetaVision directory
-add_subdirectory(${PV_DIR})
+# Adds the source directory for the core PetaVision library
+add_subdirectory(${PV_DIR}/src)
 
 if (${PV_BUILD_TEST})
   enable_testing()
