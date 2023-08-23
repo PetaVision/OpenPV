@@ -1,5 +1,5 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.7.0)
 
 ## Version 0.1.0.0
 set(PV_VERSION_MAJOR 0)

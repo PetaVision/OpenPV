@@ -1,5 +1,5 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.7.0)
 
 set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../pv-core CACHE FILEPATH
 "The directory for the PetaVision library")

@@ -15,10 +15,6 @@
 # CUDNN_FOUND, CUDNN_INCLUDE_DIR, CUDNN_LIBRARY. Can be set with find_package(CUDNN).
 #  FindCUDNN.cmake is provided in ${PV_SOURCE_DIR}/cmake
 # LUA_FOUND, LUA_INCLUDE_DIR, LUA_LIBRARIES.  These can be set with find_package(Lua).
-#  FindLua.cmake is a standard CMake module from version 3 on.  To accommodate older
-#  versions of CMake, the FindLua.cmake from CMake 3.5.2 has been copied into
-#  ${PV_SOURCE_DIR}/cmake.
-#
 
 macro(pv_add_library TARGET)
   cmake_parse_arguments(
