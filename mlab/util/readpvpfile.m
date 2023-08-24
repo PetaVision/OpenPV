@@ -50,7 +50,7 @@ hdr = readpvpheader(fid);
 switch hdr.filetype
     case 1 % PVP_FILE_TYPE, obsolete
         errorident = 'readpvpfile:obsoletefiletype';
-        errorstring = sprintf('readpvpfile:File %s has obsolete file typd %d', filename, hdr.filetype);
+        errorstring = sprintf('readpvpfile:File %s has obsolete file type %d', filename, hdr.filetype);
     case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
         numframes = hdr.nbands;
         % framesize is variable

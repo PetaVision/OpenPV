@@ -87,7 +87,7 @@ Buffer<float> PvpListActivityBuffer::retrieveData(int inputIndex) {
    std::string filename = mFileList.at(inputIndex);
 
    BufferUtils::readActivityFromPvp<float>(
-         filename.c_str(), &result, 0 /*frame index*/, &mSparseTable);
+         filename.c_str(), &result, 0 /*frame index*/, nullptr);
    return result;
 }
 
