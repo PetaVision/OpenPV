@@ -53,7 +53,7 @@ class pvpOpen(object):
         if(mode == 'r' or mode == 'a'):
             self.header = readpvpheader(self.pvpFile)
             #Calculate num frames
-            if(self.header['filetype'] == 5):
+            if(self.header['filetype'] == 3 or self.header['filetype'] == 5):
                 filesize = os.path.getsize(filename)
                 patchsizeoverall = self.header['nxp'] * self.header['nyp'] * self.header['nfp']
                 recordsize = self.header['numpatches'] * (8+4*patchsizeoverall)
@@ -62,7 +62,7 @@ class pvpOpen(object):
             else:
                 self.numFrames = self.header['nbands']
             #Check filetypes
-            if(self.header['filetype'] == 1 or self.header['filetype'] == 3):
+            if(self.header['filetype'] == 1):
                 raise Exception("File type " + str(self.header['filetype']) + " not implemented")
         else:
             self.header = None
@@ -160,31 +160,8 @@ class pvpOpen(object):
             #Values for sparse matrix are all 1's
             data["values"] = sp.csr_matrix((np.ones((len(framesList))), (framesList, idxList)), shape=(len(frameRange), self.header["nx"]*self.header["ny"]*self.header["nf"]))
 
-        # DENSE, NON-SPIKING ACTIVITY FILE
-        elif self.header['filetype'] == 4:
-            shape = (self.header['ny'], self.header['nx'], self.header['nf'])
-            pattern = np.dtype([('time', np.float64),
-                                ('values', dataType, shape)])
-            frameSize = pattern.itemsize
-
-            data["values"] = np.zeros((len(frameRange), self.header['ny'], self.header['nx'], self.header['nf']))
-            data["time"] = np.zeros((len(frameRange)))
-
-            for (frameNum, frame) in enumerate(frameRange):
-                 self.pvpFile.seek(self.header['headersize'] + frame*frameSize, os.SEEK_SET)
-                 currentData = np.fromfile(self.pvpFile, pattern, 1)
-                 time = currentData['time'][0]
-                 values = currentData['values'][0]
-                 data["time"][frameNum] = time
-                 data["values"][frameNum, :, :, :] = values
-
-                 if progress:
-                     if frameNum % progress == 0:
-                         print("File "+self.filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
-
-
-        # KERNEL WEIGHT FILE
-        elif self.header['filetype'] == 5:
+        # WEIGHTS FILE, either local patch (non-shared) or shared weights
+        elif self.header['filetype'] == 3 or self.header['filetype'] == 5:
             shape = (self.header['nyp'], self.header['nxp'], self.header['nfp'])
             patchsizeoverall = self.header['nxp'] * self.header['nyp'] * self.header['nfp']
             recordsize = self.header['numpatches'] * (8+4*patchsizeoverall)
@@ -211,6 +188,31 @@ class pvpOpen(object):
                  if progress:
                      if frameNum % progress == 0:
                          print("File "+self.filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
+
+        # DENSE, NON-SPIKING ACTIVITY FILE
+        elif self.header['filetype'] == 4:
+            shape = (self.header['ny'], self.header['nx'], self.header['nf'])
+            pattern = np.dtype([('time', np.float64),
+                                ('values', dataType, shape)])
+            frameSize = pattern.itemsize
+
+            data["values"] = np.zeros((len(frameRange), self.header['ny'], self.header['nx'], self.header['nf']))
+            data["time"] = np.zeros((len(frameRange)))
+
+            for (frameNum, frame) in enumerate(frameRange):
+                 self.pvpFile.seek(self.header['headersize'] + frame*frameSize, os.SEEK_SET)
+                 currentData = np.fromfile(self.pvpFile, pattern, 1)
+                 time = currentData['time'][0]
+                 values = currentData['values'][0]
+                 data["time"][frameNum] = time
+                 data["values"][frameNum, :, :, :] = values
+
+                 if progress:
+                     if frameNum % progress == 0:
+                         print("File "+self.filename+": frame "+str(frame)+" of "+str(frameRange[-1]))
+
+
+        # KERNEL WEIGHT FILE (filetype 5) is handled in the same branch as filetype 3
 
         # SPARSE ACTIVITY FILE
         elif self.header['filetype'] == 6:
@@ -426,11 +428,9 @@ class pvpOpen(object):
         else:
             hPattern = headerPattern
 
-        #Weight patches write header everytime, so ignore if filetype 5
-        if(self.header["filetype"] != 5):
-            #Write out header
-            for headerEntry in hPattern:
-                self.pvpFile.write(headerEntry[1](self.header[headerEntry[0]]))
+        #Write out header
+        for headerEntry in hPattern:
+            self.pvpFile.write(headerEntry[1](self.header[headerEntry[0]]))
 
     def updateHeader(self, data):
         #Only update if filetype is not 5
@@ -469,8 +469,6 @@ class pvpOpen(object):
                 self.header = data["header"]
             else:
                 self.header=self.generateHeader(data, shape)
-            #Write out full header
-            self.writeHeader()
 
         #Otherwise, check header fields
         else:
@@ -490,13 +488,7 @@ class pvpOpen(object):
         if self.header['filetype'] == 2:
             raise Exception('Filetype 2 not yet supported for write pvp')
 
-        elif self.header['filetype'] == 4:
-            (numFrames, ny, nx, nf) = data["values"].shape
-            for dataFrame in range(numFrames):
-                self.pvpFile.write(data["time"][dataFrame])
-                self.pvpFile.write(data["values"][dataFrame, :, :, :])
-
-        elif self.header['filetype'] == 5:
+        elif self.header['filetype'] == 3 or self.header['filetype'] == 5:
             (numFrames, numArbors, numKernels, nyp, nxp, nfp) = data["values"].shape
             # Type 5's have a header in each frame
             #Make a copy of header dictionary to avoid changing
@@ -518,8 +510,17 @@ class pvpOpen(object):
                         self.pvpFile.write(np.uint16(nyp))
                         self.pvpFile.write(np.uint32(0)) #Offset is always 0 for kernels
                         self.pvpFile.write(data["values"][dataFrame, dataArbor, dataKernel, :, :, :])
+
+        elif self.header['filetype'] == 4:
+            self.writeHeader()
+            (numFrames, ny, nx, nf) = data["values"].shape
+            for dataFrame in range(numFrames):
+                self.pvpFile.write(data["time"][dataFrame])
+                self.pvpFile.write(data["values"][dataFrame, :, :, :])
+
         #Sparse values
         elif self.header['filetype'] == 6:
+            self.writeHeader()
             (numFrames, numData) = data["values"].shape
             for dataFrame in range(numFrames):
                 frameVals = data["values"].getrow(dataFrame)
@@ -533,7 +534,6 @@ class pvpOpen(object):
                 npOut[:, 0] = np.uint32(index)
                 npOut[:, 1] = np.float32(value).view(np.uint32)
                 self.pvpFile.write(npOut.flatten())
-
 
 if __name__ == "__main__":
     #wFile = pvpFile("test/test.pvp", 'w')
