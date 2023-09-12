@@ -289,6 +289,10 @@ class PV_Init {
    std::shared_ptr<Arguments> mArguments;
    int maxThreads;
    Communicator *mCommunicator;
+
+   // If constructor needed to call MPI_Init(), destructor is responsible for calling
+   // MPI_Finalize(); otherwise leave MPI_Finalize() for whoever called MPI_Init().
+   bool mCalled_MPI_Init = false;
 }; // class PV_Init
 
 } // namespace PV

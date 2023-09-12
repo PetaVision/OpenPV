@@ -117,9 +117,10 @@ int PV_Init::commInit(int *argc, char ***argv) {
    if (!mpiInit) {
       pvAssert((*argv)[*argc] == nullptr); // Open MPI 1.7 assumes this.
       MPI_Init(argc, argv);
+      mCalled_MPI_Init = true;
    }
    else {
-      Fatal() << "PV_Init communicator already initialized\n";
+      mCalled_MPI_Init = false;
    }
 
    return 0;
@@ -310,7 +311,9 @@ void PV_Init::freeArgs(int argc, char **argv) {
 }
 
 int PV_Init::commFinalize() {
-   MPI_Finalize();
+   if (mCalled_MPI_Init) {
+      MPI_Finalize();
+   }
    return 0;
 }
 

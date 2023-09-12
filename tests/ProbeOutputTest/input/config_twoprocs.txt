@@ -1,0 +1,21 @@
+RequireReturn:false
+OutputPath:
+ParamsFile:input/baserun.params
+LogFile:ProbeOutputTest_twoprocs.log
+GPUDevices:
+RandomSeed:0
+WorkingDirectory:
+Restart:false
+CheckpointReadDirectory:
+NumThreads:1
+NumRows:2
+NumColumns:1
+BatchWidth:1
+CheckpointCellNumRows:2
+CheckpointCellNumColumns:1
+CheckpointCellBatchDimension:1
+DryRun:false
+ShuffleParamGroups:0
+RunName:twoprocs
+RunDescription:Two processes
+OutputTruncation:11012816

@@ -16,3 +16,6 @@ CheckpointCellNumColumns:1
 CheckpointCellBatchDimension:1
 DryRun:false
 ShuffleParamGroups:0
+RunName:oneproc
+RunDescription:One process
+OutputTruncation:11012816
