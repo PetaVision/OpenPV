@@ -36,12 +36,10 @@ macro(pv_config_project)
   set(CLANG_OPENMP_FLAG "-fopenmp")
   set(CLANG_SANITIZE_ADDRESS_CXX_FLAGS "")
   set(CLANG_SANITIZE_ADDRESS_EXE_LINKER_FLAGS "")
-  set(CLANG_CPP_FLAGS "-std=c++17")
 
   # AppleClang Compiler defaults
   set(APPLECLANG_DEBUG_FLAGS "-g;-O2")
   set(APPLECLANG_RELEASE_FLAGS "-O3;-DNDEBUG")
-  set(APPLECLANG_CPP_FLAGS "-std=c++17 -stdlib=libc++")
   set(APPLECLANG_SANITIZE_ADDRESS_CXX_FLAGS "-g -fsanitize=address -fno-omit-frame-pointer")
   set(APPLECLANG_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
   # Flag to pass in to NVCC (which in turn passes this on to clang) so that off_t is defined
@@ -49,10 +47,6 @@ macro(pv_config_project)
   
   # GCC compiler defaults
   set(GCC_OPENMP_FLAG "-fopenmp")
-  # warning flag is here so that it skips nvcc, which causes inaccurate warnings by compiling .cu as C
-  #  set(GCC_CPP_FLAGS "-std=c++17 -Wall -fdiagnostics-show-option")
-  # Warnings disabled so that they can be addressed in a seperate branch
-  set(GCC_CPP_FLAGS "-std=c++17")
   set(GCC_SANITIZE_ADDRESS_CXX_FLAGS -g;-fsanitize=address;-fno-omit-frame-pointer)
   set(GCC_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
   set(GCC_COMPILE_FLAGS_DEBUG -Wdouble-promotion -Wreturn-type)
