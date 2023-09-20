@@ -1,51 +1,112 @@
 #include "manageFiles.hpp"
 
-int deleteLink(std::string const &path) {
-   int status = ::unlink(path.c_str());
-   if (status) {
-      WarnLog().printf(
-            "Failure deleting symbolic link\"%s\": %s\n", 
-            path.c_str(), 
-            std::strerror(errno));
+#include <filesystem>
+
+int appendExtraneousData(std::filesystem::path const &path, Communicator *comm) {
+   int status = PV_SUCCESS;
+   auto globalComm = comm->globalCommunicator();
+   int commSize;
+   MPI_Comm_size(globalComm, &commSize);
+   int commRank;
+   MPI_Comm_rank(globalComm, &commRank);
+
+   auto const badSize = static_cast<std::uintmax_t>(-1);
+   auto fileSize = badSize;
+   if (comm->getIOMPIBlock()->getRank() == 0) {
+      auto filestatus = std::filesystem::status(path);
+      auto file_type = filestatus.type();
+      switch (file_type) {
+         case std::filesystem::file_type::regular:
+            fileSize = std::filesystem::file_size(path);
+            break;
+         case std::filesystem::file_type::not_found:
+            // NOP; presumably another process on a different filesystem will find the file
+            break;
+         default:
+            ErrorLog().printf(
+                  "appendExtraneousData() failed: \"%s\" is not a regular file.\n",
+                  path.c_str());
+            status = PV_FAILURE;
+            break;
+      }
    }
-   return status ? PV_FAILURE : PV_SUCCESS;
+   MPI_Barrier(comm->globalCommunicator());
+
+   for (int k = 0; k < commSize; ++k) {
+      if (k == commRank) {
+         if (comm->getIOMPIBlock()->getRank() == 0) {
+            if (status == PV_SUCCESS and fileSize != badSize) {
+               auto newFileSize = std::filesystem::file_size(path);
+               if (newFileSize == fileSize) {
+                  std::fstream outputFile(path.string(), std::ios_base::app);
+                  if (outputFile) {
+                     outputFile << "PetaVision is an open source, object-oriented neural ";
+                     outputFile << "simulation toolbox optimized for high-performance ";
+                     outputFile << "multi-core, multi-node computer architectures.\n";
+                  }
+                  else {
+                     ErrorLog().printf("Unable to open \"%s\" for appending.\n", path.c_str());
+                     status = PV_FAILURE;
+                     continue;
+                  }
+               }
+            }
+         }
+      }
+
+      // Prevent collisions if multiple root processes see the same filesystem
+      MPI_Barrier(comm->globalCommunicator());
+   }
+   return status;
 }
 
-int deleteRegularFile(std::string const &path) {
-   int status = ::unlink(path.c_str());
-   if (status) {
-      WarnLog().printf(
-            "Failure deleting regular file \"%s\": %s\n", 
-            path.c_str(), 
-            std::strerror(errno));
-   }
-   return status ? PV_FAILURE : PV_SUCCESS;
-}
+int recursiveCopy(std::string const &from, std::string const &to, Communicator *comm) {
+   // copy a directory and its contents, allowing for the possibility that more than one process
+   // might see the same file system, even if they are in different M-to-N blocks.
+   int status = PV_SUCCESS;
+   auto globalComm = comm->globalCommunicator();
+   int commSize;
+   MPI_Comm_size(globalComm, &commSize);
+   int commRank;
+   MPI_Comm_rank(globalComm, &commRank);
 
-int recursiveDelete(std::string const &path) {
-   struct stat statbuf;
-   int statstatus = ::lstat(path.c_str(), &statbuf);
-   if (statstatus != 0 and errno == ENOENT) { return PV_SUCCESS; }
-   if (statstatus) {
-      WarnLog() << "Failure accessing \"" << path << "\": " << std::strerror(errno) << "\n";
+   auto filestatus = std::filesystem::symlink_status(from);
+   // will throw a filesystem_error on failure ("No such file or directory" is not a failure;
+   // instead file_type::not_found is returned)
+   int fromPathExists = (filestatus.type() == std::filesystem::file_type::not_found) ? 0 : 1;
+
+   MPI_Allreduce(MPI_IN_PLACE, &fromPathExists, 1 /*count*/, MPI_INT, MPI_LOR, globalComm);
+   if (!fromPathExists) {
+      ErrorLog().printf(
+            "recursiveCopy() called for source path \"%s\", but this path does not exist.\n",
+            from.c_str());
       return PV_FAILURE;
    }
-   if (S_ISREG(statbuf.st_mode)) {
-      return deleteRegularFile(path);
-   }
-   else if (S_ISDIR(statbuf.st_mode)) {
-      return recursiveDeleteDirectory(path);
-   }
-   else if (S_ISLNK(statbuf.st_mode)) {
-      return deleteLink(path);
-   }
-   else {
-      WarnLog().printf(
-            "Failure deleting \"%s\": Unrecognized inode file type %07o\n",
-            path.c_str(),
-            statbuf.st_mode & S_IFMT);
+
+   status = recursiveDelete(to, comm, false /*warnIfAbsentFlag*/);
+   if (status != PV_SUCCESS) {
+      ErrorLog().printf(
+            "recursiveCopy() failed to delete previously existing destination path \"%s\"\n",
+            to.c_str());
       return PV_FAILURE;
    }
+
+   for (int k = 0; k < commSize; ++k) {
+      if (k == commRank) {
+         if (comm->getIOMPIBlock()->getRank() == 0) {
+            auto filestatus = std::filesystem::symlink_status(to);
+            if (filestatus.type() == std::filesystem::file_type::not_found) {
+               std::error_code errorCode;
+               std::filesystem::copy(from, to, std::filesystem::copy_options::recursive, errorCode);
+               if (errorCode.value() != 0) { status = PV_FAILURE; }
+            }
+         }
+      }
+
+      // Prevent collisions if multiple processes on one filesystem try to delete the same file.
+      MPI_Barrier(comm->globalCommunicator());
+   }
+   return status;
 }
 
 int recursiveDelete(std::string const &path, Communicator *comm, bool warnIfAbsentFlag) {
@@ -54,17 +115,17 @@ int recursiveDelete(std::string const &path, Communicator *comm, bool warnIfAbse
    // FileManager routines because we sometimes delete a directory not in a tree controlled by
    // a FileManager object.
    int status = PV_SUCCESS;
-   int commSize;
-   MPI_Comm_size(comm->globalCommunicator(), &commSize);
-   int commRank;
-   MPI_Comm_rank(comm->globalCommunicator(), &commRank);
-
-   struct stat statbuf;
-   int pathExists = 0;
-   int statstatus = ::lstat(path.c_str(), &statbuf);
-   if (!statstatus) { pathExists = 1; }
-
    auto globalComm = comm->globalCommunicator();
+   int commSize;
+   MPI_Comm_size(globalComm, &commSize);
+   int commRank;
+   MPI_Comm_rank(globalComm, &commRank);
+
+   auto filestatus = std::filesystem::symlink_status(path);
+   // will throw a filesystem_error on failure ("No such file or directory" is not a failure;
+   // instead file_type::not_found is returned)
+   int pathExists = (filestatus.type() == std::filesystem::file_type::not_found) ? 0 : 1;
+
    MPI_Allreduce(MPI_IN_PLACE, &pathExists, 1 /*count*/, MPI_INT, MPI_LOR, globalComm);
    if (!pathExists) {
       if (warnIfAbsentFlag) {
@@ -81,44 +142,14 @@ int recursiveDelete(std::string const &path, Communicator *comm, bool warnIfAbse
    for (int k = 0; k < commSize; ++k) {
       if (k == commRank) {
          if (comm->getIOMPIBlock()->getRank() == 0) {
-            int status1 = recursiveDelete(path);
-            if (status1 != PV_SUCCESS) { status = PV_FAILURE; }
+            std::error_code errorCode;
+            std::uintmax_t numRemoved = std::filesystem::remove_all(path, errorCode);
+            if (errorCode.value() != 0) { status = PV_FAILURE; }
          }
       }
 
-      // Prevent collisions if multiple processes try to delete the same file.
+      // Prevent collisions if multiple processes on one filesystem try to delete the same file.
       MPI_Barrier(comm->globalCommunicator());
-   }
-   return status;
-}
-
-int recursiveDeleteDirectory(std::string const &path) {
-   int status = PV_SUCCESS;
-   DIR *dir = opendir(path.c_str());
-   if (dir == nullptr) {
-      WarnLog().printf(
-            "Failure listing directory \"%s\": %s\n",
-            path.c_str(),
-            std::strerror(errno));
-      status = PV_FAILURE;
-   }
-   struct dirent *dirEntry;
-   for (dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir)) {
-      std::string dirEntryString(dirEntry->d_name);
-      if (dirEntryString == "." or dirEntryString == "..") { continue; }
-      int status1 = recursiveDelete(path + "/" + dirEntryString);
-      if (status1 != PV_SUCCESS) { status = PV_FAILURE; }
-   }
-   if (status != PV_SUCCESS) {
-      return status;
-   }
-   int rmdirstatus = ::rmdir(path.c_str());
-   if (rmdirstatus) {
-      WarnLog().printf(
-            "Failure deleting directory \"%s\": %s\n",
-            path.c_str(),
-            std::strerror(errno));
-      status = PV_FAILURE;
    }
    return status;
 }
@@ -134,68 +165,31 @@ int renamePath(std::string const &oldpath, std::string const &newpath, Communica
 
    int processRenamedFile = 0;
 
+   auto globalComm = comm->globalCommunicator();
    int commSize;
-   MPI_Comm_size(comm->globalCommunicator(), &commSize);
+   MPI_Comm_size(globalComm, &commSize);
    int commRank;
-   MPI_Comm_rank(comm->globalCommunicator(), &commRank);
+   MPI_Comm_rank(globalComm, &commRank);
 
    for (int k = 0; k < commSize; ++k) {
       if (k == commRank) {
          bool processShouldRename = comm->getIOMPIBlock()->getRank() == 0;
          if (processShouldRename) {
-            struct stat statbuf;
-            int oldstatstatus = ::lstat(oldpath.c_str(), &statbuf);
-            if (oldstatstatus != 0) {
-               int lstatError = errno;
-               if (errno != ENOENT) {
-                  WarnLog().printf(
-                        "Failure accessing \"%s\": %s\n",
-                        oldpath.c_str(), std::strerror(lstatError));
-                  status = PV_FAILURE;
-               }
-               processShouldRename = false;
-            }
+            auto oldFileStatus = std::filesystem::symlink_status(oldpath);
+            bool oldPathExists = oldFileStatus.type() != std::filesystem::file_type::not_found;
+            auto newFileStatus = std::filesystem::symlink_status(newpath);
+            bool newPathExists = newFileStatus.type() != std::filesystem::file_type::not_found;
+            processShouldRename = oldPathExists and !newPathExists;
          }
          if (processShouldRename) {
-            // If we're here, oldpath exists on the system.
-            // Check that newpath does not exist (we called recursiveDelete above),
-            // then call rename().
-            struct stat statbuf;
-            int newstatstatus = ::lstat(newpath.c_str(), &statbuf);
-            if (newstatstatus == 0) {
-               ErrorLog().printf(
-                     "Failure moving \"%s\" to \"%s\": %s exists when it shouldn't.\n",
-                     oldpath.c_str(), newpath.c_str(), newpath.c_str());
-               status = PV_FAILURE;
-               processShouldRename = false;
-            }
-            if (errno != ENOENT) {
-               ErrorLog().printf(
-                     "Failure getting status of \"%s\" for renaming \"%s\" to \"%s\": %s\n",
-                     newpath.c_str(), oldpath.c_str(), newpath.c_str(), std::strerror(errno));
-               status = PV_FAILURE;
-               processShouldRename = false;
-            }
-         }
-         if (processShouldRename) {
-            int status1 = ::rename(oldpath.c_str(), newpath.c_str());
-            if (status1 == 0) {
-               processRenamedFile = 1;
-            }
-            else {
-               int renameErrorNumber = errno;
-               ErrorLog().printf(
-                     "Failure renaming \"%s\" to \"%s\": %s\n",
-                     oldpath.c_str(), newpath.c_str(), std::strerror(renameErrorNumber));
-               status = PV_FAILURE;
-            }
+            std::filesystem::rename(oldpath, newpath);
+            processRenamedFile = 1;
          }
       }
 
       // Prevent collisions if multiple processes try to move the same file.
-      MPI_Barrier(comm->globalCommunicator());
+      MPI_Barrier(globalComm);
    }
-   auto globalComm = comm->globalCommunicator();
    MPI_Allreduce(
          MPI_IN_PLACE, &processRenamedFile, 1 /*count*/, MPI_INT, MPI_LOR, globalComm);
    if (!processRenamedFile) {
