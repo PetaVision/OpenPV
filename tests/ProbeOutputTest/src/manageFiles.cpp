@@ -10,8 +10,8 @@ int appendExtraneousData(std::filesystem::path const &path, Communicator *comm) 
    int commRank;
    MPI_Comm_rank(globalComm, &commRank);
 
-   auto const badSize = static_cast<std::uintmax_t>(-1);
-   auto fileSize = badSize;
+   auto const missingSize = static_cast<std::uintmax_t>(-1);
+   auto fileSize = missingSize;
    if (comm->getIOMPIBlock()->getRank() == 0) {
       auto filestatus = std::filesystem::status(path);
       auto file_type = filestatus.type();
@@ -35,7 +35,7 @@ int appendExtraneousData(std::filesystem::path const &path, Communicator *comm) 
    for (int k = 0; k < commSize; ++k) {
       if (k == commRank) {
          if (comm->getIOMPIBlock()->getRank() == 0) {
-            if (status == PV_SUCCESS and fileSize != badSize) {
+            if (status == PV_SUCCESS and fileSize != missingSize) {
                auto newFileSize = std::filesystem::file_size(path);
                if (newFileSize == fileSize) {
                   std::fstream outputFile(path.string(), std::ios_base::app);

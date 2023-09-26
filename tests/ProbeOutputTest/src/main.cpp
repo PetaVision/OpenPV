@@ -36,21 +36,25 @@
 
 using namespace PV;
 
-void archiveLogFile();
+void archiveLogFile(std::shared_ptr<PV_Init> pv_init_obj, std::string const &destDir);
 int compareFileContents(std::shared_ptr<FileStream> observed, std::shared_ptr<FileStream> correct);
 int compareProbeOutput(
       std::string const &probeName,
       std::string const &correctDir,
       std::shared_ptr<FileManager> fileManager);
 int compareWords(std::string const &observedWord, std::string const &correctWord);
+int copyCheckpointDir(Communicator *communicator);
+std::shared_ptr<PV_Init> createPV_Init(
+      std::string const &programPath, std::string const &runName, std::string const &stageName);
 std::string generateMPIConfigString(Communicator *communicator);
+int getBatchWidth(std::shared_ptr<PV_Init> pv_init_obj);
 std::string getWord(std::string const &str, std::string::size_type &pos);
 std::string readFileContents(std::shared_ptr<FileStream> fileStream);
 int run(int argc, char **argv);
-int runBase(PV_Init *pv_init_obj);
-int runInitFromCheckpoint(PV_Init *pv_init_obj);
-int runRestartFromCheckpoint(PV_Init *pv_init_obj);
-int runRestartFromEnd(PV_Init *pv_init_obj);
+int runBase(int argc, char **argv);
+int runInitFromCheckpoint(int argc, char **argv);
+int runRestartFromCheckpoint(int argc, char **argv);
+int runRestartFromEnd(int argc, char **argv);
 
 int main(int argc, char **argv) {
    MPI_Init(&argc, &argv);
@@ -62,7 +66,7 @@ int main(int argc, char **argv) {
    return result == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-void archiveLogFile(PV_Init *pv_init_obj, std::string const &destDir) {
+void archiveLogFile(std::shared_ptr<PV_Init> pv_init_obj, std::string const &destDir) {
    auto *communicator = pv_init_obj->getCommunicator();
    // Move log file into output directory
    int globalRank = communicator->globalCommRank();
@@ -137,7 +141,8 @@ int compareFileContents(std::shared_ptr<FileStream> observed, std::shared_ptr<Fi
          ErrorLog().printf(
                "Observed values file \"%s\" continues beyond correct values file \"%s\" "
                "at line %d, field %d\n",
-               observed->getFileName().c_str(), lineNumber, fieldNumber);
+               observed->getFileName().c_str(), correct->getFileName().c_str(),
+               lineNumber, fieldNumber);
          status = PV_FAILURE;
          break;
       }
@@ -259,6 +264,38 @@ int compareWords(std::string const &observedWord, std::string const &correctWord
    }
 }
 
+int copyCheckpointDir(Communicator *communicator) {
+   int status = PV_SUCCESS;
+   if (status == PV_SUCCESS) {
+      std::string mpiConfigString = std::string("output_") + generateMPIConfigString(communicator);
+      std::string initChkptDir = mpiConfigString + "/checkpoints/Checkpoint040";
+      status = recursiveCopy(initChkptDir, "initializing_checkpoint", communicator);
+   }
+   return status;
+}
+
+std::shared_ptr<PV_Init> createPV_Init(
+      std::string const &programPath, std::string const &runName, std::string const &stageName) {
+   int argc = 2;
+   std::vector<std::string> convertedArgStrings(argc);
+   std::vector<char*> convertedArgs(argc + 1);
+
+   convertedArgStrings[0] = programPath;
+
+   std::string configFile =
+         dirName(programPath) + "/../input/config_" + runName + stageName + ".txt";
+   auto configPath = std::filesystem::canonical(configFile);
+   convertedArgStrings[1] = configPath.string();
+
+   convertedArgs[0] = convertedArgStrings[0].data();
+   convertedArgs[1] = convertedArgStrings[1].data();
+   convertedArgs[argc] = nullptr;
+   char **convertedArgV = convertedArgs.data();
+   auto pv_init_obj =
+         std::make_shared<PV_Init>(&argc, &convertedArgV, true /*allowUnrecognizedArgumentsFlag*/);
+   return pv_init_obj;
+}
+
 std::string generateMPIConfigString(Communicator *communicator) {
    // Analyze MPI configuration to deduce a run name.
    std::shared_ptr<MPIBlock const> ioMPIBlock = communicator->getIOMPIBlock();
@@ -281,6 +318,13 @@ std::string generateMPIConfigString(Communicator *communicator) {
    mpiConfigString.append(std::to_string(cellNumColumns)).append("c-by-");
    mpiConfigString.append(std::to_string(cellBatchDim)).append("b");
    return mpiConfigString;
+}
+
+int getBatchWidth(std::shared_ptr<PV_Init> pv_init_obj) {
+   auto *params = pv_init_obj->getParams();
+   HyPerCol dummyHyPerCol(pv_init_obj.get());
+   int batchWidth = dummyHyPerCol.getNBatchGlobal();
+   return batchWidth;
 }
 
 std::string getWord(std::string const &str, std::string::size_type &pos) {
@@ -308,26 +352,26 @@ std::string readFileContents(std::shared_ptr<FileStream> fileStream) {
 
 int run(int argc, char **argv) {
    int status = PV_SUCCESS;
-   auto pv_init_obj = new PV_Init(&argc, &argv, true /*allowUnrecognizedArgumentsFlag*/);
 
    if (status == PV_SUCCESS) {
-      status = runBase(pv_init_obj);
+      status = runBase(argc, argv);
    }
-   if (runInitFromCheckpoint(pv_init_obj) != PV_SUCCESS) {
-      status = PV_FAILURE;
+   if (status == PV_SUCCESS) {
+      if (runInitFromCheckpoint(argc, argv) != PV_SUCCESS) {
+         status = PV_FAILURE;
+      }
+      if (runRestartFromCheckpoint(argc, argv) != PV_SUCCESS) {
+         status = PV_FAILURE;
+      }
+      if (runRestartFromEnd(argc, argv) != PV_SUCCESS) {
+         status = PV_FAILURE;
+      }
    }
-   if (runRestartFromCheckpoint(pv_init_obj) != PV_SUCCESS) {
-      status = PV_FAILURE;
-   }
-   if (runRestartFromEnd(pv_init_obj) != PV_SUCCESS) {
-      status = PV_FAILURE;
-   }
-
-   delete pv_init_obj;
    return status;
 }
 
-int runBase(PV_Init *pv_init_obj) {
+int runBase(int argc, char **argv) {
+   auto pv_init_obj = createPV_Init(argv[0], argv[1], "");
    auto *communicator = pv_init_obj->getCommunicator();
 
    // Delete any existing output directory, to be sure that any files
@@ -340,7 +384,7 @@ int runBase(PV_Init *pv_init_obj) {
 
    if (status == PV_SUCCESS) {
       InfoLog().printf("Executing base run\n");
-      status = buildandrun(pv_init_obj, nullptr, nullptr);
+      status = buildandrun(pv_init_obj.get(), nullptr, nullptr);
    }
    std::shared_ptr<MPIBlock const> ioMPIBlock = communicator->getIOMPIBlock();
    auto fileManager = std::make_shared<FileManager>(ioMPIBlock, "output");
@@ -359,6 +403,10 @@ int runBase(PV_Init *pv_init_obj) {
    }
 
    if (status == PV_SUCCESS) {
+      status = copyCheckpointDir(communicator);
+   }
+
+   if (status == PV_SUCCESS) {
       InfoLog().printf("Base run passed.\n");
       // Archive log file(s) into output directory
       archiveLogFile(pv_init_obj, mpiConfigString);
@@ -366,75 +414,75 @@ int runBase(PV_Init *pv_init_obj) {
    return status;
 }
 
-int runInitFromCheckpoint(PV_Init *pv_init_obj) {
+int runInitFromCheckpoint(int argc, char **argv) {
    int status = PV_SUCCESS;
 
-   // Switch log file and params file for initializing from checkpoint
-   std::string initfromchkptLogFile;
-   std::string const &logFile = pv_init_obj->getStringArgument("LogFile");
-   if (!logFile.empty()) {
-      std::string logFileDir  = dirName(logFile);
-      std::string logFileBase = stripExtension(logFile);
-      std::string logFileExt  = extension(logFile);
-      initfromchkptLogFile = logFileDir + '/' + logFileBase + "_initfromchkpt" + logFileExt;
-   }
-   pv_init_obj->setLogFile(initfromchkptLogFile.c_str());
-   pv_init_obj->setParams("input/initfromchkpt.params");
+   auto pv_init_obj = createPV_Init(argv[0], argv[1], "-ifcp");
+   InfoLog().printf("Initializing from checkpoint...\n");
 
    auto *communicator = pv_init_obj->getCommunicator();
+   auto globalComm = communicator->globalCommunicator();
+   int commSize;
+   MPI_Comm_size(globalComm, &commSize);
+   int commRank;
+   MPI_Comm_rank(globalComm, &commRank);
+
    std::string mpiConfigString = std::string("output_") + generateMPIConfigString(communicator);
-   if (status == PV_SUCCESS) {
-      InfoLog().printf("Initializing from checkpoint...\n");
-      status = recursiveDelete("initializing_checkpoint", communicator, false /*warnIfAbsentFlag*/);
-   }
-   if (status == PV_SUCCESS) {
-      std::string initChkptDir = mpiConfigString + "/checkpoints/Checkpoint040";
-      status = recursiveCopy(initChkptDir, "initializing_checkpoint", communicator);
-   }
-   if (status == PV_SUCCESS) {
-      status = recursiveCopy(mpiConfigString, "output", communicator);
-   }
-   if (status == PV_SUCCESS) {
-      for (auto &entry : std::filesystem::recursive_directory_iterator("output")) {
-         // If not match TotalEnergy_batchelement_[0-9][0-9]*.txt, delete the file
-         // (and if file is a directory, delete its contents)
-         auto filestatus = std::filesystem::symlink_status(entry);
-         if (filestatus.type() != std::filesystem::file_type::regular) { continue; }
-         std::string fileString = entry.path().filename().string();
-         std::string head("TotalEnergy_batchElement_");
-         std::string tail(".txt");
-         auto headFound = fileString.find(head);
-         auto tailFound = fileString.rfind(tail);
-         bool matches = (headFound == 0 and tailFound + tail.size() == fileString.size());
-         if (matches) {
-            for (auto pos = head.size() ; pos < tailFound; ++pos) {
-               matches &= isdigit(fileString[pos]);
+
+   std::shared_ptr<MPIBlock const> ioMPIBlock = communicator->getIOMPIBlock();
+   auto archiveFileManager = std::make_shared<FileManager>(ioMPIBlock, mpiConfigString);
+   auto outputFileManager = std::make_shared<FileManager>(ioMPIBlock, "output");
+   auto initchkptFileManager = std::make_shared<FileManager>(ioMPIBlock, "initializing_checkpoint");
+   outputFileManager->ensureDirectoryExists(std::string("."));
+
+   int batchWidth = getBatchWidth(pv_init_obj);
+
+   for (int k = 0; k < commSize; ++k) {
+      if (k == commRank and communicator->getIOMPIBlock()->getRank() == 0) {
+         for (int b = 0; b < batchWidth; ++b) {
+            std::string filename("TotalEnergy_batchElement_");
+            filename.append(std::to_string(b)).append(".txt");
+            std::string archivePath = archiveFileManager->makeBlockFilename(filename);
+            std::string outputPath;
+            auto archiveFileType = std::filesystem::symlink_status(archivePath).type();
+            bool shouldCopy = (archiveFileType == std::filesystem::file_type::regular);
+            if (shouldCopy) {
+               outputPath = outputFileManager->makeBlockFilename(filename);
+               auto outputFileType = std::filesystem::symlink_status(outputPath).type();
+               shouldCopy = (outputFileType == std::filesystem::file_type::not_found);
             }
-         }
-         if (matches) {
-            if (appendExtraneousData(entry.path(), communicator) != PV_SUCCESS) {
-               status = PV_FAILURE;
-            }
-         }
-         else {
-            status = recursiveDelete(
-                  entry.path().string(), communicator, false /*warnIfAbsentFlag*/);
-            if (status != PV_SUCCESS) {
-               ErrorLog() << "Unable to delete files from directory \"output\"\n";
+            if (shouldCopy) {
+               std::filesystem::copy(archivePath, outputPath);
+               std::string fileposFilename = filename + "_filepos_FileStreamWrite.bin";
+               auto filepos = initchkptFileManager->open(fileposFilename, std::ios_base::in);
+               filepos->setInPos(0L, std::ios_base::beg);
+               long int checkpointedPosition;
+               filepos->read(&checkpointedPosition, sizeof(checkpointedPosition));
+               filepos = nullptr; // close the file
+               long int newSize = checkpointedPosition + 100L;
+               std::filesystem::resize_file(outputPath, newSize);
+               FatalIf(
+                     std::filesystem::file_size(outputPath) != newSize,
+                     "resize_file() failed to resize \"%s\" to %ld characters.\n",
+                     outputPath.c_str(), newSize);
+               FileStream outputFile(outputPath.c_str(), std::ios_base::app);
+               char const *extraData = "xxxxxxxx\n";
+               outputFile.write(extraData, std::strlen(extraData));
             }
          }
       }
+      // Prevent collisions if multiple root processes see the same filesystem
+      MPI_Barrier(communicator->globalCommunicator());
+   }
+
+   if (status == PV_SUCCESS) {
+      status = buildandrun(pv_init_obj.get(), nullptr, nullptr);
    }
    if (status == PV_SUCCESS) {
-      status = buildandrun(pv_init_obj, nullptr, nullptr);
-   }
-   std::shared_ptr<MPIBlock const> ioMPIBlock = communicator->getIOMPIBlock();
-   auto fileManager = std::make_shared<FileManager>(ioMPIBlock, "output");
-   if (status == PV_SUCCESS) {
-      status = compareProbeOutput("OutputL2Norm", "initfromchkpt", fileManager);
+      status = compareProbeOutput("OutputL2Norm", "initfromchkpt", outputFileManager);
    }
    if (status == PV_SUCCESS) {
-      status = compareProbeOutput("TotalEnergy", "initfromchkpt", fileManager);
+      status = compareProbeOutput("TotalEnergy", "initfromchkpt", outputFileManager);
    }
    std::string archiveString = mpiConfigString + "_initfromchkpt";
    if (status == PV_SUCCESS) {
@@ -452,12 +500,176 @@ int runInitFromCheckpoint(PV_Init *pv_init_obj) {
    return status;
 }
 
-int runRestartFromCheckpoint(PV_Init *pv_init_obj) {
+int runRestartFromCheckpoint(int argc, char **argv) {
    int status = PV_SUCCESS;
+   InfoLog().printf("Restarting from checkpoint...\n");
+   auto pv_init_obj = createPV_Init(argv[0], argv[1], "-restartfromchkpt");
+
+   auto *communicator = pv_init_obj->getCommunicator();
+   auto globalComm = communicator->globalCommunicator();
+   int commSize;
+   MPI_Comm_size(globalComm, &commSize);
+   int commRank;
+   MPI_Comm_rank(globalComm, &commRank);
+
+   std::string mpiConfigString = std::string("output_") + generateMPIConfigString(communicator);
+   // Copy output directory from initial stage
+   if (status == PV_SUCCESS) {
+      status = recursiveCopy(mpiConfigString, "output", communicator);
+   }
+   if (status == PV_SUCCESS) {
+      for (int k = 0; k < commSize; ++k) {
+         if (k == commRank and communicator->getIOMPIBlock()->getRank() == 0) {
+            for (auto &entry : std::filesystem::directory_iterator("output")) {
+               auto filename = entry.path().string();
+               auto ext      = extension(filename);
+               if (ext == ".log") {
+                  std::filesystem::remove(entry.path());
+               }
+            }
+         }
+         MPI_Barrier(communicator->globalCommunicator());
+      }
+   }
+
+   int batchWidth = getBatchWidth(pv_init_obj);
+   std::vector<std::uintmax_t> filesizes(batchWidth, static_cast<uintmax_t>(-1));
+
+   std::shared_ptr<MPIBlock const> ioMPIBlock = communicator->getIOMPIBlock();
+   auto outputFileManager = std::make_shared<FileManager>(ioMPIBlock, "output");
+   auto initchkptFileManager = std::make_shared<FileManager>(ioMPIBlock, "initializing_checkpoint");
+
+   for (int k = 0; k < commSize; ++k) {
+      if (k == commRank and communicator->getIOMPIBlock()->getRank() == 0) {
+         for (int b = 0; b < batchWidth; ++b) {
+            std::string filename("OutputL2Norm_batchElement_");
+            filename.append(std::to_string(b)).append(".txt");
+            std::string outputPath = outputFileManager->makeBlockFilename(filename);
+            auto outputFileType = std::filesystem::symlink_status(outputPath).type();
+            if (outputFileType == std::filesystem::file_type::regular) {
+               filesizes[b] = std::filesystem::file_size(outputPath); 
+            }
+         }
+      }
+   }
+   MPI_Barrier(communicator->globalCommunicator());
+   for (int k = 0; k < commSize; ++k) {
+      if (k == commRank and communicator->getIOMPIBlock()->getRank() == 0) {
+         for (int b = 0; b < batchWidth; ++b) {
+            std::string filename("OutputL2Norm_batchElement_");
+            filename.append(std::to_string(b)).append(".txt");
+            std::string outputPath = outputFileManager->makeBlockFilename(filename);
+            auto outputFileType = std::filesystem::symlink_status(outputPath).type();
+            bool shouldTruncate = (outputFileType == std::filesystem::file_type::regular);
+            if (shouldTruncate) {
+               shouldTruncate = filesizes[b] == std::filesystem::file_size(outputPath); 
+            }
+            if (shouldTruncate) {
+               std::string fileposFilename = filename + "_filepos_FileStreamWrite.bin";
+               auto filepos = initchkptFileManager->open(fileposFilename, std::ios_base::in);
+               filepos->setInPos(0L, std::ios_base::beg);
+               long int checkpointedPosition;
+               filepos->read(&checkpointedPosition, sizeof(checkpointedPosition));
+               filepos = nullptr; // close the file
+               long int newSize = checkpointedPosition + 100L;
+               std::filesystem::resize_file(outputPath, newSize);
+               FatalIf(
+                     std::filesystem::file_size(outputPath) != newSize,
+                     "resize_file() failed to resize \"%s\" to %ld characters.\n",
+                     outputPath.c_str(), newSize);
+               FileStream outputFile(outputPath.c_str(), std::ios_base::app);
+               char const *extraData = "xxxxxxxx\n";
+               outputFile.write(extraData, std::strlen(extraData));
+            }
+         }
+      }
+      // Prevent collisions if multiple root processes see the same filesystem
+      MPI_Barrier(communicator->globalCommunicator());
+   }
+
+   if (status == PV_SUCCESS) {
+      status = buildandrun(pv_init_obj.get(), nullptr, nullptr);
+   }
+   if (status == PV_SUCCESS) {
+      status = compareProbeOutput("OutputL2Norm", "restartfromchkpt", outputFileManager);
+   }
+   if (status == PV_SUCCESS) {
+      status = compareProbeOutput("TotalEnergy", "restartfromchkpt", outputFileManager);
+   }
+   std::string archiveString = mpiConfigString + "_restartfromchkpt";
+   if (status == PV_SUCCESS) {
+      int moveStatus = renamePath("output", archiveString, communicator);
+      if (moveStatus != PV_SUCCESS) {
+         status = PV_FAILURE;
+      }
+   }
+
+   if (status == PV_SUCCESS) {
+      InfoLog().printf("Restarting from checkpoint passed.\n");
+      // Archive log file(s) into output directory
+      archiveLogFile(pv_init_obj, archiveString);
+   }
+
    return status;
 }
 
-int runRestartFromEnd(PV_Init *pv_init_obj) {
+int runRestartFromEnd(int argc, char **argv) {
    int status = PV_SUCCESS;
+   InfoLog().printf("Restarting from end...\n");
+   auto pv_init_obj = createPV_Init(argv[0], argv[1], "-restartfromend");
+
+   auto *communicator = pv_init_obj->getCommunicator();
+   auto globalComm = communicator->globalCommunicator();
+   int commSize;
+   MPI_Comm_size(globalComm, &commSize);
+   int commRank;
+   MPI_Comm_rank(globalComm, &commRank);
+
+   std::string mpiConfigString = std::string("output_") + generateMPIConfigString(communicator);
+
+   // Copy output directory from initial stage
+   status = recursiveCopy(mpiConfigString, "output", communicator);
+   if (status != PV_SUCCESS) { return PV_FAILURE; }
+
+   // Delete log files from copied directory; they came from the base run
+   for (int k = 0; k < commSize; ++k) {
+      if (k == commRank and communicator->getIOMPIBlock()->getRank() == 0) {
+         for (auto &entry : std::filesystem::directory_iterator("output")) {
+            auto filename = entry.path().string();
+            auto ext      = extension(filename);
+            if (ext == ".log") {
+               std::filesystem::remove(entry.path());
+            }
+         }
+      }
+      MPI_Barrier(communicator->globalCommunicator());
+   }
+
+   std::shared_ptr<MPIBlock const> ioMPIBlock = communicator->getIOMPIBlock();
+   auto outputFileManager = std::make_shared<FileManager>(ioMPIBlock, "output");
+
+   if (status == PV_SUCCESS) {
+      status = buildandrun(pv_init_obj.get(), nullptr, nullptr);
+   }
+   if (status == PV_SUCCESS) {
+      status = compareProbeOutput("OutputL2Norm", "restartfromend", outputFileManager);
+   }
+   if (status == PV_SUCCESS) {
+      status = compareProbeOutput("TotalEnergy", "restartfromend", outputFileManager);
+   }
+   std::string archiveString = mpiConfigString + "_restartfromend";
+   if (status == PV_SUCCESS) {
+      int moveStatus = renamePath("output", archiveString, communicator);
+      if (moveStatus != PV_SUCCESS) {
+         status = PV_FAILURE;
+      }
+   }
+
+   if (status == PV_SUCCESS) {
+      InfoLog().printf("Restarting from end passed.\n");
+      // Archive log file(s) into output directory
+      archiveLogFile(pv_init_obj, archiveString);
+   }
+
    return status;
 }

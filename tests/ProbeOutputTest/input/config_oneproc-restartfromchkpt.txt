@@ -1,21 +1,18 @@
 RequireReturn:false
 OutputPath:
 ParamsFile:input/baserun.params
-LogFile:ProbeOutputTest_twoprocs.log
+LogFile:ProbeOutputTest_oneproc_restartfromchkpt.log
 GPUDevices:
 RandomSeed:0
 WorkingDirectory:
 Restart:false
-CheckpointReadDirectory:
+CheckpointReadDirectory:output/checkpoints/Checkpoint040
 NumThreads:1
-NumRows:2
+NumRows:1
 NumColumns:1
 BatchWidth:1
-CheckpointCellNumRows:2
+CheckpointCellNumRows:1
 CheckpointCellNumColumns:1
 CheckpointCellBatchDimension:1
 DryRun:false
 ShuffleParamGroups:0
-RunName:twoprocs
-RunDescription:Two processes
-OutputTruncation:11012816

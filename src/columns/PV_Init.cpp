@@ -36,7 +36,7 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
    commInit(argc, argv);
    initMaxThreads();
    mArgC = *argc;
-   mArgV.resize(mArgC + 1);
+   mArgV.resize(mArgC);
    for (int a = 0; a < mArgC; a++) {
       mArgV[a] = argv[0][a];
    }
@@ -286,18 +286,13 @@ char **PV_Init::getArgsCopy() const {
          mArgC,
          strerror(errno));
    for (int a = 0; a < mArgC; a++) {
-      char const *arga = mArgV[a];
-      if (arga) {
-         char *copied = strdup(arga);
-         if (!copied) {
-            ErrorLog().printf("PV_Init unable to store argument %d: %s\n", a, strerror(errno));
-            Fatal().printf("Argument was \"%s\".\n", arga);
-         }
-         argumentArray[a] = copied;
+      char const *arga = mArgV[a].c_str();
+      char *copied = ::strdup(arga);
+      if (!copied) {
+         ErrorLog().printf("PV_Init unable to store argument %d: %s\n", a, strerror(errno));
+         Fatal().printf("Argument was \"%s\".\n", arga);
       }
-      else {
-         argumentArray[a] = nullptr;
-      }
+      argumentArray[a] = copied;
    }
    argumentArray[mArgC] = nullptr;
    return argumentArray;
