@@ -42,6 +42,11 @@ void LayerGeometry::ioParam_broadcastFlag(enum ParamsIOFlag ioFlag) {
 void LayerGeometry::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
    assert(!parameters()->presentAndNotBeenRead(name, "broadcastFlag"));
    if (mBroadcastFlag) {
+      if (ioFlag == PARAMS_IO_READ and parameters()->present(name, "broadcastFlag")) {
+         WarnLog().printf(
+               "%s has broadcastFlag = true; therefore nxScale is ignored.\n",
+               getDescription_c());
+      }
    }
    else {
       parameters()->ioParamValue(ioFlag, name, "nxScale", &mNxScale, mNxScale);
@@ -50,7 +55,16 @@ void LayerGeometry::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
 
 void LayerGeometry::ioParam_nyScale(enum ParamsIOFlag ioFlag) {
    assert(!parameters()->presentAndNotBeenRead(name, "broadcastFlag"));
-   parameters()->ioParamValue(ioFlag, name, "nyScale", &mNyScale, mNyScale);
+   if (mBroadcastFlag) {
+      if (ioFlag == PARAMS_IO_READ and parameters()->present(name, "broadcastFlag")) {
+         WarnLog().printf(
+               "%s has broadcastFlag = true; therefore nyScale is ignored.\n",
+               getDescription_c());
+      }
+   }
+   else {
+      parameters()->ioParamValue(ioFlag, name, "nyScale", &mNyScale, mNyScale);
+   }
 }
 
 void LayerGeometry::ioParam_nf(enum ParamsIOFlag ioFlag) {
@@ -97,6 +111,7 @@ void LayerGeometry::setLayerLoc(
       int nyLayer        = icComm->numCommRows();
       mNyScale           = nyLayer / message->mNyGlobal;
       layerLoc->nyGlobal = nyLayer;
+      // For broadcast layers, NxScale and NyScale shouldn't be used; they're set here just in case
    }
    else {
       int statusx = calculateScaledSize(&layerLoc->nxGlobal, mNxScale, message->mNxGlobal, 'x'); 
