@@ -50,11 +50,11 @@ hdr = readpvpheader(fid);
 switch hdr.filetype
     case 1 % PVP_FILE_TYPE, obsolete
         errorident = 'readpvpfile:obsoletefiletype';
-        errorstring = sprintf('readpvpfile:File %s has obsolete file typd %d', filename, hdr.filetype);
+        errorstring = sprintf('readpvpfile:File %s has obsolete file type %d', filename, hdr.filetype);
     case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
         numframes = hdr.nbands;
         % framesize is variable
-    case 3 % PVP_WGT_FILE_TYPE % HyPerConns that aren't KernelConns
+    case 3 % PVP_WGT_FILE_TYPE % Local Patch (non-shared-weights) HyPerConns
         patchsize = hdr.nxp * hdr.nyp * hdr.nfp;
         recordsize = (hdr.datasize * patchsize + 8) * hdr.numPatches;
         numarbors = hdr.numrecords;
@@ -65,7 +65,7 @@ switch hdr.filetype
         nyprocs = hdr.nyExtended/hdr.ny;
         framesize = hdr.nx*hdr.ny*hdr.nf*hdr.datasize*nxprocs*nyprocs+8;
         numframes = hdr.nbands;
-    case 5 % PVP_KERNEL_FILE_TYPE
+    case 5 % PVP_KERNEL_FILE_TYPE % shared-weights HyPerConns
         patchsize = hdr.nxp * hdr.nyp * hdr.nfp;
         recordsize = (hdr.datasize * patchsize + 8) * hdr.numPatches;
         numarbors = hdr.numrecords;

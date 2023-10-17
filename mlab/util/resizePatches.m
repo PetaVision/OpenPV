@@ -1,5 +1,8 @@
-function resizePatches(inputweightfile, outputweightfile, new_nxp, new_nyp, nxGlobalPost, nyGlobalPost, x_offset, y_offset);
-% resizeToShrunken(inputweightfile, outputweightfile, new_nxp, new_nyp, nxGlobalPost, nyGlobalPost, x_offset, y_offset)
+function resizePatches(inputweightfile, outputweightfile, new_nxp, new_nyp, x_offset, y_offset);
+% resizePatches(inputweightfile, outputweightfile, new_nxp, new_nyp, x_offset, y_offset)
+%
+% *** Sep 12, 2023: This m-file is untested since writepvpweightfile.m was replaced with
+%                   writepvplocalpatchweightfile.m
 %
 % Takes a pvp file as input (either shared weights or non-shared weights), and creates a
 % new pvpfile with new patch size given by new_nxp and new_nyp.
@@ -21,15 +24,11 @@ function resizePatches(inputweightfile, outputweightfile, new_nxp, new_nyp, nxGl
 %
 %         The above applies to new_nyp and nyp in the same way.
 %
-%     nxGlobalPost, nyGlobalPost.  The dimensions of the restricted postsynaptic layer.  If inputweightfile
-%         points to a shared-weights file, these arguments are ignored.  However, if weights are not shared,
-%         these arguments are needed in order to call writepvpweightfile.m
-%
 %     x_offset, y_offset.  x_offset is the number of weights in the x-direction to discard from the start
 %         of the weight patch to discard.  If weights are being added to the start of the weight patch,
 %         x_offset should be negative.  The default for x_offset is floor( (nxp - new_nxp)/2 ).
 %
-%     The above applies to y_offset, nyp, and new_nyp in the same way.
+%         The above applies to y_offset in the same way.
 %
 %     (Note: internally, because MATLAB and Octave are column-major and PetaVision is row-major, patches
 %     have nxp rows and nxp columns.  x_offset specifies the number of rows at the beginning to discard,
@@ -108,9 +107,8 @@ else
     nxGlobalPre = hdr.nxGlobal;
     nyGlobalPre = hdr.nyGlobal;
     nfPre = hdr.nf;
-    nbPre = hdr.nb;
-    % nxGlobalPost set in input arguments
-    % nyGlobalPost set in input arguments
+    nxGlobalPreExt = nxGlobalPre + 2*hdr.nb;
+    nyGlobalPreExt = nyGlobalPre + 2*hdr.nb;
     postweightsflag = false;
-    writepvpweightfile(outputweightfile, pvpdata, nxGlobalPre, nyGlobalPre, nfPre, nbPre, nxGlobalPost, nyGlobalPost, postweightsflag);
+    writepvplocalpatchweightfile(outputweightfile, data, nxGlobalPre, nyGlobalPre, nfPre, nxGlobalPreExt, nyGlobalPreExt)
 end%if

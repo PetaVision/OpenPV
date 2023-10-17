@@ -40,7 +40,7 @@ CheckStatsAllZeros::checkStats(ProbeData<LayerStats> const &batchProbeData) {
 
 void CheckStatsAllZeros::cleanup() {
    if (foundNonzero()) {
-      pvAssert(!mExitOnFailure);
+      pvAssert(!mImmediateExitOnFailure);
       auto message = errorMessage(mFirstFailure, mFirstFailureTime, "nonzero activity beginning");
       if (mExitOnFailure) {
          Fatal() << message;
@@ -100,7 +100,9 @@ void CheckStatsAllZeros::setFirstFailure(
       double failureTime) {
    if (!foundNonzero()) {
       mFirstFailureTime = failureTime;
-      mFirstFailure     = failureMap;
+      for (auto &p : failureMap) {
+         mFirstFailure.insert(p);;
+      }
    }
 }
 

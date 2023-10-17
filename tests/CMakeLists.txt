@@ -4,7 +4,7 @@
 enable_testing()
 
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.7.0)
 
 # Include the pv_add_test macro
 include(PVAddTest)
@@ -108,6 +108,9 @@ add_subdirectory(ConnectionRestartTest)
 add_subdirectory(ConstantLayerTest)
 add_subdirectory(ConvertToGrayscaleTest)
 add_subdirectory(CopyConnTest)
+if (PV_USE_CUDA)
+   add_subdirectory(CudaRecvPostTest)
+endif (PV_USE_CUDA)
 add_subdirectory(DatastoreDelayTest)
 add_subdirectory(DelaysToFeaturesTest)
 add_subdirectory(DropoutLayerTest)

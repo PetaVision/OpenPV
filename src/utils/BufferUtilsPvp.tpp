@@ -392,8 +392,13 @@ double readSparseFromPvp(
    else {
       table = *cachedTable;
    }
-
-   long frameOffset = table.frameStartOffsets.at(frameReadIndex);
+   auto tableSize = static_cast<std::size_t>(table.frameStartOffsets.size());
+   FatalIf(
+         static_cast<std::size_t>(frameReadIndex) >= tableSize,
+         "Sparse pvp file \"%s\" has %zu frames but "
+         "readSparseFromPvp() was called for frame %d (zero-indexed)\n",
+         fName, tableSize, frameReadIndex);
+   long frameOffset = table.frameStartOffsets[frameReadIndex];
    fStream.setInPos(frameOffset, true);
    return readSparseFrame<T>(fStream, list);
 }

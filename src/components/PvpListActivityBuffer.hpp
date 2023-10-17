@@ -60,9 +60,6 @@ class PvpListActivityBuffer : public InputActivityBuffer {
 
    // List of filenames to iterate over
    std::vector<std::string> mFileList;
-
-  private:
-   struct BufferUtils::SparseFileTable mSparseTable;
 };
 
 } // namespace PV

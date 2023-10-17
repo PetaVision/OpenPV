@@ -118,7 +118,7 @@ int NormalizeL2::normalizeWeights() {
                   getName(),
                   patchindex,
                   (double)minL2NormTolerated);
-            break;
+            continue;
          }
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
