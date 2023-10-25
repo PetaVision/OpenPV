@@ -107,6 +107,12 @@ NormalizeBase::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage co
       return Response::POSTPONE;
    }
 
+   mConnectionData = message->mObjectTable->findObject<ConnectionData>(getName());
+   pvAssert(mConnectionData);
+   if (!mConnectionData->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
+
    auto *strengthParam = message->mObjectTable->findObject<StrengthParam>(getName());
    pvAssert(strengthParam);
    if (!strengthParam->getInitInfoCommunicatedFlag()) {

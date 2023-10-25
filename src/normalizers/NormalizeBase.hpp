@@ -98,6 +98,7 @@ class NormalizeBase : public BaseObject {
    static int accumulateMin(float *dataPatchStart, int weights_in_patch, float *max);
 
   protected:
+   ConnectionData *mConnectionData   = nullptr;
    char *mNormalizeMethod            = nullptr;
    float mStrength                   = 1.0f;
    bool mNormalizeArborsIndividually = false;
