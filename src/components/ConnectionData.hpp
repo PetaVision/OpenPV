@@ -58,6 +58,9 @@ class ConnectionData : public BaseObject {
     */
    HyPerLayer *getPost() { return mPost; }
 
+   bool getPreIsBroadcast() const { return mPreIsBroadcast; }
+   bool getPostIsBroadcast() const { return mPostIsBroadcast; }
+
   protected:
    ConnectionData();
 
@@ -84,10 +87,12 @@ class ConnectionData : public BaseObject {
          std::string &postLayerNameString);
 
   protected:
-   char *mPreLayerName  = nullptr;
-   char *mPostLayerName = nullptr;
-   HyPerLayer *mPre     = nullptr;
-   HyPerLayer *mPost    = nullptr;
+   char *mPreLayerName   = nullptr;
+   char *mPostLayerName  = nullptr;
+   HyPerLayer *mPre      = nullptr;
+   HyPerLayer *mPost     = nullptr;
+   bool mPreIsBroadcast  = false;
+   bool mPostIsBroadcast = false;
 
 }; // class ConnectionData
 

@@ -6,7 +6,9 @@
  */
 
 #include "ConnectionData.hpp"
+#include "components/LayerGeometry.hpp"
 #include "observerpattern/ObserverTable.hpp"
+#include "utils/PVAssert.hpp"
 
 namespace PV {
 
@@ -92,6 +94,14 @@ ConnectionData::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    if (!mPre->getInitInfoCommunicatedFlag() or !mPost->getInitInfoCommunicatedFlag()) {
       return Response::POSTPONE;
    }
+
+   auto *preGeom = objectTable->findObject<LayerGeometry>(getPreLayerName());
+   pvAssert(preGeom);
+   mPreIsBroadcast = preGeom->getBroadcastFlag();
+
+   auto *postGeom = objectTable->findObject<LayerGeometry>(getPreLayerName());
+   pvAssert(postGeom);
+   mPostIsBroadcast = postGeom->getBroadcastFlag();
 
    return Response::SUCCESS;
 }
