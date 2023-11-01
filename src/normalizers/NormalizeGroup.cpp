@@ -66,7 +66,13 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    pvAssert(preWeights); // NormalizeBase::communicateInitInfo should have called needPre.
 
    auto *thisConnectionData = objectTable->findObject<ConnectionData>(getName());
+   if (!thisConnectionData->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
    auto *headConnectionData = objectTable->findObject<ConnectionData>(mNormalizeGroupName);
+   if (!headConnectionData->getInitInfoCommunicatedFlag()) {
+      return Response::POSTPONE;
+   }
    if (thisConnectionData->getPreIsBroadcast() != headConnectionData->getPreIsBroadcast()) {
       ErrorLog().printf(
             "broadcast flag for %s does not match that of normalizeGroupName \"%s\".\n",
