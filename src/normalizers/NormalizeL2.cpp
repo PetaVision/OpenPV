@@ -63,8 +63,11 @@ int NormalizeL2::normalizeWeights() {
 
    int nArbors        = weights0->getNumArbors();
    int numDataPatches = weights0->getNumDataPatches();
+   
+   std::vector<float> sumSquares(numDataPatches);
    if (mNormalizeArborsIndividually) {
       for (int arborID = 0; arborID < nArbors; arborID++) {
+         std::fill(sumSquares.begin(), sumSquares.end(), 0.0f);
          for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
             float sumsq = 0.0f;
             for (auto &weights : mWeightsList) {
@@ -75,8 +78,22 @@ int NormalizeL2::normalizeWeights() {
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
                accumulateSumSquared(dataStartPatch, weightsPerPatch, &sumsq);
             }
-            float l2norm = sqrtf(sumsq);
-            if (fabsf(l2norm) <= minL2NormTolerated) {
+            sumSquares[patchindex] = sumsq;
+         }
+         if (mConnectionData->getPreIsBroadcast()) {
+            pvAssert(mConnectionData->getPre()->getLayerLoc()->nx == 1);
+            pvAssert(mConnectionData->getPre()->getLayerLoc()->ny == 1);
+            MPI_Allreduce(
+                  MPI_IN_PLACE,
+                  sumSquares.data(),
+                  numDataPatches,
+                  MPI_FLOAT,
+                  MPI_SUM,
+                  mCommunicator->communicator());
+         }
+         for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
+            float l2norm = std::sqrt(sumSquares[patchindex]);
+            if (std::fabs(l2norm) <= minL2NormTolerated) {
                WarnLog().printf(
                      "for NormalizeL2 \"%s\": sum of squares of weights in patch %d of arbor %d is "
                      "within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
@@ -86,13 +103,14 @@ int NormalizeL2::normalizeWeights() {
                      (double)minL2NormTolerated);
                continue;
             }
+            float normalizationFactor = scaleFactor / l2norm;
             for (auto &weights : mWeightsList) {
                int nxp               = weights->getPatchSizeX();
                int nyp               = weights->getPatchSizeY();
                int nfp               = weights->getPatchSizeF();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
-               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / l2norm);
+               normalizePatch(dataStartPatch, weightsPerPatch, normalizationFactor);
             }
          }
       }
@@ -110,8 +128,22 @@ int NormalizeL2::normalizeWeights() {
                accumulateSumSquared(dataStartPatch, weightsPerPatch, &sumsq);
             }
          }
-         float l2norm = sqrtf(sumsq);
-         if (fabsf(sumsq) <= minL2NormTolerated) {
+         sumSquares[patchindex] = sumsq;
+      }
+      if (mConnectionData->getPreIsBroadcast()) {
+         pvAssert(mConnectionData->getPre()->getLayerLoc()->nx == 1);
+         pvAssert(mConnectionData->getPre()->getLayerLoc()->ny == 1);
+         MPI_Allreduce(
+               MPI_IN_PLACE,
+               sumSquares.data(),
+               numDataPatches,
+               MPI_FLOAT,
+               MPI_SUM,
+               mCommunicator->communicator());
+      }
+      for (int patchindex = 0; patchindex < numDataPatches; patchindex++) {
+         float l2norm = std::sqrt(sumSquares[patchindex]);
+         if (std::fabs(l2norm) <= minL2NormTolerated) {
             WarnLog().printf(
                   "for NormalizeL2 \"%s\": sum of squares of weights in patch %d is within "
                   "minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n",
@@ -120,6 +152,7 @@ int NormalizeL2::normalizeWeights() {
                   (double)minL2NormTolerated);
             continue;
          }
+         float normalizationFactor = scaleFactor / l2norm;
          for (int arborID = 0; arborID < nArbors; arborID++) {
             for (auto &weights : mWeightsList) {
                int nxp               = weights->getPatchSizeX();
@@ -127,7 +160,7 @@ int NormalizeL2::normalizeWeights() {
                int nfp               = weights->getPatchSizeF();
                int weightsPerPatch   = nxp * nyp * nfp;
                float *dataStartPatch = weights->getData(arborID) + patchindex * weightsPerPatch;
-               normalizePatch(dataStartPatch, weightsPerPatch, scaleFactor / l2norm);
+               normalizePatch(dataStartPatch, weightsPerPatch, normalizationFactor);
             }
          }
       }
