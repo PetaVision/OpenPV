@@ -35,9 +35,9 @@ class SharedWeightsFile : public WeightsFile {
 
    ~SharedWeightsFile();
 
-   void read(WeightData &weightData) override;
-   void read(WeightData &weightData, double &timestamp) override;
-   void write(WeightData const &weightData, double timestamp) override;
+   virtual void read(WeightData &weightData) override;
+   virtual void read(WeightData &weightData, double &timestamp) override;
+   virtual void write(WeightData const &weightData, double timestamp) override;
 
    void truncate(int index) override;
 
