@@ -9,6 +9,7 @@
 #define CHECKPOINTENTRYRANDSTATE_HPP_
 
 #include "CheckpointEntry.hpp"
+#include "include/PVLayerLoc.h"
 #include "include/pv_types.h"
 
 namespace PV {

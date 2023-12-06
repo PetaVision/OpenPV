@@ -12,7 +12,7 @@
 #include "checkpointing/Checkpointer.hpp"
 #include "columns/DataStore.hpp"
 #include "include/PVLayerLoc.h"
-#include "include/pv_types.h"
+#include "structures/PVLayerCube.hpp"
 #include "structures/MPIBlock.hpp"
 #include "utils/BorderExchange.hpp"
 #include "utils/Timer.hpp"

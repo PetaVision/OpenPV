@@ -20,6 +20,7 @@
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.hpp"
+#include <cfloat> // many derived classes use FLT_MAX, DBL_MAX
 #include <memory>
 
 #ifdef PV_USE_CUDA

@@ -6,6 +6,7 @@
  */
 
 #include "fileio.hpp"
+#include "include/pv_common.h"
 #include "structures/Buffer.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/ExpandLeadingTilde.hpp"

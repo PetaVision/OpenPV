@@ -9,7 +9,7 @@
 #define DATASTORE_HPP_
 
 #include "include/pv_arch.h"
-#include "include/pv_types.h"
+#include "structures/PVLayerCube.hpp"
 #include "structures/RingBuffer.hpp"
 #include "structures/SparseList.hpp"
 #include <cstdlib>
@@ -102,6 +102,6 @@ class DataStore {
    RingBuffer<SparseList<float>::Entry> *mActiveIndices = nullptr;
 };
 
-} // NAMESPACE
+} // namespace PV
 
 #endif /* DATASTORE_HPP_ */
