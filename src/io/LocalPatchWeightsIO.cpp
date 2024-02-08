@@ -154,7 +154,7 @@ void LocalPatchWeightsIO::calcExtremeWeights(
                   for (long k = 0; k < numValuesInPatch; ++k) {
                      float value = patchInRegion[k];
                      minWeight   = value < minWeight ? value : minWeight;
-                     maxWeight   = value < maxWeight ? value : maxWeight;
+                     maxWeight   = value > maxWeight ? value : maxWeight;
                   }
                }
             }
