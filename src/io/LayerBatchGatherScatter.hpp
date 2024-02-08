@@ -1,7 +1,7 @@
 #ifndef LAYERBATCHGATHERSCATTER_HPP_
 #define LAYERBATCHGATHERSCATTER_HPP_
 
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "structures/Buffer.hpp"
 #include "structures/MPIBlock.hpp"
 

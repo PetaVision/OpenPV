@@ -9,7 +9,7 @@
 #include "MPITestProbeOutputter.hpp"
 #include <columns/Communicator.hpp>
 #include <components/LayerGeometry.hpp>
-#include <include/PVLayerLoc.h>
+#include <include/PVLayerLoc.hpp>
 #include <io/PVParams.hpp>
 #include <probes/ActivityBufferStatsProbeLocal.hpp>
 #include <probes/ProbeData.hpp>

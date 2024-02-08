@@ -1,7 +1,7 @@
 #ifndef PVLAYERCUBE_HPP_
 #define PVLAYERCUBE_HPP_
 
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 
 /**
  * PVLayerCube is a 3D cube (features,x,y) of a layer's data,

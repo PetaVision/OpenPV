@@ -14,7 +14,7 @@
 #include "components/PatchSize.hpp"
 #include "components/Weights.hpp"
 #include "components/WeightsPair.hpp"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "include/pv_common.h"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Observer.hpp"

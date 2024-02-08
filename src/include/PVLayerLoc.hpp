@@ -1,9 +1,9 @@
 /*
- * PVLayerLoc.h
+ * PVLayerLoc.hpp
  */
 
-#ifndef PVLAYERLOC_H_
-#define PVLAYERLOC_H_
+#ifndef PVLAYERLOC_HPP_
+#define PVLAYERLOC_HPP_
 
 /**
  * PVHalo describes the padding for a layer.  Padding must
@@ -11,18 +11,18 @@
  * more if needed to make memory operations more efficient,
  * for example, to align memory to a vector size.
  */
-typedef struct PVHalo_ {
+struct PVHalo {
    int lt, rt, dn, up; // padding in {left, right, down, up} directions
-} PVHalo;
+};
 
 /**
  * PVLayerLoc describes the local location of a layer within the global space
  */
-typedef struct PVLayerLoc_ {
+struct PVLayerLoc {
    int nbatch, nx, ny, nf; // local number of grid pts in each dimension
    int nbatchGlobal, nxGlobal, nyGlobal; // total number of grid pts in the global space
    int kb0, kx0, ky0; // origin of the local layer in global index space
    PVHalo halo; // padding for memory (must include nb)
-} PVLayerLoc;
+};
 
-#endif /* PVLAYERLOC_H_ */
+#endif /* PVLAYERLOC_HPP_ */

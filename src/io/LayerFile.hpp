@@ -9,7 +9,7 @@
 #define LAYERFILE_HPP_
 
 #include "checkpointing/CheckpointerDataInterface.hpp"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "io/FileManager.hpp"
 #include "io/LayerBatchGatherScatter.hpp"
 #include "io/LayerIO.hpp"

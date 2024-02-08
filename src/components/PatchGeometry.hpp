@@ -9,7 +9,7 @@
 #define PATCHGEOMETRY_HPP_
 
 #include "structures/Patch.hpp"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include <string>
 #include <vector>
 

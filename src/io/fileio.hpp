@@ -10,7 +10,7 @@
 
 #include "arch/mpi/mpi.h"
 #include "structures/Patch.hpp"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "include/pv_types.h"
 #include "structures/MPIBlock.hpp"
 

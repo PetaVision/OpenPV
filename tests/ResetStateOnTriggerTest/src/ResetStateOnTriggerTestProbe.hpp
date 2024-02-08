@@ -6,7 +6,7 @@
 #include <columns/BaseObject.hpp>
 #include <columns/Communicator.hpp>
 #include <columns/Messages.hpp>
-#include <include/PVLayerLoc.h>
+#include <include/PVLayerLoc.hpp>
 #include <include/pv_common.h>
 #include <io/PVParams.hpp>
 #include <observerpattern/Response.hpp>

@@ -1,7 +1,7 @@
 #ifndef RESETSTATEONTRIGGERTESTPROBELOCAL_HPP_
 #define RESETSTATEONTRIGGERTESTPROBELOCAL_HPP_
 
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "probes/ProbeComponent.hpp"

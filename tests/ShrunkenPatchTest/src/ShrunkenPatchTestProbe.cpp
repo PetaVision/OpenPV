@@ -9,7 +9,7 @@
 #include <columns/Communicator.hpp>
 #include <components/BasePublisherComponent.hpp>
 #include <components/LayerGeometry.hpp>
-#include <include/PVLayerLoc.h>
+#include <include/PVLayerLoc.hpp>
 #include <io/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>
 #include <probes/ActivityBufferStatsProbeLocal.hpp>
