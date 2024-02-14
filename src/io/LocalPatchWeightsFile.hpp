@@ -12,7 +12,6 @@
 #include "io/FileManager.hpp"
 #include "io/LocalPatchWeightsIO.hpp"
 #include "io/WeightsFile.hpp"
-#include "structures/WeightData.hpp"
 #include "utils/BufferUtilsPvp.hpp" // WeightHeader
 
 namespace PV {
@@ -52,9 +51,9 @@ class LocalPatchWeightsFile : public WeightsFile {
 
    ~LocalPatchWeightsFile();
 
-   virtual void read(WeightData &weightData) override;
-   virtual void read(WeightData &weightData, double &timestamp) override;
-   virtual void write(WeightData const &weightData, double timestamp) override;
+   virtual void read() override;
+   virtual void read(double &timestamp) override;
+   virtual void write(double timestamp) override;
 
    void truncate(int index) override;
 
@@ -98,7 +97,7 @@ class LocalPatchWeightsFile : public WeightsFile {
 
    bool isRoot() { return mFileManager->isRoot(); }
 
-   void readInternal(WeightData &weightData, double &timestamp);
+   void readInternal(double &timestamp);
 
    BufferUtils::WeightHeader createHeader(double timestamp, float minWgt, float maxWgt) const;
 

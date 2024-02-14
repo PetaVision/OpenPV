@@ -16,7 +16,7 @@ LocalPatchWeightsFile::LocalPatchWeightsFile(
       bool readOnlyFlag,
       bool clobberFlag,
       bool verifyWrites)
-      : WeightsFile(),
+      : WeightsFile(weightData),
         mFileManager(fileManager),
         mPath(path),
         mPatchSizeX(weightData->getPatchSizeX()),
@@ -38,21 +38,21 @@ LocalPatchWeightsFile::LocalPatchWeightsFile(
 
 LocalPatchWeightsFile::~LocalPatchWeightsFile() {}
 
-void LocalPatchWeightsFile::read(WeightData &weightData) {
+void LocalPatchWeightsFile::read() {
    double dummyTimestamp;
-   readInternal(weightData, dummyTimestamp);
+   readInternal(dummyTimestamp);
 }
 
-void LocalPatchWeightsFile::read(WeightData &weightData, double &timestamp) {
-   readInternal(weightData, timestamp);
+void LocalPatchWeightsFile::read(double &timestamp) {
+   readInternal(timestamp);
    auto mpiComm = mFileManager->getMPIBlock()->getComm();
    MPI_Bcast(&timestamp, 1, MPI_DOUBLE, mFileManager->getRootProcessRank(), mpiComm);
 }
 
-void LocalPatchWeightsFile::write(WeightData const &weightData, double timestamp) {
+void LocalPatchWeightsFile::write(double timestamp) {
    float extremeValues[2]; // extremeValues[0] is the min; extremeValues[1] is the max.
    mLocalPatchWeightsIO->calcExtremeWeights(
-         weightData,
+         *mWeightData,
          getNxRestrictedPre(),
          getNyRestrictedPre(),
          extremeValues[0],
@@ -63,19 +63,19 @@ void LocalPatchWeightsFile::write(WeightData const &weightData, double timestamp
    extremeValues[1] = -extremeValues[1]; // Use the same MPI_Reduce call to work on both min and max
    MPI_Reduce(sendbuf, extremeValues, 2, MPI_FLOAT, MPI_MIN, root, mpiBlock->getComm());
    extremeValues[1] = -extremeValues[1];
-   long numValues   = weightData.getNumValuesPerArbor();
+   long numValues   = mWeightData->getNumValuesPerArbor();
    if (isRoot()) {
       BufferUtils::WeightHeader header =
             createHeader(timestamp, extremeValues[0], extremeValues[1]);
       mLocalPatchWeightsIO->writeHeader(header);
       WeightData tempWeightData(
-            weightData.getNumArbors(),
-            weightData.getPatchSizeX(),
-            weightData.getPatchSizeY(),
-            weightData.getPatchSizeF(),
-            weightData.getNumDataPatchesX(),
-            weightData.getNumDataPatchesY(),
-            weightData.getNumDataPatchesF());
+            mWeightData->getNumArbors(),
+            mWeightData->getPatchSizeX(),
+            mWeightData->getPatchSizeY(),
+            mWeightData->getPatchSizeF(),
+            mWeightData->getNumDataPatchesX(),
+            mWeightData->getNumDataPatchesY(),
+            mWeightData->getNumDataPatchesF());
       for (int rank = 0; rank < mpiBlock->getSize(); ++rank) {
          if (rank == mpiBlock->getRank()) {
             continue;
@@ -102,7 +102,7 @@ void LocalPatchWeightsFile::write(WeightData const &weightData, double timestamp
       int xStartRestricted = mpiBlock->getColumnIndex() * getNxRestrictedPre();
       int yStartRestricted = mpiBlock->getRowIndex() * getNyRestrictedPre();
       mLocalPatchWeightsIO->writeRegion(
-            weightData,
+            *mWeightData,
             header,
             getNxRestrictedPre(),
             getNyRestrictedPre(),
@@ -115,7 +115,7 @@ void LocalPatchWeightsFile::write(WeightData const &weightData, double timestamp
    else {
       int root = mFileManager->getRootProcessRank();
       for (int a = 0; a < getNumArbors(); ++a) {
-         float const *arbor = weightData.getData(a);
+         float const *arbor = mWeightData->getData(a);
          int tag            = 136;
          MPI_Send(arbor, numValues, MPI_FLOAT, root, tag, mpiBlock->getComm());
       }
@@ -241,9 +241,9 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
          mCompressedFlag));
 }
 
-void LocalPatchWeightsFile::readInternal(WeightData &weightData, double &timestamp) {
+void LocalPatchWeightsFile::readInternal(double &timestamp) {
    int status     = PV_SUCCESS;
-   long numValues = weightData.getNumValuesPerArbor();
+   long numValues = mWeightData->getNumValuesPerArbor();
    auto mpiBlock  = mFileManager->getMPIBlock();
    if (isRoot()) {
       BufferUtils::WeightHeader header = mLocalPatchWeightsIO->readHeader();
@@ -262,7 +262,7 @@ void LocalPatchWeightsFile::readInternal(WeightData &weightData, double &timesta
          int xStartRestricted = mpiBlock->calcColumnFromRank(rank) * localNxRestricted;
          int yStartRestricted = mpiBlock->calcRowFromRank(rank) * localNyRestricted;
          mLocalPatchWeightsIO->readRegion(
-               weightData,
+               *mWeightData,
                header,
                localNxRestricted,
                localNyRestricted,
@@ -270,8 +270,8 @@ void LocalPatchWeightsFile::readInternal(WeightData &weightData, double &timesta
                yStartRestricted,
                0 /*regionFStartRestricted*/,
                0 /*arborIndexStart*/);
-         for (int a = 0; a < weightData.getNumArbors(); ++a) {
-            float *arbor = weightData.getData(a);
+         for (int a = 0; a < mWeightData->getNumArbors(); ++a) {
+            float *arbor = mWeightData->getData(a);
             int tag      = 134;
             MPI_Send(arbor, numValues, MPI_FLOAT, rank, tag, mpiBlock->getComm());
          }
@@ -280,7 +280,7 @@ void LocalPatchWeightsFile::readInternal(WeightData &weightData, double &timesta
       int xStartRestricted = mpiBlock->getColumnIndex() * localNxRestricted;
       int yStartRestricted = mpiBlock->getRowIndex() * localNyRestricted;
       mLocalPatchWeightsIO->readRegion(
-            weightData,
+            *mWeightData,
             header,
             localNxRestricted,
             localNyRestricted,
@@ -291,8 +291,8 @@ void LocalPatchWeightsFile::readInternal(WeightData &weightData, double &timesta
       mLocalPatchWeightsIO->setFrameNumber(mLocalPatchWeightsIO->getFrameNumber() + 1);
    }
    else {
-      for (int a = 0; a < weightData.getNumArbors(); ++a) {
-         float *arbor = weightData.getData(a);
+      for (int a = 0; a < mWeightData->getNumArbors(); ++a) {
+         float *arbor = mWeightData->getData(a);
          int root     = mFileManager->getRootProcessRank();
          int tag      = 134;
          MPI_Recv(arbor, numValues, MPI_FLOAT, root, tag, mpiBlock->getComm(), MPI_STATUS_IGNORE);

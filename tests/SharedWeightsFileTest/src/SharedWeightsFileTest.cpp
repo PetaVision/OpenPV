@@ -78,11 +78,11 @@ int main(int argc, char *argv[]) {
       false /*verifyWrites*/));
 
    timestamp = 10.0;
-   wgtFile->write(*weights1, timestamp);
+   wgtFile->write(timestamp);
 
    auto weights2 = createWgts2(numArbors, nxp, nyp, nfp, nxPre, nyPre, nfPre);
    timestamp = 15.0;
-   wgtFile->write(*weights2, timestamp);
+   wgtFile->write(timestamp);
 
    wgtFile = std::unique_ptr<SharedWeightsFile>();
 
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
       nxp, nyp, nfp,
       nxPre, nyPre, nfPre);
    double readTimestamp3;
-   wgtFile->read(*readWeights3, readTimestamp3);
+   wgtFile->read(readTimestamp3);
 
    if (status == PV_SUCCESS) {
       InfoLog() << "Test passed.\n";
@@ -249,6 +249,28 @@ int compareWeights(
             "compareWeights: NumDataPatchesF differs (%d versus %d)\n",
             weights1->getNumDataPatchesF(), weights2->getNumDataPatchesF());
       status = PV_FAILURE;
+   }
+   int numArbors = weights1->getNumArbors();
+   pvAssert(numArbors == weights2->getNumArbors());
+   long numDataPatches = weights1->getNumDataPatchesOverall();
+   pvAssert(numDataPatches == weights2->getNumDataPatchesOverall());
+   long patchSizeOverall = weights1->getPatchSizeOverall();
+   pvAssert(patchSizeOverall == weights2->getPatchSizeOverall());
+
+   for (int a = 0; a < numArbors; ++a) {
+      for (long p = 0; p < numDataPatches; ++p) {
+         float const *weightValues1 = weights1->getDataFromDataIndex(a, p);
+         float const *weightValues2 = weights2->getDataFromDataIndex(a, p);
+         for (long k = 0; k < patchSizeOverall; ++k) {
+            float w1 = weightValues1[k];
+            float w2 = weightValues2[k];
+             if (w1 != w2) {
+                ErrorLog().printf(
+                      "Boo! Arbor %d, patch %ld, value %ld: value %f vs. %f: discrepancy %f\n",
+                      a, p, k, (double)w1, (double)w2, (double)(w1-w2));
+             }
+         }
+      }
    }
    return status;
 }

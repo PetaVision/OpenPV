@@ -10,6 +10,8 @@
 
 #include "structures/WeightData.hpp"
 
+#include <memory>
+
 namespace PV {
 
 /**
@@ -17,18 +19,24 @@ namespace PV {
  */
 class WeightsFile : public CheckpointerDataInterface{
   protected:
-   WeightsFile() : CheckpointerDataInterface() {}
+   WeightsFile(std::shared_ptr<WeightData> weightData) : CheckpointerDataInterface() {
+      mWeightData = weightData;
+   }
+   WeightsFile() = delete;
    ~WeightsFile() {}
 
   public:
-   virtual void read(WeightData &weightData) = 0;
-   virtual void read(WeightData &weightData, double &timestamp) = 0;
-   virtual void write(WeightData const &weightData, double timestamp) = 0;
+   virtual void read() = 0;
+   virtual void read(double &timestamp) = 0;
+   virtual void write(double timestamp) = 0;
 
    virtual void truncate(int index) = 0;
 
    int getIndex() const { return mIndex; }
    virtual void setIndex(int index) { mIndex = index; }
+
+  protected:
+   std::shared_ptr<WeightData> mWeightData = nullptr;
 
   private:
    int mIndex = 0;

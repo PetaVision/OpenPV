@@ -35,9 +35,9 @@ class SharedWeightsFile : public WeightsFile {
 
    ~SharedWeightsFile();
 
-   virtual void read(WeightData &weightData) override;
-   virtual void read(WeightData &weightData, double &timestamp) override;
-   virtual void write(WeightData const &weightData, double timestamp) override;
+   virtual void read() override;
+   virtual void read(double &timestamp) override;
+   virtual void write(double timestamp) override;
 
    void truncate(int index) override;
 
@@ -72,7 +72,7 @@ class SharedWeightsFile : public WeightsFile {
 
    bool isRoot() { return mFileManager->isRoot(); }
 
-   void readInternal(WeightData &weightData, double &timestamp);
+   void readInternal(double &timestamp);
 
   private:
    std::shared_ptr<FileManager const> mFileManager;

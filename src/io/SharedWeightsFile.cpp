@@ -12,7 +12,7 @@ SharedWeightsFile::SharedWeightsFile(
       bool readOnlyFlag,
       bool clobberFlag,
       bool verifyWrites)
-      : WeightsFile(),
+      : WeightsFile(weightData),
         mFileManager(fileManager),
         mPath(path),
         mPatchSizeX(weightData->getPatchSizeX()),
@@ -31,20 +31,20 @@ SharedWeightsFile::SharedWeightsFile(
 
 SharedWeightsFile::~SharedWeightsFile() {}
 
-void SharedWeightsFile::read(WeightData &weightData) {
+void SharedWeightsFile::read() {
    double dummyTimestamp;
-   readInternal(weightData, dummyTimestamp);
+   readInternal(dummyTimestamp);
 }
 
-void SharedWeightsFile::read(WeightData &weightData, double &timestamp) {
-   readInternal(weightData, timestamp);
+void SharedWeightsFile::read(double &timestamp) {
+   readInternal(timestamp);
    auto mpiComm = mFileManager->getMPIBlock()->getComm();
    MPI_Bcast(&timestamp, 1, MPI_DOUBLE, mFileManager->getRootProcessRank(), mpiComm);
 }
 
-void SharedWeightsFile::write(WeightData const &weightData, double timestamp) {
+void SharedWeightsFile::write(double timestamp) {
    if (isRoot()) {
-      mSharedWeightsIO->write(weightData, timestamp);
+      mSharedWeightsIO->write(*mWeightData, timestamp);
    }
    setIndex(getIndex() + 1);
 }
@@ -159,16 +159,16 @@ void SharedWeightsFile::initializeSharedWeightsIO(bool clobberFlag) {
          mCompressedFlag));
 }
 
-void SharedWeightsFile::readInternal(WeightData &weightData, double &timestamp) {
+void SharedWeightsFile::readInternal(double &timestamp) {
    int status = PV_SUCCESS;
    if (isRoot()) {
-      mSharedWeightsIO->read(weightData, timestamp);
+      mSharedWeightsIO->read(*mWeightData, timestamp);
    }
    int numElements = getPatchSizeOverall() * getNumPatchesOverall();
    int rootProc    = mFileManager->getRootProcessRank();
    auto mpiComm    = mFileManager->getMPIBlock()->getComm();
    for (int a = 0; a < getNumArbors(); ++a) {
-      float *weightsData = weightData.getData(a);
+      float *weightsData = mWeightData->getData(a);
       MPI_Bcast(weightsData, numElements, MPI_FLOAT, rootProc, mpiComm);
    }
    setIndex(getIndex() + 1);
