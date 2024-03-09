@@ -1,0 +1,176 @@
+//
+// BroadcastPreLayerTest.params
+//
+// created by Pete Schultz: Mar 7, 2024
+//
+
+//  A params file for testing a presynaptic broadcast layer.
+//  To generate the broadcast layer, a 4-by-4-by-1 PvpLayer is connected to
+//  a 1-by-1-by-8 broadcast layer, using weights so that the GSyn input to
+//  the broadcast layer is {1,2,3,4,5,6,7,8}.
+//  The broadcast layer accumulates with an update period of 5, and the run
+//  goes until time 10, so that at the end of the run, the broadcast layer
+//  has values {2, 4, 6, 8, 10, 12, 14, 16}.
+//
+//  The broadcast layer is connected to an 8-by-8-by-3 layer using an
+//  all-to-all (nonshared) connection. Since the pre layer is 1-by-1-by-8,
+//  and the post layer is 8-by-8-by-3, the connection has 8 patches of
+//  size 8-by-8-by-3. The weights are given the values from 1 to 1536,
+//  in the weights pvp file input/BroadcastLayerToOutout.pvp.
+//  The first patch contains weights 1 through 192, in PetaVision order,
+//  The second contains 193 through 384, and so on.
+//
+//  Because the connection is all-to-all, each output neuron gets input
+//  from all eight broadcast neurons, where all the weights are different.
+//
+//  For example, the output neuron at x=0, y=0, f=0 gets total input of
+//  2*1 + 4*193 + 6*385 + 8*577 + 10*769 + 12*961 + 14*1153 + 16*1345 = 64584
+//
+//  The output increases by 72 if the feature index is increased by 1,
+//  by 216 if the x index is increased by 1,
+//  and by 1728 if the y index is increased.
+//
+//  The correct values for the Output layer are in the input/correct.pvp file.
+//  The exit hook for the buildandrun() function loads the correct.pvp file
+//  and compares those values to the values in the Output layer.
+//
+//  Note that because of a (hopefully temporary) hack, the patch size for a
+//  connection whose presynaptic layer is a broadcast layer must specify its
+//  nxp and nyp values as the layer size per process, not the global layer
+//  size as would be conceptually correct. This params file makes the Output
+//  layer 8x8, but the BroadcastLayerToOutput connection has nxp=4, nyp=4.
+//  For this reason the params file requires an MPI configuration of two rows
+//  and two columns. (And since the HyPerCol nbatch parameter is 1, the
+//  MPI configuration must have batchwidth = 1).
+
+debugParsing = true;
+
+HyPerCol "column" = {
+   nx = 4;
+   ny = 4;
+   nbatch = 1;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = true;
+   checkpointWriteDir = "output/Checkpoints";
+};
+
+//
+// layers
+//
+
+PvpLayer "Input" = {
+    nxScale = 1;
+    nyScale = 1;
+    	      	
+    displayPeriod = 5;
+
+    inputPath = "input/inputlayer.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep =  1.0;
+    initialWriteTime = 0.0;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    padValue = false;
+};
+
+LeakyIntegrator "BroadcastLayer" = {
+    broadcastFlag = true;
+    nf = 8;
+    phase = 1;
+    triggerLayerName = "Input";
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};
+
+HyPerLayer "Output" = {
+    nxScale = 2;
+    nyScale = 2;
+    nf = 3;
+    phase = 2;
+    writeStep =  1.0;
+    initialWriteTime = 0.0;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useInputBCflag = false;
+    updateGpu = false;
+
+    InitVType = "ZeroV";
+};
+
+HyPerConn "InputToBroadcastLayer" = {
+    preLayerName = "Input";
+    postLayerName = "BroadcastLayer";
+    channelCode = 0;
+
+    nxp = 1;
+    nyp = 1;
+    nfp = 8; 
+    numAxonalArbors = 1;
+    sharedWeights = false;
+    writeStep =  1.0;
+    initialWriteTime = 0.0;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/InputToBroadcastLayer.pvp";
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve";
+    updateGSynFromPostPerspective = false;
+};
+
+HyPerConn "BroadcastLayerToOutput" = {
+    preLayerName = "BroadcastLayer";
+    postLayerName = "Output";
+    channelCode = 0;
+
+    nxp = 4;
+    nyp = 4;
+    nfp = 3; 
+    numAxonalArbors = 1;
+    sharedWeights = false;
+    writeStep =  1.0;
+    initialWriteTime = 0.0;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "input/BroadcastLayerToOutput.pvp";
+    weightInit = 1.0;
+    normalizeMethod = "none";
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve";
+    updateGSynFromPostPerspective = false;
+};
