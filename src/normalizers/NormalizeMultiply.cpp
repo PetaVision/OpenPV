@@ -6,6 +6,7 @@
  */
 
 #include "NormalizeMultiply.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

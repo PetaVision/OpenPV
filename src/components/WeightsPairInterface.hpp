@@ -11,7 +11,7 @@
 #include "columns/BaseObject.hpp"
 #include "components/ConnectionData.hpp"
 #include "components/PatchSize.hpp"
-#include "components/Weights.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

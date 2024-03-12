@@ -8,7 +8,6 @@
 #ifndef INCREMENTINGWEIGHTUPDATER_HPP_
 #define INCREMENTINGWEIGHTUPDATER_HPP_
 
-#include "components/Weights.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
 
 namespace PV {

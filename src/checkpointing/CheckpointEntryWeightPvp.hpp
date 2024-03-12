@@ -9,7 +9,7 @@
 #define CHECKPOINTENTRYDATASTORE_HPP_
 
 #include "checkpointing/CheckpointEntry.hpp"
-#include "components/Weights.hpp"
+#include "structures/Weights.hpp"
 #include "include/pv_types.h"
 #include <string>
 

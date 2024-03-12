@@ -8,7 +8,7 @@
 #ifndef IMPLIEDWEIGHTS_HPP_
 #define IMPLIEDWEIGHTS_HPP_
 
-#include "components/Weights.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

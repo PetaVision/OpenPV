@@ -1,9 +1,9 @@
 #ifndef WEIGHTSFILEIO_HPP_
 #define WEIGHTSFILEIO_HPP_
 
-#include "components/Weights.hpp"
 #include "io/FileStream.hpp"
 #include "structures/MPIBlock.hpp"
+#include "structures/Weights.hpp"
 #include "utils/BufferUtilsPvp.hpp"
 #include <memory>
 #include <vector>

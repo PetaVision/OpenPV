@@ -8,6 +8,8 @@
 #include "SharedConnDebugInitWeights.hpp"
 #include "SharedWeightsTrue.hpp"
 
+#include <structures/Weights.hpp>
+
 namespace PV {
 
 SharedConnDebugInitWeights::SharedConnDebugInitWeights() {}

@@ -12,6 +12,7 @@
 #include "components/SharedWeights.hpp"
 #include "components/WeightsPairInterface.hpp"
 #include "io/WeightsFile.hpp"
+#include "structures/Weights.hpp"
 #include <memory>
 
 namespace PV {

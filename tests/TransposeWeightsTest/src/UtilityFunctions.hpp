@@ -2,7 +2,8 @@
 #define UTILITYFUNCTIONS_HPP_
 
 #include <columns/Communicator.hpp>
-#include <components/Weights.hpp>
+#include <structures/Weights.hpp>
+
 #include <string>
 
 int calcStride(int pre, std::string const &preDesc, int post, std::string const &postDesc);

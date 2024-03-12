@@ -12,7 +12,7 @@
 
 #include "CorrectState.hpp"
 #include "components/BasePublisherComponent.hpp"
-#include "components/Weights.hpp"
+#include "structures/Weights.hpp"
 
 class HyPerConnCheckpointerTestProbe : public PV::ColProbe {
   public:

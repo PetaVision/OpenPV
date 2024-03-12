@@ -9,7 +9,7 @@
 #define COPYUPDATER_HPP_
 
 #include "components/CopyWeightsPair.hpp"
-#include "components/Weights.hpp"
+#include "structures/Weights.hpp"
 #include "weightupdaters/BaseWeightUpdater.hpp"
 
 namespace PV {

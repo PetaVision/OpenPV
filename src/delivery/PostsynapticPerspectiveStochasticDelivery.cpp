@@ -6,6 +6,7 @@
  */
 
 #include "PostsynapticPerspectiveStochasticDelivery.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

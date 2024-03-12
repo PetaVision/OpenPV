@@ -6,6 +6,7 @@
  */
 
 #include "PresynapticPerspectiveGPUDelivery.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

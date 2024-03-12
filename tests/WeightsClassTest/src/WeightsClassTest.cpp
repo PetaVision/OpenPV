@@ -2,7 +2,7 @@
  * WeightsClassTest.cpp
  */
 
-#include <components/Weights.hpp>
+#include <structures/Weights.hpp>
 #include <utils/PathComponents.hpp> // PV::baseName
 #include <utils/PVLog.hpp>
 #include <utils/conversions.hpp>

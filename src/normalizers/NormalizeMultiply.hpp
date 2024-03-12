@@ -9,7 +9,7 @@
 #define NORMALIZEMULTIPLY_HPP_
 
 #include "NormalizeBase.hpp"
-#include "components/Weights.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

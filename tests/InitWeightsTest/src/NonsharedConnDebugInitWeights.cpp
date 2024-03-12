@@ -7,6 +7,7 @@
 
 #include "NonsharedConnDebugInitWeights.hpp"
 #include "SharedWeightsFalse.hpp"
+#include <structures/Weights.hpp>
 
 namespace PV {
 

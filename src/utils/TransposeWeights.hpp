@@ -9,7 +9,7 @@
 #define TRANSPOSEWEIGHTS_HPP_
 
 #include "columns/Communicator.hpp"
-#include "components/Weights.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

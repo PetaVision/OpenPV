@@ -11,6 +11,7 @@
 #include "weightupdaters/HebbianUpdater.hpp"
 
 #include "io/WeightsFile.hpp"
+#include "structures/Weights.hpp"
 #include <memory>
 
 namespace PV {

@@ -80,7 +80,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/TransposePatchSize.cpp
    ${SUBDIR}/TransposeWeightsPair.cpp
    ${SUBDIR}/VInputActivityBuffer.cpp
-   ${SUBDIR}/Weights.cpp
    ${SUBDIR}/WeightsPair.cpp
    ${SUBDIR}/WeightsPairInterface.cpp
 )
@@ -170,7 +169,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/TransposePatchSize.hpp
    ${SUBDIR}/TransposeWeightsPair.hpp
    ${SUBDIR}/VInputActivityBuffer.hpp
-   ${SUBDIR}/Weights.hpp
    ${SUBDIR}/WeightsPair.hpp
    ${SUBDIR}/WeightsPairInterface.hpp
 )

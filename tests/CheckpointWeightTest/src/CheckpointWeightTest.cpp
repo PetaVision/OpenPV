@@ -8,6 +8,7 @@
 #include "columns/PV_Init.hpp"
 #include "connections/HyPerConn.hpp"
 #include "io/FileManager.hpp"
+#include "structures/Weights.hpp"
 #include "utils/requiredConvolveMargin.hpp"
 #include <cstdlib>
 #include <memory>

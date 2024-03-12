@@ -6,6 +6,7 @@
  */
 
 #include "NormalizeL2.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

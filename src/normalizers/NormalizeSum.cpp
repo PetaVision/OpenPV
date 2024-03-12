@@ -6,6 +6,7 @@
  */
 
 #include "NormalizeSum.hpp"
+#include "structures/Weights.hpp"
 #include <iostream>
 
 namespace PV {

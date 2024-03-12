@@ -3,6 +3,7 @@
  */
 
 #include "NormalizeL3.hpp"
+#include <structures/Weights.hpp>
 
 namespace PV {
 

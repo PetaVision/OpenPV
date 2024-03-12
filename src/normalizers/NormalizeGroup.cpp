@@ -9,6 +9,7 @@
 #include "components/WeightsPair.hpp"
 #include "connections/HyPerConn.hpp"
 #include "observerpattern/ObserverTable.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

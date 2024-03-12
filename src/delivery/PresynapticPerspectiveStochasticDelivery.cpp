@@ -6,6 +6,7 @@
  */
 
 #include "PresynapticPerspectiveStochasticDelivery.hpp"
+#include "structures/Weights.hpp"
 #include <cmath>
 
 // Note: there is a lot of code duplication between PresynapticPerspectiveConvolveDelivery

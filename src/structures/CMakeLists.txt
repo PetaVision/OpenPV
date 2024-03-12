@@ -3,6 +3,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/MPIBlock.cpp
    ${SUBDIR}/PatchGeometry.cpp
    ${SUBDIR}/WeightData.cpp
+   ${SUBDIR}/Weights.cpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcHpp}
@@ -13,6 +14,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PatchGeometry.hpp
    ${SUBDIR}/RingBuffer.hpp
    ${SUBDIR}/WeightData.hpp
+   ${SUBDIR}/Weights.hpp
 )
 
 set (PVLibSrcHpp ${PVLibSrcTpp}

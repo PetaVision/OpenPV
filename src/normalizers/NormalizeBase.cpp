@@ -9,6 +9,7 @@
 #include "components/StrengthParam.hpp"
 #include "components/WeightsPair.hpp"
 #include "layers/HyPerLayer.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

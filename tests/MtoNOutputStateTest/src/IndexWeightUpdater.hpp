@@ -8,7 +8,7 @@
 #ifndef INDEXWEIGHTUPDATER_HPP_
 #define INDEXWEIGHTUPDATER_HPP_
 
-#include "components/Weights.hpp"
+#include "structures/Weights.hpp"
 #include "weightupdaters/HebbianUpdater.hpp"
 
 namespace PV {

@@ -6,6 +6,7 @@
  */
 
 #include "PostsynapticPerspectiveConvolveDelivery.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

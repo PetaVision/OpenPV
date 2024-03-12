@@ -8,7 +8,7 @@
 #ifndef HEBBIANUPDATER_HPP_
 #define HEBBIANUPDATER_HPP_
 
-#include "components/Weights.hpp"
+#include "structures/Weights.hpp"
 #include "weightupdaters/BaseWeightUpdater.hpp"
 
 namespace PV {

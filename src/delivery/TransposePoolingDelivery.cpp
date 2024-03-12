@@ -10,6 +10,7 @@
 #include "connections/PoolingConn.hpp"
 #include "delivery/accumulate_functions.hpp"
 #include "observerpattern/ObserverTable.hpp"
+#include "structures/Weights.hpp"
 
 namespace PV {
 

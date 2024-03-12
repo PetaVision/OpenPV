@@ -4,6 +4,7 @@
 
 #include <columns/PV_Init.hpp>
 #include <io/WeightsFileIO.hpp>
+#include <structures/Weights.hpp>
 #include <utils/PathComponents.hpp>
 #include <utils/PVLog.hpp>
 #include <memory>
