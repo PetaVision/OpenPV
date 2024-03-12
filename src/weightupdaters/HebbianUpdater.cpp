@@ -261,8 +261,7 @@ Response::Status HebbianUpdater::allocateDataStructures() {
          if (mWeights->getGeometry() == nullptr) {
             return status + Response::POSTPONE;
          }
-         mDeltaWeights = new Weights(name);
-         mDeltaWeights->initialize(mWeights);
+         mDeltaWeights = new Weights(name, mWeights);
          mDeltaWeights->setMargins(
                mConnectionData->getPre()->getLayerLoc()->halo,
                mConnectionData->getPost()->getLayerLoc()->halo);

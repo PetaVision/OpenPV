@@ -224,8 +224,8 @@ int checkTransposeOfTranspose(
       Communicator const *comm) {
    int status = PV_SUCCESS;
 
-   Weights transposeOfTranspose(std::string("transpose of transpose"));
-   transposeOfTranspose.initialize(
+   Weights transposeOfTranspose(
+         std::string("transpose of transpose"),
          originalWeights.getPatchSizeX(),
          originalWeights.getPatchSizeY(),
          originalWeights.getPatchSizeF(),

@@ -210,8 +210,7 @@ Response::Status MomentumUpdater::allocateDataStructures() {
    if (!mPlasticityFlag) {
       return status;
    }
-   mPrevDeltaWeights = new Weights(name);
-   mPrevDeltaWeights->initialize(mWeights);
+   mPrevDeltaWeights = new Weights(name, mWeights);
    mPrevDeltaWeights->setMargins(
          mConnectionData->getPre()->getLayerLoc()->halo,
          mConnectionData->getPost()->getLayerLoc()->halo);

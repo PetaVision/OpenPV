@@ -50,12 +50,6 @@ namespace PV {
 class Weights {
 
   public:
-   /**
-    * Instantiates the Weights object and sets the name, but does not set any of the other
-    * data members. One of the initialize() methods and then the allocateDataStructures()
-    * method has to be called before the Weights object is ready to use.
-    */
-   Weights(std::string const &name);
 
    /**
     * Instantiates the Weights object and then calls the initialize() method with the arguments
@@ -72,37 +66,10 @@ class Weights {
          bool sharedWeights,
          double timestamp);
 
+   Weights(std::string const &name, Weights const *baseWeights);
+
    /** The destructor for Weights. */
    virtual ~Weights() {}
-
-   /**
-    * An initializer that uses the specified PatchGeometry object as its patch geometry.
-    * This method allows two Weights objects to share the same PatchGeometry object.
-    */
-   void initialize(
-         std::shared_ptr<PatchGeometry> geometry,
-         int numArbors,
-         bool sharedWeights,
-         double timestamp);
-
-   /** A constructor that uses the geometry of an existing Weights object.
-    * The PatchGeometry object is shared, and the other data members are copied.
-    */
-   void initialize(Weights const *baseWeights);
-
-   /**
-    * An initializer that takes the patch size and pre- and post-synaptic PVLayerLoc arguments
-    * to define the PatchGeometry object.
-    */
-   void initialize(
-         int patchSizeX,
-         int patchSizeY,
-         int patchSizeF,
-         PVLayerLoc const *preLoc,
-         PVLayerLoc const *postLoc,
-         int numArbors,
-         bool sharedWeights,
-         double timestamp);
 
    /**
     * Allocates the patch geometry and the the patch data vector.
@@ -292,6 +259,35 @@ class Weights {
     * Derived classes need to call Weights::initialize themselves
     */
    Weights() {}
+
+   /**
+    * An initializer that uses the specified PatchGeometry object as its patch geometry.
+    * This method allows two Weights objects to share the same PatchGeometry object.
+    */
+   void initialize(
+         std::shared_ptr<PatchGeometry> geometry,
+         int numArbors,
+         bool sharedWeights,
+         double timestamp);
+
+   /** A constructor that uses the geometry of an existing Weights object.
+    * The PatchGeometry object is shared, and the other data members are copied.
+    */
+   void initialize(Weights const *baseWeights);
+
+   /**
+    * An initializer that takes the patch size and pre- and post-synaptic PVLayerLoc arguments
+    * to define the PatchGeometry object.
+    */
+   void initialize(
+         int patchSizeX,
+         int patchSizeY,
+         int patchSizeF,
+         PVLayerLoc const *preLoc,
+         PVLayerLoc const *postLoc,
+         int numArbors,
+         bool sharedWeights,
+         double timestamp);
 
    void setName(std::string const &name) { mName = name; }
 

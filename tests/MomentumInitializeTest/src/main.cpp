@@ -21,7 +21,7 @@
  * The first params file sets its outputPath to output_initialrun/ and runs
  * until time = 100.
  * The second params file initializes the connection and input layer to the
- * data from the first run hat time 50 and runs until time 50.  For the
+ * data from the first run at time 50 and runs until time 50.  For the
  * connection, it does so by setting the parameters initPrev_dWFile to the
  * output file of the first run and prev_dWFrameNumber to 50 (since dt = 1 for
  * each run, the frame number corresponds to the simulation time).
@@ -34,13 +34,16 @@
 #include <columns/HyPerCol.hpp>
 #include <columns/PV_Init.hpp>
 #include <connections/MomentumConn.hpp>
+#include <io/FileManager.hpp>
 #include <structures/Weights.hpp>
 #include <weightupdaters/MomentumUpdater.hpp>
 
-#include <errno.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include <cstdlib>      // EXIT_FAILURE, EXIT_SUCCESS, size_t
+#include <cerrno>       // errno, ENOENT
+#include <cstring>      // strerror, memcpy
+#include <memory>       // unique_ptr
+#include <sys/stat.h>   // stat
+#include <unistd.h>     // unlink
 
 long const weightHeaderLength  = 104L;
 char const *params_initialrun  = "input/MomentumInitialize_initialrun.params";
@@ -52,16 +55,20 @@ char const *prev_dW_restart    = "output_restart/MomentumConn.prevDelta.pvp";
 
 using namespace PV;
 
-int cleanOutputFiles(PV_Init *pv_init);
-int deleteIfPresent(char const *targetfile);
-Weights getWeights(HyPerCol &hc);
-Weights getPrev_dW(HyPerCol &hc);
-Weights copyWeights(Weights const *inWeights);
-int compare(Weights const &weights1, Weights const &weights2, char const *desc);
+int cleanOutputFiles(std::unique_ptr<PV_Init> &pv_init);
+int deleteIfPresent(char const *targetFile, FileManager const &fileManager);
+std::unique_ptr<Weights> getWeights(HyPerCol &hc);
+std::unique_ptr<Weights> getPrev_dW(HyPerCol &hc);
+std::unique_ptr<Weights> copyWeights(Weights const *inWeights);
+int compare(
+      std::unique_ptr<Weights> const &weights1,
+      std::unique_ptr<Weights> const &weights2,
+      char const *desc);
 
 int main(int argc, char *argv[]) {
 
-   auto *pv_init = new PV_Init(&argc, &argv, false /*do not allow unrecognized arguments*/);
+   auto *pv_initPtr = new PV_Init(&argc, &argv, false /*do not allow unrecognized arguments*/);
+   std::unique_ptr<PV_Init> pv_init(pv_initPtr);
    int status = PV_SUCCESS;
    
    if (!pv_init->getStringArgument("ParamsFile").empty()) {
@@ -72,22 +79,20 @@ int main(int argc, char *argv[]) {
       status = PV_FAILURE;
    }
    cleanOutputFiles(pv_init);
-   Weights weightsInitial("weightsInitial");
-   Weights prev_dWInitial("prev_dWInitial");
+   std::unique_ptr<Weights> weightsInitial, prev_dWInitial;
    if (status == PV_SUCCESS) {
       pv_init->setParams(params_initialrun);
-      HyPerCol hc(pv_init);
+      HyPerCol hc(pv_init.get());
       status = hc.run();
       if (status == PV_SUCCESS) {
          weightsInitial = getWeights(hc);
          prev_dWInitial = getPrev_dW(hc);
       }
    }
-   Weights weightsRestart("weightsRestart");
-   Weights prev_dWRestart("prev_dWRestart");
+   std::unique_ptr<Weights> weightsRestart, prev_dWRestart;
    if (status == PV_SUCCESS) {
       pv_init->setParams(params_restart);
-      HyPerCol hc(pv_init);
+      HyPerCol hc(pv_init.get());
       status = hc.run();
       if (status == PV_SUCCESS) {
          weightsRestart = getWeights(hc);
@@ -101,69 +106,62 @@ int main(int argc, char *argv[]) {
       status = compare(prev_dWInitial, prev_dWRestart, "prev_dW");
    }
 
-   delete pv_init;
    return status == PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int cleanOutputFiles(PV_Init *pv_init) {
-   // Note: This is broken under M-to-N because it doesn't take into account
-   // the block directory. The currently-in-progress I/O refactoring for M-to-N
-   // should it more convenient to do M-to-N properly.
+int cleanOutputFiles(std::unique_ptr<PV_Init> &pv_init) {
    auto *pv_comm          = pv_init->getCommunicator();
    auto mpiBlock = pv_comm->getIOMPIBlock();
+   FileManager fileManager(mpiBlock, ".");
 
    int status = PV_SUCCESS;
    if (mpiBlock->getRank() == 0) {
       if (status == PV_SUCCESS) {
-         status = deleteIfPresent(weights_initialrun);
+         status = deleteIfPresent(weights_initialrun, fileManager);
       }
       if (status == PV_SUCCESS) {
-         status = deleteIfPresent(weights_restart);
+         status = deleteIfPresent(weights_restart, fileManager);
       }
       if (status == PV_SUCCESS) {
-         status = deleteIfPresent(prev_dW_initialrun);
+         status = deleteIfPresent(prev_dW_initialrun, fileManager);
       }
       if (status == PV_SUCCESS) {
-         status = deleteIfPresent(prev_dW_restart);
+         status = deleteIfPresent(prev_dW_restart, fileManager);
       }
    }
    return status;
 }
 
-int deleteIfPresent(char const *targetfile) {
-   struct stat statbuffer;
-   int status = stat(targetfile, &statbuffer);
-   if (status != 0) {
-      if (errno == ENOENT) { return PV_SUCCESS; }
-      ErrorLog().printf("Unable to get status of \"%s\": %s\n", targetfile, strerror(errno));
-      return PV_FAILURE;
+int deleteIfPresent(char const *targetFile, FileManager const &fileManager) {
+   int status = PV_SUCCESS;
+   if (fileManager.queryFileExists(targetFile)) {
+      fileManager.deleteFile(targetFile);
    }
-   status = unlink(targetfile);
-   if (status) {
-      ErrorLog().printf("Unable to delete \"%s\": %s\n", targetfile, strerror(errno));
-      return PV_FAILURE;
+   else if (errno != 0) {
+      ErrorLog().printf("Unable to delete \"%s\": %s\n", targetFile, std::strerror(errno));
+      status = PV_FAILURE;
    }
-   return PV_SUCCESS;
+   return status;
 }
 
-Weights getWeights(HyPerCol &hc) {
+std::unique_ptr<Weights> getWeights(HyPerCol &hc) {
    auto *conn    = dynamic_cast<MomentumConn*>(hc.getObjectFromName("MomentumConn"));
    auto *wgtPair = conn->getComponentByType<WeightsPair>();
-   Weights const *foundWeights = wgtPair->getPreWeights();
-   Weights result = copyWeights(foundWeights);
+   Weights const *foundWeights     = wgtPair->getPreWeights();
+   std::unique_ptr<Weights> result = copyWeights(foundWeights);
    return result;
 }
 
-Weights getPrev_dW(HyPerCol &hc) {
+std::unique_ptr<Weights> getPrev_dW(HyPerCol &hc) {
    auto *conn            = dynamic_cast<MomentumConn*>(hc.getObjectFromName("MomentumConn"));
    auto *momentumUpdater = conn->getComponentByType<MomentumUpdater>();
-   Weights const *foundPrev_dW = momentumUpdater->getPrevDeltaWeights();
-   Weights result = copyWeights(foundPrev_dW);
+   Weights const *foundPrev_dW     = momentumUpdater->getPrevDeltaWeights();
+   std::unique_ptr<Weights> result = copyWeights(foundPrev_dW);
    return result;
 }
 
-Weights copyWeights(Weights const *inWeights) {
-   Weights result(
+std::unique_ptr<Weights> copyWeights(Weights const *inWeights) {
+   Weights *resultPtr = new Weights(
          inWeights->getName(),
          inWeights->getPatchSizeX(),
          inWeights->getPatchSizeY(),
@@ -173,87 +171,90 @@ Weights copyWeights(Weights const *inWeights) {
          inWeights->getNumArbors(),
          inWeights->getSharedFlag(),
          inWeights->getTimestamp());
-   result.allocateDataStructures();
+   std::unique_ptr<Weights> result(resultPtr);
+   result->allocateDataStructures();
    for (int a = 0; a < inWeights->getNumArbors(); ++a) {
-      float *outData      = result.getData(a);
+      float *outData      = result->getData(a);
       float const *inData = inWeights->getData(a);
-      size_t patchSize  = (size_t)inWeights->getPatchSizeOverall();
-      size_t numPatches = (size_t)inWeights->getNumDataPatches();
-      int numValuesPerArbor = inWeights->getPatchSizeOverall() * inWeights->getNumDataPatches();
+      std::size_t patchSize  = static_cast<std::size_t>(inWeights->getPatchSizeOverall());
+      std::size_t numPatches = static_cast<std::size_t>(inWeights->getNumDataPatches());
       memcpy(outData, inData, patchSize * numPatches * sizeof(float));
    }
    return result;
 }
 
-int compare(Weights const &weights1, Weights const &weights2, char const *desc) {
+int compare(
+      std::unique_ptr<Weights> const &weights1,
+      std::unique_ptr<Weights> const &weights2,
+      char const *desc) {
    int status = PV_SUCCESS;
    if (status == PV_SUCCESS) {
-      if (weights1.getNumArbors() != weights2.getNumArbors()) {
+      if (weights1->getNumArbors() != weights2->getNumArbors()) {
          ErrorLog().printf(
                "%s: Number of arbors do not agree (%d vs %d)\n",
-               desc, weights1.getNumArbors(), weights2.getNumArbors());
+               desc, weights1->getNumArbors(), weights2->getNumArbors());
          status = PV_FAILURE;
       }
    }
-   int numArbors = weights1.getNumArbors();
+   int numArbors = weights1->getNumArbors();
    if (status == PV_SUCCESS) {
-      if (weights1.getNumDataPatchesX() != weights2.getNumDataPatchesX()) {
+      if (weights1->getNumDataPatchesX() != weights2->getNumDataPatchesX()) {
          ErrorLog().printf(
                "%s: Number of patches in x-direction do not agree (%d vs %d)\n",
-               desc, weights1.getNumDataPatchesX(), weights2.getNumDataPatchesX());
+               desc, weights1->getNumDataPatchesX(), weights2->getNumDataPatchesX());
          status = PV_FAILURE;
       }
    }
-   int numPatchesX = weights1.getNumDataPatchesX();
+   int numPatchesX = weights1->getNumDataPatchesX();
    if (status == PV_SUCCESS) {
-      if (weights1.getNumDataPatchesY() != weights2.getNumDataPatchesY()) {
+      if (weights1->getNumDataPatchesY() != weights2->getNumDataPatchesY()) {
          ErrorLog().printf(
                "%s: Number of patches in y-direction do not agree (%d vs %d)\n",
-               desc, weights1.getNumDataPatchesY(), weights2.getNumDataPatchesY());
+               desc, weights1->getNumDataPatchesY(), weights2->getNumDataPatchesY());
          status = PV_FAILURE;
       }
    }
-   int numPatchesY = weights1.getNumDataPatchesY();
+   int numPatchesY = weights1->getNumDataPatchesY();
    if (status == PV_SUCCESS) {
-      if (weights1.getNumDataPatchesF() != weights2.getNumDataPatchesF()) {
+      if (weights1->getNumDataPatchesF() != weights2->getNumDataPatchesF()) {
          ErrorLog().printf(
                "%s: Number of patches in f-direction do not agree (%d vs %d)\n",
-               desc, weights1.getNumDataPatchesF(), weights2.getNumDataPatchesF());
+               desc, weights1->getNumDataPatchesF(), weights2->getNumDataPatchesF());
          status = PV_FAILURE;
       }
    }
-   int numPatchesF = weights1.getNumDataPatchesF();
+   int numPatchesF = weights1->getNumDataPatchesF();
    if (status == PV_SUCCESS) {
-      if (weights1.getPatchSizeX() != weights2.getPatchSizeX()) {
+      if (weights1->getPatchSizeX() != weights2->getPatchSizeX()) {
          ErrorLog().printf(
                "%s: Patch size in x-direction do not agree (%d vs %d)\n",
-               desc, weights1.getPatchSizeX(), weights2.getPatchSizeX());
+               desc, weights1->getPatchSizeX(), weights2->getPatchSizeX());
          status = PV_FAILURE;
       }
    }
-   int nxp = weights1.getPatchSizeX();
+   int nxp = weights1->getPatchSizeX();
    if (status == PV_SUCCESS) {
-      if (weights1.getPatchSizeY() != weights2.getPatchSizeY()) {
+      if (weights1->getPatchSizeY() != weights2->getPatchSizeY()) {
          ErrorLog().printf(
                "%s: Patch size in y-direction do not agree (%d vs %d)\n",
-               desc, weights1.getPatchSizeY(), weights2.getPatchSizeY());
+               desc, weights1->getPatchSizeY(), weights2->getPatchSizeY());
          status = PV_FAILURE;
       }
    }
-   int nyp = weights1.getPatchSizeY();
+   int nyp = weights1->getPatchSizeY();
    if (status == PV_SUCCESS) {
-      if (weights1.getPatchSizeF() != weights2.getPatchSizeF()) {
+      if (weights1->getPatchSizeF() != weights2->getPatchSizeF()) {
          ErrorLog().printf(
                "%s: Patch size in f-direction do not agree (%d vs %d)\n",
-               desc, weights1.getPatchSizeF(), weights2.getPatchSizeF());
+               desc, weights1->getPatchSizeF(), weights2->getPatchSizeF());
          status = PV_FAILURE;
       }
    }
-   int nfp = weights1.getPatchSizeF();
+   int nfp = weights1->getPatchSizeF();
 
    for (int a = 0; a < numArbors; ++a) {
-       float const *arborData1 = weights1.getData(a);
-       float const *arborData2 = weights2.getData(a);
+       float const *arborData1 = weights1->getData(a);
+       float const *arborData2 = weights2->getData(a);
        int numValuesPerArbor = nxp * nyp * nfp * numPatchesX * numPatchesY * numPatchesF;
        for (int k = 0; k < numValuesPerArbor; ++k) {
            if (arborData1[k] != arborData2[k]) {

@@ -15,8 +15,6 @@
 
 namespace PV {
 
-Weights::Weights(std::string const &name) { setName(name); }
-
 Weights::Weights(
       std::string const &name,
       int patchSizeX,
@@ -30,6 +28,11 @@ Weights::Weights(
    setName(name);
    initialize(
          patchSizeX, patchSizeY, patchSizeF, preLoc, postLoc, numArbors, sharedWeights, timestamp);
+}
+
+Weights::Weights(std::string const &name, Weights const *baseWeights) {
+   setName(name);
+   initialize(baseWeights);
 }
 
 void Weights::initialize(
