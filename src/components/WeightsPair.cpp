@@ -327,7 +327,7 @@ Response::Status WeightsPair::readStateFromCheckpoint(Checkpointer *checkpointer
 void WeightsPair::outputState(double timestamp) {
    if ((mWriteStep >= 0) && (timestamp >= mWriteTime)) {
       mWriteTime += mWriteStep;
-      mWeightsFile->write(*mPreWeights->getData(), timestamp);
+      mWeightsFile->write(timestamp);
    }
    else if (mWriteStep < 0) {
       // If writeStep is negative, we never call writeWeights, but someone might restart from a

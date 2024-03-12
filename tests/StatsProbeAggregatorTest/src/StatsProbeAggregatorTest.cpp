@@ -1,5 +1,5 @@
 #include <arch/mpi/mpi.h>
-#include <include/PVLayerLoc.h>
+#include <include/PVLayerLoc.hpp>
 #include <include/pv_common.h>
 #include <probes/ProbeData.hpp>
 #include <probes/ProbeDataBuffer.hpp>

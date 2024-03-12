@@ -9,7 +9,7 @@
 #define LAYERGEOMETRY_HPP_
 
 #include "columns/BaseObject.hpp"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include <vector>
 
 namespace PV {

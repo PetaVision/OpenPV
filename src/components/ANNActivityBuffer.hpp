@@ -10,6 +10,8 @@
 
 #include "components/HyPerActivityBuffer.hpp"
 
+#include <cfloat>
+
 namespace PV {
 
 /**

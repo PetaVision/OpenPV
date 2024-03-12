@@ -9,6 +9,7 @@
 #include "checkpointing/CheckpointEntryWeightPvp.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/conversions.hpp"
+#include <cfloat>
 #include <cstring>
 #include <stdexcept>
 

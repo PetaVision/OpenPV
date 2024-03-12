@@ -6,7 +6,7 @@
  */
 
 #include "BinningTestProbe.hpp"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "io/PVParams.hpp"
 #include "layers/BinningLayer.hpp"
 #include "observerpattern/BaseMessage.hpp"

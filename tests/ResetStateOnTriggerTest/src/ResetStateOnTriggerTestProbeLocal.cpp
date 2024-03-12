@@ -1,6 +1,6 @@
 #include "ResetStateOnTriggerTestProbeLocal.hpp"
 #include <components/BasePublisherComponent.hpp>
-#include <include/PVLayerLoc.h>
+#include <include/PVLayerLoc.hpp>
 #include <utils/PVAssert.hpp>
 #include <utils/PVLog.hpp>
 #include <utils/conversions.hpp>

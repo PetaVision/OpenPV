@@ -3,7 +3,7 @@
 
 #include "columns/Messages.hpp"
 #include "components/BasePublisherComponent.hpp"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Response.hpp"

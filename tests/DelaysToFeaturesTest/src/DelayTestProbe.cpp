@@ -6,7 +6,7 @@
  */
 
 #include "DelayTestProbe.hpp"
-#include <include/PVLayerLoc.h>
+#include <include/PVLayerLoc.hpp>
 #include <include/pv_common.h>
 #include <layers/HyPerLayer.hpp>
 #include <probes/ProbeData.hpp>

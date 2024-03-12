@@ -9,7 +9,7 @@
 #define SPARSELAYERFILE_HPP_
 
 #include "checkpointing/CheckpointerDataInterface.hpp"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "io/FileManager.hpp"
 #include "io/SparseLayerBatchGatherScatter.hpp"
 #include "io/SparseLayerIO.hpp"

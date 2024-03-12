@@ -1,7 +1,7 @@
 #ifndef BUFFERUTILSPVP_HPP_
 #define BUFFERUTILSPVP_HPP_
 
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "io/FileStream.hpp"
 #include "structures/Buffer.hpp"
 #include "structures/SparseList.hpp"

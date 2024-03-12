@@ -13,7 +13,7 @@
 #include <components/InputActivityBuffer.hpp>
 #include <components/InputLayerNameParam.hpp>
 #include <components/PhaseParam.hpp>
-#include <include/PVLayerLoc.h>
+#include <include/PVLayerLoc.hpp>
 #include <io/PVParams.hpp>
 #include <layers/FilenameParsingLayer.hpp>
 #include <observerpattern/BaseMessage.hpp>

@@ -8,7 +8,7 @@
 #ifndef CONVERSIONS_HPP_
 #define CONVERSIONS_HPP_
 
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>

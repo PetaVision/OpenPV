@@ -7,7 +7,7 @@
 
 #include "Arguments.hpp"
 #include "include/pv_arch.h"
-#include "include/pv_types.h"
+#include "include/pv_common.h"
 #include "io/FileManager.hpp"
 #include "structures/MPIBlock.hpp"
 #include <cstdio>

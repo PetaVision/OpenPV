@@ -7,7 +7,7 @@
 
 #include "LIFTestProbe.hpp"
 #include "arch/mpi/mpi.h"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "observerpattern/Response.hpp"
 #include "probes/ProbeData.hpp"

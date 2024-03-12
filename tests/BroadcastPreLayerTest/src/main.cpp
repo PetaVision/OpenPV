@@ -6,7 +6,7 @@
 #include <columns/Communicator.hpp>
 #include <columns/HyPerCol.hpp>
 #include <components/ActivityComponent.hpp>
-#include <include/PVLayerLoc.h>
+#include <include/PVLayerLoc.hpp>
 #include <io/FileManager.hpp>
 #include <io/FileStreamBuilder.hpp>
 #include <io/LayerFile.hpp>

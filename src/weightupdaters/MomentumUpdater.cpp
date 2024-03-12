@@ -273,7 +273,7 @@ MomentumUpdater::initializeState(std::shared_ptr<InitializeStateMessage const> m
                false /* verifyWritesFlag */);
       }
       weightsFile->setIndex(mPrev_dWFrameNumber);
-      weightsFile->read(*mPrevDeltaWeights->getData());
+      weightsFile->read();
    }
    return status;
 }
@@ -429,7 +429,7 @@ void MomentumUpdater::outputMomentum(double timestamp) {
       mWriteTime += mWriteStep;
 
       try {
-         mWeightsFile->write(*mPrevDeltaWeights->getData(), timestamp);
+         mWeightsFile->write(timestamp);
       }
       catch (std::invalid_argument &e) {
          Fatal() << getDescription() << " unable to output momentum: " << e.what() << "\n";

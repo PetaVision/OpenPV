@@ -9,7 +9,7 @@
 #define CHECKPOINTENTRYPVP_HPP_
 
 #include "CheckpointEntry.hpp"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include <string>
 #include <vector>
 

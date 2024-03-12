@@ -9,7 +9,7 @@
 #define LAYERFILE_HPP_
 
 #include "checkpointing/CheckpointerDataInterface.hpp"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "io/FileManager.hpp"
 #include "io/LayerBatchGatherScatter.hpp"
 #include "io/LayerIO.hpp"
@@ -20,7 +20,7 @@
 namespace PV {
 
 /**
- * A class to manage nonsparse activity PVP files. It internally handles all MPI gather/scatter
+ * A class to manage dense activity PVP files. It internally handles all MPI gather/scatter
  * operations, M-to-N communication, and PVP file format details. All file operations treat
  * the layer state, i.e. the data of all batch elements at a single timestep, as a unit.
  */

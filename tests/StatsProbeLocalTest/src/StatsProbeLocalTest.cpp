@@ -7,7 +7,7 @@
 #include <components/ActivityComponent.hpp>
 #include <components/BasePublisherComponent.hpp>
 #include <components/InternalStateBuffer.hpp>
-#include <include/PVLayerLoc.h>
+#include <include/PVLayerLoc.hpp>
 #include <include/pv_common.h>
 #include <io/PVParams.hpp>
 #include <layers/HyPerLayer.hpp>

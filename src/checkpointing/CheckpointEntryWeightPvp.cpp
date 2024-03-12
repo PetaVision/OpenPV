@@ -53,7 +53,7 @@ void CheckpointEntryWeightPvp::write(
          true /*clobberFlag*/,
          verifyWritesFlag);
    }
-   weightsFile->write(*mWeights->getData(), simTime);
+   weightsFile->write(simTime);
 }
 
 void CheckpointEntryWeightPvp::read(
@@ -100,7 +100,7 @@ void CheckpointEntryWeightPvp::read(
          false /*verifyWritesFlag*/);
    }
    double simTime;
-   weightsFile->read(*mWeights->getData(), simTime);
+   weightsFile->read(simTime);
    if (simTimePtr) {
       *simTimePtr = simTime;
    }

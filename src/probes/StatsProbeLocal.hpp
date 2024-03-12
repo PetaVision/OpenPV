@@ -3,7 +3,7 @@
 
 #include "StatsProbeTypes.hpp"
 
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "io/PVParams.hpp"
 #include "layers/HyPerLayer.hpp"
 #include "probes/BufferParamInterface.hpp"

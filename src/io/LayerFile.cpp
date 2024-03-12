@@ -30,7 +30,6 @@ LayerFile::LayerFile(
       mLayerLoc.halo.dn = 0;
       mLayerLoc.halo.up = 0;
    }
-   int mpiBatchDimension = mFileManager->getMPIBlock()->getBatchDimension();
    mDataLocations.resize(mLayerLoc.nbatch);
    initializeCheckpointerDataInterface();
    initializeGatherScatter();

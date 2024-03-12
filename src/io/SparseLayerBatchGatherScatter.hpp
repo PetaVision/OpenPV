@@ -1,7 +1,7 @@
 #ifndef SPARSELAYERBATCHGATHERSCATTER_HPP_
 #define SPARSELAYERBATCHGATHERSCATTER_HPP_
 
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "structures/MPIBlock.hpp"
 #include "structures/SparseList.hpp"
 

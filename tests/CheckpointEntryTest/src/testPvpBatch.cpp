@@ -1,6 +1,6 @@
 #include "testPvpBatch.hpp"
 #include "checkpointing/CheckpointEntryPvpBuffer.hpp"
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "utils/conversions.hpp"
 #include <vector>
 

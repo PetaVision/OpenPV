@@ -1,7 +1,7 @@
 #ifndef COSTFUNCTIONSUM_HPP_
 #define COSTFUNCTIONSUM_HPP_
 
-#include "include/PVLayerLoc.h"
+#include "include/PVLayerLoc.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/conversions.hpp"
 #include <memory>
