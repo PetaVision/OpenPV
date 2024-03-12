@@ -13,10 +13,10 @@ class FileStreamBuilder {
    FileStreamBuilder(
       std::shared_ptr<FileManager const> fileManager,
       std::string const &path,
-      bool isText,
+      bool isTextFlag,
       bool readOnlyFlag,
       bool clobberFlag,
-      bool verifyWrites);
+      bool verifyWritesFlag);
 
    ~FileStreamBuilder();
 

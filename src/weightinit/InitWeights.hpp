@@ -9,9 +9,15 @@
 #define INITWEIGHTS_HPP_
 
 #include "columns/BaseObject.hpp"
-#include "components/WeightsPair.hpp"
-#include "layers/HyPerLayer.hpp"
+#include "columns/Communicator.hpp"
+#include "columns/Messages.hpp"
+#include "include/pv_common.h"
+#include "io/PVParams.hpp"
+#include "observerpattern/Response.hpp"
 #include "structures/Weights.hpp"
+
+#include <memory> // shared_ptr
+#include <string> // string
 
 namespace PV {
 

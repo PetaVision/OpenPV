@@ -7,7 +7,19 @@
 
 #include "InitWeights.hpp"
 #include "components/WeightsPair.hpp"
+#include "include/PVLayerLoc.hpp"
+#include "io/FileManager.hpp"
+#include "io/FileStream.hpp"
+#include "io/FileStreamBuilder.hpp"
 #include "io/WeightsFileIO.hpp"
+#include "observerpattern/ObserverTable.hpp"
+#include "structures/MPIBlock.hpp"
+#include "structures/PatchGeometry.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
+#include "utils/conversions.hpp" // dist2NearestCell, featureIndex, kxPos, kyPos
+
+#include <cstdlib> // free
 
 namespace PV {
 
@@ -157,21 +169,21 @@ int InitWeights::readWeights(
       double *timestampPtr /*default=nullptr*/) {
    double timestamp;
 
-   // Is LocalMPIBlock really correct? It seems I/O operations should always use the IOMPIBlock
-   auto mpiBlock = std::make_shared<MPIBlock>(
-         mCommunicator->globalCommunicator(),
-         mCommunicator->numCommRows(),
-         mCommunicator->numCommColumns(),
-         mCommunicator->numCommBatches(),
-         mCommunicator->numCommRows(),
-         mCommunicator->numCommColumns(),
-         1);
-
-   FileStream *fileStream = nullptr;
-   if (mpiBlock->getRank() == 0) {
-      fileStream = new FileStream(filename, std::ios_base::in, false);
-   }
-   WeightsFileIO weightsFileIO(fileStream, mpiBlock, mWeights);
+   // Currently, initializing weights from file assumes that the entire weights are in a single
+   // file in the filesystem attached to the global root process.
+   //
+   // Going forward, we might want to make InitWeights be able to read from weights distributed
+   // across nodes using the M-to-N directory structure.
+   std::shared_ptr<MPIBlock const> globalMPIBlock = mCommunicator->getGlobalMPIBlock();
+   auto fileManager = std::make_shared<FileManager>(globalMPIBlock, ".");
+   std::shared_ptr<FileStream> fileStream = FileStreamBuilder(
+         fileManager,
+         filename,
+         false /*isTextFlag*/,
+         true /*readOnlyFlag*/,
+         false /*clobberFlag*/,
+         false /*verifyWritesFlag*/).get();
+   WeightsFileIO weightsFileIO(fileStream.get(), globalMPIBlock, mWeights);
    timestamp = weightsFileIO.readWeights(frameNumber);
    if (timestampPtr != nullptr) {
       *timestampPtr = timestamp;

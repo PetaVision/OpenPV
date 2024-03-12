@@ -5,14 +5,14 @@ namespace PV {
 FileStreamBuilder::FileStreamBuilder(
       std::shared_ptr<FileManager const> fileManager,
       std::string const &path,
-      bool isText,
+      bool isTextFlag,
       bool readOnlyFlag,
       bool clobberFlag,
-      bool verifyWrites) {
+      bool verifyWritesFlag) {
 
    std::ios_base::openmode mode = std::ios_base::in;
    if (!readOnlyFlag) { mode |= std::ios_base::out; }
-   if (!isText) { mode |= std::ios_base::binary; }
+   if (!isTextFlag) { mode |= std::ios_base::binary; }
 
    // If the file is opened with mode out|in but the file does not exist, FileManager::open()
    // will throw an error. We must first create the file in write mode, then close and reopen it
@@ -43,12 +43,12 @@ FileStreamBuilder::FileStreamBuilder(
          }
       }
       if (createNewFile) {
-         mFileStream = fileManager->open(path, std::ios_base::out, verifyWrites);
+         mFileStream = fileManager->open(path, std::ios_base::out, verifyWritesFlag);
          // This file will be closed when mFileStream is redefined, below.
       }
    }
 
-   mFileStream = fileManager->open(path, mode, verifyWrites);
+   mFileStream = fileManager->open(path, mode, verifyWritesFlag);
 }
 
 FileStreamBuilder::~FileStreamBuilder() {}
