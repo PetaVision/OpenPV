@@ -58,7 +58,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/MomentumLCAInternalStateBuffer.cpp
    ${SUBDIR}/OriginalConnNameParam.cpp
    ${SUBDIR}/OriginalLayerNameParam.cpp
-   ${SUBDIR}/PatchGeometry.cpp
    ${SUBDIR}/PatchSize.cpp
    ${SUBDIR}/PhaseParam.cpp
    ${SUBDIR}/PoolingIndexLayerInputBuffer.cpp
@@ -149,7 +148,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/MomentumLCAInternalStateBuffer.hpp
    ${SUBDIR}/OriginalConnNameParam.hpp
    ${SUBDIR}/OriginalLayerNameParam.hpp
-   ${SUBDIR}/PatchGeometry.hpp
    ${SUBDIR}/PatchSize.hpp
    ${SUBDIR}/PhaseParam.hpp
    ${SUBDIR}/PoolingIndexLayerInputBuffer.hpp

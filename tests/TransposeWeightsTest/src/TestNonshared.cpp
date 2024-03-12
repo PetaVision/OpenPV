@@ -2,6 +2,7 @@
 #include "UtilityFunctions.hpp"
 #include <components/Weights.hpp>
 #include <components/WeightsPair.hpp>
+#include <structures/PatchGeometry.hpp>
 #include <utils/PVAssert.hpp>
 #include <utils/PVLog.hpp>
 #include <utils/TransposeWeights.hpp>

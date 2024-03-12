@@ -3,7 +3,7 @@
  */
 
 #include <cinttypes>
-#include <components/PatchGeometry.hpp>
+#include <structures/PatchGeometry.hpp>
 #include <string.h>
 #include <utils/PathComponents.hpp> // PV::baseName
 #include <utils/PVLog.hpp>

@@ -1,6 +1,6 @@
 #include "LocalPatchWeightsIO.hpp"
 
-#include "components/PatchGeometry.hpp"
+#include "structures/PatchGeometry.hpp"
 #include "include/pv_common.h"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"

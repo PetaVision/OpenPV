@@ -7,7 +7,7 @@
 
 #include <columns/PV_Init.hpp>
 #include <components/LayerGeometry.hpp> // setLocalLayerLocFields static member function
-#include <components/PatchGeometry.hpp> // calcPatchData static member function
+#include <structures/PatchGeometry.hpp> // calcPatchData static member function
 #include <include/PVLayerLoc.hpp>
 #include <io/FileManager.hpp>
 #include <io/LocalPatchWeightsFile.hpp>
