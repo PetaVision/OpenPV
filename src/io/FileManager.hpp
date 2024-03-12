@@ -9,14 +9,13 @@
 #define FILEMANAGER_HPP_
 
 #include "FileStream.hpp"
-#include "columns/Arguments.hpp"
 #include "structures/MPIBlock.hpp"
 
-#include <dirent.h> // functions called by listDirectory
-#include <memory>
-#include <string>
+#include <ios>         // ios_base
+#include <memory>      // shared_ptr
+#include <string>      // std::string
 #include <sys/stat.h>  // stat
-#include <vector>
+#include <vector>      // std::vector
 
 namespace PV {
 
@@ -36,6 +35,7 @@ class FileManager {
    std::vector<std::string> listDirectory() const;
    std::vector<std::string> listDirectory(std::string const &path) const;
    int makeDirectory(std::string const &path) const;
+   bool queryFileExists(std::string const &path) const;
    int stat(std::string const &path, struct stat &statbuf) const;
    int statRetry(
          std::string const &path,

@@ -1,14 +1,17 @@
 #include "FileManager.hpp"
 #include "include/pv_common.h"
+#include "io/FileStream.hpp"
 #include "utils/ExpandLeadingTilde.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVLog.hpp"
 
-#include <cassert>
-#include <cerrno>
-#include <cstring>
-#include <libgen.h>    // basename and dirname
+#include <cassert>     // assert
+#include <cerrno>      // errno, EEXIST, ENOENT
+#include <cstring>     // strcmp, strerror
+#include <dirent.h>    // closedir, opendir, readdir
 #include <sys/stat.h>  // mkdir, stat
 #include <sys/types.h> // modes used in mkdir
-#include <unistd.h>    // sleep
+#include <unistd.h>    // rmdir, sleep, truncate, unlink
 
 namespace PV {
 FileManager::FileManager(
@@ -54,7 +57,7 @@ void FileManager::ensureDirectoryExists(std::string const &path) const {
          errno != ENOENT,
          "Error checking status of directory \"%s\": %s.\n",
          path.c_str(),
-         strerror(errno));
+         std::strerror(errno));
 
    InfoLog().printf(
          "FileManager directory \"%s\" does not exist; attempting to create\n", path.c_str());
@@ -67,13 +70,13 @@ void FileManager::ensureDirectoryExists(std::string const &path) const {
             Fatal().printf(
                   "FileManager directory \"%s\" could not be created: %s; Exiting\n",
                   path.c_str(),
-                  strerror(errno));
+                  std::strerror(errno));
          }
          else {
             getOutputStream().flush();
             WarnLog().printf(
                   "FileManager directory \"%s\" could not be created: %s; Retrying %d out of %d\n",
-                  path.c_str(), strerror(errno), attemptNum + 1, mMaxAttempts);
+                  path.c_str(), std::strerror(errno), attemptNum + 1, mMaxAttempts);
             sleep(1);
          }
       }
@@ -104,7 +107,7 @@ std::vector<std::string> FileManager::listDirectory(std::string const &path) con
    std::string modifiedPath = modifyPathForMtoN(path);
    DIR *dir = opendir(modifiedPath.c_str());
    if (dir == nullptr) {
-      ErrorLog().printf("listDirectory(\"%s\") failed: %s\n", path.c_str(), strerror(errno));
+      ErrorLog().printf("listDirectory(\"%s\") failed: %s\n", path.c_str(), std::strerror(errno));
       status = PV_FAILURE;
    }
    if (status == PV_SUCCESS) {
@@ -118,7 +121,7 @@ std::vector<std::string> FileManager::listDirectory(std::string const &path) con
       if (errno) {
          ErrorLog().printf(
                "listDirectory failed to read an entry in \"%s\": %s\n",
-               path.c_str(), strerror(errno));
+               path.c_str(), std::strerror(errno));
          status = PV_FAILURE;
       }
    }
@@ -134,7 +137,7 @@ std::vector<std::string> FileManager::listDirectory(std::string const &path) con
          "FileManager failed to close directory \"%s\" in \"%s\": %s\n",
          path.c_str(),
          mBlockDirectoryName.c_str(),
-         strerror(errno));
+         std::strerror(errno));
    return result;
 }
 
@@ -167,13 +170,13 @@ void FileManager::deleteDirectory(std::string const &path) const {
          if (attemptNum == mMaxAttempts - 1) {
             Fatal().printf(
                   "Directory \"%s\" could not be deleted: %s; Exiting\n",
-                  modifiedPath.c_str(), strerror(errno));
+                  modifiedPath.c_str(), std::strerror(errno));
          }
          else {
             getOutputStream().flush();
             WarnLog().printf(
                   "Attempt %d of %d: directory \"%s\" could not be deleted: %s\n",
-                  attemptNum + 1, mMaxAttempts, modifiedPath.c_str(), strerror(errno));
+                  attemptNum + 1, mMaxAttempts, modifiedPath.c_str(), std::strerror(errno));
             sleep(1);
          }
       }
@@ -197,12 +200,12 @@ void FileManager::deleteFile(std::string const &path) const {
          if (attemptNum == mMaxAttempts - 1) {
             Fatal().printf(
                   "File \"%s\" could not be deleted: %s; Exiting\n",
-                  modifiedPath.c_str(), strerror(errno));
+                  modifiedPath.c_str(), std::strerror(errno));
          }
          else {
             getOutputStream().flush();
             WarnLog().printf("Attempt %d of %d: file \"%s\" could not be deleted: %s\n",
-                  attemptNum + 1, mMaxAttempts, modifiedPath.c_str(), strerror(errno));
+                  attemptNum + 1, mMaxAttempts, modifiedPath.c_str(), std::strerror(errno));
             sleep(1);
          }
       }
@@ -215,6 +218,29 @@ void FileManager::deleteFile(std::string const &path) const {
          return;
       }
    }
+}
+
+bool FileManager::queryFileExists(std::string const &path) const {
+   if (!isRoot()) {
+      errno = 0;
+      return false;
+   }
+   struct stat statbuf;
+   int status = this->stat(path, statbuf);
+   if (status == 0) {
+      return true;
+   }
+   if (errno == ENOENT) {
+      errno = 0;
+   }
+   else {
+      ErrorLog().printf(
+            "Unable to query existence of file \"%s\": error %d (%s)\n",
+            path.c_str(),
+            errno,
+            std::strerror(errno));
+   }
+   return false;
 }
 
 int FileManager::stat(std::string const &path, struct stat &statbuf) const {
@@ -249,7 +275,7 @@ int FileManager::truncate(std::string const &path, long length) const {
       std::string modifiedPath = modifyPathForMtoN(path);
       status = ::truncate(modifiedPath.c_str(), static_cast<off_t>(length));
       FatalIf(status, "Unable to truncate \"%s\" to length %ld: %s\n",
-            path.c_str(), length, strerror(errno));
+            path.c_str(), length, std::strerror(errno));
    }
    return status;
 }
