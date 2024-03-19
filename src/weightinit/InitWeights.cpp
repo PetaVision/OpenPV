@@ -15,6 +15,7 @@
 #include "observerpattern/ObserverTable.hpp"
 #include "structures/MPIBlock.hpp"
 #include "structures/PatchGeometry.hpp"
+#include "utils/PathComponents.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/conversions.hpp" // dist2NearestCell, featureIndex, kxPos, kyPos
@@ -164,7 +165,7 @@ void InitWeights::calcWeights() {
 void InitWeights::calcWeights(int dataPatchIndex, int arborId) {}
 
 int InitWeights::readWeights(
-      const char *filename,
+      const char *path,
       int frameNumber,
       double *timestampPtr /*default=nullptr*/) {
    double timestamp;
@@ -175,7 +176,9 @@ int InitWeights::readWeights(
    // Going forward, we might want to make InitWeights be able to read from weights distributed
    // across nodes using the M-to-N directory structure.
    std::shared_ptr<MPIBlock const> globalMPIBlock = mCommunicator->getGlobalMPIBlock();
-   auto fileManager = std::make_shared<FileManager>(globalMPIBlock, ".");
+   std::string filedir = dirName(path);
+   std::string filename = baseName(path);
+   auto fileManager = std::make_shared<FileManager>(globalMPIBlock, filedir);
    std::shared_ptr<FileStream> fileStream = FileStreamBuilder(
          fileManager,
          filename,

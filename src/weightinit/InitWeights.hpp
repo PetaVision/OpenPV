@@ -115,7 +115,7 @@ class InitWeights : public BaseObject {
     */
    virtual void calcWeights(int dataPatchIndex, int arborId);
 
-   virtual int readWeights(const char *filename, int frameNumber, double *timestampPtr = nullptr);
+   virtual int readWeights(const char *path, int frameNumber, double *timestampPtr = nullptr);
 
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
 
