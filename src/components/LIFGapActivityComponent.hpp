@@ -9,6 +9,7 @@
 #define LIFGAPACTIVITYCOMPONENT_HPP_
 
 #include "LIFActivityComponent.hpp"
+#include "utils/cl_random.h"
 
 namespace PV {
 

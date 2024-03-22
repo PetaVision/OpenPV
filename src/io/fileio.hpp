@@ -8,17 +8,9 @@
 #ifndef FILEIO_HPP_
 #define FILEIO_HPP_
 
-#include "arch/mpi/mpi.h"
-#include "structures/Patch.hpp"
-#include "include/PVLayerLoc.hpp"
-#include "include/pv_types.h"
 #include "structures/MPIBlock.hpp"
-
 #include <memory>
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <vector>
 
 namespace PV {
 

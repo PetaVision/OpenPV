@@ -10,7 +10,6 @@
 
 #include "checkpointing/CheckpointEntry.hpp"
 #include "structures/Weights.hpp"
-#include "include/pv_types.h"
 #include <string>
 
 namespace PV {

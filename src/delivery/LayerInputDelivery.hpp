@@ -12,6 +12,15 @@
 
 namespace PV {
 
+enum ChannelType {
+   CHANNEL_EXC      = 0,
+   CHANNEL_INH      = 1,
+   CHANNEL_INHB     = 2,
+   CHANNEL_GAP      = 3,
+   CHANNEL_NORM     = 4,
+   CHANNEL_NOUPDATE = -1
+};
+
 /**
  * The parent class of all delivery classes, to provide the minimal interface needed by
  * LayerInputBuffer. There are two parameters, channelCode and receiveGpu; and three

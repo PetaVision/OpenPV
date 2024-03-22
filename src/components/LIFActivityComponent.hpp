@@ -16,6 +16,7 @@
 #include "components/LayerInputBuffer.hpp"
 #include "components/RestrictedBuffer.hpp"
 #include "include/default_params.h"
+#include "utils/cl_random.h"
 
 namespace PV {
 

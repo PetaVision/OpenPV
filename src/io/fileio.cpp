@@ -6,16 +6,15 @@
  */
 
 #include "fileio.hpp"
-#include "include/pv_common.h"
-#include "structures/Buffer.hpp"
-#include "utils/BufferUtilsMPI.hpp"
-#include "utils/ExpandLeadingTilde.hpp"
-#include "utils/PVLog.hpp"
-#include "utils/conversions.hpp"
-#include "utils/weight_conversions.hpp"
+#include "include/pv_common.h"          // MAX_FILESYSTEMCALL_TRIES
+#include "utils/ExpandLeadingTilde.hpp" // expandLeadingTilde()
+#include "utils/PVLog.hpp"              // ErrorLog, Fatal, FatalIf, InfoLog, WarnLog
 
-#include <assert.h>
-#include <iostream>
+#include <cerrno>   // errno, EEXIST, ENOENT
+#include <cstdlib>  // free
+#include <cstring>  // strdup, strerror, strlen
+#include <string>   // std::string
+#include <unistd.h> // sleep
 
 #undef DEBUG_OUTPUT
 

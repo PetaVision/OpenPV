@@ -10,7 +10,6 @@
 #define UPDATESTATEFUNCTIONS_H_
 
 #ifndef PV_USE_CUDA
-#include "include/pv_types.h"
 #include "utils/conversions.hpp"
 #endif // PV_USE_CUDA
 

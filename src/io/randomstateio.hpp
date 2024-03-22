@@ -1,6 +1,6 @@
 #include "include/PVLayerLoc.hpp"
-#include "include/pv_types.h"
 #include "structures/MPIBlock.hpp"
+#include "utils/cl_random.h"
 #include <memory>
 #include <string>
 

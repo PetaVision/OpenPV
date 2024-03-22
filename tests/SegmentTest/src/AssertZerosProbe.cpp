@@ -7,7 +7,6 @@
 #include "components/BasePublisherComponent.hpp"
 #include "components/LayerInputBuffer.hpp"
 #include "include/PVLayerLoc.hpp"
-#include "include/pv_types.h"
 #include "layers/HyPerLayer.hpp"
 #include "probes/ActivityBufferStatsProbeLocal.hpp"
 #include "probes/ProbeData.hpp"

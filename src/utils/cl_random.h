@@ -8,7 +8,6 @@
 #ifndef CL_RANDOM_H_
 #define CL_RANDOM_H_
 
-#include "../include/pv_types.h"
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>
@@ -18,6 +17,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct { unsigned int s1, s2, s3; } taus_state_t;
+
+typedef struct {
+   unsigned int s0;
+   taus_state_t state;
+} taus_uint4;
 
 struct box_muller_state {
    taus_uint4 *state;
