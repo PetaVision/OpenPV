@@ -34,25 +34,25 @@ void CloneConn::fillComponentTable() {
 }
 
 BaseDelivery *CloneConn::createDeliveryObject() {
-   auto *deliveryCreator = new CloneDeliveryCreator(name, parameters(), mCommunicator);
+   auto *deliveryCreator = new CloneDeliveryCreator(getName(), parameters(), mCommunicator);
    addUniqueComponent(deliveryCreator);
    return deliveryCreator->create();
 }
 
 ArborList *CloneConn::createArborList() {
-   return new DependentArborList(name, parameters(), mCommunicator);
+   return new DependentArborList(getName(), parameters(), mCommunicator);
 }
 
 PatchSize *CloneConn::createPatchSize() {
-   return new DependentPatchSize(name, parameters(), mCommunicator);
+   return new DependentPatchSize(getName(), parameters(), mCommunicator);
 }
 
 SharedWeights *CloneConn::createSharedWeights() {
-   return new DependentSharedWeights(name, parameters(), mCommunicator);
+   return new DependentSharedWeights(getName(), parameters(), mCommunicator);
 }
 
 WeightsPairInterface *CloneConn::createWeightsPair() {
-   return new CloneWeightsPair(name, parameters(), mCommunicator);
+   return new CloneWeightsPair(getName(), parameters(), mCommunicator);
 }
 
 InitWeights *CloneConn::createWeightInitializer() { return nullptr; }
@@ -62,7 +62,7 @@ NormalizeBase *CloneConn::createWeightNormalizer() { return nullptr; }
 BaseWeightUpdater *CloneConn::createWeightUpdater() { return nullptr; }
 
 OriginalConnNameParam *CloneConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(name, parameters(), mCommunicator);
+   return new OriginalConnNameParam(getName(), parameters(), mCommunicator);
 }
 
 Response::Status CloneConn::initializeState(std::shared_ptr<InitializeStateMessage const> message) {

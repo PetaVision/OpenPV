@@ -45,7 +45,7 @@ void MoviePvpTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
          float expectedVal =
                kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf) + frameIdx * 192;
          if (std::fabs(checkVal - expectedVal) >= 1e-5f) {
-            ErrorLog() << "ImageFileIO " << name << " test Expected: " << expectedVal
+            ErrorLog() << "ImageFileIO " << getName() << " test Expected: " << expectedVal
                        << " Actual: " << checkVal << "\n";
          }
       }

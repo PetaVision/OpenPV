@@ -76,28 +76,28 @@ void HyPerConn::fillComponentTable() {
 }
 
 BaseDelivery *HyPerConn::createDeliveryObject() {
-   auto *deliveryCreator = new HyPerDeliveryCreator(name, parameters(), mCommunicator);
+   auto *deliveryCreator = new HyPerDeliveryCreator(getName(), parameters(), mCommunicator);
    addUniqueComponent(deliveryCreator);
    return deliveryCreator->create();
 }
 
-ArborList *HyPerConn::createArborList() { return new ArborList(name, parameters(), mCommunicator); }
+ArborList *HyPerConn::createArborList() { return new ArborList(getName(), parameters(), mCommunicator); }
 
-PatchSize *HyPerConn::createPatchSize() { return new PatchSize(name, parameters(), mCommunicator); }
+PatchSize *HyPerConn::createPatchSize() { return new PatchSize(getName(), parameters(), mCommunicator); }
 
 SharedWeights *HyPerConn::createSharedWeights() {
-   return new SharedWeights(name, parameters(), mCommunicator);
+   return new SharedWeights(getName(), parameters(), mCommunicator);
 }
 
 WeightsPairInterface *HyPerConn::createWeightsPair() {
-   return new WeightsPair(name, parameters(), mCommunicator);
+   return new WeightsPair(getName(), parameters(), mCommunicator);
 }
 
 InitWeights *HyPerConn::createWeightInitializer() {
    char *weightInitTypeString = nullptr;
    parameters()->ioParamString(
          PARAMS_IO_READ,
-         name,
+         getName(),
          "weightInitType",
          &weightInitTypeString,
          nullptr,
@@ -132,7 +132,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
    NormalizeBase *normalizer = nullptr;
    char *normalizeMethod     = nullptr;
    parameters()->ioParamString(
-         PARAMS_IO_READ, name, "normalizeMethod", &normalizeMethod, nullptr, true /*warnIfAbsent*/);
+         PARAMS_IO_READ, getName(), "normalizeMethod", &normalizeMethod, nullptr, true /*warnIfAbsent*/);
    // Note: The normalizeMethod string param gets read both here and by the
    // NormalizeBase::ioParam_weightInitType() method. It is read here because we need
    // to know the normalization method in order to instantiate the correct class. It is read in
@@ -153,7 +153,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
       normalizeMethod = strdup("none");
    }
    if (strcmp(normalizeMethod, "none")) {
-      auto strengthParam = new StrengthParam(name, parameters(), mCommunicator);
+      auto strengthParam = new StrengthParam(getName(), parameters(), mCommunicator);
       addUniqueComponent(strengthParam);
    }
    BaseObject *baseObj = Factory::instance()->createByKeyword(normalizeMethod, this);
@@ -172,7 +172,7 @@ NormalizeBase *HyPerConn::createWeightNormalizer() {
 }
 
 BaseWeightUpdater *HyPerConn::createWeightUpdater() {
-   return new HebbianUpdater(name, parameters(), mCommunicator);
+   return new HebbianUpdater(getName(), parameters(), mCommunicator);
 }
 
 Response::Status

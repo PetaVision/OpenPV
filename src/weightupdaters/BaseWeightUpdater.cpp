@@ -26,7 +26,7 @@ int BaseWeightUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void BaseWeightUpdater::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "plasticityFlag", &mPlasticityFlag, mPlasticityFlag /*default value*/);
+         ioFlag, getName(), "plasticityFlag", &mPlasticityFlag, mPlasticityFlag /*default value*/);
 }
 
 } // namespace PV

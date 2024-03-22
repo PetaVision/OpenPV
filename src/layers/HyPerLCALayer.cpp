@@ -25,7 +25,7 @@ void HyPerLCALayer::initialize(const char *name, PVParams *params, Communicator 
 }
 
 LayerInputBuffer *HyPerLCALayer::createLayerInput() {
-   return new LayerInputBuffer(name, parameters(), mCommunicator);
+   return new LayerInputBuffer(getName(), parameters(), mCommunicator);
 }
 
 ActivityComponent *HyPerLCALayer::createActivityComponent() {

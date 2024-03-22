@@ -26,7 +26,7 @@ void IndexInternalState::initialize(char const *name, PVParams *params, Communic
 }
 
 void IndexInternalState::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
-   parameters()->handleUnnecessaryStringParameter(name, "InitVType", nullptr);
+   parameters()->handleUnnecessaryStringParameter(getName(), "InitVType", nullptr);
 }
 
 PV::Response::Status

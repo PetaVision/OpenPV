@@ -16,7 +16,7 @@ PlasticTestConn::PlasticTestConn(const char *name, PVParams *params, Communicato
 }
 
 BaseWeightUpdater *PlasticTestConn::createWeightUpdater() {
-   return new PlasticTestUpdater(name, parameters(), mCommunicator);
+   return new PlasticTestUpdater(getName(), parameters(), mCommunicator);
 }
 
 PlasticTestConn::~PlasticTestConn() {}

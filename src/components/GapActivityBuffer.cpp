@@ -29,7 +29,7 @@ int GapActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void GapActivityBuffer::ioParam_ampSpikelet(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "ampSpikelet", &mAmpSpikelet, mAmpSpikelet);
+   parameters()->ioParamValue(ioFlag, getName(), "ampSpikelet", &mAmpSpikelet, mAmpSpikelet);
 }
 
 Response::Status

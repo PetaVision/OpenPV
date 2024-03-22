@@ -38,7 +38,7 @@ void DependentFirmThresholdCostLayer::fillComponentTable() {
 }
 
 OriginalLayerNameParam *DependentFirmThresholdCostLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
+   return new OriginalLayerNameParam(getName(), parameters(), mCommunicator);
 }
 
 ActivityComponent *DependentFirmThresholdCostLayer::createActivityComponent() {

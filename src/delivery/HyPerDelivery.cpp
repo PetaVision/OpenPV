@@ -30,7 +30,7 @@ void HyPerDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // Hence a warning generated here would be misleading.
    if (ioFlag == PARAMS_IO_READ) {
       bool receiveGpu = parameters()->value(
-            name, "receiveGpu", mCorrectReceiveGpu, false /*don't warn if absent*/);
+            getName(), "receiveGpu", mCorrectReceiveGpu, false /*don't warn if absent*/);
       FatalIf(
             receiveGpu != mCorrectReceiveGpu,
             "%s has receiveGpu set to %s in params, but requires %s to be %s.\n",

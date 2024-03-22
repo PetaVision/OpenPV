@@ -34,7 +34,7 @@ int TestImageActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void TestImageActivityBuffer::ioParam_constantVal(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "constantVal", &mConstantVal, mConstantVal);
+   parameters()->ioParamValue(ioFlag, getName(), "constantVal", &mConstantVal, mConstantVal);
 }
 
 Response::Status

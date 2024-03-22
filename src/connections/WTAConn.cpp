@@ -37,7 +37,7 @@ void WTAConn::fillComponentTable() {
 }
 
 SingleArbor *WTAConn::createSingleArbor() {
-   return new SingleArbor(name, parameters(), mCommunicator);
+   return new SingleArbor(getName(), parameters(), mCommunicator);
 }
 
 } // end of namespace PV block

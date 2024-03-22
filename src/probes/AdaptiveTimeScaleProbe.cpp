@@ -81,23 +81,23 @@ int AdaptiveTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void AdaptiveTimeScaleProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "targetName", &mTargetName);
+   parameters()->ioParamStringRequired(ioFlag, getName(), "targetName", &mTargetName);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_baseMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "baseMax", &mBaseMax, mBaseMax);
+   parameters()->ioParamValue(ioFlag, getName(), "baseMax", &mBaseMax, mBaseMax);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_baseMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "baseMin", &mBaseMin, mBaseMin);
+   parameters()->ioParamValue(ioFlag, getName(), "baseMin", &mBaseMin, mBaseMin);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_tauFactor(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "tauFactor", &tauFactor, tauFactor);
+   parameters()->ioParamValue(ioFlag, getName(), "tauFactor", &tauFactor, tauFactor);
 }
 
 void AdaptiveTimeScaleProbe::ioParam_growthFactor(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "growthFactor", &mGrowthFactor, mGrowthFactor);
+   parameters()->ioParamValue(ioFlag, getName(), "growthFactor", &mGrowthFactor, mGrowthFactor);
 }
 
 Response::Status AdaptiveTimeScaleProbe::communicateInitInfo(

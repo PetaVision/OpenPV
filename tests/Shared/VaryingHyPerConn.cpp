@@ -22,7 +22,7 @@ void VaryingHyPerConn::initialize(const char *name, PVParams *params, Communicat
 }
 
 BaseWeightUpdater *VaryingHyPerConn::createWeightUpdater() {
-   return new IncrementingWeightUpdater(name, parameters(), mCommunicator);
+   return new IncrementingWeightUpdater(getName(), parameters(), mCommunicator);
 }
 
 } // end of namespace PV block

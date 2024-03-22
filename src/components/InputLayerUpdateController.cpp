@@ -35,7 +35,7 @@ void InputLayerUpdateController::ioParam_triggerLayerName(enum ParamsIOFlag ioFl
       mTriggerLayerName = nullptr;
       mTriggerFlag      = false;
       parameters()->handleUnnecessaryStringParameter(
-            name, "triggerLayerName", nullptr /*correct value*/);
+            getName(), "triggerLayerName", nullptr /*correct value*/);
    }
 }
 

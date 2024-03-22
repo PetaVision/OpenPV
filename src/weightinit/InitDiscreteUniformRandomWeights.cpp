@@ -42,15 +42,15 @@ int InitDiscreteUniformRandomWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag
 }
 
 void InitDiscreteUniformRandomWeights::ioParam_wMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, name, "wMin", &mWMin);
+   parameters()->ioParamValueRequired(ioFlag, getName(), "wMin", &mWMin);
 }
 
 void InitDiscreteUniformRandomWeights::ioParam_wMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, name, "wMax", &mWMax);
+   parameters()->ioParamValueRequired(ioFlag, getName(), "wMax", &mWMax);
 }
 
 void InitDiscreteUniformRandomWeights::ioParam_wNumValues(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, name, "numValues", &mNumValues);
+   parameters()->ioParamValueRequired(ioFlag, getName(), "numValues", &mNumValues);
    FatalIf(
          mNumValues < 2,
          "%s parameter \"numValues\" is %d, but it must be at least 2.\n",

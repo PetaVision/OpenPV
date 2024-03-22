@@ -14,7 +14,7 @@ FixedImageSequence::FixedImageSequence(
 }
 
 ActivityComponent *FixedImageSequence::createActivityComponent() {
-   return new ActivityComponentActivityOnly<ActivityBuffer>(name, parameters(), mCommunicator);
+   return new ActivityComponentActivityOnly<ActivityBuffer>(getName(), parameters(), mCommunicator);
 }
 
 Response::Status

@@ -53,13 +53,13 @@ void LayerOutputComponent::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    bool warnIfAbsent = false; // If not in params, will be set in CommunicateInitInfo stage
    // If writing a derived class that overrides ioParam_writeStep, check if the setDefaultWriteStep
    // method also needs to be overridden.
-   parameters()->ioParamValue(ioFlag, name, "writeStep", &mWriteStep, mWriteStep, warnIfAbsent);
+   parameters()->ioParamValue(ioFlag, getName(), "writeStep", &mWriteStep, mWriteStep, warnIfAbsent);
 }
 
 void LayerOutputComponent::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "writeStep"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "writeStep"));
    if (mWriteStep >= 0.0) {
-      parameters()->ioParamValue(ioFlag, name, "initialWriteTime", &mInitialWriteTime, 0.0);
+      parameters()->ioParamValue(ioFlag, getName(), "initialWriteTime", &mInitialWriteTime, 0.0);
       if (ioFlag == PARAMS_IO_READ && mWriteStep > 0.0 && mInitialWriteTime < 0.0) {
          double storeInitialWriteTime = mInitialWriteTime;
          while (mInitialWriteTime < 0.0) {
@@ -103,7 +103,7 @@ void LayerOutputComponent::setDefaultWriteStep(
       std::shared_ptr<CommunicateInitInfoMessage const> message) {
    mWriteStep = message->mDeltaTime;
    // Call ioParamValue to generate the warnIfAbsent warning.
-   parameters()->ioParamValue(PARAMS_IO_READ, name, "writeStep", &mWriteStep, mWriteStep, true);
+   parameters()->ioParamValue(PARAMS_IO_READ, getName(), "writeStep", &mWriteStep, mWriteStep, true);
 }
 
 Response::Status LayerOutputComponent::registerData(

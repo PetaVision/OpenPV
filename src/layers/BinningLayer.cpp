@@ -36,7 +36,7 @@ ActivityComponent *BinningLayer::createActivityComponent() {
 }
 
 OriginalLayerNameParam *BinningLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
+   return new OriginalLayerNameParam(getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

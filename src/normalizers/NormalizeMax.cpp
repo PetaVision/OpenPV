@@ -31,7 +31,7 @@ int NormalizeMax::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void NormalizeMax::ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "minMaxTolerated", &minMaxTolerated, 0.0f, true /*warnIfAbsent*/);
+         ioFlag, getName(), "minMaxTolerated", &minMaxTolerated, 0.0f, true /*warnIfAbsent*/);
 }
 
 int NormalizeMax::normalizeWeights() {

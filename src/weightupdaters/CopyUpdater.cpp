@@ -88,7 +88,7 @@ CopyUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> cons
    if (!Response::completed(status)) {
       return status;
    }
-   std::string nameString = std::string(name);
+   std::string nameString = std::string(getName());
    auto *checkpointer     = message->mDataRegistry;
    checkpointer->registerCheckpointData(
          nameString,

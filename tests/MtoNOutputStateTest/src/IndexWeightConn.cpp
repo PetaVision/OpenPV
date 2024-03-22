@@ -22,12 +22,12 @@ void IndexWeightConn::initialize(const char *name, PVParams *params, Communicato
 }
 
 InitWeights *IndexWeightConn::createWeightInitializer() {
-   parameters()->handleUnnecessaryStringParameter(name, "weightInitType", nullptr);
+   parameters()->handleUnnecessaryStringParameter(getName(), "weightInitType", nullptr);
    return nullptr;
 }
 
 BaseWeightUpdater *IndexWeightConn::createWeightUpdater() {
-   return new IndexWeightUpdater(name, parameters(), mCommunicator);
+   return new IndexWeightUpdater(getName(), parameters(), mCommunicator);
 }
 
 Response::Status

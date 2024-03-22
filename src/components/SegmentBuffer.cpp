@@ -29,7 +29,7 @@ int SegmentBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void SegmentBuffer::ioParam_segmentMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "segmentMethod", &segmentMethod);
+   parameters()->ioParamStringRequired(ioFlag, getName(), "segmentMethod", &segmentMethod);
    pvAssert(segmentMethod);
    // Check valid segment methods
    // none means the gsyn is already a segmentation. Helpful if reading segmentation from pvp

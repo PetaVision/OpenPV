@@ -26,7 +26,7 @@ void SegmentLayer::fillComponentTable() {
 }
 
 OriginalLayerNameParam *SegmentLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
+   return new OriginalLayerNameParam(getName(), parameters(), mCommunicator);
 }
 
 LayerInputBuffer *SegmentLayer::createLayerInput() { return nullptr; }

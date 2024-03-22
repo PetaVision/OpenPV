@@ -31,7 +31,7 @@ int SingleArbor::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void SingleArbor::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       mNumAxonalArbors = 1;
-      parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", mNumAxonalArbors);
+      parameters()->handleUnnecessaryParameter(getName(), "numAxonalArbors", mNumAxonalArbors);
    }
 }
 

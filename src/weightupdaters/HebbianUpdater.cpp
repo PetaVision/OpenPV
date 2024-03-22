@@ -46,10 +46,10 @@ int HebbianUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
       parameters()->ioParamString(
-            ioFlag, name, "triggerLayerName", &mTriggerLayerName, nullptr, false /*warnIfAbsent*/);
+            ioFlag, getName(), "triggerLayerName", &mTriggerLayerName, nullptr, false /*warnIfAbsent*/);
       if (ioFlag == PARAMS_IO_READ) {
          mTriggerFlag = (mTriggerLayerName != nullptr && mTriggerLayerName[0] != '\0');
       }
@@ -57,11 +57,11 @@ void HebbianUpdater::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
       if (mTriggerFlag) {
-         parameters()->ioParamValue(ioFlag, name, "triggerOffset", &mTriggerOffset, mTriggerOffset);
+         parameters()->ioParamValue(ioFlag, getName(), "triggerOffset", &mTriggerOffset, mTriggerOffset);
          if (mTriggerOffset < 0) {
             Fatal().printf(
                   "%s error in rank %d process: TriggerOffset (%f) must be positive",
@@ -74,16 +74,16 @@ void HebbianUpdater::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
       if (!mTriggerLayerName) {
          parameters()->ioParamValueRequired(
-               ioFlag, name, "weightUpdatePeriod", &mWeightUpdatePeriod);
+               ioFlag, getName(), "weightUpdatePeriod", &mWeightUpdatePeriod);
       }
       else
          FatalIf(
-               parameters()->present(name, "weightUpdatePeriod"),
+               parameters()->present(getName(), "weightUpdatePeriod"),
                "%s sets both triggerLayerName and weightUpdatePeriod; "
                "only one of these can be set.\n",
                getDescription_c());
@@ -91,13 +91,13 @@ void HebbianUpdater::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
       if (!mTriggerLayerName) {
          parameters()->ioParamValue(
                ioFlag,
-               name,
+               getName(),
                "initialWeightUpdateTime",
                &mInitialWeightUpdateTime,
                mInitialWeightUpdateTime,
@@ -110,11 +110,11 @@ void HebbianUpdater::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
       parameters()->ioParamValue(
             ioFlag,
-            name,
+            getName(),
             "immediateWeightUpdate",
             &mImmediateWeightUpdate,
             mImmediateWeightUpdate,
@@ -123,27 +123,27 @@ void HebbianUpdater::ioParam_immediateWeightUpdate(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamValueRequired(ioFlag, name, "dWMax", &mDWMax);
+      parameters()->ioParamValueRequired(ioFlag, getName(), "dWMax", &mDWMax);
    }
 }
 
 void HebbianUpdater::ioParam_dWMaxDecayInterval(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "dWMax"));
+      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "dWMax"));
       parameters()->ioParamValue(
-            ioFlag, name, "dWMaxDecayInterval", &mDWMaxDecayInterval, mDWMaxDecayInterval, false);
+            ioFlag, getName(), "dWMaxDecayInterval", &mDWMaxDecayInterval, mDWMaxDecayInterval, false);
    }
 }
 
 void HebbianUpdater::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "dWMax"));
+      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "dWMax"));
       parameters()->ioParamValue(
-            ioFlag, name, "dWMaxDecayFactor", &mDWMaxDecayFactor, mDWMaxDecayFactor, false);
+            ioFlag, getName(), "dWMaxDecayFactor", &mDWMaxDecayFactor, mDWMaxDecayFactor, false);
       FatalIf(
             mDWMaxDecayFactor < 0.0f || mDWMaxDecayFactor >= 1.0f,
             "%s: dWMaxDecayFactor must be in the interval [0.0, 1.0)\n",
@@ -152,7 +152,7 @@ void HebbianUpdater::ioParam_dWMaxDecayFactor(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
       parameters()->ioParamValue(
             ioFlag, getName(), "normalizeDw", &mNormalizeDw, mNormalizeDw, false /*warnIfAbsent*/);
@@ -161,7 +161,7 @@ void HebbianUpdater::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
 
 void HebbianUpdater::ioParam_useMask(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
       if (mPlasticityFlag) {
          bool useMask = false;
          parameters()->ioParamValue(
@@ -178,11 +178,11 @@ void HebbianUpdater::ioParam_useMask(enum ParamsIOFlag ioFlag) {
 }
 
 void HebbianUpdater::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
       parameters()->ioParamValue(
             ioFlag,
-            name,
+            getName(),
             "combine_dW_with_W_flag",
             &mCombine_dWWithWFlag,
             mCombine_dWWithWFlag,
@@ -261,7 +261,7 @@ Response::Status HebbianUpdater::allocateDataStructures() {
          if (mWeights->getGeometry() == nullptr) {
             return status + Response::POSTPONE;
          }
-         mDeltaWeights = new Weights(name, mWeights);
+         mDeltaWeights = new Weights(getName(), mWeights);
          mDeltaWeights->setMargins(
                mConnectionData->getPre()->getLayerLoc()->halo,
                mConnectionData->getPost()->getLayerLoc()->halo);
@@ -307,10 +307,10 @@ HebbianUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
    }
    auto *checkpointer = message->mDataRegistry;
    if (mPlasticityFlag and !mImmediateWeightUpdate) {
-      mDeltaWeights->checkpointWeightPvp(checkpointer, name, "dW", mWriteCompressedCheckpoints);
+      mDeltaWeights->checkpointWeightPvp(checkpointer, getName(), "dW", mWriteCompressedCheckpoints);
       // Do we need to get PrepareCheckpointWrite messages, to call blockingNormalize_dW()?
    }
-   std::string nameString = std::string(name);
+   std::string nameString = std::string(getName());
    if (mPlasticityFlag && !mTriggerControl) {
       checkpointer->registerCheckpointData(
             nameString,
@@ -334,7 +334,7 @@ Response::Status HebbianUpdater::readStateFromCheckpoint(Checkpointer *checkpoin
    pvAssert(mInitializeFromCheckpointFlag);
    if (mPlasticityFlag and !mImmediateWeightUpdate) {
       checkpointer->readNamedCheckpointEntry(
-            std::string(name), std::string("dW"), false /*not constant*/);
+            std::string(getName()), std::string("dW"), false /*not constant*/);
    }
    return Response::SUCCESS;
 }

@@ -26,7 +26,7 @@ void ZeroV::initialize(char const *name, PVParams *params, Communicator const *c
 void ZeroV::ioParam_valueV(enum ParamsIOFlag ioFlag) {
    mValueV = 0.0f;
    if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "valueV", 0.0f /*correctValue*/);
+      parameters()->handleUnnecessaryParameter(getName(), "valueV", 0.0f /*correctValue*/);
    }
 }
 

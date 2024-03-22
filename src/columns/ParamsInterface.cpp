@@ -8,7 +8,7 @@
 #include "ParamsInterface.hpp"
 
 namespace PV {
-ParamsInterface::~ParamsInterface() { free(name); }
+ParamsInterface::~ParamsInterface() { free(mName); }
 
 int ParamsInterface::initialize(char const *name, PVParams *params) {
    setName(name);
@@ -21,9 +21,9 @@ int ParamsInterface::initialize(char const *name, PVParams *params) {
 }
 
 void ParamsInterface::setName(char const *name) {
-   pvAssert(this->name == nullptr);
-   this->name = strdup(name);
-   FatalIf(name == nullptr, "could not set name \"%s\". %s\n", name, strerror(errno));
+   pvAssert(mName == nullptr);
+   mName = strdup(name);
+   FatalIf(mName == nullptr, "could not set name \"%s\". %s\n", name, strerror(errno));
 }
 
 void ParamsInterface::setParams(PVParams *params) { mParams = params; }
@@ -51,7 +51,7 @@ void ParamsInterface::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioF
    if (ioFlag == PARAMS_IO_READ or mWriteInitializeFromCheckpointFlag) {
       parameters()->ioParamValue(
             ioFlag,
-            this->name,
+            mName,
             "initializeFromCheckpointFlag",
             &mInitializeFromCheckpointFlag,
             mInitializeFromCheckpointFlag /*default value*/,

@@ -158,7 +158,7 @@ Response::Status BasePublisherComponent::readStateFromCheckpoint(Checkpointer *c
    if (!Response::completed(status)) {
       return status;
    }
-   checkpointer->readNamedCheckpointEntry(std::string(name), std::string("Delays"), false);
+   checkpointer->readNamedCheckpointEntry(std::string(mName), std::string("Delays"), false);
    return Response::SUCCESS;
 }
 

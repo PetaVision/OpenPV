@@ -42,16 +42,16 @@ int DiscreteUniformRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void DiscreteUniformRandomV::ioParam_minV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "minV", &mMinV, mMinV);
+   parameters()->ioParamValue(ioFlag, getName(), "minV", &mMinV, mMinV);
 }
 
 void DiscreteUniformRandomV::ioParam_maxV(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "minV"));
-   parameters()->ioParamValue(ioFlag, name, "maxV", &mMaxV, mMinV + 1.0f);
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "minV"));
+   parameters()->ioParamValue(ioFlag, getName(), "maxV", &mMaxV, mMinV + 1.0f);
 }
 
 void DiscreteUniformRandomV::ioParam_numValues(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "numValues", &mNumValues, mNumValues);
+   parameters()->ioParamValue(ioFlag, getName(), "numValues", &mNumValues, mNumValues);
    FatalIf(
          mNumValues < 2,
          "%s parameter \"numValues\" is %d, but it must be at least 2.\n",

@@ -22,7 +22,7 @@ void FeedbackConn::initialize(char const *name, PVParams *params, Communicator c
 }
 
 ConnectionData *FeedbackConn::createConnectionData() {
-   return new FeedbackConnectionData(name, parameters(), mCommunicator);
+   return new FeedbackConnectionData(getName(), parameters(), mCommunicator);
 }
 
 } // namespace PV

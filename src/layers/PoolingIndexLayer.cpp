@@ -34,13 +34,13 @@ int PoolingIndexLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 LayerInputBuffer *PoolingIndexLayer::createLayerInput() {
-   return new PoolingIndexLayerInputBuffer(name, parameters(), mCommunicator);
+   return new PoolingIndexLayerInputBuffer(getName(), parameters(), mCommunicator);
 }
 
 ActivityComponent *PoolingIndexLayer::createActivityComponent() {
    return new HyPerActivityComponent<SingleChannelGSynAccumulator,
                                      HyPerInternalStateBuffer,
-                                     HyPerActivityBuffer>(name, parameters(), mCommunicator);
+                                     HyPerActivityBuffer>(getName(), parameters(), mCommunicator);
 }
 
 } // end namespace PV

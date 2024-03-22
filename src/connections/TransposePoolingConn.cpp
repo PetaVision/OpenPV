@@ -38,15 +38,15 @@ void TransposePoolingConn::fillComponentTable() {
 }
 
 BaseDelivery *TransposePoolingConn::createDeliveryObject() {
-   return new TransposePoolingDelivery(name, parameters(), mCommunicator);
+   return new TransposePoolingDelivery(getName(), parameters(), mCommunicator);
 }
 
 PatchSize *TransposePoolingConn::createPatchSize() {
-   return new TransposePatchSize(name, parameters(), mCommunicator);
+   return new TransposePatchSize(getName(), parameters(), mCommunicator);
 }
 
 OriginalConnNameParam *TransposePoolingConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(name, parameters(), mCommunicator);
+   return new OriginalConnNameParam(getName(), parameters(), mCommunicator);
 }
 
 } // namespace PV

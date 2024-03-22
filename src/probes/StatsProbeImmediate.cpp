@@ -31,7 +31,7 @@ void StatsProbeImmediate::ioParam_immediateMPIAssembly(enum ParamsIOFlag ioFlag)
    if (ioFlag == PARAMS_IO_READ) {
       setImmediateMPIAssembly(true);
       parameters()->handleUnnecessaryParameter(
-            name, "immediateMPIAssembly", getImmediateMPIAssembly());
+            getName(), "immediateMPIAssembly", getImmediateMPIAssembly());
    }
 }
 

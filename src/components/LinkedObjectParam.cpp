@@ -29,7 +29,7 @@ int LinkedObjectParam::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LinkedObjectParam::ioParam_linkedObjectName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, mParamName.c_str(), &mLinkedObjectName);
+   parameters()->ioParamStringRequired(ioFlag, getName(), mParamName.c_str(), &mLinkedObjectName);
 }
 
 } // namespace PV

@@ -62,7 +62,7 @@ void LayerInputDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "receiveGpu",
          &mReceiveGpu,
          mReceiveGpu /*default*/,

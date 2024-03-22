@@ -80,84 +80,84 @@ int LIFActivityComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LIFActivityComponent::ioParam_Vrest(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "Vrest", &mLIFParams.Vrest, mLIFParams.Vrest);
+   parameters()->ioParamValue(ioFlag, getName(), "Vrest", &mLIFParams.Vrest, mLIFParams.Vrest);
 }
 
 void LIFActivityComponent::ioParam_Vexc(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "Vexc", &mLIFParams.Vexc, mLIFParams.Vexc);
+   parameters()->ioParamValue(ioFlag, getName(), "Vexc", &mLIFParams.Vexc, mLIFParams.Vexc);
 }
 
 void LIFActivityComponent::ioParam_Vinh(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "Vinh", &mLIFParams.Vinh, mLIFParams.Vinh);
+   parameters()->ioParamValue(ioFlag, getName(), "Vinh", &mLIFParams.Vinh, mLIFParams.Vinh);
 }
 
 void LIFActivityComponent::ioParam_VinhB(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "VinhB", &mLIFParams.VinhB, mLIFParams.VinhB);
+   parameters()->ioParamValue(ioFlag, getName(), "VinhB", &mLIFParams.VinhB, mLIFParams.VinhB);
 }
 
 void LIFActivityComponent::ioParam_VthRest(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "VthRest", &mLIFParams.VthRest, mLIFParams.VthRest);
+   parameters()->ioParamValue(ioFlag, getName(), "VthRest", &mLIFParams.VthRest, mLIFParams.VthRest);
 }
 
 void LIFActivityComponent::ioParam_tau(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "tau", &mLIFParams.tau, mLIFParams.tau);
+   parameters()->ioParamValue(ioFlag, getName(), "tau", &mLIFParams.tau, mLIFParams.tau);
 }
 
 void LIFActivityComponent::ioParam_tauVth(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "tauVth", &mLIFParams.tauVth, mLIFParams.tauVth);
+   parameters()->ioParamValue(ioFlag, getName(), "tauVth", &mLIFParams.tauVth, mLIFParams.tauVth);
 }
 
 void LIFActivityComponent::ioParam_deltaVth(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "deltaVth", &mLIFParams.deltaVth, mLIFParams.deltaVth);
+   parameters()->ioParamValue(ioFlag, getName(), "deltaVth", &mLIFParams.deltaVth, mLIFParams.deltaVth);
 }
 
 void LIFActivityComponent::ioParam_deltaGIB(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "deltaGIB", &mLIFParams.deltaGIB, mLIFParams.deltaGIB);
+   parameters()->ioParamValue(ioFlag, getName(), "deltaGIB", &mLIFParams.deltaGIB, mLIFParams.deltaGIB);
 }
 
 void LIFActivityComponent::ioParam_noiseAmpE(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "noiseAmpE", &mLIFParams.noiseAmpE, mLIFParams.noiseAmpE);
+         ioFlag, getName(), "noiseAmpE", &mLIFParams.noiseAmpE, mLIFParams.noiseAmpE);
 }
 
 void LIFActivityComponent::ioParam_noiseAmpI(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "noiseAmpI", &mLIFParams.noiseAmpI, mLIFParams.noiseAmpI);
+         ioFlag, getName(), "noiseAmpI", &mLIFParams.noiseAmpI, mLIFParams.noiseAmpI);
 }
 
 void LIFActivityComponent::ioParam_noiseAmpIB(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "noiseAmpIB", &mLIFParams.noiseAmpIB, mLIFParams.noiseAmpIB);
+         ioFlag, getName(), "noiseAmpIB", &mLIFParams.noiseAmpIB, mLIFParams.noiseAmpIB);
 }
 
 void LIFActivityComponent::ioParam_noiseFreqE(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "noiseFreqE", &mLIFParams.noiseFreqE, mLIFParams.noiseFreqE);
+         ioFlag, getName(), "noiseFreqE", &mLIFParams.noiseFreqE, mLIFParams.noiseFreqE);
    // Truncation to 1/(0.001*dt) has been moved to initializeState() method.
 }
 
 void LIFActivityComponent::ioParam_noiseFreqI(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "noiseFreqI", &mLIFParams.noiseFreqI, mLIFParams.noiseFreqI);
+         ioFlag, getName(), "noiseFreqI", &mLIFParams.noiseFreqI, mLIFParams.noiseFreqI);
    // Truncation to 1/(0.001*dt) has been moved to initializeState() method.
 }
 
 void LIFActivityComponent::ioParam_noiseFreqIB(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "noiseFreqIB", &mLIFParams.noiseFreqIB, mLIFParams.noiseFreqIB);
+         ioFlag, getName(), "noiseFreqIB", &mLIFParams.noiseFreqIB, mLIFParams.noiseFreqIB);
    // Truncation to 1/(0.001*dt) has been moved to initializeState() method.
 }
 
 void LIFActivityComponent::ioParam_tauE(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "tauE", &mLIFParams.tauE, mLIFParams.tauE);
+   parameters()->ioParamValue(ioFlag, getName(), "tauE", &mLIFParams.tauE, mLIFParams.tauE);
 }
 
 void LIFActivityComponent::ioParam_tauI(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "tauI", &mLIFParams.tauI, mLIFParams.tauI);
+   parameters()->ioParamValue(ioFlag, getName(), "tauI", &mLIFParams.tauI, mLIFParams.tauI);
 }
 
 void LIFActivityComponent::ioParam_tauIB(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "tauIB", &mLIFParams.tauIB, mLIFParams.tauIB);
+   parameters()->ioParamValue(ioFlag, getName(), "tauIB", &mLIFParams.tauIB, mLIFParams.tauIB);
 }
 
 void LIFActivityComponent::ioParam_method(enum ParamsIOFlag ioFlag) {
@@ -165,7 +165,7 @@ void LIFActivityComponent::ioParam_method(enum ParamsIOFlag ioFlag) {
    // 'original' (deprecated).
    char const *defaultMethod = "arma";
    parameters()->ioParamString(
-         ioFlag, name, "method", &mMethodString, defaultMethod, true /*warnIfAbsent*/);
+         ioFlag, getName(), "method", &mMethodString, defaultMethod, true /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       pvAssert(mMethodString);
       if (mMethodString[0] == '\0') {
@@ -188,7 +188,7 @@ void LIFActivityComponent::checkMethodString() {
          ErrorLog().printf(
                "LIFActivityComponent::ioParam_method error.  Layer \"%s\" has method \"%s\".  "
                "Allowable values are \"arma\", \"beginning\" and \"original\".\n",
-               name,
+               getName(),
                mMethodString);
       }
       MPI_Barrier(mCommunicator->communicator());
@@ -199,7 +199,7 @@ void LIFActivityComponent::checkMethodString() {
          WarnLog().printf(
                "LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is "
                "preferred.\n",
-               name,
+               getName(),
                mMethodString);
       }
    }

@@ -71,9 +71,9 @@ int LayerUpdateController::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 // Setting triggerLayerName to a nonempty string has the effect of triggerFlag=true, and
 // setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
 void LayerUpdateController::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && parameters()->present(name, "triggerFlag")) {
+   if (ioFlag == PARAMS_IO_READ && parameters()->present(getName(), "triggerFlag")) {
       FatalIf(
-            parameters()->present(name, "triggerFlag"),
+            parameters()->present(getName(), "triggerFlag"),
             "%s sets triggerFlag, but this flag is obsolete.\n"
             "   If triggerLayerName is a nonempty string, triggering will be on;\n"
             "   if triggerLayerName is empty or null, triggering will be off.\n",
@@ -83,10 +83,10 @@ void LayerUpdateController::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
 
 void LayerUpdateController::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
-         ioFlag, name, "triggerLayerName", &mTriggerLayerName, NULL, false /*warnIfAbsent*/);
+         ioFlag, getName(), "triggerLayerName", &mTriggerLayerName, NULL, false /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       FatalIf(
-            mTriggerLayerName and !strcmp(name, mTriggerLayerName),
+            mTriggerLayerName and !strcmp(getName(), mTriggerLayerName),
             "%s triggerLayerName cannot be the same as the name of the layer itself.\n",
             getDescription_c());
    }
@@ -94,18 +94,18 @@ void LayerUpdateController::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 void LayerUpdateController::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
    if (mTriggerFlag) {
-      parameters()->ioParamValue(ioFlag, name, "triggerOffset", &mTriggerOffset, mTriggerOffset);
+      parameters()->ioParamValue(ioFlag, getName(), "triggerOffset", &mTriggerOffset, mTriggerOffset);
    }
 }
 
 void LayerUpdateController::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
    if (mTriggerFlag) {
       parameters()->ioParamString(
             ioFlag,
-            name,
+            getName(),
             "triggerBehavior",
             &mTriggerBehavior,
             "updateOnlyOnTrigger",
@@ -133,12 +133,12 @@ void LayerUpdateController::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
 }
 
 void LayerUpdateController::ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
    if (mTriggerFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "triggerBehavior"));
+      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "triggerBehavior"));
       if (mTriggerBehaviorType == RESETSTATEONTRIGGER) {
          parameters()->ioParamStringRequired(
-               ioFlag, name, "triggerResetLayerName", &mTriggerResetLayerName);
+               ioFlag, getName(), "triggerResetLayerName", &mTriggerResetLayerName);
       }
    }
 }

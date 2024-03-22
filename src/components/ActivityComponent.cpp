@@ -43,7 +43,7 @@ int ActivityComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void ActivityComponent::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #ifdef PV_USE_CUDA
    parameters()->ioParamValue(
-         ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, true /*warnIfAbsent*/);
+         ioFlag, getName(), "updateGpu", &mUpdateGpu, mUpdateGpu, true /*warnIfAbsent*/);
 #else // PV_USE_CUDA
    bool mUpdateGpu = false;
    parameters()->ioParamValue(

@@ -41,12 +41,12 @@ int BinningActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BinningActivityBuffer::ioParam_binMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "binMin", &mBinMin, mBinMin);
+   parameters()->ioParamValue(ioFlag, getName(), "binMin", &mBinMin, mBinMin);
 }
 
 void BinningActivityBuffer::ioParam_binMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "binMin"));
-   parameters()->ioParamValue(ioFlag, name, "binMax", &mBinMax, mBinMax);
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "binMin"));
+   parameters()->ioParamValue(ioFlag, getName(), "binMax", &mBinMax, mBinMax);
    if (ioFlag == PARAMS_IO_READ && mBinMax <= mBinMin) {
       if (mCommunicator->commRank() == 0) {
          ErrorLog().printf(
@@ -61,23 +61,23 @@ void BinningActivityBuffer::ioParam_binMax(enum ParamsIOFlag ioFlag) {
 }
 
 void BinningActivityBuffer::ioParam_binSigma(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "binSigma", &mBinSigma, mBinSigma);
+   parameters()->ioParamValue(ioFlag, getName(), "binSigma", &mBinSigma, mBinSigma);
 }
 
 void BinningActivityBuffer::ioParam_delay(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "delay", &mDelay, mDelay);
+   parameters()->ioParamValue(ioFlag, getName(), "delay", &mDelay, mDelay);
 }
 
 void BinningActivityBuffer::ioParam_zeroNeg(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "zeroNeg", &mZeroNeg, mZeroNeg);
+   parameters()->ioParamValue(ioFlag, getName(), "zeroNeg", &mZeroNeg, mZeroNeg);
 }
 
 void BinningActivityBuffer::ioParam_zeroDCR(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "zeroDCR", &mZeroDCR, mZeroDCR);
+   parameters()->ioParamValue(ioFlag, getName(), "zeroDCR", &mZeroDCR, mZeroDCR);
 }
 
 void BinningActivityBuffer::ioParam_normalDist(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "normalDist", &mNormalDist, mNormalDist);
+   parameters()->ioParamValue(ioFlag, getName(), "normalDist", &mNormalDist, mNormalDist);
 }
 
 // TODO read params for gaussian over features

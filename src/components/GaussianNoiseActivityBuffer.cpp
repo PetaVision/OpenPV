@@ -36,11 +36,11 @@ int GaussianNoiseActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void GaussianNoiseActivityBuffer::ioParam_mu(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "mu", &mMu, mMu);
+   parameters()->ioParamValue(ioFlag, getName(), "mu", &mMu, mMu);
 }
 
 void GaussianNoiseActivityBuffer::ioParam_sigma(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "sigma", &mSigma, mSigma);
+   parameters()->ioParamValue(ioFlag, getName(), "sigma", &mSigma, mSigma);
 }
 
 void GaussianNoiseActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {

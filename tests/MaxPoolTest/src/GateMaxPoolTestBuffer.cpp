@@ -35,7 +35,7 @@ void GateMaxPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
          if (GSynExt[k]) {
             numActive++;
             if (GSynExt[k] != GSynInh[k]) {
-               ErrorLog() << "Connection " << name << " Mismatch at batch " << b << " neuron " << k
+               ErrorLog() << "Connection " << getName() << " Mismatch at batch " << b << " neuron " << k
                           << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k]
                           << ".\n";
                isCorrect = false;
@@ -46,7 +46,7 @@ void GateMaxPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
       // 25% of the neurons should be active
       float percentActive = (float)numActive / getBufferSize();
       if (percentActive != 0.25f) {
-         Fatal() << "Percent active for " << name << " is " << percentActive
+         Fatal() << "Percent active for " << getName() << " is " << percentActive
                  << ", where expected is .25 at timestep " << simTime << " for batch " << b << "\n";
       }
       FatalIf(!(percentActive == 0.25f), "Test failed.\n");

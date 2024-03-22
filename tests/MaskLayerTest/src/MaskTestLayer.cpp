@@ -18,7 +18,7 @@ int MaskTestLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void MaskTestLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "maskMethod", &maskMethod);
+   parameters()->ioParamStringRequired(ioFlag, getName(), "maskMethod", &maskMethod);
    // Check valid methods
    if (strcmp(maskMethod, "layer") == 0) {
    }
@@ -60,7 +60,7 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
          if (strcmp(maskMethod, "layer") == 0) {
             if (GSynInhB[k]) {
                if (GSynExt[k] != GSynInh[k]) {
-                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                  ErrorLog() << "Connection " << getName() << " Mismatch at " << k
                              << ": actual value: " << GSynExt[k]
                              << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;
@@ -68,7 +68,7 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
             }
             else {
                if (GSynExt[k] != 0) {
-                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                  ErrorLog() << "Connection " << getName() << " Mismatch at " << k
                              << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
                   isCorrect = false;
                }
@@ -79,7 +79,7 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
             // " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
             if (!GSynInhB[k]) {
                if (GSynExt[k] != GSynInh[k]) {
-                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                  ErrorLog() << "Connection " << getName() << " Mismatch at " << k
                              << ": actual value: " << GSynExt[k]
                              << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;
@@ -87,7 +87,7 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
             }
             else {
                if (GSynExt[k] != 0) {
-                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                  ErrorLog() << "Connection " << getName() << " Mismatch at " << k
                              << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
                   isCorrect = false;
                }
@@ -98,14 +98,14 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
             // Param files specifies idxs 0 and 2 out of 3 total features
             if (featureIdx == 0 || featureIdx == 2) {
                if (GSynExt[k] != 0) {
-                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                  ErrorLog() << "Connection " << getName() << " Mismatch at " << k
                              << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
                   isCorrect = false;
                }
             }
             else {
                if (GSynExt[k] != GSynInh[k]) {
-                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                  ErrorLog() << "Connection " << getName() << " Mismatch at " << k
                              << ": actual value: " << GSynExt[k]
                              << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;
@@ -117,7 +117,7 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
             // Param files specifies idxs 0 and 2 out of 3 total features
             if (featureIdx == 0 || featureIdx == 2) {
                if (GSynExt[k] != GSynInh[k]) {
-                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                  ErrorLog() << "Connection " << getName() << " Mismatch at " << k
                              << ": actual value: " << GSynExt[k]
                              << " Expected value: " << GSynInh[k] << ".\n";
                   isCorrect = false;
@@ -125,7 +125,7 @@ Response::Status MaskTestLayer::checkUpdateState(double timef, double dt) {
             }
             else {
                if (GSynExt[k] != 0) {
-                  ErrorLog() << "Connection " << name << " Mismatch at " << k
+                  ErrorLog() << "Connection " << getName() << " Mismatch at " << k
                              << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
                   isCorrect = false;
                }

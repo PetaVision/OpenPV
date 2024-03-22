@@ -40,19 +40,19 @@ int SigmoidActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void SigmoidActivityBuffer::ioParam_Vrest(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "Vrest", &mVrest, mVrest);
+   parameters()->ioParamValue(ioFlag, getName(), "Vrest", &mVrest, mVrest);
 }
 void SigmoidActivityBuffer::ioParam_VthRest(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "VthRest", &mVthRest, mVthRest);
+   parameters()->ioParamValue(ioFlag, getName(), "VthRest", &mVthRest, mVthRest);
 }
 void SigmoidActivityBuffer::ioParam_InverseFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "InverseFlag", &mInverseFlag, mInverseFlag);
+   parameters()->ioParamValue(ioFlag, getName(), "InverseFlag", &mInverseFlag, mInverseFlag);
 }
 void SigmoidActivityBuffer::ioParam_SigmoidFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "SigmoidFlag", &mSigmoidFlag, mSigmoidFlag);
+   parameters()->ioParamValue(ioFlag, getName(), "SigmoidFlag", &mSigmoidFlag, mSigmoidFlag);
 }
 void SigmoidActivityBuffer::ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "SigmoidAlpha", &mSigmoidAlpha, mSigmoidAlpha);
+   parameters()->ioParamValue(ioFlag, getName(), "SigmoidAlpha", &mSigmoidAlpha, mSigmoidAlpha);
 }
 
 Response::Status SigmoidActivityBuffer::communicateInitInfo(

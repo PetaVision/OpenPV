@@ -33,13 +33,13 @@ int BoundaryConditions::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BoundaryConditions::ioParam_mirrorBCflag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "mirrorBCflag", &mMirrorBCflag, mMirrorBCflag);
+   parameters()->ioParamValue(ioFlag, getName(), "mirrorBCflag", &mMirrorBCflag, mMirrorBCflag);
 }
 
 void BoundaryConditions::ioParam_valueBC(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "mirrorBCflag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "mirrorBCflag"));
    if (!mMirrorBCflag) {
-      parameters()->ioParamValue(ioFlag, name, "valueBC", &mValueBC, mValueBC);
+      parameters()->ioParamValue(ioFlag, getName(), "valueBC", &mValueBC, mValueBC);
    }
 }
 

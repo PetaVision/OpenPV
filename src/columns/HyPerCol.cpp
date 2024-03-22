@@ -422,7 +422,7 @@ HyPerCol::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> 
    }
    auto *checkpointer = message->mDataRegistry;
    checkpointer->registerCheckpointData<int>(
-         std::string(name),
+         std::string(getName()),
          std::string("IdleCounts"),
          mIdleCounts.data(),
          mIdleCounts.size(),

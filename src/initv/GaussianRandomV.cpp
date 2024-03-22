@@ -33,11 +33,11 @@ int GaussianRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void GaussianRandomV::ioParam_meanV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "meanV", &meanV, meanV);
+   parameters()->ioParamValue(ioFlag, getName(), "meanV", &meanV, meanV);
 }
 
 void GaussianRandomV::ioParam_sigmaV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "maxV", &sigmaV, sigmaV);
+   parameters()->ioParamValue(ioFlag, getName(), "maxV", &sigmaV, sigmaV);
 }
 
 void GaussianRandomV::calcV(float *V, PVLayerLoc const *loc) {

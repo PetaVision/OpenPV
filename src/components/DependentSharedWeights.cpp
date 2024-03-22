@@ -38,7 +38,7 @@ int DependentSharedWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void DependentSharedWeights::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "sharedWeights");
+      parameters()->handleUnnecessaryParameter(getName(), "sharedWeights");
    }
    // During the communication phase, sharedWeights will be copied from originalConn
 }
@@ -76,7 +76,7 @@ Response::Status DependentSharedWeights::communicateInitInfo(
       return Response::POSTPONE;
    }
    mSharedWeights = originalSharedWeights->getSharedWeights();
-   parameters()->handleUnnecessaryParameter(name, "sharedWeights", mSharedWeights);
+   parameters()->handleUnnecessaryParameter(getName(), "sharedWeights", mSharedWeights);
 
    auto status = SharedWeights::communicateInitInfo(message);
    if (!Response::completed(status)) {

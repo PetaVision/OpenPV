@@ -91,26 +91,26 @@ int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseProbe::ioParam_targetName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "targetName", &targetName);
+   parameters()->ioParamStringRequired(ioFlag, getName(), "targetName", &targetName);
 }
 
 void BaseProbe::ioParam_message(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamString(ioFlag, name, "message", &msgparams, NULL, false /*warnIfAbsent*/);
+   parameters()->ioParamString(ioFlag, getName(), "message", &msgparams, NULL, false /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       initMessage(msgparams);
    }
 }
 
 void BaseProbe::ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "textOutputFlag", &textOutputFlag, textOutputFlag);
+   parameters()->ioParamValue(ioFlag, getName(), "textOutputFlag", &textOutputFlag, textOutputFlag);
 }
 
 void BaseProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "textOutputFlag"));
    if (textOutputFlag) {
       parameters()->ioParamString(
             ioFlag,
-            name,
+            getName(),
             "probeOutputFile",
             &mProbeOutputFilename,
             nullptr,
@@ -119,31 +119,31 @@ void BaseProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
 }
 
 void BaseProbe::ioParam_statsFlag(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "textOutputFlag"));
    if (textOutputFlag) {
       parameters()->ioParamValue(
-            ioFlag, name, "statsFlag", &mStatsFlag, mStatsFlag, false /*warnIfAbsent*/);
+            ioFlag, getName(), "statsFlag", &mStatsFlag, mStatsFlag, false /*warnIfAbsent*/);
    }
 }
 
 void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
-         ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false /*warnIfAbsent*/);
+         ioFlag, getName(), "triggerLayerName", &triggerLayerName, NULL, false /*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       triggerFlag = (triggerLayerName != NULL && triggerLayerName[0] != '\0');
    }
 }
 
 void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "triggerLayerName"));
    if (triggerFlag) {
-      parameters()->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
+      parameters()->ioParamValue(ioFlag, getName(), "triggerOffset", &triggerOffset, triggerOffset);
       if (triggerOffset < 0) {
          Fatal().printf(
                "%s \"%s\" error in rank %d process: TriggerOffset (%f) "
                "must be positive\n",
-               parameters()->groupKeywordFromName(name),
-               name,
+               parameters()->groupKeywordFromName(getName()),
+               getName(),
                mCommunicator->globalCommRank(),
                triggerOffset);
       }
@@ -370,8 +370,8 @@ int BaseProbe::initMessage(const char *msg) {
    if (!this->msgstring) {
       ErrorLog().printf(
             "%s \"%s\": Unable to allocate memory for probe's message.\n",
-            parameters()->groupKeywordFromName(name),
-            name);
+            parameters()->groupKeywordFromName(getName()),
+            getName());
       status = PV_FAILURE;
    }
    assert(status == PV_SUCCESS);

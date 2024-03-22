@@ -63,7 +63,7 @@ class ParamsInterface : public CheckpointerDataInterface {
     */
    void ioParams(enum ParamsIOFlag ioFlag, bool printHeader, bool printFooter);
 
-   char const *getName() const { return name; }
+   char const *getName() const { return mName; }
    PVParams *parameters() const { return mParams; } // TODO: change to getParams()
    std::string const &getObjectType() const { return mObjectType; }
 
@@ -94,7 +94,7 @@ class ParamsInterface : public CheckpointerDataInterface {
 
    // Data members
   protected:
-   char *name        = nullptr; // TODO: change to mName
+   char *mName        = nullptr;
    PVParams *mParams = nullptr;
    std::string mObjectType;
 

@@ -44,49 +44,49 @@ int RetinaActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void RetinaActivityBuffer::ioParam_spikingFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "spikingFlag", &mSpikingFlag, true);
+   parameters()->ioParamValue(ioFlag, getName(), "spikingFlag", &mSpikingFlag, true);
 }
 
 void RetinaActivityBuffer::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "backgroundRate", &mBackgroundRate, 0.0);
+   parameters()->ioParamValue(ioFlag, getName(), "backgroundRate", &mBackgroundRate, 0.0);
 }
 
 void RetinaActivityBuffer::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "foregroundRate", &mForegroundRate, 1.0);
+   parameters()->ioParamValue(ioFlag, getName(), "foregroundRate", &mForegroundRate, 1.0);
 }
 
 void RetinaActivityBuffer::ioParam_beginStim(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "beginStim", &mBeginStim, 0.0);
+   parameters()->ioParamValue(ioFlag, getName(), "beginStim", &mBeginStim, 0.0);
 }
 
 void RetinaActivityBuffer::ioParam_endStim(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "endStim", &mEndStim, (double)FLT_MAX);
+   parameters()->ioParamValue(ioFlag, getName(), "endStim", &mEndStim, (double)FLT_MAX);
    if (ioFlag == PARAMS_IO_READ && mEndStim < 0)
       mEndStim = FLT_MAX;
 }
 
 void RetinaActivityBuffer::ioParam_burstFreq(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "burstFreq", &mBurstFreq, 1.0f);
+   parameters()->ioParamValue(ioFlag, getName(), "burstFreq", &mBurstFreq, 1.0f);
 }
 
 void RetinaActivityBuffer::ioParam_burstDuration(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "burstDuration", &mBurstDuration, 1000.0f);
+   parameters()->ioParamValue(ioFlag, getName(), "burstDuration", &mBurstDuration, 1000.0f);
 }
 
 void RetinaActivityBuffer::ioParam_refractoryPeriod(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "spikingFlag"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "spikingFlag"));
    if (mSpikingFlag) {
       parameters()->ioParamValue(
-            ioFlag, name, "refractoryPeriod", &mRefractoryPeriod, mDefaultRefractoryPeriod);
+            ioFlag, getName(), "refractoryPeriod", &mRefractoryPeriod, mDefaultRefractoryPeriod);
    }
 }
 
 void RetinaActivityBuffer::ioParam_absRefractoryPeriod(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "spikingFlag"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "spikingFlag"));
    if (mSpikingFlag) {
       parameters()->ioParamValue(
             ioFlag,
-            name,
+            getName(),
             "absRefractoryPeriod",
             &mAbsRefractoryPeriod,
             mDefaultAbsRefractoryPeriod);
@@ -219,12 +219,12 @@ Response::Status RetinaActivityBuffer::readStateFromCheckpoint(Checkpointer *che
 
 void RetinaActivityBuffer::readRandStateFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(
-         std::string(name), std::string("rand_state.pvp"), false /*not constant*/);
+         std::string(getName()), std::string("rand_state.pvp"), false /*not constant*/);
 }
 
 void RetinaActivityBuffer::readSinceLastSpikeFromCheckpoint(Checkpointer *checkpointer) {
    checkpointer->readNamedCheckpointEntry(
-         std::string(name), std::string("SinceLastSpike.pvp"), false /*not constant*/);
+         std::string(getName()), std::string("SinceLastSpike.pvp"), false /*not constant*/);
 }
 
 void RetinaActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {

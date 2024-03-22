@@ -24,7 +24,7 @@ void IdentDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // Never receive from gpu
    mReceiveGpu = false;
    if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "receiveGpu", false /*correctValue*/);
+      parameters()->handleUnnecessaryParameter(getName(), "receiveGpu", false /*correctValue*/);
    }
 }
 
@@ -85,7 +85,7 @@ void IdentDelivery::checkPreAndPostDimensions() {
          status != PV_SUCCESS,
          "IdentDelivery \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: "
          "%dx%dx%d vs. %dx%dx%d\n",
-         name,
+         getName(),
          mPreData->getName(),
          mPostGSyn->getName(),
          preLoc->nx,
