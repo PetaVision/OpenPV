@@ -58,11 +58,11 @@ ParameterArray::ParameterArray(int initialSize) {
    paramName       = strdup("Unnamed Parameter array");
    bufferSize      = initialSize;
    arraySize       = 0;
-   values          = NULL;
+   values          = nullptr;
    if (bufferSize > 0) {
       values    = (float *)calloc(bufferSize, sizeof(float));
       valuesDbl = (double *)calloc(bufferSize, sizeof(double));
-      if (values == NULL || valuesDbl == NULL) {
+      if (values == nullptr || valuesDbl == nullptr) {
          Fatal().printf("ParameterArray failed to allocate memory for \"%s\"\n", name());
       }
    }
@@ -70,11 +70,11 @@ ParameterArray::ParameterArray(int initialSize) {
 
 ParameterArray::~ParameterArray() {
    free(paramName);
-   paramName = NULL;
+   paramName = nullptr;
    free(values);
-   values = NULL;
+   values = nullptr;
    free(valuesDbl);
-   valuesDbl = NULL;
+   valuesDbl = nullptr;
 }
 
 int ParameterArray::setName(const char *name) {
@@ -99,7 +99,7 @@ int ParameterArray::pushValue(double value) {
    if (bufferSize == arraySize) {
       bufferSize += PARAMETERARRAY_INITIALSIZE;
       float *new_values = (float *)calloc(bufferSize, sizeof(float));
-      if (new_values == NULL) {
+      if (new_values == nullptr) {
          Fatal().printf(
                "ParameterArray::pushValue failed to increase array \"%s\" to %d values\n",
                name(),
@@ -109,7 +109,7 @@ int ParameterArray::pushValue(double value) {
       free(values);
       values                 = new_values;
       double *new_values_dbl = (double *)calloc(bufferSize, sizeof(double));
-      if (new_values == NULL) {
+      if (new_values == nullptr) {
          Fatal().printf(
                "ParameterArray::pushValue failed to increase array \"%s\" to %d values\n",
                name(),
@@ -141,8 +141,8 @@ ParameterArray *ParameterArray::copyParameterArray() {
  * @value
  */
 ParameterString::ParameterString(const char *name, const char *value) {
-   paramName       = name ? strdup(name) : NULL;
-   paramValue      = value ? strdup(value) : NULL;
+   paramName       = name ? strdup(name) : nullptr;
+   paramValue      = value ? strdup(value) : nullptr;
    hasBeenReadFlag = false;
 }
 
@@ -184,10 +184,10 @@ Parameter *ParameterStack::pop() {
 ParameterArrayStack::ParameterArrayStack(int initialCount) {
    allocation      = initialCount;
    count           = 0;
-   parameterArrays = NULL;
+   parameterArrays = nullptr;
    if (initialCount > 0) {
       parameterArrays = (ParameterArray **)calloc(allocation, sizeof(ParameterArray *));
-      if (parameterArrays == NULL) {
+      if (parameterArrays == nullptr) {
          Fatal().printf(
                "ParameterArrayStack unable to allocate %d parameter arrays\n", initialCount);
       }
@@ -197,10 +197,10 @@ ParameterArrayStack::ParameterArrayStack(int initialCount) {
 ParameterArrayStack::~ParameterArrayStack() {
    for (int k = 0; k < count; k++) {
       delete parameterArrays[k];
-      parameterArrays[k] = NULL;
+      parameterArrays[k] = nullptr;
    }
    free(parameterArrays);
-   parameterArrays = NULL;
+   parameterArrays = nullptr;
 }
 
 int ParameterArrayStack::push(ParameterArray *array) {
@@ -268,11 +268,11 @@ ParameterString *ParameterStringStack::pop() {
       return parameterStrings[count--];
    }
    else
-      return NULL;
+      return nullptr;
 }
 
 const char *ParameterStringStack::lookup(const char *targetname) {
-   const char *result = NULL;
+   const char *result = nullptr;
    for (int i = 0; i < count; i++) {
       if (!strcmp(parameterStrings[i]->getName(), targetname)) {
          result = parameterStrings[i]->getValue();
@@ -294,7 +294,7 @@ ParameterGroup::ParameterGroup(
       ParameterStringStack *string_stack,
       int rank) {
    this->groupName    = strdup(name);
-   this->groupKeyword = NULL;
+   this->groupKeyword = nullptr;
    this->stack        = stack;
    this->arrayStack   = array_stack;
    this->stringStack  = string_stack;
@@ -303,26 +303,26 @@ ParameterGroup::ParameterGroup(
 
 ParameterGroup::~ParameterGroup() {
    free(groupName);
-   groupName = NULL;
+   groupName = nullptr;
    free(groupKeyword);
-   groupKeyword = NULL;
+   groupKeyword = nullptr;
    delete stack;
-   stack = NULL;
+   stack = nullptr;
    delete arrayStack;
-   arrayStack = NULL;
+   arrayStack = nullptr;
    delete stringStack;
-   stringStack = NULL;
+   stringStack = nullptr;
 }
 
 int ParameterGroup::setGroupKeyword(const char *keyword) {
-   if (groupKeyword == NULL) {
+   if (groupKeyword == nullptr) {
       size_t keywordlen = strlen(keyword);
       groupKeyword      = (char *)malloc(keywordlen + 1);
       if (groupKeyword) {
          strcpy(groupKeyword, keyword);
       }
    }
-   return groupKeyword == NULL ? PV_FAILURE : PV_SUCCESS;
+   return groupKeyword == nullptr ? PV_FAILURE : PV_SUCCESS;
 }
 
 int ParameterGroup::setStringStack(ParameterStringStack *stringStack) {
@@ -332,7 +332,7 @@ int ParameterGroup::setStringStack(ParameterStringStack *stringStack) {
    // You shouldn't use a stringStack after calling this routine with it.
    // Instead, query it with ParameterGroup::stringPresent and
    // ParameterGroup::stringValue methods.
-   return stringStack == NULL ? PV_FAILURE : PV_SUCCESS;
+   return stringStack == nullptr ? PV_FAILURE : PV_SUCCESS;
 }
 
 /**
@@ -387,8 +387,8 @@ bool ParameterGroup::arrayPresent(const char *name) {
 const float *ParameterGroup::arrayValues(const char *name, int *size) {
    int count         = arrayStack->size();
    *size             = 0;
-   const float *v    = NULL;
-   ParameterArray *p = NULL;
+   const float *v    = nullptr;
+   ParameterArray *p = nullptr;
    for (int i = 0; i < count; i++) {
       p = arrayStack->peek(i);
       if (strcmp(name, p->name()) == 0) {
@@ -397,7 +397,7 @@ const float *ParameterGroup::arrayValues(const char *name, int *size) {
       }
    }
    if (!v) {
-      Parameter *q = NULL;
+      Parameter *q = nullptr;
       for (int i = 0; i < stack->size(); i++) {
          Parameter *q1 = stack->peek(i);
          assert(q1);
@@ -417,8 +417,8 @@ const float *ParameterGroup::arrayValues(const char *name, int *size) {
 const double *ParameterGroup::arrayValuesDbl(const char *name, int *size) {
    int count         = arrayStack->size();
    *size             = 0;
-   const double *v   = NULL;
-   ParameterArray *p = NULL;
+   const double *v   = nullptr;
+   ParameterArray *p = nullptr;
    for (int i = 0; i < count; i++) {
       p = arrayStack->peek(i);
       if (strcmp(name, p->name()) == 0) {
@@ -427,7 +427,7 @@ const double *ParameterGroup::arrayValuesDbl(const char *name, int *size) {
       }
    }
    if (!v) {
-      Parameter *q = NULL;
+      Parameter *q = nullptr;
       for (int i = 0; i < stack->size(); i++) {
          Parameter *q1 = stack->peek(i);
          assert(q1);
@@ -445,7 +445,7 @@ const double *ParameterGroup::arrayValuesDbl(const char *name, int *size) {
 }
 
 int ParameterGroup::stringPresent(const char *stringName) {
-   // not really necessary, as stringValue returns NULL if the
+   // not really necessary, as stringValue returns nullptr if the
    // string is not found, but included on the analogy with
    // value and present methods for floating-point parameters
    if (!stringName)
@@ -463,7 +463,7 @@ int ParameterGroup::stringPresent(const char *stringName) {
 
 const char *ParameterGroup::stringValue(const char *stringName) {
    if (!stringName)
-      return NULL;
+      return nullptr;
    int count = stringStack->size();
    for (int i = 0; i < count; i++) {
       ParameterString *pstr = stringStack->peek(i);
@@ -472,7 +472,7 @@ const char *ParameterGroup::stringValue(const char *stringName) {
          return pstr->getValue();
       }
    }
-   return NULL;
+   return nullptr;
 }
 
 int ParameterGroup::lookForUnread(bool errorOnUnread) {
@@ -658,40 +658,40 @@ ParameterStringStack *ParameterGroup::copyStringStack() {
 }
 
 ParameterSweep::ParameterSweep() {
-   groupName         = NULL;
-   paramName         = NULL;
+   groupName         = nullptr;
+   paramName         = nullptr;
    numValues         = 0;
    currentBufferSize = 0;
    type              = SWEEP_UNDEF;
-   valuesNumber      = NULL;
-   valuesString      = NULL;
+   valuesNumber      = nullptr;
+   valuesString      = nullptr;
 }
 
 ParameterSweep::~ParameterSweep() {
    free(groupName);
-   groupName = NULL;
+   groupName = nullptr;
    free(paramName);
-   paramName = NULL;
+   paramName = nullptr;
    free(valuesNumber);
-   valuesNumber = NULL;
-   if (valuesString != NULL) {
+   valuesNumber = nullptr;
+   if (valuesString != nullptr) {
       for (int k = 0; k < numValues; k++) {
          free(valuesString[k]);
       }
       free(valuesString);
-      valuesString = NULL;
+      valuesString = nullptr;
    }
 }
 
 int ParameterSweep::setGroupAndParameter(const char *groupname, const char *parametername) {
    int status = PV_SUCCESS;
-   if (groupName != NULL || paramName != NULL) {
+   if (groupName != nullptr || paramName != nullptr) {
       ErrorLog(errorMessage);
       errorMessage.printf("ParameterSweep::setGroupParameter: ");
-      if (groupName != NULL) {
+      if (groupName != nullptr) {
          errorMessage.printf(" groupName has already been set to \"%s\".", groupName);
       }
-      if (paramName != NULL) {
+      if (paramName != nullptr) {
          errorMessage.printf(" paramName has already been set to \"%s\".", paramName);
       }
       errorMessage.printf("\n");
@@ -711,13 +711,13 @@ int ParameterSweep::pushNumericValue(double val) {
       type = SWEEP_NUMBER;
    }
    assert(type == SWEEP_NUMBER);
-   assert(valuesString == NULL);
+   assert(valuesString == nullptr);
 
    assert(numValues <= currentBufferSize);
    if (numValues == currentBufferSize) {
       currentBufferSize += PARAMETERSWEEP_INCREMENTCOUNT;
       double *newValuesNumber = (double *)calloc(currentBufferSize, sizeof(double));
-      if (newValuesNumber == NULL) {
+      if (newValuesNumber == nullptr) {
          ErrorLog().printf("ParameterSweep:pushNumericValue: unable to allocate memory\n");
          status = PV_FAILURE;
          abort();
@@ -739,13 +739,13 @@ int ParameterSweep::pushStringValue(const char *sval) {
       type = SWEEP_STRING;
    }
    assert(type == SWEEP_STRING);
-   assert(valuesNumber == NULL);
+   assert(valuesNumber == nullptr);
 
    assert(numValues <= currentBufferSize);
    if (numValues == currentBufferSize) {
       currentBufferSize += PARAMETERSWEEP_INCREMENTCOUNT;
       char **newValuesString = (char **)calloc(currentBufferSize, sizeof(char *));
-      if (newValuesString == NULL) {
+      if (newValuesString == nullptr) {
          ErrorLog().printf("ParameterSweep:pushStringValue: unable to allocate memory\n");
          status = PV_FAILURE;
          abort();
@@ -763,7 +763,7 @@ int ParameterSweep::pushStringValue(const char *sval) {
 
 int ParameterSweep::getNumericValue(int n, double *val) {
    int status = PV_SUCCESS;
-   assert(valuesNumber != NULL);
+   assert(valuesNumber != nullptr);
    if (type != SWEEP_NUMBER || n < 0 || n >= numValues) {
       status = PV_FAILURE;
    }
@@ -774,8 +774,8 @@ int ParameterSweep::getNumericValue(int n, double *val) {
 }
 
 const char *ParameterSweep::getStringValue(int n) {
-   char *str = NULL;
-   assert(valuesString != NULL);
+   char *str = nullptr;
+   assert(valuesString != nullptr);
    if (type == SWEEP_STRING && n >= 0 && n < numValues) {
       str = valuesString[n];
    }
@@ -823,7 +823,7 @@ PVParams::~PVParams() {
       delete g;
    }
    delete currentParamArray;
-   currentParamArray = NULL;
+   currentParamArray = nullptr;
    delete stack;
    delete arrayStack;
    delete stringStack;
@@ -832,7 +832,7 @@ PVParams::~PVParams() {
       delete paramSweeps[i];
    }
    free(paramSweeps);
-   paramSweeps = NULL;
+   paramSweeps = nullptr;
 }
 
 /*
@@ -851,7 +851,7 @@ int PVParams::initialize(size_t initialSize) {
    currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
 
    numParamSweeps = 0;
-   paramSweeps    = NULL;
+   paramSweeps    = nullptr;
    newActiveParamSweep();
 #ifdef DEBUG_PARSING
    debugParsing = true;
@@ -866,7 +866,7 @@ int PVParams::initialize(size_t initialSize) {
 int PVParams::newActiveParamSweep() {
    int status       = PV_SUCCESS;
    activeParamSweep = new ParameterSweep();
-   if (activeParamSweep == NULL) {
+   if (activeParamSweep == nullptr) {
       Fatal().printf("PVParams::newActiveParamSweep: unable to create activeParamSweep");
       status = PV_FAILURE;
    }
@@ -904,7 +904,7 @@ int PVParams::parseFile(const char *filename) {
       MPI_Get_count(&mpi_status, MPI_CHAR, &count);
       bufferlen   = (size_t)count;
       paramBuffer = (char *)malloc(bufferlen);
-      if (paramBuffer == NULL) {
+      if (paramBuffer == nullptr) {
          Fatal().printf(
                "PVParams::parseFile: Rank %d process unable to allocate memory for params buffer\n",
                worldRank);
@@ -992,7 +992,7 @@ bool PVParams::hasSweepValue(const char *inParamName) {
       group_name             = sweep->getGroupName();
       const char *param_name = sweep->getParamName();
       ParameterGroup *gp     = group(group_name);
-      if (gp == NULL) {
+      if (gp == nullptr) {
          Fatal().printf(
                "PVParams::hasSweepValue error: ParameterSweep %d (zero-indexed) refers to "
                "non-existent group \"%s\"\n",
@@ -1030,13 +1030,13 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
    // specify both paramSweep and batchSweep
    if (numberOfParameterSweeps() > 0) {
       if (!hasSweepValue("outputPath")) {
-         const char *hypercolgroupname = NULL;
-         const char *outputPathName    = NULL;
+         const char *hypercolgroupname = nullptr;
+         const char *outputPathName    = nullptr;
          for (auto &g : mGroups) {
             if (g->getGroupKeyword(), "HyPerCol") {
                hypercolgroupname = g->name();
                outputPathName    = g->stringValue("outputPath");
-               if (outputPathName == NULL) {
+               if (outputPathName == nullptr) {
                   Fatal().printf(
                         "PVParams::outputPath must be specified if parameterSweep does "
                         "not sweep over outputPath\n");
@@ -1044,7 +1044,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
                break;
             }
          }
-         if (hypercolgroupname == NULL) {
+         if (hypercolgroupname == nullptr) {
             ErrorLog().printf("PVParams::parseBuffer: no HyPerCol group\n");
             abort();
          }
@@ -1070,8 +1070,8 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
       }
 
       if (!hasSweepValue("checkpointWriteDir")) {
-         const char *hypercolgroupname  = NULL;
-         const char *checkpointWriteDir = NULL;
+         const char *hypercolgroupname  = nullptr;
+         const char *checkpointWriteDir = nullptr;
          for (auto &g : mGroups) {
             if (g->getGroupKeyword(), "HyPerCol") {
                hypercolgroupname  = g->name();
@@ -1080,7 +1080,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
                break;
             }
          }
-         if (hypercolgroupname == NULL) {
+         if (hypercolgroupname == nullptr) {
             ErrorLog().printf("PVParams::parseBuffer: no HyPerCol group\n");
             abort();
          }
@@ -1115,7 +1115,7 @@ int PVParams::parseBuffer(char const *buffer, long int bufferLength) {
       const char *param_name = sweep->getParamName();
       SweepType type         = sweep->getType();
       ParameterGroup *g      = group(group_name);
-      if (g == NULL) {
+      if (g == nullptr) {
          ErrorLog().printf("ParameterSweep: there is no group \"%s\"\n", group_name);
          abort();
       }
@@ -1203,7 +1203,7 @@ int PVParams::setParameterSweepValues(int n) {
       const char *group_name     = paramSweep->getGroupName();
       const char *param_name     = paramSweep->getParamName();
       ParameterGroup *gp         = group(group_name);
-      assert(gp != NULL);
+      assert(gp != nullptr);
 
       const char *s;
       double v = 0.0f;
@@ -1228,7 +1228,7 @@ int PVParams::setParameterSweepValues(int n) {
  */
 int PVParams::present(const char *groupName, const char *paramName) {
    ParameterGroup *g = group(groupName);
-   if (g == NULL) {
+   if (g == nullptr) {
       if (worldRank == 0) {
          ErrorLog().printf("PVParams::present: couldn't find a group for %s\n", groupName);
       }
@@ -1244,7 +1244,7 @@ int PVParams::present(const char *groupName, const char *paramName) {
  */
 double PVParams::value(const char *groupName, const char *paramName) {
    ParameterGroup *g = group(groupName);
-   if (g == NULL) {
+   if (g == nullptr) {
       if (worldRank == 0) {
          ErrorLog().printf("PVParams::value: ERROR, couldn't find a group for %s\n", groupName);
       }
@@ -1320,7 +1320,7 @@ void PVParams::writeParam<bool>(const char *paramName, bool paramValue) {
 
 bool PVParams::arrayPresent(const char *groupName, const char *paramName) {
    ParameterGroup *g = group(groupName);
-   if (g == NULL) {
+   if (g == nullptr) {
       if (worldRank == 0) {
          ErrorLog().printf("PVParams::present: couldn't find a group for %s\n", groupName);
       }
@@ -1339,14 +1339,14 @@ bool PVParams::arrayPresent(const char *groupName, const char *paramName) {
 const float *
 PVParams::arrayValues(const char *groupName, const char *paramName, int *size, bool warnIfAbsent) {
    ParameterGroup *g = group(groupName);
-   if (g == NULL) {
+   if (g == nullptr) {
       if (worldRank == 0) {
          ErrorLog().printf("PVParams::value: couldn't find a group for %s\n", groupName);
       }
-      return NULL;
+      return nullptr;
    }
    const float *retval = g->arrayValues(paramName, size);
-   if (retval == NULL) {
+   if (retval == nullptr) {
       assert(*size == 0);
       if (worldRank == 0) {
          WarnLog().printf(
@@ -1367,14 +1367,14 @@ const double *PVParams::arrayValuesDbl(
       int *size,
       bool warnIfAbsent) {
    ParameterGroup *g = group(groupName);
-   if (g == NULL) {
+   if (g == nullptr) {
       if (worldRank == 0) {
          ErrorLog().printf("PVParams::value: couldn't find a group for %s\n", groupName);
       }
-      return NULL;
+      return nullptr;
    }
    const double *retval = g->arrayValuesDbl(paramName, size);
-   if (retval == NULL) {
+   if (retval == nullptr) {
       assert(*size == 0);
       if (worldRank == 0) {
          WarnLog().printf(
@@ -1482,7 +1482,7 @@ void PVParams::ioParamStringRequired(
  */
 int PVParams::stringPresent(const char *groupName, const char *paramStringName) {
    ParameterGroup *g = group(groupName);
-   if (g == NULL) {
+   if (g == nullptr) {
       if (worldRank == 0) {
          ErrorLog().printf("PVParams::stringPresent: couldn't find a group for %s\n", groupName);
       }
@@ -1507,7 +1507,7 @@ PVParams::stringValue(const char *groupName, const char *paramStringName, bool w
          WarnLog().printf(
                "No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
       }
-      return NULL;
+      return nullptr;
    }
 }
 
@@ -1534,7 +1534,7 @@ ParameterGroup *PVParams::group(const char *groupName) {
          return g;
       }
    }
-   return NULL;
+   return nullptr;
 }
 
 const char *PVParams::groupNameFromIndex(int index) {
@@ -1548,9 +1548,9 @@ const char *PVParams::groupKeywordFromIndex(int index) {
 }
 
 const char *PVParams::groupKeywordFromName(const char *name) {
-   const char *kw    = NULL;
+   const char *kw    = nullptr;
    ParameterGroup *g = group(name);
-   if (g != NULL) {
+   if (g != nullptr) {
       kw = g->getGroupKeyword();
    }
    return kw;
@@ -1593,7 +1593,7 @@ void PVParams::addActiveParamSweep(const char *group_name, const char *param_nam
    activeParamSweep->setGroupAndParameter(group_name, param_name);
    ParameterSweep **newParamSweeps =
          (ParameterSweep **)calloc(numParamSweeps + 1, sizeof(ParameterSweep *));
-   if (newParamSweeps == NULL) {
+   if (newParamSweeps == nullptr) {
       Fatal().printf(
             "PVParams::action_parameter_sweep: unable to allocate memory for larger paramSweeps\n");
    }
@@ -1619,7 +1619,7 @@ int PVParams::lookForUnread(bool errorOnUnread) {
 
 bool PVParams::hasBeenRead(const char *group_name, const char *param_name) {
    ParameterGroup *g = group(group_name);
-   if (g == NULL) {
+   if (g == nullptr) {
       return false;
    }
 
@@ -1888,7 +1888,7 @@ void PVParams::action_parameter_def_overwrite(char *id, double val) {
    }
    // Search through current parameters for the id
    char *param_name     = stripOverwriteTag(id);
-   Parameter *currParam = NULL;
+   Parameter *currParam = nullptr;
    for (int i = 0; i < stack->size(); i++) {
       Parameter *param = stack->peek(i);
       if (strcmp(param->name(), param_name) == 0) {
@@ -1941,7 +1941,7 @@ void PVParams::action_parameter_array_overwrite(char *id) {
    }
    // Search through current parameters for the id
    char *param_name          = stripOverwriteTag(id);
-   ParameterArray *origArray = NULL;
+   ParameterArray *origArray = nullptr;
    for (int i = 0; i < arrayStack->size(); i++) {
       ParameterArray *arrayParam = arrayStack->peek(i);
       if (strcmp(arrayParam->name(), param_name) == 0) {
@@ -2018,7 +2018,7 @@ void PVParams::action_parameter_string_def_overwrite(const char *id, const char 
    }
    // Search through current parameters for the id
    char *param_name           = stripOverwriteTag(id);
-   ParameterString *currParam = NULL;
+   ParameterString *currParam = nullptr;
    for (int i = 0; i < stringStack->size(); i++) {
       ParameterString *param = stringStack->peek(i);
       assert(param);
@@ -2064,7 +2064,7 @@ void PVParams::action_parameter_filename_def_overwrite(const char *id, const cha
    }
    // Search through current parameters for the id
    char *param_name           = stripOverwriteTag(id);
-   ParameterString *currParam = NULL;
+   ParameterString *currParam = nullptr;
    for (int i = 0; i < stringStack->size(); i++) {
       ParameterString *param = stringStack->peek(i);
       assert(param);
@@ -2073,7 +2073,7 @@ void PVParams::action_parameter_filename_def_overwrite(const char *id, const cha
       }
    }
    free(param_name);
-   param_name = NULL;
+   param_name = nullptr;
    if (!currParam) {
       ErrorLog().printf("Overwrite: %s is not an existing parameter to overwrite.\n", id);
    }
@@ -2100,7 +2100,7 @@ void PVParams::action_include_directive(const char *stringval) {
    // Grab the parameter value
    char *param_value = stripQuotationMarks(stringval);
    // Grab the included group's ParameterGroup object
-   ParameterGroup *includeGroup = NULL;
+   ParameterGroup *includeGroup = nullptr;
    for (auto &g : mGroups) {
       // If strings are matching
       if (strcmp(g->name(), param_value) == 0) {
@@ -2257,13 +2257,13 @@ char *PVParams::stripQuotationMarks(const char *s) {
    // If a string has quotes as its first and last character, return the
    // part of the string inside the quotes, e.g. {'"', 'c', 'a', 't', '"'}
    // becomes {'c', 'a', 't'}.  If the string is null or does not have quotes at the
-   // beginning and end, return NULL.
+   // beginning and end, return nullptr.
    // It is the responsibility of the routine that calls stripQuotationMarks
    // to free the returned string to avoid a memory leak.
-   if (s == NULL) {
-      return NULL;
+   if (s == nullptr) {
+      return nullptr;
    }
-   char *noquotes = NULL;
+   char *noquotes = nullptr;
    int len        = strlen(s);
    if (len >= 2 && s[0] == '"' && s[len - 1] == '"') {
       noquotes = (char *)calloc(len - 1, sizeof(char));
@@ -2276,7 +2276,7 @@ char *PVParams::stripQuotationMarks(const char *s) {
 char *PVParams::stripOverwriteTag(const char *s) {
    // Strips the @ tag to any overwritten params
    int len     = strlen(s);
-   char *notag = NULL;
+   char *notag = nullptr;
    if (len >= 1 && s[0] == '@') {
       notag = (char *)calloc(len, sizeof(char));
       memcpy(notag, s + 1, len - 1);

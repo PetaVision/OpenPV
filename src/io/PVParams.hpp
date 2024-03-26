@@ -108,7 +108,7 @@ class ParameterString {
    void clearHasBeenRead() { hasBeenReadFlag = false; }
    void setValue(const char *s) {
       free(paramValue);
-      paramValue = s ? strdup(s) : NULL;
+      paramValue = s ? strdup(s) : nullptr;
    }
    ParameterString *copyParameterString() { return new ParameterString(paramName, paramValue); }
 
@@ -141,7 +141,7 @@ class ParameterArrayStack {
    int push(ParameterArray *array);
    int size() { return count; }
    ParameterArray *peek(int index) {
-      return index >= 0 && index < count ? parameterArrays[index] : NULL;
+      return index >= 0 && index < count ? parameterArrays[index] : nullptr;
    }
 
   private:
@@ -158,7 +158,7 @@ class ParameterStringStack {
    int push(ParameterString *param);
    ParameterString *pop();
    ParameterString *peek(int index) {
-      return index >= 0 && index < count ? parameterStrings[index] : NULL;
+      return index >= 0 && index < count ? parameterStrings[index] : nullptr;
    }
    int size() { return count; }
    const char *lookup(const char *targetname);
