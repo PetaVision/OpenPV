@@ -76,7 +76,7 @@ class CudaRecvPre : public CudaKernel {
          /* unsigned long * */ CudaBuffer *numActive,
          /* unsigned int* */ CudaBuffer *activeIndices);
 
-   void set_dt_factor(float new_dt_factor) { params.dt_factor = new_dt_factor; }
+   void set_dt_factor(float new_dt_factor) { mParams.dt_factor = new_dt_factor; }
 
   protected:
    // This is the function that should be overwritten in child classes
@@ -86,8 +86,7 @@ class CudaRecvPre : public CudaKernel {
    void checkSharedMemSize(size_t sharedSize);
 
   private:
-   recv_pre_params params;
-   long *numActive;
+   recv_pre_params mParams;
 }; // end class CudaRecvPre
 
 } // end namespace PVCuda

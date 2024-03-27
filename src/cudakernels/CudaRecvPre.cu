@@ -93,8 +93,8 @@ int CudaRecvPre::do_run() {
 
    checkSharedMemSize(sharedSize);
 
-   for (int b = 0; b < params.nbatch; b++) {
-      HyPerLayer_recv_pre<<<grid_size, block_size, sharedSize>>>(params, b);
+   for (int b = 0; b < mParams.nbatch; b++) {
+      HyPerLayer_recv_pre<<<grid_size, block_size, sharedSize>>>(mParams, b);
    }
 
    return 0;

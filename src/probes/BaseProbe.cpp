@@ -440,10 +440,10 @@ Response::Status BaseProbe::outputStateWrapper(double simTime, double dt) {
          timer->start();
          status = outputState(simTime, dt);
          timer->stop();
-         Timer *timer = simTime ? mIOWaitTimer : mInitialIOWaitTimer;
-         timer->start();
+         Timer *waitTimer = simTime ? mIOWaitTimer : mInitialIOWaitTimer;
+         waitTimer->start();
          transferMPIOutput();
-         timer->stop();
+         waitTimer->stop();
       }
    }
    return status;

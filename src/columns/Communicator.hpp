@@ -57,10 +57,10 @@ class Communicator {
    int numCommColumns() const { return mNumCols; }
    int numCommBatches() const { return mBatchWidth; }
 
-   int getTag(int neighbor) const { return tags[neighbor]; }
-   int getReverseTag(int neighbor) const { return tags[reverseDirection(mLocalRank, neighbor)]; }
+   int getTag(int neighbor) const { return mTags[neighbor]; }
+   int getReverseTag(int neighbor) const { return mTags[reverseDirection(mLocalRank, neighbor)]; }
 
-   bool isExtraProc() const { return isExtra; }
+   bool isExtraProc() const { return mExtraFlag; }
 
    static const int LOCAL     = 0;
    static const int NORTHWEST = 1;
@@ -95,18 +95,15 @@ class Communicator {
     */
    void setDimensions(Arguments const *arguments, int totalProcs);
 
-   int numNeighbors; // # of remote neighbors plus local.  NOT the size of the
-   // neighbors array,
-   // which uses negative values to mark directions where there is no remote
-   // neighbor.
+   int mNumNeighbors;
+   // # of remote neighbors plus local.  NOT the size of the neighbors array,
+   // which uses negative values to mark directions where there is no remote neighbor.
 
-   bool isExtra; // Defines if the process is an extra process
+   bool mExtraFlag; // Defines if the process is an extra process
 
    int neighbors[NUM_NEIGHBORHOOD]; // [0] is interior (local)
-   int tags[NUM_NEIGHBORHOOD]; // diagonal communication needs a different tag
-   int exchangeCounter = 1024;
-   // from left/right or
-   // up/down communication.
+   int mTags[NUM_NEIGHBORHOOD]; // diagonal communication needs a different tag
+   // from left/right or up/down communication.
 
   private:
    int gcd(int a, int b) const;

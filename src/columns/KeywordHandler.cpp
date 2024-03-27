@@ -21,25 +21,25 @@ KeywordHandler::KeywordHandler(KeywordHandler const &orig) {
 }
 
 KeywordHandler &KeywordHandler::operator=(KeywordHandler const &orig) {
-   free(keyword);
+   free(mKeyword);
    initialize(orig.getKeyword(), orig.getCreator());
    return *this;
 }
 
 int KeywordHandler::initialize(char const *kw, ObjectCreateFn creator) {
-   keyword = strdup(kw);
-   if (keyword == NULL) {
-      Fatal().printf("KeywordHandler unable to store type \"%s\": %s\n", keyword, strerror(errno));
+   mKeyword = strdup(kw);
+   if (mKeyword == NULL) {
+      Fatal().printf("KeywordHandler unable to store type \"%s\": %s\n", mKeyword, strerror(errno));
    }
-   this->creator = creator;
+   mCreator = creator;
    return PV_SUCCESS;
 }
 
 BaseObject *
 KeywordHandler::create(char const *name, PVParams *params, Communicator const *comm) const {
-   return (creator)(name, params, comm);
+   return (mCreator)(name, params, comm);
 }
 
-KeywordHandler::~KeywordHandler() { free(keyword); }
+KeywordHandler::~KeywordHandler() { free(mKeyword); }
 
 } /* namespace PV */

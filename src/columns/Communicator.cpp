@@ -45,8 +45,8 @@ Communicator::Communicator(Arguments const *arguments) {
 
    mGlobalMPIBlock = std::make_shared<MPIBlock>(
          MPI_COMM_WORLD, mNumRows, mNumCols, mBatchWidth, mNumRows, mNumCols, mBatchWidth);
-   isExtra = (mGlobalRank >= procsNeeded);
-   if (isExtra) {
+   mExtraFlag = (mGlobalRank >= procsNeeded);
+   if (mExtraFlag) {
       WarnLog() << "Global process rank " << mGlobalRank << " is extra, as only " << procsNeeded
                 << " mpiProcesses are required. Process exiting\n";
       return;
@@ -134,15 +134,14 @@ void Communicator::setDimensions(Arguments const *arguments, int totalProcs) {
  * Initialize the communication neighborhood
  */
 int Communicator::neighborInit() {
-   int num_neighbors = 0;
+   int numNeighbors = 0;
 
    // initialize neighbor and border lists
    // (local borders and remote neighbors form the complete neighborhood)
 
-   this->numNeighbors = numberOfNeighbors();
+   mNumNeighbors = numberOfNeighbors();
    int tags[9]        = {0, 1, 2, 3, 2, 2, 3, 2, 1};
-   // NW and SE corners have tag 1; edges have tag 2; NE and SW corners have
-   // tag 3.
+   // NW and SE corners have tag 1; edges have tag 2; NE and SW corners have tag 3.
    // In the top row of processes in the hypercolumn, a process is both the
    // northeast and east neighbor of the process to its left.  If there is only
    // one row, a process is the northeast, east, and southeast neighbor of the
@@ -154,13 +153,13 @@ int Communicator::neighborInit() {
       neighbors[i] = mLocalRank; // default neighbor is self
       if (n >= 0) {
          neighbors[i] = n;
-         num_neighbors++;
+         numNeighbors++;
 #ifdef DEBUG_OUTPUT
          DebugLog().printf(
                "[%2d]: neighborInit: remote[%d] of %d is %d, i=%d, neighbor=%d\n",
                mLocalRank,
-               num_neighbors - 1,
-               this->numNeighbors,
+               numNeighbors - 1,
+               mNumNeighbors,
                n,
                i,
                neighbors[i]);
@@ -171,9 +170,9 @@ int Communicator::neighborInit() {
          DebugLog().printf("[%2d]: neighborInit: i=%d, neighbor=%d\n", mLocalRank, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
       }
-      this->tags[i] = tags[i];
+      mTags[i] = tags[i];
    }
-   assert(this->numNeighbors == num_neighbors);
+   assert(mNumNeighbors == numNeighbors);
 
    return 0;
 }
@@ -404,20 +403,15 @@ int Communicator::neighborIndex(int commId, int direction) const {
 }
 
 /*
- * In a send/receive exchange, when rank A makes an MPI send to its neighbor in
- * direction x,
- * that neighbor must make a complementary MPI receive call.  To get the tags
- * correct,
- * the receiver needs to know the direction that the sender was using in
- * determining which
+ * In a send/receive exchange, when rank A makes an MPI send to its neighbor in direction x,
+ * that neighbor must make a complementary MPI receive call.  To get the tags correct,
+ * the receiver needs to know the direction that the sender was using in determining which
  * process to send to.
  *
- * Thus, if every process does an MPI send in each direction, to the process of
- * rank
- * neighborIndex(icRank,direction) with tag[direction],
- * every process must also do an MPI receive in each direction, to the process
- * of rank
- * neighborIndex(icRank,direction) with tag[reverseDirection(icRank,direction)].
+ * Thus, if every process does an MPI send in each direction, to the process of rank
+ * neighborIndex(icRank,direction) with tag[direction], every process must also do an MPI receive
+ * in each direction, to the process of rank neighborIndex(icRank,direction)
+ * with tag[reverseDirection(icRank,direction)].
  */
 int Communicator::reverseDirection(int commId, int direction) const {
    int neighbor = neighborIndex(commId, direction);

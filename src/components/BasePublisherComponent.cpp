@@ -119,9 +119,10 @@ void BasePublisherComponent::allocateCudaBuffers() {
       auto const nbatch = (std::size_t)mActivity->getLayerLoc()->nbatch;
       mCudaNumActive    = mCudaDevice->createBuffer(nbatch * sizeof(long), &getDescription());
 
-      int const numExtendedBatch = mActivity->getBufferSizeAcrossBatch();
-      std::size_t const sizeExt  = (std::size_t)numExtendedBatch * sizeof(SparseList<float>::Entry);
-      mCudaActiveIndices         = mCudaDevice->createBuffer(sizeExt, &getDescription());
+      int const numExtendedBatch   = mActivity->getBufferSizeAcrossBatch();
+      std::size_t const bufferSize =
+            (std::size_t)numExtendedBatch * sizeof(SparseList<float>::Entry);
+      mCudaActiveIndices = mCudaDevice->createBuffer(bufferSize, &getDescription());
    }
 }
 #endif // PV_USE_CUDA
