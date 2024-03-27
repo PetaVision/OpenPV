@@ -35,14 +35,14 @@ void CloneVLayer::fillComponentTable() {
 }
 
 OriginalLayerNameParam *CloneVLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
+   return new OriginalLayerNameParam(getName(), parameters(), mCommunicator);
 }
 
 LayerInputBuffer *CloneVLayer::createLayerInput() { return nullptr; }
 
 ActivityComponent *CloneVLayer::createActivityComponent() {
    return new CloneActivityComponent<CloneInternalStateBuffer, HyPerActivityBuffer>(
-         name, parameters(), mCommunicator);
+         getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

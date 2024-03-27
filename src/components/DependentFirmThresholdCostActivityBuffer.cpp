@@ -34,15 +34,15 @@ void DependentFirmThresholdCostActivityBuffer::setObjectType() {
 
 void DependentFirmThresholdCostActivityBuffer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "VThresh");
+      parameters()->handleUnnecessaryParameter(getName(), "VThresh");
    }
    // During the communication phase, VThresh will be copied from originalConn
 }
 
 void DependentFirmThresholdCostActivityBuffer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "VWidth", &mVWidth, mVWidth);
+   parameters()->ioParamValue(ioFlag, getName(), "VWidth", &mVWidth, mVWidth);
    if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "VWidth");
+      parameters()->handleUnnecessaryParameter(getName(), "VWidth");
    }
    // During the communication phase, VWidth will be copied from originalConn
 }
@@ -110,8 +110,8 @@ Response::Status DependentFirmThresholdCostActivityBuffer::communicateInitInfo(
          getDescription_c(),
          linkedObjectName,
          (double)originalActivityBuffer->getAShift());
-   parameters()->handleUnnecessaryParameter(name, "VThresh", mVThresh);
-   parameters()->handleUnnecessaryParameter(name, "VWidth", mVWidth);
+   parameters()->handleUnnecessaryParameter(getName(), "VThresh", mVThresh);
+   parameters()->handleUnnecessaryParameter(getName(), "VWidth", mVWidth);
 
    auto status = FirmThresholdCostActivityBuffer::communicateInitInfo(message);
    return status;

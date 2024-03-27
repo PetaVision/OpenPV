@@ -315,10 +315,14 @@ int cleanDirectory(std::shared_ptr<FileManager const> fileManager, std::string c
       struct stat statbuf;
       status = fileManager->stat(path, statbuf);
       if (status and errno == ENOENT) { return PV_SUCCESS; }
+      if (status) {
+         ErrorLog().printf("Unable to stat \"%s\": %s\n", path.c_str(), strerror(errno));
+         return PV_FAILURE;
+      }
       auto dirContents = fileManager->listDirectory(path);
       for (auto &d : dirContents) {
          std::string dirEntry(path + "/" + d);
-         int status = fileManager->stat(dirEntry, statbuf);
+         status = fileManager->stat(dirEntry, statbuf);
          if (status) {
             ErrorLog().printf("Unable to stat \"%s\": %s\n", dirEntry.c_str(), strerror(errno));
             status = PV_FAILURE;

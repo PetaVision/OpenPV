@@ -104,7 +104,7 @@ Response::Status ColProbe::outputStateStats(double simTime, double deltaTime) {
       pvAssert(mOutputStreams.size() == (std::size_t)1);
       double mean = sum/(getNumValues() * mCommunicator->numCommBatches());
       if (!isWritingToFile()) {
-         output(0) << "\"" << name << "\","; // lack of \n is deliberate
+         output(0) << "\"" << getName() << "\","; // lack of \n is deliberate
       }
       output(0).printf("t=%10f, min=%10.9f, max=%10.9f, mean=%10.9f\n", simTime, min, max, mean);
    }

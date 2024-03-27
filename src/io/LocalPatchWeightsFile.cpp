@@ -113,7 +113,6 @@ void LocalPatchWeightsFile::write(double timestamp) {
       mLocalPatchWeightsIO->finishWrite();
    }
    else {
-      int root = mFileManager->getRootProcessRank();
       for (int a = 0; a < getNumArbors(); ++a) {
          float const *arbor = mWeightData->getData(a);
          int tag            = 136;

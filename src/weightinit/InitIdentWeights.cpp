@@ -23,7 +23,7 @@ void InitIdentWeights::initialize(char const *name, PVParams *params, Communicat
 
 void InitIdentWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
    mWeightInit = 1.0f;
-   parameters()->handleUnnecessaryParameter(name, "weightInit", 1.0f);
+   parameters()->handleUnnecessaryParameter(getName(), "weightInit", 1.0f);
 }
 
 } /* namespace PV */

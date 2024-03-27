@@ -35,19 +35,19 @@ int InitVFromFile::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void InitVFromFile::ioParam_Vfilename(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
-         ioFlag, name, "Vfilename", &mVfilename, nullptr, true /*warnIfAbsent*/);
+         ioFlag, getName(), "Vfilename", &mVfilename, nullptr, true /*warnIfAbsent*/);
    if (mVfilename == nullptr) {
       Fatal().printf(
             "InitVFromFile::initialize, group \"%s\": for InitVFromFile, string parameter "
             "\"Vfilename\" "
             "must be defined.  Exiting\n",
-            name);
+            getName());
    }
 }
 
 void InitVFromFile::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "frameNumber", &mFrameNumber, mFrameNumber, true /*warnIfAbsent*/);
+         ioFlag, getName(), "frameNumber", &mFrameNumber, mFrameNumber, true /*warnIfAbsent*/);
 }
 
 void InitVFromFile::calcV(float *V, const PVLayerLoc *loc) {

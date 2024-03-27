@@ -32,7 +32,7 @@ int ConstantV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ConstantV::ioParam_valueV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "valueV", &mValueV, (float)V_REST);
+   parameters()->ioParamValue(ioFlag, getName(), "valueV", &mValueV, (float)V_REST);
 }
 
 void ConstantV::calcV(float *V, PVLayerLoc const *loc) {

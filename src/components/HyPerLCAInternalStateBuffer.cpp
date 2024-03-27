@@ -39,11 +39,11 @@ int HyPerLCAInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLCAInternalStateBuffer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "timeConstantTau", &mTimeConstantTau, mTimeConstantTau);
+   parameters()->ioParamValue(ioFlag, getName(), "timeConstantTau", &mTimeConstantTau, mTimeConstantTau);
 }
 
 void HyPerLCAInternalStateBuffer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "selfInteract", &mSelfInteract, mSelfInteract);
+   parameters()->ioParamValue(ioFlag, getName(), "selfInteract", &mSelfInteract, mSelfInteract);
    if (ioFlag == PARAMS_IO_READ && mCommunicator->globalCommRank() == 0) {
       InfoLog() << getDescription() << ": selfInteract flag is "
                 << (mSelfInteract ? "true" : "false") << std::endl;
@@ -53,7 +53,7 @@ void HyPerLCAInternalStateBuffer::ioParam_selfInteract(enum ParamsIOFlag ioFlag)
 void HyPerLCAInternalStateBuffer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
          ioFlag,
-         name,
+         getName(),
          "adaptiveTimeScaleProbe",
          &mAdaptiveTimeScaleProbeName,
          nullptr /*default*/,

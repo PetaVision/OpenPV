@@ -92,7 +92,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
    mOutputPath = strdup(mPVInitObj->getStringArgument("OutputPath").c_str());
 
    std::string paramsFile = mPVInitObj->getStringArgument("ParamsFile");
-   if (mParams->numberOfGroups() == 0) {
+   if (mParams->getNumGroups() == 0) {
       ErrorLog() << "Params \"" << paramsFile << "\" does not define any groups.\n";
       return PV_FAILURE;
    }
@@ -176,7 +176,7 @@ int HyPerCol::initialize(PV_Init *initObj) {
 }
 
 void HyPerCol::fillComponentTable() {
-   int numGroups = mParams->numberOfGroups();
+   int numGroups = mParams->getNumGroups();
    for (int k = 1; k < numGroups; k++) { // k = 0 is the HyPerCol itself.
       const char *kw   = mParams->groupKeywordFromIndex(k);
       const char *name = mParams->groupNameFromIndex(k);
@@ -422,7 +422,7 @@ HyPerCol::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> 
    }
    auto *checkpointer = message->mDataRegistry;
    checkpointer->registerCheckpointData<int>(
-         std::string(name),
+         std::string(getName()),
          std::string("IdleCounts"),
          mIdleCounts.data(),
          mIdleCounts.size(),

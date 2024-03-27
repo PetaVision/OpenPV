@@ -52,12 +52,12 @@ class KeywordHandler {
    /**
     * A get-method for the handler's keyword.
     */
-   const char *getKeyword() const { return keyword; }
+   const char *getKeyword() const { return mKeyword; }
 
    /**
     * A get-method for the handler's creator function pointer.
     */
-   ObjectCreateFn getCreator() const { return creator; }
+   ObjectCreateFn getCreator() const { return mCreator; }
 
    /**
     * The method that calls the function pointer with the given arguments
@@ -80,8 +80,8 @@ class KeywordHandler {
 
    // Member variables
   private:
-   char *keyword;
-   ObjectCreateFn creator;
+   char *mKeyword;
+   ObjectCreateFn mCreator;
 };
 
 } /* namespace PV */

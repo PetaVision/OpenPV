@@ -32,13 +32,13 @@ int InitUniformWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitUniformWeights::ioParam_weightInit(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "weightInit", &mWeightInit, mWeightInit);
+   parameters()->ioParamValue(ioFlag, getName(), "weightInit", &mWeightInit, mWeightInit);
 }
 
 void InitUniformWeights::ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "connectOnlySameFeatures",
          &mConnectOnlySameFeatures,
          mConnectOnlySameFeatures);

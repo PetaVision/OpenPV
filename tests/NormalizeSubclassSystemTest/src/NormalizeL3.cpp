@@ -26,7 +26,7 @@ int NormalizeL3::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void NormalizeL3::ioParam_minL3NormTolerated(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "minL3NormTolerated",
          &minL3NormTolerated,
          minL3NormTolerated,

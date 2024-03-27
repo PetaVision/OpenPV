@@ -41,7 +41,7 @@ void InitWeights::initialize(char const *name, PVParams *params, Communicator co
 
 void InitWeights::setObjectType() {
    char const *initType =
-         parameters()->stringValue(name, "weightInitType", false /*do not warn if absent*/);
+         parameters()->stringValue(getName(), "weightInitType", false /*do not warn if absent*/);
    mObjectType = initType ? initType : "Initializer for";
 }
 
@@ -57,20 +57,20 @@ int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitWeights::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "weightInitType", &mWeightInitTypeString);
+   parameters()->ioParamStringRequired(ioFlag, getName(), "weightInitType", &mWeightInitTypeString);
 }
 
 void InitWeights::ioParam_initWeightsFile(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
-         ioFlag, name, "initWeightsFile", &mFilename, mFilename, false /*warnIfAbsent*/);
+         ioFlag, getName(), "initWeightsFile", &mFilename, mFilename, false /*warnIfAbsent*/);
 }
 
 void InitWeights::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "initWeightsFile"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "initWeightsFile"));
    if (mFilename and mFilename[0]) {
       parameters()->ioParamValue(
             ioFlag,
-            name,
+            getName(),
             "frameNumber",
             &mFrameNumber,
             mFrameNumber /*default*/,
@@ -96,8 +96,8 @@ void InitWeights::ioParam_combineWeightFiles(enum ParamsIOFlag ioFlag) {
 }
 
 void InitWeights::handleObsoleteFlag(std::string const &flagName) {
-   if (parameters()->present(name, flagName.c_str())) {
-      if (parameters()->value(name, flagName.c_str())) {
+   if (parameters()->present(getName(), flagName.c_str())) {
+      if (parameters()->value(getName(), flagName.c_str())) {
          Fatal().printf(
                "%s sets the %s flag, which is obsolete.\n",
                getDescription().c_str(),

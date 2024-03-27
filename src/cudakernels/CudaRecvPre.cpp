@@ -6,7 +6,6 @@ namespace PVCuda {
 
 CudaRecvPre::CudaRecvPre(CudaDevice *inDevice) : CudaKernel(inDevice) {
    mKernelName = "CudaRecvPre";
-   numActive   = nullptr;
 }
 
 CudaRecvPre::~CudaRecvPre() {}
@@ -36,36 +35,36 @@ void CudaRecvPre::setArgs(
       bool isSparse,
       /*unsigned long*/ CudaBuffer *numActive,
       /*unsigned int*/ CudaBuffer *activeIndices) {
-   params.nbatch     = nbatch;
-   params.numPreExt  = numPreExt;
-   params.numPostRes = numPostRes;
+    mParams.nbatch     = nbatch;
+    mParams.numPreExt  = numPreExt;
+    mParams.numPostRes = numPostRes;
 
-   params.nxp = nxp;
-   params.nyp = nyp;
-   params.nfp = nfp;
+    mParams.nxp = nxp;
+    mParams.nyp = nyp;
+    mParams.nfp = nfp;
 
-   params.sy            = sy;
-   params.syw           = syw;
-   params.dt_factor     = dt_factor;
-   params.sharedWeights = sharedWeights;
-   params.channelCode   = channelCode;
+    mParams.sy            = sy;
+    mParams.syw           = syw;
+    mParams.dt_factor     = dt_factor;
+    mParams.sharedWeights = sharedWeights;
+    mParams.channelCode   = channelCode;
 
-   params.patches        = (PV::Patch *)patches->getPointer();
-   params.gSynPatchStart = (size_t *)gSynPatchStart->getPointer();
+    mParams.patches        = (PV::Patch *)patches->getPointer();
+    mParams.gSynPatchStart = (size_t *)gSynPatchStart->getPointer();
 
-   params.preData               = (float *)preData->getPointer();
-   params.weights               = (float *)weights->getPointer();
-   params.postGSyn              = (float *)postGSyn->getPointer();
-   params.patch2datalookuptable = (int *)patch2datalookuptable->getPointer();
+    mParams.preData               = (float *)preData->getPointer();
+    mParams.weights               = (float *)weights->getPointer();
+    mParams.postGSyn              = (float *)postGSyn->getPointer();
+    mParams.patch2datalookuptable = (int *)patch2datalookuptable->getPointer();
 
-   params.isSparse = isSparse;
+    mParams.isSparse = isSparse;
    if (activeIndices) {
-      params.numActive     = (long *)numActive->getPointer();
-      params.activeIndices = (PV::SparseList<float>::Entry *)activeIndices->getPointer();
+      mParams.numActive     = (long *)numActive->getPointer();
+      mParams.activeIndices = (PV::SparseList<float>::Entry *)activeIndices->getPointer();
    }
    else {
-      params.activeIndices = NULL;
-      params.numActive     = NULL;
+      mParams.activeIndices = NULL;
+      mParams.numActive     = NULL;
    }
 
    setArgsFlag();

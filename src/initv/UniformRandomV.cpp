@@ -34,12 +34,12 @@ int UniformRandomV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void UniformRandomV::ioParam_minV(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "minV", &minV, minV);
+   parameters()->ioParamValue(ioFlag, getName(), "minV", &minV, minV);
 }
 
 void UniformRandomV::ioParam_maxV(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "minV"));
-   parameters()->ioParamValue(ioFlag, name, "maxV", &maxV, minV + 1.0f);
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "minV"));
+   parameters()->ioParamValue(ioFlag, getName(), "maxV", &maxV, minV + 1.0f);
 }
 
 void UniformRandomV::calcV(float *V, PVLayerLoc const *loc) {

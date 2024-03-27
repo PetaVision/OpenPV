@@ -37,9 +37,9 @@ int MomentumUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamStringRequired(ioFlag, name, "momentumMethod", &mMomentumMethod);
+      parameters()->ioParamStringRequired(ioFlag, getName(), "momentumMethod", &mMomentumMethod);
       if (std::strcmp(mMomentumMethod, "viscosity") == 0) {
          mMethod = VISCOSITY;
       }
@@ -50,16 +50,16 @@ void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
          mMethod = ALEX;
       }
       else {
-         Fatal() << "MomentumUpdater " << name << ": momentumMethod of " << mMomentumMethod
+         Fatal() << "MomentumUpdater " << getName() << ": momentumMethod of " << mMomentumMethod
                  << " is not known. Options are \"viscosity\", \"simple\", and \"alex\".\n";
       }
    }
 }
 
 void MomentumUpdater::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "momentumMethod"));
+      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "momentumMethod"));
       float defaultVal = 0;
       switch (mMethod) {
          case VISCOSITY: defaultVal = mDefaultTimeConstantTauViscosity; break;
@@ -73,7 +73,7 @@ void MomentumUpdater::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
       // When momentumTau is removed, warnIfAbsent should be set to true here.
       bool warnIfAbsent = !parameters()->present(getName(), "momentumTau");
       parameters()->ioParamValue(
-            ioFlag, name, "timeConstantTau", &mTimeConstantTau, defaultVal, warnIfAbsent);
+            ioFlag, getName(), "timeConstantTau", &mTimeConstantTau, defaultVal, warnIfAbsent);
       if (ioFlag == PARAMS_IO_READ) {
          checkTimeConstantTau();
       }
@@ -114,10 +114,10 @@ void MomentumUpdater::checkTimeConstantTau() {
 }
 
 void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "momentumMethod"));
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "timeConstantTau"));
+      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "momentumMethod"));
+      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "timeConstantTau"));
       if (!parameters()->present(getName(), "momentumTau")) {
          return;
       }
@@ -127,7 +127,7 @@ void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
          return;
       }
       mUsingDeprecatedMomentumTau = true;
-      parameters()->ioParamValueRequired(ioFlag, name, "momentumTau", &mMomentumTau);
+      parameters()->ioParamValueRequired(ioFlag, getName(), "momentumTau", &mMomentumTau);
       WarnLog().printf(
             "%s uses momentumTau, which is deprecated. Use timeConstantTau instead.\n",
             getDescription_c());
@@ -135,30 +135,30 @@ void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
 }
 
 void MomentumUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamValue(ioFlag, name, "momentumDecay", &mMomentumDecay, mMomentumDecay);
+      parameters()->ioParamValue(ioFlag, getName(), "momentumDecay", &mMomentumDecay, mMomentumDecay);
       if (mMomentumDecay < 0.0f || mMomentumDecay > 1.0f) {
-         Fatal() << "MomentumUpdater " << name
+         Fatal() << "MomentumUpdater " << getName()
                  << ": momentumDecay must be between 0 and 1 inclusive\n";
       }
    }
 }
 
 void MomentumUpdater::ioParam_initPrev_dWFile(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
       parameters()->ioParamString(
-            ioFlag, name, "initPrev_dWFile", &mInitPrev_dWFile, "");
+            ioFlag, getName(), "initPrev_dWFile", &mInitPrev_dWFile, "");
    }
 }
 
 void MomentumUpdater::ioParam_prev_dWFrameNumber(enum ParamsIOFlag ioFlag) {
    if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(name, "initPrev_dWFile"));
+      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "initPrev_dWFile"));
       if (mInitPrev_dWFile and mInitPrev_dWFile[0]) {
          parameters()->ioParamValue(
-               ioFlag, name, "prev_dWFrameNumber", &mPrev_dWFrameNumber, mPrev_dWFrameNumber);
+               ioFlag, getName(), "prev_dWFrameNumber", &mPrev_dWFrameNumber, mPrev_dWFrameNumber);
       }
    }
 }
@@ -210,7 +210,7 @@ Response::Status MomentumUpdater::allocateDataStructures() {
    if (!mPlasticityFlag) {
       return status;
    }
-   mPrevDeltaWeights = new Weights(name, mWeights);
+   mPrevDeltaWeights = new Weights(getName(), mWeights);
    mPrevDeltaWeights->setMargins(
          mConnectionData->getPre()->getLayerLoc()->halo,
          mConnectionData->getPost()->getLayerLoc()->halo);
@@ -229,7 +229,7 @@ MomentumUpdater::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> 
    if (mPlasticityFlag) {
       auto *checkpointer = message->mDataRegistry;
       mPrevDeltaWeights->checkpointWeightPvp(
-            checkpointer, name, "prev_dW", mWriteCompressedCheckpoints);
+            checkpointer, getName(), "prev_dW", mWriteCompressedCheckpoints);
       // Don't need to checkpoint the next write time because it will always be the same
       // as the WeightsPair's nextWrite.
       openOutputStateFile(message);
@@ -283,7 +283,7 @@ Response::Status MomentumUpdater::readStateFromCheckpoint(Checkpointer *checkpoi
    // Do we need to handle it here and in registerData? --pschultz, 2017-12-16
    if (mPlasticityFlag) {
       checkpointer->readNamedCheckpointEntry(
-            std::string(name), std::string("prev_dW"), false /*not constant*/);
+            std::string(getName()), std::string("prev_dW"), false /*not constant*/);
    }
    return Response::SUCCESS;
 }

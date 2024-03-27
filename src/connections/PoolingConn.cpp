@@ -36,15 +36,15 @@ void PoolingConn::fillComponentTable() {
 }
 
 BaseDelivery *PoolingConn::createDeliveryObject() {
-   return new PoolingDelivery(name, parameters(), mCommunicator);
+   return new PoolingDelivery(getName(), parameters(), mCommunicator);
 }
 
 PatchSize *PoolingConn::createPatchSize() {
-   return new PatchSize(name, parameters(), mCommunicator);
+   return new PatchSize(getName(), parameters(), mCommunicator);
 }
 
 WeightsPairInterface *PoolingConn::createWeightsPair() {
-   return new ImpliedWeightsPair(name, parameters(), mCommunicator);
+   return new ImpliedWeightsPair(getName(), parameters(), mCommunicator);
 }
 
 } // namespace PV

@@ -33,7 +33,7 @@ int DropoutActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void DropoutActivityBuffer::ioParam_probability(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "probability", &mProbability, mProbability, true);
+   parameters()->ioParamValue(ioFlag, getName(), "probability", &mProbability, mProbability, true);
    if (mProbability < 0) {
       WarnLog() << getName() << ": probability was set to < 0%. Changing to 0%.\n";
       mProbability = 99;

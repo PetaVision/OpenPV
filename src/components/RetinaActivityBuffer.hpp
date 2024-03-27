@@ -10,6 +10,7 @@
 #include "columns/Random.hpp"
 #include "components/ActivityBuffer.hpp"
 #include "components/LayerInputBuffer.hpp"
+#include "utils/cl_random.h"
 
 namespace PV {
 

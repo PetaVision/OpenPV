@@ -90,7 +90,7 @@ PVLayerCube Publisher::createCube(int delay) {
 void Publisher::updateActiveIndices(int delay) {
    if (store->isSparse()) {
       for (int b = 0; b < store->getNumBuffers(); b++) {
-         // Active indicies stored as local extended values
+         // Active indices stored as local extended values
          if (*store->numActiveBuffer(b, delay) < 0L) {
             store->updateActiveIndices(b, delay);
          }

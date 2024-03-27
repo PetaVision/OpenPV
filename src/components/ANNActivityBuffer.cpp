@@ -31,7 +31,7 @@ void ANNActivityBuffer::setObjectType() { mObjectType = "ANNActivityBuffer"; }
 int ANNActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerActivityBuffer::ioParamsFillGroup(ioFlag);
 
-   if (parameters()->arrayPresent(name, "verticesV")) {
+   if (parameters()->arrayPresent(getName(), "verticesV")) {
       mVerticesListInParams = true;
       ioParam_verticesV(ioFlag);
       ioParam_verticesA(ioFlag);
@@ -114,7 +114,7 @@ void ANNActivityBuffer::ioParam_slopeNegInf(enum ParamsIOFlag ioFlag) {
    pvAssert(mVerticesListInParams);
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "slopeNegInf",
          &mSlopeNegInf,
          mSlopeNegInf /*default*/,
@@ -125,7 +125,7 @@ void ANNActivityBuffer::ioParam_slopePosInf(enum ParamsIOFlag ioFlag) {
    pvAssert(mVerticesListInParams);
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "slopePosInf",
          &mSlopePosInf,
          mSlopePosInf /*default*/,
@@ -134,15 +134,15 @@ void ANNActivityBuffer::ioParam_slopePosInf(enum ParamsIOFlag ioFlag) {
 
 void ANNActivityBuffer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
    pvAssert(!mVerticesListInParams);
-   parameters()->ioParamValue(ioFlag, name, "VThresh", &mVThresh, mVThresh);
+   parameters()->ioParamValue(ioFlag, getName(), "VThresh", &mVThresh, mVThresh);
 }
 
 void ANNActivityBuffer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
    pvAssert(!mVerticesListInParams);
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "VThresh"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "VThresh"));
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "AMin",
          &mAMin,
          mVThresh); // defaults to the value of VThresh, which was read earlier.
@@ -150,17 +150,17 @@ void ANNActivityBuffer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
 
 void ANNActivityBuffer::ioParam_AMax(enum ParamsIOFlag ioFlag) {
    pvAssert(!mVerticesListInParams);
-   parameters()->ioParamValue(ioFlag, name, "AMax", &mAMax, mAMax);
+   parameters()->ioParamValue(ioFlag, getName(), "AMax", &mAMax, mAMax);
 }
 
 void ANNActivityBuffer::ioParam_AShift(enum ParamsIOFlag ioFlag) {
    pvAssert(!mVerticesListInParams);
-   parameters()->ioParamValue(ioFlag, name, "AShift", &mAShift, mAShift);
+   parameters()->ioParamValue(ioFlag, getName(), "AShift", &mAShift, mAShift);
 }
 
 void ANNActivityBuffer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
    pvAssert(!mVerticesListInParams);
-   parameters()->ioParamValue(ioFlag, name, "VWidth", &mVWidth, mVWidth);
+   parameters()->ioParamValue(ioFlag, getName(), "VWidth", &mVWidth, mVWidth);
 }
 
 Response::Status ANNActivityBuffer::allocateDataStructures() {

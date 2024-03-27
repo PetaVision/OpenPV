@@ -84,7 +84,7 @@ void ShrunkenPatchTestProbe::checkStats() {
          Fatal().printf(
                "ShrunkenPatchTestProbe \"%s\" error: NxpShrunken must be an integer multiple of "
                "layer \"%s\" nxScale=%d.\n",
-               name,
+               getName(),
                l->getName(),
                cell_size);
       }

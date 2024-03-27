@@ -35,7 +35,7 @@ int SegmentifyBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void SegmentifyBuffer::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "inputMethod", &mInputMethod);
+   parameters()->ioParamStringRequired(ioFlag, getName(), "inputMethod", &mInputMethod);
    if (strcmp(mInputMethod, "average") == 0) {
    }
    else if (strcmp(mInputMethod, "sum") == 0) {
@@ -53,7 +53,7 @@ void SegmentifyBuffer::ioParam_inputMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void SegmentifyBuffer::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "outputMethod", &mOutputMethod);
+   parameters()->ioParamStringRequired(ioFlag, getName(), "outputMethod", &mOutputMethod);
    if (strcmp(mOutputMethod, "centroid") == 0) {
    }
    else if (strcmp(mOutputMethod, "fill") == 0) {
@@ -69,7 +69,7 @@ void SegmentifyBuffer::ioParam_outputMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void SegmentifyBuffer::ioParam_segmentLayerName(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "segmentLayerName", &mSegmentLayerName);
+   parameters()->ioParamStringRequired(ioFlag, getName(), "segmentLayerName", &mSegmentLayerName);
    assert(mSegmentLayerName);
    if (ioFlag == PARAMS_IO_READ && mSegmentLayerName[0] == '\0') {
       if (mCommunicator->commRank() == 0) {

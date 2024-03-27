@@ -139,7 +139,7 @@ Response::Status ComponentBuffer::readStateFromCheckpoint(Checkpointer *checkpoi
       return status;
    }
    if (mCheckpointFlag and !mBufferLabel.empty()) {
-      checkpointer->readNamedCheckpointEntry(std::string(name), mBufferLabel, false);
+      checkpointer->readNamedCheckpointEntry(std::string(getName()), mBufferLabel, false);
    }
    return Response::SUCCESS;
 }

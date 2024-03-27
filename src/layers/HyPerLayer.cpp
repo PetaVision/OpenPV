@@ -150,37 +150,37 @@ void HyPerLayer::fillComponentTable() {
 }
 
 LayerGeometry *HyPerLayer::createLayerGeometry() {
-   return new LayerGeometry(name, parameters(), mCommunicator);
+   return new LayerGeometry(getName(), parameters(), mCommunicator);
 }
 
 PhaseParam *HyPerLayer::createPhaseParam() {
-   return new PhaseParam(name, parameters(), mCommunicator);
+   return new PhaseParam(getName(), parameters(), mCommunicator);
 }
 
 BoundaryConditions *HyPerLayer::createBoundaryConditions() {
-   return new BoundaryConditions(name, parameters(), mCommunicator);
+   return new BoundaryConditions(getName(), parameters(), mCommunicator);
 }
 
 LayerUpdateController *HyPerLayer::createLayerUpdateController() {
-   return new LayerUpdateController(name, parameters(), mCommunicator);
+   return new LayerUpdateController(getName(), parameters(), mCommunicator);
 }
 
 LayerInputBuffer *HyPerLayer::createLayerInput() {
-   return new LayerInputBuffer(name, parameters(), mCommunicator);
+   return new LayerInputBuffer(getName(), parameters(), mCommunicator);
 }
 
 ActivityComponent *HyPerLayer::createActivityComponent() {
    return new HyPerActivityComponent<GSynAccumulator,
                                      HyPerInternalStateBuffer,
-                                     HyPerActivityBuffer>(name, parameters(), mCommunicator);
+                                     HyPerActivityBuffer>(getName(), parameters(), mCommunicator);
 }
 
 BasePublisherComponent *HyPerLayer::createPublisher() {
-   return new PublisherComponent(name, parameters(), mCommunicator);
+   return new PublisherComponent(getName(), parameters(), mCommunicator);
 }
 
 LayerOutputComponent *HyPerLayer::createLayerOutput() {
-   return new LayerOutputComponent(name, parameters(), mCommunicator);
+   return new LayerOutputComponent(getName(), parameters(), mCommunicator);
 }
 
 /******************************************************************

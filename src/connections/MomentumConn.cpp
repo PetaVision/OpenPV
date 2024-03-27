@@ -22,7 +22,7 @@ void MomentumConn::initialize(char const *name, PVParams *params, Communicator c
 }
 
 BaseWeightUpdater *MomentumConn::createWeightUpdater() {
-   return new MomentumUpdater(name, parameters(), mCommunicator);
+   return new MomentumUpdater(getName(), parameters(), mCommunicator);
 }
 
 } // namespace PV

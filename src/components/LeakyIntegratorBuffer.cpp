@@ -37,7 +37,7 @@ int LeakyIntegratorBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void LeakyIntegratorBuffer::ioParam_integrationTime(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "integrationTime",
          &mIntegrationTime,
          mIntegrationTime,

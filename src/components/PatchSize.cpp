@@ -29,16 +29,16 @@ int PatchSize::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PatchSize::ioParam_nxp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "nxp", &mPatchSizeX, mPatchSizeX);
+   parameters()->ioParamValue(ioFlag, getName(), "nxp", &mPatchSizeX, mPatchSizeX);
 }
 
 void PatchSize::ioParam_nyp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "nyp", &mPatchSizeY, mPatchSizeY);
+   parameters()->ioParamValue(ioFlag, getName(), "nyp", &mPatchSizeY, mPatchSizeY);
 }
 
 void PatchSize::ioParam_nfp(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "nfp", &mPatchSizeF, mPatchSizeF, false);
-   if (ioFlag == PARAMS_IO_READ && mPatchSizeF < 0 && !parameters()->present(name, "nfp")
+   parameters()->ioParamValue(ioFlag, getName(), "nfp", &mPatchSizeF, mPatchSizeF, false);
+   if (ioFlag == PARAMS_IO_READ && mPatchSizeF < 0 && !parameters()->present(getName(), "nfp")
        && mCommunicator->globalCommRank() == 0) {
       InfoLog().printf(
             "%s: nfp will be set in the communicateInitInfo() stage.\n", getDescription_c());

@@ -10,7 +10,7 @@
 
 #include "CheckpointEntry.hpp"
 #include "include/PVLayerLoc.hpp"
-#include "include/pv_types.h"
+#include "utils/cl_random.h"
 
 namespace PV {
 

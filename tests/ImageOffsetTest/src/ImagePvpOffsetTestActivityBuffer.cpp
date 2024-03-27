@@ -39,10 +39,10 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
                int iyGlobal        = ky0 + iY;
                float actualvalue   = A[idx] * 255;
                float expectedvalue = -1;
-               if (strcmp(name, "crop") == 0) {
+               if (strcmp(getName(), "crop") == 0) {
                   expectedvalue = (iyGlobal + 4) * 16 + (ixGlobal + 4);
                }
-               else if (strcmp(name, "pad") == 0) {
+               else if (strcmp(getName(), "pad") == 0) {
                   if (ixGlobal < 8 || iyGlobal < 8 || ixGlobal >= 24 || iyGlobal >= 24) {
                      expectedvalue = 0;
                   }
@@ -50,7 +50,7 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
                      expectedvalue = (iyGlobal - 8) * 16 + (ixGlobal - 8);
                   }
                }
-               else if (strcmp(name, "TLCorner") == 0) {
+               else if (strcmp(getName(), "TLCorner") == 0) {
                   if (ixGlobal < 2 && iyGlobal < 2) {
                      expectedvalue = (iyGlobal + 14) * 16 + (ixGlobal + 14);
                   }
@@ -58,7 +58,7 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
                      expectedvalue = 0;
                   }
                }
-               else if (strcmp(name, "TRCorner") == 0) {
+               else if (strcmp(getName(), "TRCorner") == 0) {
                   if (ixGlobal >= 14 && iyGlobal < 2) {
                      expectedvalue = (iyGlobal + 14) * 16 + (ixGlobal - 14);
                   }
@@ -66,7 +66,7 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
                      expectedvalue = 0;
                   }
                }
-               else if (strcmp(name, "BLCorner") == 0) {
+               else if (strcmp(getName(), "BLCorner") == 0) {
                   if (ixGlobal < 2 && iyGlobal >= 14) {
                      expectedvalue = (iyGlobal - 14) * 16 + (ixGlobal + 14);
                   }
@@ -74,7 +74,7 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
                      expectedvalue = 0;
                   }
                }
-               else if (strcmp(name, "BRCorner") == 0) {
+               else if (strcmp(getName(), "BRCorner") == 0) {
                   if (ixGlobal >= 14 && iyGlobal >= 14) {
                      expectedvalue = (iyGlobal - 14) * 16 + (ixGlobal - 14);
                   }
@@ -82,7 +82,7 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
                      expectedvalue = 0;
                   }
                }
-               else if (strcmp(name, "TLOver") == 0) {
+               else if (strcmp(getName(), "TLOver") == 0) {
                   if (ixGlobal >= 14 || iyGlobal >= 14) {
                      expectedvalue = 0;
                   }
@@ -90,7 +90,7 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
                      expectedvalue = (iyGlobal + 2) * 16 + (ixGlobal + 2);
                   }
                }
-               else if (strcmp(name, "TROver") == 0) {
+               else if (strcmp(getName(), "TROver") == 0) {
                   if (ixGlobal < 2 || iyGlobal >= 14) {
                      expectedvalue = 0;
                   }
@@ -98,7 +98,7 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
                      expectedvalue = (iyGlobal + 2) * 16 + (ixGlobal - 2);
                   }
                }
-               else if (strcmp(name, "BLOver") == 0) {
+               else if (strcmp(getName(), "BLOver") == 0) {
                   if (ixGlobal >= 14 || iyGlobal < 2) {
                      expectedvalue = 0;
                   }
@@ -106,7 +106,7 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
                      expectedvalue = (iyGlobal - 2) * 16 + (ixGlobal + 2);
                   }
                }
-               else if (strcmp(name, "BROver") == 0) {
+               else if (strcmp(getName(), "BROver") == 0) {
                   if (ixGlobal < 2 || iyGlobal < 2) {
                      expectedvalue = 0;
                   }
@@ -115,11 +115,11 @@ void ImagePvpOffsetTestActivityBuffer::updateBufferCPU(double simTime, double de
                   }
                }
                else {
-                  Fatal() << "Layer name " << name << " not recoginzed\n";
+                  Fatal() << "Layer name " << getName() << " not recoginzed\n";
                }
                float diff = fabs(actualvalue - expectedvalue);
                if (diff >= 1e-4f) {
-                  ErrorLog() << "Connection " << name << " Mismatch at (" << ixGlobal << ","
+                  ErrorLog() << "Connection " << getName() << " Mismatch at (" << ixGlobal << ","
                              << iyGlobal << "," << iF << ") : actual value: " << actualvalue
                              << " Expected value: " << expectedvalue << "\n";
                   isCorrect = false;

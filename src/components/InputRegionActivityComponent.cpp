@@ -38,7 +38,7 @@ ActivityBuffer *InputRegionActivityComponent::createActivity() {
 void InputRegionActivityComponent::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       mUpdateGpu = false;
-      parameters()->handleUnnecessaryParameter(name, "updateGpu", mUpdateGpu);
+      parameters()->handleUnnecessaryParameter(getName(), "updateGpu", mUpdateGpu);
    }
 }
 

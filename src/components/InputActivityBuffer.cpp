@@ -73,45 +73,49 @@ int InputActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // to 0 (never jitter). If jitterChangeInterval is not present but any of
    // maxShift{X,Y}, {x,y}FlipEnabled, {x,y}FlipToggle is present, flag as an error.
    // Delete this if-statement after a reasonable fade-time
-   if (ioFlag == PARAMS_IO_READ and !parameters()->present(name, "jitterChangeInterval")) {
+   if (ioFlag == PARAMS_IO_READ and !parameters()->present(getName(), "jitterChangeInterval")) {
       bool fatal = false;
-      if (parameters()->present(name, "maxShiftX")) {
+      if (parameters()->present(getName(), "maxShiftX")) {
          ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use maxShiftX\n", name);
+               "Layer \"%s\" must set jitterChangeInterval in order to use maxShiftX\n", getName());
          fatal = true;
       }
-      if (parameters()->present(name, "maxShiftY")) {
+      if (parameters()->present(getName(), "maxShiftY")) {
          ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use maxShiftY\n", name);
+               "Layer \"%s\" must set jitterChangeInterval in order to use maxShiftY\n", getName());
          fatal = true;
       }
-      if (parameters()->present(name, "xFlipEnabled")) {
+      if (parameters()->present(getName(), "xFlipEnabled")) {
          ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use xFlipEnabled\n", name);
+               "Layer \"%s\" must set jitterChangeInterval in order to use xFlipEnabled\n",
+               getName());
          fatal = true;
       }
-      if (parameters()->present(name, "yFlipEnabled")) {
+      if (parameters()->present(getName(), "yFlipEnabled")) {
          ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use yFlipEnabled\n", name);
+               "Layer \"%s\" must set jitterChangeInterval in order to use yFlipEnabled\n",
+               getName());
          fatal = true;
       }
-      if (parameters()->present(name, "xFlipToggle")) {
+      if (parameters()->present(getName(), "xFlipToggle")) {
          ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use xFlipToggle\n", name);
+               "Layer \"%s\" must set jitterChangeInterval in order to use xFlipToggle\n",
+               getName());
          fatal = true;
       }
-      if (parameters()->present(name, "yFlipToggle")) {
+      if (parameters()->present(getName(), "yFlipToggle")) {
          ErrorLog().printf(
-               "Layer \"%s\" must set jitterChangeInterval in order to use yFlipToggle\n", name);
+               "Layer \"%s\" must set jitterChangeInterval in order to use yFlipToggle\n",
+               getName());
          fatal = true;
       }
-      FatalIf(fatal, "Set jitterChangeInterval explicitly in layer \"%s\"\n", name);
+      FatalIf(fatal, "Set jitterChangeInterval explicitly in layer \"%s\"\n", getName());
    }
    return status;
 }
 
 void InputActivityBuffer::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "displayPeriod", &mDisplayPeriod, mDisplayPeriod);
+   parameters()->ioParamValue(ioFlag, getName(), "displayPeriod", &mDisplayPeriod, mDisplayPeriod);
 }
 
 void InputActivityBuffer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
@@ -119,7 +123,7 @@ void InputActivityBuffer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_WRITE) {
       tempString = strdup(mInputPath.c_str());
    }
-   parameters()->ioParamStringRequired(ioFlag, name, "inputPath", &tempString);
+   parameters()->ioParamStringRequired(ioFlag, getName(), "inputPath", &tempString);
    if (ioFlag == PARAMS_IO_READ) {
       mInputPath = std::string(tempString);
    }
@@ -127,25 +131,30 @@ void InputActivityBuffer::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
 }
 
 void InputActivityBuffer::ioParam_useInputBCflag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "useInputBCflag", &mUseInputBCflag, mUseInputBCflag);
+   parameters()->ioParamValue(
+         ioFlag,
+         getName(),
+         "useInputBCflag",
+         &mUseInputBCflag,
+         mUseInputBCflag);
 }
 
 void InputActivityBuffer::ioParam_offsets(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "offsetX", &mOffsetX, mOffsetX);
-   parameters()->ioParamValue(ioFlag, name, "offsetY", &mOffsetY, mOffsetY);
+   parameters()->ioParamValue(ioFlag, getName(), "offsetX", &mOffsetX, mOffsetX);
+   parameters()->ioParamValue(ioFlag, getName(), "offsetY", &mOffsetY, mOffsetY);
 }
 
 void InputActivityBuffer::ioParam_jitterChangeInterval(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "jitterChangeInterval", &mJitterChangeInterval, mJitterChangeInterval);
+         ioFlag, getName(), "jitterChangeInterval", &mJitterChangeInterval, mJitterChangeInterval);
 }
 
 void InputActivityBuffer::ioParam_jitterChangeIntervalUnit(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "jitterChangeInterval"));
    if (mJitterChangeInterval > 0) {
       parameters()->ioParamString(
             ioFlag,
-            name,
+            getName(),
             "jitterChangeIntervalUnit",
             &mJitterChangeIntervalUnit,
             "displayPeriod" /*default*/);
@@ -169,33 +178,33 @@ void InputActivityBuffer::ioParam_jitterChangeIntervalUnit(enum ParamsIOFlag ioF
 }
 
 void InputActivityBuffer::ioParam_maxShifts(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "jitterChangeInterval"));
    if (mJitterChangeInterval > 0) {
-      parameters()->ioParamValue(ioFlag, name, "maxShiftX", &mMaxShiftX, mMaxShiftX);
-      parameters()->ioParamValue(ioFlag, name, "maxShiftY", &mMaxShiftY, mMaxShiftY);
+      parameters()->ioParamValue(ioFlag, getName(), "maxShiftX", &mMaxShiftX, mMaxShiftX);
+      parameters()->ioParamValue(ioFlag, getName(), "maxShiftY", &mMaxShiftY, mMaxShiftY);
    }
 }
 
 void InputActivityBuffer::ioParam_flipsEnabled(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "jitterChangeInterval"));
    if (mJitterChangeInterval > 0) {
-      parameters()->ioParamValue(ioFlag, name, "xFlipEnabled", &mXFlipEnabled, mXFlipEnabled);
-      parameters()->ioParamValue(ioFlag, name, "yFlipEnabled", &mYFlipEnabled, mYFlipEnabled);
+      parameters()->ioParamValue(ioFlag, getName(), "xFlipEnabled", &mXFlipEnabled, mXFlipEnabled);
+      parameters()->ioParamValue(ioFlag, getName(), "yFlipEnabled", &mYFlipEnabled, mYFlipEnabled);
    }
 }
 
 void InputActivityBuffer::ioParam_flipsToggle(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "jitterChangeInterval"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "jitterChangeInterval"));
    if (mJitterChangeInterval > 0) {
-      parameters()->ioParamValue(ioFlag, name, "xFlipToggle", &mXFlipToggle, mXFlipToggle);
-      parameters()->ioParamValue(ioFlag, name, "yFlipToggle", &mYFlipToggle, mYFlipToggle);
+      parameters()->ioParamValue(ioFlag, getName(), "xFlipToggle", &mXFlipToggle, mXFlipToggle);
+      parameters()->ioParamValue(ioFlag, getName(), "yFlipToggle", &mYFlipToggle, mYFlipToggle);
    }
 }
 
 void InputActivityBuffer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       char *offsetAnchor = nullptr;
-      parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
+      parameters()->ioParamString(ioFlag, getName(), "offsetAnchor", &offsetAnchor, "tl");
       offsetAnchor[0] = (char)std::tolower((int)offsetAnchor[0]);
       offsetAnchor[1] = (char)std::tolower((int)offsetAnchor[1]);
       if (offsetAnchor == nullptr or strlen(offsetAnchor) != (size_t)2) {
@@ -247,7 +256,7 @@ void InputActivityBuffer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
          case Buffer<float>::WEST: strncpy(offsetAnchor, "cl", (size_t)2); break;
          case Buffer<float>::NORTHWEST: strncpy(offsetAnchor, "tl", (size_t)2); break;
       }
-      parameters()->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
+      parameters()->ioParamString(ioFlag, getName(), "offsetAnchor", &offsetAnchor, "tl");
    }
 }
 
@@ -261,11 +270,16 @@ void InputActivityBuffer::badOffsetAnchorString(char const *offsetAnchor) {
 }
 
 void InputActivityBuffer::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "autoResizeFlag", &mAutoResizeFlag, mAutoResizeFlag);
+   parameters()->ioParamValue(
+         ioFlag,
+         getName(),
+         "autoResizeFlag",
+         &mAutoResizeFlag,
+         mAutoResizeFlag);
 }
 
 void InputActivityBuffer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "autoResizeFlag"));
    if (mAutoResizeFlag) {
       char *aspectRatioAdjustment = nullptr;
       if (ioFlag == PARAMS_IO_WRITE) {
@@ -275,7 +289,7 @@ void InputActivityBuffer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag
          }
       }
       parameters()->ioParamString(
-            ioFlag, name, "aspectRatioAdjustment", &aspectRatioAdjustment, "crop");
+            ioFlag, getName(), "aspectRatioAdjustment", &aspectRatioAdjustment, "crop");
       if (ioFlag == PARAMS_IO_READ) {
          assert(aspectRatioAdjustment);
          for (char *c = aspectRatioAdjustment; *c; c++) {
@@ -302,13 +316,13 @@ void InputActivityBuffer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag
 }
 
 void InputActivityBuffer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "autoResizeFlag"));
    if (mAutoResizeFlag) {
       char *interpolationMethodString = nullptr;
       if (ioFlag == PARAMS_IO_READ) {
          parameters()->ioParamString(
                ioFlag,
-               name,
+               getName(),
                "interpolationMethod",
                &interpolationMethodString,
                "bicubic",
@@ -342,7 +356,7 @@ void InputActivityBuffer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) 
          }
          parameters()->ioParamString(
                ioFlag,
-               name,
+               getName(),
                "interpolationMethod",
                &interpolationMethodString,
                "bicubic",
@@ -353,23 +367,27 @@ void InputActivityBuffer::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) 
 }
 
 void InputActivityBuffer::ioParam_inverseFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "inverseFlag", &mInverseFlag, mInverseFlag);
+   parameters()->ioParamValue(ioFlag, getName(), "inverseFlag", &mInverseFlag, mInverseFlag);
 }
 
 void InputActivityBuffer::ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "normalizeLuminanceFlag", &mNormalizeLuminanceFlag, mNormalizeLuminanceFlag);
+         ioFlag,
+         getName(),
+         "normalizeLuminanceFlag",
+         &mNormalizeLuminanceFlag,
+         mNormalizeLuminanceFlag);
 }
 
 void InputActivityBuffer::ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "normalizeLuminanceFlag"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "normalizeLuminanceFlag"));
    if (mNormalizeLuminanceFlag) {
       parameters()->ioParamValue(
-            ioFlag, name, "normalizeStdDev", &mNormalizeStdDev, mNormalizeStdDev);
+            ioFlag, getName(), "normalizeStdDev", &mNormalizeStdDev, mNormalizeStdDev);
    }
 }
 void InputActivityBuffer::ioParam_padValue(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "padValue", &mPadValue, mPadValue);
+   parameters()->ioParamValue(ioFlag, getName(), "padValue", &mPadValue, mPadValue);
 }
 
 void InputActivityBuffer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
@@ -382,7 +400,7 @@ void InputActivityBuffer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
          case BatchIndexer::RANDOM: batchMethod = strdup("random"); break;
       }
    }
-   parameters()->ioParamString(ioFlag, name, "batchMethod", &batchMethod, "byFile");
+   parameters()->ioParamString(ioFlag, getName(), "batchMethod", &batchMethod, "byFile");
    if (strcmp(batchMethod, "byImage") == 0 || strcmp(batchMethod, "byFile") == 0) {
       mBatchMethod = BatchIndexer::BYFILE;
    }
@@ -396,15 +414,14 @@ void InputActivityBuffer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
       mBatchMethod = BatchIndexer::RANDOM;
    }
    else {
-      Fatal() << getName() << ": Input layer " << name
-              << " batchMethod not recognized. Options "
-                 "are \"byFile\", \"byList\", bySpecified, and random.\n";
+      Fatal() << "Input layer " << getName() << " batchMethod not recognized. "
+                 "Options are \"byFile\", \"byList\", bySpecified, and random.\n";
    }
    free(batchMethod);
 }
 
 void InputActivityBuffer::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "randomSeed", &mRandomSeed, mRandomSeed);
+   parameters()->ioParamValue(ioFlag, getName(), "randomSeed", &mRandomSeed, mRandomSeed);
 }
 
 void InputActivityBuffer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
@@ -428,7 +445,7 @@ void InputActivityBuffer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
 }
 
 void InputActivityBuffer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "batchMethod"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "batchMethod"));
    if (mBatchMethod != BatchIndexer::BYSPECIFIED) {
       // bySpecified is the only batchMethod that uses skip_frame_index.
       return;
@@ -453,10 +470,10 @@ void InputActivityBuffer::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
 }
 
 void InputActivityBuffer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "batchMethod"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "batchMethod"));
    if (mBatchMethod == BatchIndexer::BYSPECIFIED) {
       parameters()->ioParamValue(
-            ioFlag, name, "resetToStartOnLoop", &mResetToStartOnLoop, mResetToStartOnLoop);
+            ioFlag, getName(), "resetToStartOnLoop", &mResetToStartOnLoop, mResetToStartOnLoop);
    }
    else {
       mResetToStartOnLoop = false;
@@ -464,10 +481,14 @@ void InputActivityBuffer::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
 }
 
 void InputActivityBuffer::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "displayPeriod"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "displayPeriod"));
    if (mDisplayPeriod > 0) {
       parameters()->ioParamValue(
-            ioFlag, name, "writeFrameToTimestamp", &mWriteFrameToTimestamp, mWriteFrameToTimestamp);
+            ioFlag,
+            getName(),
+            "writeFrameToTimestamp",
+            &mWriteFrameToTimestamp,
+            mWriteFrameToTimestamp);
    }
    else {
       mWriteFrameToTimestamp = false;
@@ -585,7 +606,7 @@ void InputActivityBuffer::initializeBatchIndexer() {
    int blockBatchCount  = localBatchCount * ioMPIBlock->getBatchDimension();
    int fileCount        = countInputImages();
    mBatchIndexer        = std::unique_ptr<BatchIndexer>(new BatchIndexer(
-         std::string(name),
+         std::string(getName()),
          globalBatchCount,
          batchOffset,
          blockBatchCount,

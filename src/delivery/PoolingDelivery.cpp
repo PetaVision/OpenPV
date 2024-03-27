@@ -38,7 +38,7 @@ int PoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void PoolingDelivery::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamStringRequired(
-         ioFlag, name, "pvpatchAccumulateType", &mPvpatchAccumulateTypeString);
+         ioFlag, getName(), "pvpatchAccumulateType", &mPvpatchAccumulateTypeString);
    if (ioFlag == PARAMS_IO_READ) {
       mAccumulateType = parseAccumulateTypeString(mPvpatchAccumulateTypeString);
       FatalIf(
@@ -83,30 +83,30 @@ PoolingDelivery::parseAccumulateTypeString(char const *poolingTypeString) {
 
 void PoolingDelivery::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) {
    auto *params = parameters();
-   pvAssert(!params->presentAndNotBeenRead(name, "receiveGpu"));
+   pvAssert(!params->presentAndNotBeenRead(getName(), "receiveGpu"));
    if (!mReceiveGpu) {
       params->ioParamValue(
             ioFlag,
-            name,
+            getName(),
             "updateGSynFromPostPerspective",
             &mUpdateGSynFromPostPerspective,
             mUpdateGSynFromPostPerspective);
    }
    else {
       mUpdateGSynFromPostPerspective = true;
-      params->handleUnnecessaryParameter(name, "updateGSynFromPostPerspective", true);
+      params->handleUnnecessaryParameter(getName(), "updateGSynFromPostPerspective", true);
    }
 }
 
 void PoolingDelivery::ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "needPostIndexLayer", &mNeedPostIndexLayer, mNeedPostIndexLayer);
+         ioFlag, getName(), "needPostIndexLayer", &mNeedPostIndexLayer, mNeedPostIndexLayer);
 }
 
 void PoolingDelivery::ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "needPostIndexLayer"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "needPostIndexLayer"));
    if (mNeedPostIndexLayer) {
-      parameters()->ioParamStringRequired(ioFlag, name, "postIndexLayerName", &mPostIndexLayerName);
+      parameters()->ioParamStringRequired(ioFlag, getName(), "postIndexLayerName", &mPostIndexLayerName);
    }
 }
 

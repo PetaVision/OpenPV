@@ -15,11 +15,11 @@ int LogTimeScaleProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LogTimeScaleProbe::ioParam_logThresh(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "logThresh", &mLogThresh, mLogThresh);
+   parameters()->ioParamValue(ioFlag, getName(), "logThresh", &mLogThresh, mLogThresh);
 }
 
 void LogTimeScaleProbe::ioParam_logSlope(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "logSlope", &mLogSlope, mLogSlope);
+   parameters()->ioParamValue(ioFlag, getName(), "logSlope", &mLogSlope, mLogSlope);
 }
 
 void LogTimeScaleProbe::allocateTimeScaleController() {

@@ -33,19 +33,19 @@ void TransposeConn::fillComponentTable() {
 }
 
 ArborList *TransposeConn::createArborList() {
-   return new DependentArborList(name, parameters(), mCommunicator);
+   return new DependentArborList(getName(), parameters(), mCommunicator);
 }
 
 PatchSize *TransposeConn::createPatchSize() {
-   return new TransposePatchSize(name, parameters(), mCommunicator);
+   return new TransposePatchSize(getName(), parameters(), mCommunicator);
 }
 
 SharedWeights *TransposeConn::createSharedWeights() {
-   return new DependentSharedWeights(name, parameters(), mCommunicator);
+   return new DependentSharedWeights(getName(), parameters(), mCommunicator);
 }
 
 WeightsPairInterface *TransposeConn::createWeightsPair() {
-   return new TransposeWeightsPair(name, parameters(), mCommunicator);
+   return new TransposeWeightsPair(getName(), parameters(), mCommunicator);
 }
 
 InitWeights *TransposeConn::createWeightInitializer() { return nullptr; }
@@ -55,7 +55,7 @@ NormalizeBase *TransposeConn::createWeightNormalizer() { return nullptr; }
 BaseWeightUpdater *TransposeConn::createWeightUpdater() { return nullptr; }
 
 OriginalConnNameParam *TransposeConn::createOriginalConnNameParam() {
-   return new OriginalConnNameParam(name, parameters(), mCommunicator);
+   return new OriginalConnNameParam(getName(), parameters(), mCommunicator);
 }
 
 Response::Status

@@ -38,13 +38,13 @@ int ISTAInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void ISTAInternalStateBuffer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "timeConstantTau", &mTimeConstantTau, mTimeConstantTau);
+   parameters()->ioParamValue(ioFlag, getName(), "timeConstantTau", &mTimeConstantTau, mTimeConstantTau);
 }
 
 void ISTAInternalStateBuffer::ioParam_adaptiveTimeScaleProbe(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
          ioFlag,
-         name,
+         getName(),
          "adaptiveTimeScaleProbe",
          &mAdaptiveTimeScaleProbeName,
          nullptr /*default*/,

@@ -33,7 +33,7 @@ void CloneInternalStateBuffer::setObjectType() { mObjectType = "CloneInternalSta
 
 void CloneInternalStateBuffer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "InitVType");
+      parameters()->handleUnnecessaryParameter(getName(), "InitVType");
    }
 }
 

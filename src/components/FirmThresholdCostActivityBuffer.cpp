@@ -38,11 +38,11 @@ int FirmThresholdCostActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 }
 
 void FirmThresholdCostActivityBuffer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, name, "VThresh", &mVThresh);
+   parameters()->ioParamValueRequired(ioFlag, getName(), "VThresh", &mVThresh);
 }
 
 void FirmThresholdCostActivityBuffer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "VWidth", &mVWidth, mVWidth);
+   parameters()->ioParamValue(ioFlag, getName(), "VWidth", &mVWidth, mVWidth);
 }
 
 void FirmThresholdCostActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {

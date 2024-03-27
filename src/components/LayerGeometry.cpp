@@ -36,39 +36,39 @@ int LayerGeometry::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void LayerGeometry::ioParam_broadcastFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "broadcastFlag", &mBroadcastFlag, mBroadcastFlag);
+   parameters()->ioParamValue(ioFlag, getName(), "broadcastFlag", &mBroadcastFlag, mBroadcastFlag);
 }
 
 void LayerGeometry::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "broadcastFlag"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "broadcastFlag"));
    if (mBroadcastFlag) {
-      if (ioFlag == PARAMS_IO_READ and parameters()->present(name, "broadcastFlag")) {
+      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "broadcastFlag")) {
          WarnLog().printf(
                "%s has broadcastFlag = true; therefore nxScale is ignored.\n",
                getDescription_c());
       }
    }
    else {
-      parameters()->ioParamValue(ioFlag, name, "nxScale", &mNxScale, mNxScale);
+      parameters()->ioParamValue(ioFlag, getName(), "nxScale", &mNxScale, mNxScale);
    }
 }
 
 void LayerGeometry::ioParam_nyScale(enum ParamsIOFlag ioFlag) {
-   assert(!parameters()->presentAndNotBeenRead(name, "broadcastFlag"));
+   assert(!parameters()->presentAndNotBeenRead(getName(), "broadcastFlag"));
    if (mBroadcastFlag) {
-      if (ioFlag == PARAMS_IO_READ and parameters()->present(name, "broadcastFlag")) {
+      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "broadcastFlag")) {
          WarnLog().printf(
                "%s has broadcastFlag = true; therefore nyScale is ignored.\n",
                getDescription_c());
       }
    }
    else {
-      parameters()->ioParamValue(ioFlag, name, "nyScale", &mNyScale, mNyScale);
+      parameters()->ioParamValue(ioFlag, getName(), "nyScale", &mNyScale, mNyScale);
    }
 }
 
 void LayerGeometry::ioParam_nf(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "nf", &mNumFeatures, mNumFeatures);
+   parameters()->ioParamValue(ioFlag, getName(), "nf", &mNumFeatures, mNumFeatures);
 }
 
 Response::Status

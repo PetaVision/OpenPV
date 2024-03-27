@@ -171,7 +171,7 @@ void PatchGeometry::verifyPatchSize() {
       std::stringstream errMsgStream;
       errMsgStream << "number of features in patch (" << mPatchSizeF << ") "
                    << "must equal the number of postsynaptic features (" << mPostLoc.nf << ")";
-      std::string errorMessage(errMsgStream.str());
+      errorMessage = errMsgStream.str();
       throw std::runtime_error(errorMessage);
    }
 }

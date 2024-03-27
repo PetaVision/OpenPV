@@ -28,7 +28,7 @@ void Segmentify::fillComponentTable() {
 }
 
 OriginalLayerNameParam *Segmentify::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
+   return new OriginalLayerNameParam(getName(), parameters(), mCommunicator);
 }
 
 LayerInputBuffer *Segmentify::createLayerInput() { return nullptr; }

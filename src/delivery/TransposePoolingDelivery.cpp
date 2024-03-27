@@ -43,7 +43,7 @@ int TransposePoolingDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void TransposePoolingDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    // During the communication phase, receiveGpu will be copied from the original conn
    if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "receiveGpu");
+      parameters()->handleUnnecessaryParameter(getName(), "receiveGpu");
    }
 }
 
@@ -55,7 +55,7 @@ void TransposePoolingDelivery::ioParam_updateGSynFromPostPerspective(enum Params
       if (!mReceiveGpu) {
          parameters()->ioParamValue(
                ioFlag,
-               name,
+               getName(),
                "updateGSynFromPostPerspective",
                &mUpdateGSynFromPostPerspective,
                mUpdateGSynFromPostPerspective);
@@ -111,7 +111,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    if (!mReceiveGpu) {
       parameters()->ioParamValue(
             PARAMS_IO_READ,
-            name,
+            getName(),
             "updateGSynFromPostPerspective",
             &mUpdateGSynFromPostPerspective,
             mUpdateGSynFromPostPerspective);
@@ -119,7 +119,7 @@ Response::Status TransposePoolingDelivery::communicateInitInfo(
    else {
       mUpdateGSynFromPostPerspective = true;
       parameters()->handleUnnecessaryParameter(
-            name, "updateGSynFromPostPerspective", mUpdateGSynFromPostPerspective);
+            getName(), "updateGSynFromPostPerspective", mUpdateGSynFromPostPerspective);
    }
 
    mPatchSize = objectTable->findObject<DependentPatchSize>(getName());

@@ -33,17 +33,17 @@ int NormalizeMultiply::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeMultiply::ioParam_rMinX(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "rMinX", &mRMinX, mRMinX);
+   parameters()->ioParamValue(ioFlag, getName(), "rMinX", &mRMinX, mRMinX);
 }
 
 void NormalizeMultiply::ioParam_rMinY(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "rMinY", &mRMinY, mRMinY);
+   parameters()->ioParamValue(ioFlag, getName(), "rMinY", &mRMinY, mRMinY);
 }
 
 void NormalizeMultiply::ioParam_nonnegativeConstraintFlag(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "nonnegativeConstraintFlag",
          &mNonnegativeConstraintFlag,
          mNonnegativeConstraintFlag);
@@ -51,24 +51,24 @@ void NormalizeMultiply::ioParam_nonnegativeConstraintFlag(enum ParamsIOFlag ioFl
 
 void NormalizeMultiply::ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "normalize_cutoff", &mNormalizeCutoff, mNormalizeCutoff);
+         ioFlag, getName(), "normalize_cutoff", &mNormalizeCutoff, mNormalizeCutoff);
 }
 
 void NormalizeMultiply::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ && !parameters()->present(name, "normalizeFromPostPerspective")
-       && parameters()->present(name, "normalize_arbors_individually")) {
+   if (ioFlag == PARAMS_IO_READ && !parameters()->present(getName(), "normalizeFromPostPerspective")
+       && parameters()->present(getName(), "normalize_arbors_individually")) {
       if (mCommunicator->globalCommRank() == 0) {
          WarnLog().printf(
                "Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use "
                "normalizeFromPostPerspective.\n",
-               name);
+               getName());
       }
-      mNormalizeFromPostPerspective = parameters()->value(name, "normalizeTotalToPost");
+      mNormalizeFromPostPerspective = parameters()->value(getName(), "normalizeTotalToPost");
       return;
    }
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "normalizeFromPostPerspective",
          &mNormalizeFromPostPerspective,
          mNormalizeFromPostPerspective /*default value*/,

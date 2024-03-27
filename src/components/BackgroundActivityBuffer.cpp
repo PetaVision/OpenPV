@@ -35,10 +35,12 @@ int BackgroundActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void BackgroundActivityBuffer::ioParam_repFeatureNum(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "repFeatureNum", &mRepFeatureNum, mRepFeatureNum);
+   parameters()->ioParamValue(ioFlag, getName(), "repFeatureNum", &mRepFeatureNum, mRepFeatureNum);
    if (mRepFeatureNum <= 0) {
-      Fatal() << "BackgroundLayer " << name << ": repFeatureNum must an integer greater or equal "
-                                               "to 1 (1 feature means no replication)\n";
+      Fatal().printf(
+            "BackgroundLayer %s: repFeatureNum must an integer greater or equal to 1 "
+            "(1 feature means no replication)\n",
+            getName());
    }
 }
 

@@ -562,7 +562,6 @@ std::vector<Buffer<float>> generateLayerDataFrame2(
    float numGlobalAcrossBatchF = static_cast<float>(numGlobalAcrossBatch);
    for (int b = 0; b < layerLoc.nbatch; ++b) {
       layerData[b].resize(width, height, nf);
-      int numNeurons = width * height * nf;
       for (int k = 0; k < width * height * nf; ++k) {
          int kf = k % nf;
          int kx = (k / nf) % width + layerLoc.kx0;

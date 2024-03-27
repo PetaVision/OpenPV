@@ -12,7 +12,7 @@ TriggerTestConn::TriggerTestConn(const char *name, PVParams *params, Communicato
 }
 
 BaseWeightUpdater *TriggerTestConn::createWeightUpdater() {
-   return new TriggerTestUpdater(name, parameters(), mCommunicator);
+   return new TriggerTestUpdater(getName(), parameters(), mCommunicator);
 }
 
 } // namespace PV

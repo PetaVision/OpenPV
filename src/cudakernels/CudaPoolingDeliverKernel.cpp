@@ -30,13 +30,11 @@ void CudaPoolingDeliverKernel::setArgs(
       int nypPost,
       cudnnPoolingMode_t poolingMode,
       int multiplier,
-      // TODO: instead of passing poolingMode and multiplier, I would prefer
-      // to pass the PoolingConn poolingType, and have the setArgs method
-      // determine the pooling mode and the multiplier from poolingType and
-      // the patch size.  However, this causes a circular dependency between
-      // PoolingConn and CudaPoolingRecvPost.  It could be moved into
-      // pv_types.h, but it would be nice to define a pooling-specific enum
-      // in a pooling-specific file.
+      // TODO: instead of passing poolingMode and multiplier, I would prefer to pass the
+      // PoolingConn poolingType, and have the setArgs method determine the pooling mode and the
+      // multiplier from poolingType and the patch size.  However, this causes a circular dependency
+      // between PoolingConn and CudaPoolingRecvPost.  It would be nice to define a pooling-specific
+      // enum in a pooling-specific file.
       CudaBuffer *dataStoreBuffer,
       CudaBuffer *gSynBuffer,
       int channel) {

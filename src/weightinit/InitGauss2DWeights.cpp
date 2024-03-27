@@ -46,15 +46,15 @@ int InitGauss2DWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitGauss2DWeights::ioParam_aspect(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "aspect", &mAspect, mAspect);
+   parameters()->ioParamValue(ioFlag, getName(), "aspect", &mAspect, mAspect);
 }
 
 void InitGauss2DWeights::ioParam_sigma(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "sigma", &mSigma, mSigma);
+   parameters()->ioParamValue(ioFlag, getName(), "sigma", &mSigma, mSigma);
 }
 
 void InitGauss2DWeights::ioParam_rMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "rMax", &mRMax, mRMax);
+   parameters()->ioParamValue(ioFlag, getName(), "rMax", &mRMax, mRMax);
    if (ioFlag == PARAMS_IO_READ) {
       double rMaxd = (double)mRMax;
       mRMaxSquared = rMaxd * rMaxd;
@@ -62,7 +62,7 @@ void InitGauss2DWeights::ioParam_rMax(enum ParamsIOFlag ioFlag) {
 }
 
 void InitGauss2DWeights::ioParam_rMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "rMin", &mRMin, mRMin);
+   parameters()->ioParamValue(ioFlag, getName(), "rMin", &mRMin, mRMin);
    if (ioFlag == PARAMS_IO_READ) {
       double rMind = (double)mRMin;
       mRMinSquared = rMind * rMind;
@@ -70,41 +70,41 @@ void InitGauss2DWeights::ioParam_rMin(enum ParamsIOFlag ioFlag) {
 }
 
 void InitGauss2DWeights::ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "numOrientationsPost", &mNumOrientationsPost, -1);
+   parameters()->ioParamValue(ioFlag, getName(), "numOrientationsPost", &mNumOrientationsPost, -1);
 }
 
 void InitGauss2DWeights::ioParam_numOrientationsPre(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "numOrientationsPre", &mNumOrientationsPre, -1);
+   parameters()->ioParamValue(ioFlag, getName(), "numOrientationsPre", &mNumOrientationsPre, -1);
 }
 
 void InitGauss2DWeights::ioParam_deltaThetaMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "deltaThetaMax", &mDeltaThetaMax, mDeltaThetaMax);
+   parameters()->ioParamValue(ioFlag, getName(), "deltaThetaMax", &mDeltaThetaMax, mDeltaThetaMax);
 }
 
 void InitGauss2DWeights::ioParam_thetaMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "thetaMax", &mThetaMax, mThetaMax);
+   parameters()->ioParamValue(ioFlag, getName(), "thetaMax", &mThetaMax, mThetaMax);
 }
 
 void InitGauss2DWeights::ioParam_numFlanks(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "numFlanks", &mNumFlanks, mNumFlanks);
+   parameters()->ioParamValue(ioFlag, getName(), "numFlanks", &mNumFlanks, mNumFlanks);
 }
 
 void InitGauss2DWeights::ioParam_flankShift(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "flankShift", &mFlankShift, mFlankShift);
+   parameters()->ioParamValue(ioFlag, getName(), "flankShift", &mFlankShift, mFlankShift);
 }
 
 void InitGauss2DWeights::ioParam_rotate(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "rotate", &mRotate, mRotate);
+   parameters()->ioParamValue(ioFlag, getName(), "rotate", &mRotate, mRotate);
 }
 
 void InitGauss2DWeights::ioParam_bowtieFlag(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "bowtieFlag", &mBowtieFlag, mBowtieFlag);
+   parameters()->ioParamValue(ioFlag, getName(), "bowtieFlag", &mBowtieFlag, mBowtieFlag);
 }
 
 void InitGauss2DWeights::ioParam_bowtieAngle(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "bowtieFlag"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "bowtieFlag"));
    if (mBowtieFlag) {
-      parameters()->ioParamValue(ioFlag, name, "bowtieAngle", &mBowtieAngle, mBowtieAngle);
+      parameters()->ioParamValue(ioFlag, getName(), "bowtieAngle", &mBowtieAngle, mBowtieAngle);
    }
 }
 
@@ -149,7 +149,7 @@ InitGauss2DWeights::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
       }
    }
    else {
-      strengthParam = new StrengthParam(name, parameters(), mCommunicator);
+      strengthParam = new StrengthParam(getName(), parameters(), mCommunicator);
       parentConn->addUniqueComponent(strengthParam);
       status = status + Response::POSTPONE;
    }

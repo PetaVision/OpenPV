@@ -35,7 +35,7 @@ int ErrScaleInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void ErrScaleInternalStateBuffer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "errScale", &mErrScale, mErrScale, true /*warnIfAbsent*/);
+         ioFlag, getName(), "errScale", &mErrScale, mErrScale, true /*warnIfAbsent*/);
 }
 
 void ErrScaleInternalStateBuffer::updateBufferCPU(double simTime, double deltaTime) {

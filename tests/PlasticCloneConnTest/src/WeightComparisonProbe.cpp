@@ -84,7 +84,6 @@ Response::Status WeightComparisonProbe::allocateDataStructures() {
                "%s and %s have different numbers of data weights.\n",
                firstConn.c_str(),
                c->getDescription_c());
-         auto *patchSize = c->getComponentByType<PatchSize>();
          FatalIf(
                nxp != patchSize->getPatchSizeX(),
                "%s and %s have different nxp.\n",

@@ -54,15 +54,15 @@ void WeightsPair::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    bool warnIfAbsent = false; // If not in params, will be set in CommunicateInitInfo stage
    // If writing a derived class that overrides ioParam_writeStep, check if the setDefaultWriteStep
    // method also needs to be overridden.
-   parameters()->ioParamValue(ioFlag, name, "writeStep", &mWriteStep, mWriteStep, warnIfAbsent);
+   parameters()->ioParamValue(ioFlag, getName(), "writeStep", &mWriteStep, mWriteStep, warnIfAbsent);
 }
 
 void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "writeStep"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "writeStep"));
    if (mWriteStep >= 0) {
       parameters()->ioParamValue(
             ioFlag,
-            name,
+            getName(),
             "initialWriteTime",
             &mInitialWriteTime,
             mInitialWriteTime,
@@ -94,11 +94,11 @@ void WeightsPair::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
 }
 
 void WeightsPair::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "writeStep"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "writeStep"));
    if (mWriteStep >= 0) {
       parameters()->ioParamValue(
             ioFlag,
-            name,
+            getName(),
             "writeCompressedWeights",
             &mWriteCompressedWeights,
             mWriteCompressedWeights,
@@ -109,7 +109,7 @@ void WeightsPair::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
 void WeightsPair::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "writeCompressedCheckpoints",
          &mWriteCompressedCheckpoints,
          mWriteCompressedCheckpoints,
@@ -208,7 +208,7 @@ void WeightsPair::createPostWeights(std::string const &weightsName) {
 void WeightsPair::setDefaultWriteStep(std::shared_ptr<CommunicateInitInfoMessage const> message) {
    mWriteStep = message->mDeltaTime;
    // Call ioParamValue to generate the warnIfAbsent warning.
-   parameters()->ioParamValue(PARAMS_IO_READ, name, "writeStep", &mWriteStep, mWriteStep, true);
+   parameters()->ioParamValue(PARAMS_IO_READ, getName(), "writeStep", &mWriteStep, mWriteStep, true);
 }
 
 void WeightsPair::allocatePreWeights() {
@@ -245,7 +245,7 @@ WeightsPair::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> cons
    mPreWeights->checkpointWeightPvp(checkpointer, getName(), "W", mWriteCompressedCheckpoints);
    if (mWriteStep >= 0) {
       checkpointer->registerCheckpointData(
-            std::string(name),
+            std::string(getName()),
             "nextWrite",
             &mWriteTime,
             (std::size_t)1,
@@ -316,7 +316,7 @@ void WeightsPair::openOutputStateFile(
 Response::Status WeightsPair::readStateFromCheckpoint(Checkpointer *checkpointer) {
    if (getInitializeFromCheckpointFlag()) {
       checkpointer->readNamedCheckpointEntry(
-            std::string(name), std::string("W"), !mPreWeights->getWeightsArePlastic());
+            std::string(getName()), std::string("W"), !mPreWeights->getWeightsArePlastic());
       return Response::SUCCESS;
    }
    else {

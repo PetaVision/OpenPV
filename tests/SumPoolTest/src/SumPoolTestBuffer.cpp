@@ -62,7 +62,7 @@ void SumPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
                   expectedvalue *= 3 * 3;
                }
                if (std::fabs(actualvalue - expectedvalue) >= 1e-4f) {
-                  ErrorLog() << "Connection " << name << " Mismatch at (" << iX << "," << iY
+                  ErrorLog() << "Connection " << getName() << " Mismatch at (" << iX << "," << iY
                              << ") : actual value: " << actualvalue
                              << " Expected value: " << expectedvalue
                              << ".  Discrepancy is a whopping " << actualvalue - expectedvalue

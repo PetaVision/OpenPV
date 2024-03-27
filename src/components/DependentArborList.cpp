@@ -35,7 +35,7 @@ int DependentArborList::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void DependentArborList::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      parameters()->handleUnnecessaryParameter(name, "numAxonalArbors");
+      parameters()->handleUnnecessaryParameter(getName(), "numAxonalArbors");
    }
    // During the communication phase, numAxonalArbors will be copied from originalConn
 }
@@ -79,7 +79,7 @@ DependentArborList::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessa
    }
 
    mNumAxonalArbors = originalArborList->getNumAxonalArbors();
-   parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", mNumAxonalArbors);
+   parameters()->handleUnnecessaryParameter(getName(), "numAxonalArbors", mNumAxonalArbors);
 
    auto status = ArborList::communicateInitInfo(message);
    if (!Response::completed(status)) {

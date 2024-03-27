@@ -27,7 +27,7 @@ int RescaleDelivery::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void RescaleDelivery::ioParam_scale(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "scale", &mScale, mScale /*default*/, true /*warn if absent*/);
+         ioFlag, getName(), "scale", &mScale, mScale /*default*/, true /*warn if absent*/);
 }
 
 // Delivers a scalar multiple of the identity from presynaptic activity to postsynaptic GSyn.

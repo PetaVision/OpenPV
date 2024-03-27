@@ -112,41 +112,41 @@ int RescaleActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void RescaleActivityBuffer::ioParam_rescaleMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "rescaleMethod", &mRescaleMethod);
+   parameters()->ioParamStringRequired(ioFlag, getName(), "rescaleMethod", &mRescaleMethod);
 }
 
 void RescaleActivityBuffer::ioParam_targetMax(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "rescaleMethod"));
    if (mMethodCode == MAXMIN) {
-      parameters()->ioParamValue(ioFlag, name, "targetMax", &mTargetMax, mTargetMax);
+      parameters()->ioParamValue(ioFlag, getName(), "targetMax", &mTargetMax, mTargetMax);
    }
 }
 
 void RescaleActivityBuffer::ioParam_targetMin(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "rescaleMethod"));
    if (mMethodCode == MAXMIN) {
-      parameters()->ioParamValue(ioFlag, name, "targetMin", &mTargetMin, mTargetMin);
+      parameters()->ioParamValue(ioFlag, getName(), "targetMin", &mTargetMin, mTargetMin);
    }
 }
 
 void RescaleActivityBuffer::ioParam_targetMean(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "rescaleMethod"));
    if (mMethodCode == MEANSTD or mMethodCode == POINTMEANSTD) {
-      parameters()->ioParamValue(ioFlag, name, "targetMean", &mTargetMean, mTargetMean);
+      parameters()->ioParamValue(ioFlag, getName(), "targetMean", &mTargetMean, mTargetMean);
    }
 }
 
 void RescaleActivityBuffer::ioParam_targetStd(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "rescaleMethod"));
    if (mMethodCode == MEANSTD or mMethodCode == POINTMEANSTD) {
-      parameters()->ioParamValue(ioFlag, name, "targetStd", &mTargetStd, mTargetStd);
+      parameters()->ioParamValue(ioFlag, getName(), "targetStd", &mTargetStd, mTargetStd);
    }
 }
 
 void RescaleActivityBuffer::ioParam_patchSize(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "rescaleMethod"));
    if (mMethodCode == L2 or mMethodCode == L2NOMEAN) {
-      parameters()->ioParamValue(ioFlag, name, "patchSize", &mPatchSize, mPatchSize);
+      parameters()->ioParamValue(ioFlag, getName(), "patchSize", &mPatchSize, mPatchSize);
    }
 }
 

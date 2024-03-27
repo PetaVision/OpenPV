@@ -40,7 +40,7 @@ int MomentumLCAInternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) 
 void MomentumLCAInternalStateBuffer::ioParam_LCAMomentumRate(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "LCAMomentumRate",
          &mLCAMomentumRate,
          mLCAMomentumRate,

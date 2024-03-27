@@ -26,7 +26,7 @@ void BaseInitV::initialize(char const *name, PVParams *params, Communicator cons
 
 void BaseInitV::setObjectType() {
    auto *params                = parameters();
-   char const *initVTypeString = params->stringValue(name, "InitVType", false);
+   char const *initVTypeString = params->stringValue(getName(), "InitVType", false);
    mObjectType                 = initVTypeString ? std::string(initVTypeString) : mDefaultInitV;
 }
 

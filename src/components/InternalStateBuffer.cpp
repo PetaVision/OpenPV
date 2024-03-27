@@ -37,7 +37,7 @@ int InternalStateBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void InternalStateBuffer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
          ioFlag,
-         name,
+         getName(),
          "InitVType",
          &mInitVTypeString,
          BaseInitV::mDefaultInitV.data(),

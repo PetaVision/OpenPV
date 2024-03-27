@@ -34,11 +34,11 @@ void InputRegionLayer::fillComponentTable() {
 }
 
 PhaseParam *InputRegionLayer::createPhaseParam() {
-   return new DependentPhaseParam(name, parameters(), mCommunicator);
+   return new DependentPhaseParam(getName(), parameters(), mCommunicator);
 }
 
 BoundaryConditions *InputRegionLayer::createBoundaryConditions() {
-   return new DependentBoundaryConditions(name, parameters(), mCommunicator);
+   return new DependentBoundaryConditions(getName(), parameters(), mCommunicator);
 }
 
 LayerUpdateController *InputRegionLayer::createLayerUpdateController() { return nullptr; }
@@ -54,7 +54,7 @@ BasePublisherComponent *InputRegionLayer::createPublisher() {
 }
 
 OriginalLayerNameParam *InputRegionLayer::createOriginalLayerNameParam() {
-   return new OriginalLayerNameParam(name, parameters(), mCommunicator);
+   return new OriginalLayerNameParam(getName(), parameters(), mCommunicator);
 }
 
 } /* namespace PV */

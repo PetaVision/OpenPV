@@ -66,11 +66,11 @@ void BaseConnection::fillComponentTable() {
 }
 
 ConnectionData *BaseConnection::createConnectionData() {
-   return new ConnectionData(name, parameters(), mCommunicator);
+   return new ConnectionData(getName(), parameters(), mCommunicator);
 }
 
 BaseDelivery *BaseConnection::createDeliveryObject() {
-   return new BaseDelivery(name, parameters(), mCommunicator);
+   return new BaseDelivery(getName(), parameters(), mCommunicator);
 }
 
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

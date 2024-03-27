@@ -158,11 +158,11 @@ ColumnEnergyProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer
    }
    else {
       // Check that all terms have the same NumValues.
-      int status  = PV_SUCCESS;
+      int checkNumValues  = PV_SUCCESS;
       localNBatch = mTerms[0]->getNumValues();
       for (auto const *p : mTerms) {
          if (p->getNumValues() != localNBatch) {
-            status = PV_FAILURE;
+            checkNumValues = PV_FAILURE;
             ErrorLog().printf(
                   "%s has energy terms with differing batch widths: "
                   "probe \"%s\" has batch width %d, and probe \"%s\" has batch width %d\n",
@@ -173,7 +173,7 @@ ColumnEnergyProbe::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer
                   p->getNumValues());
          }
       }
-      FatalIf(status != PV_SUCCESS, "%s failed.\n", getDescription_c());
+      FatalIf(checkNumValues != PV_SUCCESS, "%s failed.\n", getDescription_c());
    }
    mProbeOutputter->initOutputStreams(checkpointer, localNBatch);
    return Response::SUCCESS;

@@ -25,7 +25,7 @@ void ISTALayer::initialize(const char *name, PVParams *params, Communicator cons
 }
 
 LayerInputBuffer *ISTALayer::createLayerInput() {
-   return new LayerInputBuffer(name, parameters(), mCommunicator);
+   return new LayerInputBuffer(getName(), parameters(), mCommunicator);
 }
 
 ActivityComponent *ISTALayer::createActivityComponent() {

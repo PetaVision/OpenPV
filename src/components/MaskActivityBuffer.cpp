@@ -35,7 +35,7 @@ int MaskActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void MaskActivityBuffer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamStringRequired(ioFlag, name, "maskMethod", &mMaskMethod);
+   parameters()->ioParamStringRequired(ioFlag, getName(), "maskMethod", &mMaskMethod);
    // Check valid methods
    if (strcmp(mMaskMethod, "layer") == 0) {
       mMaskMethodCode = LAYER;
@@ -60,16 +60,16 @@ void MaskActivityBuffer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void MaskActivityBuffer::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "maskMethod"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "maskMethod"));
    if (mMaskMethodCode == LAYER or mMaskMethodCode == INVERT_LAYER) {
-      parameters()->ioParamStringRequired(ioFlag, name, "maskLayerName", &mMaskLayerName);
+      parameters()->ioParamStringRequired(ioFlag, getName(), "maskLayerName", &mMaskLayerName);
    }
 }
 
 void MaskActivityBuffer::ioParam_featureIdxs(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(name, "maskMethod"));
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "maskMethod"));
    if (mMaskMethodCode == FEATURES or mMaskMethodCode == INVERT_FEATURES) {
-      parameters()->ioParamArray(ioFlag, name, "featureIdxs", &mFeatures, &mNumSpecifiedFeatures);
+      parameters()->ioParamArray(ioFlag, getName(), "featureIdxs", &mFeatures, &mNumSpecifiedFeatures);
       if (mNumSpecifiedFeatures == 0) {
          if (mCommunicator->commRank() == 0) {
             ErrorLog().printf(

@@ -56,7 +56,7 @@ void MaxPoolTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
                // float expectedvalue = 8*xval+yval+137;
                float expectedvalue = (yval + 1) + 8 * (xval + 1) + 64 * iFeature;
                if (actualvalue != expectedvalue) {
-                  ErrorLog() << "Connection " << name << " Mismatch at (" << iX << "," << iY
+                  ErrorLog() << "Connection " << getName() << " Mismatch at (" << iX << "," << iY
                              << ") : actual value: " << actualvalue
                              << " Expected value: " << expectedvalue
                              << ".  Discrepancy is a whopping " << actualvalue - expectedvalue

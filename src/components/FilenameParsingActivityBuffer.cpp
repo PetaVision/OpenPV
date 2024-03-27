@@ -38,16 +38,16 @@ int FilenameParsingActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void FilenameParsingActivityBuffer::ioParam_gtClassTrueValue(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "gtClassTrueValue", &mGtClassTrueValue, 1.0f, false);
+   parameters()->ioParamValue(ioFlag, getName(), "gtClassTrueValue", &mGtClassTrueValue, 1.0f, false);
 }
 
 void FilenameParsingActivityBuffer::ioParam_gtClassFalseValue(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "gtClassFalseValue", &mGtClassFalseValue, -1.0f, false);
+   parameters()->ioParamValue(ioFlag, getName(), "gtClassFalseValue", &mGtClassFalseValue, -1.0f, false);
 }
 
 void FilenameParsingActivityBuffer::ioParam_classList(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
-         ioFlag, name, "classList", &mClassListFileName, mClassListFileName, false);
+         ioFlag, getName(), "classList", &mClassListFileName, mClassListFileName, false);
    if (mClassListFileName == nullptr) {
       WarnLog() << getName()
                 << ": No classList specified. Looking for classes.txt in output directory.\n";

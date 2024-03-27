@@ -31,7 +31,7 @@ int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void NormalizeL2::ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
-         ioFlag, name, "minL2NormTolerated", &minL2NormTolerated, 0.0f, true /*warnIfAbsent*/);
+         ioFlag, getName(), "minL2NormTolerated", &minL2NormTolerated, 0.0f, true /*warnIfAbsent*/);
 }
 
 int NormalizeL2::normalizeWeights() {

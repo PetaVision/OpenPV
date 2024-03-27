@@ -11,7 +11,6 @@
 #include "checkpointing/Checkpointer.hpp"
 #include "structures/PatchGeometry.hpp"
 #include "include/PVLayerLoc.hpp"
-#include "include/pv_types.h"
 #include "structures/WeightData.hpp"
 #include <memory>
 #include <string>

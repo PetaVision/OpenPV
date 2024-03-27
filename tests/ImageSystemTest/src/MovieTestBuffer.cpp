@@ -79,7 +79,7 @@ void MovieTestBuffer::updateBufferCPU(double simTime, double deltaTime) {
          float expectedVal =
                kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf) + 10 * frameIdx;
          if (std::fabs(checkVal - expectedVal) >= 1e-4f) {
-            Fatal() << name << " time: " << simTime << " batch: " << b
+            Fatal() << getName() << " time: " << simTime << " batch: " << b
                     << " Expected: " << expectedVal << " Actual: " << checkVal << "\n";
          }
       }

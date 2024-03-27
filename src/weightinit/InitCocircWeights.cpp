@@ -32,22 +32,22 @@ int InitCocircWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitCocircWeights::ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "sigmaCocirc", &mSigmaCocirc, mSigmaCocirc);
+   parameters()->ioParamValue(ioFlag, getName(), "sigmaCocirc", &mSigmaCocirc, mSigmaCocirc);
 }
 
 void InitCocircWeights::ioParam_sigmaKurve(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "sigmaKurve", &mSigmaKurve, mSigmaKurve);
+   parameters()->ioParamValue(ioFlag, getName(), "sigmaKurve", &mSigmaKurve, mSigmaKurve);
 }
 
 void InitCocircWeights::ioParam_cocircSelf(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, name, "cocircSelf", &mCocircSelf, mCocircSelf);
+   parameters()->ioParamValue(ioFlag, getName(), "cocircSelf", &mCocircSelf, mCocircSelf);
 }
 
 void InitCocircWeights::ioParam_deltaRadiusCurvature(enum ParamsIOFlag ioFlag) {
    // from pv_common.h
    // // DK (1.0/(6*(NK-1)))   /*1/(sqrt(DX*DX+DY*DY)*(NK-1))*/         //  change in curvature
    parameters()->ioParamValue(
-         ioFlag, name, "deltaRadiusCurvature", &mDeltaRadiusCurvature, mDeltaRadiusCurvature);
+         ioFlag, getName(), "deltaRadiusCurvature", &mDeltaRadiusCurvature, mDeltaRadiusCurvature);
 }
 
 void InitCocircWeights::calcWeights(int patchIndex, int arborId) {
