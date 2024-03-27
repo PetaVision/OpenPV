@@ -181,10 +181,6 @@ int TestNonshared(
 
          float correctValue;
          if (xInShrunkenPatch and yInShrunkenPatch and xInBoundsPost and yInBoundsPost) {
-            int const itemInPatchXPost =
-                  kxPos(itemInPatchPost, patchSizeXPost, patchSizeYPost, patchSizeFPost);
-            int const itemInPatchYPost =
-                  kyPos(itemInPatchPost, patchSizeXPost, patchSizeYPost, patchSizeFPost);
             int const itemInPatchFPost =
                   featureIndex(itemInPatchPost, patchSizeXPost, patchSizeYPost, patchSizeFPost);
 
