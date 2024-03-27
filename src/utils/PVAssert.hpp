@@ -58,7 +58,7 @@ void pv_assert_failed_message(
       ...);
 
 /** Print a demangled stack backtrace of the caller function to FILE* out. */
-void print_stacktrace(FILE *out = stderr, unsigned int max_frames = 63);
+void print_stacktrace(unsigned int max_frames = 63);
 } // end namespace PV
 
 #endif // PVASSERT_HPP_
