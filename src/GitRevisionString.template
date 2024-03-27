@@ -1,0 +1,25 @@
+#ifndef GITREVISION_HPP_
+#define GITREVISION_HPP_
+
+namespace PV {
+
+// A class to retrieve the git revision string, used by HyPerCol when creating the generated params
+// files. The string is implemented as a static data member of a class in the PV namespace, which
+// is preferable to a C-style include macro. It's a class template only to allow mString to be set
+// in a header file; note that there is no dependence on the template parameter.
+
+template <int N>
+class GitRevision {
+  public:
+   GitRevision() {}
+   static char const *getString() { return mString; }
+  private:
+   static char const *mString;
+};
+
+template <int N>
+char const *GitRevision<N>::mString = "@PV_GIT_REVISION@";
+
+} // namespace PV
+
+#endif // GITREVISION_HPP_
