@@ -55,34 +55,36 @@ int compareParamsFiles(
 
 int compareParameterGroups(ParameterGroup *group1, ParameterGroup *group2) {
    int status = PV_SUCCESS;
-   if (strcmp(group1->name(), group2->name())) {
+   if (strcmp(group1->getName(), group2->getName())) {
       ErrorLog().printf(
-            "Groups have different names (\"%s\" versus \"%s\")\n", group1->name(), group2->name());
+            "Groups have different names (\"%s\" versus \"%s\")\n",
+            group1->getName(),
+            group2->getName());
       status = PV_FAILURE;
    }
    if (strcmp(group1->getGroupKeyword(), group2->getGroupKeyword())) {
       ErrorLog().printf(
             "Keywords for group \"%s\" do not match (\"%s\" versus \"%s\").\n",
-            group1->name(),
+            group1->getName(),
             group1->getGroupKeyword(),
             group2->getGroupKeyword());
       status = PV_FAILURE;
    }
    ParameterStack *numericStack1 = group1->copyStack();
    ParameterStack *numericStack2 = group2->copyStack();
-   status |= compareParameterNumericStacks(group1->name(), numericStack1, numericStack2);
+   status |= compareParameterNumericStacks(group1->getName(), numericStack1, numericStack2);
    delete numericStack1;
    delete numericStack2;
 
    ParameterArrayStack *arrayStack1 = group1->copyArrayStack();
    ParameterArrayStack *arrayStack2 = group2->copyArrayStack();
-   status |= compareParameterArrayStacks(group1->name(), arrayStack1, arrayStack2);
+   status |= compareParameterArrayStacks(group1->getName(), arrayStack1, arrayStack2);
    delete arrayStack1;
    delete arrayStack2;
 
    ParameterStringStack *stringStack1 = group1->copyStringStack();
    ParameterStringStack *stringStack2 = group2->copyStringStack();
-   status |= compareParameterStringStacks(group1->name(), stringStack1, stringStack2);
+   status |= compareParameterStringStacks(group1->getName(), stringStack1, stringStack2);
    delete stringStack1;
    delete stringStack2;
 
@@ -99,11 +101,11 @@ int compareParameterNumericStacks(
    std::vector<bool> inStack1(stack2->size(), false);
    for (int i = 0; i < stack1->size(); i++) {
       Parameter *param1      = stack1->peek(i);
-      char const *paramName1 = param1->name();
+      char const *paramName1 = param1->getName();
       bool found             = false;
       for (int j = 0; j < stack2->size(); j++) {
          Parameter *param2      = stack2->peek(j);
-         char const *paramName2 = param2->name();
+         char const *paramName2 = param2->getName();
          if (!strcmp(paramName1, paramName2)) {
             found       = true;
             inStack1[j] = true;
@@ -131,7 +133,7 @@ int compareParameterNumericStacks(
       if (!inStack1[j]) {
          ErrorLog().printf(
                "Parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n",
-               stack2->peek(j)->name(),
+               stack2->peek(j)->getName(),
                groupName);
          status = PV_FAILURE;
       }
@@ -149,11 +151,11 @@ int compareParameterArrayStacks(
    std::vector<bool> inStack1(stack2->size(), false);
    for (int i = 0; i < stack1->size(); i++) {
       ParameterArray *param1 = stack1->peek(i);
-      char const *paramName1 = param1->name();
+      char const *paramName1 = param1->getName();
       bool found             = false;
       for (int j = 0; j < stack2->size(); j++) {
          ParameterArray *param2 = stack2->peek(j);
-         char const *paramName2 = param2->name();
+         char const *paramName2 = param2->getName();
          if (!strcmp(paramName1, paramName2)) {
             found       = true;
             inStack1[j] = true;
@@ -173,7 +175,7 @@ int compareParameterArrayStacks(
       if (!inStack1[j]) {
          ErrorLog().printf(
                "Array parameter \"%s\" was found in group \"%s\" of one stack but not the other.\n",
-               stack2->peek(j)->name(),
+               stack2->peek(j)->getName(),
                groupName);
          status = PV_FAILURE;
       }
@@ -183,14 +185,16 @@ int compareParameterArrayStacks(
 
 int compareParameterArray(char const *groupName, ParameterArray *array1, ParameterArray *array2) {
    int status = PV_SUCCESS;
-   if (strcmp(array1->name(), array2->name())) {
+   if (strcmp(array1->getName(), array2->getName())) {
       ErrorLog().printf(
-            "Arrays have different names (\"%s\" versus \"%s\")\n", array1->name(), array2->name());
+            "Arrays have different names (\"%s\" versus \"%s\")\n",
+            array1->getName(),
+            array2->getName());
    }
    if (array1->getArraySize() != array2->getArraySize()) {
       ErrorLog().printf(
             "Array \"%s\" in group \"%s\" differs in size (%d versus %d).\n",
-            array1->name(),
+            array1->getName(),
             groupName,
             array1->getArraySize(),
             array2->getArraySize());
@@ -206,7 +210,7 @@ int compareParameterArray(char const *groupName, ParameterArray *array1, Paramet
          ErrorLog().printf(
                "Group %s, array %s, index %d differs (%f versus %f).\n",
                groupName,
-               array1->name(),
+               array1->getName(),
                badIndex,
                values1[i],
                values2[i]);

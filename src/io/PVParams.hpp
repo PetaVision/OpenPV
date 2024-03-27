@@ -32,66 +32,66 @@ class Parameter {
    Parameter(const char *name, double value);
    virtual ~Parameter();
 
-   const char *name() { return paramName; }
+   const char *getName() { return mName; }
    double value() {
-      hasBeenReadFlag = true;
-      return paramDblValue;
+      mHasBeenReadFlag = true;
+      return mParamDblValue;
    }
    const float *valuePtr() {
-      hasBeenReadFlag = true;
-      return &paramValue;
+      mHasBeenReadFlag = true;
+      return &mParamValue;
    }
    const double *valueDblPtr() {
-      hasBeenReadFlag = true;
-      return &paramDblValue;
+      mHasBeenReadFlag = true;
+      return &mParamDblValue;
    }
-   bool hasBeenRead() { return hasBeenReadFlag; }
-   void clearHasBeenRead() { hasBeenReadFlag = false; }
+   bool hasBeenRead() { return mHasBeenReadFlag; }
+   void clearHasBeenRead() { mHasBeenReadFlag = false; }
    void setValue(double v) {
-      paramValue    = (float)v;
-      paramDblValue = v;
+      mParamValue    = (float)v;
+      mParamDblValue = v;
    }
-   Parameter *copyParameter() { return new Parameter(paramName, paramDblValue); }
+   Parameter *copyParameter() { return new Parameter(mName, mParamDblValue); }
 
   private:
-   char *paramName;
-   float paramValue;
-   double paramDblValue;
-   bool hasBeenReadFlag;
+   char *mName;
+   float mParamValue;
+   double mParamDblValue;
+   bool mHasBeenReadFlag;
 };
 
 class ParameterArray {
   public:
    ParameterArray(int initialSize);
    virtual ~ParameterArray();
-   int getArraySize() { return arraySize; }
-   const char *name() { return paramName; }
+   int getArraySize() { return mArraySize; }
+   const char *getName() { return mName; }
    int setName(const char *name);
    const float *getValues(int *sz) {
-      hasBeenReadFlag = true;
-      *sz             = arraySize;
-      return values;
+      mHasBeenReadFlag = true;
+      *sz             = mArraySize;
+      return mValues;
    }
    const double *getValuesDbl(int *sz) {
-      hasBeenReadFlag = true;
-      *sz             = arraySize;
-      return valuesDbl;
+      mHasBeenReadFlag = true;
+      *sz             = mArraySize;
+      return mValuesDbl;
    }
    int pushValue(double value);
-   void resetArraySize() { arraySize = 0; }
-   bool hasBeenRead() { return hasBeenReadFlag; }
-   void clearHasBeenRead() { hasBeenReadFlag = false; }
-   double peek(int index) { return valuesDbl[index]; }
+   void resetArraySize() { mArraySize = 0; }
+   bool hasBeenRead() { return mHasBeenReadFlag; }
+   void clearHasBeenRead() { mHasBeenReadFlag = false; }
+   double peek(int index) { return mValuesDbl[index]; }
    ParameterArray *copyParameterArray();
 
   private:
-   bool paramNameSet;
-   char *paramName;
-   int arraySize; // The number of values that have been pushed
-   int bufferSize; // The size of the buffer in memory
-   double *valuesDbl;
-   float *values;
-   bool hasBeenReadFlag;
+   bool mNameSet;
+   char *mName;
+   int mArraySize; // The number of values that have been pushed
+   int mBufferSize; // The size of the buffer in memory
+   double *mValuesDbl;
+   float *mValues;
+   bool mHasBeenReadFlag;
 };
 
 class ParameterString {
@@ -99,23 +99,23 @@ class ParameterString {
    ParameterString(const char *name, const char *value);
    virtual ~ParameterString();
 
-   const char *getName() { return paramName; }
+   const char *getName() { return mName; }
    const char *getValue() {
-      hasBeenReadFlag = true;
-      return paramValue;
+      mHasBeenReadFlag = true;
+      return mParamValue;
    }
-   bool hasBeenRead() { return hasBeenReadFlag; }
-   void clearHasBeenRead() { hasBeenReadFlag = false; }
+   bool hasBeenRead() { return mHasBeenReadFlag; }
+   void clearHasBeenRead() { mHasBeenReadFlag = false; }
    void setValue(const char *s) {
-      free(paramValue);
-      paramValue = s ? strdup(s) : nullptr;
+      free(mParamValue);
+      mParamValue = s ? strdup(s) : nullptr;
    }
-   ParameterString *copyParameterString() { return new ParameterString(paramName, paramValue); }
+   ParameterString *copyParameterString() { return new ParameterString(mName, mParamValue); }
 
   private:
-   char *paramName;
-   char *paramValue;
-   bool hasBeenReadFlag;
+   char *mName;
+   char *mParamValue;
+   bool mHasBeenReadFlag;
 };
 
 class ParameterStack {
@@ -125,13 +125,13 @@ class ParameterStack {
 
    int push(Parameter *param);
    Parameter *pop();
-   Parameter *peek(int index) { return parameters[index]; }
-   int size() { return count; }
+   Parameter *peek(int index) { return mParameters[index]; }
+   int size() { return mCount; }
 
   private:
-   int count;
-   int maxCount;
-   Parameter **parameters;
+   int mCount;
+   int mMaxCount;
+   Parameter **mParameters;
 };
 
 class ParameterArrayStack {
@@ -139,15 +139,15 @@ class ParameterArrayStack {
    ParameterArrayStack(int initialCount);
    virtual ~ParameterArrayStack();
    int push(ParameterArray *array);
-   int size() { return count; }
+   int size() { return mCount; }
    ParameterArray *peek(int index) {
-      return index >= 0 && index < count ? parameterArrays[index] : nullptr;
+      return index >= 0 && index < mCount ? mParameterArrays[index] : nullptr;
    }
 
   private:
-   int count; // Number of ParameterArrays
-   int allocation; // Size of buffer
-   ParameterArray **parameterArrays;
+   int mCount; // Number of ParameterArrays
+   int mAllocation; // Size of buffer
+   ParameterArray **mParameterArrays;
 };
 
 class ParameterStringStack {
@@ -158,15 +158,15 @@ class ParameterStringStack {
    int push(ParameterString *param);
    ParameterString *pop();
    ParameterString *peek(int index) {
-      return index >= 0 && index < count ? parameterStrings[index] : nullptr;
+      return index >= 0 && index < mCount ? mParameterStrings[index] : nullptr;
    }
-   int size() { return count; }
+   int size() { return mCount; }
    const char *lookup(const char *targetname);
 
   private:
-   int count;
-   int allocation;
-   ParameterString **parameterStrings;
+   int mCount;
+   int mAllocation;
+   ParameterString **mParameterStrings;
 };
 
 class ParameterGroup {
@@ -179,8 +179,8 @@ class ParameterGroup {
          int rank = 0);
    virtual ~ParameterGroup();
 
-   const char *name() { return groupName; }
-   const char *getGroupKeyword() { return groupKeyword; }
+   const char *getName() { return mName; }
+   const char *getGroupKeyword() { return mGroupKeyword; }
    int setGroupKeyword(const char *keyword);
    int setStringStack(ParameterStringStack *stringStack);
    int present(const char *name);
@@ -209,12 +209,12 @@ class ParameterGroup {
    ParameterStringStack *copyStringStack();
 
   private:
-   char *groupName;
-   char *groupKeyword;
-   ParameterStack *stack;
-   ParameterArrayStack *arrayStack;
-   ParameterStringStack *stringStack;
-   int processRank;
+   char *mName;
+   char *mGroupKeyword;
+   ParameterStack *mStack;
+   ParameterArrayStack *mArrayStack;
+   ParameterStringStack *mStringStack;
+   int mProcessRank;
 };
 
 enum SweepType { SWEEP_UNDEF = 0, SWEEP_NUMBER = 1, SWEEP_STRING = 2 };
@@ -227,21 +227,21 @@ class ParameterSweep {
    int setGroupAndParameter(const char *groupname, const char *paramname);
    int pushNumericValue(double val);
    int pushStringValue(const char *sval);
-   int getNumValues() { return numValues; }
-   SweepType getType() { return type; }
+   int getNumValues() { return mNumValues; }
+   SweepType getType() { return mType; }
    int getNumericValue(int n, double *val);
    const char *getStringValue(int n);
-   const char *getGroupName() { return groupName; }
-   const char *getParamName() { return paramName; }
+   const char *getGroupName() { return mGroupName; }
+   const char *getParamName() { return mParamName; }
 
   private:
-   char *groupName;
-   char *paramName;
-   SweepType type;
-   int numValues;
-   int currentBufferSize;
-   double *valuesNumber;
-   char **valuesString;
+   char *mGroupName;
+   char *mParamName;
+   SweepType mType;
+   int mNumValues;
+   int mCurrentBufferSize;
+   double *mValuesNumber;
+   char **mValuesString;
 };
 
 class PVParams {
@@ -255,7 +255,7 @@ class PVParams {
          MPI_Comm mpiComm);
    virtual ~PVParams();
 
-   bool getParseStatus() { return parseStatus; }
+   bool getParseStatus() { return mParseStatus; }
 
    template <typename T>
    void ioParamValueRequired(
@@ -299,8 +299,8 @@ class PVParams {
 
    int present(const char *groupName, const char *paramName);
    double value(const char *groupName, const char *paramName);
-   double
-   value(const char *groupName,
+   double value(
+         const char *groupName,
          const char *paramName,
          double initialValue,
          bool warnIfAbsent = true);
@@ -398,38 +398,37 @@ class PVParams {
    void action_parameter_sweep_values_string(const char *stringval);
    void action_parameter_sweep_values_filename(const char *stringval);
 
-   int numberOfGroups() { return (int)mGroups.size(); }
-   int numberOfParameterSweeps() { return numParamSweeps; }
-   int getParameterSweepSize() { return parameterSweepSize; }
+   int getNumGroups() { return (int)mGroups.size(); }
+   int getNumParamSweeps() { return mNumParamSweeps; }
+   int getParameterSweepSize() { return mParameterSweepSize; }
    FileStream *getPrintParamsStream() { return mPrintParamsStream; }
    FileStream *getPrintLuaStream() { return mPrintLuaStream; }
 
   private:
-   int parseStatus;
+   int mParseStatus;
    std::vector<ParameterGroup *> mGroups;
-   ParameterStack *stack;
-   ParameterArrayStack *arrayStack;
-   ParameterStringStack *stringStack;
-   bool debugParsing;
-   bool disable;
+   ParameterStack *mStack;
+   ParameterArrayStack *mArrayStack;
+   ParameterStringStack *mStringStack;
+   bool mDebugParsing;
+   bool mDisable;
    MPI_Comm mMPIComm;
-   int worldRank;
-   int worldSize;
+   int mWorldRank;
+   int mWorldSize;
 
-   ParameterArray *currentParamArray;
+   ParameterArray *mCurrentParamArray;
 
-   int numParamSweeps; // The number of different parameters that are changed during the sweep.
-   ParameterSweep **paramSweeps;
-   ParameterSweep *activeParamSweep;
-   int parameterSweepSize; // The number of parameter value sets in the sweep.  Each ParameterSweep
-   // group in the params file must contain the same number of values, which
-   // is sweepSize.
+   int mNumParamSweeps; // The number of different parameters that are changed during the sweep.
+   ParameterSweep **mParamSweeps;
+   ParameterSweep *mActiveParamSweep;
+   int mParameterSweepSize; // The number of parameter value sets in the sweep.  Each ParameterSweep
+   // group in the params file must contain the same number of values, which is sweepSize.
 
-   char *currGroupKeyword;
-   char *currGroupName;
+   char *mCurrGroupKeyword;
+   char *mCurrGroupName;
 
-   char *currSweepGroupName;
-   char *currSweepParamName;
+   char *mCurrSweepGroupName;
+   char *mCurrSweepParamName;
 
    FileStream *mPrintParamsStream = nullptr;
    FileStream *mPrintLuaStream    = nullptr;
@@ -452,25 +451,25 @@ class PVParams {
 
 template <typename T>
 void PVParams::handleUnnecessaryParameter(
-      const char *group_name,
-      const char *param_name,
+      const char *groupName,
+      const char *paramName,
       T correct_value) {
    int status = PV_SUCCESS;
-   if (present(group_name, param_name)) {
-      if (worldRank == 0) {
-         const char *class_name = groupKeywordFromName(group_name);
+   if (present(groupName, paramName)) {
+      if (mWorldRank == 0) {
+         const char *className = groupKeywordFromName(groupName);
          WarnLog().printf(
                "%s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
-               class_name,
-               group_name,
-               param_name);
+               className,
+               groupName,
+               paramName);
       }
       T params_value = (T)value(
-            group_name,
-            param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
+            groupName,
+            paramName); // marks param as read so that presentAndNotBeenRead doesn't trip up
       if (params_value != correct_value) {
          status = PV_FAILURE;
-         if (worldRank == 0) {
+         if (mWorldRank == 0) {
             ErrorLog() << "   Value " << params_value << " is inconsistent with correct value "
                        << correct_value << std::endl;
          }
