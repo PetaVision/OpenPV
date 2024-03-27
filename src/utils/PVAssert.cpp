@@ -45,7 +45,7 @@ void pv_assert_failed_message(
    pv_abort_message(file, line, "%s: %s\n", condition, msg);
 }
 
-void print_stacktrace(FILE *out, unsigned int max_frames) {
+void print_stacktrace(unsigned int max_frames) {
    StackTrace() << "stack trace:" << std::endl;
 
    // storage array for stack trace address data
