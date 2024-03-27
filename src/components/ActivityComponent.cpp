@@ -45,9 +45,9 @@ void ActivityComponent::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamValue(
          ioFlag, getName(), "updateGpu", &mUpdateGpu, mUpdateGpu, true /*warnIfAbsent*/);
 #else // PV_USE_CUDA
-   bool mUpdateGpu = false;
+   mUpdateGpu = false;
    parameters()->ioParamValue(
-         ioFlag, name, "updateGpu", &mUpdateGpu, mUpdateGpu, false /*warnIfAbsent*/);
+         ioFlag, getName(), "updateGpu", &mUpdateGpu, mUpdateGpu, false /*warnIfAbsent*/);
    if (mCommunicator->globalCommRank() == 0) {
       FatalIf(
             mUpdateGpu,

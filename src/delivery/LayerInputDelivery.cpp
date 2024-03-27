@@ -70,7 +70,7 @@ void LayerInputDelivery::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #else
    parameters()->ioParamValue(
          ioFlag,
-         name,
+         getName(),
          "receiveGpu",
          &mReceiveGpu,
          mReceiveGpu /*default*/,
