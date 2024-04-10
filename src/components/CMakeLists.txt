@@ -69,6 +69,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/RescaleActivityBuffer.cpp
    ${SUBDIR}/RestrictedBuffer.cpp
    ${SUBDIR}/RetinaActivityBuffer.cpp
+   ${SUBDIR}/RotateActivityBuffer.cpp
    ${SUBDIR}/SegmentBuffer.cpp
    ${SUBDIR}/SegmentifyBuffer.cpp
    ${SUBDIR}/SharedWeights.cpp
@@ -158,6 +159,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/RescaleActivityBuffer.hpp
    ${SUBDIR}/RestrictedBuffer.hpp
    ${SUBDIR}/RetinaActivityBuffer.hpp
+   ${SUBDIR}/RotateActivityBuffer.hpp
    ${SUBDIR}/SegmentBuffer.hpp
    ${SUBDIR}/SegmentifyBuffer.hpp
    ${SUBDIR}/SharedWeights.hpp

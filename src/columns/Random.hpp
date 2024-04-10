@@ -34,7 +34,7 @@ class Random {
    Random(const PVLayerLoc *locptr, bool isExtended);
    virtual ~Random();
 
-   taus_uint4 *getRNG(int index) { return &rngArray[index]; }
+   taus_uint4 *getRNG(int index) { return &mRNG[index]; }
    float uniformRandom(int localIndex = 0);
    float uniformRandom(int localIndex, float min, float max) {
       return min + uniformRandom(localIndex) * (max - min);
@@ -60,12 +60,9 @@ class Random {
    int initializeFromCount(int count);
    int initializeFromLoc(const PVLayerLoc *locptr, bool isExtended);
 
-  private:
-   int initialize_base();
-
    // Member variables
   protected:
-   std::vector<taus_uint4> rngArray;
+   std::vector<taus_uint4> mRNG;
 };
 
 } /* namespace PV */

@@ -30,6 +30,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PvpListLayer.cpp
    ${SUBDIR}/RescaleLayer.cpp
    ${SUBDIR}/Retina.cpp
+   ${SUBDIR}/RotateLayer.cpp
    ${SUBDIR}/Segmentify.cpp
    ${SUBDIR}/SegmentLayer.cpp
    ${SUBDIR}/SigmoidLayer.cpp
@@ -67,6 +68,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PvpListLayer.hpp
    ${SUBDIR}/RescaleLayer.hpp
    ${SUBDIR}/Retina.hpp
+   ${SUBDIR}/RotateLayer.cpp
    ${SUBDIR}/Segmentify.hpp
    ${SUBDIR}/SegmentLayer.hpp
    ${SUBDIR}/SigmoidLayer.hpp

@@ -25,7 +25,7 @@ int GaussianRandom::initialize_base() { return PV_SUCCESS; }
 
 int GaussianRandom::initializeGaussian() {
    int status = PV_SUCCESS;
-   heldValues.assign(rngArray.size(), {false, 0.0});
+   heldValues.assign(mRNG.size(), {false, 0.0});
    return status;
 }
 

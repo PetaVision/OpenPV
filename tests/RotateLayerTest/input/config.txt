@@ -1,0 +1,10 @@
+RequireReturn:false
+ParamsFile:input/RotateLayerTest.params
+LogFile:RotateLayerTest.log
+NumThreads:1
+NumRows:1
+NumColumns:1
+BatchWidth:2
+CheckpointCellNumRows:1
+CheckpointCellNumColumns:1
+CheckpointCellBatchDimension:2

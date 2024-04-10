@@ -14,12 +14,10 @@ namespace PV {
 Random::Random() {
    // Default constructor is called only by derived class constructors.
    // Derived classes should call Random::initialize() themselves.
-   initialize_base();
 }
 
 // N independent random number generators, all processes have the same N seeds.
 Random::Random(int count) {
-   initialize_base();
    initializeFromCount((unsigned int)count);
 }
 
@@ -31,11 +29,8 @@ Random::Random(int count) {
 // state of the
 // random number does not depend on the MPI configuration.
 Random::Random(const PVLayerLoc *locptr, bool isExtended) {
-   initialize_base();
    initializeFromLoc(locptr, isExtended);
 }
-
-int Random::initialize_base() { return PV_SUCCESS; }
 
 // Initialize with repsect to nbatch, nx, ny, nf in extended space
 int Random::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
@@ -61,7 +56,7 @@ int Random::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
    int nyGlobalExt  = locptr->nyGlobal + halo.up + halo.dn;
    int nbatchGlobal = locptr->nbatchGlobal;
    // Allocate buffer to store rngArraySize
-   rngArray.resize(rngCount);
+   mRNG.resize(rngCount);
    if (status == PV_SUCCESS) {
       int numTotalSeeds     = nxGlobalExt * nyGlobalExt * nf * nbatchGlobal;
       unsigned int seedBase = RandomSeed::instance()->allocate(numTotalSeeds);
@@ -74,13 +69,13 @@ int Random::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
       // and y
       for (int kb = 0; kb < nbatch; kb++) {
          for (int ky = 0; ky < nyExt; ky++) {
-            // Calculate start index into local rngArray
+            // Calculate start index into local RNG
             int localExtStart = kb * sb + ky * sy;
             // Calculate offset of the seedBase
             int globalExtStart =
                   (kb + locptr->kb0) * sbGlobal + (ky + locptr->ky0) * syGlobal + locptr->kx0 * nf;
             size_t count = nxExt * nf;
-            cl_random_init(&(rngArray[localExtStart]), count, seedBase + globalExtStart);
+            cl_random_init(&(mRNG[localExtStart]), count, seedBase + globalExtStart);
          }
       }
    }
@@ -89,22 +84,22 @@ int Random::initializeFromLoc(const PVLayerLoc *locptr, bool isExtended) {
 
 int Random::initializeFromCount(int count) {
    int status = PV_SUCCESS;
-   rngArray.resize(count);
+   mRNG.resize(count);
    if (status == PV_SUCCESS) {
       unsigned int seedBase = RandomSeed::instance()->allocate(count);
-      cl_random_init(rngArray.data(), (size_t)count, seedBase);
+      cl_random_init(mRNG.data(), (size_t)count, seedBase);
    }
    return status;
 }
 
 float Random::uniformRandom(int localIndex) {
-   rngArray[localIndex] = cl_random_get(rngArray[localIndex]);
-   return rngArray[localIndex].s0 / (float)randomUIntMax();
+   mRNG[localIndex] = cl_random_get(mRNG[localIndex]);
+   return mRNG[localIndex].s0 / (float)randomUIntMax();
 }
 
 unsigned int Random::randomUInt(int localIndex) {
-   rngArray[localIndex] = cl_random_get(rngArray[localIndex]);
-   return rngArray[localIndex].s0;
+   mRNG[localIndex] = cl_random_get(mRNG[localIndex]);
+   return mRNG[localIndex].s0;
 }
 
 Random::~Random() {}
