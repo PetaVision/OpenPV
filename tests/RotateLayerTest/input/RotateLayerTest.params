@@ -76,6 +76,7 @@ RotateLayer "Output" = {
     angleMin                            = 0;
     angleMax                            = 60;
     angleUnits                          = "degrees";
+    writeAnglesFile                     = "angles.txt";
     InitVType                           = "ZeroV";
     updateGpu                           = false;
     sparseLayer                         = false;

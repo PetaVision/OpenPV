@@ -1,5 +1,8 @@
 #include "RotateActivityBuffer.hpp"
-#include "checkpointing/CheckpointEntryRandState.hpp"
+#include "checkpointing/CheckpointEntryFilePosition.hpp"
+// #include "checkpointing/CheckpointEntryRandState.hpp"
+#include "io/FileManager.hpp"
+#include "io/FileStreamBuilder.hpp"
 #include "utils/BufferUtilsMPI.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
@@ -41,6 +44,7 @@ int RotateActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    }
    pvAssert(mAngleMax >= mAngleMin);
    ioParam_angleUnits(ioFlag);
+   ioParam_writeAnglesFile(ioFlag);
    return status;
 }
 
@@ -107,6 +111,11 @@ void RotateActivityBuffer::ioParam_angleUnits(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void RotateActivityBuffer::ioParam_writeAnglesFile(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamString(
+         ioFlag, getName(), "writeAnglesFile", &mWriteAnglesFile, mWriteAnglesFile);
+}
+
 void RotateActivityBuffer::setObjectType() { mObjectType = "RotateActivityBuffer"; }
 
 Response::Status RotateActivityBuffer::allocateDataStructures() {
@@ -118,6 +127,37 @@ Response::Status RotateActivityBuffer::allocateDataStructures() {
       mRandState = std::make_shared<Random>(getLayerLoc()->nbatchGlobal);
    }
    return Response::Status::SUCCESS;
+}
+
+Response::Status RotateActivityBuffer::registerData(
+      std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
+   auto status = HyPerActivityBuffer::registerData(message);
+   if (!Response::completed(status)) {
+      return status;
+   }
+   auto *checkpointer = message->mDataRegistry;
+   if (mWriteAnglesFile and getCommunicator()->getLocalMPIBlock()->getRank() == 0) {
+      auto fileManager = getCommunicator()->getOutputFileManager();
+      fileManager->ensureDirectoryExists(".");
+      mWriteAnglesStream = FileStreamBuilder(
+            fileManager,
+            mWriteAnglesFile,
+            true /*textFlag*/,
+            false /*readOnlyFlag*/,
+            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+            checkpointer->doesVerifyWrites())
+            .get();
+      auto checkpointEntry = std::make_shared<CheckpointEntryFilePosition>(
+            getName(), std::string("WriteAnglesFile"), mWriteAnglesStream);
+      bool registerSucceeded = checkpointer->registerCheckpointEntry(
+            checkpointEntry, false /*constantEntireRunFlag*/);
+      FatalIf(
+            !registerSucceeded,
+            "%s failed to register %s for checkpointing.\n",
+            getDescription_c(),
+            checkpointEntry->getName().c_str());
+   }
+   return Response::SUCCESS;
 }
 
 void RotateActivityBuffer::applyTransformCPU(
@@ -186,46 +226,74 @@ float RotateActivityBuffer::interpolate(
    return value;
 }
 
-void RotateActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
+void RotateActivityBuffer::transform(Buffer<float> &localVBuffer, int bLocal, float angleRadians) {
    auto localMPIBlock = getCommunicator()->getLocalMPIBlock();
    PVLayerLoc const *loc = getLayerLoc();
+   pvAssert(localVBuffer.getWidth() == loc->nx);
+   pvAssert(localVBuffer.getHeight() == loc->ny);
+   float const* batchStartV = mInternalState->getBufferData(bLocal);
+   auto &localVBufferVector = localVBuffer.asVector();
+   std::copy(batchStartV, &batchStartV[mBufferSize], &localVBufferVector[0]);
+   Buffer<float> globalV = BufferUtils::gather(
+         localMPIBlock,
+         localVBuffer,
+         loc->nx,
+         loc->ny,
+         0 /* Local communicator always has batch dimension of 1 */,
+         0 /* destination process */);
+   // root process of local communicator now has entire batch element in globalV buffer.
+   Buffer<float> activityBuffer;
+   if (localMPIBlock->getRank() == 0) {
+      // Set activityBuffer buffer to size of global extended buffer, to hold result of rotation
+      int const nxGlobalExt = loc->nxGlobal + loc->halo.lt + loc->halo.rt;
+      int const nyGlobalExt = loc->nyGlobal + loc->halo.dn + loc->halo.up;
+      activityBuffer.resize(nxGlobalExt, nyGlobalExt, loc->nf);
+      int globalMPIBatchIndex = localMPIBlock->getStartBatch() + localMPIBlock->getBatchIndex();
+      int bGlobal = bLocal + loc->nbatch * globalMPIBatchIndex;
+      applyTransformCPU(globalV, activityBuffer, angleRadians);
+   }
+   else {
+      int const nxLocalExt = loc->nx + loc->halo.lt + loc->halo.rt;
+      int const nyLocalExt = loc->ny + loc->halo.dn + loc->halo.up;
+      activityBuffer.resize(nxLocalExt, nyLocalExt, loc->nf);
+   }
+   BufferUtils::scatter(localMPIBlock, activityBuffer, loc->nx, loc->ny, 0, 0);
+   auto const &activityBufferVector = activityBuffer.asVector();
+   int const numLocalExtended = activityBuffer.getTotalElements();
+   std::copy(
+         &activityBufferVector[0],
+         &activityBufferVector[numLocalExtended],
+         &mBufferData[bLocal * mBufferSize]);
+}
+
+void RotateActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
+   PVLayerLoc const *loc = getLayerLoc();
    Buffer<float> localVBuffer(loc->nx, loc->ny, loc->nf);  
-   for (int b = 0; b < loc->nbatch; ++b) {
-      float const* batchStartV = mInternalState->getBufferData(b);
-      auto &localVBufferVector = localVBuffer.asVector();
-      std::copy(batchStartV, &batchStartV[mBufferSize], &localVBufferVector[0]);
-      Buffer<float> globalV = BufferUtils::gather(
-            localMPIBlock,
-            localVBuffer,
-            loc->nx,
-            loc->ny,
-            0 /* Local communicator always has batch dimension of 1 */,
-            0 /* destination process */);
-      // root process of local communicator now has entire batch element in globalV buffer.
-      Buffer<float> activityBuffer;
-      if (localMPIBlock->getRank() == 0) {
-         // Set activityBuffer buffer to size of global extended buffer, to hold result of rotation
-         int const nxGlobalExt = loc->nxGlobal + loc->halo.lt + loc->halo.rt;
-         int const nyGlobalExt = loc->nyGlobal + loc->halo.dn + loc->halo.up;
-         activityBuffer.resize(nxGlobalExt, nyGlobalExt, loc->nf);
-         int globalMPIBatchIndex = localMPIBlock->getStartBatch() + localMPIBlock->getBatchIndex();
-         int bGlobal = b + loc->nbatch * globalMPIBatchIndex;
+   float angleRadians = 0.0f;
+   for (int bGlobal = 0; bGlobal < loc->nbatchGlobal; ++bGlobal) {
+      if (getCommunicator()->getLocalMPIBlock()->getRank() == 0) {
          float angle = mRandState->uniformRandom(bGlobal, mAngleMin, mAngleMax);
-         float angleRadians = mAngleConversionFactor * angle;
-         applyTransformCPU(globalV, activityBuffer, angleRadians);
+         angleRadians = mAngleConversionFactor * angle;
       }
-      else {
-         int const nxLocalExt = loc->nx + loc->halo.lt + loc->halo.rt;
-         int const nyLocalExt = loc->ny + loc->halo.dn + loc->halo.up;
-         activityBuffer.resize(nxLocalExt, nyLocalExt, loc->nf);
+      int bLocal = bGlobal - loc->kb0;
+      if (bLocal >= 0 and bLocal < loc->nbatch) {
+         transform(localVBuffer, bLocal, angleRadians);
+         // transform() only uses angleRadians argument if local rank is zero
       }
-      BufferUtils::scatter(localMPIBlock, activityBuffer, loc->nx, loc->ny, 0, 0);
-      auto const &activityBufferVector = activityBuffer.asVector();
-      int const numLocalExtended = activityBuffer.getTotalElements();
-      std::copy(
-            &activityBufferVector[0],
-            &activityBufferVector[numLocalExtended],
-            &mBufferData[b * mBufferSize]);
+
+      if (mWriteAnglesStream) {
+         auto const ioMPIBlock = getCommunicator()->getIOMPIBlock();
+         pvAssert(ioMPIBlock->getRank() == 0);
+         int batchElementStart = ioMPIBlock->getStartBatch() * loc->nbatch;
+         int batchElementStop  = batchElementStart + ioMPIBlock->getBatchDimension() * loc->nbatch;
+         if (bGlobal >= batchElementStart and bGlobal < batchElementStop) {
+            mWriteAnglesStream->printf(
+                  "t=%f, b=%d, %f\n",
+                  simTime,
+                  bGlobal,
+                  static_cast<double>(angleRadians));
+         }
+      }
    }
 }
 

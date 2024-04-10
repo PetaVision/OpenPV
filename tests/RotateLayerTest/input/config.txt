@@ -2,9 +2,9 @@ RequireReturn:false
 ParamsFile:input/RotateLayerTest.params
 LogFile:RotateLayerTest.log
 NumThreads:1
-NumRows:1
-NumColumns:1
+NumRows:4
+NumColumns:4
 BatchWidth:2
-CheckpointCellNumRows:1
-CheckpointCellNumColumns:1
-CheckpointCellBatchDimension:2
+CheckpointCellNumRows:2
+CheckpointCellNumColumns:2
+CheckpointCellBatchDimension:1
