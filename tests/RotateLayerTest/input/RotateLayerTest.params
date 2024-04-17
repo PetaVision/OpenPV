@@ -2,9 +2,10 @@
 // RotateLayerTest.params
 
 //  A params file to test RotateLayer
-//  An ImageLayer reads images with a display period of 2.
-//  A RotateLayer, triggered off the ImageLayer, rotates the images.
-//  The RotateLayer is connected to the ImageLayer with an IdentConn.
+//  An ImageLayer reads images with a display period of 2. A RotateLayer, triggered off the
+//  ImageLayer, rotates the images. The RotateLayer is connected to the ImageLayer with an
+//  IdentConn connection. The result of the rotation is compared to the expected images
+//  in the correct.pvp file.
 
 debugParsing = false;
 

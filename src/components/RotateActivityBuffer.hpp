@@ -73,6 +73,12 @@ class RotateActivityBuffer : public HyPerActivityBuffer {
    float interpolate(Buffer<float> const &inputBuffer, float xSrc, float ySrc, int feature);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
+   void copyRandStateToCheckpointData();
+   void copyCheckpointDataToRandState();
+
+   virtual Response::Status prepareCheckpointWrite(double simTime) override;
+   virtual Response::Status processCheckpointRead(double simTime) override;
+
    virtual Response::Status
    registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) override;
 
@@ -83,7 +89,8 @@ class RotateActivityBuffer : public HyPerActivityBuffer {
    float mAngleConversionFactor = 1.0f;
    float mAngleMin;
    float mAngleMax;
-   AngleUnitType mAngleUnitType       = AngleUnitType::UNSET;
+   AngleUnitType mAngleUnitType = AngleUnitType::UNSET;
+   std::vector<unsigned int> mRandStateCheckpointData;
    std::shared_ptr<Random> mRandState = nullptr;
    char *mWriteAnglesFile             = nullptr;
 

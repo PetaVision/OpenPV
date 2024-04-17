@@ -125,6 +125,15 @@ Response::Status RotateActivityBuffer::allocateDataStructures() {
    }
    if (getCommunicator()->commRank() == 0) {
       mRandState = std::make_shared<Random>(getLayerLoc()->nbatchGlobal);
+      auto ioMPIBlock = getCommunicator()->getIOMPIBlock();
+      if (ioMPIBlock->getRank() == 0) {
+         int numProcs = ioMPIBlock->getBatchDimension();
+         int checkpointDataSize = 4 * getLayerLoc()->nbatch * numProcs;
+         mRandStateCheckpointData.resize(checkpointDataSize);
+      }
+      else {
+         mRandStateCheckpointData.resize(4 * getLayerLoc()->nbatch);
+      }
    }
    return Response::Status::SUCCESS;
 }
@@ -136,26 +145,41 @@ Response::Status RotateActivityBuffer::registerData(
       return status;
    }
    auto *checkpointer = message->mDataRegistry;
-   if (mWriteAnglesFile and getCommunicator()->getLocalMPIBlock()->getRank() == 0) {
-      auto fileManager = getCommunicator()->getOutputFileManager();
-      fileManager->ensureDirectoryExists(".");
-      mWriteAnglesStream = FileStreamBuilder(
-            fileManager,
-            mWriteAnglesFile,
-            true /*textFlag*/,
-            false /*readOnlyFlag*/,
-            checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
-            checkpointer->doesVerifyWrites())
-            .get();
-      auto checkpointEntry = std::make_shared<CheckpointEntryFilePosition>(
-            getName(), std::string("WriteAnglesFile"), mWriteAnglesStream);
-      bool registerSucceeded = checkpointer->registerCheckpointEntry(
-            checkpointEntry, false /*constantEntireRunFlag*/);
+   if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
+      if (mWriteAnglesFile) {
+         auto fileManager = getCommunicator()->getOutputFileManager();
+         fileManager->ensureDirectoryExists(".");
+         mWriteAnglesStream = FileStreamBuilder(
+               fileManager,
+               mWriteAnglesFile,
+               true /*textFlag*/,
+               false /*readOnlyFlag*/,
+               checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
+               checkpointer->doesVerifyWrites())
+               .get();
+         auto checkpointEntry = std::make_shared<CheckpointEntryFilePosition>(
+               getName(), std::string("WriteAnglesFile"), mWriteAnglesStream);
+         bool registerSucceeded = checkpointer->registerCheckpointEntry(
+               checkpointEntry, false /*constantEntireRunFlag*/);
+         FatalIf(
+               !registerSucceeded,
+               "%s failed to register %s for checkpointing.\n",
+               getDescription_c(),
+               checkpointEntry->getName().c_str());
+      }
+      std::string checkpointFilename(getName());
+      checkpointFilename.append("_rand_state");
+      auto checkpointEntry = std::make_shared<CheckpointEntryData<unsigned int>>(
+         checkpointFilename,
+         mRandStateCheckpointData.data(),
+         mRandStateCheckpointData.size(),
+         false /*broadcastingFlag*/);
+      bool registerSucceeded =
+            checkpointer->registerCheckpointEntry(checkpointEntry, false /*not constant*/);
       FatalIf(
             !registerSucceeded,
-            "%s failed to register %s for checkpointing.\n",
-            getDescription_c(),
-            checkpointEntry->getName().c_str());
+            "%s failed to register random state for checkpointing.\n",
+            getDescription_c());
    }
    return Response::SUCCESS;
 }
@@ -295,6 +319,102 @@ void RotateActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
          }
       }
    }
+}
+
+void RotateActivityBuffer::copyRandStateToCheckpointData() {
+   for (int b = 0; b < getLayerLoc()->nbatch; ++b) {
+      int bGlobal = b + getLayerLoc()->kb0;
+      mRandStateCheckpointData[4*b + 0] = mRandState->getRNG(bGlobal)->s0;
+      mRandStateCheckpointData[4*b + 1] = mRandState->getRNG(bGlobal)->state.s1;
+      mRandStateCheckpointData[4*b + 2] = mRandState->getRNG(bGlobal)->state.s2;
+      mRandStateCheckpointData[4*b + 3] = mRandState->getRNG(bGlobal)->state.s3;
+   }
+}
+
+void RotateActivityBuffer::copyCheckpointDataToRandState() {
+   for (int b = 0; b < getLayerLoc()->nbatch; ++b) {
+      int bGlobal = b + getLayerLoc()->kb0;
+      mRandState->getRNG(bGlobal)->s0       = mRandStateCheckpointData[4*b + 0];
+      mRandState->getRNG(bGlobal)->state.s1 = mRandStateCheckpointData[4*b + 1];
+      mRandState->getRNG(bGlobal)->state.s2 = mRandStateCheckpointData[4*b + 2];
+      mRandState->getRNG(bGlobal)->state.s3 = mRandStateCheckpointData[4*b + 3];
+      InfoLog().printf(
+            "local b = %d, global b = %d, state (%u,(%u,%u,%u))\n", 
+            b, bGlobal,
+            mRandState->getRNG(bGlobal)->s0,
+            mRandState->getRNG(bGlobal)->state.s1,
+            mRandState->getRNG(bGlobal)->state.s2,
+            mRandState->getRNG(bGlobal)->state.s3);
+   }
+}
+
+Response::Status RotateActivityBuffer::prepareCheckpointWrite(double simTime) {
+      if (getCommunicator()->getLocalMPIBlock()->getRank() != 0) {
+         return Response::SUCCESS;
+      }
+      if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
+         int numProcs = getCommunicator()->getIOMPIBlock()->getBatchDimension();
+         std::vector<MPI_Request> mpiRequests(numProcs - 1);
+         copyRandStateToCheckpointData();
+         for (int m = 1; m < numProcs; ++m) {
+            int sourceProc = getCommunicator()->getIOMPIBlock()->calcRankFromRowColBatch(0, 0, m);
+            unsigned int *destLoc = &mRandStateCheckpointData[4 * getLayerLoc()->nbatch * m];
+            MPI_Irecv(
+                  destLoc,
+                  4 * getLayerLoc()->nbatch,
+                  MPI_UNSIGNED,
+                  sourceProc,
+                  1111,
+                  getCommunicator()->ioCommunicator(),
+                  &mpiRequests[m - 1]);
+         }
+         MPI_Waitall(numProcs - 1, mpiRequests.data(), MPI_STATUSES_IGNORE);
+      }
+      else {
+         copyRandStateToCheckpointData();
+         MPI_Send(
+               mRandStateCheckpointData.data(),
+               4 * getLayerLoc()->nbatch,
+               MPI_UNSIGNED,
+               0,
+               1111,
+               getCommunicator()->ioCommunicator());
+      }
+      return Response::SUCCESS;
+}
+
+Response::Status RotateActivityBuffer::processCheckpointRead(double simTime) {
+      if (getCommunicator()->getLocalMPIBlock()->getRank() != 0) {
+         return Response::SUCCESS;
+      }
+      if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
+         int numProcs = getCommunicator()->getIOMPIBlock()->getBatchDimension();
+         std::vector<MPI_Request> mpiRequests(numProcs - 1);
+         for (int m = 1; m < numProcs; ++m) {
+            int destProc = getCommunicator()->getIOMPIBlock()->calcRankFromRowColBatch(0, 0, m);
+            unsigned int *destLoc = &mRandStateCheckpointData[4 * getLayerLoc()->nbatch * m];
+            MPI_Send(
+                  destLoc,
+                  4 * getLayerLoc()->nbatch,
+                  MPI_UNSIGNED,
+                  destProc,
+                  1111,
+                  getCommunicator()->ioCommunicator());
+         }
+         copyCheckpointDataToRandState();
+      }
+      else {
+         MPI_Recv(
+               mRandStateCheckpointData.data(),
+               4 * getLayerLoc()->nbatch,
+               MPI_UNSIGNED,
+               0,
+               1111,
+               getCommunicator()->ioCommunicator(),
+               MPI_STATUS_IGNORE);
+         copyCheckpointDataToRandState();
+      }
+   return Response::SUCCESS;
 }
 
 } // namespace PV
