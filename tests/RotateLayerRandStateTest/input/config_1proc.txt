@@ -1,0 +1,9 @@
+ParamsFile:
+LogFile:RotateLayerRandStateTest.log
+NumThreads:1
+NumRows:1
+NumColumns:1
+BatchWidth:1
+CheckpointCellNumRows:0
+CheckpointCellNumColumns:0
+CheckpointCellBatchDimension:1

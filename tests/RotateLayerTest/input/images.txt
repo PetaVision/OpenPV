@@ -1,0 +1,8 @@
+input/image1.png
+input/image2.png
+input/image3.png
+input/image4.png
+input/image5.png
+input/image6.png
+input/image7.png
+input/image8.png

@@ -56,7 +56,7 @@ class FileManager {
     * check whether the base directory exists or can be created.
     * This function is a work-around for the fact that the outputPath
     * in the params file is not read until after the Communicator creates
-    * the OutputFileManger object.
+    * the OutputFileManager object.
     */
    void changeBaseDirectory(std::string const &newBaseDirectory);
 

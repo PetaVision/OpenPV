@@ -30,7 +30,7 @@
 
 namespace PV {
 
-PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
+PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArgumentsFlag) {
    // Initialize MPI
    initSignalHandler();
    commInit(argc, argv);
@@ -40,17 +40,15 @@ PV_Init::PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments) {
    for (int a = 0; a < mArgC; a++) {
       mArgV[a] = argv[0][a];
    }
-   params        = nullptr;
-   mCommunicator = nullptr;
 
-   mArguments = parse_arguments(*argc, *argv, allowUnrecognizedArguments);
+   mArguments = parse_arguments(*argc, *argv, allowUnrecognizedArgumentsFlag);
    initLogFile(false /*appendFlag*/);
    initFactory();
    initialize(); // must be called after initialization of Arguments data member.
 }
 
 PV_Init::~PV_Init() {
-   delete params;
+   delete mParams;
    delete mCommunicator;
    mArguments = nullptr;
    commFinalize();
@@ -58,9 +56,8 @@ PV_Init::~PV_Init() {
 
 int PV_Init::initSignalHandler() {
    // Block SIGUSR1, SIGUSR2.  root process checks for
-   // these signals during Checkpointer::checkpointWrite() (typically called
-   // during HyPerCol::advanceTime()) and broadcasts any caught signal to
-   // all processes.
+   // these signals during Checkpointer::checkpointWrite() (typically called during
+   // HyPerCol::advanceTime()) and broadcasts any caught signal to all processes.
    // CheckpointWrite() responds to the signals as follows:
    // SIGUSR1: write a checkpoint and continue.
    // SIGUSR2: write a checkpoint and quit.
@@ -83,8 +80,8 @@ int PV_Init::initialize() {
    int status    = PV_SUCCESS;
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
-   delete params;
-   params                 = nullptr;
+   delete mParams;
+   mParams                = nullptr;
    std::string paramsFile = mArguments->getStringArgument("ParamsFile");
    if (!paramsFile.empty()) {
       status = createParams();
@@ -94,35 +91,30 @@ int PV_Init::initialize() {
 
 int PV_Init::initMaxThreads() {
 #ifdef PV_USE_OPENMP_THREADS
-   maxThreads = omp_get_max_threads();
+   mMaxThreads = omp_get_max_threads();
 #else // PV_USE_OPENMP_THREADS
-   maxThreads = 1;
+   mMaxThreads = 1;
 #endif // PV_USE_OPENMP_THREADS
    return PV_SUCCESS;
 }
 
-int PV_Init::commInit(int *argc, char ***argv) {
+void PV_Init::commInit(int *argc, char ***argv) {
    int mpiInit;
    // If MPI wasn't initialized, initialize it.
-   // Remember if it was initialized on entry; the destructor will only finalize
-   // if the constructor
-   // init'ed.
-   // This way, you can do several simulations sequentially by initializing MPI
-   // before creating
-   // the first HyPerCol; after running the first simulation the MPI environment
-   // will still exist
-   // and you
-   // can run the second simulation, etc.
-   MPI_Initialized(&mpiInit);
-   if (!mpiInit) {
-      pvAssert((*argv)[*argc] == nullptr); // Open MPI 1.7 assumes this.
-      MPI_Init(argc, argv);
+   // Remember if it was initialized on entry; the destructor will only finalize if the
+   // constructor init'ed. This way, you can do several simulations sequentially by initializing
+   // MPI before creating the first HyPerCol; after running the first simulation the MPI environment
+   // will still exist and you can run the second simulation, etc.
+   int initialized = 0;
+   MPI_Initialized(&initialized);
+   if (initialized) {
+      mPV_Inited_MPI = false;
    }
    else {
-      Fatal() << "PV_Init communicator already initialized\n";
+      pvAssert((*argv)[*argc] == nullptr); // Open MPI 1.7 assumes this.
+      MPI_Init(argc, argv);
+      mPV_Inited_MPI = true;
    }
-
-   return 0;
 }
 
 void PV_Init::initFactory() { PV::registerCoreKeywords(); }
@@ -170,14 +162,14 @@ int PV_Init::setParams(char const *params_file) {
 int PV_Init::createParams() {
    std::string paramsFile = mArguments->getStringArgument("ParamsFile");
    if (!paramsFile.empty()) {
-      delete params;
-      params = new PVParams(
+      delete mParams;
+      mParams = new PVParams(
             paramsFile.c_str(),
             2 * (INITIAL_LAYER_ARRAY_SIZE + INITIAL_CONNECTION_ARRAY_SIZE),
             mCommunicator->globalCommunicator());
       unsigned int shuffleSeed = mArguments->getUnsignedIntArgument("ShuffleParamGroups");
       if (shuffleSeed) {
-         params->shuffleGroups(shuffleSeed);
+         mParams->shuffleGroups(shuffleSeed);
       }
       return PV_SUCCESS;
    }
@@ -309,9 +301,10 @@ void PV_Init::freeArgs(int argc, char **argv) {
    free(argv);
 }
 
-int PV_Init::commFinalize() {
-   MPI_Finalize();
-   return 0;
+void PV_Init::commFinalize() {
+   if (mPV_Inited_MPI) {
+      MPI_Finalize();
+   }
 }
 
 } // namespace PV

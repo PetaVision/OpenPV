@@ -16,7 +16,8 @@ function [data,hdr] = readpvpfile(filename,progressperiod, last_frame, start_fra
 % data is a cell array containing the data.
 %     In general, data has one element for each time step written.
 %     Each element is a struct containing the fields 'time' and 'values'
-%     For activities, values is an nx-by-ny-by-nf array.
+%     For activities, values is an nx-by-ny-by-nf array, except for taus_uint4 files,
+%         which are nx-by-ny-by-nf-by-4.
 %     For weights, values is a cell array, each element is an nxp-by-nyp-by-nfp array.
 % hdr is a struct containing the information in the file's header
 
@@ -52,8 +53,8 @@ switch hdr.filetype
         errorident = 'readpvpfile:obsoletefiletype';
         errorstring = sprintf('readpvpfile:File %s has obsolete file type %d', filename, hdr.filetype);
     case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
-        numframes = hdr.nbands;
-        % framesize is variable
+        errorident = 'readpvpfile:obsoletefiletype';
+        errorstring = sprintf('readpvpfile:File %s has obsolete file type %d', filename, hdr.filetype);
     case 3 % PVP_WGT_FILE_TYPE % Local Patch (non-shared-weights) HyPerConns
         patchsize = hdr.nxp * hdr.nyp * hdr.nfp;
         recordsize = (hdr.datasize * patchsize + 8) * hdr.numPatches;
@@ -100,41 +101,32 @@ if isempty(errorstring)
     %%data = cell(lastframe-start_frame+1,1);
     data = cell(tot_frames,1);
     switch hdr.datatype
-        case 1 % PV_BYTE_TYPE
+        case 1 % BYTE
             precision = 'uchar';
             data_size = 1;
-        case 2 % PV_INT_TYPE
+            num_values = 1;
+        case 2 % INT
             precision = 'int32';
             data_size = 4;
-        case 3 % PV_FLOAT_TYPE
+            num_values = 1;
+        case 3 % FLOAT
             precision = 'float32';
             data_size = 4;
-        case 4 % PV_SPARSEVALUES_TYPE
+            num_values = 1;
+        case 4 % SPARSEVALUES
             precision = 'int32'; % data alternates between int32 and float32 but we'll typecast to get the values
             data_size = 4;
+            num_values = 1;
+        case 5 % TAUS_UINT4
+            precision = 'uint32';
+            data_size = 4;
+            num_values = 4;
     end
     switch hdr.filetype
         case 1 % PVP_FILE_TYPE, obsolete
             assert(0); % Error should be caught above.
-        case 2 % PVP_ACT_FILE_TYPE % Compressed for spiking
-            data_tmp = struct('time',0,'values',[]);
-            for f=1:lastframe
-                data_tmp.time = fread(fid,1,'float64');
-                numactive = fread(fid,1,'uint32');
-                data_tmp.values = fread(fid,numactive,'uint32');
-                if exist('progressperiod','var')
-                    if ~mod(f,progressperiod)
-                        fprintf(1,'File %s: frame %d of %d\n',filename, f, lastframe);
-                        if exist('fflush')
-                           fflush(1);
-                        end%if
-                    end%if
-                end%if
-                if f < start_frame || mod(f - start_frame, skip_frames)~=0
-                    continue;
-                end%if
-                data{(f - start_frame)/skip_frames + 1} = data_tmp;
-            end%for %% last_frame
+        case 2 % PVP_ACT_FILE_TYPE, obsolete
+            assert(0); % Error should be caught above.
         case 3 % PVP_WGT_FILE_TYPE
             fseek(fid, (start_frame-1)*framesize, 'bof');
             for f=start_frame:lastframe
@@ -191,17 +183,18 @@ if isempty(errorstring)
                 data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end  %% last_frame
         case 4 % PVP_NONSPIKING_ACT_FILE_TYPE
-            recordsize = hdr.nx * hdr.ny * hdr.nf;
+            recordsize = hdr.nx * hdr.ny * hdr.nf * num_values;
             fseek(fid,(start_frame-1)*(recordsize*4 + 8), 'cof');
             for f=start_frame:lastframe
-                data_tmp = struct('time',0,'values',zeros(hdr.nxExtended,hdr.nyExtended,hdr.nf));
+                data_tmp = struct('time',0,'values',zeros(hdr.nxExtended, hdr.nyExtended, hdr.nf, num_values));
                 data_tmp.time = fread(fid,1,'float64');
                 for y=1:nyprocs
                     yidx = (1:hdr.ny)+(y-1)*hdr.ny;
                     for x=1:nxprocs
                         xidx = (1:hdr.nx)+(x-1)*hdr.nx;
                         Z = fread(fid,recordsize,precision);
-                        data_tmp.values(xidx,yidx,:) = permute(reshape(Z,hdr.nf,hdr.nx,hdr.ny),[2 3 1]);
+                        Zreshaped = reshape(Z, num_values, hdr.nf, hdr.nx, hdr.ny);
+                        data_tmp.values(xidx,yidx,:,:) = permute(Zreshaped,[3 4 2 1]);
                     end%for
                 end%for
                 if exist('progressperiod','var')
@@ -218,7 +211,6 @@ if isempty(errorstring)
                 data{(f - start_frame)/skip_frames + 1} = data_tmp;
             end%for %% lastframe
         case 5 % PVP_KERNEL_FILE_TYPE
-            %keyboard;
             fseek(fid, (start_frame-1)*framesize, 'bof');
             for f=start_frame:lastframe
                 % fseek(fid,0,'bof'); % there's a header in every frame, unlike other file types

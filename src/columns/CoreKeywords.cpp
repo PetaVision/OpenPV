@@ -41,6 +41,7 @@
 #include "layers/PvpListLayer.hpp"
 #include "layers/RescaleLayer.hpp"
 #include "layers/Retina.hpp"
+#include "layers/RotateLayer.hpp"
 #include "layers/SigmoidLayer.hpp"
 
 #include "connections/CloneConn.hpp"
@@ -160,6 +161,7 @@ void registerCoreKeywords() {
    factory->registerKeyword("PtwiseQuotientLayer", Factory::create<PtwiseQuotientLayer>);
    factory->registerKeyword("RescaleLayer", Factory::create<RescaleLayer>);
    factory->registerKeyword("Retina", Factory::create<Retina>);
+   factory->registerKeyword("RotateLayer", Factory::create<RotateLayer>);
    factory->registerKeyword("SigmoidLayer", Factory::create<SigmoidLayer>);
 
    // Connections
