@@ -30,13 +30,12 @@ class PV_Init {
    /**
     * The constructor creates an Arguments object from the input arguments
     * and if MPI has not already been initialized, calls MPI_Init.
-    * Note that it does not call initialize, so the PVParams and Communicator
-    * objects are not initialized on instantiation.
     * On instantiation, the create() method will recognize all core PetaVision
     * groups (ANNLayer, HyPerConn, etc.).  To add additional known groups,
     * see the registerKeyword method.
     */
-   PV_Init(int *argc, char **argv[], bool allowUnrecognizedArguments);
+   PV_Init(int *argc, char **argv[], bool allowUnrecognizedArgumentsFlag);
+
    /**
     * Destructor calls MPI_Finalize
     */
@@ -112,14 +111,12 @@ class PV_Init {
    }
 
    /**
-    * getParams() returns a pointer to the PVParams object created from the
-    * params file.
+    * getParams() returns a pointer to the PVParams object created from the params file.
     */
-   PVParams *getParams() { return params; }
+   PVParams *getParams() { return mParams; }
 
    /**
-    * Prints the effective command line based on the argc/argv arguments used in
-    * instantiation,
+    * Prints the effective command line based on the argc/argv arguments used in instantiation,
     * and any set-methods used since then.
     */
    void printState() const { mArguments->printState(); }
@@ -149,42 +146,38 @@ class PV_Init {
    }
 
    /**
-    * setParams(paramsFile) updates the params file stored in the arguments,
-    * and calls PV_Init::initialize, which deletes the previous params object
-    * if it exists, and creates the new one.
-    * Return value is PV_SUCCESS or PV_FAILURE.
-    * If the routine fails, the params are unchanged.
+    * setParams(paramsFile) updates the params file stored in the arguments, and calls
+    * PV_Init::initialize, which deletes the previous params object if it exists, and
+    * creates the new one.  Return value is PV_SUCCESS or PV_FAILURE.  If the routine fails, the
+    * params are unchanged.
     */
    int setParams(char const *paramsFile);
 
    /**
-    * Sets the log file.  If the string argument is null, logging returns to the
-    * default streams (probably cout and cerr).  The previous log file,
-    * if any, is closed; and the new file is opened in write mode.
-    * Return value is PV_SUCCESS or PV_FAILURE.
-    * If the routine fails, the logging streams remain unchanged.
+    * Sets the log file.
+    * If the string argument is null, logging returns to the default streams (probably cout
+    * and cerr).  The previous log file, if any, is closed; and the new file is opened in write
+    * mode. Return value is PV_SUCCESS or PV_FAILURE.  If the routine fails, the logging streams
+    * remain unchanged.
     */
    int setLogFile(char const *val, bool appendFlag = false);
 
    /**
     * Sets the number of rows, columns, and batch elements.
-    * If any of these values are zero, they will be inferred
-    * from the other values (as if the relevant command line option was absent.)
-    * If any of the arguments are negative, the corresponding values are
-    * left unchanged.
-    * initialize() is called, which deletes the existing Communicator
-    * and creates a new one.
-    * Returns PV_SUCCESS if successful; exits on an error if it fails.
+    * If any of these values are zero, they will be inferred from the other values (as if the
+    * relevant command line option was absent.) If any of the arguments are negative, the
+    * corresponding values are left unchanged.  initialize() is called, which deletes the existing
+    * Communicator and creates a new one.  Returns PV_SUCCESS if successful; exits on an error if
+    * it fails.
     */
    int setMPIConfiguration(int rows, int columns, int batchwidth);
 
    /**
-    * Resets all member variables to their state at the time the object was
-    * instantiated. That is, the arguments in the original argv are parsed
-    * again, and the effect of any set-method that had been called is
-    * discarded.  Any previous pointers returned by get-methods, except
-    * for getArgs or getArgsCopy are no longer valid.
-    * Always returns PV_SUCCESS.  If the routine fails, it exits with an error.
+    * Resets all member variables to their state at the time the object was instantiated.
+    * That is, the arguments in the original argv are parsed again, and the effect of any
+    * set-method that had been called is discarded. Any previous pointers returned by get-methods,
+    * except for getArgs or getArgsCopy are no longer valid.  Always returns PV_SUCCESS.
+    * If the routine fails, it exits with an error.
     */
    int resetState();
 
@@ -221,25 +214,21 @@ class PV_Init {
     * Note that this value is NOT divided by the number of MPI processes.
     * If not using PV_USE_OPENMP_THREADS, returns 1.
     */
-   int getMaxThreads() const { return maxThreads; }
+   int getMaxThreads() const { return mMaxThreads; }
 
    /**
     * The method to add a new object type to the PV_Init object's class factory.
-    * keyword is the string that labels the object type, matching the keyword
-    * used in params files.
-    * creator is a pointer to a function that takes a name and a HyPerCol
-    * pointer, and
-    * creates an object of the corresponding keyword, with the given name and
-    * parent HyPerCol.
-    * The function should return a pointer of type BaseObject, created with the
-    * new operator.
+    * keyword is the string that labels the object type, matching the keyword used in params files.
+    * creator is a pointer to a function that takes a name and a HyPerCol pointer, and
+    * creates an object of the corresponding keyword, with the given name and parent HyPerCol.
+    * The function should return a pointer of type BaseObject, created with the new operator.
     */
    int registerKeyword(char const *keyword, ObjectCreateFn creator);
 
   private:
    int initSignalHandler();
    int initMaxThreads();
-   int commInit(int *argc, char ***argv);
+   void commInit(int *argc, char ***argv);
 
    /**
     * Makes sure that the Factory singleton is initialized, and registers the core keywords to
@@ -250,45 +239,40 @@ class PV_Init {
    /**
     * A method used internally by initialize() to set the streams that will
     * be used by InfoLog(), WarnLog(), etc.
-    * If the logFile is a path, the root process writes to that path and the
-    * nonroot process will write to a path modified by inserting _<rank>
-    * before the extension, or at the end if the path has no extension.
-    * If the logFile is null, all processes write to the standard output and
+    * If the logFile is a path, the root process writes to that path and the nonroot process will
+    * write to a path modified by inserting _<rank> before the extension, or at the end if the path
+    * has no extension.  If the logFile is null, all processes write to the standard output and
     * error streams.
     *
-    * After setting the log file streams, initLogFile() writes the time stamp
-    * to InfoLog() and calls Arguments::printState(), which writes the
-    * effective
-    * command line to InfoLog().
+    * After setting the log file streams, initLogFile() writes the time stamp to InfoLog() and
+    * calls Arguments::printState(), which writes the effective command line to InfoLog().
     */
    void initLogFile(bool appendFlag);
 
    /**
-    * A method used internally by initialize() and setParams() to create the
-    * PVParams object
-    * from the params file set in the arguments.
-    * If the arguments has the params file set, it creates the PVParams object
-    * and returns success;
-    * otherwise it returns failure and leaves the value of the params data member
-    * unchanged.
+    * A method used internally by initialize() and setParams() to create the PVParams object
+    * from the params file set in the arguments. If the arguments has the params file set, it
+    * creates the PVParams object (deleting the previous PVParam object if it exists) and
+    * returns success; otherwise it returns failure and leaves the value of the params data
+    * member unchanged.
     */
    int createParams();
 
    /**
     * Sends a timestamp and the effective command line to the InfoLog stream.
-    * The effective command line is based on the current state of the arguments
-    * data member.
+    * The effective command line is based on the current state of the arguments data member.
     */
    void printInitMessage();
 
-   int commFinalize();
+   void commFinalize();
 
    int mArgC = 0;
    std::vector<char const *> mArgV;
-   PVParams *params;
+   PVParams *mParams = nullptr;
    std::shared_ptr<Arguments> mArguments;
-   int maxThreads;
-   Communicator *mCommunicator;
+   int mMaxThreads;
+   bool mPV_Inited_MPI;
+   Communicator *mCommunicator = nullptr;
 }; // class PV_Init
 
 } // namespace PV
