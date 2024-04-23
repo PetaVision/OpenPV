@@ -95,9 +95,9 @@ void CheckpointEntryTimeScaleInfo::write(
    if (fileManager->isRoot()) {
       // mBatchSize is the batch size on one process. We need to get all the batch elements of
       // an IO block onto the root process of that block.
-      int numBatchProcesses        = mpiBlock->getBatchDimension();
+      int numBatchProcesses = mpiBlock->getBatchDimension();
       std::vector<double> gatheredData(3 * mBatchSize * numBatchProcesses);
-      for (std::size_t b = 0; b < mBatchSize; b++) {
+      for (int b = 0; b < mBatchSize; b++) {
          gatheredData[3 * b]     = mTimeScaleDataPtr[b].mTimeScale;
          gatheredData[3 * b + 1] = mTimeScaleDataPtr[b].mTimeScaleTrue;
          gatheredData[3 * b + 2] = mTimeScaleDataPtr[b].mTimeScaleMax;
@@ -120,7 +120,7 @@ void CheckpointEntryTimeScaleInfo::write(
       filename = generateFilename(std::string("txt"));
       fileStream = fileManager->open(filename.c_str(), std::ios_base::out, verifyWritesFlag);
       int kb0 = mpiBlock->getBatchIndex() * mBatchSize;
-      for (std::size_t b = 0; b < mBatchSize * numBatchProcesses; b++) {
+      for (int b = 0; b < mBatchSize * numBatchProcesses; b++) {
          *fileStream << "batch index = " << b + kb0 << "\n";
          *fileStream << "time = " << simTime << "\n";
          *fileStream << "timeScale = " << gatheredData[3 * b] << "\n";
@@ -131,7 +131,7 @@ void CheckpointEntryTimeScaleInfo::write(
    else if (mpiBlock->getRowIndex() == 0 and mpiBlock->getColumnIndex() == 0) {
       pvAssert(mpiBlock->getBatchIndex() != 0); // getBatchIndex()==0 case in if-block above
       std::vector<double> dataToSend(3 * mBatchSize);
-      for (std::size_t b = 0; b < mBatchSize; b++) {
+      for (int b = 0; b < mBatchSize; b++) {
          dataToSend[3 * b]     = mTimeScaleDataPtr[b].mTimeScale;
          dataToSend[3 * b + 1] = mTimeScaleDataPtr[b].mTimeScaleTrue;
          dataToSend[3 * b + 2] = mTimeScaleDataPtr[b].mTimeScaleMax;
@@ -148,7 +148,6 @@ void CheckpointEntryTimeScaleInfo::write(
 
 void CheckpointEntryTimeScaleInfo::read(
       std::shared_ptr<FileManager const> fileManager, double *simTimePtr) const {
-   int mpiTag                   = 150; // chosen arbitrarily; there's no significance to this number
    int numBatchProcesses        = fileManager->getMPIBlock()->getBatchDimension();
    std::vector<double> gatheredData(3 * (int)mBatchSize * numBatchProcesses);
    std::shared_ptr<MPIBlock const> mpiBlock = fileManager->getMPIBlock();
@@ -160,7 +159,7 @@ void CheckpointEntryTimeScaleInfo::read(
    MPI_Bcast(gatheredData.data(), gatheredData.size(), MPI_DOUBLE, 0, mpiBlock->getComm());
    int batchProcessIndex = mpiBlock->getBatchIndex();
    pvAssert(batchProcessIndex >= 0 and batchProcessIndex < numBatchProcesses);
-   for (std::size_t b = 0; b < mBatchSize; b++) {
+   for (int b = 0; b < mBatchSize; b++) {
       int blockBatchIndex                  = batchProcessIndex * mBatchSize + b;
       mTimeScaleDataPtr[b].mTimeScale     = gatheredData[3 * blockBatchIndex];
       mTimeScaleDataPtr[b].mTimeScaleTrue = gatheredData[3 * blockBatchIndex + 1];

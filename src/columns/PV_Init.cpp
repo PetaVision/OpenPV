@@ -99,7 +99,6 @@ int PV_Init::initMaxThreads() {
 }
 
 void PV_Init::commInit(int *argc, char ***argv) {
-   int mpiInit;
    // If MPI wasn't initialized, initialize it.
    // Remember if it was initialized on entry; the destructor will only finalize if the
    // constructor init'ed. This way, you can do several simulations sequentially by initializing

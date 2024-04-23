@@ -228,7 +228,8 @@ int testAggregateStoredValues(std::shared_ptr<MPIBlock const> mpiBlock, PVLayerL
    }
 
    for (int n = 0; n < aggregateSize; ++n) {
-      for (int b = 0; b < aggregateStore.getData(n).size(); ++b) {
+      int batchSize = static_cast<int>(aggregateStore.getData(n).size());
+      for (int b = 0; b < batchSize; ++b) {
          int bGlobal = (mpiBlock->getStartBatch() + mpiBlock->getBatchIndex()) * loc.nbatch + b;
          LayerStats correctStats           = computeCorrect(bGlobal, (n + 1) /*modifier*/);
          LayerStats const &aggregatedStats = aggregateStore.getData(n).getValue(b);

@@ -43,7 +43,7 @@ void LayerBatchGatherScatter::gather(
             mLayerLoc.halo.lt, mLayerLoc.halo.up, rootWidth, rootHeight);
       }
       int numElements = gatheredBuffer.getTotalElements();
-      for (int k = 0; k < gatheredBuffer.getTotalElements(); ++k) {
+      for (int k = 0; k < numElements; ++k) {
          rootDataLocation[k] = gatheredBuffer.at(k);
       }
    }
@@ -79,7 +79,6 @@ void LayerBatchGatherScatter::scatter(
       int nx = mLayerLoc.nx + mLayerLoc.halo.lt + mLayerLoc.halo.rt;
       int ny = mLayerLoc.ny + mLayerLoc.halo.dn + mLayerLoc.halo.up;
       dataBuffer = Buffer<float>(nx, ny, nf);
-      int batchIndex = mMPIBlock->getBatchIndex();
       BufferUtils::scatter(
             mMPIBlock, dataBuffer, mLayerLoc.nx, mLayerLoc.ny, mpiBatchIndex, mRootProcessRank);
    }

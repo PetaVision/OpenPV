@@ -38,7 +38,6 @@ ProbeInterface::registerData(std::shared_ptr<RegisterDataMessage<Checkpointer> c
    if (!Response::completed(status)) {
       return status;
    }
-   auto *checkpointer = message->mDataRegistry;
    return Response::SUCCESS;
 }
 

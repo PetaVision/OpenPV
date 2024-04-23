@@ -132,7 +132,6 @@ class SparseList {
             "SparseList::extract called with yStart + height too large (%d+%d versus %d)\n",
             yStart, height, getHeight());
       SparseList result;
-      int numValues = static_cast<int>(mContents.size());
       for (auto &e : mContents) {
          int k = e.index;
          // Should use conversions.hpp routines for this, but nvcc gives undefined identifer errors.

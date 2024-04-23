@@ -37,7 +37,7 @@ int ActivityComponent::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // (which happens during the communicate stage).
    ioParam_updateGpu(ioFlag);
 
-   return PV_SUCCESS;
+   return status;
 }
 
 void ActivityComponent::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {

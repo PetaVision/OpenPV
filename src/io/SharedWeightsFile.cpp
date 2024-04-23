@@ -160,7 +160,6 @@ void SharedWeightsFile::initializeSharedWeightsIO(bool clobberFlag) {
 }
 
 void SharedWeightsFile::readInternal(double &timestamp) {
-   int status = PV_SUCCESS;
    if (isRoot()) {
       mSharedWeightsIO->read(*mWeightData, timestamp);
    }

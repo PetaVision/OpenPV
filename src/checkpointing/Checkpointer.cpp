@@ -545,8 +545,7 @@ bool Checkpointer::isCompleteCheckpoint(std::string const &candidateCheckpoint) 
    if (!mBlockDirectoryName.empty()) {
       blockDirectory.append("/").append(mBlockDirectoryName);
    }
-   bool checkpointComplete = false;
-   errno                   = 0;
+   errno = 0;
    struct stat pathstat;
    int statstatus = stat(blockDirectory.c_str(), &pathstat);
    if (statstatus != 0) {

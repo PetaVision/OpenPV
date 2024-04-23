@@ -2,6 +2,7 @@
 #define PROBEDATA_HPP_
 
 #include "utils/PVAssert.hpp"
+#include <cstddef>
 #include <cstring>
 #include <stdexcept>
 #include <vector>
@@ -77,7 +78,6 @@ void ProbeData<T>::reset(ProbeData<T> const &newValues) {
 template <typename T>
 std::vector<char> ProbeData<T>::pack() const {
    unsigned int dataSize     = size();
-   unsigned int packedLength = sizeof(double) + dataSize * sizeof(T);
    std::vector<char> result(calcPackedSize(dataSize));
    char *position = &result.at(0);
    memcpy(position, &mTimestamp, sizeof(double));
@@ -86,7 +86,7 @@ std::vector<char> ProbeData<T>::pack() const {
       memcpy(position, &mValues.at(k), sizeof(T));
       position += sizeof(T);
    }
-   pvAssert(position - &result.at(0) == result.size());
+   pvAssert(position - &result.at(0) == static_cast<std::ptrdiff_t>(result.size()));
    return result;
 }
 

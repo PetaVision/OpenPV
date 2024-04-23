@@ -136,7 +136,6 @@ void SharedWeightsIO::write(WeightData const &weightData, double timestamp) {
    mFileStream->write(&header, mHeaderSize);
    checkHeader(header);
 
-   Patch patchHeader;
    long numValuesInPatch = getPatchSizeOverall();
    for (int a = 0; a < mNumArbors; ++a) {
       Patch writePatch;

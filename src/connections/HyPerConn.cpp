@@ -213,7 +213,6 @@ HyPerConn::respondConnectionNormalize(std::shared_ptr<ConnectionNormalizeMessage
 void HyPerConn::warnIfBroadcastWithShared() {
    // Check whether either pre- or post- layer has broadcastFlag set; if so check whether
    // connection has the sharedWeights flag set; if so issue a warning.
-   ConnectionData *connectionData = getComponentByType<ConnectionData>();
    BaseDelivery *delivery = getComponentByType<BaseDelivery>();
 
    SharedWeights *sharedWeights = getComponentByType<SharedWeights>();

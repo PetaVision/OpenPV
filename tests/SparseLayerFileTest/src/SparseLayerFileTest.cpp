@@ -342,7 +342,6 @@ int checkFrame1Contents(
    pvAssert(correctHeader.ny == expectedNy);
    pvAssert(correctHeader.nf == expectedNf);
    // Batch width not stored in file header, so we have to trust expectedBatchWidth.
-   long numValues = static_cast<long>(expectedNx * expectedNy * expectedNf);
 
    long headerSize = static_cast<long>(sizeof(correctHeader));
    sparseLayerStream->setInPos(headerSize, std::ios_base::beg);
@@ -677,11 +676,6 @@ int verifyRead(
          "verifyRead() failed: dataFromFile has length %d instead of the expected %d\n",
          fileBatchSize,
          layerLoc.nbatch);
-
-   int nxRestricted = layerLoc.nx;
-   int nxExtended   = layerLoc.nx + layerLoc.halo.lt + layerLoc.halo.rt;
-   int nyRestricted = layerLoc.ny;
-   int nyExtended   = layerLoc.ny + layerLoc.halo.dn + layerLoc.halo.up;
 
    // Check dimensions of dataFromLayer[b].
    // Should be extended if dataExtended is true and restricted if false

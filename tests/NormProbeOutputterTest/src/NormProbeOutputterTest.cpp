@@ -88,7 +88,12 @@ int checkOutputFiles(HyPerCol *hypercol) {
                &observedValues.mBatchIndex,
                &observedValues.mNumNeurons,
                &observedValues.mNorm);
-         if (compare(t, b, numNeurons, correctNorm, observedValues) != PV_SUCCESS) {
+         if (numread != 4) {
+            ErrorLog().printf(
+                  "File \"%s\" does not have the expected format.\n", fullOutputPath.c_str());
+            status = PV_FAILURE;
+         }
+         else if (compare(t, b, numNeurons, correctNorm, observedValues) != PV_SUCCESS) {
             status = PV_FAILURE;
          }
       }
@@ -243,12 +248,8 @@ int run(PV_Init &pv_init) {
    // HyPerCol::processParams() creates the output directory and its block subdirectories if needed.
    hypercol->processParams("NormProbeOutputterTest.params");
 
-   Communicator *comm = pv_init.getCommunicator();
-
    deleteOldFiles(hypercol);
 
-   int nx         = hypercol->getNxGlobal();
-   int ny         = hypercol->getNxGlobal();
    int numNeurons = findNumNeurons(hypercol);
    printGlobalStats(pv_init, numNeurons);
 

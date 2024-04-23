@@ -357,7 +357,6 @@ void testExtract() {
    int const nxExtracted = 3;
    int const nyExtracted = 3;
 
-   int const numMain      = nf * nxMain * nyMain;
    int const numExtracted = nf * nxExtracted * nyExtracted;
 
    int const xStart = 1;
@@ -404,7 +403,6 @@ void testInsert() {
    int const nyInsert = 3;
 
    int const numMain      = nf * nxMain * nyMain;
-   int const numInsert = nf * nxInsert * nyInsert;
 
    int const xStart = 1;
    int const yStart = 2;

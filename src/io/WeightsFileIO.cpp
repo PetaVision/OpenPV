@@ -146,7 +146,6 @@ bool WeightsFileIO::isCompressedHeader(BufferUtils::WeightHeader const &header) 
 
 void WeightsFileIO::readSharedWeights(BufferUtils::WeightHeader const &header) {
    bool compressed          = isCompressedHeader(header);
-   double timestamp         = header.baseHeader.timestamp;
    long arborSizeInPvpFile  = calcArborSizeLocal(compressed);
    long arborSizeInPvpLocal = arborSizeInPvpFile;
    std::vector<unsigned char> readBuffer(arborSizeInPvpLocal);

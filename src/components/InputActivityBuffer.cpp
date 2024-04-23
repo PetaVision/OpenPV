@@ -244,17 +244,16 @@ void InputActivityBuffer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
    }
    else { // Writing
       char *offsetAnchor = (char *)malloc((size_t)3);
-      offsetAnchor[2]    = '\0';
       switch (mAnchor) {
-         case Buffer<float>::CENTER: strncpy(offsetAnchor, "cc", (size_t)2); break;
-         case Buffer<float>::NORTH: strncpy(offsetAnchor, "tc", (size_t)2); break;
-         case Buffer<float>::NORTHEAST: strncpy(offsetAnchor, "tr", (size_t)2); break;
-         case Buffer<float>::EAST: strncpy(offsetAnchor, "cr", (size_t)2); break;
-         case Buffer<float>::SOUTHEAST: strncpy(offsetAnchor, "br", (size_t)2); break;
-         case Buffer<float>::SOUTH: strncpy(offsetAnchor, "bc", (size_t)2); break;
-         case Buffer<float>::SOUTHWEST: strncpy(offsetAnchor, "bl", (size_t)2); break;
-         case Buffer<float>::WEST: strncpy(offsetAnchor, "cl", (size_t)2); break;
-         case Buffer<float>::NORTHWEST: strncpy(offsetAnchor, "tl", (size_t)2); break;
+         case Buffer<float>::CENTER: strncpy(offsetAnchor, "cc", 3UL); break;
+         case Buffer<float>::NORTH: strncpy(offsetAnchor, "tc", 3UL); break;
+         case Buffer<float>::NORTHEAST: strncpy(offsetAnchor, "tr", 3UL); break;
+         case Buffer<float>::EAST: strncpy(offsetAnchor, "cr", 3UL); break;
+         case Buffer<float>::SOUTHEAST: strncpy(offsetAnchor, "br", 3UL); break;
+         case Buffer<float>::SOUTH: strncpy(offsetAnchor, "bc", 3UL); break;
+         case Buffer<float>::SOUTHWEST: strncpy(offsetAnchor, "bl", 3UL); break;
+         case Buffer<float>::WEST: strncpy(offsetAnchor, "cl", 3UL); break;
+         case Buffer<float>::NORTHWEST: strncpy(offsetAnchor, "tl", 3UL); break;
       }
       parameters()->ioParamString(ioFlag, getName(), "offsetAnchor", &offsetAnchor, "tl");
    }

@@ -527,7 +527,7 @@ std::vector<Buffer<float>> generateLayerDataFrame1(
    int numGlobalNeurons = globalWidth * globalHeight * nf;
    for (int b = 0; b < layerLoc.nbatch; ++b) {
       layerData[b].resize(width, height, nf);
-      for (int k = 0; k < width * height * nf; ++k) {
+      for (int k = 0; k < numNeurons; ++k) {
          int kf = k % nf;
          int kx = (k / nf) % width + layerLoc.kx0;
          int ky = (k / (nf * width)) % height + layerLoc.ky0;
@@ -562,7 +562,7 @@ std::vector<Buffer<float>> generateLayerDataFrame2(
    float numGlobalAcrossBatchF = static_cast<float>(numGlobalAcrossBatch);
    for (int b = 0; b < layerLoc.nbatch; ++b) {
       layerData[b].resize(width, height, nf);
-      for (int k = 0; k < width * height * nf; ++k) {
+      for (int k = 0; k < numNeurons; ++k) {
          int kf = k % nf;
          int kx = (k / nf) % width + layerLoc.kx0;
          int ky = (k / (nf * width)) % height + layerLoc.ky0;
@@ -652,11 +652,6 @@ int verifyRead(
          "verifyRead() failed: dataFromFile has length %d instead of the expected %d\n",
          fileBatchSize,
          layerLoc.nbatch);
-
-   int nxRestricted = layerLoc.nx;
-   int nxExtended   = layerLoc.nx + layerLoc.halo.lt + layerLoc.halo.rt;
-   int nyRestricted = layerLoc.ny;
-   int nyExtended   = layerLoc.ny + layerLoc.halo.dn + layerLoc.halo.up;
 
    // Check dimensions of dataFromLayer[b].
    // Should be extended if dataExtended is true and restricted if false

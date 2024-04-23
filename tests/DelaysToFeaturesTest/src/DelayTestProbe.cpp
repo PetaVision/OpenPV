@@ -35,7 +35,6 @@ void DelayTestProbe::checkStats() {
    int lastTimestampIndex             = static_cast<int>(numTimestamps) - 1;
    ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
    double simTime                     = stats.getTimestamp();
-   int status                         = PV_SUCCESS;
 
    const PVLayerLoc *loc = getTargetLayer()->getLayerLoc();
    const int rows        = icComm->numCommRows();

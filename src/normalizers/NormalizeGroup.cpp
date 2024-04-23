@@ -48,7 +48,6 @@ NormalizeGroup::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage c
    }
 
    auto *objectTable        = message->mObjectTable;
-   HyPerConn *groupHeadConn = objectTable->findObject<HyPerConn>(mNormalizeGroupName);
    mGroupHead               = objectTable->findObject<NormalizeBase>(mNormalizeGroupName);
    if (mGroupHead == nullptr) {
       if (mCommunicator->globalCommRank() == 0) {

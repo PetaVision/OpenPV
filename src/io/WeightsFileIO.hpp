@@ -145,10 +145,9 @@ class WeightsFileIO {
 
    // Data members
   private:
-   FileStream *mFileStream   = nullptr;
-   Weights *mWeights         = nullptr;
-
+   FileStream *mFileStream                   = nullptr;
    std::shared_ptr<MPIBlock const> mMPIBlock = nullptr;
+   Weights *mWeights                         = nullptr;
 
    int const mRootProcess = 0;
    int const tagbase      = 500;

@@ -83,8 +83,6 @@ void NormProbeLocalInterface::initializeState(HyPerLayer *targetLayer) {
 }
 
 void NormProbeLocalInterface::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   bool warnIfAbsent         = true;
-   float defaultNnzThreshold = 0.0f;
    getParams()->ioParamString(
          ioFlag,
          getName_c(),

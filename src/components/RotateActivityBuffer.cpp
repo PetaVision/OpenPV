@@ -198,7 +198,6 @@ void RotateActivityBuffer::applyTransformCPU(
    float const yCenter = 0.5f * static_cast<float>(nyRes - 1);
 
    int const numExtended = outputBuffer.getTotalElements();
-   int const nbatch = getLayerLoc()->nbatch;
    float sina = std::sin(angle);
    float cosa = std::cos(angle);
    for (int kExt = 0; kExt < numExtended; ++kExt) {
@@ -220,7 +219,6 @@ float RotateActivityBuffer::interpolate(
       Buffer<float> const &inputBuffer, float xSrc, float ySrc, int feature) {
    int const nx = inputBuffer.getWidth();
    int const ny = inputBuffer.getHeight();
-   int const nf = inputBuffer.getFeatures();
 
    float xSrcFloor = std::floor(xSrc);
    float xSrcInt   = static_cast<int>(xSrcFloor);
@@ -272,8 +270,6 @@ void RotateActivityBuffer::transform(Buffer<float> &localVBuffer, int bLocal, fl
       int const nxGlobalExt = loc->nxGlobal + loc->halo.lt + loc->halo.rt;
       int const nyGlobalExt = loc->nyGlobal + loc->halo.dn + loc->halo.up;
       activityBuffer.resize(nxGlobalExt, nyGlobalExt, loc->nf);
-      int globalMPIBatchIndex = localMPIBlock->getStartBatch() + localMPIBlock->getBatchIndex();
-      int bGlobal = bLocal + loc->nbatch * globalMPIBatchIndex;
       applyTransformCPU(globalV, activityBuffer, angleRadians);
    }
    else {

@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
    PV::CommandLineArguments arguments{argc, argv, false /*do not allow unrecognized arguments*/};
    int status = run(arguments);
    MPI_Finalize();
+   return status;
 }
 
 int run(PV::Arguments const &arguments) {

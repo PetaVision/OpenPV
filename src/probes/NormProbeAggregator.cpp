@@ -15,9 +15,8 @@ NormProbeAggregator::NormProbeAggregator(
 void NormProbeAggregator::aggregateNormsBatch(
       ProbeData<double> &aggregatedNormsBatch,
       ProbeData<double> const &partialNormsBatch) {
-   double timestamp = partialNormsBatch.getTimestamp();
-   int nbatch       = static_cast<int>(partialNormsBatch.size());
-   pvAssert(aggregatedNormsBatch.size() == nbatch);
+   pvAssert(partialNormsBatch.size() == aggregatedNormsBatch.size());
+   int nbatch = static_cast<int>(partialNormsBatch.size());
 #ifdef PV_USE_MPI
    double const *partialData = &partialNormsBatch.getValue(0);
    double *aggregateData     = &aggregatedNormsBatch.getValue(0);

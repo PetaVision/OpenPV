@@ -672,7 +672,6 @@ void LocalPatchWeightsIO::readPatch(
    int nfPre             = getNfPre();
    long patchIndexInFile = static_cast<long>(
          kIndex(xPatchIndex, yPatchIndex, fPatchIndex, nxExtendedPre, nyExtendedPre, nfPre));
-   long patchDataOffset  = mHeaderSize + patchIndexInFile * calcPatchSizeBytes() + mPatchHeaderSize;
    long frameStart       = calcFilePositionFromFrameNumber(getFrameNumber());
    long arborSizeBytes   = calcArborSizeBytes();
    long patchOffsetBytes = patchIndexInFile * calcPatchSizeBytes();

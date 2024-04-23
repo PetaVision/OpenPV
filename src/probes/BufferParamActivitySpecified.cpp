@@ -22,7 +22,7 @@ void BufferParamActivitySpecified::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          char const *bufferString = getParams()->stringValue(getName_c(), "buffer");
          auto bufferType          = parseBufferType(bufferString);
          FatalIf(
-               getBufferType() != StatsBufferType::A,
+               bufferType != StatsBufferType::A,
                "Probe %s buffer parameter \"%s\" is inconsistent with allowed values "
                "\"Activity\" or \"A\"\n",
                getName_c(),

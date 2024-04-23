@@ -283,8 +283,6 @@ int testStoredValues(HyPerLayer *layer, float nnzThreshold, unsigned int seed) {
       unsigned int seedN = seed + static_cast<unsigned int>(N - 1) * bufferSize;
       generateRandomValues(dataBuffer, threshold, seedN);
       double timestamp = static_cast<double>(N);
-      bool pending     = false;
-      bool acted       = false;
       setLayerData(layer, dataBuffer);
       auto *publisherComponent = layer->getComponentByType<PV::BasePublisherComponent>();
       auto *publisher          = publisherComponent->getPublisher();

@@ -36,7 +36,6 @@ void ParameterSweepTestProbe::checkStats() {
    int lastTimestampIndex             = static_cast<int>(numTimestamps) - 1;
    ProbeData<LayerStats> const &stats = storedValues.getData(lastTimestampIndex);
    double simTime                     = stats.getTimestamp();
-   int status                         = PV_SUCCESS;
    int nbatch                         = static_cast<int>(stats.size());
    if (simTime >= 3.0) {
       for (int b = 0; b < nbatch; b++) {

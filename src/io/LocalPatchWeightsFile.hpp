@@ -106,13 +106,13 @@ class LocalPatchWeightsFile : public WeightsFile {
    std::string mPath;
    int mPatchSizeX;
    int mPatchSizeY;
+   int mPatchSizeF;
    int mNxRestrictedPre;
    int mNyRestrictedPre;
    int mNfPre;
    int mNxRestrictedPost;
    int mNyRestrictedPost;
    // mNfRestrictedPost would be the same as patchSizeF
-   int mPatchSizeF;
    int mNumPatchesX;
    int mNumPatchesY;
    int mNumPatchesF;

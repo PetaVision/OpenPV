@@ -797,16 +797,17 @@ void HyPerCol::nonblockingLayerUpdate(
    *(updateMessage->mSomeLayerIsPending) = true;
    *(updateMessage->mSomeLayerHasActed)  = false;
 
-   long int idleCounter = 0;
+   int idleCounter = 0;
    while (*(updateMessage->mSomeLayerIsPending)) {
       *(updateMessage->mSomeLayerIsPending) = false;
       *(updateMessage->mSomeLayerHasActed)  = false;
       notifyLoop(updateMessage);
 
       if (!*(updateMessage->mSomeLayerHasActed)) {
-         mIdleCounts.at(updateMessage->mPhase)++;
+         ++idleCounter;
       }
    }
+   mIdleCounts.at(updateMessage->mPhase) += idleCounter;
 }
 
 void HyPerCol::nonblockingLayerUpdate(

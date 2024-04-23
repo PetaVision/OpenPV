@@ -135,12 +135,6 @@ void CudaRecvPost::setArgs(
    params.warpSize = device->get_warp_size();
 
 #ifdef PV_USE_CUDNN
-   // CUDNN code
-   // Calculate how much space is left on the gpu for the workspace memory
-   // Do not add to device's count since there might be more than one kernel that needs workspace
-   // memory
-   size_t workspaceMem = device->getMemory() / device->getNumConvKernels();
-
    int strideX, strideY;
    int actualXBorder, actualYBorder;
    pvAssert(params.preNblt == params.preNbrt);

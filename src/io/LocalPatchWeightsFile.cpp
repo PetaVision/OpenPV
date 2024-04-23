@@ -98,7 +98,7 @@ void LocalPatchWeightsFile::write(double timestamp) {
                0 /*regionFStartRestricted*/,
                0 /*arborIndexStart*/);
       }
-      int rank             = mpiBlock->getRank(); // Now do local slice
+      // Now do local slice
       int xStartRestricted = mpiBlock->getColumnIndex() * getNxRestrictedPre();
       int yStartRestricted = mpiBlock->getRowIndex() * getNyRestrictedPre();
       mLocalPatchWeightsIO->writeRegion(
@@ -241,7 +241,6 @@ void LocalPatchWeightsFile::initializeLocalPatchWeightsIO(bool clobberFlag) {
 }
 
 void LocalPatchWeightsFile::readInternal(double &timestamp) {
-   int status     = PV_SUCCESS;
    long numValues = mWeightData->getNumValuesPerArbor();
    auto mpiBlock  = mFileManager->getMPIBlock();
    if (isRoot()) {
@@ -275,7 +274,7 @@ void LocalPatchWeightsFile::readInternal(double &timestamp) {
             MPI_Send(arbor, numValues, MPI_FLOAT, rank, tag, mpiBlock->getComm());
          }
       }
-      int rank             = mpiBlock->getRank(); // Now do local slice
+      // Now do local slice
       int xStartRestricted = mpiBlock->getColumnIndex() * localNxRestricted;
       int yStartRestricted = mpiBlock->getRowIndex() * localNyRestricted;
       mLocalPatchWeightsIO->readRegion(

@@ -19,8 +19,8 @@
 
 namespace PV {
 
-uint64_t get_cpu_time();
-static double cpu_time_to_sec(uint64_t cpu_elapsed);
+// uint64_t get_cpu_time();
+// static double cpu_time_to_sec(uint64_t cpu_elapsed);
 
 class Timer {
   public:

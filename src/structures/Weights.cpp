@@ -93,7 +93,6 @@ void Weights::allocateDataStructures() {
 
    int numDataPatches = mNumDataPatchesX * mNumDataPatchesY * mNumDataPatchesF;
    if (numDataPatches != 0) {
-      int numItemsPerPatch = getPatchSizeOverall();
       mData = std::make_shared<WeightData>(
             mNumArbors,
             getPatchSizeX(), getPatchSizeY(), getPatchSizeF(),

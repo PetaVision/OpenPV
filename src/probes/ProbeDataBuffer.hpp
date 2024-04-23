@@ -120,7 +120,7 @@ ProbeDataBuffer<T> ProbeDataBuffer<T>::unpack(std::vector<char> const &packedDat
    ProbeDataBuffer<T> result(headerData[1]);
    unsigned int sizePerElement = ProbeData<T>::calcPackedSize(headerData[1]);
    unsigned int correctSize    = 2U * sizeof(unsigned int) + headerData[0] * sizePerElement;
-   if (static_cast<int>(packedData.size()) != correctSize) {
+   if (packedData.size() != correctSize) {
       std::string errorMessage(
             "ProbeDataBuffer::unpack() argument has #1 bytes but header indicates "
             "it should have #2 bytes.");

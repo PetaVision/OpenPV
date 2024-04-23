@@ -654,9 +654,6 @@ void writeToFileStream(
    int nxp         = weightData->getPatchSizeX();
    int nyp         = weightData->getPatchSizeY();
    int nfp         = weightData->getPatchSizeF();
-   int numPatchesX = weightData->getNumDataPatchesX();
-   int numPatchesY = weightData->getNumDataPatchesY();
-   int numPatchesF = weightData->getNumDataPatchesF();
    float minVal    = calcMinVal(weightData);
    float maxVal    = calcMaxVal(weightData);
    auto mpiBlock   = fileManager->getMPIBlock();

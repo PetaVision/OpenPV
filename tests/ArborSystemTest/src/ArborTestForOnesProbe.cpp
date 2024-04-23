@@ -29,7 +29,8 @@ void ArborTestForOnesProbe::checkStats() {
    auto const &stats        = storedValues.getData(lastTimestampIndex);
    double simTime           = stats.getTimestamp();
    if (simTime > 1.0) {
-      for (int b = 0; b < stats.size(); ++b) {
+      int statsSize = static_cast<int>(stats.size());
+      for (int b = 0; b < statsSize; ++b) {
          LayerStats const &statsElem = stats.getValue(b);
          if (checkValue(statsElem.mMin, simTime, b, "minimum") != PV_SUCCESS) {
             status = PV_FAILURE;

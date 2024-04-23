@@ -434,9 +434,7 @@ void writeToFileStream(
    long patchSizeBytes = static_cast<long>(patchSize * weightHeader.baseHeader.dataSize);
    long numPatches = static_cast<long>(numPatchesX * numPatchesY * numPatchesF);
    for (int a = 0; a < numArbors; ++a) {
-      float const *arbor = weightData->getData(a);
       for (long p = 0; p < numPatches; ++p) {
-         long patchStart = p * patchSize;
          float const *patchAddress = weightData->getDataFromDataIndex(a, p);
          fileStream->write(&patchHeader, 8L);
          fileStream->write(patchAddress, patchSizeBytes); 

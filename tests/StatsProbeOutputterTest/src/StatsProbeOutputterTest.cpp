@@ -98,7 +98,12 @@ int checkOutputFiles(HyPerCol *hypercol) {
                &observedValues.mMax,
                &observedValues.mSigma,
                &observedValues.mNumNonzero);
-         if (compare(t, b, correctStats, observedValues) != PV_SUCCESS) {
+         if (numread != 9) {
+            ErrorLog().printf(
+                  "File \"%s\" does not have the expected format.\n", fullOutputPath.c_str());
+            status = PV_FAILURE;
+         }
+         else if (compare(t, b, correctStats, observedValues) != PV_SUCCESS) {
             status = PV_FAILURE;
          }
       }
@@ -315,8 +320,6 @@ int run(PV_Init &pv_init) {
    HyPerCol *hypercol = new HyPerCol(&pv_init);
    // HyPerCol::processParams() creates the output directory and its block subdirectories if needed.
    hypercol->processParams("StatsProbeOutputterTest.params");
-
-   Communicator *comm = pv_init.getCommunicator();
 
    deleteOldFiles(hypercol);
 

@@ -22,7 +22,7 @@ void BufferParamVMembraneSpecified::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          char const *bufferString = getParams()->stringValue(getName_c(), "buffer");
          auto bufferType          = parseBufferType(bufferString);
          FatalIf(
-               getBufferType() != StatsBufferType::V,
+               bufferType != StatsBufferType::V,
                "Probe %s buffer parameter \"%s\" is inconsistent with allowed values "
                "\"MembranePotential\" or \"V\"\n",
                getName_c(),

@@ -484,13 +484,13 @@ void BaseProbe::flushOutputStreams() {
             while (mCurrentTag[v] != nonRootTags[v]) {
                int bytesReceived = mMPIRecvStreams[v].receive(mCurrentTag[v]);
                if (bytesReceived > 0) {
-                  int newTag = incrementTag(v);
+                  incrementTag(v);
                }
             }
          }
       }
       else {
-         pvAssert(static_cast<int>(mCurrentTag.size() == mLocalBatchWidth));
+         pvAssert(static_cast<int>(mCurrentTag.size()) == mLocalBatchWidth);
          MPI_Send(
                mCurrentTag.data(),
                mLocalBatchWidth,

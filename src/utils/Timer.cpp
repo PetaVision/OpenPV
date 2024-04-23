@@ -35,7 +35,7 @@ namespace PV {
 /**
  * Convert to milliseconds
  */
-uint64_t get_cpu_time() {
+static uint64_t get_cpu_time() {
 #ifdef USE_MACH_TIMER
    return mach_absolute_time();
 #else
