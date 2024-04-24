@@ -244,12 +244,9 @@ class HyPerCol : public Subject, public ParamsInterface {
    bool mCheckpointReadFlag = false; // whether to load from a checkpoint directory
    bool mReadyFlag          = false; // Initially false; set to true when communicateInitInfo,
    // allocateDataStructures, and initializeState stages are completed
-   bool mParamsProcessedFlag      = false; // Set to true when processParams() is called.
-   bool mWriteTimeScaleFieldnames = true; // determines whether fieldnames are
-   // written to HyPerCol_timescales file
-   bool mWriteProgressToErr = false; // Whether to write progress step to standard error
+   bool mParamsProcessedFlag = false; // Set to true when processParams() is called.
+   bool mWriteProgressToErr  = false; // Whether to write progress step to standard error
    // (True) or standard output (False) (default is output)
-   bool mOwnsCommunicator = true; // True if icComm was created by initialize,
    char *mPrintParamsFilename = nullptr; // filename for outputting the mParams, including
    // defaults and excluding unread mParams
    char *mOutputPath = nullptr;
@@ -263,11 +260,7 @@ class HyPerCol : public Subject, public ParamsInterface {
    int mNumXGlobal             = 0;
    int mNumYGlobal             = 0;
    int mNumBatchGlobal         = 1;
-   int mOrigStdOut             = -1;
-   int mOrigStdErr             = -1;
    int mNumThreads             = 1;
-   int *mLayerStatus           = nullptr;
-   int *mConnectionStatus      = nullptr;
    Communicator *mCommunicator = nullptr; // manages communication between MPI processes;
 
    Checkpointer *mCheckpointer = nullptr; // manages checkpointing and outputState output
@@ -275,8 +268,6 @@ class HyPerCol : public Subject, public ParamsInterface {
    long int mFinalStep;
    PV_Init *mPVInitObj;
    PVParams *mParams = nullptr; // manages input parameters
-   size_t mLayerArraySize;
-   size_t mConnectionArraySize;
    std::ofstream mTimeScaleStream;
    Timer *mBuildAndRunTimer = nullptr;
    Timer *mBuildTimer       = nullptr;

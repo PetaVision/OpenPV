@@ -94,7 +94,6 @@ class Publisher {
 
    Timer *mIncreaseLevelTimer = nullptr;
    Timer *mIncreaseLevelWaitTimer = nullptr;
-   Timer *mWaitTimer = nullptr;
 };
 
 } /* namespace PV */

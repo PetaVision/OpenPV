@@ -45,7 +45,6 @@
 #include <sys/stat.h>   // stat
 #include <unistd.h>     // unlink
 
-long const weightHeaderLength  = 104L;
 char const *params_initialrun  = "input/MomentumInitialize_initialrun.params";
 char const *params_restart     = "input/MomentumInitialize_restart.params";
 char const *weights_initialrun = "output_initialrun/MomentumConn.pvp";

@@ -529,8 +529,7 @@ std::vector<SparseList<float>> generateCorrectFileDataFrame1(
    auto correctData = generateGlobalSparseLayerData(frame1Seed, blockLayerLoc);
    correctData.erase(correctData.begin(), correctData.begin() + blockLayerLoc.kb0);
    correctData.erase(correctData.begin() + blockLayerLoc.nbatch, correctData.end());
-   auto correctSize = static_cast<std::vector<SparseList<float>>::size_type>(blockLayerLoc.nbatch);
-   pvAssert(correctData.size() == correctSize);
+   pvAssert(static_cast<int>(correctData.size()) == blockLayerLoc.nbatch);
    int blockWidth  = blockLayerLoc.nx;
    int blockHeight = blockLayerLoc.ny;
    if (dataExtendedFlag and fileExtendedFlag) {
@@ -821,7 +820,6 @@ int writeFrameToFileStream(
    if (fileManager->isRoot()) {
       int fileNx = layerLoc.nx * mpiBlock->getNumColumns();
       int fileNy = layerLoc.ny * mpiBlock->getNumRows();
-      int fileNf = layerLoc.nf;
 
       if (dataExtendedFlag and fileExtendedFlag) {
          fileNx += layerLoc.halo.lt + layerLoc.halo.rt;
@@ -849,7 +847,7 @@ int writeFrameToFileStream(
             fileStream->write(&timestamp, 8L);
             pvAssert(gatheredList.getWidth() == fileNx);
             pvAssert(gatheredList.getHeight() == fileNy);
-            pvAssert(gatheredList.getFeatures() == fileNf);
+            pvAssert(gatheredList.getFeatures() == layerLoc.nf);
             std::vector<SparseList<float>::Entry> gatheredContents = gatheredList.getContents();
             uint32_t gatheredListLength = static_cast<uint32_t>(gatheredContents.size());
             fileStream->write(&gatheredListLength, sizeof(gatheredListLength));

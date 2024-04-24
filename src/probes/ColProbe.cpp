@@ -84,12 +84,12 @@ ColProbe::communicateInitInfo(std::shared_ptr<CommunicateInitInfoMessage const> 
 Response::Status ColProbe::outputStateStats(double simTime, double deltaTime) {
    getValues(simTime);
    auto &valuesVector = getProbeValues();
-   int nbatch           = getNumValues();
-   pvAssert(static_cast<int>(valuesVector.size()) == nbatch);
+   pvAssert(static_cast<int>(valuesVector.size()) == getNumValues());
    double min = std::numeric_limits<double>::infinity();
    double max = -std::numeric_limits<double>::infinity();
    double sum = 0.0;
-   for (int k=0; k < getNumValues(); k++) {
+   int nbatch = getNumValues();
+   for (int k=0; k < nbatch; k++) {
       double v = valuesVector[k];
       min = min < v ? min : valuesVector[k];
       max = max > v ? max : valuesVector[k];
@@ -102,7 +102,7 @@ Response::Status ColProbe::outputStateStats(double simTime, double deltaTime) {
    if (!mOutputStreams.empty()) {
       pvAssert(mCommunicator->globalCommRank() == 0);
       pvAssert(mOutputStreams.size() == (std::size_t)1);
-      double mean = sum/(getNumValues() * mCommunicator->numCommBatches());
+      double mean = sum/(nbatch * mCommunicator->numCommBatches());
       if (!isWritingToFile()) {
          output(0) << "\"" << getName() << "\","; // lack of \n is deliberate
       }

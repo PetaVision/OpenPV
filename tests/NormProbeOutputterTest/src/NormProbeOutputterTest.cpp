@@ -18,7 +18,6 @@
 
 int const gLocalBatchWidth = 4;
 int const gNumTimestamps   = 10;
-int const gNumNeurons      = 3600;
 
 using namespace PV;
 

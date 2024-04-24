@@ -59,8 +59,7 @@ void ProbeInterface::setValues(ProbeData<double> const &newValues) {
 }
 
 void ProbeInterface::setValues(double timestamp, std::vector<double> const &newValues) {
-   auto N = newValues.size();
-   pvAssert(N == mValues->size());
+   pvAssert(newValues.size() == mValues->size());
    mValues->reset(timestamp, newValues);
 }
 
