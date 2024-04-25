@@ -1,0 +1,172 @@
+//
+// ScaleYLayerTest.params
+
+//  A params file to test ScaleYLayer
+//  An ImageLayer reads images with a display period of 2. A ScaleYLayer, triggered off the
+//  ImageLayer, stretches the images. The ScaleYLayer is connected to the ImageLayer with an
+//  IdentConn connection. The result of the scaling is compared to the expected images
+//  in the correct_ScaleY.pvp file.
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 1;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "ScaleYLayerTest.params";
+    randomSeed                          = 792316240;
+    nx                                  = 64;
+    ny                                  = 80;
+    nbatch                              = 4;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = true;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = "";
+};
+
+//
+// layers
+//
+
+ImageLayer "Input" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 2;
+    inputPath                           = "input/images.txt";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    jitterChangeInterval                = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "bySpecified";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0, 1, 2, 3];
+    skip_frame_index                    = [1, 1, 1, 1];
+    writeFrameToTimestamp               = true;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 1.0;
+};
+
+ScaleYLayer "Output" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    triggerLayerName                    = "Input";
+    triggerOffset                       = 0;
+    triggerBehavior                     = "updateOnlyOnTrigger";
+    scaleFactorMin                      = 0.4;
+    scaleFactorMax                      = 4.0;
+    writeScaleFactorsFile               = "scaleFactors.txt";
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 1.0;
+};
+
+PvpLayer "Correct" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 2;
+    inputPath                           = "input/correct_ScaleY.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    jitterChangeInterval                = 0;
+    autoResizeFlag                      = true;
+    aspectRatioAdjustment               = "crop";
+    interpolationMethod                 = "bicubic";
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    randomSeed                          = 123456789;
+    start_frame_index                   = [0, 0, 0, 0];
+    writeFrameToTimestamp               = true;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 1.0;
+};
+
+HyPerLayer "Comparison" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 2;
+    mirrorBCflag                        = true;
+    triggerLayerName                    = "";
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1.0;
+    initialWriteTime                    = 1.0;
+};
+
+//
+// connections
+//
+
+IdentConn "InputToOutput" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Input";
+    postLayerName                       = "Output";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "OutputToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Output";
+    postLayerName                       = "Comparison";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "CorrectToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Correct";
+    postLayerName                       = "Comparison";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer = "Comparison";
+    message = NULL;
+    textOutputFlag = true;
+    probeOutputFile = NULL;
+    triggerLayerName = NULL;
+    nnzThreshold = 1.0e-6;
+    exitOnFailure = true;
+    immediateExitOnFailure = false;
+};

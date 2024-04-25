@@ -1,4 +1,4 @@
-#include "RotateActivityBuffer.hpp"
+#include "ScaleYActivityBuffer.hpp"
 #include "checkpointing/CheckpointEntryFilePosition.hpp"
 #include "io/FileManager.hpp"
 #include "io/FileStreamBuilder.hpp"
@@ -12,113 +12,71 @@
 
 namespace PV {
 
-RotateActivityBuffer::RotateActivityBuffer(
+ScaleYActivityBuffer::ScaleYActivityBuffer(
       char const *name, PVParams *params, Communicator const *comm) {
    initialize(name, params, comm);
 }
 
-void RotateActivityBuffer::initialize(
+void ScaleYActivityBuffer::initialize(
       char const *name, PVParams *params, Communicator const *comm) {
    HyPerActivityBuffer::initialize(name, params, comm);
 }
 
-int RotateActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int ScaleYActivityBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerActivityBuffer::ioParamsFillGroup(ioFlag);
    if (status != PV_SUCCESS) {
       return status;
    }
 
-   ioParam_angleMin(ioFlag);
-   ioParam_angleMax(ioFlag);
-   if (ioFlag == PARAMS_IO_READ and mAngleMax < mAngleMin) {
+   ioParam_scaleFactorMin(ioFlag);
+   ioParam_scaleFactorMax(ioFlag);
+   if (ioFlag == PARAMS_IO_READ and mScaleFactorMax < mScaleFactorMin) {
       WarnLog().printf(
             "%s: specified value of max (%f) is less than specified value of min (%f)\n",
             getDescription_c(),
-            static_cast<double>(mAngleMax),
-            static_cast<double>(mAngleMin));
-      std::swap(mAngleMax, mAngleMin);
+            static_cast<double>(mScaleFactorMax),
+            static_cast<double>(mScaleFactorMin));
+      std::swap(mScaleFactorMax, mScaleFactorMin);
       WarnLog().printf(
-            "Switching angleMin to %f and angleMax to %f\n",
-            static_cast<double>(mAngleMax),
-            static_cast<double>(mAngleMin));
+            "Switching scaleFactorMin to %f and scaleFactorMax to %f\n",
+            static_cast<double>(mScaleFactorMax),
+            static_cast<double>(mScaleFactorMin));
    }
-   pvAssert(mAngleMax >= mAngleMin);
-   ioParam_angleUnits(ioFlag);
-   ioParam_writeAnglesFile(ioFlag);
+   FatalIf(
+         mScaleFactorMin < 0.0f and mScaleFactorMax > 0.0f,
+         "%s interval [scaleFactorMin, scaleFactorMax] cannot contain zero "
+         "(specified values [%f, %f]\n",
+         getDescription_c(), (double)mScaleFactorMin, (double)mScaleFactorMax);
+   float minScaleAllowed = 0.01f;
+   FatalIf(
+         mScaleFactorMin < minScaleAllowed,
+         "%s parameter scaleFactorMin is too close to zero (value %f; minimum allowed %f)\n",
+         getDescription_c(), (double)mScaleFactorMin, (double)minScaleAllowed);
+   pvAssert(mScaleFactorMax >= mScaleFactorMin);
+   ioParam_writeScaleFactorsFile(ioFlag);
    return status;
 }
 
-void RotateActivityBuffer::ioParam_angleMin(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "angleMin", &mAngleMin);
+void ScaleYActivityBuffer::ioParam_scaleFactorMin(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValueRequired(ioFlag, getName(), "scaleFactorMin", &mScaleFactorMin);
 }
 
-void RotateActivityBuffer::ioParam_angleMax(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValueRequired(ioFlag, getName(), "angleMax", &mAngleMax);
+void ScaleYActivityBuffer::ioParam_scaleFactorMax(enum ParamsIOFlag ioFlag) {
+   parameters()->ioParamValueRequired(ioFlag, getName(), "scaleFactorMax", &mScaleFactorMax);
 }
 
-void RotateActivityBuffer::ioParam_angleUnits(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      char *angleUnitsParam = nullptr;
-      parameters()->ioParamStringRequired(ioFlag, getName(), "angleUnits", &angleUnitsParam);
-      std::string angleUnitsString(angleUnitsParam);
-      free(angleUnitsParam);
-      for (auto &c : angleUnitsString) {
-         c = tolower(c);
-      }
-      if (angleUnitsString == "degree") {
-         angleUnitsString = "degrees";
-      }
-      if (angleUnitsString == "radian") {
-         angleUnitsString = "radians";
-      }
-      if (angleUnitsString == "degrees") {
-         mAngleConversionFactor = std::atan(1.0f) / 45.0f;
-         mAngleUnitType = AngleUnitType::DEGREES;
-      }
-      else if (angleUnitsString == "radians") {
-         mAngleConversionFactor = 1.0f;
-         mAngleUnitType = AngleUnitType::RADIANS;
-      }
-   }
-   else if (ioFlag == PARAMS_IO_WRITE) {
-      std::string angleUnitsString;
-      switch(mAngleUnitType) {
-         case AngleUnitType::UNSET:
-            Fatal().printf("%s AngleUnits parameter has not been set.\n", getDescription_c());
-            break;
-         case AngleUnitType::DEGREES:
-            angleUnitsString = "degrees";
-            break;
-         case AngleUnitType::RADIANS:
-            angleUnitsString = "radians";
-            break;
-         default:
-            Fatal().printf("%s has an unrecognized AngleUnits parameter.\n", getDescription_c());
-            break;
-      }
-      char *angleUnitsParam = strdup(angleUnitsString.c_str());
-      FatalIf(
-            angleUnitsParam == nullptr,
-            "%s unable to write AngleUnitsString parameter\n",
-            getDescription_c());
-      parameters()->ioParamStringRequired(ioFlag, getName(), "angleUnits", &angleUnitsParam);
-      free(angleUnitsParam);
-   }
-   else {
-      Fatal().printf(
-            "%s called ioParam_angleUnits with an unrecognized ioFlag.\n",
-            getDescription_c());
-   }
-}
-
-void RotateActivityBuffer::ioParam_writeAnglesFile(enum ParamsIOFlag ioFlag) {
+void ScaleYActivityBuffer::ioParam_writeScaleFactorsFile(enum ParamsIOFlag ioFlag) {
    parameters()->ioParamString(
-         ioFlag, getName(), "writeAnglesFile", &mWriteAnglesFile, mWriteAnglesFile);
+         ioFlag,
+         getName(),
+         "writeScaleFactorsFile",
+         &mWriteScaleFactorsFile,
+         mWriteScaleFactorsFile);
 }
 
-void RotateActivityBuffer::setObjectType() { mObjectType = "RotateActivityBuffer"; }
+void ScaleYActivityBuffer::setObjectType() { mObjectType = "ScaleYActivityBuffer"; }
 
-Response::Status RotateActivityBuffer::allocateDataStructures() {
+Response::Status ScaleYActivityBuffer::allocateDataStructures() {
    auto status = HyPerActivityBuffer::allocateDataStructures();
    if (!Response::completed(status)) {
       return status;
@@ -138,7 +96,7 @@ Response::Status RotateActivityBuffer::allocateDataStructures() {
    return Response::Status::SUCCESS;
 }
 
-Response::Status RotateActivityBuffer::registerData(
+Response::Status ScaleYActivityBuffer::registerData(
       std::shared_ptr<RegisterDataMessage<Checkpointer> const> message) {
    auto status = HyPerActivityBuffer::registerData(message);
    if (!Response::completed(status)) {
@@ -146,19 +104,19 @@ Response::Status RotateActivityBuffer::registerData(
    }
    auto *checkpointer = message->mDataRegistry;
    if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
-      if (mWriteAnglesFile) {
+      if (mWriteScaleFactorsFile) {
          auto fileManager = getCommunicator()->getOutputFileManager();
          fileManager->ensureDirectoryExists(".");
-         mWriteAnglesStream = FileStreamBuilder(
+         mWriteScaleFactorsStream = FileStreamBuilder(
                fileManager,
-               mWriteAnglesFile,
+               mWriteScaleFactorsFile,
                true /*textFlag*/,
                false /*readOnlyFlag*/,
                checkpointer->getCheckpointReadDirectory().empty() /*clobberFlag*/,
                checkpointer->doesVerifyWrites())
                .get();
          auto checkpointEntry = std::make_shared<CheckpointEntryFilePosition>(
-               getName(), std::string("WriteAnglesFile"), mWriteAnglesStream);
+               getName(), std::string("WriteScaleFactorsFile"), mWriteScaleFactorsStream);
          bool registerSucceeded = checkpointer->registerCheckpointEntry(
                checkpointEntry, false /*constantEntireRunFlag*/);
          FatalIf(
@@ -184,8 +142,8 @@ Response::Status RotateActivityBuffer::registerData(
    return Response::SUCCESS;
 }
 
-void RotateActivityBuffer::applyTransformCPU(
-      Buffer<float> const &inputBuffer, Buffer<float> &outputBuffer, float angle) {
+void ScaleYActivityBuffer::applyTransformCPU(
+      Buffer<float> const &inputBuffer, Buffer<float> &outputBuffer, float scaleFactor) {
    int const nxRes = inputBuffer.getWidth();
    int const nxExt = outputBuffer.getWidth();
    int const xMargin = (nxExt - nxRes) / 2; // assumes left and right margins are equal
@@ -194,31 +152,29 @@ void RotateActivityBuffer::applyTransformCPU(
    int const yMargin = (nyExt - nyRes) / 2; // assumes bottom and top margins are equal
    int const nf = inputBuffer.getFeatures();
 
-   float const xCenter = 0.5f * static_cast<float>(nxRes - 1);
    float const yCenter = 0.5f * static_cast<float>(nyRes - 1);
 
    int const numExtended = outputBuffer.getTotalElements();
-   float sina = std::sin(angle);
-   float cosa = std::cos(angle);
+   float recipScale = 1.0f / scaleFactor;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
    for (int kExt = 0; kExt < numExtended; ++kExt) {
       int const kxExt = kxPos(kExt, nxExt, nyExt, nf);
-      int const kyExt = kyPos(kExt, nxExt, nyExt, nf);
-      int const kf    = featureIndex(kExt, nxExt, nyExt, nf);
-      float xExt = static_cast<float>(kxExt - xMargin) - xCenter;
-      float yExt = static_cast<float>(kyExt - yMargin) - yCenter;
+      float xSrc = static_cast<float>(kxExt - xMargin);
 
-      float xSrc = cosa * xExt - sina * yExt + xCenter;
-      float ySrc = sina * xExt + cosa * yExt + yCenter;
+      int const kyExt = kyPos(kExt, nxExt, nyExt, nf);
+      float yExt = static_cast<float>(kyExt - yMargin) - yCenter;
+      float ySrc = recipScale * yExt + yCenter;
+
+      int const kf = featureIndex(kExt, nxExt, nyExt, nf);
 
       float result = interpolate(inputBuffer, xSrc, ySrc, kf);
       outputBuffer.set(kExt, result);
    }
 }
 
-void RotateActivityBuffer::transform(Buffer<float> &localVBuffer, int bLocal, float angleRadians) {
+void ScaleYActivityBuffer::transform(Buffer<float> &localVBuffer, int bLocal, float scaleFactor) {
    auto localMPIBlock = getCommunicator()->getLocalMPIBlock();
    PVLayerLoc const *loc = getLayerLoc();
    pvAssert(localVBuffer.getWidth() == loc->nx);
@@ -236,11 +192,11 @@ void RotateActivityBuffer::transform(Buffer<float> &localVBuffer, int bLocal, fl
    // root process of local communicator now has entire batch element in globalV buffer.
    Buffer<float> activityBuffer;
    if (localMPIBlock->getRank() == 0) {
-      // Set activityBuffer buffer to size of global extended buffer, to hold result of rotation
+      // Set activityBuffer buffer to size of global extended buffer, to hold result of scaling
       int const nxGlobalExt = loc->nxGlobal + loc->halo.lt + loc->halo.rt;
       int const nyGlobalExt = loc->nyGlobal + loc->halo.dn + loc->halo.up;
       activityBuffer.resize(nxGlobalExt, nyGlobalExt, loc->nf);
-      applyTransformCPU(globalV, activityBuffer, angleRadians);
+      applyTransformCPU(globalV, activityBuffer, scaleFactor);
    }
    else {
       int const nxLocalExt = loc->nx + loc->halo.lt + loc->halo.rt;
@@ -256,38 +212,34 @@ void RotateActivityBuffer::transform(Buffer<float> &localVBuffer, int bLocal, fl
          &mBufferData[bLocal * mBufferSize]);
 }
 
-void RotateActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
+void ScaleYActivityBuffer::updateBufferCPU(double simTime, double deltaTime) {
    PVLayerLoc const *loc = getLayerLoc();
    Buffer<float> localVBuffer(loc->nx, loc->ny, loc->nf);  
-   float angleRadians = 0.0f;
+   float scaleFactor = 0.0f;
    for (int bGlobal = 0; bGlobal < loc->nbatchGlobal; ++bGlobal) {
       if (getCommunicator()->getLocalMPIBlock()->getRank() == 0) {
-         float angle = mRandState->uniformRandom(bGlobal, mAngleMin, mAngleMax);
-         angleRadians = mAngleConversionFactor * angle;
+         scaleFactor = mRandState->uniformRandom(bGlobal, mScaleFactorMin, mScaleFactorMax);
       }
       int bLocal = bGlobal - loc->kb0;
       if (bLocal >= 0 and bLocal < loc->nbatch) {
-         transform(localVBuffer, bLocal, angleRadians);
-         // transform() only uses angleRadians argument if local rank is zero
+         transform(localVBuffer, bLocal, scaleFactor);
+         // transform() only uses scaleFactor argument if local rank is zero
       }
 
-      if (mWriteAnglesStream) {
+      if (mWriteScaleFactorsStream) {
          auto const ioMPIBlock = getCommunicator()->getIOMPIBlock();
          pvAssert(ioMPIBlock->getRank() == 0);
          int batchElementStart = ioMPIBlock->getStartBatch() * loc->nbatch;
          int batchElementStop  = batchElementStart + ioMPIBlock->getBatchDimension() * loc->nbatch;
          if (bGlobal >= batchElementStart and bGlobal < batchElementStop) {
-            mWriteAnglesStream->printf(
-                  "t=%f, b=%d, %f\n",
-                  simTime,
-                  bGlobal,
-                  static_cast<double>(angleRadians));
+            mWriteScaleFactorsStream->printf(
+                  "t=%f, b=%d, %f\n", simTime, bGlobal, static_cast<double>(scaleFactor));
          }
       }
    }
 }
 
-void RotateActivityBuffer::copyRandStateToCheckpointData() {
+void ScaleYActivityBuffer::copyRandStateToCheckpointData() {
    for (int b = 0; b < getLayerLoc()->nbatch; ++b) {
       int bGlobal = b + getLayerLoc()->kb0;
       mRandStateCheckpointData[4*b + 0] = mRandState->getRNG(bGlobal)->s0;
@@ -297,7 +249,7 @@ void RotateActivityBuffer::copyRandStateToCheckpointData() {
    }
 }
 
-void RotateActivityBuffer::copyCheckpointDataToRandState() {
+void ScaleYActivityBuffer::copyCheckpointDataToRandState() {
    for (int b = 0; b < getLayerLoc()->nbatch; ++b) {
       int bGlobal = b + getLayerLoc()->kb0;
       mRandState->getRNG(bGlobal)->s0       = mRandStateCheckpointData[4*b + 0];
@@ -314,7 +266,7 @@ void RotateActivityBuffer::copyCheckpointDataToRandState() {
    }
 }
 
-Response::Status RotateActivityBuffer::prepareCheckpointWrite(double simTime) {
+Response::Status ScaleYActivityBuffer::prepareCheckpointWrite(double simTime) {
       if (getCommunicator()->getLocalMPIBlock()->getRank() != 0) {
          return Response::SUCCESS;
       }
@@ -349,7 +301,7 @@ Response::Status RotateActivityBuffer::prepareCheckpointWrite(double simTime) {
       return Response::SUCCESS;
 }
 
-Response::Status RotateActivityBuffer::processCheckpointRead(double simTime) {
+Response::Status ScaleYActivityBuffer::processCheckpointRead(double simTime) {
       if (getCommunicator()->getLocalMPIBlock()->getRank() != 0) {
          return Response::SUCCESS;
       }

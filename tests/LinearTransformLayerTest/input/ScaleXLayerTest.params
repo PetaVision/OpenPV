@@ -1,23 +1,23 @@
 //
-// RotateLayerTest.params
+// ScaleXLayerTest.params
 
-//  A params file to test RotateLayer
-//  An ImageLayer reads images with a display period of 2. A RotateLayer, triggered off the
-//  ImageLayer, rotates the images. The RotateLayer is connected to the ImageLayer with an
-//  IdentConn connection. The result of the rotation is compared to the expected images
-//  in the correct.pvp file.
+//  A params file to test ScaleXLayer
+//  An ImageLayer reads images with a display period of 2. A ScaleXLayer, triggered off the
+//  ImageLayer, stretches the images. The ScaleXLayer is connected to the ImageLayer with an
+//  IdentConn connection. The result of the scaling is compared to the expected images
+//  in the correct_ScaleX.pvp file.
 
-debugParsing = false;
+debugParsing = true;
 
 HyPerCol "column" = {
     dt                                  = 1;
     stopTime                            = 10;
     progressInterval                    = 1;
     writeProgressToErr                  = false;
-    printParamsFilename                 = "RotateLayerTest.params";
+    printParamsFilename                 = "ScaleXLayerTest.params";
     randomSeed                          = 792316240;
     nx                                  = 64;
-    ny                                  = 64;
+    ny                                  = 80;
     nbatch                              = 4;
     errorOnUnusedParam                  = false;
     errorOnNotANumber                   = true;
@@ -63,7 +63,7 @@ ImageLayer "Input" = {
     initialWriteTime                    = 1.0;
 };
 
-RotateLayer "Output" = {
+ScaleXLayer "Output" = {
     initializeFromCheckpointFlag        = false;
     broadcastFlag                       = false;
     nxScale                             = 1;
@@ -74,10 +74,9 @@ RotateLayer "Output" = {
     triggerLayerName                    = "Input";
     triggerOffset                       = 0;
     triggerBehavior                     = "updateOnlyOnTrigger";
-    angleMin                            = 0;
-    angleMax                            = 60;
-    angleUnits                          = "degrees";
-    writeAnglesFile                     = "angles.txt";
+    scaleFactorMin                      = 0.4;
+    scaleFactorMax                      = 4.0;
+    writeScaleFactorsFile               = "scaleFactors.txt";
     InitVType                           = "ZeroV";
     updateGpu                           = false;
     sparseLayer                         = false;
@@ -95,7 +94,7 @@ PvpLayer "Correct" = {
     mirrorBCflag                        = false;
     valueBC                             = 0;
     displayPeriod                       = 2;
-    inputPath                           = "input/correct.pvp";
+    inputPath                           = "input/correct_ScaleX.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;

@@ -21,6 +21,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/LeakyIntegrator.cpp
    ${SUBDIR}/LIF.cpp
    ${SUBDIR}/LIFGap.cpp
+   ${SUBDIR}/LinearTransformLayer.cpp
    ${SUBDIR}/MaskLayer.cpp
    ${SUBDIR}/MomentumLCALayer.cpp
    ${SUBDIR}/PoolingIndexLayer.cpp
@@ -30,7 +31,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PvpListLayer.cpp
    ${SUBDIR}/RescaleLayer.cpp
    ${SUBDIR}/Retina.cpp
-   ${SUBDIR}/RotateLayer.cpp
    ${SUBDIR}/Segmentify.cpp
    ${SUBDIR}/SegmentLayer.cpp
    ${SUBDIR}/SigmoidLayer.cpp
@@ -59,6 +59,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/LeakyIntegrator.hpp
    ${SUBDIR}/LIF.hpp
    ${SUBDIR}/LIFGap.hpp
+   ${SUBDIR}/LinearTransformLayer.hpp
    ${SUBDIR}/MaskLayer.hpp
    ${SUBDIR}/MomentumLCALayer.hpp
    ${SUBDIR}/PoolingIndexLayer.hpp
@@ -68,7 +69,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PvpListLayer.hpp
    ${SUBDIR}/RescaleLayer.hpp
    ${SUBDIR}/Retina.hpp
-   ${SUBDIR}/RotateLayer.cpp
    ${SUBDIR}/Segmentify.hpp
    ${SUBDIR}/SegmentLayer.hpp
    ${SUBDIR}/SigmoidLayer.hpp

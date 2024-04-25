@@ -9,11 +9,20 @@
 
 namespace PV {
 
+/**
+ * A layer activity component to rotate around the center point.
+ * Each time a layer update is triggered, it takes the data on the V buffer and rotates it by a
+ * random angle. The random factor is taken from a uniform random distribution with min and
+ * max specified by parameters angleMin and angleMax. The string parameter angleUnits is required
+ * and takes the value "degrees" or "radians". 
+ * Each batch element is rotated by a different angle, and the angles for different batch elements
+ * are independent.
+ */
 class RotateActivityBuffer : public HyPerActivityBuffer {
   protected:
    /**
     * List of parameters used by the RotateActivityBuffer class
-    * @name ANNLayer Parameters
+    * @name RotateLayer Parameters
     * @{
     */
 
@@ -70,7 +79,6 @@ class RotateActivityBuffer : public HyPerActivityBuffer {
    void applyTransformCPU(
          Buffer<float> const &inputBuffer, Buffer<float> &outputBuffer, float angle);
    void initialize(char const *name, PVParams *params, Communicator const *comm);
-   float interpolate(Buffer<float> const &inputBuffer, float xSrc, float ySrc, int feature);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag) override;
 
    void copyRandStateToCheckpointData();

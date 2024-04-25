@@ -31,6 +31,7 @@
 #include "layers/InputRegionLayer.hpp"
 #include "layers/LIF.hpp"
 #include "layers/LIFGap.hpp"
+#include "layers/LinearTransformLayer.hpp"
 #include "layers/LeakyIntegrator.hpp"
 #include "layers/MaskLayer.hpp"
 #include "layers/MomentumLCALayer.hpp"
@@ -41,7 +42,6 @@
 #include "layers/PvpListLayer.hpp"
 #include "layers/RescaleLayer.hpp"
 #include "layers/Retina.hpp"
-#include "layers/RotateLayer.hpp"
 #include "layers/SigmoidLayer.hpp"
 
 #include "connections/CloneConn.hpp"
@@ -161,7 +161,9 @@ void registerCoreKeywords() {
    factory->registerKeyword("PtwiseQuotientLayer", Factory::create<PtwiseQuotientLayer>);
    factory->registerKeyword("RescaleLayer", Factory::create<RescaleLayer>);
    factory->registerKeyword("Retina", Factory::create<Retina>);
-   factory->registerKeyword("RotateLayer", Factory::create<RotateLayer>);
+   factory->registerKeyword("RotateLayer", Factory::create<LinearTransformLayer>);
+   factory->registerKeyword("ScaleXLayer", Factory::create<LinearTransformLayer>);
+   factory->registerKeyword("ScaleYLayer", Factory::create<LinearTransformLayer>);
    factory->registerKeyword("SigmoidLayer", Factory::create<SigmoidLayer>);
 
    // Connections
