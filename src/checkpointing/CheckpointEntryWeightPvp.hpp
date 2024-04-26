@@ -1,12 +1,12 @@
 /*
- * CheckpointEntryDataStore.hpp
+ * CheckpointEntryWeightPvp.hpp
  *
  *  Created on Oct 13, 2016
  *      Author: Pete Schultz
  */
 
-#ifndef CHECKPOINTENTRYDATASTORE_HPP_
-#define CHECKPOINTENTRYDATASTORE_HPP_
+#ifndef CHECKPOINTENTRYWEIGHTPVP_HPP_
+#define CHECKPOINTENTRYWEIGHTPVP_HPP_
 
 #include "checkpointing/CheckpointEntry.hpp"
 #include "structures/Weights.hpp"
@@ -48,4 +48,4 @@ class CheckpointEntryWeightPvp : public CheckpointEntry {
 
 } // end namespace PV
 
-#endif // CHECKPOINTENTRYDATASTORE_HPP_
+#endif // CHECKPOINTENTRYWEIGHTPVP_HPP_
