@@ -1,5 +1,5 @@
-#ifndef GITREVISION_HPP_
-#define GITREVISION_HPP_
+#ifndef GITREVISIONSTRING_HPP_
+#define GITREVISIONSTRING_HPP_
 
 namespace PV {
 
@@ -9,17 +9,17 @@ namespace PV {
 // in a header file; note that there is no dependence on the template parameter.
 
 template <int N>
-class GitRevision {
+class GitRevisionString {
   public:
-   GitRevision() {}
+   GitRevisionString() {}
    static char const *getString() { return mString; }
   private:
    static char const *mString;
 };
 
 template <int N>
-char const *GitRevision<N>::mString = "@PV_GIT_REVISION@";
+char const *GitRevisionString<N>::mString = "@PV_GIT_REVISION@";
 
 } // namespace PV
 
-#endif // GITREVISION_HPP_
+#endif // GITREVISIONSTRING_HPP_

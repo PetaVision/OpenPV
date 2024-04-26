@@ -7,7 +7,6 @@
 
 #include "HyPerCol.hpp"
 
-#include "GitRevision.hpp"
 #include "arch/mpi/mpi.h"
 #include "checkpointing/CheckpointEntryParamsFileWriter.hpp"
 #include "columns/Communicator.hpp"
@@ -23,6 +22,7 @@
 #include "observerpattern/ObserverTable.hpp"
 #include "structures/MPIBlock.hpp"
 #include "utils/ExpandLeadingTilde.hpp"
+#include "utils/GitRevision.hpp"
 #include "utils/PVAssert.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/PathComponents.hpp"
@@ -931,7 +931,7 @@ void HyPerCol::outputParams(char const *path) {
 
 void HyPerCol::outputParamsHeadComments(FileStream *fileStream, char const *commentToken) {
    time_t t = time(nullptr);
-   fileStream->printf("%s PetaVision, %s\n", commentToken, GitRevision<0>::getString());
+   fileStream->printf("%s PetaVision, %s\n", commentToken, getGitRevision());
    fileStream->printf("%s Run time %s", commentToken, ctime(&t)); // output of ctime contains \n
 #ifdef PV_USE_MPI
    auto mpiBlock = mCheckpointer->getMPIBlock();
