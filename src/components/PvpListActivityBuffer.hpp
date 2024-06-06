@@ -50,14 +50,12 @@ class PvpListActivityBuffer : public InputActivityBuffer {
    virtual std::string describeInput(int index) override;
 
    /**
-    * Reads the file indicated by the inputIndex argument into the mImage data member.
+    * Reads the file indicated by the inputIndex argument into a buffer
     * inputIndex is the (zero-indexed) index into the list of inputs.
     */
    virtual Buffer<float> retrieveData(int inputIndex) override;
 
   protected:
-   std::unique_ptr<Image> mImage = nullptr;
-
    // List of filenames to iterate over
    std::vector<std::string> mFileList;
 };
