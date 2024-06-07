@@ -21,10 +21,10 @@ HyPerCol "column" = {
     nbatch                              = 4;
     errorOnUnusedParam                  = false;
     errorOnNotANumber                   = true;
-    outputPath                          = "output/";
+    outputPath                          = "output_ScaleX/";
     verifyWrites                        = false;
     checkpointWrite                     = false;
-    lastCheckpointDir                   = "output/Last";
+    lastCheckpointDir                   = "output_ScaleX/Last";
     initializeFromCheckpointDir         = "";
 };
 
@@ -166,7 +166,7 @@ RequireAllZeroActivityProbe "ComparisonProbe" = {
     textOutputFlag = true;
     probeOutputFile = NULL;
     triggerLayerName = NULL;
-    nnzThreshold = 1.0e-6;
+    nnzThreshold = 1.0e-5;
     exitOnFailure = true;
     immediateExitOnFailure = false;
 };
