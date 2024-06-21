@@ -260,9 +260,10 @@ class pvpOpen(object):
         if not isinstance(data, dict):
             raise ValueError("Input data structure must be a dictionary with the keys \"values\" and \"time\"")
 
-        #Check for fields values and time
+        #Check for 'values' field
         if not 'values' in data.keys():
             raise ValueError("Input data structure missing \"values\" key");
+
         if not 'time' in data.keys():
             raise ValueError("Input data structure missing \"time\" key");
 
@@ -275,13 +276,18 @@ class pvpOpen(object):
 
         #If time is a list, convert to numpy array
         if type(time) == list:
-            data["time"] = np.array(data["time"])
-            time = data["time"]
+            time = np.array(time)
 
         if not type(time).__module__ == np.__name__:
             raise ValueError("Time field must be either a numpy array or a list")
 
-        #Check dimensions of values and time
+        while time.shape[0] == 1:
+            time = time.reshape(time.shape[1:])
+
+        if len(time) != time.size:
+            raise ValueError("Time field must be a one-dimensional array")
+
+        #Check dimensions of values
         if sp.issparse(values):
             if not values.ndim == 2:
                 raise ValueError("Sparse values must have 2 dimensions")
@@ -296,12 +302,17 @@ class pvpOpen(object):
             raise ValueError("Values must have the same number of frames as time (" + str(valuesShape[0]) + " vs " + str(timeShape[0]) + ")")
 
         #Values should be single floats, time should be double floats
-        data["values"] = data["values"].astype(np.float32)
-        data["time"] = data["time"].astype(np.float64)
+        values = values.astype(np.float32)
+        time = time.astype(np.float64)
 
         #Dense values must be c-contiguous
-        if(not sp.issparse(data["values"]) and not data["values"].flags["C_CONTIGUOUS"]):
-           data["values"] = data["values"].copy(order='C')
+        if(not sp.issparse(values) and not values.flags["C_CONTIGUOUS"]):
+           values = values.copy(order='C')
+
+        result = {}
+        result["time"] = time
+        result["values"] = values
+        return result
 
     def generateHeader(self, data, inShape):
         #data["values"] can be one of 3 shapes: dense 4d mat for activity, dense 6d mat for weights
@@ -457,27 +468,27 @@ class pvpOpen(object):
         self.pvpFile.seek(0, os.SEEK_END)
 
         #Check data structure
-        self.checkData(data)
+        nData = self.checkData(data)
 
-        if not 'header' in data.keys():
+        if not 'header' in nData.keys():
             if useExistingHeader:
                 raise ValueError("Must specify a \"header\" field if using existing header")
 
         #Generate header if it doesn't exist
         if(not self.header):
             if(useExistingHeader):
-                self.header = data["header"]
+                self.header = nData["header"]
             else:
-                self.header=self.generateHeader(data, shape)
+                self.header=self.generateHeader(nData, shape)
 
         #Otherwise, check header fields
         else:
             if(useExistingHeader):
-                self.checkHeaders(self.header, data["header"])
+                self.checkHeaders(self.header, nData["header"])
             else:
-                self.checkHeaders(self.header, self.generateHeader(data, shape))
+                self.checkHeaders(self.header, self.generateHeader(nData, shape))
             #Change nbands for number of frames
-            self.updateHeader(data)
+            self.updateHeader(nData)
 
         if self.header['numparams'] == 26:
             hPattern = extendedHeaderPattern
@@ -489,17 +500,17 @@ class pvpOpen(object):
             raise Exception('Filetype 2 not yet supported for write pvp')
 
         elif self.header['filetype'] == 3 or self.header['filetype'] == 5:
-            (numFrames, numArbors, numKernels, nyp, nxp, nfp) = data["values"].shape
+            (numFrames, numArbors, numKernels, nyp, nxp, nfp) = nData["values"].shape
             # Type 5's have a header in each frame
             #Make a copy of header dictionary to avoid changing
             #the header field
             tmpHeader = self.header.copy()
             for dataFrame in range(numFrames):
                 #Set header fields that change from frame to frame
-                tmpHeader["time"] = np.float64(data["time"][dataFrame])
+                tmpHeader["time"] = np.float64(nData["time"][dataFrame])
                 ##wMax and wMin are int32's, whereas the max and min might not be an int
-                #tmpHeader["wMax"] = np.uint32(np.max(data["values"][dataFrame, :, :, :, :, :]))
-                #tmpHeader["wMin"] = np.uint32(np.min(data["values"][dataFrame, :, :, :, :, :]))
+                #tmpHeader["wMax"] = np.uint32(np.max(nData["values"][dataFrame, :, :, :, :, :]))
+                #tmpHeader["wMin"] = np.uint32(np.min(nData["values"][dataFrame, :, :, :, :, :]))
                 #We write headers here because we need a header per frame
                 for headerEntry in hPattern:
                     self.pvpFile.write(headerEntry[1](tmpHeader[headerEntry[0]]))
@@ -509,26 +520,26 @@ class pvpOpen(object):
                         self.pvpFile.write(np.uint16(nxp))
                         self.pvpFile.write(np.uint16(nyp))
                         self.pvpFile.write(np.uint32(0)) #Offset is always 0 for kernels
-                        self.pvpFile.write(data["values"][dataFrame, dataArbor, dataKernel, :, :, :])
+                        self.pvpFile.write(nData["values"][dataFrame, dataArbor, dataKernel, :, :, :])
 
         elif self.header['filetype'] == 4:
             self.writeHeader()
-            (numFrames, ny, nx, nf) = data["values"].shape
+            (numFrames, ny, nx, nf) = nData["values"].shape
             for dataFrame in range(numFrames):
-                self.pvpFile.write(data["time"][dataFrame])
-                self.pvpFile.write(data["values"][dataFrame, :, :, :])
+                self.pvpFile.write(nData["time"][dataFrame])
+                self.pvpFile.write(nData["values"][dataFrame, :, :, :])
 
         #Sparse values
         elif self.header['filetype'] == 6:
             self.writeHeader()
-            (numFrames, numData) = data["values"].shape
+            (numFrames, numData) = nData["values"].shape
             for dataFrame in range(numFrames):
-                frameVals = data["values"].getrow(dataFrame)
+                frameVals = nData["values"].getrow(dataFrame)
                 count = frameVals.nnz
                 index = frameVals.indices
-                value = frameVals.data
+                value = frameVals.nData
                 #Write time first, followed by count, followed by values
-                self.pvpFile.write(data["time"][dataFrame])
+                self.pvpFile.write(nData["time"][dataFrame])
                 self.pvpFile.write(np.uint32(count))
                 npOut = np.zeros((count, 2)).astype(np.uint32)
                 npOut[:, 0] = np.uint32(index)
