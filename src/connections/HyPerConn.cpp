@@ -221,16 +221,21 @@ void HyPerConn::warnIfBroadcastWithShared() {
    LayerInputBuffer const *postGSyn = delivery ? delivery->getPostGSyn() : nullptr;
    LayerGeometry const *postLayerGeometry = postGSyn ? postGSyn->getLayerGeometry() : nullptr;
    bool postLayerIsBroadcast = postLayerGeometry ? postLayerGeometry->getBroadcastFlag() : false;
-
-   BasePublisherComponent const *preData = delivery ? delivery->getPreData() : nullptr;
-   LayerGeometry const *preLayerGeometry = preData ? postGSyn->getLayerGeometry() : nullptr;
-   bool preLayerIsBroadcast = preLayerGeometry ? preLayerGeometry->getBroadcastFlag() : false;
-
    if (postLayerIsBroadcast) {
       WarnLog().printf(
             "%s has sharedWeights flag on, but postsynaptic layer \"%s\" is a broadcast layer.\n",
             getDescription_c(),
             postGSyn->getName());
+   }
+
+   BasePublisherComponent const *preData = delivery ? delivery->getPreData() : nullptr;
+   LayerGeometry const *preLayerGeometry = preData ? postGSyn->getLayerGeometry() : nullptr;
+   bool preLayerIsBroadcast = preLayerGeometry ? preLayerGeometry->getBroadcastFlag() : false;
+   if (preLayerIsBroadcast) {
+      WarnLog().printf(
+            "%s has sharedWeights flag on, but presynaptic layer \"%s\" is a broadcast layer.\n",
+            getDescription_c(),
+            preData->getName());
    }
 }
 
