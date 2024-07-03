@@ -201,6 +201,13 @@ void InputActivityBuffer::ioParam_flipsToggle(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void InputActivityBuffer::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "jitterChangeInterval"));
+   if (mJitterChangeInterval > 0) {
+      parameters()->ioParamValue(ioFlag, getName(), "randomSeed", &mRandomSeed, mRandomSeed);
+   }
+}
+
 void InputActivityBuffer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       char *offsetAnchor = nullptr;
@@ -419,10 +426,6 @@ void InputActivityBuffer::ioParam_batchMethod(enum ParamsIOFlag ioFlag) {
    free(batchMethod);
 }
 
-void InputActivityBuffer::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
-   parameters()->ioParamValue(ioFlag, getName(), "randomSeed", &mRandomSeed, mRandomSeed);
-}
-
 void InputActivityBuffer::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
    int *paramsStartFrameIndex;
    int length = 0;
@@ -578,7 +581,9 @@ Response::Status InputActivityBuffer::registerData(
    }
 
    if (getCommunicator()->getIOMPIBlock()->getRank() == 0) {
-      mRNG.seed(mRandomSeed);
+      if (mJitterChangeIntervalInTimesteps > 0) {
+         mRNG.seed(mRandomSeed);
+      }
       int numBatch = getLayerLoc()->nbatch;
       int nBatch   = getCommunicator()->getIOMPIBlock()->getBatchDimension() * numBatch;
       mRandomShiftX.resize(nBatch);
