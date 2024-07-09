@@ -82,7 +82,6 @@ int NormalizeMultiply::normalizeWeights() {
    // numDataPatches
    Weights *weights0 = mWeightsList[0];
    for (auto &weights : mWeightsList) {
-      // Do we need to require sharedWeights be the same for all connections in the group?
       if (weights->getSharedFlag() != weights0->getSharedFlag()) {
          if (mCommunicator->globalCommRank() == 0) {
             ErrorLog().printf(

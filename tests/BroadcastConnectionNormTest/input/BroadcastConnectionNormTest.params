@@ -1,0 +1,101 @@
+//
+// BroadcastConnectionNormTest.params
+//
+//  A params file to test normalization of a connection with a
+//  broadcast layer as the prelayer.
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 10;
+    progressInterval                    = 1;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "BroadcastConnectionNormTest.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 4;
+    ny                                  = 4;
+    nbatch                              = 1;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = true;
+    outputPath                          = "output/";
+    verifyWrites                        = false;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/Last";
+    initializeFromCheckpointDir         = NULL;
+};
+
+//
+// layers
+//
+
+PvpLayer "Input" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = true;
+    nf                                  = 4;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 0;
+    inputPath                           = "input/inputlayer.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    jitterChangeInterval                = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000];
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 0;
+    initialWriteTime                    = 1;
+};
+
+HyPerLayer "Output" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+};
+
+//
+// connections
+//
+
+HyPerConn "InputToOutput" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Input";
+    postLayerName                       = "Output";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    numAxonalArbors                     = 1;
+    delay                               = [0.000000];
+    nxp                                 = 2;
+    nyp                                 = 2;
+    nfp                                 = 1;
+    sharedWeights                       = false;
+    writeStep                           = 0.0;
+    initialWriteTime                    = 0.0;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "UniformRandomWeight";
+    initWeightsFile                     = NULL;
+    normalizeMethod                     = "normalizeL2";
+    strength                            = 4.0;
+    plasticityFlag                      = false;
+};
