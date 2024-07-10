@@ -252,7 +252,6 @@ local pvParameters = {
       postLayerName                       = "InputError";
       channelCode                         = 1;
       delay                               = {0.000000};
-      initWeightsFile                     = nil;
    };
 
    --Probes------------------------------------------------------------
