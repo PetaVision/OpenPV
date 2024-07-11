@@ -226,7 +226,6 @@ IdentConn "OrigInputToInputPre" = {
    postLayerName                       = "inputPre";
    channelCode                         = 0;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
    writeStep                           = -1;
 };
 
@@ -235,7 +234,6 @@ IdentConn "OrigInputToInputPost" = {
    postLayerName                       = "inputPost";
    channelCode                         = 0;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
    writeStep                           = -1;
 };
 
@@ -244,7 +242,6 @@ IdentConn "OrigInputToInputKnown" = {
    postLayerName                       = "inputKnown";
    channelCode                         = 0;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
    writeStep                           = -1;
 };
 

@@ -215,6 +215,5 @@ IdentConn "SelfConnectionForOutputWithDelay" = {
     channelCode                         = 1;
     delay                               = [0.000000];
     receiveGpu                          = false;
-    initWeightsFile                     = NULL;
     writeStep                           = -1;
 };

@@ -173,7 +173,6 @@ IdentConn "InputToResidual" = {
     postLayerName                       = "Residual";
     channelCode                         = 0;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 HyPerConn "V1ToResidual" = {
@@ -240,7 +239,6 @@ IdentConn "ReconstructionToResidual" = {
     postLayerName                       = "Residual";
     channelCode                         = 1;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 IdentConn "ReconstructionToComparison" = {
@@ -248,7 +246,6 @@ IdentConn "ReconstructionToComparison" = {
     postLayerName                       = "Comparison";
     channelCode                         = 0;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 IdentConn "CorrectToComparison" = {
@@ -256,7 +253,6 @@ IdentConn "CorrectToComparison" = {
     postLayerName                       = "Comparison";
     channelCode                         = 1;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 AdaptiveTimeScaleProbe "AdaptiveTimeScales" = {

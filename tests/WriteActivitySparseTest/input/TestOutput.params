@@ -118,7 +118,6 @@ IdentConn "GeneratedMovieToComparison" = {
     postLayerName                       = "Comparison";
     channelCode                         = 0;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 IdentConn "OriginalMovieToComparison" = {
@@ -126,7 +125,6 @@ IdentConn "OriginalMovieToComparison" = {
     postLayerName                       = "Comparison";
     channelCode                         = 1;
     delay                               = [0.000000];
-    initWeightsFile                     = NULL;
 };
 
 TestNotAlwaysAllZerosProbe "OriginalMovieProbe" = {

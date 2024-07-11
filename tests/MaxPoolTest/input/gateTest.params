@@ -301,7 +301,6 @@ IdentConn "GatedMaxPoolPreToGatePoolTestPre" = {
    postLayerName                       = "GatePoolTestPre";
    channelCode                         = 0;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
    writeStep                           = -1;
 };
 
@@ -310,7 +309,6 @@ IdentConn "inputToGatePoolTestPre" = {
    postLayerName                       = "GatePoolTestPre";
    channelCode                         = 1;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
    writeStep                           = -1;
 };
 
@@ -319,7 +317,6 @@ IdentConn "GatedMaxPoolPostToGatePoolTestPost" = {
    postLayerName                       = "GatePoolTestPost";
    channelCode                         = 0;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
    writeStep                           = -1;
 };
 
@@ -328,7 +325,5 @@ IdentConn "inputToGatePoolTestPost" = {
    postLayerName                       = "GatePoolTestPost";
    channelCode                         = 1;
    delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
    writeStep                           = -1;
 };
-
