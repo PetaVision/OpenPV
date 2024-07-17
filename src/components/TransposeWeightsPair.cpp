@@ -109,6 +109,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
                || preLoc->nf != origPostLoc->nf,
          "%s: transpose's pre and original connection's post must have the same dimensions.\n"
          "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n",
+         getDescription_c(),
          preLoc->nx,
          preLoc->ny,
          preLoc->nf,
@@ -125,6 +126,7 @@ Response::Status TransposeWeightsPair::communicateInitInfo(
                || postLoc->nf != origPreLoc->nf,
          "%s: transpose's post and original connection's pre must have the same dimensions.\n"
          "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n",
+         getDescription_c(),
          postLoc->nx,
          postLoc->ny,
          postLoc->nf,
