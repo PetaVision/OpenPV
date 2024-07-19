@@ -1,0 +1,161 @@
+// BasicRun.params for HyPerLCALayerTest
+
+// A simple system test for HyPerLCALayer.
+// A PvpLayer "V1Input" with nx=4, ny=4, nf=6 and batchwidth 4 provides input to a
+// HyPerLCALayer "V1". The results are compared to expected output in the PvpLayer "Correct".
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    dt                                  = 1;
+    stopTime                            = 100;
+    progressInterval                    = 100;
+    writeProgressToErr                  = false;
+    printParamsFilename                 = "BasicRun.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 4;
+    ny                                  = 4;
+    nbatch                              = 4;
+    errorOnUnusedParam                  = false;
+    errorOnNotANumber                   = false;
+    outputPath                          = "output/BasicRun";
+    verifyWrites                        = true;
+    checkpointWrite                     = false;
+    lastCheckpointDir                   = "output/BasicRun/Last";
+    initializeFromCheckpointDir         = "";
+};
+
+PvpLayer "V1Input" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 6;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 1;
+    inputPath                           = "input/V1Input_BasicRun.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    jitterChangeInterval                = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000,0.000000,0.000000,0.000000];
+    writeFrameToTimestamp               = true;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = -1;
+};
+
+HyPerLCALayer "V1" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 6;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    VThresh                             = 0.55;
+    AMin                                = 0;
+    AMax                                = infinity;
+    AShift                              = 0.55;
+    VWidth                              = 0;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/InitV1_BasicRun.pvp";
+    frameNumber                         = 0;
+    timeConstantTau                     = 2000;
+    selfInteract                        = true;
+    adaptiveTimeScaleProbe              = NULL;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+};
+
+PvpLayer "Correct" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 6;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    displayPeriod                       = 1;
+    inputPath                           = "input/Correct.pvp";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    jitterChangeInterval                = 0;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    useInputBCflag                      = false;
+    padValue                            = 0;
+    batchMethod                         = "byFile";
+    start_frame_index                   = [0.000000,0.000000,0.000000,0.000000];
+    writeFrameToTimestamp               = true;
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+};
+
+HyPerLayer "Comparison" = {
+    initializeFromCheckpointFlag        = false;
+    broadcastFlag                       = false;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 6;
+    phase                               = 2;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    InitVType                           = "ZeroV";
+    updateGpu                           = false;
+    sparseLayer                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 1;
+};
+
+IdentConn "V1InputToV1" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "V1Input";
+    postLayerName                       = "V1";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "V1ToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "V1";
+    postLayerName                       = "Comparison";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "CorrectToComparison" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Correct";
+    postLayerName                       = "Comparison";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+};
+
+RequireAllZeroActivityProbe "ComparisonTest" = {
+    targetLayer                         = "Comparison";
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ComparisonTest.txt";
+    message                             = NULL;
+    triggerLayerName                    = NULL;
+    nnzThreshold                        = 1e-07;
+    exitOnFailure                       = false;
+};
