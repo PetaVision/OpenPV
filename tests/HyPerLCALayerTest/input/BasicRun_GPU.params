@@ -1,6 +1,6 @@
 // BasicRun.params for HyPerLCALayerTest
 
-// A simple system test for HyPerLCALayer.
+// A simple system test for HyPerLCALayer using the GPU.
 // A PvpLayer "V1Input" with nx=4, ny=4, nf=6 and batchwidth 4 provides input to a
 // HyPerLCALayer "V1". The results are compared to expected output in the PvpLayer "Correct".
 
@@ -18,10 +18,10 @@ HyPerCol "column" = {
     nbatch                              = 4;
     errorOnUnusedParam                  = false;
     errorOnNotANumber                   = false;
-    outputPath                          = "output/BasicRun";
+    outputPath                          = "output/BasicRun_GPU";
     verifyWrites                        = true;
     checkpointWrite                     = false;
-    lastCheckpointDir                   = "output/BasicRun/Last";
+    lastCheckpointDir                   = "output/BasicRun_GPU/Last";
     initializeFromCheckpointDir         = "";
 };
 
@@ -74,7 +74,7 @@ HyPerLCALayer "V1" = {
     timeConstantTau                     = 2000;
     selfInteract                        = true;
     adaptiveTimeScaleProbe              = NULL;
-    updateGpu                           = false;
+    updateGpu                           = true;
     sparseLayer                         = false;
     writeStep                           = 1;
     initialWriteTime                    = 1;
