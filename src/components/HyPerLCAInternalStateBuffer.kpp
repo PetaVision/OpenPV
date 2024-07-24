@@ -13,6 +13,7 @@
 
 #include "utils/conversions.hpp"
 #include <cmath>
+#include <numeric>
 #ifdef PV_RUN_ON_GPU
 namespace PVCuda {
 __global__ void updateHyPerLCAOnGPU
@@ -39,16 +40,18 @@ inline void updateHyPerLCAOnCPU
    int index = (blockIdx.x * blockDim.x) + threadIdx.x;
    if (index < numNeurons * nbatch)
 #else
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static)
-#endif
+// #ifdef PV_USE_OPENMP_THREADS
+// #pragma omp parallel for schedule(static)
+// #endif
    for (int index = 0; index < numNeurons * nbatch; index++)
 #endif // PV_RUN_ON_GPU
    {
       int b = index / numNeurons; // batch index
       int k = index % numNeurons; // neuron index within batch element
 
-      float exp_tau                     = static_cast<float>(std::exp(-dtAdapt[b] / (double)tau));
+      double exponent                   = - dtAdapt[b] / static_cast<double>(tau);
+      float one_m_exp                   = -static_cast<float>(std::expm1(exponent));
+      float exp_tau                     = 1.0f - one_m_exp;
       float *VBatch                     = V + b * numNeurons;
       float const *accumulatedGSynBatch = accumulatedGSyn + b * numNeurons;
       float const gSyn                  = accumulatedGSynBatch[k];
@@ -56,7 +59,7 @@ inline void updateHyPerLCAOnCPU
       float const *ABatch = A + b * (nx + rt + lt) * (ny + up + dn) * nf;
 
       int kex   = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      VBatch[k] = exp_tau * VBatch[k] + (1.0f - exp_tau) * (gSyn + selfInteract * ABatch[kex]);
+      VBatch[k] = exp_tau * VBatch[k] + one_m_exp * (gSyn + selfInteract * ABatch[kex]);
    }
 }
 
