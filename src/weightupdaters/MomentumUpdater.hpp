@@ -97,7 +97,6 @@ class MomentumUpdater : public HebbianUpdater {
    // default values for timeConstantTau
    static constexpr float mDefaultTimeConstantTauSimple    = 0.25f;
    static constexpr float mDefaultTimeConstantTauViscosity = 100.0f;
-   static constexpr float mDefaultTimeConstantTauAlex      = 0.9f;
 
    MomentumUpdater(char const *name, PVParams *params, Communicator const *comm);
 
@@ -147,7 +146,7 @@ class MomentumUpdater : public HebbianUpdater {
    virtual void outputMomentum(double timestamp);
 
   protected:
-   enum Method { UNDEFINED_METHOD, VISCOSITY, SIMPLE, ALEX };
+   enum Method { UNDEFINED_METHOD, VISCOSITY, SIMPLE };
 
    char *mMomentumMethod    = nullptr;
    Method mMethod           = UNDEFINED_METHOD;

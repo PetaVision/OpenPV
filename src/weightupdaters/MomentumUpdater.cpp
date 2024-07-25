@@ -47,11 +47,14 @@ void MomentumUpdater::ioParam_momentumMethod(enum ParamsIOFlag ioFlag) {
          mMethod = SIMPLE;
       }
       else if (std::strcmp(mMomentumMethod, "alex") == 0) {
-         mMethod = ALEX;
+         Fatal().printf(
+               "%s momentumMethod = \"alex\" is obsolete. "
+               "Use \"viscosity\" or \"simple\" instead.\n",
+               getDescription_c());
       }
       else {
          Fatal() << "MomentumUpdater " << getName() << ": momentumMethod of " << mMomentumMethod
-                 << " is not known. Options are \"viscosity\", \"simple\", and \"alex\".\n";
+                 << " is not known. Options are \"viscosity\" and \"simple\".\n";
       }
    }
 }
@@ -64,7 +67,6 @@ void MomentumUpdater::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
       switch (mMethod) {
          case VISCOSITY: defaultVal = mDefaultTimeConstantTauViscosity; break;
          case SIMPLE: defaultVal    = mDefaultTimeConstantTauSimple; break;
-         case ALEX: defaultVal      = mDefaultTimeConstantTauAlex; break;
          default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
       }
 
@@ -92,15 +94,6 @@ void MomentumUpdater::checkTimeConstantTau() {
          FatalIf(
                mTimeConstantTau < 0 or mTimeConstantTau >= 1,
                "%s uses momentumMethod \"simple\" and so must have "
-               "TimeConstantTau >= 0 and timeConstantTau < 1"
-               " (value is %f).\n",
-               getDescription_c(),
-               (double)mTimeConstantTau);
-         break;
-      case ALEX:
-         FatalIf(
-               mTimeConstantTau < 0 or mTimeConstantTau >= 1,
-               "%s uses momentumMethod \"alex\" and so must have "
                "TimeConstantTau >= 0 and timeConstantTau < 1"
                " (value is %f).\n",
                getDescription_c(),
@@ -297,7 +290,6 @@ void MomentumUpdater::applyMomentum(int arborId) {
          applyMomentum(arborId, momentumFactor, mMomentumDecay);
          break;
       case SIMPLE: applyMomentum(arborId, momentumFactor, mMomentumDecay); break;
-      case ALEX: applyMomentum(arborId, momentumFactor, mMomentumDecay * mDWMax); break;
       default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
    }
 }
