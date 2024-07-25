@@ -105,7 +105,6 @@ class MomentumUpdater : public HebbianUpdater {
 
    char const *getMomentumMethod() { return mMomentumMethod; }
    float getTimeConstantTau() const { return mTimeConstantTau; }
-   bool isUsingDeprecatedMomentumTau() const { return mUsingDeprecatedMomentumTau; }
 
    Weights const *getPrevDeltaWeights() const { return mPrevDeltaWeights; }
 
@@ -143,10 +142,6 @@ class MomentumUpdater : public HebbianUpdater {
 
    void applyMomentum(int arborId, float dwFactor, float wFactor);
 
-   void applyMomentumDeprecated(int arborId);
-
-   void applyMomentumDeprecated(int arborId, float dwFactor, float wFactor);
-
    void openOutputStateFile(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
 
    virtual void outputMomentum(double timestamp);
@@ -156,14 +151,12 @@ class MomentumUpdater : public HebbianUpdater {
 
    char *mMomentumMethod    = nullptr;
    Method mMethod           = UNDEFINED_METHOD;
-   float mMomentumTau       = 0.25f; // Deprecated in favor of mTimeConstantTau Nov 19, 2018.
    float mTimeConstantTau   = mDefaultTimeConstantTauViscosity;
    float mMomentumDecay     = 0.0f;
    char *mInitPrev_dWFile   = nullptr;
    int  mPrev_dWFrameNumber = 0;
 
    Weights *mPrevDeltaWeights       = nullptr;
-   bool mUsingDeprecatedMomentumTau = false;
 
    // Copied from WeightsPair for use by outputMomentum
    double mWriteStep = 0.0;

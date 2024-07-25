@@ -68,10 +68,7 @@ void MomentumUpdater::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
          default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
       }
 
-      // If momentumTau is being used instead of timeConstantTau, ioParam_momentumTau
-      // will print a warning, so we don't warn if timeConstantTau is absent here.
-      // When momentumTau is removed, warnIfAbsent should be set to true here.
-      bool warnIfAbsent = !parameters()->present(getName(), "momentumTau");
+      bool warnIfAbsent = true;
       parameters()->ioParamValue(
             ioFlag, getName(), "timeConstantTau", &mTimeConstantTau, defaultVal, warnIfAbsent);
       if (ioFlag == PARAMS_IO_READ) {
@@ -113,25 +110,13 @@ void MomentumUpdater::checkTimeConstantTau() {
    }
 }
 
+// momentumTau was marked obsolete on July 25, 2025.
 void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
-   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
-   if (mPlasticityFlag) {
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "momentumMethod"));
-      pvAssert(!parameters()->presentAndNotBeenRead(getName(), "timeConstantTau"));
-      if (!parameters()->present(getName(), "momentumTau")) {
-         return;
-      }
-      if (parameters()->present(getName(), "timeConstantTau")) {
-         WarnLog().printf(
-               "%s sets timeConstantTau, so momentumTau will be ignored.\n", getDescription_c());
-         return;
-      }
-      mUsingDeprecatedMomentumTau = true;
-      parameters()->ioParamValueRequired(ioFlag, getName(), "momentumTau", &mMomentumTau);
-      WarnLog().printf(
-            "%s uses momentumTau, which is deprecated. Use timeConstantTau instead.\n",
-            getDescription_c());
-   }
+   FatalIf(
+         parameters()->present(getName(), "momentumTau"),
+         "%s sets the momentumDecay parameter, which is obsolete. "
+         "Use timeConstantTau instead.\n",
+         getDescription_c());
 }
 
 void MomentumUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
@@ -290,15 +275,7 @@ Response::Status MomentumUpdater::readStateFromCheckpoint(Checkpointer *checkpoi
 
 int MomentumUpdater::updateWeights(int arborId) {
    // Add momentum right before updateWeights
-   if (mUsingDeprecatedMomentumTau) { // MomentumTau was deprecated Nov 19, 2018.
-      WarnLog().printf(
-            "%s is using momentumTau, which has been deprecated in favor of timeConstantTau.\n",
-            getDescription_c());
-      applyMomentumDeprecated(arborId);
-   }
-   else {
-      applyMomentum(arborId);
-   }
+   applyMomentum(arborId);
 
    // Current dW saved to prev_dW
    pvAssert(mPrevDeltaWeights);
@@ -341,38 +318,6 @@ void MomentumUpdater::applyMomentum(int arborId, float dwFactor, float wFactor) 
          dwdata_start[k] *= 1 - dwFactor;
          dwdata_start[k] += dwFactor * prev_dw_start[k];
          dwdata_start[k] -= wFactor * wdata_start[k]; // TODO handle decay in a separate component
-      }
-   }
-   // Since weights data is allocated with all patches of a given arbor in a single vector,
-   // these two for-loops can probably be collapsed. --pschultz 2017-12-16
-}
-
-void MomentumUpdater::applyMomentumDeprecated(int arborId) {
-   // Shared weights done in parallel, parallel in numkernels
-   switch (mMethod) {
-      case VISCOSITY:
-         applyMomentumDeprecated(arborId, std::exp(-1.0f / mMomentumTau), mMomentumDecay);
-         break;
-      case SIMPLE: applyMomentumDeprecated(arborId, mMomentumTau, mMomentumDecay); break;
-      case ALEX: applyMomentumDeprecated(arborId, mMomentumTau, mMomentumDecay * mDWMax); break;
-      default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
-   }
-}
-
-void MomentumUpdater::applyMomentumDeprecated(int arborId, float dwFactor, float wFactor) {
-   int const numKernels = mDeltaWeights->getNumDataPatches();
-   pvAssert(numKernels == mPrevDeltaWeights->getNumDataPatches());
-   int const patchSizeOverall = mDeltaWeights->getPatchSizeOverall();
-   pvAssert(patchSizeOverall == mPrevDeltaWeights->getPatchSizeOverall());
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-   for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
-      float *dwdata_start        = mDeltaWeights->getDataFromDataIndex(arborId, kernelIdx);
-      float const *prev_dw_start = mPrevDeltaWeights->getDataFromDataIndex(arborId, kernelIdx);
-      float const *wdata_start   = mWeights->getDataFromDataIndex(arborId, kernelIdx);
-      for (int k = 0; k < patchSizeOverall; k++) {
-         dwdata_start[k] += dwFactor * prev_dw_start[k] - wFactor * wdata_start[k];
       }
    }
    // Since weights data is allocated with all patches of a given arbor in a single vector,
