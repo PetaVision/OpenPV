@@ -162,7 +162,7 @@ MomentumConn "PreToConstantOnes" = {
     combine_dW_with_W_flag              = false;
     momentumMethod                      = "viscosity";
     timeConstantTau                     = 1.4427;
-    momentumDecay                       = 0;
+    weightL2Decay                       = 0;
     initPrev_dWFile                     = "";
 };
 

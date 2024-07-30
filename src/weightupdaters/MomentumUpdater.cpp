@@ -29,8 +29,9 @@ int MomentumUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HebbianUpdater::ioParamsFillGroup(ioFlag);
    ioParam_momentumMethod(ioFlag);
    ioParam_timeConstantTau(ioFlag);
-   ioParam_momentumTau(ioFlag);
-   ioParam_momentumDecay(ioFlag);
+   ioParam_momentumTau(ioFlag); // obsolete July 30, 2024
+   ioParam_momentumDecay(ioFlag); // deprecated July 30, 2024
+   ioParam_weightL2Decay(ioFlag);
    ioParam_initPrev_dWFile(ioFlag);
    ioParam_prev_dWFrameNumber(ioFlag);
    return status;
@@ -103,7 +104,7 @@ void MomentumUpdater::checkTimeConstantTau() {
    }
 }
 
-// momentumTau was marked obsolete on July 25, 2025.
+// momentumTau was marked obsolete on July 30, 2025.
 void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
    FatalIf(
          parameters()->present(getName(), "momentumTau"),
@@ -112,13 +113,59 @@ void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
          getDescription_c());
 }
 
+// momentumDecay was deprecated on July 30, 2025.
 void MomentumUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-      parameters()->ioParamValue(ioFlag, getName(), "momentumDecay", &mMomentumDecay, mMomentumDecay);
-      if (mMomentumDecay < 0.0f || mMomentumDecay > 1.0f) {
-         Fatal() << "MomentumUpdater " << getName()
-                 << ": momentumDecay must be between 0 and 1 inclusive\n";
+      if (ioFlag == PARAMS_IO_READ and parameters()->present(getName(), "momentumDecay")) {
+         WarnLog().printf(
+               "%s sets momentumDecay parameter, which is deprecated. Use weightL2Decay instead.",
+               getDescription_c());
+         if (parameters()->present(getName(), "weightL2Decay")) {
+            return; // ioParam_weightL2Decay() will handle it
+         }
+         else {
+            parameters()->ioParamValue(
+                 ioFlag, getName(), "momentumDecay", &mWeightL2Decay, mWeightL2Decay);
+            if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
+               Fatal() << "MomentumUpdater " << getName()
+                       << ": weightL2Decay must be between 0 and 1 inclusive\n";
+            }
+         }
+      }
+   }
+}
+
+// Once momentumDecay is marked obsolete, this function can be reduced to
+// pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+// if (mPlasticityFlag) {
+//    parameters()->ioParamValue(
+//          ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
+//    if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
+//       Fatal() << getDescription_c()
+//               << ": weightL2Decay must be between 0 and 1 inclusive\n";
+//    }
+// }
+void MomentumUpdater::ioParam_weightL2Decay(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+   if (mPlasticityFlag) {
+      if (ioFlag == PARAMS_IO_READ) {
+         pvAssert(!parameters()->presentAndNotBeenRead(getName(), "momentumDecay"));
+         bool usesMomentumDecay = parameters()->present(getName(), "momentumDecay");
+         bool usesWeightL2Decay = parameters()->present(getName(), "weightL2Decay");
+         if (usesMomentumDecay and !usesWeightL2Decay) {
+            return; // ioParam_momentumDecay() read the parameter into mWeightL2Decay already.
+         }
+         parameters()->ioParamValue(
+               ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
+         if (mWeightL2Decay < 0.0f || mWeightL2Decay > 1.0f) {
+            Fatal() << getDescription_c()
+                    << ": weightL2Decay must be between 0 and 1 inclusive\n";
+         }
+      }
+      else { // PARAMS_IO_WRITE
+         parameters()->ioParamValue(
+               ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
       }
    }
 }
@@ -285,13 +332,13 @@ void MomentumUpdater::applyMomentum(int arborId) {
    // Shared weights done in parallel, parallel in numkernels
    float momentumFactor;
    if (mMethod == VISCOSITY) {
-         momentumFactor = mTimeConstantTau ? std::exp(-1.0f / mTimeConstantTau) : 0.0f;
+      momentumFactor = mTimeConstantTau ? std::exp(-1.0f / mTimeConstantTau) : 0.0f;
    }
    else {
       pvAssertMessage(mMethod == SIMPLE, "Unrecognized momentumMethod\n");
       momentumFactor = mTimeConstantTau;
    }
-   applyMomentum(arborId, momentumFactor, mMomentumDecay);
+   applyMomentum(arborId, momentumFactor, mWeightL2Decay);
 }
 
 void MomentumUpdater::applyMomentum(int arborId, float dwFactor, float wFactor) {

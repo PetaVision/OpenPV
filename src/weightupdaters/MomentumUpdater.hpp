@@ -34,7 +34,7 @@ class MomentumUpdater : public HebbianUpdater {
     * @brief timeConstantTau: controls the amount of momentum in weight updates.
     * @details For momentumMethod = "viscosity", the update rule is
     *
-    * dW = (1-tauFactor) * dW_Hebb + tauFactor * dWprev - momentumDecay * W.
+    * dW = (1-tauFactor) * dW_Hebb + tauFactor * dWprev - weightL2Decay * W.
     *
     * where dW_Hebb = dWMax * pre * post and tauFactor = exp(-1/timeConstantTau).
     * The interpretation is that for the impulse from a single pre*post event,
@@ -44,40 +44,27 @@ class MomentumUpdater : public HebbianUpdater {
     * For momentumMethod = "simple", the update rule is the same as for "viscosity",
     * except that tauFactor = timeConstantTau.
     *
-    * For momentumMethod = "alex", the update rule is
-    *
-    * dW = ((1-timeConstantTau) * dW_Hebb + timeConstantTau * dWprev) - momentumDecay * dWMax * W,
-    *
-    * For momentumMethod = "simple" or "alex", 0 <= timeConstantTau < 1 is required.
+    * For momentumMethod = "simple", 0 <= timeConstantTau < 1 is required.
     * For momentumMethod = "viscosity", timeConstantTau >= 0 is required.
     */
    virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief momentumTau: controls the amount of momentum in weight updates.
-    * Deprecated in favor of timeConstantTau.
-    * @details If timeConstantTau is not in params and momentumTau is,
-    * the update rule is as follows.
-    *
-    * For momentumMethod = "simple", the update rule is
-    *
-    * dW = dW_Hebb + momentumTau * dWprev - momentumDecay * W.
-    *
-    * where dW_Hebb = dWMax * pre * post.
-    *
-    * For momentumMethod = "viscosity", the update rule is the same as for "simple",
-    * except that momentumTau is replaced by exp(-1/momentumTau).
-    *
-    * For momentumMethod = "alex", the update rule is
-    *
-    * dW = dW_Hebb + momentumTau * dWprev = momentumTau * dWMax * W.
+    * @brief momentumTau is obsolete. Use timeConstantTau instead.
+    * If a momentum connection sets the momentumTau parameter, it is a fatal error
+    * and the error message advises to use momentumTau instead.
     */
    virtual void ioParam_momentumTau(enum ParamsIOFlag ioFlag);
 
    /**
-    * momentumDecay: The decay rate on the weights, applied after the momentum weight updates.
+    * momentumDecay is a deprecated synonym for weightL2Decay: Use weightL2Decay instead.
     */
    virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
+
+   /**
+    * weightL2Decay: The L2-driven decay rate on the weights, applied after the momentum updates.
+    */
+   virtual void ioParam_weightL2Decay(enum ParamsIOFlag ioFlag);
 
    /**
     * initPrev_dWFile: The .pvp file to read initial values of prev_dW used when applying momentum.
@@ -151,7 +138,7 @@ class MomentumUpdater : public HebbianUpdater {
    char *mMomentumMethod    = nullptr;
    Method mMethod           = UNDEFINED_METHOD;
    float mTimeConstantTau   = mDefaultTimeConstantTauViscosity;
-   float mMomentumDecay     = 0.0f;
+   float mWeightL2Decay     = 0.0f;
    char *mInitPrev_dWFile   = nullptr;
    int  mPrev_dWFrameNumber = 0;
 

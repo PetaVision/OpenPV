@@ -120,7 +120,7 @@ MomentumConn "InputToOutput" = {
     combine_dW_with_W_flag              = false;
     momentumMethod                      = "simple";
     timeConstantTau                     = 0.75;
-    momentumDecay                       = 0;
+    weightL2Decay                       = 0;
 };
 
 MomentumConnSimpleCheckpointerTestProbe "probe" = {

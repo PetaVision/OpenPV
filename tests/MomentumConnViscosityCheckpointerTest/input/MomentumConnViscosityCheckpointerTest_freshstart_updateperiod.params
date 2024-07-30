@@ -113,7 +113,7 @@ MomentumConn "InputToOutput" = {
     dWMaxDecayFactor                    = 0;
     momentumMethod                      = "viscosity";
     timeConstantTau                     = 3.4760594967822072;
-    momentumDecay                       = 0;
+    weightL2Decay                       = 0;
     batchPeriod                         = 1;
 };
 

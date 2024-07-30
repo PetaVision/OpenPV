@@ -93,7 +93,7 @@ MomentumConn "MomentumConn" = {
     dWMaxDecayFactor                    = 0;
     momentumMethod                      = "viscosity";
     timeConstantTau                     = 100.0;
-    momentumDecay                       = 0.0;
+    weightL2Decay                       = 0.0;
     initPrev_dWFile                     = "output_initialrun/MomentumConn.prevDelta.pvp";
     prev_dWFrameNumber                  = 50;
 };
