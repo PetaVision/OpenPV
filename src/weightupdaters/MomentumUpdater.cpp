@@ -29,8 +29,9 @@ int MomentumUpdater::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HebbianUpdater::ioParamsFillGroup(ioFlag);
    ioParam_momentumMethod(ioFlag);
    ioParam_timeConstantTau(ioFlag);
-   ioParam_momentumTau(ioFlag); // obsolete July 30, 2024
+   ioParam_momentumTau(ioFlag); // marked obsolete July 30, 2024
    ioParam_momentumDecay(ioFlag); // deprecated July 30, 2024
+   ioParam_weightL1Decay(ioFlag);
    ioParam_weightL2Decay(ioFlag);
    ioParam_initPrev_dWFile(ioFlag);
    ioParam_prev_dWFrameNumber(ioFlag);
@@ -167,6 +168,14 @@ void MomentumUpdater::ioParam_weightL2Decay(enum ParamsIOFlag ioFlag) {
          parameters()->ioParamValue(
                ioFlag, getName(), "weightL2Decay", &mWeightL2Decay, mWeightL2Decay);
       }
+   }
+}
+
+void MomentumUpdater::ioParam_weightL1Decay(enum ParamsIOFlag ioFlag) {
+   pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
+   if (mPlasticityFlag) {
+         parameters()->ioParamValue(
+               ioFlag, getName(), "weightL1Decay", &mWeightL1Decay, mWeightL1Decay);
    }
 }
 
@@ -338,10 +347,10 @@ void MomentumUpdater::applyMomentum(int arborId) {
       pvAssertMessage(mMethod == SIMPLE, "Unrecognized momentumMethod\n");
       momentumFactor = mTimeConstantTau;
    }
-   applyMomentum(arborId, momentumFactor, mWeightL2Decay);
+   applyMomentum(arborId, momentumFactor);
 }
 
-void MomentumUpdater::applyMomentum(int arborId, float dwFactor, float wFactor) {
+void MomentumUpdater::applyMomentum(int arborId, float dwFactor) {
    int const numKernels = mDeltaWeights->getNumDataPatches();
    pvAssert(numKernels == mPrevDeltaWeights->getNumDataPatches());
    int const patchSizeOverall = mDeltaWeights->getPatchSizeOverall();
@@ -354,9 +363,17 @@ void MomentumUpdater::applyMomentum(int arborId, float dwFactor, float wFactor) 
       float const *prev_dw_start = mPrevDeltaWeights->getDataFromDataIndex(arborId, kernelIdx);
       float const *wdata_start   = mWeights->getDataFromDataIndex(arborId, kernelIdx);
       for (int k = 0; k < patchSizeOverall; k++) {
-         dwdata_start[k] *= 1 - dwFactor;
-         dwdata_start[k] += dwFactor * prev_dw_start[k];
-         dwdata_start[k] -= wFactor * wdata_start[k]; // TODO handle decay in a separate component
+         float dw = dwdata_start[k];
+         dw *= 1 - dwFactor;
+         dw += dwFactor * prev_dw_start[k];
+         float weight  = wdata_start[k];
+         float decayL2 = mWeightL2Decay * weight;
+         float dwL1    = mWeightL1Decay;
+         float decayL1 = dwL1 * ((weight > dwL1) - (weight < -dwL1));
+         decayL1 += weight * (std::abs(weight) <= dwL1);
+         // decayL1 = mWeightL1Decay * sgn(w) if |w| > mWeightL1Decay; |w| if |w| <= mWeightL1Decay
+         dw -= decayL2 + decayL1;
+         dwdata_start[k] = dw;
       }
    }
    // Since weights data is allocated with all patches of a given arbor in a single vector,

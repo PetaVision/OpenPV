@@ -16,6 +16,31 @@
 
 namespace PV {
 
+/**
+ * MomentumUpdater is a weight update class that adds momentum and elastic-net decay to
+ * the Hebbian update rule. The parameters for specifying the update rule are
+ * momentumMethod (either "viscosity" or "simple"), timeConstantTau (to specify momentum),
+ * weightL1Decay (for the L1-like decay term), and weightL2Decay (for the L2-like decay term).
+ *
+ * The weight update quantity dW is computed as follows:
+ * For each weight W, calculate the Hebbian update quantity
+ *    dW_Hebb = dWMax * pre * post / numActivations
+ * where pre and post are the presynaptic and postsynaptic activities, dWMax is the parameter by
+ * that name, and numActivations is the number of kernel activations if using shared weights, and
+ * one if using local-patch weights.
+ *
+ * The momentum term of dW is then
+ *    dW_momentum = (1-tauFactor) * dW_Hebb + tauFactor * dW_prev,
+ * where dW_prev is the value of dW on the previous update period.
+ * For the meaning of tauFactor, see the description of the timeConstantTau parameter.
+ *
+ * The L1-decay L2-decay terms are given in the description of weightL1Decay and weightL2Decay:
+ *    dW_L1Decay = -sgn(W) * min(|W|, weightL1Decay).
+ *    dW_L2Decay = -weightL1Decay * W.
+ *
+ * The update quantity dW is then dW_momentum + dW_L1Decay + dW_L2Decay.
+ * Finally, W is updated to W + dW, and dW is copied to dW_prev.
+ */
 class MomentumUpdater : public HebbianUpdater {
   protected:
    /**
@@ -32,14 +57,17 @@ class MomentumUpdater : public HebbianUpdater {
 
    /**
     * @brief timeConstantTau: controls the amount of momentum in weight updates.
-    * @details For momentumMethod = "viscosity", the update rule is
+    * @details The contribution to dW from the Hebbian update rule with momentum is:
     *
-    * dW = (1-tauFactor) * dW_Hebb + tauFactor * dWprev - weightL2Decay * W.
+    *   (1-tauFactor) * dW_Hebb + tauFactor * dW_prev
     *
-    * where dW_Hebb = dWMax * pre * post and tauFactor = exp(-1/timeConstantTau).
-    * The interpretation is that for the impulse from a single pre*post event,
-    * the weight approaches the value dW_Hebb as t->infinity, and that timeConstantTau
-    * indicates the rate of decay of W - dW_Hebb, measured in weightUpdatePeriods
+    * where dW_Hebb = dWMax * pre * post (normalized by the number of kernel updates) and
+    * tauFactor = exp(-1/timeConstantTau) for momentumMethod "viscosity", and
+    * tauFactor = timeConstantTau for momentumMethod "simple".
+    *
+    * The interpretation for "viscosity" is that for the impulse from a single pre*post event,
+    * the weight approaches the value dW_Hebb as t->infinity, and that timeConstantTau indicates
+    * the rate of decay of W - dW_Hebb, measured in weightUpdatePeriods
     *
     * For momentumMethod = "simple", the update rule is the same as for "viscosity",
     * except that tauFactor = timeConstantTau.
@@ -62,7 +90,22 @@ class MomentumUpdater : public HebbianUpdater {
    virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
 
    /**
+    * weightL1Decay: The L1-driven decay rate on the weights, applied after the momentum updates.
+    * @details The contribution to dW from L1-driven decay is:
+    *
+    *   -sgn(W) * min(|W|, weightL1Decay).
+    *
+    * The default value is zero (no L1-decay). It is an error for weightL1Decay to be negative.
+    */
+   virtual void ioParam_weightL1Decay(enum ParamsIOFlag ioFlag);
+
+   /**
     * weightL2Decay: The L2-driven decay rate on the weights, applied after the momentum updates.
+    * @details The contribution to dW from L1-driven decay is:
+    *
+    *   -weightL1Decay * W.
+    *
+    * The default value is zero (no L2-decay). It is an error for weightL2Decay to be negative.
     */
    virtual void ioParam_weightL2Decay(enum ParamsIOFlag ioFlag);
 
@@ -126,7 +169,7 @@ class MomentumUpdater : public HebbianUpdater {
 
    void applyMomentum(int arborId);
 
-   void applyMomentum(int arborId, float dwFactor, float wFactor);
+   void applyMomentum(int arborId, float dwFactor);
 
    void openOutputStateFile(std::shared_ptr<RegisterDataMessage<Checkpointer> const> message);
 
@@ -138,6 +181,7 @@ class MomentumUpdater : public HebbianUpdater {
    char *mMomentumMethod    = nullptr;
    Method mMethod           = UNDEFINED_METHOD;
    float mTimeConstantTau   = mDefaultTimeConstantTauViscosity;
+   float mWeightL1Decay     = 0.0f;
    float mWeightL2Decay     = 0.0f;
    char *mInitPrev_dWFile   = nullptr;
    int  mPrev_dWFrameNumber = 0;
