@@ -283,15 +283,15 @@ int MomentumUpdater::updateWeights(int arborId) {
 
 void MomentumUpdater::applyMomentum(int arborId) {
    // Shared weights done in parallel, parallel in numkernels
-   float momentumFactor = mTimeConstantTau;
-   switch (mMethod) {
-      case VISCOSITY:
+   float momentumFactor;
+   if (mMethod == VISCOSITY) {
          momentumFactor = mTimeConstantTau ? std::exp(-1.0f / mTimeConstantTau) : 0.0f;
-         applyMomentum(arborId, momentumFactor, mMomentumDecay);
-         break;
-      case SIMPLE: applyMomentum(arborId, momentumFactor, mMomentumDecay); break;
-      default: pvAssertMessage(0, "Unrecognized momentumMethod\n"); break;
    }
+   else {
+      pvAssertMessage(mMethod == SIMPLE, "Unrecognized momentumMethod\n");
+      momentumFactor = mTimeConstantTau;
+   }
+   applyMomentum(arborId, momentumFactor, mMomentumDecay);
 }
 
 void MomentumUpdater::applyMomentum(int arborId, float dwFactor, float wFactor) {
