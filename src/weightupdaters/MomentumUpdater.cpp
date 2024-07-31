@@ -163,6 +163,11 @@ void MomentumUpdater::ioParam_weightL2Decay(enum ParamsIOFlag ioFlag) {
             Fatal() << getDescription_c()
                     << ": weightL2Decay must be between 0 and 1 inclusive\n";
          }
+         FatalIf(
+               mWeightL2Decay < 0.0f or mWeightL2Decay > 1.0f,
+               "%s: weightL2Decay must be between 0 and 1 inclusive (given value was %f)\n",
+               getDescription_c(),
+               static_cast<double>(mWeightL2Decay));
       }
       else { // PARAMS_IO_WRITE
          parameters()->ioParamValue(
@@ -174,8 +179,13 @@ void MomentumUpdater::ioParam_weightL2Decay(enum ParamsIOFlag ioFlag) {
 void MomentumUpdater::ioParam_weightL1Decay(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
-         parameters()->ioParamValue(
+      parameters()->ioParamValue(
                ioFlag, getName(), "weightL1Decay", &mWeightL1Decay, mWeightL1Decay);
+      FatalIf(
+            mWeightL1Decay < 0.0f,
+            "%s: weightL1Decay cannot be negative (given value was %f)\n",
+            getDescription_c(),
+            static_cast<double>(mWeightL1Decay));
    }
 }
 
