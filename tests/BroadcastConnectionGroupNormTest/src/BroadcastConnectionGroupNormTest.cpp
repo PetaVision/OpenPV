@@ -49,7 +49,7 @@ int checkOutput(HyPerCol *hc, int argc, char *argv[]) {
    FatalIf(
          globalSize != 4 or numRows != 2 or numCols != 2 or batchWidth != 1,
          "%s must be run with 2 rows, 2 columns, and 1 batch element (given %d-by-%d-by-%d)\n",
-         programName, numRows, numCols, batchWidth);
+         programName.c_str(), numRows, numCols, batchWidth);
    auto mpiBlock = communicator->getIOMPIBlock();
    std::string outputDir = hc->getOutputPath();
    auto outputFileManager = std::make_shared<FileManager>(mpiBlock, outputDir);
@@ -170,7 +170,7 @@ void checkValues(std::vector<std::shared_ptr<FileStream>> fileStreams, bool isRo
          FatalIf(
                fileStream != nullptr,
                "Non-root ranks should have a null FileStream pointer (value at index %d is %p)\n",
-               connectionIndex, fileStream);
+               connectionIndex, fileStream.get());
       }
       return;
    }
