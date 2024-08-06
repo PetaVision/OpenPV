@@ -1,0 +1,104 @@
+//
+// weightL1Decay.params
+//
+
+//  A params file to test the weightL2Decay feature of MomentumConn.
+//  Two ConstantLayer objects serve as the pre- and post- synaptic layers.
+//  The pre-synaptic layer is 4x4x1 and the post-synaptic layer is 4x4x3.
+//  A MomentumConn between them has weightL2Decay set to 0.25, and
+//  weightL1Decay and timeConstantTau each set to zero.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 4;
+   ny = 4;
+   nbatch = 1;
+   dt = 1.0;
+   randomSeed = 1234567890;
+   stopTime = 25.0;  
+   errorOnNotANumber = true;
+   progressInterval = 1.0;
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/weightL2DecayTest";
+   printParamsFilename = "pv.params";
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   lastCheckpointDir = "output/weightL2DecayTest/Last";
+};
+
+//
+// layers
+//
+
+ConstantLayer "Pre" = {
+    nxScale = 1;
+    nyScale = 1;
+    
+    InitVType = "InitVFromFile";
+    Vfilename = "input/Pre.pvp";
+    nf = 1;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+};
+
+ConstantLayer "Post" = {
+    nxScale = 1;
+    nyScale = 1;
+    
+    InitVType = "InitVFromFile";
+    Vfilename = "input/Post.pvp";
+    nf = 3;
+    phase = 0;
+    writeStep = -1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    updateGpu = false;
+};
+
+//
+// connection
+//
+
+MomentumConn "PreToPost" = {
+    initializeFromCheckpointFlag        = false;
+    preLayerName                        = "Pre";
+    postLayerName                       = "Post";
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    updateGSynFromPostPerspective       = false;
+    channelCode                         = 0;
+    numAxonalArbors                     = 1;
+    delay                               = [0.000000];
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 3;
+    sharedWeights                       = true;
+    writeStep                           = 5;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    weightInitType                      = "FileWeight";
+    initWeightsFile                     = "input/InitialWeights.pvp";
+    frameNumber                         = 0;
+    normalizeMethod                     = "none";
+    plasticityFlag                      = true;
+    triggerLayerName                    = NULL;
+    weightUpdatePeriod                  = 5;
+    initialWeightUpdateTime             = 0;
+    immediateWeightUpdate               = true;
+    dWMax                               = 1;
+    dWMaxDecayInterval                  = 0;
+    dWMaxDecayFactor                    = 0;
+    normalizeDw                         = true;
+    combine_dW_with_W_flag              = false;
+    momentumMethod                      = "simple";
+    timeConstantTau                     = 0;
+    weightL1Decay                       = 0;
+    weightL2Decay                       = 0.25;
+    initPrev_dWFile                     = NULL;
+};
