@@ -87,8 +87,7 @@ void MomentumUpdater::checkTimeConstantTau() {
          FatalIf(
                mTimeConstantTau < 0,
                "%s uses momentumMethod \"viscosity\" and so must have "
-               "TimeConstantTau >= 0"
-               " (value is %f).\n",
+               "TimeConstantTau >= 0 (value is %f).\n",
                getDescription_c(),
                (double)mTimeConstantTau);
          break;
@@ -96,8 +95,7 @@ void MomentumUpdater::checkTimeConstantTau() {
          FatalIf(
                mTimeConstantTau < 0 or mTimeConstantTau >= 1,
                "%s uses momentumMethod \"simple\" and so must have "
-               "TimeConstantTau >= 0 and timeConstantTau < 1"
-               " (value is %f).\n",
+               "TimeConstantTau >= 0 and timeConstantTau < 1 (value is %f).\n",
                getDescription_c(),
                (double)mTimeConstantTau);
          break;
@@ -365,29 +363,32 @@ void MomentumUpdater::applyMomentum(int arborId, float dwFactor) {
    pvAssert(numKernels == mPrevDeltaWeights->getNumDataPatches());
    int const patchSizeOverall = mDeltaWeights->getPatchSizeOverall();
    pvAssert(patchSizeOverall == mPrevDeltaWeights->getPatchSizeOverall());
+   auto deltaWeightData = mDeltaWeights->getData();
+   auto prevDeltaWeightData = mPrevDeltaWeights->getData();
+   auto weightData = mWeights->getData();
+   long int numValuesPerArbor = weightData->getNumValuesPerArbor();
+   pvAssert(deltaWeightData->getNumValuesPerArbor() == numValuesPerArbor);
+   pvAssert(prevDeltaWeightData->getNumValuesPerArbor() == numValuesPerArbor);
+   float *dwdata_start        = deltaWeightData->getData(arborId);
+   float const *prev_dw_start = prevDeltaWeightData->getData(arborId);
+   float const *wdata_start   = weightData->getData(arborId);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for (int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++) {
-      float *dwdata_start        = mDeltaWeights->getDataFromDataIndex(arborId, kernelIdx);
-      float const *prev_dw_start = mPrevDeltaWeights->getDataFromDataIndex(arborId, kernelIdx);
-      float const *wdata_start   = mWeights->getDataFromDataIndex(arborId, kernelIdx);
-      for (int k = 0; k < patchSizeOverall; k++) {
-         float dw = dwdata_start[k];
-         dw *= 1 - dwFactor;
-         dw += dwFactor * prev_dw_start[k];
-         float weight  = wdata_start[k];
-         float decayL2 = mWeightL2Decay * weight;
-         float dwL1    = mWeightL1Decay;
-         float decayL1 = dwL1 * ((weight > dwL1) - (weight < -dwL1));
-         decayL1 += weight * (std::abs(weight) <= dwL1);
-         // decayL1 = mWeightL1Decay * sgn(w) if |w| > mWeightL1Decay; |w| if |w| <= mWeightL1Decay
-         dw -= decayL2 + decayL1;
-         dwdata_start[k] = dw;
-      }
+   for (int k = 0; k < numValuesPerArbor; ++k) {
+      float dw = dwdata_start[k];
+      dw *= 1 - dwFactor;
+      dw += dwFactor * prev_dw_start[k];
+      float weight  = wdata_start[k];
+      float decayL2 = mWeightL2Decay * weight;
+      float dwL1    = mWeightL1Decay;
+      float decayL1 = dwL1 * ((weight > dwL1) - (weight < -dwL1));
+      decayL1 += weight * (std::abs(weight) <= dwL1);
+      // Formula for decayL1 is = mWeightL1Decay * sgn(w) if |w| > mWeightL1Decay;
+      //                          |w| if |w| <= mWeightL1Decay
+      dw -= decayL2 + decayL1;
+      dwdata_start[k] = dw;
    }
-   // Since weights data is allocated with all patches of a given arbor in a single vector,
-   // these two for-loops can probably be collapsed. --pschultz 2017-12-16
 }
 
 void MomentumUpdater::openOutputStateFile(
