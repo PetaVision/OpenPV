@@ -281,7 +281,7 @@ class pvpOpen(object):
         if not type(time).__module__ == np.__name__:
             raise ValueError("Time field must be either a numpy array or a list")
 
-        while time.shape[0] == 1:
+        while len(time.shape) > 1 and time.shape[0] == 1:
             time = time.reshape(time.shape[1:])
 
         if len(time) != time.size:
