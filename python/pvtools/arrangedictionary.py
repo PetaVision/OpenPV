@@ -3,10 +3,10 @@ import math
 
 def arrangedictionary(weights: np.ndarray, upscaling:int=1):
     """arrangedictionary(weights, upscaling)
-    Given a 4-D numpy array, of size numFeatures-by-nxp-by-nyp-by-nfp,
-    arranges the dictionary elements into a 3-D array of size
-    (ncols * nxp)-by-(nrows * nyp)-by-nfp, where ncols and nrows are chosen
-    automatically so that each is close to numFeatures but ncols * nrows
+    Given a 4-D numpy array, of shape (numFeatures,nyp,nxp,nfp),
+    arranges the dictionary elements into a 3-D array of shape
+    (nrows * nyp, ncols * nxp, nfp), where ncols and nrows are chosen
+    automatically so that each is close to sqrt(numFeatures) but ncols * nrows
     is greater than or equal to numFeatures. Each feature is individually
     rescaled linearly into the interval [-1, 1], with zero values remaining at
     zero. (If a feature's values are all close to zero, that feature is
@@ -17,8 +17,8 @@ def arrangedictionary(weights: np.ndarray, upscaling:int=1):
     square, and the return value has shape
     (ncols * nxp * upscaling)-by-(nrows * nyp * upscaling)-by-nfp.
     """
-    nxp = weights.shape[1]  # width
-    nyp = weights.shape[2]  # height
+    nxp = weights.shape[2]  # width
+    nyp = weights.shape[1]  # height
     nfp = weights.shape[3]  # post-synaptic features
     nf = weights.shape[0]  # dictionary size
     nrows = math.floor(math.sqrt(nf))    # number of patches down
