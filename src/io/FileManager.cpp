@@ -48,19 +48,26 @@ void FileManager::ensureDirectoryExists(std::string const &path) const {
    // if path exists and is a directory, nothing to do.
    // If path exists but is not a directory, fatal error.
    if (statresult == 0) {
-      FatalIf(!S_ISDIR(statbuffer.st_mode), "Path \"%s\" exists but is not a directory\n", path.c_str());
+      FatalIf(
+            !S_ISDIR(statbuffer.st_mode),
+            "Path \"%s\" in base directory \"%s\" exists but is not a directory\n",
+            path.c_str(),
+            getBaseDirectory().c_str());
       return;
    }
 
    // Fatal error if checking the path gave an error other than No such file or directory
    FatalIf(
          errno != ENOENT,
-         "Error checking status of directory \"%s\": %s.\n",
+         "Error checking status of directory \"%s\" in base directory \"%s\": %s.\n",
          path.c_str(),
+         getBaseDirectory().c_str(),
          std::strerror(errno));
 
    InfoLog().printf(
-         "FileManager directory \"%s\" does not exist; attempting to create\n", path.c_str());
+         "Directory \"%s\" in base directory \"%s\" does not exist; attempting to create\n",
+         path.c_str(),
+         getBaseDirectory().c_str());
 
    // Try up to mMaxAttempts times until it works
    for (int attemptNum = 0; attemptNum < mMaxAttempts; ++attemptNum) {
@@ -68,15 +75,21 @@ void FileManager::ensureDirectoryExists(std::string const &path) const {
       if (mkdirstatus != 0 and errno != EEXIST) {
          if (attemptNum == mMaxAttempts - 1) {
             Fatal().printf(
-                  "FileManager directory \"%s\" could not be created: %s; Exiting\n",
+                  "Directory \"%s\" in base directory \"%s\" could not be created: %s; Exiting\n",
                   path.c_str(),
+                  getBaseDirectory().c_str(),
                   std::strerror(errno));
          }
          else {
             getOutputStream().flush();
             WarnLog().printf(
-                  "FileManager directory \"%s\" could not be created: %s; Retrying %d out of %d\n",
-                  path.c_str(), std::strerror(errno), attemptNum + 1, mMaxAttempts);
+                  "Directory \"%s\" in base directory \"%s\" could not be created: %s; "
+                  "Retrying %d out of %d\n",
+                  path.c_str(),
+                  getBaseDirectory().c_str(),
+                  std::strerror(errno),
+                  attemptNum + 1,
+                  mMaxAttempts);
             sleep(1);
          }
       }

@@ -103,7 +103,7 @@ void MomentumUpdater::checkTimeConstantTau() {
    }
 }
 
-// momentumTau was marked obsolete on July 30, 2025.
+// momentumTau was marked obsolete on July 30, 2024.
 void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
    FatalIf(
          parameters()->present(getName(), "momentumTau"),
@@ -112,7 +112,7 @@ void MomentumUpdater::ioParam_momentumTau(enum ParamsIOFlag ioFlag) {
          getDescription_c());
 }
 
-// momentumDecay was deprecated on July 30, 2025.
+// momentumDecay was deprecated on July 30, 2024.
 void MomentumUpdater::ioParam_momentumDecay(enum ParamsIOFlag ioFlag) {
    pvAssert(!parameters()->presentAndNotBeenRead(getName(), "plasticityFlag"));
    if (mPlasticityFlag) {
