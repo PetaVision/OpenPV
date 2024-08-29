@@ -16,7 +16,11 @@ HebbianUpdater::HebbianUpdater(char const *name, PVParams *params, Communicator 
    initialize(name, params, comm);
 }
 
-HebbianUpdater::~HebbianUpdater() {}
+HebbianUpdater::~HebbianUpdater() {
+   if (mPlasticityFlag and !mCombine_dWWithWFlag) {
+      delete mDeltaWeights;
+   }
+}
 
 void HebbianUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseWeightUpdater::initialize(name, params, comm);

@@ -263,6 +263,7 @@ void InputActivityBuffer::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag) {
          case Buffer<float>::NORTHWEST: strncpy(offsetAnchor, "tl", 3UL); break;
       }
       parameters()->ioParamString(ioFlag, getName(), "offsetAnchor", &offsetAnchor, "tl");
+      free(offsetAnchor);
    }
 }
 
