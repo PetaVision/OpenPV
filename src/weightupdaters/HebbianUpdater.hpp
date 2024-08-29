@@ -157,7 +157,7 @@ class HebbianUpdater : public BaseWeightUpdater {
    double mLastUpdateTime                 = 0.0;
    bool mNeedFinalize                     = true;
    int mDWMaxDecayTimer                   = 0;
-   long **mNumKernelActivations           = nullptr;
+   std::vector<std::vector<long int>> mNumKernelActivations;
    std::vector<MPI_Request> mDeltaWeightsReduceRequests;
    bool mReductionPending = false;
    // mReductionPending is set by reduce_dW() and cleared by

@@ -16,12 +16,7 @@ HebbianUpdater::HebbianUpdater(char const *name, PVParams *params, Communicator 
    initialize(name, params, comm);
 }
 
-HebbianUpdater::~HebbianUpdater() {
-   if (mNumKernelActivations) {
-      free(mNumKernelActivations[0]);
-      free(mNumKernelActivations);
-   }
-}
+HebbianUpdater::~HebbianUpdater() {}
 
 void HebbianUpdater::initialize(char const *name, PVParams *params, Communicator const *comm) {
    BaseWeightUpdater::initialize(name, params, comm);
@@ -268,14 +263,13 @@ Response::Status HebbianUpdater::allocateDataStructures() {
          mDeltaWeights->allocateDataStructures();
       }
       if (mWeights->getSharedFlag() && mNormalizeDw) {
-         int const nPatches       = mDeltaWeights->getNumDataPatches();
-         int const numArbors      = mArborList->getNumAxonalArbors();
-         mNumKernelActivations    = (long **)pvCalloc(numArbors, sizeof(long *));
-         int const sp             = mDeltaWeights->getPatchSizeOverall();
-         std::size_t numWeights   = (std::size_t)(sp) * (std::size_t)nPatches;
-         mNumKernelActivations[0] = (long *)pvCalloc(numWeights, sizeof(long));
+         int const numArbors = mArborList->getNumAxonalArbors();
+         mNumKernelActivations.resize(numArbors);
+         int const sp           = mDeltaWeights->getPatchSizeOverall();
+         int const nPatches     = mDeltaWeights->getNumDataPatches();
+         std::size_t numWeights = (std::size_t)(sp) * (std::size_t)nPatches;
          for (int arborId = 0; arborId < numArbors; arborId++) {
-            mNumKernelActivations[arborId] = (mNumKernelActivations[0] + sp * nPatches * arborId);
+            mNumKernelActivations[arborId].resize(numWeights);
          } // loop over arbors
       }
    }
@@ -413,7 +407,7 @@ int HebbianUpdater::initialize_dW(int arborId) {
    if (!mCombine_dWWithWFlag) {
       clear_dW(arborId);
    }
-   if (mNumKernelActivations) {
+   if (!mNumKernelActivations.empty()) {
       clearNumActivations(arborId);
    }
    // default initialize_dW returns PV_BREAK
@@ -460,7 +454,6 @@ int HebbianUpdater::clearNumActivations(int arborId) {
    for (int kArbor = 0; kArbor < numArbors; kArbor++) {
       for (int kKernel = 0; kKernel < numDataPatches; kKernel++) {
          long *activations = &mNumKernelActivations[kArbor][kKernel * patchSizeOverall];
-         // long *activations = getActivationsHead(kArbor, kKernel);
          for (int kyPatch = 0; kyPatch < nyp; kyPatch++) {
             for (int kPatch = 0; kPatch < nkPatch; kPatch++) {
                activations[kPatch] = 0.0f;
@@ -695,7 +688,7 @@ int HebbianUpdater::reduceActivations(int arborID) {
    const int nyProcs        = comm->numCommRows();
    const int nbProcs        = comm->numCommBatches();
    const int nProcs         = nxProcs * nyProcs * nbProcs;
-   if (mNumKernelActivations && nProcs != 1) {
+   if (!mNumKernelActivations.empty() && nProcs != 1) {
       const MPI_Comm mpi_comm = comm->globalCommunicator();
       const int numPatches    = mWeights->getNumDataPatches();
       const size_t patchSize  = (size_t)mWeights->getPatchSizeOverall();
@@ -706,7 +699,7 @@ int HebbianUpdater::reduceActivations(int arborID) {
       mDeltaWeightsReduceRequests.resize(sz + 1);
       MPI_Iallreduce(
             MPI_IN_PLACE,
-            mNumKernelActivations[arborID],
+            mNumKernelActivations[arborID].data(),
             arborSize,
             MPI_LONG,
             MPI_SUM,
@@ -775,7 +768,7 @@ int HebbianUpdater::normalize_dW(int arbor_ID) {
       return PV_SUCCESS;
    }
    if (mWeights->getSharedFlag()) {
-      pvAssert(mNumKernelActivations);
+      pvAssert(!mNumKernelActivations.empty());
       int numKernelIndices = mWeights->getNumDataPatches();
       int const numArbors  = mArborList->getNumAxonalArbors();
       for (int loop_arbor = 0; loop_arbor < numArbors; loop_arbor++) {
