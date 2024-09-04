@@ -616,6 +616,7 @@ void HebbianUpdater::updateInd_dW(
       lineoffsetw += syp;
       lineoffseta += sya;
    }
+   return;
 }
 
 float HebbianUpdater::updateRule_dW(float pre, float post) { return mDWMax * pre * post; }
