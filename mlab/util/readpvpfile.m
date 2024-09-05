@@ -1,8 +1,9 @@
 function [data,hdr] = readpvpfile(filename,progressperiod, last_frame, start_frame, skip_frames)
 % Usage:[data,hdr] = readpvpfile(filename,progressperiod, last_frame, start_frame, skip_frames)
 % filename is a pvp file (any type)
-% progressperiod is an optional integer argument.  A message is printed
-%     to the screen every progressperiod frames.
+% progressperiod is an integer argument.  A message is printed
+%     to the screen every progressperiod frames. If progressperiod is set to zero or to an
+%     empty matrix, no progress message is printed.
 % last_frame is the index of the last frame to read.  Default is all frames.
 % start_frame is the starting frame.  Default is 1.
 % skip_frame means to read every [n]th frame. Default is 1.
